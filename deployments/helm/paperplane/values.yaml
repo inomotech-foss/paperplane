@@ -250,6 +250,61 @@ secretGenerator:
   image: alpine/k8s:1.36.2@sha256:44ef4942e171939b9c665a4a84beb80e2dcdb9a24330d4651cfdfd2e9deecc47
   pullPolicy: IfNotPresent
 
+# Declarative provisioning. Keys declared here are reconciled into the instance
+# configuration on every deploy, so the chart is the source of truth for them.
+# Anything not declared stays editable in the god-mode admin UI.
+provision:
+  enabled: false
+
+  # Instance settings (applied only when set).
+  instanceName: ""
+  # true/false to manage telemetry; leave null to leave the current value alone.
+  telemetry: null
+  # Skip the interactive setup wizard without an admin email list. Set this when
+  # admins are assigned via an OIDC role (auth.oidc.adminRole) instead.
+  setupDone: false
+
+  # Instance admins. Each email is created as an SSO admin user (it signs in via
+  # the OIDC/OAuth provider) and the interactive setup wizard is skipped.
+  adminEmails: []
+
+  auth:
+    # Core login methods. true/false manages the toggle; null leaves it UI-owned.
+    emailPassword: null
+    magicLink: null
+    signup: null
+
+    oidc:
+      enabled: false
+      # Effective defaults when left empty: providerName "SSO",
+      # scopes "openid email profile", adminClaim "roles".
+      providerName: ""
+      issuer: ""
+      scopes: ""
+      trustEmail: false
+      # Grant god-mode instance admin to users whose token carries this role
+      # value in adminClaim (Entra app roles land in the "roles" claim). Empty
+      # leaves admin membership unmanaged. Membership is full-synced on login:
+      # losing the role removes admin.
+      adminRole: ""
+      adminClaim: ""
+      # Optional explicit endpoint overrides. Leave empty to use issuer discovery.
+      authorizeUrl: ""
+      tokenUrl: ""
+      userinfoUrl: ""
+      jwksUrl: ""
+      clientId: ""
+      clientSecret: ""
+      # Read any of the string options above from a mounted file instead of
+      # inline (for example a Secrets Store CSI or Secret volume mounted via
+      # api.extraVolumes/extraVolumeMounts). Keys are the environment variable
+      # names, values are file paths. Setting both an inline value and a file
+      # for the same option is rejected. (enabled/trustEmail are inline only.)
+      #   files:
+      #     OIDC_CLIENT_SECRET: /mnt/secrets-store/client-secret
+      #     OIDC_CLIENT_ID: /mnt/secrets-store/client-id
+      files: {}
+
 env:
 
   # NEXT_PUBLIC_DEPLOY_URL:  ""

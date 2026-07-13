@@ -524,6 +524,101 @@ first. Leave it disabled if you manage these secrets through `external_secrets`.
 
 `secretGenerator.image` sets the kubectl image the hook runs (it needs a shell).
 
+## Declarative Provisioning
+
+`provision` lets you configure authentication and the first instance admin from
+chart values instead of the god-mode admin UI. Keys you declare here are
+reconciled into the instance configuration on every deploy, so the chart is the
+source of truth for them. Anything you do not declare stays editable in the UI.
+
+Editing a chart-managed value in the UI is reverted on the next deploy. That is
+the intended behavior; manage a value in one place, not both.
+
+```yaml
+provision:
+  enabled: true
+  instanceName: "Acme Plane"
+  telemetry: false
+  # Each email becomes an SSO admin user and the setup wizard is skipped.
+  adminEmails:
+    - alice@acme.com
+  auth:
+    magicLink: true
+    oidc:
+      enabled: true
+      providerName: "Entra"
+      issuer: "https://login.microsoftonline.com/<tenant>/v2.0"
+      trustEmail: true
+      clientId: "<client-id>"
+      clientSecret: "<client-secret>"
+```
+
+### Sensitive values from mounted files (CSI)
+
+Instead of inlining OIDC values, mount them as files and list them under
+`oidc.files` (keyed by environment variable name, valued by file path). The app
+reads each value from its file (via the `<NAME>_FILE` convention), so no Secret
+is written by the chart and no Secrets Store CSI `secretObjects` sync is needed.
+Mount the `SecretProviderClass` volume through `api.extraVolumes`/`api.extraVolumeMounts`.
+Setting both an inline value and a file for the same option is rejected.
+
+```yaml
+provision:
+  enabled: true
+  auth:
+    oidc:
+      enabled: true
+      files:
+        OIDC_ISSUER: /mnt/secrets-store/issuer
+        OIDC_CLIENT_ID: /mnt/secrets-store/client-id
+        OIDC_CLIENT_SECRET: /mnt/secrets-store/client-secret
+
+api:
+  extraVolumes:
+    - name: oidc-csi
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "oidc"
+  extraVolumeMounts:
+    - name: oidc-csi
+      mountPath: /mnt/secrets-store
+      readOnly: true
+```
+
+Any of the OIDC string options can be supplied this way. The same `<NAME>_FILE`
+convention works for any config value (for example `SECRET_KEY_FILE`) via
+`api.extraEnvFrom` or `env`.
+
+Setting `oidc.enabled=true` requires a value (inline or via `files`) for
+`issuer`, the client id, and the client secret. Leave the endpoint overrides
+(`authorizeUrl`, `tokenUrl`, `userinfoUrl`, `jwksUrl`) empty to use issuer
+discovery.
+
+### Admins from an OIDC role
+
+Instead of listing `adminEmails`, grant god-mode admin from a role in the
+provider's token. Set `oidc.adminRole` to the role value (for Microsoft Entra,
+create an app role and assign users/groups to it; it arrives in the `roles`
+claim). Membership is full-synced on each login: the role grants admin, its
+absence removes it. Set `setupDone: true` so the first admin can sign in via SSO
+before any admin exists (the setup wizard is otherwise shown).
+
+```yaml
+provision:
+  enabled: true
+  setupDone: true
+  auth:
+    oidc:
+      enabled: true
+      adminRole: "PlaneInstanceAdmin"
+      files:
+        OIDC_ISSUER: /mnt/secrets-store/issuer
+        OIDC_CLIENT_ID: /mnt/secrets-store/client-id
+        OIDC_CLIENT_SECRET: /mnt/secrets-store/client-secret
+```
+
 ## Custom Ingress Routes
 
 If you are planning to use 3rd party ingress providers, here is the available route configuration

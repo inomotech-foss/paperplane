@@ -68,6 +68,27 @@ parentRefs:
 {{- end }}
 {{- end -}}
 
+{{/*
+Render one provisioned env var from an inline value or a mounted file.
+Args (dict): key, value (raw inline value, may be empty), default (fallback
+applied to the inline value), files (map of env-var name to file path), secret
+(when true, the inline value is emitted elsewhere into a Secret, so only the
+file form is rendered here). When the key is present in files, `<key>_FILE` is
+emitted; otherwise `<key>` (unless secret). Setting both an inline value and a
+file for the same key is rejected.
+*/}}
+{{- define "plane.provision.var" -}}
+{{- $file := get .files .key -}}
+{{- if and $file .value -}}
+{{- fail (printf "provision.auth.oidc: %s cannot be set both inline and via files" .key) -}}
+{{- end -}}
+{{- if $file -}}
+{{ .key }}_FILE: {{ $file | quote }}
+{{- else if not .secret -}}
+{{ .key }}: {{ .value | default .default | quote }}
+{{- end -}}
+{{- end -}}
+
 {{- define "plane.commonLabels" -}}
 helm.sh/chart: {{ include "plane.chart" . }}
 app.kubernetes.io/name: {{ .Chart.Name }}
