@@ -28,6 +28,9 @@ python manage.py configure_instance
 # Reconcile chart-managed configuration from the environment
 python manage.py reconcile_instance_config
 
+# Bootstrap instance admins and settings from the environment
+python manage.py bootstrap_instance
+
 # Create the default bucket
 python manage.py create_bucket
 
