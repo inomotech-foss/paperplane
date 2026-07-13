@@ -261,3 +261,78 @@ jobs:
           draft: false
           prerelease: ${{ needs.setup.outputs.build_prerelease == 'true' }}
           generate_release_notes: true
+
+  publish_chart:
+    name: Publish Helm chart
+    runs-on: ubuntu-26.04
+    needs: [setup, build]
+    if: ${{ needs.setup.outputs.build_release == 'true' || github.ref == 'refs/heads/main' }}
+    env:
+      CHART_DIR: deployments/helm/paperplane
+      OWNER: ${{ github.repository_owner }}
+      IMAGE_TAG: ${{ needs.setup.outputs.primary_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: v4.2.3
+
+      - name: Set up ORAS
+        uses: oras-project/setup-oras@1d808f7d7f6995cc68b7bf507bfe5c5446e1dc9d # v2.0.1
+        with:
+          version: 1.3.3
+
+      - name: Install yq
+        run: |
+          sudo curl -fsSL https://github.com/mikefarah/yq/releases/download/v4.53.3/yq_linux_amd64 -o /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Log in to GHCR
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pin image digests
+        run: |
+          set -euo pipefail
+          base="${REGISTRY}/${OWNER}"
+          d_frontend=$(docker buildx imagetools inspect "$base/paperplane-frontend:$IMAGE_TAG" --format '{{.Manifest.Digest}}')
+          d_space=$(docker buildx imagetools inspect "$base/paperplane-space:$IMAGE_TAG" --format '{{.Manifest.Digest}}')
+          d_admin=$(docker buildx imagetools inspect "$base/paperplane-admin:$IMAGE_TAG" --format '{{.Manifest.Digest}}')
+          d_live=$(docker buildx imagetools inspect "$base/paperplane-live:$IMAGE_TAG" --format '{{.Manifest.Digest}}')
+          d_backend=$(docker buildx imagetools inspect "$base/paperplane-backend:$IMAGE_TAG" --format '{{.Manifest.Digest}}')
+          yq -i "
+            .planeVersion = \"\" |
+            .web.image = \"$base/paperplane-frontend@$d_frontend\" |
+            .space.image = \"$base/paperplane-space@$d_space\" |
+            .admin.image = \"$base/paperplane-admin@$d_admin\" |
+            .live.image = \"$base/paperplane-live@$d_live\" |
+            .api.image = \"$base/paperplane-backend@$d_backend\" |
+            .worker.image = \"$base/paperplane-backend@$d_backend\" |
+            .beatworker.image = \"$base/paperplane-backend@$d_backend\"
+          " "$CHART_DIR/values.yaml"
+
+      - name: Package and publish
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          if [ "${{ needs.setup.outputs.build_release }}" = "true" ]; then
+            helm package "$CHART_DIR" --version "${IMAGE_TAG#v}" --app-version "$IMAGE_TAG" --destination dist
+            echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+            helm push dist/*.tgz "oci://${REGISTRY}/${OWNER}/charts"
+          else
+            # helm requires a semver chart version, but the rolling channel is
+            # published under the plain `main` OCI tag via oras.
+            helm package "$CHART_DIR" --version "0.0.0-main" --app-version "$IMAGE_TAG" --destination dist
+            pkg=$(ls dist/*.tgz)
+            helm show chart "$pkg" | yq -o=json > chart-config.json
+            echo "${{ secrets.GITHUB_TOKEN }}" | oras login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+            oras push "${REGISTRY}/${OWNER}/charts/paperplane:main" \
+              --config chart-config.json:application/vnd.cncf.helm.config.v1+json \
+              "${pkg}:application/vnd.cncf.helm.chart.content.v1.tar+gzip"
+          fi
