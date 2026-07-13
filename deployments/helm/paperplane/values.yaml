@@ -19,6 +19,16 @@ ingress:
   traefik:
     maxRequestBodyBytes: 20971520   # in bytes (default: 20 MiB)
   # ingress_annotations: { "nginx.ingress.kubernetes.io/proxy-body-size": "5m" }
+  # Gateway API (gateway.networking.k8s.io/v1). When enabled, the chart creates
+  # HTTPRoutes attached to an existing Gateway instead of an Ingress/IngressRoute.
+  # ingressClass is ignored. TLS termination and request-body limits are set on
+  # the Gateway/listener, not here.
+  gatewayAPI:
+    enabled: false
+    parentRef:
+      name: ""          # required: name of an existing Gateway
+      namespace: ""     # optional: Gateway namespace (defaults to the release namespace)
+      sectionName: ""   # optional: target a specific listener on the Gateway
 
 # SSL Configuration - Valid only if ingress.enabled is true
 ssl:

@@ -1,0 +1,104 @@
+{{- if and .Values.ingress.enabled .Values.ingress.gatewayAPI.enabled .Values.ingress.appHost }}
+# TLS and request-body limits are configured on the referenced Gateway/listener,
+# not on the HTTPRoute. Path precedence follows the Gateway API spec (the most
+# specific path prefix wins), so rule order does not matter.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Release.Name }}-http
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+spec:
+  {{- include "plane.gatewayParentRefs" $ | nindent 2 }}
+  hostnames:
+    - {{ .Values.ingress.appHost | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: {{ .Release.Name }}-api
+          port: 8000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /auth
+      backendRefs:
+        - name: {{ .Release.Name }}-api
+          port: 8000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /live
+      backendRefs:
+        - name: {{ .Release.Name }}-live
+          port: 3000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /spaces
+      backendRefs:
+        - name: {{ .Release.Name }}-space
+          port: 3000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /god-mode
+      backendRefs:
+        - name: {{ .Release.Name }}-admin
+          port: 3000
+    {{- if and .Values.minio.local_setup .Values.env.docstore_bucket }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /{{ .Values.env.docstore_bucket }}
+      backendRefs:
+        - name: {{ .Release.Name }}-minio
+          port: 9000
+    {{- end }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ .Release.Name }}-web
+          port: 3000
+{{- if and .Values.minio.local_setup .Values.ingress.minioHost }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Release.Name }}-minio-http
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+spec:
+  {{- include "plane.gatewayParentRefs" $ | nindent 2 }}
+  hostnames:
+    - {{ .Values.ingress.minioHost | quote }}
+  rules:
+    - backendRefs:
+        - name: {{ .Release.Name }}-minio
+          port: 9090
+{{- end }}
+{{- if and .Values.rabbitmq.local_setup .Values.ingress.rabbitmqHost }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Release.Name }}-rabbitmq-http
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+spec:
+  {{- include "plane.gatewayParentRefs" $ | nindent 2 }}
+  hostnames:
+    - {{ .Values.ingress.rabbitmqHost | quote }}
+  rules:
+    - backendRefs:
+        - name: {{ .Release.Name }}-rabbitmq
+          port: 15672
+{{- end }}
+{{- end }}

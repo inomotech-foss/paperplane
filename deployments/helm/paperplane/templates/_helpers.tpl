@@ -28,6 +28,22 @@ spec.selector/matchLabels (which stay on the immutable `app.name` label) so that
 upgrading an existing release never tries to mutate an immutable selector.
 Call with the root context, e.g. {{ include "plane.commonLabels" $ }}
 */}}
+{{/*
+Render the parentRefs for a Gateway API HTTPRoute from ingress.gatewayAPI.parentRef.
+Call with the root context: {{ include "plane.gatewayParentRefs" $ }}
+*/}}
+{{- define "plane.gatewayParentRefs" -}}
+{{- $ref := .Values.ingress.gatewayAPI.parentRef -}}
+parentRefs:
+  - name: {{ required "ingress.gatewayAPI.parentRef.name is required when gatewayAPI is enabled" $ref.name }}
+    {{- with $ref.namespace }}
+    namespace: {{ . }}
+    {{- end }}
+    {{- with $ref.sectionName }}
+    sectionName: {{ . }}
+    {{- end }}
+{{- end -}}
+
 {{- define "plane.commonLabels" -}}
 helm.sh/chart: {{ include "plane.chart" . }}
 app.kubernetes.io/name: {{ .Chart.Name }}
