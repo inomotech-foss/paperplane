@@ -54,6 +54,19 @@ spec:
             cpu: {{ .Values.api.cpuLimit | default "500m" | quote}}
         command:
           - ./bin/docker-entrypoint-api.sh
+        {{- if and .Values.provision.enabled .Values.provision.auth.oidc.enabled .Values.provision.auth.oidc.existingSecret }}
+        env:
+          - name: OIDC_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.provision.auth.oidc.existingSecret }}
+                key: {{ .Values.provision.auth.oidc.clientIdKey | default "OIDC_CLIENT_ID" }}
+          - name: OIDC_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.provision.auth.oidc.existingSecret }}
+                key: {{ .Values.provision.auth.oidc.clientSecretKey | default "OIDC_CLIENT_SECRET" }}
+        {{- end }}
         envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-app-vars
@@ -61,6 +74,14 @@ spec:
           - secretRef:
               name: {{ if not (empty .Values.external_secrets.app_env_existingSecret) }}{{ .Values.external_secrets.app_env_existingSecret }}{{ else }}{{ .Release.Name }}-app-secrets{{ end }}
               optional: false
+          {{- if .Values.provision.enabled }}
+          - configMapRef:
+              name: {{ .Release.Name }}-provision-vars
+              optional: true
+          - secretRef:
+              name: {{ .Release.Name }}-provision-secrets
+              optional: true
+          {{- end }}
           - secretRef:
               name: {{ if not (empty .Values.external_secrets.doc_store_existingSecret) }}{{ .Values.external_secrets.doc_store_existingSecret }}{{ else }}{{ .Release.Name }}-doc-store-secrets{{ end }}
               optional: false

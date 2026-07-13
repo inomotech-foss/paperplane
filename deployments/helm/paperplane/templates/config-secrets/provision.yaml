@@ -1,0 +1,68 @@
+{{- if .Values.provision.enabled }}
+{{- $oidc := .Values.provision.auth.oidc }}
+{{- if and $oidc.enabled (not $oidc.issuer) }}
+{{- fail "provision.auth.oidc: issuer is required when oidc.enabled is true" }}
+{{- end }}
+{{- if and $oidc.enabled (not $oidc.existingSecret) (not $oidc.clientId) }}
+{{- fail "provision.auth.oidc: set clientId/clientSecret or existingSecret when oidc.enabled is true" }}
+{{- end }}
+{{- $managed := list }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-provision-vars
+  labels:
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+data:
+  {{- with .Values.provision.instanceName }}
+  INSTANCE_NAME: {{ . | quote }}
+  {{- end }}
+  {{- if not (kindIs "invalid" .Values.provision.telemetry) }}
+  INSTANCE_TELEMETRY_ENABLED: {{ .Values.provision.telemetry | ternary "1" "0" | quote }}
+  {{- end }}
+  {{- with .Values.provision.adminEmails }}
+  INSTANCE_ADMIN_EMAILS: {{ join "," . | quote }}
+  {{- end }}
+  {{- if not (kindIs "invalid" .Values.provision.auth.emailPassword) }}
+  ENABLE_EMAIL_PASSWORD: {{ .Values.provision.auth.emailPassword | ternary "1" "0" | quote }}
+  {{- $managed = append $managed "ENABLE_EMAIL_PASSWORD" }}
+  {{- end }}
+  {{- if not (kindIs "invalid" .Values.provision.auth.magicLink) }}
+  ENABLE_MAGIC_LINK_LOGIN: {{ .Values.provision.auth.magicLink | ternary "1" "0" | quote }}
+  {{- $managed = append $managed "ENABLE_MAGIC_LINK_LOGIN" }}
+  {{- end }}
+  {{- if not (kindIs "invalid" .Values.provision.auth.signup) }}
+  ENABLE_SIGNUP: {{ .Values.provision.auth.signup | ternary "1" "0" | quote }}
+  {{- $managed = append $managed "ENABLE_SIGNUP" }}
+  {{- end }}
+  {{- if $oidc.enabled }}
+  IS_OIDC_ENABLED: "1"
+  OIDC_ISSUER: {{ $oidc.issuer | quote }}
+  OIDC_PROVIDER_NAME: {{ $oidc.providerName | default "SSO" | quote }}
+  OIDC_SCOPES: {{ $oidc.scopes | default "openid email profile" | quote }}
+  OIDC_TRUST_EMAIL: {{ $oidc.trustEmail | ternary "1" "0" | quote }}
+  OIDC_AUTHORIZE_URL: {{ $oidc.authorizeUrl | default "" | quote }}
+  OIDC_TOKEN_URL: {{ $oidc.tokenUrl | default "" | quote }}
+  OIDC_USERINFO_URL: {{ $oidc.userinfoUrl | default "" | quote }}
+  OIDC_JWKS_URL: {{ $oidc.jwksUrl | default "" | quote }}
+  {{- if not $oidc.existingSecret }}
+  OIDC_CLIENT_ID: {{ $oidc.clientId | quote }}
+  {{- end }}
+  {{- $managed = concat $managed (list "IS_OIDC_ENABLED" "OIDC_ISSUER" "OIDC_CLIENT_ID" "OIDC_CLIENT_SECRET" "OIDC_PROVIDER_NAME" "OIDC_SCOPES" "OIDC_TRUST_EMAIL" "OIDC_AUTHORIZE_URL" "OIDC_TOKEN_URL" "OIDC_USERINFO_URL" "OIDC_JWKS_URL") }}
+  {{- end }}
+  PROVISION_MANAGED_KEYS: {{ join "," $managed | quote }}
+{{- if and $oidc.enabled (not $oidc.existingSecret) $oidc.clientSecret }}
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-provision-secrets
+  labels:
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+stringData:
+  OIDC_CLIENT_SECRET: {{ $oidc.clientSecret | quote }}
+{{- end }}
+{{- end }}

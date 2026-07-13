@@ -524,6 +524,73 @@ first. Leave it disabled if you manage these secrets through `external_secrets`.
 
 `secretGenerator.image` sets the kubectl image the hook runs (it needs a shell).
 
+## Declarative Provisioning
+
+`provision` lets you configure authentication and the first instance admin from
+chart values instead of the god-mode admin UI. Keys you declare here are
+reconciled into the instance configuration on every deploy, so the chart is the
+source of truth for them. Anything you do not declare stays editable in the UI.
+
+Editing a chart-managed value in the UI is reverted on the next deploy. That is
+the intended behavior; manage a value in one place, not both.
+
+```yaml
+provision:
+  enabled: true
+  instanceName: "Acme Plane"
+  telemetry: false
+  # Each email becomes an SSO admin user and the setup wizard is skipped.
+  adminEmails:
+    - alice@acme.com
+  auth:
+    magicLink: true
+    oidc:
+      enabled: true
+      providerName: "Entra"
+      issuer: "https://login.microsoftonline.com/<tenant>/v2.0"
+      trustEmail: true
+      clientId: "<client-id>"
+      clientSecret: "<client-secret>"
+```
+
+### Sensitive values from an existing Secret (CSI)
+
+Instead of inlining the OIDC client credentials, reference an existing Secret,
+for example one synced by the [Secrets Store CSI driver](https://secrets-store-csi-driver.sigs.k8s.io/).
+The chart then wires the values as `secretKeyRef` environment entries and never
+writes them into a chart-managed Secret. Mount the `SecretProviderClass` volume
+through `api.extraVolumes`/`api.extraVolumeMounts` so the driver syncs the Secret.
+
+```yaml
+provision:
+  enabled: true
+  auth:
+    oidc:
+      enabled: true
+      issuer: "https://login.microsoftonline.com/<tenant>/v2.0"
+      existingSecret: "oidc-csi-synced"
+      clientIdKey: "client-id"
+      clientSecretKey: "client-secret"
+
+api:
+  extraVolumes:
+    - name: oidc-csi
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "oidc"
+  extraVolumeMounts:
+    - name: oidc-csi
+      mountPath: /mnt/secrets-store
+      readOnly: true
+```
+
+Setting `oidc.enabled=true` requires `issuer` and either inline
+`clientId`/`clientSecret` or `existingSecret`. Leave the endpoint overrides
+(`authorizeUrl`, `tokenUrl`, `userinfoUrl`, `jwksUrl`) empty to use issuer
+discovery.
+
 ## Custom Ingress Routes
 
 If you are planning to use 3rd party ingress providers, here is the available route configuration
