@@ -29,19 +29,25 @@ upgrading an existing release never tries to mutate an immutable selector.
 Call with the root context, e.g. {{ include "plane.commonLabels" $ }}
 */}}
 {{/*
-Render the parentRefs for a Gateway API HTTPRoute from ingress.gatewayAPI.parentRef.
-Call with the root context: {{ include "plane.gatewayParentRefs" $ }}
+Render the parentRefs for a Gateway API HTTPRoute from ingress.gatewayAPI.parentRefs.
+An HTTPRoute may attach to several Gateways (e.g. an HA pair), so this emits every
+listed ref. Call with the root context: {{ include "plane.gatewayParentRefs" $ }}
 */}}
 {{- define "plane.gatewayParentRefs" -}}
-{{- $ref := .Values.ingress.gatewayAPI.parentRef -}}
+{{- $refs := .Values.ingress.gatewayAPI.parentRefs -}}
+{{- if not $refs -}}
+{{- fail "ingress.gatewayAPI.parentRefs must list at least one Gateway when gatewayAPI is enabled" -}}
+{{- end -}}
 parentRefs:
-  - name: {{ required "ingress.gatewayAPI.parentRef.name is required when gatewayAPI is enabled" $ref.name }}
-    {{- with $ref.namespace }}
+{{- range $refs }}
+  - name: {{ required "ingress.gatewayAPI.parentRefs[].name is required" .name }}
+    {{- with .namespace }}
     namespace: {{ . }}
     {{- end }}
-    {{- with $ref.sectionName }}
+    {{- with .sectionName }}
     sectionName: {{ . }}
     {{- end }}
+{{- end }}
 {{- end -}}
 
 {{- define "plane.commonLabels" -}}

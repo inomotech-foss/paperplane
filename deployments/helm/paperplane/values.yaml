@@ -30,10 +30,12 @@ ingress:
   # the Gateway/listener, not here.
   gatewayAPI:
     enabled: false
-    parentRef:
-      name: ""          # required: name of an existing Gateway
-      namespace: ""     # optional: Gateway namespace (defaults to the release namespace)
-      sectionName: ""   # optional: target a specific listener on the Gateway
+    # Gateways this route attaches to. List several to span an HA Gateway pair.
+    # Required (at least one entry) when gatewayAPI is enabled.
+    parentRefs: []
+      # - name: ""          # required: name of an existing Gateway
+      #   namespace: ""     # optional: Gateway namespace (defaults to the release namespace)
+      #   sectionName: ""   # optional: target a specific listener on the Gateway
 
 # SSL Configuration - Valid only if ingress.enabled is true
 ssl:

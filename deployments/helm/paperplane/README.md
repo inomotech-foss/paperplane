@@ -105,16 +105,16 @@ The default value is `"traefik"`. If you previously relied on the implicit defau
 
 ### Using Gateway API
 
-Set `ingress.gatewayAPI.enabled=true` to create `gateway.networking.k8s.io/v1` `HTTPRoute`s instead of an `Ingress`/`IngressRoute` (`ingressClass` is then ignored). The routes attach to an existing `Gateway` you provide:
+Set `ingress.gatewayAPI.enabled=true` to create `gateway.networking.k8s.io/v1` `HTTPRoute`s instead of an `Ingress`/`IngressRoute` (`ingressClass` is then ignored). The routes attach to the existing `Gateway`s you provide. List more than one to span an HA Gateway pair:
 
 ```yaml
 ingress:
   gatewayAPI:
     enabled: true
-    parentRef:
-      name: plane-gateway   # required
-      namespace: gateway     # optional (defaults to the release namespace)
-      sectionName: https     # optional listener name
+    parentRefs:
+      - name: plane-gateway   # required
+        namespace: gateway     # optional (defaults to the release namespace)
+        sectionName: https     # optional listener name
 ```
 
 The `Gateway` (listeners, TLS termination, request-body limits) is yours to manage, exactly as the ingress controller is in the other modes. The `ssl.*` values do not apply here.
