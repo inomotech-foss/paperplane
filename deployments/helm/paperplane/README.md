@@ -103,6 +103,22 @@ The chart selects between two ingress templates based on `ingress.ingressClass`:
 
 The default value is `"traefik"`. If you previously relied on the implicit default without setting `ingressClass` explicitly, your cluster is running Traefik `IngressRoute` CRDs.
 
+### Using Gateway API
+
+Set `ingress.gatewayAPI.enabled=true` to create `gateway.networking.k8s.io/v1` `HTTPRoute`s instead of an `Ingress`/`IngressRoute` (`ingressClass` is then ignored). The routes attach to an existing `Gateway` you provide:
+
+```yaml
+ingress:
+  gatewayAPI:
+    enabled: true
+    parentRef:
+      name: plane-gateway   # required
+      namespace: gateway     # optional (defaults to the release namespace)
+      sectionName: https     # optional listener name
+```
+
+The `Gateway` (listeners, TLS termination, request-body limits) is yours to manage, exactly as the ingress controller is in the other modes. The `ssl.*` values do not apply here.
+
 ### Switching from Traefik to a standard Ingress controller (e.g. nginx)
 
 1. **Install your target ingress controller** if it is not already running (see Pre-requisites above).
