@@ -51,6 +51,10 @@ jobs:
           file: apps/api/coverage.xml
           language: Python
           label: api
+          # Best-effort: the Code Quality service is a preview and its ingestion
+          # is timing/baseline-dependent. The `code_quality` ruleset rule gates
+          # coverage; this job gates the tests, so don't fail it on upload errors.
+          fail-on-error: false
 
       - name: Tear down
         if: ${{ always() }}
