@@ -5,6 +5,7 @@ on:
     paths:
       - "deployments/helm/**"
       - ".github/workflows/helm-lint.yml"
+  merge_group:
 
 permissions:
   contents: read
