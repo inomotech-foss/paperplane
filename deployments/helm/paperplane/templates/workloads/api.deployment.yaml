@@ -44,7 +44,7 @@ spec:
       containers:
       - name: {{ .Release.Name }}-api
         imagePullPolicy: {{ .Values.api.pullPolicy | default "Always" }}
-        image: {{ .Values.api.image | default "ghcr.io/inomotech-foss/paperplane-backend" }}:{{ .Values.planeVersion }}
+        image: {{ .Values.api.image | default "ghcr.io/inomotech-foss/paperplane-backend" }}{{ with .Values.planeVersion }}:{{ . }}{{ end }}
         stdin: true
         tty: true
         resources:
