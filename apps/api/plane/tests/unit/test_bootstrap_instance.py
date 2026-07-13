@@ -6,6 +6,7 @@ import uuid
 
 import pytest
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.utils import timezone
 
 from plane.db.models import Profile, User
@@ -26,9 +27,10 @@ def make_instance():
 class TestBootstrapInstance:
     """Unit tests for the bootstrap_instance management command"""
 
-    def test_noop_without_instance(self, monkeypatch):
+    def test_errors_without_instance(self, monkeypatch):
         monkeypatch.setenv("INSTANCE_ADMIN_EMAILS", "admin@example.com")
-        call_command("bootstrap_instance")
+        with pytest.raises(CommandError):
+            call_command("bootstrap_instance")
         assert InstanceAdmin.objects.count() == 0
         assert User.objects.count() == 0
 

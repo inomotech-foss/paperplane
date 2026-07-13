@@ -7,7 +7,7 @@ import os
 import uuid
 
 # Django imports
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 # Module imports
@@ -28,8 +28,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         instance = Instance.objects.first()
         if instance is None:
-            self.stdout.write(self.style.WARNING("Instance is not registered yet; skipping bootstrap."))
-            return
+            raise CommandError("Instance is not registered; run register_instance before bootstrap_instance.")
 
         admin_emails = [
             email.strip().lower() for email in os.environ.get("INSTANCE_ADMIN_EMAILS", "").split(",") if email.strip()
