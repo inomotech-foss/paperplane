@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     branches:
-      - "preview"
+      - "main"
     types:
       - "opened"
       - "synchronize"
@@ -13,6 +13,7 @@ on:
       - "reopened"
     paths:
       - "apps/api/**"
+  merge_group:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,8 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     if: |
-      github.event.pull_request.draft == false &&
-      github.event.pull_request.requested_reviewers != null
+      github.event_name == 'merge_group' ||
+      (github.event.pull_request.draft == false &&
+      github.event.pull_request.requested_reviewers != null)
     steps:
       - uses: actions/checkout@v6
       - name: Set up Python
