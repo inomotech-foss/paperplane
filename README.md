@@ -1,7 +1,6 @@
 # PaperPlane
 
-A fork of [Plane](https://github.com/makeplane/plane) maintained by inomotech, building on the community edition with features we need from the paid tiers.
-
+A fork of [Plane](https://github.com/makeplane/plane).
 We publish our own multi-arch container images and Helm chart to GitHub Container Registry.
 
 ## Deploy
