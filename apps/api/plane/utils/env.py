@@ -11,10 +11,13 @@ def load_file_env(environ=None):
     """Expand `<NAME>_FILE` environment variables from the files they point to.
 
     For each `<NAME>_FILE` variable, read the referenced file and set `<NAME>`
-    to its contents (surrounding whitespace trimmed). An already-set `<NAME>`
-    wins and the file is skipped. This lets secrets be mounted as files (for
-    example by the Secrets Store CSI driver or a Secret volume) and read
-    directly, instead of being passed as literal environment values.
+    to its contents (surrounding whitespace trimmed). This lets secrets be
+    mounted as files (for example by the Secrets Store CSI driver or a Secret
+    volume) and read directly, instead of being passed as literal environment
+    values.
+
+    `<NAME>` and `<NAME>_FILE` are mutually exclusive: setting both is a
+    configuration error and raises, so it is never ambiguous which value wins.
     """
     environ = os.environ if environ is None else environ
 
@@ -22,8 +25,10 @@ def load_file_env(environ=None):
     for key in file_keys:
         target = key[: -len(FILE_ENV_SUFFIX)]
         path = environ[key]
-        if not path or environ.get(target):
+        if not path:
             continue
+        if environ.get(target):
+            raise RuntimeError(f"Both {target} and {key} are set; use one or the other.")
         try:
             with open(path, encoding="utf-8") as handle:
                 environ[target] = handle.read().strip()

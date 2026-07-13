@@ -18,14 +18,13 @@ class TestLoadFileEnv:
 
         assert env["OIDC_CLIENT_SECRET"] == "s3cr3t"
 
-    def test_existing_value_wins(self, tmp_path):
+    def test_both_set_raises(self, tmp_path):
         secret = tmp_path / "client-secret"
         secret.write_text("from-file")
         env = {"OIDC_CLIENT_SECRET_FILE": str(secret), "OIDC_CLIENT_SECRET": "from-env"}
 
-        load_file_env(env)
-
-        assert env["OIDC_CLIENT_SECRET"] == "from-env"
+        with pytest.raises(RuntimeError):
+            load_file_env(env)
 
     def test_empty_path_is_skipped(self):
         env = {"OIDC_CLIENT_SECRET_FILE": ""}
