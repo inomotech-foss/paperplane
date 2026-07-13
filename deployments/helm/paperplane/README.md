@@ -553,13 +553,13 @@ provision:
       clientSecret: "<client-secret>"
 ```
 
-### Sensitive values from an existing Secret (CSI)
+### Sensitive values from mounted files (CSI)
 
-Instead of inlining the OIDC client credentials, reference an existing Secret,
-for example one synced by the [Secrets Store CSI driver](https://secrets-store-csi-driver.sigs.k8s.io/).
-The chart then wires the values as `secretKeyRef` environment entries and never
-writes them into a chart-managed Secret. Mount the `SecretProviderClass` volume
-through `api.extraVolumes`/`api.extraVolumeMounts` so the driver syncs the Secret.
+Instead of inlining the OIDC client credentials, mount them as files and point
+`clientIdFile`/`clientSecretFile` at the paths. The app reads the secret from
+the file directly (via the `<NAME>_FILE` convention), so no Secret is written by
+the chart and no Secrets Store CSI `secretObjects` sync is needed. Mount the
+`SecretProviderClass` volume through `api.extraVolumes`/`api.extraVolumeMounts`.
 
 ```yaml
 provision:
@@ -568,9 +568,8 @@ provision:
     oidc:
       enabled: true
       issuer: "https://login.microsoftonline.com/<tenant>/v2.0"
-      existingSecret: "oidc-csi-synced"
-      clientIdKey: "client-id"
-      clientSecretKey: "client-secret"
+      clientIdFile: "/mnt/secrets-store/client-id"
+      clientSecretFile: "/mnt/secrets-store/client-secret"
 
 api:
   extraVolumes:
@@ -586,10 +585,13 @@ api:
       readOnly: true
 ```
 
-Setting `oidc.enabled=true` requires `issuer` and either inline
-`clientId`/`clientSecret` or `existingSecret`. Leave the endpoint overrides
-(`authorizeUrl`, `tokenUrl`, `userinfoUrl`, `jwksUrl`) empty to use issuer
-discovery.
+The same `<NAME>_FILE` convention works for any config value (for example
+`SECRET_KEY_FILE`) via `api.extraEnvFrom` or `env`.
+
+Setting `oidc.enabled=true` requires `issuer`, a client id (`clientId` or
+`clientIdFile`) and a client secret (`clientSecret` or `clientSecretFile`). Leave
+the endpoint overrides (`authorizeUrl`, `tokenUrl`, `userinfoUrl`, `jwksUrl`)
+empty to use issuer discovery.
 
 ### Admins from an OIDC role
 
@@ -608,7 +610,8 @@ provision:
     oidc:
       enabled: true
       issuer: "https://login.microsoftonline.com/<tenant>/v2.0"
-      existingSecret: "oidc-csi-synced"
+      clientIdFile: "/mnt/secrets-store/client-id"
+      clientSecretFile: "/mnt/secrets-store/client-secret"
       adminRole: "PlaneInstanceAdmin"
 ```
 

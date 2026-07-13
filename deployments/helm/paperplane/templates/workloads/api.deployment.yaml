@@ -54,19 +54,6 @@ spec:
             cpu: {{ .Values.api.cpuLimit | default "500m" | quote}}
         command:
           - ./bin/docker-entrypoint-api.sh
-        {{- if and .Values.provision.enabled .Values.provision.auth.oidc.enabled .Values.provision.auth.oidc.existingSecret }}
-        env:
-          - name: OIDC_CLIENT_ID
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.provision.auth.oidc.existingSecret }}
-                key: {{ .Values.provision.auth.oidc.clientIdKey | default "OIDC_CLIENT_ID" }}
-          - name: OIDC_CLIENT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.provision.auth.oidc.existingSecret }}
-                key: {{ .Values.provision.auth.oidc.clientSecretKey | default "OIDC_CLIENT_SECRET" }}
-        {{- end }}
         envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-app-vars

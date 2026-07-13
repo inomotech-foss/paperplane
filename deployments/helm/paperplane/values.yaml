@@ -291,17 +291,14 @@ provision:
       tokenUrl: ""
       userinfoUrl: ""
       jwksUrl: ""
-      # Client credentials. Provide inline, or reference an existing Secret (for
-      # example one synced by the Secrets Store CSI driver) via existingSecret.
-      # With existingSecret set, clientIdKey/clientSecretKey name the keys in it
-      # and the inline values below are ignored. Mount the SecretProviderClass
-      # volume through api.extraVolumes/api.extraVolumeMounts so the CSI driver
-      # syncs the Secret.
+      # Client credentials. Provide inline, or point *File at a mounted file and
+      # the app reads the secret from it (see api.extraVolumes/extraVolumeMounts
+      # to mount a Secrets Store CSI or Secret volume). The *File path wins over
+      # the inline value.
       clientId: ""
       clientSecret: ""
-      existingSecret: ""
-      clientIdKey: "OIDC_CLIENT_ID"
-      clientSecretKey: "OIDC_CLIENT_SECRET"
+      clientIdFile: ""
+      clientSecretFile: ""
 
 env:
 

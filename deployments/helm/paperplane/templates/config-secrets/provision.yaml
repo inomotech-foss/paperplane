@@ -3,8 +3,11 @@
 {{- if and $oidc.enabled (not $oidc.issuer) }}
 {{- fail "provision.auth.oidc: issuer is required when oidc.enabled is true" }}
 {{- end }}
-{{- if and $oidc.enabled (not $oidc.existingSecret) (not $oidc.clientId) }}
-{{- fail "provision.auth.oidc: set clientId/clientSecret or existingSecret when oidc.enabled is true" }}
+{{- if and $oidc.enabled (not $oidc.clientId) (not $oidc.clientIdFile) }}
+{{- fail "provision.auth.oidc: set clientId or clientIdFile when oidc.enabled is true" }}
+{{- end }}
+{{- if and $oidc.enabled (not $oidc.clientSecret) (not $oidc.clientSecretFile) }}
+{{- fail "provision.auth.oidc: set clientSecret or clientSecretFile when oidc.enabled is true" }}
 {{- end }}
 {{- $managed := list }}
 apiVersion: v1
@@ -51,13 +54,18 @@ data:
   OIDC_JWKS_URL: {{ $oidc.jwksUrl | default "" | quote }}
   OIDC_ADMIN_CLAIM: {{ $oidc.adminClaim | default "roles" | quote }}
   OIDC_ADMIN_ROLE: {{ $oidc.adminRole | default "" | quote }}
-  {{- if not $oidc.existingSecret }}
+  {{- if $oidc.clientIdFile }}
+  OIDC_CLIENT_ID_FILE: {{ $oidc.clientIdFile | quote }}
+  {{- else }}
   OIDC_CLIENT_ID: {{ $oidc.clientId | quote }}
+  {{- end }}
+  {{- if $oidc.clientSecretFile }}
+  OIDC_CLIENT_SECRET_FILE: {{ $oidc.clientSecretFile | quote }}
   {{- end }}
   {{- $managed = concat $managed (list "IS_OIDC_ENABLED" "OIDC_ISSUER" "OIDC_CLIENT_ID" "OIDC_CLIENT_SECRET" "OIDC_PROVIDER_NAME" "OIDC_SCOPES" "OIDC_TRUST_EMAIL" "OIDC_AUTHORIZE_URL" "OIDC_TOKEN_URL" "OIDC_USERINFO_URL" "OIDC_JWKS_URL" "OIDC_ADMIN_CLAIM" "OIDC_ADMIN_ROLE") }}
   {{- end }}
   PROVISION_MANAGED_KEYS: {{ join "," $managed | quote }}
-{{- if and $oidc.enabled (not $oidc.existingSecret) $oidc.clientSecret }}
+{{- if and $oidc.enabled $oidc.clientSecret (not $oidc.clientSecretFile) }}
 ---
 apiVersion: v1
 kind: Secret
