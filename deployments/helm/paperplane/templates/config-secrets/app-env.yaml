@@ -53,7 +53,7 @@ data:
   API_KEY_RATE_LIMIT: {{ .Values.env.api_key_rate_limit | default "60/minute" | quote }}
 
   {{- if .Values.ingress.appHost }}
-  WEB_URL: "http://{{ .Values.ingress.appHost }}"
+  WEB_URL: "{{ .Values.ingress.appProtocol | default "http" }}://{{ .Values.ingress.appHost }}"
   {{- else }}
   WEB_URL: ""
   {{- end }}

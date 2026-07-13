@@ -9,6 +9,9 @@ dockerRegistry:
 ingress:
   enabled: true
   appHost: "plane.example.com"
+  # Scheme the browser uses to reach appHost. Set to https when TLS terminates
+  # at the gateway/ingress so WEB_URL matches (magic links, CSRF origin checks).
+  appProtocol: "http"
   minioHost: ""
   rabbitmqHost: ""
   # Set to "traefik" (or any value starting with "traefik") to deploy native Traefik IngressRoute CRDs
