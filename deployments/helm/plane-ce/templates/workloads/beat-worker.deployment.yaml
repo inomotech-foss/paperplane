@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-beat-worker-wl
+  {{- include "plane.labelsAndAnnotations" (dict "context" $ "values" .Values.beatworker) }}
+spec:
+  replicas: {{ .Values.beatworker.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app.name: {{ .Release.Namespace }}-{{ .Release.Name }}-beat-worker
+  template:
+    metadata:
+      namespace: {{ .Release.Namespace }}
+      labels:
+        app.name: {{ .Release.Namespace }}-{{ .Release.Name }}-beat-worker
+        {{- include "plane.commonLabels" $ | nindent 8 }}
+      annotations:
+        timestamp: {{ now | quote }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}-beat-worker
+        imagePullPolicy: {{ .Values.beatworker.pullPolicy | default "Always" }}
+        image: {{ .Values.beatworker.image | default "ghcr.io/inomotech-foss/plane-backend" }}:{{ .Values.planeVersion }}
+        stdin: true
+        tty: true
+        resources:
+          requests:
+            memory: {{ .Values.beatworker.memoryRequest | default "50Mi" | quote }}
+            cpu: {{ .Values.beatworker.cpuRequest | default "50m" | quote }}
+          limits:
+            memory: {{ .Values.beatworker.memoryLimit  | default "1000Mi" | quote }}
+            cpu: {{ .Values.beatworker.cpuLimit | default "500m" | quote}}
+        command:
+          - ./bin/docker-entrypoint-beat.sh
+        envFrom:
+          - configMapRef:
+              name: {{ .Release.Name }}-app-vars
+              optional: false
+          - secretRef:
+                name: {{ if not (empty .Values.external_secrets.app_env_existingSecret) }}{{ .Values.external_secrets.app_env_existingSecret }}{{ else }}{{ .Release.Name }}-app-secrets{{ end }}
+                optional: false
+          - secretRef:
+              name: {{ if not (empty .Values.external_secrets.doc_store_existingSecret) }}{{ .Values.external_secrets.doc_store_existingSecret }}{{ else }}{{ .Release.Name }}-doc-store-secrets{{ end }}
+              optional: false
+          
+      {{- include "plane.podScheduling" .Values.beatworker }}
+      serviceAccount: {{ .Release.Name }}-srv-account
+      serviceAccountName: {{ .Release.Name }}-srv-account
+---

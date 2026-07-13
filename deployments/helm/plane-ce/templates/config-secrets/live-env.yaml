@@ -1,0 +1,31 @@
+{{- if empty .Values.external_secrets.live_env_existingSecret}}
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-live-secrets
+  labels:
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+stringData:
+  LIVE_SERVER_SECRET_KEY: {{ .Values.env.live_server_secret_key | default "htbqvBJAgpm9bzvf3r4urJer0ENReatceh" | quote }}
+  {{- if .Values.redis.local_setup }}
+  REDIS_URL: "redis://{{ .Release.Name }}-redis.{{ .Release.Namespace }}.svc.cluster.local:6379/"
+  {{- else }}
+  REDIS_URL: {{ .Values.env.remote_redis_url | default "" | quote }}
+  {{- end }}
+---
+{{- end }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-live-vars
+  labels:
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+data:
+  API_BASE_URL: "http://{{ .Release.Name }}-api.{{ .Release.Namespace }}.svc.cluster.local:8000/"
+  LIVE_BASE_PATH: "/live"
+  
+---
