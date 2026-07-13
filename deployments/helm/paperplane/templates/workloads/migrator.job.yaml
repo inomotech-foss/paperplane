@@ -23,6 +23,44 @@ spec:
         app.name: {{ .Release.Namespace }}-{{ .Release.Name }}-api-migrate
         {{- include "plane.commonLabels" $ | nindent 8 }}
     spec:
+      # Block the migrate hook until Postgres (and RabbitMQ) accept connections.
+      # On a cold start the datastores take a while to come up; without this the
+      # migrate command fails and the hook churns (Fleet reports ErrApplied and
+      # respawns the Job) until they are ready.
+      initContainers:
+      - name: {{ .Release.Name }}-wait-for-deps
+        image: {{ .Values.api.image | default "ghcr.io/inomotech-foss/paperplane-backend" }}{{ with .Values.planeVersion }}:{{ . }}{{ end }}
+        imagePullPolicy: {{ .Values.api.pullPolicy | default "Always" }}
+        command:
+          - python
+          - -c
+          - |
+            import os, socket, time
+            from urllib.parse import urlparse
+
+            def wait(name, url, default_port):
+                url = (url or "").strip()
+                if not url:
+                    return
+                parsed = urlparse(url)
+                host, port = parsed.hostname, parsed.port or default_port
+                if not host:
+                    return
+                while True:
+                    try:
+                        with socket.create_connection((host, port), timeout=5):
+                            print("%s reachable at %s:%s" % (name, host, port), flush=True)
+                            return
+                    except OSError:
+                        print("Waiting for %s at %s:%s..." % (name, host, port), flush=True)
+                        time.sleep(2)
+
+            wait("Postgres", os.environ.get("DATABASE_URL"), 5432)
+            wait("RabbitMQ", os.environ.get("AMQP_URL"), 5672)
+        envFrom:
+          - secretRef:
+              name: {{ if not (empty .Values.external_secrets.app_env_existingSecret) }}{{ .Values.external_secrets.app_env_existingSecret }}{{ else }}{{ .Release.Name }}-app-secrets{{ end }}
+              optional: false
       containers:
       - name: {{ .Release.Name }}-api-migrate
         image: {{ .Values.api.image | default "ghcr.io/inomotech-foss/paperplane-backend" }}{{ with .Values.planeVersion }}:{{ . }}{{ end }}
