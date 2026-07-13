@@ -555,11 +555,12 @@ provision:
 
 ### Sensitive values from mounted files (CSI)
 
-Instead of inlining the OIDC client credentials, mount them as files and point
-`clientIdFile`/`clientSecretFile` at the paths. The app reads the secret from
-the file directly (via the `<NAME>_FILE` convention), so no Secret is written by
-the chart and no Secrets Store CSI `secretObjects` sync is needed. Mount the
-`SecretProviderClass` volume through `api.extraVolumes`/`api.extraVolumeMounts`.
+Instead of inlining OIDC values, mount them as files and list them under
+`oidc.files` (keyed by environment variable name, valued by file path). The app
+reads each value from its file (via the `<NAME>_FILE` convention), so no Secret
+is written by the chart and no Secrets Store CSI `secretObjects` sync is needed.
+Mount the `SecretProviderClass` volume through `api.extraVolumes`/`api.extraVolumeMounts`.
+Setting both an inline value and a file for the same option is rejected.
 
 ```yaml
 provision:
@@ -567,9 +568,10 @@ provision:
   auth:
     oidc:
       enabled: true
-      issuer: "https://login.microsoftonline.com/<tenant>/v2.0"
-      clientIdFile: "/mnt/secrets-store/client-id"
-      clientSecretFile: "/mnt/secrets-store/client-secret"
+      files:
+        OIDC_ISSUER: /mnt/secrets-store/issuer
+        OIDC_CLIENT_ID: /mnt/secrets-store/client-id
+        OIDC_CLIENT_SECRET: /mnt/secrets-store/client-secret
 
 api:
   extraVolumes:
@@ -585,13 +587,14 @@ api:
       readOnly: true
 ```
 
-The same `<NAME>_FILE` convention works for any config value (for example
-`SECRET_KEY_FILE`) via `api.extraEnvFrom` or `env`.
+Any of the OIDC string options can be supplied this way. The same `<NAME>_FILE`
+convention works for any config value (for example `SECRET_KEY_FILE`) via
+`api.extraEnvFrom` or `env`.
 
-Setting `oidc.enabled=true` requires `issuer`, a client id (`clientId` or
-`clientIdFile`) and a client secret (`clientSecret` or `clientSecretFile`). Leave
-the endpoint overrides (`authorizeUrl`, `tokenUrl`, `userinfoUrl`, `jwksUrl`)
-empty to use issuer discovery.
+Setting `oidc.enabled=true` requires a value (inline or via `files`) for
+`issuer`, the client id, and the client secret. Leave the endpoint overrides
+(`authorizeUrl`, `tokenUrl`, `userinfoUrl`, `jwksUrl`) empty to use issuer
+discovery.
 
 ### Admins from an OIDC role
 
@@ -609,10 +612,11 @@ provision:
   auth:
     oidc:
       enabled: true
-      issuer: "https://login.microsoftonline.com/<tenant>/v2.0"
-      clientIdFile: "/mnt/secrets-store/client-id"
-      clientSecretFile: "/mnt/secrets-store/client-secret"
       adminRole: "PlaneInstanceAdmin"
+      files:
+        OIDC_ISSUER: /mnt/secrets-store/issuer
+        OIDC_CLIENT_ID: /mnt/secrets-store/client-id
+        OIDC_CLIENT_SECRET: /mnt/secrets-store/client-secret
 ```
 
 ## Custom Ingress Routes
