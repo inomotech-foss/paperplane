@@ -20,12 +20,17 @@ from corsheaders.defaults import default_headers
 
 
 # Module imports
+from plane.utils.env import load_file_env
 from plane.utils.url import is_valid_url
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 _logger = logging.getLogger("plane")
+
+# Expand any `<NAME>_FILE` variables from mounted secret files before reading
+# configuration below, so file-mounted secrets work everywhere env vars do.
+load_file_env()
 
 # Secret Key — use `or` so an explicitly empty env var is treated the same as unset,
 # falling back to a random key rather than passing "" to Django (GHSA-cmwv-pjmw-8483).
