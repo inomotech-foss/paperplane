@@ -56,6 +56,7 @@ jobs:
           INPUT_ARM64: ${{ github.event.inputs.arm64 }}
           INPUT_AIO_BUILD: ${{ github.event.inputs.aio_build }}
           GH_SHA: ${{ github.sha }}
+          GH_RUN_NUMBER: ${{ github.run_number }}
         run: |
           set -euo pipefail
 
@@ -78,8 +79,12 @@ jobs:
             fi
             AIO_BUILD=true
           else
-            # Rolling build off main: immutable per-commit tag plus floating `main`.
-            PRIMARY_TAG="${VERSION}-main.g${GH_SHA:0:7}"
+            # Rolling build off main: immutable, monotonically increasing tag plus
+            # floating `main`. The run number is a numeric semver prerelease
+            # identifier, so it sorts numerically (unlike a git sha) and Fleet's
+            # `>=0.0.0-0` version constraint always resolves to the newest build.
+            # The sha stays appended for traceability.
+            PRIMARY_TAG="${VERSION}-main.${GH_RUN_NUMBER}.g${GH_SHA:0:7}"
             FLOATING_TAG="main"
           fi
 
