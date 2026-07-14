@@ -6,7 +6,7 @@
 
 import { useMemo, useCallback } from "react";
 import { Tabs } from "@base-ui-components/react";
-import { Popover } from "../popover";
+import { Popover } from "../popover/root";
 import { cn } from "../utils/classname";
 import { convertPlacementToSideAndAlign } from "../utils/placement";
 import { EmojiRoot } from "./emoji/emoji";

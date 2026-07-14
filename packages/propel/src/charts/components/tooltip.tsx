@@ -6,7 +6,7 @@
 
 import React from "react";
 import type { NameType, Payload, ValueType } from "recharts/types/component/DefaultTooltipContent";
-import { Card, ECardSpacing } from "../../card";
+import { Card, ECardSpacing } from "../../card/card";
 import { cn } from "../../utils/classname";
 
 type Props = {

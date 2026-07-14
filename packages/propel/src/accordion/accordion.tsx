@@ -7,7 +7,7 @@
 import * as React from "react";
 import { Accordion as BaseAccordion } from "@base-ui-components/react";
 
-import { PlusIcon } from "../icons";
+import { PlusIcon } from "../icons/actions/plus-icon";
 
 export interface AccordionRootProps {
   defaultValue?: string[];

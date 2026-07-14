@@ -6,9 +6,9 @@
 
 import * as React from "react";
 import type { LucideIcon } from "lucide-react";
-import type { ISvgIcons } from "../icons";
-import { Tooltip } from "../tooltip";
-import { cn } from "../utils";
+import type { ISvgIcons } from "../icons/type";
+import { Tooltip } from "../tooltip/root";
+import { cn } from "../utils/classname";
 
 export interface ToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;

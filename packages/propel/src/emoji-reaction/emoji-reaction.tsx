@@ -5,12 +5,12 @@
  */
 
 import * as React from "react";
-import { AnimatedCounter } from "../animated-counter";
-import { stringToEmoji } from "../emoji-icon-picker";
-import { AddReactionIcon } from "../icons";
-import { Tooltip } from "../tooltip";
-import { cn } from "../utils";
-import { IconButton } from "../icon-button";
+import { AnimatedCounter } from "../animated-counter/animated-counter";
+import { stringToEmoji } from "../emoji-icon-picker/helper";
+import { AddReactionIcon } from "../icons/actions/add-reaction-icon";
+import { Tooltip } from "../tooltip/root";
+import { cn } from "../utils/classname";
+import { IconButton } from "../icon-button/icon-button";
 
 export interface EmojiReactionType {
   emoji: string;

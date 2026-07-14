@@ -6,7 +6,7 @@
 
 import { useEffect, useRef } from "react";
 import { EmojiPicker } from "frimousse";
-import { cn } from "../../utils";
+import { cn } from "../../utils/classname";
 
 type EmojiRootProps = {
   onChange: (value: string) => void;
