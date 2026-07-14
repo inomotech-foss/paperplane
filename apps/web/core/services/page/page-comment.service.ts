@@ -65,12 +65,7 @@ export class PageCommentService extends APIService {
       });
   }
 
-  async resolve(
-    workspaceSlug: string,
-    projectId: string,
-    pageId: string,
-    commentId: string
-  ): Promise<TPageComment> {
+  async resolve(workspaceSlug: string, projectId: string, pageId: string, commentId: string): Promise<TPageComment> {
     return this.post(`${this.basePath(workspaceSlug, projectId, pageId)}${commentId}/resolve/`)
       .then((response) => response?.data)
       .catch((error) => {
@@ -78,12 +73,7 @@ export class PageCommentService extends APIService {
       });
   }
 
-  async unresolve(
-    workspaceSlug: string,
-    projectId: string,
-    pageId: string,
-    commentId: string
-  ): Promise<TPageComment> {
+  async unresolve(workspaceSlug: string, projectId: string, pageId: string, commentId: string): Promise<TPageComment> {
     return this.delete(`${this.basePath(workspaceSlug, projectId, pageId)}${commentId}/resolve/`)
       .then((response) => response?.data)
       .catch((error) => {

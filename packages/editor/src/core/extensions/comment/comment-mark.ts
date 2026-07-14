@@ -82,8 +82,7 @@ export const CommentMark = Mark.create<TCommentMarkOptions, TCommentMarkStorage>
       },
       resolved: {
         default: false,
-        parseHTML: (element: HTMLElement) =>
-          element.getAttribute(COMMENT_MARK_RESOLVED_ATTRIBUTE) === "true",
+        parseHTML: (element: HTMLElement) => element.getAttribute(COMMENT_MARK_RESOLVED_ATTRIBUTE) === "true",
         renderHTML: (attributes: { resolved: boolean }) => {
           if (!attributes.resolved) return {};
           return { [COMMENT_MARK_RESOLVED_ATTRIBUTE]: "true" };
@@ -101,19 +100,15 @@ export const CommentMark = Mark.create<TCommentMarkOptions, TCommentMarkStorage>
   },
 
   addCommands() {
-    const rewriteThreadMarks = (
-      threadId: string,
-      nextAttrs: { threadId: string; resolved: boolean } | null
-    ) =>
+    const rewriteThreadMarks =
+      (threadId: string, nextAttrs: { threadId: string; resolved: boolean } | null) =>
       ({ state, dispatch, tr }: { state: any; dispatch: any; tr: any }) => {
         const markType = state.schema.marks[this.name];
         if (!markType) return false;
         let changed = false;
         state.doc.descendants((node: any, pos: number) => {
           if (!node.isText) return;
-          const hasThread = node.marks.some(
-            (mark: any) => mark.type === markType && mark.attrs.threadId === threadId
-          );
+          const hasThread = node.marks.some((mark: any) => mark.type === markType && mark.attrs.threadId === threadId);
           if (hasThread) {
             const from = pos;
             const to = pos + node.nodeSize;

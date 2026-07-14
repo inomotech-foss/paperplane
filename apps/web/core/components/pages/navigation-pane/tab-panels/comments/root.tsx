@@ -33,11 +33,7 @@ type Props = {
 
 /** Escape user text and wrap it as a paragraph for the sanitized comment_html. */
 function toCommentHtml(text: string): string {
-  const escaped = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .trim();
+  const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").trim();
   return `<p>${escaped.replace(/\n/g, "<br />")}</p>`;
 }
 
@@ -91,7 +87,7 @@ const CommentComposer = function CommentComposer(props: ComposerProps) {
           }
         }}
         rows={2}
-        className="w-full resize-none rounded-md border border-subtle bg-surface-1 px-2 py-1.5 text-sm outline-none focus:border-accent-primary"
+        className="text-sm focus:border-accent-primary w-full resize-none rounded-md border border-subtle bg-surface-1 px-2 py-1.5 outline-none"
       />
       <div className="flex items-center justify-end gap-2">
         {onCancel && (
@@ -102,7 +98,7 @@ const CommentComposer = function CommentComposer(props: ComposerProps) {
         <button
           type="button"
           disabled={!value.trim() || submitting}
-          className="rounded-md bg-accent-primary px-2.5 py-1 text-xs font-medium text-white disabled:opacity-50"
+          className="text-xs rounded-md bg-accent-primary px-2.5 py-1 font-medium text-white disabled:opacity-50"
           onClick={() => void handleSubmit()}
         >
           {submitLabel}
@@ -142,9 +138,7 @@ const ThreadCard = observer(function ThreadCard(props: ThreadCardProps) {
   const handleDelete = async () => {
     await store.removeComment(thread.id);
     if (thread.anchor_id) {
-      document.dispatchEvent(
-        new CustomEvent(EDITOR_COMMENT_UNSET_EVENT, { detail: { threadId: thread.anchor_id } })
-      );
+      document.dispatchEvent(new CustomEvent(EDITOR_COMMENT_UNSET_EVENT, { detail: { threadId: thread.anchor_id } }));
     }
   };
 
@@ -163,7 +157,7 @@ const ThreadCard = observer(function ThreadCard(props: ThreadCardProps) {
           <span className="text-xs font-medium text-primary">{authorName(thread)}</span>
           <span className="text-[10px] text-tertiary">{renderFormattedDate(thread.created_at)}</span>
         </div>
-        <p className="whitespace-pre-wrap text-sm text-secondary">{thread.comment_stripped}</p>
+        <p className="text-sm whitespace-pre-wrap text-secondary">{thread.comment_stripped}</p>
       </button>
 
       {replies.length > 0 && (
@@ -174,7 +168,7 @@ const ThreadCard = observer(function ThreadCard(props: ThreadCardProps) {
                 <span className="text-xs font-medium text-primary">{authorName(reply)}</span>
                 <span className="text-[10px] text-tertiary">{renderFormattedDate(reply.created_at)}</span>
               </div>
-              <p className="whitespace-pre-wrap text-sm text-secondary">{reply.comment_stripped}</p>
+              <p className="text-sm whitespace-pre-wrap text-secondary">{reply.comment_stripped}</p>
             </div>
           ))}
         </div>
@@ -190,7 +184,7 @@ const ThreadCard = observer(function ThreadCard(props: ThreadCardProps) {
         </button>
         <button
           type="button"
-          className="flex items-center gap-1 text-xs text-secondary hover:text-primary"
+          className="text-xs flex items-center gap-1 text-secondary hover:text-primary"
           onClick={() => void handleResolve()}
         >
           {thread.is_resolved ? <RotateCcw className="size-3" /> : <Check className="size-3" />}
@@ -200,7 +194,7 @@ const ThreadCard = observer(function ThreadCard(props: ThreadCardProps) {
         </button>
         <button
           type="button"
-          className="ml-auto text-tertiary hover:text-danger"
+          className="hover:text-danger ml-auto text-tertiary"
           aria-label={t("common.delete")}
           onClick={() => void handleDelete()}
         >
@@ -254,17 +248,13 @@ export const PageNavigationPaneCommentsTabPanel = observer(function PageNavigati
     return () => document.removeEventListener(EDITOR_COMMENT_CREATE_EVENT, onCreate);
   }, []);
 
-  const threads = store.threads.filter((thread) =>
-    filter === "resolved" ? thread.is_resolved : !thread.is_resolved
-  );
+  const threads = store.threads.filter((thread) => (filter === "resolved" ? thread.is_resolved : !thread.is_resolved));
   const unresolvedCount = store.threads.filter((thread) => !thread.is_resolved).length;
   const resolvedCount = store.threads.filter((thread) => thread.is_resolved).length;
 
   const cancelPending = () => {
     if (pendingThreadId) {
-      document.dispatchEvent(
-        new CustomEvent(EDITOR_COMMENT_UNSET_EVENT, { detail: { threadId: pendingThreadId } })
-      );
+      document.dispatchEvent(new CustomEvent(EDITOR_COMMENT_UNSET_EVENT, { detail: { threadId: pendingThreadId } }));
     }
     consumePendingCommentThread();
     setPendingThreadId(null);
@@ -272,7 +262,7 @@ export const PageNavigationPaneCommentsTabPanel = observer(function PageNavigati
 
   return (
     <div className="flex h-full flex-col px-3.5">
-      <div className="mb-2 flex items-center gap-1 text-xs">
+      <div className="text-xs mb-2 flex items-center gap-1">
         {(["unresolved", "resolved"] as const).map((key) => (
           <button
             key={key}
@@ -291,7 +281,7 @@ export const PageNavigationPaneCommentsTabPanel = observer(function PageNavigati
       </div>
 
       {pendingThreadId && (
-        <div className="mb-2 rounded-md border border-accent-primary/40 bg-surface-1 p-2.5">
+        <div className="border-accent-primary/40 mb-2 rounded-md border bg-surface-1 p-2.5">
           <CommentComposer
             focusOnMount
             placeholder={t("page_navigation_pane.tabs.comments.composer_placeholder")}
