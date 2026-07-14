@@ -63,4 +63,5 @@ from .asset import (
 )
 from .invite import WorkspaceInviteSerializer
 from .member import ProjectMemberSerializer
+from .page import PageSerializer
 from .sticky import StickySerializer
