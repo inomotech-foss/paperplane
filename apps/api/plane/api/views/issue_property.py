@@ -104,6 +104,7 @@ def _resolve_option(property_obj, raw):
         if option is not None:
             return option
     except ValueError:
+        # raw is not a UUID — fall through to lookup by option name
         pass
     option = IssuePropertyOption.objects.filter(property=property_obj, name=raw).first()
     if option is None:
@@ -183,8 +184,11 @@ def build_issue_property_filters(query_params, slug, project_id):
                 filter_kwargs["property_values__value_user_id"] = str(uuid.UUID(str(raw)))
             else:
                 filter_kwargs["property_values__value_text"] = raw
-        except ValueError as e:
-            return None, f"Invalid value for filter '{key}': {e}"
+        except ValueError:
+            return None, (
+                f"Invalid value for filter '{key}': expected a value matching the "
+                f"property type '{property_obj.property_type}'"
+            )
         filters.append(filter_kwargs)
     return filters, None
 
