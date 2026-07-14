@@ -259,13 +259,20 @@ class OIDCOAuthProvider(OauthAdapter):
         )
         self.instance_admin = role_grants_admin(claims, OIDC_ADMIN_CLAIM or "roles", OIDC_ADMIN_ROLE)
 
+        # Entra returns the Graph photo endpoint (.../me/photo/$value) as the
+        # picture claim. It needs a bearer token, so neither our server nor the
+        # browser can load it as an image; drop it and fall back to initials.
+        picture = data.get("picture")
+        if picture and "graph.microsoft.com" in picture:
+            picture = ""
+
         super().set_user_data(
             {
                 "email": email,
                 "user": {
                     "provider_id": sub,
                     "email": email,
-                    "avatar": data.get("picture"),
+                    "avatar": picture,
                     "first_name": data.get("given_name") or data.get("name"),
                     "last_name": data.get("family_name", ""),
                     "is_password_autoset": True,
