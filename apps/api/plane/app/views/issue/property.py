@@ -31,6 +31,7 @@ from plane.utils.issue_property import (
     OPTION_PROPERTY_TYPES,
     build_bulk_value_map,
     build_value_maps,
+    filter_properties_by_issue_type,
     validate_value_payload,
 )
 
@@ -59,6 +60,25 @@ class IssuePropertyViewSet(BaseViewSet):
             .order_by("sort_order")
         )
 
+    def list(self, request, slug, project_id):
+        """List work item properties
+
+        When `?issue_type=<uuid>` is passed, returns properties scoped to
+        that type plus unscoped (project-wide) properties. `?issue_type=null`
+        (or `?unscoped=true`) returns only unscoped properties. Without the
+        query param, behavior is unchanged (every property of the project
+        is returned).
+        """
+        queryset = self.get_queryset()
+        if str(request.GET.get("unscoped", "")).lower() == "true":
+            queryset = queryset.filter(issue_type__isnull=True)
+        else:
+            queryset, error = filter_properties_by_issue_type(queryset, request.GET.get("issue_type"))
+            if error is not None:
+                return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = IssuePropertySerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @allow_permission([ROLE.ADMIN])
     def create(self, request, slug, project_id):
         options = request.data.get("options", [])
@@ -79,7 +99,7 @@ class IssuePropertyViewSet(BaseViewSet):
             )
 
         try:
-            serializer = IssuePropertySerializer(data=request.data)
+            serializer = IssuePropertySerializer(data=request.data, context={"project_id": project_id})
             if serializer.is_valid():
                 with transaction.atomic():
                     issue_property = serializer.save(project_id=project_id)
@@ -103,7 +123,9 @@ class IssuePropertyViewSet(BaseViewSet):
     @allow_permission([ROLE.ADMIN])
     def partial_update(self, request, slug, project_id, pk):
         issue_property = IssueProperty.objects.get(workspace__slug=slug, project_id=project_id, pk=pk)
-        serializer = IssuePropertySerializer(issue_property, data=request.data, partial=True)
+        serializer = IssuePropertySerializer(
+            issue_property, data=request.data, partial=True, context={"project_id": project_id}
+        )
         if serializer.is_valid():
             try:
                 serializer.save()

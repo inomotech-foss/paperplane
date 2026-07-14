@@ -41,6 +41,7 @@ from plane.db.models import (
 )
 from plane.db.models.intake import IntakeIssueStatus
 from plane.utils.host import base_host
+from plane.utils.issue_type import get_or_create_default_issue_type
 from plane.utils.order_queryset import PROJECT_ORDER_BY_ALLOWLIST, sanitize_order_by
 
 
@@ -293,6 +294,10 @@ class ProjectViewSet(BaseViewSet):
                     for state in DEFAULT_STATES
                 ]
             )
+
+            # Provision (or reuse) the workspace's default "Task" work item
+            # type and enable it for the new project.
+            get_or_create_default_issue_type(serializer.instance)
 
             project = self.get_queryset().filter(pk=serializer.data["id"]).first()
 

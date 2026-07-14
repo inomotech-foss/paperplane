@@ -37,6 +37,15 @@ class IssueProperty(ProjectBaseModel):
     settings = models.JSONField(default=dict)
     external_source = models.CharField(max_length=255, null=True, blank=True)
     external_id = models.CharField(max_length=255, blank=True, null=True)
+    issue_type = models.ForeignKey(
+        "db.IssueType",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="issue_properties",
+        db_index=True,
+        help_text="The work item type this property is scoped to. NULL means the property applies to every work item type in the project.",  # noqa: E501
+    )
 
     class Meta:
         unique_together = ["project", "name", "deleted_at"]

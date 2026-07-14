@@ -41,6 +41,7 @@ from plane.bgtasks.webhook_task import model_activity, webhook_activity
 from plane.utils.exception_logger import log_exception
 from .base import BaseAPIView
 from plane.utils.host import base_host
+from plane.utils.issue_type import get_or_create_default_issue_type
 from plane.utils.order_queryset import PROJECT_ORDER_BY_ALLOWLIST, sanitize_order_by
 from plane.api.serializers import (
     ProjectSerializer,
@@ -267,6 +268,10 @@ class ProjectListCreateAPIEndpoint(BaseAPIView):
                             for state in DEFAULT_STATES
                         ]
                     )
+
+                    # Provision (or reuse) the workspace's default "Task"
+                    # work item type and enable it for the new project.
+                    get_or_create_default_issue_type(serializer.instance)
 
                     project = self.get_queryset().filter(pk=serializer.instance.id).first()
 

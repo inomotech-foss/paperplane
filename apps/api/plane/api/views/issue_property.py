@@ -25,6 +25,7 @@ from plane.db.models import (
 from plane.utils.issue_property import (
     OPTION_PROPERTY_TYPES,
     build_value_maps,
+    filter_properties_by_issue_type,
     validate_value_payload,
 )
 from plane.utils.openapi import (
@@ -102,7 +103,7 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
             )
 
         try:
-            serializer = IssuePropertySerializer(data=request.data)
+            serializer = IssuePropertySerializer(data=request.data, context={"project_id": project_id})
             if serializer.is_valid():
                 if (
                     request.data.get("external_id")
@@ -178,11 +179,22 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
         """List work item properties
 
         Retrieve all custom properties of a project including their options.
-        Returns paginated results.
+        Returns paginated results. When `?issue_type=<uuid>` is passed,
+        returns properties scoped to that type plus unscoped (project-wide)
+        properties. `?issue_type=null` (or `?unscoped=true`) returns only
+        unscoped properties. Without the query param, behavior is unchanged
+        (every property of the project is returned).
         """
+        queryset = self.get_queryset()
+        if str(request.GET.get("unscoped", "")).lower() == "true":
+            queryset = queryset.filter(issue_type__isnull=True)
+        else:
+            queryset, error = filter_properties_by_issue_type(queryset, request.GET.get("issue_type"))
+            if error is not None:
+                return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
         return self.paginate(
             request=request,
-            queryset=(self.get_queryset()),
+            queryset=queryset,
             on_results=lambda issue_properties: IssuePropertySerializer(
                 issue_properties, many=True, fields=self.fields, expand=self.expand
             ).data,
@@ -256,7 +268,9 @@ class IssuePropertyDetailAPIEndpoint(BaseAPIView):
         Validates external ID uniqueness if provided.
         """
         issue_property = IssueProperty.objects.get(workspace__slug=slug, project_id=project_id, pk=property_id)
-        serializer = IssuePropertySerializer(issue_property, data=request.data, partial=True)
+        serializer = IssuePropertySerializer(
+            issue_property, data=request.data, partial=True, context={"project_id": project_id}
+        )
         if serializer.is_valid():
             if (
                 request.data.get("external_id")

@@ -263,6 +263,33 @@ def validate_value_payload(issue, slug, project_id, data):
     return properties, new_rows, None
 
 
+def filter_properties_by_issue_type(queryset, raw_issue_type):
+    """Narrow an `IssueProperty` queryset by the `?issue_type=` query param.
+
+    - Absent / falsy: queryset is returned unchanged (existing behavior).
+    - A valid UUID: returns properties scoped to that type *plus* unscoped
+      (project-wide) properties, i.e. everything applicable to a work item
+      of that type.
+    - `"null"` / `"none"` (case-insensitive) or `?unscoped=true`: returns
+      only unscoped (project-wide) properties.
+
+    Returns `(queryset, error)`; `error` is an error message when
+    `raw_issue_type` is present but not a valid UUID or sentinel.
+    """
+    if not raw_issue_type:
+        return queryset, None
+    if str(raw_issue_type).strip().lower() in ("null", "none"):
+        return queryset.filter(issue_type__isnull=True), None
+    try:
+        issue_type_id = uuid.UUID(str(raw_issue_type))
+    except ValueError:
+        return queryset, f"Invalid issue_type id '{raw_issue_type}'"
+    return (
+        queryset.filter(Q(issue_type_id=issue_type_id) | Q(issue_type__isnull=True)),
+        None,
+    )
+
+
 def build_issue_property_filters(query_params, slug, project_id):
     """Translate `property__<property_id>[__gt|__lt]` query params into ORM filters.
 

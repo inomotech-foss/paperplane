@@ -11,7 +11,9 @@ from plane.db.models import (
     IssueProperty,
     IssuePropertyOption,
     IssuePropertyValue,
+    IssueType,
     Project,
+    ProjectIssueType,
     ProjectMember,
     PropertyTypeChoices,
     State,
@@ -703,3 +705,96 @@ class TestWorkItemPropertyFiltering:
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.contract
+class TestIssuePropertyTypeScoping:
+    """Test scoping a work item property to a specific work item type, and
+    the ?issue_type= filter on the list endpoint."""
+
+    @pytest.fixture
+    def bug_type(self, db, workspace, project, create_user):
+        issue_type = IssueType.objects.create(workspace=workspace, name="Bug", is_epic=False)
+        ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
+        return issue_type
+
+    @pytest.fixture
+    def story_type(self, db, workspace, project, create_user):
+        issue_type = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
+        ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
+        return issue_type
+
+    @pytest.mark.django_db
+    def test_create_property_scoped_to_type(self, api_key_client, workspace, project, bug_type):
+        response = api_key_client.post(
+            property_url(workspace.slug, project.id),
+            {"name": "Severity", "property_type": "TEXT", "issue_type": str(bug_type.id)},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert str(response.data["issue_type"]) == str(bug_type.id)
+
+    @pytest.mark.django_db
+    def test_create_property_scoped_to_foreign_type_rejected(self, api_key_client, workspace, project, create_user):
+        other_workspace_type = IssueType.objects.create(workspace=workspace, name="Unrelated", is_epic=False)
+        # Not linked to `project` via ProjectIssueType, so it's not valid for it
+
+        response = api_key_client.post(
+            property_url(workspace.slug, project.id),
+            {"name": "Severity", "property_type": "TEXT", "issue_type": str(other_workspace_type.id)},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    @pytest.mark.django_db
+    def test_list_filter_by_issue_type_includes_unscoped(
+        self, api_key_client, workspace, project, bug_type, story_type
+    ):
+        # Regression guard: with no query param, unscoped properties (the
+        # normal case for every property that existed before this feature)
+        # are returned exactly as before.
+        for index in range(3):
+            IssueProperty.objects.create(
+                name=f"Unscoped {index}",
+                property_type=PropertyTypeChoices.TEXT,
+                project=project,
+                workspace=project.workspace,
+            )
+        bug_only = IssueProperty.objects.create(
+            name="Bug Only",
+            property_type=PropertyTypeChoices.TEXT,
+            project=project,
+            workspace=project.workspace,
+            issue_type=bug_type,
+        )
+        IssueProperty.objects.create(
+            name="Story Only",
+            property_type=PropertyTypeChoices.TEXT,
+            project=project,
+            workspace=project.workspace,
+            issue_type=story_type,
+        )
+
+        # No query param: unchanged, everything is returned
+        response = api_key_client.get(property_url(workspace.slug, project.id))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 5
+
+        # Filtered by bug_type: the 3 unscoped properties + the bug-scoped one
+        response = api_key_client.get(
+            property_url(workspace.slug, project.id), {"issue_type": str(bug_type.id)}
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 4
+        names = {prop["name"] for prop in response.data["results"]}
+        assert names == {"Unscoped 0", "Unscoped 1", "Unscoped 2", "Bug Only"}
+        assert "Story Only" not in names
+
+        # ?unscoped=true: only the unscoped properties
+        response = api_key_client.get(property_url(workspace.slug, project.id), {"unscoped": "true"})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 3
+
+        assert bug_only.issue_type_id == bug_type.id
