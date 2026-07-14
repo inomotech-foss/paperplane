@@ -19,14 +19,14 @@ export function CenterPanelIcon({ className = "text-current", ...rest }: ISvgIco
       {...rest}
     >
       <path
-        d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z"
+        d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3Z"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M15.1111 8.00009H8.8001C8.33334 8.00007 8.00003 8.0001 8.00012 8.88897V15.1111C8.00012 16 8.00012 16 8.8001 16H15.1111C16 16 16 16 16 15.1111V8.88897C16 8.00009 16 8.00009 15.1111 8.00009H15.1111Z"
+        d="M15.11 8H8.8C8.33 8 8 8 8 8.89V15.11C8 16 8 16 8.8 16H15.11C16 16 16 16 16 15.11V8.89C16 8 16 8 15.11 8H15.11Z"
         fill="currentColor"
         stroke="currentColor"
         strokeWidth="2"

@@ -13,13 +13,13 @@ export function SuspendedUserIcon({ className, ...rest }: ISvgIcons) {
     <svg viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} {...rest}>
       <g clipPath="url(#clip0_806_120890)">
         <path
-          d="M3 13C3 12.304 3.18158 11.6201 3.52681 11.0158C3.87204 10.4115 4.36897 9.90774 4.9685 9.55428C5.56802 9.20082 6.24939 9.00989 6.94529 9.00037C7.64119 8.99086 8.32753 9.16307 8.9365 9.5"
+          d="M3 13C3 12.3 3.18 11.62 3.53 11.02C3.87 10.41 4.37 9.91 4.97 9.55C5.57 9.2 6.25 9.01 6.95 9C7.64 8.99 8.33 9.16 8.94 9.5"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
-          d="M7 9C8.38071 9 9.5 7.88071 9.5 6.5C9.5 5.11929 8.38071 4 7 4C5.61929 4 4.5 5.11929 4.5 6.5C4.5 7.88071 5.61929 9 7 9Z"
+          d="M7 9C8.38 9 9.5 7.88 9.5 6.5C9.5 5.12 8.38 4 7 4C5.62 4 4.5 5.12 4.5 6.5C4.5 7.88 5.62 9 7 9Z"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -30,7 +30,7 @@ export function SuspendedUserIcon({ className, ...rest }: ISvgIcons) {
       <defs>
         <clipPath id="clip0_806_120890">
           <path
-            d="M2 4.5C2 3.39543 2.89543 2.5 4 2.5H12C13.1046 2.5 14 3.39543 14 4.5V12.5C14 13.6046 13.1046 14.5 12 14.5H4C2.89543 14.5 2 13.6046 2 12.5V4.5Z"
+            d="M2 4.5C2 3.4 2.9 2.5 4 2.5H12C13.1 2.5 14 3.4 14 4.5V12.5C14 13.6 13.1 14.5 12 14.5H4C2.9 14.5 2 13.6 2 12.5V4.5Z"
             fill="white"
           />
         </clipPath>
