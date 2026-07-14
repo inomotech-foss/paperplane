@@ -65,3 +65,11 @@ from .invite import WorkspaceInvitationsViewset
 from .page import PageListCreateAPIEndpoint, PageDetailAPIEndpoint
 
 from .sticky import StickyViewSet
+
+from .issue_property import (
+    IssuePropertyListCreateAPIEndpoint,
+    IssuePropertyDetailAPIEndpoint,
+    IssuePropertyOptionListCreateAPIEndpoint,
+    IssuePropertyOptionDetailAPIEndpoint,
+    IssuePropertyValueAPIEndpoint,
+)
