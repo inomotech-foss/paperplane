@@ -154,6 +154,11 @@ class IssueFilterSet(BaseFilterSet):
     project_id = filters.UUIDFilter(field_name="project_id")
     project_id__in = UUIDInFilter(field_name="project_id", lookup_expr="in")
 
+    # Work item type (`Issue.type`); `issue_type_id` keeps the frontend filter
+    # key distinct from the legacy `type` state-type query param.
+    issue_type_id = filters.UUIDFilter(field_name="type_id")
+    issue_type_id__in = UUIDInFilter(field_name="type_id", lookup_expr="in")
+
     subscriber_id = filters.UUIDFilter(method="filter_subscriber_id")
     subscriber_id__in = UUIDInFilter(method="filter_subscriber_id_in", lookup_expr="in")
 
