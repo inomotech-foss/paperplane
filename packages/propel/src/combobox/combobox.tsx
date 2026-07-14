@@ -6,7 +6,7 @@
 
 import * as React from "react";
 import { Combobox as BaseCombobox } from "@base-ui-components/react/combobox";
-import { SearchIcon } from "../icons";
+import { SearchIcon } from "../icons/actions/search-icon";
 import { cn } from "../utils/classname";
 
 // Type definitions

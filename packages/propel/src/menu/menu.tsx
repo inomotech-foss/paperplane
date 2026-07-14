@@ -7,7 +7,8 @@
 import * as React from "react";
 import { Menu as BaseMenu } from "@base-ui-components/react/menu";
 import { MoreHorizontal } from "lucide-react";
-import { ChevronDownIcon, ChevronRightIcon } from "../icons";
+import { ChevronDownIcon } from "../icons/arrows/chevron-down";
+import { ChevronRightIcon } from "../icons/arrows/chevron-right";
 import { cn } from "../utils/classname";
 import type { TMenuProps, TSubMenuProps, TMenuItemProps } from "./types";
 

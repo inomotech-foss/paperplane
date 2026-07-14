@@ -6,7 +6,7 @@
 
 import React from "react";
 // plane imports
-import { Card, ECardSpacing } from "../../card";
+import { Card, ECardSpacing } from "../../card/card";
 
 interface TreeMapTooltipProps {
   active: boolean | undefined;

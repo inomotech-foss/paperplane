@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from "react";
 import { InfoIcon } from "lucide-react";
-import { SearchIcon } from "../../icons";
+import { SearchIcon } from "../../icons/actions/search-icon";
 import { cn } from "../../utils/classname";
 import { adjustColorForContrast, DEFAULT_COLORS } from "../helper";
 import { LucideIconsList } from "./lucide-root";

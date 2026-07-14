@@ -6,7 +6,7 @@
 
 import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
-import { SearchIcon } from "../icons";
+import { SearchIcon } from "../icons/actions/search-icon";
 import { cn } from "../utils/classname";
 
 function CommandComponent({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>) {

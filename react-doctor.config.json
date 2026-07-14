@@ -1,0 +1,11 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "ignore": {
+    "overrides": [
+      {
+        "files": ["**/empty-state/assets/**", "**/icons/registry.ts"],
+        "rules": ["react-doctor/no-barrel-import"]
+      }
+    ]
+  }
+}
