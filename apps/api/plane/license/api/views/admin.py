@@ -469,10 +469,11 @@ class InstanceAdminOIDCCallbackEndpoint(View):
                 sync_instance_admin(user=user, is_admin=provider.instance_admin)
 
             # A valid OIDC login is not enough: god-mode requires an instance-admin
-            # row (role >= 15, matching InstanceAdminPermission). Membership may have
-            # just been granted above via the role claim, or provisioned out of band.
+            # row (same membership check as the email/password admin sign-in above).
+            # Membership may have just been granted via the role claim, or been
+            # provisioned out of band.
             instance = Instance.objects.first()
-            if not InstanceAdmin.objects.filter(instance=instance, user=user, role__gte=15).exists():
+            if not InstanceAdmin.objects.filter(instance=instance, user=user).exists():
                 exc = AuthenticationException(
                     error_code=AUTHENTICATION_ERROR_CODES["ADMIN_AUTHENTICATION_FAILED"],
                     error_message="ADMIN_AUTHENTICATION_FAILED",
