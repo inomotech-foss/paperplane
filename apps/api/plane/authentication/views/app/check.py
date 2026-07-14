@@ -41,18 +41,25 @@ class EmailCheckEndpoint(APIView):
             )
             return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
 
-        (EMAIL_HOST, ENABLE_MAGIC_LINK_LOGIN) = get_configuration_value(
+        (EMAIL_HOST, ENABLE_MAGIC_LINK_LOGIN, ENABLE_EMAIL_PASSWORD) = get_configuration_value(
             [
                 {"key": "EMAIL_HOST", "default": os.environ.get("EMAIL_HOST", "")},
                 {
                     "key": "ENABLE_MAGIC_LINK_LOGIN",
                     "default": os.environ.get("ENABLE_MAGIC_LINK_LOGIN", "1"),
                 },
+                {
+                    "key": "ENABLE_EMAIL_PASSWORD",
+                    "default": os.environ.get("ENABLE_EMAIL_PASSWORD", "1"),
+                },
             ]
         )
 
         smtp_configured = bool(EMAIL_HOST)
         is_magic_login_enabled = ENABLE_MAGIC_LINK_LOGIN == "1"
+        is_email_password_enabled = ENABLE_EMAIL_PASSWORD == "1"
+        # Magic code is the only email step when password auth is off.
+        magic_possible = smtp_configured and is_magic_login_enabled
 
         email = request.data.get("email", False)
 
@@ -81,15 +88,11 @@ class EmailCheckEndpoint(APIView):
 
         # If existing user
         if existing_user:
-            # Return response
+            use_magic = not is_email_password_enabled or (existing_user.is_password_autoset and magic_possible)
             return Response(
                 {
                     "existing": True,
-                    "status": (
-                        "MAGIC_CODE"
-                        if existing_user.is_password_autoset and smtp_configured and is_magic_login_enabled
-                        else "CREDENTIAL"
-                    ),
+                    "status": "MAGIC_CODE" if use_magic else "CREDENTIAL",
                 },
                 status=status.HTTP_200_OK,
             )
@@ -97,7 +100,7 @@ class EmailCheckEndpoint(APIView):
         return Response(
             {
                 "existing": False,
-                "status": ("MAGIC_CODE" if smtp_configured and is_magic_login_enabled else "CREDENTIAL"),
+                "status": "MAGIC_CODE" if (not is_email_password_enabled or magic_possible) else "CREDENTIAL",
             },
             status=status.HTTP_200_OK,
         )

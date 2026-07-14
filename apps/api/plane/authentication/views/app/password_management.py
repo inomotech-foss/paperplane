@@ -59,7 +59,19 @@ class ForgotPasswordEndpoint(APIView):
             )
             return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
 
-        (EMAIL_HOST,) = get_configuration_value([{"key": "EMAIL_HOST", "default": os.environ.get("EMAIL_HOST")}])
+        (EMAIL_HOST, ENABLE_EMAIL_PASSWORD) = get_configuration_value(
+            [
+                {"key": "EMAIL_HOST", "default": os.environ.get("EMAIL_HOST")},
+                {"key": "ENABLE_EMAIL_PASSWORD", "default": os.environ.get("ENABLE_EMAIL_PASSWORD", "1")},
+            ]
+        )
+
+        if ENABLE_EMAIL_PASSWORD == "0":
+            exc = AuthenticationException(
+                error_code=AUTHENTICATION_ERROR_CODES["EMAIL_PASSWORD_AUTHENTICATION_DISABLED"],
+                error_message="EMAIL_PASSWORD_AUTHENTICATION_DISABLED",
+            )
+            return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
 
         if not (EMAIL_HOST):
             exc = AuthenticationException(
@@ -98,6 +110,19 @@ class ForgotPasswordEndpoint(APIView):
 
 class ResetPasswordEndpoint(View):
     def post(self, request, uidb64, token):
+        (ENABLE_EMAIL_PASSWORD,) = get_configuration_value(
+            [{"key": "ENABLE_EMAIL_PASSWORD", "default": os.environ.get("ENABLE_EMAIL_PASSWORD", "1")}]
+        )
+        if ENABLE_EMAIL_PASSWORD == "0":
+            exc = AuthenticationException(
+                error_code=AUTHENTICATION_ERROR_CODES["EMAIL_PASSWORD_AUTHENTICATION_DISABLED"],
+                error_message="EMAIL_PASSWORD_AUTHENTICATION_DISABLED",
+            )
+            url = urljoin(
+                base_host(request=request, is_app=True),
+                "accounts/reset-password?" + urlencode(exc.get_error_dict()),
+            )
+            return HttpResponseRedirect(url)
         try:
             # Decode the id from the uidb64
             try:

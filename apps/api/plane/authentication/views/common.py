@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+# Python imports
+import os
+
 # Django imports
 from django.shortcuts import render
 
@@ -16,6 +19,7 @@ from zxcvbn import zxcvbn
 from plane.app.serializers import UserSerializer
 from plane.authentication.utils.login import user_login
 from plane.db.models import User
+from plane.license.utils.instance_value import get_configuration_value
 from plane.authentication.adapter.error import (
     AuthenticationException,
     AUTHENTICATION_ERROR_CODES,
@@ -23,6 +27,13 @@ from plane.authentication.adapter.error import (
 from django.middleware.csrf import get_token
 from plane.utils.cache import invalidate_cache
 from plane.authentication.utils.host import base_host
+
+
+def _password_auth_disabled():
+    (ENABLE_EMAIL_PASSWORD,) = get_configuration_value(
+        [{"key": "ENABLE_EMAIL_PASSWORD", "default": os.environ.get("ENABLE_EMAIL_PASSWORD", "1")}]
+    )
+    return ENABLE_EMAIL_PASSWORD == "0"
 
 
 class CSRFTokenEndpoint(APIView):
@@ -46,6 +57,13 @@ def csrf_failure(request, reason=""):
 
 class ChangePasswordEndpoint(APIView):
     def post(self, request):
+        if _password_auth_disabled():
+            exc = AuthenticationException(
+                error_code=AUTHENTICATION_ERROR_CODES["EMAIL_PASSWORD_AUTHENTICATION_DISABLED"],
+                error_message="EMAIL_PASSWORD_AUTHENTICATION_DISABLED",
+            )
+            return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
+
         user = User.objects.get(pk=request.user.id)
 
         # If the user password is not autoset then we need to check the old passwords
@@ -99,6 +117,13 @@ class ChangePasswordEndpoint(APIView):
 class SetUserPasswordEndpoint(APIView):
     @invalidate_cache("/api/users/me/")
     def post(self, request):
+        if _password_auth_disabled():
+            exc = AuthenticationException(
+                error_code=AUTHENTICATION_ERROR_CODES["EMAIL_PASSWORD_AUTHENTICATION_DISABLED"],
+                error_message="EMAIL_PASSWORD_AUTHENTICATION_DISABLED",
+            )
+            return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
+
         user = User.objects.get(pk=request.user.id)
         password = request.data.get("password", False)
 
