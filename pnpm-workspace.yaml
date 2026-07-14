@@ -20,7 +20,7 @@ catalog:
   "@fontsource-variable/inter": "5.2.8"
   "@fontsource/ibm-plex-mono": "5.2.7"
   "@fontsource/inter": "5.2.8"
-  "@fontsource/material-symbols-rounded": "5.2.30"
+  "@fontsource/material-symbols-rounded": "5.2.45"
   "@headlessui/react": "^1.7.19"
   "@hocuspocus/extension-database": "2.15.2"
   "@hocuspocus/extension-logger": "2.15.2"
