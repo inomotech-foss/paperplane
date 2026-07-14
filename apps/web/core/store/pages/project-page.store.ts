@@ -27,6 +27,17 @@ type TLoader = "init-loader" | "mutation-loader" | undefined;
 
 type TError = { title: string; description: string };
 
+/**
+ * @description derived tree structure for the pages list.
+ * `rootPageIds` are the top-level rows; `childPageIdsByParentId` maps a parent
+ * page id to its ordered child page ids. Expand/collapse state is deliberately
+ * NOT part of this structure so it can be memoized independently of it.
+ */
+export type TPageTreeStructure = {
+  rootPageIds: string[];
+  childPageIdsByParentId: Map<string, string[]>;
+};
+
 export const ROLE_PERMISSIONS_TO_CREATE_PAGE = [
   EUserPermissions.ADMIN,
   EUserPermissions.MEMBER,
@@ -48,6 +59,7 @@ export interface IProjectPageStore {
   getCurrentProjectPageIdsByTab: (pageType: TPageNavigationTabs) => string[] | undefined;
   getCurrentProjectPageIds: (projectId: string) => string[];
   getCurrentProjectFilteredPageIdsByTab: (pageType: TPageNavigationTabs) => string[] | undefined;
+  getPageTreeStructureByTab: (pageType: TPageNavigationTabs) => TPageTreeStructure;
   getPageById: (pageId: string) => TProjectPage | undefined;
   getChildPageIds: (pageId: string) => string[];
   isPageExpanded: (pageId: string) => boolean;
@@ -188,6 +200,69 @@ export class ProjectPageStore implements IProjectPageStore {
     const pages = (filteredPages.map((page) => page.id) as string[]) || undefined;
 
     return pages ?? undefined;
+  });
+
+  /**
+   * @description build the parent/child tree structure for the pages list of a tab.
+   *
+   * This is a MobX computedFn, so it is memoized and only recomputed when its
+   * inputs change: the filtered/sorted page id list (data, filters, sort) or a
+   * page's `parent`. It deliberately does NOT read `expandedPageIds`, so
+   * expanding/collapsing a node does not invalidate it — no re-filter, no
+   * re-sort, and no full regroup happen on a toggle.
+   *
+   * Behavior mirrors the previous inline grouping: siblings keep the applied
+   * sort order, pages whose parent is not in the current result set become
+   * roots, and pages caught in a parent cycle are promoted to roots (and
+   * detached from their parent) instead of being hidden or recursing forever.
+   * @param {TPageNavigationTabs} pageType
+   */
+  getPageTreeStructureByTab = computedFn((pageType: TPageNavigationTabs): TPageTreeStructure => {
+    const filteredPageIds = this.getCurrentProjectFilteredPageIdsByTab(pageType) ?? [];
+
+    const filteredPageIdsSet = new Set(filteredPageIds);
+    const rootPageIds: string[] = [];
+    const childPageIdsByParentId = new Map<string, string[]>();
+    for (const pageId of filteredPageIds) {
+      const parentId = this.getPageById(pageId)?.parent;
+      if (parentId && parentId !== pageId && filteredPageIdsSet.has(parentId)) {
+        const siblingIds = childPageIdsByParentId.get(parentId);
+        if (siblingIds) siblingIds.push(pageId);
+        else childPageIdsByParentId.set(parentId, [pageId]);
+      } else {
+        rootPageIds.push(pageId);
+      }
+    }
+
+    // safety net for malformed data: pages caught in a parent cycle are unreachable from any
+    // root, so promote them to roots instead of silently hiding them.
+    const reachablePageIds = new Set<string>();
+    const idsToVisit = [...rootPageIds];
+    while (idsToVisit.length > 0) {
+      const pageId = idsToVisit.pop();
+      if (!pageId || reachablePageIds.has(pageId)) continue;
+      reachablePageIds.add(pageId);
+      idsToVisit.push(...(childPageIdsByParentId.get(pageId) ?? []));
+    }
+    if (reachablePageIds.size < filteredPageIds.length) {
+      for (const pageId of filteredPageIds) {
+        if (reachablePageIds.has(pageId)) continue;
+        rootPageIds.push(pageId);
+        // detach the promoted page from its parent to break the cycle while rendering
+        const parentId = this.getPageById(pageId)?.parent;
+        if (parentId) {
+          const siblingIds = childPageIdsByParentId.get(parentId);
+          if (siblingIds) {
+            childPageIdsByParentId.set(
+              parentId,
+              siblingIds.filter((siblingId) => siblingId !== pageId)
+            );
+          }
+        }
+      }
+    }
+
+    return { rootPageIds, childPageIdsByParentId };
   });
 
   /**
