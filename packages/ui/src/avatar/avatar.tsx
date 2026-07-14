@@ -6,6 +6,7 @@
 
 // ui
 import { Tooltip } from "@plane/propel/tooltip";
+import { getFallbackAvatarColors, getFallbackAvatarInitials } from "@plane/utils";
 // helpers
 import { cn } from "../utils";
 import type { TAvatarSize } from "./helper";
@@ -70,6 +71,7 @@ export function Avatar(props: Props) {
 
   // get size details based on the size prop
   const sizeInfo = getSizeInfo(size);
+  const fallbackColors = getFallbackAvatarColors(name ?? fallbackText ?? "");
 
   return (
     <Tooltip tooltipContent={fallbackText ?? name ?? "?"} disabled={!showTooltip}>
@@ -98,11 +100,11 @@ export function Avatar(props: Props) {
               className
             )}
             style={{
-              backgroundColor: fallbackBackgroundColor ?? "#028375",
-              color: fallbackTextColor ?? "#ffffff",
+              backgroundColor: fallbackBackgroundColor ?? fallbackColors.backgroundColor,
+              color: fallbackTextColor ?? fallbackColors.color,
             }}
           >
-            {name?.[0]?.toUpperCase() ?? fallbackText ?? "?"}
+            {name ? getFallbackAvatarInitials(name) : (fallbackText ?? "?")}
           </div>
         )}
       </div>
