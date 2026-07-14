@@ -79,6 +79,7 @@ const EmojiReaction = React.forwardRef(function EmojiReaction(
 
   const button = (
     <button
+      type="button"
       ref={ref}
       onClick={handleClick}
       className={cn(

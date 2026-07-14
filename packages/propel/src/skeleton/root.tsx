@@ -16,9 +16,9 @@ type SkeletonProps = {
 
 function SkeletonRoot({ children, className = "", ariaLabel = "Loading content" }: SkeletonProps) {
   return (
-    <div data-slot="skeleton" className={cn("animate-pulse", className)} role="status" aria-label={ariaLabel}>
+    <output data-slot="skeleton" className={cn("block animate-pulse", className)} aria-label={ariaLabel}>
       {children}
-    </div>
+    </output>
   );
 }
 

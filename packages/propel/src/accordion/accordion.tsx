@@ -9,6 +9,8 @@ import { Accordion as BaseAccordion } from "@base-ui-components/react";
 
 import { PlusIcon } from "../icons/actions/plus-icon";
 
+const EMPTY_DEFAULT_VALUE: string[] = [];
+
 export interface AccordionRootProps {
   defaultValue?: string[];
   allowMultiple?: boolean;
@@ -37,7 +39,12 @@ export interface AccordionContentProps {
   children: React.ReactNode;
 }
 
-function AccordionRoot({ defaultValue = [], allowMultiple = false, className = "", children }: AccordionRootProps) {
+function AccordionRoot({
+  defaultValue = EMPTY_DEFAULT_VALUE,
+  allowMultiple = false,
+  className = "",
+  children,
+}: AccordionRootProps) {
   return (
     <BaseAccordion.Root defaultValue={defaultValue} openMultiple={allowMultiple} className={`text-14 ${className}`}>
       {children}

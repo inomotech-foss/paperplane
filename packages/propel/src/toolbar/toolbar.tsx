@@ -145,6 +145,7 @@ const ToolbarSubmitButton = React.forwardRef(function ToolbarSubmitButton(
   return (
     <div className="sticky right-1">
       <button
+        type="button"
         ref={ref}
         className={cn(
           "inline-flex items-center justify-center gap-2 rounded-md px-2.5 py-1.5 text-11 font-medium transition-colors duration-200",

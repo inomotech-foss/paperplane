@@ -56,10 +56,10 @@ export function EmptyStateDetailed({
             : actions &&
               actions.length > 0 && (
                 <div className="flex flex-col gap-4 sm:flex-row">
-                  {actions.map((action, index) => {
+                  {actions.map((action) => {
                     const { label, variant, ...rest } = action;
                     return (
-                      <Button key={index} variant={variant} size="xl" {...rest}>
+                      <Button key={label} variant={variant} size="xl" {...rest}>
                         {label}
                       </Button>
                     );
