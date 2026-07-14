@@ -87,6 +87,7 @@ from plane.utils.order_queryset import (
 )
 from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
 from .base import BaseAPIView
+from .issue_property import build_issue_property_filters
 from plane.utils.host import base_host
 from plane.utils.issue_relation_mapper import get_actual_relation
 from plane.bgtasks.webhook_task import model_activity
@@ -312,6 +313,18 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
 
         Retrieve a paginated list of all work items in a project.
         Supports filtering, ordering, and field selection through query parameters.
+
+        Custom property filters (work item properties) are supported through
+        `property__<property_id>=<value>` query parameters:
+
+        - Equality: `property__<property_id>=<option_id|option_name|text|number|bool>`
+          (for MULTI_OPTION properties this matches work items that have that option)
+        - Number comparison (NUMBER properties only):
+          `property__<property_id>__gt=<number>` / `property__<property_id>__lt=<number>`
+
+        Each filter translates to
+        `.filter(property_values__property_id=..., property_values__value_number__gt=...)`
+        on the work item queryset; multiple property filters are ANDed.
         """
 
         external_id = request.GET.get("external_id")
@@ -367,6 +380,16 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
         )
 
         total_issue_queryset = Issue.issue_objects.filter(project_id=project_id, workspace__slug=slug)
+
+        # Custom property (work item property) filters — see the docstring above
+        property_filters, property_filter_error = build_issue_property_filters(request.GET, slug, project_id)
+        if property_filter_error:
+            return Response({"error": property_filter_error}, status=status.HTTP_400_BAD_REQUEST)
+        for property_filter in property_filters:
+            issue_queryset = issue_queryset.filter(**property_filter)
+            total_issue_queryset = total_issue_queryset.filter(**property_filter)
+        if property_filters:
+            total_issue_queryset = total_issue_queryset.distinct()
 
         # Priority Ordering
         if order_by_param == "priority" or order_by_param == "-priority":
