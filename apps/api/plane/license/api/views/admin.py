@@ -34,6 +34,9 @@ from plane.db.models import User, Profile
 from plane.utils.cache import cache_response, invalidate_cache
 from plane.authentication.utils.login import user_login
 from plane.authentication.utils.host import base_host, user_ip
+from plane.authentication.utils.instance_admin import sync_instance_admin
+from plane.authentication.utils.user_auth_workflow import post_user_auth_workflow
+from plane.authentication.provider.oauth.oidc import OIDCOAuthProvider
 from plane.authentication.adapter.error import (
     AUTHENTICATION_ERROR_CODES,
     AuthenticationException,
@@ -402,6 +405,84 @@ class InstanceAdminSignInEndpoint(View):
         user_login(request=request, user=user, is_admin=True)
         url = urljoin(base_host(request=request, is_admin=True), "general/")
         return HttpResponseRedirect(url)
+
+
+# god-mode OIDC sign-in. Mounted under /api/instances/ so the session middleware
+# writes the admin-session-id cookie (it selects the admin realm by the "instances"
+# substring in the request path). The callback path is handed to the provider so its
+# redirect_uri and token exchange target this flow, not the app OIDC one.
+OIDC_ADMIN_CALLBACK_PATH = "/api/instances/admins/oidc/callback/"
+
+
+class InstanceAdminOIDCInitiateEndpoint(View):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        request.session["host"] = base_host(request=request, is_admin=True)
+
+        instance = Instance.objects.first()
+        if instance is None or not instance.is_setup_done:
+            exc = AuthenticationException(
+                error_code=AUTHENTICATION_ERROR_CODES["INSTANCE_NOT_CONFIGURED"],
+                error_message="INSTANCE_NOT_CONFIGURED",
+            )
+            url = urljoin(base_host(request=request, is_admin=True), "?" + urlencode(exc.get_error_dict()))
+            return HttpResponseRedirect(url)
+
+        try:
+            state = uuid.uuid4().hex
+            request.session["state"] = state
+            request.session["nonce"] = uuid.uuid4().hex
+            provider = OIDCOAuthProvider(request=request, state=state, callback_path=OIDC_ADMIN_CALLBACK_PATH)
+            return HttpResponseRedirect(provider.get_auth_url())
+        except AuthenticationException as e:
+            url = urljoin(base_host(request=request, is_admin=True), "?" + urlencode(e.get_error_dict()))
+            return HttpResponseRedirect(url)
+
+
+class InstanceAdminOIDCCallbackEndpoint(View):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        host = request.session.get("host") or base_host(request=request, is_admin=True)
+        code = request.GET.get("code")
+        state = request.GET.get("state")
+
+        if not code or state != request.session.get("state", ""):
+            exc = AuthenticationException(
+                error_code=AUTHENTICATION_ERROR_CODES["OIDC_OAUTH_PROVIDER_ERROR"],
+                error_message="OIDC_OAUTH_PROVIDER_ERROR",
+            )
+            return HttpResponseRedirect(urljoin(host, "?" + urlencode(exc.get_error_dict())))
+
+        try:
+            provider = OIDCOAuthProvider(
+                request=request,
+                code=code,
+                callback=post_user_auth_workflow,
+                callback_path=OIDC_ADMIN_CALLBACK_PATH,
+            )
+            user = provider.authenticate()
+
+            # Grant or revoke admin from the id_token role claim when configured.
+            if provider.instance_admin is not None:
+                sync_instance_admin(user=user, is_admin=provider.instance_admin)
+
+            # A valid OIDC login is not enough: god-mode requires an instance-admin
+            # row (role >= 15, matching InstanceAdminPermission). Membership may have
+            # just been granted above via the role claim, or provisioned out of band.
+            instance = Instance.objects.first()
+            if not InstanceAdmin.objects.filter(instance=instance, user=user, role__gte=15).exists():
+                exc = AuthenticationException(
+                    error_code=AUTHENTICATION_ERROR_CODES["ADMIN_AUTHENTICATION_FAILED"],
+                    error_message="ADMIN_AUTHENTICATION_FAILED",
+                )
+                return HttpResponseRedirect(urljoin(host, "?" + urlencode(exc.get_error_dict())))
+
+            user_login(request=request, user=user, is_admin=True)
+            return HttpResponseRedirect(urljoin(host, "general/"))
+        except AuthenticationException as e:
+            return HttpResponseRedirect(urljoin(host, "?" + urlencode(e.get_error_dict())))
 
 
 class InstanceAdminUserMeEndpoint(BaseAPIView):
