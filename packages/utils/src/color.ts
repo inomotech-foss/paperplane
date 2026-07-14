@@ -303,24 +303,3 @@ export const generateRandomColor = (input: string): THsl => {
 
   return { h: hue, s: saturation, l: lightness };
 };
-
-/**
- * @description Deterministic pastel background + same-hue dark text for a fallback avatar.
- * @param {string} seed - stable seed (name or id)
- */
-export const getFallbackAvatarColors = (seed: string): { backgroundColor: string; color: string } => {
-  if (!seed) return { backgroundColor: "hsl(0, 0%, 90%)", color: "hsl(0, 0%, 35%)" };
-  const { h } = generateRandomColor(seed);
-  return { backgroundColor: `hsl(${h}, 65%, 90%)`, color: `hsl(${h}, 60%, 30%)` };
-};
-
-/**
- * @description Up to two initials for a fallback avatar: first letters of the first two
- * words, or the first two characters of a single word.
- */
-export const getFallbackAvatarInitials = (name?: string): string => {
-  const words = (name ?? "").trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return "?";
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return (words[0][0] + words[1][0]).toUpperCase();
-};

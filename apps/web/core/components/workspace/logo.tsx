@@ -7,7 +7,8 @@
 import { observer } from "mobx-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
-import { cn, getFallbackAvatarColors, getFallbackAvatarInitials, getFileURL } from "@plane/utils";
+import { getFallbackAvatarColors, getFallbackAvatarInitials } from "@plane/ui";
+import { cn, getFileURL } from "@plane/utils";
 
 type Props = {
   logo: string | null | undefined;

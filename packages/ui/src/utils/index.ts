@@ -6,4 +6,3 @@
 
 export * from "./classname";
 export * from "./icons";
-export { getFallbackAvatarColors, getFallbackAvatarInitials } from "@plane/utils";
