@@ -173,6 +173,7 @@ from .decorators import (
     module_docs,
     module_issue_docs,
     state_docs,
+    page_docs,
     estimate_docs,
     estimate_point_docs,
 )
@@ -333,6 +334,7 @@ __all__ = [
     "module_docs",
     "module_issue_docs",
     "state_docs",
+    "page_docs",
     "estimate_docs",
     "estimate_point_docs",
     # Hooks
