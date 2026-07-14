@@ -152,6 +152,12 @@ oidc_config_variables = [
         "is_encrypted": False,
     },
     {
+        "key": "ENABLE_OIDC_SIGNUP",
+        "value": os.environ.get("ENABLE_OIDC_SIGNUP", "1"),
+        "category": "OIDC",
+        "is_encrypted": False,
+    },
+    {
         "key": "OIDC_ISSUER",
         "value": os.environ.get("OIDC_ISSUER"),
         "category": "OIDC",

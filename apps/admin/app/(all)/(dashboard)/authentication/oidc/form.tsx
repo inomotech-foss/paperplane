@@ -64,6 +64,7 @@ export function InstanceOIDCConfigForm(props: Props) {
       OIDC_USERINFO_URL: config["OIDC_USERINFO_URL"],
       OIDC_JWKS_URL: config["OIDC_JWKS_URL"],
       ENABLE_OIDC_SYNC: config["ENABLE_OIDC_SYNC"] || "0",
+      ENABLE_OIDC_SIGNUP: config["ENABLE_OIDC_SIGNUP"] || "1",
     },
   });
 
@@ -249,6 +250,29 @@ export function InstanceOIDCConfigForm(props: Props) {
                       onChange={() => onChange(value === "1" ? "0" : "1")}
                       size="sm"
                       disabled={isManaged("OIDC_TRUST_EMAIL")}
+                    />
+                  )}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-1">
+              <div className="flex flex-col gap-1">
+                <h4 className="text-sm font-medium">Allow sign-up via SSO</h4>
+                <p className="text-xs text-custom-text-300">
+                  Create an account on first SSO login. Turn this off to allow SSO only for users who already exist,
+                  independent of the general sign-up setting.
+                </p>
+              </div>
+              <div className="relative shrink-0">
+                <Controller
+                  control={control}
+                  name="ENABLE_OIDC_SIGNUP"
+                  render={({ field: { value, onChange } }) => (
+                    <ToggleSwitch
+                      value={value === "1"}
+                      onChange={() => onChange(value === "1" ? "0" : "1")}
+                      size="sm"
+                      disabled={isManaged("ENABLE_OIDC_SIGNUP")}
                     />
                   )}
                 />

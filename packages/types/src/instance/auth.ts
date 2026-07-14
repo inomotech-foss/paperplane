@@ -59,6 +59,7 @@ export type TInstanceGiteaAuthenticationConfigurationKeys =
   | "ENABLE_GITEA_SYNC";
 
 export type TInstanceOidcAuthenticationConfigurationKeys =
+  | "ENABLE_OIDC_SIGNUP"
   | "OIDC_ISSUER"
   | "OIDC_CLIENT_ID"
   | "OIDC_CLIENT_SECRET"
