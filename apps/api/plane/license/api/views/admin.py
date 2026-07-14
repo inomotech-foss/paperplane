@@ -29,7 +29,7 @@ from plane.license.api.serializers import (
     InstanceAdminMeSerializer,
     InstanceAdminSerializer,
 )
-from plane.license.models import Instance, InstanceAdmin
+from plane.license.models import INSTANCE_ADMIN_MIN_ROLE, Instance, InstanceAdmin
 from plane.db.models import User, Profile
 from plane.utils.cache import cache_response, invalidate_cache
 from plane.authentication.utils.login import user_login
@@ -407,10 +407,7 @@ class InstanceAdminSignInEndpoint(View):
         return HttpResponseRedirect(url)
 
 
-# god-mode OIDC sign-in. Mounted under /api/instances/ so the session middleware
-# writes the admin-session-id cookie (it selects the admin realm by the "instances"
-# substring in the request path). The callback path is handed to the provider so its
-# redirect_uri and token exchange target this flow, not the app OIDC one.
+# Path must contain "instances" so the session middleware uses the admin cookie.
 OIDC_ADMIN_CALLBACK_PATH = "/api/instances/admins/oidc/callback/"
 
 
@@ -464,16 +461,15 @@ class InstanceAdminOIDCCallbackEndpoint(View):
             )
             user = provider.authenticate()
 
-            # Grant or revoke admin from the id_token role claim when configured.
+            # Grant or revoke admin from the role claim when configured.
             if provider.instance_admin is not None:
                 sync_instance_admin(user=user, is_admin=provider.instance_admin)
 
-            # A valid OIDC login is not enough: god-mode requires an instance-admin
-            # row (same membership check as the email/password admin sign-in above).
-            # Membership may have just been granted via the role claim, or been
-            # provisioned out of band.
+            # A valid OIDC login is not enough; god-mode needs the admin role.
             instance = Instance.objects.first()
-            if not InstanceAdmin.objects.filter(instance=instance, user=user).exists():
+            if not InstanceAdmin.objects.filter(
+                role__gte=INSTANCE_ADMIN_MIN_ROLE, instance=instance, user=user
+            ).exists():
                 exc = AuthenticationException(
                     error_code=AUTHENTICATION_ERROR_CODES["ADMIN_AUTHENTICATION_FAILED"],
                     error_message="ADMIN_AUTHENTICATION_FAILED",

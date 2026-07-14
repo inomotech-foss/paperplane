@@ -88,8 +88,7 @@ class OIDCOAuthProvider(OauthAdapter):
         # configured value when endpoints are supplied manually.
         self.expected_issuer = endpoints.get("issuer") or issuer
 
-        # The admin (god-mode) flow reuses this provider with its own callback path;
-        # the redirect_uri must match at both authorize and token-exchange time.
+        # callback_path lets the god-mode flow reuse this provider with its own callback.
         redirect_uri = f"{'https' if request.is_secure() else 'http'}://{request.get_host()}{callback_path}"
 
         # The nonce is minted by the initiate view and stored in the session before
