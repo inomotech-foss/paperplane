@@ -5,7 +5,7 @@
  */
 
 import { forwardRef, memo, useMemo } from "react";
-import { Dialog as BaseDialog } from "@base-ui-components/react";
+import { Dialog as BaseDialog } from "@base-ui/react";
 import { cn } from "../utils/classname";
 
 // enums
@@ -26,17 +26,17 @@ export enum EDialogWidth {
 // Types
 export type DialogPosition = "center" | "top";
 
-export interface DialogProps extends React.ComponentProps<typeof BaseDialog.Root> {
+export interface DialogProps extends BaseDialog.Root.Props {
   children: React.ReactNode;
 }
 
-export interface DialogPanelProps extends React.ComponentProps<typeof BaseDialog.Popup> {
+export interface DialogPanelProps extends BaseDialog.Popup.Props {
   width?: EDialogWidth;
   position?: DialogPosition;
   children: React.ReactNode;
 }
 
-export interface DialogTitleProps extends React.ComponentProps<typeof BaseDialog.Title> {
+export interface DialogTitleProps extends BaseDialog.Title.Props {
   children: React.ReactNode;
 }
 
@@ -51,10 +51,7 @@ const getPositionClassNames = (position: DialogPosition) =>
     "top-8 left-1/2 -translate-x-1/2": position === "top",
   });
 
-const DialogPortal = memo(function DialogPortal({
-  children,
-  ...props
-}: React.ComponentProps<typeof BaseDialog.Portal>) {
+const DialogPortal = memo(function DialogPortal({ children, ...props }: BaseDialog.Portal.Props) {
   return (
     <BaseDialog.Portal data-slot="dialog-portal" {...props}>
       {children}
@@ -63,10 +60,7 @@ const DialogPortal = memo(function DialogPortal({
 });
 DialogPortal.displayName = "DialogPortal";
 
-const DialogOverlay = memo(function DialogOverlay({
-  className,
-  ...props
-}: React.ComponentProps<typeof BaseDialog.Backdrop>) {
+const DialogOverlay = memo(function DialogOverlay({ className, ...props }: BaseDialog.Backdrop.Props) {
   return <BaseDialog.Backdrop data-slot="dialog-overlay" className={cn(OVERLAY_CLASSNAME, className)} {...props} />;
 });
 DialogOverlay.displayName = "DialogOverlay";
@@ -80,10 +74,7 @@ const DialogComponent = memo(function DialogComponent({ children, ...props }: Di
 });
 DialogComponent.displayName = "Dialog";
 
-const DialogTrigger = memo(function DialogTrigger({
-  children,
-  ...props
-}: React.ComponentProps<typeof BaseDialog.Trigger>) {
+const DialogTrigger = memo(function DialogTrigger({ children, ...props }: BaseDialog.Trigger.Props) {
   return (
     <BaseDialog.Trigger data-slot="dialog-trigger" {...props}>
       {children}

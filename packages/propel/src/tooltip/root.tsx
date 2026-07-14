@@ -5,7 +5,7 @@
  */
 
 import * as React from "react";
-import { Tooltip as BaseTooltip } from "@base-ui-components/react/tooltip";
+import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
 import { cn } from "../utils/classname";
 import type { TPlacement, TSide, TAlign } from "../utils/placement";
 import { convertPlacementToSideAndAlign } from "../utils/placement";
@@ -51,8 +51,8 @@ export function Tooltip(props: ITooltipProps) {
 
   return (
     <BaseTooltip.Provider>
-      <BaseTooltip.Root delay={openDelay} closeDelay={closeDelay} disabled={disabled}>
-        <BaseTooltip.Trigger render={children} />
+      <BaseTooltip.Root disabled={disabled}>
+        <BaseTooltip.Trigger delay={openDelay} closeDelay={closeDelay} render={children} />
         <BaseTooltip.Portal>
           <BaseTooltip.Positioner
             className={cn(

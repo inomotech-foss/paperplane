@@ -60,8 +60,10 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
   const duration = findTotalDaysInRange(issueDetails?.start_date, issueDetails?.target_date) || 0;
 
   return (
-    <Popover delay={100} openOnHover>
+    <Popover>
       <Popover.Button
+        delay={100}
+        openOnHover
         className="w-full"
         render={
           <div
