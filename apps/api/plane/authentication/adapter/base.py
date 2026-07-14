@@ -102,15 +102,13 @@ class Adapter:
     def __check_signup(self, email):
         """Check if sign up is enabled or not and raise exception if not enabled"""
 
-        # Get configuration value
-        (ENABLE_SIGNUP,) = get_configuration_value([
-            {"key": "ENABLE_SIGNUP", "default": os.environ.get("ENABLE_SIGNUP", "1")}
-        ])
+        # OIDC provisioning has its own toggle, independent of manual signup.
+        key = "ENABLE_OIDC_SIGNUP" if self.provider == "oidc" else "ENABLE_SIGNUP"
+        (enabled,) = get_configuration_value([{"key": key, "default": os.environ.get(key, "1")}])
 
-        # Check if sign up is disabled and invite is present or not
-        if ENABLE_SIGNUP == "0" and not WorkspaceMemberInvite.objects.filter(email=email).exists():
+        # Invited users may be created regardless.
+        if enabled == "0" and not WorkspaceMemberInvite.objects.filter(email=email).exists():
             self.logger.warning("Sign up is disabled and invite is not present")
-            # Raise exception
             raise AuthenticationException(
                 error_code=AUTHENTICATION_ERROR_CODES["SIGNUP_DISABLED"],
                 error_message="SIGNUP_DISABLED",
