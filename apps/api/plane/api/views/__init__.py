@@ -73,3 +73,8 @@ from .issue_property import (
     IssuePropertyOptionDetailAPIEndpoint,
     IssuePropertyValueAPIEndpoint,
 )
+
+from .issue_type import (
+    IssueTypeListCreateAPIEndpoint,
+    IssueTypeDetailAPIEndpoint,
+)

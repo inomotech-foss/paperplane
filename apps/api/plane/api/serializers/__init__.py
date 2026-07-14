@@ -70,3 +70,4 @@ from .issue_property import (
     IssuePropertyOptionSerializer,
     IssuePropertyValueRequestSerializer,
 )
+from .issue_type import IssueTypeSerializer

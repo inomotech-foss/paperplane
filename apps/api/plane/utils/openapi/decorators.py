@@ -163,6 +163,21 @@ def issue_property_docs(**kwargs):
     return extend_schema(**_merge_schema_options(defaults, kwargs))
 
 
+def issue_type_docs(**kwargs):
+    """Decorator for work item type endpoints"""
+    defaults = {
+        "tags": ["Work Item Types"],
+        "parameters": [WORKSPACE_SLUG_PARAMETER, PROJECT_ID_PARAMETER],
+        "responses": {
+            401: UNAUTHORIZED_RESPONSE,
+            403: FORBIDDEN_RESPONSE,
+            404: NOT_FOUND_RESPONSE,
+        },
+    }
+
+    return extend_schema(**_merge_schema_options(defaults, kwargs))
+
+
 def label_docs(**kwargs):
     """Decorator for label management endpoints"""
     defaults = {

@@ -11,7 +11,9 @@ from plane.db.models import (
     IssueProperty,
     IssuePropertyOption,
     IssuePropertyValue,
+    IssueType,
     Project,
+    ProjectIssueType,
     ProjectMember,
     PropertyTypeChoices,
     State,
@@ -553,3 +555,89 @@ class TestIssueListRichCustomPropertyFiltersApp(IssuePropertyAppUrls):
         filters = json.dumps({f"customproperty_{number_property.id}__gt": "not-a-number"})
         response = session_client.get(url, {"filters": filters})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestIssuePropertyTypeScopingApp(IssuePropertyAppUrls):
+    """Test scoping a work item property to a specific work item type, and
+    the ?issue_type= filter on the list endpoint."""
+
+    @pytest.fixture
+    def bug_type(self, db, workspace, project):
+        issue_type = IssueType.objects.create(workspace=workspace, name="Bug", is_epic=False)
+        ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
+        return issue_type
+
+    @pytest.fixture
+    def story_type(self, db, workspace, project):
+        issue_type = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
+        ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
+        return issue_type
+
+    def test_create_property_scoped_to_type(self, session_client, workspace, project, bug_type):
+        url = self.properties_url(workspace.slug, project.id)
+        response = session_client.post(
+            url,
+            {"name": "Severity", "property_type": "TEXT", "issue_type": str(bug_type.id)},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert str(response.data["issue_type"]) == str(bug_type.id)
+
+    def test_create_property_scoped_to_foreign_type_rejected(self, session_client, workspace, project):
+        unrelated_type = IssueType.objects.create(workspace=workspace, name="Unrelated", is_epic=False)
+        # Not linked to `project` via ProjectIssueType
+
+        url = self.properties_url(workspace.slug, project.id)
+        response = session_client.post(
+            url,
+            {"name": "Severity", "property_type": "TEXT", "issue_type": str(unrelated_type.id)},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_list_filter_by_issue_type_includes_unscoped(
+        self, session_client, workspace, project, bug_type, story_type
+    ):
+        for index in range(3):
+            IssueProperty.objects.create(
+                name=f"Unscoped {index}",
+                property_type=PropertyTypeChoices.TEXT,
+                project=project,
+                workspace=project.workspace,
+            )
+        IssueProperty.objects.create(
+            name="Bug Only",
+            property_type=PropertyTypeChoices.TEXT,
+            project=project,
+            workspace=project.workspace,
+            issue_type=bug_type,
+        )
+        IssueProperty.objects.create(
+            name="Story Only",
+            property_type=PropertyTypeChoices.TEXT,
+            project=project,
+            workspace=project.workspace,
+            issue_type=story_type,
+        )
+
+        url = self.properties_url(workspace.slug, project.id)
+
+        # No query param: unchanged, everything is returned
+        response = session_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 5
+
+        # Filtered by bug_type: the 3 unscoped properties + the bug-scoped one
+        response = session_client.get(url, {"issue_type": str(bug_type.id)})
+        assert response.status_code == status.HTTP_200_OK
+        names = {prop["name"] for prop in response.data}
+        assert names == {"Unscoped 0", "Unscoped 1", "Unscoped 2", "Bug Only"}
+
+        # ?unscoped=true: only the unscoped properties
+        response = session_client.get(url, {"unscoped": "true"})
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 3

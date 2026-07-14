@@ -7,7 +7,7 @@ from rest_framework import serializers
 
 # Module imports
 from .base import BaseSerializer
-from plane.db.models import IssueProperty, IssuePropertyOption
+from plane.db.models import IssueProperty, IssuePropertyOption, IssueType
 
 
 class IssuePropertyOptionSerializer(BaseSerializer):
@@ -51,6 +51,14 @@ class IssuePropertySerializer(BaseSerializer):
             raise serializers.ValidationError("property_type is required")
         if self.instance is not None and property_type and property_type != self.instance.property_type:
             raise serializers.ValidationError("property_type cannot be changed once created")
+
+        issue_type = data.get("issue_type")
+        project_id = self.context.get("project_id")
+        if issue_type is not None and project_id is not None:
+            if not IssueType.objects.filter(
+                pk=issue_type.id, project_issue_types__project_id=project_id
+            ).exists():
+                raise serializers.ValidationError("issue_type is not valid for this project")
         return data
 
     def create(self, validated_data):
