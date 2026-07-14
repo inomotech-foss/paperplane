@@ -50,7 +50,7 @@ ssl:
 
 redis:
   local_setup: true
-  image: valkey/valkey:7.2.11-alpine
+  image: valkey/valkey:7.2.11-alpine@sha256:10328d00120dc14fbc87b2ed61b7677ddbb0d011e705361b4788329a0ec69a93
   servicePort: 6379
   storageClass: ""
   volumeSize: 100Mi
@@ -64,7 +64,7 @@ redis:
 
 postgres:
   local_setup: true
-  image: postgres:15.7-alpine
+  image: postgres:15.7-alpine@sha256:468d34fefd6338031787c7b8e94078975b3aaf4d66c7ead25c39cd3ba46a15c6
   servicePort: 5432
   storageClass: ""
   volumeSize: 1Gi
@@ -78,7 +78,7 @@ postgres:
 
 rabbitmq:
   local_setup: true
-  image: rabbitmq:3.13.6-management-alpine
+  image: rabbitmq:3.13.6-management-alpine@sha256:611107e29cce05c2acd968325d5dcbde7e2fee404970f1ead75fdb22be2821b3
   pullPolicy: IfNotPresent
   servicePort: 5672
   managementPort: 15672
@@ -95,7 +95,7 @@ rabbitmq:
   affinity: {}
 
 minio:
-  image: minio/minio:latest
+  image: minio/minio:latest@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
   image_mc: minio/mc:latest
   local_setup: true
   pullPolicy: IfNotPresent

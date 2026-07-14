@@ -22,7 +22,7 @@
   "devDependencies": {
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
-    "react-doctor": "^0.4.2",
+    "react-doctor": "0.4.2",
     "turbo": "catalog:"
   },
   "engines": {
