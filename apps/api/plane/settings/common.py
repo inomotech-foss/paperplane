@@ -142,7 +142,9 @@ MIDDLEWARE = [
 # Rest Framework settings
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework.authentication.SessionAuthentication",),
-    "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.AnonRateThrottle",),
+    # Rates come from instance config (see plane.utils.rate_limit); the entries
+    # below are only a fallback for scopes without a get_rate() override.
+    "DEFAULT_THROTTLE_CLASSES": ("plane.throttles.anon.ConfigurableAnonRateThrottle",),
     "DEFAULT_THROTTLE_RATES": {
         "anon": "30/minute",
         "asset_id": "5/minute",
@@ -154,9 +156,6 @@ REST_FRAMEWORK = {
     # Preserve original Django URL parameter names (pk) instead of converting to 'id'
     "SCHEMA_COERCE_PATH_PK": False,
 }
-
-# API key throttle rate (DRF SimpleRateThrottle format, e.g. "60/minute")
-API_KEY_RATE_LIMIT = os.environ.get("API_KEY_RATE_LIMIT", "60/minute")
 
 # Django Auth Backend
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)  # default

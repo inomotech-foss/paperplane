@@ -2,16 +2,18 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-# Django imports
-from django.conf import settings
-
 # Third party imports
 from rest_framework.throttling import SimpleRateThrottle
+
+# Module imports
+from plane.utils.rate_limit import get_throttle_rate
 
 
 class ApiKeyRateThrottle(SimpleRateThrottle):
     scope = "api_key"
-    rate = settings.API_KEY_RATE_LIMIT
+
+    def get_rate(self):
+        return get_throttle_rate(self.scope)
 
     def get_cache_key(self, request, view):
         # Retrieve the API key from the request header
