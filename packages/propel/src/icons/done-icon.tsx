@@ -22,7 +22,7 @@ export function DoneState({ width = "10", height = "11", className }: ISvgIcons)
       <path
         fillRule="evenodd"
         clipRule="evenodd"
-        d="M2.5 5.59375L3.82582 6.91957L4.26777 6.47763L2.94194 5.15181L2.5 5.59375ZM4.26777 7.36152L7.36136 4.26793L6.91942 3.82599L3.82583 6.91958L4.26777 7.36152Z"
+        d="M2.5 5.59L3.83 6.92L4.27 6.48L2.94 5.15L2.5 5.59ZM4.27 7.36L7.36 4.27L6.92 3.83L3.83 6.92L4.27 7.36Z"
         fill="#15A34A"
       />
     </svg>

@@ -235,7 +235,7 @@ export const IconButtons: Story = {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.41-9.41a2 2 0 112.83 2.83L11.83 15H9v-2.83l8.59-8.59z"
               />
             </svg>
           </button>
@@ -253,7 +253,7 @@ export const IconButtons: Story = {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                d="M19 7l-0.87 12.14A2 2 0 116.14 21H7.86a2 2 0 01-2-1.86L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
               />
             </svg>
           </button>
@@ -271,7 +271,7 @@ export const IconButtons: Story = {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                d="M8.68 13.34C8.89 12.94 9 12.48 9 12c0-0.48-0.11-0.94-0.32-1.34m0 2.68a3 3 0 110-2.68m0 2.68l6.63 3.32m-6.63-6l6.63-3.32m0 0a3 3 0 105.37-2.68 3 3 0 00-5.37 2.68zm0 9.32a3 3 0 105.37 2.68 3 3 0 00-5.37-2.68z"
               />
             </svg>
           </button>
