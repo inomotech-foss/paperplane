@@ -20,6 +20,7 @@ import { ProfileSettingsHeading } from "@/components/settings/profile/heading";
 // helpers
 import { authErrorHandler, EAuthenticationErrorCodes, passwordErrors } from "@/helpers/authentication.helper";
 // hooks
+import { useInstance } from "@/hooks/store/use-instance";
 import { useUser } from "@/hooks/store/user";
 // services
 import { AuthService } from "@/services/auth.service";
@@ -47,6 +48,7 @@ const defaultShowPassword = {
 export const SecurityProfileSettings = observer(function SecurityProfileSettings() {
   // store
   const { data: currentUser, changePassword } = useUser();
+  const { config } = useInstance();
   // states
   const [showPassword, setShowPassword] = useState(defaultShowPassword);
   const [isPasswordInputFocused, setIsPasswordInputFocused] = useState(false);
@@ -129,6 +131,14 @@ export const SecurityProfileSettings = observer(function SecurityProfileSettings
     );
 
   const renderPasswordMatchError = !isRetryPasswordInputFocused || confirmPassword.length >= password.length;
+
+  if (config?.is_email_password_enabled === false)
+    return (
+      <div className="size-full">
+        <ProfileSettingsHeading title={t("auth.common.password.change_password.label.default")} />
+        <p className="text-sm mt-7 text-tertiary">Password sign-in is disabled for this instance.</p>
+      </div>
+    );
 
   return (
     <div className="size-full">
