@@ -35,6 +35,35 @@ workspace_management_config_variables = [
     },
 ]
 
+# DRF rate strings ("<num>/<period>", period s/m/h/d). Read on the request path
+# via plane.utils.rate_limit; editable in god-mode.
+rate_limit_config_variables = [
+    {
+        "key": "API_KEY_RATE_LIMIT",
+        "value": os.environ.get("API_KEY_RATE_LIMIT", "60/minute"),
+        "category": "RATE_LIMIT",
+        "is_encrypted": False,
+    },
+    {
+        "key": "ANON_RATE_LIMIT",
+        "value": os.environ.get("ANON_RATE_LIMIT", "30/minute"),
+        "category": "RATE_LIMIT",
+        "is_encrypted": False,
+    },
+    {
+        "key": "ASSET_RATE_LIMIT",
+        "value": os.environ.get("ASSET_RATE_LIMIT", "5/minute"),
+        "category": "RATE_LIMIT",
+        "is_encrypted": False,
+    },
+    {
+        "key": "AUTHENTICATION_RATE_LIMIT",
+        "value": os.environ.get("AUTHENTICATION_RATE_LIMIT", "10/minute"),
+        "category": "RATE_LIMIT",
+        "is_encrypted": False,
+    },
+]
+
 google_config_variables = [
     {
         "key": "GOOGLE_CLIENT_ID",
@@ -328,6 +357,7 @@ unsplash_config_variables = [
 core_config_variables = [
     *authentication_config_variables,
     *workspace_management_config_variables,
+    *rate_limit_config_variables,
     *google_config_variables,
     *github_config_variables,
     *gitlab_config_variables,

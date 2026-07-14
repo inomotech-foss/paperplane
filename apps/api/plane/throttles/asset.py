@@ -4,9 +4,14 @@
 
 from rest_framework.throttling import SimpleRateThrottle
 
+from plane.utils.rate_limit import get_throttle_rate
+
 
 class AssetRateThrottle(SimpleRateThrottle):
     scope = "asset_id"
+
+    def get_rate(self):
+        return get_throttle_rate(self.scope)
 
     def get_cache_key(self, request, view):
         asset_id = view.kwargs.get("asset_id")
