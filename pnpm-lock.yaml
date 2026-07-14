@@ -130,8 +130,8 @@ catalogs:
       specifier: 4.1.17
       version: 4.1.17
     '@tailwindcss/typography':
-      specifier: 0.5.19
-      version: 0.5.19
+      specifier: 0.5.20
+      version: 0.5.20
     '@tanstack/react-table':
       specifier: ^8.21.3
       version: 8.21.3
@@ -982,7 +982,7 @@ importers:
         version: 4.1.17
       '@tailwindcss/typography':
         specifier: 'catalog:'
-        version: 0.5.19
+        version: 0.5.20
       '@types/lodash-es':
         specifier: 'catalog:'
         version: 4.17.12
@@ -1187,7 +1187,7 @@ importers:
         version: 4.1.17
       '@tailwindcss/typography':
         specifier: 'catalog:'
-        version: 0.5.19
+        version: 0.5.20
       '@types/lodash-es':
         specifier: 'catalog:'
         version: 4.17.12
@@ -4797,10 +4797,10 @@ packages:
   '@tailwindcss/postcss@4.1.17':
     resolution: {integrity: sha512-+nKl9N9mN5uJ+M7dBOOCzINw94MPstNR/GtIhz1fpZysxL/4a+No64jCBD6CPN+bIHWFx3KWuu8XJRrj/572Dw==}
 
-  '@tailwindcss/typography@0.5.19':
-    resolution: {integrity: sha512-w31dd8HOx3k9vPtcQh5QHP9GwKcgbMp87j58qi6xgiBnFFtKEAgCWnDw4qUT8aHwkCp8bKvb/KGKWWHedP0AAg==}
+  '@tailwindcss/typography@0.5.20':
+    resolution: {integrity: sha512-hwbzQuNUfcPvbegQFatVPl/MY/tcM9KLl963hQ5laJKPh81TEZ1+dNG9PirGvcaDBkp+BCshExAyKVPW91dozw==}
     peerDependencies:
-      tailwindcss: '>=3.0.0 || insiders || >=4.0.0-alpha.20 || >=4.0.0-beta.1'
+      tailwindcss: '>=3.0.0 || >=4.0.0 || insiders'
 
   '@tanstack/react-table@8.21.3':
     resolution: {integrity: sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww==}
@@ -12205,7 +12205,7 @@ snapshots:
       postcss: 8.5.15
       tailwindcss: 4.1.17
 
-  '@tailwindcss/typography@0.5.19':
+  '@tailwindcss/typography@0.5.20':
     dependencies:
       postcss-selector-parser: 6.0.10
 

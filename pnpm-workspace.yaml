@@ -46,7 +46,7 @@ catalog:
   "@storybook/react-vite": "10.4.6"
   "@storybook/react-webpack5": "10.4.6"
   "@tailwindcss/postcss": "4.1.17"
-  "@tailwindcss/typography": "0.5.19"
+  "@tailwindcss/typography": "0.5.20"
   "@tanstack/react-table": "^8.21.3"
   "@tanstack/react-virtual": "^3.13.12"
   "@tanstack/virtual-core": "^3.13.12"
