@@ -1,0 +1,215 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:best-practices"],
+  "forkProcessing": "enabled",
+  "labels": ["dependencies"],
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 20,
+  "prHourlyLimit": 4,
+  "packageRules": [
+    {
+      "description": "React core",
+      "groupName": "react",
+      "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"]
+    },
+    {
+      "description": "React component and utility libraries",
+      "groupName": "react-ui",
+      "matchPackageNames": [
+        "/^@base-ui/",
+        "@headlessui/react",
+        "/^@floating-ui//",
+        "@popperjs/core",
+        "@bprogress/core",
+        "cmdk",
+        "emoji-picker-react",
+        "frimousse",
+        "is-emoji-supported",
+        "lucide-react",
+        "next-themes",
+        "react-color",
+        "@types/react-color",
+        "react-day-picker",
+        "react-dropzone",
+        "react-fast-compare",
+        "react-hook-form",
+        "react-masonry-component",
+        "react-popper",
+        "recharts",
+        "smooth-scroll-into-view-if-needed",
+        "tippy.js"
+      ]
+    },
+    {
+      "description": "TipTap / ProseMirror / Yjs editor stack",
+      "groupName": "editor (tiptap/prosemirror)",
+      "matchPackageNames": [
+        "/^@tiptap//",
+        "/^prosemirror-/",
+        "/^@hocuspocus//",
+        "yjs",
+        "/^y-/",
+        "tiptap-markdown"
+      ]
+    },
+    {
+      "description": "Markdown / unified ecosystem",
+      "groupName": "markdown",
+      "matchPackageNames": [
+        "unified",
+        "/^remark-/",
+        "/^rehype-/",
+        "hast-util-to-mdast",
+        "mdast-util-to-hast",
+        "react-markdown",
+        "lowlight",
+        "highlight.js",
+        "markdown-it",
+        "@types/hast",
+        "@types/mdast"
+      ]
+    },
+    {
+      "description": "Styling (Tailwind / PostCSS)",
+      "groupName": "styling",
+      "matchPackageNames": [
+        "tailwindcss",
+        "/^@tailwindcss//",
+        "tailwind-merge",
+        "postcss",
+        "postcss-cli",
+        "postcss-nested",
+        "autoprefixer"
+      ]
+    },
+    {
+      "description": "Build tooling",
+      "groupName": "build-tooling",
+      "matchPackageNames": [
+        "vite",
+        "vite-tsconfig-paths",
+        "tsdown",
+        "tsx",
+        "turbo",
+        "rollup",
+        "webpack",
+        "esbuild"
+      ]
+    },
+    {
+      "description": "TypeScript",
+      "groupName": "typescript",
+      "matchPackageNames": ["typescript", "tslib", "/^ts-/"]
+    },
+    {
+      "description": "oxc lint/format tooling",
+      "groupName": "oxc-tooling",
+      "matchPackageNames": ["oxlint", "oxfmt", "react-doctor"]
+    },
+    {
+      "description": "Storybook",
+      "groupName": "storybook",
+      "matchPackageNames": ["storybook", "/^@storybook//", "@chromatic-com/storybook"]
+    },
+    {
+      "description": "Node server stack (apps/live)",
+      "groupName": "server",
+      "matchPackageNames": [
+        "express",
+        "express-ws",
+        "express-winston",
+        "cors",
+        "compression",
+        "helmet",
+        "ws",
+        "ioredis",
+        "winston",
+        "isbot",
+        "serve",
+        "@types/express",
+        "@types/express-ws",
+        "@types/cors",
+        "@types/compression",
+        "@types/ws"
+      ]
+    },
+    {
+      "description": "PDF generation",
+      "groupName": "pdf",
+      "matchPackageNames": ["/^@react-pdf//", "react-pdf-html", "pdf-parse", "@types/pdf-parse"]
+    },
+    {
+      "description": "i18n",
+      "groupName": "i18n",
+      "matchPackageNames": ["i18next", "i18next-icu", "i18next-resources-to-backend", "react-i18next"]
+    },
+    {
+      "description": "MobX",
+      "groupName": "mobx",
+      "matchPackageNames": ["mobx", "mobx-react", "mobx-utils"]
+    },
+    {
+      "description": "Effect",
+      "groupName": "effect",
+      "matchPackageNames": ["effect", "/^@effect//"]
+    },
+    {
+      "description": "Pragmatic drag and drop",
+      "groupName": "drag-and-drop",
+      "matchPackageNames": ["/^@atlaskit/pragmatic-drag-and-drop/"]
+    },
+    {
+      "description": "Blueprint",
+      "groupName": "blueprintjs",
+      "matchPackageNames": ["/^@blueprintjs//"]
+    },
+    {
+      "description": "Codemod tooling",
+      "groupName": "codemods",
+      "matchPackageNames": ["jscodeshift", "@types/jscodeshift", "@hypermod/utils", "ast-types"]
+    },
+    {
+      "description": "Small transitive dependency pins (overrides)",
+      "groupName": "transitive-pins",
+      "matchPackageNames": [
+        "ajv",
+        "brace-expansion",
+        "chokidar",
+        "defu",
+        "diff",
+        "fast-uri",
+        "flatted",
+        "follow-redirects",
+        "form-data",
+        "glob",
+        "lodash",
+        "lodash-es",
+        "@types/lodash-es",
+        "minimatch",
+        "nanoid",
+        "path-to-regexp",
+        "picomatch",
+        "qs",
+        "serialize-javascript",
+        "tmp",
+        "undici",
+        "yaml"
+      ]
+    },
+    {
+      "description": "Python (API) dependencies",
+      "groupName": "python",
+      "matchManagers": ["pip_requirements", "pip-compile", "pep621"]
+    },
+    {
+      "description": "GitHub Actions",
+      "groupName": "github-actions",
+      "matchManagers": ["github-actions"]
+    },
+    {
+      "description": "Docker base images",
+      "groupName": "docker",
+      "matchManagers": ["dockerfile", "docker-compose"]
+    }
+  ]
+}
