@@ -283,6 +283,51 @@ class TestPinnedFetchRedirects:
 
     @patch("plane.utils.url_security.requests.Session")
     @patch("plane.utils.url_security.resolve_and_validate")
+    def test_strips_credentials_on_cross_host_redirect(self, mock_resolve, mock_session_cls):
+        # A bearer token / cookie must not leak to a redirect target on a
+        # different host the caller never chose to authenticate against.
+        mock_resolve.return_value = ["93.184.216.34"]
+        session = mock_session_cls.return_value
+        session.request.side_effect = [
+            _resp(302, headers={"Location": "https://other.com/p"}),
+            _resp(200),
+        ]
+
+        pinned_fetch_following_redirects(
+            "GET",
+            "https://example.com/a",
+            headers={"Authorization": "Bearer secret", "Cookie": "s=1", "X-Keep": "1"},
+        )
+
+        first_headers = session.request.call_args_list[0].kwargs["headers"]
+        second_headers = session.request.call_args_list[1].kwargs["headers"]
+        assert first_headers["Authorization"] == "Bearer secret"
+        assert "Authorization" not in second_headers
+        assert "Cookie" not in second_headers
+        # Non-sensitive headers are preserved across the hop.
+        assert second_headers["X-Keep"] == "1"
+
+    @patch("plane.utils.url_security.requests.Session")
+    @patch("plane.utils.url_security.resolve_and_validate")
+    def test_keeps_credentials_on_same_host_redirect(self, mock_resolve, mock_session_cls):
+        mock_resolve.return_value = ["93.184.216.34"]
+        session = mock_session_cls.return_value
+        session.request.side_effect = [
+            _resp(302, headers={"Location": "https://example.com/b"}),
+            _resp(200),
+        ]
+
+        pinned_fetch_following_redirects(
+            "GET",
+            "https://example.com/a",
+            headers={"Authorization": "Bearer secret"},
+        )
+
+        second_headers = session.request.call_args_list[1].kwargs["headers"]
+        assert second_headers["Authorization"] == "Bearer secret"
+
+    @patch("plane.utils.url_security.requests.Session")
+    @patch("plane.utils.url_security.resolve_and_validate")
     def test_too_many_redirects(self, mock_resolve, mock_session_cls):
         mock_resolve.return_value = ["93.184.216.34"]
         session = mock_session_cls.return_value

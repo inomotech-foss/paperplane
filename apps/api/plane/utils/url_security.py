@@ -244,12 +244,13 @@ def pinned_fetch_following_redirects(
         requests.RequestException: on network/transport errors.
     """
     current_url = url
+    current_headers = dict(headers or {})
     redirects = 0
     while True:
-        response, _ = _fetch_validated_hop(
+        response, current_host = _fetch_validated_hop(
             method, current_url,
             allowed_ips=allowed_ips, allowed_hosts=allowed_hosts,
-            headers=headers, timeout=timeout, **kwargs,
+            headers=current_headers, timeout=timeout, **kwargs,
         )
 
         if response.status_code not in _REDIRECT_STATUSES:
@@ -270,3 +271,12 @@ def pinned_fetch_following_redirects(
         # Resolve the redirect target against the current URL; the next loop
         # iteration re-validates and re-pins it.
         current_url = urljoin(current_url, location)
+        # Drop credentials on a cross-host redirect (as requests does) so a
+        # bearer token or cookie can't leak to an unrelated target.
+        next_host = (urlsplit(current_url).hostname or "").rstrip(".").lower()
+        if next_host != current_host:
+            current_headers = {
+                key: value
+                for key, value in current_headers.items()
+                if key.lower() not in ("authorization", "cookie", "proxy-authorization")
+            }
