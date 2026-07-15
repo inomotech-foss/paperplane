@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { Check, MessageSquareText, RotateCcw, Trash2 } from "lucide-react";
+import { Check, MessageSquareText, Pencil, RotateCcw, Trash2 } from "lucide-react";
 // plane imports
 import {
   COMMENT_MARK_DATA_ATTRIBUTE,
@@ -72,7 +72,8 @@ const CommentBody = observer(function CommentBody(props: { commentId: string; ht
       workspaceSlug={String(workspaceSlug)}
       projectId={projectId ? String(projectId) : undefined}
       initialValue={html || EMPTY_COMMENT_HTML}
-      containerClassName="border-none p-0"
+      parentClassName="border-none"
+      containerClassName="!p-0"
       editorClassName="!p-0"
       displayConfig={{ fontSize: "small-font" }}
     />
@@ -81,15 +82,17 @@ const CommentBody = observer(function CommentBody(props: { commentId: string; ht
 
 type ComposerProps = {
   placeholder: string;
-  /** Creates the comment and returns it so uploaded assets can be associated. */
+  initialValue?: string;
+  /** Returns the saved comment so uploaded assets can be associated. */
   createComment: (html: string) => Promise<TPageComment | undefined>;
-  /** Called after the comment and its assets are saved (e.g. to close the composer). */
+  /** When set, renders an explicit submit button with this label. */
+  submitLabel?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 };
 
 const CommentComposer = observer(function CommentComposer(props: ComposerProps) {
-  const { placeholder, createComment, onSuccess, onCancel } = props;
+  const { placeholder, initialValue = EMPTY_COMMENT_HTML, createComment, submitLabel, onSuccess, onCancel } = props;
   const { t } = useTranslation();
   const { workspaceSlug, projectId } = useParams();
   const { getWorkspaceBySlug } = useWorkspace();
@@ -98,7 +101,7 @@ const CommentComposer = observer(function CommentComposer(props: ComposerProps) 
   const editorRef = useRef<EditorRefApi>(null);
   // Images are uploaded before the comment exists; associate them once it does.
   const uploadedAssetIds = useRef<string[]>([]);
-  const [value, setValue] = useState(EMPTY_COMMENT_HTML);
+  const [value, setValue] = useState(initialValue);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -130,8 +133,9 @@ const CommentComposer = observer(function CommentComposer(props: ComposerProps) 
         workspaceSlug={String(workspaceSlug)}
         projectId={projectId ? String(projectId) : undefined}
         ref={editorRef}
-        // initialValue feeds the wrapper's isEmpty (submit-button gating); value stays
-        // constant so the editor doesn't re-sync content (and reset the cursor) on every keystroke.
+        // initialValue feeds the editor's mount content and the wrapper's isEmpty (submit-button
+        // gating); value stays constant so the editor doesn't re-sync content (and reset the cursor)
+        // on every keystroke. Editing seeds `value` from the initialValue prop via useState.
         initialValue={value}
         value={EMPTY_COMMENT_HTML}
         placeholder={placeholder}
@@ -161,11 +165,27 @@ const CommentComposer = observer(function CommentComposer(props: ComposerProps) 
         }}
         displayConfig={{ fontSize: "small-font" }}
       />
-      {onCancel && (
-        <div className="flex items-center justify-end">
-          <button type="button" className="text-xs text-secondary hover:text-primary" onClick={onCancel}>
-            {t("common.cancel")}
-          </button>
+      {(onCancel || submitLabel) && (
+        <div className="flex items-center justify-end gap-3">
+          {onCancel && (
+            <button
+              type="button"
+              className="text-caption-sm-regular text-secondary hover:text-primary"
+              onClick={onCancel}
+            >
+              {t("common.cancel")}
+            </button>
+          )}
+          {submitLabel && (
+            <button
+              type="button"
+              className="text-caption-sm-medium text-accent-primary hover:text-accent-primary disabled:opacity-50"
+              onClick={() => void handleSubmit()}
+              disabled={submitting || isCommentEmpty(value)}
+            >
+              {submitLabel}
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -257,11 +277,18 @@ const ThreadCard = observer(function ThreadCard(props: ThreadCardProps) {
   const { store, thread } = props;
   const { t } = useTranslation();
   const { getUserDetails } = useMember();
+  const { data: currentUser } = useUser();
   const [showReply, setShowReply] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const replies = store.repliesForThread(thread.id);
 
   const authorName = (comment: TPageComment) =>
     getUserDetails(comment.actor ?? "")?.display_name || comment.actor_detail?.display_name || "";
+
+  const canEdit = (comment: TPageComment) => !!currentUser && comment.actor === currentUser.id;
+
+  const editedSuffix = (comment: TPageComment) =>
+    comment.edited_at ? ` (${t("page_navigation_pane.tabs.comments.edited")})` : "";
 
   const handleResolve = async () => {
     const nextResolved = !thread.is_resolved;
@@ -288,26 +315,80 @@ const ThreadCard = observer(function ThreadCard(props: ThreadCardProps) {
         "opacity-70": thread.is_resolved,
       })}
     >
-      <button
-        type="button"
-        className="flex w-full items-center justify-between text-left"
-        onClick={() => scrollToAnchor(thread.anchor_id)}
-      >
-        <span className="text-xs font-medium text-primary">{authorName(thread)}</span>
-        <span className="text-[10px] text-tertiary">{renderFormattedDate(thread.created_at)}</span>
-      </button>
-      <CommentBody commentId={thread.id} html={thread.comment_html} />
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left"
+          onClick={() => scrollToAnchor(thread.anchor_id)}
+        >
+          <span className="truncate text-caption-sm-medium text-primary">{authorName(thread)}</span>
+          <span className="shrink-0 text-caption-xs-regular text-tertiary">
+            {renderFormattedDate(thread.created_at)}
+            {editedSuffix(thread)}
+          </span>
+        </button>
+        {canEdit(thread) && editingId !== thread.id && (
+          <button
+            type="button"
+            className="shrink-0 text-tertiary hover:text-primary"
+            aria-label={t("common.edit")}
+            onClick={() => setEditingId(thread.id)}
+          >
+            <Pencil className="size-3" />
+          </button>
+        )}
+      </div>
+      {editingId === thread.id ? (
+        <div className="mt-1.5">
+          <CommentComposer
+            placeholder={t("page_navigation_pane.tabs.comments.composer_placeholder")}
+            initialValue={thread.comment_html}
+            submitLabel={t("common.save")}
+            createComment={(html) => store.updateComment(thread.id, html)}
+            onSuccess={() => setEditingId(null)}
+            onCancel={() => setEditingId(null)}
+          />
+        </div>
+      ) : (
+        <CommentBody commentId={thread.id} html={thread.comment_html} />
+      )}
       <CommentReactions store={store} comment={thread} />
 
       {replies.length > 0 && (
         <div className="mt-2 flex flex-col gap-2 border-l border-subtle pl-2.5">
           {replies.map((reply) => (
             <div key={reply.id} className="flex flex-col gap-0.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-primary">{authorName(reply)}</span>
-                <span className="text-[10px] text-tertiary">{renderFormattedDate(reply.created_at)}</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-caption-sm-medium text-primary">{authorName(reply)}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-caption-xs-regular text-tertiary">
+                    {renderFormattedDate(reply.created_at)}
+                    {editedSuffix(reply)}
+                  </span>
+                  {canEdit(reply) && editingId !== reply.id && (
+                    <button
+                      type="button"
+                      className="text-tertiary hover:text-primary"
+                      aria-label={t("common.edit")}
+                      onClick={() => setEditingId(reply.id)}
+                    >
+                      <Pencil className="size-3" />
+                    </button>
+                  )}
+                </div>
               </div>
-              <CommentBody commentId={reply.id} html={reply.comment_html} />
+              {editingId === reply.id ? (
+                <CommentComposer
+                  placeholder={t("page_navigation_pane.tabs.comments.reply_placeholder")}
+                  initialValue={reply.comment_html}
+                  submitLabel={t("common.save")}
+                  createComment={(html) => store.updateComment(reply.id, html)}
+                  onSuccess={() => setEditingId(null)}
+                  onCancel={() => setEditingId(null)}
+                />
+              ) : (
+                <CommentBody commentId={reply.id} html={reply.comment_html} />
+              )}
               <CommentReactions store={store} comment={reply} />
             </div>
           ))}
@@ -317,14 +398,14 @@ const ThreadCard = observer(function ThreadCard(props: ThreadCardProps) {
       <div className="mt-2 flex items-center gap-3">
         <button
           type="button"
-          className="text-xs text-secondary hover:text-primary"
+          className="text-caption-sm-medium text-secondary hover:text-primary"
           onClick={() => setShowReply((prev) => !prev)}
         >
           {t("page_navigation_pane.tabs.comments.reply")}
         </button>
         <button
           type="button"
-          className="text-xs flex items-center gap-1 text-secondary hover:text-primary"
+          className="flex items-center gap-1 text-caption-sm-medium text-secondary hover:text-primary"
           onClick={() => void handleResolve()}
         >
           {thread.is_resolved ? <RotateCcw className="size-3" /> : <Check className="size-3" />}
@@ -398,7 +479,7 @@ export const PageNavigationPaneCommentsTabPanel = observer(function PageNavigati
 
   return (
     <div className="flex h-full flex-col px-3.5">
-      <div className="text-xs mb-2 flex items-center gap-1">
+      <div className="mb-2 flex items-center gap-1 text-caption-sm-medium">
         {(["unresolved", "resolved"] as const).map((key) => (
           <button
             key={key}
@@ -434,8 +515,10 @@ export const PageNavigationPaneCommentsTabPanel = observer(function PageNavigati
         {threads.length === 0 && !pendingThreadId ? (
           <div className="flex flex-col items-center gap-2 py-10 text-center text-secondary">
             <MessageSquareText className="size-6 text-tertiary" />
-            <p className="text-sm">{t("page_navigation_pane.tabs.comments.empty_state.title")}</p>
-            <p className="text-xs text-tertiary">{t("page_navigation_pane.tabs.comments.empty_state.description")}</p>
+            <p className="text-body-sm-medium">{t("page_navigation_pane.tabs.comments.empty_state.title")}</p>
+            <p className="text-caption-sm-regular text-tertiary">
+              {t("page_navigation_pane.tabs.comments.empty_state.description")}
+            </p>
           </div>
         ) : (
           <div className="flex flex-col gap-2 pb-6">
