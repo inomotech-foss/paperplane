@@ -21,19 +21,25 @@ import { stringToEmoji } from "@plane/propel/emoji-icon-picker";
 import { EmojiReactionGroup, EmojiReactionPicker } from "@plane/propel/emoji-reaction";
 import type { EmojiReactionType } from "@plane/propel/emoji-reaction";
 import { ScrollArea } from "@plane/propel/scrollarea";
+import { EFileAssetType } from "@plane/types";
 import type { TPageComment } from "@plane/types";
 import { cn, isCommentEmpty, renderFormattedDate } from "@plane/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text";
 // hooks
+import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 import { useMember } from "@/hooks/store/use-member";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUser } from "@/hooks/store/user";
+// services
+import { FileService } from "@/services/file.service";
 // store
 import { PageCommentStore } from "@/store/pages/page-comment.store";
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
 import { consumePendingCommentThread } from "./pending-thread";
+
+const fileService = new FileService();
 
 type Props = {
   page: TPageInstance;
@@ -75,17 +81,23 @@ const CommentBody = observer(function CommentBody(props: { commentId: string; ht
 
 type ComposerProps = {
   placeholder: string;
-  onSubmit: (html: string) => Promise<void>;
+  /** Creates the comment and returns it so uploaded assets can be associated. */
+  createComment: (html: string) => Promise<TPageComment | undefined>;
+  /** Called after the comment and its assets are saved (e.g. to close the composer). */
+  onSuccess?: () => void;
   onCancel?: () => void;
 };
 
 const CommentComposer = observer(function CommentComposer(props: ComposerProps) {
-  const { placeholder, onSubmit, onCancel } = props;
+  const { placeholder, createComment, onSuccess, onCancel } = props;
   const { t } = useTranslation();
   const { workspaceSlug, projectId } = useParams();
   const { getWorkspaceBySlug } = useWorkspace();
+  const { uploadEditorAsset, duplicateEditorAsset } = useEditorAsset();
   const workspaceId = getWorkspaceBySlug(String(workspaceSlug))?.id ?? "";
   const editorRef = useRef<EditorRefApi>(null);
+  // Images are uploaded before the comment exists; associate them once it does.
+  const uploadedAssetIds = useRef<string[]>([]);
   const [value, setValue] = useState(EMPTY_COMMENT_HTML);
   const [submitting, setSubmitting] = useState(false);
 
@@ -93,9 +105,16 @@ const CommentComposer = observer(function CommentComposer(props: ComposerProps) 
     if (isCommentEmpty(value) || submitting) return;
     setSubmitting(true);
     try {
-      await onSubmit(value);
+      const comment = await createComment(value);
+      if (comment && uploadedAssetIds.current.length > 0) {
+        await fileService.updateBulkProjectAssetsUploadStatus(String(workspaceSlug), String(projectId), comment.id, {
+          asset_ids: uploadedAssetIds.current,
+        });
+        uploadedAssetIds.current = [];
+      }
       editorRef.current?.clearEditor();
       setValue(EMPTY_COMMENT_HTML);
+      onSuccess?.();
     } finally {
       setSubmitting(false);
     }
@@ -116,10 +135,28 @@ const CommentComposer = observer(function CommentComposer(props: ComposerProps) 
         placeholder={placeholder}
         onChange={(_json, html) => setValue(html)}
         onEnterKeyPress={() => void handleSubmit()}
-        disabledExtensions={["image"]}
         isSubmitting={submitting}
-        uploadFile={async () => ""}
-        duplicateFile={async () => ""}
+        uploadFile={async (blockId, file) => {
+          const { asset_id } = await uploadEditorAsset({
+            blockId,
+            data: { entity_identifier: "", entity_type: EFileAssetType.PAGE_COMMENT_DESCRIPTION },
+            file,
+            projectId: String(projectId),
+            workspaceSlug: String(workspaceSlug),
+          });
+          uploadedAssetIds.current.push(asset_id);
+          return asset_id;
+        }}
+        duplicateFile={async (assetId) => {
+          const { asset_id } = await duplicateEditorAsset({
+            assetId,
+            entityType: EFileAssetType.PAGE_COMMENT_DESCRIPTION,
+            projectId: String(projectId),
+            workspaceSlug: String(workspaceSlug),
+          });
+          uploadedAssetIds.current.push(asset_id);
+          return asset_id;
+        }}
         displayConfig={{ fontSize: "small-font" }}
       />
       {onCancel && (
@@ -307,10 +344,8 @@ const ThreadCard = observer(function ThreadCard(props: ThreadCardProps) {
         <div className="mt-2">
           <CommentComposer
             placeholder={t("page_navigation_pane.tabs.comments.reply_placeholder")}
-            onSubmit={async (html) => {
-              await store.createReply(thread.id, html);
-              setShowReply(false);
-            }}
+            createComment={(html) => store.createReply(thread.id, html)}
+            onSuccess={() => setShowReply(false)}
             onCancel={() => setShowReply(false)}
           />
         </div>
@@ -383,8 +418,8 @@ export const PageNavigationPaneCommentsTabPanel = observer(function PageNavigati
         <div className="border-accent-primary/40 mb-2 rounded-md border bg-surface-1 p-2.5">
           <CommentComposer
             placeholder={t("page_navigation_pane.tabs.comments.composer_placeholder")}
-            onSubmit={async (html) => {
-              await store.createThread(pendingThreadId, html);
+            createComment={(html) => store.createThread(pendingThreadId, html)}
+            onSuccess={() => {
               consumePendingCommentThread();
               setPendingThreadId(null);
             }}
