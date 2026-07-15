@@ -232,6 +232,10 @@ class WorkspaceFileAssetEndpoint(BaseAPIView):
         # Comment Description
         if entity_type == FileAsset.EntityTypeContext.COMMENT_DESCRIPTION:
             return {"comment_id": entity_id}
+
+        # Page Comment Description
+        if entity_type == FileAsset.EntityTypeContext.PAGE_COMMENT_DESCRIPTION:
+            return {"page_comment_id": entity_id}
         return {}
 
     def asset_delete(self, asset_id):
@@ -520,9 +524,7 @@ class StaticFileAssetEndpoint(BaseAPIView):
         # same-origin XSS when assets are served on the application's origin.
         storage = S3Storage(request=request)
         asset_mime_type = (asset.attributes.get("type") or "").split(";")[0].strip().lower()
-        disposition = (
-            "attachment" if asset_mime_type in settings.SCRIPT_CAPABLE_MIME_TYPES else "inline"
-        )
+        disposition = "attachment" if asset_mime_type in settings.SCRIPT_CAPABLE_MIME_TYPES else "inline"
         # Generate a presigned URL to share an S3 object
         signed_url = storage.generate_presigned_url(
             object_name=asset.asset.name,
@@ -571,6 +573,9 @@ class ProjectAssetEndpoint(BaseAPIView):
 
         if entity_type == FileAsset.EntityTypeContext.COMMENT_DESCRIPTION:
             return {"comment_id": entity_id}
+
+        if entity_type == FileAsset.EntityTypeContext.PAGE_COMMENT_DESCRIPTION:
+            return {"page_comment_id": entity_id}
 
         if entity_type == FileAsset.EntityTypeContext.DRAFT_ISSUE_DESCRIPTION:
             return {"draft_issue_id": entity_id}
@@ -743,6 +748,13 @@ class ProjectBulkAssetEndpoint(BaseAPIView):
 
         if asset.entity_type == FileAsset.EntityTypeContext.PAGE_DESCRIPTION:
             assets.update(page_id=entity_id)
+
+        if asset.entity_type == FileAsset.EntityTypeContext.PAGE_COMMENT_DESCRIPTION:
+            try:
+                assets.update(page_comment_id=entity_id)
+            except IntegrityError:
+                # The comment was deleted before this bulk update ran; nothing to associate.
+                pass
 
         if asset.entity_type == FileAsset.EntityTypeContext.DRAFT_ISSUE_DESCRIPTION:
             # For some cases, the bulk api is called after the draft issue is deleted

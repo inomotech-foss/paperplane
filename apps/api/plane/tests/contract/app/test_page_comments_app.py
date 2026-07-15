@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from plane.db.models import (
     EmailNotificationLog,
+    FileAsset,
     Notification,
     Page,
     PageComment,
@@ -304,3 +305,23 @@ class TestPageCommentsAppEndpoint:
         response = session_client.post(url, {"comment_html": mention_html(member.id)}, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert not EmailNotificationLog.objects.filter(receiver=member).exists()
+
+    @pytest.mark.django_db
+    def test_comment_asset_bulk_association(self, session_client, workspace, project, page, create_user):
+        comment = PageComment.objects.create(page=page, comment_html="<p>x</p>", anchor_id="t1", actor=create_user)
+        asset = FileAsset.objects.create(
+            attributes={"name": "img.png", "type": "image/png", "size": 10},
+            asset="img.png",
+            size=10,
+            workspace=workspace,
+            project=project,
+            entity_type=FileAsset.EntityTypeContext.PAGE_COMMENT_DESCRIPTION,
+            entity_identifier=str(comment.id),
+            created_by=create_user,
+            is_uploaded=True,
+        )
+        url = f"/api/assets/v2/workspaces/{workspace.slug}/projects/{project.id}/{comment.id}/bulk/"
+        response = session_client.post(url, {"asset_ids": [str(asset.id)]}, format="json")
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        asset.refresh_from_db()
+        assert str(asset.page_comment_id) == str(comment.id)
