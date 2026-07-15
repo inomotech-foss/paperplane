@@ -62,7 +62,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@base-ui-components/react": "catalog:",
+    "@base-ui/react": "catalog:",
     "@plane/constants": "workspace:*",
     "@plane/hooks": "workspace:*",
     "@plane/types": "workspace:*",

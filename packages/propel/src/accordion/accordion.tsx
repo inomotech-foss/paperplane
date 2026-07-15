@@ -5,7 +5,7 @@
  */
 
 import * as React from "react";
-import { Accordion as BaseAccordion } from "@base-ui-components/react";
+import { Accordion as BaseAccordion } from "@base-ui/react";
 
 import { PlusIcon } from "../icons/actions/plus-icon";
 
@@ -46,7 +46,7 @@ function AccordionRoot({
   children,
 }: AccordionRootProps) {
   return (
-    <BaseAccordion.Root defaultValue={defaultValue} openMultiple={allowMultiple} className={`text-14 ${className}`}>
+    <BaseAccordion.Root defaultValue={defaultValue} multiple={allowMultiple} className={`text-14 ${className}`}>
       {children}
     </BaseAccordion.Root>
   );

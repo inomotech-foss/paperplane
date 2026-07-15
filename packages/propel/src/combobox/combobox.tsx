@@ -5,7 +5,7 @@
  */
 
 import * as React from "react";
-import { Combobox as BaseCombobox } from "@base-ui-components/react/combobox";
+import { Combobox as BaseCombobox } from "@base-ui/react/combobox";
 import { SearchIcon } from "../icons/actions/search-icon";
 import { cn } from "../utils/classname";
 
@@ -74,10 +74,12 @@ function ComboboxRoot({
   children,
 }: ComboboxProps) {
   const handleValueChange = React.useCallback(
-    (newValue: string | string[]) => {
-      onValueChange?.(newValue);
+    (newValue: string | string[] | null) => {
+      // Base UI can now emit null when the selection is cleared; preserve the
+      // wrapper's non-null contract by normalizing to an empty value.
+      onValueChange?.(newValue ?? (multiSelect ? [] : ""));
     },
-    [onValueChange]
+    [onValueChange, multiSelect]
   );
 
   return (

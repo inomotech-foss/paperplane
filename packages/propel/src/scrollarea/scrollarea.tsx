@@ -5,7 +5,7 @@
  */
 
 import * as React from "react";
-import { ScrollArea as BaseScrollArea } from "@base-ui-components/react/scroll-area";
+import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 
 import { cn } from "../utils/classname";
 
@@ -13,7 +13,7 @@ type ScrollAreaOrientation = "horizontal" | "vertical";
 type ScrollAreaScrollType = "always" | "scroll" | "hover";
 type ScrollAreaSize = "sm" | "md" | "lg";
 
-interface ScrollAreaProps extends React.ComponentProps<typeof BaseScrollArea.Root> {
+interface ScrollAreaProps extends BaseScrollArea.Root.Props {
   orientation?: ScrollAreaOrientation;
   scrollType?: ScrollAreaScrollType;
   size?: ScrollAreaSize;
@@ -39,7 +39,7 @@ function ScrollArea({
           viewportClassName
         )}
       >
-        {children}
+        <BaseScrollArea.Content>{children}</BaseScrollArea.Content>
       </BaseScrollArea.Viewport>
       <ScrollBar orientation={orientation} scrollType={scrollType} size={size} />
       <BaseScrollArea.Corner />
@@ -65,7 +65,7 @@ const thumbSizeStyles = {
   lg: "before:absolute before:left-1/2 before:top-1/2 before:size-full before:min-h-17 before:-translate-x-1/2 before:-translate-y-1/2",
 } as const;
 
-interface ScrollBarProps extends React.ComponentProps<typeof BaseScrollArea.Scrollbar> {
+interface ScrollBarProps extends BaseScrollArea.Scrollbar.Props {
   scrollType?: ScrollAreaScrollType;
   size?: ScrollAreaSize;
 }
