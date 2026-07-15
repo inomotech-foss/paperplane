@@ -302,7 +302,6 @@ class Adapter:
         avatar_asset = self.download_and_upload_avatar(avatar_url=avatar, user=user)
         if avatar_asset:
             user.avatar_asset = avatar_asset
-        # If avatar upload fails, fall back to the original URL
         else:
             user.avatar = self.get_persistable_avatar_url(avatar)
 
@@ -389,7 +388,6 @@ class Adapter:
                 avatar_asset = self.download_and_upload_avatar(avatar_url=avatar, user=user)
                 if avatar_asset:
                     user.avatar_asset = avatar_asset
-                # If avatar upload fails, fall back to the original URL
                 user.avatar = self.get_persistable_avatar_url(avatar)
 
             # Create profile
