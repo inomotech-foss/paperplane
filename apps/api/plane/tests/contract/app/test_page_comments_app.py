@@ -287,7 +287,8 @@ class TestPageCommentsAppEndpoint:
     @pytest.mark.django_db
     def test_mention_queues_email_when_enabled(self, session_client, workspace, project, page, member_client):
         _client, member = member_client
-        UserNotificationPreference.objects.create(user=member, mention=True)
+        # A default preference (mention=True) is auto-created for every user; keep it on.
+        UserNotificationPreference.objects.filter(user=member).update(mention=True)
         url = base_url(workspace.slug, project.id, page.id)
         response = session_client.post(url, {"comment_html": mention_html(member.id), "anchor_id": "t1"}, format="json")
         assert response.status_code == status.HTTP_201_CREATED
@@ -298,7 +299,7 @@ class TestPageCommentsAppEndpoint:
     @pytest.mark.django_db
     def test_mention_no_email_when_disabled(self, session_client, workspace, project, page, member_client):
         _client, member = member_client
-        UserNotificationPreference.objects.create(user=member, mention=False)
+        UserNotificationPreference.objects.filter(user=member).update(mention=False)
         url = base_url(workspace.slug, project.id, page.id)
         response = session_client.post(url, {"comment_html": mention_html(member.id)}, format="json")
         assert response.status_code == status.HTTP_201_CREATED
