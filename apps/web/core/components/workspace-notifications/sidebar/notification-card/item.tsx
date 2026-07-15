@@ -62,7 +62,6 @@ export const NotificationItem = observer(function NotificationItem(props: TNotif
     if (isSnoozeStateModalOpen || customSnoozeModal) return;
     setCurrentSelectedNotificationId(notificationId);
 
-    // A page-comment mention opens the page rather than peeking a work item.
     if (isPageNotification) {
       if (!workspaceSlug || !projectId || !pageId) return;
       await markAsReadIfNeeded();
@@ -79,7 +78,6 @@ export const NotificationItem = observer(function NotificationItem(props: TNotif
     }
   };
 
-  // Page notifications have no issue_activity field; only work-item ones require it.
   const hasRenderableContent = isPageNotification ? !!pageId : !!notificationField;
   if (!workspaceSlug || !notificationId || !notification?.id || !hasRenderableContent || !workspace?.id || !projectId)
     return <></>;

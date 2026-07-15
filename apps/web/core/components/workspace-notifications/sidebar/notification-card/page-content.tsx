@@ -6,8 +6,6 @@
 
 import type { TNotification } from "@plane/types";
 
-// Page notifications carry a `page`/`comment` payload, not `issue_activity`,
-// so NotificationContent can't render them.
 export function PageNotificationContent({ notification }: { notification: TNotification }) {
   const { triggered_by_details: triggeredBy } = notification;
   const actorName = triggeredBy?.is_bot ? triggeredBy.first_name : triggeredBy?.display_name;

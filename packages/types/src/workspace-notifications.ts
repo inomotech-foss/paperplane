@@ -45,7 +45,6 @@ export type TNotificationData = {
     new_value: string | undefined;
     old_value: string | undefined;
   };
-  // Present on page-comment mention notifications (entity_name === "page").
   page?: TNotificationPageLite | undefined;
   comment?: { id: string | undefined } | undefined;
 };
