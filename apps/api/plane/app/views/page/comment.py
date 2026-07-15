@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.utils import timezone
 
 # Third Party imports
+from bs4 import BeautifulSoup
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -15,7 +16,26 @@ from .. import BaseViewSet
 from plane.app.serializers import PageCommentSerializer, PageCommentReactionSerializer
 from plane.app.permissions import ROLE
 from plane.app.permissions.page import ProjectPageCommentPermission
-from plane.db.models import PageComment, PageCommentReaction, Page, Project, ProjectMember
+from plane.db.models import (
+    PageComment,
+    PageCommentReaction,
+    Page,
+    Project,
+    ProjectMember,
+    Notification,
+)
+
+
+def _extract_mentioned_user_ids(html):
+    """User IDs referenced by mention-component tags in comment HTML."""
+    if not html:
+        return set()
+    soup = BeautifulSoup(html, "html.parser")
+    return {
+        tag.get("entity_identifier")
+        for tag in soup.find_all("mention-component", attrs={"entity_name": "user_mention"})
+        if tag.get("entity_identifier")
+    }
 
 
 class PageCommentViewSet(BaseViewSet):
@@ -53,6 +73,60 @@ class PageCommentViewSet(BaseViewSet):
             is_active=True,
         ).exists()
 
+    def _notify_mentions(self, comment, request, slug, project_id, previous_html=None):
+        """Create in-app notifications for users newly mentioned in a comment.
+
+        On edit, ``previous_html`` is passed so only newly added mentions are
+        notified. Only active project members (excluding the author) are.
+        """
+        mentioned = _extract_mentioned_user_ids(comment.comment_html)
+        if previous_html is not None:
+            mentioned -= _extract_mentioned_user_ids(previous_html)
+        mentioned.discard(str(request.user.id))
+        if not mentioned:
+            return
+        recipients = {
+            str(member_id)
+            for member_id in ProjectMember.objects.filter(
+                workspace__slug=slug,
+                project_id=project_id,
+                member_id__in=mentioned,
+                is_active=True,
+            ).values_list("member_id", flat=True)
+        }
+        if not recipients:
+            return
+        project = Project.objects.get(pk=project_id)
+        page = comment.page
+        actor_name = request.user.display_name or request.user.email
+        Notification.objects.bulk_create(
+            [
+                Notification(
+                    workspace=project.workspace,
+                    project=project,
+                    sender="in_app:page_comment:mentioned",
+                    triggered_by_id=request.user.id,
+                    receiver_id=recipient_id,
+                    entity_identifier=comment.page_id,
+                    entity_name="page",
+                    title=f"{actor_name} mentioned you in a comment",
+                    message_html=comment.comment_html or "<p></p>",
+                    message_stripped=comment.comment_stripped,
+                    data={
+                        "page": {
+                            "id": str(comment.page_id),
+                            "name": page.name,
+                            "project_id": str(project_id),
+                            "workspace_slug": slug,
+                        },
+                        "comment": {"id": str(comment.id)},
+                    },
+                )
+                for recipient_id in recipients
+            ],
+            batch_size=100,
+        )
+
     def create(self, request, slug, project_id, page_id):
         # Guests may comment only when the project exposes all features to guests
         # or they own the page (mirrors issue comments).
@@ -74,6 +148,7 @@ class PageCommentViewSet(BaseViewSet):
         serializer = PageCommentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(page_id=page_id, actor=request.user)
+            self._notify_mentions(serializer.instance, request, slug, project_id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -85,12 +160,14 @@ class PageCommentViewSet(BaseViewSet):
                 {"error": "You are not allowed to edit this comment"},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        previous_html = page_comment.comment_html
         serializer = PageCommentSerializer(page_comment, data=request.data, partial=True)
         if serializer.is_valid():
             if "comment_html" in request.data and request.data["comment_html"] != page_comment.comment_html:
                 serializer.save(edited_at=timezone.now())
             else:
                 serializer.save()
+            self._notify_mentions(page_comment, request, slug, project_id, previous_html=previous_html)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

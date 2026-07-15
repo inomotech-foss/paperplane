@@ -8,7 +8,14 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from plane.db.models import Page, PageComment, Project, ProjectMember, ProjectPage, User
+from plane.db.models import Notification, Page, PageComment, Project, ProjectMember, ProjectPage, User
+
+
+def mention_html(user_id, label="@Mem"):
+    return (
+        f'<p>hey <mention-component entity_name="user_mention" '
+        f'entity_identifier="{user_id}">{label}</mention-component></p>'
+    )
 
 
 @pytest.fixture
@@ -225,3 +232,44 @@ class TestPageCommentsAppEndpoint:
         session_client.post(url, {"reaction": "1f44d"}, format="json")
         response = session_client.delete(f"{url}1f44d/")
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    @pytest.mark.django_db
+    def test_mention_creates_notification(self, session_client, workspace, project, page, member_client):
+        _client, member = member_client
+        url = base_url(workspace.slug, project.id, page.id)
+        response = session_client.post(url, {"comment_html": mention_html(member.id), "anchor_id": "t1"}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        notifications = Notification.objects.filter(receiver=member, entity_name="page", entity_identifier=page.id)
+        assert notifications.count() == 1
+        assert notifications.first().sender == "in_app:page_comment:mentioned"
+
+    @pytest.mark.django_db
+    def test_self_mention_creates_no_notification(self, session_client, workspace, project, page, create_user):
+        url = base_url(workspace.slug, project.id, page.id)
+        response = session_client.post(url, {"comment_html": mention_html(create_user.id)}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert not Notification.objects.filter(receiver=create_user).exists()
+
+    @pytest.mark.django_db
+    def test_mention_of_non_member_creates_no_notification(
+        self, session_client, workspace, project, page, non_member_client
+    ):
+        # non_member_client authenticates an outsider; mention them and expect nothing.
+        outsider = User.objects.get(email="outsider@plane.so")
+        url = base_url(workspace.slug, project.id, page.id)
+        response = session_client.post(url, {"comment_html": mention_html(outsider.id)}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert not Notification.objects.filter(receiver=outsider).exists()
+
+    @pytest.mark.django_db
+    def test_edit_only_notifies_new_mentions(self, session_client, workspace, project, page, member_client):
+        _client, member = member_client
+        url = base_url(workspace.slug, project.id, page.id)
+        response = session_client.post(url, {"comment_html": mention_html(member.id), "anchor_id": "t1"}, format="json")
+        comment_id = response.data["id"]
+        # Re-mention the same user on edit; no additional notification.
+        edit = session_client.patch(
+            f"{url}{comment_id}/", {"comment_html": mention_html(member.id) + "<p>more</p>"}, format="json"
+        )
+        assert edit.status_code == status.HTTP_200_OK
+        assert Notification.objects.filter(receiver=member, entity_name="page").count() == 1
