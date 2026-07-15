@@ -750,10 +750,10 @@ class ProjectBulkAssetEndpoint(BaseAPIView):
             assets.update(page_id=entity_id)
 
         if asset.entity_type == FileAsset.EntityTypeContext.PAGE_COMMENT_DESCRIPTION:
-            # The bulk api may run after the comment is deleted, causing an integrity error
             try:
                 assets.update(page_comment_id=entity_id)
             except IntegrityError:
+                # The comment was deleted before this bulk update ran; nothing to associate.
                 pass
 
         if asset.entity_type == FileAsset.EntityTypeContext.DRAFT_ISSUE_DESCRIPTION:
