@@ -120,6 +120,15 @@ class Adapter:
     def get_avatar_download_headers(self):
         return {}
 
+    def get_persistable_avatar_url(self, avatar_url):
+        """URL to store in the plain ``avatar`` field.
+
+        Providers can drop URLs the browser cannot load directly (e.g. a
+        token-gated endpoint) so a failed download does not leave an unloadable
+        avatar behind. Only the uploaded copy (``avatar_asset``) is served then.
+        """
+        return avatar_url or ""
+
     def check_sync_enabled(self):
         """Check if sync is enabled for the provider"""
         provider_config_map = {
@@ -298,9 +307,9 @@ class Adapter:
         avatar_asset = self.download_and_upload_avatar(avatar_url=avatar, user=user)
         if avatar_asset:
             user.avatar_asset = avatar_asset
-        # If avatar upload fails, set the avatar to the original URL
+        # If avatar upload fails, fall back to the original URL (when loadable)
         else:
-            user.avatar = avatar
+            user.avatar = self.get_persistable_avatar_url(avatar)
 
         user.save()
         return user
@@ -372,6 +381,12 @@ class Adapter:
             user.first_name = first_name if first_name else ""
             user.last_name = last_name if last_name else ""
 
+            # Set the display name when the provider supplies one; otherwise
+            # User.save() falls it back to the email local part.
+            display_name = self.user_data.get("user", {}).get("display_name")
+            if display_name:
+                user.display_name = display_name
+
             user.save()
 
             # Download and upload avatar
@@ -380,10 +395,8 @@ class Adapter:
                 avatar_asset = self.download_and_upload_avatar(avatar_url=avatar, user=user)
                 if avatar_asset:
                     user.avatar_asset = avatar_asset
-                    user.avatar = avatar
-                # If avatar upload fails, set the avatar to the original URL
-                else:
-                    user.avatar = avatar
+                # If avatar upload fails, fall back to the original URL (when loadable)
+                user.avatar = self.get_persistable_avatar_url(avatar)
 
             # Create profile
             Profile.objects.create(user=user)

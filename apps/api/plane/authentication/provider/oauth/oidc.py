@@ -35,6 +35,27 @@ MS_GRAPH_HOSTS = frozenset(
 )
 
 
+def derive_names(given_name, family_name, full_name):
+    """Map OIDC name claims to (first_name, last_name, display_name).
+
+    Some IdPs (e.g. Entra) send `name` and `family_name` but omit `given_name`.
+    Deriving the first name from the full name avoids storing the whole thing as
+    the first name, which would render as "First Last Last". The display name
+    prefers the IdP's `name` so it never falls back to the email local part
+    (e.g. "first.last").
+    """
+    given_name = (given_name or "").strip()
+    family_name = (family_name or "").strip()
+    full_name = (full_name or "").strip()
+    if not given_name and full_name:
+        if family_name and full_name.endswith(family_name):
+            given_name = full_name[: -len(family_name)].strip()
+        else:
+            given_name = full_name.split(" ", 1)[0]
+    display_name = full_name or " ".join(part for part in (given_name, family_name) if part)
+    return given_name, family_name, display_name
+
+
 class OIDCOAuthProvider(OauthAdapter):
     provider = "oidc"
     # OIDC requires the "openid" scope; "email profile" get the identity claims.
@@ -269,11 +290,9 @@ class OIDCOAuthProvider(OauthAdapter):
         )
         self.instance_admin = role_grants_admin(claims, OIDC_ADMIN_CLAIM or "roles", OIDC_ADMIN_ROLE)
 
-        # Entra's picture claim is the Graph photo endpoint, which needs a bearer
-        # token; drop it so the avatar falls back to initials.
-        picture = data.get("picture")
-        if picture and (urlparse(picture).hostname or "").lower() in MS_GRAPH_HOSTS:
-            picture = ""
+        given_name, family_name, display_name = derive_names(
+            data.get("given_name"), data.get("family_name"), data.get("name")
+        )
 
         super().set_user_data(
             {
@@ -281,10 +300,34 @@ class OIDCOAuthProvider(OauthAdapter):
                 "user": {
                     "provider_id": sub,
                     "email": email,
-                    "avatar": picture,
-                    "first_name": data.get("given_name") or data.get("name"),
-                    "last_name": data.get("family_name", ""),
+                    # Entra's picture claim is the Graph photo endpoint, which
+                    # needs a bearer token. It is downloaded and re-served from
+                    # our storage (see get_avatar_download_headers); the raw URL
+                    # is never persisted (see get_persistable_avatar_url).
+                    "avatar": data.get("picture") or "",
+                    "first_name": given_name,
+                    "last_name": family_name,
+                    "display_name": display_name,
                     "is_password_autoset": True,
                 },
             }
         )
+
+    def get_avatar_download_headers(self):
+        # Entra's Graph photo endpoint requires the OAuth bearer token. Attach it
+        # only for Graph hosts so the token never leaks to an unrelated avatar
+        # host (the redirect follower also strips it on cross-host hops).
+        avatar = (self.user_data or {}).get("user", {}).get("avatar", "")
+        if (urlparse(avatar).hostname or "").lower() in MS_GRAPH_HOSTS:
+            token = (self.token_data or {}).get("access_token")
+            if token:
+                return {"Authorization": f"Bearer {token}"}
+        return {}
+
+    def get_persistable_avatar_url(self, avatar_url):
+        # A Graph photo URL needs a bearer token, so the browser can't load it.
+        # Only the downloaded copy (avatar_asset) is usable; drop the raw URL so
+        # a failed download never leaves an unloadable avatar behind.
+        if (urlparse(avatar_url or "").hostname or "").lower() in MS_GRAPH_HOSTS:
+            return ""
+        return avatar_url or ""
