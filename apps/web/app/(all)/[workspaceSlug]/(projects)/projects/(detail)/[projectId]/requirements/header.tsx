@@ -16,6 +16,7 @@ import { Breadcrumbs, Header } from "@plane/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { PageSearchInput } from "@/components/pages/list/search-input";
+import { RequirementsFilters } from "@/components/requirements/filters";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 // plane web imports
@@ -75,6 +76,7 @@ export const RequirementsHeader = observer(function RequirementsHeader() {
       </Header.LeftItem>
       <Header.RightItem>
         <PageSearchInput searchQuery={query} updateSearchQuery={setQuery} />
+        <RequirementsFilters />
         <Button variant="secondary" size="lg" prependIcon={<RefreshCw className="h-3.5 w-3.5" />} onClick={handleSync} loading={syncing}>
           Sync
         </Button>

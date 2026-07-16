@@ -151,6 +151,8 @@ export const RequirementsRoot = ({ workspaceSlug, projectId }: Props) => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const query = (searchParams.get("q") ?? "").trim().toLowerCase();
+  const statusFilter = (searchParams.get("status") ?? "").split(",").filter(Boolean);
+  const priorityFilter = (searchParams.get("priority") ?? "").split(",").filter(Boolean);
   const selectedUid = searchParams.get("requirementId");
 
   const [loading, setLoading] = useState(true);
@@ -205,15 +207,25 @@ export const RequirementsRoot = ({ workspaceSlug, projectId }: Props) => {
     return map;
   }, [requirements]);
 
+  const statusKey = statusFilter.join(",");
+  const priorityKey = priorityFilter.join(",");
   const filtered = useMemo(() => {
-    if (!query) return requirements;
-    return requirements.filter(
-      (r) =>
-        r.uid.toLowerCase().includes(query) ||
-        (r.title || "").toLowerCase().includes(query) ||
-        (r.statement || "").toLowerCase().includes(query)
-    );
-  }, [requirements, query]);
+    return requirements.filter((r) => {
+      if (
+        query &&
+        !(
+          r.uid.toLowerCase().includes(query) ||
+          (r.title || "").toLowerCase().includes(query) ||
+          (r.statement || "").toLowerCase().includes(query)
+        )
+      )
+        return false;
+      if (statusFilter.length && !statusFilter.includes(r.field_values?.STATUS ?? "")) return false;
+      if (priorityFilter.length && !priorityFilter.includes(r.field_values?.PRIORITY ?? "")) return false;
+      return true;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requirements, query, statusKey, priorityKey]);
 
   const tree = useMemo(() => buildTree(filtered), [filtered]);
 
