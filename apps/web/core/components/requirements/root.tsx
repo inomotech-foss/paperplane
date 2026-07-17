@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router";
-import { ChevronDown, ChevronRight, GitBranch, Link2, Pencil, Plus, Settings, X } from "lucide-react";
+import { GitBranch, Link2, Pencil, Plus, Settings, X } from "lucide-react";
 // plane imports
 import { Badge } from "@plane/propel/badge";
 import { Button } from "@plane/propel/button";
@@ -19,10 +19,11 @@ import type {
   TRequirementRelation,
   TRequirementRepository,
 } from "@plane/types";
-import { ControlLink, Row } from "@plane/ui";
 import { cn } from "@plane/utils";
 // components
-import { CreateRequirementModal } from "@/components/requirements/create-modal";
+import { ItemList } from "@/components/items";
+import type { TItemColumn, TItemGroupNode, TItemQuickAdd } from "@/components/items";
+import { CreateRequirementModal, suggestUid } from "@/components/requirements/create-modal";
 import { ListLayoutLoader } from "@/components/ui/loader/layouts/list-layout-loader";
 // services
 import { requirementService } from "@/services/requirement.service";
@@ -85,81 +86,58 @@ const nodeCount = (node: ReqDir): number => {
   return count;
 };
 
-type TreeLevelProps = {
-  node: ReqDir;
-  depth: number;
-  collapsed: Record<string, boolean>;
-  toggle: (key: string) => void;
-  selectedUid: string | null;
-  pathname: string;
-  workspaceSlug: string;
-  onOpen: (uid: string) => void;
-  onProposeEdits: (r: TRequirement, edits: Record<string, string>, message: string, relations?: TRequirementRelation[]) => void;
+// Convert the requirements directory/document tree into the engine's group nodes.
+const toGroupNodes = (node: ReqDir): TItemGroupNode<TRequirement>[] => {
+  const dirs = [...node.dirs.values()]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map<TItemGroupNode<TRequirement>>((dir) => ({
+      key: dir.key,
+      label: dir.name,
+      kind: "dir",
+      count: nodeCount(dir),
+      children: toGroupNodes(dir),
+    }));
+  const docs = [...node.docs.values()]
+    .sort((a, b) => a.title.localeCompare(b.title))
+    .map<TItemGroupNode<TRequirement>>((doc) => ({
+      key: doc.key,
+      label: doc.title,
+      kind: "doc",
+      count: doc.items.length,
+      items: doc.items,
+      context: doc.key, // file_path
+    }));
+  return [...dirs, ...docs];
 };
 
-const TreeLevel = (p: TreeLevelProps) => {
-  const dirs = [...p.node.dirs.values()].sort((a, b) => a.name.localeCompare(b.name));
-  const docs = [...p.node.docs.values()].sort((a, b) => a.title.localeCompare(b.title));
+const StatusSelect = ({
+  requirement,
+  onProposeEdits,
+}: {
+  requirement: TRequirement;
+  onProposeEdits: (r: TRequirement, edits: Record<string, string>, message: string) => void;
+}) => {
+  const status = requirement.field_values?.STATUS ?? "";
   return (
-    <>
-      {dirs.map((dir) => (
-        <div key={dir.key}>
-          <GroupHeader label={dir.name} count={nodeCount(dir)} depth={p.depth} collapsed={!!p.collapsed[dir.key]} onClick={() => p.toggle(dir.key)} />
-          {!p.collapsed[dir.key] && <TreeLevel {...p} node={dir} depth={p.depth + 1} />}
-        </div>
+    <select
+      className={cn(
+        "rounded-md border border-subtle-1 bg-surface-1 px-2 py-1 text-xs outline-none focus:border-strong",
+        status === "APPROVED" && "text-success-primary",
+        status === "IN_REVIEW" && "text-warning-primary"
+      )}
+      value={status}
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => onProposeEdits(requirement, { STATUS: e.target.value }, `Update ${requirement.uid} status to ${e.target.value}`)}
+    >
+      {!STATUS_OPTIONS.includes(status) && status && <option value={status}>{status}</option>}
+      {STATUS_OPTIONS.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
       ))}
-      {docs.map((doc) => (
-        <div key={doc.key}>
-          <GroupHeader label={doc.title} count={doc.items.length} depth={p.depth} collapsed={!!p.collapsed[doc.key]} onClick={() => p.toggle(doc.key)} isDoc />
-          {!p.collapsed[doc.key] &&
-            doc.items.map((r) => (
-              <RequirementRow
-                key={r.id}
-                requirement={r}
-                depth={p.depth + 1}
-                active={p.selectedUid === r.uid}
-                href={`${p.pathname}?requirementId=${r.uid}`}
-                workspaceSlug={p.workspaceSlug}
-                onOpen={() => p.onOpen(r.uid)}
-                onProposeEdits={p.onProposeEdits}
-              />
-            ))}
-        </div>
-      ))}
-    </>
+    </select>
   );
 };
-
-const GroupHeader = ({
-  label,
-  count,
-  depth,
-  collapsed,
-  onClick,
-  isDoc,
-}: {
-  label: string;
-  count: number;
-  depth: number;
-  collapsed: boolean;
-  onClick: () => void;
-  isDoc?: boolean;
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className="flex w-full items-center gap-1.5 border-b border-subtle-1 bg-surface-2 px-page-x py-1.5 text-left"
-  >
-    <span style={{ width: depth * 16 }} className="flex-shrink-0" />
-    {collapsed ? (
-      <ChevronRight className="h-4 w-4 flex-shrink-0 text-tertiary" />
-    ) : (
-      <ChevronDown className="h-4 w-4 flex-shrink-0 text-tertiary" />
-    )}
-    <span className={cn("truncate", isDoc ? "text-sm font-medium text-primary" : "text-sm font-semibold text-secondary")}>{label}</span>
-    <span className="text-xs text-tertiary">{count}</span>
-  </button>
-);
 
 export const RequirementsRoot = ({ workspaceSlug, projectId }: Props) => {
   const location = useLocation();
@@ -172,7 +150,6 @@ export const RequirementsRoot = ({ workspaceSlug, projectId }: Props) => {
   const [loading, setLoading] = useState(true);
   const [repository, setRepository] = useState<TRequirementRepository | null>(null);
   const [requirements, setRequirements] = useState<TRequirement[]>([]);
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -264,9 +241,63 @@ export const RequirementsRoot = ({ workspaceSlug, projectId }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requirements, query, statusKey, priorityKey]);
 
-  const tree = useMemo(() => buildTree(filtered), [filtered]);
+  const groups = useMemo(() => toGroupNodes(buildTree(filtered)), [filtered]);
 
   const selected = selectedUid ? (requirementsByUid.get(selectedUid) ?? null) : null;
+
+  const columns: TItemColumn<TRequirement>[] = [
+    {
+      key: "workitem",
+      render: (r) => {
+        const v = r.field_values?.[WORK_ITEM_FIELD];
+        return v ? <WorkItemLink workspaceSlug={workspaceSlug} value={v} /> : null;
+      },
+    },
+    {
+      key: "priority",
+      render: (r) => {
+        const p = r.field_values?.PRIORITY;
+        return p ? (
+          <Badge variant={PRIORITY_BADGE[p] ?? "neutral"} size="sm">
+            {p}
+          </Badge>
+        ) : null;
+      },
+    },
+    { key: "status", render: (r) => <StatusSelect requirement={r} onProposeEdits={proposeEdits} /> },
+  ];
+
+  const quickAdd: TItemQuickAdd<TRequirement> = {
+    enabledFor: (g) => g.kind === "doc",
+    buttonLabel: "New requirement",
+    placeholder: "Requirement title",
+    prefix: (g) => suggestUid(requirements.filter((r) => r.file_path === g.context).map((r) => r.uid)) || undefined,
+    onSubmit: async (title, g) => {
+      const filePath = g.context as string;
+      const uid = suggestUid(requirements.filter((r) => r.file_path === filePath).map((r) => r.uid));
+      if (!uid) {
+        setToast({ type: TOAST_TYPE.ERROR, title: "Couldn't suggest a UID", message: "Use Add requirement to set one." });
+        return;
+      }
+      try {
+        const res = await requirementService.create(workspaceSlug, projectId, {
+          file_path: filePath,
+          uid,
+          title,
+          fields: { STATUS: "DRAFT", PRIORITY: "SHOULD" },
+        });
+        setToast({
+          type: TOAST_TYPE.SUCCESS,
+          title: "Requirement proposed",
+          message: res.pull_request_url
+            ? `PR opened for ${uid}. It appears here after merge and sync.`
+            : `Pushed ${res.branch} for ${uid}. Open a PR: ${res.compare_url}.`,
+        });
+      } catch (error) {
+        setToast({ type: TOAST_TYPE.ERROR, title: "Error", message: errorMessage(error, "Could not add the requirement.") });
+      }
+    },
+  };
 
   const showCreate = searchParams.get("new") === "1";
   const closeCreate = () =>
@@ -313,24 +344,21 @@ export const RequirementsRoot = ({ workspaceSlug, projectId }: Props) => {
           onCreated={closeCreate}
         />
       )}
-      <div className="min-w-0 flex-1 overflow-y-auto">
-        {filtered.length === 0 ? (
-          <div className="mt-16 text-center text-sm text-tertiary">
-            {requirements.length === 0 ? "No requirements yet. Press Sync to pull them from git." : "No matches."}
-          </div>
-        ) : (
-          <TreeLevel
-            node={tree}
-            depth={0}
-            collapsed={collapsed}
-            toggle={(key) => setCollapsed((c) => ({ ...c, [key]: !c[key] }))}
-            selectedUid={selectedUid}
-            pathname={location.pathname}
-            workspaceSlug={workspaceSlug}
-            onOpen={setSelected}
-            onProposeEdits={proposeEdits}
-          />
-        )}
+      <div className="min-w-0 flex-1">
+        <ItemList<TRequirement>
+          groups={groups}
+          getId={(r) => r.id}
+          getIdentifier={(r) => r.uid}
+          getName={(r) => r.title || "Untitled"}
+          getHref={(r) => `${location.pathname}?requirementId=${r.uid}`}
+          columns={columns}
+          activeId={selected?.id ?? null}
+          onOpen={(r) => setSelected(r.uid)}
+          quickAdd={quickAdd}
+          emptyState={
+            requirements.length === 0 ? "No requirements yet. Press Sync to pull them from git." : "No matches."
+          }
+        />
       </div>
 
       {selected && (
@@ -346,70 +374,6 @@ export const RequirementsRoot = ({ workspaceSlug, projectId }: Props) => {
         />
       )}
     </div>
-  );
-};
-
-type RowProps = {
-  requirement: TRequirement;
-  depth: number;
-  active: boolean;
-  href: string;
-  workspaceSlug: string;
-  onOpen: () => void;
-  onProposeEdits: (
-    requirement: TRequirement,
-    edits: Record<string, string>,
-    message: string,
-    relations?: TRequirementRelation[]
-  ) => void;
-};
-
-const RequirementRow = ({ requirement, depth, active, href, workspaceSlug, onOpen, onProposeEdits }: RowProps) => {
-  const status = requirement.field_values?.STATUS ?? "";
-  const priority = requirement.field_values?.PRIORITY ?? "";
-  const workItem = requirement.field_values?.[WORK_ITEM_FIELD] ?? "";
-  return (
-    <ControlLink href={href} onClick={onOpen} className="w-full cursor-pointer">
-      <Row
-        className={cn(
-          "group flex min-h-11 items-center gap-3 border-b border-subtle-1 py-2.5 text-13 transition-colors hover:bg-layer-transparent-hover",
-          active && "bg-accent-primary/5"
-        )}
-      >
-        <span style={{ width: depth * 16 }} className="flex-shrink-0" />
-        <span className="w-24 flex-shrink-0 truncate font-mono text-xs text-tertiary">{requirement.uid}</span>
-        <span className="min-w-0 flex-1 truncate text-sm text-primary">{requirement.title}</span>
-        {workItem && (
-          <span className="flex-shrink-0">
-            <WorkItemLink workspaceSlug={workspaceSlug} value={workItem} />
-          </span>
-        )}
-        {priority && (
-          <span className="flex-shrink-0">
-            <Badge variant={PRIORITY_BADGE[priority] ?? "neutral"} size="sm">
-              {priority}
-            </Badge>
-          </span>
-        )}
-        <select
-          className={cn(
-            "flex-shrink-0 rounded-md border border-subtle-1 bg-surface-1 px-2 py-1 text-xs outline-none focus:border-strong",
-            status === "APPROVED" && "text-success-primary",
-            status === "IN_REVIEW" && "text-warning-primary"
-          )}
-          value={status}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => onProposeEdits(requirement, { STATUS: e.target.value }, `Update ${requirement.uid} status to ${e.target.value}`)}
-        >
-          {!STATUS_OPTIONS.includes(status) && status && <option value={status}>{status}</option>}
-          {STATUS_OPTIONS.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-      </Row>
-    </ControlLink>
   );
 };
 

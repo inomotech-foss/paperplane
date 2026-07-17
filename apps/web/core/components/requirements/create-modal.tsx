@@ -20,7 +20,7 @@ type ReqDocOption = { file_path: string; title: string };
 
 // Suggest the next UID for a document from its existing UIDs: reuse the shared
 // prefix and increment the trailing number, keeping the same zero padding.
-const suggestUid = (uids: string[]): string => {
+export const suggestUid = (uids: string[]): string => {
   const match = uids
     .map((u) => u.match(/^(.*?)(\d+)$/))
     .find((m): m is RegExpMatchArray => !!m);
