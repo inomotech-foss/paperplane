@@ -80,6 +80,26 @@ def _field_value(field) -> str:
     return "".join(p if isinstance(p, str) else str(p) for p in field.parts)
 
 
+def _apply_fields(node, fields: dict[str, str]) -> None:
+    """Set/add/remove fields via strictdoc's canonical API.
+
+    set_field_value keeps the node's ordered field lookup consistent (a raw
+    node.fields append does not serialize) and inserts new fields at the
+    grammar position. A field absent from the grammar raises ValueError; we
+    re-raise it with a clearer message so the API can surface it.
+    """
+    for field_name, value in fields.items():
+        try:
+            node.set_field_value(field_name=field_name, form_field_index=0, value=value)
+        except ValueError:
+            raise ValueError(f"Field '{field_name}' is not defined in the document grammar")
+
+
+# Fields that describe a specific requirement and must not be inherited when a
+# new node is cloned from an existing one as a template.
+_INSTANCE_FIELDS = ("COMMENT", "JIRA", "APPLIES_TO", "REG_REF", "PAPERPLANE")
+
+
 def read_requirements(repo_dir: str) -> list[RequirementNode]:
     """Parse every .sdoc under repo_dir into flat requirement projection nodes."""
     _cfg, index = _load(repo_dir)
@@ -141,9 +161,7 @@ def render_document(
             continue
         uid = next((_field_value(f) for f in node.fields if f.field_name == "UID"), None)
         if uid in edits:
-            for field in node.fields:
-                if field.field_name in edits[uid] and field.parts:
-                    field.parts[0] = edits[uid][field.field_name]
+            _apply_fields(node, edits[uid])
         if uid in relations:
             refs = []
             for rel in relations[uid]:
@@ -156,3 +174,49 @@ def render_document(
 
     text = SDWriter(cfg).write(target)
     return _MID_LINE.sub("", text)
+
+
+def add_requirement(
+    repo_dir: str,
+    file_path: str,
+    uid: str,
+    title: str,
+    statement: str,
+    fields: dict[str, str] | None = None,
+) -> str | None:
+    """Append a new requirement to file_path and return the .sdoc text.
+
+    The node is cloned from the last requirement in the document so it inherits
+    the document's exact grammar and field shape, then its identity and provided
+    fields are overwritten. Returns None if the document is not found.
+    """
+    import copy
+
+    from strictdoc.backend.sdoc.writer import SDWriter
+
+    cfg, index = _load(repo_dir)
+    target = next(
+        (d for d in index.document_tree.document_list if _rel_path(d) == file_path),
+        None,
+    )
+    if target is None:
+        return None
+    templates = [n for n in target.iterate_nodes() if n.node_type == "REQUIREMENT"]
+    if not templates:
+        raise ValueError("Cannot add a requirement to a document with no requirements")
+
+    template = templates[-1]
+    node = copy.deepcopy(template)
+    node.parent = template.parent
+    node.relations = []
+    # Drop template-specific fields. set_field_value(None) refuses to delete
+    # COMMENT, so pop straight from the ordered lookup the writer reads from.
+    for name in _INSTANCE_FIELDS:
+        node.ordered_fields_lookup.pop(name, None)
+    node.set_field_value(field_name="UID", form_field_index=0, value=uid)
+    node.set_field_value(field_name="TITLE", form_field_index=0, value=title)
+    node.set_field_value(field_name="STATEMENT", form_field_index=0, value=statement or "")
+    _apply_fields(node, fields or {})
+    template.parent.section_contents.append(node)
+
+    return _MID_LINE.sub("", SDWriter(cfg).write(target))

@@ -10,6 +10,8 @@ import type {
   TProposeChangeResponse,
   TRequirement,
   TRequirementCommit,
+  TRequirementCreatePayload,
+  TRequirementCreateResponse,
   TRequirementRepository,
   TRequirementRepositoryPayload,
 } from "@plane/types";
@@ -46,6 +48,18 @@ export class RequirementService extends APIService {
       `/api/workspaces/${workspaceSlug}/projects/${projectId}/requirements/${requirementId}/propose-change/`,
       payload
     )
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  async create(
+    workspaceSlug: string,
+    projectId: string,
+    payload: TRequirementCreatePayload
+  ): Promise<TRequirementCreateResponse> {
+    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/requirements/`, payload)
       .then((response) => response?.data)
       .catch((error) => {
         throw error?.response?.data;

@@ -71,6 +71,16 @@ export type TProposeChangeResponse = {
   pr_error: string | null;
 };
 
+export type TRequirementCreatePayload = {
+  file_path: string;
+  uid: string;
+  title: string;
+  statement?: string;
+  fields?: Record<string, string>;
+};
+
+export type TRequirementCreateResponse = TProposeChangeResponse & { uid: string };
+
 export type TRequirementCommitRef = { number: string; url: string };
 
 export type TRequirementCommitUser = { id: string; display_name: string; email: string };

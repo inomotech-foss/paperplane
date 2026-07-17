@@ -23,7 +23,7 @@ urlpatterns = [
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/requirements/",
-        RequirementViewSet.as_view({"get": "list"}),
+        RequirementViewSet.as_view({"get": "list", "post": "create"}),
         name="project-requirements",
     ),
     path(

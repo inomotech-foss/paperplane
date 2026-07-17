@@ -8,7 +8,7 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { useSearchParams } from "react-router";
-import { ClipboardList, RefreshCw } from "lucide-react";
+import { ClipboardList, Plus, RefreshCw } from "lucide-react";
 // plane imports
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
@@ -31,6 +31,16 @@ export const RequirementsHeader = observer(function RequirementsHeader() {
   const [syncing, setSyncing] = useState(false);
 
   const query = searchParams.get("q") ?? "";
+
+  const openCreate = () =>
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        params.set("new", "1");
+        return params;
+      },
+      { replace: true }
+    );
 
   const setQuery = (val: string) => {
     setSearchParams(
@@ -79,6 +89,9 @@ export const RequirementsHeader = observer(function RequirementsHeader() {
         <RequirementsFilters />
         <Button variant="secondary" size="lg" prependIcon={<RefreshCw className="h-3.5 w-3.5" />} onClick={handleSync} loading={syncing}>
           Sync
+        </Button>
+        <Button variant="primary" size="lg" prependIcon={<Plus className="h-3.5 w-3.5" />} onClick={openCreate}>
+          Add requirement
         </Button>
       </Header.RightItem>
     </Header>

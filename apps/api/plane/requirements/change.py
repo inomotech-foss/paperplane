@@ -47,6 +47,44 @@ def propose_change(
         Path(repo_dir, requirement.file_path).write_text(text)
         changed = git.commit_and_push(repo, branch, message, author_name, author_email)
 
+    return _pull_request_result(repository, branch, changed, pr_title, pr_body)
+
+
+def create_requirement(
+    repository,
+    file_path: str,
+    uid: str,
+    title: str,
+    statement: str,
+    fields: dict[str, str],
+    branch: str,
+    message: str,
+    pr_title: str,
+    pr_body: str,
+    author_name: str,
+    author_email: str,
+    co_author: dict | None = None,
+) -> dict:
+    """Add a new requirement to file_path, commit, push, and try to open a PR.
+
+    Returns the same shape as propose_change.
+    """
+    if co_author and co_author.get("email"):
+        trailer = f"Co-authored-by: {co_author.get('name') or co_author['email']} <{co_author['email']}>"
+        message = f"{message}\n\n{trailer}"
+
+    with git.checkout(repository.repo_url, repository.default_branch, repository.access_token) as (repo_dir, repo):
+        text = adapter.add_requirement(repo_dir, file_path, uid, title, statement, fields)
+        if text is None:
+            raise ValueError("Requirement document not found in repository")
+        Path(repo_dir, file_path).write_text(text)
+        changed = git.commit_and_push(repo, branch, message, author_name, author_email)
+
+    return _pull_request_result(repository, branch, changed, pr_title, pr_body)
+
+
+def _pull_request_result(repository, branch: str, changed: bool, pr_title: str, pr_body: str) -> dict:
+    """Build the change result and best-effort open a PR for a pushed branch."""
     if not changed:
         return {"committed": False, "branch": branch, "compare_url": None, "pull_request_url": None, "pr_error": None}
 

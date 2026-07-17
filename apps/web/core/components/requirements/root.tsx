@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router";
-import { ChevronDown, ChevronRight, GitBranch, Pencil, Plus, Settings, X } from "lucide-react";
+import { ChevronDown, ChevronRight, GitBranch, Link2, Pencil, Plus, Settings, X } from "lucide-react";
 // plane imports
 import { Badge } from "@plane/propel/badge";
 import { Button } from "@plane/propel/button";
@@ -21,8 +21,14 @@ import type {
 } from "@plane/types";
 import { ControlLink, Row } from "@plane/ui";
 import { cn } from "@plane/utils";
+// components
+import { CreateRequirementModal } from "@/components/requirements/create-modal";
+import { ListLayoutLoader } from "@/components/ui/loader/layouts/list-layout-loader";
 // services
 import { requirementService } from "@/services/requirement.service";
+
+// strictdoc field that links a requirement to a Plane work item, by identifier.
+const WORK_ITEM_FIELD = "PAPERPLANE";
 
 const STATUS_OPTIONS = ["DRAFT", "IN_REVIEW", "APPROVED", "OBSOLETE"];
 const PRIORITY_OPTIONS = ["MUST", "SHOULD", "MAY"];
@@ -86,6 +92,7 @@ type TreeLevelProps = {
   toggle: (key: string) => void;
   selectedUid: string | null;
   pathname: string;
+  workspaceSlug: string;
   onOpen: (uid: string) => void;
   onProposeEdits: (r: TRequirement, edits: Record<string, string>, message: string, relations?: TRequirementRelation[]) => void;
 };
@@ -112,6 +119,7 @@ const TreeLevel = (p: TreeLevelProps) => {
                 depth={p.depth + 1}
                 active={p.selectedUid === r.uid}
                 href={`${p.pathname}?requirementId=${r.uid}`}
+                workspaceSlug={p.workspaceSlug}
                 onOpen={() => p.onOpen(r.uid)}
                 onProposeEdits={p.onProposeEdits}
               />
@@ -260,7 +268,18 @@ export const RequirementsRoot = ({ workspaceSlug, projectId }: Props) => {
 
   const selected = selectedUid ? (requirementsByUid.get(selectedUid) ?? null) : null;
 
-  if (loading) return <div className="p-6 text-sm text-tertiary">Loading requirements...</div>;
+  const showCreate = searchParams.get("new") === "1";
+  const closeCreate = () =>
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        params.delete("new");
+        return params;
+      },
+      { replace: true }
+    );
+
+  if (loading) return <ListLayoutLoader />;
 
   if (!repository) {
     return (
@@ -285,6 +304,15 @@ export const RequirementsRoot = ({ workspaceSlug, projectId }: Props) => {
 
   return (
     <div className="flex h-full w-full">
+      {showCreate && (
+        <CreateRequirementModal
+          workspaceSlug={workspaceSlug}
+          projectId={projectId}
+          requirements={requirements}
+          onClose={closeCreate}
+          onCreated={closeCreate}
+        />
+      )}
       <div className="min-w-0 flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
           <div className="mt-16 text-center text-sm text-tertiary">
@@ -298,6 +326,7 @@ export const RequirementsRoot = ({ workspaceSlug, projectId }: Props) => {
             toggle={(key) => setCollapsed((c) => ({ ...c, [key]: !c[key] }))}
             selectedUid={selectedUid}
             pathname={location.pathname}
+            workspaceSlug={workspaceSlug}
             onOpen={setSelected}
             onProposeEdits={proposeEdits}
           />
@@ -325,6 +354,7 @@ type RowProps = {
   depth: number;
   active: boolean;
   href: string;
+  workspaceSlug: string;
   onOpen: () => void;
   onProposeEdits: (
     requirement: TRequirement,
@@ -334,9 +364,10 @@ type RowProps = {
   ) => void;
 };
 
-const RequirementRow = ({ requirement, depth, active, href, onOpen, onProposeEdits }: RowProps) => {
+const RequirementRow = ({ requirement, depth, active, href, workspaceSlug, onOpen, onProposeEdits }: RowProps) => {
   const status = requirement.field_values?.STATUS ?? "";
   const priority = requirement.field_values?.PRIORITY ?? "";
+  const workItem = requirement.field_values?.[WORK_ITEM_FIELD] ?? "";
   return (
     <ControlLink href={href} onClick={onOpen} className="w-full cursor-pointer">
       <Row
@@ -348,6 +379,11 @@ const RequirementRow = ({ requirement, depth, active, href, onOpen, onProposeEdi
         <span style={{ width: depth * 16 }} className="flex-shrink-0" />
         <span className="w-24 flex-shrink-0 truncate font-mono text-xs text-tertiary">{requirement.uid}</span>
         <span className="min-w-0 flex-1 truncate text-sm text-primary">{requirement.title}</span>
+        {workItem && (
+          <span className="flex-shrink-0">
+            <WorkItemLink workspaceSlug={workspaceSlug} value={workItem} />
+          </span>
+        )}
         {priority && (
           <span className="flex-shrink-0">
             <Badge variant={PRIORITY_BADGE[priority] ?? "neutral"} size="sm">
@@ -513,7 +549,7 @@ const RequirementDetailPanel = ({
           <div className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 text-xs">
             {Object.entries(editing ? draft.fields : requirement.field_values || {}).map(([k, v]) => (
               <div key={k} className="contents">
-                <span className="text-tertiary">{k}</span>
+                <span className="text-tertiary">{k === WORK_ITEM_FIELD ? "WORK ITEM" : k}</span>
                 {editing ? (
                   <FieldEditor
                     fieldName={k}
@@ -522,12 +558,23 @@ const RequirementDetailPanel = ({
                   />
                 ) : k === "PRIORITY" ? (
                   <span><Badge variant={PRIORITY_BADGE[v] ?? "neutral"} size="sm">{v}</Badge></span>
+                ) : k === WORK_ITEM_FIELD ? (
+                  v ? <span><WorkItemLink workspaceSlug={workspaceSlug} value={v} /></span> : <span className="text-tertiary">-</span>
                 ) : (
                   <span className="text-secondary">{v}</span>
                 )}
               </div>
             ))}
           </div>
+          {editing && !(WORK_ITEM_FIELD in draft.fields) && (
+            <button
+              type="button"
+              onClick={() => setDraft((d) => ({ ...d, fields: { ...d.fields, [WORK_ITEM_FIELD]: "" } }))}
+              className="mt-2 flex items-center gap-1 text-xs text-accent-primary hover:underline"
+            >
+              <Link2 className="h-3.5 w-3.5" /> Link a work item
+            </button>
+          )}
         </Section>
 
         {(editing || (requirement.relations?.length ?? 0) > 0) && (
@@ -663,6 +710,7 @@ const FieldEditor = ({ fieldName, value, onChange }: { fieldName: string; value:
     <input
       className="w-full rounded border border-subtle-1 bg-surface-1 px-2 py-1 text-xs outline-none focus:border-strong"
       value={value}
+      placeholder={fieldName === WORK_ITEM_FIELD ? "Work item ID, e.g. PROJ-123" : undefined}
       onChange={(e) => onChange(e.target.value)}
     />
   );
@@ -686,6 +734,21 @@ const CommitMessage = ({ message, refs }: { message: string; refs: TRequirementC
     </>
   );
 };
+
+// Links a PAPERPLANE field value (a work-item identifier like "PROJ-123") to the
+// work item via the workspace browse route, which resolves it by identifier.
+const WorkItemLink = ({ workspaceSlug, value }: { workspaceSlug: string; value: string }) => (
+  <a
+    href={`/${workspaceSlug}/browse/${value.trim()}`}
+    target="_blank"
+    rel="noreferrer"
+    onClick={(e) => e.stopPropagation()}
+    className="inline-flex items-center gap-1 rounded border border-subtle-1 bg-surface-2 px-1.5 py-0.5 font-mono text-xs text-accent-primary hover:bg-surface-1"
+  >
+    <Link2 className="h-3 w-3" />
+    {value}
+  </a>
+);
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div>

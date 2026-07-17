@@ -22,9 +22,20 @@ from plane.app.serializers import (
 from plane.bgtasks.requirement_sync_task import sync_requirements
 from plane.db.models import Requirement, RequirementDocument, RequirementRepository, User
 from plane.requirements import hosts
-from plane.requirements.change import propose_change
+from plane.requirements.change import create_requirement, propose_change
 
 from ..base import BaseAPIView, BaseViewSet
+
+
+def _commit_identity(user, repository):
+    """Author name/email for the commit, plus an optional co-author trailer."""
+    author_name = user.display_name or f"{user.first_name or ''} {user.last_name or ''}".strip() or user.email
+    co_author = (
+        {"name": repository.co_author_name, "email": repository.co_author_email}
+        if repository.co_author_email
+        else None
+    )
+    return author_name, user.email, co_author
 
 
 class RequirementRepositoryEndpoint(BaseAPIView):
@@ -160,6 +171,74 @@ class RequirementViewSet(BaseViewSet):
         return Response(enriched, status=status.HTTP_200_OK)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
+    def create(self, request, slug, project_id):
+        """Add a new requirement to a document and open a git pull request."""
+        repository = RequirementRepository.objects.filter(
+            workspace__slug=slug, project_id=project_id
+        ).first()
+        if repository is None:
+            return Response(
+                {"error": "No requirements repository is configured for this project"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        file_path = (request.data.get("file_path") or "").strip()
+        uid = (request.data.get("uid") or "").strip()
+        title = (request.data.get("title") or "").strip()
+        statement = request.data.get("statement") or ""
+        fields = request.data.get("fields") or {}
+        if not isinstance(fields, dict):
+            fields = {}
+        if not file_path or not uid or not title:
+            return Response(
+                {"error": "file_path, uid and title are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if self.get_queryset().filter(uid=uid).exists():
+            return Response(
+                {"error": f"A requirement with UID {uid} already exists"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        stamp = datetime.now(dt_timezone.utc).strftime("%Y%m%d%H%M%S")
+        branch = request.data.get("branch") or f"plane/new-{uid.lower()}-{stamp}"
+        message = request.data.get("message") or f"Add {uid}"
+        author_name, author_email, co_author = _commit_identity(request.user, repository)
+
+        try:
+            result = create_requirement(
+                repository=repository,
+                file_path=file_path,
+                uid=uid,
+                title=title,
+                statement=statement,
+                fields=fields,
+                branch=branch,
+                message=message,
+                pr_title=message,
+                pr_body=f"New requirement {uid} proposed from Plane.",
+                author_name=author_name,
+                author_email=author_email,
+                co_author=co_author,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not result["committed"]:
+            return Response({"error": "The requirement produced no change"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {
+                "uid": uid,
+                "pull_request_url": result["pull_request_url"],
+                "branch": result["branch"],
+                "compare_url": result["compare_url"],
+                "pr_error": result["pr_error"],
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def propose_change(self, request, slug, project_id, pk):
         """Apply field edits to this requirement and open a git pull request."""
         requirement = self.get_queryset().filter(pk=pk).first()
@@ -193,13 +272,7 @@ class RequirementViewSet(BaseViewSet):
         pr_title = request.data.get("title") or message
         pr_body = request.data.get("body") or f"Change to {requirement.uid} proposed from Plane."
 
-        user = request.user
-        author_name = user.display_name or f"{user.first_name or ''} {user.last_name or ''}".strip() or user.email
-        co_author = (
-            {"name": repository.co_author_name, "email": repository.co_author_email}
-            if repository.co_author_email
-            else None
-        )
+        author_name, author_email, co_author = _commit_identity(request.user, repository)
 
         try:
             result = propose_change(
@@ -211,7 +284,7 @@ class RequirementViewSet(BaseViewSet):
                 pr_title=pr_title,
                 pr_body=pr_body,
                 author_name=author_name,
-                author_email=user.email,
+                author_email=author_email,
                 co_author=co_author,
                 relations=relations,
             )
