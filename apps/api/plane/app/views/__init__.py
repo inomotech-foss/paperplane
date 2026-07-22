@@ -206,6 +206,12 @@ from .intake.base import (
     IntakeWorkItemDescriptionVersionEndpoint,
 )
 
+from .service_desk.base import (
+    ServiceDeskConfigEndpoint,
+    IssueEmailThreadEndpoint,
+    IssueEmailReplyEndpoint,
+)
+
 from .analytic.base import (
     AnalyticsEndpoint,
     AnalyticViewViewset,
