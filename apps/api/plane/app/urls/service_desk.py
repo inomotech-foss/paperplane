@@ -8,9 +8,15 @@ from plane.app.views import (
     IssueEmailReplyEndpoint,
     IssueEmailThreadEndpoint,
     ServiceDeskConfigEndpoint,
+    ServiceDeskWebhookEndpoint,
 )
 
 urlpatterns = [
+    path(
+        "service-desk/webhook/",
+        ServiceDeskWebhookEndpoint.as_view(),
+        name="service-desk-webhook",
+    ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/service-desk/",
         ServiceDeskConfigEndpoint.as_view(),

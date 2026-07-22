@@ -112,6 +112,36 @@ class MSGraphMailClient:
             json_body={"isRead": True},
         )
 
+    def create_subscription(self, mailbox, notification_url, client_state, expiration):
+        """Subscribe to change notifications for new messages in the inbox.
+
+        Graph validates notification_url synchronously (the receiver must echo
+        the validationToken), so the endpoint has to be publicly reachable.
+        """
+        response = self._request(
+            "POST",
+            "/subscriptions",
+            json_body={
+                "changeType": "created",
+                "notificationUrl": notification_url,
+                "resource": f"/users/{mailbox}/mailFolders('inbox')/messages",
+                "expirationDateTime": expiration,
+                "clientState": client_state,
+            },
+        )
+        return response.json()
+
+    def renew_subscription(self, subscription_id, expiration):
+        response = self._request(
+            "PATCH",
+            f"/subscriptions/{subscription_id}",
+            json_body={"expirationDateTime": expiration},
+        )
+        return response.json()
+
+    def delete_subscription(self, subscription_id):
+        self._request("DELETE", f"/subscriptions/{subscription_id}")
+
     def reply_to_message(self, mailbox, message_id, body_html, to_emails, cc_emails=None):
         """Reply to an existing message; Exchange keeps the thread intact.
 

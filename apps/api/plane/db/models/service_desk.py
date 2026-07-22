@@ -20,6 +20,10 @@ class ServiceDeskConfig(ProjectBaseModel):
     mailbox_email = models.CharField(max_length=255)
     is_enabled = models.BooleanField(default=False)
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    # Graph change-notification (push) subscription state; null when running polling-only.
+    graph_subscription_id = models.CharField(max_length=255, null=True, blank=True)
+    graph_subscription_expires_at = models.DateTimeField(null=True, blank=True)
+    webhook_client_state = models.CharField(max_length=255, blank=True)
 
     class Meta:
         unique_together = ["project", "deleted_at"]

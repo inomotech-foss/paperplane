@@ -23,6 +23,14 @@ service_desk_config_variables = [
         "category": "SERVICE_DESK",
         "is_encrypted": True,
     },
+    {
+        # Full URL Graph pushes change notifications to; defaults to
+        # <WEB_URL>/api/service-desk/webhook/ when WEB_URL is https.
+        "key": "SERVICE_DESK_WEBHOOK_URL",
+        "value": os.environ.get("SERVICE_DESK_WEBHOOK_URL"),
+        "category": "SERVICE_DESK",
+        "is_encrypted": False,
+    },
 ]
 
 extended_config_variables = [*service_desk_config_variables]

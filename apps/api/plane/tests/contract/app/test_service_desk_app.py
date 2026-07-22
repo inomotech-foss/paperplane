@@ -268,3 +268,77 @@ class TestIssueEmailReplyEndpoint:
 
         mock_send.delay.assert_called_once_with(str(email_message.id))
         assert mock_activity.delay.call_args.kwargs["notification"] is True
+
+
+@pytest.mark.contract
+class TestServiceDeskWebhookEndpoint:
+    url = "/api/service-desk/webhook/"
+
+    @pytest.mark.django_db
+    def test_validation_handshake_echoes_token(self, api_client):
+        response = api_client.post(f"{self.url}?validationToken=abc123")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.content == b"abc123"
+        assert response["Content-Type"].startswith("text/plain")
+
+    @pytest.mark.django_db
+    def test_valid_notification_schedules_sync(self, api_client, project):
+        config = ServiceDeskConfig.objects.create(
+            project_id=project.id,
+            mailbox_email=MAILBOX,
+            is_enabled=True,
+            graph_subscription_id="sub-1",
+            webhook_client_state="topsecret",
+        )
+        with patch("plane.app.views.service_desk.base.service_desk_sync_mailbox") as mock_sync:
+            response = api_client.post(
+                self.url,
+                {"value": [{"subscriptionId": "sub-1", "clientState": "topsecret"}]},
+                format="json",
+            )
+        assert response.status_code == status.HTTP_202_ACCEPTED
+        mock_sync.delay.assert_called_once_with(str(config.id))
+
+    @pytest.mark.django_db
+    def test_wrong_client_state_is_ignored(self, api_client, project):
+        ServiceDeskConfig.objects.create(
+            project_id=project.id,
+            mailbox_email=MAILBOX,
+            is_enabled=True,
+            graph_subscription_id="sub-1",
+            webhook_client_state="topsecret",
+        )
+        with patch("plane.app.views.service_desk.base.service_desk_sync_mailbox") as mock_sync:
+            response = api_client.post(
+                self.url,
+                {"value": [{"subscriptionId": "sub-1", "clientState": "wrong"}]},
+                format="json",
+            )
+        # Still 202 so Graph does not retry, but nothing is scheduled.
+        assert response.status_code == status.HTTP_202_ACCEPTED
+        mock_sync.delay.assert_not_called()
+
+    @pytest.mark.django_db
+    def test_unknown_subscription_is_ignored(self, api_client):
+        with patch("plane.app.views.service_desk.base.service_desk_sync_mailbox") as mock_sync:
+            response = api_client.post(
+                self.url,
+                {"value": [{"subscriptionId": "sub-unknown", "clientState": "x"}]},
+                format="json",
+            )
+        assert response.status_code == status.HTTP_202_ACCEPTED
+        mock_sync.delay.assert_not_called()
+
+
+@pytest.mark.contract
+class TestServiceDeskConfigSubscriptionTrigger:
+    @pytest.mark.django_db
+    def test_config_save_triggers_subscription_maintenance(self, session_client, workspace, project):
+        with patch("plane.app.views.service_desk.base.service_desk_maintain_subscriptions") as mock_maintain:
+            response = session_client.post(
+                config_url(workspace, project),
+                {"mailbox_email": MAILBOX, "is_enabled": True},
+                format="json",
+            )
+        assert response.status_code == status.HTTP_201_CREATED
+        mock_maintain.delay.assert_called_once()

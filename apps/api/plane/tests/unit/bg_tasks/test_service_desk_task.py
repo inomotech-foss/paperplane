@@ -2,16 +2,22 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.test import override_settings
+from django.utils import timezone
 
 from plane.bgtasks.service_desk_task import (
     SERVICE_DESK_BOT_EMAIL,
     convert_text_to_html,
+    get_service_desk_notification_url,
+    service_desk_maintain_subscriptions,
     service_desk_poll,
     service_desk_send_reply,
 )
+from plane.utils.ms365_graph import MSGraphError
 from plane.db.models import (
     IntakeIssue,
     Issue,
@@ -250,3 +256,123 @@ class TestServiceDeskSendReply:
             service_desk_send_reply(str(outbound_message.id))
         outbound_message.refresh_from_db()
         assert outbound_message.status == EmailDeliveryStatus.FAILED
+
+
+WEBHOOK_URL = "https://plane.example.com/api/service-desk/webhook/"
+
+
+def _run_maintain(fake_client, notification_url=WEBHOOK_URL):
+    with (
+        patch(
+            "plane.bgtasks.service_desk_task.get_service_desk_configuration",
+            return_value=("tenant", "client", "secret"),
+        ),
+        patch("plane.bgtasks.service_desk_task.MSGraphMailClient", return_value=fake_client),
+        patch(
+            "plane.bgtasks.service_desk_task.get_service_desk_notification_url",
+            return_value=notification_url,
+        ),
+    ):
+        service_desk_maintain_subscriptions()
+
+
+@pytest.mark.unit
+class TestMaintainSubscriptions:
+    @pytest.mark.django_db
+    def test_creates_subscription_when_missing(self, service_desk_config):
+        fake_client = MagicMock()
+        fake_client.create_subscription.return_value = {
+            "id": "sub-1",
+            "expirationDateTime": "2026-07-24T20:00:00Z",
+        }
+        _run_maintain(fake_client)
+
+        service_desk_config.refresh_from_db()
+        assert service_desk_config.graph_subscription_id == "sub-1"
+        assert service_desk_config.graph_subscription_expires_at is not None
+        assert service_desk_config.webhook_client_state != ""
+
+        call_kwargs = fake_client.create_subscription.call_args.kwargs
+        assert call_kwargs["mailbox"] == MAILBOX
+        assert call_kwargs["notification_url"] == WEBHOOK_URL
+        assert call_kwargs["client_state"] == service_desk_config.webhook_client_state
+        fake_client.renew_subscription.assert_not_called()
+
+    @pytest.mark.django_db
+    def test_skips_fresh_subscription(self, service_desk_config):
+        service_desk_config.graph_subscription_id = "sub-1"
+        service_desk_config.graph_subscription_expires_at = timezone.now() + timedelta(hours=40)
+        service_desk_config.save()
+        fake_client = MagicMock()
+        _run_maintain(fake_client)
+        fake_client.create_subscription.assert_not_called()
+        fake_client.renew_subscription.assert_not_called()
+
+    @pytest.mark.django_db
+    def test_renews_expiring_subscription(self, service_desk_config):
+        service_desk_config.graph_subscription_id = "sub-1"
+        service_desk_config.graph_subscription_expires_at = timezone.now() + timedelta(hours=1)
+        service_desk_config.save()
+        fake_client = MagicMock()
+        fake_client.renew_subscription.return_value = {"expirationDateTime": "2026-07-24T20:00:00Z"}
+        _run_maintain(fake_client)
+
+        fake_client.renew_subscription.assert_called_once()
+        fake_client.create_subscription.assert_not_called()
+        service_desk_config.refresh_from_db()
+        assert service_desk_config.graph_subscription_expires_at > timezone.now() + timedelta(hours=12)
+
+    @pytest.mark.django_db
+    def test_recreates_when_renew_returns_404(self, service_desk_config):
+        service_desk_config.graph_subscription_id = "sub-gone"
+        service_desk_config.graph_subscription_expires_at = timezone.now() + timedelta(hours=1)
+        service_desk_config.webhook_client_state = "state-1"
+        service_desk_config.save()
+        fake_client = MagicMock()
+        fake_client.renew_subscription.side_effect = MSGraphError("gone", 404, "not found")
+        fake_client.create_subscription.return_value = {"id": "sub-2"}
+        _run_maintain(fake_client)
+
+        service_desk_config.refresh_from_db()
+        assert service_desk_config.graph_subscription_id == "sub-2"
+
+    @pytest.mark.django_db
+    def test_deletes_subscription_for_disabled_config(self, service_desk_config):
+        service_desk_config.is_enabled = False
+        service_desk_config.graph_subscription_id = "sub-1"
+        service_desk_config.graph_subscription_expires_at = timezone.now() + timedelta(hours=40)
+        service_desk_config.save()
+        fake_client = MagicMock()
+        _run_maintain(fake_client)
+
+        fake_client.delete_subscription.assert_called_once_with("sub-1")
+        service_desk_config.refresh_from_db()
+        assert service_desk_config.graph_subscription_id is None
+        assert service_desk_config.graph_subscription_expires_at is None
+
+    @pytest.mark.django_db
+    def test_no_notification_url_stays_polling_only(self, service_desk_config):
+        fake_client = MagicMock()
+        _run_maintain(fake_client, notification_url=None)
+        fake_client.create_subscription.assert_not_called()
+
+
+@pytest.mark.unit
+class TestNotificationUrl:
+    @pytest.mark.django_db
+    @override_settings(WEB_URL="https://plane.example.com")
+    def test_derives_from_web_url(self):
+        assert get_service_desk_notification_url() == WEBHOOK_URL
+
+    @pytest.mark.django_db
+    @override_settings(WEB_URL="http://plane.internal")
+    def test_requires_https(self):
+        assert get_service_desk_notification_url() is None
+
+    @override_settings(WEB_URL="https://plane.example.com")
+    def test_override_wins(self):
+        with patch(
+            "plane.bgtasks.service_desk_task.get_configuration_value",
+            return_value=("https://edge.example.com/hook",),
+        ):
+            assert get_service_desk_notification_url() == "https://edge.example.com/hook"

@@ -11,4 +11,5 @@ export * from "./base";
 export * from "./email";
 export * from "./image";
 export * from "./rate-limit";
+export * from "./service-desk";
 export * from "./workspace";

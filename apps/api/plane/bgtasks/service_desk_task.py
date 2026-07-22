@@ -5,14 +5,18 @@
 # Python imports
 import html
 import json
+import os
 import uuid
+from datetime import timedelta
 
 # Third party imports
 from celery import shared_task
 from crum import impersonate
 
 # Django imports
+from django.conf import settings
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.utils.html import strip_tags
 
 # Module imports
@@ -39,15 +43,39 @@ from plane.utils.ms365_graph import MSGraphError, MSGraphMailClient
 SERVICE_DESK_BOT_EMAIL = "service-desk-bot@plane.internal"
 SERVICE_DESK_POLL_LOCK = "service_desk_poll_lock"
 
+# Graph caps mail subscriptions at 4230 minutes; stay well below and renew early.
+SUBSCRIPTION_LIFETIME_MINUTES = 2880
+SUBSCRIPTION_RENEW_THRESHOLD_MINUTES = 720
+
 
 def get_service_desk_configuration():
     return get_configuration_value(
         [
-            {"key": "SERVICE_DESK_MS365_TENANT_ID", "default": None},
-            {"key": "SERVICE_DESK_MS365_CLIENT_ID", "default": None},
-            {"key": "SERVICE_DESK_MS365_CLIENT_SECRET", "default": None},
+            {"key": "SERVICE_DESK_MS365_TENANT_ID", "default": os.environ.get("SERVICE_DESK_MS365_TENANT_ID")},
+            {"key": "SERVICE_DESK_MS365_CLIENT_ID", "default": os.environ.get("SERVICE_DESK_MS365_CLIENT_ID")},
+            {
+                "key": "SERVICE_DESK_MS365_CLIENT_SECRET",
+                "default": os.environ.get("SERVICE_DESK_MS365_CLIENT_SECRET"),
+            },
         ]
     )
+
+
+def get_service_desk_notification_url():
+    """Public HTTPS URL Graph should push change notifications to, or None.
+
+    Returning None keeps the integration in polling-only mode (e.g. for
+    instances that are not reachable from the internet).
+    """
+    (override,) = get_configuration_value(
+        [{"key": "SERVICE_DESK_WEBHOOK_URL", "default": os.environ.get("SERVICE_DESK_WEBHOOK_URL")}]
+    )
+    if override:
+        return override
+    web_url = (getattr(settings, "WEB_URL", None) or "").strip()
+    if not web_url.startswith("https://"):
+        return None
+    return f"{web_url.rstrip('/')}/api/service-desk/webhook/"
 
 
 def get_service_desk_bot():
@@ -286,7 +314,47 @@ def _process_mailbox(client, config, bot):
 
 
 @shared_task
+def service_desk_sync_mailbox(config_id):
+    """Fetch and process unread mail for one mailbox.
+
+    Triggered by Graph change notifications (push) and by the periodic
+    reconciliation poll; a per-mailbox lock keeps the two from racing.
+    """
+    config = (
+        ServiceDeskConfig.objects.filter(pk=config_id, is_enabled=True, deleted_at__isnull=True)
+        .select_related("project", "project__workspace")
+        .first()
+    )
+    if config is None:
+        return
+    tenant_id, client_id, client_secret = get_service_desk_configuration()
+    if not (tenant_id and client_id and client_secret):
+        return
+
+    redis_client = redis_instance()
+    lock_id = f"service_desk_sync_{config_id}"
+    if not redis_client.set(lock_id, "true", nx=True, ex=240):
+        return
+    try:
+        client = MSGraphMailClient(tenant_id, client_id, client_secret)
+        bot = get_service_desk_bot()
+        _process_mailbox(client, config, bot)
+        config.last_synced_at = timezone.now()
+        config.save(update_fields=["last_synced_at", "updated_at"])
+    except Exception as e:
+        log_exception(e)
+    finally:
+        redis_client.delete(lock_id)
+
+
+@shared_task
 def service_desk_poll():
+    """Reconciliation sweep over all enabled mailboxes.
+
+    Push notifications deliver mail near-instantly when a subscription is
+    active; this poll catches dropped notifications and covers instances
+    where Graph cannot reach the webhook at all.
+    """
     redis_client = redis_instance()
     if not redis_client.set(SERVICE_DESK_POLL_LOCK, "true", nx=True, ex=300):
         return
@@ -294,24 +362,92 @@ def service_desk_poll():
         tenant_id, client_id, client_secret = get_service_desk_configuration()
         if not (tenant_id and client_id and client_secret):
             return
-
-        configs = ServiceDeskConfig.objects.filter(is_enabled=True, deleted_at__isnull=True).select_related(
-            "project", "project__workspace"
+        config_ids = ServiceDeskConfig.objects.filter(is_enabled=True, deleted_at__isnull=True).values_list(
+            "id", flat=True
         )
-        if not configs.exists():
-            return
-
-        client = MSGraphMailClient(tenant_id, client_id, client_secret)
-        bot = get_service_desk_bot()
-        for config in configs:
-            try:
-                _process_mailbox(client, config, bot)
-                config.last_synced_at = timezone.now()
-                config.save(update_fields=["last_synced_at", "updated_at"])
-            except Exception as e:
-                log_exception(e)
+        for config_id in config_ids:
+            service_desk_sync_mailbox(str(config_id))
     finally:
         redis_client.delete(SERVICE_DESK_POLL_LOCK)
+
+
+def _subscription_expiration(result, requested):
+    expires_at = parse_datetime(result.get("expirationDateTime") or "") if isinstance(result, dict) else None
+    return expires_at or requested
+
+
+@shared_task
+def service_desk_maintain_subscriptions():
+    """Keep Graph change-notification subscriptions in sync with the configs.
+
+    Creates subscriptions for enabled mailboxes, renews them before expiry,
+    and drops them for disabled mailboxes. Without a public HTTPS webhook URL
+    this is a no-op and the integration stays polling-only.
+    """
+    tenant_id, client_id, client_secret = get_service_desk_configuration()
+    if not (tenant_id and client_id and client_secret):
+        return
+    client = MSGraphMailClient(tenant_id, client_id, client_secret)
+    now = timezone.now()
+
+    # Disabled mailboxes should stop pushing.
+    for config in ServiceDeskConfig.objects.filter(
+        is_enabled=False, deleted_at__isnull=True, graph_subscription_id__isnull=False
+    ):
+        try:
+            client.delete_subscription(config.graph_subscription_id)
+        except MSGraphError as e:
+            if e.status_code != 404:
+                log_exception(e)
+        config.graph_subscription_id = None
+        config.graph_subscription_expires_at = None
+        config.save(update_fields=["graph_subscription_id", "graph_subscription_expires_at", "updated_at"])
+
+    notification_url = get_service_desk_notification_url()
+    if not notification_url:
+        return
+
+    for config in ServiceDeskConfig.objects.filter(is_enabled=True, deleted_at__isnull=True):
+        try:
+            if (
+                config.graph_subscription_id
+                and config.graph_subscription_expires_at
+                and config.graph_subscription_expires_at > now + timedelta(minutes=SUBSCRIPTION_RENEW_THRESHOLD_MINUTES)
+            ):
+                continue
+
+            requested_expiration = now + timedelta(minutes=SUBSCRIPTION_LIFETIME_MINUTES)
+            if config.graph_subscription_id:
+                try:
+                    result = client.renew_subscription(config.graph_subscription_id, requested_expiration.isoformat())
+                    config.graph_subscription_expires_at = _subscription_expiration(result, requested_expiration)
+                    config.save(update_fields=["graph_subscription_expires_at", "updated_at"])
+                    continue
+                except MSGraphError as e:
+                    if e.status_code != 404:
+                        raise
+                    config.graph_subscription_id = None  # gone on the Graph side; recreate
+
+            if not config.webhook_client_state:
+                config.webhook_client_state = uuid.uuid4().hex
+            result = client.create_subscription(
+                mailbox=config.mailbox_email.strip().lower(),
+                notification_url=notification_url,
+                client_state=config.webhook_client_state,
+                expiration=requested_expiration.isoformat(),
+            )
+            config.graph_subscription_id = result.get("id")
+            config.graph_subscription_expires_at = _subscription_expiration(result, requested_expiration)
+            config.save(
+                update_fields=[
+                    "graph_subscription_id",
+                    "graph_subscription_expires_at",
+                    "webhook_client_state",
+                    "updated_at",
+                ]
+            )
+        except Exception as e:
+            log_exception(e)
 
 
 @shared_task

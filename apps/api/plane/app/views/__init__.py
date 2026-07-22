@@ -208,6 +208,7 @@ from .intake.base import (
 
 from .service_desk.base import (
     ServiceDeskConfigEndpoint,
+    ServiceDeskWebhookEndpoint,
     IssueEmailThreadEndpoint,
     IssueEmailReplyEndpoint,
 )

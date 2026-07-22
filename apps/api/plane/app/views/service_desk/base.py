@@ -3,18 +3,22 @@
 # See the LICENSE file for details.
 
 # Python imports
+import hmac
 import json
 
 # Django imports
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import validate_email
+from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import strip_tags
 
 # Third party imports
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 # Module imports
 from plane.app.permissions import ROLE, allow_permission
@@ -26,7 +30,11 @@ from plane.app.serializers import (
 )
 from plane.app.views.base import BaseAPIView
 from plane.bgtasks.issue_activities_task import issue_activity
-from plane.bgtasks.service_desk_task import service_desk_send_reply
+from plane.bgtasks.service_desk_task import (
+    service_desk_maintain_subscriptions,
+    service_desk_send_reply,
+    service_desk_sync_mailbox,
+)
 from plane.db.models import (
     IssueComment,
     IssueEmailMessage,
@@ -100,10 +108,51 @@ class ServiceDeskConfigEndpoint(BaseAPIView):
         if is_enabled:
             Project.objects.filter(pk=project_id, intake_view=False).update(intake_view=True)
 
+        # Create/renew/drop the Graph push subscription to match the new state.
+        service_desk_maintain_subscriptions.delay()
+
         return Response(
             ServiceDeskConfigSerializer(config).data,
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
+
+
+class ServiceDeskWebhookEndpoint(APIView):
+    """Receiver for Microsoft Graph change notifications.
+
+    Unauthenticated by design — Graph calls it directly. The subscription
+    handshake echoes the validationToken; real notifications are only acted
+    on when their clientState matches the per-mailbox secret, and even then
+    the payload is never trusted: we just schedule a mailbox sync.
+    """
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    throttle_classes = []
+
+    def post(self, request):
+        validation_token = request.query_params.get("validationToken")
+        if validation_token is not None:
+            return HttpResponse(validation_token, content_type="text/plain")
+
+        payload = request.data if isinstance(request.data, dict) else {}
+        for notification in payload.get("value", []):
+            if not isinstance(notification, dict):
+                continue
+            subscription_id = notification.get("subscriptionId")
+            client_state = notification.get("clientState") or ""
+            if not subscription_id:
+                continue
+            config = ServiceDeskConfig.objects.filter(
+                graph_subscription_id=subscription_id, is_enabled=True, deleted_at__isnull=True
+            ).first()
+            if (
+                config
+                and config.webhook_client_state
+                and hmac.compare_digest(client_state, config.webhook_client_state)
+            ):
+                service_desk_sync_mailbox.delay(str(config.id))
+        return Response(status=status.HTTP_202_ACCEPTED)
 
 
 class IssueEmailThreadEndpoint(BaseAPIView):
