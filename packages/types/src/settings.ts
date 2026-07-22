@@ -32,7 +32,8 @@ export type TProjectSettingsTabs =
   | "custom-fields"
   | "work-item-types"
   | "estimates"
-  | "automations";
+  | "automations"
+  | "service-desk";
 export type TProjectSettingsItem = {
   key: TProjectSettingsTabs;
   i18n_label: string;

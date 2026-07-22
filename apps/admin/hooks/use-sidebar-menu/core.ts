@@ -4,13 +4,21 @@
  * See the LICENSE file for details.
  */
 
-import { Image, BrainCog, Cog, Gauge, Mail } from "lucide-react";
+import { Image, BrainCog, Cog, Gauge, Headset, Mail } from "lucide-react";
 // plane imports
 import { LockIcon, WorkspaceIcon } from "@plane/propel/icons";
 // types
 import type { TSidebarMenuItem } from "./types";
 
-export type TCoreSidebarMenuKey = "general" | "email" | "workspace" | "authentication" | "ai" | "image" | "rate-limits";
+export type TCoreSidebarMenuKey =
+  | "general"
+  | "email"
+  | "service-desk"
+  | "workspace"
+  | "authentication"
+  | "ai"
+  | "image"
+  | "rate-limits";
 
 export const coreSidebarMenuLinks: Record<TCoreSidebarMenuKey, TSidebarMenuItem> = {
   general: {
@@ -24,6 +32,12 @@ export const coreSidebarMenuLinks: Record<TCoreSidebarMenuKey, TSidebarMenuItem>
     name: "Email",
     description: "Configure your SMTP controls.",
     href: `/email/`,
+  },
+  "service-desk": {
+    Icon: Headset,
+    name: "Service Desk",
+    description: "Configure the Microsoft 365 service desk integration.",
+    href: `/service-desk/`,
   },
   workspace: {
     Icon: WorkspaceIcon,

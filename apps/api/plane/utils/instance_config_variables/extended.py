@@ -2,4 +2,35 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-extended_config_variables = []
+import os
+
+service_desk_config_variables = [
+    {
+        "key": "SERVICE_DESK_MS365_TENANT_ID",
+        "value": os.environ.get("SERVICE_DESK_MS365_TENANT_ID"),
+        "category": "SERVICE_DESK",
+        "is_encrypted": False,
+    },
+    {
+        "key": "SERVICE_DESK_MS365_CLIENT_ID",
+        "value": os.environ.get("SERVICE_DESK_MS365_CLIENT_ID"),
+        "category": "SERVICE_DESK",
+        "is_encrypted": False,
+    },
+    {
+        "key": "SERVICE_DESK_MS365_CLIENT_SECRET",
+        "value": os.environ.get("SERVICE_DESK_MS365_CLIENT_SECRET"),
+        "category": "SERVICE_DESK",
+        "is_encrypted": True,
+    },
+    {
+        # Full URL Graph pushes change notifications to; defaults to
+        # <WEB_URL>/api/service-desk/webhook/ when WEB_URL is https.
+        "key": "SERVICE_DESK_WEBHOOK_URL",
+        "value": os.environ.get("SERVICE_DESK_WEBHOOK_URL"),
+        "category": "SERVICE_DESK",
+        "is_encrypted": False,
+    },
+]
+
+extended_config_variables = [*service_desk_config_variables]

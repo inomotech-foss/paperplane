@@ -5,7 +5,7 @@
  */
 
 import type { LucideIcon } from "lucide-react";
-import { Users, Zap, SlidersHorizontal, Layers } from "lucide-react";
+import { Users, Zap, SlidersHorizontal, Layers, Mail } from "lucide-react";
 // plane imports
 import type { ISvgIcons } from "@plane/propel/icons";
 import {
@@ -36,4 +36,5 @@ export const PROJECT_SETTINGS_ICONS: Record<TProjectSettingsTabs, LucideIcon | R
   "work-item-types": Layers,
   estimates: EstimatePropertyIcon,
   automations: Zap,
+  "service-desk": Mail,
 };

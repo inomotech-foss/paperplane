@@ -129,6 +129,12 @@ from .intake import (
     IntakeIssueDetailSerializer,
 )
 
+from .service_desk import (
+    ServiceDeskConfigSerializer,
+    IssueEmailThreadSerializer,
+    IssueEmailMessageSerializer,
+)
+
 from .analytic import AnalyticViewSerializer
 
 from .notification import NotificationSerializer, UserNotificationPreferenceSerializer

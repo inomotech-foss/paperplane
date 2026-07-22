@@ -11,6 +11,7 @@ import type {
   TInstanceImageConfigurationKeys,
   TInstanceAuthenticationKeys,
   TInstanceRateLimitConfigurationKeys,
+  TInstanceServiceDeskConfigurationKeys,
   TInstanceWorkspaceConfigurationKeys,
   TCoreLoginMediums,
 } from "./";
@@ -89,6 +90,7 @@ export type TInstanceConfigurationKeys =
   | TInstanceImageConfigurationKeys
   | TInstanceAuthenticationKeys
   | TInstanceRateLimitConfigurationKeys
+  | TInstanceServiceDeskConfigurationKeys
   | TInstanceWorkspaceConfigurationKeys;
 
 export interface IInstanceConfiguration {

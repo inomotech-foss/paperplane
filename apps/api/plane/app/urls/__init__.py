@@ -17,6 +17,7 @@ from .notification import urlpatterns as notification_urls
 from .page import urlpatterns as page_urls
 from .project import urlpatterns as project_urls
 from .search import urlpatterns as search_urls
+from .service_desk import urlpatterns as service_desk_urls
 from .state import urlpatterns as state_urls
 from .user import urlpatterns as user_urls
 from .views import urlpatterns as view_urls
@@ -40,6 +41,7 @@ urlpatterns = [
     *page_urls,
     *project_urls,
     *search_urls,
+    *service_desk_urls,
     *state_urls,
     *user_urls,
     *view_urls,
