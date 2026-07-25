@@ -33,10 +33,11 @@ class AutomationActionSerializer(BaseSerializer):
         # A PATCH that only sends `config` still has to validate against the
         # action type already stored.
         config = attrs.get("config", getattr(self.instance, "config", {}))
-        try:
-            validators.validate_action(action_type, config)
-        except validators.ValidationError as exception:
-            raise serializers.ValidationError({"config": str(exception)}) from exception
+        # `action_error` returns a literal message rather than raising, so nothing
+        # exception-derived is ever echoed back to the caller.
+        message = validators.action_error(action_type, config)
+        if message:
+            raise serializers.ValidationError({"config": message})
         return attrs
 
 
@@ -148,15 +149,13 @@ class AutomationSerializer(BaseSerializer):
                     {"trigger_type": "You can't change the trigger type once the automation is created."}
                 )
 
-        try:
-            validators.validate_trigger(trigger_type, trigger_config)
-        except validators.ValidationError as exception:
-            raise serializers.ValidationError({"trigger_config": str(exception)}) from exception
+        trigger_message = validators.trigger_error(trigger_type, trigger_config)
+        if trigger_message:
+            raise serializers.ValidationError({"trigger_config": trigger_message})
 
-        try:
-            validators.validate_condition(condition)
-        except validators.ValidationError as exception:
-            raise serializers.ValidationError({"condition": str(exception)}) from exception
+        condition_message = validators.condition_error(condition)
+        if condition_message:
+            raise serializers.ValidationError({"condition": condition_message})
 
         scope = getattr(instance, "scope", None) or self.context.get("scope")
         targets_projects = True

@@ -11,7 +11,7 @@ import pytest
 
 from plane.automation import conditions
 from plane.automation.context import changes_from_activities
-from plane.automation.validators import ValidationError, validate_condition
+from plane.automation.validators import action_error, condition_error, trigger_error
 
 pytestmark = pytest.mark.unit
 
@@ -245,24 +245,93 @@ class TestChangesFromActivities:
 
 
 class TestConditionValidation:
-    def test_valid_tree_passes(self):
-        validate_condition(group("and", condition("priority", "in", ["high"])))
+    """
+    Validation returns a message instead of raising: the serializer hands these
+    straight to an API response, so the text must be a literal we authored rather
+    than a stringified exception.
+    """
+
+    def test_valid_tree_returns_none(self):
+        assert condition_error(group("and", condition("priority", "in", ["high"]))) is None
+
+    def test_none_is_valid(self):
+        assert condition_error(None) is None
 
     def test_unknown_property_is_rejected(self):
-        with pytest.raises(ValidationError, match="not a property"):
-            validate_condition(condition("colour", "in", ["red"]))
+        assert condition_error(condition("colour", "in", ["red"])) == (
+            "That isn't a property you can build a condition on."
+        )
 
     def test_operator_must_be_allowed_for_the_property(self):
-        with pytest.raises(ValidationError, match="cannot be used with"):
-            validate_condition(condition("priority", "older_than_days", 3))
+        message = condition_error(condition("priority", "older_than_days", 3))
+        assert message == "That comparison can't be used with the selected property."
 
     def test_unknown_logical_operator_is_rejected(self):
-        with pytest.raises(ValidationError, match="not a supported way"):
-            validate_condition(group("xor", condition("priority", "in", ["high"])))
+        message = condition_error(group("xor", condition("priority", "in", ["high"])))
+        assert message == "That isn't a supported way to combine conditions."
 
     def test_excessive_nesting_is_rejected(self):
         tree = condition("priority", "in", ["high"])
         for _ in range(10):
             tree = group("and", tree)
-        with pytest.raises(ValidationError, match="nested too deeply"):
-            validate_condition(tree)
+        assert condition_error(tree) == "The condition is nested too deeply."
+
+    def test_a_nested_problem_surfaces(self):
+        tree = group("and", condition("priority", "in", ["high"]), group("or", condition("colour", "in", ["red"])))
+        assert condition_error(tree) == "That isn't a property you can build a condition on."
+
+
+class TestTriggerValidation:
+    def test_empty_trigger_is_a_valid_draft(self):
+        assert trigger_error("", {}) is None
+
+    def test_unknown_trigger_is_rejected(self):
+        assert trigger_error("work_item.exploded", {}) == "That isn't a supported trigger."
+
+    def test_event_trigger_ignores_schedule_config(self):
+        assert trigger_error("work_item.created", {}) is None
+
+    def test_schedule_trigger_validates_the_schedule(self):
+        assert trigger_error("schedule", {"mode": "fixed", "frequency": "daily", "hour": 9, "minute": 0}) is None
+        assert trigger_error("schedule", {"mode": "cron", "cron": "nope"}) is not None
+
+    def test_schedule_message_does_not_leak_the_parser_text(self):
+        # The celery parser says things like "Invalid end range: 7 > 6"; that is
+        # third-party text on a path that ends in an API response.
+        message = trigger_error("schedule", {"mode": "cron", "cron": "* * * * 9"})
+        assert message is not None
+        assert "range" not in message.lower() or "each field" in message.lower()
+
+
+class TestActionValidation:
+    def test_unknown_action_is_rejected(self):
+        assert action_error("launch_rocket", {}) == "That isn't a supported action."
+
+    def test_archive_needs_no_config(self):
+        assert action_error("archive_work_item", {}) is None
+
+    def test_change_property_requires_a_value(self):
+        message = action_error("change_property", {"property": "priority", "change_type": "set"})
+        assert message == "Pick a value for the property you're changing."
+
+    def test_change_property_clear_needs_no_value(self):
+        assert action_error("change_property", {"property": "target_date", "change_type": "clear"}) is None
+
+    def test_notification_requires_recipients(self):
+        assert action_error("send_notification", {"title": "Hi"}) == "Choose at least one recipient."
+
+    def test_notification_rejects_an_unknown_group(self):
+        message = action_error("send_notification", {"recipients": ["everyone"], "title": "Hi"})
+        assert message == "One of the chosen recipient groups isn't recognised."
+
+    def test_webhook_requires_an_http_url(self):
+        assert action_error("call_webhook", {"url": "ftp://example.com"}) == (
+            "The webhook URL must start with http:// or https://."
+        )
+
+    def test_create_work_item_requires_a_name(self):
+        assert action_error("create_work_item", {"name": "  "}) == "The new work item needs a name."
+
+    def test_create_work_item_rejects_a_malformed_id(self):
+        message = action_error("create_work_item", {"name": "Follow up", "state_id": "not-a-uuid"})
+        assert message == "The chosen state isn't a valid id."

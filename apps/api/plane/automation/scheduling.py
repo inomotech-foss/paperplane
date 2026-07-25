@@ -69,40 +69,50 @@ def _normalize_day_of_week(spec: str) -> str:
     return ",".join(tokens)
 
 
-def parse_cron(expression: str) -> crontab:
-    """Parse a five field cron expression. Raises ``ScheduleError``."""
+def _parse_cron(expression: str) -> tuple[crontab | None, str | None]:
+    """
+    Returning counterpart to ``parse_cron``: ``(schedule, None)`` on success,
+    ``(None, message)`` otherwise.
+
+    Validation goes through this form rather than catching ``ScheduleError``, so
+    the message an API response carries is always one of the literals below and
+    never derived from an exception.
+    """
     if not expression or not str(expression).strip():
-        raise ScheduleError("The cron expression is empty.")
+        return None, "The cron expression is empty."
 
     parts = str(expression).strip().split()
     if len(parts) != 5:
-        raise ScheduleError("A cron expression needs exactly five fields: minute hour day-of-month month day-of-week.")
+        return None, "A cron expression needs exactly five fields: minute hour day-of-month month day-of-week."
 
     minute, hour, day_of_month, month_of_year, day_of_week = parts
     try:
-        return crontab(
+        schedule = crontab(
             minute=minute,
             hour=hour,
             day_of_month=day_of_month,
             month_of_year=month_of_year,
             day_of_week=_normalize_day_of_week(day_of_week),
         )
-    except (ValueError, KeyError) as exception:
-        raise ScheduleError(f"Invalid cron expression: {exception}") from exception
+    except (ValueError, KeyError):
+        # Deliberately not surfacing the parser's own message: it is third party
+        # text on a path that ends in an API response.
+        return None, "That cron expression isn't valid. Check each field's range, for example '0 9 * * 1-5'."
+    return schedule, None
 
 
-def _fixed_to_crontab(config: dict) -> crontab:
+def _build_fixed(config: dict) -> tuple[crontab | None, str | None]:
     frequency = config.get("frequency") or FREQUENCY_DAILY
     if frequency not in FREQUENCIES:
-        raise ScheduleError(f"'{frequency}' is not a supported frequency.")
+        return None, "That isn't a supported frequency."
 
     try:
         hour = int(config.get("hour", 9))
         minute = int(config.get("minute", 0))
-    except (TypeError, ValueError) as exception:
-        raise ScheduleError("The time of day must be whole numbers.") from exception
+    except (TypeError, ValueError):
+        return None, "The time of day must be whole numbers."
     if not 0 <= hour <= 23 or not 0 <= minute <= 59:
-        raise ScheduleError("The time of day is out of range.")
+        return None, "The time of day is out of range."
 
     day_of_week = "*"
     day_of_month = "*"
@@ -110,39 +120,57 @@ def _fixed_to_crontab(config: dict) -> crontab:
     if frequency == FREQUENCY_WEEKLY:
         days = config.get("days_of_week") or []
         if not days:
-            raise ScheduleError("Select at least one day of the week.")
+            return None, "Select at least one day of the week."
         try:
             normalized = sorted({int(day) % 7 for day in days})
-        except (TypeError, ValueError) as exception:
-            raise ScheduleError("Days of the week must be numbers from 0 (Sunday) to 6 (Saturday).") from exception
+        except (TypeError, ValueError):
+            return None, "Days of the week must be numbers from 0 (Sunday) to 6 (Saturday)."
         day_of_week = ",".join(str(day) for day in normalized)
     elif frequency == FREQUENCY_MONTHLY:
         try:
             day = int(config.get("day_of_month", 1))
-        except (TypeError, ValueError) as exception:
-            raise ScheduleError("The day of the month must be a whole number.") from exception
+        except (TypeError, ValueError):
+            return None, "The day of the month must be a whole number."
         if not 1 <= day <= 31:
-            raise ScheduleError("The day of the month must be between 1 and 31.")
+            return None, "The day of the month must be between 1 and 31."
         day_of_month = str(day)
 
-    return crontab(
-        minute=str(minute),
-        hour=str(hour),
-        day_of_month=day_of_month,
-        month_of_year="*",
-        day_of_week=day_of_week,
+    return (
+        crontab(
+            minute=str(minute),
+            hour=str(hour),
+            day_of_month=day_of_month,
+            month_of_year="*",
+            day_of_week=day_of_week,
+        ),
+        None,
     )
+
+
+def _build_crontab(trigger_config: dict) -> tuple[crontab | None, str | None]:
+    config = trigger_config or {}
+    mode = config.get("mode") or MODE_FIXED
+    if mode == MODE_CRON:
+        return _parse_cron(config.get("cron"))
+    if mode == MODE_FIXED:
+        return _build_fixed(config)
+    return None, "That isn't a supported schedule mode."
+
+
+def parse_cron(expression: str) -> crontab:
+    """Parse a five field cron expression. Raises ``ScheduleError``."""
+    schedule, error = _parse_cron(expression)
+    if error is not None:
+        raise ScheduleError(error)
+    return schedule
 
 
 def to_crontab(trigger_config: dict) -> crontab:
     """Normalise either authoring mode into a parsed cron schedule."""
-    config = trigger_config or {}
-    mode = config.get("mode") or MODE_FIXED
-    if mode == MODE_CRON:
-        return parse_cron(config.get("cron"))
-    if mode == MODE_FIXED:
-        return _fixed_to_crontab(config)
-    raise ScheduleError(f"'{mode}' is not a supported schedule mode.")
+    schedule, error = _build_crontab(trigger_config)
+    if error is not None:
+        raise ScheduleError(error)
+    return schedule
 
 
 def _day_matches(date: datetime.date, schedule: crontab) -> bool:
@@ -172,7 +200,13 @@ def next_occurrence(trigger_config: dict, after: datetime.datetime | None = None
     example ``0 0 30 2 *``, a date that never exists).
     """
     schedule = to_crontab(trigger_config)
-    tzinfo = resolve_timezone((trigger_config or {}).get("timezone"))
+    return _first_occurrence(schedule, (trigger_config or {}).get("timezone"), after)
+
+
+def _first_occurrence(
+    schedule: crontab, timezone_name: str | None, after: datetime.datetime | None
+) -> datetime.datetime | None:
+    tzinfo = resolve_timezone(timezone_name)
 
     after = after or timezone.now()
     if timezone.is_naive(after):
@@ -232,3 +266,19 @@ def validate(trigger_config: dict) -> None:
     """Raise ``ScheduleError`` if the schedule cannot be scheduled."""
     if next_occurrence(trigger_config) is None:
         raise ScheduleError("This schedule never comes around. Check the day and month.")
+
+
+def schedule_error(trigger_config: dict) -> str | None:
+    """
+    Validation-oriented counterpart to ``validate``: returns a user-facing
+    message, or ``None`` when the schedule is usable.
+
+    Callers that serve the message to a client should use this rather than
+    catching ``ScheduleError``, so the text is always a literal from this module.
+    """
+    schedule, error = _build_crontab(trigger_config)
+    if error is not None:
+        return error
+    if _first_occurrence(schedule, (trigger_config or {}).get("timezone"), None) is None:
+        return "This schedule never comes around. Check the day and month."
+    return None

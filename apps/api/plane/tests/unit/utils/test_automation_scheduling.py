@@ -85,7 +85,7 @@ class TestFixedSchedules:
             next_occurrence(config, after=FRIDAY_NOON)
 
     def test_unknown_frequency_is_rejected(self):
-        with pytest.raises(ScheduleError, match="not a supported frequency"):
+        with pytest.raises(ScheduleError, match="supported frequency"):
             next_occurrence({"mode": "fixed", "frequency": "fortnightly"}, after=FRIDAY_NOON)
 
 
