@@ -134,7 +134,8 @@ export const usableMutableProperties = (
 export const allowedActions = (metadata: TAutomationMetadata | undefined, triggerType: TAutomationTriggerType | "") => {
   const trigger = findTrigger(metadata, triggerType);
   if (!trigger) return metadata?.actions ?? [];
-  return (metadata?.actions ?? []).filter((action) => trigger.allowed_actions.includes(action.key));
+  const allowed = new Set(trigger.allowed_actions);
+  return (metadata?.actions ?? []).filter((action) => allowed.has(action.key));
 };
 
 /** i18n key for an operator label. */

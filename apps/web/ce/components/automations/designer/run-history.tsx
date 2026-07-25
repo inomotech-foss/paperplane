@@ -96,8 +96,8 @@ export const AutomationRunHistory = observer(function AutomationRunHistory(props
 
                 {run.steps.length > 0 && (
                   <ul className="mt-2 flex flex-col gap-1 border-t border-subtle pt-2">
-                    {run.steps.map((step, index) => (
-                      <li key={`${step.action_id}-${index}`} className="flex flex-wrap gap-2 text-11">
+                    {run.steps.map((step) => (
+                      <li key={step.action_id} className="flex flex-wrap gap-2 text-11">
                         <span className="font-medium text-secondary">
                           {t(`automations.action.handler_name.${step.action_type}`)}
                         </span>

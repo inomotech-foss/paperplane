@@ -249,6 +249,8 @@ const SendNotificationConfig = observer(function SendNotificationConfig(props: C
   const { t } = useTranslation();
   const typed = config as TSendNotificationConfig;
   const recipients = typed.recipients ?? [];
+  // Set membership, so the button loop below doesn't rescan the list per item.
+  const selectedRecipients = new Set(recipients);
 
   const toggleRecipient = (group: TSendNotificationConfig["recipients"][number]) => {
     const next = recipients.includes(group) ? recipients.filter((value) => value !== group) : [...recipients, group];
@@ -261,7 +263,7 @@ const SendNotificationConfig = observer(function SendNotificationConfig(props: C
         <FieldLabel>{t("automations.action.configuration.send_notification.recipients_label")}</FieldLabel>
         <div className="flex flex-wrap gap-1.5">
           {(metadata?.notification_recipients ?? []).map((group) => {
-            const selected = recipients.includes(group);
+            const selected = selectedRecipients.has(group);
             return (
               <button
                 key={group}

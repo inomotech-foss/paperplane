@@ -17,10 +17,11 @@ import type { TAutomationConditionNode, TAutomationScheduleConfig, TAutomationTr
 import { Loader, ToggleSwitch } from "@plane/ui";
 // hooks
 import { useAutomation } from "@/hooks/store/use-automation";
+import type { IAutomationStore } from "@/plane-web/store/automation.store";
 // local imports
 import { useAutomationDetails, useAutomationMetadata } from "../helpers/metadata";
 import { AutomationActionsBlock } from "./actions-block";
-import { AutomationConditionBuilder } from "./condition-builder";
+import { AutomationConditionBuilder, ensureConditionIds } from "./condition-builder";
 import { AutomationRunHistory } from "./run-history";
 import { AutomationScopeBlock } from "./scope-block";
 import { AutomationTriggerBlock } from "./trigger-block";
@@ -36,6 +37,27 @@ type Props = {
 
 /** How long to wait after the last keystroke before persisting a condition edit. */
 const CONDITION_SAVE_DELAY_MS = 700;
+
+type TUpdateAutomation = IAutomationStore["updateAutomation"];
+
+/**
+ * Debounced writer for the auto-saving blocks. Everything it needs arrives per
+ * call, so it holds no stale closure over component state.
+ */
+const makePersist = () =>
+  debounce(
+    (
+      slug: string,
+      project: string | undefined,
+      id: string,
+      payload: Parameters<TUpdateAutomation>[2],
+      update: TUpdateAutomation,
+      onError: (error: unknown) => void
+    ) => {
+      update(slug, id, payload, project).catch(onError);
+    },
+    CONDITION_SAVE_DELAY_MS
+  );
 
 export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(props: Props) {
   const { workspaceSlug, projectId, automationId, disabled } = props;
@@ -56,7 +78,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
     // by the store update that our own PATCH triggers.
     if (!automation || hydratedFor.current === automation.id) return;
     hydratedFor.current = automation.id;
-    setCondition(automation.condition);
+    setCondition(ensureConditionIds(automation.condition));
     setScheduleConfig((automation.trigger_config as TAutomationScheduleConfig) ?? { mode: "fixed" });
   }, [automation]);
 
@@ -77,21 +99,11 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
     [t]
   );
 
-  const persist = useRef(
-    debounce(
-      (
-        slug: string,
-        project: string | undefined,
-        id: string,
-        payload: Parameters<typeof updateAutomation>[2],
-        update: typeof updateAutomation,
-        onError: (error: unknown) => void
-      ) => {
-        update(slug, id, payload, project).catch(onError);
-      },
-      CONDITION_SAVE_DELAY_MS
-    )
-  ).current;
+  // useRef has no lazy-initializer form, so build the debounced writer once
+  // instead of allocating and discarding one on every render.
+  const persistRef = useRef<ReturnType<typeof makePersist> | null>(null);
+  if (persistRef.current === null) persistRef.current = makePersist();
+  const persist = persistRef.current;
 
   // Send the last pending edit rather than dropping it when the page unmounts.
   useEffect(() => () => persist.flush(), [persist]);

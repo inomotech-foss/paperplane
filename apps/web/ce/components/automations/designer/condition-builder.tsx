@@ -58,6 +58,23 @@ const emptyLeaf = (): TAutomationConditionLeaf => ({
   value: [],
 });
 
+/**
+ * Give every node an id. A tree round-tripped through the API may predate client
+ * side id assignment, and list keys must not fall back to the array index — a
+ * reordered condition would otherwise carry the wrong row's state.
+ *
+ * Call this once when hydrating, never during render.
+ */
+export const ensureConditionIds = (node: TAutomationConditionNode | null): TAutomationConditionNode | null => {
+  if (!node) return null;
+  if (node.type === "condition") return { ...node, id: node.id ?? nextNodeId() };
+  return {
+    ...node,
+    id: node.id ?? nextNodeId(),
+    children: (node.children ?? []).map((child) => ensureConditionIds(child) as TAutomationConditionNode),
+  };
+};
+
 /** Whether the stored condition is already a group we can append to. */
 const asGroup = (condition: TAutomationConditionNode | null): TAutomationConditionGroup => {
   if (condition && condition.type === "group") return condition;
@@ -248,7 +265,7 @@ const ConditionGroup = observer(function ConditionGroup(props: GroupProps) {
       }
     >
       {group.children.map((child, index) => (
-        <div key={child.id ?? index} className="flex flex-col gap-2">
+        <div key={child.id} className="flex flex-col gap-2">
           {index > 0 && (
             <button
               type="button"

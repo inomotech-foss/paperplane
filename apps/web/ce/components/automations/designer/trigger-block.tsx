@@ -75,9 +75,9 @@ export const AutomationTriggerBlock = observer(function AutomationTriggerBlock(p
 
       <div className="flex flex-col gap-4">
         <div>
-          <label className="mb-1.5 block text-13 font-medium text-secondary">
+          <span className="mb-1.5 block text-13 font-medium text-secondary">
             {t("automations.trigger.input_label")}
-          </label>
+          </span>
           <CustomSearchSelect
             value={triggerType || null}
             options={triggerOptions}
@@ -125,10 +125,11 @@ export const AutomationTriggerBlock = observer(function AutomationTriggerBlock(p
 
             {mode === "cron" ? (
               <div className="max-w-md">
-                <label className="mb-1.5 block text-13 font-medium text-secondary">
+                <label htmlFor="automation-cron" className="mb-1.5 block text-13 font-medium text-secondary">
                   {t("automations.trigger.schedule.cron_expression_label")}
                 </label>
                 <Input
+                  id="automation-cron"
                   type="text"
                   value={triggerConfig.cron ?? ""}
                   onChange={(event) => patch({ cron: event.target.value })}
@@ -140,9 +141,9 @@ export const AutomationTriggerBlock = observer(function AutomationTriggerBlock(p
             ) : (
               <>
                 <div className="max-w-xs">
-                  <label className="mb-1.5 block text-13 font-medium text-secondary">
+                  <span className="mb-1.5 block text-13 font-medium text-secondary">
                     {t("automations.trigger.schedule.frequency")}
-                  </label>
+                  </span>
                   <CustomSearchSelect
                     value={frequency}
                     options={(["daily", "weekly", "monthly"] as const).map((option) => ({
@@ -190,10 +191,14 @@ export const AutomationTriggerBlock = observer(function AutomationTriggerBlock(p
 
                 {frequency === "monthly" && (
                   <div className="max-w-32">
-                    <label className="mb-1.5 block text-13 font-medium text-secondary">
+                    <label
+                      htmlFor="automation-day-of-month"
+                      className="mb-1.5 block text-13 font-medium text-secondary"
+                    >
                       {t("automations.trigger.schedule.day_of_month")}
                     </label>
                     <Input
+                      id="automation-day-of-month"
                       type="number"
                       min={1}
                       max={31}
@@ -207,10 +212,11 @@ export const AutomationTriggerBlock = observer(function AutomationTriggerBlock(p
 
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="w-24">
-                    <label className="mb-1.5 block text-13 font-medium text-secondary">
+                    <label htmlFor="automation-hour" className="mb-1.5 block text-13 font-medium text-secondary">
                       {t("automations.trigger.schedule.hour")}
                     </label>
                     <Input
+                      id="automation-hour"
                       type="number"
                       min={0}
                       max={23}
@@ -221,10 +227,11 @@ export const AutomationTriggerBlock = observer(function AutomationTriggerBlock(p
                     />
                   </div>
                   <div className="w-24">
-                    <label className="mb-1.5 block text-13 font-medium text-secondary">
+                    <label htmlFor="automation-minute" className="mb-1.5 block text-13 font-medium text-secondary">
                       {t("automations.trigger.schedule.minute")}
                     </label>
                     <Input
+                      id="automation-minute"
                       type="number"
                       min={0}
                       max={59}

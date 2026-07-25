@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
+import { orderBy } from "lodash-es";
 import { Plus, Trash2, Wand2 } from "lucide-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
@@ -162,7 +163,7 @@ export const AutomationActionsBlock = observer(function AutomationActionsBlock(p
     }
   };
 
-  const actions = [...automation.actions].sort((a, b) => a.sort_order - b.sort_order);
+  const actions = orderBy(automation.actions, "sort_order");
 
   return (
     <section className="rounded-lg border border-subtle bg-layer-2 p-4">
