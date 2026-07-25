@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "Yorum ekle",
         "change_property": "Özelliği değiştir",
-        "run_script": "Komut Dosyası Çalıştır"
+        "run_script": "Komut Dosyası Çalıştır",
+        "send_notification": "Bildirim gönder",
+        "create_work_item": "İş öğesi oluştur",
+        "archive_work_item": "İş öğesini arşivle",
+        "call_webhook": "Webhook çağır"
       },
       "configuration": {
         "label": "Yapılandırma",
@@ -88,6 +92,47 @@
             "change_type_required": "Değişiklik türü gerekli",
             "property_value_required": "Özellik değeri gerekli"
           }
+        },
+        "add_comment": {
+          "placeholder": "Bu otomasyonun göndereceği yorumu yazın."
+        },
+        "send_notification": {
+          "recipients_label": "Alıcılar",
+          "members_placeholder": "Üye seçin",
+          "title_label": "Başlık",
+          "title_placeholder": "Kısa özet",
+          "message_label": "Mesaj",
+          "message_placeholder": "Alıcıların bilmesi gerekenler neler?"
+        },
+        "create_work_item": {
+          "name_label": "Başlık",
+          "name_placeholder": "Bu otomasyonun oluşturduğu iş öğesine bir ad verin",
+          "description_label": "Açıklama",
+          "description_placeholder": "İş öğesini açıklayın",
+          "state_label": "Durum",
+          "priority_label": "Öncelik",
+          "assignees_label": "Atananlar",
+          "labels_label": "Etiketler",
+          "due_in_days_label": "Teslim süresi (çalıştırmadan itibaren gün)",
+          "link_to_trigger_label": "Otomasyonu tetikleyen öğenin alt öğesi olarak oluştur",
+          "project_label": "Proje",
+          "project_hint": "İş öğesinin, çalıştırmanın ait olduğu projede oluşturulması için boş bırakın."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "Yöntem",
+          "payload_label": "Yük",
+          "payload_placeholder": "Varsayılan yükü göndermek için boş bırakın."
+        },
+        "archive_work_item": {
+          "description": "Bu eylem yapılandırma gerektirmez."
+        },
+        "relative_date": {
+          "mode_label": "Tarih",
+          "mode_absolute": "Belirli bir tarih",
+          "mode_relative": "Çalıştırmaya göre",
+          "days_label": "Çalıştırmadan itibaren gün"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "Eylem güncellenemedi. Lütfen tekrar deneyin!"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "Kuyruğa alındı",
+          "message": "Otomasyon arka planda çalışacak."
+        },
+        "error": {
+          "title": "Hata!",
+          "message": "Bu çalıştırma kuyruğa alınamadı. Lütfen tekrar deneyin."
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "Bir iş öğesi oluşturulduğunda",
+      "work_item_updated": "Bir iş öğesi güncellendiğinde",
+      "work_item_deleted": "Bir iş öğesi silindiğinde",
+      "work_item_state_changed": "Durum değiştiğinde",
+      "work_item_priority_changed": "Öncelik değiştiğinde",
+      "work_item_assignees_changed": "Atananlar değiştiğinde",
+      "work_item_labels_changed": "Etiketler değiştiğinde",
+      "work_item_target_date_changed": "Teslim tarihi değiştiğinde",
+      "work_item_parent_changed": "Üst öğe değiştiğinde",
+      "work_item_comment_created": "Bir yorum eklendiğinde",
+      "work_item_added_to_cycle": "Bir iş öğesi bir Döngüye eklendiğinde",
+      "work_item_added_to_module": "Bir iş öğesi bir Modüle eklendiğinde",
+      "schedule": "Zamanlamaya göre"
+    },
+    "properties": {
+      "state": "Durum",
+      "state_group": "Durum grubu",
+      "priority": "Öncelik",
+      "assignees": "Atananlar",
+      "labels": "Etiketler",
+      "modules": "Modüller",
+      "cycle": "Döngü",
+      "work_item_type": "İş öğesi türü",
+      "created_by": "Oluşturan",
+      "triggered_by": "Tetikleyen",
+      "project": "Proje",
+      "name": "Başlık",
+      "description": "Açıklama",
+      "target_date": "Teslim tarihi",
+      "start_date": "Başlangıç tarihi",
+      "created_at": "Oluşturulma tarihi",
+      "updated_at": "Son güncelleme tarihi",
+      "estimate": "Tahmin",
+      "parent": "Üst öğe",
+      "is_archived": "Arşivlendi",
+      "sub_work_item_count": "Alt öğe sayısı"
+    },
+    "operators": {
+      "eq": "eşittir",
+      "neq": "eşit değildir",
+      "in": "şunlardan biridir",
+      "not_in": "şunlardan hiçbiri değildir",
+      "contains": "içerir",
+      "not_contains": "içermez",
+      "is_empty": "boştur",
+      "is_not_empty": "boş değildir",
+      "gt": "şu tarihten sonradır",
+      "gte": "şu tarihte veya sonrasındadır",
+      "lt": "şu tarihten öncedir",
+      "lte": "şu tarihte veya öncesindedir",
+      "changed": "değişti",
+      "changed_to": "şuna değişti",
+      "changed_from": "şundan değişti",
+      "due_in_days": "şu süre içinde teslim edilecek",
+      "overdue_by_days": "en az şu kadar gecikmiş",
+      "older_than_days": "şundan daha eski"
+    },
+    "operator_suffix": {
+      "days": "gün"
+    },
+    "change_types": {
+      "set": "Şuna ayarla",
+      "add": "Ekle",
+      "remove": "Kaldır",
+      "clear": "Temizle",
+      "shift_days": "Şu kadar kaydır"
+    },
+    "recipients": {
+      "assignees": "Atananlar",
+      "created_by": "Oluşturan",
+      "actor": "Tetikleyen kişi",
+      "subscribers": "Aboneler",
+      "project_admins": "Proje yöneticileri",
+      "specific_members": "Belirli üyeler"
+    },
+    "state_groups": {
+      "backlog": "Backlog",
+      "unstarted": "Yapılacak",
+      "started": "Devam ediyor",
+      "completed": "Tamamlandı",
+      "cancelled": "İptal edildi"
+    },
+    "priorities": {
+      "urgent": "Acil",
+      "high": "Yüksek",
+      "medium": "Orta",
+      "low": "Düşük",
+      "none": "Yok"
+    },
+    "designer": {
+      "back_to_list": "Otomasyonlara dön",
+      "run_now": "Şimdi çalıştır",
+      "enable": "Etkinleştir",
+      "disable": "Devre dışı bırak",
+      "enabled": "Etkin",
+      "disabled": "Devre dışı",
+      "not_found": "Bu otomasyonu bulamadık.",
+      "select_property": "Bir özellik seçin",
+      "select_operator": "Bir koşul seçin",
+      "select_value": "Bir değer seçin",
+      "enter_value": "Bir değer girin",
+      "add_condition_group": "İç içe grup ekle",
+      "remove_condition": "Koşulu kaldır",
+      "remove_group": "Grubu kaldır",
+      "remove_action": "Eylemi kaldır",
+      "no_conditions": "Bu otomasyon, tetikleyici her gerçekleştiğinde çalışır.",
+      "owner": "Sahibi",
+      "template_variables_label": "Kullanabileceğiniz değişkenler",
+      "template_variables_hint": "Değerini eklemek için değişken adını çift süslü parantez içine alın.",
+      "scheduled_target_label": "Şunun üzerinde çalıştır",
+      "scheduled_target_project": "Proje, çalıştırma başına bir kez",
+      "scheduled_target_work_items": "Koşullara uyan her iş öğesi",
+      "workspace_scope_note": "Bir çalışma alanı otomasyonu projeler arasında çalışır; bu nedenle durumlar, etiketler, Modüller ve Döngüler burada kullanılamaz — bunlar proje bazında bulunur."
+    },
+    "run_history": {
+      "title": "Çalıştırma geçmişi",
+      "empty": "Bu otomasyon henüz çalışmadı.",
+      "started_at": "Başlangıç",
+      "duration": "Süre",
+      "status": "Durum",
+      "trigger_source": "Tetikleyen",
+      "processed_count": "İş öğeleri",
+      "step_error": "Hata",
+      "source_event": "Olay",
+      "source_schedule": "Zamanlama",
+      "source_manual": "Manuel",
+      "status_success": "Başarılı",
+      "status_failed": "Başarısız",
+      "status_partial": "Kısmen başarılı",
+      "status_skipped": "Atlandı"
+    },
+    "days_of_week": {
+      "sunday": "Pazar",
+      "monday": "Pazartesi",
+      "tuesday": "Salı",
+      "wednesday": "Çarşamba",
+      "thursday": "Perşembe",
+      "friday": "Cuma",
+      "saturday": "Cumartesi"
+    },
+    "days_of_week_initial": {
+      "sunday": "P",
+      "monday": "P",
+      "tuesday": "S",
+      "wednesday": "Ç",
+      "thursday": "P",
+      "friday": "C",
+      "saturday": "C"
     }
   }
 }

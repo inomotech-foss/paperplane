@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "Tambah komentar",
         "change_property": "Ubah properti",
-        "run_script": "Jalankan Skrip"
+        "run_script": "Jalankan Skrip",
+        "send_notification": "Kirim notifikasi",
+        "create_work_item": "Buat item pekerjaan",
+        "archive_work_item": "Arsipkan item pekerjaan",
+        "call_webhook": "Panggil webhook"
       },
       "configuration": {
         "label": "Konfigurasi",
@@ -88,6 +92,47 @@
             "change_type_required": "Jenis perubahan diperlukan",
             "property_value_required": "Nilai properti diperlukan"
           }
+        },
+        "add_comment": {
+          "placeholder": "Tulis komentar yang akan diposting oleh otomatisasi ini."
+        },
+        "send_notification": {
+          "recipients_label": "Penerima",
+          "members_placeholder": "Pilih anggota",
+          "title_label": "Judul",
+          "title_placeholder": "Ringkasan singkat",
+          "message_label": "Pesan",
+          "message_placeholder": "Apa yang perlu diketahui penerima?"
+        },
+        "create_work_item": {
+          "name_label": "Judul",
+          "name_placeholder": "Beri nama item pekerjaan yang dibuat otomatisasi ini",
+          "description_label": "Deskripsi",
+          "description_placeholder": "Jelaskan item pekerjaan",
+          "state_label": "Status",
+          "priority_label": "Prioritas",
+          "assignees_label": "Penerima tugas",
+          "labels_label": "Label",
+          "due_in_days_label": "Jatuh tempo dalam (hari sejak dijalankan)",
+          "link_to_trigger_label": "Jadikan sebagai sub-item dari item yang memicu otomatisasi ini",
+          "project_label": "Proyek",
+          "project_hint": "Biarkan kosong untuk membuat item pekerjaan di proyek yang sedang dijalankan."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "Metode",
+          "payload_label": "Payload",
+          "payload_placeholder": "Biarkan kosong untuk mengirim payload bawaan."
+        },
+        "archive_work_item": {
+          "description": "Tindakan ini tidak memerlukan konfigurasi."
+        },
+        "relative_date": {
+          "mode_label": "Tanggal",
+          "mode_absolute": "Tanggal tertentu",
+          "mode_relative": "Relatif terhadap waktu dijalankan",
+          "days_label": "Hari sejak dijalankan"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "Gagal memperbarui aksi. Silakan coba lagi!"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "Masuk antrean",
+          "message": "Otomatisasi akan berjalan di latar belakang."
+        },
+        "error": {
+          "title": "Kesalahan!",
+          "message": "Kami tidak dapat memasukkan proses itu ke antrean. Silakan coba lagi."
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "Item pekerjaan dibuat",
+      "work_item_updated": "Item pekerjaan diperbarui",
+      "work_item_deleted": "Item pekerjaan dihapus",
+      "work_item_state_changed": "Status berubah",
+      "work_item_priority_changed": "Prioritas berubah",
+      "work_item_assignees_changed": "Penerima tugas berubah",
+      "work_item_labels_changed": "Label berubah",
+      "work_item_target_date_changed": "Tanggal jatuh tempo berubah",
+      "work_item_parent_changed": "Item induk berubah",
+      "work_item_comment_created": "Komentar ditambahkan",
+      "work_item_added_to_cycle": "Item pekerjaan ditambahkan ke sebuah Siklus",
+      "work_item_added_to_module": "Item pekerjaan ditambahkan ke sebuah Modul",
+      "schedule": "Sesuai jadwal"
+    },
+    "properties": {
+      "state": "Status",
+      "state_group": "Grup status",
+      "priority": "Prioritas",
+      "assignees": "Penerima tugas",
+      "labels": "Label",
+      "modules": "Modul",
+      "cycle": "Siklus",
+      "work_item_type": "Jenis item pekerjaan",
+      "created_by": "Dibuat oleh",
+      "triggered_by": "Dipicu oleh",
+      "project": "Proyek",
+      "name": "Judul",
+      "description": "Deskripsi",
+      "target_date": "Tanggal jatuh tempo",
+      "start_date": "Tanggal mulai",
+      "created_at": "Dibuat pada",
+      "updated_at": "Terakhir diperbarui pada",
+      "estimate": "Estimasi",
+      "parent": "Item induk",
+      "is_archived": "Diarsipkan",
+      "sub_work_item_count": "Jumlah sub-item"
+    },
+    "operators": {
+      "eq": "adalah",
+      "neq": "bukan",
+      "in": "salah satu dari",
+      "not_in": "bukan salah satu dari",
+      "contains": "mengandung",
+      "not_contains": "tidak mengandung",
+      "is_empty": "kosong",
+      "is_not_empty": "tidak kosong",
+      "gt": "setelah",
+      "gte": "pada atau setelah",
+      "lt": "sebelum",
+      "lte": "pada atau sebelum",
+      "changed": "berubah",
+      "changed_to": "berubah menjadi",
+      "changed_from": "berubah dari",
+      "due_in_days": "jatuh tempo dalam",
+      "overdue_by_days": "terlambat setidaknya",
+      "older_than_days": "lebih lama dari"
+    },
+    "operator_suffix": {
+      "days": "hari"
+    },
+    "change_types": {
+      "set": "Setel ke",
+      "add": "Tambahkan",
+      "remove": "Hapus",
+      "clear": "Kosongkan",
+      "shift_days": "Geser sebanyak"
+    },
+    "recipients": {
+      "assignees": "Penerima tugas",
+      "created_by": "Pembuat",
+      "actor": "Siapa pun yang memicunya",
+      "subscribers": "Pelanggan",
+      "project_admins": "Admin proyek",
+      "specific_members": "Anggota tertentu"
+    },
+    "state_groups": {
+      "backlog": "Backlog",
+      "unstarted": "Akan dikerjakan",
+      "started": "Sedang berjalan",
+      "completed": "Selesai",
+      "cancelled": "Dibatalkan"
+    },
+    "priorities": {
+      "urgent": "Mendesak",
+      "high": "Tinggi",
+      "medium": "Sedang",
+      "low": "Rendah",
+      "none": "Tidak ada"
+    },
+    "designer": {
+      "back_to_list": "Kembali ke otomatisasi",
+      "run_now": "Jalankan sekarang",
+      "enable": "Aktifkan",
+      "disable": "Nonaktifkan",
+      "enabled": "Aktif",
+      "disabled": "Nonaktif",
+      "not_found": "Kami tidak dapat menemukan otomatisasi itu.",
+      "select_property": "Pilih properti",
+      "select_operator": "Pilih kondisi",
+      "select_value": "Pilih nilai",
+      "enter_value": "Masukkan nilai",
+      "add_condition_group": "Tambahkan grup bersarang",
+      "remove_condition": "Hapus kondisi",
+      "remove_group": "Hapus grup",
+      "remove_action": "Hapus tindakan",
+      "no_conditions": "Otomatisasi ini berjalan setiap kali pemicunya terjadi.",
+      "owner": "Dimiliki oleh",
+      "template_variables_label": "Variabel yang bisa Anda gunakan",
+      "template_variables_hint": "Bungkus nama variabel dengan kurung kurawal ganda untuk menyisipkan nilainya.",
+      "scheduled_target_label": "Jalankan pada",
+      "scheduled_target_project": "Proyek, sekali setiap kali dijalankan",
+      "scheduled_target_work_items": "Setiap item pekerjaan yang memenuhi kondisi",
+      "workspace_scope_note": "Otomatisasi tingkat ruang kerja berjalan di beberapa proyek, sehingga status, label, Modul, dan Siklus tidak tersedia di sini — hal-hal itu ada per proyek."
+    },
+    "run_history": {
+      "title": "Riwayat proses",
+      "empty": "Otomatisasi ini belum pernah berjalan.",
+      "started_at": "Dimulai",
+      "duration": "Durasi",
+      "status": "Status",
+      "trigger_source": "Dipicu oleh",
+      "processed_count": "Item pekerjaan",
+      "step_error": "Kesalahan",
+      "source_event": "Peristiwa",
+      "source_schedule": "Jadwal",
+      "source_manual": "Manual",
+      "status_success": "Berhasil",
+      "status_failed": "Gagal",
+      "status_partial": "Berhasil sebagian",
+      "status_skipped": "Dilewati"
+    },
+    "days_of_week": {
+      "sunday": "Minggu",
+      "monday": "Senin",
+      "tuesday": "Selasa",
+      "wednesday": "Rabu",
+      "thursday": "Kamis",
+      "friday": "Jumat",
+      "saturday": "Sabtu"
+    },
+    "days_of_week_initial": {
+      "sunday": "M",
+      "monday": "S",
+      "tuesday": "S",
+      "wednesday": "R",
+      "thursday": "K",
+      "friday": "J",
+      "saturday": "S"
     }
   }
 }

@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "Thêm bình luận",
         "change_property": "Thay đổi thuộc tính",
-        "run_script": "Chạy script"
+        "run_script": "Chạy script",
+        "send_notification": "Gửi thông báo",
+        "create_work_item": "Tạo hạng mục công việc",
+        "archive_work_item": "Lưu trữ hạng mục công việc",
+        "call_webhook": "Gọi webhook"
       },
       "configuration": {
         "label": "Cấu hình",
@@ -88,6 +92,47 @@
             "change_type_required": "Loại thay đổi là bắt buộc",
             "property_value_required": "Giá trị thuộc tính là bắt buộc"
           }
+        },
+        "add_comment": {
+          "placeholder": "Hãy viết bình luận mà tự động hóa này sẽ đăng."
+        },
+        "send_notification": {
+          "recipients_label": "Người nhận",
+          "members_placeholder": "Chọn thành viên",
+          "title_label": "Tiêu đề",
+          "title_placeholder": "Tóm tắt ngắn",
+          "message_label": "Tin nhắn",
+          "message_placeholder": "Người nhận cần biết điều gì?"
+        },
+        "create_work_item": {
+          "name_label": "Tiêu đề",
+          "name_placeholder": "Đặt tên cho hạng mục công việc mà tự động hóa này tạo ra",
+          "description_label": "Mô tả",
+          "description_placeholder": "Mô tả hạng mục công việc",
+          "state_label": "Trạng thái",
+          "priority_label": "Mức ưu tiên",
+          "assignees_label": "Người được giao",
+          "labels_label": "Nhãn",
+          "due_in_days_label": "Đến hạn sau (số ngày kể từ lần chạy)",
+          "link_to_trigger_label": "Tạo thành hạng mục con của hạng mục đã kích hoạt tự động hóa",
+          "project_label": "Dự án",
+          "project_hint": "Để trống để tạo hạng mục công việc trong dự án mà lần chạy áp dụng."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "Phương thức",
+          "payload_label": "Dữ liệu gửi đi",
+          "payload_placeholder": "Để trống để gửi dữ liệu mặc định."
+        },
+        "archive_work_item": {
+          "description": "Hành động này không cần cấu hình."
+        },
+        "relative_date": {
+          "mode_label": "Ngày",
+          "mode_absolute": "Một ngày cụ thể",
+          "mode_relative": "Tương đối so với lần chạy",
+          "days_label": "Số ngày kể từ lần chạy"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "Không thể cập nhật hành động. Vui lòng thử lại!"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "Đã xếp hàng chờ",
+          "message": "Tự động hóa sẽ chạy ở chế độ nền."
+        },
+        "error": {
+          "title": "Lỗi!",
+          "message": "Chúng tôi không thể xếp lần chạy này vào hàng chờ. Hãy thử lại."
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "Hạng mục công việc được tạo",
+      "work_item_updated": "Hạng mục công việc được cập nhật",
+      "work_item_deleted": "Hạng mục công việc bị xóa",
+      "work_item_state_changed": "Trạng thái thay đổi",
+      "work_item_priority_changed": "Mức ưu tiên thay đổi",
+      "work_item_assignees_changed": "Người được giao thay đổi",
+      "work_item_labels_changed": "Nhãn thay đổi",
+      "work_item_target_date_changed": "Ngày đến hạn thay đổi",
+      "work_item_parent_changed": "Hạng mục cha thay đổi",
+      "work_item_comment_created": "Có bình luận được thêm",
+      "work_item_added_to_cycle": "Hạng mục công việc được thêm vào một Chu kỳ",
+      "work_item_added_to_module": "Hạng mục công việc được thêm vào một Mô-đun",
+      "schedule": "Theo lịch trình"
+    },
+    "properties": {
+      "state": "Trạng thái",
+      "state_group": "Nhóm trạng thái",
+      "priority": "Mức ưu tiên",
+      "assignees": "Người được giao",
+      "labels": "Nhãn",
+      "modules": "Mô-đun",
+      "cycle": "Chu kỳ",
+      "work_item_type": "Loại hạng mục công việc",
+      "created_by": "Người tạo",
+      "triggered_by": "Người kích hoạt",
+      "project": "Dự án",
+      "name": "Tiêu đề",
+      "description": "Mô tả",
+      "target_date": "Ngày đến hạn",
+      "start_date": "Ngày bắt đầu",
+      "created_at": "Ngày tạo",
+      "updated_at": "Ngày cập nhật gần nhất",
+      "estimate": "Ước lượng",
+      "parent": "Hạng mục cha",
+      "is_archived": "Đã lưu trữ",
+      "sub_work_item_count": "Số hạng mục con"
+    },
+    "operators": {
+      "eq": "là",
+      "neq": "không phải là",
+      "in": "là một trong",
+      "not_in": "không thuộc",
+      "contains": "chứa",
+      "not_contains": "không chứa",
+      "is_empty": "để trống",
+      "is_not_empty": "không để trống",
+      "gt": "sau ngày",
+      "gte": "vào hoặc sau ngày",
+      "lt": "trước ngày",
+      "lte": "vào hoặc trước ngày",
+      "changed": "đã thay đổi",
+      "changed_to": "đã đổi thành",
+      "changed_from": "đã đổi từ",
+      "due_in_days": "đến hạn trong vòng",
+      "overdue_by_days": "quá hạn ít nhất",
+      "older_than_days": "cũ hơn"
+    },
+    "operator_suffix": {
+      "days": "ngày"
+    },
+    "change_types": {
+      "set": "Đặt thành",
+      "add": "Thêm",
+      "remove": "Bỏ",
+      "clear": "Xóa trắng",
+      "shift_days": "Dịch chuyển"
+    },
+    "recipients": {
+      "assignees": "Người được giao",
+      "created_by": "Người tạo",
+      "actor": "Người đã kích hoạt",
+      "subscribers": "Người theo dõi",
+      "project_admins": "Quản trị viên dự án",
+      "specific_members": "Thành viên cụ thể"
+    },
+    "state_groups": {
+      "backlog": "Backlog",
+      "unstarted": "Cần làm",
+      "started": "Đang thực hiện",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã hủy"
+    },
+    "priorities": {
+      "urgent": "Khẩn cấp",
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "none": "Không có"
+    },
+    "designer": {
+      "back_to_list": "Quay lại danh sách tự động hóa",
+      "run_now": "Chạy ngay",
+      "enable": "Bật",
+      "disable": "Tắt",
+      "enabled": "Đang bật",
+      "disabled": "Đang tắt",
+      "not_found": "Chúng tôi không tìm thấy tự động hóa đó.",
+      "select_property": "Chọn một thuộc tính",
+      "select_operator": "Chọn một điều kiện",
+      "select_value": "Chọn một giá trị",
+      "enter_value": "Nhập một giá trị",
+      "add_condition_group": "Thêm nhóm lồng nhau",
+      "remove_condition": "Bỏ điều kiện",
+      "remove_group": "Bỏ nhóm",
+      "remove_action": "Bỏ hành động",
+      "no_conditions": "Tự động hóa này chạy mỗi khi trình kích hoạt xảy ra.",
+      "owner": "Thuộc về",
+      "template_variables_label": "Các biến bạn có thể dùng",
+      "template_variables_hint": "Hãy đặt tên biến trong hai dấu ngoặc nhọn để chèn giá trị của nó.",
+      "scheduled_target_label": "Chạy trên",
+      "scheduled_target_project": "Dự án, một lần mỗi lần chạy",
+      "scheduled_target_work_items": "Mọi hạng mục công việc khớp với điều kiện",
+      "workspace_scope_note": "Tự động hóa cấp không gian làm việc chạy trên nhiều dự án, nên trạng thái, nhãn, Mô-đun và Chu kỳ không có ở đây — chúng tồn tại theo từng dự án."
+    },
+    "run_history": {
+      "title": "Lịch sử chạy",
+      "empty": "Tự động hóa này chưa chạy lần nào.",
+      "started_at": "Bắt đầu",
+      "duration": "Thời lượng",
+      "status": "Trạng thái",
+      "trigger_source": "Kích hoạt bởi",
+      "processed_count": "Hạng mục công việc",
+      "step_error": "Lỗi",
+      "source_event": "Sự kiện",
+      "source_schedule": "Lịch trình",
+      "source_manual": "Thủ công",
+      "status_success": "Thành công",
+      "status_failed": "Thất bại",
+      "status_partial": "Thành công một phần",
+      "status_skipped": "Đã bỏ qua"
+    },
+    "days_of_week": {
+      "sunday": "Chủ Nhật",
+      "monday": "Thứ Hai",
+      "tuesday": "Thứ Ba",
+      "wednesday": "Thứ Tư",
+      "thursday": "Thứ Năm",
+      "friday": "Thứ Sáu",
+      "saturday": "Thứ Bảy"
+    },
+    "days_of_week_initial": {
+      "sunday": "CN",
+      "monday": "T2",
+      "tuesday": "T3",
+      "wednesday": "T4",
+      "thursday": "T5",
+      "friday": "T6",
+      "saturday": "T7"
     }
   }
 }
