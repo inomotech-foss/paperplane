@@ -278,6 +278,15 @@ export const coreRoutes: RouteConfigEntry[] = [
             ":workspaceSlug/settings/webhooks/:webhookId",
             "./(all)/[workspaceSlug]/(settings)/settings/(workspace)/webhooks/[webhookId]/page.tsx"
           ),
+          // Workspace-wide (global) automations
+          route(
+            ":workspaceSlug/settings/automations",
+            "./(all)/[workspaceSlug]/(settings)/settings/(workspace)/automations/page.tsx"
+          ),
+          route(
+            ":workspaceSlug/settings/automations/:automationId",
+            "./(all)/[workspaceSlug]/(settings)/settings/(workspace)/automations/[automationId]/page.tsx"
+          ),
         ]),
 
         // --------------------------------------------------------------------
@@ -354,6 +363,10 @@ export const coreRoutes: RouteConfigEntry[] = [
               route(
                 ":workspaceSlug/settings/projects/:projectId/automations",
                 "./(all)/[workspaceSlug]/(settings)/settings/projects/[projectId]/automations/page.tsx"
+              ),
+              route(
+                ":workspaceSlug/settings/projects/:projectId/automations/:automationId",
+                "./(all)/[workspaceSlug]/(settings)/settings/projects/[projectId]/automations/[automationId]/page.tsx"
               ),
             ]),
           ]),

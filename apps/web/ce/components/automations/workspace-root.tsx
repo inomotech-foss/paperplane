@@ -21,44 +21,46 @@ import { AutomationCreateModal } from "./create-modal";
 import { useAutomationMetadata } from "./helpers/metadata";
 import { AutomationsTable } from "./list/table";
 
-export type TCustomAutomationsRootProps = {
-  projectId: string;
+type Props = {
   workspaceSlug: string;
 };
 
 /**
- * Custom automations section of the project settings page: the rule list plus
- * the entry point into the designer.
+ * Workspace-level automations: rules that run across every project, or across a
+ * chosen subset. Same designer as the project-scoped list, minus the properties
+ * whose values only exist inside a single project.
  */
-export const CustomAutomationsRoot = observer(function CustomAutomationsRoot(props: TCustomAutomationsRootProps) {
-  const { projectId, workspaceSlug } = props;
+export const WorkspaceAutomationsRoot = observer(function WorkspaceAutomationsRoot(props: Props) {
+  const { workspaceSlug } = props;
   const { t } = useTranslation();
   const { allowPermissions } = useUserPermissions();
-  const { fetchAutomations, getProjectAutomations } = useAutomation();
+  const { fetchAutomations, getWorkspaceAutomations } = useAutomation();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   // The list needs the catalog too, for trigger labels.
   useAutomationMetadata(workspaceSlug);
 
   const { isLoading } = useSWR(
-    workspaceSlug && projectId ? `PROJECT_AUTOMATIONS_${projectId}` : null,
-    workspaceSlug && projectId ? () => fetchAutomations(workspaceSlug, projectId) : null
+    workspaceSlug ? `WORKSPACE_AUTOMATIONS_${workspaceSlug}` : null,
+    workspaceSlug ? () => fetchAutomations(workspaceSlug) : null
   );
 
-  const automations = getProjectAutomations(projectId);
-  const isAdmin = allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.PROJECT, workspaceSlug, projectId);
+  const automations = getWorkspaceAutomations();
+  const isAdmin = allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.WORKSPACE, workspaceSlug);
 
   return (
-    <section className="mt-10 border-t border-subtle pt-8">
+    <div className="w-full">
       <AutomationCreateModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         workspaceSlug={workspaceSlug}
-        projectId={projectId}
       />
 
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-body-md-semibold">{t("automations.settings.title")}</h3>
+        <div className="min-w-0">
+          <h3 className="text-body-md-semibold">{t("automations.global_automations.settings.title")}</h3>
+          <p className="mt-0.5 text-13 text-tertiary">{t("automations.global_automations.settings.description")}</p>
+        </div>
         <Button
           variant="primary"
           size="lg"
@@ -84,13 +86,8 @@ export const CustomAutomationsRoot = observer(function CustomAutomationsRoot(pro
           </p>
         </div>
       ) : (
-        <AutomationsTable
-          workspaceSlug={workspaceSlug}
-          projectId={projectId}
-          automations={automations}
-          disabled={!isAdmin}
-        />
+        <AutomationsTable workspaceSlug={workspaceSlug} automations={automations} disabled={!isAdmin} />
       )}
-    </section>
+    </div>
   );
 });
