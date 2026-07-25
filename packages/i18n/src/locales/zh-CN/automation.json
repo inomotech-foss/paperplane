@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "添加评论",
         "change_property": "更改属性",
-        "run_script": "运行脚本"
+        "run_script": "运行脚本",
+        "send_notification": "发送通知",
+        "create_work_item": "创建工作项",
+        "archive_work_item": "归档工作项",
+        "call_webhook": "调用 webhook"
       },
       "configuration": {
         "label": "配置",
@@ -88,6 +92,47 @@
             "change_type_required": "更改类型是必需的",
             "property_value_required": "属性值是必需的"
           }
+        },
+        "add_comment": {
+          "placeholder": "请输入此自动化要发布的评论。"
+        },
+        "send_notification": {
+          "recipients_label": "接收人",
+          "members_placeholder": "选择成员",
+          "title_label": "标题",
+          "title_placeholder": "简短摘要",
+          "message_label": "消息",
+          "message_placeholder": "接收人需要知道什么？"
+        },
+        "create_work_item": {
+          "name_label": "标题",
+          "name_placeholder": "为此自动化创建的工作项命名",
+          "description_label": "描述",
+          "description_placeholder": "描述该工作项",
+          "state_label": "状态",
+          "priority_label": "优先级",
+          "assignees_label": "负责人",
+          "labels_label": "标签",
+          "due_in_days_label": "截止时间（自运行起的天数）",
+          "link_to_trigger_label": "作为触发此自动化的工作项的子工作项创建",
+          "project_label": "项目",
+          "project_hint": "留空则在本次运行对应的项目中创建工作项。"
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "方法",
+          "payload_label": "负载",
+          "payload_placeholder": "留空则发送默认负载。"
+        },
+        "archive_work_item": {
+          "description": "此动作无需配置。"
+        },
+        "relative_date": {
+          "mode_label": "日期",
+          "mode_absolute": "指定日期",
+          "mode_relative": "相对于运行时间",
+          "days_label": "自运行起的天数"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "更新操作失败。请重试！"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "已加入队列",
+          "message": "该自动化将在后台运行。"
+        },
+        "error": {
+          "title": "出错了！",
+          "message": "无法将此次运行加入队列，请重试。"
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "创建工作项时",
+      "work_item_updated": "更新工作项时",
+      "work_item_deleted": "删除工作项时",
+      "work_item_state_changed": "状态变更时",
+      "work_item_priority_changed": "优先级变更时",
+      "work_item_assignees_changed": "负责人变更时",
+      "work_item_labels_changed": "标签变更时",
+      "work_item_target_date_changed": "截止日期变更时",
+      "work_item_parent_changed": "父项变更时",
+      "work_item_comment_created": "添加评论时",
+      "work_item_added_to_cycle": "工作项被加入周期时",
+      "work_item_added_to_module": "工作项被加入模块时",
+      "schedule": "按计划"
+    },
+    "properties": {
+      "state": "状态",
+      "state_group": "状态分组",
+      "priority": "优先级",
+      "assignees": "负责人",
+      "labels": "标签",
+      "modules": "模块",
+      "cycle": "周期",
+      "work_item_type": "工作项类型",
+      "created_by": "创建者",
+      "triggered_by": "触发者",
+      "project": "项目",
+      "name": "标题",
+      "description": "描述",
+      "target_date": "截止日期",
+      "start_date": "开始日期",
+      "created_at": "创建时间",
+      "updated_at": "最近更新时间",
+      "estimate": "估算",
+      "parent": "父项",
+      "is_archived": "已归档",
+      "sub_work_item_count": "子工作项数量"
+    },
+    "operators": {
+      "eq": "等于",
+      "neq": "不等于",
+      "in": "是其中任一",
+      "not_in": "不是其中任何一个",
+      "contains": "包含",
+      "not_contains": "不包含",
+      "is_empty": "为空",
+      "is_not_empty": "不为空",
+      "gt": "晚于",
+      "gte": "等于或晚于",
+      "lt": "早于",
+      "lte": "等于或早于",
+      "changed": "已变更",
+      "changed_to": "变更为",
+      "changed_from": "从以下值变更",
+      "due_in_days": "将在以下天数内到期",
+      "overdue_by_days": "逾期至少",
+      "older_than_days": "早于以下天数"
+    },
+    "operator_suffix": {
+      "days": "天"
+    },
+    "change_types": {
+      "set": "设为",
+      "add": "添加",
+      "remove": "移除",
+      "clear": "清空",
+      "shift_days": "平移"
+    },
+    "recipients": {
+      "assignees": "负责人",
+      "created_by": "创建者",
+      "actor": "触发它的人",
+      "subscribers": "订阅者",
+      "project_admins": "项目管理员",
+      "specific_members": "指定成员"
+    },
+    "state_groups": {
+      "backlog": "待办池",
+      "unstarted": "待处理",
+      "started": "进行中",
+      "completed": "已完成",
+      "cancelled": "已取消"
+    },
+    "priorities": {
+      "urgent": "紧急",
+      "high": "高",
+      "medium": "中",
+      "low": "低",
+      "none": "无"
+    },
+    "designer": {
+      "back_to_list": "返回自动化列表",
+      "run_now": "立即运行",
+      "enable": "启用",
+      "disable": "停用",
+      "enabled": "已启用",
+      "disabled": "已停用",
+      "not_found": "未找到该自动化。",
+      "select_property": "选择属性",
+      "select_operator": "选择条件",
+      "select_value": "选择值",
+      "enter_value": "输入值",
+      "add_condition_group": "添加嵌套分组",
+      "remove_condition": "移除条件",
+      "remove_group": "移除分组",
+      "remove_action": "移除动作",
+      "no_conditions": "每次触发器触发时，此自动化都会运行。",
+      "owner": "归属于",
+      "template_variables_label": "可用变量",
+      "template_variables_hint": "用双花括号包裹变量名即可插入它的值。",
+      "scheduled_target_label": "运行对象",
+      "scheduled_target_project": "项目，每次运行一次",
+      "scheduled_target_work_items": "符合条件的每个工作项",
+      "workspace_scope_note": "工作空间自动化会跨项目运行，因此这里无法使用状态、标签、模块和周期——它们按项目单独存在。"
+    },
+    "run_history": {
+      "title": "运行历史",
+      "empty": "此自动化尚未运行过。",
+      "started_at": "开始时间",
+      "duration": "耗时",
+      "status": "状态",
+      "trigger_source": "触发方式",
+      "processed_count": "工作项",
+      "step_error": "错误",
+      "source_event": "事件",
+      "source_schedule": "计划",
+      "source_manual": "手动",
+      "status_success": "成功",
+      "status_failed": "失败",
+      "status_partial": "部分成功",
+      "status_skipped": "已跳过"
+    },
+    "days_of_week": {
+      "sunday": "星期日",
+      "monday": "星期一",
+      "tuesday": "星期二",
+      "wednesday": "星期三",
+      "thursday": "星期四",
+      "friday": "星期五",
+      "saturday": "星期六"
+    },
+    "days_of_week_initial": {
+      "sunday": "日",
+      "monday": "一",
+      "tuesday": "二",
+      "wednesday": "三",
+      "thursday": "四",
+      "friday": "五",
+      "saturday": "六"
     }
   }
 }

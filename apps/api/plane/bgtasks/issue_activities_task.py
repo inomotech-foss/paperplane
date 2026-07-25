@@ -16,8 +16,10 @@ from django.utils import timezone
 
 # Module imports
 from plane.app.serializers import IssueActivitySerializer
+from plane.bgtasks.automation_task import dispatch_work_item_automations
 from plane.bgtasks.notification_task import notifications
 from plane.db.models import (
+    Automation,
     CommentReaction,
     Cycle,
     Issue,
@@ -1513,6 +1515,7 @@ def issue_activity(
     notification=False,
     origin=None,
     intake=None,
+    automation_context=None,
 ):
     try:
         issue_activities = []
@@ -1583,6 +1586,11 @@ def issue_activity(
         # Save all the values to database
         issue_activities_created = IssueActivity.objects.bulk_create(issue_activities)
 
+        serialized_activities = json.dumps(
+            IssueActivitySerializer(issue_activities_created, many=True).data,
+            cls=DjangoJSONEncoder,
+        )
+
         if notification:
             notifications.delay(
                 type=type,
@@ -1590,12 +1598,27 @@ def issue_activity(
                 actor_id=actor_id,
                 project_id=project_id,
                 subscriber=subscriber,
-                issue_activities_created=json.dumps(
-                    IssueActivitySerializer(issue_activities_created, many=True).data,
-                    cls=DjangoJSONEncoder,
-                ),
+                issue_activities_created=serialized_activities,
                 requested_data=requested_data,
                 current_instance=current_instance,
+            )
+
+        # Hand the change to the automation engine. `automation_context` is set
+        # only when this change was itself made by an automation, and carries the
+        # chain used for loop protection.
+        #
+        # The existence check is one indexed query (automation_workspace_idx) and
+        # keeps workspaces with no automations - the common case - from queueing a
+        # task for every single activity row.
+        if Automation.objects.filter(workspace_id=workspace_id, is_enabled=True).exists():
+            dispatch_work_item_automations.delay(
+                activity_type=type,
+                issue_id=str(issue_id) if issue_id else None,
+                project_id=str(project_id),
+                workspace_id=str(workspace_id),
+                actor_id=str(actor_id) if actor_id else None,
+                activities=serialized_activities,
+                automation_context=automation_context,
             )
 
         return

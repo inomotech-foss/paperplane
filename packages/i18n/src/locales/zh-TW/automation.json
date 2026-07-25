@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "新增評論",
         "change_property": "變更屬性",
-        "run_script": "執行指令碼"
+        "run_script": "執行指令碼",
+        "send_notification": "傳送通知",
+        "create_work_item": "建立工作項目",
+        "archive_work_item": "封存工作項目",
+        "call_webhook": "呼叫 webhook"
       },
       "configuration": {
         "label": "設定",
@@ -88,6 +92,47 @@
             "change_type_required": "變更類型為必填",
             "property_value_required": "屬性值為必填"
           }
+        },
+        "add_comment": {
+          "placeholder": "請輸入此自動化要發佈的留言。"
+        },
+        "send_notification": {
+          "recipients_label": "收件者",
+          "members_placeholder": "選擇成員",
+          "title_label": "標題",
+          "title_placeholder": "簡短摘要",
+          "message_label": "訊息",
+          "message_placeholder": "收件者需要知道什麼？"
+        },
+        "create_work_item": {
+          "name_label": "標題",
+          "name_placeholder": "為此自動化建立的工作項目命名",
+          "description_label": "描述",
+          "description_placeholder": "描述該工作項目",
+          "state_label": "狀態",
+          "priority_label": "優先順序",
+          "assignees_label": "負責人",
+          "labels_label": "標籤",
+          "due_in_days_label": "到期時間（自執行起的天數）",
+          "link_to_trigger_label": "建立為觸發此自動化的工作項目的子工作項目",
+          "project_label": "專案",
+          "project_hint": "留空則在本次執行對應的專案中建立工作項目。"
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "方法",
+          "payload_label": "負載",
+          "payload_placeholder": "留空則傳送預設負載。"
+        },
+        "archive_work_item": {
+          "description": "此動作不需要設定。"
+        },
+        "relative_date": {
+          "mode_label": "日期",
+          "mode_absolute": "指定日期",
+          "mode_relative": "相對於執行時間",
+          "days_label": "自執行起的天數"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "更新動作失敗。請再試一次！"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "已加入佇列",
+          "message": "該自動化將在背景執行。"
+        },
+        "error": {
+          "title": "發生錯誤！",
+          "message": "無法將此次執行加入佇列，請重試。"
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "建立工作項目時",
+      "work_item_updated": "更新工作項目時",
+      "work_item_deleted": "刪除工作項目時",
+      "work_item_state_changed": "狀態變更時",
+      "work_item_priority_changed": "優先順序變更時",
+      "work_item_assignees_changed": "負責人變更時",
+      "work_item_labels_changed": "標籤變更時",
+      "work_item_target_date_changed": "到期日變更時",
+      "work_item_parent_changed": "父項目變更時",
+      "work_item_comment_created": "新增留言時",
+      "work_item_added_to_cycle": "工作項目被加入週期時",
+      "work_item_added_to_module": "工作項目被加入模組時",
+      "schedule": "依排程"
+    },
+    "properties": {
+      "state": "狀態",
+      "state_group": "狀態群組",
+      "priority": "優先順序",
+      "assignees": "負責人",
+      "labels": "標籤",
+      "modules": "模組",
+      "cycle": "週期",
+      "work_item_type": "工作項目類型",
+      "created_by": "建立者",
+      "triggered_by": "觸發者",
+      "project": "專案",
+      "name": "標題",
+      "description": "描述",
+      "target_date": "到期日",
+      "start_date": "開始日期",
+      "created_at": "建立時間",
+      "updated_at": "最近更新時間",
+      "estimate": "估算",
+      "parent": "父項目",
+      "is_archived": "已封存",
+      "sub_work_item_count": "子工作項目數量"
+    },
+    "operators": {
+      "eq": "等於",
+      "neq": "不等於",
+      "in": "是其中任一",
+      "not_in": "不是其中任何一個",
+      "contains": "包含",
+      "not_contains": "不包含",
+      "is_empty": "為空",
+      "is_not_empty": "不為空",
+      "gt": "晚於",
+      "gte": "等於或晚於",
+      "lt": "早於",
+      "lte": "等於或早於",
+      "changed": "已變更",
+      "changed_to": "變更為",
+      "changed_from": "從以下值變更",
+      "due_in_days": "將在以下天數內到期",
+      "overdue_by_days": "逾期至少",
+      "older_than_days": "早於以下天數"
+    },
+    "operator_suffix": {
+      "days": "天"
+    },
+    "change_types": {
+      "set": "設為",
+      "add": "新增",
+      "remove": "移除",
+      "clear": "清空",
+      "shift_days": "平移"
+    },
+    "recipients": {
+      "assignees": "負責人",
+      "created_by": "建立者",
+      "actor": "觸發它的人",
+      "subscribers": "訂閱者",
+      "project_admins": "專案管理員",
+      "specific_members": "指定成員"
+    },
+    "state_groups": {
+      "backlog": "待辦清單",
+      "unstarted": "待處理",
+      "started": "進行中",
+      "completed": "已完成",
+      "cancelled": "已取消"
+    },
+    "priorities": {
+      "urgent": "緊急",
+      "high": "高",
+      "medium": "中",
+      "low": "低",
+      "none": "無"
+    },
+    "designer": {
+      "back_to_list": "返回自動化清單",
+      "run_now": "立即執行",
+      "enable": "啟用",
+      "disable": "停用",
+      "enabled": "已啟用",
+      "disabled": "已停用",
+      "not_found": "找不到該自動化。",
+      "select_property": "選擇屬性",
+      "select_operator": "選擇條件",
+      "select_value": "選擇值",
+      "enter_value": "輸入值",
+      "add_condition_group": "新增嵌套群組",
+      "remove_condition": "移除條件",
+      "remove_group": "移除群組",
+      "remove_action": "移除動作",
+      "no_conditions": "每次觸發器觸發時，此自動化都會執行。",
+      "owner": "歸屬於",
+      "template_variables_label": "可用變數",
+      "template_variables_hint": "用雙大括號包住變數名稱即可插入它的值。",
+      "scheduled_target_label": "執行對象",
+      "scheduled_target_project": "專案，每次執行一次",
+      "scheduled_target_work_items": "符合條件的每個工作項目",
+      "workspace_scope_note": "工作區自動化會跨專案執行，因此這裡無法使用狀態、標籤、模組和週期——它們是各專案獨立的。"
+    },
+    "run_history": {
+      "title": "執行紀錄",
+      "empty": "此自動化尚未執行過。",
+      "started_at": "開始時間",
+      "duration": "耗時",
+      "status": "狀態",
+      "trigger_source": "觸發方式",
+      "processed_count": "工作項目",
+      "step_error": "錯誤",
+      "source_event": "事件",
+      "source_schedule": "排程",
+      "source_manual": "手動",
+      "status_success": "成功",
+      "status_failed": "失敗",
+      "status_partial": "部分成功",
+      "status_skipped": "已略過"
+    },
+    "days_of_week": {
+      "sunday": "星期日",
+      "monday": "星期一",
+      "tuesday": "星期二",
+      "wednesday": "星期三",
+      "thursday": "星期四",
+      "friday": "星期五",
+      "saturday": "星期六"
+    },
+    "days_of_week_initial": {
+      "sunday": "日",
+      "monday": "一",
+      "tuesday": "二",
+      "wednesday": "三",
+      "thursday": "四",
+      "friday": "五",
+      "saturday": "六"
     }
   }
 }

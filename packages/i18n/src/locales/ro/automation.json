@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "Adaugă comentariu",
         "change_property": "Schimbă proprietatea",
-        "run_script": "Rulează script"
+        "run_script": "Rulează script",
+        "send_notification": "Trimite notificare",
+        "create_work_item": "Creează element de lucru",
+        "archive_work_item": "Arhivează elementul de lucru",
+        "call_webhook": "Apelează un webhook"
       },
       "configuration": {
         "label": "Configurare",
@@ -88,6 +92,47 @@
             "change_type_required": "Tipul de schimbare este obligatoriu",
             "property_value_required": "Valoarea proprietății este obligatorie"
           }
+        },
+        "add_comment": {
+          "placeholder": "Scrieți comentariul pe care această automatizare trebuie să îl publice."
+        },
+        "send_notification": {
+          "recipients_label": "Destinatari",
+          "members_placeholder": "Selectați membri",
+          "title_label": "Titlu",
+          "title_placeholder": "Rezumat scurt",
+          "message_label": "Mesaj",
+          "message_placeholder": "Ce trebuie să știe destinatarii?"
+        },
+        "create_work_item": {
+          "name_label": "Titlu",
+          "name_placeholder": "Denumiți elementul de lucru creat de această automatizare",
+          "description_label": "Descriere",
+          "description_placeholder": "Descrieți elementul de lucru",
+          "state_label": "Stare",
+          "priority_label": "Prioritate",
+          "assignees_label": "Responsabili",
+          "labels_label": "Etichete",
+          "due_in_days_label": "Termen în (zile de la execuție)",
+          "link_to_trigger_label": "Creează-l ca subelement al celui care a declanșat automatizarea",
+          "project_label": "Proiect",
+          "project_hint": "Lăsați gol pentru a crea elementul de lucru în proiectul pentru care rulează automatizarea."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "Metodă",
+          "payload_label": "Conținut",
+          "payload_placeholder": "Lăsați gol pentru a trimite conținutul implicit."
+        },
+        "archive_work_item": {
+          "description": "Această acțiune nu necesită configurare."
+        },
+        "relative_date": {
+          "mode_label": "Dată",
+          "mode_absolute": "O dată anume",
+          "mode_relative": "Relativ la execuție",
+          "days_label": "Zile de la execuție"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "Nu s-a putut actualiza acțiunea. Te rog încearcă din nou!"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "În coadă",
+          "message": "Automatizarea va rula în fundal."
+        },
+        "error": {
+          "title": "Eroare!",
+          "message": "Nu am putut adăuga această execuție în coadă. Încercați din nou."
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "Un element de lucru este creat",
+      "work_item_updated": "Un element de lucru este actualizat",
+      "work_item_deleted": "Un element de lucru este șters",
+      "work_item_state_changed": "Starea se schimbă",
+      "work_item_priority_changed": "Prioritatea se schimbă",
+      "work_item_assignees_changed": "Responsabilii se schimbă",
+      "work_item_labels_changed": "Etichetele se schimbă",
+      "work_item_target_date_changed": "Termenul se schimbă",
+      "work_item_parent_changed": "Elementul părinte se schimbă",
+      "work_item_comment_created": "Este adăugat un comentariu",
+      "work_item_added_to_cycle": "Un element de lucru este adăugat într-un Ciclu",
+      "work_item_added_to_module": "Un element de lucru este adăugat într-un Modul",
+      "schedule": "Conform unei programări"
+    },
+    "properties": {
+      "state": "Stare",
+      "state_group": "Grup de stări",
+      "priority": "Prioritate",
+      "assignees": "Responsabili",
+      "labels": "Etichete",
+      "modules": "Module",
+      "cycle": "Ciclu",
+      "work_item_type": "Tip de element de lucru",
+      "created_by": "Creat de",
+      "triggered_by": "Declanșat de",
+      "project": "Proiect",
+      "name": "Titlu",
+      "description": "Descriere",
+      "target_date": "Termen",
+      "start_date": "Dată de început",
+      "created_at": "Creat la",
+      "updated_at": "Ultima actualizare la",
+      "estimate": "Estimare",
+      "parent": "Element părinte",
+      "is_archived": "Arhivat",
+      "sub_work_item_count": "Număr de subelemente"
+    },
+    "operators": {
+      "eq": "este",
+      "neq": "nu este",
+      "in": "este unul dintre",
+      "not_in": "nu este niciunul dintre",
+      "contains": "conține",
+      "not_contains": "nu conține",
+      "is_empty": "este gol",
+      "is_not_empty": "nu este gol",
+      "gt": "este după",
+      "gte": "este în ziua sau după",
+      "lt": "este înainte de",
+      "lte": "este în ziua sau înainte de",
+      "changed": "s-a schimbat",
+      "changed_to": "s-a schimbat în",
+      "changed_from": "s-a schimbat din",
+      "due_in_days": "are termen în",
+      "overdue_by_days": "este întârziat cu cel puțin",
+      "older_than_days": "este mai vechi de"
+    },
+    "operator_suffix": {
+      "days": "zile"
+    },
+    "change_types": {
+      "set": "Setează la",
+      "add": "Adaugă",
+      "remove": "Elimină",
+      "clear": "Golește",
+      "shift_days": "Decalează cu"
+    },
+    "recipients": {
+      "assignees": "Responsabili",
+      "created_by": "Creator",
+      "actor": "Cine a declanșat-o",
+      "subscribers": "Abonați",
+      "project_admins": "Administratorii proiectului",
+      "specific_members": "Membri anume"
+    },
+    "state_groups": {
+      "backlog": "Backlog",
+      "unstarted": "De făcut",
+      "started": "În desfășurare",
+      "completed": "Finalizat",
+      "cancelled": "Anulat"
+    },
+    "priorities": {
+      "urgent": "Urgentă",
+      "high": "Ridicată",
+      "medium": "Medie",
+      "low": "Scăzută",
+      "none": "Niciuna"
+    },
+    "designer": {
+      "back_to_list": "Înapoi la automatizări",
+      "run_now": "Rulează acum",
+      "enable": "Activează",
+      "disable": "Dezactivează",
+      "enabled": "Activată",
+      "disabled": "Dezactivată",
+      "not_found": "Nu am găsit această automatizare.",
+      "select_property": "Selectați o proprietate",
+      "select_operator": "Selectați o condiție",
+      "select_value": "Selectați o valoare",
+      "enter_value": "Introduceți o valoare",
+      "add_condition_group": "Adaugă un grup imbricat",
+      "remove_condition": "Elimină condiția",
+      "remove_group": "Elimină grupul",
+      "remove_action": "Elimină acțiunea",
+      "no_conditions": "Această automatizare rulează de fiecare dată când declanșatorul se produce.",
+      "owner": "Aparține",
+      "template_variables_label": "Variabile disponibile",
+      "template_variables_hint": "Încadrați numele unei variabile în acolade duble pentru a-i insera valoarea.",
+      "scheduled_target_label": "Rulează pe",
+      "scheduled_target_project": "Proiectul, o dată pe execuție",
+      "scheduled_target_work_items": "Fiecare element de lucru care îndeplinește condițiile",
+      "workspace_scope_note": "O automatizare a spațiului de lucru rulează în mai multe proiecte, așa că stările, etichetele, Modulele și Ciclurile nu sunt disponibile aici — acestea există per proiect."
+    },
+    "run_history": {
+      "title": "Istoricul execuțiilor",
+      "empty": "Această automatizare nu a rulat încă.",
+      "started_at": "Pornită",
+      "duration": "Durată",
+      "status": "Stare",
+      "trigger_source": "Declanșată de",
+      "processed_count": "Elemente de lucru",
+      "step_error": "Eroare",
+      "source_event": "Eveniment",
+      "source_schedule": "Programare",
+      "source_manual": "Manual",
+      "status_success": "Reușită",
+      "status_failed": "Eșuată",
+      "status_partial": "Parțial reușită",
+      "status_skipped": "Omisă"
+    },
+    "days_of_week": {
+      "sunday": "Duminică",
+      "monday": "Luni",
+      "tuesday": "Marți",
+      "wednesday": "Miercuri",
+      "thursday": "Joi",
+      "friday": "Vineri",
+      "saturday": "Sâmbătă"
+    },
+    "days_of_week_initial": {
+      "sunday": "D",
+      "monday": "L",
+      "tuesday": "M",
+      "wednesday": "M",
+      "thursday": "J",
+      "friday": "V",
+      "saturday": "S"
     }
   }
 }

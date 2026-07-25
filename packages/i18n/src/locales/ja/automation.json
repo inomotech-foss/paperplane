@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "コメントを追加",
         "change_property": "プロパティを変更",
-        "run_script": "スクリプトを実行"
+        "run_script": "スクリプトを実行",
+        "send_notification": "通知を送信",
+        "create_work_item": "作業項目を作成",
+        "archive_work_item": "作業項目をアーカイブ",
+        "call_webhook": "Webhook を呼び出す"
       },
       "configuration": {
         "label": "設定",
@@ -88,6 +92,47 @@
             "change_type_required": "変更タイプは必須です",
             "property_value_required": "プロパティ値は必須です"
           }
+        },
+        "add_comment": {
+          "placeholder": "このオートメーションが投稿するコメントを入力してください。"
+        },
+        "send_notification": {
+          "recipients_label": "宛先",
+          "members_placeholder": "メンバーを選択",
+          "title_label": "タイトル",
+          "title_placeholder": "短い要約",
+          "message_label": "メッセージ",
+          "message_placeholder": "受信者に伝えたい内容は何ですか。"
+        },
+        "create_work_item": {
+          "name_label": "タイトル",
+          "name_placeholder": "このオートメーションが作成する作業項目の名前を入力してください",
+          "description_label": "説明",
+          "description_placeholder": "作業項目の内容を記入してください",
+          "state_label": "ステータス",
+          "priority_label": "優先度",
+          "assignees_label": "担当者",
+          "labels_label": "ラベル",
+          "due_in_days_label": "期限（実行日からの日数）",
+          "link_to_trigger_label": "オートメーションを起動した作業項目のサブ作業項目として作成する",
+          "project_label": "プロジェクト",
+          "project_hint": "空欄のままにすると、実行対象のプロジェクトに作業項目を作成します。"
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "メソッド",
+          "payload_label": "ペイロード",
+          "payload_placeholder": "空欄のままにすると既定のペイロードを送信します。"
+        },
+        "archive_work_item": {
+          "description": "このアクションに設定は不要です。"
+        },
+        "relative_date": {
+          "mode_label": "日付",
+          "mode_absolute": "特定の日付",
+          "mode_relative": "実行日からの相対指定",
+          "days_label": "実行日からの日数"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "アクションの更新に失敗しました。もう一度お試しください！"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "キューに追加しました",
+          "message": "オートメーションはバックグラウンドで実行されます。"
+        },
+        "error": {
+          "title": "エラー",
+          "message": "この実行をキューに追加できませんでした。もう一度お試しください。"
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "作業項目が作成されたとき",
+      "work_item_updated": "作業項目が更新されたとき",
+      "work_item_deleted": "作業項目が削除されたとき",
+      "work_item_state_changed": "ステータスが変わったとき",
+      "work_item_priority_changed": "優先度が変わったとき",
+      "work_item_assignees_changed": "担当者が変わったとき",
+      "work_item_labels_changed": "ラベルが変わったとき",
+      "work_item_target_date_changed": "期限が変わったとき",
+      "work_item_parent_changed": "親項目が変わったとき",
+      "work_item_comment_created": "コメントが追加されたとき",
+      "work_item_added_to_cycle": "作業項目がサイクルに追加されたとき",
+      "work_item_added_to_module": "作業項目がモジュールに追加されたとき",
+      "schedule": "スケジュールに従って"
+    },
+    "properties": {
+      "state": "ステータス",
+      "state_group": "ステータスグループ",
+      "priority": "優先度",
+      "assignees": "担当者",
+      "labels": "ラベル",
+      "modules": "モジュール",
+      "cycle": "サイクル",
+      "work_item_type": "作業項目タイプ",
+      "created_by": "作成者",
+      "triggered_by": "実行者",
+      "project": "プロジェクト",
+      "name": "タイトル",
+      "description": "説明",
+      "target_date": "期限",
+      "start_date": "開始日",
+      "created_at": "作成日",
+      "updated_at": "最終更新日",
+      "estimate": "見積り",
+      "parent": "親項目",
+      "is_archived": "アーカイブ済み",
+      "sub_work_item_count": "サブ作業項目数"
+    },
+    "operators": {
+      "eq": "が次と等しい",
+      "neq": "が次と等しくない",
+      "in": "が次のいずれか",
+      "not_in": "が次のいずれでもない",
+      "contains": "が次を含む",
+      "not_contains": "が次を含まない",
+      "is_empty": "が空",
+      "is_not_empty": "が空でない",
+      "gt": "が次より後",
+      "gte": "が次以降",
+      "lt": "が次より前",
+      "lte": "が次以前",
+      "changed": "が変わった",
+      "changed_to": "が次に変わった",
+      "changed_from": "が次から変わった",
+      "due_in_days": "の期限が次の日数以内",
+      "overdue_by_days": "の期限切れが次の日数以上",
+      "older_than_days": "が次の日数より古い"
+    },
+    "operator_suffix": {
+      "days": "日"
+    },
+    "change_types": {
+      "set": "次に設定",
+      "add": "追加",
+      "remove": "削除",
+      "clear": "クリア",
+      "shift_days": "次の日数だけずらす"
+    },
+    "recipients": {
+      "assignees": "担当者",
+      "created_by": "作成者",
+      "actor": "実行したユーザー",
+      "subscribers": "購読者",
+      "project_admins": "プロジェクト管理者",
+      "specific_members": "特定のメンバー"
+    },
+    "state_groups": {
+      "backlog": "バックログ",
+      "unstarted": "未着手",
+      "started": "進行中",
+      "completed": "完了",
+      "cancelled": "キャンセル"
+    },
+    "priorities": {
+      "urgent": "緊急",
+      "high": "高",
+      "medium": "中",
+      "low": "低",
+      "none": "なし"
+    },
+    "designer": {
+      "back_to_list": "オートメーション一覧に戻る",
+      "run_now": "今すぐ実行",
+      "enable": "有効にする",
+      "disable": "無効にする",
+      "enabled": "有効",
+      "disabled": "無効",
+      "not_found": "そのオートメーションは見つかりませんでした。",
+      "select_property": "プロパティを選択",
+      "select_operator": "条件を選択",
+      "select_value": "値を選択",
+      "enter_value": "値を入力",
+      "add_condition_group": "入れ子のグループを追加",
+      "remove_condition": "条件を削除",
+      "remove_group": "グループを削除",
+      "remove_action": "アクションを削除",
+      "no_conditions": "このオートメーションはトリガーが発生するたびに実行されます。",
+      "owner": "所有者",
+      "template_variables_label": "使用できる変数",
+      "template_variables_hint": "変数名を二重波かっこで囲むと、その値が挿入されます。",
+      "scheduled_target_label": "実行対象",
+      "scheduled_target_project": "プロジェクト（1 回の実行につき 1 度）",
+      "scheduled_target_work_items": "条件に一致するすべての作業項目",
+      "workspace_scope_note": "ワークスペースのオートメーションは複数のプロジェクトにまたがって実行されるため、ステータス、ラベル、モジュール、サイクルはここでは指定できません。これらはプロジェクトごとに存在します。"
+    },
+    "run_history": {
+      "title": "実行履歴",
+      "empty": "このオートメーションはまだ実行されていません。",
+      "started_at": "開始",
+      "duration": "所要時間",
+      "status": "ステータス",
+      "trigger_source": "実行のきっかけ",
+      "processed_count": "作業項目",
+      "step_error": "エラー",
+      "source_event": "イベント",
+      "source_schedule": "スケジュール",
+      "source_manual": "手動",
+      "status_success": "成功",
+      "status_failed": "失敗",
+      "status_partial": "一部成功",
+      "status_skipped": "スキップ"
+    },
+    "days_of_week": {
+      "sunday": "日曜日",
+      "monday": "月曜日",
+      "tuesday": "火曜日",
+      "wednesday": "水曜日",
+      "thursday": "木曜日",
+      "friday": "金曜日",
+      "saturday": "土曜日"
+    },
+    "days_of_week_initial": {
+      "sunday": "日",
+      "monday": "月",
+      "tuesday": "火",
+      "wednesday": "水",
+      "thursday": "木",
+      "friday": "金",
+      "saturday": "土"
     }
   }
 }

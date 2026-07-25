@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "Pridať komentár",
         "change_property": "Zmeniť vlastnosť",
-        "run_script": "Spustiť skript"
+        "run_script": "Spustiť skript",
+        "send_notification": "Odoslať oznámenie",
+        "create_work_item": "Vytvoriť pracovnú položku",
+        "archive_work_item": "Archivovať pracovnú položku",
+        "call_webhook": "Zavolať webhook"
       },
       "configuration": {
         "label": "Konfigurácia",
@@ -88,6 +92,47 @@
             "change_type_required": "Typ zmeny je povinný",
             "property_value_required": "Hodnota vlastnosti je povinná"
           }
+        },
+        "add_comment": {
+          "placeholder": "Napíšte komentár, ktorý má táto automatizácia zverejniť."
+        },
+        "send_notification": {
+          "recipients_label": "Príjemcovia",
+          "members_placeholder": "Vybrať členov",
+          "title_label": "Názov",
+          "title_placeholder": "Krátke zhrnutie",
+          "message_label": "Správa",
+          "message_placeholder": "Čo by mali príjemcovia vedieť?"
+        },
+        "create_work_item": {
+          "name_label": "Názov",
+          "name_placeholder": "Pomenujte pracovnú položku, ktorú táto automatizácia vytvorí",
+          "description_label": "Popis",
+          "description_placeholder": "Popíšte pracovnú položku",
+          "state_label": "Stav",
+          "priority_label": "Priorita",
+          "assignees_label": "Priradení",
+          "labels_label": "Označenia",
+          "due_in_days_label": "Termín za (dni od spustenia)",
+          "link_to_trigger_label": "Vytvoriť ako podpoložku tej, ktorá automatizáciu spustila",
+          "project_label": "Projekt",
+          "project_hint": "Ponechajte prázdne, aby sa pracovná položka vytvorila v projekte, pre ktorý spustenie prebieha."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "Metóda",
+          "payload_label": "Dátová časť",
+          "payload_placeholder": "Ponechajte prázdne na odoslanie predvolenej dátovej časti."
+        },
+        "archive_work_item": {
+          "description": "Táto akcia nevyžaduje žiadnu konfiguráciu."
+        },
+        "relative_date": {
+          "mode_label": "Dátum",
+          "mode_absolute": "Konkrétny dátum",
+          "mode_relative": "Relatívne k spusteniu",
+          "days_label": "Dni od spustenia"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "Aktualizácia akcie zlyhala. Skúste to znova!"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "V poradí",
+          "message": "Automatizácia sa spustí na pozadí."
+        },
+        "error": {
+          "title": "Chyba!",
+          "message": "Toto spustenie sa nepodarilo zaradiť do poradia. Skúste to znova."
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "Pracovná položka je vytvorená",
+      "work_item_updated": "Pracovná položka je aktualizovaná",
+      "work_item_deleted": "Pracovná položka je odstránená",
+      "work_item_state_changed": "Stav sa zmení",
+      "work_item_priority_changed": "Priorita sa zmení",
+      "work_item_assignees_changed": "Priradení sa zmenia",
+      "work_item_labels_changed": "Označenia sa zmenia",
+      "work_item_target_date_changed": "Termín sa zmení",
+      "work_item_parent_changed": "Nadradená položka sa zmení",
+      "work_item_comment_created": "Je pridaný komentár",
+      "work_item_added_to_cycle": "Pracovná položka je pridaná do Cyklu",
+      "work_item_added_to_module": "Pracovná položka je pridaná do Modulu",
+      "schedule": "Podľa plánu"
+    },
+    "properties": {
+      "state": "Stav",
+      "state_group": "Skupina stavov",
+      "priority": "Priorita",
+      "assignees": "Priradení",
+      "labels": "Označenia",
+      "modules": "Moduly",
+      "cycle": "Cyklus",
+      "work_item_type": "Typ pracovnej položky",
+      "created_by": "Vytvoril",
+      "triggered_by": "Spustil",
+      "project": "Projekt",
+      "name": "Názov",
+      "description": "Popis",
+      "target_date": "Termín",
+      "start_date": "Dátum začiatku",
+      "created_at": "Dátum vytvorenia",
+      "updated_at": "Dátum poslednej aktualizácie",
+      "estimate": "Odhad",
+      "parent": "Nadradená položka",
+      "is_archived": "Archivované",
+      "sub_work_item_count": "Počet podpoložiek"
+    },
+    "operators": {
+      "eq": "je",
+      "neq": "nie je",
+      "in": "je jedno z",
+      "not_in": "nie je žiadne z",
+      "contains": "obsahuje",
+      "not_contains": "neobsahuje",
+      "is_empty": "je prázdne",
+      "is_not_empty": "nie je prázdne",
+      "gt": "je po",
+      "gte": "je v deň alebo po",
+      "lt": "je pred",
+      "lte": "je v deň alebo pred",
+      "changed": "sa zmenilo",
+      "changed_to": "sa zmenilo na",
+      "changed_from": "sa zmenilo z",
+      "due_in_days": "má termín do",
+      "overdue_by_days": "je po termíne aspoň o",
+      "older_than_days": "je starší než"
+    },
+    "operator_suffix": {
+      "days": "dní"
+    },
+    "change_types": {
+      "set": "Nastaviť na",
+      "add": "Pridať",
+      "remove": "Odobrať",
+      "clear": "Vymazať",
+      "shift_days": "Posunúť o"
+    },
+    "recipients": {
+      "assignees": "Priradení",
+      "created_by": "Autor",
+      "actor": "Ten, kto to spustil",
+      "subscribers": "Odberatelia",
+      "project_admins": "Správcovia projektu",
+      "specific_members": "Konkrétni členovia"
+    },
+    "state_groups": {
+      "backlog": "Backlog",
+      "unstarted": "Na vyriešenie",
+      "started": "Prebieha",
+      "completed": "Hotovo",
+      "cancelled": "Zrušené"
+    },
+    "priorities": {
+      "urgent": "Urgentná",
+      "high": "Vysoká",
+      "medium": "Stredná",
+      "low": "Nízka",
+      "none": "Žiadna"
+    },
+    "designer": {
+      "back_to_list": "Späť na automatizácie",
+      "run_now": "Spustiť teraz",
+      "enable": "Zapnúť",
+      "disable": "Vypnúť",
+      "enabled": "Zapnuté",
+      "disabled": "Vypnuté",
+      "not_found": "Túto automatizáciu sa nepodarilo nájsť.",
+      "select_property": "Vyberte vlastnosť",
+      "select_operator": "Vyberte podmienku",
+      "select_value": "Vyberte hodnotu",
+      "enter_value": "Zadajte hodnotu",
+      "add_condition_group": "Pridať vnorenú skupinu",
+      "remove_condition": "Odobrať podmienku",
+      "remove_group": "Odobrať skupinu",
+      "remove_action": "Odobrať akciu",
+      "no_conditions": "Táto automatizácia sa spustí pri každom spustení triggeru.",
+      "owner": "Vlastní",
+      "template_variables_label": "Dostupné premenné",
+      "template_variables_hint": "Uzavrite názov premennej do dvojitých zložených zátvoriek, aby sa vložila jej hodnota.",
+      "scheduled_target_label": "Spustiť na",
+      "scheduled_target_project": "Projekt, raz za spustenie",
+      "scheduled_target_work_items": "Každá pracovná položka, ktorá vyhovuje podmienkam",
+      "workspace_scope_note": "Automatizácia pracovného priestoru beží naprieč projektmi, preto tu nie sú dostupné stavy, označenia, Moduly a Cykly — tie existujú v rámci jednotlivého projektu."
+    },
+    "run_history": {
+      "title": "História spustení",
+      "empty": "Táto automatizácia ešte neprebehla.",
+      "started_at": "Spustené",
+      "duration": "Trvanie",
+      "status": "Stav",
+      "trigger_source": "Spustil",
+      "processed_count": "Pracovné položky",
+      "step_error": "Chyba",
+      "source_event": "Udalosť",
+      "source_schedule": "Plán",
+      "source_manual": "Ručne",
+      "status_success": "Úspešné",
+      "status_failed": "Neúspešné",
+      "status_partial": "Čiastočne úspešné",
+      "status_skipped": "Preskočené"
+    },
+    "days_of_week": {
+      "sunday": "Nedeľa",
+      "monday": "Pondelok",
+      "tuesday": "Utorok",
+      "wednesday": "Streda",
+      "thursday": "Štvrtok",
+      "friday": "Piatok",
+      "saturday": "Sobota"
+    },
+    "days_of_week_initial": {
+      "sunday": "N",
+      "monday": "P",
+      "tuesday": "U",
+      "wednesday": "S",
+      "thursday": "Š",
+      "friday": "P",
+      "saturday": "S"
     }
   }
 }

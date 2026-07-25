@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "Ajouter un commentaire",
         "change_property": "Modifier la propriété",
-        "run_script": "Exécuter un script"
+        "run_script": "Exécuter un script",
+        "send_notification": "Envoyer une notification",
+        "create_work_item": "Créer un élément de travail",
+        "archive_work_item": "Archiver l’élément de travail",
+        "call_webhook": "Appeler un webhook"
       },
       "configuration": {
         "label": "Configuration",
@@ -88,6 +92,47 @@
             "change_type_required": "Le type de changement est requis",
             "property_value_required": "La valeur de la propriété est requise"
           }
+        },
+        "add_comment": {
+          "placeholder": "Rédigez le commentaire que cette automatisation doit publier."
+        },
+        "send_notification": {
+          "recipients_label": "Destinataires",
+          "members_placeholder": "Sélectionner des membres",
+          "title_label": "Titre",
+          "title_placeholder": "Résumé court",
+          "message_label": "Message",
+          "message_placeholder": "Que doivent savoir les destinataires ?"
+        },
+        "create_work_item": {
+          "name_label": "Titre",
+          "name_placeholder": "Nommez l’élément de travail que cette automatisation crée",
+          "description_label": "Description",
+          "description_placeholder": "Décrivez l’élément de travail",
+          "state_label": "État",
+          "priority_label": "Priorité",
+          "assignees_label": "Acteurs",
+          "labels_label": "Étiquettes",
+          "due_in_days_label": "Échéance dans (jours après l’exécution)",
+          "link_to_trigger_label": "En faire un sous-élément de celui qui a déclenché l’automatisation",
+          "project_label": "Projet",
+          "project_hint": "Laissez vide pour créer l’élément de travail dans le projet concerné par l’exécution."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "Méthode",
+          "payload_label": "Charge utile",
+          "payload_placeholder": "Laissez vide pour envoyer la charge utile par défaut."
+        },
+        "archive_work_item": {
+          "description": "Cette action ne nécessite aucune configuration."
+        },
+        "relative_date": {
+          "mode_label": "Date",
+          "mode_absolute": "Une date précise",
+          "mode_relative": "Relative à l’exécution",
+          "days_label": "Jours après l’exécution"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "Échec de la mise à jour de l'action. Veuillez réessayer !"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "Mise en file d’attente",
+          "message": "L’automatisation s’exécutera en arrière-plan."
+        },
+        "error": {
+          "title": "Erreur !",
+          "message": "Nous n’avons pas pu lancer cette exécution. Veuillez réessayer."
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "Un élément de travail est créé",
+      "work_item_updated": "Un élément de travail est mis à jour",
+      "work_item_deleted": "Un élément de travail est supprimé",
+      "work_item_state_changed": "L’état change",
+      "work_item_priority_changed": "La priorité change",
+      "work_item_assignees_changed": "Les acteurs changent",
+      "work_item_labels_changed": "Les étiquettes changent",
+      "work_item_target_date_changed": "La date d’échéance change",
+      "work_item_parent_changed": "L’élément parent change",
+      "work_item_comment_created": "Un commentaire est ajouté",
+      "work_item_added_to_cycle": "Un élément de travail est ajouté à un Cycle",
+      "work_item_added_to_module": "Un élément de travail est ajouté à un Module",
+      "schedule": "Selon une planification"
+    },
+    "properties": {
+      "state": "État",
+      "state_group": "Groupe d’états",
+      "priority": "Priorité",
+      "assignees": "Acteurs",
+      "labels": "Étiquettes",
+      "modules": "Modules",
+      "cycle": "Cycle",
+      "work_item_type": "Type d’élément de travail",
+      "created_by": "Créé par",
+      "triggered_by": "Déclenché par",
+      "project": "Projet",
+      "name": "Titre",
+      "description": "Description",
+      "target_date": "Date d’échéance",
+      "start_date": "Date de début",
+      "created_at": "Créé le",
+      "updated_at": "Dernière mise à jour le",
+      "estimate": "Estimation",
+      "parent": "Élément parent",
+      "is_archived": "Archivé",
+      "sub_work_item_count": "Nombre de sous-éléments"
+    },
+    "operators": {
+      "eq": "est",
+      "neq": "n’est pas",
+      "in": "est l’un de",
+      "not_in": "n’est aucun de",
+      "contains": "contient",
+      "not_contains": "ne contient pas",
+      "is_empty": "est vide",
+      "is_not_empty": "n’est pas vide",
+      "gt": "est après",
+      "gte": "est le ou après le",
+      "lt": "est avant",
+      "lte": "est le ou avant le",
+      "changed": "a changé",
+      "changed_to": "est passé à",
+      "changed_from": "est passé de",
+      "due_in_days": "arrive à échéance dans",
+      "overdue_by_days": "est en retard d’au moins",
+      "older_than_days": "est plus ancien que"
+    },
+    "operator_suffix": {
+      "days": "jours"
+    },
+    "change_types": {
+      "set": "Définir sur",
+      "add": "Ajouter",
+      "remove": "Retirer",
+      "clear": "Vider",
+      "shift_days": "Décaler de"
+    },
+    "recipients": {
+      "assignees": "Acteurs",
+      "created_by": "Créateur",
+      "actor": "La personne qui l’a déclenchée",
+      "subscribers": "Abonnés",
+      "project_admins": "Administrateurs du projet",
+      "specific_members": "Membres spécifiques"
+    },
+    "state_groups": {
+      "backlog": "Backlog",
+      "unstarted": "À faire",
+      "started": "En cours",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "priorities": {
+      "urgent": "Urgente",
+      "high": "Élevée",
+      "medium": "Moyenne",
+      "low": "Faible",
+      "none": "Aucune"
+    },
+    "designer": {
+      "back_to_list": "Retour aux automatisations",
+      "run_now": "Exécuter maintenant",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "enabled": "Activée",
+      "disabled": "Désactivée",
+      "not_found": "Nous n’avons pas trouvé cette automatisation.",
+      "select_property": "Sélectionner une propriété",
+      "select_operator": "Sélectionner une condition",
+      "select_value": "Sélectionner une valeur",
+      "enter_value": "Saisir une valeur",
+      "add_condition_group": "Ajouter un groupe imbriqué",
+      "remove_condition": "Retirer la condition",
+      "remove_group": "Retirer le groupe",
+      "remove_action": "Retirer l’action",
+      "no_conditions": "Cette automatisation s’exécute chaque fois que le déclencheur se produit.",
+      "owner": "Appartient à",
+      "template_variables_label": "Variables disponibles",
+      "template_variables_hint": "Entourez un nom de variable de doubles accolades pour insérer sa valeur.",
+      "scheduled_target_label": "Exécuter sur",
+      "scheduled_target_project": "Le projet, une fois par exécution",
+      "scheduled_target_work_items": "Chaque élément de travail correspondant aux conditions",
+      "workspace_scope_note": "Une automatisation d’espace de travail s’exécute sur plusieurs projets, donc les états, étiquettes, Modules et Cycles ne sont pas disponibles ici — ils existent par projet."
+    },
+    "run_history": {
+      "title": "Historique des exécutions",
+      "empty": "Cette automatisation n’a pas encore été exécutée.",
+      "started_at": "Démarrée",
+      "duration": "Durée",
+      "status": "Statut",
+      "trigger_source": "Déclenchée par",
+      "processed_count": "Éléments de travail",
+      "step_error": "Erreur",
+      "source_event": "Événement",
+      "source_schedule": "Planification",
+      "source_manual": "Manuelle",
+      "status_success": "Réussie",
+      "status_failed": "Échouée",
+      "status_partial": "Partiellement réussie",
+      "status_skipped": "Ignorée"
+    },
+    "days_of_week": {
+      "sunday": "Dimanche",
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi"
+    },
+    "days_of_week_initial": {
+      "sunday": "D",
+      "monday": "L",
+      "tuesday": "M",
+      "wednesday": "M",
+      "thursday": "J",
+      "friday": "V",
+      "saturday": "S"
     }
   }
 }

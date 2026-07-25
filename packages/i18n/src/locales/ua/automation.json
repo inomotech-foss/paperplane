@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "Додати коментар",
         "change_property": "Змінити властивість",
-        "run_script": "Запустити скрипт"
+        "run_script": "Запустити скрипт",
+        "send_notification": "Надіслати повідомлення",
+        "create_work_item": "Створити робочий елемент",
+        "archive_work_item": "Архівувати робочий елемент",
+        "call_webhook": "Викликати webhook"
       },
       "configuration": {
         "label": "Конфігурація",
@@ -88,6 +92,47 @@
             "change_type_required": "Тип зміни обов'язковий",
             "property_value_required": "Значення властивості обов'язкове"
           }
+        },
+        "add_comment": {
+          "placeholder": "Введіть коментар, який має опублікувати ця автоматизація."
+        },
+        "send_notification": {
+          "recipients_label": "Отримувачі",
+          "members_placeholder": "Виберіть учасників",
+          "title_label": "Заголовок",
+          "title_placeholder": "Короткий опис",
+          "message_label": "Повідомлення",
+          "message_placeholder": "Що мають дізнатися отримувачі?"
+        },
+        "create_work_item": {
+          "name_label": "Заголовок",
+          "name_placeholder": "Вкажіть назву робочого елемента, який створює ця автоматизація",
+          "description_label": "Опис",
+          "description_placeholder": "Опишіть робочий елемент",
+          "state_label": "Статус",
+          "priority_label": "Пріоритет",
+          "assignees_label": "Призначені",
+          "labels_label": "Мітки",
+          "due_in_days_label": "Термін через (днів від запуску)",
+          "link_to_trigger_label": "Створити як піделемент того, що запустив автоматизацію",
+          "project_label": "Проєкт",
+          "project_hint": "Залиште поле порожнім, щоб створити робочий елемент у тому проєкті, для якого виконується запуск."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "Метод",
+          "payload_label": "Корисне навантаження",
+          "payload_placeholder": "Залиште поле порожнім, щоб надіслати навантаження за замовчуванням."
+        },
+        "archive_work_item": {
+          "description": "Ця дія не потребує налаштування."
+        },
+        "relative_date": {
+          "mode_label": "Дата",
+          "mode_absolute": "Конкретна дата",
+          "mode_relative": "Відносно запуску",
+          "days_label": "Днів від запуску"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "Не вдалося оновити дію. Будь ласка, спробуйте ще раз!"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "У черзі",
+          "message": "Автоматизація виконається у фоновому режимі."
+        },
+        "error": {
+          "title": "Помилка!",
+          "message": "Не вдалося поставити цей запуск у чергу. Спробуйте ще раз."
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "Робочий елемент створено",
+      "work_item_updated": "Робочий елемент оновлено",
+      "work_item_deleted": "Робочий елемент видалено",
+      "work_item_state_changed": "Статус змінився",
+      "work_item_priority_changed": "Пріоритет змінився",
+      "work_item_assignees_changed": "Призначені змінилися",
+      "work_item_labels_changed": "Мітки змінилися",
+      "work_item_target_date_changed": "Термін змінився",
+      "work_item_parent_changed": "Батьківський елемент змінився",
+      "work_item_comment_created": "Додано коментар",
+      "work_item_added_to_cycle": "Робочий елемент додано до Циклу",
+      "work_item_added_to_module": "Робочий елемент додано до Модуля",
+      "schedule": "За розписом"
+    },
+    "properties": {
+      "state": "Статус",
+      "state_group": "Група статусів",
+      "priority": "Пріоритет",
+      "assignees": "Призначені",
+      "labels": "Мітки",
+      "modules": "Модулі",
+      "cycle": "Цикл",
+      "work_item_type": "Тип робочого елемента",
+      "created_by": "Створено",
+      "triggered_by": "Запущено",
+      "project": "Проєкт",
+      "name": "Заголовок",
+      "description": "Опис",
+      "target_date": "Термін",
+      "start_date": "Дата початку",
+      "created_at": "Дата створення",
+      "updated_at": "Дата останнього оновлення",
+      "estimate": "Оцінка",
+      "parent": "Батьківський елемент",
+      "is_archived": "В архіві",
+      "sub_work_item_count": "Кількість піделементів"
+    },
+    "operators": {
+      "eq": "дорівнює",
+      "neq": "не дорівнює",
+      "in": "є одним із",
+      "not_in": "не є жодним із",
+      "contains": "містить",
+      "not_contains": "не містить",
+      "is_empty": "порожнє",
+      "is_not_empty": "не порожнє",
+      "gt": "пізніше ніж",
+      "gte": "цього дня або пізніше",
+      "lt": "раніше ніж",
+      "lte": "цього дня або раніше",
+      "changed": "змінилося",
+      "changed_to": "змінилося на",
+      "changed_from": "змінилося з",
+      "due_in_days": "термін настає протягом",
+      "overdue_by_days": "прострочено щонайменше на",
+      "older_than_days": "старше ніж"
+    },
+    "operator_suffix": {
+      "days": "днів"
+    },
+    "change_types": {
+      "set": "Установити на",
+      "add": "Додати",
+      "remove": "Видалити",
+      "clear": "Очистити",
+      "shift_days": "Зсунути на"
+    },
+    "recipients": {
+      "assignees": "Призначені",
+      "created_by": "Автор",
+      "actor": "Той, хто запустив",
+      "subscribers": "Підписники",
+      "project_admins": "Адміністратори проєкту",
+      "specific_members": "Певні учасники"
+    },
+    "state_groups": {
+      "backlog": "Беклог",
+      "unstarted": "До виконання",
+      "started": "У роботі",
+      "completed": "Готово",
+      "cancelled": "Скасовано"
+    },
+    "priorities": {
+      "urgent": "Терміновий",
+      "high": "Високий",
+      "medium": "Середній",
+      "low": "Низький",
+      "none": "Немає"
+    },
+    "designer": {
+      "back_to_list": "Назад до автоматизацій",
+      "run_now": "Запустити зараз",
+      "enable": "Увімкнути",
+      "disable": "Вимкнути",
+      "enabled": "Увімкнена",
+      "disabled": "Вимкнена",
+      "not_found": "Не вдалося знайти цю автоматизацію.",
+      "select_property": "Виберіть властивість",
+      "select_operator": "Виберіть умову",
+      "select_value": "Виберіть значення",
+      "enter_value": "Введіть значення",
+      "add_condition_group": "Додати вкладену групу",
+      "remove_condition": "Видалити умову",
+      "remove_group": "Видалити групу",
+      "remove_action": "Видалити дію",
+      "no_conditions": "Ця автоматизація виконується щоразу, коли спрацьовує тригер.",
+      "owner": "Власник",
+      "template_variables_label": "Доступні змінні",
+      "template_variables_hint": "Візьміть імʼя змінної у подвійні фігурні дужки, щоб вставити її значення.",
+      "scheduled_target_label": "Виконувати для",
+      "scheduled_target_project": "Проєкту, один раз за запуск",
+      "scheduled_target_work_items": "Кожного робочого елемента, що відповідає умовам",
+      "workspace_scope_note": "Автоматизація рівня робочого простору виконується в кількох проєктах, тому статуси, мітки, Модулі та Цикли тут недоступні — вони існують у межах окремого проєкту."
+    },
+    "run_history": {
+      "title": "Історія запусків",
+      "empty": "Ця автоматизація ще не виконувалася.",
+      "started_at": "Запущено",
+      "duration": "Тривалість",
+      "status": "Статус",
+      "trigger_source": "Запущено",
+      "processed_count": "Робочі елементи",
+      "step_error": "Помилка",
+      "source_event": "Подія",
+      "source_schedule": "Розпис",
+      "source_manual": "Вручну",
+      "status_success": "Успішно",
+      "status_failed": "Не вдалося",
+      "status_partial": "Частково успішно",
+      "status_skipped": "Пропущено"
+    },
+    "days_of_week": {
+      "sunday": "Неділя",
+      "monday": "Понеділок",
+      "tuesday": "Вівторок",
+      "wednesday": "Середа",
+      "thursday": "Четвер",
+      "friday": "Пʼятниця",
+      "saturday": "Субота"
+    },
+    "days_of_week_initial": {
+      "sunday": "Н",
+      "monday": "П",
+      "tuesday": "В",
+      "wednesday": "С",
+      "thursday": "Ч",
+      "friday": "П",
+      "saturday": "С"
     }
   }
 }

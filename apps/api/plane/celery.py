@@ -49,6 +49,10 @@ app.conf.beat_schedule = {
         "task": "plane.bgtasks.email_notification_task.stack_email_notification",
         "schedule": crontab(minute="*/5"),  # Every 5 minutes
     },
+    "check-every-five-minutes-for-due-automations": {
+        "task": "plane.bgtasks.automation_task.run_due_automations",
+        "schedule": crontab(minute="*/5"),  # Every 5 minutes
+    },
     # Reconciliation fallback; Graph push notifications deliver mail near-instantly
     "check-every-two-minutes-service-desk-mailboxes": {
         "task": "plane.bgtasks.service_desk_task.service_desk_poll",
@@ -102,6 +106,10 @@ app.conf.beat_schedule = {
     "check-every-day-to-delete-exporter-history": {
         "task": "plane.bgtasks.exporter_expired_task.delete_old_s3_link",
         "schedule": crontab(hour=3, minute=45),  # UTC 03:45
+    },
+    "check-every-day-to-trim-automation-run-history": {
+        "task": "plane.bgtasks.automation_task.trim_automation_run_history",
+        "schedule": crontab(hour=4, minute=0),  # UTC 04:00
     },
 }
 

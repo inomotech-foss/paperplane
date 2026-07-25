@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "댓글 추가",
         "change_property": "속성 변경",
-        "run_script": "스크립트 실행"
+        "run_script": "스크립트 실행",
+        "send_notification": "알림 보내기",
+        "create_work_item": "작업 항목 만들기",
+        "archive_work_item": "작업 항목 보관",
+        "call_webhook": "웹훅 호출"
       },
       "configuration": {
         "label": "설정",
@@ -88,6 +92,47 @@
             "change_type_required": "변경 유형이 필요합니다",
             "property_value_required": "속성 값이 필요합니다"
           }
+        },
+        "add_comment": {
+          "placeholder": "이 자동화가 등록할 댓글을 입력합니다."
+        },
+        "send_notification": {
+          "recipients_label": "수신자",
+          "members_placeholder": "멤버 선택",
+          "title_label": "제목",
+          "title_placeholder": "간단한 요약",
+          "message_label": "메시지",
+          "message_placeholder": "수신자가 알아야 할 내용은 무엇입니까?"
+        },
+        "create_work_item": {
+          "name_label": "제목",
+          "name_placeholder": "이 자동화가 만드는 작업 항목의 이름을 입력합니다",
+          "description_label": "설명",
+          "description_placeholder": "작업 항목을 설명합니다",
+          "state_label": "상태",
+          "priority_label": "우선순위",
+          "assignees_label": "담당자",
+          "labels_label": "레이블",
+          "due_in_days_label": "기한(실행일로부터 일수)",
+          "link_to_trigger_label": "자동화를 실행시킨 작업 항목의 하위 항목으로 만들기",
+          "project_label": "프로젝트",
+          "project_hint": "비워 두면 실행 대상 프로젝트에 작업 항목을 만듭니다."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "메서드",
+          "payload_label": "페이로드",
+          "payload_placeholder": "비워 두면 기본 페이로드를 보냅니다."
+        },
+        "archive_work_item": {
+          "description": "이 작업에는 설정이 필요하지 않습니다."
+        },
+        "relative_date": {
+          "mode_label": "날짜",
+          "mode_absolute": "특정 날짜",
+          "mode_relative": "실행 시점 기준 상대 날짜",
+          "days_label": "실행일로부터 일수"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "액션 업데이트에 실패했습니다. 다시 시도해 주세요!"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "대기열에 추가됨",
+          "message": "자동화가 백그라운드에서 실행됩니다."
+        },
+        "error": {
+          "title": "오류!",
+          "message": "해당 실행을 대기열에 추가하지 못했습니다. 다시 시도해 주십시오."
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "작업 항목이 생성될 때",
+      "work_item_updated": "작업 항목이 업데이트될 때",
+      "work_item_deleted": "작업 항목이 삭제될 때",
+      "work_item_state_changed": "상태가 변경될 때",
+      "work_item_priority_changed": "우선순위가 변경될 때",
+      "work_item_assignees_changed": "담당자가 변경될 때",
+      "work_item_labels_changed": "레이블이 변경될 때",
+      "work_item_target_date_changed": "기한이 변경될 때",
+      "work_item_parent_changed": "상위 항목이 변경될 때",
+      "work_item_comment_created": "댓글이 추가될 때",
+      "work_item_added_to_cycle": "작업 항목이 사이클에 추가될 때",
+      "work_item_added_to_module": "작업 항목이 모듈에 추가될 때",
+      "schedule": "일정에 따라"
+    },
+    "properties": {
+      "state": "상태",
+      "state_group": "상태 그룹",
+      "priority": "우선순위",
+      "assignees": "담당자",
+      "labels": "레이블",
+      "modules": "모듈",
+      "cycle": "사이클",
+      "work_item_type": "작업 항목 유형",
+      "created_by": "생성자",
+      "triggered_by": "실행자",
+      "project": "프로젝트",
+      "name": "제목",
+      "description": "설명",
+      "target_date": "기한",
+      "start_date": "시작일",
+      "created_at": "생성일",
+      "updated_at": "마지막 업데이트일",
+      "estimate": "추정치",
+      "parent": "상위 항목",
+      "is_archived": "보관됨",
+      "sub_work_item_count": "하위 작업 항목 수"
+    },
+    "operators": {
+      "eq": "이(가) 다음과 같음",
+      "neq": "이(가) 다음과 다름",
+      "in": "이(가) 다음 중 하나",
+      "not_in": "이(가) 다음 중 어느 것도 아님",
+      "contains": "이(가) 다음을 포함",
+      "not_contains": "이(가) 다음을 포함하지 않음",
+      "is_empty": "이(가) 비어 있음",
+      "is_not_empty": "이(가) 비어 있지 않음",
+      "gt": "이(가) 다음 이후",
+      "gte": "이(가) 다음 당일 또는 이후",
+      "lt": "이(가) 다음 이전",
+      "lte": "이(가) 다음 당일 또는 이전",
+      "changed": "이(가) 변경됨",
+      "changed_to": "이(가) 다음으로 변경됨",
+      "changed_from": "이(가) 다음에서 변경됨",
+      "due_in_days": "의 기한이 다음 일수 이내",
+      "overdue_by_days": "의 기한이 최소 다음 일수만큼 지남",
+      "older_than_days": "이(가) 다음 일수보다 오래됨"
+    },
+    "operator_suffix": {
+      "days": "일"
+    },
+    "change_types": {
+      "set": "다음으로 설정",
+      "add": "추가",
+      "remove": "제거",
+      "clear": "비우기",
+      "shift_days": "다음 일수만큼 이동"
+    },
+    "recipients": {
+      "assignees": "담당자",
+      "created_by": "생성자",
+      "actor": "실행한 사용자",
+      "subscribers": "구독자",
+      "project_admins": "프로젝트 관리자",
+      "specific_members": "특정 멤버"
+    },
+    "state_groups": {
+      "backlog": "백로그",
+      "unstarted": "할 일",
+      "started": "진행 중",
+      "completed": "완료",
+      "cancelled": "취소됨"
+    },
+    "priorities": {
+      "urgent": "긴급",
+      "high": "높음",
+      "medium": "보통",
+      "low": "낮음",
+      "none": "없음"
+    },
+    "designer": {
+      "back_to_list": "자동화 목록으로 돌아가기",
+      "run_now": "지금 실행",
+      "enable": "사용",
+      "disable": "사용 중지",
+      "enabled": "사용 중",
+      "disabled": "사용 중지됨",
+      "not_found": "해당 자동화를 찾을 수 없습니다.",
+      "select_property": "속성 선택",
+      "select_operator": "조건 선택",
+      "select_value": "값 선택",
+      "enter_value": "값 입력",
+      "add_condition_group": "중첩 그룹 추가",
+      "remove_condition": "조건 제거",
+      "remove_group": "그룹 제거",
+      "remove_action": "작업 제거",
+      "no_conditions": "이 자동화는 트리거가 발생할 때마다 실행됩니다.",
+      "owner": "소유자",
+      "template_variables_label": "사용할 수 있는 변수",
+      "template_variables_hint": "변수 이름을 이중 중괄호로 감싸면 해당 값이 삽입됩니다.",
+      "scheduled_target_label": "실행 대상",
+      "scheduled_target_project": "프로젝트, 실행마다 한 번",
+      "scheduled_target_work_items": "조건에 맞는 모든 작업 항목",
+      "workspace_scope_note": "워크스페이스 자동화는 여러 프로젝트에 걸쳐 실행되므로 상태, 레이블, 모듈, 사이클은 여기에서 사용할 수 없습니다. 이 항목들은 프로젝트별로 존재합니다."
+    },
+    "run_history": {
+      "title": "실행 기록",
+      "empty": "이 자동화는 아직 실행되지 않았습니다.",
+      "started_at": "시작",
+      "duration": "소요 시간",
+      "status": "상태",
+      "trigger_source": "실행 계기",
+      "processed_count": "작업 항목",
+      "step_error": "오류",
+      "source_event": "이벤트",
+      "source_schedule": "일정",
+      "source_manual": "수동",
+      "status_success": "성공",
+      "status_failed": "실패",
+      "status_partial": "부분 성공",
+      "status_skipped": "건너뜀"
+    },
+    "days_of_week": {
+      "sunday": "일요일",
+      "monday": "월요일",
+      "tuesday": "화요일",
+      "wednesday": "수요일",
+      "thursday": "목요일",
+      "friday": "금요일",
+      "saturday": "토요일"
+    },
+    "days_of_week_initial": {
+      "sunday": "일",
+      "monday": "월",
+      "tuesday": "화",
+      "wednesday": "수",
+      "thursday": "목",
+      "friday": "금",
+      "saturday": "토"
     }
   }
 }

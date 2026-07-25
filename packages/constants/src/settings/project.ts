@@ -119,7 +119,8 @@ export const PROJECT_SETTINGS: Record<TProjectSettingsTabs, TProjectSettingsItem
     i18n_label: "project_settings.automations.label",
     href: `/automations`,
     access: [EUserProjectRoles.ADMIN],
-    highlight: (pathname: string, baseUrl: string) => pathname === `${baseUrl}/automations/`,
+    // Also keep the item active while the automation designer is open.
+    highlight: (pathname: string, baseUrl: string) => pathname.startsWith(`${baseUrl}/automations/`),
   },
   // Plain English label on purpose — i18next falls back to the key itself when
   // no translation exists, so no locale JSON entries are required.

@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "Добавить комментарий",
         "change_property": "Изменить свойство",
-        "run_script": "Запустить скрипт"
+        "run_script": "Запустить скрипт",
+        "send_notification": "Отправить уведомление",
+        "create_work_item": "Создать рабочий элемент",
+        "archive_work_item": "Архивировать рабочий элемент",
+        "call_webhook": "Вызвать webhook"
       },
       "configuration": {
         "label": "Конфигурация",
@@ -88,6 +92,47 @@
             "change_type_required": "Тип изменения обязателен",
             "property_value_required": "Значение свойства обязательно"
           }
+        },
+        "add_comment": {
+          "placeholder": "Введите комментарий, который должна опубликовать эта автоматизация."
+        },
+        "send_notification": {
+          "recipients_label": "Получатели",
+          "members_placeholder": "Выберите участников",
+          "title_label": "Заголовок",
+          "title_placeholder": "Краткое описание",
+          "message_label": "Сообщение",
+          "message_placeholder": "Что должны узнать получатели?"
+        },
+        "create_work_item": {
+          "name_label": "Заголовок",
+          "name_placeholder": "Укажите название рабочего элемента, который создаёт эта автоматизация",
+          "description_label": "Описание",
+          "description_placeholder": "Опишите рабочий элемент",
+          "state_label": "Статус",
+          "priority_label": "Приоритет",
+          "assignees_label": "Назначенные",
+          "labels_label": "Метки",
+          "due_in_days_label": "Срок через (дней с момента запуска)",
+          "link_to_trigger_label": "Создать как подэлемент того, который запустил автоматизацию",
+          "project_label": "Проект",
+          "project_hint": "Оставьте поле пустым, чтобы создать рабочий элемент в том проекте, для которого выполняется запуск."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "Метод",
+          "payload_label": "Полезная нагрузка",
+          "payload_placeholder": "Оставьте поле пустым, чтобы отправить нагрузку по умолчанию."
+        },
+        "archive_work_item": {
+          "description": "Это действие не требует настройки."
+        },
+        "relative_date": {
+          "mode_label": "Дата",
+          "mode_absolute": "Конкретная дата",
+          "mode_relative": "Относительно запуска",
+          "days_label": "Дней с момента запуска"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "Не удалось обновить действие. Пожалуйста, попробуйте снова!"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "В очереди",
+          "message": "Автоматизация будет выполнена в фоновом режиме."
+        },
+        "error": {
+          "title": "Ошибка!",
+          "message": "Не удалось поставить этот запуск в очередь. Попробуйте снова."
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "Рабочий элемент создан",
+      "work_item_updated": "Рабочий элемент обновлён",
+      "work_item_deleted": "Рабочий элемент удалён",
+      "work_item_state_changed": "Статус изменился",
+      "work_item_priority_changed": "Приоритет изменился",
+      "work_item_assignees_changed": "Назначенные изменились",
+      "work_item_labels_changed": "Метки изменились",
+      "work_item_target_date_changed": "Срок изменился",
+      "work_item_parent_changed": "Родительский элемент изменился",
+      "work_item_comment_created": "Добавлен комментарий",
+      "work_item_added_to_cycle": "Рабочий элемент добавлен в Цикл",
+      "work_item_added_to_module": "Рабочий элемент добавлен в Модуль",
+      "schedule": "По расписанию"
+    },
+    "properties": {
+      "state": "Статус",
+      "state_group": "Группа статусов",
+      "priority": "Приоритет",
+      "assignees": "Назначенные",
+      "labels": "Метки",
+      "modules": "Модули",
+      "cycle": "Цикл",
+      "work_item_type": "Тип рабочего элемента",
+      "created_by": "Создано",
+      "triggered_by": "Запущено",
+      "project": "Проект",
+      "name": "Заголовок",
+      "description": "Описание",
+      "target_date": "Срок",
+      "start_date": "Дата начала",
+      "created_at": "Дата создания",
+      "updated_at": "Дата последнего обновления",
+      "estimate": "Оценка",
+      "parent": "Родительский элемент",
+      "is_archived": "В архиве",
+      "sub_work_item_count": "Количество подэлементов"
+    },
+    "operators": {
+      "eq": "равно",
+      "neq": "не равно",
+      "in": "является одним из",
+      "not_in": "не является ни одним из",
+      "contains": "содержит",
+      "not_contains": "не содержит",
+      "is_empty": "пусто",
+      "is_not_empty": "не пусто",
+      "gt": "позже чем",
+      "gte": "в этот день или позже",
+      "lt": "раньше чем",
+      "lte": "в этот день или раньше",
+      "changed": "изменилось",
+      "changed_to": "изменилось на",
+      "changed_from": "изменилось с",
+      "due_in_days": "срок наступает в течение",
+      "overdue_by_days": "просрочено не менее чем на",
+      "older_than_days": "старше чем"
+    },
+    "operator_suffix": {
+      "days": "дней"
+    },
+    "change_types": {
+      "set": "Установить на",
+      "add": "Добавить",
+      "remove": "Удалить",
+      "clear": "Очистить",
+      "shift_days": "Сдвинуть на"
+    },
+    "recipients": {
+      "assignees": "Назначенные",
+      "created_by": "Автор",
+      "actor": "Тот, кто запустил",
+      "subscribers": "Подписчики",
+      "project_admins": "Администраторы проекта",
+      "specific_members": "Определённые участники"
+    },
+    "state_groups": {
+      "backlog": "Бэклог",
+      "unstarted": "К выполнению",
+      "started": "В работе",
+      "completed": "Готово",
+      "cancelled": "Отменено"
+    },
+    "priorities": {
+      "urgent": "Срочный",
+      "high": "Высокий",
+      "medium": "Средний",
+      "low": "Низкий",
+      "none": "Нет"
+    },
+    "designer": {
+      "back_to_list": "Назад к автоматизациям",
+      "run_now": "Запустить сейчас",
+      "enable": "Включить",
+      "disable": "Отключить",
+      "enabled": "Включена",
+      "disabled": "Отключена",
+      "not_found": "Не удалось найти эту автоматизацию.",
+      "select_property": "Выберите свойство",
+      "select_operator": "Выберите условие",
+      "select_value": "Выберите значение",
+      "enter_value": "Введите значение",
+      "add_condition_group": "Добавить вложенную группу",
+      "remove_condition": "Удалить условие",
+      "remove_group": "Удалить группу",
+      "remove_action": "Удалить действие",
+      "no_conditions": "Эта автоматизация выполняется каждый раз при срабатывании триггера.",
+      "owner": "Владелец",
+      "template_variables_label": "Доступные переменные",
+      "template_variables_hint": "Заключите имя переменной в двойные фигурные скобки, чтобы вставить её значение.",
+      "scheduled_target_label": "Выполнять для",
+      "scheduled_target_project": "Проекта, один раз за запуск",
+      "scheduled_target_work_items": "Каждого рабочего элемента, соответствующего условиям",
+      "workspace_scope_note": "Автоматизация уровня рабочего пространства выполняется в нескольких проектах, поэтому статусы, метки, Модули и Циклы здесь недоступны — они существуют в рамках отдельного проекта."
+    },
+    "run_history": {
+      "title": "История запусков",
+      "empty": "Эта автоматизация ещё не выполнялась.",
+      "started_at": "Запущено",
+      "duration": "Длительность",
+      "status": "Статус",
+      "trigger_source": "Запущено",
+      "processed_count": "Рабочие элементы",
+      "step_error": "Ошибка",
+      "source_event": "Событие",
+      "source_schedule": "Расписание",
+      "source_manual": "Вручную",
+      "status_success": "Успешно",
+      "status_failed": "Не удалось",
+      "status_partial": "Частично успешно",
+      "status_skipped": "Пропущено"
+    },
+    "days_of_week": {
+      "sunday": "Воскресенье",
+      "monday": "Понедельник",
+      "tuesday": "Вторник",
+      "wednesday": "Среда",
+      "thursday": "Четверг",
+      "friday": "Пятница",
+      "saturday": "Суббота"
+    },
+    "days_of_week_initial": {
+      "sunday": "В",
+      "monday": "П",
+      "tuesday": "В",
+      "wednesday": "С",
+      "thursday": "Ч",
+      "friday": "П",
+      "saturday": "С"
     }
   }
 }

@@ -72,7 +72,11 @@
       "handler_name": {
         "add_comment": "Add comment",
         "change_property": "Change property",
-        "run_script": "Run Script"
+        "run_script": "Run Script",
+        "send_notification": "Send notification",
+        "create_work_item": "Create work item",
+        "archive_work_item": "Archive work item",
+        "call_webhook": "Call a webhook"
       },
       "configuration": {
         "label": "Configuration",
@@ -88,6 +92,47 @@
             "change_type_required": "Change type is required",
             "property_value_required": "Property value is required"
           }
+        },
+        "add_comment": {
+          "placeholder": "Write the comment this automation should post."
+        },
+        "send_notification": {
+          "recipients_label": "Recipients",
+          "members_placeholder": "Select members",
+          "title_label": "Title",
+          "title_placeholder": "Short summary",
+          "message_label": "Message",
+          "message_placeholder": "What should the recipients know?"
+        },
+        "create_work_item": {
+          "name_label": "Title",
+          "name_placeholder": "Name the work item this automation creates",
+          "description_label": "Description",
+          "description_placeholder": "Describe the work item",
+          "state_label": "State",
+          "priority_label": "Priority",
+          "assignees_label": "Assignees",
+          "labels_label": "Labels",
+          "due_in_days_label": "Due in (days from the run)",
+          "link_to_trigger_label": "Make it a sub-work item of the one that triggered this",
+          "project_label": "Project",
+          "project_hint": "Leave empty to create the work item in whichever project the run is for."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "Method",
+          "payload_label": "Payload",
+          "payload_placeholder": "Leave this empty to send the default payload."
+        },
+        "archive_work_item": {
+          "description": "This action needs no configuration."
+        },
+        "relative_date": {
+          "mode_label": "Date",
+          "mode_absolute": "A specific date",
+          "mode_relative": "Relative to the run",
+          "days_label": "Days from the run"
         }
       },
       "comment_block": {
@@ -227,6 +272,16 @@
             "message": "Failed to update action. Please try again!"
           }
         }
+      },
+      "run_now": {
+        "success": {
+          "title": "Queued",
+          "message": "The automation will run in the background."
+        },
+        "error": {
+          "title": "Error!",
+          "message": "We couldn't queue that run. Try again."
+        }
       }
     },
     "empty_state": {
@@ -268,6 +323,156 @@
           }
         }
       }
+    },
+    "triggers": {
+      "work_item_created": "Work item is created",
+      "work_item_updated": "Work item is updated",
+      "work_item_deleted": "Work item is deleted",
+      "work_item_state_changed": "State changes",
+      "work_item_priority_changed": "Priority changes",
+      "work_item_assignees_changed": "Assignees change",
+      "work_item_labels_changed": "Labels change",
+      "work_item_target_date_changed": "Due date changes",
+      "work_item_parent_changed": "Parent changes",
+      "work_item_comment_created": "Comment is added",
+      "work_item_added_to_cycle": "Work item is added to a cycle",
+      "work_item_added_to_module": "Work item is added to a module",
+      "schedule": "On a schedule"
+    },
+    "properties": {
+      "state": "State",
+      "state_group": "State group",
+      "priority": "Priority",
+      "assignees": "Assignees",
+      "labels": "Labels",
+      "modules": "Modules",
+      "cycle": "Cycle",
+      "work_item_type": "Work item type",
+      "created_by": "Created by",
+      "triggered_by": "Triggered by",
+      "project": "Project",
+      "name": "Title",
+      "description": "Description",
+      "target_date": "Due date",
+      "start_date": "Start date",
+      "created_at": "Created on",
+      "updated_at": "Last updated on",
+      "estimate": "Estimate",
+      "parent": "Parent",
+      "is_archived": "Archived",
+      "sub_work_item_count": "Sub-work item count"
+    },
+    "operators": {
+      "eq": "is",
+      "neq": "is not",
+      "in": "is any of",
+      "not_in": "is none of",
+      "contains": "contains",
+      "not_contains": "does not contain",
+      "is_empty": "is empty",
+      "is_not_empty": "is not empty",
+      "gt": "is after",
+      "gte": "is on or after",
+      "lt": "is before",
+      "lte": "is on or before",
+      "changed": "changed",
+      "changed_to": "changed to",
+      "changed_from": "changed from",
+      "due_in_days": "is due within",
+      "overdue_by_days": "is overdue by at least",
+      "older_than_days": "is older than"
+    },
+    "operator_suffix": {
+      "days": "days"
+    },
+    "change_types": {
+      "set": "Set to",
+      "add": "Add",
+      "remove": "Remove",
+      "clear": "Clear",
+      "shift_days": "Shift by"
+    },
+    "recipients": {
+      "assignees": "Assignees",
+      "created_by": "Creator",
+      "actor": "Whoever triggered it",
+      "subscribers": "Subscribers",
+      "project_admins": "Project admins",
+      "specific_members": "Specific members"
+    },
+    "state_groups": {
+      "backlog": "Backlog",
+      "unstarted": "Todo",
+      "started": "In progress",
+      "completed": "Done",
+      "cancelled": "Cancelled"
+    },
+    "priorities": {
+      "urgent": "Urgent",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "none": "None"
+    },
+    "designer": {
+      "back_to_list": "Back to automations",
+      "run_now": "Run now",
+      "enable": "Enable",
+      "disable": "Disable",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "not_found": "We couldn't find that automation.",
+      "select_property": "Select a property",
+      "select_operator": "Select a condition",
+      "select_value": "Select a value",
+      "enter_value": "Enter a value",
+      "add_condition_group": "Add a nested group",
+      "remove_condition": "Remove condition",
+      "remove_group": "Remove group",
+      "remove_action": "Remove action",
+      "no_conditions": "This automation runs every time the trigger fires.",
+      "owner": "Owned by",
+      "template_variables_label": "Variables you can use",
+      "template_variables_hint": "Wrap a variable name in double curly braces to insert its value.",
+      "scheduled_target_label": "Run against",
+      "scheduled_target_project": "The project, once per run",
+      "scheduled_target_work_items": "Every work item that matches the conditions",
+      "workspace_scope_note": "A workspace automation runs across projects, so states, labels, modules and cycles aren't available here — those exist per project."
+    },
+    "run_history": {
+      "title": "Run history",
+      "empty": "This automation hasn't run yet.",
+      "started_at": "Started",
+      "duration": "Duration",
+      "status": "Status",
+      "trigger_source": "Triggered by",
+      "processed_count": "Work items",
+      "step_error": "Error",
+      "source_event": "Event",
+      "source_schedule": "Schedule",
+      "source_manual": "Manual",
+      "status_success": "Succeeded",
+      "status_failed": "Failed",
+      "status_partial": "Partly succeeded",
+      "status_skipped": "Skipped"
+    },
+    "days_of_week": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    },
+    "days_of_week_initial": {
+      "sunday": "S",
+      "monday": "M",
+      "tuesday": "T",
+      "wednesday": "W",
+      "thursday": "T",
+      "friday": "F",
+      "saturday": "S"
     }
   }
 }

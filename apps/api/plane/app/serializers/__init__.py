@@ -143,6 +143,12 @@ from .exporter import ExporterHistorySerializer
 
 from .webhook import WebhookSerializer, WebhookLogSerializer
 
+from .automation import (
+    AutomationSerializer,
+    AutomationActionSerializer,
+    AutomationRunSerializer,
+)
+
 from .favorite import UserFavoriteSerializer
 
 from .draft import (
