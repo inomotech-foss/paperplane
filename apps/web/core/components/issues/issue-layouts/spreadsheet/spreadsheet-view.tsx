@@ -13,16 +13,16 @@ import type { TIssue, IIssueDisplayFilterOptions, IIssueDisplayProperties } from
 import { EIssueLayoutTypes } from "@plane/types";
 // components
 import { MultipleSelectGroup } from "@/components/core/multiple-select";
+import { IssueBulkOperationsRoot } from "@/components/issues/bulk-operations";
 // hooks
 import { getCustomPropertyDisplayKey } from "@/components/issues/issue-detail/custom-properties/utils";
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
 import { useProject } from "@/hooks/store/use-project";
 import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
-// plane web components
-import { IssueBulkOperationsRoot } from "@/plane-web/components/issues/bulk-operations";
 // local imports
 import type { TRenderQuickActions } from "../list/list-view-types";
-import { QuickAddIssueRoot, SpreadsheetAddIssueButton } from "../quick-add";
+import { SpreadsheetAddIssueButton } from "../quick-add/button/spreadsheet";
+import { QuickAddIssueRoot } from "../quick-add/root";
 import { SpreadsheetTable } from "./spreadsheet-table";
 
 type Props = {

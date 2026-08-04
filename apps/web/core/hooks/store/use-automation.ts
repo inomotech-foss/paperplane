@@ -8,7 +8,7 @@ import { useContext } from "react";
 // mobx store
 import { StoreContext } from "@/lib/store-context";
 // types
-import type { IAutomationStore } from "@/plane-web/store/automation.store";
+import type { IAutomationStore } from "@/store/automation.store";
 
 export const useAutomation = (): IAutomationStore => {
   const context = useContext(StoreContext);

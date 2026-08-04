@@ -6,9 +6,6 @@
 
 // components
 import type { TPageRootHandlers } from "@/components/pages/editor/page-root";
-// plane web imports
-import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/plane-web/components/pages/navigation-pane";
-import { PageNavigationPaneAdditionalTabPanelsRoot } from "@/plane-web/components/pages/navigation-pane/tab-panels/root";
 // store
 import type { EPageStoreType } from "@/hooks/store";
 import type { TPageInstance } from "@/store/pages/base-page";
@@ -19,6 +16,7 @@ import { PageNavigationPaneInfoTabPanel } from "./info/root";
 import { PageNavigationPaneOutlineTabPanel } from "./outline";
 import { PageNavigationPaneSubPagesTabPanel } from "./sub-pages";
 import { Tabs } from "@plane/propel/tabs";
+import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from ".";
 
 type Props = {
   page: TPageInstance;
@@ -38,7 +36,6 @@ export function PageNavigationPaneTabPanelsRoot(props: Props) {
           {tab.key === "sub_pages" && <PageNavigationPaneSubPagesTabPanel page={page} storeType={storeType} />}
           {tab.key === "info" && <PageNavigationPaneInfoTabPanel page={page} versionHistory={versionHistory} />}
           {tab.key === "assets" && <PageNavigationPaneAssetsTabPanel page={page} />}
-          <PageNavigationPaneAdditionalTabPanelsRoot activeTab={tab.key} page={page} />
         </Tabs.Content>
       ))}
     </>

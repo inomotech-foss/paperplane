@@ -15,4 +15,5 @@ export * from "./start-date";
 export * from "./state-group";
 export * from "./state";
 export * from "./cycle";
+export * from "./issue-types";
 export * from "./module";

@@ -18,12 +18,12 @@ import { SimpleEmptyState } from "@/components/empty-state/simple-empty-state-ro
 // hooks
 import { useHome } from "@/hooks/store/use-home";
 import { useProject } from "@/hooks/store/use-project";
-// plane web components
-import { HomePageHeader } from "@/plane-web/components/home/header";
 // local imports
 import { StickiesWidget } from "../stickies/widget";
-import { HomeLoader, NoProjectsEmptyState, RecentActivityWidget } from "./widgets";
-import { DashboardQuickLinks } from "./widgets/links";
+import { NoProjectsEmptyState } from "./widgets/empty-states/no-projects";
+import { HomeLoader } from "./widgets/loaders/home-loader";
+import { RecentActivityWidget } from "./widgets/recents";
+import { DashboardQuickLinks } from "./widgets/links/root";
 import { ManageWidgetsModal } from "./widgets/manage";
 
 export const HOME_WIDGETS_LIST: {
@@ -83,7 +83,6 @@ export const DashboardWidgets = observer(function DashboardWidgets() {
 
   return (
     <div className="relative flex h-full w-full flex-col gap-7">
-      <HomePageHeader />
       <ManageWidgetsModal
         workspaceSlug={workspaceSlug.toString()}
         isModalOpen={showWidgetSettings}

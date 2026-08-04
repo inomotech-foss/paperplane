@@ -9,30 +9,27 @@ import { observer } from "mobx-react";
 import { getValidKeysFromObject } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// plane web components
-import { IssueTypeActivity, AdditionalActivityRoot } from "@/plane-web/components/issues/issue-details";
-import { useTimeLineRelationOptions } from "@/plane-web/components/relations";
+import { useTimeLineRelationOptions } from "@/components/relations";
 // local components
-import {
-  IssueDefaultActivity,
-  IssueNameActivity,
-  IssueDescriptionActivity,
-  IssueStateActivity,
-  IssueAssigneeActivity,
-  IssuePriorityActivity,
-  IssueEstimateActivity,
-  IssueParentActivity,
-  IssueRelationActivity,
-  IssueStartDateActivity,
-  IssueTargetDateActivity,
-  IssueCycleActivity,
-  IssueModuleActivity,
-  IssueLabelActivity,
-  IssueLinkActivity,
-  IssueAttachmentActivity,
-  IssueArchivedAtActivity,
-  IssueInboxActivity,
-} from "./actions";
+import { IssueArchivedAtActivity } from "./actions/archived-at";
+import { IssueAssigneeActivity } from "./actions/assignee";
+import { IssueAttachmentActivity } from "./actions/attachment";
+import { IssueCycleActivity } from "./actions/cycle";
+import { IssueDefaultActivity } from "./actions/default";
+import { IssueDescriptionActivity } from "./actions/description";
+import { IssueEstimateActivity } from "./actions/estimate";
+import { IssueInboxActivity } from "./actions/inbox";
+import { IssueLabelActivity } from "./actions/label";
+import { IssueLinkActivity } from "./actions/link";
+import { IssueModuleActivity } from "./actions/module";
+import { IssueNameActivity } from "./actions/name";
+import { IssueParentActivity } from "./actions/parent";
+import { IssuePriorityActivity } from "./actions/priority";
+import { IssueRelationActivity } from "./actions/relation";
+import { IssueStartDateActivity } from "./actions/start_date";
+import { IssueStateActivity } from "./actions/state";
+import { IssueTargetDateActivity } from "./actions/target_date";
+import { IssueTypeActivity } from "./actions/type";
 
 type TIssueActivityItem = {
   activityId: string;
@@ -44,6 +41,7 @@ export const IssueActivityItem = observer(function IssueActivityItem(props: TIss
   // hooks
   const {
     activity: { getActivityById },
+    // oxlint-disable-next-line no-empty-pattern
     comment: {},
   } = useIssueDetail();
   const ISSUE_RELATION_OPTIONS = useTimeLineRelationOptions();
@@ -95,6 +93,6 @@ export const IssueActivityItem = observer(function IssueActivityItem(props: TIss
     case "type":
       return <IssueTypeActivity {...componentDefaultProps} />;
     default:
-      return <AdditionalActivityRoot {...componentDefaultProps} field={activityField} />;
+      return null;
   }
 });

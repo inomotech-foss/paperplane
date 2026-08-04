@@ -62,7 +62,11 @@ from .asset import (
     FileAssetSerializer,
 )
 from .invite import WorkspaceInviteSerializer
-from .member import ProjectMemberSerializer
+from .member import (
+    ProjectMemberSerializer,
+    WorkspaceMemberLiteAPISerializer,
+    ProjectMemberLiteAPISerializer,
+)
 from .page import PageSerializer
 from .page_comment import PageCommentSerializer as PageCommentAPISerializer
 from .sticky import StickySerializer

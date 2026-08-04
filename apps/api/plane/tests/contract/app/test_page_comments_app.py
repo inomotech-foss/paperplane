@@ -330,7 +330,7 @@ class TestPageCommentsAppEndpoint:
     @pytest.mark.django_db
     def test_comment_asset_bulk_association(self, session_client, workspace, project, page, create_user):
         comment = PageComment.objects.create(page=page, comment_html="<p>x</p>", anchor_id="t1", actor=create_user)
-        asset = FileAsset.objects.create(
+        asset = FileAsset(
             attributes={"name": "img.png", "type": "image/png", "size": 10},
             asset="img.png",
             size=10,
@@ -338,9 +338,10 @@ class TestPageCommentsAppEndpoint:
             project=project,
             entity_type=FileAsset.EntityTypeContext.PAGE_COMMENT_DESCRIPTION,
             entity_identifier=str(comment.id),
-            created_by=create_user,
             is_uploaded=True,
         )
+        # save() overwrites created_by unless it is passed explicitly
+        asset.save(created_by_id=create_user.id)
         url = f"/api/assets/v2/workspaces/{workspace.slug}/projects/{project.id}/{comment.id}/bulk/"
         response = session_client.post(url, {"asset_ids": [str(asset.id)]}, format="json")
         assert response.status_code == status.HTTP_204_NO_CONTENT

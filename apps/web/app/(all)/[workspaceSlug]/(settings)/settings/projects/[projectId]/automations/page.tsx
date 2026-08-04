@@ -12,14 +12,13 @@ import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { IProject } from "@plane/types";
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { AutoArchiveAutomation, AutoCloseAutomation } from "@/components/automation";
+import { CustomAutomationsRoot } from "@/components/automations/root";
 import { PageHead } from "@/components/core/page-title";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
-// plane web imports
-import { CustomAutomationsRoot } from "@/plane-web/components/automations/root";
 // local imports
 import type { Route } from "./+types/page";
 import { AutomationsProjectSettingsHeader } from "./header";

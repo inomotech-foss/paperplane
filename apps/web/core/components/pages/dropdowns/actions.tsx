@@ -6,8 +6,7 @@
 
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
-import { useParams } from "next/navigation";
-import { ArchiveRestoreIcon, FileOutput, LockKeyhole, LockKeyholeOpen } from "lucide-react";
+import { ArchiveRestoreIcon, LockKeyhole, LockKeyholeOpen } from "lucide-react";
 // constants
 import { EPageAccess } from "@plane/constants";
 // plane editor
@@ -20,11 +19,8 @@ import { cn } from "@plane/utils";
 import { DeletePageModal } from "@/components/pages/modals/delete-page-modal";
 // hooks
 import type { TPageOperations } from "@/hooks/use-page-operations";
-// plane web components
-import { MovePageModal } from "@/plane-web/components/pages";
 // plane web hooks
 import type { EPageStoreType } from "@/hooks/store";
-import { usePageFlag } from "@/hooks/use-page-flag";
 // store types
 import type { TPageInstance } from "@/store/pages/base-page";
 
@@ -56,13 +52,6 @@ export const PageActions = observer(function PageActions(props: Props) {
   const { extraOptions, optionsOrder, page, pageOperations, parentRef, storeType } = props;
   // states
   const [deletePageModal, setDeletePageModal] = useState(false);
-  const [movePageModal, setMovePageModal] = useState(false);
-  // params
-  const { workspaceSlug } = useParams();
-  // page flag
-  const { isMovePageEnabled } = usePageFlag({
-    workspaceSlug: workspaceSlug?.toString() ?? "",
-  });
   // derived values
   const {
     access,
@@ -73,7 +62,6 @@ export const PageActions = observer(function PageActions(props: Props) {
     canCurrentUserDeletePage,
     canCurrentUserDuplicatePage,
     canCurrentUserLockPage,
-    canCurrentUserMovePage,
   } = page;
   // menu items
   const MENU_ITEMS = useMemo(
@@ -138,13 +126,6 @@ export const PageActions = observer(function PageActions(props: Props) {
           icon: TrashIcon,
           shouldRender: canCurrentUserDeletePage && !!archived_at,
         },
-        {
-          key: "move",
-          action: () => setMovePageModal(true),
-          title: "Move",
-          icon: FileOutput,
-          shouldRender: canCurrentUserMovePage && isMovePageEnabled,
-        },
       ];
       if (extraOptions) {
         menuItems.push(...extraOptions);
@@ -161,8 +142,6 @@ export const PageActions = observer(function PageActions(props: Props) {
       canCurrentUserDuplicatePage,
       canCurrentUserArchivePage,
       canCurrentUserDeletePage,
-      canCurrentUserMovePage,
-      isMovePageEnabled,
       pageOperations,
     ]
   );
@@ -177,8 +156,7 @@ export const PageActions = observer(function PageActions(props: Props) {
 
   return (
     <>
-      {/* keep closed modals unmounted — one instance of each is mounted per rendered row */}
-      {movePageModal && <MovePageModal isOpen={movePageModal} onClose={() => setMovePageModal(false)} page={page} />}
+      {/* keep closed modals unmounted - one instance of each is mounted per rendered row */}
       {deletePageModal && (
         <DeletePageModal
           isOpen={deletePageModal}

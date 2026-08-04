@@ -10,13 +10,11 @@ import { useTranslation } from "@plane/i18n";
 import { LinkIcon, ViewsIcon, RelationPropertyIcon } from "@plane/propel/icons";
 // plane imports
 import type { TIssueServiceType, TWorkItemWidgets } from "@plane/types";
-// plane web imports
-import { WorkItemAdditionalWidgetActionButtons } from "@/plane-web/components/issues/issue-detail-widgets/action-buttons";
 // local imports
-import { IssueAttachmentActionButton } from "./attachments";
-import { IssueLinksActionButton } from "./links";
-import { RelationActionButton } from "./relations";
-import { SubIssuesActionButton } from "./sub-issues";
+import { IssueAttachmentActionButton } from "./attachments/quick-action-button";
+import { IssueLinksActionButton } from "./links/quick-action-button";
+import { RelationActionButton } from "./relations/quick-action-button";
+import { SubIssuesActionButton } from "./sub-issues/quick-action-button";
 import { IssueDetailWidgetButton } from "./widget-button";
 
 type Props = {
@@ -92,14 +90,6 @@ export function IssueDetailWidgetActionButtons(props: Props) {
           issueServiceType={issueServiceType}
         />
       )}
-      <WorkItemAdditionalWidgetActionButtons
-        disabled={disabled}
-        hideWidgets={hideWidgets ?? []}
-        issueServiceType={issueServiceType}
-        projectId={projectId}
-        workItemId={issueId}
-        workspaceSlug={workspaceSlug}
-      />
     </div>
   );
 }

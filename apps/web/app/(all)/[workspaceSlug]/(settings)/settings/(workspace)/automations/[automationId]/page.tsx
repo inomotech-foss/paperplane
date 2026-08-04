@@ -15,7 +15,7 @@ import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 // plane web imports
-import { AutomationDesignerRoot } from "@/plane-web/components/automations/designer/root";
+import { AutomationDesignerRoot } from "@/components/automations/designer/root";
 // local imports
 import type { Route } from "./+types/page";
 import { AutomationsWorkspaceSettingsHeader } from "../header";
