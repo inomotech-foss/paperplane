@@ -27,16 +27,16 @@ import { Row } from "@plane/ui";
 import { cn } from "@plane/utils";
 // components
 import { ListLoaderItemRow } from "@/components/ui/loader/layouts/list-layout-loader";
+import { useWorkFlowFDragNDrop } from "@/components/workflow";
 // hooks
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useIssuesStore } from "@/hooks/use-issue-layout-store";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
-// Plane-web
-import { useWorkFlowFDragNDrop } from "@/plane-web/components/workflow";
-//
+// local imports
 import { GroupDragOverlay } from "../group-drag-overlay";
-import { ListQuickAddIssueButton, QuickAddIssueRoot } from "../quick-add";
+import { ListQuickAddIssueButton } from "../quick-add/button/list";
+import { QuickAddIssueRoot } from "../quick-add/root";
 import type { GroupDropLocation } from "../utils";
 import {
   getDestinationFromDropPayload,
@@ -132,6 +132,7 @@ export const ListGroup = observer(function ListGroup(props: Props) {
   const loadMore = isPaginating ? (
     <ListLoaderItemRow />
   ) : (
+    // oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions
     <div
       className={
         "relative flex h-11 cursor-pointer items-center gap-3 border border-transparent border-t-subtle-1 bg-surface-1 p-3 pl-8 text-13 font-medium text-accent-primary hover:text-accent-secondary hover:underline"
@@ -176,6 +177,12 @@ export const ListGroup = observer(function ListGroup(props: Props) {
     return preloadedData;
   };
 
+  const dropHandlersRef = useRef({ handleWorkFlowState, t, handleOnDrop, isExpanded, handleCollapsedGroups });
+
+  useEffect(() => {
+    dropHandlersRef.current = { handleWorkFlowState, t, handleOnDrop, isExpanded, handleCollapsedGroups };
+  });
+
   useEffect(() => {
     const element = groupRef.current;
 
@@ -198,7 +205,7 @@ export const ListGroup = observer(function ListGroup(props: Props) {
           const sourceGroupId = source?.data?.groupId as string | undefined;
           const currentGroupId = group.id;
 
-          sourceGroupId && handleWorkFlowState(sourceGroupId, currentGroupId);
+          if (sourceGroupId) dropHandlersRef.current.handleWorkFlowState(sourceGroupId, currentGroupId);
 
           const sourceIndex = getGroupIndex(sourceGroupId);
           const currentIndex = getGroupIndex(currentGroupId);
@@ -220,23 +227,24 @@ export const ListGroup = observer(function ListGroup(props: Props) {
             if (group.dropErrorMessage)
               setToast({
                 type: TOAST_TYPE.WARNING,
-                title: t("common.warning"),
+                title: dropHandlersRef.current.t("common.warning"),
                 message: group.dropErrorMessage,
               });
             return;
           }
 
-          handleOnDrop(source, destination);
+          dropHandlersRef.current.handleOnDrop(source, destination);
 
           highlightIssueOnDrop(getIssueBlockId(source.id, destination?.groupId), orderBy !== "sort_order");
 
-          if (!isExpanded) {
-            handleCollapsedGroups(group.id);
+          if (!dropHandlersRef.current.isExpanded) {
+            dropHandlersRef.current.handleCollapsedGroups(group.id);
           }
         },
       })
     );
   }, [
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
     groupRef?.current,
     group,
     orderBy,
@@ -318,6 +326,7 @@ export const ListGroup = observer(function ListGroup(props: Props) {
             ) : (
               <>
                 {Array.from({ length: 2 }).map((_, index) => (
+                  // oxlint-disable-next-line react/no-array-index-key
                   <ListLoaderItemRow key={index} />
                 ))}
                 <ListLoaderItemRow ref={setIntersectionElement} />

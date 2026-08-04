@@ -20,11 +20,10 @@ import type {
   TFilterConditionNodeForDisplay,
 } from "@plane/types";
 import { FILTER_FIELD_TYPE } from "@plane/types";
-// local imports
-import { AdditionalFilterValueInput } from "@/plane-web/components/rich-filters/filter-value-input/root";
 import type { TFilterValueInputProps } from "../shared";
 import { DateRangeFilterValueInput } from "./date/range";
 import { SingleDateFilterValueInput } from "./date/single";
+import { NumberFilterValueInput } from "./number";
 import { MultiSelectFilterValueInput } from "./select/multi";
 import { SingleSelectFilterValueInput } from "./select/single";
 
@@ -82,4 +81,29 @@ export const FilterValueInput = observer(function FilterValueInput<P extends TFi
   }
 
   return <AdditionalFilterValueInput {...props} />;
+});
+
+export const AdditionalFilterValueInput = observer(function AdditionalFilterValueInput<
+  P extends TFilterProperty,
+  V extends TFilterValue,
+>(props: TFilterValueInputProps<P, V>) {
+  const { condition, filterFieldConfig, isDisabled = false, onChange } = props;
+
+  // Number input (e.g. NUMBER custom properties with gt / lt operators)
+  if (filterFieldConfig?.type === FILTER_FIELD_TYPE.NUMBER) {
+    return (
+      <NumberFilterValueInput<P>
+        condition={condition as TFilterConditionNodeForDisplay<P, number>}
+        isDisabled={isDisabled}
+        onChange={(value) => onChange(value as SingleOrArray<V>)}
+      />
+    );
+  }
+
+  return (
+    // Fallback
+    <div className="flex h-full cursor-not-allowed items-center px-4 text-11 text-placeholder transition-opacity duration-200">
+      Filter type not supported
+    </div>
+  );
 });

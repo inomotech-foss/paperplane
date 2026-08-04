@@ -14,7 +14,7 @@ import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 // plane web imports
-import { AutomationDesignerRoot } from "@/plane-web/components/automations/designer/root";
+import { AutomationDesignerRoot } from "@/components/automations/designer/root";
 // local imports
 import type { Route } from "./+types/page";
 import { AutomationsProjectSettingsHeader } from "../header";

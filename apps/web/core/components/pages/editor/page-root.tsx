@@ -13,9 +13,7 @@ import { COMMENT_MARK_DATA_ATTRIBUTE, EDITOR_COMMENT_CREATE_EVENT } from "@plane
 import type { TDocumentPayload, TPage, TPageVersion, TWebhookConnectionQueryParams } from "@plane/types";
 // hooks
 import { usePageFallback } from "@/hooks/use-page-fallback";
-// plane web import
 import type { PageUpdateHandler, TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
-import { PageModals } from "@/plane-web/components/pages";
 import { usePagesPaneExtensions, useExtendedEditorProps } from "@/hooks/pages";
 import type { EPageStoreType } from "@/hooks/store";
 // store
@@ -30,7 +28,7 @@ import { PagesVersionEditor } from "../version/editor";
 import { ContentLimitBanner } from "./content-limit-banner";
 import { PageEditorBody } from "./editor-body";
 import type { TEditorBodyConfig, TEditorBodyHandlers } from "./editor-body";
-import { PageEditorToolbarRoot } from "./toolbar";
+import { PageEditorToolbarRoot } from "./toolbar/root";
 
 export type TPageRootHandlers = {
   create: (payload: Partial<TPage>) => Promise<Partial<TPage> | undefined>;
@@ -231,7 +229,6 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
         }}
         extensions={navigationPaneExtensions}
       />
-      <PageModals page={page} storeType={storeType} />
     </div>
   );
 });

@@ -14,7 +14,7 @@ import type { IIntakeState, IState } from "@plane/types";
 import { sortStates } from "@plane/utils";
 // plane web
 import { ProjectStateService } from "@/services/project/project-state.service";
-import type { RootStore } from "@/plane-web/store/root.store";
+import type { RootStore } from "@/store/root.store";
 
 export interface IStateStore {
   //Loaders
@@ -124,13 +124,10 @@ export class StateStore implements IStateStore {
     const groupedStates = groupBy(this.projectStates, "group") as Record<string, IState[]>;
 
     // Ensure all STATE_GROUPS are present
-    const allGroups = Object.keys(STATE_GROUPS).reduce(
-      (acc, group) => ({
-        ...acc,
-        [group]: groupedStates[group] || [],
-      }),
-      {} as Record<string, IState[]>
-    );
+    const allGroups: Record<string, IState[]> = {};
+    for (const group of Object.keys(STATE_GROUPS)) {
+      allGroups[group] = groupedStates[group] || [];
+    }
 
     return allGroups;
   }
@@ -307,6 +304,7 @@ export class StateStore implements IStateStore {
    */
   deleteState = async (workspaceSlug: string, projectId: string, stateId: string) => {
     if (!this.stateMap?.[stateId]) return;
+    // oxlint-disable-next-line promise/always-return
     await this.stateService.deleteState(workspaceSlug, projectId, stateId).then(() => {
       runInAction(() => {
         delete this.stateMap[stateId];

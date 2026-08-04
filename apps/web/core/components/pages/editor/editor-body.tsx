@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { LIVE_BASE_PATH, LIVE_BASE_URL } from "@plane/constants";
@@ -35,7 +35,6 @@ import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 // plane web imports
 import type { TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
 import { useRealtimePageEvents } from "@/hooks/use-realtime-page-events";
-import { EditorAIMenu } from "@/plane-web/components/pages";
 import type { TExtendedEditorExtensionsConfig } from "@/hooks/pages";
 import type { EPageStoreType } from "@/hooks/store";
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
@@ -45,6 +44,9 @@ import type { TPageInstance } from "@/store/pages/base-page";
 import { PageContentLoader } from "../loaders/page-content-loader";
 import { PageEditorHeaderRoot } from "./header";
 import { PageContentBrowser } from "./summary";
+import { EditorAIMenu } from "./ai/menu";
+
+const subscribeToNothing = () => () => {};
 
 export type TEditorBodyConfig = {
   fileHandler: TFileHandler;
@@ -187,31 +189,40 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
     [setSyncingStatus, onCollaborationStateChange]
   );
 
+  // window.location is unavailable during SSR, so the server snapshot is null.
+  const origin = useSyncExternalStore(
+    subscribeToNothing,
+    () => window.location.origin,
+    () => null
+  );
+  const protocol = useSyncExternalStore(
+    subscribeToNothing,
+    () => window.location.protocol,
+    () => null
+  );
+
   const realtimeConfig: TRealtimeConfig | undefined = useMemo(() => {
+    if (!origin || !protocol) return undefined;
+
     // Construct the WebSocket Collaboration URL
     try {
-      const LIVE_SERVER_BASE_URL = LIVE_BASE_URL?.trim() || window.location.origin;
+      const LIVE_SERVER_BASE_URL = LIVE_BASE_URL?.trim() || origin;
       const WS_LIVE_URL = new URL(LIVE_SERVER_BASE_URL);
-      const isSecureEnvironment = window.location.protocol === "https:";
-      WS_LIVE_URL.protocol = isSecureEnvironment ? "wss" : "ws";
+      WS_LIVE_URL.protocol = protocol === "https:" ? "wss" : "ws";
       WS_LIVE_URL.pathname = `${LIVE_BASE_PATH}/collaboration`;
 
       // Append query parameters to the URL
-      Object.entries(webhookConnectionParams)
-        .filter(([_, value]) => value !== undefined && value !== null)
-        .forEach(([key, value]) => {
-          WS_LIVE_URL.searchParams.set(key, String(value));
-        });
+      for (const [key, value] of Object.entries(webhookConnectionParams)) {
+        if (value === undefined || value === null) continue;
+        WS_LIVE_URL.searchParams.set(key, String(value));
+      }
 
-      // Construct realtime config
-      return {
-        url: WS_LIVE_URL.toString(),
-      };
+      return { url: WS_LIVE_URL.toString() };
     } catch (error) {
       console.error("Error creating realtime config", error);
       return undefined;
     }
-  }, [webhookConnectionParams]);
+  }, [origin, protocol, webhookConnectionParams]);
 
   const userConfig = useMemo(
     () => ({
@@ -244,8 +255,10 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
           <div className="page-summary-container absolute top-[64px] right-0 z-[5] h-full">
             <div className="sticky top-[72px]">
               <div className="group/page-toc relative px-page-x">
+                {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events */}
                 <div
                   className="max-h-[50vh] !cursor-pointer overflow-hidden"
+                  // oxlint-disable-next-line jsx_a11y/prefer-tag-over-role
                   role="button"
                   aria-label={t("page_navigation_pane.outline_floating_button")}
                   onClick={handleOpenNavigationPane}
@@ -281,6 +294,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
                 if (!res) throw new Error("Failed in fetching mentions");
                 return res;
               },
+              // oxlint-disable-next-line no-shadow
               renderComponent: (props) => <EditorMentionsRoot {...props} />,
               getMentionedEntityDetails: (id: string) => ({ display_name: getUserDetails(id)?.display_name ?? "" }),
             }}

@@ -112,7 +112,8 @@ const BLOCKED_LINK_PROTOCOLS = ["javascript:", "data:", "vbscript:"];
 function isDangerousHref(rawHref: string): boolean {
   const normalized = rawHref
     .replace(/[\t\n\r]/g, "") // strip Tab/LF/CR (stripped anywhere by WHATWG parser)
-    .replace(/^[\x00-\x20]+/, "") // strip leading C0 controls + space (WHATWG leading trim)
+    // oxlint-disable-next-line no-control-regex -- intentional: mirrors WHATWG C0-control stripping before the URL scheme
+    .replace(/^[\s\u0000-\u0008\u000E-\u001F]+/, "") // strip leading C0 controls + whitespace
     .toLowerCase();
   return BLOCKED_LINK_PROTOCOLS.some((protocol) => normalized.startsWith(protocol));
 }
