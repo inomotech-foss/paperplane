@@ -49,14 +49,13 @@ spec:
       backendRefs:
         - name: {{ .Release.Name }}-admin
           port: 3000
-    {{- if and .Values.minio.local_setup .Values.env.docstore_bucket }}
+    {{- if and (include "plane.docStore.originProxied" $) .Values.env.docstore_bucket }}
     - matches:
         - path:
             type: PathPrefix
             value: /{{ .Values.env.docstore_bucket }}
       backendRefs:
-        - name: {{ .Release.Name }}-minio
-          port: 9000
+        {{- include "plane.docStore.backendRef" $ | nindent 8 }}
     {{- end }}
     - matches:
         - path:

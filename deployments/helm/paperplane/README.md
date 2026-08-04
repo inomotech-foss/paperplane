@@ -269,7 +269,45 @@ The `Gateway` (listeners, TLS termination, request-body limits) is yours to mana
 | minio.affinity               |                {}                 |          | This key allows you to set the affinity rules for the stateful deployment of `minio`. This is useful when you want to control how pods are scheduled on nodes in your Kubernetes cluster.                                                                                                                                                                |
 | minio.labels | {} |  | This key allows you to set custom labels for the stateful deployment of `minio`. This is useful for organizing and selecting resources in your Kubernetes cluster. |
 | minio.annotations | {} |  | This key allows you to set custom annotations for the stateful deployment of `minio`. This is useful for adding metadata or configuration hints to your resources. |
+| minio.externalProxy.enabled | false |  | Serve an external S3-compatible store through the app's own origin. See below. Requires `minio.local_setup=false` |
+| minio.externalProxy.service.name |  | Yes if `externalProxy.enabled` | Name of the Service fronting the external store |
+| minio.externalProxy.service.port | 80 |  | Port of that Service |
+| minio.externalProxy.service.namespace |  |  | Namespace of that Service. Defaults to the release namespace. Gateway API only (see below) |
 
+#### External S3-compatible stores
+
+Assets are handed to the browser as presigned S3 requests signed against
+`env.aws_s3_endpoint_url`. That only works for a browser-reachable endpoint (AWS
+S3, R2, ...), not for a self-hosted store on a cluster-internal address.
+
+Set `minio.externalProxy` for those. The chart routes `/<env.docstore_bucket>` on
+`ingress.appHost` to the store's Service and the app signs against `appHost`, so
+assets stay same-origin and the store needs no CORS setup.
+
+```yaml
+minio:
+  local_setup: false
+  externalProxy:
+    enabled: true
+    service:
+      name: seaweedfs-s3
+      port: 8333
+      namespace: seaweedfs
+env:
+  docstore_bucket: uploads
+  aws_access_key: "..."
+  aws_secret_access_key: "..."
+  aws_s3_endpoint_url: http://seaweedfs-s3.seaweedfs.svc:8333
+  aws_region: us-east-1
+```
+
+Keep `env.aws_s3_endpoint_url` on the internal address, it is still used for
+server-side access.
+
+`service.namespace` works with Gateway API and Traefik `IngressRoute` but not with
+a plain Ingress, which cannot reference another namespace. With Gateway API the
+store's namespace also needs a `ReferenceGrant` for `HTTPRoute` from the release
+namespace.
 
 ### Web Deployment
 
@@ -631,6 +669,6 @@ If you are planning to use 3rd party ingress providers, here is the available ro
 | plane.example.com       |   /live/\*   | <http://plane-app-live.plane:3000>      | Yes                                                                         |
 | plane.example.com       |   /api/\*    | <http://plane-app-api.plane:8000>       | Yes                                                                         |
 | plane.example.com       |   /auth/\*   | <http://plane-app-api.plane:8000>       | Yes                                                                         |
-| plane.example.com       | /uploads/\*  | <http://plane-app-minio.plane:9000>     | Yes (Only if using local setup)                                             |
+| plane.example.com       | /uploads/\*  | <http://plane-app-minio.plane:9000>     | Yes, if using local setup or `minio.externalProxy` (then the external store) |
 | plane-minio.example.com |      /       | <http://plane-app-minio.plane:9090>     | (Optional) if using local setup, this will enable minio console access      |
 | plane-mq.example.com    |      /       | <http://plane-app-rabbitmq.plane:15672> | (Optional) if using local setup, this will enable management console access |

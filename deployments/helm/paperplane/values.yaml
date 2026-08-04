@@ -111,6 +111,15 @@ minio:
   affinity: {}
   env:
     minio_endpoint_ssl: false
+  # Route /<env.docstore_bucket> on ingress.appHost to an external S3-compatible
+  # store, so presigned URLs stay same-origin. See README. Needs local_setup=false.
+  externalProxy:
+    enabled: false
+    service:
+      name: ""
+      port: 80
+      # Defaults to the release namespace. Not supported for a plain Ingress.
+      namespace: ""
 
 web:
   replicas: 1

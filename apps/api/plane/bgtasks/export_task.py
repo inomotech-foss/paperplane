@@ -62,11 +62,10 @@ def upload_to_s3(zip_file: io.BytesIO, workspace_id: UUID, token_id: str, slug: 
         )
 
         # Generate presigned url for the uploaded file with different base
+        host = str(settings.AWS_S3_CUSTOM_DOMAIN).removesuffix(f"/{settings.AWS_STORAGE_BUCKET_NAME}")
         presign_s3 = boto3.client(
             "s3",
-            endpoint_url=(
-                f"{settings.AWS_S3_URL_PROTOCOL}//{str(settings.AWS_S3_CUSTOM_DOMAIN).replace('/uploads', '')}/"
-            ),
+            endpoint_url=f"{settings.AWS_S3_URL_PROTOCOL}//{host}/",
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             config=Config(signature_version="s3v4"),

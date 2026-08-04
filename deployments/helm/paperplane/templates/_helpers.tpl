@@ -89,6 +89,50 @@ file for the same key is rejected.
 {{- end -}}
 {{- end -}}
 
+{{/*
+Non-empty when the object store is served under the app's own origin at
+/<env.docstore_bucket>, which is what USE_MINIO=1 means to the app.
+*/}}
+{{- define "plane.docStore.originProxied" -}}
+{{- if .Values.minio.local_setup -}}
+{{- if .Values.minio.externalProxy.enabled -}}
+{{- fail "minio.externalProxy.enabled requires minio.local_setup=false" -}}
+{{- end -}}
+true
+{{- else if .Values.minio.externalProxy.enabled -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/* Service name backing the /<bucket> route. */}}
+{{- define "plane.docStore.serviceName" -}}
+{{- if .Values.minio.local_setup -}}
+{{ .Release.Name }}-minio
+{{- else -}}
+{{ required "minio.externalProxy.service.name is required when minio.externalProxy is enabled" .Values.minio.externalProxy.service.name }}
+{{- end -}}
+{{- end -}}
+
+{{/* Service port backing the /<bucket> route. */}}
+{{- define "plane.docStore.servicePort" -}}
+{{- if .Values.minio.local_setup -}}
+9000
+{{- else -}}
+{{ .Values.minio.externalProxy.service.port | default 80 }}
+{{- end -}}
+{{- end -}}
+
+{{/* One list item, for HTTPRoute backendRefs and Traefik IngressRoute services. */}}
+{{- define "plane.docStore.backendRef" -}}
+- name: {{ include "plane.docStore.serviceName" . }}
+  port: {{ include "plane.docStore.servicePort" . }}
+{{- if not .Values.minio.local_setup }}
+{{- with .Values.minio.externalProxy.service.namespace }}
+  namespace: {{ . }}
+{{- end }}
+{{- end }}
+{{- end -}}
+
 {{- define "plane.commonLabels" -}}
 helm.sh/chart: {{ include "plane.chart" . }}
 app.kubernetes.io/name: {{ .Chart.Name }}
