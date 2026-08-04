@@ -61,12 +61,15 @@ spec:
                 name: {{ .Release.Name }}-admin
             path: /god-mode
             pathType: Prefix
-          {{- if and .Values.minio.local_setup .Values.env.docstore_bucket }}
+          {{- if and (include "plane.docStore.originProxied" $) .Values.env.docstore_bucket }}
+          {{- if and (not .Values.minio.local_setup) .Values.minio.externalProxy.service.namespace }}
+          {{- fail "minio.externalProxy.service.namespace is not supported with an Ingress; an Ingress backend must be a Service in the release namespace" }}
+          {{- end }}
           - backend:
               service:
                 port:
-                  number: 9000
-                name: {{ .Release.Name }}-minio
+                  number: {{ include "plane.docStore.servicePort" $ }}
+                name: {{ include "plane.docStore.serviceName" $ }}
             path: /{{ .Values.env.docstore_bucket }}
             pathType: Prefix
           {{- end }}

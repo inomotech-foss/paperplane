@@ -25,29 +25,18 @@ def delete_old_s3_link():
     expired_exporter_history = ExporterHistory.objects.filter(
         Q(url__isnull=False) & Q(created_at__lte=timezone.now() - timedelta(days=8))
     ).values_list("key", "id")
-    if settings.USE_MINIO:
-        s3 = boto3.client(
-            "s3",
-            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            config=Config(signature_version="s3v4"),
-        )
-    else:
-        s3 = boto3.client(
-            "s3",
-            region_name=settings.AWS_REGION,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            config=Config(signature_version="s3v4"),
-        )
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=settings.AWS_S3_ENDPOINT_URL or None,
+        region_name=settings.AWS_REGION or None,
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        config=Config(signature_version="s3v4"),
+    )
 
     for file_name, exporter_id in expired_exporter_history:
         # Delete object from S3
         if file_name:
-            if settings.USE_MINIO:
-                s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=file_name)
-            else:
-                s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=file_name)
+            s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=file_name)
 
         ExporterHistory.objects.filter(id=exporter_id).update(url=None)
