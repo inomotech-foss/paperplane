@@ -42,9 +42,6 @@ jobs:
       - name: Lint apps/api
         run: ruff check --fix apps/api
       - name: Check migrations
-        # Fails on model changes without a migration and on a branched migration
-        # graph (two leaf nodes), which `migrate` refuses to run. No database is
-        # needed; the logged connection warning is expected.
         run: cd apps/api && python manage.py makemigrations --check --dry-run
         env:
           SECRET_KEY: migration-check
