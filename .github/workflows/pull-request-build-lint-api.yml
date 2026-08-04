@@ -32,7 +32,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
-          python-version: "3.14.x"
+          python-version: "3.12.x"
           cache: 'pip'
           cache-dependency-path: 'apps/api/requirements.txt'
       - name: Install Pylint
@@ -41,3 +41,8 @@ jobs:
         run: cd apps/api && pip install -r requirements.txt
       - name: Lint apps/api
         run: ruff check --fix apps/api
+      - name: Check migrations
+        run: cd apps/api && python manage.py makemigrations --check --dry-run
+        env:
+          SECRET_KEY: migration-check
+          REDIS_URL: redis://localhost:6379/
