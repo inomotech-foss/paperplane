@@ -31,6 +31,10 @@ spec:
             cpu: {{ .Values.beatworker.cpuLimit | default "500m" | quote}}
         command:
           - ./bin/docker-entrypoint-beat.sh
+        {{- with .Values.beatworker.extraEnv }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-app-vars

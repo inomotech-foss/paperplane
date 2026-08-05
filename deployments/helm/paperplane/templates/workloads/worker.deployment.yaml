@@ -31,6 +31,10 @@ spec:
             cpu: {{ .Values.worker.cpuLimit | default "500m" | quote}}
         command:
           - ./bin/docker-entrypoint-worker.sh
+        {{- with .Values.worker.extraEnv }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-app-vars

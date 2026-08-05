@@ -54,6 +54,10 @@ spec:
             cpu: {{ .Values.api.cpuLimit | default "500m" | quote}}
         command:
           - ./bin/docker-entrypoint-api.sh
+        {{- with .Values.api.extraEnv }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-app-vars

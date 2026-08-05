@@ -67,6 +67,10 @@ spec:
         command: 
           - ./bin/docker-entrypoint-migrator.sh
         imagePullPolicy: {{ .Values.api.pullPolicy | default "Always" }}
+        {{- with .Values.api.extraEnv }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-app-vars
