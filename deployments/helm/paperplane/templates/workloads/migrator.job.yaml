@@ -57,16 +57,27 @@ spec:
 
             wait("Postgres", os.environ.get("DATABASE_URL"), 5432)
             wait("RabbitMQ", os.environ.get("AMQP_URL"), 5672)
+        {{- with .Values.api.extraEnv }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         envFrom:
           - secretRef:
               name: {{ if not (empty .Values.external_secrets.app_env_existingSecret) }}{{ .Values.external_secrets.app_env_existingSecret }}{{ else }}{{ .Release.Name }}-app-secrets{{ end }}
               optional: false
+          {{- with .Values.api.extraEnvFrom }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
       containers:
       - name: {{ .Release.Name }}-api-migrate
         image: {{ include "plane.image" (dict "image" (.Values.api.image | default "ghcr.io/inomotech-foss/paperplane-backend") "version" .Values.planeVersion) }}
         command: 
           - ./bin/docker-entrypoint-migrator.sh
         imagePullPolicy: {{ .Values.api.pullPolicy | default "Always" }}
+        {{- with .Values.api.extraEnv }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-app-vars

@@ -522,6 +522,22 @@ To configure the external secrets for your application, you need to define speci
 |                          | `AMQP_URL`              | Yes                                     | RabbitMQ connection URL                     | **k8s service example**: `amqp://plane:plane@plane-rabbitmq.plane-ns.svc.cluster.local:5672/` <br> <br> **external service example**: `amqp://username:password@your-rabbitmq-host:5672/`            |
 | live_env_existingSecret  | `REDIS_URL`             | Yes                                     | Redis URL                                   | `redis://plane-redis.plane-ns.svc.cluster.local:6379/`                                                                                                                                               |
 
+### Single variables from an existing secret
+
+The options above replace a whole secret. To map one variable from a secret whose
+key names differ, use `extraEnv` on `api` (also applied to the migrator job),
+`worker`, `beatworker` or `live`. It takes precedence over `envFrom`.
+
+```yaml
+api:
+  extraEnv:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: my-db-app
+          key: uri
+```
+
 ## Generated Secrets
 
 The chart ships with insecure built-in defaults for the internal secrets (the

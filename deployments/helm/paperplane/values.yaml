@@ -167,6 +167,7 @@ admin:
   affinity: {}
 
 live:
+  extraEnv: []
   extraEnvFrom: []
   extraVolumeMounts: []
   extraVolumes: []
@@ -185,6 +186,8 @@ live:
   affinity: {}
 
 api:
+  # Raw EnvVar entries. These win over the envFrom sources below.
+  extraEnv: []
   # Extra envFrom sources appended after the built-in config/secret refs
   # (later entries win). Also applied to the migrator job.
   extraEnvFrom: []
@@ -205,6 +208,7 @@ api:
   affinity: {}
 
 worker:
+  extraEnv: []
   extraEnvFrom: []
   extraVolumeMounts: []
   extraVolumes: []
@@ -222,6 +226,7 @@ worker:
   affinity: {}
 
 beatworker:
+  extraEnv: []
   extraEnvFrom: []
   extraVolumeMounts: []
   extraVolumes: []
