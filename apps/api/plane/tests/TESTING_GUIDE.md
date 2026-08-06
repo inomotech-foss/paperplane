@@ -24,18 +24,19 @@ Unit tests should be placed in the appropriate directory under `tests/unit/` dep
 import pytest
 from plane.api.serializers import MySerializer
 
+
 @pytest.mark.unit
 class TestMySerializer:
     def test_serializer_valid_data(self):
         # Create input data
         data = {"field1": "value1", "field2": 42}
-        
+
         # Initialize the serializer
         serializer = MySerializer(data=data)
-        
+
         # Validate
         assert serializer.is_valid()
-        
+
         # Check validated data
         assert serializer.validated_data["field1"] == "value1"
         assert serializer.validated_data["field2"] == 42
@@ -52,16 +53,17 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
+
 @pytest.mark.contract
 class TestMyEndpoint:
     @pytest.mark.django_db
     def test_my_endpoint_get(self, auth_client):
         # Get the URL
         url = reverse("my-endpoint")
-        
+
         # Make request
         response = auth_client.get(url)
-        
+
         # Check response
         assert response.status_code == status.HTTP_200_OK
         assert "data" in response.data
@@ -77,22 +79,17 @@ Smoke tests should be placed in `tests/smoke/` directory and use the `plane_serv
 import pytest
 import requests
 
+
 @pytest.mark.smoke
 class TestCriticalFlow:
     @pytest.mark.django_db
     def test_login_flow(self, plane_server, create_user, user_data):
         # Get login URL
         url = f"{plane_server.url}/api/auth/signin/"
-        
+
         # Test login
-        response = requests.post(
-            url, 
-            json={
-                "email": user_data["email"],
-                "password": user_data["password"]
-            }
-        )
-        
+        response = requests.post(url, json={"email": user_data["email"], "password": user_data["password"]})
+
         # Verify
         assert response.status_code == 200
         data = response.json()

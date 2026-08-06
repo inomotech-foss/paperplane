@@ -783,9 +783,7 @@ class TestIssuePropertyTypeScoping:
         assert response.data["count"] == 5
 
         # Filtered by bug_type: the 3 unscoped properties + the bug-scoped one
-        response = api_key_client.get(
-            property_url(workspace.slug, project.id), {"issue_type": str(bug_type.id)}
-        )
+        response = api_key_client.get(property_url(workspace.slug, project.id), {"issue_type": str(bug_type.id)})
         assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 4
         names = {prop["name"] for prop in response.data["results"]}

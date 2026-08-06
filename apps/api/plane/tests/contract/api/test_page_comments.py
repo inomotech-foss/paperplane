@@ -12,9 +12,7 @@ from plane.db.models import Page, PageComment, Project, ProjectMember, ProjectPa
 
 @pytest.fixture
 def project(db, workspace, create_user):
-    project = Project.objects.create(
-        name="Test Project", identifier="TP", workspace=workspace, created_by=create_user
-    )
+    project = Project.objects.create(name="Test Project", identifier="TP", workspace=workspace, created_by=create_user)
     ProjectMember.objects.create(project=project, member=create_user, role=20, is_active=True)
     return project
 
@@ -29,9 +27,7 @@ def page(db, workspace, project, create_user):
         created_by=create_user,
         access=Page.PUBLIC_ACCESS,
     )
-    ProjectPage.objects.create(
-        workspace=workspace, project=project, page=page, created_by=create_user
-    )
+    ProjectPage.objects.create(workspace=workspace, project=project, page=page, created_by=create_user)
     return page
 
 
@@ -44,9 +40,7 @@ class TestPageCommentsV1Endpoint:
     @pytest.mark.django_db
     def test_create_and_list(self, api_key_client, workspace, project, page):
         url = base_url(workspace.slug, project.id, page.id)
-        response = api_key_client.post(
-            url, {"comment_html": "<p>hi</p>", "anchor_id": "t1"}, format="json"
-        )
+        response = api_key_client.post(url, {"comment_html": "<p>hi</p>", "anchor_id": "t1"}, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["anchor_id"] == "t1"
 
@@ -56,21 +50,15 @@ class TestPageCommentsV1Endpoint:
 
     @pytest.mark.django_db
     def test_reply(self, api_key_client, workspace, project, page, create_user):
-        parent = PageComment.objects.create(
-            page=page, comment_html="<p>p</p>", anchor_id="t1", actor=create_user
-        )
+        parent = PageComment.objects.create(page=page, comment_html="<p>p</p>", anchor_id="t1", actor=create_user)
         url = base_url(workspace.slug, project.id, page.id)
-        response = api_key_client.post(
-            url, {"comment_html": "<p>r</p>", "parent": str(parent.id)}, format="json"
-        )
+        response = api_key_client.post(url, {"comment_html": "<p>r</p>", "parent": str(parent.id)}, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["parent"] == parent.id
 
     @pytest.mark.django_db
     def test_update_and_delete(self, api_key_client, workspace, project, page, create_user):
-        comment = PageComment.objects.create(
-            page=page, comment_html="<p>p</p>", anchor_id="t1", actor=create_user
-        )
+        comment = PageComment.objects.create(page=page, comment_html="<p>p</p>", anchor_id="t1", actor=create_user)
         detail = f"{base_url(workspace.slug, project.id, page.id)}{comment.id}/"
         response = api_key_client.patch(detail, {"comment_html": "<p>edited</p>"}, format="json")
         assert response.status_code == status.HTTP_200_OK
@@ -80,9 +68,7 @@ class TestPageCommentsV1Endpoint:
 
     @pytest.mark.django_db
     def test_resolve_unresolve(self, api_key_client, workspace, project, page, create_user):
-        comment = PageComment.objects.create(
-            page=page, comment_html="<p>p</p>", anchor_id="t1", actor=create_user
-        )
+        comment = PageComment.objects.create(page=page, comment_html="<p>p</p>", anchor_id="t1", actor=create_user)
         url = f"{base_url(workspace.slug, project.id, page.id)}{comment.id}/resolve/"
         response = api_key_client.post(url)
         assert response.status_code == status.HTTP_200_OK
