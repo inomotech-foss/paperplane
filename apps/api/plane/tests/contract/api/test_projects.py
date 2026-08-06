@@ -143,6 +143,57 @@ class TestProjectListCreateAPIEndpoint:
         assert Project.objects.count() == 0
 
     @pytest.mark.django_db
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "Integrated Management System (IMS)",
+            "Wiki IMS (Q1) - v2",
+            "Sales, Marketing & Ops",
+            "v1.0 rollout",
+        ],
+    )
+    def test_create_project_with_punctuation_in_name(self, api_key_client, workspace, name):
+        """Names are user-facing labels, so ordinary punctuation must be accepted.
+
+        The identifier character rule used to be applied to the name too, which
+        rejected anything containing parentheses, hyphens, dots, commas or
+        ampersands.
+        """
+        response = api_key_client.post(
+            self.get_url(workspace.slug),
+            {"name": name, "identifier": "PUNCT"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED, f"Got {response.status_code}: {response.data!r}"
+        assert Project.objects.get(id=response.data["id"]).name == name
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("name", ["Plane<script>", "Plane{templated}", "Plane%percent", "---"])
+    def test_create_project_rejects_unsafe_name(self, api_key_client, workspace, name):
+        """Injection-risk characters and symbol-only names stay rejected."""
+        response = api_key_client.post(
+            self.get_url(workspace.slug),
+            {"name": name, "identifier": "UNSAFE"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, f"Got {response.status_code}: {response.data!r}"
+        assert Project.objects.count() == 0
+
+    @pytest.mark.django_db
+    def test_create_project_rejects_punctuation_in_identifier(self, api_key_client, workspace):
+        """The identifier rule stays strict even though the name rule relaxed."""
+        response = api_key_client.post(
+            self.get_url(workspace.slug),
+            {"name": "Valid Name", "identifier": "W-IMS"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, f"Got {response.status_code}: {response.data!r}"
+        assert Project.objects.count() == 0
+
+    @pytest.mark.django_db
     def test_model_activity_not_called_on_rollback(self, api_key_client, workspace, create_user):
         """If anything inside the transaction.atomic() block raises, the
         whole creation must roll back (no Project, no ProjectMember, no

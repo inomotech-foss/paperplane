@@ -7,9 +7,6 @@ import random
 from rest_framework import serializers
 
 
-# Python imports
-import re
-
 # Module imports
 from plane.db.models import Project, ProjectIdentifier, WorkspaceMember, State, Estimate
 
@@ -108,10 +105,10 @@ class ProjectCreateSerializer(BaseSerializer):
         project_name = data.get("name", None)
         project_identifier = data.get("identifier", None)
 
-        if project_name is not None and re.match(Project.FORBIDDEN_IDENTIFIER_CHARS_PATTERN, project_name):
+        if project_name is not None and not Project.is_valid_name(project_name):
             raise serializers.ValidationError("Project name cannot contain special characters.")
 
-        if project_identifier is not None and re.match(Project.FORBIDDEN_IDENTIFIER_CHARS_PATTERN, project_identifier):
+        if project_identifier is not None and Project.has_forbidden_identifier_chars(project_identifier):
             raise serializers.ValidationError("Project identifier cannot contain special characters.")
 
         project_lead = data.get("project_lead")
@@ -183,10 +180,10 @@ class ProjectUpdateSerializer(ProjectCreateSerializer):
         project_name = validated_data.get("name", None)
         project_identifier = validated_data.get("identifier", None)
 
-        if project_name is not None and re.match(Project.FORBIDDEN_IDENTIFIER_CHARS_PATTERN, project_name):
+        if project_name is not None and not Project.is_valid_name(project_name):
             raise serializers.ValidationError("Project name cannot contain special characters.")
 
-        if project_identifier is not None and re.match(Project.FORBIDDEN_IDENTIFIER_CHARS_PATTERN, project_identifier):
+        if project_identifier is not None and Project.has_forbidden_identifier_chars(project_identifier):
             raise serializers.ValidationError("Project identifier cannot contain special characters.")
 
         """Update a project"""
@@ -242,10 +239,10 @@ class ProjectSerializer(BaseSerializer):
         project_name = data.get("name", None)
         project_identifier = data.get("identifier", None)
 
-        if project_name is not None and re.match(Project.FORBIDDEN_IDENTIFIER_CHARS_PATTERN, project_name):
+        if project_name is not None and not Project.is_valid_name(project_name):
             raise serializers.ValidationError("Project name cannot contain special characters.")
 
-        if project_identifier is not None and re.match(Project.FORBIDDEN_IDENTIFIER_CHARS_PATTERN, project_identifier):
+        if project_identifier is not None and Project.has_forbidden_identifier_chars(project_identifier):
             raise serializers.ValidationError("Project identifier cannot contain special characters.")
 
         # Check project lead should be a member of the workspace
