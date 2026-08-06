@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Brakuje obrazów",
           "description": "Dodaj obrazy, aby je tutaj zobaczyć."
+        },
+        "attachments": {
+          "title": "Załączniki",
+          "dropzone": "Proszę kliknąć lub przeciągnąć pliki tutaj",
+          "uploading": "Przesyłanie...",
+          "too_large": "Plik jest za duży (maks. {size} MB)",
+          "upload_success": "Dodano załącznik",
+          "upload_error": "Nie udało się przesłać pliku",
+          "delete_error": "Nie udało się usunąć załącznika"
+        },
+        "embedded": {
+          "title": "Osadzone obrazy"
         }
       },
       "comments": {

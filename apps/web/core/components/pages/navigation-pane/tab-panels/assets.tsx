@@ -15,7 +15,8 @@ import { useTranslation } from "@plane/i18n";
 import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@plane/utils";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
-// local import
+// local imports
+import { PageAttachments } from "./attachments/root";
 import { PageNavigationPaneAssetsTabEmptyState } from "./empty-state/assets";
 
 type Props = {
@@ -101,18 +102,30 @@ const AssetItem = observer(function AssetItem(props: AssetItemProps) {
 
 export const PageNavigationPaneAssetsTabPanel = observer(function PageNavigationPaneAssetsTabPanel(props: Props) {
   const { page } = props;
+  // translation
+  const { t } = useTranslation();
   // derived values
   const {
     editor: { assetsList },
   } = page;
 
-  if (assetsList.length === 0) return <PageNavigationPaneAssetsTabEmptyState />;
-
   return (
-    <div className="mt-5 space-y-4 px-4">
-      {assetsList?.map((asset) => (
-        <AssetItem key={asset.id} asset={asset} page={page} />
-      ))}
+    <div className="mt-5 space-y-6 px-4">
+      <PageAttachments page={page} />
+      {assetsList.length > 0 ? (
+        <div className="space-y-2">
+          <h5 className="text-11 font-semibold tracking-wide text-secondary uppercase">
+            {t("page_navigation_pane.tabs.assets.embedded.title")}
+          </h5>
+          <div className="space-y-4">
+            {assetsList.map((asset) => (
+              <AssetItem key={asset.id} asset={asset} page={page} />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <PageNavigationPaneAssetsTabEmptyState />
+      )}
     </div>
   );
 });

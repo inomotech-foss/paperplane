@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Chybí obrázky",
           "description": "Přidejte obrázky, aby se zde zobrazily."
+        },
+        "attachments": {
+          "title": "Přílohy",
+          "dropzone": "Klikněte nebo sem přetáhněte soubory",
+          "uploading": "Nahrávání...",
+          "too_large": "Soubor je příliš velký (max. {size} MB)",
+          "upload_success": "Příloha přidána",
+          "upload_error": "Soubor se nepodařilo nahrát",
+          "delete_error": "Přílohu se nepodařilo odebrat"
+        },
+        "embedded": {
+          "title": "Vložené obrázky"
         }
       },
       "comments": {

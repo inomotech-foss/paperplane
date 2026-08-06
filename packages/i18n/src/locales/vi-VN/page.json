@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Thiếu hình ảnh",
           "description": "Thêm hình ảnh để xem chúng ở đây."
+        },
+        "attachments": {
+          "title": "Tệp đính kèm",
+          "dropzone": "Nhấp hoặc kéo tệp vào đây",
+          "uploading": "Đang tải lên...",
+          "too_large": "Tệp quá lớn (tối đa {size} MB)",
+          "upload_success": "Đã thêm tệp đính kèm",
+          "upload_error": "Không thể tải tệp lên",
+          "delete_error": "Không thể xóa tệp đính kèm"
+        },
+        "embedded": {
+          "title": "Hình ảnh nhúng"
         }
       },
       "comments": {

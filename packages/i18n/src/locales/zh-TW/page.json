@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "缺少圖片",
           "description": "添加圖片以在這裡查看它們。"
+        },
+        "attachments": {
+          "title": "附件",
+          "dropzone": "點擊或將檔案拖曳至此",
+          "uploading": "正在上傳……",
+          "too_large": "檔案過大（最大 {size} MB）",
+          "upload_success": "已新增附件",
+          "upload_error": "無法上傳檔案",
+          "delete_error": "無法移除附件"
+        },
+        "embedded": {
+          "title": "嵌入的圖片"
         }
       },
       "comments": {

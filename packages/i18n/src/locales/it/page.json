@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Immagini mancanti",
           "description": "Aggiungi immagini per vederle qui."
+        },
+        "attachments": {
+          "title": "Allegati",
+          "dropzone": "Faccia clic o trascini i file qui",
+          "uploading": "Caricamento in corso...",
+          "too_large": "Il file è troppo grande (max {size} MB)",
+          "upload_success": "Allegato aggiunto",
+          "upload_error": "Impossibile caricare il file",
+          "delete_error": "Impossibile rimuovere l'allegato"
+        },
+        "embedded": {
+          "title": "Immagini incorporate"
         }
       },
       "comments": {

@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Eksik görseller",
           "description": "Burada görmek için görseller ekleyin."
+        },
+        "attachments": {
+          "title": "Ekler",
+          "dropzone": "Tıklayın veya dosyaları buraya sürükleyin",
+          "uploading": "Yükleniyor...",
+          "too_large": "Dosya çok büyük (en fazla {size} MB)",
+          "upload_success": "Ek eklendi",
+          "upload_error": "Dosya yüklenemedi",
+          "delete_error": "Ek kaldırılamadı"
+        },
+        "embedded": {
+          "title": "Gömülü görseller"
         }
       },
       "comments": {

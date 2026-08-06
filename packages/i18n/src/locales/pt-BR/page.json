@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Imagens ausentes",
           "description": "Adicione imagens para vê-las aqui."
+        },
+        "attachments": {
+          "title": "Anexos",
+          "dropzone": "Clique ou arraste arquivos aqui",
+          "uploading": "Enviando...",
+          "too_large": "O arquivo é muito grande (máx. {size} MB)",
+          "upload_success": "Anexo adicionado",
+          "upload_error": "Não foi possível enviar o arquivo",
+          "delete_error": "Não foi possível remover o anexo"
+        },
+        "embedded": {
+          "title": "Imagens incorporadas"
         }
       },
       "comments": {

@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Gambar hilang",
           "description": "Tambahkan gambar untuk melihatnya di sini."
+        },
+        "attachments": {
+          "title": "Lampiran",
+          "dropzone": "Klik atau seret berkas ke sini",
+          "uploading": "Mengunggah...",
+          "too_large": "Berkas terlalu besar (maks. {size} MB)",
+          "upload_success": "Lampiran ditambahkan",
+          "upload_error": "Tidak dapat mengunggah berkas",
+          "delete_error": "Tidak dapat menghapus lampiran"
+        },
+        "embedded": {
+          "title": "Gambar tersemat"
         }
       },
       "comments": {
