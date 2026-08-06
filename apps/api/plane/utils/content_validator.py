@@ -75,6 +75,7 @@ CUSTOM_TAGS = {
     "label",
     "input",
     "image-component",
+    "issue-embed-component",
 }
 ALLOWED_TAGS = nh3.ALLOWED_TAGS | CUSTOM_TAGS
 
@@ -91,9 +92,9 @@ ATTRIBUTES = {
         "start",
         "type",
         "xmlns",
-        # common editor data-* attributes seen in stored HTML
-        # (wildcards like data-* are NOT supported by nh3; we add known keys
-        # here and dynamically include all data-* seen in the input below)
+        # common editor data-* attributes seen in stored HTML. nh3 does not
+        # support wildcards, so every key the editor can emit has to be listed
+        # here or it is stripped on write.
         "data-tight",
         "data-node-type",
         "data-type",
@@ -110,6 +111,9 @@ ATTRIBUTES = {
         "data-emoji-url",
         "data-logo-in-use",
         "data-block-type",
+        # comment mark attributes
+        "data-comment-thread-id",
+        "data-comment-resolved",
     },
     "a": {"href", "target"},
     # editor node/tag attributes
@@ -134,6 +138,13 @@ ATTRIBUTES = {
         "title",
     },
     "mention-component": {"id", "entity_identifier", "entity_name"},
+    "issue-embed-component": {
+        "id",
+        "entity_identifier",
+        "entity_name",
+        "project_identifier",
+        "workspace_identifier",
+    },
     "th": {
         "colspan",
         "rowspan",
