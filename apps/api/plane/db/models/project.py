@@ -4,6 +4,7 @@
 
 # Python imports
 import pytz
+import re
 from uuid import uuid4
 from enum import Enum
 
@@ -15,6 +16,7 @@ from django.db.models import Q
 
 # Module imports
 from plane.db.mixins import AuditModel
+from plane.utils.content_validator import has_alphanumeric
 
 from .base import BaseModel
 
@@ -141,6 +143,19 @@ class Project(BaseModel):
         return f"{self.name} <{self.workspace.name}>"
 
     FORBIDDEN_IDENTIFIER_CHARS_PATTERN = r"^.*[&+,:;$^}{*=?@#|'<>.()%!-].*$"
+
+    # Names are user-facing labels, not URL or key material, so only
+    # injection-risk characters are rejected. Mirrors hasInjectionRiskChars in
+    # packages/utils/src/validation.ts.
+    FORBIDDEN_NAME_CHARS_PATTERN = r"[<>'\"{}\[\]*^!#%]"
+
+    @classmethod
+    def is_valid_name(cls, name):
+        return has_alphanumeric(name) and not re.search(cls.FORBIDDEN_NAME_CHARS_PATTERN, name or "")
+
+    @classmethod
+    def has_forbidden_identifier_chars(cls, identifier):
+        return bool(re.match(cls.FORBIDDEN_IDENTIFIER_CHARS_PATTERN, identifier or ""))
 
     class Meta:
         unique_together = [
