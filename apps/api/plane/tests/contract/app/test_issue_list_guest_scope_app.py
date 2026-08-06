@@ -41,7 +41,9 @@ def project(db, workspace, create_user):
         workspace=workspace,
         created_by=create_user,
     )
-    ProjectMember.objects.create(project=project, member=create_user, workspace=workspace, role=20)
+    ProjectMember.objects.create(
+        project=project, member=create_user, workspace=workspace, role=20
+    )
     return project
 
 
@@ -58,7 +60,9 @@ def guest(db, workspace, project):
     user.set_password("test-password")
     user.save()
     WorkspaceMember.objects.create(workspace=workspace, member=user, role=5)
-    ProjectMember.objects.create(project=project, member=user, workspace=workspace, role=5)
+    ProjectMember.objects.create(
+        project=project, member=user, workspace=workspace, role=5
+    )
     return user
 
 
@@ -98,7 +102,9 @@ class TestIssueListGuestScope:
     """A restricted guest must only get back issues they authored."""
 
     @pytest.mark.django_db
-    def test_guest_cannot_read_foreign_issue(self, guest_client, workspace, project, own_issue, foreign_issue):
+    def test_guest_cannot_read_foreign_issue(
+        self, guest_client, workspace, project, own_issue, foreign_issue
+    ):
         url = LIST_URL.format(slug=workspace.slug, project_id=project.id)
         response = guest_client.get(url, {"issues": f"{own_issue.id},{foreign_issue.id}"})
 
@@ -107,7 +113,9 @@ class TestIssueListGuestScope:
         )
         returned_ids = {str(row["id"]) for row in response.data}
         assert str(own_issue.id) in returned_ids
-        assert str(foreign_issue.id) not in returned_ids, f"Guest read a foreign issue: {response.data!r}"
+        assert str(foreign_issue.id) not in returned_ids, (
+            f"Guest read a foreign issue: {response.data!r}"
+        )
 
     @pytest.mark.django_db
     def test_project_member_reads_all_requested_issues(

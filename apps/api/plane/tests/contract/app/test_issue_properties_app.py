@@ -259,7 +259,9 @@ class TestIssuePropertyOptionApp(IssuePropertyAppUrls):
         assert response.status_code == status.HTTP_201_CREATED
         assert IssuePropertyOption.objects.filter(property=option_property).count() == 3
 
-    def test_create_option_rejected_for_non_option_property(self, session_client, workspace, project, number_property):
+    def test_create_option_rejected_for_non_option_property(
+        self, session_client, workspace, project, number_property
+    ):
         url = self.options_url(workspace.slug, project.id, number_property.id)
         response = session_client.post(url, {"name": "ENERGY"}, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -432,7 +434,9 @@ class TestIssueListPropertyFiltersApp(IssuePropertyAppUrls):
     def _issue_ids(self, response):
         return {str(result["id"]) for result in response.data["results"]}
 
-    def test_filter_by_number_gt(self, session_client, workspace, project, issue, second_issue, number_property):
+    def test_filter_by_number_gt(
+        self, session_client, workspace, project, issue, second_issue, number_property
+    ):
         IssuePropertyValue.objects.create(
             issue=issue,
             property=number_property,

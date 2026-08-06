@@ -36,7 +36,9 @@ def project(db, workspace, create_user):
         workspace=workspace,
         created_by=create_user,
     )
-    ProjectMember.objects.create(project=project, member=create_user, workspace=workspace, role=20)
+    ProjectMember.objects.create(
+        project=project, member=create_user, workspace=workspace, role=20
+    )
     return project
 
 
@@ -63,7 +65,9 @@ def outsider_client(db, workspace, create_user):
         workspace=workspace,
         created_by=outsider,
     )
-    ProjectMember.objects.create(project=other_project, member=outsider, workspace=workspace, role=15)
+    ProjectMember.objects.create(
+        project=other_project, member=outsider, workspace=workspace, role=15
+    )
     client = APIClient()
     client.force_authenticate(user=outsider)
     return client

@@ -40,7 +40,9 @@ def attacker_membership(db, workspace, create_user):
         workspace=workspace,
         created_by=create_user,
     )
-    ProjectMember.objects.create(project=other, member=create_user, workspace=workspace, role=20)
+    ProjectMember.objects.create(
+        project=other, member=create_user, workspace=workspace, role=20
+    )
     return other
 
 
@@ -60,7 +62,9 @@ def foreign_project(db, workspace):
         workspace=workspace,
         created_by=owner,
     )
-    ProjectMember.objects.create(project=project, member=owner, workspace=workspace, role=20)
+    ProjectMember.objects.create(
+        project=project, member=owner, workspace=workspace, role=20
+    )
     return project
 
 
@@ -86,7 +90,9 @@ class TestProjectMemberRosterScope:
             workspace=workspace,
             created_by=create_user,
         )
-        ProjectMember.objects.create(project=project, member=create_user, workspace=workspace, role=20)
+        ProjectMember.objects.create(
+            project=project, member=create_user, workspace=workspace, role=20
+        )
         response = api_key_client.get(members_url(workspace.slug, project.id))
         assert response.status_code == status.HTTP_200_OK, (
             f"Got {response.status_code}: {getattr(response, 'data', None)!r}"
