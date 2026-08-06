@@ -203,44 +203,29 @@ class TestMacros:
         assert 'data-block-type="callout-component"' in html
         assert "<p>heads up</p>" in html
 
-    def test_toc_macro_becomes_a_toc_block(self):
-        body = (
-            '<ac:structured-macro ac:name="toc"><ac:parameter ac:name="minLevel">2</ac:parameter>'
-            '<ac:parameter ac:name="maxLevel">5</ac:parameter></ac:structured-macro>'
-        )
+    @pytest.mark.parametrize(
+        "body,macro",
+        [
+            ('<ac:structured-macro ac:name="toc"/>', "toc"),
+            ('<ac:structured-macro ac:name="children"/>', "children"),
+            (
+                '<ac:structured-macro ac:name="anchor"><ac:parameter ac:name="">A</ac:parameter></ac:structured-macro>',
+                "anchor",
+            ),
+            (
+                '<ac:structured-macro ac:name="drawio">'
+                '<ac:parameter ac:name="diagramName">Flow.drawio</ac:parameter></ac:structured-macro>',
+                "drawio",
+            ),
+        ],
+    )
+    def test_pending_block_macros_are_dropped_and_counted(self, body, macro, resolvers):
+        """Dropped until the matching editor extension exists, but counted so
+        the fidelity report shows what the follow-up restores."""
+        result = convert(body, resolvers)
 
-        html = convert(body).html
-
-        assert '<toc-component max-level="5" min-level="2"></toc-component>' in html
-
-    def test_children_macro_becomes_a_child_pages_block(self):
-        body = (
-            '<ac:structured-macro ac:name="children">'
-            '<ac:parameter ac:name="depth">10</ac:parameter></ac:structured-macro>'
-        )
-
-        assert '<child-pages-component depth="10">' in convert(body).html
-
-    def test_anchor_macro_keeps_its_name(self):
-        body = (
-            '<ac:structured-macro ac:name="anchor">'
-            '<ac:parameter ac:name="">ASPICE_WP_01-00</ac:parameter></ac:structured-macro>'
-        )
-
-        assert '<anchor-component name="ASPICE_WP_01-00"></anchor-component>' in convert(body).html
-
-    def test_drawio_macro_carries_source_and_preview(self, resolvers):
-        body = (
-            '<ac:structured-macro ac:name="drawio">'
-            '<ac:parameter ac:name="diagramName">Flow.drawio</ac:parameter>'
-            '<ac:parameter ac:name="width">800</ac:parameter></ac:structured-macro>'
-        )
-
-        html = convert(body, resolvers).html
-
-        assert f'asset_id="{DIAGRAM_ID}"' in html
-        assert f'preview_asset_id="{DIAGRAM_PNG_ID}"' in html
-        assert 'width="800"' in html
+        assert result.unsupported_macros == {macro: 1}
+        assert result.html == "<p></p>"
 
     def test_dynamic_macros_are_recorded_not_silently_dropped(self):
         body = (
@@ -341,6 +326,11 @@ class TestInlineNodes:
 
         assert "Type something here" not in html
         assert "real" in html
+
+    def test_placeholder_only_paragraph_leaves_no_blank_line(self):
+        body = "<p>before</p><p><ac:placeholder>List participants</ac:placeholder></p><p>after</p>"
+
+        assert convert(body).html == "<p>before</p><p>after</p>"
 
     def test_inline_comment_markers_keep_their_text(self):
         body = '<p><ac:inline-comment-marker ac:ref="abc">reviewed</ac:inline-comment-marker></p>'

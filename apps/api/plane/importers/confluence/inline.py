@@ -42,9 +42,16 @@ def convert_times(soup):
 
 
 def drop_placeholders(soup):
-    """Template hint text, shown greyed out in Confluence and never content."""
+    """Template hint text, shown greyed out in Confluence and never content.
+
+    Takes the surrounding paragraph with it when the placeholder was all it
+    held, rather than leaving a blank line behind.
+    """
     for node in soup.find_all("ac:placeholder"):
+        parent = node.parent
         node.decompose()
+        if parent is not None and parent.name == "p" and not parent.get_text().strip() and not parent.find(True):
+            parent.decompose()
 
 
 def unwrap_inline_comment_markers(soup):

@@ -30,6 +30,10 @@ DYNAMIC_MACROS = {
     "tasks-report-macro",
 }
 
+# Dropped until the matching editor extension exists. Counted the same way as
+# DYNAMIC_MACROS so the fidelity report shows exactly what a follow-up buys.
+PENDING_BLOCK_MACROS = {"anchor", "children", "drawio", "toc"}
+
 
 def _parameters(node):
     # The anchor macro stores its name in the unnamed parameter, so an empty
@@ -82,51 +86,6 @@ def _code_block(soup, node):
     node.replace_with(pre)
 
 
-def _table_of_contents(soup, node):
-    parameters = _parameters(node)
-    block = soup.new_tag("toc-component")
-    block["min-level"] = parameters.get("minLevel", "1")
-    block["max-level"] = parameters.get("maxLevel", "6")
-    node.replace_with(block)
-
-
-def _child_pages(soup, node):
-    block = soup.new_tag("child-pages-component")
-    depth = _parameters(node).get("depth")
-    if depth:
-        block["depth"] = depth
-    node.replace_with(block)
-
-
-def _anchor(soup, node):
-    block = soup.new_tag("anchor-component")
-    block["name"] = _parameters(node).get("", "")
-    node.replace_with(block)
-
-
-def _diagram(soup, node, resolvers, result):
-    parameters = _parameters(node)
-    filename = parameters.get("diagramName") or parameters.get("diagramDisplayName") or ""
-    source = resolvers.attachment(filename)
-    preview = resolvers.attachment(f"{filename}.png")
-
-    if source is None and preview is None:
-        result.unresolved_attachments.add(filename)
-        node.replace_with(NavigableString(f"[diagram: {filename}]" if filename else ""))
-        return
-
-    block = soup.new_tag("diagram-component")
-    if source is not None:
-        block["asset_id"] = source.id
-    if preview is not None:
-        block["preview_asset_id"] = preview.id
-    block["name"] = filename
-    for dimension in ("width", "height"):
-        if parameters.get(dimension):
-            block[dimension] = parameters[dimension]
-    node.replace_with(block)
-
-
 def _status(soup, node):
     title = _parameters(node).get("title", "")
     node.replace_with(NavigableString(title))
@@ -142,17 +101,9 @@ def convert_structured_macros(soup, resolvers, result):
             _code_block(soup, node)
         elif name in CALLOUT_MACROS:
             _callout(soup, node, name)
-        elif name == "toc":
-            _table_of_contents(soup, node)
-        elif name == "children":
-            _child_pages(soup, node)
-        elif name == "anchor":
-            _anchor(soup, node)
-        elif name == "drawio":
-            _diagram(soup, node, resolvers, result)
         elif name == "status":
             _status(soup, node)
-        elif name in DYNAMIC_MACROS:
+        elif name in PENDING_BLOCK_MACROS or name in DYNAMIC_MACROS:
             result.unsupported_macros[name] += 1
             node.decompose()
         else:
