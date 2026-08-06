@@ -105,6 +105,7 @@ from .api import APITokenSerializer, APITokenReadSerializer
 from .importer import ImporterSerializer
 
 from .page import (
+    PageAttachmentSerializer,
     PageSerializer,
     PageDetailSerializer,
     PageVersionSerializer,
