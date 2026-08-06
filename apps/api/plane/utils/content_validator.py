@@ -76,6 +76,7 @@ CUSTOM_TAGS = {
     "input",
     "image-component",
     "issue-embed-component",
+    "anchor-component",
 }
 ALLOWED_TAGS = nh3.ALLOWED_TAGS | CUSTOM_TAGS
 
@@ -138,6 +139,7 @@ ATTRIBUTES = {
         "title",
     },
     "mention-component": {"id", "entity_identifier", "entity_name"},
+    "anchor-component": {"id", "name", "data-anchor"},
     "issue-embed-component": {
         "id",
         "entity_identifier",

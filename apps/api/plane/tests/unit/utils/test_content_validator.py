@@ -44,6 +44,7 @@ EDITOR_DOCUMENT = """
   data-icon-color="#3f76ff" data-background="#ffffff"><p>callout</p></div>
 <pre language="python"><code language="python" spellcheck="false">x = 1</code></pre>
 <p><span data-text-color="red" data-background-color="blue">coloured</span></p>
+<p>Jump target<anchor-component name="section-1" id="section-1" data-anchor="section-1"></anchor-component></p>
 <blockquote><p>quote</p></blockquote>
 <p><code spellcheck="false">inline</code></p>
 """

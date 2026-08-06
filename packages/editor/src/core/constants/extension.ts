@@ -5,6 +5,7 @@
  */
 
 export enum CORE_EXTENSIONS {
+  ANCHOR = "anchor-component",
   BLOCKQUOTE = "blockquote",
   BOLD = "bold",
   BULLET_LIST = "bulletList",
