@@ -22,6 +22,7 @@ SUPPORTED_CONSTRUCTS = """
 <ac:structured-macro ac:name="anchor"><ac:parameter ac:name="">section-1</ac:parameter></ac:structured-macro>
 <ac:structured-macro ac:name="toc"><ac:parameter ac:name="minLevel">2</ac:parameter>
   <ac:parameter ac:name="maxLevel">5</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="children"><ac:parameter ac:name="depth">10</ac:parameter></ac:structured-macro>
 """
 
 
