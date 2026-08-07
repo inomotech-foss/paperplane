@@ -11,6 +11,7 @@ from plane.db.models.state import DEFAULT_STATES
 from plane.utils.content_validator import validate_html_content
 from plane.utils.issue_type import get_or_create_default_issue_type
 
+from .assets import AttachmentUploader
 from .backup import order_parents_first
 from .naming import project_identifier, project_name
 from .resolvers import ConversionResult, ResolvedPage, ResolvedUser, Resolvers
@@ -29,6 +30,9 @@ class ImportSummary:
     unsupported_macros: Counter = field(default_factory=Counter)
     unresolved_pages: set = field(default_factory=set)
     unresolved_attachments: set = field(default_factory=set)
+    unsupported_attachments: set = field(default_factory=set)
+    attachments: int = 0
+    attachments_skipped: bool = False
     dropped_layouts: int = 0
 
     def absorb(self, result):
@@ -48,11 +52,19 @@ class ConfluenceLoader:
 
     EXTERNAL_SOURCE = "confluence"
 
-    def __init__(self, workspace_slug, actor, backup, page_url_template="/{slug}/projects/{project}/pages/{page}/"):
+    def __init__(
+        self,
+        workspace_slug,
+        actor,
+        backup,
+        page_url_template="/{slug}/projects/{project}/pages/{page}/",
+        storage=None,
+    ):
         self.workspace = Workspace.objects.get(slug=workspace_slug)
         self.actor = actor
         self.backup = backup
         self.page_url_template = page_url_template
+        self.storage = storage
 
     def run(self, dry_run=False):
         summary = ImportSummary()
@@ -68,7 +80,7 @@ class ConfluenceLoader:
             # Two passes: Confluence links pages by title, so no link can be
             # rewritten until every page in the space has an id.
             records = self._upsert_pages(project, pages, users, summary)
-            self._write_bodies(project, pages, records, users, summary)
+            self._write_bodies(project, pages, records, users, summary, dry_run)
 
             if dry_run:
                 transaction.set_rollback(True)
@@ -183,30 +195,43 @@ class ConfluenceLoader:
 
         return records
 
-    def _write_bodies(self, project, pages, records, users, summary):
-        resolvers = Resolvers(
-            users={
-                account_id: ResolvedUser(id=str(user.id), display_name=user.display_name)
-                for account_id, user in users.items()
-            },
-            pages={
-                page.title: ResolvedPage(
-                    id=str(records[page.id].id),
-                    url=self.page_url_template.format(
-                        slug=self.workspace.slug, project=project.id, page=records[page.id].id
-                    ),
-                    title=page.title,
-                )
-                for page in pages
-                if page.id in records
-            },
+    def _write_bodies(self, project, pages, records, users, summary, dry_run):
+        user_map = {
+            account_id: ResolvedUser(id=str(user.id), display_name=user.display_name)
+            for account_id, user in users.items()
+        }
+        page_map = {
+            page.title: ResolvedPage(
+                id=str(records[page.id].id),
+                url=self.page_url_template.format(
+                    slug=self.workspace.slug, project=project.id, page=records[page.id].id
+                ),
+                title=page.title,
+            )
+            for page in pages
+            if page.id in records
+        }
+
+        # S3 writes are outside the transaction, so a dry run must not make any
+        # or it would leave objects behind with no rows pointing at them.
+        uploader = (
+            None
+            if dry_run
+            else AttachmentUploader(self.workspace, project, self.backup, self.EXTERNAL_SOURCE, self.storage)
         )
+        summary.attachments_skipped = dry_run
 
         for page in pages:
             record = records.get(page.id)
             if record is None:
                 continue
 
+            attachments = {} if uploader is None else uploader.upload_for_page(page.id, record, page.body)
+            summary.attachments += len(attachments)
+
+            # Attachments are per page, so the resolver set is rebuilt each time
+            # while the space-wide user and page maps are shared.
+            resolvers = Resolvers(users=user_map, attachments=attachments, pages=page_map)
             result = storage_to_html(page.body, resolvers, ConversionResult(html=""))
             summary.absorb(result)
 
@@ -218,3 +243,6 @@ class ConfluenceLoader:
                 description_html=clean or "<p></p>",
                 updated_at=page.updated_at,
             )
+
+        if uploader is not None:
+            summary.unsupported_attachments |= uploader.unsupported
