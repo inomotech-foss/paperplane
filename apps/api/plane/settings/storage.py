@@ -155,6 +155,14 @@ class S3Storage(S3Boto3Storage):
             "Metadata": response.get("Metadata", {}),
         }
 
+    def get_object(self, object_name):
+        """Open an S3 object for reading. The caller must consume or close the body."""
+        try:
+            return self.s3_client.get_object(Bucket=self.aws_storage_bucket_name, Key=object_name)
+        except ClientError as e:
+            log_exception(e)
+            return None
+
     def copy_object(self, object_name, new_object_name):
         """Copy an S3 object to a new location"""
         try:
