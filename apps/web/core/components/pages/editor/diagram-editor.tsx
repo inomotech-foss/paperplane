@@ -43,9 +43,14 @@ type TEmbedMessage = {
   data?: string;
 };
 
-async function toPngFile(dataUri: string, name: string): Promise<File> {
-  const blob = await (await fetch(dataUri)).blob();
-  return new File([blob], name, { type: "image/png" });
+/** The embed hands back the preview as a base64 data URI. */
+function toPngFile(dataUri: string, name: string): File {
+  const binary = atob(dataUri.slice(dataUri.indexOf(",") + 1));
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index++) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return new File([bytes], name, { type: "image/png" });
 }
 
 /** The rendered size, which the node uses to reserve the right aspect ratio. */
@@ -88,8 +93,9 @@ export const PageDiagramEditor = observer(function PageDiagramEditor(props: Prop
 
   const store = useCallback(
     async (xml: string, preview: string) => {
-      const [previewFile, size] = await Promise.all([toPngFile(preview, `${name}.png`), measure(preview)]);
-      const [attachment, previewAssetId] = await Promise.all([
+      const previewFile = toPngFile(preview, `${name}.png`);
+      const [size, attachment, previewAssetId] = await Promise.all([
+        measure(preview),
         // The source is a document a reader may want to take away, so it belongs
         // in the attachments tab. The preview is a render artefact and goes in as
         // an inline editor asset, the same split the Confluence import makes.

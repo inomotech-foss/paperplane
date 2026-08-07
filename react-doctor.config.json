@@ -55,6 +55,11 @@
       {
         "files": ["**/charts/components/legend.tsx"],
         "rules": ["react-doctor/no-static-element-interactions"]
+      },
+      {
+        "// reason": "The rule flags allow-scripts with allow-same-origin because a same-origin frame can then remove its own sandbox. This frame is on a different origin, so the pair only grants draw.io its own origin, never ours. The sandbox still withholds allow-top-navigation, which is the part worth keeping.",
+        "files": ["**/pages/editor/diagram-editor.tsx"],
+        "rules": ["react-doctor/iframe-missing-sandbox"]
       }
     ]
   }
