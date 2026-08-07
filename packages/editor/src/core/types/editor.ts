@@ -23,6 +23,7 @@ import type {
 import type {
   IMarking,
   TAIHandler,
+  TChildPagesHandler,
   TDisplayConfig,
   TDocumentEventEmitter,
   TDocumentEventsServer,
@@ -156,6 +157,7 @@ export type EditorTitleRefApi = EditorRefApi;
 export type IEditorProps = {
   autofocus?: boolean;
   bubbleMenuEnabled?: boolean;
+  childPagesHandler?: TChildPagesHandler;
   containerClassName?: string;
   displayConfig?: TDisplayConfig;
   disabledExtensions: TExtensions[];

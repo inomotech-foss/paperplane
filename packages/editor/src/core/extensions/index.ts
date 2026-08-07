@@ -5,6 +5,7 @@
  */
 
 export * from "./callout";
+export * from "./child-pages";
 export * from "./code";
 export * from "./comment/comment-mark";
 export * from "./code-inline";

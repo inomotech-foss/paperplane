@@ -27,6 +27,7 @@ import type { EditorRefApi, IDocumentEditorProps } from "@/types";
 function DocumentEditor(props: IDocumentEditorProps) {
   const {
     bubbleMenuEnabled = false,
+    childPagesHandler,
     containerClassName,
     disabledExtensions,
     displayConfig = DEFAULT_DISPLAY_CONFIG,
@@ -54,6 +55,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
       }),
       HeadingListExtension,
       ...DocumentEditorAdditionalExtensions({
+        childPagesHandler,
         disabledExtensions,
         extendedEditorProps,
         flaggedExtensions,
@@ -67,7 +69,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
       })
     );
     return additionalExtensions;
-  }, [disabledExtensions, editable, extendedEditorProps, fileHandler, flaggedExtensions, user]);
+  }, [childPagesHandler, disabledExtensions, editable, extendedEditorProps, fileHandler, flaggedExtensions, user]);
 
   const editor = useEditor({
     disabledExtensions,

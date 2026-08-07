@@ -78,6 +78,7 @@ CUSTOM_TAGS = {
     "issue-embed-component",
     "anchor-component",
     "toc-component",
+    "child-pages-component",
 }
 ALLOWED_TAGS = nh3.ALLOWED_TAGS | CUSTOM_TAGS
 
@@ -142,6 +143,7 @@ ATTRIBUTES = {
     "mention-component": {"id", "entity_identifier", "entity_name"},
     "anchor-component": {"id", "name", "data-anchor"},
     "toc-component": {"min-level", "max-level"},
+    "child-pages-component": {"depth"},
     "issue-embed-component": {
         "id",
         "entity_identifier",

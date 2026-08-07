@@ -12,6 +12,7 @@ import { Underline } from "@tiptap/extension-underline";
 import { CoreEditorAdditionalExtensionsWithoutProps } from "@/plane-editor/extensions/core/without-props";
 // extensions
 import { CustomCalloutExtensionConfig } from "./callout/extension-config";
+import { ChildPagesExtensionConfig } from "./child-pages/extension-config";
 import { CustomCodeBlockExtensionWithoutProps } from "./code/without-props";
 import { CommentMark } from "./comment/comment-mark";
 import { CustomCodeInlineExtension } from "./code-inline";
@@ -74,4 +75,5 @@ export const DocumentEditorExtensionsWithoutProps = [
   WorkItemEmbedExtensionConfig,
   AnchorExtensionConfig,
   TableOfContentsExtensionConfig,
+  ChildPagesExtensionConfig,
 ];
