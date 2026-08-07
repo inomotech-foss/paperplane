@@ -17,6 +17,18 @@ PDF_ID = "33333333-3333-4333-8333-333333333333"
 DIAGRAM_ID = "44444444-4444-4444-8444-444444444444"
 DIAGRAM_PNG_ID = "55555555-5555-4555-8555-555555555555"
 
+DRAWIO_MACRO = (
+    '<ac:structured-macro ac:name="drawio">'
+    '<ac:parameter ac:name="diagramName">Flow.drawio</ac:parameter></ac:structured-macro>'
+)
+
+
+def _drawio_resolvers(filename, asset_id):
+    """Only one half of the draw.io attachment pair is present."""
+    return Resolvers(
+        attachments={filename: ResolvedAttachment(id=asset_id, filename=filename, is_image=True)},
+    )
+
 
 @pytest.fixture
 def resolvers():
@@ -257,23 +269,61 @@ class TestMacros:
         assert "child-pages-component" not in result.html
         assert result.unsupported_macros == {"children": 1}
 
-    @pytest.mark.parametrize(
-        "body,macro",
-        [
-            (
-                '<ac:structured-macro ac:name="drawio">'
-                '<ac:parameter ac:name="diagramName">Flow.drawio</ac:parameter></ac:structured-macro>',
-                "drawio",
-            ),
-        ],
-    )
-    def test_pending_block_macros_are_dropped_and_counted(self, body, macro, resolvers):
-        """Dropped until the matching editor extension exists, but counted so
-        the fidelity report shows what the follow-up restores."""
+    def test_drawio_macro_becomes_a_diagram_node(self, resolvers):
+        body = (
+            '<ac:structured-macro ac:name="drawio">'
+            '<ac:parameter ac:name="diagramName">Flow.drawio</ac:parameter>'
+            '<ac:parameter ac:name="diagramDisplayName">Release Flow.drawio</ac:parameter>'
+            '<ac:parameter ac:name="width">1872</ac:parameter>'
+            '<ac:parameter ac:name="height">982</ac:parameter>'
+            '<ac:parameter ac:name="zoom">0.99</ac:parameter></ac:structured-macro>'
+        )
+
         result = convert(body, resolvers)
 
-        assert result.unsupported_macros == {macro: 1}
-        assert result.html == "<p></p>"
+        # BeautifulSoup writes attributes alphabetically, not in insertion order.
+        assert result.html == (
+            f'<diagram-component asset_id="{DIAGRAM_ID}" height="982" '
+            f'preview_asset_id="{DIAGRAM_PNG_ID}" title="Release Flow.drawio" '
+            'width="1872"></diagram-component>'
+        )
+        assert result.is_lossless
+
+    def test_drawio_macro_falls_back_to_the_source_name_for_its_title(self, resolvers):
+        assert 'title="Flow.drawio"' in convert(DRAWIO_MACRO, resolvers).html
+
+    def test_drawio_macro_keeps_a_diagram_that_lost_its_preview(self):
+        """A source without a preview still renders, as a titled placeholder,
+        and stays editable once the diagram editor lands."""
+        result = convert(DRAWIO_MACRO, _drawio_resolvers("Flow.drawio", DIAGRAM_ID))
+
+        assert f' asset_id="{DIAGRAM_ID}"' in result.html
+        assert "preview_asset_id" not in result.html
+        assert result.unresolved_attachments == {"Flow.drawio.png"}
+
+    def test_drawio_macro_keeps_a_preview_whose_source_is_gone(self):
+        result = convert(DRAWIO_MACRO, _drawio_resolvers("Flow.drawio.png", DIAGRAM_PNG_ID))
+
+        assert f'preview_asset_id="{DIAGRAM_PNG_ID}"' in result.html
+        assert " asset_id=" not in result.html
+        assert result.unresolved_attachments == {"Flow.drawio"}
+
+    def test_drawio_macro_with_no_attachments_degrades_to_its_name(self):
+        result = convert(DRAWIO_MACRO)
+
+        assert result.html == "[Flow.drawio]"
+        assert result.unresolved_attachments == {"Flow.drawio"}
+        assert result.unsupported_macros == {}
+
+    def test_drawio_macro_without_a_diagram_name_is_recorded(self, resolvers):
+        body = (
+            '<ac:structured-macro ac:name="drawio"><ac:parameter ac:name="zoom">1</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body, resolvers)
+
+        assert "diagram-component" not in result.html
+        assert result.unsupported_macros == {"drawio": 1}
 
     def test_dynamic_macros_are_recorded_not_silently_dropped(self):
         body = (

@@ -3,7 +3,7 @@
 
 import pytest
 
-from plane.importers.confluence import storage_to_html
+from plane.importers.confluence import ResolvedAttachment, Resolvers, storage_to_html
 from plane.utils.content_validator import _compute_html_sanitization_diff, validate_html_content
 
 SUPPORTED_CONSTRUCTS = """
@@ -23,7 +23,21 @@ SUPPORTED_CONSTRUCTS = """
 <ac:structured-macro ac:name="toc"><ac:parameter ac:name="minLevel">2</ac:parameter>
   <ac:parameter ac:name="maxLevel">5</ac:parameter></ac:structured-macro>
 <ac:structured-macro ac:name="children"><ac:parameter ac:name="depth">10</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="drawio"><ac:parameter ac:name="diagramName">Flow.drawio</ac:parameter>
+  <ac:parameter ac:name="diagramDisplayName">Release Flow.drawio</ac:parameter>
+  <ac:parameter ac:name="width">1872</ac:parameter>
+  <ac:parameter ac:name="height">982</ac:parameter></ac:structured-macro>
 """
+
+DIAGRAM_ID = "44444444-4444-4444-8444-444444444444"
+DIAGRAM_PNG_ID = "55555555-5555-4555-8555-555555555555"
+
+RESOLVERS = Resolvers(
+    attachments={
+        "Flow.drawio": ResolvedAttachment(id=DIAGRAM_ID, filename="Flow.drawio", is_image=False),
+        "Flow.drawio.png": ResolvedAttachment(id=DIAGRAM_PNG_ID, filename="Flow.drawio.png", is_image=True),
+    },
+)
 
 
 @pytest.mark.unit
@@ -32,7 +46,7 @@ class TestConverterOutputSurvivesTheSanitiser:
     it strips is lost before the page is ever opened."""
 
     def test_nothing_the_converter_emits_is_stripped(self):
-        html = storage_to_html(SUPPORTED_CONSTRUCTS).html
+        html = storage_to_html(SUPPORTED_CONSTRUCTS, RESOLVERS).html
 
         is_valid, error, clean = validate_html_content(html)
 
