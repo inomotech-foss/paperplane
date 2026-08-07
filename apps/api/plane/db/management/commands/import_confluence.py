@@ -44,7 +44,10 @@ class Command(BaseCommand):
         self.stdout.write(f"project     {summary.project_name} ({summary.project_id})")
         self.stdout.write(f"pages       {summary.created} created, {summary.updated} updated, {summary.roots} roots")
         self.stdout.write(f"attributed  {summary.attributed}/{total} to their original author")
+        self.stdout.write(f"assets      {summary.attachments} attachments uploaded")
 
+        if summary.attachments_skipped:
+            self.stdout.write(self.style.WARNING("assets      not uploaded on a dry run, so links stay unresolved"))
         if summary.unmapped_authors:
             self.stdout.write(
                 self.style.WARNING(
@@ -54,7 +57,15 @@ class Command(BaseCommand):
         if summary.unresolved_pages:
             self.stdout.write(self.style.WARNING(f"dead links  {len(summary.unresolved_pages)} unresolved page titles"))
         if summary.unresolved_attachments:
-            self.stdout.write(self.style.WARNING(f"attachments {len(summary.unresolved_attachments)} not uploaded yet"))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"dead files  {len(summary.unresolved_attachments)} referenced but not in the backup"
+                )
+            )
+        if summary.unsupported_attachments:
+            self.stdout.write(
+                self.style.WARNING(f"rejected    {len(summary.unsupported_attachments)} attachments of a blocked type")
+            )
         if summary.unsupported_macros:
             self.stdout.write(self.style.WARNING(f"macros      {json.dumps(dict(summary.unsupported_macros))}"))
         if summary.dropped_layouts:

@@ -76,6 +76,17 @@ class ConfluenceBackup:
     def attachment_path(self, page_id, filename):
         return self.space_dir / "attachments" / str(page_id) / filename
 
+    def attachments(self, page_id):
+        """Every backed-up attachment for a page, in a stable order.
+
+        Editors leave working copies behind - draw.io writes `~<name>.tmp`
+        beside the diagram - so anything starting with `~` or `.` is skipped.
+        """
+        directory = self.space_dir / "attachments" / str(page_id)
+        if not directory.is_dir():
+            return []
+        return sorted(path for path in directory.iterdir() if path.is_file() and not path.name.startswith(("~", ".")))
+
 
 def order_parents_first(pages):
     """Order pages so a parent is always placed before its children.
