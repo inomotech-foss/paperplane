@@ -32,7 +32,10 @@ DYNAMIC_MACROS = {
 
 # Dropped until the matching editor extension exists. Counted the same way as
 # DYNAMIC_MACROS so the fidelity report shows exactly what a follow-up buys.
-PENDING_BLOCK_MACROS = {"children", "drawio"}
+PENDING_BLOCK_MACROS = {"drawio"}
+
+# Matches MAX_CHILD_PAGES_DEPTH in the editor's child-pages extension.
+MAX_CHILD_PAGES_DEPTH = 20
 
 
 def _parameters(node):
@@ -100,6 +103,31 @@ def _table_of_contents(soup, node):
     node.replace_with(block)
 
 
+def _child_pages(soup, node, result):
+    """The block always lists the current page's descendants, so a macro
+    pointing at another page cannot be represented and is recorded instead."""
+    # The page parameter holds either a title or a nested ac:link, so its
+    # presence is what matters rather than its text.
+    if node.find("ac:parameter", attrs={"ac:name": "page"}, recursive=False) is not None:
+        result.unsupported_macros["children"] += 1
+        node.decompose()
+        return
+
+    parameters = _parameters(node)
+
+    if parameters.get("all", "").lower() == "true":
+        depth = MAX_CHILD_PAGES_DEPTH
+    else:
+        try:
+            depth = int(parameters.get("depth") or 1)
+        except ValueError:
+            depth = 1
+
+    block = soup.new_tag("child-pages-component")
+    block["depth"] = str(min(max(depth, 1), MAX_CHILD_PAGES_DEPTH))
+    node.replace_with(block)
+
+
 def _status(soup, node):
     title = _parameters(node).get("title", "")
     node.replace_with(NavigableString(title))
@@ -119,6 +147,8 @@ def convert_structured_macros(soup, resolvers, result):
             _anchor(soup, node)
         elif name == "toc":
             _table_of_contents(soup, node)
+        elif name == "children":
+            _child_pages(soup, node, result)
         elif name == "status":
             _status(soup, node)
         elif name in PENDING_BLOCK_MACROS or name in DYNAMIC_MACROS:

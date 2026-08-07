@@ -226,9 +226,40 @@ class TestMacros:
         assert result.unsupported_macros == {}
 
     @pytest.mark.parametrize(
+        "parameters,depth",
+        [
+            ("", "1"),
+            ('<ac:parameter ac:name="depth">10</ac:parameter>', "10"),
+            ('<ac:parameter ac:name="depth">500</ac:parameter>', "20"),
+            ('<ac:parameter ac:name="depth">nonsense</ac:parameter>', "1"),
+            ('<ac:parameter ac:name="all">true</ac:parameter>', "20"),
+            ('<ac:parameter ac:name="sort">title</ac:parameter>', "1"),
+        ],
+    )
+    def test_children_macro_becomes_a_child_pages_node(self, parameters, depth):
+        body = f'<ac:structured-macro ac:name="children">{parameters}</ac:structured-macro>'
+
+        result = convert(body)
+
+        assert f'<child-pages-component depth="{depth}"></child-pages-component>' in result.html
+        assert result.unsupported_macros == {}
+
+    def test_children_macro_targeting_another_page_is_recorded(self):
+        """The block only knows about the page it sits on."""
+        body = (
+            '<ac:structured-macro ac:name="children">'
+            '<ac:parameter ac:name="page"><ac:link><ri:page ri:content-title="Other"/></ac:link>'
+            "</ac:parameter></ac:structured-macro>"
+        )
+
+        result = convert(body)
+
+        assert "child-pages-component" not in result.html
+        assert result.unsupported_macros == {"children": 1}
+
+    @pytest.mark.parametrize(
         "body,macro",
         [
-            ('<ac:structured-macro ac:name="children"/>', "children"),
             (
                 '<ac:structured-macro ac:name="drawio">'
                 '<ac:parameter ac:name="diagramName">Flow.drawio</ac:parameter></ac:structured-macro>',
