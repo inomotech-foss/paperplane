@@ -4,7 +4,7 @@
 import uuid
 
 from django.conf import settings
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, StreamingHttpResponse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
@@ -17,6 +17,19 @@ from plane.settings.storage import S3Storage
 from plane.utils.path_validator import sanitize_filename
 
 from ..base import BaseAPIView
+
+# Cap on proxied responses. Reading bytes through the app occupies a worker for
+# the whole transfer, so anything large stays on the presigned-URL path.
+MAX_PROXIED_SIZE = 10 * 1024 * 1024
+
+
+def page_attachments(slug, project_id, page_id):
+    return FileAsset.objects.filter(
+        workspace__slug=slug,
+        project_id=project_id,
+        page_id=page_id,
+        entity_type=FileAsset.EntityTypeContext.PAGE_ATTACHMENT,
+    )
 
 
 class PageAttachmentEndpoint(BaseAPIView):
@@ -32,12 +45,7 @@ class PageAttachmentEndpoint(BaseAPIView):
     permission_classes = [ProjectPagePermission]
 
     def _queryset(self, slug, project_id, page_id):
-        return FileAsset.objects.filter(
-            workspace__slug=slug,
-            project_id=project_id,
-            page_id=page_id,
-            entity_type=FileAsset.EntityTypeContext.PAGE_ATTACHMENT,
-        )
+        return page_attachments(slug, project_id, page_id)
 
     def post(self, request, slug, project_id, page_id):
         name = sanitize_filename(request.data.get("name")) or "unnamed"
@@ -123,3 +131,47 @@ class PageAttachmentEndpoint(BaseAPIView):
 
         FileAsset.objects.filter(pk=asset.pk).update(is_deleted=True, deleted_at=timezone.now())
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PageAttachmentContentEndpoint(BaseAPIView):
+    """Streams an attachment's bytes from the app's own origin.
+
+    The download route redirects to a presigned storage URL, which browser code
+    cannot read unless the bucket is configured for CORS. Editor blocks that have
+    to read the file they render - the diagram block reads the `.drawio` XML it
+    hands to the editing iframe - read it here instead, so nothing about the
+    deployment's object store has to change.
+    """
+
+    permission_classes = [ProjectPagePermission]
+
+    def get(self, request, slug, project_id, page_id, pk):
+        asset = page_attachments(slug, project_id, page_id).filter(pk=pk).first()
+        if asset is None:
+            return Response({"error": "Attachment not found."}, status=status.HTTP_404_NOT_FOUND)
+        if not asset.is_uploaded:
+            return Response(
+                {"error": "The asset is not uploaded.", "status": False},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if (asset.size or 0) > MAX_PROXIED_SIZE:
+            return Response(
+                {"error": "The asset is too large to read inline.", "status": False},
+                status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            )
+
+        stored = S3Storage(request=request).get_object(asset.asset.name)
+        if stored is None:
+            return Response({"error": "Attachment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        response = StreamingHttpResponse(
+            stored["Body"].iter_chunks(),
+            content_type=asset.attributes.get("type") or "application/octet-stream",
+        )
+        # This is the app's own origin, so an uploaded SVG or XML file must never
+        # be rendered as a document here. Neither header affects fetch(), which is
+        # the only thing meant to call this route; the filename is left off so no
+        # user-supplied text reaches a response header at all.
+        response["Content-Disposition"] = "attachment"
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
