@@ -41,15 +41,13 @@ class PageCommentListCreateAPIEndpoint(BaseAPIView):
         return self.paginate(
             request=request,
             queryset=self.get_queryset().order_by("created_at"),
-            on_results=lambda comments: PageCommentSerializer(
-                comments, many=True, fields=self.fields, expand=self.expand
-            ).data,
+            on_results=lambda comments: (
+                PageCommentSerializer(comments, many=True, fields=self.fields, expand=self.expand).data
+            ),
         )
 
     def post(self, request, slug, project_id, page_id):
-        page = Page.objects.filter(
-            workspace__slug=slug, pk=page_id, projects__id=project_id
-        ).first()
+        page = Page.objects.filter(workspace__slug=slug, pk=page_id, projects__id=project_id).first()
         if not page:
             return Response({"error": "Page does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -106,19 +104,14 @@ class PageCommentDetailAPIEndpoint(BaseAPIView):
         )
 
     def get(self, request, slug, project_id, page_id, pk):
-        serializer = PageCommentSerializer(
-            self.get_queryset().get(pk=pk), fields=self.fields, expand=self.expand
-        )
+        serializer = PageCommentSerializer(self.get_queryset().get(pk=pk), fields=self.fields, expand=self.expand)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, slug, project_id, page_id, pk):
         page_comment = self.get_queryset().get(pk=pk)
         serializer = PageCommentSerializer(page_comment, data=request.data, partial=True)
         if serializer.is_valid():
-            if (
-                "comment_html" in request.data
-                and request.data["comment_html"] != page_comment.comment_html
-            ):
+            if "comment_html" in request.data and request.data["comment_html"] != page_comment.comment_html:
                 serializer.save(edited_at=timezone.now())
             else:
                 serializer.save()

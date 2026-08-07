@@ -33,10 +33,10 @@ class MagicCodeProvider(CredentialAdapter):
     # write would race and let parallel attackers exceed the cap.
     _INCREMENT_VERIFY_ATTEMPTS_SCRIPT = (
         'local count = redis.call("INCR", KEYS[1]) '
-        'if count == 1 then '
+        "if count == 1 then "
         '    redis.call("EXPIRE", KEYS[1], tonumber(ARGV[1])) '
-        'end '
-        'return count'
+        "end "
+        "return count"
     )
 
     @staticmethod

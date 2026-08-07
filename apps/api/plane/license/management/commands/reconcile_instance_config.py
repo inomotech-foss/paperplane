@@ -37,9 +37,7 @@ class Command(BaseCommand):
 
             existing = InstanceConfiguration.objects.filter(key=key).first()
             if existing is not None:
-                current = (
-                    decrypt_data(existing.value) if existing.is_encrypted and existing.value else existing.value
-                )
+                current = decrypt_data(existing.value) if existing.is_encrypted and existing.value else existing.value
                 if current == raw_value and existing.category == category and existing.is_encrypted == is_encrypted:
                     continue
                 existing.value = encrypt_data(raw_value) if is_encrypted else raw_value

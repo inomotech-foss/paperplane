@@ -130,8 +130,6 @@ class WorkspaceMemberPermission(BasePermission):
 
         slug = view.kwargs.get("slug")
         if slug:
-            return WorkspaceMember.objects.filter(
-                workspace__slug=slug, member=request.user, is_active=True
-            ).exists()
+            return WorkspaceMember.objects.filter(workspace__slug=slug, member=request.user, is_active=True).exists()
 
         return False

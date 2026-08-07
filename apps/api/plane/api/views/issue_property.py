@@ -195,9 +195,9 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
         return self.paginate(
             request=request,
             queryset=queryset,
-            on_results=lambda issue_properties: IssuePropertySerializer(
-                issue_properties, many=True, fields=self.fields, expand=self.expand
-            ).data,
+            on_results=lambda issue_properties: (
+                IssuePropertySerializer(issue_properties, many=True, fields=self.fields, expand=self.expand).data
+            ),
         )
 
 
@@ -426,9 +426,9 @@ class IssuePropertyOptionListCreateAPIEndpoint(BaseAPIView):
         return self.paginate(
             request=request,
             queryset=(self.get_queryset()),
-            on_results=lambda options: IssuePropertyOptionSerializer(
-                options, many=True, fields=self.fields, expand=self.expand
-            ).data,
+            on_results=lambda options: (
+                IssuePropertyOptionSerializer(options, many=True, fields=self.fields, expand=self.expand).data
+            ),
         )
 
 

@@ -64,9 +64,9 @@ class IssueProperty(ProjectBaseModel):
     def save(self, *args, **kwargs):
         if self._state.adding:
             # Get the maximum sort order value from the database
-            last_id = IssueProperty.objects.filter(project=self.project).aggregate(
-                largest=models.Max("sort_order")
-            )["largest"]
+            last_id = IssueProperty.objects.filter(project=self.project).aggregate(largest=models.Max("sort_order"))[
+                "largest"
+            ]
             # if last_id is not None
             if last_id is not None:
                 self.sort_order = last_id + 10000

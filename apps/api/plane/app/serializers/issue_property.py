@@ -55,9 +55,7 @@ class IssuePropertySerializer(BaseSerializer):
         issue_type = data.get("issue_type")
         project_id = self.context.get("project_id")
         if issue_type is not None and project_id is not None:
-            if not IssueType.objects.filter(
-                pk=issue_type.id, project_issue_types__project_id=project_id
-            ).exists():
+            if not IssueType.objects.filter(pk=issue_type.id, project_issue_types__project_id=project_id).exists():
                 raise serializers.ValidationError("issue_type is not valid for this project")
         return data
 

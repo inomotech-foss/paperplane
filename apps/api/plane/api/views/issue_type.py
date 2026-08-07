@@ -126,9 +126,9 @@ class IssueTypeListCreateAPIEndpoint(BaseAPIView):
         return self.paginate(
             request=request,
             queryset=(self.get_queryset()),
-            on_results=lambda issue_types: IssueTypeSerializer(
-                issue_types, many=True, fields=self.fields, expand=self.expand
-            ).data,
+            on_results=lambda issue_types: (
+                IssueTypeSerializer(issue_types, many=True, fields=self.fields, expand=self.expand).data
+            ),
         )
 
 

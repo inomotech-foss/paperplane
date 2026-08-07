@@ -74,9 +74,7 @@ class IssueTypeViewSet(BaseViewSet):
 
     @allow_permission([ROLE.ADMIN])
     def partial_update(self, request, slug, project_id, pk):
-        issue_type = IssueType.objects.get(
-            workspace__slug=slug, project_issue_types__project_id=project_id, pk=pk
-        )
+        issue_type = IssueType.objects.get(workspace__slug=slug, project_issue_types__project_id=project_id, pk=pk)
         serializer = IssueTypeSerializer(issue_type, data=request.data, partial=True)
         if serializer.is_valid():
             with transaction.atomic():
@@ -91,9 +89,7 @@ class IssueTypeViewSet(BaseViewSet):
 
     @allow_permission([ROLE.ADMIN])
     def destroy(self, request, slug, project_id, pk):
-        issue_type = IssueType.objects.get(
-            workspace__slug=slug, project_issue_types__project_id=project_id, pk=pk
-        )
+        issue_type = IssueType.objects.get(workspace__slug=slug, project_issue_types__project_id=project_id, pk=pk)
         if issue_type.is_epic:
             return Response(
                 {"error": "Epic type cannot be removed"},
