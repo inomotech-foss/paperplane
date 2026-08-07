@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "Розгорнути підсторінки",
     "collapse_button": "Згорнути підсторінки"
+  },
+  "page_diagram": {
+    "editor_title": "Редактор діаграм",
+    "load_error": "Не вдалося відкрити діаграму",
+    "save_error": "Не вдалося зберегти діаграму"
   }
 }

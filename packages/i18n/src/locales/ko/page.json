@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "하위 페이지 펼치기",
     "collapse_button": "하위 페이지 접기"
+  },
+  "page_diagram": {
+    "editor_title": "다이어그램 편집기",
+    "load_error": "다이어그램을 열 수 없습니다",
+    "save_error": "다이어그램을 저장할 수 없습니다"
   }
 }

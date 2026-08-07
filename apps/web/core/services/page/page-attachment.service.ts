@@ -74,6 +74,23 @@ export class PageAttachmentService extends APIService {
       });
   }
 
+  /**
+   * The attachment's bytes as text, read through the app's own origin. The
+   * download route redirects to storage, which is unreadable from script
+   * without CORS on the bucket.
+   */
+  async readContent(workspaceSlug: string, projectId: string, pageId: string, attachmentId: string): Promise<string> {
+    return this.get(
+      `${this.basePath(workspaceSlug, projectId, pageId)}${attachmentId}/content/`,
+      {},
+      { responseType: "text" }
+    )
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
   async remove(workspaceSlug: string, projectId: string, pageId: string, attachmentId: string): Promise<void> {
     return this.delete(`${this.basePath(workspaceSlug, projectId, pageId)}${attachmentId}/`)
       .then((response) => response?.data)

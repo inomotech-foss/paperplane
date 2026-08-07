@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "展開子頁面",
     "collapse_button": "摺疊子頁面"
+  },
+  "page_diagram": {
+    "editor_title": "圖表編輯器",
+    "load_error": "無法開啟圖表",
+    "save_error": "無法儲存圖表"
   }
 }

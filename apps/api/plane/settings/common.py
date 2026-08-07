@@ -459,6 +459,11 @@ EMAIL_LOG_RETENTION_DAYS = _retention_days("EMAIL_LOG_RETENTION_DAYS", 7)
 # Instance Changelog URL
 INSTANCE_CHANGELOG_URL = os.environ.get("INSTANCE_CHANGELOG_URL", "")
 
+# Origin serving the draw.io editor the diagram block embeds. Diagram XML is
+# sent to and received from this origin, so point it at a self-hosted draw.io if
+# that traffic must stay inside the deployment.
+DIAGRAM_EMBED_ORIGIN = os.environ.get("DIAGRAM_EMBED_ORIGIN", "https://embed.diagrams.net")
+
 ATTACHMENT_MIME_TYPES = [
     # Images
     "image/jpeg",

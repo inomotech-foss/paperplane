@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "Unterseiten ausklappen",
     "collapse_button": "Unterseiten einklappen"
+  },
+  "page_diagram": {
+    "editor_title": "Diagrammeditor",
+    "load_error": "Das Diagramm konnte nicht geöffnet werden",
+    "save_error": "Das Diagramm konnte nicht gespeichert werden"
   }
 }

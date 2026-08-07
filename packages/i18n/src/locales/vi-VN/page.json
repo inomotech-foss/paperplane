@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "Mở rộng trang con",
     "collapse_button": "Thu gọn trang con"
+  },
+  "page_diagram": {
+    "editor_title": "Trình chỉnh sửa sơ đồ",
+    "load_error": "Không thể mở sơ đồ",
+    "save_error": "Không thể lưu sơ đồ"
   }
 }

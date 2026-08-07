@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "Rozbalit podstránky",
     "collapse_button": "Sbalit podstránky"
+  },
+  "page_diagram": {
+    "editor_title": "Editor diagramů",
+    "load_error": "Diagram se nepodařilo otevřít",
+    "save_error": "Diagram se nepodařilo uložit"
   }
 }

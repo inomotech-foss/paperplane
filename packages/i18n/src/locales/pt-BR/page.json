@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "Expandir subpáginas",
     "collapse_button": "Recolher subpáginas"
+  },
+  "page_diagram": {
+    "editor_title": "Editor de diagramas",
+    "load_error": "Não foi possível abrir o diagrama",
+    "save_error": "Não foi possível salvar o diagrama"
   }
 }

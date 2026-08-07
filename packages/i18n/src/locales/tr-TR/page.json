@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "Alt sayfaları genişlet",
     "collapse_button": "Alt sayfaları daralt"
+  },
+  "page_diagram": {
+    "editor_title": "Diyagram düzenleyici",
+    "load_error": "Diyagram açılamadı",
+    "save_error": "Diyagram kaydedilemedi"
   }
 }

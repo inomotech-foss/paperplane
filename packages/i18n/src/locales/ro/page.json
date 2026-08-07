@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "Extinde subpaginile",
     "collapse_button": "Restrânge subpaginile"
+  },
+  "page_diagram": {
+    "editor_title": "Editor de diagrame",
+    "load_error": "Diagrama nu a putut fi deschisă",
+    "save_error": "Diagrama nu a putut fi salvată"
   }
 }
