@@ -30,12 +30,12 @@ DYNAMIC_MACROS = {
     "tasks-report-macro",
 }
 
-# Dropped until the matching editor extension exists. Counted the same way as
-# DYNAMIC_MACROS so the fidelity report shows exactly what a follow-up buys.
-PENDING_BLOCK_MACROS = {"drawio"}
-
 # Matches MAX_CHILD_PAGES_DEPTH in the editor's child-pages extension.
 MAX_CHILD_PAGES_DEPTH = 20
+
+# The draw.io app stores the rendered preview next to the source, under the
+# source's own name plus this suffix.
+DIAGRAM_PREVIEW_SUFFIX = ".png"
 
 
 def _parameters(node):
@@ -128,6 +128,46 @@ def _child_pages(soup, node, result):
     node.replace_with(block)
 
 
+def _diagram(soup, node, resolvers, result):
+    """The draw.io macro renders an attachment pair: the .drawio source named by
+    diagramName, and its rendered preview under the same name plus .png."""
+    parameters = _parameters(node)
+    source_name = parameters.get("diagramName")
+
+    if not source_name:
+        result.unsupported_macros["drawio"] += 1
+        node.decompose()
+        return
+
+    source = resolvers.attachment(source_name)
+    preview_name = source_name + DIAGRAM_PREVIEW_SUFFIX
+    preview = resolvers.attachment(preview_name)
+
+    # Without either file there is no diagram to show, so fall back to the name
+    # the way an unresolved image does.
+    if source is None and preview is None:
+        result.unresolved_attachments.add(source_name)
+        node.replace_with(NavigableString(f"[{source_name}]"))
+        return
+
+    if source is None:
+        result.unresolved_attachments.add(source_name)
+    if preview is None:
+        result.unresolved_attachments.add(preview_name)
+
+    block = soup.new_tag("diagram-component")
+    if source is not None:
+        block["asset_id"] = source.id
+    if preview is not None:
+        block["preview_asset_id"] = preview.id
+    for name in ("width", "height"):
+        value = parameters.get(name)
+        if value and value.isdigit():
+            block[name] = value
+    block["title"] = parameters.get("diagramDisplayName") or source_name
+    node.replace_with(block)
+
+
 def _status(soup, node):
     title = _parameters(node).get("title", "")
     node.replace_with(NavigableString(title))
@@ -149,9 +189,11 @@ def convert_structured_macros(soup, resolvers, result):
             _table_of_contents(soup, node)
         elif name == "children":
             _child_pages(soup, node, result)
+        elif name == "drawio":
+            _diagram(soup, node, resolvers, result)
         elif name == "status":
             _status(soup, node)
-        elif name in PENDING_BLOCK_MACROS or name in DYNAMIC_MACROS:
+        elif name in DYNAMIC_MACROS:
             result.unsupported_macros[name] += 1
             node.decompose()
         else:
