@@ -10,6 +10,7 @@ import {
   AnchorExtensionConfig,
   ChildPagesExtension,
   DiagramExtension,
+  documentSlashCommandOptions,
   SlashCommands,
   TableOfContentsExtension,
 } from "@/extensions";
@@ -55,7 +56,7 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
   {
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),
     getExtension: ({ disabledExtensions, flaggedExtensions }) =>
-      SlashCommands({ disabledExtensions, flaggedExtensions }),
+      SlashCommands({ additionalOptions: documentSlashCommandOptions, disabledExtensions, flaggedExtensions }),
   },
 ];
 
