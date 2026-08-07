@@ -40,6 +40,7 @@ type UseCollaborativeEditorArgs = Omit<TCollaborativeEditorHookProps, "realtimeC
 export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
   const {
     provider,
+    childPagesHandler,
     onAssetChange,
     onChange,
     onTransaction,
@@ -83,6 +84,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
       }),
       ...extensions,
       ...DocumentEditorAdditionalExtensions({
+        childPagesHandler,
         disabledExtensions,
         extendedEditorProps,
         fileHandler,
@@ -95,6 +97,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
     ],
     [
       provider,
+      childPagesHandler,
       disabledExtensions,
       dragDropEnabled,
       extensions,

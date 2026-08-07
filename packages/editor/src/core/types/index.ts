@@ -6,6 +6,7 @@
 
 export * from "./ai";
 export * from "./asset";
+export * from "./child-pages";
 export * from "./collaboration";
 export * from "./config";
 export * from "./editor";

@@ -11,6 +11,7 @@ export enum CORE_EXTENSIONS {
   BULLET_LIST = "bulletList",
   CALLOUT = "calloutComponent",
   CHARACTER_COUNT = "characterCount",
+  CHILD_PAGES = "child-pages-component",
   CODE_BLOCK = "codeBlock",
   CODE_INLINE = "code",
   COMMENT = "commentMark",
@@ -78,4 +79,5 @@ export const BLOCK_NODE_TYPES = [
   CORE_EXTENSIONS.CALLOUT,
   CORE_EXTENSIONS.WORK_ITEM_EMBED,
   CORE_EXTENSIONS.TABLE_OF_CONTENTS,
+  CORE_EXTENSIONS.CHILD_PAGES,
 ];

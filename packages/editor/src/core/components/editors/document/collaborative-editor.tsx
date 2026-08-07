@@ -25,6 +25,7 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
   const {
     aiHandler,
     bubbleMenuEnabled = true,
+    childPagesHandler,
     containerClassName,
     documentLoaderClassName,
     extensions = [],
@@ -62,6 +63,7 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
   // Editor initialization with guaranteed non-null provider
   const { editor, titleEditor } = useCollaborativeEditor({
     provider,
+    childPagesHandler,
     disabledExtensions,
     editable,
     editorClassName,
