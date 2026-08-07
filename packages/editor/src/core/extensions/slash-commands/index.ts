@@ -4,4 +4,5 @@
  * See the LICENSE file for details.
  */
 
+export * from "./document-options";
 export * from "./root";

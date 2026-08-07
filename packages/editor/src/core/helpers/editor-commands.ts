@@ -216,6 +216,15 @@ export const insertCallout = (editor: Editor, range?: Range) => {
   else editor.chain().focus().insertCallout().run();
 };
 
+/**
+ * Inserts an atom block node. The nodes inserted this way read every attribute
+ * they need from their own schema defaults, so none are passed here.
+ */
+export const insertAtomBlock = (editor: Editor, type: CORE_EXTENSIONS, range?: Range) => {
+  if (range) editor.chain().focus().deleteRange(range).insertContent({ type }).run();
+  else editor.chain().focus().insertContent({ type }).run();
+};
+
 export const openEmojiPicker = (editor: Editor, range?: Range) => {
   if (range) editor.chain().focus().deleteRange(range).run();
   const emojiStorage = editor.storage.emoji as ExtendedEmojiStorage;
