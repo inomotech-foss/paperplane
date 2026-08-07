@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "サブページを展開",
     "collapse_button": "サブページを折りたたむ"
+  },
+  "page_diagram": {
+    "editor_title": "ダイアグラムエディター",
+    "load_error": "ダイアグラムを開けませんでした",
+    "save_error": "ダイアグラムを保存できませんでした"
   }
 }

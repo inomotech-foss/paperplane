@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "Perluas subhalaman",
     "collapse_button": "Ciutkan subhalaman"
+  },
+  "page_diagram": {
+    "editor_title": "Editor diagram",
+    "load_error": "Tidak dapat membuka diagram",
+    "save_error": "Tidak dapat menyimpan diagram"
   }
 }

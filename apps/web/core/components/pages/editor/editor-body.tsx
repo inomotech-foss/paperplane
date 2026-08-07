@@ -14,6 +14,7 @@ import type {
   EditorRefApi,
   EditorTitleRefApi,
   TAIMenuProps,
+  TDiagramEditorProps,
   TDisplayConfig,
   TFileHandler,
   TRealtimeConfig,
@@ -43,6 +44,7 @@ import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
 import { PageContentLoader } from "../loaders/page-content-loader";
 import { PageChildPagesBlock } from "./child-pages-block";
+import { PageDiagramEditor } from "./diagram-editor";
 import { PageEditorHeaderRoot } from "./header";
 import { PageContentBrowser } from "./summary";
 import { EditorAIMenu } from "./ai/menu";
@@ -144,6 +146,26 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
       ),
     }),
     [page, storeType]
+  );
+  // Diagram sources and previews are page attachments, which are project scoped,
+  // so a page outside a project renders its diagrams without offering editing.
+  const diagramHandler = useMemo(
+    () =>
+      projectId && pageId
+        ? {
+            // oxlint-disable-next-line no-shadow
+            renderEditor: (props: TDiagramEditorProps) => (
+              <PageDiagramEditor
+                {...props}
+                pageId={pageId}
+                projectId={projectId}
+                uploadPreview={config.fileHandler.upload}
+                workspaceSlug={workspaceSlug}
+              />
+            ),
+          }
+        : undefined,
+    [config.fileHandler.upload, pageId, projectId, workspaceSlug]
   );
 
   // Use the new hook to handle page events
@@ -298,6 +320,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
             displayConfig={displayConfig}
             getEditorMetaData={getEditorMetaData}
             childPagesHandler={childPagesHandler}
+            diagramHandler={diagramHandler}
             mentionHandler={{
               searchCallback: async (query) => {
                 const res = await fetchMentions(query);

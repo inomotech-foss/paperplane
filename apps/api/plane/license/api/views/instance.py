@@ -176,6 +176,7 @@ class InstanceEndpoint(BaseAPIView):
         data["app_base_url"] = settings.APP_BASE_URL
 
         data["instance_changelog_url"] = settings.INSTANCE_CHANGELOG_URL
+        data["diagram_embed_origin"] = settings.DIAGRAM_EMBED_ORIGIN
         data["is_self_managed"] = settings.IS_SELF_MANAGED
 
         instance_data = serializer.data

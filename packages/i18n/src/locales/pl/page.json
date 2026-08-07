@@ -143,5 +143,10 @@
   "page_list_tree": {
     "expand_button": "Rozwiń podstrony",
     "collapse_button": "Zwiń podstrony"
+  },
+  "page_diagram": {
+    "editor_title": "Edytor diagramów",
+    "load_error": "Nie można otworzyć diagramu",
+    "save_error": "Nie można zapisać diagramu"
   }
 }
