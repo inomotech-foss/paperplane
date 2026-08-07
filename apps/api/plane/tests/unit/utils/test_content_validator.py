@@ -45,6 +45,7 @@ EDITOR_DOCUMENT = """
 <pre language="python"><code language="python" spellcheck="false">x = 1</code></pre>
 <p><span data-text-color="red" data-background-color="blue">coloured</span></p>
 <p>Jump target<anchor-component name="section-1" id="section-1" data-anchor="section-1"></anchor-component></p>
+<toc-component min-level="2" max-level="5"></toc-component>
 <blockquote><p>quote</p></blockquote>
 <p><code spellcheck="false">inline</code></p>
 """

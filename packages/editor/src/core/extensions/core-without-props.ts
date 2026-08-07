@@ -30,6 +30,7 @@ import { TableCell } from "./table/table-cell";
 import { TableHeader } from "./table/table-header";
 import { TableRow } from "./table/table-row";
 import { CustomTextAlignExtension } from "./text-align";
+import { TableOfContentsExtensionConfig } from "./toc/extension-config";
 import { WorkItemEmbedExtensionConfig } from "./work-item-embed/extension-config";
 
 export const CoreEditorExtensionsWithoutProps = [
@@ -69,4 +70,8 @@ export const CoreEditorExtensionsWithoutProps = [
   ...CoreEditorAdditionalExtensionsWithoutProps,
 ];
 
-export const DocumentEditorExtensionsWithoutProps = [WorkItemEmbedExtensionConfig, AnchorExtensionConfig];
+export const DocumentEditorExtensionsWithoutProps = [
+  WorkItemEmbedExtensionConfig,
+  AnchorExtensionConfig,
+  TableOfContentsExtensionConfig,
+];

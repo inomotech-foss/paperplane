@@ -6,7 +6,7 @@
 
 import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { AnyExtension } from "@tiptap/core";
-import { AnchorExtensionConfig, SlashCommands } from "@/extensions";
+import { AnchorExtensionConfig, SlashCommands, TableOfContentsExtension } from "@/extensions";
 // types
 import type { IEditorProps, TExtensions, TUserDetails } from "@/types";
 
@@ -28,6 +28,10 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
   {
     isEnabled: () => true,
     getExtension: () => AnchorExtensionConfig,
+  },
+  {
+    isEnabled: () => true,
+    getExtension: () => TableOfContentsExtension,
   },
   {
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),
