@@ -27,6 +27,7 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
     bubbleMenuEnabled = true,
     childPagesHandler,
     containerClassName,
+    diagramHandler,
     documentLoaderClassName,
     extensions = [],
     disabledExtensions,
@@ -64,6 +65,7 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
   const { editor, titleEditor } = useCollaborativeEditor({
     provider,
     childPagesHandler,
+    diagramHandler,
     disabledExtensions,
     editable,
     editorClassName,

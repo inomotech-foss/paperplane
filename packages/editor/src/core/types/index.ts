@@ -9,6 +9,7 @@ export * from "./asset";
 export * from "./child-pages";
 export * from "./collaboration";
 export * from "./config";
+export * from "./diagram";
 export * from "./editor";
 export * from "./embed";
 export * from "./extensions";

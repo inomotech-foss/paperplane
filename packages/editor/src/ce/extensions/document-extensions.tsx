@@ -18,7 +18,12 @@ import type { IEditorProps, TExtensions, TUserDetails } from "@/types";
 
 export type TDocumentEditorAdditionalExtensionsProps = Pick<
   IEditorProps,
-  "childPagesHandler" | "disabledExtensions" | "flaggedExtensions" | "fileHandler" | "extendedEditorProps"
+  | "childPagesHandler"
+  | "diagramHandler"
+  | "disabledExtensions"
+  | "flaggedExtensions"
+  | "fileHandler"
+  | "extendedEditorProps"
 > & {
   isEditable: boolean;
   provider?: HocuspocusProvider;
@@ -45,7 +50,7 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
   },
   {
     isEnabled: () => true,
-    getExtension: ({ fileHandler }) => DiagramExtension(fileHandler),
+    getExtension: ({ diagramHandler, fileHandler }) => DiagramExtension(fileHandler, diagramHandler),
   },
   {
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),

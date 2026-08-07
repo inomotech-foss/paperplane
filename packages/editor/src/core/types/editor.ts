@@ -24,6 +24,7 @@ import type {
   IMarking,
   TAIHandler,
   TChildPagesHandler,
+  TDiagramHandler,
   TDisplayConfig,
   TDocumentEventEmitter,
   TDocumentEventsServer,
@@ -159,6 +160,7 @@ export type IEditorProps = {
   bubbleMenuEnabled?: boolean;
   childPagesHandler?: TChildPagesHandler;
   containerClassName?: string;
+  diagramHandler?: TDiagramHandler;
   displayConfig?: TDisplayConfig;
   disabledExtensions: TExtensions[];
   editable: boolean;

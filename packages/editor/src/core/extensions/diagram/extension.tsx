@@ -8,18 +8,29 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { Workflow } from "lucide-react";
 // types
-import type { TFileHandler } from "@/types";
+import type { TDiagramHandler, TDiagramSaveProps, TFileHandler } from "@/types";
 // local imports
 import { DiagramExtensionConfig } from "./extension-config";
 
 type TDiagramOptions = {
   getAssetSrc: TFileHandler["getAssetSrc"] | undefined;
+  renderEditor: TDiagramHandler["renderEditor"] | undefined;
 };
 
 function Diagram(props: NodeViewProps) {
-  const { getAssetSrc } = props.extension.options as TDiagramOptions;
-  const { height, preview_asset_id: previewAssetId, title, width } = props.node.attrs;
+  const { getAssetSrc, renderEditor } = props.extension.options as TDiagramOptions;
+  const { asset_id: assetId, height, preview_asset_id: previewAssetId, title, width } = props.node.attrs;
   const [src, setSrc] = useState<string>();
+  const [isEditing, setIsEditing] = useState(false);
+  const isEditable = renderEditor !== undefined && props.editor.isEditable;
+
+  const handleSave = (saved: TDiagramSaveProps) => {
+    props.updateAttributes(saved);
+    setIsEditing(false);
+    // The preview is a new asset, so the resolved source has to be dropped or
+    // the node would keep showing the diagram as it looked before the edit.
+    setSrc(undefined);
+  };
 
   useEffect(() => {
     if (!previewAssetId || !getAssetSrc) return;
@@ -40,7 +51,11 @@ function Diagram(props: NodeViewProps) {
 
   return (
     <NodeViewWrapper className="diagram-component my-2 block">
-      <div contentEditable={false}>
+      <div
+        contentEditable={false}
+        onDoubleClick={isEditable ? () => setIsEditing(true) : undefined}
+        className={isEditable ? "cursor-pointer" : undefined}
+      >
         {src ? (
           <img
             src={src}
@@ -58,16 +73,28 @@ function Diagram(props: NodeViewProps) {
           </div>
         )}
       </div>
+      {isEditing &&
+        renderEditor?.({
+          assetId,
+          title,
+          onSave: handleSave,
+          onClose: () => setIsEditing(false),
+        })}
     </NodeViewWrapper>
   );
 }
 
-export function DiagramExtension(fileHandler: TFileHandler) {
+/**
+ * The node stays registered even without a handler so a document editor that
+ * cannot supply one still renders the diagram, just without editing.
+ */
+export function DiagramExtension(fileHandler: TFileHandler, handler: TDiagramHandler | undefined) {
   return DiagramExtensionConfig.extend<TDiagramOptions>({
     addOptions(this) {
       return {
         ...this.parent?.(),
         getAssetSrc: fileHandler.getAssetSrc,
+        renderEditor: handler?.renderEditor,
       };
     },
 

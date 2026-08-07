@@ -29,6 +29,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
     bubbleMenuEnabled = false,
     childPagesHandler,
     containerClassName,
+    diagramHandler,
     disabledExtensions,
     displayConfig = DEFAULT_DISPLAY_CONFIG,
     editable,
@@ -56,6 +57,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
       HeadingListExtension,
       ...DocumentEditorAdditionalExtensions({
         childPagesHandler,
+        diagramHandler,
         disabledExtensions,
         extendedEditorProps,
         flaggedExtensions,
@@ -69,7 +71,16 @@ function DocumentEditor(props: IDocumentEditorProps) {
       })
     );
     return additionalExtensions;
-  }, [childPagesHandler, disabledExtensions, editable, extendedEditorProps, fileHandler, flaggedExtensions, user]);
+  }, [
+    childPagesHandler,
+    diagramHandler,
+    disabledExtensions,
+    editable,
+    extendedEditorProps,
+    fileHandler,
+    flaggedExtensions,
+    user,
+  ]);
 
   const editor = useEditor({
     disabledExtensions,
