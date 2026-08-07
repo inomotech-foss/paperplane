@@ -41,6 +41,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
   const {
     provider,
     childPagesHandler,
+    diagramHandler,
     onAssetChange,
     onChange,
     onTransaction,
@@ -85,6 +86,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
       ...extensions,
       ...DocumentEditorAdditionalExtensions({
         childPagesHandler,
+        diagramHandler,
         disabledExtensions,
         extendedEditorProps,
         fileHandler,
@@ -98,6 +100,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
     [
       provider,
       childPagesHandler,
+      diagramHandler,
       disabledExtensions,
       dragDropEnabled,
       extensions,

@@ -46,7 +46,7 @@ export type TEditorHookProps = TCoreHookProps &
   };
 
 export type TCollaborativeEditorHookProps = TCoreHookProps &
-  Pick<IEditorProps, "childPagesHandler"> &
+  Pick<IEditorProps, "childPagesHandler" | "diagramHandler"> &
   Pick<
     TEditorHookProps,
     | "editable"
