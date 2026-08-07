@@ -41,6 +41,8 @@ jobs:
         run: cd apps/api && pip install -r requirements.txt
       - name: Lint apps/api
         run: ruff check --fix apps/api
+      - name: Check apps/api formatting
+        run: ruff format --check apps/api
       - name: Check migrations
         run: cd apps/api && python manage.py makemigrations --check --dry-run
         env:
