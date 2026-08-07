@@ -53,9 +53,7 @@ class WorkSpaceSerializer(DynamicBaseSerializer):
         # digit. Mirrors the frontend HAS_ALPHANUMERIC_REGEX check so the rule
         # cannot be bypassed via a direct API call.
         if not has_alphanumeric(value):
-            raise serializers.ValidationError(
-                "Name must contain at least one letter or number"
-            )
+            raise serializers.ValidationError("Name must contain at least one letter or number")
         return value
 
     def validate_slug(self, value):

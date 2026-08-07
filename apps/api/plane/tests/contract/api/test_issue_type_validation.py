@@ -71,9 +71,7 @@ class TestWorkItemTypeCrossProjectValidation:
     def test_create_work_item_with_own_project_type_succeeds(
         self, api_key_client, workspace, project_a, create_user, type_a
     ):
-        State.objects.create(
-            name="Todo", group="backlog", project=project_a, workspace=workspace, default=True
-        )
+        State.objects.create(name="Todo", group="backlog", project=project_a, workspace=workspace, default=True)
         response = api_key_client.post(
             work_items_url(workspace.slug, project_a.id),
             {"name": "Same project issue", "type_id": str(type_a.id)},

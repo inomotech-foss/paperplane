@@ -102,9 +102,7 @@ class PageListCreateAPIEndpoint(BaseAPIView):
         serializer = PageSerializer(data=request.data)
         if serializer.is_valid():
             parent = serializer.validated_data.get("parent")
-            if parent and not Page.objects.filter(
-                pk=parent.id, workspace__slug=slug, projects__id=project_id
-            ).exists():
+            if parent and not Page.objects.filter(pk=parent.id, workspace__slug=slug, projects__id=project_id).exists():
                 return Response(
                     {"error": "Parent page does not exist in the project"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -259,9 +257,7 @@ class PageDetailAPIEndpoint(BaseAPIView):
                 )
 
             parent = serializer.validated_data.get("parent")
-            if parent and not Page.objects.filter(
-                pk=parent.id, workspace__slug=slug, projects__id=project_id
-            ).exists():
+            if parent and not Page.objects.filter(pk=parent.id, workspace__slug=slug, projects__id=project_id).exists():
                 return Response(
                     {"error": "Parent page does not exist in the project"},
                     status=status.HTTP_400_BAD_REQUEST,

@@ -75,14 +75,7 @@ def is_blocked_ip(ip):
     transition formats. Fails closed: anything it cannot positively clear is
     treated as blocked.
     """
-    if (
-        ip.is_private
-        or ip.is_loopback
-        or ip.is_reserved
-        or ip.is_link_local
-        or ip.is_multicast
-        or ip.is_unspecified
-    ):
+    if ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_link_local or ip.is_multicast or ip.is_unspecified:
         return True
 
     if any(ip.version == net.version and ip in net for net in _BLOCKED_NETWORKS):
@@ -97,9 +90,7 @@ def is_blocked_ip(ip):
 
 def _is_allowed_ip(ip, allowed_ips):
     """Return True if ``ip`` falls inside an operator-trusted allowlist network."""
-    return bool(allowed_ips) and any(
-        net.version == ip.version and ip in net for net in allowed_ips
-    )
+    return bool(allowed_ips) and any(net.version == ip.version and ip in net for net in allowed_ips)
 
 
 def resolve_and_validate(hostname, allowed_ips=None, require_safe=True):
@@ -188,9 +179,7 @@ def validate_url(url, allowed_ips=None, allowed_hosts=None):
         raise ValueError("Invalid URL scheme. Only HTTP and HTTPS are allowed")
 
     normalized_host = hostname.rstrip(".").lower()
-    if allowed_hosts and normalized_host in {
-        (h or "").rstrip(".").lower() for h in allowed_hosts if h
-    }:
+    if allowed_hosts and normalized_host in {(h or "").rstrip(".").lower() for h in allowed_hosts if h}:
         return
 
     resolve_and_validate(hostname, allowed_ips=allowed_ips)

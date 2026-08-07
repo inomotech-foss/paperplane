@@ -10,6 +10,7 @@ from django.db.models import Q
 # Module imports
 from .project import ProjectBaseModel
 
+
 class EstimateType(models.TextChoices):
     CATEGORIES = "categories", "Categories"
     POINTS = "points", "Points"

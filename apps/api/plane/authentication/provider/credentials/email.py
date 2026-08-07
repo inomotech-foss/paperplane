@@ -24,12 +24,14 @@ class EmailProvider(CredentialAdapter):
         self.code = code
         self.is_signup = is_signup
 
-        (ENABLE_EMAIL_PASSWORD,) = get_configuration_value([
-            {
-                "key": "ENABLE_EMAIL_PASSWORD",
-                "default": os.environ.get("ENABLE_EMAIL_PASSWORD"),
-            }
-        ])
+        (ENABLE_EMAIL_PASSWORD,) = get_configuration_value(
+            [
+                {
+                    "key": "ENABLE_EMAIL_PASSWORD",
+                    "default": os.environ.get("ENABLE_EMAIL_PASSWORD"),
+                }
+            ]
+        )
 
         if ENABLE_EMAIL_PASSWORD == "0":
             raise AuthenticationException(
@@ -47,16 +49,18 @@ class EmailProvider(CredentialAdapter):
                     error_code=AUTHENTICATION_ERROR_CODES["USER_ALREADY_EXIST"],
                 )
 
-            super().set_user_data({
-                "email": self.key,
-                "user": {
-                    "avatar": "",
-                    "first_name": "",
-                    "last_name": "",
-                    "provider_id": "",
-                    "is_password_autoset": False,
-                },
-            })
+            super().set_user_data(
+                {
+                    "email": self.key,
+                    "user": {
+                        "avatar": "",
+                        "first_name": "",
+                        "last_name": "",
+                        "provider_id": "",
+                        "is_password_autoset": False,
+                    },
+                }
+            )
             return
         else:
             user = User.objects.filter(email=self.key).first()
@@ -83,14 +87,16 @@ class EmailProvider(CredentialAdapter):
                     payload={"email": self.key},
                 )
 
-            super().set_user_data({
-                "email": self.key,
-                "user": {
-                    "avatar": "",
-                    "first_name": "",
-                    "last_name": "",
-                    "provider_id": "",
-                    "is_password_autoset": False,
-                },
-            })
+            super().set_user_data(
+                {
+                    "email": self.key,
+                    "user": {
+                        "avatar": "",
+                        "first_name": "",
+                        "last_name": "",
+                        "provider_id": "",
+                        "is_password_autoset": False,
+                    },
+                }
+            )
             return

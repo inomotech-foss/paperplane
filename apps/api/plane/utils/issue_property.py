@@ -241,9 +241,7 @@ def validate_value_payload(issue, slug, project_id, data):
 
     properties = {
         str(prop.id): prop
-        for prop in IssueProperty.objects.filter(
-            workspace__slug=slug, project_id=project_id, id__in=property_ids
-        )
+        for prop in IssueProperty.objects.filter(workspace__slug=slug, project_id=project_id, id__in=property_ids)
     }
     unknown = [key for key in data.keys() if str(uuid.UUID(str(key))) not in properties]
     if unknown:

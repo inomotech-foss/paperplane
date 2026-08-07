@@ -88,11 +88,13 @@ def _collect_and_push_metrics() -> None:
     service_name = os.environ.get("SERVICE_NAME", "plane-ce-api")
 
     # Create resource with instance identification for the collector
-    resource = Resource.create({
-        "service.name": service_name,
-        "instance_id": str(instance.instance_id or ""),
-        "plane.instance.type": "self-hosted",
-    })
+    resource = Resource.create(
+        {
+            "service.name": service_name,
+            "instance_id": str(instance.instance_id or ""),
+            "plane.instance.type": "self-hosted",
+        }
+    )
 
     # Configure the OTLP metric exporter (HTTP or gRPC)
     logger.info(f"Configuring OTLP exporter: protocol={protocol}, endpoint={export_endpoint}")
@@ -266,17 +268,19 @@ def _collect_and_push_metrics() -> None:
         workspace_metrics = []
         for workspace in workspaces:
             ws_id = workspace.id
-            workspace_metrics.append({
-                "instance_id": instance_id_str,
-                "workspace_id": str(ws_id),
-                "workspace_slug": str(workspace.slug),
-                "project_count": project_counts.get(ws_id, 0),
-                "issue_count": issue_counts.get(ws_id, 0),
-                "module_count": module_counts.get(ws_id, 0),
-                "cycle_count": cycle_counts.get(ws_id, 0),
-                "member_count": member_counts.get(ws_id, 0),
-                "page_count": page_counts.get(ws_id, 0),
-            })
+            workspace_metrics.append(
+                {
+                    "instance_id": instance_id_str,
+                    "workspace_id": str(ws_id),
+                    "workspace_slug": str(workspace.slug),
+                    "project_count": project_counts.get(ws_id, 0),
+                    "issue_count": issue_counts.get(ws_id, 0),
+                    "module_count": module_counts.get(ws_id, 0),
+                    "cycle_count": cycle_counts.get(ws_id, 0),
+                    "member_count": member_counts.get(ws_id, 0),
+                    "page_count": page_counts.get(ws_id, 0),
+                }
+            )
 
         def _ws_attrs(ws: dict) -> dict:
             return {
@@ -353,8 +357,7 @@ def _collect_and_push_metrics() -> None:
             )
         else:
             logger.warning(
-                f"Metrics flush timed out for instance {instance.instance_id}, "
-                f"some metrics may not have been exported"
+                f"Metrics flush timed out for instance {instance.instance_id}, some metrics may not have been exported"
             )
 
     except Exception as e:

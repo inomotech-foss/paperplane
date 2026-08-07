@@ -19,6 +19,7 @@ The exporters module provides a schema-based approach to exporting data with sup
 ```python
 from plane.utils.exporters import Exporter, ExportSchema, StringField, NumberField
 
+
 # Define a schema
 class UserExportSchema(ExportSchema):
     name = StringField(source="username", label="User Name")
@@ -27,6 +28,7 @@ class UserExportSchema(ExportSchema):
 
     def prepare_posts_count(self, obj):
         return obj.posts.count()
+
 
 # Export data - just pass the queryset!
 users = User.objects.all()
@@ -41,9 +43,9 @@ from plane.utils.exporters import Exporter, IssueExportSchema
 
 # Get issues with prefetched relations
 issues = Issue.objects.filter(project_id=project_id).prefetch_related(
-    'assignee_details',
-    'label_details',
-    'issue_module',
+    "assignee_details",
+    "label_details",
+    "issue_module",
     # ... other relations
 )
 
@@ -191,7 +193,7 @@ class MySchema(ExportSchema):
 exporter = Exporter(
     format_type="csv",
     schema_class=MySchema,
-    options={"list_joiner": "; "}  # Custom separator
+    options={"list_joiner": "; "},  # Custom separator
 )
 ```
 
@@ -242,6 +244,7 @@ class MySchema(ExportSchema):
         attachments_dict = get_attachments_dict(queryset)
         return {"attachments_dict": attachments_dict}
 
+
 # The Exporter automatically uses get_context_data() when serializing
 queryset = MyModel.objects.all()
 exporter = Exporter(format_type="csv", schema_class=MySchema)
@@ -255,10 +258,12 @@ Add support for new export formats:
 ```python
 from plane.utils.exporters import Exporter, BaseFormatter
 
+
 class XMLFormatter(BaseFormatter):
     def format(self, filename, records, schema_class, options=None):
         # Implementation
         return (f"{filename}.xml", xml_content)
+
 
 # Register the formatter
 Exporter.register_formatter("xml", XMLFormatter)
@@ -281,11 +286,7 @@ Pass a `fields` parameter to export only specific fields:
 ```python
 # Export only specific fields
 exporter = Exporter(format_type="csv", schema_class=MySchema)
-filename, content = exporter.export(
-    "filtered_data",
-    queryset,
-    fields=["id", "name", "email"]
-)
+filename, content = exporter.export("filtered_data", queryset, fields=["id", "name", "email"])
 ```
 
 ### 🎯 Extending Schemas
@@ -338,9 +339,7 @@ filename, content = exporter.export("issues", issues)
 
 # Export specific fields only
 filename, content = exporter.export(
-    "issues_filtered",
-    issues,
-    fields=["id", "name", "state_name", "assignees", "labels"]
+    "issues_filtered", issues, fields=["id", "name", "state_name", "assignees", "labels"]
 )
 
 # Export multiple projects to separate files
@@ -412,7 +411,7 @@ Key features:
    # Avoid - serializes all data upfront
    all_data = MySchema.serialize_queryset(issues)
    for project_id in project_ids:
-       project_data = [d for d in all_data if d['project_id'] == project_id]
+       project_data = [d for d in all_data if d["project_id"] == project_id]
        exporter.export(f"project-{project_id}", project_data)
    ```
 

@@ -18,6 +18,7 @@ from plane.utils.exception_logger import log_exception
 
 PAGE_VERSION_TASK_TIMEOUT = 600
 
+
 @shared_task
 def track_page_version(page_id, existing_instance, user_id):
     try:
@@ -27,7 +28,6 @@ def track_page_version(page_id, existing_instance, user_id):
         # Get the current instance
         current_instance = json.loads(existing_instance) if existing_instance is not None else {}
         sub_pages = {}
-
 
         # Create a version if description_html is updated
         if current_instance.get("description_html") != page.description_html:
@@ -52,7 +52,7 @@ def track_page_version(page_id, existing_instance, user_id):
                         "description_json",
                         "description_stripped",
                         "sub_pages_data",
-                        "updated_at"
+                        "updated_at",
                     ]
                 )
             else:

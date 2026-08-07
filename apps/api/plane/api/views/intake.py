@@ -114,9 +114,9 @@ class IntakeIssueListCreateAPIEndpoint(BaseAPIView):
         return self.paginate(
             request=request,
             queryset=(issue_queryset),
-            on_results=lambda intake_issues: IntakeIssueSerializer(
-                intake_issues, many=True, fields=self.fields, expand=self.expand
-            ).data,
+            on_results=lambda intake_issues: (
+                IntakeIssueSerializer(intake_issues, many=True, fields=self.fields, expand=self.expand).data
+            ),
         )
 
     @intake_docs(

@@ -343,6 +343,7 @@ def sticky_docs(**kwargs):
 
     return extend_schema(**_merge_schema_options(defaults, kwargs))
 
+
 def estimate_docs(**kwargs):
     """Decorator for estimate-related endpoints"""
     defaults = {
@@ -355,6 +356,7 @@ def estimate_docs(**kwargs):
         },
     }
     return extend_schema(**_merge_schema_options(defaults, kwargs))
+
 
 def estimate_point_docs(**kwargs):
     """Decorator for estimate point-related endpoints"""
