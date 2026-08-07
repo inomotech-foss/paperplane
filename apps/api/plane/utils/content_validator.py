@@ -79,6 +79,7 @@ CUSTOM_TAGS = {
     "anchor-component",
     "toc-component",
     "child-pages-component",
+    "diagram-component",
 }
 ALLOWED_TAGS = nh3.ALLOWED_TAGS | CUSTOM_TAGS
 
@@ -144,6 +145,7 @@ ATTRIBUTES = {
     "anchor-component": {"id", "name", "data-anchor"},
     "toc-component": {"min-level", "max-level"},
     "child-pages-component": {"depth"},
+    "diagram-component": {"asset_id", "preview_asset_id", "width", "height", "title"},
     "issue-embed-component": {
         "id",
         "entity_identifier",

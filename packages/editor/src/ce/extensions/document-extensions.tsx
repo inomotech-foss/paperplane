@@ -6,7 +6,13 @@
 
 import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { AnyExtension } from "@tiptap/core";
-import { AnchorExtensionConfig, ChildPagesExtension, SlashCommands, TableOfContentsExtension } from "@/extensions";
+import {
+  AnchorExtensionConfig,
+  ChildPagesExtension,
+  DiagramExtension,
+  SlashCommands,
+  TableOfContentsExtension,
+} from "@/extensions";
 // types
 import type { IEditorProps, TExtensions, TUserDetails } from "@/types";
 
@@ -36,6 +42,10 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
   {
     isEnabled: () => true,
     getExtension: ({ childPagesHandler }) => ChildPagesExtension(childPagesHandler),
+  },
+  {
+    isEnabled: () => true,
+    getExtension: ({ fileHandler }) => DiagramExtension(fileHandler),
   },
   {
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),
