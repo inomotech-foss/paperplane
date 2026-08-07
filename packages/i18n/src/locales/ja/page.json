@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "画像がありません",
           "description": "画像を追加してここで確認してください。"
+        },
+        "attachments": {
+          "title": "添付ファイル",
+          "dropzone": "クリックするか、ファイルをここにドラッグしてください",
+          "uploading": "アップロード中……",
+          "too_large": "ファイルサイズが大きすぎます（最大 {size} MB）",
+          "upload_success": "添付ファイルを追加しました",
+          "upload_error": "ファイルをアップロードできませんでした",
+          "delete_error": "添付ファイルを削除できませんでした"
+        },
+        "embedded": {
+          "title": "埋め込み画像"
         }
       },
       "comments": {

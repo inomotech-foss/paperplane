@@ -14,6 +14,7 @@ from plane.utils.content_validator import (
     validate_html_content,
 )
 from plane.db.models import (
+    FileAsset,
     Page,
     PageLabel,
     Label,
@@ -294,3 +295,20 @@ class PageCommentSerializer(BaseSerializer):
             if sanitized_html is not None:
                 attrs["comment_html"] = sanitized_html
         return attrs
+
+
+class PageAttachmentSerializer(BaseSerializer):
+    asset_url = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = FileAsset
+        fields = "__all__"
+        read_only_fields = [
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+            "workspace",
+            "project",
+            "page",
+        ]

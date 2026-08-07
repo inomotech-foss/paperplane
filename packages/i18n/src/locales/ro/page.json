@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Imagini lipsă",
           "description": "Adăugați imagini pentru a le vedea aici."
+        },
+        "attachments": {
+          "title": "Atașamente",
+          "dropzone": "Faceți clic sau trageți fișiere aici",
+          "uploading": "Se încarcă...",
+          "too_large": "Fișierul este prea mare (max. {size} MB)",
+          "upload_success": "Atașament adăugat",
+          "upload_error": "Fișierul nu a putut fi încărcat",
+          "delete_error": "Atașamentul nu a putut fi eliminat"
+        },
+        "embedded": {
+          "title": "Imagini încorporate"
         }
       },
       "comments": {

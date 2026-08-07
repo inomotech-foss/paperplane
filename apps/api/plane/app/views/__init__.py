@@ -182,6 +182,7 @@ from .page.base import (
     PagesDescriptionViewSet,
     PageDuplicateEndpoint,
 )
+from .page.attachment import PageAttachmentEndpoint
 from .page.version import PageVersionEndpoint
 from .page.comment import PageCommentViewSet, PageCommentReactionViewSet
 

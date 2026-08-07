@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Fehlende Bilder",
           "description": "Fügen Sie Bilder hinzu, um sie hier zu sehen."
+        },
+        "attachments": {
+          "title": "Anhänge",
+          "dropzone": "Klicken oder Dateien hierher ziehen",
+          "uploading": "Wird hochgeladen ...",
+          "too_large": "Datei ist zu groß (max. {size} MB)",
+          "upload_success": "Anhang hinzugefügt",
+          "upload_error": "Die Datei konnte nicht hochgeladen werden",
+          "delete_error": "Der Anhang konnte nicht entfernt werden"
+        },
+        "embedded": {
+          "title": "Eingebettete Bilder"
         }
       },
       "comments": {

@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Images manquantes",
           "description": "Ajoutez des images pour les voir ici."
+        },
+        "attachments": {
+          "title": "Pièces jointes",
+          "dropzone": "Cliquez ou glissez des fichiers ici",
+          "uploading": "Téléversement en cours…",
+          "too_large": "Le fichier est trop volumineux (max. {size} Mo)",
+          "upload_success": "Pièce jointe ajoutée",
+          "upload_error": "Impossible de téléverser le fichier",
+          "delete_error": "Impossible de supprimer la pièce jointe"
+        },
+        "embedded": {
+          "title": "Images intégrées"
         }
       },
       "comments": {

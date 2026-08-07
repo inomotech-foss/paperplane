@@ -39,6 +39,18 @@
         "empty_state": {
           "title": "Missing images",
           "description": "Add images to see them here."
+        },
+        "attachments": {
+          "title": "Attachments",
+          "dropzone": "Click or drag files here",
+          "uploading": "Uploading...",
+          "too_large": "File is too large (max {size} MB)",
+          "upload_success": "Attachment added",
+          "upload_error": "Could not upload the file",
+          "delete_error": "Could not remove the attachment"
+        },
+        "embedded": {
+          "title": "Embedded images"
         }
       },
       "comments": {

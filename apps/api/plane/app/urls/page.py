@@ -6,6 +6,7 @@ from django.urls import path
 
 
 from plane.app.views import (
+    PageAttachmentEndpoint,
     PageViewSet,
     PageFavoriteViewSet,
     PagesDescriptionViewSet,
@@ -59,6 +60,16 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/description/",
         PagesDescriptionViewSet.as_view({"get": "retrieve", "patch": "partial_update"}),
         name="page-description",
+    ),
+    path(
+        "assets/v2/workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/attachments/",
+        PageAttachmentEndpoint.as_view(),
+        name="project-page-attachments",
+    ),
+    path(
+        "assets/v2/workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/attachments/<uuid:pk>/",
+        PageAttachmentEndpoint.as_view(),
+        name="project-page-attachments",
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/versions/",
