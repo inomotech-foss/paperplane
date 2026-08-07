@@ -42,6 +42,7 @@ import { useEditorFlagging } from "@/hooks/use-editor-flagging";
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
 import { PageContentLoader } from "../loaders/page-content-loader";
+import { PageChildPagesBlock } from "./child-pages-block";
 import { PageEditorHeaderRoot } from "./header";
 import { PageContentBrowser } from "./summary";
 import { EditorAIMenu } from "./ai/menu";
@@ -135,6 +136,14 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
       wideLayout: isFullWidth,
     }),
     [fontSize, fontStyle, isFullWidth]
+  );
+  const childPagesHandler = useMemo(
+    () => ({
+      renderComponent: ({ depth }: { depth: number }) => (
+        <PageChildPagesBlock depth={depth} page={page} storeType={storeType} />
+      ),
+    }),
+    [page, storeType]
   );
 
   // Use the new hook to handle page events
@@ -288,6 +297,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
             containerClassName="h-full p-0 pb-64"
             displayConfig={displayConfig}
             getEditorMetaData={getEditorMetaData}
+            childPagesHandler={childPagesHandler}
             mentionHandler={{
               searchCallback: async (query) => {
                 const res = await fetchMentions(query);
