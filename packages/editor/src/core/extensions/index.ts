@@ -16,6 +16,7 @@ export * from "./slash-commands";
 export * from "./table";
 export * from "./typography";
 export * from "./anchor";
+export * from "./toc";
 export * from "./work-item-embed";
 export * from "./core-without-props";
 export * from "./custom-color";

@@ -38,6 +38,7 @@ export enum CORE_EXTENSIONS {
   SLASH_COMMANDS = "slash-command",
   STRIKETHROUGH = "strike",
   TABLE = "table",
+  TABLE_OF_CONTENTS = "toc-component",
   TABLE_CELL = "tableCell",
   TABLE_HEADER = "tableHeader",
   TABLE_ROW = "tableRow",
@@ -76,4 +77,5 @@ export const BLOCK_NODE_TYPES = [
   CORE_EXTENSIONS.CUSTOM_IMAGE,
   CORE_EXTENSIONS.CALLOUT,
   CORE_EXTENSIONS.WORK_ITEM_EMBED,
+  CORE_EXTENSIONS.TABLE_OF_CONTENTS,
 ];

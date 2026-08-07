@@ -32,7 +32,7 @@ DYNAMIC_MACROS = {
 
 # Dropped until the matching editor extension exists. Counted the same way as
 # DYNAMIC_MACROS so the fidelity report shows exactly what a follow-up buys.
-PENDING_BLOCK_MACROS = {"anchor", "children", "drawio", "toc"}
+PENDING_BLOCK_MACROS = {"children", "drawio"}
 
 
 def _parameters(node):
@@ -86,6 +86,20 @@ def _code_block(soup, node):
     node.replace_with(pre)
 
 
+def _anchor(soup, node):
+    block = soup.new_tag("anchor-component")
+    block["name"] = _parameters(node).get("", "")
+    node.replace_with(block)
+
+
+def _table_of_contents(soup, node):
+    parameters = _parameters(node)
+    block = soup.new_tag("toc-component")
+    block["min-level"] = parameters.get("minLevel", "1")
+    block["max-level"] = parameters.get("maxLevel", "6")
+    node.replace_with(block)
+
+
 def _status(soup, node):
     title = _parameters(node).get("title", "")
     node.replace_with(NavigableString(title))
@@ -101,6 +115,10 @@ def convert_structured_macros(soup, resolvers, result):
             _code_block(soup, node)
         elif name in CALLOUT_MACROS:
             _callout(soup, node, name)
+        elif name == "anchor":
+            _anchor(soup, node)
+        elif name == "toc":
+            _table_of_contents(soup, node)
         elif name == "status":
             _status(soup, node)
         elif name in PENDING_BLOCK_MACROS or name in DYNAMIC_MACROS:

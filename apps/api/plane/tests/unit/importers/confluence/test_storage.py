@@ -203,15 +203,32 @@ class TestMacros:
         assert 'data-block-type="callout-component"' in html
         assert "<p>heads up</p>" in html
 
+    def test_anchor_macro_becomes_an_anchor_node(self):
+        body = (
+            '<ac:structured-macro ac:name="anchor">'
+            '<ac:parameter ac:name="">ASPICE_WP_01-00</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert '<anchor-component name="ASPICE_WP_01-00"></anchor-component>' in result.html
+        assert result.unsupported_macros == {}
+
+    def test_toc_macro_becomes_a_toc_node(self):
+        body = (
+            '<ac:structured-macro ac:name="toc"><ac:parameter ac:name="minLevel">2</ac:parameter>'
+            '<ac:parameter ac:name="maxLevel">5</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert '<toc-component max-level="5" min-level="2"></toc-component>' in result.html
+        assert result.unsupported_macros == {}
+
     @pytest.mark.parametrize(
         "body,macro",
         [
-            ('<ac:structured-macro ac:name="toc"/>', "toc"),
             ('<ac:structured-macro ac:name="children"/>', "children"),
-            (
-                '<ac:structured-macro ac:name="anchor"><ac:parameter ac:name="">A</ac:parameter></ac:structured-macro>',
-                "anchor",
-            ),
             (
                 '<ac:structured-macro ac:name="drawio">'
                 '<ac:parameter ac:name="diagramName">Flow.drawio</ac:parameter></ac:structured-macro>',
