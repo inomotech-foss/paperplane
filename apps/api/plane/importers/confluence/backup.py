@@ -88,6 +88,14 @@ class ConfluenceBackup:
         return sorted(path for path in directory.iterdir() if path.is_file() and not path.name.startswith(("~", ".")))
 
 
+def space_keys(root):
+    """Every space backed up under `root`, in a stable order."""
+    directory = Path(root) / "confluence"
+    if not directory.is_dir():
+        return []
+    return sorted(path.name for path in directory.iterdir() if (path / "space.json").exists())
+
+
 def order_parents_first(pages):
     """Order pages so a parent is always placed before its children.
 
