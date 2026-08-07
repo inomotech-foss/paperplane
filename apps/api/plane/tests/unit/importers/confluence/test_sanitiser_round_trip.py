@@ -19,6 +19,9 @@ SUPPORTED_CONSTRUCTS = """
 <p><ac:emoticon ac:emoji-fallback="✅"/> <time datetime="2024-01-01"/></p>
 <ul><li><p>list item</p></li></ul>
 <blockquote><p>quote</p></blockquote>
+<ac:structured-macro ac:name="anchor"><ac:parameter ac:name="">section-1</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="toc"><ac:parameter ac:name="minLevel">2</ac:parameter>
+  <ac:parameter ac:name="maxLevel">5</ac:parameter></ac:structured-macro>
 """
 
 
