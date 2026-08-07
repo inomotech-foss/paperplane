@@ -7,6 +7,7 @@ from uuid import uuid4
 import pytest
 from rest_framework.test import APIClient
 
+from plane.app.views.page.attachment import MAX_PROXIED_SIZE
 from plane.db.models import FileAsset, Page, Project, ProjectMember, ProjectPage, User, WorkspaceMember
 
 S3_STORAGE_PATH = "plane.app.views.page.attachment.S3Storage"
@@ -18,6 +19,18 @@ def collection_url(slug, project_id, page_id):
 
 def detail_url(slug, project_id, page_id, pk):
     return f"{collection_url(slug, project_id, page_id)}{pk}/"
+
+
+def content_url(slug, project_id, page_id, pk):
+    return f"{detail_url(slug, project_id, page_id, pk)}content/"
+
+
+class FakeBody:
+    def __init__(self, payload):
+        self.payload = payload
+
+    def iter_chunks(self):
+        yield self.payload
 
 
 def make_project(workspace, user, name, identifier):
@@ -179,6 +192,76 @@ class TestPageAttachmentListing:
         response = session_client.get(detail_url(workspace.slug, project.id, page.id, attachment.id))
 
         assert response.status_code == 400
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestPageAttachmentContent:
+    """The proxy exists so browser code can read an attachment without CORS on
+    the bucket. It is the only route that serves stored bytes from the app's own
+    origin, so its headers carry the whole defence against a stored XSS."""
+
+    def test_streams_the_stored_bytes(self, session_client, workspace, project, page, attachment):
+        with mock.patch(S3_STORAGE_PATH) as storage:
+            storage.return_value.get_object.return_value = {"Body": FakeBody(b"<mxfile />")}
+            response = session_client.get(content_url(workspace.slug, project.id, page.id, attachment.id))
+
+        assert response.status_code == 200
+        assert b"".join(response.streaming_content) == b"<mxfile />"
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_never_renders_inline(self, session_client, workspace, project, page, attachment):
+        FileAsset.objects.filter(pk=attachment.pk).update(
+            attributes={"name": "diagram.svg", "type": "image/svg+xml", "size": 1024}
+        )
+
+        with mock.patch(S3_STORAGE_PATH) as storage:
+            storage.return_value.get_object.return_value = {"Body": FakeBody(b"<svg onload='alert(1)' />")}
+            response = session_client.get(content_url(workspace.slug, project.id, page.id, attachment.id))
+
+        assert response["Content-Disposition"] == "attachment"
+        assert response["X-Content-Type-Options"] == "nosniff"
+
+    def test_rejects_an_asset_over_the_size_cap(self, session_client, workspace, project, page, attachment):
+        FileAsset.objects.filter(pk=attachment.pk).update(size=MAX_PROXIED_SIZE + 1)
+
+        response = session_client.get(content_url(workspace.slug, project.id, page.id, attachment.id))
+
+        assert response.status_code == 413
+
+    def test_rejects_an_unuploaded_asset(self, session_client, workspace, project, page, attachment):
+        FileAsset.objects.filter(pk=attachment.pk).update(is_uploaded=False)
+
+        response = session_client.get(content_url(workspace.slug, project.id, page.id, attachment.id))
+
+        assert response.status_code == 400
+
+    def test_unknown_id_is_404(self, session_client, workspace, project, page):
+        response = session_client.get(content_url(workspace.slug, project.id, page.id, uuid4()))
+
+        assert response.status_code == 404
+
+    def test_does_not_serve_an_inline_editor_asset(self, session_client, workspace, project, page, attachment):
+        """Only PAGE_ATTACHMENT rows are reachable here, so the proxy cannot be
+        pointed at arbitrary assets in the project."""
+        inline = FileAsset.objects.create(
+            attributes={"name": "inline.png", "type": "image/png", "size": 10},
+            asset="inline.png",
+            workspace=workspace,
+            project=project,
+            page=page,
+            entity_type=FileAsset.EntityTypeContext.PAGE_DESCRIPTION,
+            is_uploaded=True,
+        )
+
+        response = session_client.get(content_url(workspace.slug, project.id, page.id, inline.id))
+
+        assert response.status_code == 404
+
+    def test_non_project_member_is_denied(self, outsider_client, workspace, project, page, attachment):
+        response = outsider_client.get(content_url(workspace.slug, project.id, page.id, attachment.id))
+
+        assert response.status_code in (401, 403)
 
 
 @pytest.mark.contract
