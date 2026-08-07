@@ -20,6 +20,7 @@ import { AnchorExtensionConfig } from "./anchor/extension-config";
 import { CustomColorExtension } from "./custom-color";
 import { CustomImageExtensionConfig } from "./custom-image/extension-config";
 import { CustomLinkExtension } from "./custom-link";
+import { DiagramExtensionConfig } from "./diagram/extension-config";
 import { EmojiExtension } from "./emoji/extension";
 import { CustomHorizontalRule } from "./horizontal-rule";
 import { ImageExtensionConfig } from "./image/extension-config";
@@ -76,4 +77,5 @@ export const DocumentEditorExtensionsWithoutProps = [
   AnchorExtensionConfig,
   TableOfContentsExtensionConfig,
   ChildPagesExtensionConfig,
+  DiagramExtensionConfig,
 ];

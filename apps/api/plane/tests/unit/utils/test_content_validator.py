@@ -47,6 +47,9 @@ EDITOR_DOCUMENT = """
 <p>Jump target<anchor-component name="section-1" id="section-1" data-anchor="section-1"></anchor-component></p>
 <toc-component min-level="2" max-level="5"></toc-component>
 <child-pages-component depth="10"></child-pages-component>
+<diagram-component asset_id="0d1f8f0c-1a4e-4a1d-9f6d-3f6f2a0b6c11"
+  preview_asset_id="4a2f2e21-9f2b-4a2f-8f66-2c5b1d0e7a22" width="1872" height="982"
+  title="Process map.drawio"></diagram-component>
 <blockquote><p>quote</p></blockquote>
 <p><code spellcheck="false">inline</code></p>
 """

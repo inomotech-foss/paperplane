@@ -18,6 +18,7 @@ export enum CORE_EXTENSIONS {
   CUSTOM_COLOR = "customColor",
   CUSTOM_IMAGE = "imageComponent",
   CUSTOM_LINK = "link",
+  DIAGRAM = "diagram-component",
   DOCUMENT = "doc",
   DROP_CURSOR = "dropCursor",
   ENTER_KEY = "enterKey",
@@ -80,4 +81,5 @@ export const BLOCK_NODE_TYPES = [
   CORE_EXTENSIONS.WORK_ITEM_EMBED,
   CORE_EXTENSIONS.TABLE_OF_CONTENTS,
   CORE_EXTENSIONS.CHILD_PAGES,
+  CORE_EXTENSIONS.DIAGRAM,
 ];
