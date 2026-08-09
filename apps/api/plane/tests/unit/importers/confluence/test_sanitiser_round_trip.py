@@ -30,13 +30,20 @@ SUPPORTED_CONSTRUCTS = """
   <ac:parameter ac:name="diagramDisplayName">Release Flow.drawio</ac:parameter>
   <ac:parameter ac:name="width">1872</ac:parameter>
   <ac:parameter ac:name="height">982</ac:parameter></ac:structured-macro>
+<ac:image ac:align="center" ac:width="400"><ri:attachment ri:filename="diagram.png"/></ac:image>
+<ac:structured-macro ac:name="view-file"><ac:parameter ac:name="name">
+  <ri:attachment ri:filename="spec.pdf"/></ac:parameter></ac:structured-macro>
 """
 
+IMAGE_ID = "22222222-2222-4222-8222-222222222222"
+PDF_ID = "33333333-3333-4333-8333-333333333333"
 DIAGRAM_ID = "44444444-4444-4444-8444-444444444444"
 DIAGRAM_PNG_ID = "55555555-5555-4555-8555-555555555555"
 
 RESOLVERS = Resolvers(
     attachments={
+        "diagram.png": ResolvedAttachment(id=IMAGE_ID, filename="diagram.png", is_image=True),
+        "spec.pdf": ResolvedAttachment(id=PDF_ID, filename="spec.pdf", is_image=False, url="/assets/spec.pdf"),
         "Flow.drawio": ResolvedAttachment(id=DIAGRAM_ID, filename="Flow.drawio", is_image=False),
         "Flow.drawio.png": ResolvedAttachment(id=DIAGRAM_PNG_ID, filename="Flow.drawio.png", is_image=True),
     },
