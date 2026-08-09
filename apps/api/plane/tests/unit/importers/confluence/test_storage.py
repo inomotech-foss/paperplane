@@ -325,6 +325,94 @@ class TestMacros:
         assert "diagram-component" not in result.html
         assert result.unsupported_macros == {"drawio": 1}
 
+    @pytest.mark.parametrize("macro_name", ["drawio-sketch", "inc-drawio"])
+    def test_drawio_variants_use_the_same_conversion(self, macro_name, resolvers):
+        body = (
+            f'<ac:structured-macro ac:name="{macro_name}">'
+            '<ac:parameter ac:name="diagramName">Flow.drawio</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body, resolvers)
+
+        assert f'asset_id="{DIAGRAM_ID}"' in result.html
+        assert result.is_lossless
+
+    def test_view_file_macro_becomes_a_download_link(self, resolvers):
+        body = (
+            '<ac:structured-macro ac:name="view-file"><ac:parameter ac:name="name">'
+            '<ri:attachment ri:filename="spec.pdf" ri:version-at-save="1"/>'
+            "</ac:parameter></ac:structured-macro>"
+        )
+
+        result = convert(body, resolvers)
+
+        assert result.html == '<a href="/assets/spec.pdf">spec.pdf</a>'
+        assert result.is_lossless
+
+    def test_view_file_macro_renders_an_image_inline(self, resolvers):
+        body = (
+            '<ac:structured-macro ac:name="viewxls"><ac:parameter ac:name="name">'
+            '<ri:attachment ri:filename="diagram.png"/></ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body, resolvers)
+
+        assert result.html == f'<image-component id="{IMAGE_ID}" src="{IMAGE_ID}"></image-component>'
+        assert result.is_lossless
+
+    def test_view_file_macro_records_an_attachment_it_cannot_find(self, resolvers):
+        body = (
+            '<ac:structured-macro ac:name="view-file"><ac:parameter ac:name="name">'
+            '<ri:attachment ri:filename="missing.pdf"/></ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body, resolvers)
+
+        assert result.html == "missing.pdf"
+        assert result.unresolved_attachments == {"missing.pdf"}
+
+    def test_view_file_macro_pointing_at_a_page_is_recorded(self, resolvers):
+        """A few name another page instead of a file, which the page's own
+        attachment map cannot answer."""
+        body = (
+            '<ac:structured-macro ac:name="view-file"><ac:parameter ac:name="name">'
+            '<ri:page ri:content-title="Test Plan"/></ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body, resolvers)
+
+        assert result.unsupported_macros == {"view-file": 1}
+
+    def test_profile_macro_becomes_a_mention(self, resolvers):
+        body = (
+            '<ac:structured-macro ac:name="profile"><ac:parameter ac:name="user">'
+            '<ri:user ri:account-id="acct-1"/></ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body, resolvers)
+
+        assert f'entity_identifier="{USER_ID}"' in result.html
+        assert result.is_lossless
+
+    @pytest.mark.parametrize("macro_name", ["include", "excerpt-include"])
+    def test_include_macro_becomes_a_link_to_the_page(self, macro_name, resolvers):
+        """Transclusion is not reproduced; the reference is."""
+        body = (
+            f'<ac:structured-macro ac:name="{macro_name}"><ac:parameter ac:name="">'
+            '<ac:link><ri:page ri:content-title="Test Plan" ri:space-key="QA"/></ac:link>'
+            "</ac:parameter></ac:structured-macro>"
+        )
+
+        result = convert(body, resolvers)
+
+        assert result.html == '<a href="/w/projects/p/pages/1/">Test Plan</a>'
+        assert result.is_lossless
+
+    def test_include_macro_without_a_reference_is_recorded(self, resolvers):
+        result = convert('<ac:structured-macro ac:name="include"/>', resolvers)
+
+        assert result.unsupported_macros == {"include": 1}
+
     def test_dynamic_macros_are_recorded_not_silently_dropped(self):
         body = (
             '<ac:structured-macro ac:name="change-history"/>'

@@ -30,6 +30,16 @@ DYNAMIC_MACROS = {
     "tasks-report-macro",
 }
 
+# Macros that render one attachment, naming it in their "name" parameter.
+ATTACHMENT_MACROS = {"view-file", "viewdoc", "viewpdf", "viewppt", "viewxls"}
+
+# Every draw.io variant stores the same parameters and the same attachment pair.
+DIAGRAM_MACROS = {"drawio", "drawio-sketch", "inc-drawio"}
+
+# Macros that are a bare reference to something the link passes already resolve,
+# mapped to the parameter holding it. The unnamed parameter is keyed "".
+REFERENCE_MACROS = {"profile": "user", "include": "", "excerpt-include": ""}
+
 # Matches MAX_CHILD_PAGES_DEPTH in the editor's child-pages extension.
 MAX_CHILD_PAGES_DEPTH = 20
 
@@ -45,6 +55,13 @@ def _parameters(node):
         parameter.get("ac:name", ""): parameter.get_text().strip()
         for parameter in node.find_all("ac:parameter", recursive=False)
     }
+
+
+def _parameter(node, name):
+    for parameter in node.find_all("ac:parameter", recursive=False):
+        if parameter.get("ac:name", "") == name:
+            return parameter
+    return None
 
 
 def _rich_body(node):
@@ -128,14 +145,50 @@ def _child_pages(soup, node, result):
     node.replace_with(block)
 
 
-def _diagram(soup, node, resolvers, result):
+def _attachment_macro(soup, node, macro_name, resolvers, result):
+    """view-file and its format-specific siblings render one attachment. Hand
+    the reference to the pass that already resolves it rather than repeating
+    the lookup, so an unresolved file degrades the same way everywhere."""
+    reference = node.find("ri:attachment")
+
+    # A handful point at another page or a content id instead of a file, which
+    # the page's own attachment map cannot answer.
+    if reference is None:
+        result.unsupported_macros[macro_name] += 1
+        node.decompose()
+        return
+
+    attachment = resolvers.attachment(reference.get("ri:filename") or "")
+    if attachment is not None and attachment.is_image:
+        wrapper = soup.new_tag("ac:image")
+        wrapper.append(reference.extract())
+        node.replace_with(wrapper)
+        return
+
+    node.replace_with(reference.extract())
+
+
+def _reference_macro(node, macro_name, result):
+    """profile and include are a bare ri:user or ri:page wrapped in macro
+    chrome. Transclusion is not reproduced; the reference is."""
+    parameter = _parameter(node, REFERENCE_MACROS[macro_name])
+
+    if parameter is None or parameter.find(True) is None:
+        result.unsupported_macros[macro_name] += 1
+        node.decompose()
+        return
+
+    node.replace_with(*[child.extract() for child in list(parameter.contents)])
+
+
+def _diagram(soup, node, macro_name, resolvers, result):
     """The draw.io macro renders an attachment pair: the .drawio source named by
     diagramName, and its rendered preview under the same name plus .png."""
     parameters = _parameters(node)
     source_name = parameters.get("diagramName")
 
     if not source_name:
-        result.unsupported_macros["drawio"] += 1
+        result.unsupported_macros[macro_name] += 1
         node.decompose()
         return
 
@@ -189,8 +242,12 @@ def convert_structured_macros(soup, resolvers, result):
             _table_of_contents(soup, node)
         elif name == "children":
             _child_pages(soup, node, result)
-        elif name == "drawio":
-            _diagram(soup, node, resolvers, result)
+        elif name in DIAGRAM_MACROS:
+            _diagram(soup, node, name, resolvers, result)
+        elif name in ATTACHMENT_MACROS:
+            _attachment_macro(soup, node, name, resolvers, result)
+        elif name in REFERENCE_MACROS:
+            _reference_macro(node, name, result)
         elif name == "status":
             _status(soup, node)
         elif name in DYNAMIC_MACROS:
