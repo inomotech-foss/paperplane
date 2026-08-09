@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Anhänge",
+          "empty_state": {
+            "title": "Keine Anhänge"
+          },
           "dropzone": "Klicken oder Dateien hierher ziehen",
           "uploading": "Wird hochgeladen ...",
           "too_large": "Datei ist zu groß (max. {size} MB)",

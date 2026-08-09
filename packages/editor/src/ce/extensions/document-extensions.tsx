@@ -11,6 +11,7 @@ import {
   ChildPagesExtension,
   DiagramExtension,
   documentSlashCommandOptions,
+  PageAttachmentsExtension,
   SlashCommands,
   TableOfContentsExtension,
 } from "@/extensions";
@@ -24,6 +25,7 @@ export type TDocumentEditorAdditionalExtensionsProps = Pick<
   | "disabledExtensions"
   | "flaggedExtensions"
   | "fileHandler"
+  | "pageAttachmentsHandler"
   | "extendedEditorProps"
 > & {
   isEditable: boolean;
@@ -52,6 +54,10 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
   {
     isEnabled: () => true,
     getExtension: ({ diagramHandler, fileHandler }) => DiagramExtension(fileHandler, diagramHandler),
+  },
+  {
+    isEnabled: () => true,
+    getExtension: ({ pageAttachmentsHandler }) => PageAttachmentsExtension(pageAttachmentsHandler),
   },
   {
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),

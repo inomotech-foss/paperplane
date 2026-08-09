@@ -80,6 +80,7 @@ CUSTOM_TAGS = {
     "toc-component",
     "child-pages-component",
     "diagram-component",
+    "page-attachments-component",
 }
 ALLOWED_TAGS = nh3.ALLOWED_TAGS | CUSTOM_TAGS
 

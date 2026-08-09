@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Załączniki",
+          "empty_state": {
+            "title": "Brak załączników"
+          },
           "dropzone": "Proszę kliknąć lub przeciągnąć pliki tutaj",
           "uploading": "Przesyłanie...",
           "too_large": "Plik jest za duży (maks. {size} MB)",

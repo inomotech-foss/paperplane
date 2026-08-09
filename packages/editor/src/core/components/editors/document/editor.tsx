@@ -44,6 +44,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
     isTouchDevice,
     mentionHandler,
     onChange,
+    pageAttachmentsHandler,
     user,
     value,
   } = props;
@@ -63,6 +64,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
         flaggedExtensions,
         isEditable: editable,
         fileHandler,
+        pageAttachmentsHandler,
         userDetails: user ?? {
           id: "",
           name: "",
@@ -79,6 +81,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
     extendedEditorProps,
     fileHandler,
     flaggedExtensions,
+    pageAttachmentsHandler,
     user,
   ]);
 

@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Allegati",
+          "empty_state": {
+            "title": "Nessun allegato"
+          },
           "dropzone": "Faccia clic o trascini i file qui",
           "uploading": "Caricamento in corso...",
           "too_large": "Il file è troppo grande (max {size} MB)",

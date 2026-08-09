@@ -148,6 +148,12 @@ def _child_pages(soup, node, result):
     node.replace_with(block)
 
 
+def _page_attachments(soup, node):
+    """The macro lists the page's own files. Its sorting and filtering
+    parameters have no counterpart in the block, which shows all of them."""
+    node.replace_with(soup.new_tag("page-attachments-component"))
+
+
 def _attachment_macro(soup, node, macro_name, resolvers, result):
     """view-file and its format-specific siblings render one attachment. Hand
     the reference to the pass that already resolves it rather than repeating
@@ -249,6 +255,8 @@ def convert_structured_macros(soup, resolvers, result):
             _table_of_contents(soup, node)
         elif name == "children":
             _child_pages(soup, node, result)
+        elif name == "attachments":
+            _page_attachments(soup, node)
         elif name in DIAGRAM_MACROS:
             _diagram(soup, node, name, resolvers, result)
         elif name in ATTACHMENT_MACROS:

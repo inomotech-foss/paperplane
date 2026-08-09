@@ -34,6 +34,7 @@ export enum CORE_EXTENSIONS {
   MARKDOWN_CLIPBOARD = "markdownClipboard",
   MENTION = "mention",
   ORDERED_LIST = "orderedList",
+  PAGE_ATTACHMENTS = "page-attachments-component",
   PARAGRAPH = "paragraph",
   PLACEHOLDER = "placeholder",
   SIDE_MENU = "editorSideMenu",
@@ -82,4 +83,5 @@ export const BLOCK_NODE_TYPES = [
   CORE_EXTENSIONS.TABLE_OF_CONTENTS,
   CORE_EXTENSIONS.CHILD_PAGES,
   CORE_EXTENSIONS.DIAGRAM,
+  CORE_EXTENSIONS.PAGE_ATTACHMENTS,
 ];

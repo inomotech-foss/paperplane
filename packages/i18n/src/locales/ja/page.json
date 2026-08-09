@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "添付ファイル",
+          "empty_state": {
+            "title": "添付ファイルはありません"
+          },
           "dropzone": "クリックするか、ファイルをここにドラッグしてください",
           "uploading": "アップロード中……",
           "too_large": "ファイルサイズが大きすぎます（最大 {size} MB）",

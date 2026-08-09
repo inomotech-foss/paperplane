@@ -32,6 +32,7 @@ import type {
   TExtensions,
   TFileHandler,
   TMentionHandler,
+  TPageAttachmentsHandler,
   TRealtimeConfig,
   TServerHandler,
   TUserDetails,
@@ -72,6 +73,7 @@ export type TEditorCommands =
   | "toc"
   | "child-pages"
   | "diagram"
+  | "page-attachments"
   | TExtendedEditorCommands;
 
 export type TCommandExtraProps = {
@@ -184,6 +186,7 @@ export type IEditorProps = {
   onChange?: (json: object, html: string, { isMigrationUpdate }?: { isMigrationUpdate?: boolean }) => void;
   onEnterKeyPress?: (e?: any) => void;
   onTransaction?: () => void;
+  pageAttachmentsHandler?: TPageAttachmentsHandler;
   placeholder?: string | ((isFocused: boolean, value: string) => string);
   showPlaceholderOnEmpty?: boolean;
   tabIndex?: number;

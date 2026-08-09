@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Archivos adjuntos",
+          "empty_state": {
+            "title": "Sin archivos adjuntos"
+          },
           "dropzone": "Haga clic o arrastre archivos aquí",
           "uploading": "Subiendo...",
           "too_large": "El archivo es demasiado grande (máx. {size} MB)",

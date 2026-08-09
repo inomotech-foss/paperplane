@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Ekler",
+          "empty_state": {
+            "title": "Ek yok"
+          },
           "dropzone": "Tıklayın veya dosyaları buraya sürükleyin",
           "uploading": "Yükleniyor...",
           "too_large": "Dosya çok büyük (en fazla {size} MB)",

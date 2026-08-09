@@ -14,6 +14,7 @@ export * from "./custom-list-keymap";
 export * from "./diagram";
 export * from "./image";
 export * from "./mentions";
+export * from "./page-attachments";
 export * from "./slash-commands";
 export * from "./table";
 export * from "./typography";
