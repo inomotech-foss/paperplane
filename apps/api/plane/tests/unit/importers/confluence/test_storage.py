@@ -464,9 +464,59 @@ class TestAdfAndLayout:
         assert "adf-extension" not in html
 
     def test_empty_adf_node_is_recorded(self):
-        body = '<ac:adf-extension><ac:adf-node type="decision-list"/></ac:adf-extension>'
+        body = '<ac:adf-extension><ac:adf-node type="expand"/></ac:adf-extension>'
 
-        assert convert(body).unsupported_macros == {"adf:decision-list": 1}
+        assert convert(body).unsupported_macros == {"adf:expand": 1}
+
+    def test_adf_container_keeps_every_body_not_just_the_first(self):
+        """One body per child, so taking only the first dropped the rest
+        without recording anything."""
+        body = (
+            '<ac:adf-extension><ac:adf-node type="expand">'
+            '<ac:adf-node type="panel"><ac:adf-content><p>first</p></ac:adf-content></ac:adf-node>'
+            '<ac:adf-node type="panel"><ac:adf-content><p>second</p></ac:adf-content></ac:adf-node>'
+            "</ac:adf-node></ac:adf-extension>"
+        )
+
+        result = convert(body)
+
+        assert result.html == "<p>first</p><p>second</p>"
+        assert result.is_lossless
+
+    def test_decision_list_becomes_a_ticked_checkbox_list(self):
+        body = (
+            '<ac:adf-extension><ac:adf-node type="decision-list">'
+            '<ac:adf-attribute key="local-id">abc</ac:adf-attribute>'
+            '<ac:adf-node type="decision-item"><ac:adf-attribute key="state">DECIDED</ac:adf-attribute>'
+            "<ac:adf-content>Ship on Friday</ac:adf-content></ac:adf-node>"
+            '<ac:adf-node type="decision-item"><ac:adf-attribute key="state">DECIDED</ac:adf-attribute>'
+            "<ac:adf-content>Skip the beta</ac:adf-content></ac:adf-node>"
+            "</ac:adf-node>"
+            "<ac:adf-fallback><ul><li>Ship on Friday</li><li>Skip the beta</li></ul></ac:adf-fallback>"
+            "</ac:adf-extension>"
+        )
+
+        result = convert(body)
+
+        assert result.html.count('data-type="taskItem"') == 2
+        assert result.html.count('data-checked="true"') == 2
+        assert "Ship on Friday" in result.html
+        assert "Skip the beta" in result.html
+        assert result.is_lossless
+
+    def test_empty_decision_list_carries_nothing(self):
+        """The widget prompting for a first decision holds no content, so
+        dropping it loses nothing and is not recorded."""
+        body = (
+            '<ac:adf-extension><ac:adf-node type="decision-list">'
+            '<ac:adf-node type="decision-item"><ac:adf-attribute key="state">DECIDED</ac:adf-attribute>'
+            "</ac:adf-node></ac:adf-node></ac:adf-extension>"
+        )
+
+        result = convert(body)
+
+        assert "taskItem" not in result.html
+        assert result.is_lossless
 
     def test_multi_column_layout_is_flattened_and_recorded(self):
         body = (
