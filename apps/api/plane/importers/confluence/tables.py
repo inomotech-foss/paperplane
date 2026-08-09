@@ -21,8 +21,10 @@ def convert_tables(soup, result):
     than left to be silently stripped later.
     """
     for table in soup.find_all("table"):
+        # A full-width table becomes a normal one. Every cell survives, so this
+        # is a downgrade rather than the loss a flattened page layout is.
         if table.get("data-layout") not in (None, "default"):
-            result.dropped_layouts += 1
+            result.downgraded["table-width"] += 1
 
         widths = _column_widths(table)
         for colgroup in table.find_all("colgroup"):

@@ -196,10 +196,11 @@ class TestConfluenceImport:
         body = Page.objects.get(name="Test Plan").description_html
         assert f'entity_identifier="{ada.id}"' in body
 
-    def test_records_unsupported_macros(self, loader, ada):
+    def test_records_dropped_chrome_apart_from_the_losses(self, loader, ada):
         summary = loader.run()
 
-        assert summary.unsupported_macros == {"change-history": 1}
+        assert summary.dropped_chrome == {"change-history": 1}
+        assert summary.unsupported_macros == {}
 
     def test_rerun_updates_in_place(self, loader, ada):
         first = loader.run()

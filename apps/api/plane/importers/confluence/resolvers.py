@@ -53,12 +53,22 @@ class Resolvers:
 
 @dataclass
 class ConversionResult:
+    """What a page conversion cost, split three ways.
+
+    Only the first group is loss: content that does not survive. ``downgraded``
+    is content that survives in a lesser but faithful form, and ``dropped_chrome``
+    is authoring affordances that carried no content to begin with. Counting
+    those as loss made the fidelity number describe the wrong problem.
+    """
+
     html: str
     unsupported_macros: Counter = field(default_factory=Counter)
     unresolved_users: set = field(default_factory=set)
     unresolved_attachments: set = field(default_factory=set)
     unresolved_pages: set = field(default_factory=set)
     dropped_layouts: int = 0
+    downgraded: Counter = field(default_factory=Counter)
+    dropped_chrome: Counter = field(default_factory=Counter)
 
     @property
     def is_lossless(self):

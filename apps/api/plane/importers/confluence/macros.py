@@ -19,10 +19,8 @@ CALLOUT_MACROS = {
 # Macros whose content lives entirely in Confluence's index, so nothing can be
 # carried over. Recorded on the result instead of silently vanishing.
 DYNAMIC_MACROS = {
-    "change-history",
     "content-report-table",
     "contentbylabel",
-    "create-from-template",
     "decisionreport",
     "detailssummary",
     "livesearch",
@@ -31,6 +29,11 @@ DYNAMIC_MACROS = {
     "tasks-report",
     "tasks-report-macro",
 }
+
+# Authoring affordances rather than content: a button that creates a page, and a
+# table of past versions the page history already shows. Dropping them costs
+# nothing, so they are recorded apart from the losses.
+CHROME_MACROS = {"change-history", "create-from-template"}
 
 # Macros that render one attachment, naming it in their "name" parameter.
 ATTACHMENT_MACROS = {"view-file", "viewdoc", "viewpdf", "viewppt", "viewxls"}
@@ -180,6 +183,9 @@ def _reference_macro(node, macro_name, result):
         node.decompose()
         return
 
+    if macro_name != "profile":
+        result.downgraded[macro_name] += 1
+
     node.replace_with(*[child.extract() for child in list(parameter.contents)])
 
 
@@ -252,6 +258,9 @@ def convert_structured_macros(soup, resolvers, result):
             _reference_macro(node, name, result)
         elif name == "status":
             _status(soup, node)
+        elif name in CHROME_MACROS:
+            result.dropped_chrome[name] += 1
+            node.decompose()
         elif name in DYNAMIC_MACROS:
             result.unsupported_macros[name] += 1
             node.decompose()
