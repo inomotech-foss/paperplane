@@ -34,12 +34,16 @@ class ImportSummary:
     attachments: int = 0
     attachments_skipped: bool = False
     dropped_layouts: int = 0
+    downgraded: Counter = field(default_factory=Counter)
+    dropped_chrome: Counter = field(default_factory=Counter)
 
     def absorb(self, result):
         self.unsupported_macros.update(result.unsupported_macros)
         self.unresolved_pages |= result.unresolved_pages
         self.unresolved_attachments |= result.unresolved_attachments
         self.dropped_layouts += result.dropped_layouts
+        self.downgraded.update(result.downgraded)
+        self.dropped_chrome.update(result.dropped_chrome)
 
 
 class ConfluenceLoader:

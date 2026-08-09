@@ -48,7 +48,10 @@ class Command(BaseCommand):
     def _print(self, reports):
         pages = sum(report.pages for report in reports)
         lossless = sum(report.lossless for report in reports)
-        self.stdout.write(f"{len(reports)} spaces, {pages} pages, {lossless} convert with nothing lost\n")
+        downgraded = sum(sum(report.downgraded.values()) for report in reports)
+        chrome = sum(sum(report.dropped_chrome.values()) for report in reports)
+        self.stdout.write(f"{len(reports)} spaces, {pages} pages, {lossless} convert with nothing lost")
+        self.stdout.write(f"{downgraded} constructs downgraded, {chrome} authoring affordances dropped\n")
 
         self.stdout.write(f"{'SPACE':<12} {'PAGES':>6} {'CLEAN':>6} {'FIDELITY':>9}  TOP CAUSES")
         for report in reports:
@@ -93,6 +96,8 @@ class Command(BaseCommand):
             "unresolved_pages": sorted(report.unresolved_pages),
             "unresolved_users": sorted(report.unresolved_users),
             "dropped_layouts": report.dropped_layouts,
+            "downgraded": dict(report.downgraded),
+            "dropped_chrome": dict(report.dropped_chrome),
             "worst_pages": [
                 {"id": page.id, "title": page.title, "loss": page.loss} for page in report.worst[:WORST_PAGES_SHOWN]
             ],

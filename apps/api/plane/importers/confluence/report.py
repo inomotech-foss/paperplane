@@ -19,6 +19,8 @@ class PageReport:
     unresolved_attachments: int = 0
     unresolved_pages: int = 0
     dropped_layouts: int = 0
+    downgraded: Counter = field(default_factory=Counter)
+    dropped_chrome: Counter = field(default_factory=Counter)
 
     @property
     def loss(self):
@@ -47,6 +49,8 @@ class SpaceReport:
     unresolved_attachments: set = field(default_factory=set)
     unresolved_pages: set = field(default_factory=set)
     dropped_layouts: int = 0
+    downgraded: Counter = field(default_factory=Counter)
+    dropped_chrome: Counter = field(default_factory=Counter)
     worst: list = field(default_factory=list)
 
     @property
@@ -128,6 +132,8 @@ def report_space(backup, limit=None, pages=None, page_map=None):
             unresolved_attachments=len(result.unresolved_attachments),
             unresolved_pages=len(result.unresolved_pages),
             dropped_layouts=result.dropped_layouts,
+            downgraded=Counter(result.downgraded),
+            dropped_chrome=Counter(result.dropped_chrome),
         )
 
         report.pages += 1
@@ -141,6 +147,8 @@ def report_space(backup, limit=None, pages=None, page_map=None):
         report.unresolved_attachments |= result.unresolved_attachments
         report.unresolved_pages |= result.unresolved_pages
         report.dropped_layouts += result.dropped_layouts
+        report.downgraded.update(result.downgraded)
+        report.dropped_chrome.update(result.dropped_chrome)
 
     report.worst.sort(key=lambda item: item.loss, reverse=True)
     return report

@@ -21,8 +21,9 @@ def convert_tables(soup, result):
     than left to be silently stripped later.
     """
     for table in soup.find_all("table"):
+        # Every cell survives, so narrowing a full-width table is not loss.
         if table.get("data-layout") not in (None, "default"):
-            result.dropped_layouts += 1
+            result.downgraded["table-width"] += 1
 
         widths = _column_widths(table)
         for colgroup in table.find_all("colgroup"):

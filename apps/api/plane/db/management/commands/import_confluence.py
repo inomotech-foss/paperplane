@@ -70,5 +70,9 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f"macros      {json.dumps(dict(summary.unsupported_macros))}"))
         if summary.dropped_layouts:
             self.stdout.write(self.style.WARNING(f"layouts     {summary.dropped_layouts} multi-column flattened"))
+        if summary.downgraded:
+            self.stdout.write(f"downgraded  {json.dumps(dict(summary.downgraded))}")
+        if summary.dropped_chrome:
+            self.stdout.write(f"chrome      {json.dumps(dict(summary.dropped_chrome))}")
         if dry_run:
             self.stdout.write(self.style.WARNING("dry run, rolled back"))

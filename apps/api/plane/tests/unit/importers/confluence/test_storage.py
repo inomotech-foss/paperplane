@@ -183,12 +183,13 @@ class TestTables:
         assert 'colwidth="133"' in result.html
         assert "data-highlight-colour" not in result.html
         assert "data-layout" not in result.html
-        assert result.dropped_layouts == 1
+        assert result.downgraded == {"table-width": 1}
+        assert result.is_lossless
 
-    def test_default_layout_is_not_counted_as_a_loss(self):
+    def test_default_layout_is_not_counted_at_all(self):
         result = convert('<table data-layout="default"><tbody><tr><td>c</td></tr></tbody></table>')
 
-        assert result.dropped_layouts == 0
+        assert result.downgraded == {}
 
 
 @pytest.mark.unit
@@ -415,15 +416,24 @@ class TestMacros:
 
     def test_dynamic_macros_are_recorded_not_silently_dropped(self):
         body = (
-            '<ac:structured-macro ac:name="change-history"/>'
+            '<ac:structured-macro ac:name="livesearch"/>'
             '<ac:structured-macro ac:name="tasks-report"/>'
-            '<ac:structured-macro ac:name="change-history"/>'
+            '<ac:structured-macro ac:name="livesearch"/>'
         )
 
         result = convert(body)
 
-        assert result.unsupported_macros == {"change-history": 2, "tasks-report": 1}
-        assert "change-history" not in result.html
+        assert result.unsupported_macros == {"livesearch": 2, "tasks-report": 1}
+        assert "livesearch" not in result.html
+
+    def test_chrome_macros_are_dropped_without_counting_as_loss(self):
+        body = '<ac:structured-macro ac:name="change-history"/><ac:structured-macro ac:name="create-from-template"/>'
+
+        result = convert(body)
+
+        assert result.dropped_chrome == {"change-history": 1, "create-from-template": 1}
+        assert result.unsupported_macros == {}
+        assert result.is_lossless
 
     def test_unknown_macro_keeps_its_rich_text_body(self):
         body = (
