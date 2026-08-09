@@ -30,9 +30,7 @@ DYNAMIC_MACROS = {
     "tasks-report-macro",
 }
 
-# Authoring affordances rather than content: a button that creates a page, and a
-# table of past versions the page history already shows. Dropping them costs
-# nothing, so they are recorded apart from the losses.
+# A create-a-page button and a version table the page history replaces: no content.
 CHROME_MACROS = {"change-history", "create-from-template"}
 
 # Macros that render one attachment, naming it in their "name" parameter.
@@ -183,6 +181,7 @@ def _reference_macro(node, macro_name, result):
         node.decompose()
         return
 
+    # A mention is the real thing; a link instead of a transclusion is not.
     if macro_name != "profile":
         result.downgraded[macro_name] += 1
 

@@ -24,11 +24,7 @@ class PageReport:
 
     @property
     def loss(self):
-        """How many constructs on this page do not survive conversion.
-
-        Downgrades and dropped chrome are not counted: the first survives in a
-        lesser form and the second never held content.
-        """
+        """How many constructs on this page do not survive conversion."""
         return (
             sum(self.unsupported_macros.values())
             + self.unresolved_users

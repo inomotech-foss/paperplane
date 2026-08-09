@@ -183,7 +183,6 @@ class TestTables:
         assert 'colwidth="133"' in result.html
         assert "data-highlight-colour" not in result.html
         assert "data-layout" not in result.html
-        # Every cell survives a full-width table becoming a normal one.
         assert result.downgraded == {"table-width": 1}
         assert result.is_lossless
 
@@ -427,9 +426,7 @@ class TestMacros:
         assert result.unsupported_macros == {"livesearch": 2, "tasks-report": 1}
         assert "livesearch" not in result.html
 
-    def test_authoring_affordances_are_dropped_without_counting_as_loss(self):
-        """A create-a-page button and a version table the page history already
-        shows carry no content, so dropping them costs nothing."""
+    def test_chrome_macros_are_dropped_without_counting_as_loss(self):
         body = '<ac:structured-macro ac:name="change-history"/><ac:structured-macro ac:name="create-from-template"/>'
 
         result = convert(body)

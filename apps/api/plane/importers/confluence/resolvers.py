@@ -53,13 +53,8 @@ class Resolvers:
 
 @dataclass
 class ConversionResult:
-    """What a page conversion cost, split three ways.
-
-    Only the first group is loss: content that does not survive. ``downgraded``
-    is content that survives in a lesser but faithful form, and ``dropped_chrome``
-    is authoring affordances that carried no content to begin with. Counting
-    those as loss made the fidelity number describe the wrong problem.
-    """
+    """What a page conversion cost. Only the first group is loss: ``downgraded``
+    survived in a lesser form and ``dropped_chrome`` never held content."""
 
     html: str
     unsupported_macros: Counter = field(default_factory=Counter)

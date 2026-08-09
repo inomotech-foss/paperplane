@@ -196,7 +196,7 @@ class TestConfluenceImport:
         body = Page.objects.get(name="Test Plan").description_html
         assert f'entity_identifier="{ada.id}"' in body
 
-    def test_records_dropped_chrome_apart_from_the_losses(self, loader, ada):
+    def test_records_chrome_apart_from_losses(self, loader, ada):
         summary = loader.run()
 
         assert summary.dropped_chrome == {"change-history": 1}
