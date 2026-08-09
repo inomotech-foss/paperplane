@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "附件",
+          "empty_state": {
+            "title": "没有附件"
+          },
           "dropzone": "点击或将文件拖到此处",
           "uploading": "正在上传……",
           "too_large": "文件过大（最大 {size} MB）",

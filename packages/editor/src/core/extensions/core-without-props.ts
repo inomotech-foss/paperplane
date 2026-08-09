@@ -25,6 +25,7 @@ import { EmojiExtension } from "./emoji/extension";
 import { CustomHorizontalRule } from "./horizontal-rule";
 import { ImageExtensionConfig } from "./image/extension-config";
 import { CustomMentionExtensionConfig } from "./mentions/extension-config";
+import { PageAttachmentsExtensionConfig } from "./page-attachments/extension-config";
 import { CustomQuoteExtension } from "./quote";
 import { CustomStarterKitExtension } from "./starter-kit";
 import { Table } from "./table/table";
@@ -78,4 +79,5 @@ export const DocumentEditorExtensionsWithoutProps = [
   TableOfContentsExtensionConfig,
   ChildPagesExtensionConfig,
   DiagramExtensionConfig,
+  PageAttachmentsExtensionConfig,
 ];

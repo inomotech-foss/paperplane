@@ -61,6 +61,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
     dragDropEnabled = true,
     isTouchDevice,
     onEditorFocus,
+    pageAttachmentsHandler,
     placeholder,
     showPlaceholderOnEmpty,
     tabIndex,
@@ -92,6 +93,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
         fileHandler,
         flaggedExtensions,
         isEditable: editable,
+        pageAttachmentsHandler,
         provider,
         userDetails: user,
       }),
@@ -108,6 +110,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
       fileHandler,
       flaggedExtensions,
       editable,
+      pageAttachmentsHandler,
       user,
       mainNavigationExtension,
     ]

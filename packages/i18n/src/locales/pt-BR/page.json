@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Anexos",
+          "empty_state": {
+            "title": "Nenhum anexo"
+          },
           "dropzone": "Clique ou arraste arquivos aqui",
           "uploading": "Enviando...",
           "too_large": "O arquivo é muito grande (máx. {size} MB)",

@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Lampiran",
+          "empty_state": {
+            "title": "Tidak ada lampiran"
+          },
           "dropzone": "Klik atau seret berkas ke sini",
           "uploading": "Mengunggah...",
           "too_large": "Berkas terlalu besar (maks. {size} MB)",

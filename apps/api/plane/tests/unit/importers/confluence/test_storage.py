@@ -270,6 +270,18 @@ class TestMacros:
         assert "child-pages-component" not in result.html
         assert result.unsupported_macros == {"children": 1}
 
+    @pytest.mark.parametrize(
+        "parameters",
+        ["", '<ac:parameter ac:name="sortBy">date</ac:parameter><ac:parameter ac:name="upload">true</ac:parameter>'],
+    )
+    def test_attachments_macro_becomes_a_page_attachments_node(self, parameters):
+        body = f'<ac:structured-macro ac:name="attachments">{parameters}</ac:structured-macro>'
+
+        result = convert(body)
+
+        assert "<page-attachments-component></page-attachments-component>" in result.html
+        assert result.unsupported_macros == {}
+
     def test_drawio_macro_becomes_a_diagram_node(self, resolvers):
         body = (
             '<ac:structured-macro ac:name="drawio">'

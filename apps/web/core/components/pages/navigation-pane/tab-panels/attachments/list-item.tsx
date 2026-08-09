@@ -17,7 +17,8 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 type Props = {
   attachment: TPageAttachment;
   disabled?: boolean;
-  onDelete: (attachmentId: string) => void;
+  // Omitted where the list is only a view of the files, as in the editor block.
+  onDelete?: (attachmentId: string) => void;
 };
 
 export function PageAttachmentListItem(props: Props) {
@@ -48,14 +49,16 @@ export function PageAttachmentListItem(props: Props) {
           </p>
         </span>
       </button>
-      <CustomMenu ellipsis closeOnSelect placement="bottom-end" disabled={disabled}>
-        <CustomMenu.MenuItem onClick={() => onDelete(attachment.id)}>
-          <span className="flex items-center gap-2">
-            <TrashIcon className="h-3.5 w-3.5" strokeWidth={2} />
-            {t("common.actions.delete")}
-          </span>
-        </CustomMenu.MenuItem>
-      </CustomMenu>
+      {onDelete && (
+        <CustomMenu ellipsis closeOnSelect placement="bottom-end" disabled={disabled}>
+          <CustomMenu.MenuItem onClick={() => onDelete(attachment.id)}>
+            <span className="flex items-center gap-2">
+              <TrashIcon className="h-3.5 w-3.5" strokeWidth={2} />
+              {t("common.actions.delete")}
+            </span>
+          </CustomMenu.MenuItem>
+        </CustomMenu>
+      )}
     </div>
   );
 }

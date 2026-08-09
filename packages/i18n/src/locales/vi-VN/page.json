@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Tệp đính kèm",
+          "empty_state": {
+            "title": "Không có tệp đính kèm"
+          },
           "dropzone": "Nhấp hoặc kéo tệp vào đây",
           "uploading": "Đang tải lên...",
           "too_large": "Tệp quá lớn (tối đa {size} MB)",

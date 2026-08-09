@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Přílohy",
+          "empty_state": {
+            "title": "Žádné přílohy"
+          },
           "dropzone": "Klikněte nebo sem přetáhněte soubory",
           "uploading": "Nahrávání...",
           "too_large": "Soubor je příliš velký (max. {size} MB)",

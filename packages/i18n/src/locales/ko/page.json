@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "첨부 파일",
+          "empty_state": {
+            "title": "첨부 파일 없음"
+          },
           "dropzone": "클릭하거나 파일을 여기로 끌어다 놓으십시오",
           "uploading": "업로드하는 중...",
           "too_large": "파일이 너무 큽니다(최대 {size} MB)",

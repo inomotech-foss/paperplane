@@ -23,6 +23,7 @@ SUPPORTED_CONSTRUCTS = """
 <ac:structured-macro ac:name="toc"><ac:parameter ac:name="minLevel">2</ac:parameter>
   <ac:parameter ac:name="maxLevel">5</ac:parameter></ac:structured-macro>
 <ac:structured-macro ac:name="children"><ac:parameter ac:name="depth">10</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="attachments"/>
 <ac:adf-extension><ac:adf-node type="decision-list">
   <ac:adf-node type="decision-item"><ac:adf-attribute key="state">DECIDED</ac:adf-attribute>
     <ac:adf-content>decided</ac:adf-content></ac:adf-node></ac:adf-node></ac:adf-extension>

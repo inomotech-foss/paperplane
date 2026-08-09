@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Attachments",
+          "empty_state": {
+            "title": "No attachments"
+          },
           "dropzone": "Click or drag files here",
           "uploading": "Uploading...",
           "too_large": "File is too large (max {size} MB)",

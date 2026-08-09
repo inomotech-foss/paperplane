@@ -43,6 +43,7 @@ import { useEditorFlagging } from "@/hooks/use-editor-flagging";
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
 import { PageContentLoader } from "../loaders/page-content-loader";
+import { PageAttachmentsBlock } from "./attachments-block";
 import { PageChildPagesBlock } from "./child-pages-block";
 import { PageDiagramEditor } from "./diagram-editor";
 import { PageEditorHeaderRoot } from "./header";
@@ -146,6 +147,12 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
       ),
     }),
     [page, storeType]
+  );
+  const pageAttachmentsHandler = useMemo(
+    () => ({
+      renderComponent: () => <PageAttachmentsBlock page={page} />,
+    }),
+    [page]
   );
   // Diagram sources and previews are page attachments, which are project scoped,
   // so a page outside a project renders its diagrams without offering editing.
@@ -321,6 +328,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
             getEditorMetaData={getEditorMetaData}
             childPagesHandler={childPagesHandler}
             diagramHandler={diagramHandler}
+            pageAttachmentsHandler={pageAttachmentsHandler}
             mentionHandler={{
               searchCallback: async (query) => {
                 const res = await fetchMentions(query);

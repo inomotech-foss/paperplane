@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Prílohy",
+          "empty_state": {
+            "title": "Žiadne prílohy"
+          },
           "dropzone": "Kliknite alebo sem presuňte súbory",
           "uploading": "Nahráva sa...",
           "too_large": "Súbor je príliš veľký (max. {size} MB)",

@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Pièces jointes",
+          "empty_state": {
+            "title": "Aucune pièce jointe"
+          },
           "dropzone": "Cliquez ou glissez des fichiers ici",
           "uploading": "Téléversement en cours…",
           "too_large": "Le fichier est trop volumineux (max. {size} Mo)",

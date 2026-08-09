@@ -42,6 +42,9 @@
         },
         "attachments": {
           "title": "Atașamente",
+          "empty_state": {
+            "title": "Niciun atașament"
+          },
           "dropzone": "Faceți clic sau trageți fișiere aici",
           "uploading": "Se încarcă...",
           "too_large": "Fișierul este prea mare (max. {size} MB)",

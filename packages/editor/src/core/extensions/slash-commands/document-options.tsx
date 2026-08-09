@@ -3,7 +3,7 @@
  * See the LICENSE file for details.
  */
 
-import { ListTree, Network, Workflow } from "lucide-react";
+import { ListTree, Network, Paperclip, Workflow } from "lucide-react";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
@@ -17,7 +17,7 @@ import type { TSlashCommandAdditionalOption } from "./root";
  * editor, whose schema has no such node, never offers a command that would
  * insert nothing.
  *
- * Each `pushAfter` names the entry before it, so the three arrive as a group.
+ * Each `pushAfter` names the entry before it, so they arrive as a group.
  */
 export const documentSlashCommandOptions: TSlashCommandAdditionalOption[] = [
   {
@@ -52,5 +52,16 @@ export const documentSlashCommandOptions: TSlashCommandAdditionalOption[] = [
     section: "general",
     pushAfter: "child-pages",
     command: ({ editor, range }) => insertAtomBlock(editor, CORE_EXTENSIONS.DIAGRAM, range),
+  },
+  {
+    commandKey: "page-attachments",
+    key: "page-attachments",
+    title: "Attachments",
+    description: "List the files attached to this page.",
+    searchTerms: ["attachments", "files", "uploads"],
+    icon: <Paperclip className="size-3.5" />,
+    section: "general",
+    pushAfter: "diagram",
+    command: ({ editor, range }) => insertAtomBlock(editor, CORE_EXTENSIONS.PAGE_ATTACHMENTS, range),
   },
 ];
