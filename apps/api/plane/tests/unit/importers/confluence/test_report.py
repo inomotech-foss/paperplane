@@ -19,6 +19,7 @@ LAYOUT = (
     "<ac:layout-cell><p>Left</p></ac:layout-cell><ac:layout-cell><p>Right</p></ac:layout-cell>"
     "</ac:layout-section></ac:layout>"
 )
+CROSS_SPACE_LINK = '<p><ac:link><ri:page ri:space-key="ENG" ri:content-title="Runbook"/></ac:link></p>'
 SINGLE_CELL_LAYOUT = (
     "<ac:layout><ac:layout-section><ac:layout-cell><p>One</p></ac:layout-cell></ac:layout-section></ac:layout>"
 )
@@ -190,3 +191,31 @@ class TestReportBackup:
         reports = report_backup(tmp_path, spaces=["IMS"])
 
         assert [report.key for report in reports] == ["IMS"]
+
+    def test_a_link_into_another_space_in_the_run_resolves(self, tmp_path):
+        """Confluence links pages by title and titles cross spaces, so scoring a
+        space on its own titles alone invents broken links."""
+        write_space(tmp_path, "IMS", [{"id": "1", "title": "Policy", "body": CROSS_SPACE_LINK}])
+        write_space(tmp_path, "ENG", [{"id": "2", "title": "Runbook", "body": PLAIN}])
+
+        report = next(report for report in report_backup(tmp_path) if report.key == "IMS")
+
+        assert report.unresolved_pages == set()
+        assert report.lossless == 1
+
+    def test_a_single_space_run_does_not_see_the_rest_by_default(self, tmp_path):
+        """The default matches an import of exactly the spaces named."""
+        write_space(tmp_path, "IMS", [{"id": "1", "title": "Policy", "body": CROSS_SPACE_LINK}])
+        write_space(tmp_path, "ENG", [{"id": "2", "title": "Runbook", "body": PLAIN}])
+
+        reports = report_backup(tmp_path, spaces=["IMS"])
+
+        assert reports[0].unresolved_pages == {"Runbook"}
+
+    def test_the_global_page_map_reaches_spaces_outside_the_run(self, tmp_path):
+        write_space(tmp_path, "IMS", [{"id": "1", "title": "Policy", "body": CROSS_SPACE_LINK}])
+        write_space(tmp_path, "ENG", [{"id": "2", "title": "Runbook", "body": PLAIN}])
+
+        reports = report_backup(tmp_path, spaces=["IMS"], global_page_map=True)
+
+        assert reports[0].unresolved_pages == set()
