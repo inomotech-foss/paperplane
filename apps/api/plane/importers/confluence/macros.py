@@ -3,6 +3,8 @@
 
 from bs4 import NavigableString
 
+from .tasks import task_item, task_list
+
 # Confluence admonitions and ADF panels, mapped to the editor's callout icon.
 CALLOUT_MACROS = {
     "info": ("Info", "#3f76ff"),
@@ -259,20 +261,50 @@ def convert_structured_macros(soup, resolvers, result):
             _replace_with_body(soup, node)
 
 
+def _decision_list(soup, node, adf_node):
+    """A decision list is the editor's checkbox list with every box ticked - a
+    decision that was recorded is a decision that was taken.
+
+    The rendered fallback is a plain bullet list, so this reads the ADF node
+    even though a fallback is usually present.
+    """
+    items = []
+    for item in adf_node.find_all("ac:adf-node", attrs={"type": "decision-item"}):
+        content = item.find("ac:adf-content", recursive=False)
+        contents = [child.extract() for child in list(content.contents)] if content is not None else []
+        if any(str(child).strip() for child in contents):
+            items.append(task_item(soup, True, contents))
+
+    # An empty list is the widget prompting for a first decision, so it holds
+    # nothing to carry over.
+    if not items:
+        node.decompose()
+        return
+
+    node.replace_with(task_list(soup, items))
+
+
 def convert_adf_extensions(soup, result):
     """ADF nodes ship a rendered HTML fallback; prefer it over guessing."""
     for node in reversed(soup.find_all("ac:adf-extension")):
+        adf_node = node.find("ac:adf-node")
+
+        if adf_node is not None and adf_node.get("type") == "decision-list":
+            _decision_list(soup, node, adf_node)
+            continue
+
         fallback = node.find("ac:adf-fallback")
         if fallback is not None:
             node.replace_with(*[child.extract() for child in list(fallback.contents)])
             continue
 
-        content = node.find("ac:adf-content")
-        if content is not None and content.get_text().strip():
-            node.replace_with(*[child.extract() for child in list(content.contents)])
+        # Every body, not just the first: a container node holds one per child,
+        # and taking only the first drops the rest without recording anything.
+        contents = node.find_all("ac:adf-content")
+        if any(content.get_text().strip() for content in contents):
+            node.replace_with(*[child.extract() for content in contents for child in list(content.contents)])
             continue
 
-        adf_node = node.find("ac:adf-node")
         result.unsupported_macros[f"adf:{adf_node.get('type')}" if adf_node else "adf"] += 1
         node.decompose()
 
