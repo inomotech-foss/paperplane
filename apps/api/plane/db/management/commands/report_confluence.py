@@ -20,13 +20,24 @@ class Command(BaseCommand):
         parser.add_argument("--space", action="append", help="Limit to a space key; repeatable. Default: all")
         parser.add_argument("--limit", type=int, help="Only score this many pages per space")
         parser.add_argument("--json", dest="json_path", help="Also write the full report as JSON")
+        parser.add_argument(
+            "--global-page-map",
+            action="store_true",
+            help="Resolve links against every backed-up space, not only the ones being scored. "
+            "Reads the whole backup, so a single-space run scores its links the way a full import would.",
+        )
 
     def handle(self, *args, **options):
         spaces = options["space"] or space_keys(options["backup_dir"])
         if not spaces:
             raise CommandError(f"No backed-up spaces under {options['backup_dir']}/confluence/")
 
-        reports = report_backup(options["backup_dir"], spaces=spaces, limit=options["limit"])
+        reports = report_backup(
+            options["backup_dir"],
+            spaces=spaces,
+            limit=options["limit"],
+            global_page_map=options["global_page_map"],
+        )
         self._print(reports)
 
         if options["json_path"]:

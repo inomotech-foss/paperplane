@@ -350,3 +350,48 @@ class TestImportCommand:
     def test_bad_arguments_fail_loudly(self, backup_dir, workspace, create_user, overrides):
         with pytest.raises(CommandError):
             self.run(backup_dir, workspace, create_user, **overrides)
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestCrossSpaceLinks:
+    """Confluence links pages by title and titles cross spaces, so a link only
+    resolves once the space it points at has been imported too."""
+
+    @pytest.fixture
+    def two_spaces(self, tmp_path):
+        bodies = {
+            "IMS": '<p><ac:link><ri:page ri:space-key="ENG" ri:content-title="Runbook"/></ac:link></p>',
+            "ENG": "<p>Deploy.</p>",
+        }
+        for key, space_id, page_id, title in (("IMS", "1", "200", "Policy"), ("ENG", "2", "300", "Runbook")):
+            space_dir = tmp_path / "confluence" / key
+            space_dir.mkdir(parents=True)
+            (space_dir / "space.json").write_text(json.dumps({"id": space_id, "key": key, "name": key}))
+            (space_dir / "pages.jsonl").write_text(
+                json.dumps(
+                    {
+                        "id": page_id,
+                        "title": title,
+                        "parentId": "None",
+                        "createdAt": "2023-01-01T08:00:00.000Z",
+                        "version": {"number": 1, "createdAt": "2023-01-01T08:00:00.000Z"},
+                        "body": {"storage": {"value": bodies[key]}},
+                    }
+                )
+            )
+
+        return tmp_path
+
+    def test_a_link_resolves_once_the_space_it_names_is_imported(self, two_spaces, workspace, create_user):
+        def load(key):
+            return ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(two_spaces, key)).run()
+
+        assert load("IMS").unresolved_pages == {"Runbook"}
+
+        load("ENG")
+        summary = load("IMS")
+
+        assert summary.unresolved_pages == set()
+        runbook = Page.objects.get(external_id="300")
+        assert str(runbook.id) in Page.objects.get(external_id="200").description_html

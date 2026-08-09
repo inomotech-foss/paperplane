@@ -80,6 +80,13 @@ def _page_resolvers(pages):
     return {page.title: ResolvedPage(id="", url="", title=page.title) for page in pages}
 
 
+def _titles_across(root, keys):
+    page_map = {}
+    for key in keys:
+        page_map.update(_page_resolvers(ConfluenceBackup(root, key).pages()))
+    return page_map
+
+
 def _user_resolvers(backup):
     """The backup's own account map. A reference the map does not cover cannot
     be attributed by any import, whoever is in the workspace."""
@@ -89,22 +96,25 @@ def _user_resolvers(backup):
     }
 
 
-def report_space(backup, limit=None):
+def report_space(backup, limit=None, pages=None, page_map=None):
     """Converts every page in a space and records what degrades.
 
     This reads the backup only. Nothing is written, no storage is touched, and
     the resolvers answer from the backup itself, so the numbers describe what
     the conversion can do rather than what one particular workspace contains.
+
+    ``page_map`` carries titles from the other spaces in the same run, because
+    Confluence links pages by title and titles cross spaces freely.
     """
     space = backup.space()
     report = SpaceReport(key=backup.space_key, name=space.get("name", ""))
 
-    pages = backup.pages()
+    pages = backup.pages() if pages is None else pages
     if limit is not None:
         pages = pages[:limit]
 
     users = _user_resolvers(backup)
-    page_map = _page_resolvers(pages)
+    page_map = _page_resolvers(pages) if page_map is None else page_map
 
     for page in pages:
         resolvers = Resolvers(
@@ -144,9 +154,22 @@ def report_space(backup, limit=None):
     return report
 
 
-def report_backup(root, spaces=None, limit=None):
-    """Every space in a backup, worst fidelity first - the triage order."""
-    keys = spaces if spaces else space_keys(root)
-    reports = [report_space(ConfluenceBackup(root, key), limit=limit) for key in keys]
+def report_backup(root, spaces=None, limit=None, global_page_map=False):
+    """Every space in a backup, worst fidelity first - the triage order.
+
+    Link targets resolve against every space in the run, matching an import of
+    those same spaces. ``global_page_map`` widens that to every backed-up space,
+    so a single-space run scores its links the way a full import would, at the
+    cost of reading the whole backup.
+    """
+    keys = list(spaces) if spaces else space_keys(root)
+    backups = {key: ConfluenceBackup(root, key) for key in keys}
+    pages = {key: backup.pages() for key, backup in backups.items()}
+
+    page_map = _page_resolvers(page for space_pages in pages.values() for page in space_pages)
+    if global_page_map:
+        page_map = _titles_across(root, [key for key in space_keys(root) if key not in pages]) | page_map
+
+    reports = [report_space(backups[key], limit=limit, pages=pages[key], page_map=page_map) for key in keys]
     reports.sort(key=lambda report: (report.fidelity, -report.pages))
     return reports

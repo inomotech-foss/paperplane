@@ -12,7 +12,7 @@ from plane.utils.content_validator import validate_html_content
 from plane.utils.issue_type import get_or_create_default_issue_type
 
 from .assets import AttachmentUploader
-from .backup import order_parents_first
+from .backup import ConfluenceBackup, order_parents_first, space_keys
 from .naming import project_identifier, project_name
 from .resolvers import ConversionResult, ResolvedPage, ResolvedUser, Resolvers
 from .storage import storage_to_html
@@ -199,22 +199,70 @@ class ConfluenceLoader:
 
         return records
 
+    def _space_keys_by_project(self):
+        """Which Confluence space each imported project came from.
+
+        The project stores the space id, so the backup's own space.json files
+        are what turn it back into the key a link names.
+        """
+        keys_by_space_id = {}
+        for key in space_keys(self.backup.root):
+            space = ConfluenceBackup(self.backup.root, key).space()
+            keys_by_space_id[str(space.get("id") or key)] = key
+
+        return {
+            project.id: keys_by_space_id[project.external_id]
+            for project in Project.objects.filter(workspace=self.workspace, external_source=self.EXTERNAL_SOURCE)
+            if project.external_id in keys_by_space_id
+        }
+
+    def _resolved(self, page_id, project_id, title):
+        return ResolvedPage(
+            id=str(page_id),
+            url=self.page_url_template.format(slug=self.workspace.slug, project=project_id, page=page_id),
+            title=title,
+        )
+
+    def _page_map(self, project, pages, records):
+        """Confluence page title -> the Plane page it became.
+
+        Titles cross spaces freely, so the map covers every Confluence page
+        already in the workspace, keyed by title and by the space a link names.
+        A space imported later fills in the links that pointed at it on the next
+        run of the spaces that reference it.
+        """
+        space_keys_by_project = self._space_keys_by_project()
+        page_map = {}
+
+        for link in (
+            ProjectPage.objects.filter(workspace=self.workspace, page__external_source=self.EXTERNAL_SOURCE)
+            .exclude(project=project)
+            .select_related("page")
+        ):
+            resolved = self._resolved(link.page.id, link.project_id, link.page.name)
+            page_map[link.page.name] = resolved
+            space_key = space_keys_by_project.get(link.project_id)
+            if space_key:
+                page_map[(space_key, link.page.name)] = resolved
+
+        for page in pages:
+            record = records.get(page.id)
+            if record is None:
+                continue
+            resolved = self._resolved(record.id, project.id, page.title)
+            # This space wins a title it shares with another: a link that names
+            # no space means the page next to it.
+            page_map[page.title] = resolved
+            page_map[(self.backup.space_key, page.title)] = resolved
+
+        return page_map
+
     def _write_bodies(self, project, pages, records, users, summary, dry_run):
         user_map = {
             account_id: ResolvedUser(id=str(user.id), display_name=user.display_name)
             for account_id, user in users.items()
         }
-        page_map = {
-            page.title: ResolvedPage(
-                id=str(records[page.id].id),
-                url=self.page_url_template.format(
-                    slug=self.workspace.slug, project=project.id, page=records[page.id].id
-                ),
-                title=page.title,
-            )
-            for page in pages
-            if page.id in records
-        }
+        page_map = self._page_map(project, pages, records)
 
         # S3 writes are outside the transaction, so a dry run must not make any
         # or it would leave objects behind with no rows pointing at them.
