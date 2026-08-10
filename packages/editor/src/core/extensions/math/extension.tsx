@@ -82,6 +82,7 @@ function MathNodeView(props: NodeViewProps & { displayMode: boolean }) {
         >
           <textarea
             ref={textareaRef}
+            aria-label="LaTeX equation"
             className="font-mono min-w-64 rounded border border-subtle bg-surface-2 px-2 py-1 text-13 text-primary outline-none"
             placeholder="Enter LaTeX"
             rows={displayMode ? 3 : 1}
@@ -118,6 +119,9 @@ function MathNodeView(props: NodeViewProps & { displayMode: boolean }) {
     return (
       <button
         type="button"
+        // The rendered KaTeX is the button's only content, so the LaTeX source
+        // is what names it.
+        aria-label={`Edit equation: ${latex}`}
         className="cursor-pointer"
         contentEditable={false}
         onClick={openEditor}
