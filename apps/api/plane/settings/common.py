@@ -460,6 +460,26 @@ INSTANCE_CHANGELOG_URL = os.environ.get("INSTANCE_CHANGELOG_URL", "")
 # that traffic must stay inside the deployment.
 DIAGRAM_EMBED_ORIGIN = os.environ.get("DIAGRAM_EMBED_ORIGIN", "https://embed.diagrams.net")
 
+
+def _jira_base_urls(env_var):
+    """
+    Parse "serverId=baseUrl" pairs separated by commas and/or whitespace into a
+    dict, stripping any trailing "/" from each base URL. A malformed pair is
+    skipped rather than failing the whole setting.
+    """
+    raw = os.environ.get(env_var, "")
+    urls = {}
+    for pair in raw.replace(",", " ").split():
+        server_id, _, base_url = pair.partition("=")
+        if server_id and base_url:
+            urls[server_id] = base_url.rstrip("/")
+    return urls
+
+
+# Confluence's jira macro records a serverId, not a host, and a backup has no
+# way to recover which Atlassian site that id names, so the operator supplies it.
+CONFLUENCE_JIRA_BASE_URLS = _jira_base_urls("CONFLUENCE_JIRA_BASE_URLS")
+
 ATTACHMENT_MIME_TYPES = [
     # Images
     "image/jpeg",

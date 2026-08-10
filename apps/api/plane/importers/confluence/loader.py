@@ -4,6 +4,7 @@
 from collections import Counter
 from dataclasses import dataclass, field
 
+from django.conf import settings
 from django.db import transaction
 
 from plane.db.models import Page, Project, ProjectMember, ProjectPage, State, User, Workspace
@@ -63,12 +64,14 @@ class ConfluenceLoader:
         backup,
         page_url_template="/{slug}/projects/{project}/pages/{page}/",
         storage=None,
+        jira_base_urls=None,
     ):
         self.workspace = Workspace.objects.get(slug=workspace_slug)
         self.actor = actor
         self.backup = backup
         self.page_url_template = page_url_template
         self.storage = storage
+        self.jira_base_urls = jira_base_urls if jira_base_urls is not None else settings.CONFLUENCE_JIRA_BASE_URLS
 
     def run(self, dry_run=False):
         summary = ImportSummary()
@@ -283,7 +286,9 @@ class ConfluenceLoader:
 
             # Attachments are per page, so the resolver set is rebuilt each time
             # while the space-wide user and page maps are shared.
-            resolvers = Resolvers(users=user_map, attachments=attachments, pages=page_map)
+            resolvers = Resolvers(
+                users=user_map, attachments=attachments, pages=page_map, jira_base_urls=self.jira_base_urls
+            )
             result = storage_to_html(page.body, resolvers, ConversionResult(html=""))
             summary.absorb(result)
 

@@ -34,10 +34,11 @@ class Resolvers:
     records the miss, so a partial map still produces a usable page.
     """
 
-    def __init__(self, users=None, attachments=None, pages=None):
+    def __init__(self, users=None, attachments=None, pages=None, jira_base_urls=None):
         self._users = users or {}
         self._attachments = attachments or {}
         self._pages = pages or {}
+        self._jira_base_urls = jira_base_urls or {}
 
     def user(self, account_id):
         return self._users.get(account_id)
@@ -49,6 +50,9 @@ class Resolvers:
         if space_key is not None and (space_key, title) in self._pages:
             return self._pages[(space_key, title)]
         return self._pages.get(title)
+
+    def jira_base_url(self, server_id):
+        return self._jira_base_urls.get(server_id)
 
 
 @dataclass

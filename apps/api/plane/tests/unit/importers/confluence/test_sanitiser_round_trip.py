@@ -34,6 +34,8 @@ SUPPORTED_CONSTRUCTS = """
 <ac:image ac:align="center" ac:width="400"><ri:attachment ri:filename="diagram.png"/></ac:image>
 <ac:structured-macro ac:name="view-file"><ac:parameter ac:name="name">
   <ri:attachment ri:filename="spec.pdf"/></ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="jira"><ac:parameter ac:name="serverId">server-1</ac:parameter>
+  <ac:parameter ac:name="key">ABC-123</ac:parameter></ac:structured-macro>
 """
 
 IMAGE_ID = "22222222-2222-4222-8222-222222222222"
@@ -48,6 +50,7 @@ RESOLVERS = Resolvers(
         "Flow.drawio": ResolvedAttachment(id=DIAGRAM_ID, filename="Flow.drawio", is_image=False),
         "Flow.drawio.png": ResolvedAttachment(id=DIAGRAM_PNG_ID, filename="Flow.drawio.png", is_image=True),
     },
+    jira_base_urls={"server-1": "https://example.atlassian.net"},
 )
 
 

@@ -3,6 +3,7 @@
 
 import json
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from plane.importers.confluence.backup import space_keys
@@ -37,6 +38,7 @@ class Command(BaseCommand):
             spaces=spaces,
             limit=options["limit"],
             global_page_map=options["global_page_map"],
+            jira_base_urls=settings.CONFLUENCE_JIRA_BASE_URLS,
         )
         self._print(reports)
 

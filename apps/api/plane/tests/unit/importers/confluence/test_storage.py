@@ -472,6 +472,74 @@ class TestMacros:
 
 
 @pytest.mark.unit
+class TestJiraMacros:
+    def _jira_macro(self, server_id="", key="", jql_query=""):
+        parameters = []
+        if server_id:
+            parameters.append(f'<ac:parameter ac:name="serverId">{server_id}</ac:parameter>')
+        if key:
+            parameters.append(f'<ac:parameter ac:name="key">{key}</ac:parameter>')
+        if jql_query:
+            parameters.append(f'<ac:parameter ac:name="jqlQuery">{jql_query}</ac:parameter>')
+        return f'<ac:structured-macro ac:name="jira">{"".join(parameters)}</ac:structured-macro>'
+
+    def _jira_resolvers(self):
+        return Resolvers(jira_base_urls={"server-1": "https://example.atlassian.net"})
+
+    def test_key_becomes_a_browse_link(self):
+        body = self._jira_macro(server_id="server-1", key="ABC-123")
+
+        result = convert(body, self._jira_resolvers())
+
+        assert result.html == '<a href="https://example.atlassian.net/browse/ABC-123">ABC-123</a>'
+        assert result.downgraded == {"jira": 1}
+        assert result.is_lossless
+
+    def test_key_with_an_unmapped_server_id_keeps_the_bare_key(self):
+        body = self._jira_macro(server_id="unknown-server", key="ABC-123")
+
+        result = convert(body, self._jira_resolvers())
+
+        assert result.html == "ABC-123"
+        assert result.downgraded == {"jira": 1}
+        assert result.is_lossless
+
+    def test_enumerated_jql_becomes_one_link_per_key(self):
+        body = self._jira_macro(server_id="server-1", jql_query="key in ('ABC-1', \"ABC-2\")")
+
+        result = convert(body, self._jira_resolvers())
+
+        assert result.html == (
+            '<a href="https://example.atlassian.net/browse/ABC-1">ABC-1</a>, '
+            '<a href="https://example.atlassian.net/browse/ABC-2">ABC-2</a>'
+        )
+        assert result.downgraded == {"jira": 1}
+        assert result.is_lossless
+
+    def test_arbitrary_jql_becomes_a_search_link(self):
+        body = self._jira_macro(server_id="server-1", jql_query="project = ABC AND status = Open")
+
+        result = convert(body, self._jira_resolvers())
+
+        assert result.html == (
+            '<a href="https://example.atlassian.net/issues/?jql='
+            "project%20%3D%20ABC%20AND%20status%20%3D%20Open"
+            '">project = ABC AND status = Open</a>'
+        )
+        assert result.downgraded == {"jira": 1}
+        assert result.is_lossless
+
+    def test_macro_with_neither_parameter_is_recorded(self):
+        body = self._jira_macro(server_id="server-1")
+
+        result = convert(body, self._jira_resolvers())
+
+        assert "jira" not in result.html
+        assert result.unsupported_macros == {"jira": 1}
+        assert not result.is_lossless
+
+
+@pytest.mark.unit
 class TestAdfAndLayout:
     def test_adf_extension_uses_its_rendered_fallback(self):
         body = (

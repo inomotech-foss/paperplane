@@ -96,7 +96,7 @@ def _user_resolvers(backup):
     }
 
 
-def report_space(backup, limit=None, pages=None, page_map=None):
+def report_space(backup, limit=None, pages=None, page_map=None, jira_base_urls=None):
     """Converts every page in a space and records what degrades.
 
     This reads the backup only. Nothing is written, no storage is touched, and
@@ -121,6 +121,7 @@ def report_space(backup, limit=None, pages=None, page_map=None):
             users=users,
             attachments=_attachment_resolvers(backup, page.id),
             pages=page_map,
+            jira_base_urls=jira_base_urls,
         )
         result = storage_to_html(page.body, resolvers, ConversionResult(html=""))
 
@@ -154,7 +155,7 @@ def report_space(backup, limit=None, pages=None, page_map=None):
     return report
 
 
-def report_backup(root, spaces=None, limit=None, global_page_map=False):
+def report_backup(root, spaces=None, limit=None, global_page_map=False, jira_base_urls=None):
     """Every space in a backup, worst fidelity first - the triage order.
 
     Link targets resolve against every space in the run, matching an import of
@@ -170,6 +171,9 @@ def report_backup(root, spaces=None, limit=None, global_page_map=False):
     if global_page_map:
         page_map = _titles_across(root, [key for key in space_keys(root) if key not in pages]) | page_map
 
-    reports = [report_space(backups[key], limit=limit, pages=pages[key], page_map=page_map) for key in keys]
+    reports = [
+        report_space(backups[key], limit=limit, pages=pages[key], page_map=page_map, jira_base_urls=jira_base_urls)
+        for key in keys
+    ]
     reports.sort(key=lambda report: (report.fidelity, -report.pages))
     return reports

@@ -10,9 +10,7 @@ from plane.importers.confluence.report import report_backup, report_space
 
 PLAIN = "<p>Nothing unusual here.</p>"
 IMAGE = '<p><ac:image><ri:attachment ri:filename="{filename}"/></ac:image></p>'
-UNSUPPORTED = (
-    '<ac:structured-macro ac:name="jira"><ac:parameter ac:name="key">ABC-1</ac:parameter></ac:structured-macro>'
-)
+UNSUPPORTED = '<ac:structured-macro ac:name="livesearch"/>'
 # Only a layout with more than one cell loses anything when it is flattened.
 LAYOUT = (
     "<ac:layout><ac:layout-section>"
@@ -104,7 +102,7 @@ class TestReportSpace:
 
         report = report_space(ConfluenceBackup(tmp_path, "IMS"))
 
-        assert report.unsupported_macros["jira"] == 1
+        assert report.unsupported_macros["livesearch"] == 1
         assert report.lossless == 0
 
     def test_flattened_multi_column_layouts_are_counted(self, tmp_path):
