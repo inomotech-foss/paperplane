@@ -14,6 +14,8 @@ export enum CORE_EXTENSIONS {
   CHILD_PAGES = "child-pages-component",
   CODE_BLOCK = "codeBlock",
   CODE_INLINE = "code",
+  COLUMN = "columnComponent",
+  COLUMNS = "columnsComponent",
   COMMENT = "commentMark",
   CUSTOM_COLOR = "customColor",
   CUSTOM_IMAGE = "imageComponent",
@@ -84,4 +86,5 @@ export const BLOCK_NODE_TYPES = [
   CORE_EXTENSIONS.CHILD_PAGES,
   CORE_EXTENSIONS.DIAGRAM,
   CORE_EXTENSIONS.PAGE_ATTACHMENTS,
+  CORE_EXTENSIONS.COLUMNS,
 ];

@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 
 from .images import convert_images
 from .inline import convert_emoticons, convert_times, drop_placeholders, unwrap_inline_comment_markers
+from .layouts import convert_layouts
 from .links import (
     convert_anchor_links,
     convert_attachment_links,
@@ -12,7 +13,7 @@ from .links import (
     convert_space_links,
     convert_user_mentions,
 )
-from .macros import convert_adf_extensions, convert_structured_macros, flatten_layouts
+from .macros import convert_adf_extensions, convert_structured_macros
 from .resolvers import ConversionResult, Resolvers
 from .tables import convert_tables
 from .tasks import convert_task_lists
@@ -36,7 +37,7 @@ def storage_to_html(body, resolvers=None, result=None):
     drop_placeholders(soup)
     unwrap_inline_comment_markers(soup)
     convert_adf_extensions(soup, result)
-    flatten_layouts(soup, result)
+    convert_layouts(soup, result)
     convert_structured_macros(soup, resolvers, result)
     convert_task_lists(soup)
     convert_images(soup, resolvers, result)

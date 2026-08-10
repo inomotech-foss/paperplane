@@ -338,6 +338,21 @@ export const nodeRenderers: NodeRendererRegistry = {
     );
   },
 
+  columnsComponent: (_node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => (
+    <View key={ctx.getKey()} style={pdfStyles.columns}>
+      {children}
+    </View>
+  ),
+
+  columnComponent: (node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
+    const weight = (node.attrs?._columnWeight as number) || 1;
+    return (
+      <View key={ctx.getKey()} style={[pdfStyles.column, { flex: weight }]}>
+        {children}
+      </View>
+    );
+  },
+
   mention: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
     const id = (node.attrs?.id as string) || "";
     const entityIdentifier = (node.attrs?.entity_identifier as string) || "";
@@ -365,13 +380,31 @@ type InternalRenderContext = {
   nestingLevel: number;
   listItemIndex: number;
   textAlign?: string | null;
+  columnWeight?: number;
   pdfContext: PDFRenderContext;
 };
 
+/**
+ * `layout` is a dash-separated list of column weights, e.g. "1-2". Falls back
+ * to equal weights when it is missing or names a different number of columns
+ * than the block actually holds.
+ */
+const getColumnWeights = (layout: unknown, count: number): number[] => {
+  if (typeof layout === "string") {
+    const weights = layout
+      .split("-")
+      .filter((entry) => /^[1-9]\d*$/.test(entry))
+      .map((entry) => parseInt(entry, 10));
+    if (weights.length === count) return weights;
+  }
+  return Array.from({ length: count }, () => 1);
+};
+
 const renderNodeWithContext = (node: TipTapNode, context: InternalRenderContext): ReactElement => {
-  const { parentType, nestingLevel, listItemIndex, textAlign, pdfContext } = context;
+  const { parentType, nestingLevel, listItemIndex, textAlign, columnWeight, pdfContext } = context;
 
   const isListContainer = node.type === CORE_EXTENSIONS.BULLET_LIST || node.type === CORE_EXTENSIONS.ORDERED_LIST;
+  const isColumnsContainer = node.type === CORE_EXTENSIONS.COLUMNS;
 
   let childTextAlign = textAlign;
   if (node.type === CORE_EXTENSIONS.PARAGRAPH && node.attrs?.textAlign) {
@@ -387,6 +420,7 @@ const renderNodeWithContext = (node: TipTapNode, context: InternalRenderContext)
       _listItemIndex: listItemIndex,
       _textAlign: childTextAlign,
       _isHeader: node.content?.some((child) => child.type === CORE_EXTENSIONS.TABLE_HEADER),
+      _columnWeight: columnWeight,
     },
   };
 
@@ -395,14 +429,17 @@ const renderNodeWithContext = (node: TipTapNode, context: InternalRenderContext)
     childNestingLevel = nestingLevel + 1;
   }
 
+  const columnWeights = isColumnsContainer ? getColumnWeights(node.attrs?.layout, node.content?.length ?? 0) : [];
+
   let currentListItemIndex = 0;
   const children: ReactElement[] =
-    node.content?.map((child) => {
+    node.content?.map((child, index) => {
       const childContext: InternalRenderContext = {
         parentType: node.type,
         nestingLevel: childNestingLevel,
         listItemIndex: 0,
         textAlign: childTextAlign,
+        columnWeight: isColumnsContainer ? columnWeights[index] : undefined,
         pdfContext,
       };
 
