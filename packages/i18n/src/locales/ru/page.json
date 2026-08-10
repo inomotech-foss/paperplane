@@ -151,5 +151,13 @@
     "editor_title": "Редактор диаграмм",
     "load_error": "Не удалось открыть диаграмму",
     "save_error": "Не удалось сохранить диаграмму"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Вставьте URL для встраивания",
+    "submit_button": "Встроить",
+    "invalid_url_error": "Введите действительный URL-адрес http или https",
+    "empty_state": "Встраивание пока не добавлено",
+    "origin_not_allowed": "Этот источник нельзя встроить здесь.",
+    "iframe_title": "Встроенный контент"
   }
 }

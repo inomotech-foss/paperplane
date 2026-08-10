@@ -13,6 +13,7 @@ import {
   ColumnsExtensionConfig,
   DiagramExtension,
   documentSlashCommandOptions,
+  EmbedExtension,
   PageAttachmentsExtension,
   SlashCommands,
   TableOfContentsExtension,
@@ -25,6 +26,7 @@ export type TDocumentEditorAdditionalExtensionsProps = Pick<
   | "childPagesHandler"
   | "diagramHandler"
   | "disabledExtensions"
+  | "embedHandler"
   | "flaggedExtensions"
   | "fileHandler"
   | "pageAttachmentsHandler"
@@ -68,6 +70,10 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
   {
     isEnabled: () => true,
     getExtension: () => ColumnExtensionConfig,
+  },
+  {
+    isEnabled: () => true,
+    getExtension: ({ embedHandler }) => EmbedExtension(embedHandler),
   },
   {
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),

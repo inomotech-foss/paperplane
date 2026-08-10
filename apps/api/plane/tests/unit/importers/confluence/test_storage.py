@@ -689,6 +689,54 @@ class TestRoadmapMacro:
 
 
 @pytest.mark.unit
+class TestEmbedMacros:
+    def test_miro_macro_becomes_an_embed(self):
+        body = (
+            '<ac:structured-macro ac:name="miro-macro">'
+            '<ac:parameter ac:name="accessLink">https://miro.com/app/board/abc/</ac:parameter>'
+            "</ac:structured-macro>"
+        )
+
+        result = convert(body)
+
+        assert result.html == '<embed-component url="https://miro.com/app/board/abc/"></embed-component>'
+        assert result.is_lossless
+        assert result.downgraded == {}
+
+    def test_iframe_carries_its_nested_url_and_size(self):
+        body = (
+            '<ac:structured-macro ac:name="iframe">'
+            '<ac:parameter ac:name="src"><ri:url ri:value="https://example.com/board"/></ac:parameter>'
+            '<ac:parameter ac:name="width">100%</ac:parameter>'
+            '<ac:parameter ac:name="height">400</ac:parameter>'
+            '<ac:parameter ac:name="frameborder">0</ac:parameter>'
+            "</ac:structured-macro>"
+        )
+
+        result = convert(body)
+
+        assert result.html == (
+            '<embed-component height="400" url="https://example.com/board" width="100%"></embed-component>'
+        )
+        assert result.is_lossless
+
+    def test_widget_uses_its_own_parameter(self):
+        body = (
+            '<ac:structured-macro ac:name="widget">'
+            '<ac:parameter ac:name="url"><ri:url ri:value="https://example.com/watch"/></ac:parameter>'
+            "</ac:structured-macro>"
+        )
+
+        assert 'url="https://example.com/watch"' in convert(body).html
+
+    def test_an_embed_without_a_url_is_recorded(self):
+        result = convert('<ac:structured-macro ac:name="miro-macro"/>')
+
+        assert result.unsupported_macros == {"miro-macro": 1}
+        assert not result.is_lossless
+
+
+@pytest.mark.unit
 class TestPlaceholderMacros:
     def test_calendar_macro_becomes_its_bracketed_name(self):
         result = convert('<ac:structured-macro ac:name="calendar"/>')

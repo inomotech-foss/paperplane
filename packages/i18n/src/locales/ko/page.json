@@ -151,5 +151,13 @@
     "editor_title": "다이어그램 편집기",
     "load_error": "다이어그램을 열 수 없습니다",
     "save_error": "다이어그램을 저장할 수 없습니다"
+  },
+  "page_embed": {
+    "url_input_placeholder": "임베드할 URL 붙여넣기",
+    "submit_button": "임베드",
+    "invalid_url_error": "유효한 http 또는 https URL을 입력해 주세요",
+    "empty_state": "아직 추가된 임베드가 없습니다",
+    "origin_not_allowed": "이 출처는 여기에 임베드할 수 없습니다.",
+    "iframe_title": "임베드된 콘텐츠"
   }
 }

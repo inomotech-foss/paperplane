@@ -476,6 +476,22 @@ def _jira_base_urls(env_var):
     return urls
 
 
+def _origins(env_var, default):
+    """
+    Origins the editor may frame, as a comma and/or whitespace separated list.
+    A framed origin can reach into the page that frames it, so this is an
+    allowlist rather than a blocklist and an empty setting frames nothing.
+    """
+    raw = os.environ.get(env_var)
+    if raw is None:
+        return default
+    return [origin.rstrip("/") for origin in raw.replace(",", " ").split()]
+
+
+# Origins the embed block is allowed to render in an iframe. Anything else is
+# shown as a link instead.
+EXTERNAL_EMBED_ALLOWED_ORIGINS = _origins("EXTERNAL_EMBED_ALLOWED_ORIGINS", ["https://miro.com"])
+
 # Confluence's jira macro records a serverId, not a host, and a backup has no
 # way to recover which Atlassian site that id names, so the operator supplies it.
 CONFLUENCE_JIRA_BASE_URLS = _jira_base_urls("CONFLUENCE_JIRA_BASE_URLS")

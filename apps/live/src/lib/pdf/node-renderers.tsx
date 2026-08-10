@@ -353,6 +353,24 @@ export const nodeRenderers: NodeRendererRegistry = {
     );
   },
 
+  embedComponent: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
+    const url = (node.attrs?.url as string) || "";
+
+    if (!url) {
+      return <View key={ctx.getKey()} />;
+    }
+
+    // There is no browser to frame the embedded page in a PDF, so render the
+    // URL itself as a link inside a bordered card, in place of an iframe.
+    return (
+      <View key={ctx.getKey()} style={pdfStyles.embed}>
+        <Link src={url} style={pdfStyles.link}>
+          {url}
+        </Link>
+      </View>
+    );
+  },
+
   mention: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
     const id = (node.attrs?.id as string) || "";
     const entityIdentifier = (node.attrs?.entity_identifier as string) || "";

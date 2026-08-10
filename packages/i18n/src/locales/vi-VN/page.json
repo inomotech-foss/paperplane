@@ -151,5 +151,13 @@
     "editor_title": "Trình chỉnh sửa sơ đồ",
     "load_error": "Không thể mở sơ đồ",
     "save_error": "Không thể lưu sơ đồ"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Dán một URL để nhúng",
+    "submit_button": "Nhúng",
+    "invalid_url_error": "Nhập một URL http hoặc https hợp lệ",
+    "empty_state": "Chưa có nội dung nhúng nào",
+    "origin_not_allowed": "Không thể nhúng nguồn này ở đây.",
+    "iframe_title": "Nội dung được nhúng"
   }
 }

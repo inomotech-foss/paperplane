@@ -151,5 +151,13 @@
     "editor_title": "Editor diagramů",
     "load_error": "Diagram se nepodařilo otevřít",
     "save_error": "Diagram se nepodařilo uložit"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Vložte adresu URL",
+    "submit_button": "Vložit",
+    "invalid_url_error": "Zadejte platnou adresu URL http nebo https",
+    "empty_state": "Zatím nebyl vložen žádný obsah",
+    "origin_not_allowed": "Tento zdroj nelze zde vložit.",
+    "iframe_title": "Vložený obsah"
   }
 }

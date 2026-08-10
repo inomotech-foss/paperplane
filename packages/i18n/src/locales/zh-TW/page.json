@@ -151,5 +151,13 @@
     "editor_title": "圖表編輯器",
     "load_error": "無法開啟圖表",
     "save_error": "無法儲存圖表"
+  },
+  "page_embed": {
+    "url_input_placeholder": "貼上要嵌入的 URL",
+    "submit_button": "嵌入",
+    "invalid_url_error": "請輸入有效的 http 或 https URL",
+    "empty_state": "尚未新增任何嵌入內容",
+    "origin_not_allowed": "此來源無法在此嵌入。",
+    "iframe_title": "嵌入的內容"
   }
 }

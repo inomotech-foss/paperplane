@@ -151,5 +151,13 @@
     "editor_title": "Edytor diagramów",
     "load_error": "Nie można otworzyć diagramu",
     "save_error": "Nie można zapisać diagramu"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Wklej adres URL, aby go osadzić",
+    "submit_button": "Osadź",
+    "invalid_url_error": "Wprowadź prawidłowy adres URL http lub https",
+    "empty_state": "Nie osadzono jeszcze żadnej zawartości",
+    "origin_not_allowed": "Tego źródła nie można tutaj osadzić.",
+    "iframe_title": "Osadzona zawartość"
   }
 }

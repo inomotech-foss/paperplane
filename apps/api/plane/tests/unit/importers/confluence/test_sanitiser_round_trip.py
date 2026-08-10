@@ -68,6 +68,8 @@ SUPPORTED_CONSTRUCTS = f"""
 <ac:image ac:align="center" ac:width="400"><ri:attachment ri:filename="diagram.png"/></ac:image>
 <ac:structured-macro ac:name="view-file"><ac:parameter ac:name="name">
   <ri:attachment ri:filename="spec.pdf"/></ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="miro-macro">
+  <ac:parameter ac:name="accessLink">https://miro.com/app/board/abc/</ac:parameter></ac:structured-macro>
 <ac:layout><ac:layout-section ac:type="two_equal"><ac:layout-cell><p>left</p></ac:layout-cell>
   <ac:layout-cell><p>right</p></ac:layout-cell></ac:layout-section></ac:layout>
 <ac:structured-macro ac:name="jira"><ac:parameter ac:name="serverId">server-1</ac:parameter>

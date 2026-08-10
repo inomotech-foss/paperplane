@@ -151,5 +151,13 @@
     "editor_title": "Diagrammeditor",
     "load_error": "Das Diagramm konnte nicht geöffnet werden",
     "save_error": "Das Diagramm konnte nicht gespeichert werden"
+  },
+  "page_embed": {
+    "url_input_placeholder": "URL zum Einbetten einfügen",
+    "submit_button": "Einbetten",
+    "invalid_url_error": "Geben Sie eine gültige http- oder https-URL ein",
+    "empty_state": "Noch keine Einbettung hinzugefügt",
+    "origin_not_allowed": "Diese Quelle kann hier nicht eingebettet werden.",
+    "iframe_title": "Eingebetteter Inhalt"
   }
 }

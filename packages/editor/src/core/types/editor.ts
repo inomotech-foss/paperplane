@@ -29,6 +29,7 @@ import type {
   TDocumentEventEmitter,
   TDocumentEventsServer,
   TEditorAsset,
+  TEmbedHandler,
   TExtensions,
   TFileHandler,
   TMentionHandler,
@@ -75,6 +76,7 @@ export type TEditorCommands =
   | "diagram"
   | "page-attachments"
   | "columns"
+  | "embed"
   | TExtendedEditorCommands;
 
 export type TCommandExtraProps = {
@@ -172,6 +174,7 @@ export type IEditorProps = {
   editable: boolean;
   editorClassName?: string;
   editorProps?: EditorProps;
+  embedHandler?: TEmbedHandler;
   extensions?: Extensions;
   flaggedExtensions: TExtensions[];
   fileHandler: TFileHandler;

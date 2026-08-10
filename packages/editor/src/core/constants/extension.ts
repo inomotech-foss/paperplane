@@ -23,6 +23,7 @@ export enum CORE_EXTENSIONS {
   DIAGRAM = "diagram-component",
   DOCUMENT = "doc",
   DROP_CURSOR = "dropCursor",
+  EMBED = "embedComponent",
   ENTER_KEY = "enterKey",
   GAP_CURSOR = "gapCursor",
   HARD_BREAK = "hardBreak",
@@ -87,4 +88,5 @@ export const BLOCK_NODE_TYPES = [
   CORE_EXTENSIONS.DIAGRAM,
   CORE_EXTENSIONS.PAGE_ATTACHMENTS,
   CORE_EXTENSIONS.COLUMNS,
+  CORE_EXTENSIONS.EMBED,
 ];

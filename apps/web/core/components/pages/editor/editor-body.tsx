@@ -16,6 +16,7 @@ import type {
   TAIMenuProps,
   TDiagramEditorProps,
   TDisplayConfig,
+  TEmbedRenderProps,
   TFileHandler,
   TRealtimeConfig,
   TServerHandler,
@@ -46,6 +47,7 @@ import { PageContentLoader } from "../loaders/page-content-loader";
 import { PageAttachmentsBlock } from "./attachments-block";
 import { PageChildPagesBlock } from "./child-pages-block";
 import { PageDiagramEditor } from "./diagram-editor";
+import { PageEmbedBlock } from "./embed-block";
 import { PageEditorHeaderRoot } from "./header";
 import { PageContentBrowser } from "./summary";
 import { EditorAIMenu } from "./ai/menu";
@@ -153,6 +155,13 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
       renderComponent: () => <PageAttachmentsBlock page={page} />,
     }),
     [page]
+  );
+  const embedHandler = useMemo(
+    () => ({
+      // oxlint-disable-next-line no-shadow
+      renderComponent: (props: TEmbedRenderProps) => <PageEmbedBlock {...props} />,
+    }),
+    []
   );
   // Diagram sources and previews are page attachments, which are project scoped,
   // so a page outside a project renders its diagrams without offering editing.
@@ -328,6 +337,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
             getEditorMetaData={getEditorMetaData}
             childPagesHandler={childPagesHandler}
             diagramHandler={diagramHandler}
+            embedHandler={embedHandler}
             pageAttachmentsHandler={pageAttachmentsHandler}
             mentionHandler={{
               searchCallback: async (query) => {

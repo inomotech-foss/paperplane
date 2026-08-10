@@ -151,5 +151,13 @@
     "editor_title": "图表编辑器",
     "load_error": "无法打开图表",
     "save_error": "无法保存图表"
+  },
+  "page_embed": {
+    "url_input_placeholder": "粘贴要嵌入的 URL",
+    "submit_button": "嵌入",
+    "invalid_url_error": "请输入有效的 http 或 https URL",
+    "empty_state": "尚未添加任何嵌入内容",
+    "origin_not_allowed": "此来源无法在此嵌入。",
+    "iframe_title": "嵌入的内容"
   }
 }

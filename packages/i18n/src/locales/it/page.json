@@ -151,5 +151,13 @@
     "editor_title": "Editor di diagrammi",
     "load_error": "Impossibile aprire il diagramma",
     "save_error": "Impossibile salvare il diagramma"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Incolla un URL da incorporare",
+    "submit_button": "Incorpora",
+    "invalid_url_error": "Inserisci un URL http o https valido",
+    "empty_state": "Nessun contenuto incorporato",
+    "origin_not_allowed": "Questa origine non può essere incorporata qui.",
+    "iframe_title": "Contenuto incorporato"
   }
 }

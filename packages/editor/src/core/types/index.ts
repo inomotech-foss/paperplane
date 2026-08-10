@@ -12,6 +12,7 @@ export * from "./config";
 export * from "./diagram";
 export * from "./editor";
 export * from "./embed";
+export * from "./external-embed";
 export * from "./extensions";
 export * from "./hook";
 export * from "./mention";
