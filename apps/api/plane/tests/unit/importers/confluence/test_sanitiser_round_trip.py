@@ -1,12 +1,46 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import json
+from urllib.parse import quote
+
 import pytest
 
 from plane.importers.confluence import ResolvedAttachment, Resolvers, storage_to_html
 from plane.utils.content_validator import _compute_html_sanitization_diff, validate_html_content
 
-SUPPORTED_CONSTRUCTS = """
+_ROADMAP_SOURCE = quote(
+    json.dumps(
+        {
+            "title": "Roadmap",
+            "timeline": {
+                "startDate": "2024-01-01 00:00:00",
+                "endDate": "2024-06-01 00:00:00",
+                "displayOption": "MONTH",
+            },
+            "lanes": [
+                {
+                    "title": "Phase one",
+                    "color": {},
+                    "bars": [
+                        {
+                            "title": "Discovery",
+                            "description": "",
+                            "startDate": "2024-01-01 00:00:00",
+                            "duration": 2,
+                            "rowIndex": 0,
+                            "id": "bar-1",
+                            "pageLink": {},
+                        }
+                    ],
+                }
+            ],
+            "markers": [{"title": "Milestone A", "markerDate": "2024-03-01 00:00:00"}],
+        }
+    )
+)
+
+SUPPORTED_CONSTRUCTS = f"""
 <h1>Heading</h1>
 <p>Prose with <strong>bold</strong> and <em>italic</em>.</p>
 <ac:structured-macro ac:name="code"><ac:parameter ac:name="language">python</ac:parameter>
@@ -36,6 +70,8 @@ SUPPORTED_CONSTRUCTS = """
   <ri:attachment ri:filename="spec.pdf"/></ac:parameter></ac:structured-macro>
 <ac:structured-macro ac:name="jira"><ac:parameter ac:name="serverId">server-1</ac:parameter>
   <ac:parameter ac:name="key">ABC-123</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="roadmap"><ac:parameter ac:name="title">Roadmap</ac:parameter>
+  <ac:parameter ac:name="source">{_ROADMAP_SOURCE}</ac:parameter></ac:structured-macro>
 """
 
 IMAGE_ID = "22222222-2222-4222-8222-222222222222"
