@@ -29,6 +29,7 @@ import { ImageExtensionConfig } from "./image/extension-config";
 import { MathBlockExtensionConfig, MathInlineExtensionConfig } from "./math/extension-config";
 import { CustomMentionExtensionConfig } from "./mentions/extension-config";
 import { PageAttachmentsExtensionConfig } from "./page-attachments/extension-config";
+import { QueryBlockExtensionConfig } from "./query-block/extension-config";
 import { CustomQuoteExtension } from "./quote";
 import { CustomStarterKitExtension } from "./starter-kit";
 import { Table } from "./table/table";
@@ -88,4 +89,5 @@ export const DocumentEditorExtensionsWithoutProps = [
   ColumnsExtensionConfig,
   ColumnExtensionConfig,
   EmbedExtensionConfig,
+  QueryBlockExtensionConfig,
 ];

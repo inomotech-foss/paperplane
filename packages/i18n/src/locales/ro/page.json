@@ -159,5 +159,14 @@
     "empty_state": "Niciun conținut încorporat momentan",
     "origin_not_allowed": "Această origine nu poate fi încorporată aici.",
     "iframe_title": "Conținut încorporat"
+  },
+  "page_query_block": {
+    "loading": "Se încarcă paginile",
+    "error": "Paginile nu au putut fi încărcate",
+    "unsupported": "Această listă de pagini nu este încă disponibilă",
+    "empty_state": {
+      "tree": "Încă nu există subpagini",
+      "pages": "Nicio pagină nu corespunde acestei liste"
+    }
   }
 }

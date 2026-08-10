@@ -6,7 +6,7 @@ from urllib.parse import quote
 
 import pytest
 
-from plane.importers.confluence import ResolvedAttachment, Resolvers, storage_to_html
+from plane.importers.confluence import ResolvedAttachment, ResolvedPage, Resolvers, storage_to_html
 from plane.utils.content_validator import _compute_html_sanitization_diff, validate_html_content
 
 _ROADMAP_SOURCE = quote(
@@ -84,6 +84,12 @@ SUPPORTED_CONSTRUCTS = f"""
   <ac:parameter ac:name="diagram">@startuml
 A -> B
 @enduml</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="pagetree"><ac:parameter ac:name="startDepth">3</ac:parameter>
+  <ac:parameter ac:name="searchBox">true</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="index"/>
+<ac:structured-macro ac:name="children"><ac:parameter ac:name="page">
+  <ac:link><ri:page ri:content-title="Rooted"/></ac:link></ac:parameter>
+  <ac:parameter ac:name="all">true</ac:parameter></ac:structured-macro>
 """
 
 IMAGE_ID = "22222222-2222-4222-8222-222222222222"
@@ -99,6 +105,7 @@ RESOLVERS = Resolvers(
         "Flow.drawio.png": ResolvedAttachment(id=DIAGRAM_PNG_ID, filename="Flow.drawio.png", is_image=True),
     },
     jira_base_urls={"server-1": "https://example.atlassian.net"},
+    pages={"Rooted": ResolvedPage(id="66666666-6666-4666-8666-666666666666", url="/p/1/", title="Rooted")},
 )
 
 

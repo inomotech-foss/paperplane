@@ -18,6 +18,7 @@ import type {
   TDisplayConfig,
   TEmbedRenderProps,
   TFileHandler,
+  TQueryBlockHandlerProps,
   TRealtimeConfig,
   TServerHandler,
 } from "@plane/editor";
@@ -46,6 +47,7 @@ import type { TPageInstance } from "@/store/pages/base-page";
 import { PageContentLoader } from "../loaders/page-content-loader";
 import { PageAttachmentsBlock } from "./attachments-block";
 import { PageChildPagesBlock } from "./child-pages-block";
+import { PageQueryBlock } from "./query-block";
 import { PageDiagramEditor } from "./diagram-editor";
 import { PageEmbedBlock } from "./embed-block";
 import { PageEditorHeaderRoot } from "./header";
@@ -155,6 +157,14 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
       renderComponent: () => <PageAttachmentsBlock page={page} />,
     }),
     [page]
+  );
+  const queryBlockHandler = useMemo(
+    () => ({
+      renderComponent: (blockProps: TQueryBlockHandlerProps) => (
+        <PageQueryBlock {...blockProps} page={page} storeType={storeType} />
+      ),
+    }),
+    [page, storeType]
   );
   const embedHandler = useMemo(
     () => ({
@@ -339,6 +349,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
             diagramHandler={diagramHandler}
             embedHandler={embedHandler}
             pageAttachmentsHandler={pageAttachmentsHandler}
+            queryBlockHandler={queryBlockHandler}
             mentionHandler={{
               searchCallback: async (query) => {
                 const res = await fetchMentions(query);

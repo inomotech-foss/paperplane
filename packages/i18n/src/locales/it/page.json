@@ -159,5 +159,14 @@
     "empty_state": "Nessun contenuto incorporato",
     "origin_not_allowed": "Questa origine non può essere incorporata qui.",
     "iframe_title": "Contenuto incorporato"
+  },
+  "page_query_block": {
+    "loading": "Caricamento delle pagine",
+    "error": "Impossibile caricare le pagine",
+    "unsupported": "Questo elenco di pagine non è ancora disponibile",
+    "empty_state": {
+      "tree": "Nessuna sottopagina per ora",
+      "pages": "Nessuna pagina corrisponde a questo elenco"
+    }
   }
 }

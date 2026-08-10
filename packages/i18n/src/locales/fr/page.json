@@ -159,5 +159,14 @@
     "empty_state": "Aucun contenu intégré pour le moment",
     "origin_not_allowed": "Cette origine ne peut pas être intégrée ici.",
     "iframe_title": "Contenu intégré"
+  },
+  "page_query_block": {
+    "loading": "Chargement des pages",
+    "error": "Impossible de charger les pages",
+    "unsupported": "Cette liste de pages n'est pas encore disponible",
+    "empty_state": {
+      "tree": "Aucune sous-page pour le moment",
+      "pages": "Aucune page ne correspond à cette liste"
+    }
   }
 }

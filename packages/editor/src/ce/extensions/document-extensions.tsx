@@ -15,6 +15,7 @@ import {
   documentSlashCommandOptions,
   EmbedExtension,
   PageAttachmentsExtension,
+  QueryBlockExtension,
   SlashCommands,
   TableOfContentsExtension,
 } from "@/extensions";
@@ -30,6 +31,7 @@ export type TDocumentEditorAdditionalExtensionsProps = Pick<
   | "flaggedExtensions"
   | "fileHandler"
   | "pageAttachmentsHandler"
+  | "queryBlockHandler"
   | "extendedEditorProps"
 > & {
   isEditable: boolean;
@@ -76,6 +78,10 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
     getExtension: ({ embedHandler }) => EmbedExtension(embedHandler),
   },
   {
+    isEnabled: () => true,
+    getExtension: ({ queryBlockHandler }) => QueryBlockExtension(queryBlockHandler),
+  },
+  {
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),
     getExtension: ({ disabledExtensions, flaggedExtensions }) =>
       SlashCommands({ additionalOptions: documentSlashCommandOptions, disabledExtensions, flaggedExtensions }),
@@ -85,9 +91,12 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
 export function DocumentEditorAdditionalExtensions(props: TDocumentEditorAdditionalExtensionsProps) {
   const { disabledExtensions, flaggedExtensions } = props;
 
-  const documentExtensions = extensionRegistry
-    .filter((config) => config.isEnabled(disabledExtensions, flaggedExtensions))
-    .map((config) => config.getExtension(props));
+  const documentExtensions: AnyExtension[] = [];
+  for (const config of extensionRegistry) {
+    if (config.isEnabled(disabledExtensions, flaggedExtensions)) {
+      documentExtensions.push(config.getExtension(props));
+    }
+  }
 
   return documentExtensions;
 }

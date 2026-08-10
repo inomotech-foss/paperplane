@@ -34,6 +34,7 @@ import type {
   TFileHandler,
   TMentionHandler,
   TPageAttachmentsHandler,
+  TQueryBlockHandler,
   TRealtimeConfig,
   TServerHandler,
   TUserDetails,
@@ -79,6 +80,7 @@ export type TEditorCommands =
   | "embed"
   | "math-inline"
   | "math-block"
+  | "query-block"
   | TExtendedEditorCommands;
 
 export type TCommandExtraProps = {
@@ -193,6 +195,7 @@ export type IEditorProps = {
   onEnterKeyPress?: (e?: any) => void;
   onTransaction?: () => void;
   pageAttachmentsHandler?: TPageAttachmentsHandler;
+  queryBlockHandler?: TQueryBlockHandler;
   placeholder?: string | ((isFocused: boolean, value: string) => string);
   showPlaceholderOnEmpty?: boolean;
   tabIndex?: number;

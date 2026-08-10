@@ -159,5 +159,14 @@
     "empty_state": "Belum ada konten yang ditanamkan",
     "origin_not_allowed": "Sumber ini tidak dapat ditanamkan di sini.",
     "iframe_title": "Konten yang ditanamkan"
+  },
+  "page_query_block": {
+    "loading": "Memuat halaman",
+    "error": "Tidak dapat memuat halaman",
+    "unsupported": "Daftar halaman ini belum tersedia",
+    "empty_state": {
+      "tree": "Belum ada subhalaman",
+      "pages": "Tidak ada halaman yang cocok dengan daftar ini"
+    }
   }
 }

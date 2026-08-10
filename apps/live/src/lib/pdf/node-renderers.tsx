@@ -391,6 +391,19 @@ export const nodeRenderers: NodeRendererRegistry = {
     );
   },
 
+  "query-block-component": (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
+    const kind = (node.attrs?.kind as string) || "recent";
+    const labels = (node.attrs?.labels as string) || "";
+
+    // The query runs against live data, which a PDF has none of, so name the
+    // listing rather than leaving a blank where a block used to be.
+    return (
+      <View key={ctx.getKey()} style={pdfStyles.embed}>
+        <Text>{labels ? `Page list (${kind}: ${labels})` : `Page list (${kind})`}</Text>
+      </View>
+    );
+  },
+
   mention: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
     const id = (node.attrs?.id as string) || "";
     const entityIdentifier = (node.attrs?.entity_identifier as string) || "";

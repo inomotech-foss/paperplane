@@ -159,5 +159,14 @@
     "empty_state": "Chưa có nội dung nhúng nào",
     "origin_not_allowed": "Không thể nhúng nguồn này ở đây.",
     "iframe_title": "Nội dung được nhúng"
+  },
+  "page_query_block": {
+    "loading": "Đang tải trang",
+    "error": "Không thể tải trang",
+    "unsupported": "Danh sách trang này chưa khả dụng",
+    "empty_state": {
+      "tree": "Chưa có trang con",
+      "pages": "Không có trang nào khớp với danh sách này"
+    }
   }
 }

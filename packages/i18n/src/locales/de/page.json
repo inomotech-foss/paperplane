@@ -159,5 +159,14 @@
     "empty_state": "Noch keine Einbettung hinzugefügt",
     "origin_not_allowed": "Diese Quelle kann hier nicht eingebettet werden.",
     "iframe_title": "Eingebetteter Inhalt"
+  },
+  "page_query_block": {
+    "loading": "Seiten werden geladen",
+    "error": "Die Seiten konnten nicht geladen werden",
+    "unsupported": "Diese Seitenliste ist noch nicht verfügbar",
+    "empty_state": {
+      "tree": "Noch keine Unterseiten",
+      "pages": "Keine Seiten entsprechen dieser Liste"
+    }
   }
 }

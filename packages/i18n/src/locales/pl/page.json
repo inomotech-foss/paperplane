@@ -159,5 +159,14 @@
     "empty_state": "Nie osadzono jeszcze żadnej zawartości",
     "origin_not_allowed": "Tego źródła nie można tutaj osadzić.",
     "iframe_title": "Osadzona zawartość"
+  },
+  "page_query_block": {
+    "loading": "Ładowanie stron",
+    "error": "Nie udało się załadować stron",
+    "unsupported": "Ta lista stron nie jest jeszcze dostępna",
+    "empty_state": {
+      "tree": "Brak podstron",
+      "pages": "Żadna strona nie pasuje do tej listy"
+    }
   }
 }

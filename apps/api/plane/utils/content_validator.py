@@ -86,6 +86,7 @@ CUSTOM_TAGS = {
     "embed-component",
     "math-inline-component",
     "math-block-component",
+    "query-block-component",
 }
 ALLOWED_TAGS = nh3.ALLOWED_TAGS | CUSTOM_TAGS
 
@@ -156,6 +157,17 @@ ATTRIBUTES = {
     "embed-component": {"url", "width", "height"},
     "math-inline-component": {"latex"},
     "math-block-component": {"latex"},
+    "query-block-component": {
+        "kind",
+        "scope",
+        "root-page-id",
+        "depth",
+        "limit",
+        "sort",
+        "reverse",
+        "labels",
+        "placeholder",
+    },
     "issue-embed-component": {
         "id",
         "entity_identifier",

@@ -42,6 +42,7 @@ export enum CORE_EXTENSIONS {
   PAGE_ATTACHMENTS = "page-attachments-component",
   PARAGRAPH = "paragraph",
   PLACEHOLDER = "placeholder",
+  QUERY_BLOCK = "query-block-component",
   SIDE_MENU = "editorSideMenu",
   SLASH_COMMANDS = "slash-command",
   STRIKETHROUGH = "strike",
@@ -92,4 +93,5 @@ export const BLOCK_NODE_TYPES = [
   CORE_EXTENSIONS.COLUMNS,
   CORE_EXTENSIONS.EMBED,
   CORE_EXTENSIONS.MATH_BLOCK,
+  CORE_EXTENSIONS.QUERY_BLOCK,
 ];
