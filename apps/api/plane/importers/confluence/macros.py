@@ -5,6 +5,13 @@ from bs4 import NavigableString
 
 from .jira import convert_jira_macro
 from .parameters import macro_parameter, macro_parameters
+from .placeholders import (
+    PLACEHOLDER_MACROS,
+    convert_onedrive_macro,
+    convert_placeholder_macro,
+    convert_plantuml_macro,
+    convert_requirement_macro,
+)
 from .roadmap import convert_roadmap_macro
 from .tasks import task_item, task_list
 
@@ -254,6 +261,14 @@ def convert_structured_macros(soup, resolvers, result):
             convert_jira_macro(soup, node, resolvers, result)
         elif name == "roadmap":
             convert_roadmap_macro(soup, node, result)
+        elif name in PLACEHOLDER_MACROS:
+            convert_placeholder_macro(soup, node, name, result)
+        elif name.startswith("onedrive-connector"):
+            convert_onedrive_macro(soup, node, name, result)
+        elif name == "requirement-yogi":
+            convert_requirement_macro(node, name, result)
+        elif name == "stepashka-simple-plantuml-macro":
+            convert_plantuml_macro(soup, node, name, result)
         elif name == "status":
             _status(soup, node)
         elif name in CHROME_MACROS:
@@ -311,6 +326,16 @@ def convert_adf_extensions(soup, result):
         if any(content.get_text().strip() for content in contents):
             node.replace_with(*[child.extract() for content in contents for child in list(content.contents)])
             continue
+
+        # A bare extension still names the app that owned it, in an
+        # extension-key attribute, which is worth keeping over a bare count.
+        if adf_node is not None and adf_node.get("type") == "extension":
+            attribute = adf_node.find("ac:adf-attribute", attrs={"key": "extension-key"}, recursive=False)
+            key = attribute.get_text().strip() if attribute is not None else ""
+            if key:
+                result.downgraded["adf:extension"] += 1
+                node.replace_with(NavigableString(f"[{key}]"))
+                continue
 
         result.unsupported_macros[f"adf:{adf_node.get('type')}" if adf_node else "adf"] += 1
         node.decompose()

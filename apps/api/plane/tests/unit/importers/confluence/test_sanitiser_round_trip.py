@@ -72,6 +72,12 @@ SUPPORTED_CONSTRUCTS = f"""
   <ac:parameter ac:name="key">ABC-123</ac:parameter></ac:structured-macro>
 <ac:structured-macro ac:name="roadmap"><ac:parameter ac:name="title">Roadmap</ac:parameter>
   <ac:parameter ac:name="source">{_ROADMAP_SOURCE}</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="portfolioforjiraplan">
+  <ac:parameter ac:name="url">https://example.com/plan</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="stepashka-simple-plantuml-macro">
+  <ac:parameter ac:name="diagram">@startuml
+A -> B
+@enduml</ac:parameter></ac:structured-macro>
 """
 
 IMAGE_ID = "22222222-2222-4222-8222-222222222222"
