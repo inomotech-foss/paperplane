@@ -689,6 +689,100 @@ class TestRoadmapMacro:
 
 
 @pytest.mark.unit
+class TestPlaceholderMacros:
+    def test_calendar_macro_becomes_its_bracketed_name(self):
+        result = convert('<ac:structured-macro ac:name="calendar"/>')
+
+        assert result.html == "[calendar]"
+        assert result.downgraded == {"calendar": 1}
+        assert result.is_lossless
+
+    def test_portfolio_macro_with_a_url_becomes_a_link(self):
+        body = (
+            '<ac:structured-macro ac:name="portfolioforjiraplan">'
+            '<ac:parameter ac:name="url">https://example.com/plan</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == '<a href="https://example.com/plan">[portfolioforjiraplan]</a>'
+        assert result.downgraded == {"portfolioforjiraplan": 1}
+        assert result.is_lossless
+
+    def test_placeholder_macro_inline_in_a_paragraph_stays_inside_it(self):
+        body = '<p>See <ac:structured-macro ac:name="gadget"/> for details.</p>'
+
+        html = convert(body).html
+
+        assert html == "<p>See [gadget] for details.</p>"
+        assert html.count("<p>") == 1
+
+    def test_onedrive_macro_lists_its_names(self):
+        body = (
+            '<ac:structured-macro ac:name="onedrive-connector-addon-plugin-for-confluence-macro">'
+            '<ac:parameter ac:name="names">["Notes.docx", "Plans"]</ac:parameter>'
+            '<ac:parameter ac:name="items">[{"id": "abc"}]</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == "[onedrive: Notes.docx, Plans]"
+        assert result.downgraded == {"onedrive-connector-addon-plugin-for-confluence-macro": 1}
+        assert result.is_lossless
+
+    def test_onedrive_variant_is_matched_by_its_prefix(self):
+        body = (
+            '<ac:structured-macro ac:name="onedrive-connector-renamed">'
+            '<ac:parameter ac:name="names">["File.txt"]</ac:parameter></ac:structured-macro>'
+        )
+
+        assert convert(body).html == "[onedrive: File.txt]"
+
+    def test_onedrive_macro_without_usable_names_is_recorded(self):
+        body = '<ac:structured-macro ac:name="onedrive-connector-addon-plugin-for-confluence-macro"/>'
+
+        result = convert(body)
+
+        assert result.unsupported_macros == {"onedrive-connector-addon-plugin-for-confluence-macro": 1}
+        assert not result.is_lossless
+
+    def test_requirement_yogi_macro_emits_its_bare_key(self):
+        body = (
+            '<ac:structured-macro ac:name="requirement-yogi">'
+            '<ac:parameter ac:name="reqKey">SYS-004</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == "SYS-004"
+        assert result.downgraded == {"requirement-yogi": 1}
+        assert result.is_lossless
+
+    def test_requirement_yogi_macro_without_a_key_is_recorded(self):
+        result = convert('<ac:structured-macro ac:name="requirement-yogi"/>')
+
+        assert result.unsupported_macros == {"requirement-yogi": 1}
+
+    def test_plantuml_macro_becomes_a_code_block(self):
+        body = (
+            '<ac:structured-macro ac:name="stepashka-simple-plantuml-macro"><ac:parameter ac:name="diagram">'
+            "@startuml\nA -> B\n@enduml</ac:parameter></ac:structured-macro>"
+        )
+
+        result = convert(body)
+
+        assert '<pre language="plantuml">' in result.html
+        assert '<code language="plantuml">@startuml\nA -&gt; B\n@enduml</code>' in result.html
+        assert result.downgraded == {"stepashka-simple-plantuml-macro": 1}
+        assert result.is_lossless
+
+    def test_plantuml_macro_without_source_is_recorded(self):
+        result = convert('<ac:structured-macro ac:name="stepashka-simple-plantuml-macro"/>')
+
+        assert result.unsupported_macros == {"stepashka-simple-plantuml-macro": 1}
+
+
+@pytest.mark.unit
 class TestAdfAndLayout:
     def test_adf_extension_uses_its_rendered_fallback(self):
         body = (
@@ -706,6 +800,24 @@ class TestAdfAndLayout:
         body = '<ac:adf-extension><ac:adf-node type="expand"/></ac:adf-extension>'
 
         assert convert(body).unsupported_macros == {"adf:expand": 1}
+
+    def test_bare_extension_with_a_key_becomes_a_placeholder(self):
+        body = (
+            '<ac:adf-extension><ac:adf-node type="extension">'
+            '<ac:adf-attribute key="extension-key">some-app</ac:adf-attribute>'
+            "</ac:adf-node></ac:adf-extension>"
+        )
+
+        result = convert(body)
+
+        assert result.html == "[some-app]"
+        assert result.downgraded == {"adf:extension": 1}
+        assert result.is_lossless
+
+    def test_bare_extension_without_a_key_stays_unsupported(self):
+        body = '<ac:adf-extension><ac:adf-node type="extension"/></ac:adf-extension>'
+
+        assert convert(body).unsupported_macros == {"adf:extension": 1}
 
     def test_adf_container_keeps_every_body_not_just_the_first(self):
         """One body per child, so taking only the first dropped the rest
