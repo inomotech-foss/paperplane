@@ -70,6 +70,7 @@
     "highlight.js": "catalog:",
     "is-emoji-supported": "catalog:",
     "jsx-dom-cjs": "catalog:",
+    "katex": "catalog:",
     "linkifyjs": "catalog:",
     "lodash-es": "catalog:",
     "lowlight": "catalog:",

@@ -20,6 +20,7 @@ import {
   ListTodo,
   MessageSquareText,
   MinusSquare,
+  Sigma,
   Smile,
   Table,
   TextQuote,
@@ -188,6 +189,15 @@ export const getSlashCommandFilteredSections =
             description: "Insert callout",
             searchTerms: ["callout", "comment", "message", "info", "alert"],
             command: ({ editor, range }: CommandProps) => insertCallout(editor, range),
+          },
+          {
+            commandKey: "math-block",
+            key: "math-block",
+            title: "Equation",
+            icon: <Sigma className="size-3.5" />,
+            description: "Insert a LaTeX equation",
+            searchTerms: ["math", "equation", "latex", "formula"],
+            command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertMathBlock().run(),
           },
           {
             commandKey: "divider",

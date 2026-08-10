@@ -354,6 +354,9 @@ catalogs:
     jsx-dom-cjs:
       specifier: ^8.0.3
       version: 8.1.6
+    katex:
+      specifier: ^0.18.4
+      version: 0.18.4
     linkifyjs:
       specifier: ^4.3.2
       version: 4.3.2
@@ -926,6 +929,9 @@ importers:
       isbot:
         specifier: 'catalog:'
         version: 5.1.31
+      katex:
+        specifier: 'catalog:'
+        version: 0.18.4
       lodash-es:
         specifier: 4.18.1
         version: 4.18.1
@@ -1104,6 +1110,9 @@ importers:
       isbot:
         specifier: 'catalog:'
         version: 5.1.31
+      katex:
+        specifier: 'catalog:'
+        version: 0.18.4
       lodash-es:
         specifier: 4.18.1
         version: 4.18.1
@@ -1412,6 +1421,9 @@ importers:
       jsx-dom-cjs:
         specifier: 'catalog:'
         version: 8.1.6
+      katex:
+        specifier: 'catalog:'
+        version: 0.18.4
       linkifyjs:
         specifier: 'catalog:'
         version: 4.3.2
@@ -7385,6 +7397,10 @@ packages:
 
   jsx-dom-cjs@8.1.6:
     resolution: {integrity: sha512-aeGqlIZ3IBKF2+B0cKXZGh10OHxxABuHD9tlS10suXDXXG0c4wMkJios9xVslduflSNEQJVlicME3EBCYgxGvA==}
+
+  katex@0.18.4:
+    resolution: {integrity: sha512-IMPntbRLOU+eu88XDiFKqQ8Akhr9Tv7jDMXqPhjG9SI1JMA4DIgXk4x9k4skJz2NZJXBRbC+2pYBLj9olqcZow==}
+    hasBin: true
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -15278,6 +15294,10 @@ snapshots:
   jsx-dom-cjs@8.1.6:
     dependencies:
       csstype: 3.1.3
+
+  katex@0.18.4:
+    dependencies:
+      commander: 8.3.0
 
   keyv@4.5.4:
     dependencies:

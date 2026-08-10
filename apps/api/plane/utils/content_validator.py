@@ -84,6 +84,8 @@ CUSTOM_TAGS = {
     "columns-component",
     "column-component",
     "embed-component",
+    "math-inline-component",
+    "math-block-component",
 }
 ALLOWED_TAGS = nh3.ALLOWED_TAGS | CUSTOM_TAGS
 
@@ -152,6 +154,8 @@ ATTRIBUTES = {
     "diagram-component": {"asset_id", "preview_asset_id", "width", "height", "title"},
     "columns-component": {"layout"},
     "embed-component": {"url", "width", "height"},
+    "math-inline-component": {"latex"},
+    "math-block-component": {"latex"},
     "issue-embed-component": {
         "id",
         "entity_identifier",

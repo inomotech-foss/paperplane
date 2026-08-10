@@ -5,6 +5,7 @@ from bs4 import NavigableString
 
 from .embeds import EMBED_MACROS, convert_embed_macro
 from .jira import convert_jira_macro
+from .math import MATH_MACROS, convert_math_macro
 from .parameters import macro_parameter, macro_parameters
 from .placeholders import (
     PLACEHOLDER_MACROS,
@@ -264,6 +265,8 @@ def convert_structured_macros(soup, resolvers, result):
             convert_roadmap_macro(soup, node, result)
         elif name in EMBED_MACROS:
             convert_embed_macro(soup, node, name, result)
+        elif name in MATH_MACROS:
+            convert_math_macro(soup, node, name, result)
         elif name in PLACEHOLDER_MACROS:
             convert_placeholder_macro(soup, node, name, result)
         elif name.startswith("onedrive-connector"):

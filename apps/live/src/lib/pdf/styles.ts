@@ -107,6 +107,25 @@ export const pdfStyles = StyleSheet.create({
     fontSize: 10,
     color: CODE_COLORS.text, // Red for inline code
   },
+  mathInline: {
+    backgroundColor: BACKGROUND_COLORS.layer1,
+    padding: 2,
+    paddingHorizontal: 4,
+    borderRadius: 2,
+    fontFamily: "Courier",
+    fontSize: 10,
+    color: TEXT_COLORS.primary,
+  },
+  mathBlock: {
+    backgroundColor: BACKGROUND_COLORS.layer1,
+    padding: 12,
+    borderRadius: 4,
+    fontFamily: "Courier",
+    fontSize: 10,
+    marginVertical: 8,
+    color: TEXT_COLORS.primary,
+    breakInside: "avoid",
+  },
   bulletList: {
     marginVertical: 8,
     paddingLeft: 0,

@@ -35,6 +35,8 @@ export enum CORE_EXTENSIONS {
   ITALIC = "italic",
   LIST_ITEM = "listItem",
   MARKDOWN_CLIPBOARD = "markdownClipboard",
+  MATH_BLOCK = "mathBlockComponent",
+  MATH_INLINE = "mathInlineComponent",
   MENTION = "mention",
   ORDERED_LIST = "orderedList",
   PAGE_ATTACHMENTS = "page-attachments-component",
@@ -89,4 +91,5 @@ export const BLOCK_NODE_TYPES = [
   CORE_EXTENSIONS.PAGE_ATTACHMENTS,
   CORE_EXTENSIONS.COLUMNS,
   CORE_EXTENSIONS.EMBED,
+  CORE_EXTENSIONS.MATH_BLOCK,
 ];
