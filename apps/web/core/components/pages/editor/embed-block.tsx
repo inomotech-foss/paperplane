@@ -135,7 +135,7 @@ export const PageEmbedBlock = observer(function PageEmbedBlock(props: TEmbedRend
         // Only an allowlisted origin ever reaches this iframe; every other
         // origin renders as a plain link above, so a stored URL cannot use
         // the sandbox's allow-same-origin to script this page's parent.
-        // oxlint-disable-next-line react/iframe-missing-sandbox
+        // oxlint-disable-next-line react/iframe-missing-sandbox, react-doctor/iframe-missing-sandbox
         sandbox="allow-scripts allow-same-origin"
         referrerPolicy="no-referrer"
         loading="lazy"
