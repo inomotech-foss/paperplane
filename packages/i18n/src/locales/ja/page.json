@@ -151,5 +151,13 @@
     "editor_title": "ダイアグラムエディター",
     "load_error": "ダイアグラムを開けませんでした",
     "save_error": "ダイアグラムを保存できませんでした"
+  },
+  "page_embed": {
+    "url_input_placeholder": "埋め込むURLを貼り付け",
+    "submit_button": "埋め込み",
+    "invalid_url_error": "有効なhttpまたはhttpsのURLを入力してください",
+    "empty_state": "埋め込みはまだ追加されていません",
+    "origin_not_allowed": "このオリジンはここに埋め込むことができません。",
+    "iframe_title": "埋め込みコンテンツ"
   }
 }

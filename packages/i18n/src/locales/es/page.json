@@ -151,5 +151,13 @@
     "editor_title": "Editor de diagramas",
     "load_error": "No se pudo abrir el diagrama",
     "save_error": "No se pudo guardar el diagrama"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Pegue una URL para incrustar",
+    "submit_button": "Incrustar",
+    "invalid_url_error": "Ingrese una URL http o https válida",
+    "empty_state": "Aún no se ha incrustado nada",
+    "origin_not_allowed": "Este origen no se puede incrustar aquí.",
+    "iframe_title": "Contenido incrustado"
   }
 }

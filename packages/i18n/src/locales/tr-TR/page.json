@@ -151,5 +151,13 @@
     "editor_title": "Diyagram düzenleyici",
     "load_error": "Diyagram açılamadı",
     "save_error": "Diyagram kaydedilemedi"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Gömmek için bir URL yapıştırın",
+    "submit_button": "Göm",
+    "invalid_url_error": "Geçerli bir http veya https URL'si girin",
+    "empty_state": "Henüz herhangi bir içerik gömülmedi",
+    "origin_not_allowed": "Bu kaynak buraya gömülemez.",
+    "iframe_title": "Gömülü içerik"
   }
 }

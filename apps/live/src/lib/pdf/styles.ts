@@ -193,6 +193,14 @@ export const pdfStyles = StyleSheet.create({
     gap: 12,
     marginVertical: 8,
   },
+  embed: {
+    padding: 12,
+    borderRadius: 4,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: BORDER_COLORS.subtle,
+    borderStyle: "dashed",
+  },
   column: {
     flexDirection: "column",
   },

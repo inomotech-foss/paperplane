@@ -151,5 +151,13 @@
     "editor_title": "Editor de diagrame",
     "load_error": "Diagrama nu a putut fi deschisă",
     "save_error": "Diagrama nu a putut fi salvată"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Lipiți o adresă URL pentru a o încorpora",
+    "submit_button": "Încorporează",
+    "invalid_url_error": "Introduceți o adresă URL http sau https validă",
+    "empty_state": "Niciun conținut încorporat momentan",
+    "origin_not_allowed": "Această origine nu poate fi încorporată aici.",
+    "iframe_title": "Conținut încorporat"
   }
 }

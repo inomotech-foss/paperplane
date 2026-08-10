@@ -72,6 +72,8 @@ export interface IInstanceConfig {
   instance_changelog_url?: string;
   /** Origin of the draw.io editor the diagram block embeds. */
   diagram_embed_origin?: string;
+  /** Origins the embed block may render in an iframe; anything else is a link. */
+  external_embed_allowed_origins?: string[];
 }
 
 export interface IInstanceAdmin {

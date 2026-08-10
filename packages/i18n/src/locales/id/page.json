@@ -151,5 +151,13 @@
     "editor_title": "Editor diagram",
     "load_error": "Tidak dapat membuka diagram",
     "save_error": "Tidak dapat menyimpan diagram"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Tempelkan URL untuk ditanamkan",
+    "submit_button": "Tanam",
+    "invalid_url_error": "Masukkan URL http atau https yang valid",
+    "empty_state": "Belum ada konten yang ditanamkan",
+    "origin_not_allowed": "Sumber ini tidak dapat ditanamkan di sini.",
+    "iframe_title": "Konten yang ditanamkan"
   }
 }

@@ -13,6 +13,7 @@ export * from "./columns";
 export * from "./custom-link";
 export * from "./custom-list-keymap";
 export * from "./diagram";
+export * from "./embed";
 export * from "./image";
 export * from "./mentions";
 export * from "./page-attachments";

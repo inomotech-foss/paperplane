@@ -151,5 +151,13 @@
     "editor_title": "Diagram editor",
     "load_error": "Could not open the diagram",
     "save_error": "Could not save the diagram"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Paste a URL to embed",
+    "submit_button": "Embed",
+    "invalid_url_error": "Enter a valid http or https URL",
+    "empty_state": "No embed added yet",
+    "origin_not_allowed": "This origin cannot be embedded here.",
+    "iframe_title": "Embedded content"
   }
 }
