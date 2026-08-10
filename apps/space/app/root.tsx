@@ -23,6 +23,10 @@ import "@fontsource-variable/inter";
 import interVariableWoff2 from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
 import "@fontsource/material-symbols-rounded";
 import "@fontsource/ibm-plex-mono";
+// katex needs its own import (rather than an `@import` in globals.css) so
+// Vite's asset pipeline resolves and hashes its relative font URLs; Tailwind's
+// own `@import` bundling does not rebase them.
+import "katex/dist/katex.min.css";
 
 const APP_TITLE = "Plane Publish | Make your Plane boards public with one-click";
 const APP_DESCRIPTION = "Plane Publish is a customer feedback management tool built on top of plane.so";

@@ -41,6 +41,7 @@ import type { IEditorProps } from "@/types";
 // local imports
 import { CustomImageExtension } from "./custom-image/extension";
 import { EmojiExtension } from "./emoji/extension";
+import { MathBlockExtension, MathInlineExtension } from "./math/extension";
 import { CustomPlaceholderExtension } from "./placeholder";
 import { CustomStarterKitExtension } from "./starter-kit";
 import { UniqueID } from "./unique-id/extension";
@@ -122,6 +123,8 @@ export const CoreEditorExtensions = (args: TArguments): Extensions => {
     CustomColorExtension,
     CustomTextAlignExtension,
     CustomCalloutExtension,
+    MathInlineExtension,
+    MathBlockExtension,
     CommentMark,
     UtilityExtension({
       disabledExtensions,

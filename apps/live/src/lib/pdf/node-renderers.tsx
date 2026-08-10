@@ -371,6 +371,26 @@ export const nodeRenderers: NodeRendererRegistry = {
     );
   },
 
+  mathInlineComponent: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
+    const latex = (node.attrs?.latex as string) || "";
+    // There is no browser to run KaTeX in a PDF, so render the LaTeX source
+    // itself as monospace text, the same fallback the codeBlock renderer uses.
+    return (
+      <Text key={ctx.getKey()} style={pdfStyles.mathInline}>
+        {latex}
+      </Text>
+    );
+  },
+
+  mathBlockComponent: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
+    const latex = (node.attrs?.latex as string) || "";
+    return (
+      <View key={ctx.getKey()} style={pdfStyles.mathBlock} wrap={false}>
+        <Text>{latex}</Text>
+      </View>
+    );
+  },
+
   mention: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
     const id = (node.attrs?.id as string) || "";
     const entityIdentifier = (node.attrs?.entity_identifier as string) || "";

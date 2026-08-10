@@ -737,6 +737,38 @@ class TestEmbedMacros:
 
 
 @pytest.mark.unit
+class TestMathMacros:
+    def test_inline_math_keeps_its_latex(self):
+        body = (
+            '<p><ac:structured-macro ac:name="eazy-math-inline">'
+            '<ac:parameter ac:name="body">a_{0}=\\frac{1}{2}</ac:parameter>'
+            "</ac:structured-macro></p>"
+        )
+
+        result = convert(body)
+
+        assert result.html == '<p><math-inline-component latex="a_{0}=\\frac{1}{2}"></math-inline-component></p>'
+        assert result.is_lossless
+        assert result.downgraded == {}
+
+    def test_block_math_uses_the_block_tag(self):
+        body = (
+            '<ac:structured-macro ac:name="easy-math-block">'
+            '<ac:parameter ac:name="body">E=mc^2</ac:parameter>'
+            '<ac:parameter ac:name="align">center</ac:parameter>'
+            "</ac:structured-macro>"
+        )
+
+        assert convert(body).html == '<math-block-component latex="E=mc^2"></math-block-component>'
+
+    def test_math_without_a_body_is_recorded(self):
+        result = convert('<ac:structured-macro ac:name="eazy-math-inline"/>')
+
+        assert result.unsupported_macros == {"eazy-math-inline": 1}
+        assert not result.is_lossless
+
+
+@pytest.mark.unit
 class TestPlaceholderMacros:
     def test_calendar_macro_becomes_its_bracketed_name(self):
         result = convert('<ac:structured-macro ac:name="calendar"/>')

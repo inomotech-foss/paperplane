@@ -26,6 +26,7 @@ import { EmbedExtensionConfig } from "./embed/extension-config";
 import { EmojiExtension } from "./emoji/extension";
 import { CustomHorizontalRule } from "./horizontal-rule";
 import { ImageExtensionConfig } from "./image/extension-config";
+import { MathBlockExtensionConfig, MathInlineExtensionConfig } from "./math/extension-config";
 import { CustomMentionExtensionConfig } from "./mentions/extension-config";
 import { PageAttachmentsExtensionConfig } from "./page-attachments/extension-config";
 import { CustomQuoteExtension } from "./quote";
@@ -70,6 +71,8 @@ export const CoreEditorExtensionsWithoutProps = [
   CustomMentionExtensionConfig,
   CustomTextAlignExtension,
   CustomCalloutExtensionConfig,
+  MathInlineExtensionConfig,
+  MathBlockExtensionConfig,
   CustomColorExtension,
   CommentMark,
   ...CoreEditorAdditionalExtensionsWithoutProps,

@@ -77,6 +77,8 @@ export type TEditorCommands =
   | "page-attachments"
   | "columns"
   | "embed"
+  | "math-inline"
+  | "math-block"
   | TExtendedEditorCommands;
 
 export type TCommandExtraProps = {
