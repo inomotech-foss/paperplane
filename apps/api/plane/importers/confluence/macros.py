@@ -3,6 +3,8 @@
 
 from bs4 import NavigableString
 
+from .jira import convert_jira_macro
+from .parameters import macro_parameter, macro_parameters
 from .tasks import task_item, task_list
 
 # Confluence admonitions and ADF panels, mapped to the editor's callout icon.
@@ -51,22 +53,6 @@ MAX_CHILD_PAGES_DEPTH = 20
 DIAGRAM_PREVIEW_SUFFIX = ".png"
 
 
-def _parameters(node):
-    # The anchor macro stores its name in the unnamed parameter, so an empty
-    # ac:name is meaningful and kept under "".
-    return {
-        parameter.get("ac:name", ""): parameter.get_text().strip()
-        for parameter in node.find_all("ac:parameter", recursive=False)
-    }
-
-
-def _parameter(node, name):
-    for parameter in node.find_all("ac:parameter", recursive=False):
-        if parameter.get("ac:name", "") == name:
-            return parameter
-    return None
-
-
 def _rich_body(node):
     return node.find("ac:rich-text-body", recursive=False)
 
@@ -100,7 +86,7 @@ def _code_block(soup, node):
     body = node.find("ac:plain-text-body")
     pre = soup.new_tag("pre")
     code = soup.new_tag("code")
-    language = _parameters(node).get("language")
+    language = macro_parameters(node).get("language")
     if language:
         pre["language"] = language
         code["language"] = language
@@ -111,12 +97,12 @@ def _code_block(soup, node):
 
 def _anchor(soup, node):
     block = soup.new_tag("anchor-component")
-    block["name"] = _parameters(node).get("", "")
+    block["name"] = macro_parameters(node).get("", "")
     node.replace_with(block)
 
 
 def _table_of_contents(soup, node):
-    parameters = _parameters(node)
+    parameters = macro_parameters(node)
     block = soup.new_tag("toc-component")
     block["min-level"] = parameters.get("minLevel", "1")
     block["max-level"] = parameters.get("maxLevel", "6")
@@ -133,7 +119,7 @@ def _child_pages(soup, node, result):
         node.decompose()
         return
 
-    parameters = _parameters(node)
+    parameters = macro_parameters(node)
 
     if parameters.get("all", "").lower() == "true":
         depth = MAX_CHILD_PAGES_DEPTH
@@ -180,7 +166,7 @@ def _attachment_macro(soup, node, macro_name, resolvers, result):
 def _reference_macro(node, macro_name, result):
     """profile and include are a bare ri:user or ri:page wrapped in macro
     chrome. Transclusion is not reproduced; the reference is."""
-    parameter = _parameter(node, REFERENCE_MACROS[macro_name])
+    parameter = macro_parameter(node, REFERENCE_MACROS[macro_name])
 
     if parameter is None or parameter.find(True) is None:
         result.unsupported_macros[macro_name] += 1
@@ -197,7 +183,7 @@ def _reference_macro(node, macro_name, result):
 def _diagram(soup, node, macro_name, resolvers, result):
     """The draw.io macro renders an attachment pair: the .drawio source named by
     diagramName, and its rendered preview under the same name plus .png."""
-    parameters = _parameters(node)
+    parameters = macro_parameters(node)
     source_name = parameters.get("diagramName")
 
     if not source_name:
@@ -235,7 +221,7 @@ def _diagram(soup, node, macro_name, resolvers, result):
 
 
 def _status(soup, node):
-    title = _parameters(node).get("title", "")
+    title = macro_parameters(node).get("title", "")
     node.replace_with(NavigableString(title))
 
 
@@ -263,6 +249,8 @@ def convert_structured_macros(soup, resolvers, result):
             _attachment_macro(soup, node, name, resolvers, result)
         elif name in REFERENCE_MACROS:
             _reference_macro(node, name, result)
+        elif name == "jira":
+            convert_jira_macro(soup, node, resolvers, result)
         elif name == "status":
             _status(soup, node)
         elif name in CHROME_MACROS:
