@@ -183,6 +183,7 @@ from .page.base import (
     PageDuplicateEndpoint,
 )
 from .page.attachment import PageAttachmentContentEndpoint, PageAttachmentEndpoint
+from .page.query import PageQueryEndpoint
 from .page.version import PageVersionEndpoint
 from .page.comment import PageCommentViewSet, PageCommentReactionViewSet
 

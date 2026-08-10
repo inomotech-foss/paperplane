@@ -137,6 +137,28 @@ class PageDetailSerializer(PageSerializer):
         fields = PageSerializer.Meta.fields + ["description_html"]
 
 
+class PageQuerySerializer(BaseSerializer):
+    """Compact page shape for the editor's query block, which renders nothing
+    but a link, an icon, an owner and a timestamp."""
+
+    label_ids = serializers.ListField(child=serializers.UUIDField(), read_only=True)
+    project_ids = serializers.ListField(child=serializers.UUIDField(), read_only=True)
+
+    class Meta:
+        model = Page
+        fields = [
+            "id",
+            "name",
+            "logo_props",
+            "parent",
+            "owned_by",
+            "updated_at",
+            "label_ids",
+            "project_ids",
+        ]
+        read_only_fields = fields
+
+
 class PageVersionSerializer(BaseSerializer):
     class Meta:
         model = PageVersion

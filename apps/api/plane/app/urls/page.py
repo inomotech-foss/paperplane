@@ -11,6 +11,7 @@ from plane.app.views import (
     PageViewSet,
     PageFavoriteViewSet,
     PagesDescriptionViewSet,
+    PageQueryEndpoint,
     PageVersionEndpoint,
     PageDuplicateEndpoint,
     PageCommentViewSet,
@@ -18,6 +19,11 @@ from plane.app.views import (
 )
 
 urlpatterns = [
+    path(
+        "workspaces/<str:slug>/page-query/",
+        PageQueryEndpoint.as_view(),
+        name="workspace-page-query",
+    ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages-summary/",
         PageViewSet.as_view({"get": "summary"}),

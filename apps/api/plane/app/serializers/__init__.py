@@ -108,6 +108,7 @@ from .page import (
     PageAttachmentSerializer,
     PageSerializer,
     PageDetailSerializer,
+    PageQuerySerializer,
     PageVersionSerializer,
     PageBinaryUpdateSerializer,
     PageVersionDetailSerializer,
