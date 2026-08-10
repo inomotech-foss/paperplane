@@ -17,6 +17,7 @@ import { CustomCodeBlockExtensionWithoutProps } from "./code/without-props";
 import { CommentMark } from "./comment/comment-mark";
 import { CustomCodeInlineExtension } from "./code-inline";
 import { AnchorExtensionConfig } from "./anchor/extension-config";
+import { ColumnExtensionConfig, ColumnsExtensionConfig } from "./columns/extension-config";
 import { CustomColorExtension } from "./custom-color";
 import { CustomImageExtensionConfig } from "./custom-image/extension-config";
 import { CustomLinkExtension } from "./custom-link";
@@ -80,4 +81,6 @@ export const DocumentEditorExtensionsWithoutProps = [
   ChildPagesExtensionConfig,
   DiagramExtensionConfig,
   PageAttachmentsExtensionConfig,
+  ColumnsExtensionConfig,
+  ColumnExtensionConfig,
 ];

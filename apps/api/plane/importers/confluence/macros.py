@@ -339,14 +339,3 @@ def convert_adf_extensions(soup, result):
 
         result.unsupported_macros[f"adf:{adf_node.get('type')}" if adf_node else "adf"] += 1
         node.decompose()
-
-
-def flatten_layouts(soup, result):
-    """Multi-column layouts become sequential blocks; the editor has no
-    column node."""
-    for layout in soup.find_all("ac:layout"):
-        if len(layout.find_all("ac:layout-cell")) > 1:
-            result.dropped_layouts += 1
-    for name in ("ac:layout-cell", "ac:layout-section", "ac:layout"):
-        for node in soup.find_all(name):
-            node.unwrap()

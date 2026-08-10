@@ -30,6 +30,7 @@ const generalSelectors = [
   ".editor-callout-component",
   ".editor-embed-component",
   ".editor-drawio-component",
+  ".editor-columns-component",
 ].join(", ");
 
 const maxScrollSpeed = 20;

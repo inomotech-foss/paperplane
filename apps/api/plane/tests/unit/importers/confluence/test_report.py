@@ -11,7 +11,8 @@ from plane.importers.confluence.report import report_backup, report_space
 PLAIN = "<p>Nothing unusual here.</p>"
 IMAGE = '<p><ac:image><ri:attachment ri:filename="{filename}"/></ac:image></p>'
 UNSUPPORTED = '<ac:structured-macro ac:name="livesearch"/>'
-# Only a layout with more than one cell loses anything when it is flattened.
+# A multi-cell section with no ac:type is a shape the columns mapping does not
+# describe, so it flattens and counts as loss.
 LAYOUT = (
     "<ac:layout><ac:layout-section>"
     "<ac:layout-cell><p>Left</p></ac:layout-cell><ac:layout-cell><p>Right</p></ac:layout-cell>"
@@ -105,7 +106,7 @@ class TestReportSpace:
         assert report.unsupported_macros["livesearch"] == 1
         assert report.lossless == 0
 
-    def test_flattened_multi_column_layouts_are_counted(self, tmp_path):
+    def test_unmappable_layouts_are_counted(self, tmp_path):
         write_space(tmp_path, "IMS", [{"id": "1", "title": "Two column", "body": LAYOUT}])
 
         report = report_space(ConfluenceBackup(tmp_path, "IMS"))

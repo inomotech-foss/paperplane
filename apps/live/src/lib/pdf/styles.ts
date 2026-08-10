@@ -188,6 +188,14 @@ export const pdfStyles = StyleSheet.create({
     borderBottomColor: BORDER_COLORS.subtle1, // Matches div[data-type="horizontalRule"] border-subtle-1
     marginVertical: 16,
   },
+  columns: {
+    flexDirection: "row",
+    gap: 12,
+    marginVertical: 8,
+  },
+  column: {
+    flexDirection: "column",
+  },
   image: {
     maxWidth: "100%",
     marginVertical: 8,

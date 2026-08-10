@@ -869,20 +869,52 @@ class TestAdfAndLayout:
         assert "taskItem" not in result.html
         assert result.is_lossless
 
-    def test_multi_column_layout_is_flattened_and_recorded(self):
+    def test_multi_column_layout_becomes_a_columns_block(self):
         body = (
-            "<ac:layout><ac:layout-section><ac:layout-cell><p>left</p></ac:layout-cell>"
+            '<ac:layout><ac:layout-section ac:type="two_equal"><ac:layout-cell><p>left</p></ac:layout-cell>'
             "<ac:layout-cell><p>right</p></ac:layout-cell></ac:layout-section></ac:layout>"
         )
 
         result = convert(body)
 
-        assert result.html == "<p>left</p><p>right</p>"
+        assert result.html == (
+            '<columns-component layout="1-1"><column-component><p>left</p></column-component>'
+            "<column-component><p>right</p></column-component></columns-component>"
+        )
+        assert result.dropped_layouts == 0
+        assert result.is_lossless
+
+    def test_sidebar_layouts_carry_their_ratio(self):
+        body = (
+            '<ac:layout-section ac:type="three_with_sidebars"><ac:layout-cell><p>a</p></ac:layout-cell>'
+            "<ac:layout-cell><p>b</p></ac:layout-cell><ac:layout-cell><p>c</p></ac:layout-cell></ac:layout-section>"
+        )
+
+        assert 'layout="1-2-1"' in convert(body).html
+
+    def test_an_empty_cell_still_holds_a_block(self):
+        body = (
+            '<ac:layout-section ac:type="two_equal"><ac:layout-cell><p>left</p></ac:layout-cell>'
+            "<ac:layout-cell/></ac:layout-section>"
+        )
+
+        assert convert(body).html.endswith("<column-component><p></p></column-component></columns-component>")
+
+    def test_a_layout_the_mapping_does_not_describe_is_recorded(self):
+        body = (
+            '<ac:layout-section ac:type="two_equal"><ac:layout-cell><p>a</p></ac:layout-cell>'
+            "<ac:layout-cell><p>b</p></ac:layout-cell><ac:layout-cell><p>c</p></ac:layout-cell></ac:layout-section>"
+        )
+
+        result = convert(body)
+
+        assert result.html == "<p>a</p><p>b</p><p>c</p>"
         assert result.dropped_layouts == 1
 
     def test_single_column_layout_is_not_a_loss(self):
         body = (
-            "<ac:layout><ac:layout-section><ac:layout-cell><p>only</p></ac:layout-cell></ac:layout-section></ac:layout>"
+            '<ac:layout><ac:layout-section ac:type="fixed-width"><ac:layout-cell><p>only</p>'
+            "</ac:layout-cell></ac:layout-section></ac:layout>"
         )
 
         result = convert(body)

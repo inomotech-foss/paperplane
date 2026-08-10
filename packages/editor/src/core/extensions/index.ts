@@ -9,6 +9,7 @@ export * from "./child-pages";
 export * from "./code";
 export * from "./comment/comment-mark";
 export * from "./code-inline";
+export * from "./columns";
 export * from "./custom-link";
 export * from "./custom-list-keymap";
 export * from "./diagram";

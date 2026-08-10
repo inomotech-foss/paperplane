@@ -74,6 +74,7 @@ export type TEditorCommands =
   | "child-pages"
   | "diagram"
   | "page-attachments"
+  | "columns"
   | TExtendedEditorCommands;
 
 export type TCommandExtraProps = {

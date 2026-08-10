@@ -527,3 +527,26 @@ span[data-name][data-type="emoji"] img {
   background-color: transparent;
   border-bottom: 1px dotted rgba(120, 120, 120, 0.6);
 }
+
+/* multi-column layout */
+.editor-columns-component {
+  display: grid;
+  gap: 1rem;
+  /* Equal columns unless the layout names a ratio, which covers 1-1 and
+     1-1-1 without a rule of their own. */
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+}
+.editor-columns-component[layout="1-2"] {
+  grid-template-columns: 1fr 2fr;
+}
+.editor-columns-component[layout="2-1"] {
+  grid-template-columns: 2fr 1fr;
+}
+.editor-columns-component[layout="1-2-1"] {
+  grid-template-columns: 1fr 2fr 1fr;
+}
+/* Without this a grid item refuses to shrink below its content's intrinsic
+   width, so wide content such as a table blows the layout out. */
+.editor-column-component {
+  min-width: 0;
+}

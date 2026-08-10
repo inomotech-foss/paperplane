@@ -9,6 +9,8 @@ import type { AnyExtension } from "@tiptap/core";
 import {
   AnchorExtensionConfig,
   ChildPagesExtension,
+  ColumnExtensionConfig,
+  ColumnsExtensionConfig,
   DiagramExtension,
   documentSlashCommandOptions,
   PageAttachmentsExtension,
@@ -58,6 +60,14 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
   {
     isEnabled: () => true,
     getExtension: ({ pageAttachmentsHandler }) => PageAttachmentsExtension(pageAttachmentsHandler),
+  },
+  {
+    isEnabled: () => true,
+    getExtension: () => ColumnsExtensionConfig,
+  },
+  {
+    isEnabled: () => true,
+    getExtension: () => ColumnExtensionConfig,
   },
   {
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),

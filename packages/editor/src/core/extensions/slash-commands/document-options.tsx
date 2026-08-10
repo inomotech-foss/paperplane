@@ -3,7 +3,7 @@
  * See the LICENSE file for details.
  */
 
-import { ListTree, Network, Paperclip, Workflow } from "lucide-react";
+import { Columns2, ListTree, Network, Paperclip, Workflow } from "lucide-react";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
@@ -63,5 +63,16 @@ export const documentSlashCommandOptions: TSlashCommandAdditionalOption[] = [
     section: "general",
     pushAfter: "diagram",
     command: ({ editor, range }) => insertAtomBlock(editor, CORE_EXTENSIONS.PAGE_ATTACHMENTS, range),
+  },
+  {
+    commandKey: "columns",
+    key: "columns",
+    title: "Columns",
+    description: "Lay out content side by side in columns.",
+    searchTerms: ["columns", "layout", "grid", "side by side"],
+    icon: <Columns2 className="size-3.5" />,
+    section: "general",
+    pushAfter: "page-attachments",
+    command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertColumns(2).run(),
   },
 ];
