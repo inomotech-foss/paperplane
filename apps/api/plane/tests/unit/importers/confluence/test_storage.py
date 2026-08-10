@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import json
+from urllib.parse import quote
+
 import pytest
 
 from plane.importers.confluence import (
@@ -537,6 +540,152 @@ class TestJiraMacros:
         assert "jira" not in result.html
         assert result.unsupported_macros == {"jira": 1}
         assert not result.is_lossless
+
+
+@pytest.mark.unit
+class TestRoadmapMacro:
+    def _roadmap_macro(self, document, title=""):
+        parameters = f'<ac:parameter ac:name="source">{quote(json.dumps(document))}</ac:parameter>'
+        if title:
+            parameters = f'<ac:parameter ac:name="title">{title}</ac:parameter>{parameters}'
+        return f'<ac:structured-macro ac:name="roadmap">{parameters}</ac:structured-macro>'
+
+    def _bar(self, title, start_date, duration, row_index, description=""):
+        return {
+            "title": title,
+            "description": description,
+            "startDate": start_date,
+            "duration": duration,
+            "rowIndex": row_index,
+            "id": "bar-1",
+            "pageLink": {},
+        }
+
+    def test_bars_become_a_table_in_lane_then_row_order(self):
+        document = {
+            "title": "Roadmap",
+            "timeline": {
+                "startDate": "2024-01-01 00:00:00",
+                "endDate": "2024-06-01 00:00:00",
+                "displayOption": "MONTH",
+            },
+            "lanes": [
+                {
+                    "title": "Phase one",
+                    "color": {},
+                    "bars": [
+                        self._bar("Discovery", "2024-01-01 00:00:00", 2, 1),
+                        self._bar("Kickoff", "2024-01-05 00:00:00", 1, 0),
+                    ],
+                },
+                {"title": "Phase two", "color": {}, "bars": [self._bar("Build", "2024-03-01 00:00:00", 2, 0)]},
+            ],
+            "markers": [],
+        }
+
+        result = convert(self._roadmap_macro(document, "Roadmap"))
+
+        assert result.html == (
+            "<p><strong>Roadmap</strong></p><table><tbody>"
+            "<tr><th><p>Lane</p></th><th><p>Item</p></th><th><p>Start</p></th>"
+            "<th><p>Duration</p></th><th><p>Description</p></th></tr>"
+            "<tr><td><p>Phase one</p></td><td><p>Kickoff</p></td><td><p>2024-01-05</p></td>"
+            "<td><p>1 month</p></td><td><p></p></td></tr>"
+            "<tr><td><p>Phase one</p></td><td><p>Discovery</p></td><td><p>2024-01-01</p></td>"
+            "<td><p>2 months</p></td><td><p></p></td></tr>"
+            "<tr><td><p>Phase two</p></td><td><p>Build</p></td><td><p>2024-03-01</p></td>"
+            "<td><p>2 months</p></td><td><p></p></td></tr>"
+            "</tbody></table>"
+        )
+        assert result.downgraded == {"roadmap": 1}
+        assert result.is_lossless
+
+    def test_duration_formatting_rounds_and_pluralizes(self):
+        document = {
+            "title": "",
+            "timeline": {"displayOption": "MONTH"},
+            "lanes": [
+                {
+                    "title": "Phase one",
+                    "color": {},
+                    "bars": [
+                        self._bar("Discovery", "2024-01-01 00:00:00", 2.0099009900990099, 0),
+                        self._bar("Wrap up", "2024-02-01 00:00:00", 1, 1),
+                    ],
+                }
+            ],
+            "markers": [],
+        }
+
+        html = convert(self._roadmap_macro(document)).html
+
+        assert "<p>2.01 months</p>" in html
+        assert "<p>1 month</p>" in html
+
+    def test_week_display_option_renders_weeks(self):
+        document = {
+            "title": "",
+            "timeline": {"displayOption": "WEEK"},
+            "lanes": [{"title": "Phase one", "color": {}, "bars": [self._bar("Sprint", "2024-01-01 00:00:00", 2, 0)]}],
+            "markers": [],
+        }
+
+        assert "<p>2 weeks</p>" in convert(self._roadmap_macro(document)).html
+
+    def test_markers_become_a_second_table(self):
+        document = {
+            "title": "",
+            "timeline": {"displayOption": "MONTH"},
+            "lanes": [],
+            "markers": [{"title": "Milestone A", "markerDate": "2024-03-01 00:00:00"}],
+        }
+
+        html = convert(self._roadmap_macro(document)).html
+
+        assert html.count("<table>") == 1
+        assert "<th><p>Milestone</p></th><th><p>Date</p></th>" in html
+        assert "<p>Milestone A</p>" in html and "<p>2024-03-01</p>" in html
+
+    def test_lane_with_no_bars_still_gets_a_row(self):
+        document = {
+            "title": "",
+            "timeline": {"displayOption": "MONTH"},
+            "lanes": [{"title": "Empty phase", "color": {}, "bars": []}],
+            "markers": [],
+        }
+
+        html = convert(self._roadmap_macro(document)).html
+
+        assert (
+            "<tr><td><p>Empty phase</p></td><td><p></p></td><td><p></p></td>"
+            "<td><p></p></td><td><p></p></td></tr>" in html
+        )
+
+    def test_undecodable_source_is_recorded(self):
+        body = (
+            '<ac:structured-macro ac:name="roadmap">'
+            '<ac:parameter ac:name="source">not-json</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.unsupported_macros == {"roadmap": 1}
+        assert not result.is_lossless
+
+    def test_missing_source_is_recorded(self):
+        result = convert('<ac:structured-macro ac:name="roadmap"/>')
+
+        assert result.unsupported_macros == {"roadmap": 1}
+
+    def test_empty_roadmap_vanishes_without_recording_anything(self):
+        document = {"title": "Roadmap", "timeline": {"displayOption": "MONTH"}, "lanes": [], "markers": []}
+
+        result = convert(self._roadmap_macro(document, "Roadmap"))
+
+        assert result.html == "<p></p>"
+        assert result.unsupported_macros == {}
+        assert result.downgraded == {}
+        assert result.is_lossless
 
 
 @pytest.mark.unit

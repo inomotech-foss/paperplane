@@ -5,6 +5,7 @@ from bs4 import NavigableString
 
 from .jira import convert_jira_macro
 from .parameters import macro_parameter, macro_parameters
+from .roadmap import convert_roadmap_macro
 from .tasks import task_item, task_list
 
 # Confluence admonitions and ADF panels, mapped to the editor's callout icon.
@@ -251,6 +252,8 @@ def convert_structured_macros(soup, resolvers, result):
             _reference_macro(node, name, result)
         elif name == "jira":
             convert_jira_macro(soup, node, resolvers, result)
+        elif name == "roadmap":
+            convert_roadmap_macro(soup, node, result)
         elif name == "status":
             _status(soup, node)
         elif name in CHROME_MACROS:
