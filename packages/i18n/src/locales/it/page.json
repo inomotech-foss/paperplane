@@ -166,7 +166,10 @@
     "unsupported": "Questo elenco di pagine non è ancora disponibile",
     "empty_state": {
       "tree": "Nessuna sottopagina per ora",
-      "pages": "Nessuna pagina corrisponde a questo elenco"
-    }
+      "pages": "Nessuna pagina corrisponde a questo elenco",
+      "contributors": "Nessun collaboratore per ora"
+    },
+    "unknown_user": "Utente sconosciuto",
+    "page_count": "{count, plural, one {# pagina} many {# pagine} other {# pagine}}"
   }
 }

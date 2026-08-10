@@ -164,9 +164,12 @@
     "loading": "Loading pages",
     "error": "Could not load pages",
     "unsupported": "This page list is not available yet",
+    "unknown_user": "Unknown user",
+    "page_count": "{count, plural, one {# page} other {# pages}}",
     "empty_state": {
       "tree": "No sub-pages yet",
-      "pages": "No pages match this list"
+      "pages": "No pages match this list",
+      "contributors": "No contributors yet"
     }
   }
 }

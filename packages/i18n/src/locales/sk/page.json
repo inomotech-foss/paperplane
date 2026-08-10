@@ -166,7 +166,10 @@
     "unsupported": "Tento zoznam stránok zatiaľ nie je k dispozícii",
     "empty_state": {
       "tree": "Zatiaľ žiadne podstránky",
-      "pages": "Tomuto zoznamu nezodpovedajú žiadne stránky"
-    }
+      "pages": "Tomuto zoznamu nezodpovedajú žiadne stránky",
+      "contributors": "Zatiaľ žiadni prispievatelia"
+    },
+    "unknown_user": "Neznámy používateľ",
+    "page_count": "{count, plural, one {# stránka} few {# stránky} many {# stránky} other {# stránok}}"
   }
 }

@@ -98,3 +98,58 @@ def convert_index_macro(soup, node):
     """`index` is an alphabetical listing of the space, and carries no
     parameters anywhere in the backup."""
     node.replace_with(_block(soup, "index", "project"))
+
+
+def _scope_from_spaces(parameters):
+    """A `spaces` parameter widens the query past the space it sits in. The
+    block has no per-space filter, so the nearest faithful reading is the whole
+    workspace, which is where the other imported spaces are."""
+    return "workspace" if parameters.get("spaces") else "project"
+
+
+def convert_recently_updated_macro(soup, node, macro_name, result):
+    """`recently-updated` and its dashboard variant list recently changed pages."""
+    parameters = macro_parameters(node)
+    block = _block(soup, "recent", _scope_from_spaces(parameters))
+
+    limit = _int(parameters, "max")
+    if limit:
+        block["limit"] = str(limit)
+
+    # The macro can also list comments and blog posts, neither of which Plane
+    # has, so a mixed listing comes back as pages alone.
+    types = (parameters.get("types") or "").lower()
+    if types and types != "page":
+        result.downgraded[macro_name] += 1
+
+    node.replace_with(block)
+
+
+def convert_blog_posts_macro(soup, node, result):
+    """Plane has no blog posts, so the listing falls back to pages."""
+    parameters = macro_parameters(node)
+    block = _block(soup, "recent", _scope_from_spaces(parameters))
+
+    limit = _int(parameters, "max")
+    if limit:
+        block["limit"] = str(limit)
+
+    # `content=excerpts` renders a summary under each entry, which the block
+    # has no counterpart for; titles alone survive.
+    if (parameters.get("content") or "").lower() == "excerpts":
+        result.downgraded["blog-posts"] += 1
+
+    node.replace_with(block)
+
+
+def convert_contributors_macro(soup, node):
+    """`contributors` counts who authored the pages below this one. `scope` is
+    `descendants` in every use in the backup."""
+    parameters = macro_parameters(node)
+    block = _block(soup, "contributors", "page")
+
+    limit = _int(parameters, "limit")
+    if limit:
+        block["limit"] = str(limit)
+
+    node.replace_with(block)

@@ -166,7 +166,10 @@
     "unsupported": "Ta lista stron nie jest jeszcze dostępna",
     "empty_state": {
       "tree": "Brak podstron",
-      "pages": "Żadna strona nie pasuje do tej listy"
-    }
+      "pages": "Żadna strona nie pasuje do tej listy",
+      "contributors": "Brak współautorów"
+    },
+    "unknown_user": "Nieznany użytkownik",
+    "page_count": "{count, plural, one {# strona} few {# strony} many {# stron} other {# strony}}"
   }
 }

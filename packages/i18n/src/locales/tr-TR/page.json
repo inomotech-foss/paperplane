@@ -166,7 +166,10 @@
     "unsupported": "Bu sayfa listesi henüz kullanılamıyor",
     "empty_state": {
       "tree": "Henüz alt sayfa yok",
-      "pages": "Bu listeyle eşleşen sayfa yok"
-    }
+      "pages": "Bu listeyle eşleşen sayfa yok",
+      "contributors": "Henüz katkıda bulunan yok"
+    },
+    "unknown_user": "Bilinmeyen kullanıcı",
+    "page_count": "{count, plural, one {# sayfa} other {# sayfa}}"
   }
 }
