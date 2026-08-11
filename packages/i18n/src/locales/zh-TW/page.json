@@ -167,9 +167,11 @@
     "empty_state": {
       "tree": "暫無子頁面",
       "pages": "沒有頁面與此清單相符",
-      "contributors": "暫無貢獻者"
+      "contributors": "暫無貢獻者",
+      "search": "沒有頁面與搜尋相符"
     },
     "unknown_user": "未知使用者",
-    "page_count": "{count, plural, one {# 個頁面} other {# 個頁面}}"
+    "page_count": "{count, plural, one {# 個頁面} other {# 個頁面}}",
+    "search_placeholder": "搜尋頁面"
   }
 }

@@ -433,15 +433,15 @@ class TestMacros:
 
     def test_dynamic_macros_are_recorded_not_silently_dropped(self):
         body = (
-            '<ac:structured-macro ac:name="livesearch"/>'
+            '<ac:structured-macro ac:name="detailssummary"/>'
             '<ac:structured-macro ac:name="tasks-report"/>'
-            '<ac:structured-macro ac:name="livesearch"/>'
+            '<ac:structured-macro ac:name="detailssummary"/>'
         )
 
         result = convert(body)
 
-        assert result.unsupported_macros == {"livesearch": 2, "tasks-report": 1}
-        assert "livesearch" not in result.html
+        assert result.unsupported_macros == {"detailssummary": 2, "tasks-report": 1}
+        assert "detailssummary" not in result.html
 
     def test_chrome_macros_are_dropped_without_counting_as_loss(self):
         body = '<ac:structured-macro ac:name="change-history"/><ac:structured-macro ac:name="create-from-template"/>'
@@ -1211,4 +1211,50 @@ class TestQueryBlockMacros:
         assert result.html == (
             '<query-block-component kind="contributors" limit="10" scope="page"></query-block-component>'
         )
+        assert result.is_lossless
+
+    def test_livesearch_becomes_a_search_query(self):
+        body = (
+            '<ac:structured-macro ac:name="livesearch">'
+            '<ac:parameter ac:name="placeholder">Find a runbook</ac:parameter>'
+            '<ac:parameter ac:name="size">large</ac:parameter>'
+            '<ac:parameter ac:name="type">page</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == (
+            '<query-block-component kind="search" placeholder="Find a runbook" scope="project"></query-block-component>'
+        )
+        assert result.is_lossless
+        assert result.downgraded == {}
+
+    def test_livesearch_naming_a_space_widens_the_scope(self):
+        body = (
+            '<ac:structured-macro ac:name="livesearch">'
+            '<ac:parameter ac:name="spaceKey">OTHER</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert 'scope="workspace"' in result.html
+        assert result.is_lossless
+
+    def test_pagetreesearch_searches_the_current_subtree(self):
+        body = '<ac:structured-macro ac:name="pagetreesearch"/>'
+
+        result = convert(body)
+
+        assert result.html == '<query-block-component kind="search" scope="page"></query-block-component>'
+        assert result.is_lossless
+
+    def test_pagetreesearch_resolves_a_named_root(self):
+        body = (
+            '<ac:structured-macro ac:name="pagetreesearch">'
+            '<ac:parameter ac:name="rootPage">Test Plan</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body, _tree_resolvers())
+
+        assert 'root-page-id="p1"' in result.html
         assert result.is_lossless

@@ -167,9 +167,11 @@
     "empty_state": {
       "tree": "Henüz alt sayfa yok",
       "pages": "Bu listeyle eşleşen sayfa yok",
-      "contributors": "Henüz katkıda bulunan yok"
+      "contributors": "Henüz katkıda bulunan yok",
+      "search": "Aramanızla eşleşen sayfa yok"
     },
     "unknown_user": "Bilinmeyen kullanıcı",
-    "page_count": "{count, plural, one {# sayfa} other {# sayfa}}"
+    "page_count": "{count, plural, one {# sayfa} other {# sayfa}}",
+    "search_placeholder": "Sayfalarda ara"
   }
 }

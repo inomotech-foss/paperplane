@@ -167,9 +167,11 @@
     "empty_state": {
       "tree": "Zatiaľ žiadne podstránky",
       "pages": "Tomuto zoznamu nezodpovedajú žiadne stránky",
-      "contributors": "Zatiaľ žiadni prispievatelia"
+      "contributors": "Zatiaľ žiadni prispievatelia",
+      "search": "Vášmu hľadaniu nezodpovedajú žiadne stránky"
     },
     "unknown_user": "Neznámy používateľ",
-    "page_count": "{count, plural, one {# stránka} few {# stránky} many {# stránky} other {# stránok}}"
+    "page_count": "{count, plural, one {# stránka} few {# stránky} many {# stránky} other {# stránok}}",
+    "search_placeholder": "Hľadať stránky"
   }
 }
