@@ -103,10 +103,7 @@ const validateAndDetectFileType = async (file: File): Promise<string> => {
     console.warn("Error detecting file type from signature:", _error);
   }
 
-  // Signature detection reads magic bytes, and text formats have none, so
-  // .drawio, .txt, .md, .csv and .svg all come back undetected. Sending an
-  // empty type makes the server reject them as invalid, so fall back to what
-  // the browser reported. The server still checks it against its allowlist.
+  // Text formats have no signature; an empty type reads as invalid server-side.
   return file.type || "";
 };
 
