@@ -1019,6 +1019,25 @@ class TestInlineNodes:
     def test_emoticon_without_a_fallback_uses_its_shortname(self):
         assert ":smile:" in convert('<p><ac:emoticon ac:emoji-shortname=":smile:"/></p>').html
 
+    @pytest.mark.parametrize("name,expected", [("star_blue", "⭐"), ("check", "✅"), ("smile", "\U0001f642")])
+    def test_emoticon_images_become_characters(self, name, expected):
+        """The older emoticon is an <img> on a path only Confluence serves, so
+        leaving it alone renders a broken image."""
+        body = f'<p><img src="/wiki/s/1/2/_/images/icons/emoticons/{name}.png" alt="(x)" width="16"/></p>'
+
+        assert convert(body).html == f"<p>{expected}</p>"
+
+    def test_unknown_emoticon_image_falls_back_to_its_name(self):
+        body = '<p><img src="/wiki/s/1/2/_/images/icons/emoticons/party_hat.png" alt="(party)"/></p>'
+
+        assert convert(body).html == "<p>:party_hat:</p>"
+
+    def test_a_real_image_is_left_alone(self):
+        """The path has to reach the emoticon directory, not merely look like it."""
+        body = '<p><img src="/images/icons/photo.png"/></p>'
+
+        assert convert(body).html == body
+
     def test_time_node_becomes_its_date(self):
         assert convert('<p><time datetime="2023-02-02"/></p>').html == "<p>2023-02-02</p>"
 
@@ -1051,6 +1070,16 @@ class TestResidualMarkup:
         assert "ac:" not in html
         assert "ri:" not in html
         assert "kept" in html and "also kept" in html
+
+    def test_smart_link_presentation_hints_are_dropped(self):
+        """nh3 strips these on the way to the database, so leaving them in
+        makes the sanitiser round-trip lose an attribute silently."""
+        body = '<p><a href="https://example.com" data-card-appearance="inline">link</a></p>'
+
+        html = convert(body).html
+
+        assert "data-card-appearance" not in html
+        assert 'href="https://example.com"' in html
 
 
 def _tree_resolvers():
