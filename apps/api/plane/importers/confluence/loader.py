@@ -3,11 +3,23 @@
 
 from collections import Counter
 from dataclasses import dataclass, field
+from datetime import date
 
 from django.conf import settings
 from django.db import transaction
 
-from plane.db.models import Label, Page, PageLabel, Project, ProjectMember, ProjectPage, State, User, Workspace
+from plane.db.models import (
+    Label,
+    Page,
+    PageIndexEntry,
+    PageLabel,
+    Project,
+    ProjectMember,
+    ProjectPage,
+    State,
+    User,
+    Workspace,
+)
 from plane.db.models.state import DEFAULT_STATES
 from plane.utils.content_validator import validate_html_content
 from plane.utils.issue_type import get_or_create_default_issue_type
@@ -35,6 +47,7 @@ class ImportSummary:
     attachments: int = 0
     attachments_skipped: bool = False
     labels: int = 0
+    index_entries: int = 0
     dropped_layouts: int = 0
     downgraded: Counter = field(default_factory=Counter)
     dropped_chrome: Counter = field(default_factory=Counter)
@@ -339,6 +352,35 @@ class ConfluenceLoader:
                 description_html=clean or "<p></p>",
                 updated_at=page.updated_at,
             )
+            self._write_index(record, result, users, summary)
 
         if uploader is not None:
             summary.unsupported_attachments |= uploader.unsupported
+
+    def _write_index(self, record, result, users, summary):
+        """Replace the page's queryable facts with the ones just extracted.
+
+        Replaced rather than merged because a re-import is the whole page
+        again: a property row deleted upstream has to disappear here too, and
+        the entries carry no stable identity of their own to match on.
+        """
+        PageIndexEntry.objects.filter(page_id=record.pk).delete()
+        if not result.index_entries:
+            return
+
+        rows = [
+            PageIndexEntry(
+                workspace=self.workspace,
+                page_id=record.pk,
+                kind=entry.kind,
+                key=entry.key,
+                value=entry.value,
+                is_complete=entry.is_complete,
+                assignee=users.get(entry.account_id),
+                due_date=date.fromisoformat(entry.due_date) if entry.due_date else None,
+                sort_order=entry.order,
+            )
+            for entry in result.index_entries
+        ]
+        PageIndexEntry.objects.bulk_create(rows, batch_size=500)
+        summary.index_entries += len(rows)

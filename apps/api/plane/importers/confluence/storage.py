@@ -14,6 +14,7 @@ from .links import (
     convert_user_mentions,
 )
 from .macros import convert_adf_extensions, convert_structured_macros
+from .page_index import index_page
 from .resolvers import ConversionResult, Resolvers
 from .tables import convert_tables
 from .tasks import convert_task_lists
@@ -33,6 +34,10 @@ def storage_to_html(body, resolvers=None, result=None):
     result = result or ConversionResult(html="")
 
     soup = BeautifulSoup(body or "", "html.parser")
+
+    # Before anything is rewritten: the passes below consume the very elements
+    # the index reads.
+    index_page(soup, result)
 
     drop_placeholders(soup)
     unwrap_inline_comment_markers(soup)

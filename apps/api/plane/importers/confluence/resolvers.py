@@ -68,6 +68,8 @@ class ConversionResult:
     dropped_layouts: int = 0
     downgraded: Counter = field(default_factory=Counter)
     dropped_chrome: Counter = field(default_factory=Counter)
+    # Facts the page can be queried on, not a cost. See page_index.py.
+    index_entries: list = field(default_factory=list)
 
     @property
     def is_lossless(self):
