@@ -23,6 +23,10 @@ from .tasks import convert_task_lists
 # equivalent; its text is kept and the wrapper dropped.
 _RESIDUAL_PREFIXES = ("ac:", "ri:")
 
+# Smart-link presentation hints. nh3 strips these on the way to the database,
+# so dropping them here is what keeps that removal out of the sanitiser diff.
+_RESIDUAL_ATTRIBUTES = ("data-card-appearance",)
+
 
 def storage_to_html(body, resolvers=None, result=None):
     """Convert Confluence storage-format XHTML to editor HTML.
@@ -65,5 +69,7 @@ def _drop_residual_elements(soup):
         if node.name.startswith(_RESIDUAL_PREFIXES):
             node.unwrap()
         else:
-            for attribute in [key for key in node.attrs if key.startswith(_RESIDUAL_PREFIXES)]:
+            for attribute in [
+                key for key in node.attrs if key.startswith(_RESIDUAL_PREFIXES) or key in _RESIDUAL_ATTRIBUTES
+            ]:
                 del node[attribute]

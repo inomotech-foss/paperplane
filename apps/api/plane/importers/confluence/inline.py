@@ -9,6 +9,36 @@ from bs4 import NavigableString
 # UTF-16 surrogate pairs for astral-plane emoji.
 _ESCAPE_SEQUENCE = re.compile(r"(?:\\u[0-9a-fA-F]{4})+")
 
+# Older emoticons are a plain <img> pointing at a path only Confluence serves,
+# so they render as a broken image anywhere else. The character is the content.
+_EMOTICON_IMAGE = re.compile(r"/images/icons/emoticons/([a-z0-9_]+)\.")
+
+_EMOTICON_CHARACTERS = {
+    "add": "+",
+    "block": "X",
+    "check": "\N{WHITE HEAVY CHECK MARK}",
+    "cheeky": "\N{FACE WITH STUCK-OUT TONGUE}",
+    "error": "\N{CROSS MARK}",
+    "forbidden": "\N{NO ENTRY}",
+    "heart": "\N{HEAVY BLACK HEART}",
+    "information": "\N{INFORMATION SOURCE}",
+    "laugh": "\N{SMILING FACE WITH OPEN MOUTH AND SMILING EYES}",
+    "lightbulb": "\N{ELECTRIC LIGHT BULB}",
+    "lightbulb_on": "\N{ELECTRIC LIGHT BULB}",
+    "minus": "-",
+    "sad": "\N{SLIGHTLY FROWNING FACE}",
+    "smile": "\N{SLIGHTLY SMILING FACE}",
+    "thumbs_down": "\N{THUMBS DOWN SIGN}",
+    "thumbs_up": "\N{THUMBS UP SIGN}",
+    "warning": "\N{WARNING SIGN}",
+    "wink": "\N{WINKING FACE}",
+}
+
+# Unicode has one star, so the four coloured Confluence stars all land on it.
+_EMOTICON_CHARACTERS.update(
+    {f"star_{colour}": "\N{WHITE MEDIUM STAR}" for colour in ("blue", "green", "red", "yellow")}
+)
+
 
 def decode_emoji_fallback(value):
     if not value:
@@ -34,6 +64,10 @@ def convert_emoticons(soup):
             name = node.get("ac:name") or ""
             text = shortname or (f":{name}:" if name else "")
         node.replace_with(NavigableString(text))
+
+    for node in soup.find_all("img", src=_EMOTICON_IMAGE):
+        name = _EMOTICON_IMAGE.search(node["src"]).group(1)
+        node.replace_with(NavigableString(_EMOTICON_CHARACTERS.get(name, f":{name}:")))
 
 
 def convert_times(soup):
