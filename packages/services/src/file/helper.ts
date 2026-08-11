@@ -103,8 +103,8 @@ const validateAndDetectFileType = async (file: File): Promise<string> => {
     console.warn("Error detecting file type from signature:", _error);
   }
 
-  // fallback for unknown files
-  return "";
+  // Text formats have no signature; an empty type reads as invalid server-side.
+  return file.type || "";
 };
 
 /**
