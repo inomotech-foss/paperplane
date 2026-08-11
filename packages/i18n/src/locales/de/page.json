@@ -167,9 +167,11 @@
     "empty_state": {
       "tree": "Noch keine Unterseiten",
       "pages": "Keine Seiten entsprechen dieser Liste",
-      "contributors": "Noch keine Mitwirkenden"
+      "contributors": "Noch keine Mitwirkenden",
+      "search": "Keine Seiten entsprechen Ihrer Suche"
     },
     "unknown_user": "Unbekannter Benutzer",
-    "page_count": "{count, plural, one {# Seite} other {# Seiten}}"
+    "page_count": "{count, plural, one {# Seite} other {# Seiten}}",
+    "search_placeholder": "Seiten durchsuchen"
   }
 }

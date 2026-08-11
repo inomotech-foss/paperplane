@@ -169,7 +169,9 @@
     "empty_state": {
       "tree": "No sub-pages yet",
       "pages": "No pages match this list",
-      "contributors": "No contributors yet"
-    }
+      "contributors": "No contributors yet",
+      "search": "No pages match your search"
+    },
+    "search_placeholder": "Search pages"
   }
 }

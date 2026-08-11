@@ -19,7 +19,9 @@ from .query_blocks import (
     convert_child_pages_macro,
     convert_contributors_macro,
     convert_index_macro,
+    convert_live_search_macro,
     convert_page_tree_macro,
+    convert_page_tree_search_macro,
     convert_recently_updated_macro,
 )
 from .roadmap import convert_roadmap_macro
@@ -43,7 +45,6 @@ DYNAMIC_MACROS = {
     "contentbylabel",
     "decisionreport",
     "detailssummary",
-    "livesearch",
     "tasks-report",
     "tasks-report-macro",
 }
@@ -270,6 +271,10 @@ def convert_structured_macros(soup, resolvers, result):
             convert_blog_posts_macro(soup, node, result)
         elif name == "contributors":
             convert_contributors_macro(soup, node)
+        elif name == "livesearch":
+            convert_live_search_macro(soup, node)
+        elif name == "pagetreesearch":
+            convert_page_tree_search_macro(soup, node, resolvers)
         elif name == "attachments":
             _page_attachments(soup, node)
         elif name in DIAGRAM_MACROS:

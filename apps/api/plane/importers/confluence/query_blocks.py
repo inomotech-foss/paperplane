@@ -142,6 +142,39 @@ def convert_blog_posts_macro(soup, node, result):
     node.replace_with(block)
 
 
+def convert_live_search_macro(soup, node):
+    """`livesearch` is a search box scoped to a space.
+
+    `size` is always `large` and `type` is always `page` across the backup, so
+    neither carries anything the block does not already do.
+    """
+    parameters = macro_parameters(node)
+    block = _block(soup, "search", "workspace" if parameters.get("spaceKey") else "project")
+
+    placeholder = parameters.get("placeholder")
+    if placeholder:
+        block["placeholder"] = placeholder
+
+    node.replace_with(block)
+
+
+def convert_page_tree_search_macro(soup, node, resolvers):
+    """`pagetreesearch` searches within a page's subtree.
+
+    The one use in the backup that names a root holds it as plain text rather
+    than a link, so it resolves by title like any other page reference.
+    """
+    parameters = macro_parameters(node)
+    block = _block(soup, "search", "page")
+
+    root = parameters.get("rootPage")
+    page = resolvers.page(root) if root else None
+    if page is not None:
+        block["root-page-id"] = page.id
+
+    node.replace_with(block)
+
+
 def convert_contributors_macro(soup, node):
     """`contributors` counts who authored the pages below this one. `scope` is
     `descendants` in every use in the backup."""

@@ -4,6 +4,7 @@
  */
 
 import { observer } from "mobx-react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
@@ -16,6 +17,7 @@ import type { TQueryBlockHandlerProps } from "@plane/editor";
 import { getFileURL, getPageName } from "@plane/utils";
 // components
 import { PageChildPagesTree } from "@/components/pages/editor/child-pages-block";
+import { SubPageItem } from "@/components/pages/sub-page-item";
 // hooks
 import type { EPageStoreType } from "@/hooks/store";
 import { usePageStore } from "@/hooks/store";
@@ -188,6 +190,96 @@ const ContributorsQuery = observer(function ContributorsQuery(props: Props) {
   );
 });
 
+/**
+ * A search box over pages. `page` scope searches the current page's subtree,
+ * which the store can answer without a round trip because the project's pages
+ * are already loaded; anything wider goes to the endpoint.
+ */
+const SearchQuery = observer(function SearchQuery(props: Props) {
+  const { page, placeholder, rootPageId, scope, storeType } = props;
+  const { workspaceSlug } = useParams();
+  const { getChildPageIds, getPageById } = usePageStore(storeType);
+  const { t } = useTranslation();
+  const [term, setTerm] = useState("");
+
+  const slug = workspaceSlug?.toString();
+  const query = term.trim();
+  const searchesSubtree = scope === "page";
+
+  const { data, isLoading, error } = useSWR(
+    slug && query && !searchesSubtree ? ["PAGE_QUERY_SEARCH", slug, scope, query] : null,
+    slug && query && !searchesSubtree
+      ? () => pageQueryService.query(slug, { kind: "search", scope, project_id: page.project_ids?.[0], search: query })
+      : null
+  );
+
+  const rootId = rootPageId ?? page.id;
+  const subtreeMatches = useMemo(() => {
+    if (!searchesSubtree || !query || !rootId) return [];
+    const matches: string[] = [];
+    const seen = new Set([rootId]);
+    let frontier = [rootId];
+    // Breadth-first rather than recursive so a parent cycle cannot run away.
+    while (frontier.length > 0) {
+      const next: string[] = [];
+      for (const parentId of frontier) {
+        for (const childId of getChildPageIds(parentId)) {
+          if (seen.has(childId)) continue;
+          seen.add(childId);
+          next.push(childId);
+          const name = getPageById(childId)?.name ?? "";
+          if (name.toLowerCase().includes(query.toLowerCase())) matches.push(childId);
+        }
+      }
+      frontier = next;
+    }
+    return matches;
+  }, [getChildPageIds, getPageById, query, rootId, searchesSubtree]);
+
+  const input = (
+    <input
+      aria-label={placeholder ?? t("page_query_block.search_placeholder")}
+      className="w-full rounded-sm bg-transparent px-2 py-1.5 text-13 outline-none placeholder:text-tertiary"
+      placeholder={placeholder ?? t("page_query_block.search_placeholder")}
+      value={term}
+      onChange={(event) => setTerm(event.target.value)}
+    />
+  );
+
+  let results: React.ReactNode = null;
+  if (query && searchesSubtree) {
+    results =
+      subtreeMatches.length > 0 ? (
+        <div className="space-y-0.5">
+          {subtreeMatches.map((pageId) => (
+            <SubPageItem key={pageId} pageId={pageId} storeType={storeType} />
+          ))}
+        </div>
+      ) : (
+        <Empty message={t("page_query_block.empty_state.search")} />
+      );
+  } else if (query) {
+    if (isLoading) results = <Empty message={t("page_query_block.loading")} />;
+    else if (error) results = <Empty message={t("page_query_block.error")} />;
+    else if (!data || data.length === 0) results = <Empty message={t("page_query_block.empty_state.search")} />;
+    else
+      results = (
+        <div className="space-y-0.5">
+          {data.map((result) => (
+            <QueryResultItem key={result.id} result={result} workspaceSlug={slug ?? ""} />
+          ))}
+        </div>
+      );
+  }
+
+  return (
+    <Shell>
+      {input}
+      {results}
+    </Shell>
+  );
+});
+
 export const PageQueryBlock = observer(function PageQueryBlock(props: Props) {
   const { t } = useTranslation();
 
@@ -199,6 +291,8 @@ export const PageQueryBlock = observer(function PageQueryBlock(props: Props) {
       return <EndpointQuery {...props} />;
     case "contributors":
       return <ContributorsQuery {...props} />;
+    case "search":
+      return <SearchQuery {...props} />;
     default:
       // Kinds land one PR at a time, and an unrecognised one must still say
       // that something was here rather than render an empty box.

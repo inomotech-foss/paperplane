@@ -167,9 +167,11 @@
     "empty_state": {
       "tree": "Brak podstron",
       "pages": "Żadna strona nie pasuje do tej listy",
-      "contributors": "Brak współautorów"
+      "contributors": "Brak współautorów",
+      "search": "Żadna strona nie pasuje do wyszukiwania"
     },
     "unknown_user": "Nieznany użytkownik",
-    "page_count": "{count, plural, one {# strona} few {# strony} many {# stron} other {# strony}}"
+    "page_count": "{count, plural, one {# strona} few {# strony} many {# stron} other {# strony}}",
+    "search_placeholder": "Szukaj stron"
   }
 }

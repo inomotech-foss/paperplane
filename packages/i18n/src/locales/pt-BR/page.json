@@ -167,9 +167,11 @@
     "empty_state": {
       "tree": "Ainda não há subpáginas",
       "pages": "Nenhuma página corresponde a esta lista",
-      "contributors": "Ainda não há colaboradores"
+      "contributors": "Ainda não há colaboradores",
+      "search": "Nenhuma página corresponde à sua pesquisa"
     },
     "unknown_user": "Usuário desconhecido",
-    "page_count": "{count, plural, one {# página} many {# páginas} other {# páginas}}"
+    "page_count": "{count, plural, one {# página} many {# páginas} other {# páginas}}",
+    "search_placeholder": "Pesquisar páginas"
   }
 }

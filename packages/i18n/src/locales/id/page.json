@@ -167,9 +167,11 @@
     "empty_state": {
       "tree": "Belum ada subhalaman",
       "pages": "Tidak ada halaman yang cocok dengan daftar ini",
-      "contributors": "Belum ada kontributor"
+      "contributors": "Belum ada kontributor",
+      "search": "Tidak ada halaman yang cocok dengan pencarian Anda"
     },
     "unknown_user": "Pengguna tidak dikenal",
-    "page_count": "{count, plural, one {# halaman} other {# halaman}}"
+    "page_count": "{count, plural, one {# halaman} other {# halaman}}",
+    "search_placeholder": "Cari halaman"
   }
 }

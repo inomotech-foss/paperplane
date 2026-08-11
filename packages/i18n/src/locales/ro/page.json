@@ -167,9 +167,11 @@
     "empty_state": {
       "tree": "Încă nu există subpagini",
       "pages": "Nicio pagină nu corespunde acestei liste",
-      "contributors": "Încă nu există contribuitori"
+      "contributors": "Încă nu există contribuitori",
+      "search": "Nicio pagină nu corespunde căutării dumneavoastră"
     },
     "unknown_user": "Utilizator necunoscut",
-    "page_count": "{count, plural, one {# pagină} few {# pagini} other {# de pagini}}"
+    "page_count": "{count, plural, one {# pagină} few {# pagini} other {# de pagini}}",
+    "search_placeholder": "Căutați pagini"
   }
 }

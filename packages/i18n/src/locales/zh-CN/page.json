@@ -167,9 +167,11 @@
     "empty_state": {
       "tree": "暂无子页面",
       "pages": "没有页面与此列表匹配",
-      "contributors": "暂无贡献者"
+      "contributors": "暂无贡献者",
+      "search": "没有页面与搜索匹配"
     },
     "unknown_user": "未知用户",
-    "page_count": "{count, plural, one {# 个页面} other {# 个页面}}"
+    "page_count": "{count, plural, one {# 个页面} other {# 个页面}}",
+    "search_placeholder": "搜索页面"
   }
 }
