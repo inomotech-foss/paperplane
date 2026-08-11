@@ -11,7 +11,7 @@ import type { TIssue } from "@plane/types";
 // hooks
 import { useLabel } from "@/hooks/store/use-label";
 // components
-import { IssuePropertyLabels } from "../../properties";
+import { IssuePropertyLabels } from "../../properties/labels";
 
 type Props = {
   issue: TIssue;
@@ -25,7 +25,11 @@ export const SpreadsheetLabelColumn = observer(function SpreadsheetLabelColumn(p
   // hooks
   const { labelMap } = useLabel();
 
-  const defaultLabelOptions = issue?.label_ids?.map((id) => labelMap[id]) || [];
+  const defaultLabelOptions =
+    issue?.label_ids?.flatMap((id) => {
+      const label = labelMap[id];
+      return label ? [label] : [];
+    }) || [];
 
   return (
     <div className="h-11 w-full border-b-[0.5px] border-subtle">

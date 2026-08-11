@@ -28,7 +28,7 @@ import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useWorkspaceDraftIssues } from "@/hooks/store/workspace-draft";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-import { IssuePropertyLabels } from "../issue-layouts/properties";
+import { IssuePropertyLabels } from "../issue-layouts/properties/labels";
 // local components
 
 export interface IIssueProperties {
@@ -122,7 +122,11 @@ export const DraftIssueProperties = observer(function DraftIssueProperties(props
 
   if (!issue.project_id) return null;
 
-  const defaultLabelOptions = issue?.label_ids?.map((id) => labelMap[id]) || [];
+  const defaultLabelOptions =
+    issue?.label_ids?.flatMap((id) => {
+      const label = labelMap[id];
+      return label ? [label] : [];
+    }) || [];
 
   const minDate = getDate(issue.start_date);
   minDate?.setDate(minDate.getDate());
