@@ -24,12 +24,7 @@ import { usePageStore } from "@/hooks/store";
 import { useMember } from "@/hooks/store/use-member";
 // services
 import { PageQueryService } from "@/services/page";
-import type {
-  TPageQueryContributor,
-  TPageQueryLabel,
-  TPageQueryReportItem,
-  TPageQueryResult,
-} from "@/services/page";
+import type { TPageQueryContributor, TPageQueryLabel, TPageQueryReportItem, TPageQueryResult } from "@/services/page";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 
