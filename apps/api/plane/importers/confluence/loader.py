@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import re
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date
@@ -19,6 +20,7 @@ from plane.db.models import (
     State,
     User,
     Workspace,
+    WorkspaceMember,
 )
 from plane.db.models.state import DEFAULT_STATES
 from plane.utils.content_validator import validate_html_content
@@ -30,6 +32,8 @@ from .naming import project_identifier, project_name
 from .resolvers import ConversionResult, ResolvedPage, ResolvedUser, Resolvers
 from .storage import storage_to_html
 
+_ACCOUNT_ID = re.compile(r'ri:account-id="([^"]+)"')
+
 
 @dataclass
 class ImportSummary:
@@ -40,6 +44,7 @@ class ImportSummary:
     roots: int = 0
     attributed: int = 0
     unmapped_authors: set = field(default_factory=set)
+    placeholders: int = 0
     unsupported_macros: Counter = field(default_factory=Counter)
     unresolved_pages: set = field(default_factory=set)
     unresolved_attachments: set = field(default_factory=set)
@@ -91,9 +96,9 @@ class ConfluenceLoader:
         summary = ImportSummary()
         space = self.backup.space()
         pages = order_parents_first(self.backup.pages())
-        users = self._user_map()
 
         with transaction.atomic():
+            users = self._user_map(pages, summary)
             project = self._get_or_create_project(space)
             summary.project_id = str(project.id)
             summary.project_name = project.name
@@ -108,29 +113,75 @@ class ConfluenceLoader:
 
         return summary
 
-    def _user_map(self):
-        """Confluence accountId -> Plane user, matched on display name.
+    def _referenced_accounts(self, pages):
+        """Accounts this space actually names, as authors or in a mention.
 
-        Falls back to the running user for anything unmatched; the summary
-        lists those so the mapping can be corrected and the import re-run.
+        Bounds placeholder creation: the backup's account map spans every space
+        and most of it is irrelevant to any one of them.
         """
-        names = self.backup.user_mapping()
-        if not names:
+        found = {page.author_id for page in pages if page.author_id}
+        for page in pages:
+            found.update(_ACCOUNT_ID.findall(page.body))
+        return found
+
+    def _user_map(self, pages, summary=None):
+        """Confluence accountId -> Plane user, matched on email then display name.
+
+        Anything still unmatched gets a placeholder account, so a page keeps its
+        original author and a mention keeps its name rather than collapsing onto
+        whoever ran the import.
+        """
+        accounts = self.backup.users()
+        if not accounts:
             return {}
 
         members = User.objects.filter(
             member_workspace__workspace=self.workspace, member_workspace__is_active=True
         ).distinct()
-        by_display_name = {}
+        by_email, by_display_name = {}, {}
         for member in members:
+            if member.email:
+                by_email.setdefault(member.email.casefold(), member)
             for key in filter(None, (member.display_name, f"{member.first_name} {member.last_name}".strip())):
                 by_display_name.setdefault(key.casefold(), member)
 
-        return {
-            account_id: by_display_name[display_name.casefold()]
-            for account_id, display_name in names.items()
-            if display_name and display_name.casefold() in by_display_name
-        }
+        referenced = self._referenced_accounts(pages)
+        mapping = {}
+        for account_id, account in accounts.items():
+            match = by_email.get(account.email.casefold()) if account.email else None
+            if match is None and account.display_name:
+                match = by_display_name.get(account.display_name.casefold())
+            if match is None and account_id not in referenced:
+                continue
+            mapping[account_id] = match or self._placeholder_user(account, summary)
+        return mapping
+
+    def _placeholder_user(self, account, summary=None):
+        """A stand-in for a Confluence account with no Plane user.
+
+        The account is deactivated so it cannot sign in, but its membership is
+        active because that is what the editor reads to render a mention.
+        """
+        email = (account.email or f"{account.account_id}@confluence.invalid").casefold().strip()
+        name = account.display_name or email.split("@")[0]
+        first, _, last = name.partition(" ")
+
+        user = User.objects.filter(email=email).first()
+        if user is None:
+            user = User.objects.create(
+                username=f"confluence-{account.account_id}"[:128],
+                email=email,
+                display_name=name,
+                first_name=first,
+                last_name=last,
+                is_active=False,
+                is_password_autoset=True,
+            )
+            if summary is not None:
+                summary.placeholders += 1
+
+        WorkspaceMember.objects.get_or_create(workspace=self.workspace, member=user, defaults={"role": 5})
+        return user
 
     def _get_or_create_project(self, space):
         identifier_key = space.get("key") or self.backup.space_key

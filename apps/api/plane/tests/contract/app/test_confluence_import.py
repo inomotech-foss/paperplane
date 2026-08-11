@@ -192,6 +192,55 @@ class TestConfluenceImport:
         assert Page.objects.get(name="Orphan").owned_by_id == create_user.id
         assert summary.unmapped_authors == {"acct-ghost"}
 
+    def test_unmatched_accounts_get_a_placeholder(self, loader, workspace):
+        summary = loader.run()
+
+        placeholder = User.objects.get(email="acct-ada@confluence.invalid")
+        assert placeholder.display_name == "Ada Lovelace"
+        assert placeholder.is_active is False
+        assert WorkspaceMember.objects.filter(workspace=workspace, member=placeholder).exists()
+        assert summary.placeholders == 1
+        assert Page.objects.get(name="Test Plan").owned_by_id == placeholder.id
+
+    def test_email_matches_before_display_name(self, workspace, create_user, backup_dir):
+        """The display name drifts; the address is what identifies someone."""
+        (backup_dir / "user_mapping.json").write_text(
+            json.dumps([{"accountId": "acct-ada", "displayName": "A. Lovelace", "emailAddress": "ada@plane.so"}])
+        )
+        user = User.objects.create(email="ada@plane.so", username="ada", display_name="Ada Lovelace")
+        WorkspaceMember.objects.create(workspace=workspace, member=user, role=15)
+        loader = ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(backup_dir, "IMS"))
+
+        summary = loader.run()
+
+        assert Page.objects.get(name="Test Plan").owned_by_id == user.id
+        assert summary.placeholders == 0
+
+    def test_accounts_the_space_never_names_get_no_placeholder(self, workspace, create_user, backup_dir):
+        """The account map spans every space, so most of it is irrelevant here."""
+        (backup_dir / "user_mapping.json").write_text(
+            json.dumps(
+                [
+                    {"accountId": "acct-ada", "displayName": "Ada Lovelace"},
+                    {"accountId": "acct-elsewhere", "displayName": "Someone Else"},
+                ]
+            )
+        )
+        loader = ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(backup_dir, "IMS"))
+
+        summary = loader.run()
+
+        assert summary.placeholders == 1
+        assert not User.objects.filter(email="acct-elsewhere@confluence.invalid").exists()
+
+    def test_rerun_reuses_the_placeholder(self, loader):
+        loader.run()
+
+        summary = loader.run()
+
+        assert summary.placeholders == 0
+        assert User.objects.filter(email="acct-ada@confluence.invalid").count() == 1
+
     def test_preserves_the_original_timestamps(self, loader, ada):
         loader.run()
 
