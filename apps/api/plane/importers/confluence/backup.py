@@ -52,6 +52,48 @@ def _page_from_record(record):
     )
 
 
+_TEMPLATE_CONTAINER = "_root"
+_TEMPLATE_TRASH = "_trash"
+
+
+def _subtree(pages, seeds):
+    found = set(seeds)
+    growing = True
+    while growing:
+        growing = False
+        for page in pages:
+            if page.parent_id in found and page.id not in found:
+                found.add(page.id)
+                growing = True
+    return found
+
+
+def drop_template_scaffolding(pages):
+    """Remove the bookkeeping pages a Confluence template system leaves behind.
+
+    Template-based spaces nest their whole tree under an empty `_root` page and
+    park deleted content under `_trash`. The container is unwrapped rather than
+    dropped, because everything real hangs off it.
+    """
+    known = {page.id for page in pages}
+    roots = [page for page in pages if page.parent_id not in known]
+    trashed = {page.id for page in roots if page.title == _TEMPLATE_TRASH}
+    # A `_root` holding a body is someone's real page, so leave it alone.
+    containers = {page.id for page in roots if page.title == _TEMPLATE_CONTAINER and not page.body.strip()}
+    if not trashed and not containers:
+        return pages
+
+    removed = _subtree(pages, trashed) | containers
+    kept = []
+    for page in pages:
+        if page.id in removed:
+            continue
+        if page.parent_id in containers:
+            page.parent_id = None
+        kept.append(page)
+    return kept
+
+
 class ConfluenceBackup:
     """A `backup/confluence/<SPACE>/` tree as written by the backup tool."""
 
@@ -69,7 +111,8 @@ class ConfluenceBackup:
     def pages(self):
         path = self.space_dir / "pages.jsonl"
         with path.open() as handle:
-            return [_page_from_record(json.loads(line)) for line in handle if line.strip()]
+            pages = [_page_from_record(json.loads(line)) for line in handle if line.strip()]
+        return drop_template_scaffolding(pages)
 
     def user_mapping(self):
         """accountId -> displayName, shared across spaces."""
