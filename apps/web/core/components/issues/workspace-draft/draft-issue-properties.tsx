@@ -28,7 +28,7 @@ import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useWorkspaceDraftIssues } from "@/hooks/store/workspace-draft";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-import { IssuePropertyLabels } from "../issue-layouts/properties";
+import { IssuePropertyLabels } from "../issue-layouts/properties/labels";
 // local components
 
 export interface IIssueProperties {

@@ -11,7 +11,7 @@ import type { TIssue } from "@plane/types";
 // hooks
 import { useLabel } from "@/hooks/store/use-label";
 // components
-import { IssuePropertyLabels } from "../../properties";
+import { IssuePropertyLabels } from "../../properties/labels";
 
 type Props = {
   issue: TIssue;
