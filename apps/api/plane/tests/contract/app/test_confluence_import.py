@@ -9,7 +9,7 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from plane.db.models import FileAsset, Label, Page, PageLabel, Project, User, WorkspaceMember
+from plane.db.models import FileAsset, Label, Page, PageIndexEntry, PageLabel, Project, User, WorkspaceMember
 from plane.importers.confluence.backup import ConfluenceBackup
 from plane.importers.confluence.loader import ConfluenceLoader
 
@@ -76,6 +76,23 @@ PAGES = [
         "body": {"storage": {"value": '<ac:structured-macro ac:name="change-history"/>'}},
     },
 ]
+
+
+INDEXABLE_BODY = (
+    '<ac:structured-macro ac:name="details"><ac:rich-text-body><table><tbody>'
+    "<tr><th><p>Owner</p></th><td><p>Team A</p></td></tr>"
+    "</tbody></table></ac:rich-text-body></ac:structured-macro>"
+    "<ac:task-list>"
+    "<ac:task><ac:task-status>complete</ac:task-status>"
+    "<ac:task-body>Ship the thing</ac:task-body></ac:task>"
+    "<ac:task><ac:task-status>incomplete</ac:task-status><ac:task-body>Review the draft"
+    '<ac:link><ri:user ri:account-id="acct-ada"/></ac:link>'
+    '<time datetime="2026-03-04"/></ac:task-body></ac:task>'
+    "</ac:task-list>"
+    '<ac:adf-extension><ac:adf-node type="decision-list">'
+    '<ac:adf-node type="decision-item"><ac:adf-attribute key="state">DECIDED</ac:adf-attribute>'
+    "<ac:adf-content>Use the boring option</ac:adf-content></ac:adf-node></ac:adf-node></ac:adf-extension>"
+)
 
 
 ATTACHMENTS = {
@@ -326,6 +343,53 @@ class TestConfluenceImport:
 
         assert Label.objects.filter(workspace=workspace, name="runbook").count() == 1
         assert PageLabel.objects.filter(page__name="Quality Processes").count() == 1
+
+    def test_page_content_is_indexed_for_query_blocks(self, workspace, create_user, backup_dir, ada):
+        """Properties, tasks and decisions live inside the page HTML, which no
+        query can filter on, so the importer writes them out as rows."""
+        space_dir = backup_dir / "confluence" / "IMS"
+        indexed = dict(PAGES[0], id="300", title="Indexed")
+        indexed["body"] = {"storage": {"value": INDEXABLE_BODY}}
+        space_dir.joinpath("pages.jsonl").write_text("\n".join(json.dumps(page) for page in [*PAGES, indexed]))
+
+        summary = ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(backup_dir, "IMS")).run()
+
+        page = Page.objects.get(name="Indexed")
+        entries = PageIndexEntry.objects.filter(page=page).order_by("kind", "sort_order")
+        assert summary.index_entries == 4
+        assert [(entry.kind, entry.key, entry.value) for entry in entries] == [
+            ("decision", "", "Use the boring option"),
+            ("property", "Owner", "Team A"),
+            ("task", "", "Ship the thing"),
+            ("task", "", "Review the draft"),
+        ]
+        tasks = entries.filter(kind="task")
+        assert [task.is_complete for task in tasks] == [True, False]
+        assert tasks[1].due_date.isoformat() == "2026-03-04"
+        assert tasks[1].assignee == ada
+
+    def test_rerun_replaces_the_index_rather_than_appending(self, workspace, create_user, backup_dir, ada):
+        """A property deleted upstream has to disappear here too, and the rows
+        carry no identity of their own to match on."""
+        space_dir = backup_dir / "confluence" / "IMS"
+        indexed = dict(PAGES[0], id="300", title="Indexed")
+        indexed["body"] = {"storage": {"value": INDEXABLE_BODY}}
+        space_dir.joinpath("pages.jsonl").write_text("\n".join(json.dumps(page) for page in [*PAGES, indexed]))
+
+        for _ in range(2):
+            ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(backup_dir, "IMS")).run()
+        assert PageIndexEntry.objects.filter(page__name="Indexed").count() == 4
+
+        indexed["body"] = {"storage": {"value": "<p>Everything was removed</p>"}}
+        space_dir.joinpath("pages.jsonl").write_text("\n".join(json.dumps(page) for page in [*PAGES, indexed]))
+        ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(backup_dir, "IMS")).run()
+
+        assert PageIndexEntry.objects.filter(page__name="Indexed").count() == 0
+
+    def test_dry_run_indexes_nothing(self, loader, ada):
+        loader.run(dry_run=True)
+
+        assert PageIndexEntry.objects.count() == 0
 
     def test_bodies_are_sanitised(self, workspace, create_user, backup_dir, ada):
         space_dir = backup_dir / "confluence" / "IMS"
