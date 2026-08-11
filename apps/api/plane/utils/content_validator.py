@@ -167,6 +167,7 @@ ATTRIBUTES = {
         "reverse",
         "labels",
         "placeholder",
+        "columns",
     },
     "issue-embed-component": {
         "id",

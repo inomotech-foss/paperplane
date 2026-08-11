@@ -14,7 +14,7 @@ import { Logo } from "@plane/propel/emoji-icon-picker";
 import { PageIcon } from "@plane/propel/icons";
 import { Avatar } from "@plane/ui";
 import type { TQueryBlockHandlerProps } from "@plane/editor";
-import { getFileURL, getPageName } from "@plane/utils";
+import { calculateTimeAgo, getFileURL, getPageName } from "@plane/utils";
 // components
 import { PageChildPagesTree } from "@/components/pages/editor/child-pages-block";
 import { SubPageItem } from "@/components/pages/sub-page-item";
@@ -222,6 +222,77 @@ const LabelListQuery = observer(function LabelListQuery(props: Props) {
 });
 
 /**
+ * Pages as rows, with their page properties as columns. Falls back to when the
+ * page last changed when the macro named no columns, which is what the
+ * content-report variant of this table shows.
+ */
+const PagePropertiesQuery = observer(function PagePropertiesQuery(props: Props) {
+  const { columns, labels, limit, page, reverse, scope, sort } = props;
+  const { workspaceSlug } = useParams();
+  const { t } = useTranslation();
+
+  const slug = workspaceSlug?.toString();
+  const params = {
+    kind: "page-properties",
+    scope,
+    project_id: page.project_ids?.[0],
+    labels: labels.length > 0 ? labels.join(",") : undefined,
+    columns: columns.length > 0 ? columns.join(",") : undefined,
+    limit,
+    sort,
+    reverse: reverse ? "true" : undefined,
+  };
+
+  const { data, isLoading, error } = useSWR(
+    slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
+    slug ? () => pageQueryService.query(slug, params) : null
+  );
+
+  if (isLoading) return <Empty message={t("page_query_block.loading")} />;
+  if (error) return <Empty message={t("page_query_block.error")} />;
+  if (!data || data.length === 0) return <Empty message={t("page_query_block.empty_state.pages")} />;
+
+  return (
+    <Shell>
+      <div className="overflow-x-auto">
+        <table className="w-full text-13">
+          <thead>
+            <tr className="border-b border-subtle text-left text-tertiary">
+              <th className="px-2 py-1.5 font-medium">{t("page_query_block.columns.title")}</th>
+              {columns.map((column) => (
+                <th key={column} className="px-2 py-1.5 font-medium">
+                  {column}
+                </th>
+              ))}
+              {columns.length === 0 && (
+                <th className="px-2 py-1.5 font-medium">{t("page_query_block.columns.updated")}</th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((result) => (
+              <tr key={result.id} className="border-b border-subtle last:border-none">
+                <td className="px-2 py-1.5">
+                  <QueryResultItem result={result} workspaceSlug={slug ?? ""} />
+                </td>
+                {columns.map((column) => (
+                  <td key={column} className="px-2 py-1.5 text-secondary">
+                    {result.properties?.[column] ?? ""}
+                  </td>
+                ))}
+                {columns.length === 0 && (
+                  <td className="px-2 py-1.5 text-tertiary">{calculateTimeAgo(result.updated_at)}</td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Shell>
+  );
+});
+
+/**
  * A search box over pages. `page` scope searches the current page's subtree,
  * which the store can answer without a round trip because the project's pages
  * are already loaded; anything wider goes to the endpoint.
@@ -324,6 +395,8 @@ export const PageQueryBlock = observer(function PageQueryBlock(props: Props) {
       return <EndpointQuery {...props} />;
     case "label-list":
       return <LabelListQuery {...props} />;
+    case "page-properties":
+      return <PagePropertiesQuery {...props} />;
     case "contributors":
       return <ContributorsQuery {...props} />;
     case "search":

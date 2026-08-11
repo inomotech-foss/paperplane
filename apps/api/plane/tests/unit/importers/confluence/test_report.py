@@ -10,7 +10,7 @@ from plane.importers.confluence.report import report_backup, report_space
 
 PLAIN = "<p>Nothing unusual here.</p>"
 IMAGE = '<p><ac:image><ri:attachment ri:filename="{filename}"/></ac:image></p>'
-UNSUPPORTED = '<ac:structured-macro ac:name="detailssummary"/>'
+UNSUPPORTED = '<ac:structured-macro ac:name="decisionreport"/>'
 # A multi-cell section with no ac:type is a shape the columns mapping does not
 # describe, so it flattens and counts as loss.
 LAYOUT = (
@@ -103,7 +103,7 @@ class TestReportSpace:
 
         report = report_space(ConfluenceBackup(tmp_path, "IMS"))
 
-        assert report.unsupported_macros["detailssummary"] == 1
+        assert report.unsupported_macros["decisionreport"] == 1
         assert report.lossless == 0
 
     def test_unmappable_layouts_are_counted(self, tmp_path):

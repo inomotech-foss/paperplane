@@ -8,12 +8,18 @@ from .parameters import macro_parameter, macro_parameters
 # Matches MAX_QUERY_BLOCK_DEPTH in the editor's query-block extension.
 MAX_QUERY_BLOCK_DEPTH = 20
 
-# Confluence's sort vocabulary, mapped onto the block's.
+# Confluence's sort vocabulary, mapped onto the block's. The report macros
+# spell the same three orderings as "page <field>", and `detailssummary` calls
+# the modification date "date".
 SORT_VALUES = {
     "title": "title",
     "modified": "modified",
     "creation": "created",
     "created": "created",
+    "date": "modified",
+    "page title": "title",
+    "page modified": "modified",
+    "page created": "created",
 }
 
 
@@ -246,6 +252,85 @@ def convert_page_tree_search_macro(soup, node, resolvers):
     page = resolvers.page(root) if root else None
     if page is not None:
         block["root-page-id"] = page.id
+
+    node.replace_with(block)
+
+
+def _labels_parameter(parameters):
+    """The label names a macro filters on, from either the parameter or the CQL.
+
+    Both spellings appear: `detailssummary` uses `label`, `content-report-table`
+    uses `labels`, and either may name them inside `cql` instead.
+    """
+    for name in ("labels", "label"):
+        names = [entry.strip() for entry in (parameters.get(name) or "").split(",") if entry.strip()]
+        if names:
+            return names
+    return _labels_from_cql(parameters.get("cql") or "")
+
+
+def _columns(block, parameters, name):
+    """`headings` is the list of page property names to show as columns.
+
+    `firstcolumn` only renames the page-title column, which the block always
+    shows first anyway, so it carries nothing.
+    """
+    headings = [heading.strip() for heading in (parameters.get(name) or "").split(",") if heading.strip()]
+    if headings:
+        block["columns"] = ",".join(headings)
+
+
+def convert_details_summary_macro(soup, node, result):
+    """`detailssummary` tabulates the page properties of a set of pages.
+
+    Every use in the backup filters on a label, so the block is only as useful
+    as the label import behind it.
+    """
+    parameters = macro_parameters(node)
+    block = _block(soup, "page-properties", _scope_from_spaces(parameters))
+
+    names = _labels_parameter(parameters)
+    if names:
+        block["labels"] = ",".join(names)
+
+    _columns(block, parameters, "headings")
+    limit = _int(parameters, "pageSize")
+    if limit:
+        block["limit"] = str(limit)
+    _sort(block, {"sort": parameters.get("sortBy"), "reverse": parameters.get("reverseSort")})
+
+    # The macro can also show a create-a-page button and per-page like, comment
+    # and label counts. None has a counterpart here, and none is content.
+    if any(parameters.get(name) for name in ("createButtonLabel", "contentBlueprintId")):
+        result.dropped_chrome["detailssummary"] += 1
+    if any(parameters.get(name) for name in ("showLikesCount", "showCommentsCount", "showPageLabels")):
+        result.downgraded["detailssummary"] += 1
+
+    node.replace_with(block)
+
+
+def convert_content_report_macro(soup, node, result):
+    """`content-report-table` is the same table with a fixed column set.
+
+    It names no headings, so the block shows the page title, who owns it and
+    when it changed, which is what the macro renders.
+    """
+    parameters = macro_parameters(node)
+    block = _block(soup, "page-properties", _scope_from_spaces(parameters))
+
+    names = _labels_parameter(parameters)
+    if names:
+        block["labels"] = ",".join(names)
+
+    limit = _int(parameters, "maxResults")
+    if limit:
+        block["limit"] = str(limit)
+    _sort(block, parameters)
+
+    if any(parameters.get(name) for name in ("createButtonLabel", "contentBlueprintId")):
+        result.dropped_chrome["content-report-table"] += 1
+    if any(parameters.get(name) for name in ("showLikesCount", "showCommentsCount")):
+        result.downgraded["content-report-table"] += 1
 
     node.replace_with(block)
 

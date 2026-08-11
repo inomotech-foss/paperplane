@@ -173,6 +173,10 @@
     },
     "unknown_user": "Pengguna tidak dikenal",
     "page_count": "{count, plural, one {# halaman} other {# halaman}}",
-    "search_placeholder": "Cari halaman"
+    "search_placeholder": "Cari halaman",
+    "columns": {
+      "title": "Judul",
+      "updated": "Terakhir diperbarui"
+    }
   }
 }

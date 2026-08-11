@@ -173,6 +173,10 @@
     },
     "unknown_user": "未知使用者",
     "page_count": "{count, plural, one {# 個頁面} other {# 個頁面}}",
-    "search_placeholder": "搜尋頁面"
+    "search_placeholder": "搜尋頁面",
+    "columns": {
+      "title": "標題",
+      "updated": "最後更新"
+    }
   }
 }

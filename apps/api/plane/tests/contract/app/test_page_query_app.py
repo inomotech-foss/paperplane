@@ -11,7 +11,17 @@ member of must never appear, and neither must someone else's private page.
 import pytest
 from rest_framework import status
 
-from plane.db.models import Label, Page, PageLabel, Project, ProjectMember, ProjectPage, User, WorkspaceMember
+from plane.db.models import (
+    Label,
+    Page,
+    PageIndexEntry,
+    PageLabel,
+    Project,
+    ProjectMember,
+    ProjectPage,
+    User,
+    WorkspaceMember,
+)
 
 URL = "/api/workspaces/{slug}/page-query/"
 
@@ -41,6 +51,18 @@ def make_page(workspace, project, user, name, parent=None, access=Page.PUBLIC_AC
     )
     ProjectPage.objects.create(workspace=workspace, project=project, page=page, created_by=user)
     return page
+
+
+def make_index_entry(workspace, page, user, key, value, kind=PageIndexEntry.PROPERTY, sort_order=0):
+    return PageIndexEntry.objects.create(
+        workspace=workspace,
+        page=page,
+        kind=kind,
+        key=key,
+        value=value,
+        sort_order=sort_order,
+        created_by=user,
+    )
 
 
 @pytest.fixture
@@ -231,6 +253,72 @@ class TestPageQueryKinds:
         response = session_client.get(URL.format(slug=workspace.slug), {"kind": "contributors"})
 
         assert response.data["results"] == [{"user_id": create_user.id, "page_count": 2}]
+
+    def test_page_properties_returns_the_requested_columns(self, session_client, workspace, project, create_user):
+        page = make_page(workspace, project, create_user, "Runbook")
+        make_index_entry(workspace, page, create_user, "Owner", "Team A")
+        make_index_entry(workspace, page, create_user, "Status", "Approved", sort_order=1)
+        make_index_entry(workspace, page, create_user, "Ignored", "Not asked for", sort_order=2)
+
+        response = session_client.get(
+            URL.format(slug=workspace.slug), {"kind": "page-properties", "columns": "Owner,Status"}
+        )
+
+        assert response.data["results"][0]["properties"] == {"Owner": "Team A", "Status": "Approved"}
+
+    def test_page_properties_matches_column_names_case_insensitively(
+        self, session_client, workspace, project, create_user
+    ):
+        """The macro spells the column the way the author typed it into the
+        summary, which is not always how they typed it into the table."""
+        page = make_page(workspace, project, create_user, "Runbook")
+        make_index_entry(workspace, page, create_user, "owner", "Team A")
+
+        response = session_client.get(URL.format(slug=workspace.slug), {"kind": "page-properties", "columns": "Owner"})
+
+        assert response.data["results"][0]["properties"] == {"Owner": "Team A"}
+
+    def test_page_properties_leaves_a_page_without_the_property_empty(
+        self, session_client, workspace, project, create_user
+    ):
+        make_page(workspace, project, create_user, "Bare")
+
+        response = session_client.get(URL.format(slug=workspace.slug), {"kind": "page-properties", "columns": "Owner"})
+
+        assert response.data["results"][0]["properties"] == {}
+
+    def test_page_properties_ignores_tasks_and_decisions(self, session_client, workspace, project, create_user):
+        page = make_page(workspace, project, create_user, "Mixed")
+        make_index_entry(workspace, page, create_user, "Owner", "Team A")
+        make_index_entry(workspace, page, create_user, "Owner", "A task", kind=PageIndexEntry.TASK, sort_order=1)
+
+        response = session_client.get(URL.format(slug=workspace.slug), {"kind": "page-properties", "columns": "Owner"})
+
+        assert response.data["results"][0]["properties"] == {"Owner": "Team A"}
+
+    def test_page_properties_filters_by_label(self, session_client, workspace, project, create_user):
+        label = Label.objects.create(name="runbook", workspace=workspace, created_by=create_user)
+        tagged = make_page(workspace, project, create_user, "Tagged")
+        make_page(workspace, project, create_user, "Untagged")
+        PageLabel.objects.create(label=label, page=tagged, workspace=workspace, created_by=create_user)
+
+        response = session_client.get(URL.format(slug=workspace.slug), {"kind": "page-properties", "labels": "runbook"})
+
+        assert [page["id"] for page in response.data["results"]] == [tagged.id]
+
+    def test_page_properties_of_an_unreadable_page_never_leak(
+        self, session_client, workspace, project, create_user, other_user
+    ):
+        """The property values are page content, so they follow exactly the
+        access rules the page itself does."""
+        WorkspaceMember.objects.create(workspace=workspace, member=other_user, role=15)
+        foreign_project = make_project(workspace, other_user, "Beta", "BETA")
+        foreign = make_page(workspace, foreign_project, other_user, "Foreign")
+        make_index_entry(workspace, foreign, other_user, "Owner", "Secret")
+
+        response = session_client.get(URL.format(slug=workspace.slug), {"kind": "page-properties", "columns": "Owner"})
+
+        assert response.data["results"] == []
 
     def test_scope_project_limits_to_one_project(self, session_client, workspace, project, create_user):
         other = make_project(workspace, create_user, "Beta", "BETA")

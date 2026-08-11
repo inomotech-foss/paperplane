@@ -173,6 +173,10 @@
     },
     "unknown_user": "Neznámý uživatel",
     "page_count": "{count, plural, one {# stránka} few {# stránky} many {# stránky} other {# stránek}}",
-    "search_placeholder": "Hledat stránky"
+    "search_placeholder": "Hledat stránky",
+    "columns": {
+      "title": "Název",
+      "updated": "Naposledy upraveno"
+    }
   }
 }

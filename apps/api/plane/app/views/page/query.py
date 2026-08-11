@@ -1,11 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from collections import defaultdict
+
 # Django imports
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import Count, Exists, OuterRef, Q, Subquery, UUIDField, Value
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Lower
 
 # Third party imports
 from rest_framework import status
@@ -14,7 +16,7 @@ from rest_framework.response import Response
 # Module imports
 from plane.app.permissions import ROLE, WorkspaceEntityPermission
 from plane.app.serializers import PageQuerySerializer
-from plane.db.models import Label, Page, PageLabel, ProjectPage
+from plane.db.models import Label, Page, PageIndexEntry, PageLabel, ProjectPage
 
 # Local imports
 from ..base import BaseAPIView
@@ -76,6 +78,7 @@ class PageQueryEndpoint(BaseAPIView):
             "contributors": self.contributors,
             "by-label": self.by_label,
             "label-list": self.label_list,
+            "page-properties": self.page_properties,
         }.get(kind)
         if handler is None:
             return Response({"error": f"Unknown query kind '{kind}'"}, status=status.HTTP_400_BAD_REQUEST)
@@ -175,6 +178,44 @@ class PageQueryEndpoint(BaseAPIView):
             .order_by("name")[: _limit(request)]
         )
         return [{"id": label.id, "name": label.name} for label in labels]
+
+    def page_properties(self, request, slug):
+        """Pages plus the property values the block asks for as columns.
+
+        The properties are read in one query over the whole result set rather
+        than per page, so a fifty-row table is two queries and not fifty-one.
+        """
+        queryset = self.accessible_pages(request, slug)
+        names = _names(request, "labels")
+        if names:
+            labelled = PageLabel.objects.filter(page_id=OuterRef("pk"), label__name__in=names)
+            queryset = queryset.filter(Exists(labelled))
+
+        pages = self.pages(request, queryset, "name")
+        columns = _names(request, "columns")
+        if not columns or not pages:
+            return pages
+
+        # Property names are matched case-insensitively: the macro spells the
+        # column the way the author typed it into the summary, which is not
+        # always how they typed it into the table.
+        wanted = {name.lower(): name for name in columns}
+        entries = (
+            PageIndexEntry.objects.filter(page_id__in=[page["id"] for page in pages], kind=PageIndexEntry.PROPERTY)
+            .annotate(name=Lower("key"))
+            .filter(name__in=list(wanted))
+            .values("page_id", "key", "value")
+        )
+
+        properties = defaultdict(dict)
+        for entry in entries:
+            name = wanted.get(entry["key"].lower())
+            if name and name not in properties[str(entry["page_id"])]:
+                properties[str(entry["page_id"])][name] = entry["value"]
+
+        for page in pages:
+            page["properties"] = properties.get(str(page["id"]), {})
+        return pages
 
     def contributors(self, request, slug):
         rows = (
