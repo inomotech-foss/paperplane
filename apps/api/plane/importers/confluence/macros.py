@@ -14,6 +14,7 @@ from .placeholders import (
     convert_plantuml_macro,
     convert_requirement_macro,
 )
+from .query_blocks import convert_child_pages_macro, convert_index_macro, convert_page_tree_macro
 from .roadmap import convert_roadmap_macro
 from .tasks import task_item, task_list
 
@@ -36,7 +37,6 @@ DYNAMIC_MACROS = {
     "decisionreport",
     "detailssummary",
     "livesearch",
-    "pagetree",
     "recently-updated",
     "tasks-report",
     "tasks-report-macro",
@@ -119,14 +119,13 @@ def _table_of_contents(soup, node):
     node.replace_with(block)
 
 
-def _child_pages(soup, node, result):
-    """The block always lists the current page's descendants, so a macro
-    pointing at another page cannot be represented and is recorded instead."""
-    # The page parameter holds either a title or a nested ac:link, so its
-    # presence is what matters rather than its text.
+def _child_pages(soup, node, resolvers, result):
+    """The block lists the current page's descendants, so a macro rooted at
+    another page becomes a query block pointed at that page instead."""
+    # The page parameter holds a nested ac:link rather than text, so its
+    # presence is what matters rather than its value.
     if node.find("ac:parameter", attrs={"ac:name": "page"}, recursive=False) is not None:
-        result.unsupported_macros["children"] += 1
-        node.decompose()
+        convert_child_pages_macro(soup, node, resolvers, result)
         return
 
     parameters = macro_parameters(node)
@@ -250,7 +249,11 @@ def convert_structured_macros(soup, resolvers, result):
         elif name == "toc":
             _table_of_contents(soup, node)
         elif name == "children":
-            _child_pages(soup, node, result)
+            _child_pages(soup, node, resolvers, result)
+        elif name == "pagetree":
+            convert_page_tree_macro(soup, node, result)
+        elif name == "index":
+            convert_index_macro(soup, node)
         elif name == "attachments":
             _page_attachments(soup, node)
         elif name in DIAGRAM_MACROS:

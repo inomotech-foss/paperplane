@@ -18,6 +18,7 @@ export * from "./image";
 export * from "./math";
 export * from "./mentions";
 export * from "./page-attachments";
+export * from "./query-block";
 export * from "./slash-commands";
 export * from "./table";
 export * from "./typography";

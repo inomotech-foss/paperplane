@@ -32,6 +32,7 @@ const generalSelectors = [
   ".editor-drawio-component",
   ".editor-columns-component",
   ".editor-math-block-component",
+  ".editor-query-block-component",
 ].join(", ");
 
 const maxScrollSpeed = 20;

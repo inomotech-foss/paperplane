@@ -159,5 +159,14 @@
     "empty_state": "Zatím nebyl vložen žádný obsah",
     "origin_not_allowed": "Tento zdroj nelze zde vložit.",
     "iframe_title": "Vložený obsah"
+  },
+  "page_query_block": {
+    "loading": "Načítání stránek",
+    "error": "Stránky se nepodařilo načíst",
+    "unsupported": "Tento seznam stránek zatím není k dispozici",
+    "empty_state": {
+      "tree": "Zatím žádné podstránky",
+      "pages": "Tomuto seznamu neodpovídají žádné stránky"
+    }
   }
 }

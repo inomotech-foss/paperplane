@@ -46,6 +46,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
     mentionHandler,
     onChange,
     pageAttachmentsHandler,
+    queryBlockHandler,
     user,
     value,
   } = props;
@@ -67,6 +68,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
         isEditable: editable,
         fileHandler,
         pageAttachmentsHandler,
+        queryBlockHandler,
         userDetails: user ?? {
           id: "",
           name: "",
@@ -85,6 +87,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
     fileHandler,
     flaggedExtensions,
     pageAttachmentsHandler,
+    queryBlockHandler,
     user,
   ]);
 

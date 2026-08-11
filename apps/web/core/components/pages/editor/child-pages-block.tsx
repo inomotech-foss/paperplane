@@ -29,7 +29,8 @@ type TreeProps = {
   storeType: EPageStoreType;
 };
 
-const ChildPagesTree = observer(function ChildPagesTree(props: TreeProps) {
+/** Shared with the query block's `tree` kind, which lists the same thing. */
+export const PageChildPagesTree = observer(function PageChildPagesTree(props: TreeProps) {
   const { ancestorIds, depth, pageId, storeType } = props;
   const { getChildPageIds } = usePageStore(storeType);
 
@@ -45,7 +46,7 @@ const ChildPagesTree = observer(function ChildPagesTree(props: TreeProps) {
         <div key={childPageId}>
           <SubPageItem pageId={childPageId} storeType={storeType} />
           <div className="pl-4">
-            <ChildPagesTree
+            <PageChildPagesTree
               ancestorIds={new Set(ancestorIds).add(childPageId)}
               depth={depth - 1}
               pageId={childPageId}
@@ -77,7 +78,7 @@ export const PageChildPagesBlock = observer(function PageChildPagesBlock(props: 
   return (
     <div className="rounded-md border border-subtle px-2 py-1.5">
       {page.id && hasChildren ? (
-        <ChildPagesTree ancestorIds={new Set([page.id])} depth={depth} pageId={page.id} storeType={storeType} />
+        <PageChildPagesTree ancestorIds={new Set([page.id])} depth={depth} pageId={page.id} storeType={storeType} />
       ) : (
         <p className="px-2 py-1.5 text-13 text-tertiary">
           {t("page_navigation_pane.tabs.sub_pages.empty_state.title")}

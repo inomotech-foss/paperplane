@@ -159,5 +159,14 @@
     "empty_state": "아직 추가된 임베드가 없습니다",
     "origin_not_allowed": "이 출처는 여기에 임베드할 수 없습니다.",
     "iframe_title": "임베드된 콘텐츠"
+  },
+  "page_query_block": {
+    "loading": "페이지를 불러오는 중입니다",
+    "error": "페이지를 불러올 수 없습니다",
+    "unsupported": "이 페이지 목록은 아직 사용할 수 없습니다",
+    "empty_state": {
+      "tree": "아직 하위 페이지가 없습니다",
+      "pages": "이 목록과 일치하는 페이지가 없습니다"
+    }
   }
 }

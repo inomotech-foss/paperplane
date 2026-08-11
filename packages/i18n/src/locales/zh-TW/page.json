@@ -159,5 +159,14 @@
     "empty_state": "尚未新增任何嵌入內容",
     "origin_not_allowed": "此來源無法在此嵌入。",
     "iframe_title": "嵌入的內容"
+  },
+  "page_query_block": {
+    "loading": "正在載入頁面",
+    "error": "無法載入頁面",
+    "unsupported": "此頁面清單尚不可用",
+    "empty_state": {
+      "tree": "暫無子頁面",
+      "pages": "沒有頁面與此清單相符"
+    }
   }
 }

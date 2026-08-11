@@ -260,8 +260,8 @@ class TestMacros:
         assert f'<child-pages-component depth="{depth}"></child-pages-component>' in result.html
         assert result.unsupported_macros == {}
 
-    def test_children_macro_targeting_another_page_is_recorded(self):
-        """The block only knows about the page it sits on."""
+    def test_children_macro_targeting_an_unresolved_page_is_recorded(self):
+        """Pointing the block at the current page would show the wrong tree."""
         body = (
             '<ac:structured-macro ac:name="children">'
             '<ac:parameter ac:name="page"><ac:link><ri:page ri:content-title="Other"/></ac:link>'
@@ -271,7 +271,9 @@ class TestMacros:
         result = convert(body)
 
         assert "child-pages-component" not in result.html
+        assert "query-block-component" not in result.html
         assert result.unsupported_macros == {"children": 1}
+        assert result.unresolved_pages == {"Other"}
 
     @pytest.mark.parametrize(
         "parameters",
@@ -1047,3 +1049,90 @@ class TestResidualMarkup:
         assert "ac:" not in html
         assert "ri:" not in html
         assert "kept" in html and "also kept" in html
+
+
+def _tree_resolvers():
+    """The children macro's page parameter carries no space key anywhere in the
+    backup, so the map is keyed by bare title the way the report keys it."""
+    return Resolvers(pages={"Test Plan": ResolvedPage(id="p1", url="/w/projects/p/pages/1/", title="Test Plan")})
+
+
+@pytest.mark.unit
+class TestQueryBlockMacros:
+    @pytest.mark.parametrize(
+        "parameters,expected",
+        [
+            ("", '<query-block-component kind="tree" scope="page"></query-block-component>'),
+            (
+                '<ac:parameter ac:name="startDepth">3</ac:parameter>',
+                '<query-block-component depth="3" kind="tree" scope="page"></query-block-component>',
+            ),
+            (
+                '<ac:parameter ac:name="startDepth">500</ac:parameter>',
+                '<query-block-component depth="20" kind="tree" scope="page"></query-block-component>',
+            ),
+            (
+                '<ac:parameter ac:name="startDepth">nonsense</ac:parameter>',
+                '<query-block-component kind="tree" scope="page"></query-block-component>',
+            ),
+            (
+                '<ac:parameter ac:name="root"></ac:parameter>',
+                '<query-block-component kind="tree" scope="page"></query-block-component>',
+            ),
+        ],
+    )
+    def test_pagetree_becomes_a_tree_query(self, parameters, expected):
+        body = f'<ac:structured-macro ac:name="pagetree">{parameters}</ac:structured-macro>'
+
+        result = convert(body)
+
+        assert result.html == expected
+        assert result.is_lossless
+
+    def test_pagetree_search_box_is_downgraded(self):
+        body = (
+            '<ac:structured-macro ac:name="pagetree">'
+            '<ac:parameter ac:name="searchBox">true</ac:parameter>'
+            "</ac:structured-macro>"
+        )
+
+        result = convert(body)
+
+        assert 'kind="tree"' in result.html
+        assert result.is_lossless
+        assert result.downgraded == {"pagetree": 1}
+
+    def test_index_becomes_an_index_query(self):
+        body = '<ac:structured-macro ac:name="index"/>'
+
+        result = convert(body)
+
+        assert result.html == '<query-block-component kind="index" scope="project"></query-block-component>'
+        assert result.is_lossless
+
+    def test_children_targeting_a_resolvable_page_becomes_a_rooted_tree(self):
+        body = (
+            '<ac:structured-macro ac:name="children">'
+            '<ac:parameter ac:name="page"><ac:link><ri:page ri:content-title="Test Plan"/></ac:link>'
+            "</ac:parameter></ac:structured-macro>"
+        )
+
+        result = convert(body, _tree_resolvers())
+
+        assert result.html == (
+            '<query-block-component kind="tree" root-page-id="p1" scope="workspace"></query-block-component>'
+        )
+        assert result.is_lossless
+
+    def test_children_targeting_another_page_carries_its_depth(self):
+        body = (
+            '<ac:structured-macro ac:name="children">'
+            '<ac:parameter ac:name="page"><ac:link><ri:page ri:content-title="Test Plan"/></ac:link></ac:parameter>'
+            '<ac:parameter ac:name="all">true</ac:parameter>'
+            "</ac:structured-macro>"
+        )
+
+        result = convert(body, _tree_resolvers())
+
+        assert 'depth="20"' in result.html
+        assert result.is_lossless

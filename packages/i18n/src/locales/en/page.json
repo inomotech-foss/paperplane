@@ -159,5 +159,14 @@
     "empty_state": "No embed added yet",
     "origin_not_allowed": "This origin cannot be embedded here.",
     "iframe_title": "Embedded content"
+  },
+  "page_query_block": {
+    "loading": "Loading pages",
+    "error": "Could not load pages",
+    "unsupported": "This page list is not available yet",
+    "empty_state": {
+      "tree": "No sub-pages yet",
+      "pages": "No pages match this list"
+    }
   }
 }

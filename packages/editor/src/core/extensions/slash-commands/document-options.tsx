@@ -3,7 +3,7 @@
  * See the LICENSE file for details.
  */
 
-import { Columns2, Frame, ListTree, Network, Paperclip, Workflow } from "lucide-react";
+import { Columns2, Frame, ListFilter, ListTree, Network, Paperclip, Workflow } from "lucide-react";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
@@ -85,5 +85,16 @@ export const documentSlashCommandOptions: TSlashCommandAdditionalOption[] = [
     section: "general",
     pushAfter: "columns",
     command: ({ editor, range }) => insertAtomBlock(editor, CORE_EXTENSIONS.EMBED, range),
+  },
+  {
+    commandKey: "query-block",
+    key: "query-block",
+    title: "Page list",
+    description: "List pages by recency, title, label or sub-page.",
+    searchTerms: ["query", "list", "pages", "recent", "index", "label", "search"],
+    icon: <ListFilter className="size-3.5" />,
+    section: "general",
+    pushAfter: "embed",
+    command: ({ editor, range }) => insertAtomBlock(editor, CORE_EXTENSIONS.QUERY_BLOCK, range),
   },
 ];

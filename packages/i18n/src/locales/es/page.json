@@ -159,5 +159,14 @@
     "empty_state": "Aún no se ha incrustado nada",
     "origin_not_allowed": "Este origen no se puede incrustar aquí.",
     "iframe_title": "Contenido incrustado"
+  },
+  "page_query_block": {
+    "loading": "Cargando páginas",
+    "error": "No se pudieron cargar las páginas",
+    "unsupported": "Esta lista de páginas aún no está disponible",
+    "empty_state": {
+      "tree": "Aún no hay subpáginas",
+      "pages": "Ninguna página coincide con esta lista"
+    }
   }
 }

@@ -159,5 +159,14 @@
     "empty_state": "埋め込みはまだ追加されていません",
     "origin_not_allowed": "このオリジンはここに埋め込むことができません。",
     "iframe_title": "埋め込みコンテンツ"
+  },
+  "page_query_block": {
+    "loading": "ページを読み込んでいます",
+    "error": "ページを読み込めませんでした",
+    "unsupported": "このページ一覧はまだ利用できません",
+    "empty_state": {
+      "tree": "サブページはまだありません",
+      "pages": "この一覧に一致するページはありません"
+    }
   }
 }
