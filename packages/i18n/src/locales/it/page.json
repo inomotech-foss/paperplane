@@ -168,7 +168,8 @@
       "tree": "Nessuna sottopagina per ora",
       "pages": "Nessuna pagina corrisponde a questo elenco",
       "contributors": "Nessun collaboratore per ora",
-      "search": "Nessuna pagina corrisponde alla Sua ricerca"
+      "search": "Nessuna pagina corrisponde alla Sua ricerca",
+      "labels": "Nessuna etichetta in uso per ora"
     },
     "unknown_user": "Utente sconosciuto",
     "page_count": "{count, plural, one {# pagina} many {# pagine} other {# pagine}}",

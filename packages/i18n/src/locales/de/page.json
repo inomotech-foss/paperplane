@@ -168,7 +168,8 @@
       "tree": "Noch keine Unterseiten",
       "pages": "Keine Seiten entsprechen dieser Liste",
       "contributors": "Noch keine Mitwirkenden",
-      "search": "Keine Seiten entsprechen Ihrer Suche"
+      "search": "Keine Seiten entsprechen Ihrer Suche",
+      "labels": "Noch keine Labels in Verwendung"
     },
     "unknown_user": "Unbekannter Benutzer",
     "page_count": "{count, plural, one {# Seite} other {# Seiten}}",

@@ -24,7 +24,7 @@ import { usePageStore } from "@/hooks/store";
 import { useMember } from "@/hooks/store/use-member";
 // services
 import { PageQueryService } from "@/services/page";
-import type { TPageQueryContributor, TPageQueryResult } from "@/services/page";
+import type { TPageQueryContributor, TPageQueryLabel, TPageQueryResult } from "@/services/page";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 
@@ -190,6 +190,37 @@ const ContributorsQuery = observer(function ContributorsQuery(props: Props) {
   );
 });
 
+/** The labels in use, rather than the pages carrying them. */
+const LabelListQuery = observer(function LabelListQuery(props: Props) {
+  const { limit, page, scope } = props;
+  const { workspaceSlug } = useParams();
+  const { t } = useTranslation();
+
+  const slug = workspaceSlug?.toString();
+  const params = { kind: "label-list", scope, project_id: page.project_ids?.[0], limit };
+
+  const { data, isLoading, error } = useSWR(
+    slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
+    slug ? () => pageQueryService.query<TPageQueryLabel>(slug, params) : null
+  );
+
+  if (isLoading) return <Empty message={t("page_query_block.loading")} />;
+  if (error) return <Empty message={t("page_query_block.error")} />;
+  if (!data || data.length === 0) return <Empty message={t("page_query_block.empty_state.labels")} />;
+
+  return (
+    <Shell>
+      <div className="flex flex-wrap gap-1.5 px-2 py-1.5">
+        {data.map((label) => (
+          <span key={label.id} className="rounded-full bg-layer-1 px-2 py-0.5 text-13 text-secondary">
+            {label.name}
+          </span>
+        ))}
+      </div>
+    </Shell>
+  );
+});
+
 /**
  * A search box over pages. `page` scope searches the current page's subtree,
  * which the store can answer without a round trip because the project's pages
@@ -289,6 +320,10 @@ export const PageQueryBlock = observer(function PageQueryBlock(props: Props) {
     case "index":
     case "recent":
       return <EndpointQuery {...props} />;
+    case "by-label":
+      return <EndpointQuery {...props} />;
+    case "label-list":
+      return <LabelListQuery {...props} />;
     case "contributors":
       return <ContributorsQuery {...props} />;
     case "search":

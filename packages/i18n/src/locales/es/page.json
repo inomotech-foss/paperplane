@@ -168,7 +168,8 @@
       "tree": "Aún no hay subpáginas",
       "pages": "Ninguna página coincide con esta lista",
       "contributors": "Aún no hay colaboradores",
-      "search": "Ninguna página coincide con su búsqueda"
+      "search": "Ninguna página coincide con su búsqueda",
+      "labels": "Aún no se usa ninguna etiqueta"
     },
     "unknown_user": "Usuario desconocido",
     "page_count": "{count, plural, one {# página} other {# páginas}}",

@@ -9,7 +9,7 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from plane.db.models import FileAsset, Page, Project, User, WorkspaceMember
+from plane.db.models import FileAsset, Label, Page, PageLabel, Project, User, WorkspaceMember
 from plane.importers.confluence.backup import ConfluenceBackup
 from plane.importers.confluence.loader import ConfluenceLoader
 
@@ -300,6 +300,32 @@ class TestConfluenceImport:
         assert storage.uploaded == {}
         assert summary.attachments_skipped is True
         assert FileAsset.objects.count() == 0
+
+    def test_page_labels_are_imported_as_workspace_labels(self, workspace, create_user, backup_dir, ada):
+        """Labels live at workspace level so one label spans every space that
+        used it, which is what a cross-space label query needs."""
+        space_dir = backup_dir / "confluence" / "IMS"
+        labelled = [dict(page, labels=["runbook", "process"]) for page in PAGES[:1]] + PAGES[1:]
+        space_dir.joinpath("pages.jsonl").write_text("\n".join(json.dumps(page) for page in labelled))
+
+        ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(backup_dir, "IMS")).run()
+
+        labels = Label.objects.filter(workspace=workspace, project__isnull=True)
+        assert sorted(labels.values_list("name", flat=True)) == ["process", "runbook"]
+        assert all(label.external_source == "confluence" for label in labels)
+        page = Page.objects.get(name="Quality Processes")
+        assert PageLabel.objects.filter(page=page).count() == 2
+
+    def test_rerun_does_not_duplicate_labels(self, workspace, create_user, backup_dir, ada):
+        space_dir = backup_dir / "confluence" / "IMS"
+        labelled = [dict(page, labels=["runbook"]) for page in PAGES[:1]] + PAGES[1:]
+        space_dir.joinpath("pages.jsonl").write_text("\n".join(json.dumps(page) for page in labelled))
+
+        for _ in range(2):
+            ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(backup_dir, "IMS")).run()
+
+        assert Label.objects.filter(workspace=workspace, name="runbook").count() == 1
+        assert PageLabel.objects.filter(page__name="Quality Processes").count() == 1
 
     def test_bodies_are_sanitised(self, workspace, create_user, backup_dir, ada):
         space_dir = backup_dir / "confluence" / "IMS"

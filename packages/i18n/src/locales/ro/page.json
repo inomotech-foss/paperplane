@@ -168,7 +168,8 @@
       "tree": "Încă nu există subpagini",
       "pages": "Nicio pagină nu corespunde acestei liste",
       "contributors": "Încă nu există contribuitori",
-      "search": "Nicio pagină nu corespunde căutării dumneavoastră"
+      "search": "Nicio pagină nu corespunde căutării dumneavoastră",
+      "labels": "Încă nu se folosește nicio etichetă"
     },
     "unknown_user": "Utilizator necunoscut",
     "page_count": "{count, plural, one {# pagină} few {# pagini} other {# de pagini}}",

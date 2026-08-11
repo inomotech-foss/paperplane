@@ -98,6 +98,12 @@ A -> B
   <ac:parameter ac:name="spaceKey">OTHER</ac:parameter></ac:structured-macro>
 <ac:structured-macro ac:name="pagetreesearch"><ac:parameter ac:name="rootPage">Rooted</ac:parameter>
   </ac:structured-macro>
+<ac:structured-macro ac:name="contentbylabel"><ac:parameter ac:name="labels">runbook,process</ac:parameter>
+  <ac:parameter ac:name="max">20</ac:parameter><ac:parameter ac:name="sort">modified</ac:parameter>
+  <ac:parameter ac:name="reverse">true</ac:parameter>
+  <ac:parameter ac:name="spaces">OTHER</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="listlabels"><ac:parameter ac:name="spaceKey">OTHER</ac:parameter>
+  </ac:structured-macro>
 """
 
 IMAGE_ID = "22222222-2222-4222-8222-222222222222"

@@ -17,8 +17,10 @@ from .placeholders import (
 from .query_blocks import (
     convert_blog_posts_macro,
     convert_child_pages_macro,
+    convert_content_by_label_macro,
     convert_contributors_macro,
     convert_index_macro,
+    convert_list_labels_macro,
     convert_live_search_macro,
     convert_page_tree_macro,
     convert_page_tree_search_macro,
@@ -42,7 +44,6 @@ CALLOUT_MACROS = {
 # carried over. Recorded on the result instead of silently vanishing.
 DYNAMIC_MACROS = {
     "content-report-table",
-    "contentbylabel",
     "decisionreport",
     "detailssummary",
     "tasks-report",
@@ -275,6 +276,10 @@ def convert_structured_macros(soup, resolvers, result):
             convert_live_search_macro(soup, node)
         elif name == "pagetreesearch":
             convert_page_tree_search_macro(soup, node, resolvers)
+        elif name == "contentbylabel":
+            convert_content_by_label_macro(soup, node, result)
+        elif name == "listlabels":
+            convert_list_labels_macro(soup, node, result)
         elif name == "attachments":
             _page_attachments(soup, node)
         elif name in DIAGRAM_MACROS:

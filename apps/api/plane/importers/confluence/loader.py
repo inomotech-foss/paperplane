@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from django.conf import settings
 from django.db import transaction
 
-from plane.db.models import Page, Project, ProjectMember, ProjectPage, State, User, Workspace
+from plane.db.models import Label, Page, PageLabel, Project, ProjectMember, ProjectPage, State, User, Workspace
 from plane.db.models.state import DEFAULT_STATES
 from plane.utils.content_validator import validate_html_content
 from plane.utils.issue_type import get_or_create_default_issue_type
@@ -34,6 +34,7 @@ class ImportSummary:
     unsupported_attachments: set = field(default_factory=set)
     attachments: int = 0
     attachments_skipped: bool = False
+    labels: int = 0
     dropped_layouts: int = 0
     downgraded: Counter = field(default_factory=Counter)
     dropped_chrome: Counter = field(default_factory=Counter)
@@ -155,7 +156,44 @@ class ConfluenceLoader:
         get_or_create_default_issue_type(project)
         return project
 
+    def _upsert_labels(self, pages):
+        """Confluence labels become workspace-level labels.
+
+        ``Label`` allows a null project and enforces name uniqueness in that
+        case, so one label spans every space that used it, which is what a
+        cross-space label query needs. The uniqueness constraint also makes a
+        re-run idempotent without a lookup table.
+        """
+        names = {name for page in pages for name in page.labels}
+        if not names:
+            return {}
+
+        labels = {
+            label.name: label
+            for label in Label.objects.filter(workspace=self.workspace, project__isnull=True, name__in=names)
+        }
+        for name in sorted(names - set(labels)):
+            labels[name] = Label.objects.create(
+                workspace=self.workspace,
+                project=None,
+                name=name,
+                external_source=self.EXTERNAL_SOURCE,
+                external_id=name,
+            )
+        return labels
+
+    def _link_labels(self, record, names, labels, summary):
+        wanted = {labels[name].id for name in names if name in labels}
+        if not wanted:
+            return
+
+        linked = set(PageLabel.objects.filter(page=record).values_list("label_id", flat=True))
+        for label_id in wanted - linked:
+            PageLabel.objects.create(page=record, label_id=label_id, workspace=self.workspace)
+            summary.labels += 1
+
     def _upsert_pages(self, project, pages, users, summary):
+        labels = self._upsert_labels(pages)
         records = {}
         for page in pages:
             owner = users.get(page.author_id)
@@ -194,6 +232,7 @@ class ConfluenceLoader:
             record.parent = parent
             record.save(disable_auto_set_user=True)
             ProjectPage.objects.get_or_create(project=project, page=record, workspace=self.workspace)
+            self._link_labels(record, page.labels, labels, summary)
 
             # auto_now_add / auto_now win on save(), so the real Confluence
             # timestamps have to be written with an UPDATE.
