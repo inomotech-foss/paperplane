@@ -1033,9 +1033,10 @@ class TestInlineNodes:
         assert convert(body).html == "<p>:party_hat:</p>"
 
     def test_a_real_image_is_left_alone(self):
-        body = '<p><img src="https://example.com/images/icons/photo.png"/></p>'
+        """The path has to reach the emoticon directory, not merely look like it."""
+        body = '<p><img src="/images/icons/photo.png"/></p>'
 
-        assert "example.com" in convert(body).html
+        assert convert(body).html == body
 
     def test_time_node_becomes_its_date(self):
         assert convert('<p><time datetime="2023-02-02"/></p>').html == "<p>2023-02-02</p>"
