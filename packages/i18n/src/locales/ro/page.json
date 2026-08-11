@@ -173,6 +173,10 @@
     },
     "unknown_user": "Utilizator necunoscut",
     "page_count": "{count, plural, one {# pagină} few {# pagini} other {# de pagini}}",
-    "search_placeholder": "Căutați pagini"
+    "search_placeholder": "Căutați pagini",
+    "columns": {
+      "title": "Titlu",
+      "updated": "Ultima actualizare"
+    }
   }
 }

@@ -173,6 +173,10 @@
     },
     "unknown_user": "Người dùng không xác định",
     "page_count": "{count, plural, one {# trang} other {# trang}}",
-    "search_placeholder": "Tìm kiếm trang"
+    "search_placeholder": "Tìm kiếm trang",
+    "columns": {
+      "title": "Tiêu đề",
+      "updated": "Cập nhật lần cuối"
+    }
   }
 }

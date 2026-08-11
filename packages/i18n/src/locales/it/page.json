@@ -173,6 +173,10 @@
     },
     "unknown_user": "Utente sconosciuto",
     "page_count": "{count, plural, one {# pagina} many {# pagine} other {# pagine}}",
-    "search_placeholder": "Cerca pagine"
+    "search_placeholder": "Cerca pagine",
+    "columns": {
+      "title": "Titolo",
+      "updated": "Ultimo aggiornamento"
+    }
   }
 }

@@ -8,7 +8,15 @@
  * thing that differs between them is which pages to list. Adding a query is a
  * new kind plus a case in the host app, never a new extension.
  */
-export type TQueryBlockKind = "tree" | "index" | "recent" | "search" | "contributors" | "by-label" | "label-list";
+export type TQueryBlockKind =
+  | "tree"
+  | "index"
+  | "recent"
+  | "search"
+  | "contributors"
+  | "by-label"
+  | "label-list"
+  | "page-properties";
 
 export type TQueryBlockScope = "page" | "project" | "workspace";
 
@@ -22,6 +30,8 @@ export type TQueryBlockHandlerProps = {
   reverse: boolean;
   labels: string[];
   placeholder: string | undefined;
+  /** The property names to show as columns, in order. */
+  columns: string[];
 };
 
 /**

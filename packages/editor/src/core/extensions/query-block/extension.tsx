@@ -23,6 +23,13 @@ function optionalString(value: unknown) {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
+function commaList(value: unknown) {
+  return (optionalString(value) ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
 function QueryBlock(props: NodeViewProps) {
   const { renderComponent } = props.extension.options as TQueryBlockOptions;
   const attrs = props.node.attrs;
@@ -38,11 +45,9 @@ function QueryBlock(props: NodeViewProps) {
           limit: optionalNumber(attrs.limit),
           sort: optionalString(attrs.sort),
           reverse: attrs.reverse === "true" || attrs.reverse === true,
-          labels: (optionalString(attrs.labels) ?? "")
-            .split(",")
-            .map((label) => label.trim())
-            .filter(Boolean),
+          labels: commaList(attrs.labels),
           placeholder: optionalString(attrs.placeholder),
+          columns: commaList(attrs.columns),
         })}
       </div>
     </NodeViewWrapper>

@@ -17,6 +17,8 @@ export type TPageQueryResult = {
   updated_at: string;
   label_ids: string[];
   project_ids: string[];
+  /** Only present for the page-properties kind, keyed by requested column. */
+  properties?: Record<string, string>;
 };
 
 export type TPageQueryContributor = {
@@ -40,6 +42,7 @@ export type TPageQueryParams = {
   reverse?: string;
   scope?: string;
   search?: string;
+  columns?: string;
 };
 
 export class PageQueryService extends APIService {

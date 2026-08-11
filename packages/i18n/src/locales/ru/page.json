@@ -173,6 +173,10 @@
     },
     "unknown_user": "Неизвестный пользователь",
     "page_count": "{count, plural, one {# страница} few {# страницы} many {# страниц} other {# страницы}}",
-    "search_placeholder": "Поиск страниц"
+    "search_placeholder": "Поиск страниц",
+    "columns": {
+      "title": "Название",
+      "updated": "Последнее обновление"
+    }
   }
 }

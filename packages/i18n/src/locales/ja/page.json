@@ -173,6 +173,10 @@
     },
     "unknown_user": "不明なユーザー",
     "page_count": "{count, plural, one {#ページ} other {#ページ}}",
-    "search_placeholder": "ページを検索"
+    "search_placeholder": "ページを検索",
+    "columns": {
+      "title": "タイトル",
+      "updated": "最終更新"
+    }
   }
 }

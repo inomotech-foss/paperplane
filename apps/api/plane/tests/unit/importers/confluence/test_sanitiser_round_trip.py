@@ -104,6 +104,13 @@ A -> B
   <ac:parameter ac:name="spaces">OTHER</ac:parameter></ac:structured-macro>
 <ac:structured-macro ac:name="listlabels"><ac:parameter ac:name="spaceKey">OTHER</ac:parameter>
   </ac:structured-macro>
+<ac:structured-macro ac:name="detailssummary"><ac:parameter ac:name="label">runbook</ac:parameter>
+  <ac:parameter ac:name="headings">Owner,Status</ac:parameter>
+  <ac:parameter ac:name="sortBy">title</ac:parameter>
+  <ac:parameter ac:name="pageSize">25</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="content-report-table"><ac:parameter ac:name="labels">process</ac:parameter>
+  <ac:parameter ac:name="maxResults">30</ac:parameter>
+  <ac:parameter ac:name="sort">page created</ac:parameter></ac:structured-macro>
 """
 
 IMAGE_ID = "22222222-2222-4222-8222-222222222222"

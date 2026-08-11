@@ -173,6 +173,10 @@
     },
     "unknown_user": "未知用户",
     "page_count": "{count, plural, one {# 个页面} other {# 个页面}}",
-    "search_placeholder": "搜索页面"
+    "search_placeholder": "搜索页面",
+    "columns": {
+      "title": "标题",
+      "updated": "最后更新"
+    }
   }
 }

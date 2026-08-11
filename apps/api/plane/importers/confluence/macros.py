@@ -18,7 +18,9 @@ from .query_blocks import (
     convert_blog_posts_macro,
     convert_child_pages_macro,
     convert_content_by_label_macro,
+    convert_content_report_macro,
     convert_contributors_macro,
+    convert_details_summary_macro,
     convert_index_macro,
     convert_list_labels_macro,
     convert_live_search_macro,
@@ -43,9 +45,7 @@ CALLOUT_MACROS = {
 # Macros whose content lives entirely in Confluence's index, so nothing can be
 # carried over. Recorded on the result instead of silently vanishing.
 DYNAMIC_MACROS = {
-    "content-report-table",
     "decisionreport",
-    "detailssummary",
     "tasks-report",
     "tasks-report-macro",
 }
@@ -280,6 +280,10 @@ def convert_structured_macros(soup, resolvers, result):
             convert_content_by_label_macro(soup, node, result)
         elif name == "listlabels":
             convert_list_labels_macro(soup, node, result)
+        elif name == "detailssummary":
+            convert_details_summary_macro(soup, node, result)
+        elif name == "content-report-table":
+            convert_content_report_macro(soup, node, result)
         elif name == "attachments":
             _page_attachments(soup, node)
         elif name in DIAGRAM_MACROS:

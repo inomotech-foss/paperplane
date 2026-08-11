@@ -173,6 +173,10 @@
     },
     "unknown_user": "Невідомий користувач",
     "page_count": "{count, plural, one {# сторінка} few {# сторінки} many {# сторінок} other {# сторінки}}",
-    "search_placeholder": "Пошук сторінок"
+    "search_placeholder": "Пошук сторінок",
+    "columns": {
+      "title": "Назва",
+      "updated": "Останнє оновлення"
+    }
   }
 }

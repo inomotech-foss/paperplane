@@ -173,6 +173,10 @@
     },
     "unknown_user": "Bilinmeyen kullanıcı",
     "page_count": "{count, plural, one {# sayfa} other {# sayfa}}",
-    "search_placeholder": "Sayfalarda ara"
+    "search_placeholder": "Sayfalarda ara",
+    "columns": {
+      "title": "Başlık",
+      "updated": "Son güncelleme"
+    }
   }
 }

@@ -433,15 +433,15 @@ class TestMacros:
 
     def test_dynamic_macros_are_recorded_not_silently_dropped(self):
         body = (
-            '<ac:structured-macro ac:name="detailssummary"/>'
+            '<ac:structured-macro ac:name="decisionreport"/>'
             '<ac:structured-macro ac:name="tasks-report"/>'
-            '<ac:structured-macro ac:name="detailssummary"/>'
+            '<ac:structured-macro ac:name="decisionreport"/>'
         )
 
         result = convert(body)
 
-        assert result.unsupported_macros == {"detailssummary": 2, "tasks-report": 1}
-        assert "detailssummary" not in result.html
+        assert result.unsupported_macros == {"decisionreport": 2, "tasks-report": 1}
+        assert "decisionreport" not in result.html
 
     def test_chrome_macros_are_dropped_without_counting_as_loss(self):
         body = '<ac:structured-macro ac:name="change-history"/><ac:structured-macro ac:name="create-from-template"/>'
@@ -1337,3 +1337,92 @@ class TestQueryBlockMacros:
 
         assert result.is_lossless
         assert result.downgraded == {"listlabels": 1}
+
+    def test_detailssummary_becomes_a_property_table(self):
+        body = (
+            '<ac:structured-macro ac:name="detailssummary">'
+            '<ac:parameter ac:name="label">runbook</ac:parameter>'
+            '<ac:parameter ac:name="headings">Owner, Status</ac:parameter>'
+            '<ac:parameter ac:name="pageSize">25</ac:parameter>'
+            '<ac:parameter ac:name="sortBy">title</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == (
+            '<query-block-component columns="Owner,Status" kind="page-properties" '
+            'labels="runbook" limit="25" scope="project" sort="title"></query-block-component>'
+        )
+        assert result.is_lossless
+
+    def test_detailssummary_reads_its_labels_out_of_cql(self):
+        body = (
+            '<ac:structured-macro ac:name="detailssummary">'
+            '<ac:parameter ac:name="cql">label in ("runbook", "process")</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert 'labels="runbook,process"' in result.html
+        assert result.is_lossless
+
+    def test_detailssummary_sorted_by_date_sorts_by_modification(self):
+        body = (
+            '<ac:structured-macro ac:name="detailssummary">'
+            '<ac:parameter ac:name="sortBy">date</ac:parameter>'
+            '<ac:parameter ac:name="reverseSort">true</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert 'sort="modified"' in result.html
+        assert 'reverse="true"' in result.html
+
+    def test_detailssummary_create_button_is_chrome_not_loss(self):
+        body = (
+            '<ac:structured-macro ac:name="detailssummary">'
+            '<ac:parameter ac:name="createButtonLabel">New runbook</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.is_lossless
+        assert result.dropped_chrome == {"detailssummary": 1}
+
+    def test_content_report_table_becomes_a_property_table(self):
+        body = (
+            '<ac:structured-macro ac:name="content-report-table">'
+            '<ac:parameter ac:name="labels">process</ac:parameter>'
+            '<ac:parameter ac:name="maxResults">30</ac:parameter>'
+            '<ac:parameter ac:name="sort">page created</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == (
+            '<query-block-component kind="page-properties" labels="process" '
+            'limit="30" scope="project" sort="created"></query-block-component>'
+        )
+        assert result.is_lossless
+
+    def test_content_report_table_across_spaces_widens_to_the_workspace(self):
+        body = (
+            '<ac:structured-macro ac:name="content-report-table">'
+            '<ac:parameter ac:name="labels">process</ac:parameter>'
+            '<ac:parameter ac:name="spaces">OTHER</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert 'scope="workspace"' in result.html
+        assert result.is_lossless
+
+    def test_a_property_table_without_labels_still_converts(self):
+        """Unlike contentbylabel, these list every page in scope when no label
+        is named, so there is still something to show."""
+        body = '<ac:structured-macro ac:name="content-report-table"/>'
+
+        result = convert(body)
+
+        assert result.html == '<query-block-component kind="page-properties" scope="project"></query-block-component>'
+        assert result.is_lossless

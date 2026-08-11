@@ -173,6 +173,10 @@
       "search": "No pages match your search",
       "labels": "No labels in use yet"
     },
-    "search_placeholder": "Search pages"
+    "search_placeholder": "Search pages",
+    "columns": {
+      "title": "Title",
+      "updated": "Last updated"
+    }
   }
 }
