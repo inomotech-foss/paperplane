@@ -1258,3 +1258,82 @@ class TestQueryBlockMacros:
 
         assert 'root-page-id="p1"' in result.html
         assert result.is_lossless
+
+    def test_contentbylabel_uses_the_labels_parameter(self):
+        body = (
+            '<ac:structured-macro ac:name="contentbylabel">'
+            '<ac:parameter ac:name="labels">runbook,process</ac:parameter>'
+            '<ac:parameter ac:name="max">20</ac:parameter>'
+            '<ac:parameter ac:name="sort">modified</ac:parameter>'
+            '<ac:parameter ac:name="reverse">true</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == (
+            '<query-block-component kind="by-label" labels="runbook,process" limit="20" '
+            'reverse="true" scope="project" sort="modified"></query-block-component>'
+        )
+        assert result.is_lossless
+
+    @pytest.mark.parametrize(
+        "cql,expected",
+        [
+            ('label = "runbook"', "runbook"),
+            ("label = runbook", "runbook"),
+            ('label in ("runbook", "process")', "runbook,process"),
+        ],
+    )
+    def test_contentbylabel_reads_labels_out_of_cql(self, cql, expected):
+        body = (
+            '<ac:structured-macro ac:name="contentbylabel">'
+            f'<ac:parameter ac:name="cql">{cql}</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert f'labels="{expected}"' in result.html
+        assert result.is_lossless
+
+    def test_contentbylabel_with_extra_cql_clauses_is_downgraded(self):
+        body = (
+            '<ac:structured-macro ac:name="contentbylabel">'
+            '<ac:parameter ac:name="cql">label = "runbook" and creator = "someone"</ac:parameter>'
+            "</ac:structured-macro>"
+        )
+
+        result = convert(body)
+
+        assert 'labels="runbook"' in result.html
+        assert result.is_lossless
+        assert result.downgraded == {"contentbylabel": 1}
+
+    def test_contentbylabel_without_any_label_is_recorded(self):
+        body = (
+            '<ac:structured-macro ac:name="contentbylabel">'
+            '<ac:parameter ac:name="cql">creator = "someone"</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert "query-block-component" not in result.html
+        assert result.unsupported_macros == {"contentbylabel": 1}
+
+    def test_listlabels_becomes_a_label_list(self):
+        body = '<ac:structured-macro ac:name="listlabels"/>'
+
+        result = convert(body)
+
+        assert result.html == '<query-block-component kind="label-list" scope="project"></query-block-component>'
+        assert result.is_lossless
+
+    def test_listlabels_with_exclusions_is_downgraded(self):
+        body = (
+            '<ac:structured-macro ac:name="listlabels">'
+            '<ac:parameter ac:name="excludedLabels">draft</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.is_lossless
+        assert result.downgraded == {"listlabels": 1}

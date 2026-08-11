@@ -168,7 +168,8 @@
       "tree": "Brak podstron",
       "pages": "Żadna strona nie pasuje do tej listy",
       "contributors": "Brak współautorów",
-      "search": "Żadna strona nie pasuje do wyszukiwania"
+      "search": "Żadna strona nie pasuje do wyszukiwania",
+      "labels": "Brak używanych etykiet"
     },
     "unknown_user": "Nieznany użytkownik",
     "page_count": "{count, plural, one {# strona} few {# strony} many {# stron} other {# strony}}",

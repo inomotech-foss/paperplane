@@ -168,7 +168,8 @@
       "tree": "Belum ada subhalaman",
       "pages": "Tidak ada halaman yang cocok dengan daftar ini",
       "contributors": "Belum ada kontributor",
-      "search": "Tidak ada halaman yang cocok dengan pencarian Anda"
+      "search": "Tidak ada halaman yang cocok dengan pencarian Anda",
+      "labels": "Belum ada label yang digunakan"
     },
     "unknown_user": "Pengguna tidak dikenal",
     "page_count": "{count, plural, one {# halaman} other {# halaman}}",

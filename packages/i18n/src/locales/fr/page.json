@@ -168,7 +168,8 @@
       "tree": "Aucune sous-page pour le moment",
       "pages": "Aucune page ne correspond à cette liste",
       "contributors": "Aucun contributeur pour le moment",
-      "search": "Aucune page ne correspond à votre recherche"
+      "search": "Aucune page ne correspond à votre recherche",
+      "labels": "Aucun label utilisé pour le moment"
     },
     "unknown_user": "Utilisateur inconnu",
     "page_count": "{count, plural, one {# page} many {# pages} other {# pages}}",

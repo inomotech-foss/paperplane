@@ -168,7 +168,8 @@
       "tree": "サブページはまだありません",
       "pages": "この一覧に一致するページはありません",
       "contributors": "貢献者はまだいません",
-      "search": "検索に一致するページはありません"
+      "search": "検索に一致するページはありません",
+      "labels": "使用中のラベルはまだありません"
     },
     "unknown_user": "不明なユーザー",
     "page_count": "{count, plural, one {#ページ} other {#ページ}}",

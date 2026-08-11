@@ -168,7 +168,8 @@
       "tree": "Zatím žádné podstránky",
       "pages": "Tomuto seznamu neodpovídají žádné stránky",
       "contributors": "Zatím žádní přispěvatelé",
-      "search": "Vašemu hledání neodpovídají žádné stránky"
+      "search": "Vašemu hledání neodpovídají žádné stránky",
+      "labels": "Zatím se nepoužívají žádné štítky"
     },
     "unknown_user": "Neznámý uživatel",
     "page_count": "{count, plural, one {# stránka} few {# stránky} many {# stránky} other {# stránek}}",

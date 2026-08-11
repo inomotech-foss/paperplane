@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import re
+
 from .parameters import macro_parameter, macro_parameters
 
 # Matches MAX_QUERY_BLOCK_DEPTH in the editor's query-block extension.
@@ -138,6 +140,79 @@ def convert_blog_posts_macro(soup, node, result):
     # has no counterpart for; titles alone survive.
     if (parameters.get("content") or "").lower() == "excerpts":
         result.downgraded["blog-posts"] += 1
+
+    node.replace_with(block)
+
+
+def _labels_from_cql(cql):
+    """Pull the label names out of a CQL clause.
+
+    Only `label = "x"` and `label in ("x", "y")` are read. Anything else in the
+    query is reported by the caller rather than guessed at, because a wrong
+    filter is worse than a wide one.
+    """
+    match = re.search(r"label\s+in\s*\(([^)]*)\)", cql, re.IGNORECASE)
+    if match:
+        return [name.strip().strip("\"'") for name in match.group(1).split(",") if name.strip()]
+
+    match = re.search(r'label\s*=\s*("[^"]*"|\'[^\']*\'|\S+)', cql, re.IGNORECASE)
+    if match:
+        return [match.group(1).strip("\"'")]
+
+    return []
+
+
+def _has_other_cql_clauses(cql, labels):
+    """Whether the query filters on anything besides the labels we carried."""
+    remainder = re.sub(r"label\s+in\s*\([^)]*\)", "", cql, flags=re.IGNORECASE)
+    remainder = re.sub(r'label\s*=\s*("[^"]*"|\'[^\']*\'|\S+)', "", remainder, flags=re.IGNORECASE)
+    remainder = re.sub(r"\b(and|or)\b", "", remainder, flags=re.IGNORECASE)
+    return bool(remainder.strip()) if labels else bool(cql.strip())
+
+
+def convert_content_by_label_macro(soup, node, result):
+    """`contentbylabel` lists pages carrying a label.
+
+    The `labels` parameter is set on most uses; the rest name their labels
+    inside `cql`, which is read narrowly.
+    """
+    parameters = macro_parameters(node)
+    cql = parameters.get("cql") or ""
+
+    names = [name.strip() for name in (parameters.get("labels") or "").split(",") if name.strip()]
+    if not names and cql:
+        names = _labels_from_cql(cql)
+
+    if not names:
+        # Without a label there is nothing to query, and listing every page
+        # would be a different macro.
+        result.unsupported_macros["contentbylabel"] += 1
+        node.decompose()
+        return
+
+    block = _block(soup, "by-label", _scope_from_spaces(parameters))
+    block["labels"] = ",".join(names)
+
+    limit = _int(parameters, "max")
+    if limit:
+        block["limit"] = str(limit)
+    _sort(block, parameters)
+
+    if cql and _has_other_cql_clauses(cql, names):
+        result.downgraded["contentbylabel"] += 1
+
+    node.replace_with(block)
+
+
+def convert_list_labels_macro(soup, node, result):
+    """`listlabels` lists the labels in use rather than the pages."""
+    parameters = macro_parameters(node)
+    block = _block(soup, "label-list", "workspace" if parameters.get("spaceKey") else "project")
+
+    # The block lists every label in scope, so an exclusion list is a filter
+    # the reader loses.
+    if parameters.get("excludedLabels"):
+        result.downgraded["listlabels"] += 1
 
     node.replace_with(block)
 
