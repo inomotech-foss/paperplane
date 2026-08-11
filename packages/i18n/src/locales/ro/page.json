@@ -169,7 +169,9 @@
       "pages": "Nicio pagină nu corespunde acestei liste",
       "contributors": "Încă nu există contribuitori",
       "search": "Nicio pagină nu corespunde căutării dumneavoastră",
-      "labels": "Încă nu se folosește nicio etichetă"
+      "labels": "Încă nu se folosește nicio etichetă",
+      "tasks": "Încă nu există sarcini",
+      "decisions": "Încă nu au fost înregistrate decizii"
     },
     "unknown_user": "Utilizator necunoscut",
     "page_count": "{count, plural, one {# pagină} few {# pagini} other {# de pagini}}",

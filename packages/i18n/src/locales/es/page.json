@@ -169,7 +169,9 @@
       "pages": "Ninguna página coincide con esta lista",
       "contributors": "Aún no hay colaboradores",
       "search": "Ninguna página coincide con su búsqueda",
-      "labels": "Aún no se usa ninguna etiqueta"
+      "labels": "Aún no se usa ninguna etiqueta",
+      "tasks": "Aún no hay tareas",
+      "decisions": "Aún no se han registrado decisiones"
     },
     "unknown_user": "Usuario desconocido",
     "page_count": "{count, plural, one {# página} other {# páginas}}",

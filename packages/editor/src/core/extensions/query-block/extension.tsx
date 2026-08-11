@@ -6,7 +6,7 @@
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 // types
-import type { TQueryBlockHandler, TQueryBlockKind, TQueryBlockScope } from "@/types";
+import type { TQueryBlockHandler, TQueryBlockHandlerProps, TQueryBlockKind, TQueryBlockScope } from "@/types";
 // local imports
 import { DEFAULT_QUERY_BLOCK_KIND, DEFAULT_QUERY_BLOCK_SCOPE, QueryBlockExtensionConfig } from "./extension-config";
 
@@ -48,6 +48,7 @@ function QueryBlock(props: NodeViewProps) {
           labels: commaList(attrs.labels),
           placeholder: optionalString(attrs.placeholder),
           columns: commaList(attrs.columns),
+          status: optionalString(attrs.status) as TQueryBlockHandlerProps["status"],
         })}
       </div>
     </NodeViewWrapper>

@@ -79,6 +79,8 @@ class PageQueryEndpoint(BaseAPIView):
             "by-label": self.by_label,
             "label-list": self.label_list,
             "page-properties": self.page_properties,
+            "task-report": self.task_report,
+            "decision-report": self.decision_report,
         }.get(kind)
         if handler is None:
             return Response({"error": f"Unknown query kind '{kind}'"}, status=status.HTTP_400_BAD_REQUEST)
@@ -216,6 +218,74 @@ class PageQueryEndpoint(BaseAPIView):
         for page in pages:
             page["properties"] = properties.get(str(page["id"]), {})
         return pages
+
+    def _reported_pages(self, request, slug):
+        """The pages a task or decision report draws from.
+
+        A named root means that page and everything under it, which is what the
+        Confluence report macros mean when they name a page.
+        """
+        accessible = self.accessible_pages(request, slug)
+        names = _names(request, "labels")
+        if names:
+            labelled = PageLabel.objects.filter(page_id=OuterRef("pk"), label__name__in=names)
+            accessible = accessible.filter(Exists(labelled))
+
+        root_id = request.GET.get("root_page_id")
+        if not root_id:
+            return self.scoped(request, accessible)
+
+        ids, frontier = {str(root_id)}, [root_id]
+        for _ in range(MAX_TREE_DEPTH):
+            if not frontier:
+                break
+            level = [
+                str(page_id)
+                for page_id in accessible.filter(parent_id__in=frontier).values_list("id", flat=True)
+                if str(page_id) not in ids
+            ]
+            ids.update(level)
+            frontier = level
+        return accessible.filter(id__in=ids)
+
+    def _report(self, request, slug, kind):
+        entries = PageIndexEntry.objects.filter(kind=kind, page_id__in=self._reported_pages(request, slug).values("id"))
+        if kind == PageIndexEntry.TASK and request.GET.get("status") in {"complete", "incomplete"}:
+            entries = entries.filter(is_complete=request.GET.get("status") == "complete")
+
+        # One project per row is enough to build the link back to the page, and
+        # a page in several projects reaches the same document either way.
+        project_id = Subquery(ProjectPage.objects.filter(page_id=OuterRef("page_id")).values("project_id")[:1])
+        # Rows are grouped by the page they came from either way; only which
+        # page comes first changes.
+        order = "page__updated_at" if request.GET.get("sort") in {"modified", "created"} else "page__name"
+        if request.GET.get("reverse") == "true":
+            order = f"-{order}"
+
+        rows = (
+            entries.annotate(project_id=project_id)
+            .order_by(order, "sort_order")
+            .values("id", "value", "is_complete", "assignee_id", "due_date", "page_id", "page__name", "project_id")
+        )
+        return [
+            {
+                "id": row["id"],
+                "value": row["value"],
+                "is_complete": row["is_complete"],
+                "assignee_id": row["assignee_id"],
+                "due_date": row["due_date"],
+                "page_id": row["page_id"],
+                "page_name": row["page__name"],
+                "project_id": row["project_id"],
+            }
+            for row in rows[: _limit(request)]
+        ]
+
+    def task_report(self, request, slug):
+        return self._report(request, slug, PageIndexEntry.TASK)
+
+    def decision_report(self, request, slug):
+        return self._report(request, slug, PageIndexEntry.DECISION)
 
     def contributors(self, request, slug):
         rows = (

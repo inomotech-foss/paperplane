@@ -24,7 +24,12 @@ import { usePageStore } from "@/hooks/store";
 import { useMember } from "@/hooks/store/use-member";
 // services
 import { PageQueryService } from "@/services/page";
-import type { TPageQueryContributor, TPageQueryLabel, TPageQueryResult } from "@/services/page";
+import type {
+  TPageQueryContributor,
+  TPageQueryLabel,
+  TPageQueryReportItem,
+  TPageQueryResult,
+} from "@/services/page";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 
@@ -292,6 +297,88 @@ const PagePropertiesQuery = observer(function PagePropertiesQuery(props: Props) 
   );
 });
 
+function ReportItem(props: { item: TPageQueryReportItem; showCheckbox: boolean; workspaceSlug: string }) {
+  const { item, showCheckbox, workspaceSlug } = props;
+  const { getUserDetails } = useMember();
+
+  const assignee = item.assignee_id ? getUserDetails(item.assignee_id) : undefined;
+
+  return (
+    <div className="flex items-start gap-2 px-2 py-1.5">
+      {showCheckbox && (
+        <input
+          type="checkbox"
+          checked={item.is_complete}
+          disabled
+          // The page itself is where a task is ticked; this is a listing. The
+          // label points at the text beside it rather than repeating it, so a
+          // screen reader announces the task once with its state.
+          aria-labelledby={`task-${item.id}`}
+          className="mt-0.5 flex-shrink-0"
+        />
+      )}
+      <span id={`task-${item.id}`} className={`flex-1 text-13 ${item.is_complete ? "text-tertiary line-through" : ""}`}>
+        {item.value}
+      </span>
+      {assignee && <Avatar src={getFileURL(assignee.avatar_url ?? "")} name={assignee.display_name} />}
+      {item.due_date && <span className="flex-shrink-0 text-13 text-tertiary">{item.due_date}</span>}
+      {item.project_id && (
+        <Link
+          href={`/${workspaceSlug}/projects/${item.project_id}/pages/${item.page_id}`}
+          className="flex-shrink-0 truncate text-13 text-tertiary hover:underline"
+        >
+          {getPageName(item.page_name)}
+        </Link>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Tasks or decisions gathered from every page in scope. Both read the same
+ * index and differ only in whether an item can still be open.
+ */
+const ReportQuery = observer(function ReportQuery(props: Props) {
+  const { kind, labels, limit, page, reverse, rootPageId, scope, sort, status } = props;
+  const { workspaceSlug } = useParams();
+  const { t } = useTranslation();
+
+  const slug = workspaceSlug?.toString();
+  const params = {
+    kind,
+    scope,
+    project_id: page.project_ids?.[0],
+    root_page_id: rootPageId,
+    labels: labels.length > 0 ? labels.join(",") : undefined,
+    status,
+    limit,
+    sort,
+    reverse: reverse ? "true" : undefined,
+  };
+
+  const { data, isLoading, error } = useSWR(
+    slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
+    slug ? () => pageQueryService.query<TPageQueryReportItem>(slug, params) : null
+  );
+
+  const emptyMessage =
+    kind === "task-report" ? t("page_query_block.empty_state.tasks") : t("page_query_block.empty_state.decisions");
+
+  if (isLoading) return <Empty message={t("page_query_block.loading")} />;
+  if (error) return <Empty message={t("page_query_block.error")} />;
+  if (!data || data.length === 0) return <Empty message={emptyMessage} />;
+
+  return (
+    <Shell>
+      <div className="space-y-0.5">
+        {data.map((item) => (
+          <ReportItem key={item.id} item={item} showCheckbox={kind === "task-report"} workspaceSlug={slug ?? ""} />
+        ))}
+      </div>
+    </Shell>
+  );
+});
+
 /**
  * A search box over pages. `page` scope searches the current page's subtree,
  * which the store can answer without a round trip because the project's pages
@@ -397,6 +484,9 @@ export const PageQueryBlock = observer(function PageQueryBlock(props: Props) {
       return <LabelListQuery {...props} />;
     case "page-properties":
       return <PagePropertiesQuery {...props} />;
+    case "task-report":
+    case "decision-report":
+      return <ReportQuery {...props} />;
     case "contributors":
       return <ContributorsQuery {...props} />;
     case "search":

@@ -169,7 +169,9 @@
       "pages": "Tomuto seznamu neodpovídají žádné stránky",
       "contributors": "Zatím žádní přispěvatelé",
       "search": "Vašemu hledání neodpovídají žádné stránky",
-      "labels": "Zatím se nepoužívají žádné štítky"
+      "labels": "Zatím se nepoužívají žádné štítky",
+      "tasks": "Zatím žádné úkoly",
+      "decisions": "Zatím nebyla zaznamenána žádná rozhodnutí"
     },
     "unknown_user": "Neznámý uživatel",
     "page_count": "{count, plural, one {# stránka} few {# stránky} many {# stránky} other {# stránek}}",

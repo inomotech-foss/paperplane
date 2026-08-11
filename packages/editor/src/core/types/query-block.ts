@@ -16,7 +16,9 @@ export type TQueryBlockKind =
   | "contributors"
   | "by-label"
   | "label-list"
-  | "page-properties";
+  | "page-properties"
+  | "task-report"
+  | "decision-report";
 
 export type TQueryBlockScope = "page" | "project" | "workspace";
 
@@ -32,6 +34,8 @@ export type TQueryBlockHandlerProps = {
   placeholder: string | undefined;
   /** The property names to show as columns, in order. */
   columns: string[];
+  /** Task reports may list only the ticked or only the open items. */
+  status: "complete" | "incomplete" | undefined;
 };
 
 /**

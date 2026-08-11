@@ -171,7 +171,9 @@
       "pages": "No pages match this list",
       "contributors": "No contributors yet",
       "search": "No pages match your search",
-      "labels": "No labels in use yet"
+      "labels": "No labels in use yet",
+      "tasks": "No tasks yet",
+      "decisions": "No decisions recorded yet"
     },
     "search_placeholder": "Search pages",
     "columns": {

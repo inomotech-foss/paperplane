@@ -169,7 +169,9 @@
       "pages": "Żadna strona nie pasuje do tej listy",
       "contributors": "Brak współautorów",
       "search": "Żadna strona nie pasuje do wyszukiwania",
-      "labels": "Brak używanych etykiet"
+      "labels": "Brak używanych etykiet",
+      "tasks": "Brak zadań",
+      "decisions": "Nie zarejestrowano jeszcze żadnych decyzji"
     },
     "unknown_user": "Nieznany użytkownik",
     "page_count": "{count, plural, one {# strona} few {# strony} many {# stron} other {# strony}}",

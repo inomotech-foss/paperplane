@@ -169,7 +169,9 @@
       "pages": "Tomuto zoznamu nezodpovedajú žiadne stránky",
       "contributors": "Zatiaľ žiadni prispievatelia",
       "search": "Vášmu hľadaniu nezodpovedajú žiadne stránky",
-      "labels": "Zatiaľ sa nepoužívajú žiadne štítky"
+      "labels": "Zatiaľ sa nepoužívajú žiadne štítky",
+      "tasks": "Zatiaľ žiadne úlohy",
+      "decisions": "Zatiaľ neboli zaznamenané žiadne rozhodnutia"
     },
     "unknown_user": "Neznámy používateľ",
     "page_count": "{count, plural, one {# stránka} few {# stránky} many {# stránky} other {# stránok}}",

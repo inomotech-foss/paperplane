@@ -20,6 +20,8 @@ const KINDS = [
   "by-label",
   "label-list",
   "page-properties",
+  "task-report",
+  "decision-report",
 ];
 const SCOPES = ["page", "project", "workspace"];
 
@@ -80,6 +82,9 @@ export const QueryBlockExtensionConfig = Node.create({
         default: null,
       },
       columns: {
+        default: null,
+      },
+      status: {
         default: null,
       },
     };

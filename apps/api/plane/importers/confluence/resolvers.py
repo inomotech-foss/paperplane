@@ -51,6 +51,14 @@ class Resolvers:
             return self._pages[(space_key, title)]
         return self._pages.get(title)
 
+    def page_by_id(self, page_id):
+        """Some macros name a page by its Confluence id rather than its title.
+
+        Keyed under a tuple so a numeric id can never collide with a page
+        actually titled "100".
+        """
+        return self._pages.get(("id", str(page_id))) if page_id else None
+
     def jira_base_url(self, server_id):
         return self._jira_base_urls.get(server_id)
 

@@ -169,7 +169,9 @@
       "pages": "Không có trang nào khớp với danh sách này",
       "contributors": "Chưa có người đóng góp",
       "search": "Không có trang nào khớp với tìm kiếm của bạn",
-      "labels": "Chưa có nhãn nào được sử dụng"
+      "labels": "Chưa có nhãn nào được sử dụng",
+      "tasks": "Chưa có nhiệm vụ nào",
+      "decisions": "Chưa có quyết định nào được ghi lại"
     },
     "unknown_user": "Người dùng không xác định",
     "page_count": "{count, plural, one {# trang} other {# trang}}",

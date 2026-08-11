@@ -111,6 +111,13 @@ A -> B
 <ac:structured-macro ac:name="content-report-table"><ac:parameter ac:name="labels">process</ac:parameter>
   <ac:parameter ac:name="maxResults">30</ac:parameter>
   <ac:parameter ac:name="sort">page created</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="tasks-report-macro"><ac:parameter ac:name="status">incomplete</ac:parameter>
+  <ac:parameter ac:name="pageSize">40</ac:parameter>
+  <ac:parameter ac:name="columns">description,duedate,assignee</ac:parameter>
+  <ac:parameter ac:name="labels">runbook</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="decisionreport"><ac:parameter ac:name="cql">label = "runbook"</ac:parameter>
+  <ac:parameter ac:name="max">10</ac:parameter>
+  <ac:parameter ac:name="sort">page created</ac:parameter></ac:structured-macro>
 """
 
 IMAGE_ID = "22222222-2222-4222-8222-222222222222"

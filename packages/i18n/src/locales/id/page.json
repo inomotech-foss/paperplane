@@ -169,7 +169,9 @@
       "pages": "Tidak ada halaman yang cocok dengan daftar ini",
       "contributors": "Belum ada kontributor",
       "search": "Tidak ada halaman yang cocok dengan pencarian Anda",
-      "labels": "Belum ada label yang digunakan"
+      "labels": "Belum ada label yang digunakan",
+      "tasks": "Belum ada tugas",
+      "decisions": "Belum ada keputusan yang dicatat"
     },
     "unknown_user": "Pengguna tidak dikenal",
     "page_count": "{count, plural, one {# halaman} other {# halaman}}",
