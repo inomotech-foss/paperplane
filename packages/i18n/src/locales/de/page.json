@@ -166,7 +166,10 @@
     "unsupported": "Diese Seitenliste ist noch nicht verfügbar",
     "empty_state": {
       "tree": "Noch keine Unterseiten",
-      "pages": "Keine Seiten entsprechen dieser Liste"
-    }
+      "pages": "Keine Seiten entsprechen dieser Liste",
+      "contributors": "Noch keine Mitwirkenden"
+    },
+    "unknown_user": "Unbekannter Benutzer",
+    "page_count": "{count, plural, one {# Seite} other {# Seiten}}"
   }
 }

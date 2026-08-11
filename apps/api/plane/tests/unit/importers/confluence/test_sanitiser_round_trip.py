@@ -90,6 +90,10 @@ A -> B
 <ac:structured-macro ac:name="children"><ac:parameter ac:name="page">
   <ac:link><ri:page ri:content-title="Rooted"/></ac:link></ac:parameter>
   <ac:parameter ac:name="all">true</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="recently-updated"><ac:parameter ac:name="max">15</ac:parameter>
+  <ac:parameter ac:name="spaces">OTHER</ac:parameter></ac:structured-macro>
+<ac:structured-macro ac:name="contributors"><ac:parameter ac:name="scope">descendants</ac:parameter>
+  <ac:parameter ac:name="limit">10</ac:parameter></ac:structured-macro>
 """
 
 IMAGE_ID = "22222222-2222-4222-8222-222222222222"

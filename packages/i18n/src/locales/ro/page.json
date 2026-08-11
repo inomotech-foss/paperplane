@@ -166,7 +166,10 @@
     "unsupported": "Această listă de pagini nu este încă disponibilă",
     "empty_state": {
       "tree": "Încă nu există subpagini",
-      "pages": "Nicio pagină nu corespunde acestei liste"
-    }
+      "pages": "Nicio pagină nu corespunde acestei liste",
+      "contributors": "Încă nu există contribuitori"
+    },
+    "unknown_user": "Utilizator necunoscut",
+    "page_count": "{count, plural, one {# pagină} few {# pagini} other {# de pagini}}"
   }
 }

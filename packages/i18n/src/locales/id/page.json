@@ -166,7 +166,10 @@
     "unsupported": "Daftar halaman ini belum tersedia",
     "empty_state": {
       "tree": "Belum ada subhalaman",
-      "pages": "Tidak ada halaman yang cocok dengan daftar ini"
-    }
+      "pages": "Tidak ada halaman yang cocok dengan daftar ini",
+      "contributors": "Belum ada kontributor"
+    },
+    "unknown_user": "Pengguna tidak dikenal",
+    "page_count": "{count, plural, one {# halaman} other {# halaman}}"
   }
 }

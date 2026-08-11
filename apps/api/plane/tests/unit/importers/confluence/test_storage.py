@@ -1136,3 +1136,79 @@ class TestQueryBlockMacros:
 
         assert 'depth="20"' in result.html
         assert result.is_lossless
+
+    @pytest.mark.parametrize("name", ["recently-updated", "recently-updated-dashboard"])
+    def test_recently_updated_becomes_a_recent_query(self, name):
+        body = (
+            f'<ac:structured-macro ac:name="{name}"><ac:parameter ac:name="max">15</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == (
+            '<query-block-component kind="recent" limit="15" scope="project"></query-block-component>'
+        )
+        assert result.is_lossless
+
+    def test_recently_updated_across_spaces_widens_the_scope(self):
+        body = (
+            '<ac:structured-macro ac:name="recently-updated">'
+            '<ac:parameter ac:name="spaces">OTHER</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert 'scope="workspace"' in result.html
+        assert result.is_lossless
+
+    def test_recently_updated_with_mixed_types_is_downgraded(self):
+        body = (
+            '<ac:structured-macro ac:name="recently-updated">'
+            '<ac:parameter ac:name="types">page, comment, blogpost</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert 'kind="recent"' in result.html
+        assert result.is_lossless
+        assert result.downgraded == {"recently-updated": 1}
+
+    def test_blog_posts_becomes_a_recent_query(self):
+        body = (
+            '<ac:structured-macro ac:name="blog-posts">'
+            '<ac:parameter ac:name="max">5</ac:parameter>'
+            '<ac:parameter ac:name="content">titles</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == (
+            '<query-block-component kind="recent" limit="5" scope="project"></query-block-component>'
+        )
+        assert result.is_lossless
+        assert result.downgraded == {}
+
+    def test_blog_posts_with_excerpts_is_downgraded(self):
+        body = (
+            '<ac:structured-macro ac:name="blog-posts">'
+            '<ac:parameter ac:name="content">excerpts</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.is_lossless
+        assert result.downgraded == {"blog-posts": 1}
+
+    def test_contributors_becomes_a_contributors_query(self):
+        body = (
+            '<ac:structured-macro ac:name="contributors">'
+            '<ac:parameter ac:name="scope">descendants</ac:parameter>'
+            '<ac:parameter ac:name="limit">10</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == (
+            '<query-block-component kind="contributors" limit="10" scope="page"></query-block-component>'
+        )
+        assert result.is_lossless

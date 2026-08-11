@@ -14,7 +14,14 @@ from .placeholders import (
     convert_plantuml_macro,
     convert_requirement_macro,
 )
-from .query_blocks import convert_child_pages_macro, convert_index_macro, convert_page_tree_macro
+from .query_blocks import (
+    convert_blog_posts_macro,
+    convert_child_pages_macro,
+    convert_contributors_macro,
+    convert_index_macro,
+    convert_page_tree_macro,
+    convert_recently_updated_macro,
+)
 from .roadmap import convert_roadmap_macro
 from .tasks import task_item, task_list
 
@@ -37,10 +44,13 @@ DYNAMIC_MACROS = {
     "decisionreport",
     "detailssummary",
     "livesearch",
-    "recently-updated",
     "tasks-report",
     "tasks-report-macro",
 }
+
+# Listings of recently changed pages. The dashboard variant differs only in
+# where Confluence rendered it.
+RECENT_MACROS = {"recently-updated", "recently-updated-dashboard"}
 
 # A create-a-page button and a version table the page history replaces: no content.
 CHROME_MACROS = {"change-history", "create-from-template"}
@@ -254,6 +264,12 @@ def convert_structured_macros(soup, resolvers, result):
             convert_page_tree_macro(soup, node, result)
         elif name == "index":
             convert_index_macro(soup, node)
+        elif name in RECENT_MACROS:
+            convert_recently_updated_macro(soup, node, name, result)
+        elif name == "blog-posts":
+            convert_blog_posts_macro(soup, node, result)
+        elif name == "contributors":
+            convert_contributors_macro(soup, node)
         elif name == "attachments":
             _page_attachments(soup, node)
         elif name in DIAGRAM_MACROS:
