@@ -22,6 +22,9 @@ const envSchema = z.object({
   // Compression options
   COMPRESSION_LEVEL: z.string().default("6").transform(Number),
   COMPRESSION_THRESHOLD: z.string().default("5000").transform(Number),
+  // Request body limit. A document conversion posts a whole page of HTML, which
+  // express's 100kb default rejects outright.
+  BODY_SIZE_LIMIT: z.string().default("10mb"),
   // secret
   LIVE_SERVER_SECRET_KEY: z.string(),
   // Redis configuration
