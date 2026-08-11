@@ -62,8 +62,8 @@ export class Server {
     // Logging middleware
     this.app.use(loggerMiddleware);
     // Body parsing middleware
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(express.json({ limit: env.BODY_SIZE_LIMIT }));
+    this.app.use(express.urlencoded({ extended: true, limit: env.BODY_SIZE_LIMIT }));
     // cors middleware
     this.setupCors();
   }
