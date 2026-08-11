@@ -20,6 +20,7 @@ from .query_blocks import (
     convert_content_by_label_macro,
     convert_content_report_macro,
     convert_contributors_macro,
+    convert_decision_report_macro,
     convert_details_summary_macro,
     convert_index_macro,
     convert_list_labels_macro,
@@ -27,6 +28,7 @@ from .query_blocks import (
     convert_page_tree_macro,
     convert_page_tree_search_macro,
     convert_recently_updated_macro,
+    convert_tasks_report_macro,
 )
 from .roadmap import convert_roadmap_macro
 from .tasks import task_item, task_list
@@ -42,13 +44,9 @@ CALLOUT_MACROS = {
     "panel": ("Info", "#3f76ff"),
 }
 
-# Macros whose content lives entirely in Confluence's index, so nothing can be
-# carried over. Recorded on the result instead of silently vanishing.
-DYNAMIC_MACROS = {
-    "decisionreport",
-    "tasks-report",
-    "tasks-report-macro",
-}
+# Both spellings of the task report macro; the older one carries the same
+# parameters.
+TASK_REPORT_MACROS = {"tasks-report", "tasks-report-macro"}
 
 # Listings of recently changed pages. The dashboard variant differs only in
 # where Confluence rendered it.
@@ -284,6 +282,10 @@ def convert_structured_macros(soup, resolvers, result):
             convert_details_summary_macro(soup, node, result)
         elif name == "content-report-table":
             convert_content_report_macro(soup, node, result)
+        elif name in TASK_REPORT_MACROS:
+            convert_tasks_report_macro(soup, node, name, resolvers, result)
+        elif name == "decisionreport":
+            convert_decision_report_macro(soup, node, result)
         elif name == "attachments":
             _page_attachments(soup, node)
         elif name in DIAGRAM_MACROS:
@@ -312,9 +314,6 @@ def convert_structured_macros(soup, resolvers, result):
             _status(soup, node)
         elif name in CHROME_MACROS:
             result.dropped_chrome[name] += 1
-            node.decompose()
-        elif name in DYNAMIC_MACROS:
-            result.unsupported_macros[name] += 1
             node.decompose()
         else:
             if _rich_body(node) is None:

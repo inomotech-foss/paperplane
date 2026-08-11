@@ -169,7 +169,9 @@
       "pages": "没有页面与此列表匹配",
       "contributors": "暂无贡献者",
       "search": "没有页面与搜索匹配",
-      "labels": "暂无正在使用的标签"
+      "labels": "暂无正在使用的标签",
+      "tasks": "暂无任务",
+      "decisions": "暂无记录的决定"
     },
     "unknown_user": "未知用户",
     "page_count": "{count, plural, one {# 个页面} other {# 个页面}}",

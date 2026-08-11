@@ -169,7 +169,9 @@
       "pages": "Keine Seiten entsprechen dieser Liste",
       "contributors": "Noch keine Mitwirkenden",
       "search": "Keine Seiten entsprechen Ihrer Suche",
-      "labels": "Noch keine Labels in Verwendung"
+      "labels": "Noch keine Labels in Verwendung",
+      "tasks": "Noch keine Aufgaben",
+      "decisions": "Noch keine Entscheidungen erfasst"
     },
     "unknown_user": "Unbekannter Benutzer",
     "page_count": "{count, plural, one {# Seite} other {# Seiten}}",

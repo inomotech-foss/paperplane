@@ -77,7 +77,12 @@ def _attachment_resolvers(backup, page_id):
 
 
 def _page_resolvers(pages):
-    return {page.title: ResolvedPage(id="", url="", title=page.title) for page in pages}
+    page_map = {}
+    for page in pages:
+        resolved = ResolvedPage(id="", url="", title=page.title)
+        page_map[page.title] = resolved
+        page_map[("id", str(page.id))] = resolved
+    return page_map
 
 
 def _titles_across(root, keys):

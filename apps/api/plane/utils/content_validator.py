@@ -168,6 +168,7 @@ ATTRIBUTES = {
         "labels",
         "placeholder",
         "columns",
+        "status",
     },
     "issue-embed-component": {
         "id",

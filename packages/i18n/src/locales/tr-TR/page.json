@@ -169,7 +169,9 @@
       "pages": "Bu listeyle eşleşen sayfa yok",
       "contributors": "Henüz katkıda bulunan yok",
       "search": "Aramanızla eşleşen sayfa yok",
-      "labels": "Henüz kullanılan etiket yok"
+      "labels": "Henüz kullanılan etiket yok",
+      "tasks": "Henüz görev yok",
+      "decisions": "Henüz kaydedilmiş karar yok"
     },
     "unknown_user": "Bilinmeyen kullanıcı",
     "page_count": "{count, plural, one {# sayfa} other {# sayfa}}",

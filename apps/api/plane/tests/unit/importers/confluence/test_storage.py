@@ -431,17 +431,19 @@ class TestMacros:
 
         assert result.unsupported_macros == {"include": 1}
 
-    def test_dynamic_macros_are_recorded_not_silently_dropped(self):
+    def test_unknown_bodyless_macros_are_recorded_not_silently_dropped(self):
+        """A third-party macro with no rich-text body has nothing to unwrap, so
+        it would vanish without a trace if it were not counted."""
         body = (
-            '<ac:structured-macro ac:name="decisionreport"/>'
-            '<ac:structured-macro ac:name="tasks-report"/>'
-            '<ac:structured-macro ac:name="decisionreport"/>'
+            '<ac:structured-macro ac:name="some-vendor-widget"/>'
+            '<ac:structured-macro ac:name="another-widget"/>'
+            '<ac:structured-macro ac:name="some-vendor-widget"/>'
         )
 
         result = convert(body)
 
-        assert result.unsupported_macros == {"decisionreport": 2, "tasks-report": 1}
-        assert "decisionreport" not in result.html
+        assert result.unsupported_macros == {"some-vendor-widget": 2, "another-widget": 1}
+        assert "some-vendor-widget" not in result.html
 
     def test_chrome_macros_are_dropped_without_counting_as_loss(self):
         body = '<ac:structured-macro ac:name="change-history"/><ac:structured-macro ac:name="create-from-template"/>'
@@ -1057,6 +1059,11 @@ def _tree_resolvers():
     return Resolvers(pages={"Test Plan": ResolvedPage(id="p1", url="/w/projects/p/pages/1/", title="Test Plan")})
 
 
+def _report_resolvers():
+    """The report macros name pages by Confluence id rather than by title."""
+    return Resolvers(pages={("id", "100"): ResolvedPage(id="p1", url="/w/projects/p/pages/1/", title="Test Plan")})
+
+
 @pytest.mark.unit
 class TestQueryBlockMacros:
     @pytest.mark.parametrize(
@@ -1416,6 +1423,108 @@ class TestQueryBlockMacros:
 
         assert 'scope="workspace"' in result.html
         assert result.is_lossless
+
+    def test_tasks_report_becomes_a_task_report(self):
+        body = (
+            '<ac:structured-macro ac:name="tasks-report-macro">'
+            '<ac:parameter ac:name="status">incomplete</ac:parameter>'
+            '<ac:parameter ac:name="labels">runbook</ac:parameter>'
+            '<ac:parameter ac:name="pageSize">40</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == (
+            '<query-block-component kind="task-report" labels="runbook" '
+            'limit="40" scope="project" status="incomplete"></query-block-component>'
+        )
+        assert result.is_lossless
+
+    def test_the_older_tasks_report_spelling_converts_too(self):
+        result = convert('<ac:structured-macro ac:name="tasks-report"/>')
+
+        assert result.html == '<query-block-component kind="task-report" scope="project"></query-block-component>'
+        assert result.is_lossless
+
+    def test_tasks_report_roots_itself_on_the_page_it_names(self):
+        body = (
+            '<ac:structured-macro ac:name="tasks-report-macro">'
+            '<ac:parameter ac:name="pages">100</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body, _report_resolvers())
+
+        assert 'root-page-id="p1"' in result.html
+        assert 'scope="page"' in result.html
+        assert result.is_lossless
+
+    def test_tasks_report_naming_several_pages_keeps_the_first(self):
+        body = (
+            '<ac:structured-macro ac:name="tasks-report-macro">'
+            '<ac:parameter ac:name="pages">100,200</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body, _report_resolvers())
+
+        assert 'root-page-id="p1"' in result.html
+        assert result.downgraded == {"tasks-report-macro": 1}
+        assert result.is_lossless
+
+    def test_tasks_report_missing_parameters_flag_is_chrome(self):
+        """The flag records that the macro browser was never filled in, which
+        is an authoring artifact rather than content."""
+        body = (
+            '<ac:structured-macro ac:name="tasks-report-macro">'
+            '<ac:parameter ac:name="isMissingRequiredParameters">true</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert "query-block-component" in result.html
+        assert result.is_lossless
+        assert result.dropped_chrome == {"tasks-report-macro": 1}
+
+    def test_decisionreport_becomes_a_decision_report(self):
+        body = (
+            '<ac:structured-macro ac:name="decisionreport">'
+            '<ac:parameter ac:name="cql">label = "runbook"</ac:parameter>'
+            '<ac:parameter ac:name="max">10</ac:parameter>'
+            '<ac:parameter ac:name="sort">page created</ac:parameter></ac:structured-macro>'
+        )
+
+        result = convert(body)
+
+        assert result.html == (
+            '<query-block-component kind="decision-report" labels="runbook" '
+            'limit="10" scope="project" sort="created"></query-block-component>'
+        )
+        assert result.is_lossless
+
+    def test_decisionreport_across_spaces_widens_to_the_workspace(self):
+        body = (
+            '<ac:structured-macro ac:name="decisionreport">'
+            '<ac:parameter ac:name="cql">space = "OTHER" and label = "runbook"</ac:parameter>'
+            "</ac:structured-macro>"
+        )
+
+        result = convert(body)
+
+        assert 'scope="workspace"' in result.html
+        # The space clause is honoured by the scope, so it is not a downgrade.
+        assert result.downgraded == {}
+        assert result.is_lossless
+
+    def test_decisionreport_with_an_unsupported_cql_clause_is_downgraded(self):
+        body = (
+            '<ac:structured-macro ac:name="decisionreport">'
+            '<ac:parameter ac:name="cql">label = "runbook" and creator = "someone"</ac:parameter>'
+            "</ac:structured-macro>"
+        )
+
+        result = convert(body)
+
+        assert result.is_lossless
+        assert result.downgraded == {"decisionreport": 1}
 
     def test_a_property_table_without_labels_still_converts(self):
         """Unlike contentbylabel, these list every page in scope when no label

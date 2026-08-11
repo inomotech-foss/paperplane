@@ -320,6 +320,74 @@ class TestPageQueryKinds:
 
         assert response.data["results"] == []
 
+    def test_task_report_gathers_tasks_from_every_page(self, session_client, workspace, project, create_user):
+        first = make_page(workspace, project, create_user, "Alpha")
+        second = make_page(workspace, project, create_user, "Beta")
+        make_index_entry(workspace, first, create_user, "", "Ship it", kind=PageIndexEntry.TASK)
+        make_index_entry(workspace, second, create_user, "", "Write it", kind=PageIndexEntry.TASK)
+
+        response = session_client.get(URL.format(slug=workspace.slug), {"kind": "task-report"})
+
+        assert [row["value"] for row in response.data["results"]] == ["Ship it", "Write it"]
+        assert response.data["results"][0]["page_name"] == "Alpha"
+        assert response.data["results"][0]["project_id"] == project.id
+
+    def test_task_report_filters_by_status(self, session_client, workspace, project, create_user):
+        page = make_page(workspace, project, create_user, "Alpha")
+        PageIndexEntry.objects.create(
+            workspace=workspace, page=page, kind=PageIndexEntry.TASK, value="Done", is_complete=True
+        )
+        PageIndexEntry.objects.create(
+            workspace=workspace, page=page, kind=PageIndexEntry.TASK, value="Open", is_complete=False, sort_order=1
+        )
+
+        response = session_client.get(URL.format(slug=workspace.slug), {"kind": "task-report", "status": "incomplete"})
+
+        assert [row["value"] for row in response.data["results"]] == ["Open"]
+
+    def test_task_report_rooted_on_a_page_covers_its_subtree(self, session_client, workspace, project, create_user):
+        root = make_page(workspace, project, create_user, "Root")
+        child = make_page(workspace, project, create_user, "Child", parent=root)
+        outside = make_page(workspace, project, create_user, "Elsewhere")
+        make_index_entry(workspace, root, create_user, "", "On the root", kind=PageIndexEntry.TASK)
+        make_index_entry(workspace, child, create_user, "", "On the child", kind=PageIndexEntry.TASK)
+        make_index_entry(workspace, outside, create_user, "", "Not included", kind=PageIndexEntry.TASK)
+
+        response = session_client.get(
+            URL.format(slug=workspace.slug), {"kind": "task-report", "root_page_id": str(root.id)}
+        )
+
+        assert sorted(row["value"] for row in response.data["results"]) == ["On the child", "On the root"]
+
+    def test_task_report_never_returns_decisions(self, session_client, workspace, project, create_user):
+        page = make_page(workspace, project, create_user, "Alpha")
+        make_index_entry(workspace, page, create_user, "", "A task", kind=PageIndexEntry.TASK)
+        make_index_entry(workspace, page, create_user, "", "A decision", kind=PageIndexEntry.DECISION, sort_order=1)
+
+        response = session_client.get(URL.format(slug=workspace.slug), {"kind": "task-report"})
+
+        assert [row["value"] for row in response.data["results"]] == ["A task"]
+
+    def test_decision_report_gathers_decisions(self, session_client, workspace, project, create_user):
+        page = make_page(workspace, project, create_user, "Alpha")
+        make_index_entry(workspace, page, create_user, "", "Use the boring option", kind=PageIndexEntry.DECISION)
+
+        response = session_client.get(URL.format(slug=workspace.slug), {"kind": "decision-report"})
+
+        assert [row["value"] for row in response.data["results"]] == ["Use the boring option"]
+
+    def test_a_report_never_reaches_a_page_the_caller_cannot_read(
+        self, session_client, workspace, project, create_user, other_user
+    ):
+        WorkspaceMember.objects.create(workspace=workspace, member=other_user, role=15)
+        foreign_project = make_project(workspace, other_user, "Beta", "BETA")
+        foreign = make_page(workspace, foreign_project, other_user, "Foreign")
+        make_index_entry(workspace, foreign, other_user, "", "Secret task", kind=PageIndexEntry.TASK)
+
+        response = session_client.get(URL.format(slug=workspace.slug), {"kind": "task-report"})
+
+        assert response.data["results"] == []
+
     def test_scope_project_limits_to_one_project(self, session_client, workspace, project, create_user):
         other = make_project(workspace, create_user, "Beta", "BETA")
         mine = make_page(workspace, project, create_user, "In Alpha")

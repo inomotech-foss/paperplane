@@ -21,6 +21,18 @@ export type TPageQueryResult = {
   properties?: Record<string, string>;
 };
 
+/** A task or a decision, with the page it was found on. */
+export type TPageQueryReportItem = {
+  id: string;
+  value: string;
+  is_complete: boolean;
+  assignee_id: string | null;
+  due_date: string | null;
+  page_id: string;
+  page_name: string;
+  project_id: string | null;
+};
+
 export type TPageQueryContributor = {
   user_id: string;
   page_count: number;
@@ -43,6 +55,7 @@ export type TPageQueryParams = {
   scope?: string;
   search?: string;
   columns?: string;
+  status?: string;
 };
 
 export class PageQueryService extends APIService {

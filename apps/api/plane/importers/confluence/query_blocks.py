@@ -168,6 +168,12 @@ def _labels_from_cql(cql):
     return []
 
 
+def _strip_space_clauses(cql):
+    """Drop the space filters, which the block honours by widening its scope."""
+    cql = re.sub(r"space\s+in\s*\([^)]*\)", "", cql, flags=re.IGNORECASE)
+    return re.sub(r'space\s*=\s*("[^"]*"|\'[^\']*\'|\S+)', "", cql, flags=re.IGNORECASE)
+
+
 def _has_other_cql_clauses(cql, labels):
     """Whether the query filters on anything besides the labels we carried."""
     remainder = re.sub(r"label\s+in\s*\([^)]*\)", "", cql, flags=re.IGNORECASE)
@@ -331,6 +337,79 @@ def convert_content_report_macro(soup, node, result):
         result.dropped_chrome["content-report-table"] += 1
     if any(parameters.get(name) for name in ("showLikesCount", "showCommentsCount")):
         result.downgraded["content-report-table"] += 1
+
+    node.replace_with(block)
+
+
+TASK_STATUS_VALUES = {"complete": "complete", "incomplete": "incomplete"}
+
+
+def convert_tasks_report_macro(soup, node, macro_name, resolvers, result):
+    """`tasks-report-macro` lists tasks from across a set of pages.
+
+    `isMissingRequiredParameters` is set on most uses in the backup, which means
+    the macro was saved without filling in the macro browser and Confluence
+    renders a parameter error rather than a list. That is an authoring artifact
+    rather than content, and the flag is never cleared once set, so the filters
+    that are present are used regardless.
+    """
+    parameters = macro_parameters(node)
+    block = _block(soup, "task-report", _scope_from_spaces(parameters))
+
+    # `pages` names Confluence page ids. A single id roots the report on that
+    # page; the three uses that name several keep only the first.
+    ids = [entry.strip() for entry in (parameters.get("pages") or "").split(",") if entry.strip()]
+    if ids:
+        page = resolvers.page_by_id(ids[0])
+        if page is not None:
+            block["root-page-id"] = page.id
+            block["scope"] = "page"
+        if len(ids) > 1:
+            result.downgraded[macro_name] += 1
+
+    names = _labels_parameter(parameters)
+    if names:
+        block["labels"] = ",".join(names)
+
+    status = TASK_STATUS_VALUES.get((parameters.get("status") or "").lower())
+    if status:
+        block["status"] = status
+
+    limit = _int(parameters, "pageSize")
+    if limit:
+        block["limit"] = str(limit)
+    _columns(block, parameters, "columns")
+    _sort(block, {"sort": parameters.get("sortBy"), "reverse": parameters.get("reverseSort")})
+
+    # An assignee filter needs a Confluence account the block cannot resolve to
+    # a column of its own, and every use in the backup leaves it empty anyway.
+    if parameters.get("assignees") or parameters.get("createddateFrom"):
+        result.downgraded[macro_name] += 1
+    if parameters.get("isMissingRequiredParameters"):
+        result.dropped_chrome[macro_name] += 1
+
+    node.replace_with(block)
+
+
+def convert_decision_report_macro(soup, node, result):
+    """`decisionreport` lists the decisions recorded across a set of pages."""
+    parameters = macro_parameters(node)
+    cql = parameters.get("cql") or ""
+    block = _block(soup, "decision-report", "workspace" if "space" in cql.lower() else "project")
+
+    names = _labels_from_cql(cql)
+    if names:
+        block["labels"] = ",".join(names)
+
+    limit = _int(parameters, "max")
+    if limit:
+        block["limit"] = str(limit)
+    _sort(block, parameters)
+
+    # The CQL grammar reaches further than the block's filters do, so anything
+    # past the labels is reported rather than silently narrowed.
+    if cql and _has_other_cql_clauses(_strip_space_clauses(cql), names):
+        result.downgraded["decisionreport"] += 1
 
     node.replace_with(block)
 

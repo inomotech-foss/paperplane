@@ -296,6 +296,8 @@ class ConfluenceLoader:
         ):
             resolved = self._resolved(link.page.id, link.project_id, link.page.name)
             page_map[link.page.name] = resolved
+            if link.page.external_id:
+                page_map[("id", link.page.external_id)] = resolved
             space_key = space_keys_by_project.get(link.project_id)
             if space_key:
                 page_map[(space_key, link.page.name)] = resolved
@@ -309,6 +311,7 @@ class ConfluenceLoader:
             # no space means the page next to it.
             page_map[page.title] = resolved
             page_map[(self.backup.space_key, page.title)] = resolved
+            page_map[("id", str(page.id))] = resolved
 
         return page_map
 

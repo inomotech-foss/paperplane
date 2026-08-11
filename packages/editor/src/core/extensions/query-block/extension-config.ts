@@ -11,7 +11,18 @@ export const DEFAULT_QUERY_BLOCK_KIND = "recent";
 export const DEFAULT_QUERY_BLOCK_SCOPE = "page";
 export const MAX_QUERY_BLOCK_DEPTH = 20;
 
-const KINDS = ["tree", "index", "recent", "search", "contributors", "by-label", "label-list", "page-properties"];
+const KINDS = [
+  "tree",
+  "index",
+  "recent",
+  "search",
+  "contributors",
+  "by-label",
+  "label-list",
+  "page-properties",
+  "task-report",
+  "decision-report",
+];
 const SCOPES = ["page", "project", "workspace"];
 
 function pick(value: string | null, allowed: string[], fallback: string) {
@@ -71,6 +82,9 @@ export const QueryBlockExtensionConfig = Node.create({
         default: null,
       },
       columns: {
+        default: null,
+      },
+      status: {
         default: null,
       },
     };
