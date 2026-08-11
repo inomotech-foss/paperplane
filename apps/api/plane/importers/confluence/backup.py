@@ -30,6 +30,11 @@ def parse_timestamp(value):
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
+def _label_name(label):
+    # The export writes {"id", "name", "prefix"} objects, not bare names.
+    return (label.get("name") if isinstance(label, dict) else label) or ""
+
+
 def _page_from_record(record):
     version = record.get("version") or {}
     parent_id = record.get("parentId")
@@ -43,7 +48,7 @@ def _page_from_record(record):
         created_at=parse_timestamp(record.get("createdAt")),
         updated_at=parse_timestamp(version.get("createdAt")) or parse_timestamp(record.get("createdAt")),
         version=int(version.get("number") or 1),
-        labels=[label for label in record.get("labels") or [] if label],
+        labels=[name for name in map(_label_name, record.get("labels") or []) if name],
     )
 
 
