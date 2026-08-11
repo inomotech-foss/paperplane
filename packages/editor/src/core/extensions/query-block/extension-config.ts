@@ -11,16 +11,7 @@ export const DEFAULT_QUERY_BLOCK_KIND = "recent";
 export const DEFAULT_QUERY_BLOCK_SCOPE = "page";
 export const MAX_QUERY_BLOCK_DEPTH = 20;
 
-const KINDS = [
-  "tree",
-  "index",
-  "recent",
-  "search",
-  "contributors",
-  "by-label",
-  "label-list",
-  "page-properties",
-];
+const KINDS = ["tree", "index", "recent", "search", "contributors", "by-label", "label-list", "page-properties"];
 const SCOPES = ["page", "project", "workspace"];
 
 function pick(value: string | null, allowed: string[], fallback: string) {
