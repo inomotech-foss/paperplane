@@ -16,15 +16,39 @@ def _strip_invalid(value):
     return _WHITESPACE.sub(" ", _INVALID_NAME_CHARS.sub(" ", value or "")).strip()
 
 
-def project_name(space_name, space_key, prefix="Wiki"):
-    """A Plane-valid project name for a Confluence space.
+def project_name(space_name, space_key, prefix="Wiki", taken=()):
+    """A Plane-valid, collision-free project name for a Confluence space.
 
     Falls back to the space key when the name is entirely made of characters
     the name rule rejects, so the project stays identifiable.
     """
     base = _strip_invalid(space_name) or _strip_invalid(space_key)
     candidate = f"{prefix} {base}".strip() if prefix else base
-    return candidate if base and Project.is_valid_name(candidate) else f"{prefix} {space_key}".strip()
+    if not (base and Project.is_valid_name(candidate)):
+        candidate = f"{prefix} {space_key}".strip()
+    return _free_name(candidate, space_key, taken)
+
+
+def _free_name(candidate, space_key, taken):
+    """Two spaces can share a display name, and the name is unique per workspace.
+
+    The space key is what tells them apart, so it disambiguates before a
+    meaningless counter does.
+    """
+    taken = {value.casefold() for value in taken}
+    if candidate.casefold() not in taken:
+        return candidate
+
+    keyed = _strip_invalid(f"{candidate} ({space_key})")
+    if keyed and keyed.casefold() not in taken and Project.is_valid_name(keyed):
+        return keyed
+
+    for suffix in range(2, 1000):
+        numbered = f"{candidate} {suffix}"
+        if numbered.casefold() not in taken:
+            return numbered
+
+    raise ValueError(f"No free project name for space {space_key!r}")
 
 
 def project_identifier(space_key, taken):
