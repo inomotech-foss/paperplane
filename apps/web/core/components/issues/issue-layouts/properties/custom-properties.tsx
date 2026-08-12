@@ -28,21 +28,20 @@ export const useFormatCustomPropertyValue = () => {
     if (value === null || value === undefined || value === "") return undefined;
     switch (property.property_type) {
       case "OPTION": {
-        const option = property.options.find((candidate) => candidate.id === value);
-        return option?.name;
-      }
-      case "MULTI_OPTION": {
+        if (!property.is_multi) {
+          return property.options.find((candidate) => candidate.id === value)?.name;
+        }
         if (!Array.isArray(value) || value.length === 0) return undefined;
         const names = value
           .map((optionId) => property.options.find((candidate) => candidate.id === optionId)?.name)
           .filter((name): name is string => !!name);
         return names.length > 0 ? names.join(", ") : undefined;
       }
-      case "DATE":
+      case "DATETIME":
         return typeof value === "string" ? renderFormattedDate(value) || undefined : undefined;
       case "BOOLEAN":
         return value === true ? t("common.yes") : t("common.no");
-      case "USER":
+      case "RELATION":
         return typeof value === "string" ? getUserDetails(value)?.display_name : undefined;
       default:
         return String(value);

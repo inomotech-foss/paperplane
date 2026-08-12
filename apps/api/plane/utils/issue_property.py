@@ -29,10 +29,7 @@ from plane.db.models import (
 )
 
 
-OPTION_PROPERTY_TYPES = [
-    PropertyTypeChoices.OPTION,
-    PropertyTypeChoices.MULTI_OPTION,
-]
+OPTION_PROPERTY_TYPES = [PropertyTypeChoices.OPTION]
 
 TRUE_VALUES = {"true", "1", "yes"}
 FALSE_VALUES = {"false", "0", "no"}
@@ -117,16 +114,16 @@ def value_to_json(value):
     if property_type in OPTION_PROPERTY_TYPES:
         json_value = str(value.value_option_id) if value.value_option_id else None
         display = value.value_option.name if value.value_option_id else None
-    elif property_type == PropertyTypeChoices.NUMBER:
+    elif property_type == PropertyTypeChoices.DECIMAL:
         json_value = number_to_json(value.value_number)
         display = json_value
-    elif property_type == PropertyTypeChoices.DATE:
+    elif property_type == PropertyTypeChoices.DATETIME:
         json_value = value.value_date.isoformat() if value.value_date else None
         display = json_value
     elif property_type == PropertyTypeChoices.BOOLEAN:
         json_value = value.value_boolean
         display = value.value_boolean
-    elif property_type == PropertyTypeChoices.USER:
+    elif property_type == PropertyTypeChoices.RELATION:
         json_value = str(value.value_user_id) if value.value_user_id else None
         display = value.value_user.display_name if value.value_user_id else None
     else:
@@ -143,7 +140,7 @@ def build_value_maps(queryset):
     for value in queryset:
         property_id = str(value.property_id)
         json_value, json_display = value_to_json(value)
-        if value.property.property_type == PropertyTypeChoices.MULTI_OPTION:
+        if value.property.is_multi_option:
             values.setdefault(property_id, [])
             display.setdefault(property_id, [])
             if value.value_option_id:
@@ -163,7 +160,7 @@ def build_bulk_value_map(queryset):
         issue_values = result.setdefault(str(value.issue_id), {})
         property_id = str(value.property_id)
         json_value, _ = value_to_json(value)
-        if value.property.property_type == PropertyTypeChoices.MULTI_OPTION:
+        if value.property.is_multi_option:
             issue_values.setdefault(property_id, [])
             if value.value_option_id:
                 issue_values[property_id].append(json_value)
@@ -186,7 +183,7 @@ def build_value_rows(issue, property_obj, raw):
         return []
 
     property_type = property_obj.property_type
-    if property_type == PropertyTypeChoices.MULTI_OPTION:
+    if property_obj.is_multi_option:
         raw_values = raw if isinstance(raw, list) else [raw]
         options = []
         for raw_value in raw_values:
@@ -196,17 +193,17 @@ def build_value_rows(issue, property_obj, raw):
         return [IssuePropertyValue(**base, value_option=option) for option in options]
 
     if isinstance(raw, list):
-        raise ValueError("A list of values is only allowed for MULTI_OPTION properties")
+        raise ValueError("A list of values is only allowed for multi-select properties")
 
     if property_type == PropertyTypeChoices.OPTION:
         return [IssuePropertyValue(**base, value_option=resolve_option(property_obj, raw))]
-    if property_type == PropertyTypeChoices.NUMBER:
+    if property_type == PropertyTypeChoices.DECIMAL:
         return [IssuePropertyValue(**base, value_number=parse_number(raw))]
-    if property_type == PropertyTypeChoices.DATE:
+    if property_type == PropertyTypeChoices.DATETIME:
         return [IssuePropertyValue(**base, value_date=parse_datetime_value(raw))]
     if property_type == PropertyTypeChoices.BOOLEAN:
         return [IssuePropertyValue(**base, value_boolean=parse_boolean(raw))]
-    if property_type == PropertyTypeChoices.USER:
+    if property_type == PropertyTypeChoices.RELATION:
         try:
             user_id = uuid.UUID(str(raw))
         except ValueError:
@@ -336,18 +333,18 @@ def build_issue_property_filters(query_params, slug, project_id):
         }
         try:
             if operator in ("gt", "lt"):
-                if property_obj.property_type != PropertyTypeChoices.NUMBER:
-                    return None, f"'__{operator}' filters are only supported for NUMBER properties"
+                if property_obj.property_type != PropertyTypeChoices.DECIMAL:
+                    return None, f"'__{operator}' filters are only supported for DECIMAL properties"
                 filter_kwargs[f"property_values__value_number__{operator}"] = parse_number(raw)
-            elif property_obj.property_type == PropertyTypeChoices.NUMBER:
+            elif property_obj.property_type == PropertyTypeChoices.DECIMAL:
                 filter_kwargs["property_values__value_number"] = parse_number(raw)
             elif property_obj.property_type in OPTION_PROPERTY_TYPES:
                 filter_kwargs["property_values__value_option_id"] = resolve_option(property_obj, raw).id
             elif property_obj.property_type == PropertyTypeChoices.BOOLEAN:
                 filter_kwargs["property_values__value_boolean"] = parse_boolean(raw)
-            elif property_obj.property_type == PropertyTypeChoices.DATE:
+            elif property_obj.property_type == PropertyTypeChoices.DATETIME:
                 filter_kwargs["property_values__value_date"] = parse_datetime_value(raw)
-            elif property_obj.property_type == PropertyTypeChoices.USER:
+            elif property_obj.property_type == PropertyTypeChoices.RELATION:
                 filter_kwargs["property_values__value_user_id"] = str(uuid.UUID(str(raw)))
             else:
                 filter_kwargs["property_values__value_text"] = raw
@@ -396,15 +393,15 @@ def _parse_condition_scalar(property_obj, raw):
     `property_values` relation.
     """
     property_type = property_obj.property_type
-    if property_type == PropertyTypeChoices.NUMBER:
+    if property_type == PropertyTypeChoices.DECIMAL:
         return "value_number", parse_number(raw)
     if property_type in OPTION_PROPERTY_TYPES:
         return "value_option_id", resolve_option(property_obj, raw).id
     if property_type == PropertyTypeChoices.BOOLEAN:
         return "value_boolean", parse_boolean(raw)
-    if property_type == PropertyTypeChoices.DATE:
+    if property_type == PropertyTypeChoices.DATETIME:
         return "value_date", parse_datetime_value(raw)
-    if property_type == PropertyTypeChoices.USER:
+    if property_type == PropertyTypeChoices.RELATION:
         try:
             return "value_user_id", str(uuid.UUID(str(raw)))
         except (ValueError, TypeError):
@@ -418,7 +415,7 @@ def build_custom_property_condition_q(property_obj, operator, raw):
     """Build a Q object for a single custom property filter condition.
 
     Supported operators: `exact`, `in` (list of values), `gt` / `lt`
-    (NUMBER only) and `range` (NUMBER or DATE, two values).
+    (DECIMAL only) and `range` (DECIMAL or DATETIME, two values).
     Raises ValueError on invalid operator/value combinations.
     """
     base_kwargs = {
@@ -427,8 +424,8 @@ def build_custom_property_condition_q(property_obj, operator, raw):
     }
 
     if operator in ("gt", "lt"):
-        if property_obj.property_type != PropertyTypeChoices.NUMBER:
-            raise ValueError(f"'{operator}' filters are only supported for NUMBER properties")
+        if property_obj.property_type != PropertyTypeChoices.DECIMAL:
+            raise ValueError(f"'{operator}' filters are only supported for DECIMAL properties")
         base_kwargs[f"property_values__value_number__{operator}"] = parse_number(raw)
         return Q(**base_kwargs)
 
@@ -436,12 +433,12 @@ def build_custom_property_condition_q(property_obj, operator, raw):
         values = raw if isinstance(raw, (list, tuple)) else None
         if not values or len(values) != 2:
             raise ValueError("'range' filters expect a list of two values")
-        if property_obj.property_type == PropertyTypeChoices.NUMBER:
+        if property_obj.property_type == PropertyTypeChoices.DECIMAL:
             base_kwargs["property_values__value_number__range"] = (
                 parse_number(values[0]),
                 parse_number(values[1]),
             )
-        elif property_obj.property_type == PropertyTypeChoices.DATE:
+        elif property_obj.property_type == PropertyTypeChoices.DATETIME:
             start = parse_datetime_value(values[0])
             end = parse_datetime_value(values[1])
             # Make a date-only upper bound inclusive of the whole day
@@ -449,7 +446,7 @@ def build_custom_property_condition_q(property_obj, operator, raw):
                 end = end + timedelta(days=1) - timedelta(microseconds=1)
             base_kwargs["property_values__value_date__range"] = (start, end)
         else:
-            raise ValueError("'range' filters are only supported for NUMBER and DATE properties")
+            raise ValueError("'range' filters are only supported for DECIMAL and DATETIME properties")
         return Q(**base_kwargs)
 
     if operator == "in":
@@ -465,7 +462,7 @@ def build_custom_property_condition_q(property_obj, operator, raw):
         return Q(**base_kwargs)
 
     # exact
-    if property_obj.property_type == PropertyTypeChoices.DATE and isinstance(raw, str) and len(raw) <= 10:
+    if property_obj.property_type == PropertyTypeChoices.DATETIME and isinstance(raw, str) and len(raw) <= 10:
         # Date-only equality matches the whole day
         start = parse_datetime_value(raw)
         end = start + timedelta(days=1) - timedelta(microseconds=1)

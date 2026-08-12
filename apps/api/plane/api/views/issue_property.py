@@ -67,7 +67,7 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
     @issue_property_docs(
         operation_id="create_issue_property",
         summary="Create work item property",
-        description="Create a typed custom property (work item property) for a project. For OPTION and MULTI_OPTION properties, options can be created inline through the `options` field.",  # noqa: E501
+        description="Create a typed custom property (work item property) for a project. For OPTION properties, options can be created inline through the `options` field.",  # noqa: E501
         request=OpenApiRequest(request=IssuePropertySerializer),
         responses={
             201: OpenApiResponse(
@@ -82,7 +82,7 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
 
         Create a typed custom property for a project. Accepts an optional
         `options` list `[{name, sort_order?, is_default?}]` to create options
-        inline for OPTION / MULTI_OPTION property types. Supports external ID
+        inline for OPTION property types. Supports external ID
         tracking for integration purposes; a duplicate external id returns 409.
         """
         options = request.data.get("options", [])
@@ -90,7 +90,7 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
 
         if options and property_type not in OPTION_PROPERTY_TYPES:
             return Response(
-                {"error": "Options can only be provided for OPTION or MULTI_OPTION properties"},
+                {"error": "Options can only be provided for OPTION properties"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if options and (
@@ -336,7 +336,7 @@ class IssuePropertyOptionListCreateAPIEndpoint(BaseAPIView):
     @issue_property_docs(
         operation_id="create_issue_property_option",
         summary="Create work item property option",
-        description="Create an option for an OPTION or MULTI_OPTION work item property.",
+        description="Create an option for an OPTION work item property.",
         request=OpenApiRequest(request=IssuePropertyOptionSerializer),
         responses={
             201: OpenApiResponse(
@@ -349,14 +349,14 @@ class IssuePropertyOptionListCreateAPIEndpoint(BaseAPIView):
     def post(self, request, slug, project_id, property_id):
         """Create work item property option
 
-        Create an option for an OPTION or MULTI_OPTION work item property.
+        Create an option for an OPTION work item property.
         Supports external ID tracking for integration purposes; a duplicate
         external id returns 409.
         """
         issue_property = IssueProperty.objects.get(workspace__slug=slug, project_id=project_id, pk=property_id)
         if issue_property.property_type not in OPTION_PROPERTY_TYPES:
             return Response(
-                {"error": "Options can only be created for OPTION or MULTI_OPTION properties"},
+                {"error": "Options can only be created for OPTION properties"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
@@ -569,7 +569,7 @@ class IssuePropertyValueAPIEndpoint(BaseAPIView):
 
         Returns `{"values": {property_id: value(s)}, "display": {property_id: display}}`.
         Option values are returned as option ids in `values` and as option
-        names in `display`. MULTI_OPTION values are lists.
+        names in `display`. Multi-select values are lists.
         """
         # Ensure the work item exists in the project
         Issue.issue_objects.get(pk=work_item_id, project_id=project_id, workspace__slug=slug)
@@ -590,8 +590,8 @@ class IssuePropertyValueAPIEndpoint(BaseAPIView):
         """Bulk replace work item property values
 
         Body: `{"<property_id>": <scalar or list>}`. Values are validated
-        against the property type (NUMBER must be numeric, OPTION accepts an
-        option id or option name, MULTI_OPTION accepts a list, DATE accepts
+        against the property type (DECIMAL must be numeric, OPTION accepts an
+        option id or option name, a multi-select accepts a list, DATETIME accepts
         ISO 8601, BOOLEAN accepts booleans, USER accepts a workspace member
         id). Existing values of the listed properties are deleted and
         replaced; other properties are left untouched. `null` clears a

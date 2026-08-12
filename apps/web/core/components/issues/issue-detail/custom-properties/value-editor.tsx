@@ -80,7 +80,7 @@ export function CustomPropertyValueEditor(props: TCustomPropertyValueEditorProps
           disabled={disabled}
         />
       );
-    case "NUMBER":
+    case "DECIMAL":
       return (
         <CustomPropertyInput
           type="number"
@@ -94,7 +94,15 @@ export function CustomPropertyValueEditor(props: TCustomPropertyValueEditorProps
         />
       );
     case "OPTION":
-      return (
+      return property.is_multi ? (
+        <CustomPropertyOptionSelect
+          property={property}
+          value={Array.isArray(value) ? value : []}
+          onChange={(selected) => onChange(selected)}
+          multiple
+          disabled={disabled}
+        />
+      ) : (
         <CustomPropertyOptionSelect
           property={property}
           value={typeof value === "string" ? value : null}
@@ -103,17 +111,7 @@ export function CustomPropertyValueEditor(props: TCustomPropertyValueEditorProps
           disabled={disabled}
         />
       );
-    case "MULTI_OPTION":
-      return (
-        <CustomPropertyOptionSelect
-          property={property}
-          value={Array.isArray(value) ? value : []}
-          onChange={(selected) => onChange(selected)}
-          multiple
-          disabled={disabled}
-        />
-      );
-    case "DATE":
+    case "DATETIME":
       return (
         <DateDropdown
           value={typeof value === "string" ? value : null}
@@ -132,7 +130,7 @@ export function CustomPropertyValueEditor(props: TCustomPropertyValueEditorProps
           <ToggleSwitch value={value === true} onChange={(next) => onChange(next)} disabled={disabled} size="sm" />
         </div>
       );
-    case "USER":
+    case "RELATION":
       return (
         <MemberDropdown
           value={typeof value === "string" ? value : null}

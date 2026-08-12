@@ -14,7 +14,7 @@ class IssuePropertyOptionSerializer(BaseSerializer):
     """
     Serializer for issue property options.
 
-    Options are the selectable values for OPTION and MULTI_OPTION issue
+    Options are the selectable values for OPTION issue
     properties. Uniqueness of the option name is enforced per property.
     """
 
@@ -39,7 +39,7 @@ class IssuePropertySerializer(BaseSerializer):
     Serializer for issue properties (work item custom fields).
 
     Includes the nested read-only list of options. On create, options for
-    OPTION / MULTI_OPTION properties can be supplied inline through the
+    OPTION properties can be supplied inline through the
     `options` field handled by the view.
     """
 
@@ -85,7 +85,7 @@ class IssuePropertyValueRequestSerializer(serializers.Serializer):
     Request body for the bulk property-value replace endpoint.
 
     The body is a mapping of property id to a scalar value (or a list of
-    values for MULTI_OPTION properties), e.g.
+    values for multi-select properties), e.g.
     `{"<property_id>": 500000, "<other_property_id>": ["CONNECT"]}`.
     """
 

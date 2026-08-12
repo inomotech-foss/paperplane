@@ -15,6 +15,7 @@ from plane.db.models import (
     Project,
     ProjectIssueType,
     ProjectMember,
+    PropertyRelationTypeChoices,
     PropertyTypeChoices,
     State,
 )
@@ -69,7 +70,7 @@ def number_property(db, project, create_user):
     return IssueProperty.objects.create(
         name="Total Amount",
         display_name="Total Amount",
-        property_type=PropertyTypeChoices.NUMBER,
+        property_type=PropertyTypeChoices.DECIMAL,
         project=project,
         workspace=project.workspace,
         created_by=create_user,
@@ -106,11 +107,12 @@ def option_property(db, project, create_user):
 
 @pytest.fixture
 def multi_option_property(db, project, create_user):
-    """Create a MULTI_OPTION work item property with options"""
+    """Create a multi-select work item property with options"""
     issue_property = IssueProperty.objects.create(
         name="Regions",
         display_name="Regions",
-        property_type=PropertyTypeChoices.MULTI_OPTION,
+        property_type=PropertyTypeChoices.OPTION,
+        is_multi=True,
         project=project,
         workspace=project.workspace,
         created_by=create_user,
@@ -156,14 +158,14 @@ class TestIssuePropertyCRUD:
     def test_create_number_property(self, api_key_client, workspace, project):
         response = api_key_client.post(
             property_url(workspace.slug, project.id),
-            {"name": "Total Amount", "property_type": "NUMBER"},
+            {"name": "Total Amount", "property_type": "DECIMAL"},
             format="json",
         )
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["name"] == "Total Amount"
         assert response.data["display_name"] == "Total Amount"
-        assert response.data["property_type"] == "NUMBER"
+        assert response.data["property_type"] == "DECIMAL"
         assert IssueProperty.objects.count() == 1
 
     @pytest.mark.django_db
@@ -193,7 +195,7 @@ class TestIssuePropertyCRUD:
             property_url(workspace.slug, project.id),
             {
                 "name": "Total Amount",
-                "property_type": "NUMBER",
+                "property_type": "DECIMAL",
                 "options": [{"name": "CONNECT"}],
             },
             format="json",
@@ -216,7 +218,7 @@ class TestIssuePropertyCRUD:
     def test_create_property_duplicate_name(self, api_key_client, workspace, project, number_property):
         response = api_key_client.post(
             property_url(workspace.slug, project.id),
-            {"name": "Total Amount", "property_type": "NUMBER"},
+            {"name": "Total Amount", "property_type": "DECIMAL"},
             format="json",
         )
 
@@ -226,7 +228,7 @@ class TestIssuePropertyCRUD:
     def test_create_property_duplicate_external_id(self, api_key_client, workspace, project):
         payload = {
             "name": "Total Amount",
-            "property_type": "NUMBER",
+            "property_type": "DECIMAL",
             "external_id": "jira-10001",
             "external_source": "jira",
         }
@@ -440,7 +442,7 @@ class TestIssuePropertyValues:
         date_property = IssueProperty.objects.create(
             name="Due Diligence Date",
             display_name="Due Diligence Date",
-            property_type=PropertyTypeChoices.DATE,
+            property_type=PropertyTypeChoices.DATETIME,
             project=project,
             workspace=project.workspace,
         )
@@ -509,7 +511,7 @@ class TestIssuePropertyValues:
     def test_put_invalid_boolean_and_date_rejected(self, api_key_client, workspace, project, issue):
         date_property = IssueProperty.objects.create(
             name="Due Date",
-            property_type=PropertyTypeChoices.DATE,
+            property_type=PropertyTypeChoices.DATETIME,
             project=project,
             workspace=project.workspace,
         )
@@ -541,7 +543,8 @@ class TestIssuePropertyValues:
     def test_put_user_value(self, api_key_client, workspace, project, issue, create_user):
         user_property = IssueProperty.objects.create(
             name="Account Manager",
-            property_type=PropertyTypeChoices.USER,
+            property_type=PropertyTypeChoices.RELATION,
+            relation_type=PropertyRelationTypeChoices.USER,
             project=project,
             workspace=project.workspace,
         )

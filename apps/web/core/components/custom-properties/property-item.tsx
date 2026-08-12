@@ -37,7 +37,7 @@ export const CustomPropertyItem = observer(function CustomPropertyItem(props: TC
   const [isEditing, setIsEditing] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   // derived values
-  const hasOptions = property.property_type === "OPTION" || property.property_type === "MULTI_OPTION";
+  const hasOptions = property.property_type === "OPTION";
   const sortedOptions = sortBy(property.options, "sort_order");
 
   const handleToggleActive = async (isActive: boolean) => {

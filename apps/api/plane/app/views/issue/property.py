@@ -86,7 +86,7 @@ class IssuePropertyViewSet(BaseViewSet):
 
         if options and property_type not in OPTION_PROPERTY_TYPES:
             return Response(
-                {"error": "Options can only be provided for OPTION or MULTI_OPTION properties"},
+                {"error": "Options can only be provided for OPTION properties"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if options and (
@@ -146,7 +146,7 @@ class IssuePropertyViewSet(BaseViewSet):
 
 
 class IssuePropertyOptionViewSet(BaseViewSet):
-    """CRUD for the options of an OPTION / MULTI_OPTION work item property."""
+    """CRUD for the options of an OPTION work item property."""
 
     serializer_class = IssuePropertyOptionSerializer
     model = IssuePropertyOption
@@ -174,7 +174,7 @@ class IssuePropertyOptionViewSet(BaseViewSet):
         issue_property = IssueProperty.objects.get(workspace__slug=slug, project_id=project_id, pk=property_id)
         if issue_property.property_type not in OPTION_PROPERTY_TYPES:
             return Response(
-                {"error": "Options can only be created for OPTION or MULTI_OPTION properties"},
+                {"error": "Options can only be created for OPTION properties"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
