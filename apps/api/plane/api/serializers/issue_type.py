@@ -19,6 +19,16 @@ class IssueTypeSerializer(BaseSerializer):
     update (rejected with a 400).
     """
 
+    project_ids = serializers.SerializerMethodField()
+
+    def get_project_ids(self, obj):
+        """Projects this type is enabled for.
+
+        Reads `project_issue_types` off the instance, so callers listing many
+        types must prefetch it.
+        """
+        return [str(link.project_id) for link in obj.project_issue_types.all()]
+
     def validate(self, data):
         # `is_epic` is declared read_only so DRF silently drops it from the
         # validated data; check the raw payload instead so attempts to
@@ -37,6 +47,7 @@ class IssueTypeSerializer(BaseSerializer):
         read_only_fields = [
             "id",
             "workspace",
+            "project_ids",
             "is_epic",
             "created_by",
             "updated_by",
