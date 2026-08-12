@@ -123,7 +123,7 @@ def register_work_item_type_tools(mcp: FastMCP) -> None:
 
         Matching is exact (case-sensitive, whitespace-stripped); an existing type is never duplicated.
 
-        Prefer this over manually combining get_workspace_features, list_work_item_types,
+        Prefer this over manually combining list_work_item_types,
         create_work_item_type, and import_work_item_types_to_project — it does all of
         that deterministically.
 
@@ -137,35 +137,10 @@ def register_work_item_type_tools(mcp: FastMCP) -> None:
         client, workspace_slug = get_plane_client_context()
         target = name.strip()
 
-        workspace_features = client.workspaces.get_features(workspace_slug=workspace_slug)
-        workspace_owns_types = bool(workspace_features.model_dump().get("work_item_types"))
-
-        if workspace_owns_types:
-            in_project = next(
-                (t for t in client.work_item_types.list(workspace_slug=workspace_slug, project_id=project_id) if (t.name or "").strip() == target),
-                None,
-            )
-            if in_project is not None:
-                return in_project
-            at_workspace = next(
-                (t for t in client.workspace_work_item_types.list(workspace_slug=workspace_slug) if (t.name or "").strip() == target),
-                None,
-            )
-            if at_workspace is None:
-                at_workspace = client.workspace_work_item_types.create(
-                    workspace_slug=workspace_slug, data=CreateWorkItemType(name=name)
-                )
-            client.work_item_types.import_to_project(
-                workspace_slug=workspace_slug,
-                project_id=project_id,
-                work_item_type_ids=[at_workspace.id],
-            )
-            return at_workspace
-
-        # Mode B — types are per-project; enable the feature if needed, then find or create.
-        project_features = client.projects.get_features(
-            workspace_slug=workspace_slug, project_id=project_id
-        )
+        # Types belong to the workspace here and are linked into projects, so
+        # there is only one shape to handle. The project-level switch still
+        # gates whether they are usable.
+        project_features = client.projects.get_features(workspace_slug=workspace_slug, project_id=project_id)
         if not project_features.model_dump().get("work_item_types"):
             client.projects.update_features(
                 workspace_slug=workspace_slug,
@@ -173,17 +148,35 @@ def register_work_item_type_tools(mcp: FastMCP) -> None:
                 data=ProjectFeature(work_item_types=True),
             )
 
-        existing = next(
-            (t for t in client.work_item_types.list(workspace_slug=workspace_slug, project_id=project_id) if (t.name or "").strip() == target),
+        in_project = next(
+            (
+                t
+                for t in client.work_item_types.list(workspace_slug=workspace_slug, project_id=project_id)
+                if (t.name or "").strip() == target
+            ),
             None,
         )
-        if existing is None:
-            existing = client.work_item_types.create(
-                workspace_slug=workspace_slug,
-                project_id=project_id,
-                data=CreateWorkItemType(name=name),
+        if in_project is not None:
+            return in_project
+
+        at_workspace = next(
+            (
+                t
+                for t in client.workspace_work_item_types.list(workspace_slug=workspace_slug)
+                if (t.name or "").strip() == target
+            ),
+            None,
+        )
+        if at_workspace is None:
+            at_workspace = client.workspace_work_item_types.create(
+                workspace_slug=workspace_slug, data=CreateWorkItemType(name=name)
             )
-        return existing
+        client.work_item_types.import_to_project(
+            workspace_slug=workspace_slug,
+            project_id=project_id,
+            work_item_type_ids=[at_workspace.id],
+        )
+        return at_workspace
 
     @mcp.tool()
     def retrieve_work_item_type(

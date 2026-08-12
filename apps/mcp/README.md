@@ -167,7 +167,9 @@ export LOG_USER_INFO="true"
 
 ## Available Tools
 
-The server provides comprehensive tools for interacting with Plane. All tools use Pydantic models from the Plane SDK for type safety and validation.
+The server provides tools for interacting with Plane. All tools use Pydantic models from the Plane SDK for type safety and validation.
+
+Tools for features this fork does not have have been removed, so everything listed here reaches a real endpoint. PQL filtering is not supported; use the query parameters each list tool takes.
 
 ### Projects
 
@@ -178,7 +180,6 @@ The server provides comprehensive tools for interacting with Plane. All tools us
 | `retrieve_project` | Retrieve a project by ID |
 | `update_project` | Update a project with partial data |
 | `delete_project` | Delete a project by ID |
-| `get_project_worklog_summary` | Get work log summary for a project |
 | `get_project_members` | Get all members of a project |
 | `update_project_features` | Update features configuration of a project |
 
@@ -312,17 +313,15 @@ The server provides comprehensive tools for interacting with Plane. All tools us
 
 | Tool Name | Description |
 |-----------|-------------|
-| `list_pages` | List pages (workspace, or a project's if `project_id` given) |
-| `retrieve_page` | Retrieve a page by ID (workspace, or project's if `project_id` given) |
-| `create_page` | Create a workspace or project page |
+| `list_pages` | List the pages of a project |
+| `retrieve_page` | Retrieve a page by ID |
+| `create_page` | Create a page in a project |
 
 ### Workspaces
 
 | Tool Name | Description |
 |-----------|-------------|
 | `get_workspace_members` | Get all members of the current workspace |
-| `get_features` | Get feature flags (workspace, or a project's if `project_id` given) |
-| `update_workspace_features` | Update features of the current workspace |
 
 ### Users
 
