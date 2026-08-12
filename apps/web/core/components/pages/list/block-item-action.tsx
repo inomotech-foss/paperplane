@@ -79,6 +79,8 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
         optionsOrder={[
           "open-in-new-tab",
           "copy-link",
+          "add-sub-page",
+          "move",
           "make-a-copy",
           "toggle-lock",
           "toggle-access",

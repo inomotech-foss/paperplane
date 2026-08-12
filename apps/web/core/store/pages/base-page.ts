@@ -29,6 +29,7 @@ export type TBasePage = TPage & {
   cleanup: () => void;
   // actions
   update: (pageData: Partial<TPage>) => Promise<Partial<TPage> | undefined>;
+  changeParent: (parentId: string | null) => Promise<void>;
   updateTitle: (title: string) => void;
   updateDescription: (document: TDocumentPayload) => Promise<void>;
   makePublic: (params: { shouldSync?: boolean }) => Promise<void>;
@@ -177,6 +178,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       isCurrentUserOwner: computed,
       // actions
       update: action,
+      changeParent: action,
       updateTitle: action,
       updateDescription: action,
       makePublic: action,
@@ -291,6 +293,26 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
           const currentPageKey = key as keyof TPage;
           set(this, key, currentPage?.[currentPageKey] || undefined);
         });
+      });
+      throw error;
+    }
+  };
+
+  /**
+   * @description move the page under a new parent (or to the root when null)
+   * @param {string | null} parentId
+   */
+  changeParent = async (parentId: string | null) => {
+    const previousParentId = this.parent ?? null;
+    if (parentId === previousParentId) return;
+    runInAction(() => {
+      this.parent = parentId;
+    });
+    try {
+      await this.services.update({ parent: parentId });
+    } catch (error) {
+      runInAction(() => {
+        this.parent = previousParentId;
       });
       throw error;
     }
