@@ -7,12 +7,26 @@ from rest_framework.permissions import SAFE_METHODS
 
 from plane.db.models import ApplicationInstallation
 
+# Routes reachable by an OAuth token without naming a workspace. All of them are
+# scoped to the requesting user. Anything else must carry a workspace slug, so a
+# new route is refused until someone decides which of the two it is.
+WORKSPACELESS_VIEWS = frozenset(
+    {
+        "users",
+        "user-assets",
+        "user-assets-detail",
+        "user-server-assets",
+        "user-server-assets-detail",
+        "oauth-app-installation",
+    }
+)
+
 
 class OAuthBearerAuthentication(OAuth2Authentication):
     """Authenticate an OAuth bearer token within its granted workspaces.
 
-    The workspace comes from the URL rather than from the client. Routes without
-    one, such as users/me, are not scoped.
+    The workspace comes from the URL rather than from the client, and a route
+    that names no workspace is refused unless it is in WORKSPACELESS_VIEWS.
     """
 
     def authenticate(self, request):
@@ -30,8 +44,11 @@ class OAuthBearerAuthentication(OAuth2Authentication):
 
         resolver_match = getattr(request, "resolver_match", None)
         slug = resolver_match.kwargs.get("slug") if resolver_match else None
-        if slug and not self.is_installed(user, token, slug):
-            raise AuthenticationFailed("This authorization does not cover the requested workspace")
+        if slug:
+            if not self.is_installed(user, token, slug):
+                raise AuthenticationFailed("This authorization does not cover the requested workspace")
+        elif not resolver_match or resolver_match.url_name not in WORKSPACELESS_VIEWS:
+            raise AuthenticationFailed("This route is not available to OAuth tokens")
         return user, token
 
     def is_installed(self, user, token, slug):

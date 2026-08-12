@@ -336,3 +336,46 @@ class TestOAuthScopes:
         response = api_key_client.get("/api/v1/users/me/")
 
         assert response.status_code == 200
+
+
+@pytest.mark.unit
+class TestWorkspacelessRoutesFailClosed:
+    @pytest.mark.django_db
+    def test_every_v1_route_carries_a_slug_or_is_allowlisted(self):
+        # The scoping guarantee holds only because every v1 route names its
+        # workspace. A new one that does not must be a deliberate addition to
+        # WORKSPACELESS_VIEWS, not a silent exemption.
+        from django.urls import get_resolver
+        from django.urls.resolvers import URLResolver
+
+        from plane.api.middleware.oauth_authentication import WORKSPACELESS_VIEWS
+
+        patterns = []
+
+        def walk(resolver, prefix=""):
+            for entry in resolver.url_patterns:
+                if isinstance(entry, URLResolver):
+                    walk(entry, prefix + str(entry.pattern))
+                else:
+                    patterns.append((prefix + str(entry.pattern), entry.name))
+
+        walk(get_resolver())
+
+        unscoped = [
+            (pattern, name)
+            for pattern, name in patterns
+            if pattern.startswith("api/v1/") and "<str:slug>" not in pattern and name not in WORKSPACELESS_VIEWS
+        ]
+
+        assert unscoped == []
+
+    @pytest.mark.django_db
+    def test_a_route_outside_the_allowlist_is_refused(self, bearer_client, monkeypatch):
+        from plane.api.middleware import oauth_authentication
+
+        # users/me is only reachable because it is allowlisted.
+        monkeypatch.setattr(oauth_authentication, "WORKSPACELESS_VIEWS", frozenset())
+
+        response = bearer_client.get("/api/v1/users/me/")
+
+        assert response.status_code == 403
