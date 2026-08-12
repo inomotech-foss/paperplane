@@ -51,6 +51,10 @@ Three factory functions (`get_oauth_mcp`, `get_header_mcp`, `get_stdio_mcp`) eac
 
 `get_plane_client_context()` returns a `PlaneClientContext(client, workspace_slug)` namedtuple. It resolves credentials from the MCP request context (OAuth token or header API key) or from environment variables (stdio mode). Prefers `PLANE_INTERNAL_BASE_URL` for server-to-server calls.
 
+### Workspace Selection (`workspace.py`, `middleware.py`)
+
+An OAuth token is installed in every workspace the user ticked on the consent screen. `WorkspaceSelectionMiddleware` advertises a `workspace_slug` argument on every tool once there are two or more, then strips it from the call and puts it in a ContextVar that `get_plane_client_context()` reads. Tools therefore take no workspace argument of their own.
+
 ### Authentication (`auth/`)
 
 - `PlaneOAuthProvider` — Full OAuth flow with token verification against the Plane API.

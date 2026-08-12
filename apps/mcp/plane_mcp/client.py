@@ -8,6 +8,8 @@ from fastmcp.server.dependencies import get_access_token
 from fastmcp.utilities.logging import get_logger
 from plane import PlaneClient
 
+from plane_mcp.workspace import selected_workspace_slug
+
 logger = get_logger(__name__)
 
 
@@ -26,6 +28,10 @@ def get_plane_client_context() -> PlaneClientContext:
     1. Environment variables (PLANE_API_KEY + PLANE_WORKSPACE_SLUG)
     2. HTTP headers (x-api-key + x-workspace-slug)
     3. OAuth access token
+
+    The workspace comes from the token unless the caller picked one for this
+    call, which it must do when the token grants several. See
+    plane_mcp.workspace.
 
     Environment variables:
     - PLANE_INTERNAL_BASE_URL: Internal URL for Plane API (preferred for server-to-server calls)
@@ -49,7 +55,7 @@ def get_plane_client_context() -> PlaneClientContext:
         # Determine authentication method to use appropriate PlaneClient constructor
         auth_method = stored_access_token.claims.get("auth_method", "oauth")
         token = stored_access_token.token
-        workspace_slug = stored_access_token.claims.get("workspace_slug", "")
+        workspace_slug = stored_access_token.claims.get("workspace_slug") or ""
 
         # For API key auth methods, use api_key parameter; for OAuth, use access_token
         if auth_method in ("api_key_env", "api_key_header"):
@@ -70,5 +76,5 @@ def get_plane_client_context() -> PlaneClientContext:
 
     return PlaneClientContext(
         client=client,
-        workspace_slug=workspace_slug,
+        workspace_slug=selected_workspace_slug() or workspace_slug,
     )
