@@ -85,6 +85,7 @@ from .issue_property import (
     IssuePropertyDetailAPIEndpoint,
     IssuePropertyOptionListCreateAPIEndpoint,
     IssuePropertyOptionDetailAPIEndpoint,
+    IssuePropertySingleValueAPIEndpoint,
     IssuePropertyValueAPIEndpoint,
 )
 

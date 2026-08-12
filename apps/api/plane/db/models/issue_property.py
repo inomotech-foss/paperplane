@@ -178,6 +178,8 @@ class IssuePropertyValue(ProjectBaseModel):
         blank=True,
         related_name="+",
     )
+    external_source = models.CharField(max_length=255, null=True, blank=True)
+    external_id = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         unique_together = ["issue", "property", "value_option", "deleted_at"]
