@@ -2,11 +2,11 @@
 # See the LICENSE file for details.
 
 """
-Unit tests for OAuthBearerAuthentication and the app-installation endpoint.
+Unit tests for the OAuth provider: bearer authentication, consent, and the
+app-installation endpoint.
 
-The guarantee under test is that an OAuth token only reaches the workspaces its
-holder picked on the consent screen. The workspace comes from the URL, so a
-client cannot widen its own access by asking for a different slug.
+The guarantee under test is that a token only reaches the workspaces its holder
+selected on the consent screen.
 """
 
 from datetime import timedelta
@@ -74,8 +74,7 @@ class TestOAuthBearerAuthentication:
 
         response = bearer_client.get(f"/api/v1/workspaces/{workspace.slug}/projects/")
 
-        # 403 rather than 401: the token is valid, so re-authenticating with the
-        # same grant changes nothing. The user has to consent for this workspace.
+        # 403 not 401: the token is valid, it just does not cover this workspace.
         assert response.status_code == 403
 
     @pytest.mark.django_db
@@ -192,8 +191,7 @@ class TestConsent:
         make_workspace("dropped")
         consent(consent_client, oauth_application, ["kept", "dropped"])
 
-        # Re-consenting with a narrower selection has to shrink the grant, not
-        # leave the old workspace behind.
+        # A narrower selection must shrink the grant.
         consent(consent_client, oauth_application, ["kept"])
 
         assert set(
@@ -206,8 +204,8 @@ class TestConsent:
     ):
         make_workspace("nope")
 
-        # A redirect_uri the application was never registered with fails the
-        # authorization; DOT returns an error response rather than raising.
+        # An unregistered redirect_uri fails authorization; DOT returns an error
+        # response rather than raising.
         response = consent_client.post(
             "/auth/o/authorize-app/",
             {
@@ -245,8 +243,8 @@ AUTHORIZE_URL = (
 class TestConsentSignInRedirect:
     @pytest.mark.django_db
     def test_the_full_authorize_url_would_not_survive_the_round_trip(self):
-        # Why the session handoff exists: an encoded redirect_uri contains %2F%2F,
-        # which the shared next_path validator rejects outright.
+        # Why the session handoff exists: validate_next_path rejects the %2F%2F
+        # in an encoded redirect_uri.
         assert validate_next_path(AUTHORIZE_URL) == ""
 
     @pytest.mark.django_db
@@ -284,7 +282,7 @@ class TestConsentSignInRedirect:
         client.force_login(create_user)
         client.get("/auth/o/resume-authorize/")
 
-        # The pending path is popped, so a replay cannot re-drive consent.
+        # The path is popped, so a replay cannot re-drive consent.
         response = client.get("/auth/o/resume-authorize/")
 
         assert "/auth/o/" not in response["Location"]

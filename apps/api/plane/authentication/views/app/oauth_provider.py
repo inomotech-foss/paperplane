@@ -27,11 +27,10 @@ def member_workspaces(user):
 
 
 def authorization_succeeded(response):
-    """Whether the authorization response actually carries a grant.
+    """Whether the response carries a grant rather than an OAuth error.
 
-    django-oauth-toolkit returns an error response instead of raising, and that
-    error is itself usually a redirect back to the client, so the type of the
-    response says nothing. Only the absence of an OAuth error does.
+    django-oauth-toolkit returns errors instead of raising, and an error is
+    usually a redirect too, so the response type cannot be used.
     """
     location = response.headers.get("Location") if hasattr(response, "headers") else None
     if not location:
@@ -43,29 +42,25 @@ def authorization_succeeded(response):
 class AuthorizeAppView(AuthorizationView):
     """Consent screen for an OAuth application.
 
-    This runs in the browser against a normal Plane session, so whatever sign-in
-    the instance is configured for applies here, SSO included. The user picks the
-    workspaces the application may act in, and those become the installations
-    that bound every token issued from this grant.
+    Runs against a normal browser session, so the instance's configured sign-in
+    applies, SSO included. Selected workspaces become the installations that
+    bound every token issued from this grant.
     """
 
     template_name = "oauth/authorize_app.html"
 
     def handle_no_permission(self):
-        # Sign-in happens in the web app, which round-trips the return path through
-        # next_path. A full authorize URL does not survive that trip: the shared
-        # validator rejects the %2F%2F inside an encoded redirect_uri, and the
-        # redirect builder re-joins parts on & without encoding, so everything
-        # after the first parameter is lost. Send a bare path instead and keep the
-        # real one in the session, which login() carries over via cycle_key().
+        # A full authorize URL does not survive the web app's next_path round trip:
+        # validate_next_path rejects the %2F%2F in an encoded redirect_uri, and
+        # get_safe_redirect_url joins parts on & without encoding. Send a bare path
+        # and keep the real one in the session, which login() preserves.
         self.request.session[AUTHORIZE_PATH_SESSION_KEY] = self.request.get_full_path()
         resume_path = reverse("oauth-resume-authorize")
         return redirect(f"{base_host(self.request, is_app=True)}/?{urlencode({'next_path': resume_path})}")
 
     def get(self, request, *args, **kwargs):
-        # approval_prompt=auto lets a client reissue a token without showing the
-        # consent screen. That screen is the only place the workspace selection is
-        # made, so it is not the client's to skip.
+        # approval_prompt=auto would skip the consent screen, which is where the
+        # workspace selection is made.
         if request.GET.get("approval_prompt") != "force":
             params = request.GET.copy()
             params["approval_prompt"] = "force"
@@ -80,9 +75,8 @@ class AuthorizeAppView(AuthorizationView):
                 context.get("application") or self.application_from_form(context.get("form"))
             )
         )
-        # Re-rendering after a validation error goes through FormView, which does
-        # not carry the application through, and a consent screen that cannot name
-        # what it is granting is worse than useless.
+        # form_invalid re-renders through FormView, which does not pass the
+        # application through.
         if not context.get("application"):
             context["application"] = self.application_from_form(context.get("form"))
         return context
@@ -113,14 +107,13 @@ class AuthorizeAppView(AuthorizationView):
 
         response = super().form_valid(form)
         if not authorization_succeeded(response):
-            # No grant was issued, so record nothing. Otherwise a rejected attempt
-            # would leave installations behind and widen the next successful one.
+            # No grant issued. Recording installations here would widen the next
+            # successful authorization.
             return response
 
         application = get_application_model().objects.get(client_id=form.cleaned_data["client_id"])
         with transaction.atomic():
-            # Reconcile rather than append: unticking a workspace has to revoke it,
-            # or the screen is lying about what the user is granting.
+            # Reconcile rather than append, so unticking a workspace revokes it.
             ApplicationInstallation.objects.filter(user=self.request.user, application=application).exclude(
                 workspace__in=workspaces
             ).delete()
@@ -132,29 +125,24 @@ class AuthorizeAppView(AuthorizationView):
 
 
 class ResumeAuthorizeAppView(View):
-    """Send a freshly signed-in user back to the consent screen they came from.
+    """Return a signed-in user to the consent screen.
 
-    The web app can only hand back a bare path, so the authorize query is picked
-    up from the session here rather than from the URL.
+    The web app can only hand back a bare path, so the authorize query comes
+    from the session.
     """
 
     def get(self, request):
         path = request.session.pop(AUTHORIZE_PATH_SESSION_KEY, "")
         authorize_path = reverse("oauth-authorize-app")
-        # The stored value is one we wrote, but it reaches the browser as a
-        # redirect, so re-check it rather than trusting the session round trip.
+        # Written by this view, but it reaches the browser as a redirect.
         if not path.startswith(authorize_path) or not url_has_allowed_host_and_scheme(path, allowed_hosts=None):
-            # Nothing to resume. Consent is unreachable without the original
-            # query, so send them somewhere that exists.
+            # Nothing pending; consent needs the original query.
             return redirect(base_host(request, is_app=True))
         return redirect(path)
 
 
 class AppInstallationEndpoint(APIView):
-    """Workspaces the bearer token may act in.
-
-    Clients read this to learn which workspaces a token covers.
-    """
+    """Workspaces the bearer token may act in."""
 
     authentication_classes = [OAuthBearerAuthentication]
 

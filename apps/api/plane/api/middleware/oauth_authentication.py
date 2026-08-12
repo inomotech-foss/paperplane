@@ -8,11 +8,10 @@ from plane.db.models import ApplicationInstallation
 
 
 class OAuthBearerAuthentication(OAuth2Authentication):
-    """Authenticate an OAuth bearer token, confined to the workspaces it was granted.
+    """Authenticate an OAuth bearer token within its granted workspaces.
 
-    Consent records one installation per workspace the user picked, so the
-    workspace in the URL is checked here rather than trusted from the client.
-    Routes without a workspace, such as users/me, are left alone.
+    The workspace comes from the URL rather than from the client. Routes without
+    one, such as users/me, are not scoped.
     """
 
     def authenticate(self, request):

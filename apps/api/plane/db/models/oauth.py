@@ -10,10 +10,8 @@ from .base import BaseModel
 class ApplicationInstallation(BaseModel):
     """A workspace an OAuth application may act in on one user's behalf.
 
-    Grants are scoped per workspace rather than per user, so a token can only
-    reach what its holder picked on the consent screen. The set of rows for
-    (user, application) is what /auth/o/app-installation/ returns and what the
-    API authenticates requests against.
+    The rows for (user, application) are what /auth/o/app-installation/ returns
+    and what the API checks each request against.
     """
 
     application = models.ForeignKey(
@@ -23,8 +21,8 @@ class ApplicationInstallation(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="app_installations")
 
     class Meta:
-        # deleted_at is part of the uniqueness so a revoked installation does not
-        # block re-consenting; the partial constraint keeps live rows unique.
+        # deleted_at is in the uniqueness so a revoked row does not block
+        # re-consenting; the partial constraint keeps live rows unique.
         unique_together = ["application", "workspace", "user", "deleted_at"]
         constraints = [
             models.UniqueConstraint(
