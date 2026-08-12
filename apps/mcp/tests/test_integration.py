@@ -59,13 +59,9 @@ async def run_integration_test():
     5. Find or create an "Epic" work item type, and create an epic work item
     6. Update work item 2 to be under the epic
     7. List all epics (work items of the "Epic" type)
-    8. Create a milestone and associate it with the project and work items
-    9. Update the milestone to change its name and description
-    10. List all milestones in the project
-    11. Delete the milestone
-    12. Delete the epic
-    13. Delete work items
-    14. Delete project
+    8. Delete the epic
+    9. Delete work items
+    10. Delete project
     """ 
     config = get_config() 
     unique_id = uuid.uuid4().hex[:6]
@@ -181,49 +177,6 @@ async def run_integration_test():
         epics = extract_result(epics_result)["results"]
         print(f"Epics in project: {[e['id'] for e in epics]}")
 
-        # 8. Create a milestone and associate it with the project and work items
-        print("Creating milestone...")
-        milestone_result = await client.call_tool(
-            "create_milestone",
-            {
-                "project_id": project_id,
-                "name": f"Milestone {unique_id}",
-                "description": "Integration test milestone",   
-                "associated_work_item_ids": [epic_id, work_item_1_id, work_item_2_id],
-            },
-        )
-        milestone = extract_result(milestone_result)
-        milestone_id = milestone["id"]
-
-        print("List work items associated with milestone...")
-
-        milestone_details_result = await client.call_tool(
-            "list_milestone_work_items",
-            {
-                "project_id": project_id,
-                "milestone_id": milestone_id,
-            },
-        )
-
-        milestone_work_items = extract_result(milestone_details_result)
-        print(f"Work items associated with milestone: {[wi['id'] for wi in milestone_work_items]}")
-
-        print(f"Created milestone: {milestone_id}")
-        
-        # 9. Update the milestone to change its name and description
-        print("Updating milestone...")
-        await client.call_tool(
-            "update_milestone", 
-            { 
-                "project_id": project_id, 
-                "milestone_id": milestone_id, 
-                "name": f"Updated Milestone {unique_id}", 
-                "description": "Updated description for integration test milestone" 
-            },
-        ) 
-
-        print("Updated milestone")
-
         # 8. Delete work items
         print("Deleting work items...")
         await client.call_tool(
@@ -308,11 +261,6 @@ EXPECTED_TOOLS = [
     "list_work_item_relations",
     "create_work_item_relation",
     "remove_work_item_relation",
-    # Work item relation definition tools
-    "list_work_item_relation_definitions",
-    "create_work_item_relation_definition",
-    "update_work_item_relation_definition",
-    "delete_work_item_relation_definition",
     # Work item type tools
     "list_work_item_types",
     "create_work_item_type",
@@ -321,18 +269,10 @@ EXPECTED_TOOLS = [
     "delete_work_item_type",
     "import_work_item_types_to_project",
     "resolve_work_item_type",
-    # Work log tools
-    "list_work_logs",
-    "create_work_log",
-    "update_work_log",
-    "delete_work_log",
     # Workspace tools
     "get_workspace_members",
     "get_features",
     "update_workspace_features",
-    # Role tools
-    "list_roles",
-    "retrieve_role",
     # Cycle tools
     "list_cycles",
     "create_cycle",
@@ -352,12 +292,6 @@ EXPECTED_TOOLS = [
     "manage_module_work_items",
     "list_module_work_items",
     "manage_module_archive",
-    # Initiative tools
-    "list_initiatives",
-    "create_initiative",
-    "retrieve_initiative",
-    "update_initiative",
-    "delete_initiative",
     # Intake tools
     "list_intake_work_items",
     "create_intake_work_item",
@@ -372,30 +306,6 @@ EXPECTED_TOOLS = [
     "retrieve_work_item_property",
     "update_work_item_property",
     "delete_work_item_property",
-    # Customer tools
-    "list_customers",
-    "create_customer",
-    "retrieve_customer",
-    "update_customer",
-    "delete_customer",
-    # Customer property tools
-    "list_customer_properties",
-    "create_customer_property",
-    "retrieve_customer_property",
-    "update_customer_property",
-    "delete_customer_property",
-    # Customer property value tools
-    "get_customer_property_values",
-    "set_customer_property_values",
-    # Customer request tools
-    "list_customer_requests",
-    "create_customer_request",
-    "retrieve_customer_request",
-    "update_customer_request",
-    "delete_customer_request",
-    # Customer work item tools
-    "list_customer_work_items",
-    "manage_customer_work_items",
 ]
 
 

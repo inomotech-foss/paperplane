@@ -221,16 +221,6 @@ The server provides comprehensive tools for interacting with Plane. All tools us
 | `list_module_work_items` | List work items in a module |
 | `manage_module_archive` | Archive or unarchive a module |
 
-### Initiatives
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_initiatives` | List all initiatives in a workspace |
-| `create_initiative` | Create a new initiative with name, dates, state, and lead |
-| `retrieve_initiative` | Retrieve an initiative by ID |
-| `update_initiative` | Update an initiative with partial data |
-| `delete_initiative` | Delete an initiative by ID |
-
 ### Intake Work Items
 
 | Tool Name | Description |
@@ -250,18 +240,6 @@ The server provides comprehensive tools for interacting with Plane. All tools us
 | `retrieve_work_item_property` | Retrieve a work item property by ID |
 | `update_work_item_property` | Update a work item property with partial data |
 | `delete_work_item_property` | Delete a work item property by ID |
-
-### Milestones
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_milestones` | List all milestones in a project |
-| `create_milestone` | Create a new milestone |
-| `retrieve_milestone` | Retrieve a milestone by ID |
-| `update_milestone` | Update a milestone by ID |
-| `delete_milestone` | Delete a milestone by ID |
-| `manage_milestone_work_items` | Add and/or remove work items on a milestone |
-| `list_milestone_work_items` | List work items in a milestone |
 
 ### Labels
 
@@ -323,30 +301,12 @@ The server provides comprehensive tools for interacting with Plane. All tools us
 | `create_work_item_relation` | Create relations for a work item |
 | `remove_work_item_relation` | Remove a relation from a work item |
 
-### Work Item Relation Definitions
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_work_item_relation_definitions` | List workspace custom relation definitions |
-| `create_work_item_relation_definition` | Create a workspace relation definition |
-| `update_work_item_relation_definition` | Update a relation definition |
-| `delete_work_item_relation_definition` | Delete a relation definition |
-
 ### Work Item Activities
 
 | Tool Name | Description |
 |-----------|-------------|
 | `list_work_item_activities` | List activities for a work item |
 | `retrieve_work_item_activity` | Retrieve a specific activity for a work item |
-
-### Work Logs
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_work_logs` | List work logs for a work item |
-| `create_work_log` | Create a work log for a work item |
-| `update_work_log` | Update a work log for a work item |
-| `delete_work_log` | Delete a work log for a work item |
 
 ### Pages
 
