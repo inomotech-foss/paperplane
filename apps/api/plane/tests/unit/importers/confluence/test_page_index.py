@@ -4,6 +4,7 @@
 import pytest
 
 from plane.importers.confluence import ConversionResult, storage_to_html
+from plane.importers.confluence.resolvers import ResolvedAttachment, ResolvedPage, ResolvedUser, Resolvers
 
 DETAILS = """
 <ac:structured-macro ac:name="details"><ac:rich-text-body>
@@ -33,19 +34,28 @@ DECISIONS = """
 """
 
 
-def _lozenge_row(colour, title, extra=""):
-    lozenge = f'<ac:structured-macro ac:name="status"><ac:parameter ac:name="colour">{colour}</ac:parameter>'
-    lozenge += f'<ac:parameter ac:name="title">{title}</ac:parameter></ac:structured-macro>'
+def _lozenge(title, colour=None):
+    macro = '<ac:structured-macro ac:name="status">'
+    if colour is not None:
+        macro += f'<ac:parameter ac:name="colour">{colour}</ac:parameter>'
+    return macro + f'<ac:parameter ac:name="title">{title}</ac:parameter></ac:structured-macro>'
+
+
+def _entries(body, kind, resolvers=None):
+    result = storage_to_html(body, resolvers, ConversionResult(html=""))
+    return [entry for entry in result.index_entries if entry.kind == kind]
+
+
+def _property_row(value):
     return (
         '<ac:structured-macro ac:name="details"><ac:rich-text-body><table><tbody>'
-        f"<tr><th><p>Field</p></th><td>{lozenge}{extra}</td></tr>"
+        f"<tr><th><p>Field</p></th><td>{value}</td></tr>"
         "</tbody></table></ac:rich-text-body></ac:structured-macro>"
     )
 
 
-def _entries(body, kind):
-    result = storage_to_html(body, None, ConversionResult(html=""))
-    return [entry for entry in result.index_entries if entry.kind == kind]
+def _indexed_value(value, resolvers=None):
+    return _entries(_property_row(value), "property", resolvers)[0].value
 
 
 @pytest.mark.unit
@@ -93,39 +103,104 @@ class TestPageIndexing:
     def test_a_lozenge_value_keeps_its_colour(self):
         """The report table draws the lozenge, so the colour has to be indexed
         with the value rather than left behind in the page body."""
-        entries = _entries(_lozenge_row("Green", "yes"), "property")
+        entries = _entries(_property_row(_lozenge("yes", "Green")), "property")
 
-        assert [(entry.value, entry.colour) for entry in entries] == [("Green yes", "green")]
+        assert [(entry.value, entry.colour) for entry in entries] == [("yes", "green")]
 
     def test_an_uncoloured_lozenge_value_is_grey(self):
-        entries = _entries(
-            '<ac:structured-macro ac:name="details"><ac:rich-text-body><table><tbody>'
-            '<tr><th><p>Field</p></th><td><ac:structured-macro ac:name="status">'
-            '<ac:parameter ac:name="title">draft</ac:parameter></ac:structured-macro></td></tr>'
-            "</tbody></table></ac:rich-text-body></ac:structured-macro>",
-            "property",
-        )
+        entries = _entries(_property_row(_lozenge("draft")), "property")
 
         assert entries[0].colour == "gray"
 
     def test_a_value_mixing_a_lozenge_with_text_has_no_colour(self):
-        """Two states in one cell have no single colour, so claiming one would
-        say more than the page does."""
-        row = _lozenge_row("Green", "yes", extra="<p>once signed off</p>")
+        """A cell with a lozenge and a caveat has no single colour, so claiming
+        one would say more than the page does."""
+        body = _property_row(_lozenge("yes", "Green") + "<p>once signed off</p>")
 
-        assert _entries(row, "property")[0].colour == ""
+        assert _entries(body, "property")[0].colour == ""
 
     def test_a_value_with_two_lozenges_has_no_colour(self):
-        row = _lozenge_row("Green", "yes").replace(
-            "</td>",
-            '<ac:structured-macro ac:name="status"><ac:parameter ac:name="colour">Red</ac:parameter>'
-            '<ac:parameter ac:name="title">no</ac:parameter></ac:structured-macro></td>',
-        )
+        body = _property_row(_lozenge("yes", "Green") + _lozenge("no", "Red"))
 
-        assert _entries(row, "property")[0].colour == ""
+        assert _entries(body, "property")[0].colour == ""
 
     def test_an_ordinary_value_has_no_colour(self):
         assert _entries(DETAILS, "property")[0].colour == ""
+
+    def test_a_status_macro_indexes_its_title_and_not_its_colour(self):
+        """The colour is how the lozenge is drawn, never part of the value."""
+        value = '<ac:structured-macro ac:name="status"><ac:parameter ac:name="colour">Green</ac:parameter>'
+        value += '<ac:parameter ac:name="title">yes</ac:parameter></ac:structured-macro>'
+
+        assert _indexed_value(value) == "yes"
+
+    def test_a_jira_macro_indexes_its_key(self):
+        value = '<ac:structured-macro ac:name="jira"><ac:parameter ac:name="server">System Jira</ac:parameter>'
+        value += '<ac:parameter ac:name="key">ABC-1</ac:parameter></ac:structured-macro>'
+
+        assert _indexed_value(value) == "ABC-1"
+
+    def test_a_macro_body_is_still_indexed(self):
+        value = '<ac:structured-macro ac:name="tip"><ac:parameter ac:name="icon">false</ac:parameter>'
+        value += "<ac:rich-text-body><p>Do the thing</p></ac:rich-text-body></ac:structured-macro>"
+
+        assert _indexed_value(value) == "Do the thing"
+
+    def test_an_include_macro_indexes_the_page_it_references(self):
+        value = (
+            '<ac:structured-macro ac:name="include"><ac:parameter ac:name="">'
+            '<ac:link><ri:page ri:content-title="Shared intro"/></ac:link>'
+            "</ac:parameter></ac:structured-macro>"
+        )
+
+        assert _indexed_value(value) == "Shared intro"
+
+    def test_a_mention_indexes_the_name_it_renders_as(self):
+        resolvers = Resolvers(users={"acct-1": ResolvedUser(id="u1", display_name="Ada Lovelace")})
+        value = '<ac:link><ri:user ri:account-id="acct-1"/></ac:link>'
+
+        assert _indexed_value(value, resolvers) == "Ada Lovelace"
+
+    def test_a_page_link_indexes_its_title(self):
+        resolvers = Resolvers(pages={"Security policy": ResolvedPage(id="p1", url="/p/1/", title="Security policy")})
+        value = '<ac:link><ri:page ri:content-title="Security policy"/></ac:link>'
+
+        assert _indexed_value(value, resolvers) == "Security policy"
+
+    def test_an_unresolved_page_link_still_indexes_its_title(self):
+        value = '<ac:link><ri:page ri:content-title="Missing page"/></ac:link>'
+
+        assert _indexed_value(value) == "Missing page"
+
+    def test_a_link_label_wins_over_the_target_title(self):
+        value = (
+            '<ac:link><ri:page ri:content-title="Security policy"/>'
+            "<ac:plain-text-link-body>the policy</ac:plain-text-link-body></ac:link>"
+        )
+
+        assert _indexed_value(value) == "the policy"
+
+    def test_an_attachment_link_indexes_its_filename(self):
+        attachment = ResolvedAttachment(id="a1", filename="spec.pdf", is_image=False, url="/assets/spec.pdf")
+        resolvers = Resolvers(attachments={"spec.pdf": attachment})
+        value = '<ac:link><ri:attachment ri:filename="spec.pdf"/></ac:link>'
+
+        assert _indexed_value(value, resolvers) == "spec.pdf"
+
+    def test_a_date_indexes_as_the_day_it_shows(self):
+        assert _indexed_value('<time datetime="2026-03-04"/>') == "2026-03-04"
+
+    def test_indexing_a_value_leaves_the_page_untouched(self):
+        """The index reads a copy: the passes still need the real markup."""
+        value = '<ac:structured-macro ac:name="status"><ac:parameter ac:name="colour">Red</ac:parameter>'
+        value += '<ac:parameter ac:name="title">no</ac:parameter></ac:structured-macro>'
+        resolvers = Resolvers(users={"acct-1": ResolvedUser(id="u1", display_name="Ada Lovelace")})
+        body = _property_row(value + '<ac:link><ri:user ri:account-id="acct-1"/></ac:link>')
+
+        result = storage_to_html(body, resolvers, ConversionResult(html=""))
+
+        assert "mention-component" in result.html
+        assert "no" in result.html
 
     def test_tasks_carry_their_status_assignee_and_due_date(self):
         entries = _entries(TASKS, "task")

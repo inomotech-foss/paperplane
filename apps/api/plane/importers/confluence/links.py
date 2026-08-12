@@ -4,7 +4,8 @@
 from bs4 import NavigableString
 
 
-def _link_text(node):
+def link_text(node):
+    """The label an author typed for a link, if they typed one."""
     for tag in ("ac:link-body", "ac:plain-text-link-body"):
         body = node.find(tag)
         if body is not None:
@@ -48,7 +49,7 @@ def convert_attachment_links(soup, resolvers, result):
 
         filename = node.get("ri:filename") or ""
         target = node.find_parent("ac:link") or node
-        label = _link_text(target) if target is not node else ""
+        label = link_text(target) if target is not node else ""
         attachment = resolvers.attachment(filename)
 
         if attachment is None:
@@ -66,7 +67,7 @@ def convert_page_links(soup, resolvers, result):
         title = node.get("ri:content-title") or ""
         space_key = node.get("ri:space-key")
         target = node.find_parent("ac:link") or node
-        label = _link_text(target) if target is not node else ""
+        label = link_text(target) if target is not node else ""
         page = resolvers.page(title, space_key)
 
         if page is None:
@@ -81,7 +82,7 @@ def convert_space_links(soup):
     # Spaces have no Plane equivalent.
     for node in soup.find_all("ri:space"):
         target = node.find_parent("ac:link") or node
-        label = _link_text(target) if target is not node else ""
+        label = link_text(target) if target is not node else ""
         target.replace_with(NavigableString(label or node.get("ri:space-key") or ""))
 
 
@@ -90,4 +91,4 @@ def convert_anchor_links(soup):
         anchor = node.get("ac:anchor")
         if not anchor:
             continue
-        node.replace_with(_new(soup, "a", {"href": f"#{anchor}"}, _link_text(node) or anchor))
+        node.replace_with(_new(soup, "a", {"href": f"#{anchor}"}, link_text(node) or anchor))
