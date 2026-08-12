@@ -20,6 +20,7 @@ from plane.license.api.views import (
     InstanceAdminUserSessionEndpoint,
     InstanceWorkSpaceAvailabilityCheckEndpoint,
     InstanceWorkSpaceEndpoint,
+    InstanceOAuthApplicationEndpoint,
 )
 
 urlpatterns = [
@@ -83,4 +84,15 @@ urlpatterns = [
         name="instance-workspace-availability",
     ),
     path("workspaces/", InstanceWorkSpaceEndpoint.as_view(), name="instance-workspace"),
+    # OAuth clients, registered by an instance admin.
+    path(
+        "oauth-applications/",
+        InstanceOAuthApplicationEndpoint.as_view(),
+        name="instance-oauth-applications",
+    ),
+    path(
+        "oauth-applications/<int:pk>/",
+        InstanceOAuthApplicationEndpoint.as_view(),
+        name="instance-oauth-applications",
+    ),
 ]
