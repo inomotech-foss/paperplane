@@ -28,3 +28,4 @@ from .workspace import (
     InstanceWorkSpaceAvailabilityCheckEndpoint,
     InstanceWorkSpaceEndpoint,
 )
+from .oauth_application import InstanceOAuthApplicationEndpoint
