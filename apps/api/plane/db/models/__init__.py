@@ -58,6 +58,7 @@ from .issue import (
 from .module import Module, ModuleIssue, ModuleLink, ModuleMember, ModuleUserProperties
 from .notification import EmailNotificationLog, Notification, UserNotificationPreference
 from .page import Page, PageLabel, PageLog, ProjectPage, PageVersion, PageComment, PageCommentReaction
+from .oauth import ApplicationInstallation
 from .page_index import PageIndexEntry
 from .project import (
     Project,

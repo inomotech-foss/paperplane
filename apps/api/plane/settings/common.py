@@ -116,6 +116,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "django_celery_beat",
+    "oauth2_provider",
 ]
 
 # Middlewares
@@ -155,6 +156,27 @@ REST_FRAMEWORK = {
 
 # Django Auth Backend
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)  # default
+
+# OAuth 2.0 provider. Plane is the authorization server here: applications are
+# registered by an instance admin, and clients such as the MCP server exchange a
+# browser authorization for tokens accepted by /api/v1/.
+OAUTH2_PROVIDER = {
+    "SCOPES": {"read": "Read your Plane data", "write": "Create and modify your Plane data"},
+    "DEFAULT_SCOPES": ["read", "write"],
+    # Public clients proxy through a confidential one, but PKCE costs nothing and
+    # closes code interception either way.
+    "PKCE_REQUIRED": True,
+    "ACCESS_TOKEN_EXPIRE_SECONDS": 60 * 60,
+    "REFRESH_TOKEN_EXPIRE_SECONDS": 60 * 60 * 24 * 30,
+    "ROTATE_REFRESH_TOKEN": True,
+    # Clients are registered by an admin, so only the schemes we expect to see.
+    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
+}
+
+# Application is swappable, and the migration autodetector resolves that against
+# Django settings rather than OAUTH2_PROVIDER above. ApplicationInstallation has
+# a foreign key to it, so this has to be set even though it is the stock model.
+OAUTH2_PROVIDER_APPLICATION_MODEL = "oauth2_provider.Application"
 
 # Root Urls
 ROOT_URLCONF = "plane.urls"
