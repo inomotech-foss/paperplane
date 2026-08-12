@@ -10,6 +10,7 @@ client cannot widen its own access by asking for a different slug.
 """
 
 from datetime import timedelta
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from django.utils import timezone
@@ -143,3 +144,18 @@ class TestAppInstallationEndpoint:
         response = bearer_client.get("/auth/o/app-installation/")
 
         assert [row["workspace_detail"]["slug"] for row in response.json()] == ["mine"]
+
+
+@pytest.mark.unit
+class TestConsentSignInRedirect:
+    @pytest.mark.django_db
+    def test_next_path_cannot_carry_the_user_off_site(self, api_client):
+        # next_path is reflected to the browser and acted on after sign-in, so it
+        # must stay relative no matter what the caller puts in the query string.
+        response = api_client.get("/auth/o/authorize-app/?next=https://evil.example.com")
+
+        assert response.status_code == 302
+        next_path = parse_qs(urlparse(response["Location"]).query).get("next_path", [""])[0]
+        assert not urlparse(next_path).scheme
+        assert not urlparse(next_path).netloc
+        assert next_path.startswith("/")

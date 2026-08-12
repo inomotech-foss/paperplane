@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-from urllib.parse import quote
-
 from django.db import transaction
 from django.shortcuts import redirect
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 from oauth2_provider.models import get_application_model
 from oauth2_provider.views import AuthorizationView
 from rest_framework.response import Response
@@ -34,8 +34,13 @@ class AuthorizeAppView(AuthorizationView):
     def handle_no_permission(self):
         # The web app drives sign-in, and it takes next_path rather than Django's
         # ?next=, so send the user there and bring them back to consent after.
-        next_path = quote(self.request.get_full_path())
-        return redirect(f"{base_host(self.request, is_app=True)}/?next_path={next_path}")
+        # next_path is reflected back to the browser as a redirect target, so it
+        # is confined to a relative path here; a scheme or host would make this an
+        # open redirect once the web app acts on it.
+        next_path = self.request.get_full_path()
+        if not url_has_allowed_host_and_scheme(next_path, allowed_hosts=None):
+            next_path = reverse("oauth-authorize-app")
+        return redirect(f"{base_host(self.request, is_app=True)}/?{urlencode({'next_path': next_path})}")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
