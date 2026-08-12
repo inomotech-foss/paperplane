@@ -6,6 +6,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from .backup import ConfluenceBackup, space_keys
+from .jira import derive_base_urls
 from .resolvers import ConversionResult, ResolvedAttachment, ResolvedPage, ResolvedUser, Resolvers
 from .storage import storage_to_html
 
@@ -120,6 +121,7 @@ def report_space(backup, limit=None, pages=None, page_map=None, jira_base_urls=N
 
     users = _user_resolvers(backup)
     page_map = _page_resolvers(pages) if page_map is None else page_map
+    jira_base_urls = derive_base_urls(pages, backup.site(), backup.jira_project_keys()) | (jira_base_urls or {})
 
     for page in pages:
         resolvers = Resolvers(

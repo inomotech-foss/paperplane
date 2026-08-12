@@ -41,7 +41,7 @@ def storage_to_html(body, resolvers=None, result=None):
 
     # Before anything is rewritten: the passes below consume the very elements
     # the index reads.
-    index_page(soup, result)
+    index_page(soup, resolvers, result)
 
     drop_placeholders(soup)
     unwrap_inline_comment_markers(soup)
