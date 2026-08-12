@@ -1142,6 +1142,54 @@ class TestResidualMarkup:
         assert 'href="https://example.com"' in html
 
 
+def _status_macro(title, colour=None):
+    body = '<ac:structured-macro ac:name="status">'
+    if colour is not None:
+        body += f'<ac:parameter ac:name="colour">{colour}</ac:parameter>'
+    return body + f'<ac:parameter ac:name="title">{title}</ac:parameter></ac:structured-macro>'
+
+
+@pytest.mark.unit
+class TestStatusMacro:
+    """Without the colour, a red "no" and a green "yes" are the same thing."""
+
+    @pytest.mark.parametrize(
+        "colour,expected",
+        [
+            ("Green", "green"),
+            ("Red", "peach"),
+            ("Yellow", "orange"),
+            ("Blue", "light-blue"),
+            ("Purple", "purple"),
+            ("Grey", "gray"),
+        ],
+    )
+    def test_the_colour_maps_onto_the_editor_palette(self, colour, expected):
+        html = convert(_status_macro("approved", colour)).html
+
+        assert f'<span data-background-color="{expected}">approved</span>' in html
+
+    def test_an_uncoloured_lozenge_is_grey(self):
+        html = convert(_status_macro("draft")).html
+
+        assert '<span data-background-color="gray">draft</span>' in html
+
+    def test_an_unknown_colour_falls_back_to_grey(self):
+        html = convert(_status_macro("draft", "Chartreuse")).html
+
+        assert '<span data-background-color="gray">draft</span>' in html
+
+    def test_a_lozenge_without_a_title_leaves_nothing_behind(self):
+        html = convert('<p><ac:structured-macro ac:name="status"/></p>').html
+
+        assert "span" not in html
+
+    def test_a_lozenge_is_not_counted_as_loss(self):
+        result = convert(_status_macro("approved", "Green"))
+
+        assert result.is_lossless
+
+
 def _tree_resolvers():
     """The children macro's page parameter carries no space key anywhere in the
     backup, so the map is keyed by bare title the way the report keys it."""

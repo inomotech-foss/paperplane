@@ -3,6 +3,7 @@
 
 from bs4 import NavigableString
 
+from .colours import status_colour
 from .embeds import EMBED_MACROS, convert_embed_macro
 from .jira import convert_jira_macro
 from .math import MATH_MACROS, convert_math_macro
@@ -240,8 +241,18 @@ def _diagram(soup, node, macro_name, resolvers, result):
 
 
 def _status(soup, node):
-    title = macro_parameters(node).get("title", "")
-    node.replace_with(NavigableString(title))
+    """A lozenge is a word plus a colour, and the colour is what makes a table
+    of them readable at a glance."""
+    parameters = macro_parameters(node)
+    title = parameters.get("title", "")
+    if not title:
+        node.replace_with(NavigableString(""))
+        return
+
+    lozenge = soup.new_tag("span")
+    lozenge["data-background-color"] = status_colour(parameters.get("colour"))
+    lozenge.string = title
+    node.replace_with(lozenge)
 
 
 def convert_structured_macros(soup, resolvers, result):
