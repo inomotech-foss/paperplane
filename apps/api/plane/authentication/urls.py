@@ -8,6 +8,7 @@ from oauth2_provider.views import TokenView
 from .views import (
     AppInstallationEndpoint,
     AuthorizeAppView,
+    ResumeAuthorizeAppView,
     CSRFTokenEndpoint,
     ForgotPasswordEndpoint,
     SetUserPasswordEndpoint,
@@ -173,6 +174,7 @@ urlpatterns = [
     # OAuth 2.0 provider. Paths match what OAuth clients expect from a Plane
     # instance, so they are not free to rename.
     path("o/authorize-app/", AuthorizeAppView.as_view(), name="oauth-authorize-app"),
+    path("o/resume-authorize/", ResumeAuthorizeAppView.as_view(), name="oauth-resume-authorize"),
     path("o/token/", TokenView.as_view(), name="oauth-token"),
     path("o/app-installation/", AppInstallationEndpoint.as_view(), name="oauth-app-installation"),
 ]
