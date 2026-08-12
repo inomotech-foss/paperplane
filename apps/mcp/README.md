@@ -129,6 +129,10 @@ export PLANE_WORKSPACE_SLUG="your-workspace-slug"
 
 **Note**: For remote HTTP transports (OAuth or PAT), authentication is handled via the connection method (OAuth flow or PAT headers) and does not require these environment variables.
 
+### Workspaces
+
+On the consent screen the user ticks which workspaces the client may reach, and the API refuses any other. When more than one is ticked, every tool takes an extra `workspace_slug` argument listing them, and the call acts in the one it names. With a single workspace the argument does not appear.
+
 ### OAuth redirect URIs
 
 For the OAuth HTTP/SSE transports, the server validates each client's redirect URI against an allowlist. Common MCP clients (Cursor, VS Code, Claude.ai, ChatGPT connectors, localhost) are allowed by default.

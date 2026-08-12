@@ -176,12 +176,21 @@ class PlaneOAuthTokenVerifier(TokenVerifier):
                     },
                 )
 
-                installations: list[PlaneOAuthAppInstallation] = installations_response.json()
+                if installations_response.status_code != 200:
+                    logger.info(
+                        "Could not read app installations: %s - %s",
+                        installations_response.status_code,
+                        installations_response.text[:200],
+                    )
+                    return None
 
-                if not installations:
-                    raise ValueError("No app installations found")
+                installations = installations_response.json()
+                workspaces = [installation.get("workspace_detail") or {} for installation in installations]
+                workspace_slugs = [workspace["slug"] for workspace in workspaces if workspace.get("slug")]
 
-                installation = installations[0]
+                if not workspace_slugs:
+                    logger.info("Token has no app installations, so it reaches no workspace")
+                    return None
 
                 # Create AccessToken with Plane user info
                 return AccessToken(
@@ -199,8 +208,11 @@ class PlaneOAuthTokenVerifier(TokenVerifier):
                         "avatar": user.avatar,
                         "avatar_url": user.avatar_url,
                         "plane_user_data": user_data,
-                        "workspace_slug": installation.get("workspace_detail", {}).get("slug"),
-                        "workspace": installation.get("workspace_detail", {}),
+                        "workspace_slugs": workspace_slugs,
+                        # Only meaningful for a single grant; otherwise the
+                        # workspace is picked per call, see plane_mcp.workspace.
+                        "workspace_slug": workspace_slugs[0] if len(workspace_slugs) == 1 else None,
+                        "workspaces": workspaces,
                     },
                 )
 

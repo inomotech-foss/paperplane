@@ -15,6 +15,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Mount
 
 from plane_mcp.server import get_header_mcp, get_oauth_mcp, get_stdio_mcp
+from plane_mcp.workspace import selected_workspace_slug
 
 LOG_USER_INFO: bool = os.getenv("LOG_USER_INFO", "").lower() == "true"
 
@@ -47,7 +48,7 @@ class UserContextFilter(logging.Filter):
         record.user_id = user_id
         record.display_name = display_name
         # stdio mode has no token; fall back to the configured workspace.
-        record.workspace_slug = workspace_slug or os.getenv("PLANE_WORKSPACE_SLUG") or None
+        record.workspace_slug = selected_workspace_slug() or workspace_slug or os.getenv("PLANE_WORKSPACE_SLUG") or None
         return True
 
 
