@@ -150,8 +150,7 @@ class ConfluenceBackup:
         return host if "://" in host else f"https://{host}"
 
     def jira_project_keys(self):
-        """Every Jira project key backed up alongside the wiki, shared across
-        spaces. These are the keys known to live on `site`."""
+        """Every Jira project key known to live on `site`."""
         path = self.root / "jira" / "projects.json"
         if not path.exists():
             return set()

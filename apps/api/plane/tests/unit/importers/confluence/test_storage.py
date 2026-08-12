@@ -555,8 +555,8 @@ class _Page:
 
 @pytest.mark.unit
 class TestJiraSiteInference:
-    """Confluence records a serverId and never the host, so a backed-up project
-    key is the only evidence in the backup of which site a server is."""
+    """Confluence records a serverId and never the host, so a backed-up
+    project key is the only evidence of which site a server is."""
 
     SITE = "https://example.atlassian.net"
 

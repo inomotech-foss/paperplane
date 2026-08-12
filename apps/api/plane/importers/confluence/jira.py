@@ -29,11 +29,8 @@ def _macro_keys(node):
 def derive_base_urls(pages, site, project_keys):
     """Work out which Confluence Jira servers are the backed-up site.
 
-    A macro naming a project that is in the backup can only point at the site
-    the backup came from, and a serverId names one site, so a single match
-    resolves every other reference on that server. Confluence records the
-    serverId but never the host, and the operator setting is what covers the
-    servers no match identifies.
+    A macro naming a backed-up project can only point at that site, and a
+    serverId names one site, so one match resolves the whole server.
     """
     if not site or not project_keys:
         return {}

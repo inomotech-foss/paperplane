@@ -377,8 +377,8 @@ class ConfluenceLoader:
             for account_id, user in users.items()
         }
         page_map = self._page_map(project, pages, records)
-        # The setting wins: it is the operator naming a server the backup holds
-        # no evidence about, and only they can know.
+        # The setting wins: only the operator can name a server the backup
+        # holds no evidence about.
         jira_base_urls = derive_base_urls(pages, self.site, self.jira_project_keys) | self.jira_base_urls
 
         # S3 writes are outside the transaction, so a dry run must not make any
