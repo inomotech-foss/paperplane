@@ -27,6 +27,7 @@ import type { EPageStoreType } from "@/hooks/store";
 import { usePageStore } from "@/hooks/store";
 // store types
 import type { TPageInstance } from "@/store/pages/base-page";
+import type { IProjectPageStore } from "@/store/pages/project-page.store";
 
 export type TPageActions =
   | "full-screen"
@@ -53,6 +54,24 @@ type Props = {
   storeType: EPageStoreType;
 };
 
+const handleAddSubPage = async (
+  page: TPageInstance,
+  pageStore: Pick<IProjectPageStore, "createPage" | "getPageById">,
+  router: ReturnType<typeof useAppRouter>
+) => {
+  try {
+    const subPage = await pageStore.createPage({ parent: page.id, access: page.access });
+    const subPageLink = subPage?.id ? pageStore.getPageById(subPage.id)?.getRedirectionLink() : undefined;
+    if (subPageLink) router.push(subPageLink);
+  } catch (_error) {
+    setToast({
+      type: TOAST_TYPE.ERROR,
+      title: "Error!",
+      message: "Sub-page could not be created. Please try again later.",
+    });
+  }
+};
+
 export const PageActions = observer(function PageActions(props: Props) {
   const { extraOptions, optionsOrder, page, pageOperations, parentRef, storeType } = props;
   // states
@@ -61,7 +80,8 @@ export const PageActions = observer(function PageActions(props: Props) {
   // router
   const router = useAppRouter();
   // store hooks
-  const { canCurrentUserCreatePage, createPage, getPageById } = usePageStore(storeType);
+  const pageStore = usePageStore(storeType);
+  const { canCurrentUserCreatePage } = pageStore;
   // derived values
   const {
     access,
@@ -77,24 +97,11 @@ export const PageActions = observer(function PageActions(props: Props) {
   // menu items
   const MENU_ITEMS = useMemo(
     function MENU_ITEMS() {
-      const handleAddSubPage = async () => {
-        try {
-          const subPage = await createPage({ parent: page.id, access });
-          const subPageLink = subPage?.id ? getPageById(subPage.id)?.getRedirectionLink() : undefined;
-          if (subPageLink) router.push(subPageLink);
-        } catch (_error) {
-          setToast({
-            type: TOAST_TYPE.ERROR,
-            title: "Error!",
-            message: "Sub-page could not be created. Please try again later.",
-          });
-        }
-      };
       const menuItems: (TContextMenuItem & { key: TPageActions })[] = [
         {
           key: "add-sub-page",
           action: () => {
-            handleAddSubPage();
+            handleAddSubPage(page, pageStore, router);
           },
           title: "Add sub-page",
           icon: Plus,
@@ -186,9 +193,8 @@ export const PageActions = observer(function PageActions(props: Props) {
       canCurrentUserDeletePage,
       canCurrentUserCreatePage,
       canCurrentUserMovePage,
-      createPage,
-      getPageById,
-      page.id,
+      page,
+      pageStore,
       router,
       pageOperations,
     ]

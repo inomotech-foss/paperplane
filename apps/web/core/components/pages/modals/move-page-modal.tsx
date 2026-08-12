@@ -34,15 +34,25 @@ export const MovePageModal = observer(function MovePageModal(props: Props) {
   const [selectedParentId, setSelectedParentId] = useState<string | null>(page.parent ?? null);
   const [isMoving, setIsMoving] = useState(false);
   // store hooks
-  const { getCurrentProjectPageIds, getPageById, getPageAncestorIds, expandPages } = usePageStore(storeType);
+  const { getCurrentProjectPageIds, getPageById, getChildPageIds, expandPages } = usePageStore(storeType);
   // derived values
   const projectId = page.project_ids?.[0];
+  // the page itself and all of its descendants cannot become its parent
+  const invalidParentIds = new Set<string>();
+  if (page.id) {
+    const idsToVisit = [page.id];
+    while (idsToVisit.length > 0) {
+      const currentId = idsToVisit.pop() as string;
+      if (invalidParentIds.has(currentId)) continue;
+      invalidParentIds.add(currentId);
+      idsToVisit.push(...getChildPageIds(currentId));
+    }
+  }
   // a page cannot be moved under itself, its own descendants, or an archived page
   const candidateParentIds = (projectId ? getCurrentProjectPageIds(projectId) : []).filter((candidateId) => {
-    if (candidateId === page.id) return false;
+    if (invalidParentIds.has(candidateId)) return false;
     const candidate = getPageById(candidateId);
-    if (!candidate || candidate.archived_at) return false;
-    return !page.id || !getPageAncestorIds(candidateId).includes(page.id);
+    return !!candidate && !candidate.archived_at;
   });
 
   const parentOptions: ICustomSearchSelectOption[] = [
