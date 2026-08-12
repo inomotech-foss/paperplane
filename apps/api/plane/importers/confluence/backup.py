@@ -139,6 +139,25 @@ class ConfluenceBackup:
         """accountId -> displayName, shared across spaces."""
         return {account_id: user.display_name for account_id, user in self.users().items()}
 
+    def site(self):
+        """The Atlassian site this backup was taken from, as a base URL."""
+        path = self.root / "manifest.json"
+        if not path.exists():
+            return ""
+        host = (json.loads(path.read_text()).get("site") or "").strip().rstrip("/")
+        if not host:
+            return ""
+        return host if "://" in host else f"https://{host}"
+
+    def jira_project_keys(self):
+        """Every Jira project key backed up alongside the wiki, shared across
+        spaces. These are the keys known to live on `site`."""
+        path = self.root / "jira" / "projects.json"
+        if not path.exists():
+            return set()
+        keys = {(project.get("key") or "").strip().upper() for project in json.loads(path.read_text())}
+        return keys - {""}
+
     def attachment_path(self, page_id, filename):
         return self.space_dir / "attachments" / str(page_id) / filename
 

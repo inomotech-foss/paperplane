@@ -492,8 +492,9 @@ def _origins(env_var, default):
 # shown as a link instead.
 EXTERNAL_EMBED_ALLOWED_ORIGINS = _origins("EXTERNAL_EMBED_ALLOWED_ORIGINS", ["https://miro.com"])
 
-# Confluence's jira macro records a serverId, not a host, and a backup has no
-# way to recover which Atlassian site that id names, so the operator supplies it.
+# Confluence's jira macro records a serverId, not a host. The importer works out
+# which servers are the backed-up site from the project keys the backup holds;
+# this names the ones it cannot, such as a second Jira that was never backed up.
 CONFLUENCE_JIRA_BASE_URLS = _jira_base_urls("CONFLUENCE_JIRA_BASE_URLS")
 
 ATTACHMENT_MIME_TYPES = [

@@ -28,6 +28,7 @@ from plane.utils.issue_type import get_or_create_default_issue_type
 
 from .assets import AttachmentUploader
 from .backup import ConfluenceBackup, order_parents_first, space_keys
+from .jira import derive_base_urls
 from .naming import project_identifier, project_name
 from .resolvers import ConversionResult, ResolvedPage, ResolvedUser, Resolvers
 from .storage import storage_to_html
@@ -91,6 +92,8 @@ class ConfluenceLoader:
         self.page_url_template = page_url_template
         self.storage = storage
         self.jira_base_urls = jira_base_urls if jira_base_urls is not None else settings.CONFLUENCE_JIRA_BASE_URLS
+        self.site = backup.site()
+        self.jira_project_keys = backup.jira_project_keys()
 
     def run(self, dry_run=False):
         summary = ImportSummary()
@@ -374,6 +377,9 @@ class ConfluenceLoader:
             for account_id, user in users.items()
         }
         page_map = self._page_map(project, pages, records)
+        # The setting wins: it is the operator naming a server the backup holds
+        # no evidence about, and only they can know.
+        jira_base_urls = derive_base_urls(pages, self.site, self.jira_project_keys) | self.jira_base_urls
 
         # S3 writes are outside the transaction, so a dry run must not make any
         # or it would leave objects behind with no rows pointing at them.
@@ -395,7 +401,7 @@ class ConfluenceLoader:
             # Attachments are per page, so the resolver set is rebuilt each time
             # while the space-wide user and page maps are shared.
             resolvers = Resolvers(
-                users=user_map, attachments=attachments, pages=page_map, jira_base_urls=self.jira_base_urls
+                users=user_map, attachments=attachments, pages=page_map, jira_base_urls=jira_base_urls
             )
             result = storage_to_html(page.body, resolvers, ConversionResult(html=""))
             summary.absorb(result)
