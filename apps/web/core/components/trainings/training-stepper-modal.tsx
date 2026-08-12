@@ -33,8 +33,8 @@ export const TrainingStepperModal = observer(function TrainingStepperModal(props
   // resume from the first incomplete step every time a training is opened
   useEffect(() => {
     if (!isOpen || !training) return;
-    const completedSteps = getCompletedSteps(training.key);
-    const firstIncomplete = training.steps.findIndex((step) => !completedSteps.includes(step.key));
+    const completedSteps = new Set(getCompletedSteps(training.key));
+    const firstIncomplete = training.steps.findIndex((step) => !completedSteps.has(step.key));
     setStepIndex(firstIncomplete === -1 ? 0 : firstIncomplete);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, training?.key]);

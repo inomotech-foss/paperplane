@@ -55,9 +55,11 @@ export class UserTrainingsStore implements IUserTrainingsStore {
   }
 
   get unseenKeys(): string[] {
-    return TRAININGS_REGISTRY.filter((training) => !this.progress[training.key]?.seen_at).map(
-      (training) => training.key
-    );
+    const keys: string[] = [];
+    for (const training of TRAININGS_REGISTRY) {
+      if (!this.progress[training.key]?.seen_at) keys.push(training.key);
+    }
+    return keys;
   }
 
   get unseenCount(): number {
