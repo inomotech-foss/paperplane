@@ -191,5 +191,59 @@
       "title": "了解团队为何切换到Plane",
       "description": "将Plane与您今天使用的工具进行比较，看看差异。"
     }
+  },
+  "trainings": {
+    "title": "培训",
+    "description": "覆盖每项功能的分步培训。当新功能上线时，新的培训会显示在这里。",
+    "new": "新",
+    "start": "开始培训",
+    "resume": "继续培训",
+    "review": "回顾培训",
+    "step_count": "{count, plural, one {# 个步骤} other {# 个步骤}}",
+    "step_of": "第 {current} 步，共 {total} 步",
+    "modules": {
+      "work_items": {
+        "title": "工作项",
+        "description": "工作项是 Plane 的基本构成单元。了解如何创建、筛选和整理工作项。"
+      },
+      "cycles": {
+        "title": "周期",
+        "description": "将团队的工作划分为周期（Plane 中的迭代方式），并随时跟踪进度。"
+      },
+      "modules": {
+        "title": "模块",
+        "description": "将大型项目拆分为模块，把相关工作项归为一组并作为整体跟踪。"
+      },
+      "views": {
+        "title": "视图",
+        "description": "将自定义筛选器保存为视图，让您关注的工作项始终一键可达。",
+        "steps": {
+          "step_zero": {
+            "title": "将筛选器保存为视图",
+            "description": "视图就是保存下来的筛选器。在任意工作项列表中创建视图，一键复用复杂的筛选条件。"
+          },
+          "step_one": {
+            "title": "创建新视图",
+            "description": "在任意项目或工作区列表中调整筛选、分组和显示选项，然后将结果保存为视图。"
+          },
+          "step_two": {
+            "title": "与团队共享视图",
+            "description": "发布视图，让项目中的每个人看到同一份列表；也可以将其保留为私有。"
+          }
+        }
+      },
+      "pages": {
+        "title": "页面",
+        "description": "在页面中记录笔记、文档和会议纪要，就在您的工作旁边。"
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "在请求进入项目之前，使用 Intake 审核、接受或拒绝这些请求。"
+      },
+      "navigation": {
+        "title": "导航",
+        "description": "熟悉 Plane 的使用方式：侧边栏、您的工作区，以及项目之间的快速切换。"
+      }
+    }
   }
 }

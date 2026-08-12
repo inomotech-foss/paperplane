@@ -191,5 +191,59 @@
       "title": "Ekiplerin neden Plane e geçtiğini keşfedin",
       "description": "Bugün kullandığınız araçlarla Plane i karşılaştırın ve farkı görün."
     }
+  },
+  "trainings": {
+    "title": "Eğitimler",
+    "description": "Tüm özellikleri kapsayan adım adım eğitimler. Yeni özellikler yayınlandığında burada yeni eğitimler görünür.",
+    "new": "Yeni",
+    "start": "Eğitimi başlatın",
+    "resume": "Eğitime devam edin",
+    "review": "Eğitimi gözden geçirin",
+    "step_count": "{count, plural, one {# adım} other {# adım}}",
+    "step_of": "Adım {current} / {total}",
+    "modules": {
+      "work_items": {
+        "title": "İş öğeleri",
+        "description": "İş öğeleri Plane'in yapı taşlarıdır. Bunları oluşturmayı, filtrelemeyi ve düzenlemeyi öğrenin."
+      },
+      "cycles": {
+        "title": "Döngüler",
+        "description": "Ekibinizin işini, Plane'in sprint yaklaşımı olan Döngülere bölün ve ilerlemeyi anlık takip edin."
+      },
+      "modules": {
+        "title": "Modüller",
+        "description": "Büyük projeleri Modüllere bölerek ilgili iş öğelerini gruplandırın ve tek bir bütün olarak izleyin."
+      },
+      "views": {
+        "title": "Görünümler",
+        "description": "Özel filtreleri Görünüm olarak kaydedin; önemli iş öğeleri her zaman bir tık uzağınızda olsun.",
+        "steps": {
+          "step_zero": {
+            "title": "Filtrelerinizi Görünüm olarak kaydedin",
+            "description": "Görünümler kayıtlı filtrelerdir. Karmaşık filtreleri tek tıkla yeniden kullanmak için herhangi bir iş öğesi listesinden bir Görünüm oluşturun."
+          },
+          "step_one": {
+            "title": "Yeni bir Görünüm oluşturun",
+            "description": "Herhangi bir proje veya çalışma alanı listesinde filtreleri, gruplandırmayı ve görüntüleme seçeneklerini ayarlayın, ardından sonucu Görünüm olarak kaydedin."
+          },
+          "step_two": {
+            "title": "Görünümleri ekibinizle paylaşın",
+            "description": "Bir Görünümü yayınlayarak projedeki herkesin aynı listeyi görmesini sağlayın veya yalnızca size özel tutun."
+          }
+        }
+      },
+      "pages": {
+        "title": "Sayfalar",
+        "description": "Notları, belgeleri ve toplantı tutanaklarını işinizin hemen yanında, Sayfalarda tutun."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Gelen talepleri projenize ulaşmadan önce Intake ile inceleyin, kabul edin veya reddedin."
+      },
+      "navigation": {
+        "title": "Gezinme",
+        "description": "Plane'de yolunuzu bulun: kenar çubuğu, çalışma alanınız ve projeler arasında hızlı geçiş."
+      }
+    }
   }
 }

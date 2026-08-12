@@ -191,5 +191,59 @@
       "title": "Khám phá lý do các nhóm chuyển sang Plane",
       "description": "So sánh Plane với các công cụ bạn sử dụng hôm nay và xem sự khác biệt."
     }
+  },
+  "trainings": {
+    "title": "Đào tạo",
+    "description": "Các bài đào tạo từng bước cho mọi tính năng. Khi có tính năng mới, các bài đào tạo mới sẽ xuất hiện tại đây.",
+    "new": "Mới",
+    "start": "Bắt đầu bài đào tạo",
+    "resume": "Tiếp tục bài đào tạo",
+    "review": "Xem lại bài đào tạo",
+    "step_count": "{count, plural, one {# bước} other {# bước}}",
+    "step_of": "Bước {current} / {total}",
+    "modules": {
+      "work_items": {
+        "title": "Mục công việc",
+        "description": "Mục công việc là nền tảng của Plane. Tìm hiểu cách tạo, lọc và sắp xếp chúng."
+      },
+      "cycles": {
+        "title": "Chu kỳ",
+        "description": "Chia công việc của nhóm thành các Chu kỳ — phiên bản sprint của Plane — và theo dõi tiến độ liên tục."
+      },
+      "modules": {
+        "title": "Mô-đun",
+        "description": "Chia các dự án lớn thành các Mô-đun để nhóm các mục công việc liên quan và theo dõi chúng như một thể thống nhất."
+      },
+      "views": {
+        "title": "Chế độ xem",
+        "description": "Lưu bộ lọc tùy chỉnh dưới dạng Chế độ xem để các mục công việc quan trọng luôn chỉ cách bạn một cú nhấp.",
+        "steps": {
+          "step_zero": {
+            "title": "Lưu bộ lọc dưới dạng Chế độ xem",
+            "description": "Chế độ xem là các bộ lọc đã lưu. Tạo một Chế độ xem từ bất kỳ danh sách mục công việc nào để dùng lại các bộ lọc phức tạp chỉ với một cú nhấp."
+          },
+          "step_one": {
+            "title": "Tạo Chế độ xem mới",
+            "description": "Điều chỉnh bộ lọc, cách nhóm và tùy chọn hiển thị trên bất kỳ danh sách dự án hoặc không gian làm việc nào, sau đó lưu kết quả thành Chế độ xem."
+          },
+          "step_two": {
+            "title": "Chia sẻ Chế độ xem với nhóm",
+            "description": "Xuất bản một Chế độ xem để mọi người trong dự án thấy cùng một danh sách, hoặc giữ riêng cho bạn."
+          }
+        }
+      },
+      "pages": {
+        "title": "Trang",
+        "description": "Ghi chú, tài liệu và biên bản cuộc họp trong Trang, ngay bên cạnh công việc của bạn."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Xem xét, chấp nhận hoặc từ chối các yêu cầu gửi đến bằng Intake trước khi chúng vào dự án của bạn."
+      },
+      "navigation": {
+        "title": "Điều hướng",
+        "description": "Làm quen với Plane: thanh bên, không gian làm việc và chuyển nhanh giữa các dự án."
+      }
+    }
   }
 }

@@ -191,5 +191,59 @@
       "title": "Temukan mengapa tim beralih ke Plane",
       "description": "Bandingkan Plane dengan alat yang Anda gunakan hari ini dan lihat perbedaannya."
     }
+  },
+  "trainings": {
+    "title": "Pelatihan",
+    "description": "Pelatihan langkah demi langkah untuk semua fitur. Saat fitur baru dirilis, pelatihan baru akan muncul di sini.",
+    "new": "Baru",
+    "start": "Mulai pelatihan",
+    "resume": "Lanjutkan pelatihan",
+    "review": "Tinjau pelatihan",
+    "step_count": "{count, plural, one {# langkah} other {# langkah}}",
+    "step_of": "Langkah {current} dari {total}",
+    "modules": {
+      "work_items": {
+        "title": "Item kerja",
+        "description": "Item kerja adalah fondasi Plane. Pelajari cara membuat, memfilter, dan mengaturnya."
+      },
+      "cycles": {
+        "title": "Siklus",
+        "description": "Bagi pekerjaan tim Anda ke dalam Siklus — versi sprint ala Plane — dan pantau kemajuannya."
+      },
+      "modules": {
+        "title": "Modul",
+        "description": "Pecah proyek besar menjadi Modul untuk mengelompokkan item kerja terkait dan memantaunya sebagai satu kesatuan."
+      },
+      "views": {
+        "title": "Tampilan",
+        "description": "Simpan filter kustom sebagai Tampilan agar item kerja yang penting bagi Anda selalu berjarak satu klik.",
+        "steps": {
+          "step_zero": {
+            "title": "Simpan filter Anda sebagai Tampilan",
+            "description": "Tampilan adalah filter tersimpan. Buat dari daftar item kerja mana pun untuk menggunakan kembali filter kompleks dengan sekali klik."
+          },
+          "step_one": {
+            "title": "Buat Tampilan baru",
+            "description": "Sesuaikan filter, pengelompokan, dan opsi tampilan pada daftar proyek atau ruang kerja mana pun, lalu simpan hasilnya sebagai Tampilan."
+          },
+          "step_two": {
+            "title": "Bagikan Tampilan dengan tim Anda",
+            "description": "Terbitkan Tampilan agar semua orang di proyek melihat daftar yang sama, atau simpan sebagai pribadi."
+          }
+        }
+      },
+      "pages": {
+        "title": "Halaman",
+        "description": "Catat catatan, dokumen, dan notulen rapat di Halaman, tepat di samping pekerjaan Anda."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Tinjau, terima, atau tolak permintaan masuk dengan Intake sebelum masuk ke proyek Anda."
+      },
+      "navigation": {
+        "title": "Navigasi",
+        "description": "Kenali Plane: bilah samping, ruang kerja Anda, dan perpindahan cepat antar proyek."
+      }
+    }
   }
 }

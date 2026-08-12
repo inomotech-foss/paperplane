@@ -191,5 +191,59 @@
       "title": "Odkryj, dlaczego zespoły przechodzą na Plane",
       "description": "Porównaj Plane z narzędziami, których używasz dzisiaj i zobacz różnicę."
     }
+  },
+  "trainings": {
+    "title": "Szkolenia",
+    "description": "Szkolenia krok po kroku obejmujące wszystkie funkcje. Gdy pojawiają się nowe funkcje, pojawiają się tu nowe szkolenia.",
+    "new": "Nowe",
+    "start": "Rozpocznij szkolenie",
+    "resume": "Wznów szkolenie",
+    "review": "Powtórz szkolenie",
+    "step_count": "{count, plural, one {# krok} few {# kroki} many {# kroków} other {# kroku}}",
+    "step_of": "Krok {current} z {total}",
+    "modules": {
+      "work_items": {
+        "title": "Elementy pracy",
+        "description": "Elementy pracy to fundament Plane — tworzenie, filtrowanie i porządkowanie w praktyce."
+      },
+      "cycles": {
+        "title": "Cykle",
+        "description": "Podział pracy zespołu na Cykle — odpowiednik sprintów w Plane — i bieżące śledzenie postępów."
+      },
+      "modules": {
+        "title": "Moduły",
+        "description": "Dzielenie dużych projektów na Moduły, aby grupować powiązane elementy pracy i śledzić je jako całość."
+      },
+      "views": {
+        "title": "Widoki",
+        "description": "Zapisywanie własnych filtrów jako Widoki, aby najważniejsze elementy pracy były zawsze o jedno kliknięcie.",
+        "steps": {
+          "step_zero": {
+            "title": "Zapisywanie filtrów jako Widoki",
+            "description": "Widoki to zapisane filtry. Można je utworzyć z dowolnej listy elementów pracy, aby jednym kliknięciem korzystać ze złożonych filtrów."
+          },
+          "step_one": {
+            "title": "Tworzenie nowego Widoku",
+            "description": "Wystarczy dostosować filtry, grupowanie i opcje wyświetlania na dowolnej liście projektu lub przestrzeni roboczej, a następnie zapisać wynik jako Widok."
+          },
+          "step_two": {
+            "title": "Udostępnianie Widoków zespołowi",
+            "description": "Opublikowany Widok pokazuje wszystkim w projekcie tę samą listę; Widok można też zachować jako prywatny."
+          }
+        }
+      },
+      "pages": {
+        "title": "Strony",
+        "description": "Notatki, dokumenty i protokoły ze spotkań w Stronach — tuż obok codziennej pracy."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Przeglądanie, akceptowanie lub odrzucanie napływających zgłoszeń w Intake, zanim trafią do projektu."
+      },
+      "navigation": {
+        "title": "Nawigacja",
+        "description": "Orientacja w Plane: pasek boczny, przestrzeń robocza i szybkie przełączanie między projektami."
+      }
+    }
   }
 }

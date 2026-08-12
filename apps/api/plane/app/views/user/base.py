@@ -6,6 +6,7 @@
 import uuid
 import json
 import logging
+import re
 import secrets
 
 # Django imports
@@ -31,6 +32,7 @@ from plane.app.serializers import (
     UserMeSerializer,
     UserMeSettingsSerializer,
     UserSerializer,
+    UserTrainingProgressSerializer,
 )
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.db.models import (
@@ -39,6 +41,7 @@ from plane.db.models import (
     Profile,
     ProjectMember,
     User,
+    UserTrainingProgress,
     WorkspaceMember,
     WorkspaceMemberInvite,
     Session,
@@ -428,3 +431,56 @@ class ProfileEndpoint(BaseAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+TRAINING_KEY_PATTERN = re.compile(r"^[a-z0-9_]{1,100}$")
+
+
+class UserTrainingProgressEndpoint(BaseAPIView):
+    def _apply_progress(self, progress, data):
+        now = timezone.now()
+        if data.get("seen") and progress.seen_at is None:
+            progress.seen_at = now
+        if data.get("completed") and progress.completed_at is None:
+            progress.completed_at = now
+        completed_steps = data.get("completed_steps")
+        if completed_steps is not None:
+            if not isinstance(completed_steps, list) or not all(
+                isinstance(step, str) and len(step) <= 100 for step in completed_steps
+            ):
+                return False
+            # merge so concurrent step updates never lose progress
+            progress.completed_steps = sorted(set(progress.completed_steps) | set(completed_steps))
+        progress.save()
+        return True
+
+    def get(self, request):
+        progress = UserTrainingProgress.objects.filter(user=request.user)
+        serializer = UserTrainingProgressSerializer(progress, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, training_key=None):
+        if training_key is None:
+            # bulk mark-seen: {"training_keys": [...], "seen": true}
+            training_keys = request.data.get("training_keys", [])
+            if (
+                not isinstance(training_keys, list)
+                or not training_keys
+                or not all(isinstance(key, str) and TRAINING_KEY_PATTERN.match(key) for key in training_keys)
+            ):
+                return Response({"error": "Invalid training keys"}, status=status.HTTP_400_BAD_REQUEST)
+            for key in training_keys:
+                progress, _ = UserTrainingProgress.objects.get_or_create(user=request.user, training_key=key)
+                if not self._apply_progress(progress, request.data):
+                    return Response({"error": "Invalid completed steps"}, status=status.HTTP_400_BAD_REQUEST)
+            progress = UserTrainingProgress.objects.filter(user=request.user, training_key__in=training_keys)
+            serializer = UserTrainingProgressSerializer(progress, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if not TRAINING_KEY_PATTERN.match(training_key):
+            return Response({"error": "Invalid training key"}, status=status.HTTP_400_BAD_REQUEST)
+        progress, _ = UserTrainingProgress.objects.get_or_create(user=request.user, training_key=training_key)
+        if not self._apply_progress(progress, request.data):
+            return Response({"error": "Invalid completed steps"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserTrainingProgressSerializer(progress)
+        return Response(serializer.data, status=status.HTTP_200_OK)

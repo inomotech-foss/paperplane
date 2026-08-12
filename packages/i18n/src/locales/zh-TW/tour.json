@@ -191,5 +191,59 @@
       "title": "了解團隊為何切換到Plane",
       "description": "將Plane與您今天使用的工具進行比較，看看差異。"
     }
+  },
+  "trainings": {
+    "title": "培訓",
+    "description": "涵蓋每項功能的逐步培訓。當新功能上線時，新的培訓會顯示在這裡。",
+    "new": "新",
+    "start": "開始培訓",
+    "resume": "繼續培訓",
+    "review": "回顧培訓",
+    "step_count": "{count, plural, one {# 個步驟} other {# 個步驟}}",
+    "step_of": "第 {current} 步，共 {total} 步",
+    "modules": {
+      "work_items": {
+        "title": "工作事項",
+        "description": "工作事項是 Plane 的基本組成單元。瞭解如何建立、篩選和整理工作事項。"
+      },
+      "cycles": {
+        "title": "週期",
+        "description": "將團隊的工作劃分為週期（Plane 的迭代方式），並隨時追蹤進度。"
+      },
+      "modules": {
+        "title": "模組",
+        "description": "將大型專案拆分為模組，把相關工作事項歸為一組並作為整體追蹤。"
+      },
+      "views": {
+        "title": "檢視",
+        "description": "將自訂篩選器儲存為檢視，讓您關注的工作事項永遠一鍵可達。",
+        "steps": {
+          "step_zero": {
+            "title": "將篩選器儲存為檢視",
+            "description": "檢視就是儲存下來的篩選器。在任何工作事項清單中建立檢視，一鍵重複使用複雜的篩選條件。"
+          },
+          "step_one": {
+            "title": "建立新檢視",
+            "description": "在任何專案或工作區清單中調整篩選、分組和顯示選項，然後將結果儲存為檢視。"
+          },
+          "step_two": {
+            "title": "與團隊共用檢視",
+            "description": "發布檢視，讓專案中的每個人看到同一份清單；也可以將其保留為私人。"
+          }
+        }
+      },
+      "pages": {
+        "title": "頁面",
+        "description": "在頁面中記錄筆記、文件和會議記錄，就在您的工作旁邊。"
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "在請求進入專案之前，使用 Intake 審核、接受或拒絕這些請求。"
+      },
+      "navigation": {
+        "title": "導覽",
+        "description": "熟悉 Plane 的使用方式：側邊欄、您的工作區，以及專案之間的快速切換。"
+      }
+    }
   }
 }

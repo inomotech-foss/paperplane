@@ -23,6 +23,8 @@ import { ProfileStore } from "@/store/user/profile.store";
 // local imports
 import type { IUserSettingsStore } from "./settings.store";
 import { UserSettingsStore } from "./settings.store";
+import type { IUserTrainingsStore } from "./trainings.store";
+import { UserTrainingsStore } from "./trainings.store";
 
 type TUserErrorStatus = {
   status: string;
@@ -38,6 +40,7 @@ export interface IUserStore {
   // store observables
   userProfile: IUserProfileStore;
   userSettings: IUserSettingsStore;
+  trainings: IUserTrainingsStore;
   accounts: Record<string, IAccountStore>;
   permission: IUserPermissionStore;
   // actions
@@ -65,6 +68,7 @@ export class UserStore implements IUserStore {
   // store observables
   userProfile: IUserProfileStore;
   userSettings: IUserSettingsStore;
+  trainings: IUserTrainingsStore;
   accounts: Record<string, IAccountStore> = {};
   permission: IUserPermissionStore;
   // service
@@ -75,6 +79,7 @@ export class UserStore implements IUserStore {
     // stores
     this.userProfile = new ProfileStore(store);
     this.userSettings = new UserSettingsStore();
+    this.trainings = new UserTrainingsStore();
     this.permission = new UserPermissionStore(store);
     // service
     this.userService = new UserService();
@@ -89,6 +94,7 @@ export class UserStore implements IUserStore {
       data: observable,
       userProfile: observable,
       userSettings: observable,
+      trainings: observable,
       accounts: observable,
       permission: observable,
       // actions
@@ -120,6 +126,7 @@ export class UserStore implements IUserStore {
         await Promise.all([
           this.userProfile.fetchUserProfile(),
           this.userSettings.fetchCurrentUserSettings(),
+          this.trainings.fetchProgress(),
           this.store.workspaceRoot.fetchWorkspaces(),
         ]);
         runInAction(() => {
@@ -252,6 +259,7 @@ export class UserStore implements IUserStore {
       this.data = undefined;
       this.userProfile = new ProfileStore(this.store);
       this.userSettings = new UserSettingsStore();
+      this.trainings = new UserTrainingsStore();
       this.permission = new UserPermissionStore(this.store);
     });
   };

@@ -191,5 +191,59 @@
       "title": "Découvrez pourquoi les équipes passent à Plane",
       "description": "Comparez Plane avec les outils que vous utilisez aujourd hui et voyez la différence."
     }
+  },
+  "trainings": {
+    "title": "Formations",
+    "description": "Des formations pas à pas couvrant chaque fonctionnalité. Lorsque de nouvelles fonctionnalités arrivent, de nouvelles formations apparaissent ici.",
+    "new": "Nouveau",
+    "start": "Commencer la formation",
+    "resume": "Reprendre la formation",
+    "review": "Revoir la formation",
+    "step_count": "{count, plural, one {# étape} many {# étapes} other {# étapes}}",
+    "step_of": "Étape {current} sur {total}",
+    "modules": {
+      "work_items": {
+        "title": "Éléments de travail",
+        "description": "Les éléments de travail sont les briques de base de Plane. Apprenez à les créer, les filtrer et les organiser."
+      },
+      "cycles": {
+        "title": "Cycles",
+        "description": "Découpez le travail de votre équipe en Cycles, la version Plane des sprints, et suivez la progression au fil de l'eau."
+      },
+      "modules": {
+        "title": "Modules",
+        "description": "Divisez les grands projets en Modules pour regrouper les éléments de travail liés et les suivre comme un tout."
+      },
+      "views": {
+        "title": "Vues",
+        "description": "Enregistrez vos filtres personnalisés comme Vues pour garder à portée de clic les éléments de travail qui comptent pour vous.",
+        "steps": {
+          "step_zero": {
+            "title": "Enregistrez vos filtres comme Vues",
+            "description": "Les Vues sont des filtres enregistrés. Créez-en une depuis n'importe quelle liste d'éléments de travail pour réutiliser des filtres complexes en un clic."
+          },
+          "step_one": {
+            "title": "Créer une nouvelle Vue",
+            "description": "Ajustez les filtres, le regroupement et les options d'affichage sur n'importe quelle liste de projet ou d'espace de travail, puis enregistrez le résultat comme Vue."
+          },
+          "step_two": {
+            "title": "Partagez vos Vues avec votre équipe",
+            "description": "Publiez une Vue pour que tout le monde sur le projet voie la même liste, ou gardez-la privée."
+          }
+        }
+      },
+      "pages": {
+        "title": "Pages",
+        "description": "Consignez vos notes, documents et comptes rendus de réunion dans des Pages, juste à côté de votre travail."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Examinez, acceptez ou refusez les demandes entrantes avec Intake avant qu'elles n'atteignent votre projet."
+      },
+      "navigation": {
+        "title": "Navigation",
+        "description": "Repérez-vous dans Plane : la barre latérale, votre espace de travail et le passage rapide d'un projet à l'autre."
+      }
+    }
   }
 }

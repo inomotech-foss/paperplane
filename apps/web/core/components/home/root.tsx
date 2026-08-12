@@ -11,7 +11,7 @@ import useSWR from "swr";
 import { ContentWrapper } from "@plane/ui";
 // hooks
 import { useHome } from "@/hooks/store/use-home";
-import { useUserProfile, useUser } from "@/hooks/store/user";
+import { useUserProfile, useUser, useUserTrainings } from "@/hooks/store/user";
 // plane web imports
 import { TourRoot } from "@/components/onboarding/tour/root";
 // local imports
@@ -24,6 +24,7 @@ export const WorkspaceHomeView = observer(function WorkspaceHomeView() {
   const { workspaceSlug } = useParams();
   const { data: currentUser } = useUser();
   const { data: currentUserProfile, updateTourCompleted } = useUserProfile();
+  const { markSeen } = useUserTrainings();
   const { fetchWidgets } = useHome();
 
   useSWR(
@@ -39,6 +40,9 @@ export const WorkspaceHomeView = observer(function WorkspaceHomeView() {
   const handleTourCompleted = async () => {
     try {
       await updateTourCompleted();
+      // the legacy tour covers the same content as these trainings, so a
+      // brand-new user shouldn't see them badged as new right after it
+      await markSeen(["work_items", "cycles", "modules", "views", "pages"]);
     } catch (error) {
       console.error("Error updating tour completed", error);
     }
