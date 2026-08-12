@@ -44,3 +44,5 @@ from .space.password_management import (
     ResetPasswordSpaceEndpoint,
 )
 from .app.password_management import ForgotPasswordEndpoint, ResetPasswordEndpoint
+
+from .app.oauth_provider import AppInstallationEndpoint, AuthorizeAppView
