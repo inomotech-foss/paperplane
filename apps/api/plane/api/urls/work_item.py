@@ -18,6 +18,10 @@ from plane.api.views import (
     WorkspaceIssueAPIEndpoint,
     IssueSearchEndpoint,
     IssueRelationListCreateAPIEndpoint,
+    IssueRelationRemoveAPIEndpoint,
+    WorkItemArchiveAPIEndpoint,
+    WorkItemArchiveListAPIEndpoint,
+    WorkItemUnarchiveAPIEndpoint,
 )
 
 # Deprecated url patterns
@@ -150,6 +154,26 @@ new_url_patterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/relations/",
         IssueRelationListCreateAPIEndpoint.as_view(http_method_names=["get", "post"]),
         name="work-item-relation-list",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/relations/remove/",
+        IssueRelationRemoveAPIEndpoint.as_view(http_method_names=["post"]),
+        name="work-item-relation-remove",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/archived-work-items/",
+        WorkItemArchiveListAPIEndpoint.as_view(http_method_names=["get"]),
+        name="archived-work-item-list",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/archive/",
+        WorkItemArchiveAPIEndpoint.as_view(http_method_names=["post"]),
+        name="work-item-archive",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/unarchive/",
+        WorkItemUnarchiveAPIEndpoint.as_view(http_method_names=["post"]),
+        name="work-item-unarchive",
     ),
 ]
 
