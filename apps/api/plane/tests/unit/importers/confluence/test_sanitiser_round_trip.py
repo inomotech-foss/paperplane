@@ -51,6 +51,8 @@ SUPPORTED_CONSTRUCTS = f"""
 <table data-layout="wide"><colgroup><col style="width: 120.0px;"/></colgroup>
   <tbody><tr><th data-highlight-colour="#fffae6"><p>H</p></th></tr></tbody></table>
 <p><ac:emoticon ac:emoji-fallback="✅"/> <time datetime="2024-01-01"/></p>
+<p><ac:structured-macro ac:name="status"><ac:parameter ac:name="colour">Green</ac:parameter>
+  <ac:parameter ac:name="title">approved</ac:parameter></ac:structured-macro></p>
 <ul><li><p>list item</p></li></ul>
 <blockquote><p>quote</p></blockquote>
 <ac:structured-macro ac:name="anchor"><ac:parameter ac:name="">section-1</ac:parameter></ac:structured-macro>
