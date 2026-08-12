@@ -3,6 +3,7 @@
 
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import SAFE_METHODS
 
 from plane.db.models import ApplicationInstallation
 
@@ -20,6 +21,13 @@ class OAuthBearerAuthentication(OAuth2Authentication):
             return None
 
         user, token = result
+        # Scopes are checked here rather than in a permission class because 58 of
+        # the v1 views replace permission_classes outright, while none replace
+        # authentication_classes.
+        required_scope = "read" if request.method in SAFE_METHODS else "write"
+        if not token.allow_scopes([required_scope]):
+            raise AuthenticationFailed(f"This token does not carry the {required_scope} scope")
+
         resolver_match = getattr(request, "resolver_match", None)
         slug = resolver_match.kwargs.get("slug") if resolver_match else None
         if slug and not self.is_installed(user, token, slug):
