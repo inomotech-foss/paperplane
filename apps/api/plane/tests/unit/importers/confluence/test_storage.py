@@ -2,6 +2,7 @@
 # See the LICENSE file for details.
 
 import json
+from dataclasses import dataclass
 from urllib.parse import quote
 
 import pytest
@@ -13,6 +14,7 @@ from plane.importers.confluence import (
     Resolvers,
     storage_to_html,
 )
+from plane.importers.confluence.jira import derive_base_urls
 
 USER_ID = "11111111-1111-4111-8111-111111111111"
 IMAGE_ID = "22222222-2222-4222-8222-222222222222"
@@ -590,6 +592,64 @@ class TestJiraMacros:
         assert "jira" not in result.html
         assert result.unsupported_macros == {"jira": 1}
         assert not result.is_lossless
+
+
+@dataclass
+class _Page:
+    body: str
+
+
+@pytest.mark.unit
+class TestJiraSiteInference:
+    """Confluence records a serverId and never the host, so a backed-up
+    project key is the only evidence of which site a server is."""
+
+    SITE = "https://example.atlassian.net"
+
+    def _page(self, server_id, key="", jql_query=""):
+        parameters = f'<ac:parameter ac:name="serverId">{server_id}</ac:parameter>'
+        if key:
+            parameters += f'<ac:parameter ac:name="key">{key}</ac:parameter>'
+        if jql_query:
+            parameters += f'<ac:parameter ac:name="jqlQuery">{jql_query}</ac:parameter>'
+        return _Page(body=f'<ac:structured-macro ac:name="jira">{parameters}</ac:structured-macro>')
+
+    def test_a_backed_up_key_identifies_the_server_it_sits_on(self):
+        pages = [self._page("server-1", key="ABC-1")]
+
+        assert derive_base_urls(pages, self.SITE, {"ABC"}) == {"server-1": self.SITE}
+
+    def test_one_match_resolves_every_other_key_on_that_server(self):
+        """A serverId names one site, so the rest of its keys follow."""
+        pages = [self._page("server-1", key="ABC-1"), self._page("server-1", key="ZZZ-9")]
+
+        assert derive_base_urls(pages, self.SITE, {"ABC"}) == {"server-1": self.SITE}
+
+    def test_a_server_no_key_identifies_is_left_alone(self):
+        pages = [self._page("server-2", key="ZZZ-9")]
+
+        assert derive_base_urls(pages, self.SITE, {"ABC"}) == {}
+
+    def test_keys_are_matched_regardless_of_case(self):
+        pages = [self._page("server-1", key="abc-1")]
+
+        assert derive_base_urls(pages, self.SITE, {"ABC"}) == {"server-1": self.SITE}
+
+    def test_an_enumerated_jql_query_identifies_a_server_too(self):
+        pages = [self._page("server-1", jql_query="key in (ABC-1, ABC-2)")]
+
+        assert derive_base_urls(pages, self.SITE, {"ABC"}) == {"server-1": self.SITE}
+
+    def test_a_backup_with_no_jira_infers_nothing(self):
+        pages = [self._page("server-1", key="ABC-1")]
+
+        assert derive_base_urls(pages, "", {"ABC"}) == {}
+        assert derive_base_urls(pages, self.SITE, set()) == {}
+
+    def test_a_page_without_a_jira_macro_is_not_parsed(self):
+        pages = [_Page(body="<p>prose</p>"), self._page("server-1", key="ABC-1")]
+
+        assert derive_base_urls(pages, self.SITE, {"ABC"}) == {"server-1": self.SITE}
 
 
 @pytest.mark.unit
