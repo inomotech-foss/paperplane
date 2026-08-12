@@ -1,9 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import json
+
 import pytest
 
-from plane.importers.confluence.backup import _page_from_record, drop_template_scaffolding
+from plane.importers.confluence.backup import ConfluenceBackup, _page_from_record, drop_template_scaffolding
 
 
 def record(**overrides):
@@ -85,3 +87,36 @@ class TestTemplateScaffolding:
         pages = [page("1", "Home"), page("2", "_root", parent="1")]
 
         assert titles(drop_template_scaffolding(pages)) == ["Home", "_root"]
+
+
+@pytest.mark.unit
+class TestSite:
+    def _backup(self, tmp_path, manifest=None, projects=None):
+        if manifest is not None:
+            (tmp_path / "manifest.json").write_text(json.dumps(manifest))
+        if projects is not None:
+            (tmp_path / "jira").mkdir()
+            (tmp_path / "jira" / "projects.json").write_text(json.dumps(projects))
+        return ConfluenceBackup(tmp_path, "SPACE")
+
+    def test_the_site_becomes_a_base_url(self, tmp_path):
+        assert (
+            self._backup(tmp_path, manifest={"site": "example.atlassian.net"}).site() == "https://example.atlassian.net"
+        )
+
+    def test_a_site_that_is_already_a_url_is_kept(self, tmp_path):
+        assert self._backup(tmp_path, manifest={"site": "https://example.atlassian.net/"}).site() == (
+            "https://example.atlassian.net"
+        )
+
+    @pytest.mark.parametrize("manifest", [None, {}, {"site": ""}])
+    def test_a_backup_naming_no_site_reports_none(self, tmp_path, manifest):
+        assert self._backup(tmp_path, manifest=manifest).site() == ""
+
+    def test_jira_project_keys_are_upper_case(self, tmp_path):
+        backup = self._backup(tmp_path, projects=[{"key": "abc"}, {"key": "DEF"}])
+
+        assert backup.jira_project_keys() == {"ABC", "DEF"}
+
+    def test_a_backup_without_jira_has_no_keys(self, tmp_path):
+        assert self._backup(tmp_path).jira_project_keys() == set()
