@@ -7,6 +7,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
+@dataclass(frozen=True)
+class ConfluenceUser:
+    account_id: str
+    display_name: str = ""
+    email: str = ""
+
+
 @dataclass
 class ConfluencePage:
     id: str
@@ -114,12 +121,23 @@ class ConfluenceBackup:
             pages = [_page_from_record(json.loads(line)) for line in handle if line.strip()]
         return drop_template_scaffolding(pages)
 
-    def user_mapping(self):
-        """accountId -> displayName, shared across spaces."""
+    def users(self):
+        """accountId -> ConfluenceUser, shared across spaces."""
         path = self.root / "user_mapping.json"
         if not path.exists():
             return {}
-        return {entry["accountId"]: entry.get("displayName", "") for entry in json.loads(path.read_text())}
+        return {
+            entry["accountId"]: ConfluenceUser(
+                account_id=entry["accountId"],
+                display_name=entry.get("displayName") or "",
+                email=(entry.get("emailAddress") or "").strip(),
+            )
+            for entry in json.loads(path.read_text())
+        }
+
+    def user_mapping(self):
+        """accountId -> displayName, shared across spaces."""
+        return {account_id: user.display_name for account_id, user in self.users().items()}
 
     def attachment_path(self, page_id, filename):
         return self.space_dir / "attachments" / str(page_id) / filename
