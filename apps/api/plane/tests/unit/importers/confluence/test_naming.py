@@ -31,6 +31,29 @@ class TestProjectName:
     def test_missing_name_falls_back_to_the_space_key(self):
         assert project_name("", "IMS") == "Wiki IMS"
 
+    def test_a_free_name_is_left_alone(self):
+        assert project_name("Legal", "LEGAL", taken={"Wiki Something"}) == "Wiki Legal"
+
+    def test_a_taken_name_is_disambiguated_by_space_key(self):
+        """Two spaces can share a display name, and the name is unique per workspace."""
+        assert project_name("Legal", "LEGAL2", taken={"Wiki Legal"}) == "Wiki Legal (LEGAL2)"
+
+    def test_a_taken_name_is_matched_regardless_of_case(self):
+        assert project_name("Legal", "LEGAL2", taken={"wiki legal"}) == "Wiki Legal (LEGAL2)"
+
+    def test_a_counter_is_used_when_the_key_is_taken_too(self):
+        taken = {"Wiki Legal", "Wiki Legal (LEGAL)"}
+
+        assert project_name("Legal", "LEGAL", taken=taken) == "Wiki Legal 2"
+
+    def test_disambiguated_names_stay_valid(self):
+        name = project_name("Legal", "LEGAL2", taken={"Wiki Legal"})
+
+        assert Project.is_valid_name(name)
+
+    def test_a_key_fallback_name_is_also_disambiguated(self):
+        assert project_name("###", "IMS", taken={"Wiki IMS"}) == "Wiki IMS (IMS)"
+
 
 @pytest.mark.unit
 class TestProjectIdentifier:

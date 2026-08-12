@@ -193,10 +193,12 @@ class ConfluenceLoader:
         if existing:
             return existing
 
-        taken = set(Project.objects.filter(workspace=self.workspace).values_list("identifier", flat=True))
+        existing_projects = Project.objects.filter(workspace=self.workspace)
+        taken = set(existing_projects.values_list("identifier", flat=True))
+        taken_names = set(existing_projects.values_list("name", flat=True))
         project = Project.objects.create(
             workspace=self.workspace,
-            name=project_name(space.get("name"), identifier_key),
+            name=project_name(space.get("name"), identifier_key, taken=taken_names),
             identifier=project_identifier(identifier_key, taken),
             description=f"Imported from Confluence space {identifier_key}",
             external_source=self.EXTERNAL_SOURCE,
