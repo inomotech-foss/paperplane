@@ -84,7 +84,7 @@ export const TrainingStepperModal = observer(function TrainingStepperModal(props
                   type="button"
                   onClick={() => setStepIndex(index)}
                   className={`size-1.5 rounded-full transition-colors ${
-                    index === stepIndex ? "bg-accent-primary" : "bg-layer-2 hover:bg-layer-1"
+                    index === stepIndex ? "bg-accent-primary" : "bg-accent-primary/20 hover:bg-accent-primary/40"
                   }`}
                   aria-label={t(step.i18n_title)}
                 />
