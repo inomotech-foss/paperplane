@@ -19,6 +19,8 @@ export type TPageQueryResult = {
   project_ids: string[];
   /** Only present for the page-properties kind, keyed by requested column. */
   properties?: Record<string, string>;
+  /** Editor palette keys for the columns whose value was a status lozenge. */
+  property_colors?: Record<string, string>;
 };
 
 /** A task or a decision, with the page it was found on. */

@@ -53,13 +53,14 @@ def make_page(workspace, project, user, name, parent=None, access=Page.PUBLIC_AC
     return page
 
 
-def make_index_entry(workspace, page, user, key, value, kind=PageIndexEntry.PROPERTY, sort_order=0):
+def make_index_entry(workspace, page, user, key, value, kind=PageIndexEntry.PROPERTY, sort_order=0, color=""):
     return PageIndexEntry.objects.create(
         workspace=workspace,
         page=page,
         kind=kind,
         key=key,
         value=value,
+        color=color,
         sort_order=sort_order,
         created_by=user,
     )
@@ -265,6 +266,23 @@ class TestPageQueryKinds:
         )
 
         assert response.data["results"][0]["properties"] == {"Owner": "Team A", "Status": "Approved"}
+
+    def test_page_properties_returns_the_colour_of_a_lozenge_value(
+        self, session_client, workspace, project, create_user
+    ):
+        """A status column is unreadable as plain text: green yes and red no are
+        the same word until the colour comes with them."""
+        page = make_page(workspace, project, create_user, "Control")
+        make_index_entry(workspace, page, create_user, "Applicable", "yes", color="green")
+        make_index_entry(workspace, page, create_user, "Owner", "Team A", sort_order=1)
+
+        response = session_client.get(
+            URL.format(slug=workspace.slug), {"kind": "page-properties", "columns": "Applicable,Owner"}
+        )
+
+        result = response.data["results"][0]
+        assert result["properties"] == {"Applicable": "yes", "Owner": "Team A"}
+        assert result["property_colors"] == {"Applicable": "green"}
 
     def test_page_properties_matches_column_names_case_insensitively(
         self, session_client, workspace, project, create_user

@@ -417,6 +417,26 @@ class TestConfluenceImport:
         assert tasks[1].due_date.isoformat() == "2026-03-04"
         assert tasks[1].assignee == ada
 
+    def test_a_lozenge_property_is_indexed_with_its_colour(self, workspace, create_user, backup_dir):
+        """The report table draws the lozenge, so the colour travels with the
+        value rather than staying behind in the page body."""
+        space_dir = backup_dir / "confluence" / "IMS"
+        body = (
+            '<ac:structured-macro ac:name="details"><ac:rich-text-body><table><tbody>'
+            "<tr><th><p>Applicable</p></th><td>"
+            '<ac:structured-macro ac:name="status"><ac:parameter ac:name="colour">Green</ac:parameter>'
+            '<ac:parameter ac:name="title">yes</ac:parameter></ac:structured-macro>'
+            "</td></tr></tbody></table></ac:rich-text-body></ac:structured-macro>"
+        )
+        control = dict(PAGES[0], id="301", title="Control")
+        control["body"] = {"storage": {"value": body}}
+        space_dir.joinpath("pages.jsonl").write_text("\n".join(json.dumps(page) for page in [*PAGES, control]))
+
+        ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(backup_dir, "IMS")).run()
+
+        entry = PageIndexEntry.objects.get(page__name="Control", key="Applicable")
+        assert entry.color == "green"
+
     def test_rerun_replaces_the_index_rather_than_appending(self, workspace, create_user, backup_dir, ada):
         """A property deleted upstream has to disappear here too, and the rows
         carry no identity of their own to match on."""

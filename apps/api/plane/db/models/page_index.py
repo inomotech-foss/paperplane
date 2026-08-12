@@ -34,6 +34,9 @@ class PageIndexEntry(BaseModel):
     # The property name. Tasks and decisions have no key.
     key = models.CharField(max_length=255, blank=True)
     value = models.TextField(blank=True)
+    # An editor palette key when the value was a status lozenge, so a report
+    # table can draw it as one rather than as bare text.
+    color = models.CharField(max_length=16, blank=True)
     # Tasks that are ticked, and decisions, which are recorded only once taken.
     is_complete = models.BooleanField(default=False)
     assignee = models.ForeignKey(

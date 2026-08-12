@@ -206,17 +206,21 @@ class PageQueryEndpoint(BaseAPIView):
             PageIndexEntry.objects.filter(page_id__in=[page["id"] for page in pages], kind=PageIndexEntry.PROPERTY)
             .annotate(name=Lower("key"))
             .filter(name__in=list(wanted))
-            .values("page_id", "key", "value")
+            .values("page_id", "key", "value", "color")
         )
 
-        properties = defaultdict(dict)
+        properties, colors = defaultdict(dict), defaultdict(dict)
         for entry in entries:
             name = wanted.get(entry["key"].lower())
             if name and name not in properties[str(entry["page_id"])]:
                 properties[str(entry["page_id"])][name] = entry["value"]
+                if entry["color"]:
+                    colors[str(entry["page_id"])][name] = entry["color"]
 
         for page in pages:
+            # Colours are a parallel map so a plain value stays a plain string.
             page["properties"] = properties.get(str(page["id"]), {})
+            page["property_colors"] = colors.get(str(page["id"]), {})
         return pages
 
     def _reported_pages(self, request, slug):

@@ -33,6 +33,16 @@ DECISIONS = """
 """
 
 
+def _lozenge_row(colour, title, extra=""):
+    lozenge = f'<ac:structured-macro ac:name="status"><ac:parameter ac:name="colour">{colour}</ac:parameter>'
+    lozenge += f'<ac:parameter ac:name="title">{title}</ac:parameter></ac:structured-macro>'
+    return (
+        '<ac:structured-macro ac:name="details"><ac:rich-text-body><table><tbody>'
+        f"<tr><th><p>Field</p></th><td>{lozenge}{extra}</td></tr>"
+        "</tbody></table></ac:rich-text-body></ac:structured-macro>"
+    )
+
+
 def _entries(body, kind):
     result = storage_to_html(body, None, ConversionResult(html=""))
     return [entry for entry in result.index_entries if entry.kind == kind]
@@ -79,6 +89,43 @@ class TestPageIndexing:
         assert [(entry.key, entry.value) for entry in result.index_entries] == [("Owner", "Team A")]
         # The cell is only unindexable, not lost: it still renders.
         assert "extra" in result.html
+
+    def test_a_lozenge_value_keeps_its_colour(self):
+        """The report table draws the lozenge, so the colour has to be indexed
+        with the value rather than left behind in the page body."""
+        entries = _entries(_lozenge_row("Green", "yes"), "property")
+
+        assert [(entry.value, entry.colour) for entry in entries] == [("Green yes", "green")]
+
+    def test_an_uncoloured_lozenge_value_is_grey(self):
+        entries = _entries(
+            '<ac:structured-macro ac:name="details"><ac:rich-text-body><table><tbody>'
+            '<tr><th><p>Field</p></th><td><ac:structured-macro ac:name="status">'
+            '<ac:parameter ac:name="title">draft</ac:parameter></ac:structured-macro></td></tr>'
+            "</tbody></table></ac:rich-text-body></ac:structured-macro>",
+            "property",
+        )
+
+        assert entries[0].colour == "gray"
+
+    def test_a_value_mixing_a_lozenge_with_text_has_no_colour(self):
+        """Two states in one cell have no single colour, so claiming one would
+        say more than the page does."""
+        row = _lozenge_row("Green", "yes", extra="<p>once signed off</p>")
+
+        assert _entries(row, "property")[0].colour == ""
+
+    def test_a_value_with_two_lozenges_has_no_colour(self):
+        row = _lozenge_row("Green", "yes").replace(
+            "</td>",
+            '<ac:structured-macro ac:name="status"><ac:parameter ac:name="colour">Red</ac:parameter>'
+            '<ac:parameter ac:name="title">no</ac:parameter></ac:structured-macro></td>',
+        )
+
+        assert _entries(row, "property")[0].colour == ""
+
+    def test_an_ordinary_value_has_no_colour(self):
+        assert _entries(DETAILS, "property")[0].colour == ""
 
     def test_tasks_carry_their_status_assignee_and_due_date(self):
         entries = _entries(TASKS, "task")

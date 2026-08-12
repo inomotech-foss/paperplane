@@ -431,6 +431,7 @@ class ConfluenceLoader:
                 kind=entry.kind,
                 key=entry.key,
                 value=entry.value,
+                color=entry.colour,
                 is_complete=entry.is_complete,
                 assignee=users.get(entry.account_id),
                 due_date=date.fromisoformat(entry.due_date) if entry.due_date else None,
