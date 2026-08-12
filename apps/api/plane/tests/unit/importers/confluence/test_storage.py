@@ -1091,8 +1091,7 @@ def _status_macro(title, colour=None):
 
 @pytest.mark.unit
 class TestStatusMacro:
-    """A status lozenge carries its meaning in its colour, so dropping the
-    colour turns a red 'no' and a green 'yes' into the same thing."""
+    """Without the colour, a red "no" and a green "yes" are the same thing."""
 
     @pytest.mark.parametrize(
         "colour,expected",

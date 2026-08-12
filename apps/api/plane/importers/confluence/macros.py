@@ -241,8 +241,8 @@ def _diagram(soup, node, macro_name, resolvers, result):
 
 
 def _status(soup, node):
-    """A status lozenge is a word plus a colour, and the colour is the point:
-    it is what makes a table of them readable at a glance."""
+    """A lozenge is a word plus a colour, and the colour is what makes a table
+    of them readable at a glance."""
     parameters = macro_parameters(node)
     title = parameters.get("title", "")
     if not title:

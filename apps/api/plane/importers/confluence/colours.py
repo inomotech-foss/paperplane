@@ -1,10 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-# Confluence names a colour; the editor names a palette entry and resolves it
-# to a light or dark value at render time. Mapping onto the palette rather than
-# emitting Confluence's own hex is what keeps a highlight readable in both
-# themes. The palette has no yellow, so yellow lands on orange.
+# The editor palette resolves a light or dark value per theme, which Confluence's
+# own hex cannot. It has no yellow, so yellow lands on orange.
 _STATUS_COLOURS = {
     "grey": "gray",
     "gray": "gray",
