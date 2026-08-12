@@ -44,16 +44,24 @@ def make_workspace(db, create_user):
 
 
 @pytest.fixture
-def bearer_client(api_client, create_user, oauth_application):
-    AccessToken.objects.create(
-        user=create_user,
-        token="oauth-test-token",
-        application=oauth_application,
-        expires=timezone.now() + timedelta(hours=1),
-        scope="read write",
-    )
-    api_client.credentials(HTTP_AUTHORIZATION="Bearer oauth-test-token")
-    return api_client
+def make_bearer_client(api_client, create_user, oauth_application):
+    def _make(scope="read write"):
+        token = AccessToken.objects.create(
+            user=create_user,
+            token=f"oauth-test-token-{scope.replace(' ', '-')}",
+            application=oauth_application,
+            expires=timezone.now() + timedelta(hours=1),
+            scope=scope,
+        )
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.token}")
+        return api_client
+
+    return _make
+
+
+@pytest.fixture
+def bearer_client(make_bearer_client):
+    return make_bearer_client()
 
 
 @pytest.mark.unit
@@ -286,3 +294,45 @@ class TestConsentSignInRedirect:
         response = client.get("/auth/o/resume-authorize/")
 
         assert "/auth/o/" not in response["Location"]
+
+
+@pytest.mark.unit
+class TestOAuthScopes:
+    @pytest.mark.django_db
+    def test_read_scope_allows_reads(self, make_bearer_client, create_user, oauth_application, make_workspace):
+        workspace = make_workspace("readable")
+        ApplicationInstallation.objects.create(application=oauth_application, workspace=workspace, user=create_user)
+
+        response = make_bearer_client("read").get(f"/api/v1/workspaces/{workspace.slug}/projects/")
+
+        assert response.status_code == 200
+
+    @pytest.mark.django_db
+    def test_read_scope_refuses_writes(self, make_bearer_client, create_user, oauth_application, make_workspace):
+        workspace = make_workspace("readonly")
+        ApplicationInstallation.objects.create(application=oauth_application, workspace=workspace, user=create_user)
+
+        response = make_bearer_client("read").post(
+            f"/api/v1/workspaces/{workspace.slug}/projects/", {"name": "Nope", "identifier": "NOPE"}
+        )
+
+        assert response.status_code == 403
+
+    @pytest.mark.django_db
+    def test_write_scope_permits_writes(self, make_bearer_client, create_user, oauth_application, make_workspace):
+        workspace = make_workspace("writable")
+        ApplicationInstallation.objects.create(application=oauth_application, workspace=workspace, user=create_user)
+
+        response = make_bearer_client("read write").post(
+            f"/api/v1/workspaces/{workspace.slug}/projects/", {"name": "Yes", "identifier": "YES"}
+        )
+
+        # The payload may still be rejected on its merits; the scope must not be.
+        assert response.status_code != 403
+
+    @pytest.mark.django_db
+    def test_api_key_requests_are_unaffected(self, api_key_client, create_user):
+        # API keys carry no scopes; request.auth is the token string.
+        response = api_key_client.get("/api/v1/users/me/")
+
+        assert response.status_code == 200
