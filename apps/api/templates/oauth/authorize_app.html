@@ -56,7 +56,8 @@
             <legend>Workspaces</legend>
             {% for workspace in workspaces %}
               <label>
-                <input type="checkbox" name="workspaces" value="{{ workspace.slug }}">
+                <input type="checkbox" name="workspaces" value="{{ workspace.slug }}"
+                       {% if workspace.slug in installed_slugs %}checked{% endif %}>
                 {{ workspace.name }}
               </label>
             {% endfor %}

@@ -18,11 +18,17 @@ class ApiKeyRateThrottle(SimpleRateThrottle):
     def get_cache_key(self, request, view):
         # Retrieve the API key from the request header
         api_key = request.headers.get("X-Api-Key")
-        if not api_key:
-            return None  # Allow the request if there's no API key
+        if api_key:
+            # Use the API key as part of the cache key
+            return f"{self.scope}:{api_key}"
 
-        # Use the API key as part of the cache key
-        return f"{self.scope}:{api_key}"
+        # OAuth bearer requests carry no X-Api-Key, and an unkeyed throttle lets
+        # everything through, so key them on the access token instead.
+        token_id = getattr(getattr(request, "auth", None), "id", None)
+        if token_id:
+            return f"{self.scope}:oauth:{token_id}"
+
+        return None  # Allow the request if it is not token authenticated
 
     def allow_request(self, request, view):
         allowed = super().allow_request(request, view)

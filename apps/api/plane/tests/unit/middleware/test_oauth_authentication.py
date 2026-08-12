@@ -146,6 +146,94 @@ class TestAppInstallationEndpoint:
         assert [row["workspace_detail"]["slug"] for row in response.json()] == ["mine"]
 
 
+@pytest.fixture
+def consent_client(client, create_user):
+    client.force_login(create_user)
+    return client
+
+
+def consent(consent_client, application, slugs, allow="Authorize"):
+    return consent_client.post(
+        "/auth/o/authorize-app/",
+        {
+            "client_id": application.client_id,
+            "response_type": "code",
+            "redirect_uri": "https://mcp.example.com/auth/callback",
+            "scope": "read write",
+            "state": "xyz",
+            "code_challenge": "a" * 43,
+            "code_challenge_method": "S256",
+            "allow": allow,
+            "workspaces": slugs,
+        },
+    )
+
+
+@pytest.mark.unit
+class TestConsent:
+    @pytest.mark.django_db
+    def test_selected_workspaces_become_installations(
+        self, consent_client, create_user, oauth_application, make_workspace
+    ):
+        make_workspace("picked")
+        make_workspace("skipped")
+
+        response = consent(consent_client, oauth_application, ["picked"])
+
+        assert "code=" in response["Location"]
+        assert set(
+            ApplicationInstallation.objects.filter(user=create_user).values_list("workspace__slug", flat=True)
+        ) == {"picked"}
+
+    @pytest.mark.django_db
+    def test_unticking_a_workspace_revokes_it(self, consent_client, create_user, oauth_application, make_workspace):
+        make_workspace("kept")
+        make_workspace("dropped")
+        consent(consent_client, oauth_application, ["kept", "dropped"])
+
+        # Re-consenting with a narrower selection has to shrink the grant, not
+        # leave the old workspace behind.
+        consent(consent_client, oauth_application, ["kept"])
+
+        assert set(
+            ApplicationInstallation.objects.filter(user=create_user).values_list("workspace__slug", flat=True)
+        ) == {"kept"}
+
+    @pytest.mark.django_db
+    def test_a_failed_authorization_records_nothing(
+        self, consent_client, create_user, oauth_application, make_workspace
+    ):
+        make_workspace("nope")
+
+        # A redirect_uri the application was never registered with fails the
+        # authorization; DOT returns an error response rather than raising.
+        response = consent_client.post(
+            "/auth/o/authorize-app/",
+            {
+                "client_id": oauth_application.client_id,
+                "response_type": "code",
+                "redirect_uri": "https://attacker.example.com/callback",
+                "scope": "read write",
+                "state": "xyz",
+                "code_challenge": "a" * 43,
+                "code_challenge_method": "S256",
+                "allow": "Authorize",
+                "workspaces": ["nope"],
+            },
+        )
+
+        assert "code=" not in response.get("Location", "")
+        assert not ApplicationInstallation.objects.filter(user=create_user).exists()
+
+    @pytest.mark.django_db
+    def test_denying_records_nothing(self, consent_client, create_user, oauth_application, make_workspace):
+        make_workspace("denied")
+
+        consent(consent_client, oauth_application, ["denied"], allow="")
+
+        assert not ApplicationInstallation.objects.filter(user=create_user).exists()
+
+
 @pytest.mark.unit
 class TestConsentSignInRedirect:
     @pytest.mark.django_db
