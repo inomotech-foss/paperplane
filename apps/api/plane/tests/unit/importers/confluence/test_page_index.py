@@ -34,6 +34,13 @@ DECISIONS = """
 """
 
 
+def _lozenge(title, colour=None):
+    macro = '<ac:structured-macro ac:name="status">'
+    if colour is not None:
+        macro += f'<ac:parameter ac:name="colour">{colour}</ac:parameter>'
+    return macro + f'<ac:parameter ac:name="title">{title}</ac:parameter></ac:structured-macro>'
+
+
 def _entries(body, kind, resolvers=None):
     result = storage_to_html(body, resolvers, ConversionResult(html=""))
     return [entry for entry in result.index_entries if entry.kind == kind]
@@ -92,6 +99,33 @@ class TestPageIndexing:
         assert [(entry.key, entry.value) for entry in result.index_entries] == [("Owner", "Team A")]
         # The cell is only unindexable, not lost: it still renders.
         assert "extra" in result.html
+
+    def test_a_lozenge_value_keeps_its_colour(self):
+        """The report table draws the lozenge, so the colour has to be indexed
+        with the value rather than left behind in the page body."""
+        entries = _entries(_property_row(_lozenge("yes", "Green")), "property")
+
+        assert [(entry.value, entry.colour) for entry in entries] == [("yes", "green")]
+
+    def test_an_uncoloured_lozenge_value_is_grey(self):
+        entries = _entries(_property_row(_lozenge("draft")), "property")
+
+        assert entries[0].colour == "gray"
+
+    def test_a_value_mixing_a_lozenge_with_text_has_no_colour(self):
+        """A cell with a lozenge and a caveat has no single colour, so claiming
+        one would say more than the page does."""
+        body = _property_row(_lozenge("yes", "Green") + "<p>once signed off</p>")
+
+        assert _entries(body, "property")[0].colour == ""
+
+    def test_a_value_with_two_lozenges_has_no_colour(self):
+        body = _property_row(_lozenge("yes", "Green") + _lozenge("no", "Red"))
+
+        assert _entries(body, "property")[0].colour == ""
+
+    def test_an_ordinary_value_has_no_colour(self):
+        assert _entries(DETAILS, "property")[0].colour == ""
 
     def test_a_status_macro_indexes_its_title_and_not_its_colour(self):
         """The colour is how the lozenge is drawn, never part of the value."""

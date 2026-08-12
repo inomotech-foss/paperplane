@@ -222,6 +222,23 @@ const LabelListQuery = observer(function LabelListQuery(props: Props) {
 });
 
 /**
+ * A property value, as a lozenge when it came from one. The palette key is what
+ * the editor's own colour styles are keyed by, so the chip matches a lozenge
+ * sitting in the page body.
+ */
+function PropertyValue(props: { value: string; color?: string }) {
+  const { value, color } = props;
+
+  if (!value) return null;
+  if (!color) return <>{value}</>;
+  return (
+    <span className="inline-block rounded px-1.5 py-0.5 text-11 font-medium uppercase" data-background-color={color}>
+      {value}
+    </span>
+  );
+}
+
+/**
  * Pages as rows, with their page properties as columns. Falls back to when the
  * page last changed when the macro named no columns, which is what the
  * content-report variant of this table shows.
@@ -277,7 +294,7 @@ const PagePropertiesQuery = observer(function PagePropertiesQuery(props: Props) 
                 </td>
                 {columns.map((column) => (
                   <td key={column} className="px-2 py-1.5 text-secondary">
-                    {result.properties?.[column] ?? ""}
+                    <PropertyValue value={result.properties?.[column] ?? ""} color={result.property_colors?.[column]} />
                   </td>
                 ))}
                 {columns.length === 0 && (

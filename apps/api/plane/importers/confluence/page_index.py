@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from bs4 import NavigableString
 
+from .colours import status_colour
 from .inline import decode_emoji_fallback
 from .links import link_text
 from .macros import REFERENCE_MACROS
@@ -30,10 +31,26 @@ class IndexEntry:
     account_id: str = ""
     due_date: str = ""
     order: int = 0
+    colour: str = ""
 
 
 def _text(node):
     return node.get_text(" ", strip=True) if node is not None else ""
+
+
+def _lozenge_colour(cell):
+    """The palette colour of a value that is nothing but a status lozenge.
+
+    A cell mixing a lozenge with other content has no one colour, so it keeps
+    none: colouring the whole value would claim more than the page says.
+    """
+    macros = cell.find_all("ac:structured-macro")
+    if len(macros) != 1 or (macros[0].get("ac:name") or "").lower() != "status":
+        return ""
+    if _text(cell) != _text(macros[0]):
+        return ""
+    parameters = macro_parameters(macros[0])
+    return status_colour(parameters.get("colour")) if parameters.get("title") else ""
 
 
 def _swap(node, text):
@@ -130,8 +147,15 @@ def _properties(soup, resolvers, result):
                 continue
             if len(cells) > 2:
                 result.downgraded["details"] += 1
-            value = _value_text(cells[1], resolvers)
-            entries.append(IndexEntry(kind="property", key=key[:255], value=value, order=len(entries)))
+            entries.append(
+                IndexEntry(
+                    kind="property",
+                    key=key[:255],
+                    value=_value_text(cells[1], resolvers),
+                    colour=_lozenge_colour(cells[1]),
+                    order=len(entries),
+                )
+            )
     return entries
 
 
