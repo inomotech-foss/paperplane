@@ -3,6 +3,8 @@
 
 import re
 
+from .colours import background_variable, palette_colour
+
 _WIDTH = re.compile(r"([\d.]+)\s*px")
 
 
@@ -31,9 +33,10 @@ def convert_tables(soup, result):
 
         for row in table.find_all("tr"):
             for index, cell in enumerate(row.find_all(["td", "th"], recursive=False)):
-                colour = cell.get("data-highlight-colour")
+                colour = palette_colour(cell.get("data-highlight-colour"))
                 if colour:
-                    cell["background"] = colour
+                    cell["background"] = background_variable(colour)
+                    result.downgraded["table-highlight"] += 1
                 if index < len(widths) and widths[index]:
                     cell["colwidth"] = str(widths[index])
                 for attribute in ("data-highlight-colour", "ac:local-id", "data-layout"):

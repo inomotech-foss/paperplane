@@ -182,17 +182,63 @@ class TestTables:
 
         result = convert(body)
 
-        assert 'background="#fffae6"' in result.html
+        assert 'background="var(--editor-colors-orange-background)"' in result.html
         assert 'colwidth="133"' in result.html
         assert "data-highlight-colour" not in result.html
         assert "data-layout" not in result.html
-        assert result.downgraded == {"table-width": 1}
+        assert result.downgraded == {"table-width": 1, "table-highlight": 1}
         assert result.is_lossless
 
     def test_default_layout_is_not_counted_at_all(self):
         result = convert('<table data-layout="default"><tbody><tr><td>c</td></tr></tbody></table>')
 
         assert result.downgraded == {}
+
+    def _highlighted(self, colour):
+        body = f'<table><tbody><tr><td data-highlight-colour="{colour}"><p>c</p></td></tr></tbody></table>'
+        return convert(body).html
+
+    @pytest.mark.parametrize(
+        "colour,expected",
+        [
+            # Atlassian's own highlight palette, which is what the backup holds.
+            ("#ffebe6", "peach"),
+            ("#fffae6", "orange"),
+            ("#ffc400", "orange"),
+            ("#e3fcef", "green"),
+            ("#abf5d1", "green"),
+            ("#e6fcff", "light-blue"),
+            ("#deebff", "dark-blue"),
+            ("#eae6ff", "purple"),
+            ("#f4f5f7", "gray"),
+            ("#b3bac5", "gray"),
+        ],
+    )
+    def test_colours_land_on_the_nearest_palette_entry(self, colour, expected):
+        assert f'background="var(--editor-colors-{expected}-background)"' in self._highlighted(colour)
+
+    @pytest.mark.parametrize("colour", ["yellow", "green", "red"])
+    def test_a_css_colour_name_is_mapped_rather_than_passed_through(self, colour):
+        """A bare name renders as the saturated CSS colour, not as a highlight."""
+        html = self._highlighted(colour)
+
+        assert f'background="{colour}"' not in html
+        assert "var(--editor-colors-" in html
+
+    @pytest.mark.parametrize("colour", ["transparent", "initial", "#auto", "#ffffff", "white", ""])
+    def test_a_cell_with_nothing_to_highlight_gets_no_background(self, colour):
+        html = self._highlighted(colour)
+
+        assert "background=" not in html
+        assert convert(html).downgraded == {}
+
+    def test_a_custom_property_is_read_through_its_fallback(self):
+        html = self._highlighted("var(--ds-background-neutral, #F4F5F7)")
+
+        assert 'background="var(--editor-colors-gray-background)"' in html
+
+    def test_an_rgb_call_is_understood(self):
+        assert 'background="var(--editor-colors-green-background)"' in self._highlighted("rgb(195, 240, 222)")
 
 
 @pytest.mark.unit
