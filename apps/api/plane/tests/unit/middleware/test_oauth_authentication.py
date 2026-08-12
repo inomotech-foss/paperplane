@@ -17,6 +17,7 @@ from django.utils import timezone
 from oauth2_provider.models import get_access_token_model, get_application_model
 
 from plane.db.models import ApplicationInstallation, Workspace, WorkspaceMember
+from plane.utils.path_validator import validate_next_path
 
 Application = get_application_model()
 AccessToken = get_access_token_model()
@@ -234,16 +235,56 @@ class TestConsent:
         assert not ApplicationInstallation.objects.filter(user=create_user).exists()
 
 
+AUTHORIZE_URL = (
+    "/auth/o/authorize-app/?response_type=code&client_id=abc123"
+    "&redirect_uri=https%3A%2F%2Fmcp.example.com%2Fcallback&scope=read+write&state=xyz"
+)
+
+
 @pytest.mark.unit
 class TestConsentSignInRedirect:
     @pytest.mark.django_db
-    def test_next_path_cannot_carry_the_user_off_site(self, api_client):
-        # next_path is reflected to the browser and acted on after sign-in, so it
-        # must stay relative no matter what the caller puts in the query string.
-        response = api_client.get("/auth/o/authorize-app/?next=https://evil.example.com")
+    def test_the_full_authorize_url_would_not_survive_the_round_trip(self):
+        # Why the session handoff exists: an encoded redirect_uri contains %2F%2F,
+        # which the shared next_path validator rejects outright.
+        assert validate_next_path(AUTHORIZE_URL) == ""
+
+    @pytest.mark.django_db
+    def test_signed_out_user_is_sent_to_sign_in_with_a_path_that_survives(self, client):
+        response = client.get(AUTHORIZE_URL)
 
         assert response.status_code == 302
-        next_path = parse_qs(urlparse(response["Location"]).query).get("next_path", [""])[0]
+        next_path = parse_qs(urlparse(response["Location"]).query)["next_path"][0]
+        assert validate_next_path(next_path) == next_path
         assert not urlparse(next_path).scheme
         assert not urlparse(next_path).netloc
-        assert next_path.startswith("/")
+
+    @pytest.mark.django_db
+    def test_resume_returns_the_user_to_the_consent_screen(self, client, create_user):
+        client.get(AUTHORIZE_URL)  # stores the pending authorization while signed out
+        client.force_login(create_user)
+
+        response = client.get("/auth/o/resume-authorize/")
+
+        assert response.status_code == 302
+        assert response["Location"] == AUTHORIZE_URL
+
+    @pytest.mark.django_db
+    def test_resume_without_a_pending_authorization_goes_somewhere_that_exists(self, client, create_user):
+        client.force_login(create_user)
+
+        response = client.get("/auth/o/resume-authorize/")
+
+        assert response.status_code == 302
+        assert "/auth/o/" not in response["Location"]
+
+    @pytest.mark.django_db
+    def test_resume_is_single_use(self, client, create_user):
+        client.get(AUTHORIZE_URL)
+        client.force_login(create_user)
+        client.get("/auth/o/resume-authorize/")
+
+        # The pending path is popped, so a replay cannot re-drive consent.
+        response = client.get("/auth/o/resume-authorize/")
+
+        assert "/auth/o/" not in response["Location"]

@@ -7,6 +7,7 @@ from django.db import transaction
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme, urlencode
+from django.views import View
 from oauth2_provider.models import get_application_model
 from oauth2_provider.views import AuthorizationView
 from rest_framework.response import Response
@@ -15,6 +16,9 @@ from rest_framework.views import APIView
 from plane.api.middleware.oauth_authentication import OAuthBearerAuthentication
 from plane.authentication.utils.host import base_host
 from plane.db.models import ApplicationInstallation, Workspace
+
+# Where the pending authorize URL waits while the user signs in.
+AUTHORIZE_PATH_SESSION_KEY = "oauth_authorize_path"
 
 
 def member_workspaces(user):
@@ -48,15 +52,15 @@ class AuthorizeAppView(AuthorizationView):
     template_name = "oauth/authorize_app.html"
 
     def handle_no_permission(self):
-        # The web app drives sign-in, and it takes next_path rather than Django's
-        # ?next=, so send the user there and bring them back to consent after.
-        # next_path is reflected back to the browser as a redirect target, so it
-        # is confined to a relative path here; a scheme or host would make this an
-        # open redirect once the web app acts on it.
-        next_path = self.request.get_full_path()
-        if not url_has_allowed_host_and_scheme(next_path, allowed_hosts=None):
-            next_path = reverse("oauth-authorize-app")
-        return redirect(f"{base_host(self.request, is_app=True)}/?{urlencode({'next_path': next_path})}")
+        # Sign-in happens in the web app, which round-trips the return path through
+        # next_path. A full authorize URL does not survive that trip: the shared
+        # validator rejects the %2F%2F inside an encoded redirect_uri, and the
+        # redirect builder re-joins parts on & without encoding, so everything
+        # after the first parameter is lost. Send a bare path instead and keep the
+        # real one in the session, which login() carries over via cycle_key().
+        self.request.session[AUTHORIZE_PATH_SESSION_KEY] = self.request.get_full_path()
+        resume_path = reverse("oauth-resume-authorize")
+        return redirect(f"{base_host(self.request, is_app=True)}/?{urlencode({'next_path': resume_path})}")
 
     def get(self, request, *args, **kwargs):
         # approval_prompt=auto lets a client reissue a token without showing the
@@ -125,6 +129,25 @@ class AuthorizeAppView(AuthorizationView):
                     application=application, workspace=workspace, user=self.request.user
                 )
         return response
+
+
+class ResumeAuthorizeAppView(View):
+    """Send a freshly signed-in user back to the consent screen they came from.
+
+    The web app can only hand back a bare path, so the authorize query is picked
+    up from the session here rather than from the URL.
+    """
+
+    def get(self, request):
+        path = request.session.pop(AUTHORIZE_PATH_SESSION_KEY, "")
+        authorize_path = reverse("oauth-authorize-app")
+        # The stored value is one we wrote, but it reaches the browser as a
+        # redirect, so re-check it rather than trusting the session round trip.
+        if not path.startswith(authorize_path) or not url_has_allowed_host_and_scheme(path, allowed_hosts=None):
+            # Nothing to resume. Consent is unreachable without the original
+            # query, so send them somewhere that exists.
+            return redirect(base_host(request, is_app=True))
+        return redirect(path)
 
 
 class AppInstallationEndpoint(APIView):
