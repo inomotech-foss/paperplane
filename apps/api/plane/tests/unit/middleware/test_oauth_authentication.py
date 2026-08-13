@@ -12,6 +12,7 @@ selected on the consent screen.
 import base64
 import hashlib
 from datetime import timedelta
+from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -447,6 +448,41 @@ class TestOAuthScopes:
         response = api_key_client.get("/api/v1/users/me/")
 
         assert response.status_code == 200
+
+
+@pytest.mark.unit
+class TestOAuthRequestsReachTheAuditLog:
+    """The middleware runs outside DRF, so the actor has to be handed to it."""
+
+    @pytest.mark.django_db
+    def test_a_granted_request_is_attributed(self, bearer_client, create_user, oauth_application, make_workspace):
+        workspace = make_workspace("audited")
+        ApplicationInstallation.objects.create(application=oauth_application, workspace=workspace, user=create_user)
+        logged = []
+        with patch("plane.middleware.logger.process_logs.delay", lambda log_data: logged.append(log_data)):
+            bearer_client.get(f"/api/v1/workspaces/{workspace.slug}/projects/")
+
+        assert [entry["token_identifier"] for entry in logged] == [f"oauth:{oauth_application.id}:{create_user.id}"]
+
+    @pytest.mark.django_db
+    def test_a_refused_request_is_still_attributed(self, bearer_client, create_user, oauth_application, make_workspace):
+        workspace = make_workspace("offlimits")
+        logged = []
+        with patch("plane.middleware.logger.process_logs.delay", lambda log_data: logged.append(log_data)):
+            response = bearer_client.get(f"/api/v1/workspaces/{workspace.slug}/projects/")
+
+        assert response.status_code == 403
+        assert logged[0]["token_identifier"] == f"oauth:{oauth_application.id}:{create_user.id}"
+        assert logged[0]["response_code"] == 403
+
+    @pytest.mark.django_db
+    def test_session_requests_are_not_logged(self, session_client, create_user):
+        logged = []
+        with patch("plane.middleware.logger.process_logs.delay", lambda log_data: logged.append(log_data)):
+            session_client.get("/api/v1/users/me/")
+
+        # The log is for external API traffic, not the web app.
+        assert logged == []
 
 
 @pytest.mark.unit

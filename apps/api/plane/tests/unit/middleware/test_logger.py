@@ -8,6 +8,7 @@ Unit tests for APITokenLogMiddleware.
 Covers the credential-hygiene guarantees of the external API request logger:
 - the raw API key is never persisted (a non-reversible hash is stored instead)
 - sensitive request headers are redacted before being logged
+- OAuth requests are attributed to an application and user
 """
 
 import hashlib
@@ -69,9 +70,42 @@ class TestAPITokenLogMiddleware:
         assert self.COOKIE not in log_data["headers"]
         assert "[REDACTED]" in log_data["headers"]
 
-    def test_no_log_without_api_key(self, middleware, request_factory):
+    def test_no_log_without_a_credential(self, middleware, request_factory):
         request = request_factory.get("/api/v1/workspaces/")
         request.user = AnonymousUser()
         with patch("plane.middleware.logger.process_logs") as process_logs:
             middleware.process_request(request, HttpResponse(b"{}"), request_body=b"")
             assert not process_logs.delay.called
+
+
+@pytest.mark.unit
+class TestOAuthRequestsAreLogged:
+    """OAuth bearer tokens carry no API key, so they need their own identifier."""
+
+    ACTOR = (7, "5e2f1a3c-0d4b-4c6e-8a91-2b3c4d5e6f70")
+
+    def _captured_log_data(self, middleware, request_factory):
+        request = request_factory.get("/api/v1/workspaces/acme/projects/", HTTP_AUTHORIZATION="Bearer a-token")
+        request.user = AnonymousUser()
+        request.oauth_actor = self.ACTOR  # set by OAuthBearerAuthentication
+        with patch("plane.middleware.logger.process_logs") as process_logs:
+            middleware.process_request(request, HttpResponse(b"{}"), request_body=b"")
+            assert process_logs.delay.called
+            return process_logs.delay.call_args.kwargs["log_data"]
+
+    def test_the_application_and_user_identify_the_request(self, middleware, request_factory):
+        log_data = self._captured_log_data(middleware, request_factory)
+
+        assert log_data["token_identifier"] == f"oauth:{self.ACTOR[0]}:{self.ACTOR[1]}"
+
+    def test_the_bearer_token_is_never_persisted(self, middleware, request_factory):
+        log_data = self._captured_log_data(middleware, request_factory)
+
+        assert "a-token" not in log_data["headers"]
+        assert "a-token" not in log_data["token_identifier"]
+
+    def test_the_path_and_outcome_are_recorded(self, middleware, request_factory):
+        log_data = self._captured_log_data(middleware, request_factory)
+
+        assert log_data["path"] == "/api/v1/workspaces/acme/projects/"
+        assert log_data["response_code"] == 200

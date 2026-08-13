@@ -35,6 +35,10 @@ class OAuthBearerAuthentication(OAuth2Authentication):
             return None
 
         user, token = result
+        # DRF puts the user on the underlying request but not the auth, and the
+        # audit middleware sees only that. Set before the checks below refuse.
+        request._request.oauth_actor = (token.application_id, user.id)
+
         # Scopes are checked here rather than in a permission class because 58 of
         # the v1 views replace permission_classes outright, while none replace
         # authentication_classes.

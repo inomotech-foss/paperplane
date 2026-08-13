@@ -127,23 +127,30 @@ class APITokenLogMiddleware:
         }
         return str(redacted)
 
-    def process_request(self, request, response, request_body):
-        api_key_header = "X-Api-Key"
-        api_key = request.headers.get(api_key_header)
+    def _token_identifier(self, request):
+        """Identify the credential behind the request, or None if there is none."""
+        api_key = request.headers.get("X-Api-Key")
+        if api_key:
+            # Keyed HMAC over a high-entropy key, so the raw key is never stored
+            # and the digest cannot be precomputed from a known key value.
+            return hmac.new(settings.SECRET_KEY.encode(), api_key.encode(), hashlib.sha256).hexdigest()
 
-        # If the API key is not present, return
-        if not api_key:
+        actor = getattr(request, "oauth_actor", None)
+        if actor:
+            # Bearer tokens rotate, so a digest would break the trail on refresh.
+            application_id, user_id = actor
+            return f"oauth:{application_id}:{user_id}"
+
+        return None
+
+    def process_request(self, request, response, request_body):
+        token_identifier = self._token_identifier(request)
+        if not token_identifier:
             return
 
         try:
             log_data = {
-                # Tokenize the (high-entropy) API key into a stable, non-reversible
-                # identifier so logs can be correlated to a token without ever
-                # persisting the raw key. A keyed HMAC is used rather than a bare
-                # hash so the digest cannot be precomputed from a known key value.
-                "token_identifier": hmac.new(
-                    settings.SECRET_KEY.encode(), api_key.encode(), hashlib.sha256
-                ).hexdigest(),
+                "token_identifier": token_identifier,
                 "path": request.path,
                 "method": request.method,
                 "query_params": request.META.get("QUERY_STRING", ""),
