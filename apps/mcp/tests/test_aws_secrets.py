@@ -470,7 +470,7 @@ def test_ping_redis_succeeds(monkeypatch):
 def test_ping_redis_raises_on_failure(monkeypatch):
     _patch_sync_redis(monkeypatch, ping_exc=OSError("connection refused"))
     with pytest.raises(RuntimeError, match="Redis connection failed during startup PING"):
-        storage._ping_redis("localhost", 6379)
+        storage._ping_redis("localhost", 6379, retry_seconds=0)
 
 
 def test_ping_redis_passes_through_credentials_and_ssl(monkeypatch):
