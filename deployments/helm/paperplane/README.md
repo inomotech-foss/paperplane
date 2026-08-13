@@ -439,12 +439,20 @@ namespace.
 
 The MCP server exposes Plane to AI clients over the Model Context Protocol. It
 is off by default. Turning it on needs an OAuth application registered in god
-mode first: its client id and secret go in `mcp.oauth`, and its redirect URI
-must be `<appProtocol>://<appHost>/mcp/auth/callback`.
+mode first, with its client id and secret in `mcp.oauth`.
 
-Clients connect to `https://<appHost>/mcp/http/mcp` and authorize through the
-browser. Each user picks which of their workspaces the client may reach, and
-the server refuses any other.
+Each transport has its own callback, so register both redirect URIs:
+
+```
+<appProtocol>://<appHost>/mcp/http/auth/callback
+<appProtocol>://<appHost>/mcp/auth/callback
+```
+
+Clients connect to `https://<appHost>/mcp/http/mcp`, which uses the first of
+those. The second serves the legacy SSE transport at `/mcp/sse`.
+
+Authorization runs through the browser. Each user picks which of their
+workspaces the client may reach, and the server refuses any other.
 
 | Setting | Default | Required | Description |
 | --- | :---: | :---: | --- |
