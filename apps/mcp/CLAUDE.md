@@ -62,7 +62,7 @@ An OAuth token is installed in every workspace the user ticked on the consent sc
 
 ### Tools (`tools/`)
 
-29 tool modules organized by Plane domain (projects, work_items, cycles, modules, releases, etc.), totaling 160+ tools. Each module exports a `register_*_tools(mcp: FastMCP)` function called from `tools/__init__.py`.
+Tool modules organized by Plane domain (projects, work_items, cycles, modules, etc.). Tools for features this fork does not have were removed; see the README for what is served. Each module exports a `register_*_tools(mcp: FastMCP)` function called from `tools/__init__.py`.
 
 **Tool pattern:**
 ```python
