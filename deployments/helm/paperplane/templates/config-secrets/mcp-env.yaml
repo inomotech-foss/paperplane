@@ -1,5 +1,9 @@
 {{- if .Values.mcp.enabled }}
-{{- if empty .Values.mcp.oauth.existingSecret }}
+{{- $generate := eq (include "plane.mcp.generateOAuth" $) "true" }}
+{{- if and $generate (not .Values.secretGenerator.enabled) }}
+{{- fail "mcp.enabled needs OAuth credentials: either set secretGenerator.enabled=true to have the chart mint them, or supply mcp.oauth.clientId and clientSecret" }}
+{{- end }}
+{{- if and (empty .Values.mcp.oauth.existingSecret) (not $generate) }}
 apiVersion: v1
 kind: Secret
 type: Opaque
@@ -9,8 +13,8 @@ metadata:
   labels:
     {{- include "plane.commonLabels" $ | nindent 4 }}
 stringData:
-  PLANE_OAUTH_PROVIDER_CLIENT_ID: {{ required "mcp.oauth.clientId is required when mcp.enabled is true; register an OAuth application in god mode first" .Values.mcp.oauth.clientId | quote }}
-  PLANE_OAUTH_PROVIDER_CLIENT_SECRET: {{ required "mcp.oauth.clientSecret is required when mcp.enabled is true" .Values.mcp.oauth.clientSecret | quote }}
+  PLANE_OAUTH_PROVIDER_CLIENT_ID: {{ required "mcp.oauth.clientId is required when mcp.oauth.clientSecret is set" .Values.mcp.oauth.clientId | quote }}
+  PLANE_OAUTH_PROVIDER_CLIENT_SECRET: {{ required "mcp.oauth.clientSecret is required when mcp.oauth.clientId is set" .Values.mcp.oauth.clientSecret | quote }}
 ---
 {{- end }}
 
@@ -36,5 +40,18 @@ data:
   REDIS_HOST: "{{ .Release.Name }}-redis.{{ .Release.Namespace }}.svc.cluster.local"
   REDIS_PORT: "6379"
   {{- end }}
+---
+# Read by the API, which reconciles the OAuth application from it on start. Kept
+# apart from the MCP server's own vars, which set REDIS_HOST among others.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-mcp-provision-vars
+  labels:
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+data:
+  MCP_OAUTH_APP_NAME: {{ .Values.mcp.oauth.appName | default "Plane MCP" | quote }}
+  MCP_OAUTH_REDIRECT_URIS: {{ include "plane.mcp.redirectUris" $ | quote }}
 ---
 {{- end }}

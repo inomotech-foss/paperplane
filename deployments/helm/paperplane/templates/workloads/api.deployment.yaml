@@ -81,6 +81,21 @@ spec:
               name: {{ .Release.Name }}-generated-secrets
               optional: false
           {{- end }}
+          {{- if .Values.mcp.enabled }}
+          # The API reconciles the OAuth application the MCP server signs in with.
+          - configMapRef:
+              name: {{ .Release.Name }}-mcp-provision-vars
+              optional: false
+          {{- if not (empty .Values.mcp.oauth.existingSecret) }}
+          - secretRef:
+              name: {{ .Values.mcp.oauth.existingSecret }}
+              optional: false
+          {{- else if ne (include "plane.mcp.generateOAuth" $) "true" }}
+          - secretRef:
+              name: {{ .Release.Name }}-mcp-secrets
+              optional: false
+          {{- end }}
+          {{- end }}
           {{- with .Values.api.extraEnvFrom }}
           {{- toYaml . | nindent 10 }}
           {{- end }}

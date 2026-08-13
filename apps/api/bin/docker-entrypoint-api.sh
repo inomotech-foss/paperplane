@@ -32,6 +32,9 @@ python manage.py reconcile_instance_config
 # Bootstrap instance admins and settings from the environment
 python manage.py bootstrap_instance
 
+# Reconcile the chart-managed OAuth application from the environment
+python manage.py provision_oauth_application
+
 # Create the default bucket
 python manage.py create_bucket
 

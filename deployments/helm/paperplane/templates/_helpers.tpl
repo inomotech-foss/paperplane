@@ -171,3 +171,24 @@ as the authorization endpoint, so it has to be reachable from a browser.
 {{- end -}}
 {{- printf "%s://%s" (.Values.ingress.appProtocol | default "http") .Values.ingress.appHost -}}
 {{- end -}}
+{{/*
+Both OAuth callbacks the MCP server serves, comma separated. The streamable HTTP
+transport mounts a level below the SSE one, so each has its own. Derived here
+rather than configured, so a registered URI cannot drift from a served one.
+*/}}
+{{/*
+Whether the chart mints the MCP OAuth credentials itself. It does so unless the
+operator supplied them, which is what makes enabling MCP a single deploy.
+*/}}
+{{- define "plane.mcp.generateOAuth" -}}
+{{- $oauth := .Values.mcp.oauth -}}
+{{- if and .Values.mcp.enabled (empty $oauth.existingSecret) (empty $oauth.clientId) (empty $oauth.clientSecret) -}}
+true
+{{- else -}}
+false
+{{- end -}}
+{{- end -}}
+{{- define "plane.mcp.redirectUris" -}}
+{{- $base := include "plane.mcp.publicUrl" . -}}
+{{- printf "%s/mcp/http/auth/callback,%s/mcp/auth/callback" $base $base -}}
+{{- end -}}
