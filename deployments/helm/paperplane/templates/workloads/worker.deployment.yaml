@@ -31,8 +31,10 @@ spec:
             cpu: {{ .Values.worker.cpuLimit | default "500m" | quote}}
         command:
           - ./bin/docker-entrypoint-worker.sh
-        {{- with .Values.worker.extraEnv }}
         env:
+          - name: WORKER_CONCURRENCY
+            value: {{ .Values.worker.concurrency | default 4 | quote }}
+        {{- with .Values.worker.extraEnv }}
           {{- toYaml . | nindent 10 }}
         {{- end }}
         envFrom:
