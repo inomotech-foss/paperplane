@@ -2,6 +2,14 @@
 
 A Model Context Protocol (MCP) server for Plane integration. This server provides tools and resources for interacting with Plane through AI agents.
 
+Vendored from [makeplane/plane-mcp-server](https://github.com/makeplane/plane-mcp-server) (MIT, see LICENSE) as a git subtree, and changed to match this fork's API. Sync with:
+
+```bash
+git subtree pull --prefix apps/mcp mcp-upstream <tag> --squash
+```
+
+Issues and contributions belong in this repository, not upstream.
+
 ## Features
 
 * 🔧 **Plane Integration**: Interact with Plane APIs and services
