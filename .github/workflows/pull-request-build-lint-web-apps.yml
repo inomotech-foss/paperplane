@@ -2,8 +2,6 @@ name: Build and lint web apps
 
 on:
   workflow_dispatch:
-  # No branches filter: it matches the PR's base, so a stacked PR targeting
-  # another feature branch would never run these.
   pull_request:
     types:
       - "opened"
