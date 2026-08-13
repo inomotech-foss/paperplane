@@ -254,7 +254,9 @@ worker:
   memoryLimit: 2000Mi
   cpuLimit: 500m
   cpuRequest: 50m
-  memoryRequest: 1000Mi
+  # Steady state sits near 1.3Gi, and a request below that makes the worker the
+  # first pod evicted when the node runs low on memory.
+  memoryRequest: 1500Mi
   image: ghcr.io/inomotech-foss/paperplane-backend
   pullPolicy: Always
   labels: {}

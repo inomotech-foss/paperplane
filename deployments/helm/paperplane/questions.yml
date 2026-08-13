@@ -267,7 +267,7 @@ questions:
   - variable: worker.memoryRequest
     label: "Memory Request"
     type: string
-    default: 50Mi
+    default: 1500Mi
   - variable: worker.cpuRequest
     label: "CPU Request"
     type: string
