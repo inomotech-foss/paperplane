@@ -17,6 +17,7 @@ eagerly with a synchronous PING.
 from __future__ import annotations
 
 import os
+import time
 from typing import Any
 
 from fastmcp.utilities.logging import get_logger
@@ -24,6 +25,9 @@ from key_value.aio.stores.memory import MemoryStore
 from key_value.aio.stores.redis import RedisStore
 
 logger = get_logger(__name__)
+
+# A pod can start before its Redis Service resolves, so wait rather than exit.
+REDIS_PING_RETRY_SECONDS = 60.0
 
 
 def _has_aws_credentials() -> bool:
@@ -46,32 +50,41 @@ def _ping_redis(
     password: str | None = None,
     ssl: bool = False,
     timeout_seconds: float = 5.0,
+    retry_seconds: float = REDIS_PING_RETRY_SECONDS,
 ) -> None:
-    """Verify Redis reachability with a one-shot synchronous PING.
+    """Verify Redis reachability with a synchronous PING, retrying until the deadline.
 
-    Raises ``RuntimeError`` on any connection or auth failure.
+    Raises ``RuntimeError`` once the retry window is exhausted.
     """
     import redis  # local: only loaded when Redis is configured
 
-    client = redis.Redis(
-        host=host,
-        port=port,
-        password=password,
-        ssl=ssl,
-        socket_connect_timeout=timeout_seconds,
-        socket_timeout=timeout_seconds,
-    )
-    try:
-        client.ping()
-    except Exception as exc:
-        raise RuntimeError(f"Redis connection failed during startup PING: {exc}") from exc
-    finally:
+    deadline = time.monotonic() + retry_seconds
+    delay = 1.0
+    while True:
+        client = redis.Redis(
+            host=host,
+            port=port,
+            password=password,
+            ssl=ssl,
+            socket_connect_timeout=timeout_seconds,
+            socket_timeout=timeout_seconds,
+        )
         try:
-            client.close()
-        except Exception:
-            pass
+            client.ping()
+            logger.info("Redis connection verified (PING succeeded)")
+            return
+        except Exception as exc:
+            if time.monotonic() >= deadline:
+                raise RuntimeError(f"Redis connection failed during startup PING: {exc}") from exc
+            logger.info("Redis not reachable yet, retrying in %ss", delay)
+        finally:
+            try:
+                client.close()
+            except Exception:
+                pass
 
-    logger.info("Redis connection verified (PING succeeded)")
+        time.sleep(delay)
+        delay = min(delay * 2, 5.0)
 
 
 def build_token_store() -> Any:
