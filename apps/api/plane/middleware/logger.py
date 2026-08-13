@@ -127,23 +127,39 @@ class APITokenLogMiddleware:
         }
         return str(redacted)
 
-    def process_request(self, request, response, request_body):
-        api_key_header = "X-Api-Key"
-        api_key = request.headers.get(api_key_header)
+    def _token_identifier(self, request):
+        """A stable identifier for the credential behind the request.
 
-        # If the API key is not present, return
-        if not api_key:
+        Returns None for anything that is not an external API call, which is
+        what tells the caller there is nothing to log.
+        """
+        api_key = request.headers.get("X-Api-Key")
+        if api_key:
+            # Tokenize the (high-entropy) API key into a stable, non-reversible
+            # identifier so logs can be correlated to a token without ever
+            # persisting the raw key. A keyed HMAC is used rather than a bare
+            # hash so the digest cannot be precomputed from a known key value.
+            return hmac.new(settings.SECRET_KEY.encode(), api_key.encode(), hashlib.sha256).hexdigest()
+
+        actor = getattr(request, "oauth_actor", None)
+        if actor:
+            # Bearer tokens rotate, so hashing one would break the trail at every
+            # refresh. The application and user are what the log is asked about.
+            application_id, user_id = actor
+            return f"oauth:{application_id}:{user_id}"
+
+        return None
+
+    def process_request(self, request, response, request_body):
+        token_identifier = self._token_identifier(request)
+
+        # Not an external API request, so there is nothing to record.
+        if not token_identifier:
             return
 
         try:
             log_data = {
-                # Tokenize the (high-entropy) API key into a stable, non-reversible
-                # identifier so logs can be correlated to a token without ever
-                # persisting the raw key. A keyed HMAC is used rather than a bare
-                # hash so the digest cannot be precomputed from a known key value.
-                "token_identifier": hmac.new(
-                    settings.SECRET_KEY.encode(), api_key.encode(), hashlib.sha256
-                ).hexdigest(),
+                "token_identifier": token_identifier,
                 "path": request.path,
                 "method": request.method,
                 "query_params": request.META.get("QUERY_STRING", ""),
