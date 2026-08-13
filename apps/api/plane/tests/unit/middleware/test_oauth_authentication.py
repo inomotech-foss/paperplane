@@ -9,6 +9,8 @@ The guarantee under test is that a token only reaches the workspaces its holder
 selected on the consent screen.
 """
 
+import base64
+import hashlib
 from datetime import timedelta
 from urllib.parse import parse_qs, urlparse
 
@@ -22,6 +24,11 @@ from plane.utils.path_validator import validate_next_path
 Application = get_application_model()
 AccessToken = get_access_token_model()
 
+REDIRECT_URI = "https://mcp.example.com/auth/callback"
+
+
+CLIENT_SECRET = "test-client-secret"
+
 
 @pytest.fixture
 def oauth_application(db):
@@ -29,7 +36,9 @@ def oauth_application(db):
         name="Plane MCP",
         client_type=Application.CLIENT_CONFIDENTIAL,
         authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
-        redirect_uris="https://mcp.example.com/auth/callback",
+        redirect_uris=REDIRECT_URI,
+        # Hashed on save, so the plaintext stays here for the token exchange.
+        client_secret=CLIENT_SECRET,
     )
 
 
@@ -160,16 +169,16 @@ def consent_client(client, create_user):
     return client
 
 
-def consent(consent_client, application, slugs, allow="Authorize"):
+def consent(consent_client, application, slugs, allow="Authorize", code_challenge="a" * 43):
     return consent_client.post(
         "/auth/o/authorize-app/",
         {
             "client_id": application.client_id,
             "response_type": "code",
-            "redirect_uri": "https://mcp.example.com/auth/callback",
+            "redirect_uri": REDIRECT_URI,
             "scope": "read write",
             "state": "xyz",
-            "code_challenge": "a" * 43,
+            "code_challenge": code_challenge,
             "code_challenge_method": "S256",
             "allow": allow,
             "workspaces": slugs,
@@ -239,6 +248,108 @@ class TestConsent:
         consent(consent_client, oauth_application, ["denied"], allow="")
 
         assert not ApplicationInstallation.objects.filter(user=create_user).exists()
+
+
+CODE_VERIFIER = "v" * 43
+CODE_CHALLENGE = base64.urlsafe_b64encode(hashlib.sha256(CODE_VERIFIER.encode()).digest()).decode().rstrip("=")
+
+
+def authorization_code(consent_client, application, slugs):
+    response = consent(consent_client, application, slugs, code_challenge=CODE_CHALLENGE)
+    return parse_qs(urlparse(response["Location"]).query)["code"][0]
+
+
+def exchange(client, application, code, code_verifier=CODE_VERIFIER):
+    return client.post(
+        "/auth/o/token/",
+        {
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": REDIRECT_URI,
+            "client_id": application.client_id,
+            "client_secret": CLIENT_SECRET,
+            "code_verifier": code_verifier,
+        },
+    )
+
+
+@pytest.mark.unit
+class TestTokenExchange:
+    """The half of the flow between consent and a usable bearer token.
+
+    An MCP client drives this without a browser, so a misconfiguration here only
+    shows up against a real client.
+    """
+
+    @pytest.mark.django_db
+    def test_a_code_becomes_a_token_that_reaches_the_granted_workspace(
+        self, client, consent_client, api_client, oauth_application, make_workspace
+    ):
+        workspace = make_workspace("granted")
+        code = authorization_code(consent_client, oauth_application, [workspace.slug])
+
+        response = exchange(client, oauth_application, code)
+
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["token_type"] == "Bearer"
+        assert payload["refresh_token"]
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {payload['access_token']}")
+        assert api_client.get(f"/api/v1/workspaces/{workspace.slug}/projects/").status_code == 200
+
+    @pytest.mark.django_db
+    def test_the_token_stops_at_the_workspaces_that_were_ticked(
+        self, client, consent_client, api_client, oauth_application, make_workspace
+    ):
+        granted = make_workspace("picked")
+        skipped = make_workspace("unpicked")
+        code = authorization_code(consent_client, oauth_application, [granted.slug])
+
+        token = exchange(client, oauth_application, code).json()["access_token"]
+
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+        assert api_client.get(f"/api/v1/workspaces/{skipped.slug}/projects/").status_code == 403
+
+    @pytest.mark.django_db
+    def test_the_wrong_code_verifier_is_refused(self, client, consent_client, oauth_application, make_workspace):
+        make_workspace("pkce")
+        code = authorization_code(consent_client, oauth_application, ["pkce"])
+
+        response = exchange(client, oauth_application, code, code_verifier="w" * 43)
+
+        assert response.status_code == 400
+
+    @pytest.mark.django_db
+    def test_a_code_cannot_be_exchanged_twice(self, client, consent_client, oauth_application, make_workspace):
+        make_workspace("replay")
+        code = authorization_code(consent_client, oauth_application, ["replay"])
+        exchange(client, oauth_application, code)
+
+        response = exchange(client, oauth_application, code)
+
+        assert response.status_code == 400
+
+    @pytest.mark.django_db
+    def test_a_refreshed_token_keeps_the_grant(
+        self, client, consent_client, api_client, oauth_application, make_workspace
+    ):
+        workspace = make_workspace("refreshed")
+        code = authorization_code(consent_client, oauth_application, [workspace.slug])
+        refresh_token = exchange(client, oauth_application, code).json()["refresh_token"]
+
+        response = client.post(
+            "/auth/o/token/",
+            {
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "client_id": oauth_application.client_id,
+                "client_secret": CLIENT_SECRET,
+            },
+        )
+
+        assert response.status_code == 200
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.json()['access_token']}")
+        assert api_client.get(f"/api/v1/workspaces/{workspace.slug}/projects/").status_code == 200
 
 
 AUTHORIZE_URL = (
