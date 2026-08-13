@@ -35,6 +35,10 @@ jobs:
         run: python -m pip install uv
       - name: Install MCP dependencies
         run: cd apps/mcp && uv sync --extra dev
+      - name: Lint apps/mcp
+        run: cd apps/mcp && uv run ruff check .
+      - name: Check apps/mcp formatting
+        run: cd apps/mcp && uv run ruff format --check .
       # test_integration.py needs a live Plane instance, so it is left out.
       - name: Run MCP tests
         run: cd apps/mcp && uv run pytest -q --ignore=tests/test_integration.py
