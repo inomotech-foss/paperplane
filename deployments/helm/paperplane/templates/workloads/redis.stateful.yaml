@@ -46,6 +46,14 @@ spec:
         name: {{ .Release.Name }}-redis
         stdin: true
         tty: true
+        {{- if .Values.redis.appendonly }}
+        args:
+          - --appendonly
+          - "yes"
+          # Rewrite early so the log stays well inside redis.volumeSize.
+          - --auto-aof-rewrite-min-size
+          - "16mb"
+        {{- end }}
         volumeMounts:
         - mountPath: /data
           name: pvc-{{ .Release.Name }}-redis-vol

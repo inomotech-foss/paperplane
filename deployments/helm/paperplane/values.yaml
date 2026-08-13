@@ -50,6 +50,9 @@ ssl:
 
 redis:
   local_setup: true
+  # OAuth tokens are written between RDB snapshots, so a restart drops them
+  # without an append-only log and every MCP client has to authorize again.
+  appendonly: true
   image: valkey/valkey:7.2.11-alpine@sha256:10328d00120dc14fbc87b2ed61b7677ddbb0d011e705361b4788329a0ec69a93
   servicePort: 6379
   storageClass: ""

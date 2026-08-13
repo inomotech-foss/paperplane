@@ -304,6 +304,11 @@ questions:
   default: true
   group: "Redis Setup"
   subquestions:
+  - variable: redis.appendonly
+    label: "Append-Only Persistence"
+    type: boolean
+    default: true
+    show_if: "redis.local_setup=true"
   - variable: redis.pullPolicy
     label: "Redis Pull Policy"
     type: enum
