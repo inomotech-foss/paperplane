@@ -128,23 +128,16 @@ class APITokenLogMiddleware:
         return str(redacted)
 
     def _token_identifier(self, request):
-        """A stable identifier for the credential behind the request.
-
-        Returns None for anything that is not an external API call, which is
-        what tells the caller there is nothing to log.
-        """
+        """Identify the credential behind the request, or None if there is none."""
         api_key = request.headers.get("X-Api-Key")
         if api_key:
-            # Tokenize the (high-entropy) API key into a stable, non-reversible
-            # identifier so logs can be correlated to a token without ever
-            # persisting the raw key. A keyed HMAC is used rather than a bare
-            # hash so the digest cannot be precomputed from a known key value.
+            # Keyed HMAC over a high-entropy key, so the raw key is never stored
+            # and the digest cannot be precomputed from a known key value.
             return hmac.new(settings.SECRET_KEY.encode(), api_key.encode(), hashlib.sha256).hexdigest()
 
         actor = getattr(request, "oauth_actor", None)
         if actor:
-            # Bearer tokens rotate, so hashing one would break the trail at every
-            # refresh. The application and user are what the log is asked about.
+            # Bearer tokens rotate, so a digest would break the trail on refresh.
             application_id, user_id = actor
             return f"oauth:{application_id}:{user_id}"
 
@@ -152,8 +145,6 @@ class APITokenLogMiddleware:
 
     def process_request(self, request, response, request_body):
         token_identifier = self._token_identifier(request)
-
-        # Not an external API request, so there is nothing to record.
         if not token_identifier:
             return
 

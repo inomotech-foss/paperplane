@@ -87,8 +87,7 @@ class TestOAuthRequestsAreLogged:
     def _captured_log_data(self, middleware, request_factory):
         request = request_factory.get("/api/v1/workspaces/acme/projects/", HTTP_AUTHORIZATION="Bearer a-token")
         request.user = AnonymousUser()
-        # Set by OAuthBearerAuthentication, which the middleware cannot see into.
-        request.oauth_actor = self.ACTOR
+        request.oauth_actor = self.ACTOR  # set by OAuthBearerAuthentication
         with patch("plane.middleware.logger.process_logs") as process_logs:
             middleware.process_request(request, HttpResponse(b"{}"), request_body=b"")
             assert process_logs.delay.called
@@ -97,8 +96,6 @@ class TestOAuthRequestsAreLogged:
     def test_the_application_and_user_identify_the_request(self, middleware, request_factory):
         log_data = self._captured_log_data(middleware, request_factory)
 
-        # Bearer tokens rotate, so an identifier derived from one would break the
-        # trail at every refresh.
         assert log_data["token_identifier"] == f"oauth:{self.ACTOR[0]}:{self.ACTOR[1]}"
 
     def test_the_bearer_token_is_never_persisted(self, middleware, request_factory):

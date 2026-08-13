@@ -466,8 +466,6 @@ class TestOAuthRequestsReachTheAuditLog:
 
     @pytest.mark.django_db
     def test_a_refused_request_is_still_attributed(self, bearer_client, create_user, oauth_application, make_workspace):
-        # A token reaching for a workspace it was never granted is exactly what
-        # an audit log exists to show.
         workspace = make_workspace("offlimits")
         logged = []
         with patch("plane.middleware.logger.process_logs.delay", lambda log_data: logged.append(log_data)):
