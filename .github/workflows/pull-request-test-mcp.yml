@@ -40,3 +40,4 @@ jobs:
       # test_integration.py needs a live Plane instance, so it is left out.
       - name: Run MCP tests
         run: cd apps/mcp && uv run pytest -q --ignore=tests/test_integration.py
+
