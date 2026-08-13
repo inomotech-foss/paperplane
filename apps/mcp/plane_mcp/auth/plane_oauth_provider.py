@@ -382,6 +382,8 @@ class PlaneOAuthProvider(OAuthProxy):
             jwt_signing_key=settings.jwt_signing_key,
             require_authorization_consent=require_authorization_consent,
             valid_scopes=["read", "write"],
+            # Binding the upstream token to this server makes Plane refuse it at its own API.
+            forward_resource=False,
             enable_cimd=settings.enable_cimd,
         )
 
