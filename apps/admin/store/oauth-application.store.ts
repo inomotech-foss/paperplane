@@ -52,6 +52,13 @@ export class OAuthApplicationStore implements IOAuthApplicationStore {
 
   getApplicationById = (applicationId: number) => this.applications[applicationId];
 
+  /** An action's scope ends at its first await, so a write after one needs its own. */
+  private markLoaded = () => {
+    runInAction(() => {
+      this.loader = "loaded";
+    });
+  };
+
   fetchApplications = async (): Promise<IOAuthApplication[]> => {
     try {
       this.loader = this.applicationIds.length > 0 ? "mutation" : "init-loader";
@@ -65,10 +72,7 @@ export class OAuthApplicationStore implements IOAuthApplicationStore {
       console.error("Error fetching OAuth applications", error);
       throw error;
     } finally {
-      // The action's scope ended at the first await, so this needs its own.
-      runInAction(() => {
-        this.loader = "loaded";
-      });
+      this.markLoaded();
     }
   };
 
@@ -88,10 +92,7 @@ export class OAuthApplicationStore implements IOAuthApplicationStore {
       console.error("Error creating OAuth application", error);
       throw error;
     } finally {
-      // The action's scope ended at the first await, so this needs its own.
-      runInAction(() => {
-        this.loader = "loaded";
-      });
+      this.markLoaded();
     }
   };
 
@@ -110,10 +111,7 @@ export class OAuthApplicationStore implements IOAuthApplicationStore {
       console.error("Error updating OAuth application", error);
       throw error;
     } finally {
-      // The action's scope ended at the first await, so this needs its own.
-      runInAction(() => {
-        this.loader = "loaded";
-      });
+      this.markLoaded();
     }
   };
 
@@ -128,10 +126,7 @@ export class OAuthApplicationStore implements IOAuthApplicationStore {
       console.error("Error deleting OAuth application", error);
       throw error;
     } finally {
-      // The action's scope ended at the first await, so this needs its own.
-      runInAction(() => {
-        this.loader = "loaded";
-      });
+      this.markLoaded();
     }
   };
 }
