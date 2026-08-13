@@ -53,6 +53,19 @@
     "security": {
       "heading": "Security"
     },
+    "connected_apps": {
+      "title": "Connected apps",
+      "description": "Apps you have authorized to act in your workspaces on your behalf.",
+      "connected_on": "Connected {date}",
+      "revoke": "Revoke access",
+      "revoking": "Revoking",
+      "revoke_title": "Revoke access for {name}?",
+      "revoke_description": "The app loses access to your workspaces straight away and has to be authorized again.",
+      "revoked": "{name} no longer has access.",
+      "revoke_failed": "Access was not revoked.",
+      "empty_title": "No connected apps",
+      "empty_description": "Apps you authorize, such as an MCP client, show up here."
+    },
     "api_tokens": {
       "title": "Personal Access Tokens",
       "description": "Generate secure API tokens to integrate your data with external systems and applications."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "Profile",
       "security": "Security",
+      "connected-apps": "Connected apps",
       "activity": "Activity",
       "preferences": "Preferences",
       "notifications": "Notifications",

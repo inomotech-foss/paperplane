@@ -53,6 +53,19 @@
     "security": {
       "heading": "보안"
     },
+    "connected_apps": {
+      "title": "연결된 앱",
+      "description": "워크스페이스에서 사용자를 대신해 작업하도록 허용한 앱입니다.",
+      "connected_on": "{date}에 연결됨",
+      "revoke": "액세스 취소",
+      "revoking": "취소 중",
+      "revoke_title": "{name}의 액세스를 취소할까요?",
+      "revoke_description": "앱은 즉시 워크스페이스 액세스를 잃으며 다시 승인해야 합니다.",
+      "revoked": "{name}의 액세스가 취소되었습니다.",
+      "revoke_failed": "액세스를 취소하지 못했습니다.",
+      "empty_title": "연결된 앱 없음",
+      "empty_description": "MCP 클라이언트처럼 승인한 앱이 여기에 표시됩니다."
+    },
     "api_tokens": {
       "title": "퍼스널 액세스 토큰",
       "description": "보안 API 토큰을 생성하여 외부 시스템 및 애플리케이션과 데이터를 통합하세요."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "프로필",
       "security": "보안",
+      "connected-apps": "연결된 앱",
       "activity": "활동",
       "preferences": "환경 설정",
       "notifications": "알림",

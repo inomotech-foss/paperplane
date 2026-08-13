@@ -53,6 +53,19 @@
     "security": {
       "heading": "Sécurité"
     },
+    "connected_apps": {
+      "title": "Applications connectées",
+      "description": "Applications que vous avez autorisées à agir en votre nom dans vos espaces de travail.",
+      "connected_on": "Connectée le {date}",
+      "revoke": "Révoquer l'accès",
+      "revoking": "Révocation",
+      "revoke_title": "Révoquer l'accès de {name} ?",
+      "revoke_description": "L'application perd immédiatement l'accès à vos espaces de travail et devra être autorisée à nouveau.",
+      "revoked": "{name} n'a plus accès.",
+      "revoke_failed": "L'accès n'a pas été révoqué.",
+      "empty_title": "Aucune application connectée",
+      "empty_description": "Les applications que vous autorisez, comme un client MCP, apparaissent ici."
+    },
     "api_tokens": {
       "title": "Jetons d’accès personnel",
       "description": "Générez des jetons API sécurisés pour intégrer vos données avec des systèmes et applications externes."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "Profil",
       "security": "Sécurité",
+      "connected-apps": "Applications connectées",
       "activity": "Activité",
       "preferences": "Préférences",
       "notifications": "Notifications",

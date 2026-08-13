@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+export * from "./connected-app.service";
 export * from "./favorite.service";
 export * from "./user.service";
 export * from "./sites-member.service";

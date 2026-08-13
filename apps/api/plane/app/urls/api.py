@@ -3,7 +3,7 @@
 # See the LICENSE file for details.
 
 from django.urls import path
-from plane.app.views import ApiTokenEndpoint
+from plane.app.views import ApiTokenEndpoint, ConnectedAppEndpoint
 
 urlpatterns = [
     # API Tokens
@@ -18,4 +18,15 @@ urlpatterns = [
         name="api-tokens-details",
     ),
     ## End API Tokens
+    # Connected OAuth applications
+    path(
+        "users/connected-apps/",
+        ConnectedAppEndpoint.as_view(),
+        name="connected-apps",
+    ),
+    path(
+        "users/connected-apps/<int:pk>/",
+        ConnectedAppEndpoint.as_view(),
+        name="connected-apps-details",
+    ),
 ]

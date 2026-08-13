@@ -53,6 +53,19 @@
     "security": {
       "heading": "Sicherheit"
     },
+    "connected_apps": {
+      "title": "Verbundene Apps",
+      "description": "Apps, die Sie autorisiert haben, in Ihren Workspaces in Ihrem Namen zu handeln.",
+      "connected_on": "Verbunden am {date}",
+      "revoke": "Zugriff entziehen",
+      "revoking": "Wird entzogen",
+      "revoke_title": "Zugriff für {name} entziehen?",
+      "revoke_description": "Die App verliert sofort den Zugriff auf Ihre Workspaces und muss erneut autorisiert werden.",
+      "revoked": "{name} hat keinen Zugriff mehr.",
+      "revoke_failed": "Der Zugriff wurde nicht entzogen.",
+      "empty_title": "Keine verbundenen Apps",
+      "empty_description": "Apps, die Sie autorisieren, etwa ein MCP-Client, erscheinen hier."
+    },
     "api_tokens": {
       "title": "Persönliche Zugriffstoken",
       "description": "Generieren Sie sichere API-Token, um Ihre Daten mit externen Systemen und Anwendungen zu integrieren."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "Profil",
       "security": "Sicherheit",
+      "connected-apps": "Verbundene Apps",
       "activity": "Aktivität",
       "preferences": "Einstellungen",
       "notifications": "Benachrichtigungen",

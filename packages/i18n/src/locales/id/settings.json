@@ -53,6 +53,19 @@
     "security": {
       "heading": "Keamanan"
     },
+    "connected_apps": {
+      "title": "Aplikasi terhubung",
+      "description": "Aplikasi yang Anda izinkan bertindak atas nama Anda di ruang kerja Anda.",
+      "connected_on": "Terhubung {date}",
+      "revoke": "Cabut akses",
+      "revoking": "Mencabut",
+      "revoke_title": "Cabut akses untuk {name}?",
+      "revoke_description": "Aplikasi langsung kehilangan akses ke ruang kerja Anda dan harus diizinkan kembali.",
+      "revoked": "{name} tidak lagi memiliki akses.",
+      "revoke_failed": "Akses tidak dicabut.",
+      "empty_title": "Tidak ada aplikasi terhubung",
+      "empty_description": "Aplikasi yang Anda izinkan, seperti klien MCP, akan muncul di sini."
+    },
     "api_tokens": {
       "title": "Token Akses Personal",
       "description": "Hasilkan token API yang aman untuk mengintegrasikan data Anda dengan sistem dan aplikasi eksternal."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "Profil",
       "security": "Keamanan",
+      "connected-apps": "Aplikasi terhubung",
       "activity": "Aktivitas",
       "preferences": "Preferensi",
       "notifications": "Notifikasi",

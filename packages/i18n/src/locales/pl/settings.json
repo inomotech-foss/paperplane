@@ -53,6 +53,19 @@
     "security": {
       "heading": "Bezpieczeństwo"
     },
+    "connected_apps": {
+      "title": "Połączone aplikacje",
+      "description": "Aplikacje, którym zezwolono na działanie w Twoim imieniu w Twoich przestrzeniach roboczych.",
+      "connected_on": "Połączono {date}",
+      "revoke": "Odbierz dostęp",
+      "revoking": "Odbieranie",
+      "revoke_title": "Odebrać dostęp aplikacji {name}?",
+      "revoke_description": "Aplikacja natychmiast traci dostęp do Twoich przestrzeni roboczych i będzie wymagać ponownej autoryzacji.",
+      "revoked": "{name} nie ma już dostępu.",
+      "revoke_failed": "Nie odebrano dostępu.",
+      "empty_title": "Brak połączonych aplikacji",
+      "empty_description": "Aplikacje, które autoryzujesz, na przykład klient MCP, pojawią się tutaj."
+    },
     "api_tokens": {
       "title": "Osobiste tokeny dostępu",
       "description": "Generuj bezpieczne tokeny API, aby integrować swoje dane z zewnętrznymi systemami i aplikacjami."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "Profil",
       "security": "Bezpieczeństwo",
+      "connected-apps": "Połączone aplikacje",
       "activity": "Aktywność",
       "preferences": "Preferencje",
       "notifications": "Powiadomienia",

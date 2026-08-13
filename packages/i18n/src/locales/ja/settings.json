@@ -53,6 +53,19 @@
     "security": {
       "heading": "セキュリティ"
     },
+    "connected_apps": {
+      "title": "連携アプリ",
+      "description": "ワークスペースであなたに代わって操作することを許可したアプリです。",
+      "connected_on": "{date} に連携",
+      "revoke": "アクセスを取り消す",
+      "revoking": "取り消し中",
+      "revoke_title": "{name} のアクセスを取り消しますか?",
+      "revoke_description": "アプリはワークスペースへのアクセスをただちに失い、再度の認可が必要になります。",
+      "revoked": "{name} のアクセスを取り消しました。",
+      "revoke_failed": "アクセスを取り消せませんでした。",
+      "empty_title": "連携アプリはありません",
+      "empty_description": "MCP クライアントなど、認可したアプリがここに表示されます。"
+    },
     "api_tokens": {
       "title": "個人アクセストークン",
       "description": "外部システムやアプリケーションとデータを統合するための安全なAPIトークンを生成します。"
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "プロフィール",
       "security": "セキュリティ",
+      "connected-apps": "連携アプリ",
       "activity": "アクティビティ",
       "preferences": "環境設定",
       "notifications": "通知",

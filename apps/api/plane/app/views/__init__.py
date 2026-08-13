@@ -175,6 +175,7 @@ from .module.issue import ModuleIssueViewSet
 from .module.archive import ModuleArchiveUnarchiveEndpoint
 
 from .api import ApiTokenEndpoint
+from .connected_app import ConnectedAppEndpoint
 
 from .page.base import (
     PageViewSet,

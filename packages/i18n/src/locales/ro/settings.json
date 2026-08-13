@@ -53,6 +53,19 @@
     "security": {
       "heading": "Securitate"
     },
+    "connected_apps": {
+      "title": "Aplicații conectate",
+      "description": "Aplicații pe care le-ați autorizat să acționeze în numele dumneavoastră în spațiile de lucru.",
+      "connected_on": "Conectată pe {date}",
+      "revoke": "Revocă accesul",
+      "revoking": "Se revocă",
+      "revoke_title": "Revocați accesul pentru {name}?",
+      "revoke_description": "Aplicația pierde imediat accesul la spațiile dumneavoastră de lucru și va trebui autorizată din nou.",
+      "revoked": "{name} nu mai are acces.",
+      "revoke_failed": "Accesul nu a fost revocat.",
+      "empty_title": "Nicio aplicație conectată",
+      "empty_description": "Aplicațiile pe care le autorizați, precum un client MCP, apar aici."
+    },
     "api_tokens": {
       "title": "Tokenuri de acces personale",
       "description": "Generează tokenuri API securizate pentru a integra datele tale cu sisteme și aplicații externe."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "Profil",
       "security": "Securitate",
+      "connected-apps": "Aplicații conectate",
       "activity": "Activitate",
       "preferences": "Preferințe",
       "notifications": "Notificări",

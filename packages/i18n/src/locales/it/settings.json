@@ -53,6 +53,19 @@
     "security": {
       "heading": "Sicurezza"
     },
+    "connected_apps": {
+      "title": "App collegate",
+      "description": "App che hai autorizzato ad agire per tuo conto nei tuoi spazi di lavoro.",
+      "connected_on": "Collegata il {date}",
+      "revoke": "Revoca accesso",
+      "revoking": "Revoca in corso",
+      "revoke_title": "Revocare l'accesso a {name}?",
+      "revoke_description": "L'app perde subito l'accesso ai tuoi spazi di lavoro e dovrà essere autorizzata di nuovo.",
+      "revoked": "{name} non ha più accesso.",
+      "revoke_failed": "L'accesso non è stato revocato.",
+      "empty_title": "Nessuna app collegata",
+      "empty_description": "Le app che autorizzi, come un client MCP, compaiono qui."
+    },
     "api_tokens": {
       "title": "Token di accesso personali",
       "description": "Genera token API sicuri per integrare i tuoi dati con sistemi e applicazioni esterni."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "Profilo",
       "security": "Sicurezza",
+      "connected-apps": "App collegate",
       "activity": "Attività",
       "preferences": "Preferenze",
       "notifications": "Notifiche",
