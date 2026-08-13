@@ -223,7 +223,7 @@ questions:
   - variable: api.memoryRequest
     label: "Memory Request"
     type: string
-    default: 50Mi
+    default: 512Mi
   - variable: api.cpuRequest
     label: "CPU Request"
     type: string
@@ -256,10 +256,14 @@ questions:
   default: 1
   group: "Worker Setup"
   subquestions:
+  - variable: worker.concurrency
+    label: "Celery Concurrency"
+    type: int
+    default: 4
   - variable: worker.memoryLimit
     label: "Memory Limit"
     type: string
-    default: 1000Mi
+    default: 2000Mi
   - variable: worker.cpuLimit
     label: "CPU Limit"
     type: string
@@ -267,7 +271,7 @@ questions:
   - variable: worker.memoryRequest
     label: "Memory Request"
     type: string
-    default: 50Mi
+    default: 1000Mi
   - variable: worker.cpuRequest
     label: "CPU Request"
     type: string
@@ -289,7 +293,7 @@ questions:
   - variable: beatworker.memoryRequest
     label: "Memory Request"
     type: string
-    default: 50Mi
+    default: 256Mi
   - variable: beatworker.cpuRequest
     label: "CPU Request"
     type: string
