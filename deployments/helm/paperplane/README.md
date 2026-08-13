@@ -435,6 +435,42 @@ namespace.
 | beatworker.labels | {} |  | Custom labels to add to the beat-worker deployment |
 | beatworker.annotations | {} |  | Custom annotations to add to the beat-worker deployment |
 
+### MCP Deployment
+
+The MCP server exposes Plane to AI clients over the Model Context Protocol. It
+is off by default. Turning it on needs an OAuth application registered in god
+mode first: its client id and secret go in `mcp.oauth`, and its redirect URI
+must be `<appProtocol>://<appHost>/mcp/auth/callback`.
+
+Clients connect to `https://<appHost>/mcp/http/mcp` and authorize through the
+browser. Each user picks which of their workspaces the client may reach, and
+the server refuses any other.
+
+| Setting | Default | Required | Description |
+| --- | :---: | :---: | --- |
+| mcp.enabled | false | | Deploy the MCP server and route `/mcp` to it |
+| mcp.oauth.clientId | | Yes | Client id of the OAuth application registered in god mode |
+| mcp.oauth.clientSecret | | Yes | Client secret of that application. Shown once at registration |
+| mcp.oauth.existingSecret | | | Name of an existing secret holding `PLANE_OAUTH_PROVIDER_CLIENT_ID` and `PLANE_OAUTH_PROVIDER_CLIENT_SECRET`. Takes precedence over the two above |
+| mcp.allowedRedirectUris | [] | | Extra redirect URI patterns for MCP clients, on top of the built-in list for Claude, Cursor, VS Code and ChatGPT |
+| mcp.logUserInfo | false | | Include the calling user's display name in logs. Leave off to keep PII out |
+| mcp.replicas | 1 | Yes | Number of pods to run |
+| mcp.memoryLimit | 1000Mi | | Memory limit |
+| mcp.cpuLimit | 500m | | CPU limit |
+| mcp.memoryRequest | 128Mi | | Memory request |
+| mcp.cpuRequest | 50m | | CPU request |
+| mcp.image | ghcr.io/inomotech-foss/paperplane-mcp | | Image for this deployment |
+| mcp.pullPolicy | Always | | Pull policy |
+| mcp.assign_cluster_ip | false | | Set to `true` to assign a `ClusterIP` to the service |
+| mcp.nodeSelector | {} | | Node selector for the deployment |
+| mcp.tolerations | [] | | Tolerations for the deployment |
+| mcp.affinity | {} | | Affinity rules for the deployment |
+| mcp.labels | {} | | Custom labels to add to the deployment |
+| mcp.annotations | {} | | Custom annotations to add to the deployment |
+
+`ingress.appHost` is required when `mcp.enabled` is true: the OAuth flow sends
+the browser to that host, so it has to be publicly reachable.
+
 ### Ingress and SSL Setup
 
 | Setting                     |                          Default                          | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                               |

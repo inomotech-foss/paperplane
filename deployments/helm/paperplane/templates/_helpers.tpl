@@ -161,3 +161,13 @@ Call with a dict carrying the root context and the component values:
   annotations: {{ toYaml . | nindent 4 }}
   {{- end }}
 {{- end }}
+{{/*
+Public base URL of the deployment. The MCP server hands this to OAuth clients
+as the authorization endpoint, so it has to be reachable from a browser.
+*/}}
+{{- define "plane.mcp.publicUrl" -}}
+{{- if not .Values.ingress.appHost -}}
+{{- fail "ingress.appHost is required when mcp.enabled is true; the OAuth flow needs a public URL" -}}
+{{- end -}}
+{{- printf "%s://%s" (.Values.ingress.appProtocol | default "http") .Values.ingress.appHost -}}
+{{- end -}}
