@@ -1,0 +1,82 @@
+{{- if .Values.mcp.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-mcp
+  labels:
+    app.name: {{ .Release.Namespace }}-{{ .Release.Name }}-mcp
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+spec:
+  {{- if not .Values.mcp.assign_cluster_ip }}
+  clusterIP: None
+  {{- end }}
+  ports:
+  - name: mcp-8211
+    port: 8211
+    protocol: TCP
+    targetPort: 8211
+  selector:
+    app.name: {{ .Release.Namespace }}-{{ .Release.Name }}-mcp
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-mcp-wl
+  {{- include "plane.labelsAndAnnotations" (dict "context" $ "values" .Values.mcp) }}
+spec:
+  replicas: {{ .Values.mcp.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app.name: {{ .Release.Namespace }}-{{ .Release.Name }}-mcp
+  template:
+    metadata:
+      namespace: {{ .Release.Namespace }}
+      labels:
+        app.name: {{ .Release.Namespace }}-{{ .Release.Name }}-mcp
+        {{- include "plane.commonLabels" $ | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}-mcp
+        imagePullPolicy: {{ .Values.mcp.pullPolicy | default "Always" }}
+        image: {{ include "plane.image" (dict "image" (.Values.mcp.image | default "ghcr.io/inomotech-foss/paperplane-mcp") "version" .Values.planeVersion) }}
+        args: ["http"]
+        ports:
+        - containerPort: 8211
+        resources:
+          requests:
+            memory: {{ .Values.mcp.memoryRequest | default "128Mi" | quote }}
+            cpu: {{ .Values.mcp.cpuRequest | default "50m" | quote }}
+          limits:
+            memory: {{ .Values.mcp.memoryLimit | default "1000Mi" | quote }}
+            cpu: {{ .Values.mcp.cpuLimit | default "500m" | quote }}
+        {{- with .Values.mcp.extraEnv }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        envFrom:
+          - configMapRef:
+              name: {{ .Release.Name }}-mcp-vars
+              optional: false
+          - secretRef:
+              name: {{ if not (empty .Values.mcp.oauth.existingSecret) }}{{ .Values.mcp.oauth.existingSecret }}{{ else }}{{ .Release.Name }}-mcp-secrets{{ end }}
+              optional: false
+          {{- with .Values.mcp.extraEnvFrom }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.mcp.extraVolumeMounts }}
+        volumeMounts:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- include "plane.podScheduling" .Values.mcp }}
+      {{- with .Values.mcp.extraVolumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccount: {{ .Release.Name }}-srv-account
+      serviceAccountName: {{ .Release.Name }}-srv-account
+---
+{{- end }}

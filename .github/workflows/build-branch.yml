@@ -138,6 +138,9 @@ jobs:
           - image: paperplane-proxy
             context: ./apps/proxy
             dockerfile: ./apps/proxy/Dockerfile.ce
+          - image: paperplane-mcp
+            context: ./apps/mcp
+            dockerfile: ./apps/mcp/Dockerfile
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -281,6 +284,7 @@ jobs:
           d_admin=$(docker buildx imagetools inspect "$base/paperplane-admin:$IMAGE_TAG" --format '{{.Manifest.Digest}}')
           d_live=$(docker buildx imagetools inspect "$base/paperplane-live:$IMAGE_TAG" --format '{{.Manifest.Digest}}')
           d_backend=$(docker buildx imagetools inspect "$base/paperplane-backend:$IMAGE_TAG" --format '{{.Manifest.Digest}}')
+          d_mcp=$(docker buildx imagetools inspect "$base/paperplane-mcp:$IMAGE_TAG" --format '{{.Manifest.Digest}}')
           yq -i "
             .planeVersion = \"\" |
             .web.image = \"$base/paperplane-frontend@$d_frontend\" |
@@ -289,7 +293,8 @@ jobs:
             .live.image = \"$base/paperplane-live@$d_live\" |
             .api.image = \"$base/paperplane-backend@$d_backend\" |
             .worker.image = \"$base/paperplane-backend@$d_backend\" |
-            .beatworker.image = \"$base/paperplane-backend@$d_backend\"
+            .beatworker.image = \"$base/paperplane-backend@$d_backend\" |
+            .mcp.image = \"$base/paperplane-mcp@$d_mcp\"
           " "$CHART_DIR/values.yaml"
 
       - name: Package and publish

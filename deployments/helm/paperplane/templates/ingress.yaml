@@ -61,6 +61,22 @@ spec:
                 name: {{ .Release.Name }}-admin
             path: /god-mode
             pathType: Prefix
+          {{- if .Values.mcp.enabled }}
+          - backend:
+              service:
+                port:
+                  number: 8211
+                name: {{ .Release.Name }}-mcp
+            path: /mcp
+            pathType: Prefix
+          - backend:
+              service:
+                port:
+                  number: 8211
+                name: {{ .Release.Name }}-mcp
+            path: /.well-known
+            pathType: Prefix
+          {{- end }}
           {{- if and (include "plane.docStore.originProxied" $) .Values.env.docstore_bucket }}
           {{- if and (not .Values.minio.local_setup) .Values.minio.externalProxy.service.namespace }}
           {{- fail "minio.externalProxy.service.namespace is not supported with an Ingress; an Ingress backend must be a Service in the release namespace" }}

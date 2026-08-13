@@ -1,0 +1,40 @@
+{{- if .Values.mcp.enabled }}
+{{- if empty .Values.mcp.oauth.existingSecret }}
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-mcp-secrets
+  labels:
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+stringData:
+  PLANE_OAUTH_PROVIDER_CLIENT_ID: {{ required "mcp.oauth.clientId is required when mcp.enabled is true; register an OAuth application in god mode first" .Values.mcp.oauth.clientId | quote }}
+  PLANE_OAUTH_PROVIDER_CLIENT_SECRET: {{ required "mcp.oauth.clientSecret is required when mcp.enabled is true" .Values.mcp.oauth.clientSecret | quote }}
+---
+{{- end }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-mcp-vars
+  labels:
+    {{- include "plane.commonLabels" $ | nindent 4 }}
+data:
+  # Where the browser is sent to authorize, so it must be the public host.
+  PLANE_BASE_URL: {{ include "plane.mcp.publicUrl" $ | quote }}
+  # Token exchange and API calls stay inside the cluster.
+  PLANE_INTERNAL_BASE_URL: "http://{{ .Release.Name }}-api.{{ .Release.Namespace }}.svc.cluster.local:8000"
+  PLANE_OAUTH_PROVIDER_BASE_URL: {{ include "plane.mcp.publicUrl" $ | quote }}
+  MCP_PATH_PREFIX: "/mcp"
+  LOG_USER_INFO: {{ .Values.mcp.logUserInfo | default false | quote }}
+  {{- with .Values.mcp.allowedRedirectUris }}
+  PLANE_OAUTH_ALLOWED_REDIRECT_URIS: {{ join "," . | quote }}
+  {{- end }}
+  {{- if .Values.redis.local_setup }}
+  REDIS_HOST: "{{ .Release.Name }}-redis.{{ .Release.Namespace }}.svc.cluster.local"
+  REDIS_PORT: "6379"
+  {{- end }}
+---
+{{- end }}

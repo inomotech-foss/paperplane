@@ -185,6 +185,39 @@ live:
   tolerations: []
   affinity: {}
 
+# The MCP server, off by default. Needs an OAuth application registered in
+# god mode; put its credentials in mcp.oauth.
+mcp:
+  enabled: false
+  oauth:
+    # Client id and secret of the OAuth application registered for this server.
+    clientId: ""
+    clientSecret: ""
+    # Name of an existing secret holding PLANE_OAUTH_PROVIDER_CLIENT_ID and
+    # PLANE_OAUTH_PROVIDER_CLIENT_SECRET. Takes precedence over the two above.
+    existingSecret: ""
+  # Extra redirect URI patterns for MCP clients, on top of the built-in list.
+  allowedRedirectUris: []
+  # Include the display name of the calling user in logs. Off keeps PII out.
+  logUserInfo: false
+  extraEnv: []
+  extraEnvFrom: []
+  extraVolumeMounts: []
+  extraVolumes: []
+  replicas: 1
+  memoryLimit: 1000Mi
+  cpuLimit: 500m
+  cpuRequest: 50m
+  memoryRequest: 128Mi
+  image: ghcr.io/inomotech-foss/paperplane-mcp
+  pullPolicy: Always
+  assign_cluster_ip: false
+  labels: {}
+  annotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
 api:
   # Raw EnvVar entries. These win over the envFrom sources below.
   extraEnv: []
