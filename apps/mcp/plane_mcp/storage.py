@@ -16,6 +16,7 @@ eagerly with a synchronous PING.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import time
 from typing import Any
@@ -78,10 +79,8 @@ def _ping_redis(
                 raise RuntimeError(f"Redis connection failed during startup PING: {exc}") from exc
             logger.info("Redis not reachable yet, retrying in %ss", delay)
         finally:
-            try:
+            with contextlib.suppress(Exception):
                 client.close()
-            except Exception:
-                pass
 
         time.sleep(delay)
         delay = min(delay * 2, 5.0)
