@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { Image, BrainCog, Cog, Gauge, Headset, Mail } from "lucide-react";
+import { Image, BrainCog, Cog, Gauge, Headset, Mail, Plug } from "lucide-react";
 // plane imports
 import { LockIcon, WorkspaceIcon } from "@plane/propel/icons";
 // types
@@ -18,7 +18,8 @@ export type TCoreSidebarMenuKey =
   | "authentication"
   | "ai"
   | "image"
-  | "rate-limits";
+  | "rate-limits"
+  | "oauth-applications";
 
 export const coreSidebarMenuLinks: Record<TCoreSidebarMenuKey, TSidebarMenuItem> = {
   general: {
@@ -68,5 +69,11 @@ export const coreSidebarMenuLinks: Record<TCoreSidebarMenuKey, TSidebarMenuItem>
     name: "Rate limits",
     description: "Tune API and authentication request limits.",
     href: `/rate-limits/`,
+  },
+  "oauth-applications": {
+    Icon: Plug,
+    name: "OAuth applications",
+    description: "Register clients such as the MCP server.",
+    href: `/oauth-applications/`,
   },
 };

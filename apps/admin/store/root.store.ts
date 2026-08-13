@@ -8,6 +8,8 @@ import { enableStaticRendering } from "mobx-react";
 // stores
 import type { IInstanceStore } from "./instance.store";
 import { InstanceStore } from "./instance.store";
+import type { IOAuthApplicationStore } from "./oauth-application.store";
+import { OAuthApplicationStore } from "./oauth-application.store";
 import type { IThemeStore } from "./theme.store";
 import { ThemeStore } from "./theme.store";
 import type { IUserStore } from "./user.store";
@@ -22,12 +24,14 @@ export class RootStore {
   instance: IInstanceStore;
   user: IUserStore;
   workspace: IWorkspaceStore;
+  oauthApplication: IOAuthApplicationStore;
 
   constructor() {
     this.theme = new ThemeStore(this);
     this.instance = new InstanceStore(this);
     this.user = new UserStore(this);
     this.workspace = new WorkspaceStore(this);
+    this.oauthApplication = new OAuthApplicationStore(this);
   }
 
   hydrate(initialData: any) {
@@ -43,5 +47,6 @@ export class RootStore {
     this.user = new UserStore(this);
     this.theme = new ThemeStore(this);
     this.workspace = new WorkspaceStore(this);
+    this.oauthApplication = new OAuthApplicationStore(this);
   }
 }
