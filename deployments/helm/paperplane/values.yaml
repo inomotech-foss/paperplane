@@ -259,7 +259,7 @@ worker:
   memoryLimit: 2000Mi
   cpuLimit: 500m
   cpuRequest: 50m
-  memoryRequest: 1000Mi
+  memoryRequest: 512Mi
   image: ghcr.io/inomotech-foss/paperplane-backend
   pullPolicy: Always
   labels: {}
