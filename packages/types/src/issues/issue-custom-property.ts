@@ -7,20 +7,12 @@
 /**
  * Supported types of a work item custom property.
  */
-export const ISSUE_CUSTOM_PROPERTY_TYPES = [
-  "TEXT",
-  "NUMBER",
-  "OPTION",
-  "MULTI_OPTION",
-  "DATE",
-  "BOOLEAN",
-  "USER",
-] as const;
+export const ISSUE_CUSTOM_PROPERTY_TYPES = ["TEXT", "DECIMAL", "OPTION", "DATETIME", "BOOLEAN", "RELATION"] as const;
 
 export type TIssueCustomPropertyType = (typeof ISSUE_CUSTOM_PROPERTY_TYPES)[number];
 
 /**
- * A selectable option of an OPTION / MULTI_OPTION custom property.
+ * A selectable option of an OPTION custom property.
  */
 export type TIssueCustomPropertyOption = {
   id: string;
@@ -40,6 +32,10 @@ export type TIssueCustomProperty = {
   name: string;
   display_name: string;
   property_type: TIssueCustomPropertyType;
+  /** An OPTION property with `is_multi` holds several options at once. */
+  is_multi: boolean;
+  /** What a RELATION property points at. Only "USER" is supported. */
+  relation_type: "USER" | null;
   is_active: boolean;
   is_required: boolean;
   sort_order: number;
@@ -55,9 +51,9 @@ export type TIssueCustomProperty = {
 };
 
 /**
- * The value of a single custom property on a work item. MULTI_OPTION
- * properties hold a list of option ids, OPTION / USER hold an id, NUMBER a
- * number, BOOLEAN a boolean, DATE an ISO string and TEXT a string.
+ * The value of a single custom property on a work item. A multi-select
+ * holds a list of option ids, OPTION / RELATION hold an id, DECIMAL a
+ * number, BOOLEAN a boolean, DATETIME an ISO string and TEXT a string.
  */
 export type TIssueCustomPropertyValue = string | number | boolean | string[] | null;
 

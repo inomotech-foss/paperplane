@@ -12,12 +12,21 @@ from .project import ProjectBaseModel
 
 
 class PropertyTypeChoices(models.TextChoices):
+    """Property types, named as Plane Cloud names them so the Plane SDK can
+    read them. A multi-select is OPTION with `is_multi`, and a user reference
+    is RELATION with `relation_type`."""
+
     TEXT = "TEXT", "Text"
-    NUMBER = "NUMBER", "Number"
+    DECIMAL = "DECIMAL", "Decimal"
     OPTION = "OPTION", "Option"
-    MULTI_OPTION = "MULTI_OPTION", "Multi Option"
-    DATE = "DATE", "Date"
+    DATETIME = "DATETIME", "Datetime"
     BOOLEAN = "BOOLEAN", "Boolean"
+    RELATION = "RELATION", "Relation"
+
+
+class PropertyRelationTypeChoices(models.TextChoices):
+    """What a RELATION property points at. Only users are supported."""
+
     USER = "USER", "User"
 
 
@@ -30,6 +39,13 @@ class IssueProperty(ProjectBaseModel):
         max_length=30,
         choices=PropertyTypeChoices.choices,
         default=PropertyTypeChoices.TEXT,
+    )
+    is_multi = models.BooleanField(default=False)
+    relation_type = models.CharField(
+        max_length=30,
+        choices=PropertyRelationTypeChoices.choices,
+        null=True,
+        blank=True,
     )
     is_active = models.BooleanField(default=True)
     is_required = models.BooleanField(default=False)
@@ -61,6 +77,11 @@ class IssueProperty(ProjectBaseModel):
         db_table = "issue_properties"
         ordering = ("sort_order",)
 
+    @property
+    def is_multi_option(self):
+        """Whether this property holds several options at once."""
+        return self.property_type == PropertyTypeChoices.OPTION and self.is_multi
+
     def save(self, *args, **kwargs):
         if self._state.adding:
             # Get the maximum sort order value from the database
@@ -78,7 +99,7 @@ class IssueProperty(ProjectBaseModel):
 
 
 class IssuePropertyOption(ProjectBaseModel):
-    """A selectable option for OPTION / MULTI_OPTION issue properties."""
+    """A selectable option for OPTION issue properties."""
 
     property = models.ForeignKey(
         "db.IssueProperty",
@@ -125,7 +146,7 @@ class IssuePropertyValue(ProjectBaseModel):
     """A typed value of an issue property on a work item.
 
     Exactly one of the ``value_*`` columns is populated, depending on the
-    ``property_type`` of the related property. MULTI_OPTION properties store
+    ``property_type`` of the related property. Multi-select properties store
     one row per selected option.
     """
 

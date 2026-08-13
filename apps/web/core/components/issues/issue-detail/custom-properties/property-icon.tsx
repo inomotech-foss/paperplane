@@ -11,12 +11,11 @@ import type { TIssueCustomPropertyType } from "@plane/types";
 
 const PROPERTY_TYPE_ICONS: Record<TIssueCustomPropertyType, LucideIcon> = {
   TEXT: AlignLeft,
-  NUMBER: Hash,
+  DECIMAL: Hash,
   OPTION: ChevronDownSquare,
-  MULTI_OPTION: ListChecks,
-  DATE: Calendar,
+  DATETIME: Calendar,
   BOOLEAN: CheckSquare,
-  USER: UserCircle2,
+  RELATION: UserCircle2,
 };
 
 type TCustomPropertyIconProps = {

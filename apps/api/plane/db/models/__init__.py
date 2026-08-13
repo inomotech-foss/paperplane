@@ -107,5 +107,6 @@ from .issue_property import (
     IssueProperty,
     IssuePropertyOption,
     IssuePropertyValue,
+    PropertyRelationTypeChoices,
     PropertyTypeChoices,
 )

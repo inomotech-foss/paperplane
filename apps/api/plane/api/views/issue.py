@@ -318,7 +318,7 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
         `property__<property_id>=<value>` query parameters:
 
         - Equality: `property__<property_id>=<option_id|option_name|text|number|bool>`
-          (for MULTI_OPTION properties this matches work items that have that option)
+          (for multi-select properties this matches work items that have that option)
         - Number comparison (NUMBER properties only):
           `property__<property_id>__gt=<number>` / `property__<property_id>__lt=<number>`
 

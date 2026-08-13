@@ -33,8 +33,7 @@ export type TCreateCustomPropertyFilterParams = TCreateFilterConfigParams &
   };
 
 /**
- * Helper to get the option multi select config for OPTION / MULTI_OPTION
- * custom properties.
+ * Helper to get the option multi select config for OPTION custom properties.
  */
 const getCustomPropertyOptionMultiSelectConfig = (params: TCreateCustomPropertyFilterParams) =>
   getMultiSelectConfig<TIssueCustomProperty["options"][number], string, undefined>(
@@ -97,7 +96,6 @@ const getCustomPropertyOperatorConfigsMap = (
 ): TOperatorConfigMap | undefined => {
   switch (params.property.property_type) {
     case "OPTION":
-    case "MULTI_OPTION":
       return new Map([
         createOperatorConfigEntry(COLLECTION_OPERATOR.IN, params, (updatedParams) =>
           getCustomPropertyOptionMultiSelectConfig(updatedParams)
@@ -109,7 +107,7 @@ const getCustomPropertyOperatorConfigsMap = (
           getCustomPropertyBooleanSelectConfig(updatedParams)
         ),
       ]);
-    case "NUMBER":
+    case "DECIMAL":
       return new Map([
         createOperatorConfigEntry(COMPARISON_OPERATOR.GT, params, (updatedParams) =>
           getNumberPickerConfig(updatedParams)
@@ -118,7 +116,7 @@ const getCustomPropertyOperatorConfigsMap = (
           getNumberPickerConfig(updatedParams)
         ),
       ]);
-    case "DATE":
+    case "DATETIME":
       return new Map([
         createOperatorConfigEntry(EQUALITY_OPERATOR.EXACT, params, (updatedParams) =>
           getDatePickerConfig(updatedParams)
@@ -127,7 +125,7 @@ const getCustomPropertyOperatorConfigsMap = (
           getDateRangePickerConfig(updatedParams)
         ),
       ]);
-    case "USER":
+    case "RELATION":
       return new Map([
         createOperatorConfigEntry(COLLECTION_OPERATOR.IN, params, (updatedParams) =>
           getCustomPropertyMemberMultiSelectConfig(updatedParams)

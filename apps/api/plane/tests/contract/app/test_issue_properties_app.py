@@ -82,7 +82,7 @@ def number_property(db, project, create_user):
     return IssueProperty.objects.create(
         name="Total Amount",
         display_name="Total Amount",
-        property_type=PropertyTypeChoices.NUMBER,
+        property_type=PropertyTypeChoices.DECIMAL,
         project=project,
         workspace=project.workspace,
         created_by=create_user,
@@ -113,11 +113,12 @@ def option_property(db, project, create_user):
 
 @pytest.fixture
 def multi_option_property(db, project, create_user):
-    """Create a MULTI_OPTION work item property with options"""
+    """Create a multi-select work item property with options"""
     issue_property = IssueProperty.objects.create(
         name="Regions",
         display_name="Regions",
-        property_type=PropertyTypeChoices.MULTI_OPTION,
+        property_type=PropertyTypeChoices.OPTION,
+        is_multi=True,
         project=project,
         workspace=project.workspace,
         created_by=create_user,
@@ -159,14 +160,14 @@ class TestIssuePropertyAppCrud(IssuePropertyAppUrls):
         url = self.properties_url(workspace.slug, project.id)
         response = session_client.post(
             url,
-            {"name": "Total Amount", "property_type": "NUMBER"},
+            {"name": "Total Amount", "property_type": "DECIMAL"},
             format="json",
         )
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["name"] == "Total Amount"
         # display_name defaults to name
         assert response.data["display_name"] == "Total Amount"
-        assert response.data["property_type"] == "NUMBER"
+        assert response.data["property_type"] == "DECIMAL"
         assert IssueProperty.objects.filter(project=project).count() == 1
 
     def test_create_property_with_inline_options(self, session_client, workspace, project):
@@ -187,7 +188,7 @@ class TestIssuePropertyAppCrud(IssuePropertyAppUrls):
         url = self.properties_url(workspace.slug, project.id)
         response = session_client.post(
             url,
-            {"name": "Amount", "property_type": "NUMBER", "options": [{"name": "Low"}]},
+            {"name": "Amount", "property_type": "DECIMAL", "options": [{"name": "Low"}]},
             format="json",
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -196,7 +197,7 @@ class TestIssuePropertyAppCrud(IssuePropertyAppUrls):
         url = self.properties_url(workspace.slug, project.id)
         response = session_client.post(
             url,
-            {"name": number_property.name, "property_type": "NUMBER"},
+            {"name": number_property.name, "property_type": "DECIMAL"},
             format="json",
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -229,7 +230,7 @@ class TestIssuePropertyAppCrud(IssuePropertyAppUrls):
         response = session_client.patch(url, {"property_type": "TEXT"}, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         number_property.refresh_from_db()
-        assert number_property.property_type == PropertyTypeChoices.NUMBER
+        assert number_property.property_type == PropertyTypeChoices.DECIMAL
 
     def test_delete_property(self, session_client, workspace, project, number_property):
         url = self.properties_url(workspace.slug, project.id, number_property.id)
@@ -244,7 +245,7 @@ class TestIssuePropertyAppCrud(IssuePropertyAppUrls):
         url = self.properties_url(workspace.slug, project.id)
         response = session_client.post(
             url,
-            {"name": "Amount", "property_type": "NUMBER"},
+            {"name": "Amount", "property_type": "DECIMAL"},
             format="json",
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
