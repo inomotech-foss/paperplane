@@ -184,6 +184,12 @@ class PlaneOAuthTokenVerifier(TokenVerifier):
                     )
                     return None
 
+                scopes = installations_response.headers.get("X-Token-Scopes", "").split()
+                if not scopes:
+                    # An API that predates the header. Assume what we ask for.
+                    logger.info("No token scopes reported, assuming %s", self.required_scopes)
+                    scopes = list(self.required_scopes or [])
+
                 installations = installations_response.json()
                 workspaces = [installation.get("workspace_detail") or {} for installation in installations]
                 workspace_slugs = [workspace["slug"] for workspace in workspaces if workspace.get("slug")]
@@ -196,7 +202,7 @@ class PlaneOAuthTokenVerifier(TokenVerifier):
                 return AccessToken(
                     token=token,
                     client_id=user.id or "unknown",
-                    scopes=["read", "write"],  # Plane doesn't expose scopes in user endpoint
+                    scopes=scopes,
                     expires_at=expires_at,
                     claims={
                         "auth_method": "oauth",

@@ -152,7 +152,7 @@ class AppInstallationEndpoint(APIView):
             .select_related("workspace")
             .order_by("workspace__name")
         )
-        return Response(
+        response = Response(
             [
                 {
                     "id": str(installation.id),
@@ -166,3 +166,6 @@ class AppInstallationEndpoint(APIView):
                 for installation in installations
             ]
         )
+        # In a header, so the body keeps the shape Plane Cloud returns.
+        response["X-Token-Scopes"] = request.auth.scope or ""
+        return response

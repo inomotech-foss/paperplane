@@ -162,6 +162,19 @@ class TestAppInstallationEndpoint:
 
         assert [row["workspace_detail"]["slug"] for row in response.json()] == ["mine"]
 
+    @pytest.mark.django_db
+    def test_reports_the_scopes_the_token_carries(
+        self, make_bearer_client, create_user, oauth_application, make_workspace
+    ):
+        ApplicationInstallation.objects.create(
+            application=oauth_application, workspace=make_workspace("scoped"), user=create_user
+        )
+
+        response = make_bearer_client("read").get("/auth/o/app-installation/")
+
+        # The MCP server reads this to decide what the token may do.
+        assert response["X-Token-Scopes"] == "read"
+
 
 @pytest.fixture
 def consent_client(client, create_user):
