@@ -182,7 +182,8 @@ class TestSinglePropertyValue:
         api_key_client.post(url, {"value": "second"}, format="json")
 
         assert IssuePropertyValue.objects.filter(issue=issue, property=text_property).count() == 1
-        assert api_key_client.get(url).data["value"] == "second"
+        current = api_key_client.get(url)
+        assert current.data["value"] == "second"
 
     @pytest.mark.django_db
     def test_a_multi_select_answers_with_a_list(self, api_key_client, workspace, project, issue, multi_property):
@@ -204,8 +205,9 @@ class TestSinglePropertyValue:
 
         api_key_client.post(url, {"value": "x", "external_id": "e-1", "external_source": "jira"}, format="json")
 
-        assert api_key_client.get(url).data["external_id"] == "e-1"
-        assert api_key_client.get(url).data["external_source"] == "jira"
+        stored = api_key_client.get(url)
+        assert stored.data["external_id"] == "e-1"
+        assert stored.data["external_source"] == "jira"
 
     @pytest.mark.django_db
     def test_patch_refuses_when_nothing_is_set(self, api_key_client, workspace, project, issue, text_property):
@@ -232,9 +234,13 @@ class TestSinglePropertyValue:
         url = value_url(workspace.slug, project.id, issue.id, text_property.id)
         api_key_client.post(url, {"value": "x"}, format="json")
 
-        assert api_key_client.delete(url).status_code == status.HTTP_204_NO_CONTENT
+        cleared = api_key_client.delete(url)
+        assert cleared.status_code == status.HTTP_204_NO_CONTENT
         assert not IssuePropertyValue.objects.filter(issue=issue, property=text_property).exists()
-        assert api_key_client.delete(url).status_code == status.HTTP_404_NOT_FOUND
+
+        # A second delete has nothing left to clear.
+        again = api_key_client.delete(url)
+        assert again.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.django_db
     def test_a_missing_value_key_is_refused(self, api_key_client, workspace, project, issue, text_property):

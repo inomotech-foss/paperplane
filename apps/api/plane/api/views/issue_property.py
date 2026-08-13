@@ -24,6 +24,7 @@ from plane.db.models import (
 )
 from plane.utils.issue_property import (
     OPTION_PROPERTY_TYPES,
+    PropertyValueError,
     build_value_maps,
     build_value_rows,
     filter_properties_by_issue_type,
@@ -638,7 +639,7 @@ class IssuePropertySingleValueAPIEndpoint(BaseAPIView):
 
         try:
             new_rows = build_value_rows(issue, issue_property, request.data.get("value"))
-        except ValueError as error:
+        except PropertyValueError as error:
             return None, Response({"error": str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
         for row in new_rows:

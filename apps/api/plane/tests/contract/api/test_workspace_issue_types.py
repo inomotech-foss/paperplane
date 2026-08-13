@@ -128,7 +128,8 @@ class TestWorkspaceIssueTypes:
 
     @pytest.mark.django_db
     def test_retrieve_and_patch(self, api_key_client, workspace, loose_type):
-        assert api_key_client.get(workspace_url(workspace.slug, loose_type.id)).data["name"] == "Spike"
+        retrieved = api_key_client.get(workspace_url(workspace.slug, loose_type.id))
+        assert retrieved.data["name"] == "Spike"
 
         response = api_key_client.patch(
             workspace_url(workspace.slug, loose_type.id), {"name": "Research"}, format="json"
@@ -175,7 +176,9 @@ class TestWorkspaceIssueTypes:
 
     @pytest.mark.django_db
     def test_unauthenticated_request_rejected(self, api_client, workspace):
-        assert api_client.get(workspace_url(workspace.slug)).status_code == status.HTTP_401_UNAUTHORIZED
+        response = api_client.get(workspace_url(workspace.slug))
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 @pytest.mark.contract

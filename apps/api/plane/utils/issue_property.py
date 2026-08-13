@@ -29,6 +29,15 @@ from plane.db.models import (
 )
 
 
+class PropertyValueError(ValueError):
+    """A validation failure whose message is meant for the caller.
+
+    Every message raised as this type is written here, so a view can return it
+    verbatim. A plain ValueError escaping from a parser or the ORM is not one
+    of these and must not be echoed back.
+    """
+
+
 OPTION_PROPERTY_TYPES = [PropertyTypeChoices.OPTION]
 
 TRUE_VALUES = {"true", "1", "yes"}
@@ -38,11 +47,11 @@ FALSE_VALUES = {"false", "0", "no"}
 def parse_number(raw):
     """Parse a raw request value into a Decimal or raise ValueError."""
     if isinstance(raw, bool) or raw is None or isinstance(raw, (list, dict)):
-        raise ValueError("Value must be numeric")
+        raise PropertyValueError("Value must be numeric")
     try:
         return Decimal(str(raw))
     except InvalidOperation:
-        raise ValueError("Value must be numeric")
+        raise PropertyValueError("Value must be numeric")
 
 
 def parse_boolean(raw):
@@ -54,18 +63,18 @@ def parse_boolean(raw):
             return True
         if raw.lower() in FALSE_VALUES:
             return False
-    raise ValueError("Value must be a boolean")
+    raise PropertyValueError("Value must be a boolean")
 
 
 def parse_datetime_value(raw):
     """Parse an ISO date or datetime string into an aware datetime or raise ValueError."""
     if not isinstance(raw, str):
-        raise ValueError("Value must be an ISO 8601 date or datetime string")
+        raise PropertyValueError("Value must be an ISO 8601 date or datetime string")
     value = parse_datetime(raw)
     if value is None:
         date_value = parse_date(raw)
         if date_value is None:
-            raise ValueError("Value must be an ISO 8601 date or datetime string")
+            raise PropertyValueError("Value must be an ISO 8601 date or datetime string")
         value = django_timezone.datetime.combine(date_value, django_timezone.datetime.min.time())
     if django_timezone.is_naive(value):
         value = django_timezone.make_aware(value, django_timezone.timezone.utc)
@@ -79,7 +88,7 @@ def resolve_option(property_obj, raw):
     raises ValueError when the option does not exist on the property.
     """
     if isinstance(raw, (list, dict, bool)) or raw is None:
-        raise ValueError("Value must be an option id or option name")
+        raise PropertyValueError("Value must be an option id or option name")
     raw = str(raw)
     try:
         option_id = uuid.UUID(raw)
@@ -91,7 +100,7 @@ def resolve_option(property_obj, raw):
         pass
     option = IssuePropertyOption.objects.filter(property=property_obj, name=raw).first()
     if option is None:
-        raise ValueError(f"Unknown option '{raw}' for property '{property_obj.name}'")
+        raise PropertyValueError(f"Unknown option '{raw}' for property '{property_obj.name}'")
     return option
 
 
@@ -193,7 +202,7 @@ def build_value_rows(issue, property_obj, raw):
         return [IssuePropertyValue(**base, value_option=option) for option in options]
 
     if isinstance(raw, list):
-        raise ValueError("A list of values is only allowed for multi-select properties")
+        raise PropertyValueError("A list of values is only allowed for multi-select properties")
 
     if property_type == PropertyTypeChoices.OPTION:
         return [IssuePropertyValue(**base, value_option=resolve_option(property_obj, raw))]
@@ -207,15 +216,15 @@ def build_value_rows(issue, property_obj, raw):
         try:
             user_id = uuid.UUID(str(raw))
         except ValueError:
-            raise ValueError("Value must be a user id")
+            raise PropertyValueError("Value must be a user id")
         if not WorkspaceMember.objects.filter(
             workspace_id=issue.workspace_id, member_id=user_id, is_active=True
         ).exists():
-            raise ValueError(f"Unknown user '{raw}' in this workspace")
+            raise PropertyValueError(f"Unknown user '{raw}' in this workspace")
         return [IssuePropertyValue(**base, value_user_id=user_id)]
     # TEXT
     if isinstance(raw, dict):
-        raise ValueError("Value must be a string")
+        raise PropertyValueError("Value must be a string")
     return [IssuePropertyValue(**base, value_text=str(raw))]
 
 
@@ -250,7 +259,7 @@ def validate_value_payload(issue, slug, project_id, data):
         property_obj = properties[str(uuid.UUID(str(key)))]
         try:
             new_rows.extend(build_value_rows(issue, property_obj, raw))
-        except ValueError as e:
+        except PropertyValueError as e:
             errors[str(key)] = str(e)
     if errors:
         return None, None, {"error": "Invalid property values", "errors": errors}
@@ -382,7 +391,7 @@ def parse_custom_property_condition_key(key):
         return None
     operator = match.group("operator") or "exact"
     if operator not in CUSTOM_PROPERTY_SUPPORTED_OPERATORS:
-        raise ValueError(f"Unsupported operator '{operator}' for custom property filters")
+        raise PropertyValueError(f"Unsupported operator '{operator}' for custom property filters")
     return str(uuid.UUID(match.group("property_id"))), operator
 
 
@@ -405,9 +414,9 @@ def _parse_condition_scalar(property_obj, raw):
         try:
             return "value_user_id", str(uuid.UUID(str(raw)))
         except (ValueError, TypeError):
-            raise ValueError("Value must be a user id")
+            raise PropertyValueError("Value must be a user id")
     if isinstance(raw, (list, dict)):
-        raise ValueError("Value must be a string")
+        raise PropertyValueError("Value must be a string")
     return "value_text", str(raw)
 
 
@@ -425,14 +434,14 @@ def build_custom_property_condition_q(property_obj, operator, raw):
 
     if operator in ("gt", "lt"):
         if property_obj.property_type != PropertyTypeChoices.DECIMAL:
-            raise ValueError(f"'{operator}' filters are only supported for DECIMAL properties")
+            raise PropertyValueError(f"'{operator}' filters are only supported for DECIMAL properties")
         base_kwargs[f"property_values__value_number__{operator}"] = parse_number(raw)
         return Q(**base_kwargs)
 
     if operator == "range":
         values = raw if isinstance(raw, (list, tuple)) else None
         if not values or len(values) != 2:
-            raise ValueError("'range' filters expect a list of two values")
+            raise PropertyValueError("'range' filters expect a list of two values")
         if property_obj.property_type == PropertyTypeChoices.DECIMAL:
             base_kwargs["property_values__value_number__range"] = (
                 parse_number(values[0]),
@@ -446,13 +455,13 @@ def build_custom_property_condition_q(property_obj, operator, raw):
                 end = end + timedelta(days=1) - timedelta(microseconds=1)
             base_kwargs["property_values__value_date__range"] = (start, end)
         else:
-            raise ValueError("'range' filters are only supported for DECIMAL and DATETIME properties")
+            raise PropertyValueError("'range' filters are only supported for DECIMAL and DATETIME properties")
         return Q(**base_kwargs)
 
     if operator == "in":
         values = raw if isinstance(raw, (list, tuple)) else [raw]
         if not values:
-            raise ValueError("'in' filters expect a non-empty list of values")
+            raise PropertyValueError("'in' filters expect a non-empty list of values")
         lookup = None
         parsed_values = []
         for value in values:
