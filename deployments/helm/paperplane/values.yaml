@@ -251,6 +251,8 @@ worker:
   extraVolumeMounts: []
   extraVolumes: []
   replicas: 1
+  # Celery child processes. Left unset it forks one per node core.
+  concurrency: 4
   memoryLimit: 2000Mi
   cpuLimit: 500m
   cpuRequest: 50m
