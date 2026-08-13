@@ -52,7 +52,7 @@ def default_type(db, workspace, project, create_user):
 
 
 def type_url(workspace_slug, project_id, issue_type_id=None):
-    url = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/issue-types/"
+    url = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/work-item-types/"
     if issue_type_id:
         url = f"{url}{issue_type_id}/"
     return url
@@ -112,9 +112,9 @@ class TestIssueTypeCRUD:
         response = api_key_client.get(type_url(workspace.slug, project.id))
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 1
-        assert response.data["results"][0]["name"] == "Task"
-        assert response.data["results"][0]["is_default"] is True
+        assert len(response.data) == 1
+        assert response.data[0]["name"] == "Task"
+        assert response.data[0]["is_default"] is True
         issue_type = IssueType.objects.get(workspace=workspace, is_default=True)
         assert ProjectIssueType.objects.filter(project=project, issue_type=issue_type).exists()
 

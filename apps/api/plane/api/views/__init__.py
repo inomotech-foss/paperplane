@@ -89,6 +89,9 @@ from .issue_property import (
 )
 
 from .issue_type import (
+    IssueTypeImportAPIEndpoint,
     IssueTypeListCreateAPIEndpoint,
     IssueTypeDetailAPIEndpoint,
+    WorkspaceIssueTypeListCreateAPIEndpoint,
+    WorkspaceIssueTypeDetailAPIEndpoint,
 )
