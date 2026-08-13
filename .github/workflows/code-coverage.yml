@@ -55,11 +55,26 @@ jobs:
           cp apps/api/.env.example apps/api/.env
           echo 'SECRET_KEY="ci-coverage-secret-key"' >> apps/api/.env
 
+      - name: Set up Buildx
+        if: steps.decide.outputs.run == 'true'
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Build test image
+        if: steps.decide.outputs.run == 'true'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: ./apps/api
+          file: ./apps/api/Dockerfile.dev
+          tags: paperplane-api-tests:latest
+          load: true
+          cache-from: type=gha,scope=api-tests
+          cache-to: type=gha,mode=max,scope=api-tests
+
       - name: Run test suite with coverage
         if: steps.decide.outputs.run == 'true'
         run: |
-          docker compose -f docker-compose-test.yml run --rm --build api-tests \
-            pytest --cov=plane --cov-report=xml:/code/coverage.xml
+          docker compose -f docker-compose-test.yml run --rm api-tests \
+            pytest -n auto --cov=plane --cov-report=xml:/code/coverage.xml
 
       - name: Rewrite coverage source to repo path
         if: ${{ steps.decide.outputs.run == 'true' && !cancelled() }}
