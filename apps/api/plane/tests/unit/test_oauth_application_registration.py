@@ -9,6 +9,7 @@ import pytest
 from django.utils import timezone
 from oauth2_provider.models import get_application_model
 
+from plane.db.models import ApplicationInstallation, Workspace, WorkspaceMember
 from plane.license.models import Instance, InstanceAdmin
 
 Application = get_application_model()
@@ -79,3 +80,73 @@ class TestOAuthApplicationRegistration:
 
         assert response.status_code == 403
         assert not Application.objects.exists()
+
+
+@pytest.fixture
+def registered(admin_client):
+    response = admin_client.post(URL, {"name": "Plane MCP", "redirect_uris": "https://mcp.example.com/auth/callback"})
+    return response.json()
+
+
+@pytest.mark.unit
+class TestEditingAnApplication:
+    @pytest.mark.django_db
+    def test_renaming_keeps_the_client_id(self, admin_client, registered):
+        # A new client_id would break every deployed client, so editing has to
+        # be possible without delete and recreate.
+        response = admin_client.patch(f"{URL}{registered['id']}/", {"name": "Renamed"})
+
+        assert response.status_code == 200
+        assert response.json()["name"] == "Renamed"
+        assert response.json()["client_id"] == registered["client_id"]
+
+    @pytest.mark.django_db
+    def test_adding_a_redirect_uri(self, admin_client, registered):
+        uris = f"{registered['redirect_uris']}\nhttps://mcp.example.com/other/callback"
+
+        response = admin_client.patch(f"{URL}{registered['id']}/", {"redirect_uris": uris})
+
+        assert response.status_code == 200
+        assert Application.objects.get(pk=registered["id"]).redirect_uris == uris
+
+    @pytest.mark.django_db
+    def test_an_unsupported_scheme_is_still_refused(self, admin_client, registered):
+        response = admin_client.patch(f"{URL}{registered['id']}/", {"redirect_uris": "ftp://mcp.example.com/cb"})
+
+        assert response.status_code == 400
+
+    @pytest.mark.django_db
+    def test_editing_something_that_does_not_exist(self, admin_client):
+        assert admin_client.patch(f"{URL}999/", {"name": "Ghost"}).status_code == 404
+
+    @pytest.mark.django_db
+    def test_revoking_something_that_does_not_exist(self, admin_client):
+        # 204 either way would tell the UI a revoke succeeded when nothing went.
+        assert admin_client.delete(f"{URL}999/").status_code == 404
+
+
+@pytest.mark.unit
+class TestInstallationCount:
+    @pytest.mark.django_db
+    def test_counts_the_users_who_granted_the_application(self, admin_client, create_user, registered):
+        # Revoking an application cascades to its installations, so the admin
+        # needs to see how many grants that would take with it.
+        application = Application.objects.get(pk=registered["id"])
+        workspace = Workspace.objects.create(name="Alpha", slug="alpha", owner=create_user)
+        WorkspaceMember.objects.create(workspace=workspace, member=create_user, role=20)
+        ApplicationInstallation.objects.create(application=application, workspace=workspace, user=create_user)
+
+        assert admin_client.get(URL).json()[0]["installations"] == 1
+
+    @pytest.mark.django_db
+    def test_a_revoked_installation_stops_counting(self, admin_client, create_user, registered):
+        application = Application.objects.get(pk=registered["id"])
+        workspace = Workspace.objects.create(name="Beta", slug="beta", owner=create_user)
+        WorkspaceMember.objects.create(workspace=workspace, member=create_user, role=20)
+        installation = ApplicationInstallation.objects.create(
+            application=application, workspace=workspace, user=create_user
+        )
+
+        installation.delete()  # soft delete
+
+        assert admin_client.get(URL).json()[0]["installations"] == 0

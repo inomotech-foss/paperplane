@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404
 from oauth2_provider.generators import generate_client_secret
 from oauth2_provider.models import get_application_model
 from rest_framework import status
@@ -13,12 +15,22 @@ from .base import BaseAPIView
 Application = get_application_model()
 
 
+def applications():
+    # Deleting an application cascades to its installations, so the count is
+    # what an admin needs to see before revoking one. Installations are soft
+    # deleted, and a plain join would count the revoked ones too.
+    return Application.objects.annotate(
+        installation_count=Count("installations", filter=Q(installations__deleted_at__isnull=True))
+    )
+
+
 def serialize(application):
     return {
         "id": application.id,
         "name": application.name,
         "client_id": application.client_id,
         "redirect_uris": application.redirect_uris,
+        "installations": getattr(application, "installation_count", 0),
         "created": application.created.isoformat(),
     }
 
@@ -33,8 +45,10 @@ class InstanceOAuthApplicationEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
     def get(self, request):
-        applications = Application.objects.order_by("name")
-        return Response([serialize(application) for application in applications], status=status.HTTP_200_OK)
+        return Response(
+            [serialize(application) for application in applications().order_by("name")],
+            status=status.HTTP_200_OK,
+        )
 
     def post(self, request):
         name = (request.data.get("name") or "").strip()
@@ -65,6 +79,20 @@ class InstanceOAuthApplicationEndpoint(BaseAPIView):
             status=status.HTTP_201_CREATED,
         )
 
+    def patch(self, request, pk):
+        # Only the two fields an admin can sensibly change. client_id stays put,
+        # so renaming or adding a redirect URI does not break a deployed client.
+        application = get_object_or_404(Application, pk=pk)
+        for field in ("name", "redirect_uris"):
+            if field in request.data:
+                value = (request.data.get(field) or "").strip()
+                if not value:
+                    return Response({"error": f"{field} cannot be empty"}, status=status.HTTP_400_BAD_REQUEST)
+                setattr(application, field, value)
+        application.full_clean(exclude=["user", "client_secret"])
+        application.save()
+        return Response(serialize(applications().get(pk=pk)), status=status.HTTP_200_OK)
+
     def delete(self, request, pk):
-        Application.objects.filter(pk=pk).delete()
+        get_object_or_404(Application, pk=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
