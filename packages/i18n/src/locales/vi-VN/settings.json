@@ -53,6 +53,19 @@
     "security": {
       "heading": "Bảo mật"
     },
+    "connected_apps": {
+      "title": "Ứng dụng đã kết nối",
+      "description": "Các ứng dụng bạn đã cho phép hoạt động thay mặt bạn trong không gian làm việc.",
+      "connected_on": "Đã kết nối {date}",
+      "revoke": "Thu hồi quyền truy cập",
+      "revoking": "Đang thu hồi",
+      "revoke_title": "Thu hồi quyền truy cập của {name}?",
+      "revoke_description": "Ứng dụng sẽ mất quyền truy cập vào không gian làm việc của bạn ngay lập tức và phải được cấp quyền lại.",
+      "revoked": "{name} không còn quyền truy cập.",
+      "revoke_failed": "Không thu hồi được quyền truy cập.",
+      "empty_title": "Chưa có ứng dụng nào kết nối",
+      "empty_description": "Các ứng dụng bạn cấp quyền, chẳng hạn ứng dụng khách MCP, sẽ hiển thị ở đây."
+    },
     "api_tokens": {
       "title": "Mã truy cập cá nhân",
       "description": "Tạo mã API bảo mật để tích hợp dữ liệu của bạn với các hệ thống và ứng dụng bên ngoài."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "Hồ sơ",
       "security": "Bảo mật",
+      "connected-apps": "Ứng dụng đã kết nối",
       "activity": "Hoạt động",
       "preferences": "Tùy chọn",
       "notifications": "Thông báo",

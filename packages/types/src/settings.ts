@@ -8,7 +8,13 @@
 import type { EUserProjectRoles } from ".";
 import type { EUserWorkspaceRoles } from "./workspace";
 
-export type TProfileSettingsTabs = "general" | "preferences" | "notifications" | "security" | "api-tokens";
+export type TProfileSettingsTabs =
+  | "general"
+  | "preferences"
+  | "notifications"
+  | "security"
+  | "connected-apps"
+  | "api-tokens";
 
 export type TWorkspaceSettingsTabs = "general" | "members" | "export" | "webhooks" | "automations";
 export type TWorkspaceSettingsItem = {

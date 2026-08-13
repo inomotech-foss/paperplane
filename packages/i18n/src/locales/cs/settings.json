@@ -53,6 +53,19 @@
     "security": {
       "heading": "Zabezpečení"
     },
+    "connected_apps": {
+      "title": "Připojené aplikace",
+      "description": "Aplikace, kterým jste povolili jednat vaším jménem ve vašich pracovních prostorech.",
+      "connected_on": "Připojeno {date}",
+      "revoke": "Odebrat přístup",
+      "revoking": "Odebírání",
+      "revoke_title": "Odebrat přístup aplikaci {name}?",
+      "revoke_description": "Aplikace okamžitě ztratí přístup k vašim pracovním prostorům a bude nutné ji znovu autorizovat.",
+      "revoked": "{name} již nemá přístup.",
+      "revoke_failed": "Přístup nebyl odebrán.",
+      "empty_title": "Žádné připojené aplikace",
+      "empty_description": "Aplikace, které autorizujete, například klient MCP, se zobrazí zde."
+    },
     "api_tokens": {
       "title": "Osobní přístupové tokeny",
       "description": "Generujte bezpečné API tokeny pro integraci vašich dat s externími systémy a aplikacemi."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "Profil",
       "security": "Zabezpečení",
+      "connected-apps": "Připojené aplikace",
       "activity": "Aktivita",
       "preferences": "Předvolby",
       "notifications": "Oznámení",

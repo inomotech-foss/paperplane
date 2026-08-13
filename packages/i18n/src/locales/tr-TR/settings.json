@@ -53,6 +53,19 @@
     "security": {
       "heading": "Güvenlik"
     },
+    "connected_apps": {
+      "title": "Bağlı uygulamalar",
+      "description": "Çalışma alanlarınızda sizin adınıza işlem yapmasına izin verdiğiniz uygulamalar.",
+      "connected_on": "{date} tarihinde bağlandı",
+      "revoke": "Erişimi kaldır",
+      "revoking": "Kaldırılıyor",
+      "revoke_title": "{name} uygulamasının erişimi kaldırılsın mı?",
+      "revoke_description": "Uygulama çalışma alanlarınıza erişimini hemen kaybeder ve yeniden yetkilendirilmesi gerekir.",
+      "revoked": "{name} artık erişemiyor.",
+      "revoke_failed": "Erişim kaldırılamadı.",
+      "empty_title": "Bağlı uygulama yok",
+      "empty_description": "Yetkilendirdiğiniz uygulamalar, örneğin bir MCP istemcisi, burada görünür."
+    },
     "api_tokens": {
       "title": "Kişisel Erişim Tokenları",
       "description": "Verilerinizi harici sistemler ve uygulamalarla entegre etmek için güvenli API tokenları oluşturun."
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "Profil",
       "security": "Güvenlik",
+      "connected-apps": "Bağlı uygulamalar",
       "activity": "Aktivite",
       "preferences": "Tercihler",
       "notifications": "Bildirimler",

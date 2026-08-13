@@ -13,5 +13,6 @@ export const PROFILE_SETTINGS_PAGES_MAP: Record<TProfileSettingsTabs, React.Lazy
   preferences: lazy(() => import("./preferences").then((m) => ({ default: m.PreferencesProfileSettings }))),
   notifications: lazy(() => import("./notifications").then((m) => ({ default: m.NotificationsProfileSettings }))),
   security: lazy(() => import("./security").then((m) => ({ default: m.SecurityProfileSettings }))),
+  "connected-apps": lazy(() => import("./connected-apps").then((m) => ({ default: m.ConnectedAppsProfileSettings }))),
   "api-tokens": lazy(() => import("./api-tokens").then((m) => ({ default: m.APITokensProfileSettings }))),
 };

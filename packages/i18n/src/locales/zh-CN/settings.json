@@ -53,6 +53,19 @@
     "security": {
       "heading": "安全"
     },
+    "connected_apps": {
+      "title": "已连接的应用",
+      "description": "你已授权在工作区中代表你执行操作的应用。",
+      "connected_on": "于 {date} 连接",
+      "revoke": "撤销访问权限",
+      "revoking": "正在撤销",
+      "revoke_title": "撤销 {name} 的访问权限？",
+      "revoke_description": "该应用会立即失去对你工作区的访问权限，需要重新授权。",
+      "revoked": "{name} 已无访问权限。",
+      "revoke_failed": "未能撤销访问权限。",
+      "empty_title": "没有已连接的应用",
+      "empty_description": "你授权的应用（例如 MCP 客户端）会显示在这里。"
+    },
     "api_tokens": {
       "title": "个人访问令牌",
       "description": "生成安全的 API 令牌，将您的数据与外部系统和应用程序集成。"
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "个人资料",
       "security": "安全",
+      "connected-apps": "已连接的应用",
       "activity": "活动",
       "preferences": "偏好设置",
       "notifications": "通知",

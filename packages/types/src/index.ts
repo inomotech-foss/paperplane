@@ -12,6 +12,7 @@ export * from "./auth";
 export * from "./automation";
 export * from "./calendar";
 export * from "./charts";
+export * from "./connected-app";
 export * from "./command-palette";
 export * from "./common";
 export * from "./cycle";

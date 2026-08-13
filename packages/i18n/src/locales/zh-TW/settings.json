@@ -53,6 +53,19 @@
     "security": {
       "heading": "安全性"
     },
+    "connected_apps": {
+      "title": "已連結的應用程式",
+      "description": "你已授權在工作區中代表你執行操作的應用程式。",
+      "connected_on": "於 {date} 連結",
+      "revoke": "撤銷存取權",
+      "revoking": "正在撤銷",
+      "revoke_title": "撤銷 {name} 的存取權？",
+      "revoke_description": "該應用程式會立即失去對你工作區的存取權，必須重新授權。",
+      "revoked": "{name} 已無存取權。",
+      "revoke_failed": "未能撤銷存取權。",
+      "empty_title": "沒有已連結的應用程式",
+      "empty_description": "你授權的應用程式（例如 MCP 用戶端）會顯示在這裡。"
+    },
     "api_tokens": {
       "title": "個人存取權杖",
       "description": "產生安全的 API 權杖，以將您的資料與外部系統和應用程式整合。"
@@ -99,6 +112,7 @@
     "actions": {
       "profile": "個人資料",
       "security": "安全性",
+      "connected-apps": "已連結的應用程式",
       "activity": "活動",
       "preferences": "偏好設定",
       "notifications": "通知",
