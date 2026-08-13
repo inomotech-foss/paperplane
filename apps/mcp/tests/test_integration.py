@@ -22,9 +22,7 @@ def get_config():
     mcp_url = os.getenv("PLANE_TEST_MCP_URL", "http://localhost:8211")
 
     if not api_key or not workspace_slug:
-        raise RuntimeError(
-            "Missing required env vars: PLANE_TEST_API_KEY, PLANE_TEST_WORKSPACE_SLUG"
-        )
+        raise RuntimeError("Missing required env vars: PLANE_TEST_API_KEY, PLANE_TEST_WORKSPACE_SLUG")
 
     return {
         "api_key": api_key,
@@ -44,7 +42,7 @@ def extract_result(result):
         if hasattr(content, "text"):
             try:
                 return json.loads(content.text)
-            except:
+            except json.JSONDecodeError:
                 return {"raw": content.text}
     return {}
 
@@ -54,16 +52,16 @@ async def run_integration_test():
     Full integration test:
     1. Create a project
     2. Create work item 1
-    3. Create work item 2 
-    4. Update work item 2 with work item 1 as parent 
+    3. Create work item 2
+    4. Update work item 2 with work item 1 as parent
     5. Find or create an "Epic" work item type, and create an epic work item
     6. Update work item 2 to be under the epic
     7. List all epics (work items of the "Epic" type)
     8. Delete the epic
     9. Delete work items
     10. Delete project
-    """ 
-    config = get_config() 
+    """
+    config = get_config()
     unique_id = uuid.uuid4().hex[:6]
 
     transport = StreamableHttpTransport(
@@ -129,9 +127,7 @@ async def run_integration_test():
 
         # 5. Find or create an "Epic" work item type, and create an epic work item
         print("Finding or creating 'Epic' work item type...")
-        epic_type_result = await client.call_tool(
-            "resolve_work_item_type", {"project_id": project_id, "name": "Epic"}
-        )
+        epic_type_result = await client.call_tool("resolve_work_item_type", {"project_id": project_id, "name": "Epic"})
         epic_type = extract_result(epic_type_result)
 
         epic_type_id = epic_type["id"]

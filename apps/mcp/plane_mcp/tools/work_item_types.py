@@ -29,9 +29,7 @@ def register_work_item_type_tools(mcp: FastMCP) -> None:
         """
         client, workspace_slug = get_plane_client_context()
         if project_id:
-            return client.work_item_types.list(
-                workspace_slug=workspace_slug, project_id=project_id, params=params
-            )
+            return client.work_item_types.list(workspace_slug=workspace_slug, project_id=project_id, params=params)
         return client.workspace_work_item_types.list(workspace_slug=workspace_slug)
 
     @mcp.tool()
@@ -74,9 +72,7 @@ def register_work_item_type_tools(mcp: FastMCP) -> None:
         )
 
         if project_id:
-            return client.work_item_types.create(
-                workspace_slug=workspace_slug, project_id=project_id, data=data
-            )
+            return client.work_item_types.create(workspace_slug=workspace_slug, project_id=project_id, data=data)
         return client.workspace_work_item_types.create(workspace_slug=workspace_slug, data=data)
 
     @mcp.tool()
