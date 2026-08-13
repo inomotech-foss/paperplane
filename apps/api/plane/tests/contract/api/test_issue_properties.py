@@ -129,14 +129,14 @@ def multi_option_property(db, project, create_user):
 
 
 def property_url(workspace_slug, project_id, property_id=None):
-    url = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/issue-properties/"
+    url = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/work-item-properties/"
     if property_id:
         url = f"{url}{property_id}/"
     return url
 
 
 def option_url(workspace_slug, project_id, property_id, option_id=None):
-    url = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/issue-properties/{property_id}/options/"
+    url = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/work-item-properties/{property_id}/options/"
     if option_id:
         url = f"{url}{option_id}/"
     return url
@@ -246,7 +246,7 @@ class TestIssuePropertyCRUD:
         response = api_key_client.get(property_url(workspace.slug, project.id))
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 2
+        assert len(response.data) == 2
 
     @pytest.mark.django_db
     def test_retrieve_property_includes_options(self, api_key_client, workspace, project, option_property):
@@ -338,7 +338,7 @@ class TestIssuePropertyOptionCRUD:
         response = api_key_client.get(option_url(workspace.slug, project.id, option_property.id))
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 2
+        assert len(response.data) == 2
 
     @pytest.mark.django_db
     def test_patch_and_delete_option(self, api_key_client, workspace, project, option_property):
@@ -783,19 +783,19 @@ class TestIssuePropertyTypeScoping:
         # No query param: unchanged, everything is returned
         response = api_key_client.get(property_url(workspace.slug, project.id))
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 5
+        assert len(response.data) == 5
 
         # Filtered by bug_type: the 3 unscoped properties + the bug-scoped one
         response = api_key_client.get(property_url(workspace.slug, project.id), {"issue_type": str(bug_type.id)})
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 4
-        names = {prop["name"] for prop in response.data["results"]}
+        assert len(response.data) == 4
+        names = {prop["name"] for prop in response.data}
         assert names == {"Unscoped 0", "Unscoped 1", "Unscoped 2", "Bug Only"}
         assert "Story Only" not in names
 
         # ?unscoped=true: only the unscoped properties
         response = api_key_client.get(property_url(workspace.slug, project.id), {"unscoped": "true"})
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 3
+        assert len(response.data) == 3
 
         assert bug_only.issue_type_id == bug_type.id

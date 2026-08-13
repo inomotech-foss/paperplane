@@ -24,21 +24,38 @@ from plane.db.models import (
 )
 from plane.utils.issue_property import (
     OPTION_PROPERTY_TYPES,
+    PropertyValueError,
     build_value_maps,
+    build_value_rows,
     filter_properties_by_issue_type,
     validate_value_payload,
+    value_to_json,
 )
 from plane.utils.openapi import (
     issue_property_docs,
-    CURSOR_PARAMETER,
-    PER_PAGE_PARAMETER,
     FIELDS_PARAMETER,
     EXPAND_PARAMETER,
-    create_paginated_response,
     INVALID_REQUEST_RESPONSE,
     DELETED_RESPONSE,
 )
 from .base import BaseAPIView
+
+
+def project_issue_properties(slug, project_id, user):
+    """Properties of a project the user is an active member of."""
+    return (
+        IssueProperty.objects.filter(workspace__slug=slug)
+        .filter(project_id=project_id)
+        .filter(
+            project__project_projectmember__member=user,
+            project__project_projectmember__is_active=True,
+        )
+        .filter(project__archived_at__isnull=True)
+        .select_related("project")
+        .select_related("workspace")
+        .prefetch_related("options")
+        .distinct()
+    )
 
 
 class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
@@ -50,22 +67,10 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
     use_read_replica = True
 
     def get_queryset(self):
-        return (
-            IssueProperty.objects.filter(workspace__slug=self.kwargs.get("slug"))
-            .filter(project_id=self.kwargs.get("project_id"))
-            .filter(
-                project__project_projectmember__member=self.request.user,
-                project__project_projectmember__is_active=True,
-            )
-            .filter(project__archived_at__isnull=True)
-            .select_related("project")
-            .select_related("workspace")
-            .prefetch_related("options")
-            .distinct()
-        )
+        return project_issue_properties(self.kwargs.get("slug"), self.kwargs.get("project_id"), self.request.user)
 
     @issue_property_docs(
-        operation_id="create_issue_property",
+        operation_id="create_work_item_property",
         summary="Create work item property",
         description="Create a typed custom property (work item property) for a project. For OPTION properties, options can be created inline through the `options` field.",  # noqa: E501
         request=OpenApiRequest(request=IssuePropertySerializer),
@@ -77,16 +82,22 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
-    def post(self, request, slug, project_id):
+    def post(self, request, slug, project_id, issue_type_id=None):
         """Create work item property
 
         Create a typed custom property for a project. Accepts an optional
         `options` list `[{name, sort_order?, is_default?}]` to create options
         inline for OPTION property types. Supports external ID
         tracking for integration purposes; a duplicate external id returns 409.
+
+        Under a work item type the new property is scoped to that type,
+        overriding any `issue_type` in the body.
         """
-        options = request.data.get("options", [])
-        property_type = request.data.get("property_type")
+        data = request.data
+        if issue_type_id is not None:
+            data = {**data, "issue_type": str(issue_type_id)}
+        options = data.get("options", [])
+        property_type = data.get("property_type")
 
         if options and property_type not in OPTION_PROPERTY_TYPES:
             return Response(
@@ -103,7 +114,7 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
             )
 
         try:
-            serializer = IssuePropertySerializer(data=request.data, context={"project_id": project_id})
+            serializer = IssuePropertySerializer(data=data, context={"project_id": project_id})
             if serializer.is_valid():
                 if (
                     request.data.get("external_id")
@@ -157,48 +168,37 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
             )
 
     @issue_property_docs(
-        operation_id="list_issue_properties",
+        operation_id="list_work_item_properties",
         summary="List work item properties",
         description="Retrieve all custom properties (work item properties) of a project.",
-        parameters=[
-            CURSOR_PARAMETER,
-            PER_PAGE_PARAMETER,
-            FIELDS_PARAMETER,
-            EXPAND_PARAMETER,
-        ],
+        parameters=[FIELDS_PARAMETER, EXPAND_PARAMETER],
         responses={
-            200: create_paginated_response(
-                IssuePropertySerializer,
-                "PaginatedIssuePropertyResponse",
-                "Paginated list of work item properties",
-                "Paginated Work Item Properties",
+            200: OpenApiResponse(
+                description="List of work item properties",
+                response=IssuePropertySerializer(many=True),
             ),
         },
     )
-    def get(self, request, slug, project_id):
+    def get(self, request, slug, project_id, issue_type_id=None):
         """List work item properties
 
         Retrieve all custom properties of a project including their options.
-        Returns paginated results. When `?issue_type=<uuid>` is passed,
-        returns properties scoped to that type plus unscoped (project-wide)
-        properties. `?issue_type=null` (or `?unscoped=true`) returns only
-        unscoped properties. Without the query param, behavior is unchanged
-        (every property of the project is returned).
+        Under a work item type, or with `?issue_type=<uuid>`, returns the
+        properties scoped to that type plus the unscoped (project-wide) ones.
+        `?issue_type=null` (or `?unscoped=true`) returns only unscoped
+        properties. With neither, every property of the project is returned.
         """
         queryset = self.get_queryset()
-        if str(request.GET.get("unscoped", "")).lower() == "true":
-            queryset = queryset.filter(issue_type__isnull=True)
+        if issue_type_id is not None:
+            queryset, error = filter_properties_by_issue_type(queryset, issue_type_id)
+        elif str(request.GET.get("unscoped", "")).lower() == "true":
+            queryset, error = queryset.filter(issue_type__isnull=True), None
         else:
             queryset, error = filter_properties_by_issue_type(queryset, request.GET.get("issue_type"))
-            if error is not None:
-                return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
-        return self.paginate(
-            request=request,
-            queryset=queryset,
-            on_results=lambda issue_properties: (
-                IssuePropertySerializer(issue_properties, many=True, fields=self.fields, expand=self.expand).data
-            ),
-        )
+        if error is not None:
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = IssuePropertySerializer(queryset, many=True, fields=self.fields, expand=self.expand)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class IssuePropertyDetailAPIEndpoint(BaseAPIView):
@@ -210,22 +210,10 @@ class IssuePropertyDetailAPIEndpoint(BaseAPIView):
     use_read_replica = True
 
     def get_queryset(self):
-        return (
-            IssueProperty.objects.filter(workspace__slug=self.kwargs.get("slug"))
-            .filter(project_id=self.kwargs.get("project_id"))
-            .filter(
-                project__project_projectmember__member=self.request.user,
-                project__project_projectmember__is_active=True,
-            )
-            .filter(project__archived_at__isnull=True)
-            .select_related("project")
-            .select_related("workspace")
-            .prefetch_related("options")
-            .distinct()
-        )
+        return project_issue_properties(self.kwargs.get("slug"), self.kwargs.get("project_id"), self.request.user)
 
     @issue_property_docs(
-        operation_id="retrieve_issue_property",
+        operation_id="retrieve_work_item_property",
         summary="Retrieve work item property",
         description="Retrieve details of a specific work item property including its options.",
         responses={
@@ -235,7 +223,7 @@ class IssuePropertyDetailAPIEndpoint(BaseAPIView):
             ),
         },
     )
-    def get(self, request, slug, project_id, property_id):
+    def get(self, request, slug, project_id, property_id, issue_type_id=None):
         """Retrieve work item property
 
         Retrieve details of a specific work item property including its options.
@@ -248,7 +236,7 @@ class IssuePropertyDetailAPIEndpoint(BaseAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @issue_property_docs(
-        operation_id="update_issue_property",
+        operation_id="update_work_item_property",
         summary="Update work item property",
         description="Partially update a work item property. The property type cannot be changed once created.",
         request=OpenApiRequest(request=IssuePropertySerializer),
@@ -260,7 +248,7 @@ class IssuePropertyDetailAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
-    def patch(self, request, slug, project_id, property_id):
+    def patch(self, request, slug, project_id, property_id, issue_type_id=None):
         """Update work item property
 
         Partially update a work item property (name, display name, activation,
@@ -294,12 +282,12 @@ class IssuePropertyDetailAPIEndpoint(BaseAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @issue_property_docs(
-        operation_id="delete_issue_property",
+        operation_id="delete_work_item_property",
         summary="Delete work item property",
         description="Delete a work item property and its options and values.",
         responses={204: DELETED_RESPONSE},
     )
-    def delete(self, request, slug, project_id, property_id):
+    def delete(self, request, slug, project_id, property_id, issue_type_id=None):
         """Delete work item property
 
         Delete a work item property. Its options and stored values are
@@ -334,7 +322,7 @@ class IssuePropertyOptionListCreateAPIEndpoint(BaseAPIView):
         )
 
     @issue_property_docs(
-        operation_id="create_issue_property_option",
+        operation_id="create_work_item_property_option",
         summary="Create work item property option",
         description="Create an option for an OPTION work item property.",
         request=OpenApiRequest(request=IssuePropertyOptionSerializer),
@@ -400,36 +388,26 @@ class IssuePropertyOptionListCreateAPIEndpoint(BaseAPIView):
             )
 
     @issue_property_docs(
-        operation_id="list_issue_property_options",
+        operation_id="list_work_item_property_options",
         summary="List work item property options",
         description="Retrieve all options of a work item property.",
-        parameters=[
-            CURSOR_PARAMETER,
-            PER_PAGE_PARAMETER,
-            FIELDS_PARAMETER,
-            EXPAND_PARAMETER,
-        ],
+        parameters=[FIELDS_PARAMETER, EXPAND_PARAMETER],
         responses={
-            200: create_paginated_response(
-                IssuePropertyOptionSerializer,
-                "PaginatedIssuePropertyOptionResponse",
-                "Paginated list of work item property options",
-                "Paginated Work Item Property Options",
+            200: OpenApiResponse(
+                description="List of work item property options",
+                response=IssuePropertyOptionSerializer(many=True),
             ),
         },
     )
     def get(self, request, slug, project_id, property_id):
         """List work item property options
 
-        Retrieve all options of a work item property. Returns paginated results.
+        Retrieve all options of a work item property.
         """
-        return self.paginate(
-            request=request,
-            queryset=(self.get_queryset()),
-            on_results=lambda options: (
-                IssuePropertyOptionSerializer(options, many=True, fields=self.fields, expand=self.expand).data
-            ),
+        serializer = IssuePropertyOptionSerializer(
+            self.get_queryset(), many=True, fields=self.fields, expand=self.expand
         )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class IssuePropertyOptionDetailAPIEndpoint(BaseAPIView):
@@ -441,7 +419,7 @@ class IssuePropertyOptionDetailAPIEndpoint(BaseAPIView):
     use_read_replica = True
 
     @issue_property_docs(
-        operation_id="retrieve_issue_property_option",
+        operation_id="retrieve_work_item_property_option",
         summary="Retrieve work item property option",
         description="Retrieve details of a specific work item property option.",
         responses={
@@ -466,7 +444,7 @@ class IssuePropertyOptionDetailAPIEndpoint(BaseAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @issue_property_docs(
-        operation_id="update_issue_property_option",
+        operation_id="update_work_item_property_option",
         summary="Update work item property option",
         description="Partially update a work item property option.",
         request=OpenApiRequest(request=IssuePropertyOptionSerializer),
@@ -513,7 +491,7 @@ class IssuePropertyOptionDetailAPIEndpoint(BaseAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @issue_property_docs(
-        operation_id="delete_issue_property_option",
+        operation_id="delete_work_item_property_option",
         summary="Delete work item property option",
         description="Delete a work item property option.",
         responses={204: DELETED_RESPONSE},
@@ -609,3 +587,148 @@ class IssuePropertyValueAPIEndpoint(BaseAPIView):
 
         values, display = build_value_maps(self.get_queryset())
         return Response({"values": values, "display": display}, status=status.HTTP_200_OK)
+
+
+class IssuePropertySingleValueAPIEndpoint(BaseAPIView):
+    """One property's value(s) on one work item.
+
+    Addresses a single property, unlike IssuePropertyValueAPIEndpoint which
+    reads and replaces a work item's values as a whole. A multi-select
+    answers with a list, everything else with one object.
+    """
+
+    model = IssuePropertyValue
+    permission_classes = [ProjectEntityPermission]
+
+    def get_queryset(self):
+        return (
+            IssuePropertyValue.objects.filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(project_id=self.kwargs.get("project_id"))
+            .filter(issue_id=self.kwargs.get("work_item_id"))
+            .filter(property_id=self.kwargs.get("property_id"))
+            .filter(
+                project__project_projectmember__member=self.request.user,
+                project__project_projectmember__is_active=True,
+            )
+            .select_related("property", "value_option", "value_user")
+        )
+
+    def serialize(self, rows, issue_property):
+        payload = [
+            {
+                "id": str(row.id),
+                "property_id": str(row.property_id),
+                "issue_id": str(row.issue_id),
+                "value": value_to_json(row)[0],
+                "value_type": row.property.property_type,
+                "external_id": row.external_id,
+                "external_source": row.external_source,
+            }
+            for row in rows
+        ]
+        if issue_property.is_multi_option:
+            return payload
+        return payload[0] if payload else None
+
+    def replace(self, request, slug, project_id, work_item_id, property_id):
+        """Validate the body and swap in the new rows."""
+        issue = Issue.issue_objects.get(pk=work_item_id, project_id=project_id, workspace__slug=slug)
+        issue_property = IssueProperty.objects.get(pk=property_id, project_id=project_id, workspace__slug=slug)
+        if "value" not in request.data:
+            return None, Response({"error": "value is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            new_rows = build_value_rows(issue, issue_property, request.data.get("value"))
+        except PropertyValueError as error:
+            return None, Response({"error": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+        for row in new_rows:
+            row.external_id = request.data.get("external_id")
+            row.external_source = request.data.get("external_source")
+
+        with transaction.atomic():
+            IssuePropertyValue.objects.filter(issue=issue, property_id=property_id).delete(soft=False)
+            IssuePropertyValue.objects.bulk_create(new_rows)
+        return issue_property, None
+
+    @issue_property_docs(
+        operation_id="retrieve_work_item_property_value",
+        summary="Retrieve one work item property value",
+        description="Retrieve the value(s) a work item holds for a single property.",
+        responses={
+            200: OpenApiResponse(description="Work item property value"),
+            404: OpenApiResponse(description="The property has no value on this work item"),
+        },
+    )
+    def get(self, request, slug, project_id, work_item_id, property_id):
+        """Retrieve one work item property value
+
+        A multi-select answers with a list, everything else with one object.
+        Returns 404 when the property holds no value.
+        """
+        issue_property = IssueProperty.objects.get(pk=property_id, project_id=project_id, workspace__slug=slug)
+        rows = list(self.get_queryset())
+        if not rows:
+            return Response({"error": "This property has no value on this work item"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(self.serialize(rows, issue_property), status=status.HTTP_200_OK)
+
+    @issue_property_docs(
+        operation_id="create_work_item_property_value",
+        summary="Set one work item property value",
+        description="Set the value(s) a work item holds for a single property, replacing whatever was there.",
+        request=OpenApiRequest(request=None),
+        responses={
+            200: OpenApiResponse(description="Work item property value set"),
+            400: INVALID_REQUEST_RESPONSE,
+        },
+    )
+    def post(self, request, slug, project_id, work_item_id, property_id):
+        """Set one work item property value
+
+        Body is `{"value": <scalar or list>}`. Whatever the property held is
+        replaced, so this both creates and updates.
+        """
+        issue_property, error = self.replace(request, slug, project_id, work_item_id, property_id)
+        if error is not None:
+            return error
+        return Response(self.serialize(list(self.get_queryset()), issue_property), status=status.HTTP_200_OK)
+
+    @issue_property_docs(
+        operation_id="update_work_item_property_value",
+        summary="Update one work item property value",
+        description="Replace the value(s) a work item holds for a single property.",
+        request=OpenApiRequest(request=None),
+        responses={
+            200: OpenApiResponse(description="Work item property value updated"),
+            400: INVALID_REQUEST_RESPONSE,
+            404: OpenApiResponse(description="The property has no value on this work item"),
+        },
+    )
+    def patch(self, request, slug, project_id, work_item_id, property_id):
+        """Update one work item property value
+
+        Like the POST, but refuses with 404 when the property holds no value
+        yet.
+        """
+        if not self.get_queryset().exists():
+            return Response({"error": "This property has no value on this work item"}, status=status.HTTP_404_NOT_FOUND)
+        issue_property, error = self.replace(request, slug, project_id, work_item_id, property_id)
+        if error is not None:
+            return error
+        return Response(self.serialize(list(self.get_queryset()), issue_property), status=status.HTTP_200_OK)
+
+    @issue_property_docs(
+        operation_id="delete_work_item_property_value",
+        summary="Clear one work item property value",
+        description="Remove the value(s) a work item holds for a single property.",
+        responses={
+            204: DELETED_RESPONSE,
+            404: OpenApiResponse(description="The property has no value on this work item"),
+        },
+    )
+    def delete(self, request, slug, project_id, work_item_id, property_id):
+        """Clear one work item property value"""
+        if not self.get_queryset().exists():
+            return Response({"error": "This property has no value on this work item"}, status=status.HTTP_404_NOT_FOUND)
+        self.get_queryset().delete(soft=False)
+        return Response(status=status.HTTP_204_NO_CONTENT)
