@@ -126,6 +126,45 @@ class TestEditingAnApplication:
 
 
 @pytest.mark.unit
+class TestChartManagedApplications:
+    """The chart reinstates its application on every deploy, so god mode must
+    not offer changes that silently revert."""
+
+    @pytest.fixture
+    def managed(self, admin_client, registered, monkeypatch):
+        monkeypatch.setenv("PLANE_OAUTH_PROVIDER_CLIENT_ID", registered["client_id"])
+        return registered
+
+    @pytest.mark.django_db
+    def test_a_provisioned_application_is_flagged(self, admin_client, managed):
+        assert admin_client.get(URL).json()[0]["managed"] is True
+
+    @pytest.mark.django_db
+    def test_a_hand_registered_application_is_not(self, admin_client, registered):
+        assert admin_client.get(URL).json()[0]["managed"] is False
+
+    @pytest.mark.django_db
+    def test_editing_is_refused(self, admin_client, managed):
+        response = admin_client.patch(f"{URL}{managed['id']}/", {"name": "Renamed"})
+
+        assert response.status_code == 409
+        assert Application.objects.get(pk=managed["id"]).name == "Plane MCP"
+
+    @pytest.mark.django_db
+    def test_revoking_is_refused(self, admin_client, managed):
+        response = admin_client.delete(f"{URL}{managed['id']}/")
+
+        assert response.status_code == 409
+        assert Application.objects.filter(pk=managed["id"]).exists()
+
+    @pytest.mark.django_db
+    def test_another_application_is_still_editable(self, admin_client, managed):
+        other = admin_client.post(URL, {"name": "Mine", "redirect_uris": "https://mine.example.com/cb"}).json()
+
+        assert admin_client.patch(f"{URL}{other['id']}/", {"name": "Renamed"}).status_code == 200
+
+
+@pytest.mark.unit
 class TestInstallationCount:
     @pytest.mark.django_db
     def test_counts_the_users_who_granted_the_application(self, admin_client, create_user, registered):

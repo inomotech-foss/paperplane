@@ -34,6 +34,9 @@ export const OAuthApplicationListItem = observer(function OAuthApplicationListIt
           <span className="text-11 text-tertiary">
             {application.installations === 1 ? "1 grant" : `${application.installations} grants`}
           </span>
+          {application.managed && (
+            <span className="rounded-xs bg-layer-1 px-2 text-11 font-medium text-placeholder">Chart-managed</span>
+          )}
         </div>
         <p className="font-mono truncate text-11 text-tertiary">{application.client_id}</p>
         <div className="space-y-0.5">
@@ -45,24 +48,29 @@ export const OAuthApplicationListItem = observer(function OAuthApplicationListIt
         </div>
         <p className="text-11 text-placeholder">Registered {renderFormattedDate(application.created)}</p>
       </div>
-      <div className="flex flex-shrink-0 items-center gap-1">
-        <button
-          type="button"
-          onClick={() => onEdit(application)}
-          className="rounded p-2 text-tertiary outline-none hover:bg-layer-1-hover"
-          aria-label={`Edit ${application.name}`}
-        >
-          <Pencil className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => onRevoke(application)}
-          className="hover:text-danger rounded p-2 text-tertiary outline-none hover:bg-layer-1-hover"
-          aria-label={`Revoke ${application.name}`}
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
+      {application.managed ? (
+        // Editing it here would be undone by the next deploy.
+        <p className="max-w-56 flex-shrink-0 text-11 text-placeholder">Edit this in your chart values.</p>
+      ) : (
+        <div className="flex flex-shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onEdit(application)}
+            className="rounded p-2 text-tertiary outline-none hover:bg-layer-1-hover"
+            aria-label={`Edit ${application.name}`}
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onRevoke(application)}
+            className="hover:text-danger rounded p-2 text-tertiary outline-none hover:bg-layer-1-hover"
+            aria-label={`Revoke ${application.name}`}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 });
