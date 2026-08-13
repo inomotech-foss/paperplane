@@ -103,6 +103,16 @@ class TestWorkItemArchive:
         assert [item["name"] for item in response.data["results"]] == ["Finished"]
 
     @pytest.mark.django_db
+    def test_a_draft_is_left_out(self, api_key_client, workspace, project, done_state):
+        issue = make_issue(project, workspace, done_state, "Draft")
+        api_key_client.post(archive_url(workspace.slug, project.id, issue.id))
+        Issue.objects.filter(pk=issue.id).update(is_draft=True)
+
+        response = api_key_client.get(archived_list_url(workspace.slug, project.id))
+
+        assert response.data["results"] == []
+
+    @pytest.mark.django_db
     def test_unauthenticated_request_rejected(self, api_client, workspace, project):
         assert api_client.get(archived_list_url(workspace.slug, project.id)).status_code == (
             status.HTTP_401_UNAUTHORIZED

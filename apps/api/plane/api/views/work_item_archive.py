@@ -13,6 +13,7 @@ from plane.api.serializers import IssueSerializer
 from plane.app.permissions import ProjectEntityPermission
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.db.models import Issue
+from plane.db.models.state import StateGroup
 from plane.utils.host import base_host
 from plane.utils.openapi import (
     CURSOR_PARAMETER,
@@ -40,12 +41,17 @@ class WorkItemArchiveListAPIEndpoint(BaseAPIView):
     use_read_replica = True
 
     def get_queryset(self):
+        # Issue.issue_objects would drop the archived rows, so this repeats its
+        # other exclusions rather than using it.
         return (
             Issue.objects.filter(
                 workspace__slug=self.kwargs.get("slug"),
                 project_id=self.kwargs.get("project_id"),
                 archived_at__isnull=False,
             )
+            .exclude(state__group=StateGroup.TRIAGE.value)
+            .exclude(project__archived_at__isnull=False)
+            .exclude(is_draft=True)
             .filter(project__project_projectmember__member=self.request.user)
             .filter(project__project_projectmember__is_active=True)
             .select_related("workspace", "project", "state", "parent")
