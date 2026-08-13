@@ -1,33 +1,36 @@
-# Use Python 3.11 as base image
-FROM python:3.11-slim
+FROM python:3.12-slim AS builder
 
-# Set working directory
+COPY --from=ghcr.io/astral-sh/uv:0.9.7 /uv /usr/local/bin/uv
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never
+
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Dependencies first, so a code change does not refetch them.
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-install-project --no-dev
 
-# Install uv for faster package management
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
-
-# Copy dependency files and application code
-COPY pyproject.toml ./
-COPY uv.lock* ./
 COPY plane_mcp/ ./plane_mcp/
+RUN uv sync --locked --no-dev
 
-# Install the package and dependencies using uv
-RUN uv pip install --system --no-cache .
 
-# Expose port for HTTP transports (SSE, streamable-http, http)
+FROM python:3.12-slim
+
+RUN groupadd --system --gid 1000 plane \
+    && useradd --system --uid 1000 --gid plane --create-home plane
+
+WORKDIR /app
+
+COPY --from=builder --chown=plane:plane /app /app
+
+ENV PATH="/app/.venv/bin:$PATH" \
+    FASTMCP_PORT=8211
+
+USER plane
+
 EXPOSE 8211
 
-# Set environment variables with defaults
-ENV FASTMCP_PORT=8211
-
-# Default to streamable-http transport, but allow override via command
-# Users can override by passing different transport as CMD
 ENTRYPOINT ["python", "-m", "plane_mcp"]
 CMD ["http"]
-
