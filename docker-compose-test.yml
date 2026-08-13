@@ -11,7 +11,7 @@
 #   docker compose -f docker-compose-test.yml run --rm --build api-tests pytest -m unit
 #   docker compose -f docker-compose-test.yml run --rm api-tests pytest plane/tests/unit -k "test_workspace"
 #
-#   # Run in parallel (~5x faster; each worker gets its own Redis database):
+#   # Run the suite in parallel:
 #   docker compose -f docker-compose-test.yml run --rm api-tests pytest -n auto
 #
 #   # Tear down (removes ephemeral volumes and the test network):
@@ -101,9 +101,7 @@ services:
       retries: 10
 
   api-tests:
-    # Pinned so the tag does not depend on the compose project name, which
-    # differs between a local checkout and CI. CI prebuilds this tag with a
-    # layer cache and then runs without --build.
+    # Pinned so the tag does not depend on the compose project name.
     image: paperplane-api-tests:latest
     build:
       context: ./apps/api

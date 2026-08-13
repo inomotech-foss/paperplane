@@ -11,12 +11,10 @@ from .common import *  # noqa
 
 DEBUG = True
 
-# Every test clears the whole cache to reset DRF throttles, so parallel workers
-# sharing one Redis database wipe each other's throttle and magic-link state.
-# Give each xdist worker its own database instead.
+# Every test clears the cache, so workers need separate Redis databases.
 _worker = os.environ.get("PYTEST_XDIST_WORKER")
 if _worker and REDIS_URL:  # noqa: F405
-    # Redis serves 16 databases by default, so this caps the useful worker count.
+    # Redis serves 16 databases.
     _database = int(_worker.removeprefix("gw")) % 16
     REDIS_URL = urlunparse(urlparse(REDIS_URL)._replace(path=f"/{_database}"))  # noqa: F405
     CACHES["default"]["LOCATION"] = REDIS_URL  # noqa: F405

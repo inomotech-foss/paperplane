@@ -55,8 +55,7 @@ jobs:
           cp apps/api/.env.example apps/api/.env
           echo 'SECRET_KEY="ci-coverage-secret-key"' >> apps/api/.env
 
-      # Started before the build so the dependency health checks, which take
-      # about half a minute, run while the image builds rather than after it.
+      # Started early so the health checks overlap the build.
       - name: Start test services
         if: steps.decide.outputs.run == 'true'
         run: docker compose -f docker-compose-test.yml up -d test-db test-redis test-mq test-minio

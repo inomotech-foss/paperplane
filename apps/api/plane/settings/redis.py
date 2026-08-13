@@ -19,8 +19,7 @@ def redis_instance():
             ssl_cert_reqs=None,
         )
     else:
-        # No db= override: the database index comes from REDIS_URL, which the
-        # test settings vary per xdist worker.
+        # Database index comes from the URL so tests can vary it per worker.
         ri = redis.Redis.from_url(settings.REDIS_URL)
 
     return ri
