@@ -144,13 +144,8 @@ def register_intake_tools(mcp: FastMCP) -> None:
             source=source,
             source_email=source_email,
         )
-        if status is not None or snoozed_till is not None or duplicate_to is not None:
-            return client.intake.update_status(
-                workspace_slug=workspace_slug,
-                project_id=project_id,
-                work_item_id=work_item_id,
-                data=intake_data,
-            )
+        # Our API takes the status change on the same PATCH, so there is no
+        # separate status call to route to.
         return client.intake.update(
             workspace_slug=workspace_slug,
             project_id=project_id,

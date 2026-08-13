@@ -1,26 +1,22 @@
 """Work item-related tools for Plane MCP Server."""
 
 from html import escape
-from typing import Annotated, Any, get_args
+from typing import Any, get_args
 
 from fastmcp import FastMCP
 from fastmcp.utilities.logging import get_logger
-from plane.errors.errors import HttpError
 from plane.models.enums import PriorityEnum
-from plane.models.query_params import RetrieveQueryParams, WorkItemCountQueryParams, WorkItemQueryParams
+from plane.models.query_params import RetrieveQueryParams, WorkItemQueryParams
 from plane.models.work_items import (
     CreateWorkItem,
     PaginatedWorkItemResponse,
     UpdateWorkItem,
     WorkItem,
     WorkItemDetail,
-    WorkItemGroupedCountResponse,
     WorkItemSearch,
 )
-from pydantic import Field
 
 from plane_mcp.client import get_plane_client_context
-from plane_mcp.tools.pql_reference import PQL_FIELD_HINT, PQL_FULL_REFERENCE
 
 logger = get_logger(__name__)
 
@@ -69,8 +65,7 @@ def register_work_item_tools(mcp: FastMCP) -> None:
 
     @mcp.tool()
     def list_work_items(
-        project_id: str | None = None,
-        pql: Annotated[str | None, Field(description=PQL_FIELD_HINT)] = None,
+        project_id: str,
         order_by: str | None = None,
         per_page: int | None = None,
         cursor: str | None = None,
@@ -80,17 +75,13 @@ def register_work_item_tools(mcp: FastMCP) -> None:
         external_source: str | None = None,
     ) -> dict[str, Any]:
         """
-        List work items with optional PQL filtering.
+        List the work items of a project.
 
-        Omit project_id to list across the entire workspace.
-        Pass project_id to scope results to a single project.
-
-        For UUID fields (assignee, state, label, cycle, module, type,
-        milestone) call the relevant list tool first to get the UUID.
+        For UUID fields (assignee, state, label, cycle, module, type) call the
+        relevant list tool first to get the UUID.
 
         Args:
-            project_id: UUID of the project. Omit for workspace-wide results.
-            pql: PQL filter. See field description for syntax.
+            project_id: UUID of the project.
             order_by: Sort field; prefix `-` for descending (e.g. `-created_at`).
             per_page: 1-100, default 25.
             cursor: From previous response's next_cursor.
@@ -113,7 +104,6 @@ def register_work_item_tools(mcp: FastMCP) -> None:
         client, workspace_slug = get_plane_client_context()
 
         params = WorkItemQueryParams(
-            pql=pql,
             order_by=order_by,
             per_page=per_page,
             cursor=cursor,
@@ -123,28 +113,11 @@ def register_work_item_tools(mcp: FastMCP) -> None:
             external_source=external_source,
         )
 
-        try:
-            if project_id:
-                response: PaginatedWorkItemResponse = client.work_items.list(
-                    workspace_slug=workspace_slug,
-                    project_id=project_id,
-                    params=params,
-                )
-            else:
-                response = client.work_items.list_workspace(
-                    workspace_slug=workspace_slug,
-                    params=params,
-                )
-        except HttpError as e:
-            if pql and e.status_code == 400 and isinstance(e.response, dict) and "pql" in e.response:
-                logger.warning("list_work_items: invalid PQL %r → %s", pql, e.response)
-                return {
-                    "error": e.response["pql"],
-                    "failed_pql": pql,
-                    "pql_reference": PQL_FULL_REFERENCE,
-                    "hint": "The PQL above failed. Fix it using the reference and retry list_work_items.",
-                }
-            raise
+        response: PaginatedWorkItemResponse = client.work_items.list(
+            workspace_slug=workspace_slug,
+            project_id=project_id,
+            params=params,
+        )
 
         return {
             "results": _dump_results(response.results, fields),
@@ -155,55 +128,6 @@ def register_work_item_tools(mcp: FastMCP) -> None:
             "next_page_results": response.next_page_results,
             "prev_page_results": response.prev_page_results,
         }
-
-    @mcp.tool()
-    def count_work_items(
-        pql: Annotated[str | None, Field(description=PQL_FIELD_HINT)] = None,
-        group_by: str | None = None,
-        sub_group_by: str | None = None,
-    ) -> dict[str, Any]:
-        """
-        Count work items across the workspace with optional grouping.
-
-        Use this for analytics — "how many urgent items?", "distribution by state?" —
-        without fetching full work item payloads.
-
-        Args:
-            pql: PQL filter to scope the count (e.g. 'priority = "urgent"').
-            group_by: Dimension to group counts by. Supported values:
-                state_id, state__group, priority, project_id, type_id,
-                labels__id, assignees__id, issue_module__module_id,
-                release_work_items__release_id, cycle_id, milestone_id,
-                created_by, target_date, start_date.
-            sub_group_by: Second dimension for nested grouping (requires group_by).
-
-        Returns:
-            grouped_by: The group_by field used (null if none).
-            sub_grouped_by: The sub_group_by field used (null if none).
-            total_count: Total matching work items.
-            grouped_counts: Dict of group_key → {count} or
-                {count, sub_grouped_counts} when sub_group_by is set.
-                Keys are UUIDs for FK fields, plain strings for priority/state__group,
-                ISO dates for target_date/start_date, "None" for unset values.
-        """
-        client, workspace_slug = get_plane_client_context()
-        params = WorkItemCountQueryParams(pql=pql, group_by=group_by, sub_group_by=sub_group_by)
-        try:
-            response: WorkItemGroupedCountResponse = client.work_items.count_workspace(
-                workspace_slug=workspace_slug,
-                params=params,
-            )
-        except HttpError as e:
-            if pql and e.status_code == 400 and isinstance(e.response, dict) and "pql" in e.response:
-                logger.warning("count_work_items: invalid PQL %r → %s", pql, e.response)
-                return {
-                    "error": e.response["pql"],
-                    "failed_pql": pql,
-                    "pql_reference": PQL_FULL_REFERENCE,
-                    "hint": "The PQL above failed. Fix it using the reference and retry count_work_items.",
-                }
-            raise
-        return response.model_dump()
 
     @mcp.tool()
     def create_work_item(
@@ -565,7 +489,6 @@ def register_work_item_tools(mcp: FastMCP) -> None:
     @mcp.tool()
     def list_archived_work_items(
         project_id: str,
-        pql: Annotated[str | None, Field(description=PQL_FIELD_HINT)] = None,
         order_by: str | None = None,
         per_page: int | None = None,
         cursor: str | None = None,
@@ -573,11 +496,10 @@ def register_work_item_tools(mcp: FastMCP) -> None:
         fields: str | None = None,
     ) -> dict[str, Any]:
         """
-        List archived work items in a project with optional PQL filtering.
+        List archived work items in a project.
 
         Args:
             project_id: UUID of the project
-            pql: PQL filter expression. Omit to list all archived items.
             order_by: Field to sort by; prefix with `-` for descending
                 (default `-archived_at`).
             per_page: Results per page, 1-100 (default 100).
@@ -590,29 +512,17 @@ def register_work_item_tools(mcp: FastMCP) -> None:
         """
         client, workspace_slug = get_plane_client_context()
         params = WorkItemQueryParams(
-            pql=pql,
             order_by=order_by,
             per_page=per_page,
             cursor=cursor,
             expand=expand,
             fields=fields,
         )
-        try:
-            response = client.work_items.list_archived(
-                workspace_slug=workspace_slug,
-                project_id=project_id,
-                params=params,
-            )
-        except HttpError as e:
-            if pql and e.status_code == 400 and isinstance(e.response, dict) and "pql" in e.response:
-                logger.warning("list_archived_work_items: invalid PQL %r → %s", pql, e.response)
-                return {
-                    "error": e.response["pql"],
-                    "failed_pql": pql,
-                    "pql_reference": PQL_FULL_REFERENCE,
-                    "hint": "The PQL above failed. Fix it using the reference and retry list_archived_work_items.",
-                }
-            raise
+        response = client.work_items.list_archived(
+            workspace_slug=workspace_slug,
+            project_id=project_id,
+            params=params,
+        )
         return {
             "results": _dump_results(response.results, fields),
             "total_count": response.total_count,
@@ -663,8 +573,7 @@ def register_work_item_tools(mcp: FastMCP) -> None:
         Search work items by text across a workspace.
 
         Matches on work item name, sequence id, and project identifier (not
-        description). For structured filtering (priority, state, assignee,
-        dates, etc.) use `list_work_items` with a PQL expression.
+        description).
 
         Args:
             query: Free-text string matched against name, sequence id, and project identifier
