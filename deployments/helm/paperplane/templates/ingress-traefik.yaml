@@ -31,6 +31,18 @@ spec:
       - name: {{ .Release.Name }}-admin
         port: 3000
 
+  {{- if .Values.mcp.enabled }}
+  {{- /* Only the two OAuth discovery prefixes, not all of /.well-known, which
+         the ACME http01 solver also serves from. */}}
+  - match: Host(`{{ .Values.ingress.appHost }}`) && (PathPrefix(`/mcp`) || PathPrefix(`/.well-known/oauth-authorization-server`) || PathPrefix(`/.well-known/oauth-protected-resource`))
+    kind: Rule
+    middlewares:
+      - name: {{ .Release.Name }}-body-limit
+    services:
+      - name: {{ .Release.Name }}-mcp
+        port: 8211
+  {{- end }}
+
   - match: Host(`{{ .Values.ingress.appHost }}`) && PathPrefix(`/api`)
     kind: Rule
     middlewares:

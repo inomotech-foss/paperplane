@@ -69,13 +69,15 @@ spec:
                 name: {{ .Release.Name }}-mcp
             path: /mcp
             pathType: Prefix
+          {{- range $path := (list "/.well-known/oauth-authorization-server" "/.well-known/oauth-protected-resource") }}
           - backend:
               service:
                 port:
                   number: 8211
-                name: {{ .Release.Name }}-mcp
-            path: /.well-known
+                name: {{ $.Release.Name }}-mcp
+            path: {{ $path }}
             pathType: Prefix
+          {{- end }}
           {{- end }}
           {{- if and (include "plane.docStore.originProxied" $) .Values.env.docstore_bucket }}
           {{- if and (not .Values.minio.local_setup) .Values.minio.externalProxy.service.namespace }}
