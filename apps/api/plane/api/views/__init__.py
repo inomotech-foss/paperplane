@@ -31,6 +31,7 @@ from .issue import (
     IssueAttachmentDetailAPIEndpoint,
     IssueSearchEndpoint,
     IssueRelationListCreateAPIEndpoint,
+    IssueRelationRemoveAPIEndpoint,
 )
 
 from .cycle import (
@@ -79,6 +80,14 @@ from .page_comment import (
 )
 
 from .sticky import StickyViewSet
+
+from .work_item_archive import (
+    WorkItemArchiveAPIEndpoint,
+    WorkItemArchiveListAPIEndpoint,
+    WorkItemUnarchiveAPIEndpoint,
+)
+
+from .project_feature import ProjectFeatureAPIEndpoint
 
 from .issue_property import (
     IssuePropertyListCreateAPIEndpoint,
