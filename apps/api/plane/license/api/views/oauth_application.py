@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import os
+
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from oauth2_provider.generators import generate_client_secret
@@ -14,6 +16,8 @@ from .base import BaseAPIView
 
 Application = get_application_model()
 
+MANAGED_ERROR = "This application is managed by the chart. Change it in your chart values."
+
 
 def applications():
     # Deleting an application cascades to its installations, so the count is
@@ -24,6 +28,12 @@ def applications():
     )
 
 
+def is_managed(application):
+    """Whether the chart owns this application and reinstates it on deploy."""
+    provisioned = os.environ.get("PLANE_OAUTH_PROVIDER_CLIENT_ID", "").strip()
+    return bool(provisioned) and application.client_id == provisioned
+
+
 def serialize(application):
     return {
         "id": application.id,
@@ -31,6 +41,7 @@ def serialize(application):
         "client_id": application.client_id,
         "redirect_uris": application.redirect_uris,
         "installations": getattr(application, "installation_count", 0),
+        "managed": is_managed(application),
         "created": application.created.isoformat(),
     }
 
@@ -83,6 +94,8 @@ class InstanceOAuthApplicationEndpoint(BaseAPIView):
         # Only the two fields an admin can sensibly change. client_id stays put,
         # so renaming or adding a redirect URI does not break a deployed client.
         application = get_object_or_404(Application, pk=pk)
+        if is_managed(application):
+            return Response({"error": MANAGED_ERROR}, status=status.HTTP_409_CONFLICT)
         for field in ("name", "redirect_uris"):
             if field in request.data:
                 value = (request.data.get(field) or "").strip()
@@ -94,5 +107,8 @@ class InstanceOAuthApplicationEndpoint(BaseAPIView):
         return Response(serialize(applications().get(pk=pk)), status=status.HTTP_200_OK)
 
     def delete(self, request, pk):
-        get_object_or_404(Application, pk=pk).delete()
+        application = get_object_or_404(Application, pk=pk)
+        if is_managed(application):
+            return Response({"error": MANAGED_ERROR}, status=status.HTTP_409_CONFLICT)
+        application.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
