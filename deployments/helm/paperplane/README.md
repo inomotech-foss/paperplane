@@ -438,18 +438,27 @@ namespace.
 ### MCP Deployment
 
 The MCP server exposes Plane to AI clients over the Model Context Protocol. It
-is off by default. Turning it on needs an OAuth application registered in god
-mode first, with its client id and secret in `mcp.oauth`.
+is off by default. Turning it on takes one setting:
 
-Each transport has its own callback, so register both redirect URIs:
-
+```yaml
+mcp:
+  enabled: true
+secretGenerator:
+  enabled: true
 ```
-<appProtocol>://<appHost>/mcp/http/auth/callback
-<appProtocol>://<appHost>/mcp/auth/callback
-```
 
-Clients connect to `https://<appHost>/mcp/http/mcp`, which uses the first of
-those. The second serves the legacy SSE transport at `/mcp/sse`.
+The generator mints the OAuth credentials, and the API registers the
+application on start with both redirect URIs derived from `ingress.appHost`.
+Nothing has to be registered in god mode first. The credentials are reused on
+every upgrade, so grants users have already given survive.
+
+To bring your own client instead, set `mcp.oauth.clientId` and
+`mcp.oauth.clientSecret` (or `mcp.oauth.existingSecret`); the API registers that
+pair and the generator stays out of it. Either way the application is owned by
+the chart and reverts on the next deploy if it is edited in god mode.
+
+Clients connect to `https://<appHost>/mcp/http/mcp`. The legacy SSE transport is
+at `/mcp/sse` and has its own callback, which is why two are registered.
 
 Authorization runs through the browser. Each user picks which of their
 workspaces the client may reach, and the server refuses any other.
@@ -457,8 +466,9 @@ workspaces the client may reach, and the server refuses any other.
 | Setting | Default | Required | Description |
 | --- | :---: | :---: | --- |
 | mcp.enabled | false | | Deploy the MCP server and route `/mcp` to it |
-| mcp.oauth.clientId | | Yes | Client id of the OAuth application registered in god mode |
-| mcp.oauth.clientSecret | | Yes | Client secret of that application. Shown once at registration |
+| mcp.oauth.appName | Plane MCP | | Name the application appears under in god mode |
+| mcp.oauth.clientId | | | Client id to register. Leave empty to have the chart mint one |
+| mcp.oauth.clientSecret | | | Client secret to register. Leave empty to have the chart mint one |
 | mcp.oauth.existingSecret | | | Name of an existing secret holding `PLANE_OAUTH_PROVIDER_CLIENT_ID` and `PLANE_OAUTH_PROVIDER_CLIENT_SECRET`. Takes precedence over the two above |
 | mcp.allowedRedirectUris | [] | | Extra redirect URI patterns for MCP clients, on top of the built-in list for Claude, Cursor, VS Code and ChatGPT |
 | mcp.logUserInfo | false | | Include the calling user's display name in logs. Leave off to keep PII out |

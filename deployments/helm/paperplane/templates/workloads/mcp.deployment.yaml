@@ -62,7 +62,14 @@ spec:
               name: {{ .Release.Name }}-mcp-vars
               optional: false
           - secretRef:
-              name: {{ if not (empty .Values.mcp.oauth.existingSecret) }}{{ .Values.mcp.oauth.existingSecret }}{{ else }}{{ .Release.Name }}-mcp-secrets{{ end }}
+              {{- if not (empty .Values.mcp.oauth.existingSecret) }}
+              name: {{ .Values.mcp.oauth.existingSecret }}
+              {{- else if eq (include "plane.mcp.generateOAuth" $) "true" }}
+              # Minted by the secret-generator hook, which the API reads too.
+              name: {{ .Release.Name }}-generated-secrets
+              {{- else }}
+              name: {{ .Release.Name }}-mcp-secrets
+              {{- end }}
               optional: false
           {{- with .Values.mcp.extraEnvFrom }}
           {{- toYaml . | nindent 10 }}

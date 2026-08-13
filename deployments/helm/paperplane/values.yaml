@@ -185,12 +185,17 @@ live:
   tolerations: []
   affinity: {}
 
-# The MCP server, off by default. Needs an OAuth application registered in
-# god mode; put its credentials in mcp.oauth.
+# The MCP server, off by default. Turning it on is all that is needed: the
+# chart mints the OAuth credentials and the API registers the application,
+# redirect URIs included. Requires secretGenerator.enabled unless you supply
+# credentials of your own below.
 mcp:
   enabled: false
   oauth:
-    # Client id and secret of the OAuth application registered for this server.
+    # Name the application appears under in god mode.
+    appName: "Plane MCP"
+    # Leave empty to have the chart mint them. Set both to bring your own, in
+    # which case the API registers that pair instead.
     clientId: ""
     clientSecret: ""
     # Name of an existing secret holding PLANE_OAUTH_PROVIDER_CLIENT_ID and

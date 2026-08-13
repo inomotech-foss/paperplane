@@ -44,6 +44,8 @@ spec:
               value: {{ if .Values.rabbitmq.local_setup }}"true"{{ else }}"false"{{ end }}
             - name: MINIO_LOCAL
               value: {{ if .Values.minio.local_setup }}"true"{{ else }}"false"{{ end }}
+            - name: MCP_OAUTH_GENERATE
+              value: {{ include "plane.mcp.generateOAuth" $ | quote }}
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -92,6 +94,14 @@ spec:
                 set -- "$@" \
                   --from-literal=MINIO_ROOT_PASSWORD="$MINIOPW" \
                   --from-literal=AWS_SECRET_ACCESS_KEY="$MINIOPW"
+              fi
+
+              # The API provisions the OAuth application from these, and the MCP
+              # server authenticates with them, so both read the same secret.
+              if [ "$MCP_OAUTH_GENERATE" = "true" ]; then
+                set -- "$@" \
+                  --from-literal=PLANE_OAUTH_PROVIDER_CLIENT_ID="$(ensure PLANE_OAUTH_PROVIDER_CLIENT_ID 40)" \
+                  --from-literal=PLANE_OAUTH_PROVIDER_CLIENT_SECRET="$(ensure PLANE_OAUTH_PROVIDER_CLIENT_SECRET 64)"
               fi
 
               kubectl -n "$NAMESPACE" create secret generic "$SECRET_NAME" "$@" \
