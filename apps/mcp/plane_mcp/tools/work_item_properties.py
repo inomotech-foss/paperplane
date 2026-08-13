@@ -384,47 +384,6 @@ def register_work_item_property_tools(mcp: FastMCP) -> None:
             )
 
     @mcp.tool()
-    def manage_work_item_type_properties(
-        project_id: str,
-        work_item_type_id: str,
-        attach_ids: list[str] | None = None,
-        detach_ids: list[str] | None = None,
-    ) -> list[str] | None:
-        """
-        Attach or detach properties on a work item type in a single call.
-
-        At least one of attach_ids or detach_ids must be provided.
-        Detach does not delete the property — it only removes the association.
-
-        Args:
-            project_id: UUID of the project
-            work_item_type_id: UUID of the work item type
-            attach_ids: Property UUIDs to attach to the type
-            detach_ids: Property UUIDs to detach from the type
-
-        Returns:
-            List of attached property UUIDs if attach_ids was provided, else None
-        """
-        client, workspace_slug = get_plane_client_context()
-        result = None
-        if attach_ids:
-            result = client.work_item_properties.attach_to_type(
-                workspace_slug=workspace_slug,
-                project_id=project_id,
-                type_id=work_item_type_id,
-                property_ids=attach_ids,
-            )
-        if detach_ids:
-            for property_id in detach_ids:
-                client.work_item_properties.detach_from_type(
-                    workspace_slug=workspace_slug,
-                    project_id=project_id,
-                    type_id=work_item_type_id,
-                    property_id=property_id,
-                )
-        return result
-
-    @mcp.tool()
     def list_work_item_property_options(
         property_id: str,
         project_id: str | None = None,
