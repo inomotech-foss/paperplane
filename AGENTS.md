@@ -31,6 +31,7 @@ Prereq (once): `./setup.sh` — generates `apps/api/.env` from `.env.example`.
 
 - Full suite: `docker compose -f docker-compose-test.yml up --build --abort-on-container-exit --exit-code-from api-tests`
 - Subset: `docker compose -f docker-compose-test.yml run --rm api-tests pytest -m unit`
+- Parallel: add `-n auto`
 - Teardown: `docker compose -f docker-compose-test.yml down -v`
 
 See `apps/api/tests/RUNNING_TESTS.md` for the full walkthrough and troubleshooting; see `apps/api/tests/TESTING_GUIDE.md` for test conventions and fixtures.

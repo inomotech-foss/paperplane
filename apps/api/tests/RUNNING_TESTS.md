@@ -37,6 +37,9 @@ docker compose -f docker-compose-test.yml up \
 Use `docker compose run` to override the default `pytest` command. Anything you pass after the service name is forwarded to pytest.
 
 ```bash
+# The whole suite in parallel, each worker on its own Redis database.
+docker compose -f docker-compose-test.yml run --rm api-tests pytest -n auto
+
 # Only unit tests (marker defined in pytest.ini)
 docker compose -f docker-compose-test.yml run --rm --build api-tests pytest -m unit
 

@@ -19,6 +19,7 @@ def redis_instance():
             ssl_cert_reqs=None,
         )
     else:
-        ri = redis.Redis.from_url(settings.REDIS_URL, db=0)
+        # Database index comes from the URL so tests can vary it per worker.
+        ri = redis.Redis.from_url(settings.REDIS_URL)
 
     return ri
