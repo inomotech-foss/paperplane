@@ -3,7 +3,7 @@
 
 from bs4 import NavigableString
 
-from .colours import status_colour
+from .colours import CALLOUT_MACROS, status_colour
 from .embeds import EMBED_MACROS, convert_embed_macro
 from .jira import convert_jira_macro
 from .math import MATH_MACROS, convert_math_macro
@@ -33,17 +33,6 @@ from .query_blocks import (
 )
 from .roadmap import convert_roadmap_macro
 from .tasks import task_item, task_list
-
-# Confluence admonitions and ADF panels, mapped to the editor's callout icon.
-CALLOUT_MACROS = {
-    "info": ("Info", "#3f76ff"),
-    "note": ("Info", "#3f76ff"),
-    "tip": ("Lightbulb", "#1fad40"),
-    "success": ("CircleCheck", "#1fad40"),
-    "warning": ("TriangleAlert", "#e0a800"),
-    "error": ("CircleAlert", "#dc3545"),
-    "panel": ("Info", "#3f76ff"),
-}
 
 # Both spellings of the task report macro; the older one carries the same
 # parameters.

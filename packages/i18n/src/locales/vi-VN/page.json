@@ -180,5 +180,9 @@
       "title": "Tiêu đề",
       "updated": "Cập nhật lần cuối"
     }
+  },
+  "page_work_item_embed": {
+    "loading": "Đang tải mục công việc",
+    "error": "Không thể tải mục công việc này"
   }
 }

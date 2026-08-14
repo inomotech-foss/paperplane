@@ -207,6 +207,11 @@ class ConfluenceLoader:
             description=f"Imported from Confluence space {identifier_key}",
             external_source=self.EXTERNAL_SOURCE,
             external_id=str(space.get("id") or identifier_key),
+            # The backup carries no permission data, so a fresh import must default
+            # to private and wiki-only rather than public with work items exposed.
+            # Only set on create: a re-import must never revert an admin's choice.
+            network=0,
+            issue_view=False,
         )
         ProjectMember.objects.get_or_create(project=project, member=self.actor, defaults={"role": 20})
         State.objects.bulk_create(

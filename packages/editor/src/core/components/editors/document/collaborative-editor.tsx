@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 // plane imports
 import { cn } from "@plane/utils";
 // components
@@ -18,7 +18,7 @@ import { getEditorClassNames } from "@/helpers/common";
 // hooks
 import { useCollaborativeEditor } from "@/hooks/use-collaborative-editor";
 // types
-import type { EditorRefApi, ICollaborativeDocumentEditorProps } from "@/types";
+import type { EditorRefApi, ICollaborativeDocumentEditorProps, TAwarenessUser } from "@/types";
 
 // Inner component that has access to collaboration context
 function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorProps) {
@@ -48,6 +48,7 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
     mentionHandler,
     onAssetChange,
     onChange,
+    onCollaboratorsChange,
     onEditorFocus,
     onTransaction,
     pageAttachmentsHandler,
@@ -59,10 +60,36 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
     titleRef,
     updatePageProperties,
     isFetchingFallbackBinary,
+    workItemEmbedHandler,
   } = props;
 
   // Get non-null provider from context
   const { provider, state, actions } = useCollaboration();
+
+  // Publish awareness (presence) state upward, over the single existing connection
+  useEffect(() => {
+    const awareness = provider.awareness;
+    if (!awareness) return;
+
+    const updateCollaborators = () => {
+      const peersById = new Map<string, TAwarenessUser>();
+      awareness.getStates().forEach((awarenessState) => {
+        const peer = (awarenessState as { user?: TAwarenessUser } | undefined)?.user;
+        if (peer?.id && peer.id !== user.id) {
+          peersById.set(peer.id, peer);
+        }
+      });
+      onCollaboratorsChange?.(Array.from(peersById.values()));
+    };
+
+    updateCollaborators();
+    awareness.on("change", updateCollaborators);
+
+    return () => {
+      awareness.off("change", updateCollaborators);
+      onCollaboratorsChange?.([]);
+    };
+  }, [provider, user.id, onCollaboratorsChange]);
 
   // Editor initialization with guaranteed non-null provider
   const { editor, titleEditor } = useCollaborativeEditor({
@@ -96,6 +123,7 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
     titleRef,
     updatePageProperties,
     user,
+    workItemEmbedHandler,
     actions,
   });
 
