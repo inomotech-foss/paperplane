@@ -51,6 +51,17 @@ _STATUS_COLOURS = {
 # An uncoloured Confluence lozenge is grey.
 DEFAULT_STATUS_COLOUR = "gray"
 
+# Confluence admonitions and ADF panels, mapped to the editor's callout icon.
+CALLOUT_MACROS = {
+    "info": ("Info", "#3f76ff"),
+    "note": ("Info", "#3f76ff"),
+    "tip": ("Lightbulb", "#1fad40"),
+    "success": ("CircleCheck", "#1fad40"),
+    "warning": ("TriangleAlert", "#e0a800"),
+    "error": ("CircleAlert", "#dc3545"),
+    "panel": ("Info", "#3f76ff"),
+}
+
 
 def status_colour(colour):
     return _STATUS_COLOURS.get((colour or "").strip().lower(), DEFAULT_STATUS_COLOUR)
