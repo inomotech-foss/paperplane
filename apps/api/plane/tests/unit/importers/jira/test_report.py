@@ -60,6 +60,20 @@ def media_document(filename):
     return json.loads(json.dumps(IMAGE).replace("{filename}", filename))
 
 
+def nameless_media_document(count=1):
+    """What most of the backup's inline media looks like: an id and nothing to
+    match a file on."""
+    return document(
+        *(
+            {
+                "type": "mediaSingle",
+                "content": [{"type": "media", "attrs": {"type": "file", "id": f"media-{index}"}}],
+            }
+            for index in range(count)
+        )
+    )
+
+
 @pytest.mark.unit
 class TestReportProject:
     def test_prose_converts_with_nothing_lost(self, tmp_path):
@@ -113,6 +127,60 @@ class TestReportProject:
 
         assert report.unresolved_attachments == {"missing.png"}
         assert report.lossless == 0
+
+    def test_a_lone_attachment_places_a_lone_nameless_media_node(self, tmp_path):
+        project_dir = write_project(tmp_path, "DEMO", [issue("DEMO-1", nameless_media_document())])
+        add_attachment(project_dir, "DEMO-1", "diagram.png")
+
+        report = report_project(JiraBackup(tmp_path, "DEMO"))
+
+        assert report.inferred_media == 1
+        assert report.unresolved_media == 0
+        assert report.lossless == 1
+
+    def test_a_lone_attachment_is_not_spread_over_several_media_nodes(self, tmp_path):
+        project_dir = write_project(tmp_path, "DEMO", [issue("DEMO-1", nameless_media_document(count=3))])
+        add_attachment(project_dir, "DEMO-1", "diagram.png")
+
+        report = report_project(JiraBackup(tmp_path, "DEMO"))
+
+        assert report.inferred_media == 0
+        assert report.unresolved_media == 3
+        assert report.lossless == 0
+
+    def test_several_attachments_leave_a_nameless_media_node_unresolved(self, tmp_path):
+        project_dir = write_project(tmp_path, "DEMO", [issue("DEMO-1", nameless_media_document())])
+        add_attachment(project_dir, "DEMO-1", "diagram.png")
+        add_attachment(project_dir, "DEMO-1", "chart.png")
+
+        report = report_project(JiraBackup(tmp_path, "DEMO"))
+
+        assert report.inferred_media == 0
+        assert report.unresolved_media == 1
+
+    def test_a_dropped_inline_image_is_counted_as_a_loss(self, tmp_path):
+        """The file still reaches the attachment list, but its placement in the
+        body text does not, and a fidelity score that hid that would be wrong."""
+        write_project(tmp_path, "DEMO", [issue("DEMO-1", nameless_media_document())])
+
+        report = report_project(JiraBackup(tmp_path, "DEMO"))
+
+        assert report.nodes.lost == {"media": 1}
+        assert report.unresolved_media == 1
+        assert report.fidelity == 0.0
+        # doc + mediaSingle + media, with the image counted as the loss.
+        assert report.nodes.total == 3
+
+    def test_the_fallback_spans_the_comments_as_well_as_the_description(self, tmp_path):
+        project_dir = write_project(
+            tmp_path, "DEMO", [issue("DEMO-1", nameless_media_document(), comments=[nameless_media_document()])]
+        )
+        add_attachment(project_dir, "DEMO-1", "diagram.png")
+
+        report = report_project(JiraBackup(tmp_path, "DEMO"))
+
+        assert report.inferred_media == 0
+        assert report.unresolved_media == 2
 
     def test_a_mention_the_backup_knows_resolves(self, tmp_path):
         mention = document({"type": "paragraph", "content": [{"type": "mention", "attrs": {"id": "account-1"}}]})

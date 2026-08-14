@@ -277,6 +277,22 @@ class TestAccounting:
 
         assert result.nodes.downgraded == {"expand": 1, "blockCard": 1}
 
+    def test_an_unresolved_media_node_is_lost_and_still_balances(self):
+        """The wrapper is chrome and the image itself is a loss. Counting the
+        image as either would hide a dropped inline image behind a clean score."""
+        document = doc(
+            node("mediaSingle", content=[node("media", {"type": "file", "id": "media-8"})]),
+            node("mediaGroup", content=[node("mediaInline", {"type": "file", "id": "media-9"})]),
+        )
+
+        result = convert(document)
+
+        assert result.nodes.lost == {"media": 1, "mediaInline": 1}
+        assert result.nodes.chrome == {"mediaSingle": 1, "mediaGroup": 1}
+        assert result.nodes.converted == {"doc": 1}
+        assert result.nodes.total == count_nodes(document)
+        assert not result.is_lossless
+
     def test_media_wrappers_are_chrome(self):
         document = doc(node("mediaSingle", content=[image_media()]))
 
@@ -326,6 +342,47 @@ class TestResolution:
         )
 
         assert convert(document).html == '<img src="https://x.test/a.png" />'
+
+    def test_a_media_id_never_resolves_a_file(self):
+        """The id is an Atlassian media-services uuid, and the export kept
+        nothing that maps it back to an attachment."""
+        document = doc(node("mediaSingle", content=[node("media", {"type": "file", "id": "diagram.png"})]))
+
+        result = convert(document)
+
+        assert result.html == "<p></p>"
+        assert result.nodes.lost == {"media": 1}
+        assert result.unresolved_attachments == set()
+
+    def test_a_nameless_media_node_is_a_loss_not_chrome(self):
+        document = doc(node("mediaSingle", content=[node("media", {"type": "file", "id": "media-9"})]))
+
+        result = convert(document)
+
+        assert result.nodes.lost == {"media": 1}
+        assert result.nodes.chrome == {"mediaSingle": 1}
+        assert not result.is_lossless
+
+    def test_a_nameless_media_node_takes_the_fallback_when_one_is_offered(self):
+        document = doc(node("mediaSingle", content=[node("media", {"type": "file", "id": "media-9"})]))
+        sole = ResolvedAttachment(id=IMAGE_ID, filename="diagram.png", is_image=True)
+
+        result = adf_to_html(document, RESOLVERS, fallback_attachment=sole)
+
+        assert result.html == f'<image-component id="{IMAGE_ID}" src="{IMAGE_ID}"></image-component>'
+        assert result.nodes.lost == {}
+        assert result.inferred_media == 1
+
+    def test_a_named_media_node_never_takes_the_fallback(self):
+        """A name that matches nothing is a different problem from no name, and
+        pointing it at another file would be wrong rather than lossy."""
+        document = doc(node("mediaSingle", content=[node("media", {"type": "file", "alt": "missing.png"})]))
+        sole = ResolvedAttachment(id=IMAGE_ID, filename="diagram.png", is_image=True)
+
+        result = adf_to_html(document, RESOLVERS, fallback_attachment=sole)
+
+        assert result.nodes.lost == {"media": 1}
+        assert result.inferred_media == 0
 
 
 @pytest.mark.unit

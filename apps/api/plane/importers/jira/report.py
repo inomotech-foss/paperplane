@@ -18,6 +18,13 @@ class IssueReport:
     marks: Tally = field(default_factory=Tally)
     unresolved_users: set = field(default_factory=set)
     unresolved_attachments: set = field(default_factory=set)
+    inferred_media: int = 0
+
+    @property
+    def unresolved_media(self):
+        """Inline images with no name to match a file on, which drop out of the
+        body text. The files themselves still reach the attachment list."""
+        return self.nodes.lost["media"] + self.nodes.lost["mediaInline"]
 
     @property
     def loss(self):
@@ -40,7 +47,12 @@ class ProjectReport:
     marks: Tally = field(default_factory=Tally)
     unresolved_users: set = field(default_factory=set)
     unresolved_attachments: set = field(default_factory=set)
+    inferred_media: int = 0
     worst: list = field(default_factory=list)
+
+    @property
+    def unresolved_media(self):
+        return self.nodes.lost["media"] + self.nodes.lost["mediaInline"]
 
     @property
     def fidelity(self):
@@ -76,11 +88,32 @@ def _documents(issue):
     return [body for body in bodies if body]
 
 
-def report_issue(issue, resolvers):
+def _convert(documents, resolvers, fallback_attachment=None):
     result = AdfResult()
-    documents = _documents(issue)
     for document in documents:
-        adf_to_html(document, resolvers, result)
+        adf_to_html(document, resolvers, result, fallback_attachment=fallback_attachment)
+    return result
+
+
+def _unresolved_media(result):
+    return result.nodes.lost["media"] + result.nodes.lost["mediaInline"]
+
+
+def _sole_attachment(attachments):
+    files = list((attachments or {}).values())
+    return files[0] if len(files) == 1 else None
+
+
+def report_issue(issue, resolvers, attachments=None):
+    documents = _documents(issue)
+    result = _convert(documents, resolvers)
+
+    # A media node names its file in `alt` or not at all. Where it does not, one
+    # attachment and one such node leave only one placement possible; any other
+    # count would be a guess, so those nodes stay unresolved.
+    fallback = _sole_attachment(attachments)
+    if fallback is not None and _unresolved_media(result) == 1:
+        result = _convert(documents, resolvers, fallback_attachment=fallback)
 
     return IssueReport(
         key=issue.key,
@@ -90,6 +123,7 @@ def report_issue(issue, resolvers):
         marks=result.marks,
         unresolved_users=set(result.unresolved_users),
         unresolved_attachments=set(result.unresolved_attachments),
+        inferred_media=result.inferred_media,
     )
 
 
@@ -108,8 +142,8 @@ def report_project(backup, limit=None):
         if limit is not None and index >= limit:
             break
 
-        resolvers = Resolvers(users=users, attachments=_attachment_resolvers(backup, issue.key))
-        issue_report = report_issue(issue, resolvers)
+        attachments = _attachment_resolvers(backup, issue.key)
+        issue_report = report_issue(issue, Resolvers(users=users, attachments=attachments), attachments=attachments)
 
         report.issues += 1
         report.documents += issue_report.documents
@@ -120,6 +154,7 @@ def report_project(backup, limit=None):
 
         report.nodes.update(issue_report.nodes)
         report.marks.update(issue_report.marks)
+        report.inferred_media += issue_report.inferred_media
         report.unresolved_users |= issue_report.unresolved_users
         report.unresolved_attachments |= issue_report.unresolved_attachments
 

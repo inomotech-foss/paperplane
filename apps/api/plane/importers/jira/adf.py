@@ -52,6 +52,8 @@ class AdfResult:
     marks: Tally = field(default_factory=Tally)
     unresolved_users: set = field(default_factory=set)
     unresolved_attachments: set = field(default_factory=set)
+    # Media placed by the single-attachment rule rather than by name.
+    inferred_media: int = 0
 
     @property
     def loss(self):
@@ -96,9 +98,10 @@ def _tag(name, attributes=None, inner=""):
 
 
 class _Converter:
-    def __init__(self, resolvers, result):
+    def __init__(self, resolvers, result, fallback_attachment=None):
         self.resolvers = resolvers
         self.result = result
+        self.fallback_attachment = fallback_attachment
         self.handlers = {
             "doc": self._doc,
             "paragraph": self._paragraph,
@@ -295,11 +298,19 @@ class _Converter:
         if attrs.get("url"):
             return self._converted(node, f'<img src="{_attribute(attrs.get("url"))}" />')
 
-        filename = attrs.get("alt") or attrs.get("__fileName") or attrs.get("id") or ""
-        attachment = self.resolvers.attachment(filename)
+        # `alt` is the only attribute tying a media node to a backed-up file.
+        # The media id is an Atlassian media-services uuid and the export kept
+        # nothing that maps it back to an attachment.
+        filename = attrs.get("alt") or ""
+        attachment = self.resolvers.attachment(filename) if filename else None
+        if attachment is None and not filename and self.fallback_attachment is not None:
+            attachment = self.fallback_attachment
+            self.result.inferred_media += 1
+
         if attachment is None:
             self.result.nodes.lost[node["type"]] += 1
-            self.result.unresolved_attachments.add(filename)
+            if filename:
+                self.result.unresolved_attachments.add(filename)
             return _escape(f"[{filename}]" if filename else "")
 
         if not attachment.is_image:
@@ -360,13 +371,17 @@ class _Converter:
         return inner
 
 
-def adf_to_html(document, resolvers=None, result=None):
+def adf_to_html(document, resolvers=None, result=None, fallback_attachment=None):
     """Convert an Atlassian Document Format v1 document to editor HTML.
 
     ADF is the only description and comment format the backup holds. Pass
     ``result`` to accumulate the tallies across the several documents an issue
     carries; ``html`` then holds the last document converted.
+
+    ``fallback_attachment`` is the file to place for a media node that names no
+    file. Only the caller can tell whether that guess is safe, so it decides.
     """
     result = result or AdfResult()
-    result.html = _Converter(resolvers or Resolvers(), result).document(document).strip() or "<p></p>"
+    converter = _Converter(resolvers or Resolvers(), result, fallback_attachment)
+    result.html = converter.document(document).strip() or "<p></p>"
     return result
