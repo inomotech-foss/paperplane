@@ -21,12 +21,14 @@ import type { EPageStoreType } from "@/hooks/store";
 
 export type TVersionEditorProps = {
   activeVersion: string | null;
+  /** A merged diff document, rendered instead of the version itself. */
+  diffContent?: JSONContent | null;
   versionDetails: TPageVersion | undefined;
   storeType: EPageStoreType;
 };
 
 export const PagesVersionEditor = observer(function PagesVersionEditor(props: TVersionEditorProps) {
-  const { activeVersion, versionDetails } = props;
+  const { activeVersion, diffContent, versionDetails } = props;
   // params
   const { workspaceSlug, projectId } = useParams();
   // store hooks
@@ -84,15 +86,16 @@ export const PagesVersionEditor = observer(function PagesVersionEditor(props: TV
       </div>
     );
 
-  const description = isJSONContentEmpty(versionDetails?.description_json as JSONContent)
+  const versionDescription = isJSONContentEmpty(versionDetails?.description_json as JSONContent)
     ? versionDetails?.description_html
     : versionDetails?.description_json;
+  const description = diffContent ?? versionDescription;
 
   if (!description) return null;
 
   return (
     <DocumentEditor
-      key={activeVersion ?? ""}
+      key={`${activeVersion ?? ""}-${diffContent ? "diff" : "original"}`}
       editable={false}
       id={activeVersion ?? ""}
       value={description}

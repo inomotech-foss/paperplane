@@ -41,6 +41,7 @@ from plane.db.models import (
 )
 
 from .base import BaseAPIView
+from .work_item_filter import WorkItemFilterMixin
 from plane.bgtasks.webhook_task import model_activity
 from plane.utils.host import base_host
 from plane.utils.order_queryset import ISSUE_ORDER_BY_ALLOWLIST, MODULE_ORDER_BY_ALLOWLIST, sanitize_order_by
@@ -50,6 +51,8 @@ from plane.utils.openapi import (
     MODULE_ID_PARAMETER,
     MODULE_PK_PARAMETER,
     ISSUE_ID_PARAMETER,
+    PQL_PARAMETER,
+    FILTERS_PARAMETER,
     CURSOR_PARAMETER,
     PER_PAGE_PARAMETER,
     ORDER_BY_PARAMETER,
@@ -583,7 +586,7 @@ class ModuleDetailAPIEndpoint(BaseAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ModuleIssueListCreateAPIEndpoint(BaseAPIView):
+class ModuleIssueListCreateAPIEndpoint(WorkItemFilterMixin, BaseAPIView):
     """Module Work Item List and Create Endpoint"""
 
     serializer_class = ModuleIssueSerializer
@@ -624,6 +627,8 @@ class ModuleIssueListCreateAPIEndpoint(BaseAPIView):
         description="Retrieve all work items assigned to a module with detailed information.",
         parameters=[
             MODULE_ID_PARAMETER,
+            PQL_PARAMETER,
+            FILTERS_PARAMETER,
             CURSOR_PARAMETER,
             PER_PAGE_PARAMETER,
             ORDER_BY_PARAMETER,
@@ -682,9 +687,12 @@ class ModuleIssueListCreateAPIEndpoint(BaseAPIView):
                 .values("count")
             )
         )
+        querysets, error = self.filter_work_items(request, slug, [issues], project_id=project_id)
+        if error:
+            return error
         return self.paginate(
             request=request,
-            queryset=(issues),
+            queryset=querysets[0],
             on_results=lambda issues: IssueSerializer(issues, many=True, fields=self.fields, expand=self.expand).data,
         )
 

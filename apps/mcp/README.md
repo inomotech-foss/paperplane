@@ -169,7 +169,7 @@ export LOG_USER_INFO="true"
 
 The server provides tools for interacting with Plane. All tools use Pydantic models from the Plane SDK for type safety and validation.
 
-Tools for features this fork does not have have been removed, so everything listed here reaches a real endpoint. PQL filtering is not supported; use the query parameters each list tool takes.
+Tools for features this fork does not have have been removed, so everything listed here reaches a real endpoint. `list_work_items`, `list_cycle_work_items`, and `list_module_work_items` accept a `pql` argument (Plane Query Language, e.g. `priority = "urgent" AND assignee = currentUser()`) alongside the plain query parameters each list tool takes.
 
 ### Projects
 

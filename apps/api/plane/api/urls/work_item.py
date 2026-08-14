@@ -22,6 +22,8 @@ from plane.api.views import (
     WorkItemArchiveAPIEndpoint,
     WorkItemArchiveListAPIEndpoint,
     WorkItemUnarchiveAPIEndpoint,
+    WorkspaceWorkItemCountAPIEndpoint,
+    WorkspaceWorkItemListAPIEndpoint,
 )
 
 # Deprecated url patterns
@@ -68,7 +70,7 @@ old_url_patterns = [
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/activities/",
-        IssueActivityListAPIEndpoint.as_view(http_method_names=["get"]),
+        IssueActivityListAPIEndpoint.as_view(http_method_names=["get", "post"]),
         name="activity",
     ),
     path(
@@ -90,6 +92,16 @@ old_url_patterns = [
 
 # New url patterns with work-items as the prefix
 new_url_patterns = [
+    path(
+        "workspaces/<str:slug>/work-items/",
+        WorkspaceWorkItemListAPIEndpoint.as_view(http_method_names=["get"]),
+        name="workspace-work-item-list",
+    ),
+    path(
+        "workspaces/<str:slug>/work-items/count/",
+        WorkspaceWorkItemCountAPIEndpoint.as_view(http_method_names=["get"]),
+        name="workspace-work-item-count",
+    ),
     path(
         "workspaces/<str:slug>/work-items/search/",
         IssueSearchEndpoint.as_view(http_method_names=["get"]),
@@ -132,7 +144,7 @@ new_url_patterns = [
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/activities/",
-        IssueActivityListAPIEndpoint.as_view(http_method_names=["get"]),
+        IssueActivityListAPIEndpoint.as_view(http_method_names=["get", "post"]),
         name="work-item-activity-list",
     ),
     path(

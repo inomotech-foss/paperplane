@@ -779,6 +779,41 @@ class IssueActivitySerializer(BaseSerializer):
         exclude = ["created_by", "updated_by"]
 
 
+class IssueActivityCreateSerializer(BaseSerializer):
+    """
+    Serializer for importing work item activity from another tracker.
+
+    Activity here is normally a side effect of a mutation, so this accepts the
+    fields a migration needs to state outright: who did it, when, and what
+    changed. `created_at` is writable because the whole point is to preserve the
+    original timestamp rather than stamp the import.
+    """
+
+    created_at = serializers.DateTimeField(required=False)
+
+    class Meta:
+        model = IssueActivity
+        fields = [
+            "verb",
+            "field",
+            "old_value",
+            "new_value",
+            "comment",
+            "actor",
+            "old_identifier",
+            "new_identifier",
+            "epoch",
+            "created_at",
+            "external_source",
+            "external_id",
+        ]
+
+    def validate(self, attrs):
+        if not attrs.get("field") and not attrs.get("comment"):
+            raise serializers.ValidationError("Either field or comment is required")
+        return attrs
+
+
 class CycleIssueSerializer(BaseSerializer):
     """
     Serializer for work items within cycles.

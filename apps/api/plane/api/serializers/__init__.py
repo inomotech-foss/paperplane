@@ -18,6 +18,7 @@ from .issue import (
     IssueCommentSerializer,
     IssueAttachmentSerializer,
     IssueActivitySerializer,
+    IssueActivityCreateSerializer,
     IssueExpandSerializer,
     IssueLiteSerializer,
     IssueAttachmentUploadSerializer,
