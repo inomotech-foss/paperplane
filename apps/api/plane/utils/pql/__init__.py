@@ -4,7 +4,7 @@
 """Compilers for the structured work item query parameters advertised by plane-sdk.
 
 `filters` (the JSON AST) is compiled here. `pql`, the human-readable syntax,
-compiles into the same AST in a follow-up change.
+parses into that same AST, so both parameters share one compiler.
 """
 
 from plane.utils.pql.fields import FILTER_FIELDS, UNSUPPORTED_FIELDS
@@ -15,13 +15,25 @@ from plane.utils.pql.filters import (
     FilterCompileError,
     compile_filters,
 )
+from plane.utils.pql.lexer import PQLSyntaxError
+from plane.utils.pql.parser import (
+    CHILD_OF_PLACEHOLDER,
+    CURRENT_USER_PLACEHOLDER,
+    NOW_PLACEHOLDER,
+    parse_pql,
+)
 
 __all__ = [
+    "CHILD_OF_PLACEHOLDER",
+    "CURRENT_USER_PLACEHOLDER",
     "FILTER_FIELDS",
     "MAX_FILTER_DEPTH",
+    "NOW_PLACEHOLDER",
     "UNSUPPORTED_FIELDS",
     "CompiledFilters",
     "CustomPropertyFilter",
     "FilterCompileError",
+    "PQLSyntaxError",
     "compile_filters",
+    "parse_pql",
 ]
