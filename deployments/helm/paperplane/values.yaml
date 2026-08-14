@@ -348,6 +348,13 @@ provision:
       # losing the role removes admin.
       adminRole: ""
       adminClaim: ""
+      # Slug of a workspace every OIDC user is added to on login, so a new SSO
+      # user lands in it instead of the onboarding wizard. Empty leaves
+      # membership unmanaged. Existing memberships are never removed or
+      # downgraded.
+      autoJoinWorkspace: ""
+      # Role for that membership: 20 admin, 15 member, 5 guest. Empty means 15.
+      autoJoinWorkspaceRole: ""
       # Optional explicit endpoint overrides. Leave empty to use issuer discovery.
       authorizeUrl: ""
       tokenUrl: ""

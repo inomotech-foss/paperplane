@@ -729,6 +729,14 @@ provision:
         OIDC_CLIENT_SECRET: /mnt/secrets-store/client-secret
 ```
 
+### Auto-join a workspace on SSO login
+
+Set `oidc.autoJoinWorkspace` to a workspace slug to add every OIDC user to that
+workspace on login, so a first-time user lands in it instead of the onboarding
+wizard. `oidc.autoJoinWorkspaceRole` sets the role for new memberships (20
+admin, 15 member, 5 guest; default 15). Memberships are only ever added: an
+existing membership is never removed or downgraded.
+
 ## Custom Ingress Routes
 
 If you are planning to use 3rd party ingress providers, here is the available route configuration

@@ -282,6 +282,18 @@ oidc_config_variables = [
         "category": "OIDC",
         "is_encrypted": False,
     },
+    {
+        "key": "AUTO_JOIN_WORKSPACE",
+        "value": os.environ.get("AUTO_JOIN_WORKSPACE", ""),
+        "category": "OIDC",
+        "is_encrypted": False,
+    },
+    {
+        "key": "AUTO_JOIN_WORKSPACE_ROLE",
+        "value": os.environ.get("AUTO_JOIN_WORKSPACE_ROLE", "15"),
+        "category": "OIDC",
+        "is_encrypted": False,
+    },
 ]
 
 smtp_config_variables = [

@@ -9,8 +9,13 @@ def get_redirection_path(user):
     # Handle redirections
     profile, _ = Profile.objects.get_or_create(user=user)
 
-    # Redirect to onboarding if the user is not onboarded yet
-    if not profile.is_onboarded:
+    is_workspace_member = Workspace.objects.filter(
+        workspace_member__member_id=user.id, workspace_member__is_active=True
+    ).exists()
+
+    # Onboarding only exists to put the user in a workspace, so skip it for a
+    # user who already belongs to one (auto-joined at login, or invited).
+    if not profile.is_onboarded and not is_workspace_member:
         return "onboarding"
 
     # Redirect to the last workspace if the user has last workspace
