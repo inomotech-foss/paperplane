@@ -180,5 +180,9 @@
       "title": "Názov",
       "updated": "Naposledy aktualizované"
     }
+  },
+  "page_work_item_embed": {
+    "loading": "Načítavanie pracovnej položky",
+    "error": "Túto pracovnú položku sa nepodarilo načítať"
   }
 }

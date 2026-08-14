@@ -24,11 +24,14 @@ SINGLE_CELL_LAYOUT = (
 )
 
 
-def write_space(root, key, pages, name="Space", users=None):
+def write_space(root, key, pages, name="Space", users=None, space_type=None):
     """Builds the slice of a backup tree the report reads."""
     space_dir = root / "confluence" / key
     space_dir.mkdir(parents=True)
-    (space_dir / "space.json").write_text(json.dumps({"key": key, "name": name}))
+    space_json = {"key": key, "name": name}
+    if space_type is not None:
+        space_json["type"] = space_type
+    (space_dir / "space.json").write_text(json.dumps(space_json))
 
     records = [
         {
@@ -63,6 +66,31 @@ class TestSpaceKeys:
 
     def test_a_missing_backup_is_not_an_error(self, tmp_path):
         assert space_keys(tmp_path) == []
+
+    def test_a_personal_space_is_excluded_by_default(self, tmp_path):
+        write_space(tmp_path, "DEMO", [], space_type="global")
+        write_space(tmp_path, "WIKI", [], space_type="personal")
+
+        assert space_keys(tmp_path) == ["DEMO"]
+
+    def test_a_personal_space_is_included_when_asked(self, tmp_path):
+        write_space(tmp_path, "DEMO", [], space_type="global")
+        write_space(tmp_path, "WIKI", [], space_type="personal")
+
+        assert space_keys(tmp_path, include_personal=True) == ["DEMO", "WIKI"]
+
+    def test_a_space_with_no_type_is_treated_as_global(self, tmp_path):
+        write_space(tmp_path, "TEAMA", [])
+
+        assert space_keys(tmp_path) == ["TEAMA"]
+
+    def test_a_malformed_space_json_does_not_crash_the_walk(self, tmp_path):
+        write_space(tmp_path, "DEMO", [], space_type="global")
+        broken_dir = tmp_path / "confluence" / "BROKEN"
+        broken_dir.mkdir(parents=True)
+        (broken_dir / "space.json").write_text("{not valid json")
+
+        assert space_keys(tmp_path) == ["BROKEN", "DEMO"]
 
 
 @pytest.mark.unit
@@ -218,3 +246,34 @@ class TestReportBackup:
         reports = report_backup(tmp_path, spaces=["IMS"], global_page_map=True)
 
         assert reports[0].unresolved_pages == set()
+
+    def test_personal_spaces_are_excluded_by_default(self, tmp_path):
+        write_space(tmp_path, "DEMO", [{"id": "1", "title": "Policy", "body": PLAIN}], space_type="global")
+        write_space(tmp_path, "WIKI", [{"id": "2", "title": "Notes", "body": PLAIN}], space_type="personal")
+
+        reports = report_backup(tmp_path)
+
+        assert [report.key for report in reports] == ["DEMO"]
+
+    def test_personal_spaces_are_included_when_asked(self, tmp_path):
+        write_space(tmp_path, "DEMO", [{"id": "1", "title": "Policy", "body": PLAIN}], space_type="global")
+        write_space(tmp_path, "WIKI", [{"id": "2", "title": "Notes", "body": PLAIN}], space_type="personal")
+
+        reports = report_backup(tmp_path, include_personal=True)
+
+        assert sorted(report.key for report in reports) == ["DEMO", "WIKI"]
+
+    def test_the_global_page_map_also_respects_include_personal(self, tmp_path):
+        """A single-space run's global page map must not silently read a
+        personal space's titles into the link resolution unless asked."""
+        write_space(tmp_path, "DEMO", [{"id": "1", "title": "Policy", "body": CROSS_SPACE_LINK}], space_type="global")
+        write_space(
+            tmp_path,
+            "ENG",
+            [{"id": "2", "title": "Runbook", "body": PLAIN}],
+            space_type="personal",
+        )
+
+        reports = report_backup(tmp_path, spaces=["DEMO"], global_page_map=True)
+
+        assert reports[0].unresolved_pages == {"Runbook"}

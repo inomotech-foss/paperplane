@@ -16,7 +16,11 @@ from django.utils import timezone
 from plane.db.models import Page, PageVersion
 from plane.utils.exception_logger import log_exception
 
-PAGE_VERSION_TASK_TIMEOUT = 600
+# Window in which consecutive edits by the same user coalesce into one version
+PAGE_VERSION_COALESCE_WINDOW = 600
+
+# Number of versions kept per page
+PAGE_VERSION_RETENTION_LIMIT = 100
 
 
 @shared_task
@@ -38,7 +42,7 @@ def track_page_version(page_id, existing_instance, user_id):
             if (
                 page_version
                 and str(page_version.owned_by_id) == str(user_id)
-                and (timezone.now() - page_version.last_saved_at).total_seconds() <= PAGE_VERSION_TASK_TIMEOUT
+                and (timezone.now() - page_version.last_saved_at).total_seconds() <= PAGE_VERSION_COALESCE_WINDOW
             ):
                 page_version.description_html = page.description_html
                 page_version.description_binary = page.description_binary
@@ -68,8 +72,8 @@ def track_page_version(page_id, existing_instance, user_id):
                     last_saved_at=timezone.now(),
                     sub_pages_data=sub_pages,
                 )
-            # If page versions are greater than 20 delete the oldest one
-            if PageVersion.objects.filter(page_id=page_id).count() > 20:
+            # Trim the oldest version once the page is over the retention limit
+            if PageVersion.objects.filter(page_id=page_id).count() > PAGE_VERSION_RETENTION_LIMIT:
                 # Delete the old page version
                 PageVersion.objects.filter(page_id=page_id).order_by("last_saved_at").first().delete()
 

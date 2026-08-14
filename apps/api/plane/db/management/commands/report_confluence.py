@@ -27,9 +27,10 @@ class Command(BaseCommand):
             help="Resolve links against every backed-up space, not only the ones being scored. "
             "Reads the whole backup, so a single-space run scores its links the way a full import would.",
         )
+        parser.add_argument("--include-personal", action="store_true", help="Also score personal Confluence spaces")
 
     def handle(self, *args, **options):
-        spaces = options["space"] or space_keys(options["backup_dir"])
+        spaces = options["space"] or space_keys(options["backup_dir"], include_personal=options["include_personal"])
         if not spaces:
             raise CommandError(f"No backed-up spaces under {options['backup_dir']}/confluence/")
 
@@ -39,6 +40,7 @@ class Command(BaseCommand):
             limit=options["limit"],
             global_page_map=options["global_page_map"],
             jira_base_urls=settings.CONFLUENCE_JIRA_BASE_URLS,
+            include_personal=options["include_personal"],
         )
         self._print(reports)
 

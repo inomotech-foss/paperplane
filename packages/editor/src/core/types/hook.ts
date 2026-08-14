@@ -48,7 +48,12 @@ export type TEditorHookProps = TCoreHookProps &
 export type TCollaborativeEditorHookProps = TCoreHookProps &
   Pick<
     IEditorProps,
-    "childPagesHandler" | "diagramHandler" | "embedHandler" | "pageAttachmentsHandler" | "queryBlockHandler"
+    | "childPagesHandler"
+    | "diagramHandler"
+    | "embedHandler"
+    | "pageAttachmentsHandler"
+    | "queryBlockHandler"
+    | "workItemEmbedHandler"
   > &
   Pick<
     TEditorHookProps,

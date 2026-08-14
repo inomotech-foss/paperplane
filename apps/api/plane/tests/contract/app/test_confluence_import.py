@@ -9,7 +9,17 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from plane.db.models import FileAsset, Label, Page, PageIndexEntry, PageLabel, Project, User, WorkspaceMember
+from plane.db.models import (
+    FileAsset,
+    Label,
+    Page,
+    PageIndexEntry,
+    PageLabel,
+    PageVersion,
+    Project,
+    User,
+    WorkspaceMember,
+)
 from plane.importers.confluence.backup import ConfluenceBackup
 from plane.importers.confluence.loader import ConfluenceLoader
 
@@ -247,6 +257,34 @@ class TestConfluenceImport:
         page = Page.objects.get(name="Quality Processes")
         assert page.created_at == datetime(2022, 10, 27, 19, 11, 16, 458000, tzinfo=timezone.utc)
         assert page.updated_at == datetime(2022, 11, 6, 21, 56, 58, 764000, tzinfo=timezone.utc)
+
+    def test_every_imported_page_gets_one_seed_version(self, loader, ada, create_user):
+        """The backup holds one body per page, so the seed is the whole history
+        there will ever be, and without it the timeline opens empty."""
+        loader.run()
+
+        pages = Page.objects.all()
+        assert pages.count() == 4
+        assert [PageVersion.objects.filter(page=page).count() for page in pages] == [1, 1, 1, 1]
+
+        page = Page.objects.get(name="Quality Processes")
+        version = PageVersion.objects.get(page=page)
+        assert version.last_saved_at == datetime(2022, 11, 6, 21, 56, 58, 764000, tzinfo=timezone.utc)
+        assert version.owned_by_id == ada.id
+        assert version.description_html == page.description_html
+        # An unmatched Confluence account falls back to the actor, as the page does.
+        assert PageVersion.objects.get(page__name="Orphan").owned_by_id == create_user.id
+
+    def test_rerun_does_not_stack_seed_versions(self, loader, ada):
+        loader.run()
+        loader.run()
+
+        assert PageVersion.objects.count() == 4
+
+    def test_dry_run_writes_no_versions(self, loader, ada):
+        loader.run(dry_run=True)
+
+        assert PageVersion.objects.count() == 0
 
     def test_rewrites_internal_links_to_plane_urls(self, loader, ada):
         summary = loader.run()

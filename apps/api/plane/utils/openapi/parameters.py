@@ -319,6 +319,55 @@ EXTERNAL_SOURCE_PARAMETER = OpenApiParameter(
     ],
 )
 
+# Work item filtering parameters
+PQL_PARAMETER = OpenApiParameter(
+    name="pql",
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.QUERY,
+    description="Plane Query Language expression. Human readable alternative to 'filters'; the two are mutually exclusive.",  # noqa: E501
+    required=False,
+    examples=[
+        OpenApiExample(
+            name="Urgent work items of the caller",
+            value='priority = "urgent" AND assignee = currentUser()',
+            description="Combine conditions with AND, OR, NOT and parentheses",
+        ),
+    ],
+)
+
+FILTERS_PARAMETER = OpenApiParameter(
+    name="filters",
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.QUERY,
+    description="JSON encoded filter expression with nested 'and' / 'or' / 'not' groups. Mutually exclusive with 'pql'.",  # noqa: E501
+    required=False,
+    examples=[
+        OpenApiExample(
+            name="Urgent and in progress",
+            value='{"and":[{"priority":"urgent"},{"state_group__in":["unstarted","started"]}]}',
+            description="Leaves are field comparisons with Django style lookups",
+        ),
+    ],
+)
+
+GROUP_BY_PARAMETER = OpenApiParameter(
+    name="group_by",
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.QUERY,
+    description="Work item field to group the counts by",
+    required=False,
+    examples=[OpenApiExample(name="Priority", value="priority")],
+)
+
+SUB_GROUP_BY_PARAMETER = OpenApiParameter(
+    name="sub_group_by",
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.QUERY,
+    description="Second field to group the counts by. Only valid together with 'group_by'.",
+    required=False,
+    examples=[OpenApiExample(name="State", value="state_id")],
+)
+
 # Ordering Parameters
 ORDER_BY_PARAMETER = OpenApiParameter(
     name="order_by",

@@ -436,12 +436,20 @@ class IssueActivity(ProjectBaseModel):
     old_identifier = models.UUIDField(null=True)
     new_identifier = models.UUIDField(null=True)
     epoch = models.FloatField(null=True)
+    # set when an activity was imported from another tracker instead of being
+    # produced by a mutation here, so an import can be re-run without duplicating
+    external_source = models.CharField(max_length=255, null=True, blank=True)
+    external_id = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         verbose_name = "Issue Activity"
         verbose_name_plural = "Issue Activities"
         db_table = "issue_activities"
         ordering = ("-created_at",)
+        indexes = [
+            # the import dedupe check filters on exactly these three
+            models.Index(fields=["project", "external_source", "external_id"], name="issue_act_ext_idx")
+        ]
 
     def __str__(self):
         """Return issue of the comment"""
