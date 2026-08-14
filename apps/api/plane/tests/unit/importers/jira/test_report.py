@@ -168,6 +168,8 @@ class TestReportProject:
         assert report.nodes.lost == {"media": 1}
         assert report.unresolved_media == 1
         assert report.fidelity == 0.0
+        # doc + mediaSingle + media, with the image counted as the loss.
+        assert report.nodes.total == 3
 
     def test_the_fallback_spans_the_comments_as_well_as_the_description(self, tmp_path):
         project_dir = write_project(

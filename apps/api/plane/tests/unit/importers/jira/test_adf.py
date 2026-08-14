@@ -277,6 +277,22 @@ class TestAccounting:
 
         assert result.nodes.downgraded == {"expand": 1, "blockCard": 1}
 
+    def test_an_unresolved_media_node_is_lost_and_still_balances(self):
+        """The wrapper is chrome and the image itself is a loss. Counting the
+        image as either would hide a dropped inline image behind a clean score."""
+        document = doc(
+            node("mediaSingle", content=[node("media", {"type": "file", "id": "media-8"})]),
+            node("mediaGroup", content=[node("mediaInline", {"type": "file", "id": "media-9"})]),
+        )
+
+        result = convert(document)
+
+        assert result.nodes.lost == {"media": 1, "mediaInline": 1}
+        assert result.nodes.chrome == {"mediaSingle": 1, "mediaGroup": 1}
+        assert result.nodes.converted == {"doc": 1}
+        assert result.nodes.total == count_nodes(document)
+        assert not result.is_lossless
+
     def test_media_wrappers_are_chrome(self):
         document = doc(node("mediaSingle", content=[image_media()]))
 
