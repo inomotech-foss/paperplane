@@ -53,7 +53,11 @@ class Command(BaseCommand):
         self.stdout.write(f"{lossless} issues convert with nothing lost")
         self.stdout.write(
             f"{totals['converted']} constructs converted, {totals['downgraded']} downgraded, "
-            f"{totals['chrome']} authoring affordances dropped, {totals['lost']} lost\n"
+            f"{totals['chrome']} authoring affordances dropped, {totals['lost']} lost"
+        )
+        self.stdout.write(
+            f"{sum(report.unresolved_media for report in reports)} inline images dropped, "
+            f"{sum(report.inferred_media for report in reports)} placed by the single-attachment rule\n"
         )
 
         self.stdout.write(f"{'PROJECT':<12} {'ISSUES':>6} {'CLEAN':>6} {'FIDELITY':>9}  TOP CAUSES")
@@ -102,6 +106,8 @@ class Command(BaseCommand):
             "nodes": _buckets(report.nodes),
             "marks": _buckets(report.marks),
             "unresolved_attachments": sorted(report.unresolved_attachments),
+            "unresolved_media": report.unresolved_media,
+            "inferred_media": report.inferred_media,
             "unresolved_users": sorted(report.unresolved_users),
             "worst_issues": [
                 {"key": issue.key, "summary": issue.summary, "loss": issue.loss}
