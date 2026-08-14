@@ -19,6 +19,7 @@ import {
   QueryBlockExtension,
   SlashCommands,
   TableOfContentsExtension,
+  WorkItemEmbedExtension,
 } from "@/extensions";
 // types
 import type { IEditorProps, TExtensions, TUserDetails } from "@/types";
@@ -33,6 +34,7 @@ export type TDocumentEditorAdditionalExtensionsProps = Pick<
   | "fileHandler"
   | "pageAttachmentsHandler"
   | "queryBlockHandler"
+  | "workItemEmbedHandler"
   | "extendedEditorProps"
 > & {
   isEditable: boolean;
@@ -81,6 +83,10 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
   {
     isEnabled: () => true,
     getExtension: ({ queryBlockHandler }) => QueryBlockExtension(queryBlockHandler),
+  },
+  {
+    isEnabled: () => true,
+    getExtension: ({ workItemEmbedHandler }) => WorkItemEmbedExtension(workItemEmbedHandler),
   },
   {
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),

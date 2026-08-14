@@ -39,6 +39,7 @@ import type {
   TRealtimeConfig,
   TServerHandler,
   TUserDetails,
+  TWorkItemEmbedHandler,
   TExtendedEditorRefApi,
   EventToPayloadMap,
 } from "@/types";
@@ -202,6 +203,7 @@ export type IEditorProps = {
   tabIndex?: number;
   value?: string | null;
   extendedEditorProps: IEditorPropsExtended;
+  workItemEmbedHandler?: TWorkItemEmbedHandler;
   workItemIdentifier?: string | null;
 };
 
