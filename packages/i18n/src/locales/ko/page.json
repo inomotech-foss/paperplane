@@ -180,5 +180,9 @@
       "title": "제목",
       "updated": "마지막 업데이트"
     }
+  },
+  "page_work_item_embed": {
+    "loading": "작업 항목을 불러오는 중입니다",
+    "error": "이 작업 항목을 불러올 수 없습니다"
   }
 }

@@ -180,5 +180,9 @@
       "title": "Başlık",
       "updated": "Son güncelleme"
     }
+  },
+  "page_work_item_embed": {
+    "loading": "İş öğesi yükleniyor",
+    "error": "Bu iş öğesi yüklenemedi"
   }
 }

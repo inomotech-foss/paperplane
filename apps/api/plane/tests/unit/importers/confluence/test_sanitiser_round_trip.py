@@ -120,6 +120,10 @@ A -> B
 <ac:structured-macro ac:name="decisionreport"><ac:parameter ac:name="cql">label = "runbook"</ac:parameter>
   <ac:parameter ac:name="max">10</ac:parameter>
   <ac:parameter ac:name="sort">page created</ac:parameter></ac:structured-macro>
+<issue-embed-component id="77777777-7777-4777-8777-777777777777"
+  entity_identifier="88888888-8888-4888-8888-888888888888" entity_name="issue"
+  project_identifier="99999999-9999-4999-8999-999999999999"
+  workspace_identifier="sample-workspace"></issue-embed-component>
 <p><img src="/wiki/s/1/2/_/images/icons/emoticons/star_blue.png" alt="(blue star)" width="16" height="16"/></p>
 <p><a href="https://example.com" data-card-appearance="inline">smart link</a></p>
 """

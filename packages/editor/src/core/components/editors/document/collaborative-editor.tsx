@@ -60,6 +60,7 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
     titleRef,
     updatePageProperties,
     isFetchingFallbackBinary,
+    workItemEmbedHandler,
   } = props;
 
   // Get non-null provider from context
@@ -122,6 +123,7 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
     titleRef,
     updatePageProperties,
     user,
+    workItemEmbedHandler,
     actions,
   });
 

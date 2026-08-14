@@ -180,5 +180,9 @@
       "title": "Title",
       "updated": "Last updated"
     }
+  },
+  "page_work_item_embed": {
+    "loading": "Loading work item",
+    "error": "Could not load this work item"
   }
 }

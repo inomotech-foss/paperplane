@@ -22,6 +22,7 @@ import type {
   TQueryBlockHandlerProps,
   TRealtimeConfig,
   TServerHandler,
+  TWorkItemEmbedHandlerProps,
 } from "@plane/editor";
 import { useTranslation } from "@plane/i18n";
 import type { TSearchEntityRequestPayload, TSearchResponse, TWebhookConnectionQueryParams } from "@plane/types";
@@ -53,6 +54,7 @@ import { PageDiagramEditor } from "./diagram-editor";
 import { PageEmbedBlock } from "./embed-block";
 import { PageEditorHeaderRoot } from "./header";
 import { PageContentBrowser } from "./summary";
+import { PageWorkItemEmbedBlock } from "./work-item-embed-block";
 import { EditorAIMenu } from "./ai/menu";
 
 const subscribeToNothing = () => () => {};
@@ -173,6 +175,21 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
       renderComponent: (props: TEmbedRenderProps) => <PageEmbedBlock {...props} />,
     }),
     []
+  );
+  // A page can embed a work item from another project, so the node's own scope
+  // wins and the page's scope only fills in what the node left out.
+  const workItemEmbedHandler = useMemo(
+    () => ({
+      // oxlint-disable-next-line no-shadow
+      renderComponent: (props: TWorkItemEmbedHandlerProps) => (
+        <PageWorkItemEmbedBlock
+          {...props}
+          projectId={props.projectId ?? projectId}
+          workspaceSlug={props.workspaceSlug ?? workspaceSlug}
+        />
+      ),
+    }),
+    [projectId, workspaceSlug]
   );
   // Diagram sources and previews are page attachments, which are project scoped,
   // so a page outside a project renders its diagrams without offering editing.
@@ -353,6 +370,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
             embedHandler={embedHandler}
             pageAttachmentsHandler={pageAttachmentsHandler}
             queryBlockHandler={queryBlockHandler}
+            workItemEmbedHandler={workItemEmbedHandler}
             mentionHandler={{
               searchCallback: async (query) => {
                 const res = await fetchMentions(query);

@@ -180,5 +180,9 @@
       "title": "Titlu",
       "updated": "Ultima actualizare"
     }
+  },
+  "page_work_item_embed": {
+    "loading": "Se încarcă activitatea",
+    "error": "Această activitate nu a putut fi încărcată"
   }
 }
