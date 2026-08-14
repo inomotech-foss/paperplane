@@ -10,6 +10,7 @@ from django.conf import settings
 from django.db import transaction
 
 from plane.db.models import (
+    Issue,
     Label,
     Page,
     PageIndexEntry,
@@ -31,10 +32,13 @@ from .assets import AttachmentUploader
 from .backup import ConfluenceBackup, order_parents_first, space_keys
 from .jira import derive_base_urls
 from .naming import project_identifier, project_name
-from .resolvers import ConversionResult, ResolvedPage, ResolvedUser, Resolvers
+from .resolvers import ConversionResult, ResolvedJiraIssue, ResolvedPage, ResolvedUser, Resolvers
 from .storage import storage_to_html
 
 _ACCOUNT_ID = re.compile(r'ri:account-id="([^"]+)"')
+
+# What the Jira loader stamps on every work item it creates.
+_JIRA_EXTERNAL_SOURCE = "jira"
 
 
 @dataclass
@@ -377,6 +381,25 @@ class ConfluenceLoader:
 
         return page_map
 
+    def _jira_issue_map(self):
+        """Jira (project identifier, sequence id) -> the work item it became.
+
+        ``Project.identifier`` is the Jira project key and ``Issue.sequence_id``
+        is the number in a key such as ``DEMO-12``, so this is the whole
+        lookup: no mapping table survives from the Jira import to consult.
+        Scoped to ``external_source="jira"`` so a work item that merely shares
+        a project identifier and sequence id, but that Jira never touched, is
+        never matched.
+        """
+        return {
+            (issue.project.identifier, issue.sequence_id): ResolvedJiraIssue(
+                id=str(issue.id), project_id=str(issue.project_id), workspace_id=str(self.workspace.id)
+            )
+            for issue in Issue.objects.filter(
+                workspace=self.workspace, external_source=_JIRA_EXTERNAL_SOURCE
+            ).select_related("project")
+        }
+
     def _write_bodies(self, project, pages, records, users, summary, dry_run):
         user_map = {
             account_id: ResolvedUser(id=str(user.id), display_name=user.display_name)
@@ -386,6 +409,7 @@ class ConfluenceLoader:
         # The setting wins: only the operator can name a server the backup
         # holds no evidence about.
         jira_base_urls = derive_base_urls(pages, self.site, self.jira_project_keys) | self.jira_base_urls
+        jira_issues = self._jira_issue_map()
 
         # S3 writes are outside the transaction, so a dry run must not make any
         # or it would leave objects behind with no rows pointing at them.
@@ -407,7 +431,11 @@ class ConfluenceLoader:
             # Attachments are per page, so the resolver set is rebuilt each time
             # while the space-wide user and page maps are shared.
             resolvers = Resolvers(
-                users=user_map, attachments=attachments, pages=page_map, jira_base_urls=jira_base_urls
+                users=user_map,
+                attachments=attachments,
+                pages=page_map,
+                jira_base_urls=jira_base_urls,
+                jira_issues=jira_issues,
             )
             result = storage_to_html(page.body, resolvers, ConversionResult(html=""))
             summary.absorb(result)
