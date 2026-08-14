@@ -115,6 +115,16 @@ class ConfluenceBackup:
     def space(self):
         return json.loads((self.space_dir / "space.json").read_text())
 
+    def space_type(self):
+        """The space's Confluence type, e.g. "global" or "personal".
+
+        Returns "" if space.json has no "type" key, is missing, or fails to parse.
+        """
+        try:
+            return (self.space().get("type") or "").strip()
+        except (OSError, ValueError):
+            return ""
+
     def pages(self):
         path = self.space_dir / "pages.jsonl"
         with path.open() as handle:
@@ -172,12 +182,19 @@ class ConfluenceBackup:
         return sorted(path for path in directory.iterdir() if path.is_file() and not path.name.startswith(("~", ".")))
 
 
-def space_keys(root):
-    """Every space backed up under `root`, in a stable order."""
+def space_keys(root, include_personal=False):
+    """Every space backed up under `root`, in a stable order.
+
+    Personal spaces (space.json's "type" == "personal") are skipped unless
+    `include_personal` is set.
+    """
     directory = Path(root) / "confluence"
     if not directory.is_dir():
         return []
-    return sorted(path.name for path in directory.iterdir() if (path / "space.json").exists())
+    keys = sorted(path.name for path in directory.iterdir() if (path / "space.json").exists())
+    if include_personal:
+        return keys
+    return [key for key in keys if ConfluenceBackup(root, key).space_type() != "personal"]
 
 
 def order_parents_first(pages):

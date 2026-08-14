@@ -120,3 +120,35 @@ class TestSite:
 
     def test_a_backup_without_jira_has_no_keys(self, tmp_path):
         assert self._backup(tmp_path).jira_project_keys() == set()
+
+
+@pytest.mark.unit
+class TestSpaceType:
+    def _write_space_json(self, tmp_path, content):
+        space_dir = tmp_path / "confluence" / "DEMO"
+        space_dir.mkdir(parents=True)
+        (space_dir / "space.json").write_text(content)
+        return ConfluenceBackup(tmp_path, "DEMO")
+
+    def test_a_personal_space_reports_its_type(self, tmp_path):
+        backup = self._write_space_json(tmp_path, json.dumps({"key": "DEMO", "type": "personal"}))
+
+        assert backup.space_type() == "personal"
+
+    def test_a_global_space_reports_its_type(self, tmp_path):
+        backup = self._write_space_json(tmp_path, json.dumps({"key": "DEMO", "type": "global"}))
+
+        assert backup.space_type() == "global"
+
+    def test_a_missing_type_key_is_empty(self, tmp_path):
+        backup = self._write_space_json(tmp_path, json.dumps({"key": "DEMO"}))
+
+        assert backup.space_type() == ""
+
+    def test_a_missing_space_json_is_empty(self, tmp_path):
+        assert ConfluenceBackup(tmp_path, "MISSING").space_type() == ""
+
+    def test_malformed_space_json_is_empty(self, tmp_path):
+        backup = self._write_space_json(tmp_path, "{not valid json")
+
+        assert backup.space_type() == ""
