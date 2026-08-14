@@ -320,6 +320,13 @@
           "text": "Gérer les fonctionnalités"
         }
       },
+      "work_item": {
+        "title": "Les éléments de travail ne sont pas activés pour le projet.",
+        "description": "Les éléments de travail sont les éléments constitutifs de votre projet. Activez les éléments de travail depuis les paramètres du projet pour commencer à les utiliser.",
+        "primary_button": {
+          "text": "Gérer les fonctionnalités"
+        }
+      },
       "page": {
         "title": "Les Pages ne sont pas activées pour le projet.",
         "description": "Les Pages sont les éléments constitutifs de votre projet. Activez les pages depuis les paramètres du projet pour commencer à les utiliser.",

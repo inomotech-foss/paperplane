@@ -72,8 +72,8 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
       icon: LayersIcon,
       keySequence: "ni",
       action: () => toggleCreateIssueModal(true),
-      isEnabled: () => Boolean(canCreateWorkItem),
-      isVisible: () => Boolean(canCreateWorkItem),
+      isEnabled: (ctx) => Boolean(canCreateWorkItem && (!ctx.params.projectId || getProjectDetails(ctx)?.issue_view)),
+      isVisible: (ctx) => Boolean(canCreateWorkItem && (!ctx.params.projectId || getProjectDetails(ctx)?.issue_view)),
       closeOnSelect: true,
     },
     create_page: {

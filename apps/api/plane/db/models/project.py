@@ -96,6 +96,7 @@ class Project(BaseModel):
     cycle_view = models.BooleanField(default=False)
     issue_views_view = models.BooleanField(default=False)
     page_view = models.BooleanField(default=True)
+    issue_view = models.BooleanField(default=True)
     intake_view = models.BooleanField(default=False)
     is_time_tracking_enabled = models.BooleanField(default=False)
     is_issue_type_enabled = models.BooleanField(default=False)
