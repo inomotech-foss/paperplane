@@ -191,5 +191,59 @@
       "title": "Descubre por qué los equipos cambian a Plane",
       "description": "Compara Plane con las herramientas que usas hoy y ve la diferencia."
     }
+  },
+  "trainings": {
+    "title": "Capacitaciones",
+    "description": "Capacitaciones paso a paso que cubren todas las funciones. Cuando se lanzan nuevas funciones, aquí aparecen nuevas capacitaciones.",
+    "new": "Nuevo",
+    "start": "Comenzar la capacitación",
+    "resume": "Reanudar la capacitación",
+    "review": "Repasar la capacitación",
+    "step_count": "{count, plural, one {# paso} other {# pasos}}",
+    "step_of": "Paso {current} de {total}",
+    "modules": {
+      "work_items": {
+        "title": "Elementos de trabajo",
+        "description": "Los elementos de trabajo son los componentes básicos de Plane. Aprenda a crearlos, filtrarlos y organizarlos."
+      },
+      "cycles": {
+        "title": "Ciclos",
+        "description": "Organice el trabajo de su equipo en Ciclos, la versión de Plane de los sprints, y siga el progreso sobre la marcha."
+      },
+      "modules": {
+        "title": "Módulos",
+        "description": "Divida los proyectos grandes en Módulos para agrupar elementos de trabajo relacionados y seguirlos como una unidad."
+      },
+      "views": {
+        "title": "Vistas",
+        "description": "Guarde filtros personalizados como Vistas para tener siempre a un clic los elementos de trabajo que le importan.",
+        "steps": {
+          "step_zero": {
+            "title": "Guarde sus filtros como Vistas",
+            "description": "Las Vistas son filtros guardados. Cree una desde cualquier lista de elementos de trabajo para reutilizar filtros complejos con un solo clic."
+          },
+          "step_one": {
+            "title": "Crear una nueva Vista",
+            "description": "Ajuste los filtros, la agrupación y las opciones de visualización en cualquier lista de proyecto o de espacio de trabajo y guarde el resultado como una Vista."
+          },
+          "step_two": {
+            "title": "Comparta Vistas con su equipo",
+            "description": "Publique una Vista para que todos en el proyecto vean la misma lista, o manténgala privada."
+          }
+        }
+      },
+      "pages": {
+        "title": "Páginas",
+        "description": "Registre notas, documentos y actas de reunión en Páginas, justo al lado de su trabajo."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Revise, acepte o rechace las solicitudes entrantes con Intake antes de que lleguen a su proyecto."
+      },
+      "navigation": {
+        "title": "Navegación",
+        "description": "Oriéntese en Plane: la barra lateral, su espacio de trabajo y el cambio rápido entre proyectos."
+      }
+    }
   }
 }

@@ -13,6 +13,7 @@ from .user import (
     UserMeSettingsSerializer,
     ProfileSerializer,
     AccountSerializer,
+    UserTrainingProgressSerializer,
 )
 from .workspace import (
     WorkSpaceSerializer,

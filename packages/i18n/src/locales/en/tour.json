@@ -191,5 +191,59 @@
       "title": "Discover why teams switch to Plane",
       "description": "Compare Plane with the tools you use today and see the difference."
     }
+  },
+  "trainings": {
+    "title": "Trainings",
+    "description": "Step-by-step trainings covering every feature. When new features ship, new trainings show up here.",
+    "new": "New",
+    "start": "Start training",
+    "resume": "Resume training",
+    "review": "Review training",
+    "step_count": "{count, plural, one {# step} other {# steps}}",
+    "step_of": "Step {current} of {total}",
+    "modules": {
+      "work_items": {
+        "title": "Work items",
+        "description": "Work items are the building blocks of Plane. Learn how to create, filter, and organize them."
+      },
+      "cycles": {
+        "title": "Cycles",
+        "description": "Time-box your team's work into Cycles, Plane's take on sprints, and track progress as you go."
+      },
+      "modules": {
+        "title": "Modules",
+        "description": "Break large projects into Modules to group related work items and track them as one unit."
+      },
+      "views": {
+        "title": "Views",
+        "description": "Save custom filters as Views so the work items that matter to you are always one click away.",
+        "steps": {
+          "step_zero": {
+            "title": "Save your filters as Views",
+            "description": "Views are saved filters. Create one from any work item list to reuse complex filters in a single click."
+          },
+          "step_one": {
+            "title": "Create a new View",
+            "description": "Adjust filters, grouping, and display options on any project or workspace list, then save the result as a View."
+          },
+          "step_two": {
+            "title": "Share Views with your team",
+            "description": "Publish a View so everyone on the project sees the same list, or keep it private to you."
+          }
+        }
+      },
+      "pages": {
+        "title": "Pages",
+        "description": "Capture notes, docs, and meeting minutes in Pages, right next to your work."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Review, accept, or decline incoming requests with Intake before they reach your project."
+      },
+      "navigation": {
+        "title": "Navigation",
+        "description": "Find your way around Plane: the sidebar, your workspace, and quick switching between projects."
+      }
+    }
   }
 }

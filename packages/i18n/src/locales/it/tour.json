@@ -191,5 +191,59 @@
       "title": "Scopri perché i team passano a Plane",
       "description": "Confronta Plane con gli strumenti che usi oggi e vedi la differenza."
     }
+  },
+  "trainings": {
+    "title": "Formazione",
+    "description": "Percorsi di formazione passo dopo passo su tutte le funzionalità. Quando escono nuove funzionalità, qui compaiono nuovi percorsi.",
+    "new": "Nuovo",
+    "start": "Inizia la formazione",
+    "resume": "Riprendi la formazione",
+    "review": "Rivedi la formazione",
+    "step_count": "{count, plural, one {# passaggio} many {# passaggi} other {# passaggi}}",
+    "step_of": "Passaggio {current} di {total}",
+    "modules": {
+      "work_items": {
+        "title": "Elementi di lavoro",
+        "description": "Gli elementi di lavoro sono i mattoni di Plane. Impari a crearli, filtrarli e organizzarli."
+      },
+      "cycles": {
+        "title": "Cicli",
+        "description": "Suddivida il lavoro del team in Cicli, la versione di Plane degli sprint, e segua i progressi passo dopo passo."
+      },
+      "modules": {
+        "title": "Moduli",
+        "description": "Scomponga i progetti più grandi in Moduli per raggruppare gli elementi di lavoro correlati e seguirli come un'unica unità."
+      },
+      "views": {
+        "title": "Visualizzazioni",
+        "description": "Salvi i filtri personalizzati come Visualizzazioni, così gli elementi di lavoro che contano sono sempre a portata di clic.",
+        "steps": {
+          "step_zero": {
+            "title": "Salvare i filtri come Visualizzazioni",
+            "description": "Le Visualizzazioni sono filtri salvati. Ne crei una da qualsiasi elenco di elementi di lavoro per riutilizzare filtri complessi con un solo clic."
+          },
+          "step_one": {
+            "title": "Creare una nuova Visualizzazione",
+            "description": "Regoli filtri, raggruppamento e opzioni di visualizzazione in qualsiasi elenco di progetto o area di lavoro, poi salvi il risultato come Visualizzazione."
+          },
+          "step_two": {
+            "title": "Condividere le Visualizzazioni con il team",
+            "description": "Pubblichi una Visualizzazione perché tutti nel progetto vedano lo stesso elenco, oppure la tenga privata."
+          }
+        }
+      },
+      "pages": {
+        "title": "Pagine",
+        "description": "Annoti appunti, documenti e verbali delle riunioni nelle Pagine, accanto al lavoro di ogni giorno."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Esamini, accetti o rifiuti le richieste in arrivo con Intake prima che raggiungano il progetto."
+      },
+      "navigation": {
+        "title": "Navigazione",
+        "description": "Si orienti in Plane: la barra laterale, l'area di lavoro e il passaggio rapido da un progetto all'altro."
+      }
+    }
   }
 }

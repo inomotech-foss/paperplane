@@ -6,7 +6,7 @@
 from rest_framework import serializers
 
 # Module import
-from plane.db.models import Account, Profile, User, Workspace, WorkspaceMemberInvite
+from plane.db.models import Account, Profile, User, UserTrainingProgress, Workspace, WorkspaceMemberInvite
 from plane.utils.url import contains_url
 
 from .base import BaseSerializer
@@ -210,3 +210,10 @@ class AccountSerializer(BaseSerializer):
         model = Account
         fields = "__all__"
         read_only_fields = ["user"]
+
+
+class UserTrainingProgressSerializer(BaseSerializer):
+    class Meta:
+        model = UserTrainingProgress
+        fields = ["training_key", "seen_at", "completed_at", "completed_steps"]
+        read_only_fields = ["training_key", "seen_at", "completed_at"]

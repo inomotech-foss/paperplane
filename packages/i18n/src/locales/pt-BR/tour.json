@@ -191,5 +191,59 @@
       "title": "Descubra por que as equipes mudam para o Plane",
       "description": "Compare o Plane com as ferramentas que você usa hoje e veja a diferença."
     }
+  },
+  "trainings": {
+    "title": "Treinamentos",
+    "description": "Treinamentos passo a passo cobrindo todos os recursos. Quando novos recursos são lançados, novos treinamentos aparecem aqui.",
+    "new": "Novo",
+    "start": "Iniciar treinamento",
+    "resume": "Retomar treinamento",
+    "review": "Revisar treinamento",
+    "step_count": "{count, plural, one {# etapa} many {# etapas} other {# etapas}}",
+    "step_of": "Etapa {current} de {total}",
+    "modules": {
+      "work_items": {
+        "title": "Itens de trabalho",
+        "description": "Itens de trabalho são os blocos de construção do Plane. Aprenda a criá-los, filtrá-los e organizá-los."
+      },
+      "cycles": {
+        "title": "Ciclos",
+        "description": "Organize o trabalho da sua equipe em Ciclos, a versão do Plane para sprints, e acompanhe o progresso."
+      },
+      "modules": {
+        "title": "Módulos",
+        "description": "Divida projetos grandes em Módulos para agrupar itens de trabalho relacionados e acompanhá-los como uma unidade."
+      },
+      "views": {
+        "title": "Visualizações",
+        "description": "Salve filtros personalizados como Visualizações para manter a um clique os itens de trabalho que importam para você.",
+        "steps": {
+          "step_zero": {
+            "title": "Salve seus filtros como Visualizações",
+            "description": "Visualizações são filtros salvos. Crie uma a partir de qualquer lista de itens de trabalho para reutilizar filtros complexos com um único clique."
+          },
+          "step_one": {
+            "title": "Criar uma nova Visualização",
+            "description": "Ajuste filtros, agrupamento e opções de exibição em qualquer lista de projeto ou workspace e salve o resultado como uma Visualização."
+          },
+          "step_two": {
+            "title": "Compartilhe Visualizações com sua equipe",
+            "description": "Publique uma Visualização para que todos no projeto vejam a mesma lista, ou mantenha-a privada."
+          }
+        }
+      },
+      "pages": {
+        "title": "Páginas",
+        "description": "Registre notas, documentos e atas de reunião em Páginas, bem ao lado do seu trabalho."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Revise, aceite ou recuse solicitações recebidas com o Intake antes que cheguem ao seu projeto."
+      },
+      "navigation": {
+        "title": "Navegação",
+        "description": "Encontre o caminho no Plane: a barra lateral, seu workspace e a troca rápida entre projetos."
+      }
+    }
   }
 }

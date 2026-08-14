@@ -18,6 +18,7 @@ from django.utils import timezone
 
 # Module imports
 from plane.db.models import FileAsset
+from .base import BaseModel
 from ..mixins import TimeAuditModel
 from plane.utils.color import get_random_color
 
@@ -295,6 +296,31 @@ class Account(TimeAuditModel):
         verbose_name_plural = "Accounts"
         db_table = "accounts"
         ordering = ("-created_at",)
+
+
+class UserTrainingProgress(BaseModel):
+    user = models.ForeignKey("db.User", on_delete=models.CASCADE, related_name="training_progress")
+    training_key = models.CharField(max_length=100)
+    seen_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    completed_steps = models.JSONField(default=list)
+
+    class Meta:
+        unique_together = ["user", "training_key", "deleted_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "training_key"],
+                condition=models.Q(deleted_at__isnull=True),
+                name="training_progress_unique_user_training_key_when_deleted_at_null",
+            )
+        ]
+        verbose_name = "User Training Progress"
+        verbose_name_plural = "User Training Progresses"
+        db_table = "user_training_progress"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.user_id} {self.training_key}"
 
 
 @receiver(post_save, sender=User)

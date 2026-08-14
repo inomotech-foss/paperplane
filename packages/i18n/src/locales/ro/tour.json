@@ -191,5 +191,59 @@
       "title": "Descoperă de ce echipele trec la Plane",
       "description": "Compară Plane cu instrumentele pe care le folosești astăzi și vezi diferența."
     }
+  },
+  "trainings": {
+    "title": "Instruiri",
+    "description": "Instruiri pas cu pas pentru toate funcționalitățile. Când apar funcționalități noi, aici apar instruiri noi.",
+    "new": "Nou",
+    "start": "Începeți instruirea",
+    "resume": "Reluați instruirea",
+    "review": "Revedeți instruirea",
+    "step_count": "{count, plural, one {# pas} few {# pași} other {# de pași}}",
+    "step_of": "Pasul {current} din {total}",
+    "modules": {
+      "work_items": {
+        "title": "Activități",
+        "description": "Activitățile sunt elementele de bază din Plane. Învățați cum să le creați, să le filtrați și să le organizați."
+      },
+      "cycles": {
+        "title": "Cicluri",
+        "description": "Împărțiți munca echipei în Cicluri — varianta Plane a sprinturilor — și urmăriți progresul pe parcurs."
+      },
+      "modules": {
+        "title": "Module",
+        "description": "Împărțiți proiectele mari în Module pentru a grupa activitățile conexe și a le urmări ca un întreg."
+      },
+      "views": {
+        "title": "Perspective",
+        "description": "Salvați filtrele personalizate ca Perspective, astfel încât activitățile importante să fie mereu la un clic distanță.",
+        "steps": {
+          "step_zero": {
+            "title": "Salvați filtrele ca Perspective",
+            "description": "Perspectivele sunt filtre salvate. Creați una din orice listă de activități pentru a refolosi filtre complexe cu un singur clic."
+          },
+          "step_one": {
+            "title": "Crearea unei Perspective noi",
+            "description": "Ajustați filtrele, gruparea și opțiunile de afișare în orice listă de proiect sau spațiu de lucru, apoi salvați rezultatul ca Perspectivă."
+          },
+          "step_two": {
+            "title": "Partajați Perspectivele cu echipa",
+            "description": "Publicați o Perspectivă pentru ca toți cei din proiect să vadă aceeași listă sau păstrați-o privată."
+          }
+        }
+      },
+      "pages": {
+        "title": "Documentație",
+        "description": "Notați idei, documente și minute de ședință în Documentație, chiar lângă munca dumneavoastră."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Examinați, acceptați sau respingeți cererile primite cu Intake înainte să ajungă în proiect."
+      },
+      "navigation": {
+        "title": "Navigare",
+        "description": "Orientați-vă în Plane: bara laterală, spațiul de lucru și comutarea rapidă între proiecte."
+      }
+    }
   }
 }

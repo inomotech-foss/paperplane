@@ -191,5 +191,59 @@
       "title": "Objevte, proč týmy přecházejí na Plane",
       "description": "Porovnejte Plane s nástroji, které dnes používáte, a uvidíte rozdíl."
     }
+  },
+  "trainings": {
+    "title": "Školení",
+    "description": "Školení krok za krokem ke všem funkcím. Když přibudou nové funkce, objeví se zde nová školení.",
+    "new": "Nové",
+    "start": "Zahájit školení",
+    "resume": "Pokračovat ve školení",
+    "review": "Zopakovat školení",
+    "step_count": "{count, plural, one {# krok} few {# kroky} many {# kroku} other {# kroků}}",
+    "step_of": "Krok {current} z {total}",
+    "modules": {
+      "work_items": {
+        "title": "Pracovní položky",
+        "description": "Pracovní položky jsou základní stavební kameny Plane. Naučte se je vytvářet, filtrovat a organizovat."
+      },
+      "cycles": {
+        "title": "Cykly",
+        "description": "Rozdělte práci týmu do Cyklů — obdoby sprintů v Plane — a průběžně sledujte pokrok."
+      },
+      "modules": {
+        "title": "Moduly",
+        "description": "Rozdělte velké projekty do Modulů, seskupte související pracovní položky a sledujte je jako celek."
+      },
+      "views": {
+        "title": "Pohledy",
+        "description": "Uložte si vlastní filtry jako Pohledy, aby důležité pracovní položky byly vždy na jedno kliknutí.",
+        "steps": {
+          "step_zero": {
+            "title": "Uložte si filtry jako Pohledy",
+            "description": "Pohledy jsou uložené filtry. Vytvořte si jej z libovolného seznamu pracovních položek a používejte složité filtry jedním kliknutím."
+          },
+          "step_one": {
+            "title": "Vytvoření nového Pohledu",
+            "description": "Upravte filtry, seskupení a možnosti zobrazení v libovolném seznamu projektu nebo pracovního prostoru a výsledek uložte jako Pohled."
+          },
+          "step_two": {
+            "title": "Sdílení Pohledů s týmem",
+            "description": "Publikujte Pohled, aby všichni v projektu viděli stejný seznam, nebo si jej ponechte soukromý."
+          }
+        }
+      },
+      "pages": {
+        "title": "Stránky",
+        "description": "Zapisujte si poznámky, dokumenty a zápisy ze schůzek do Stránek — hned vedle své práce."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Kontrolujte, přijímejte nebo odmítejte příchozí požadavky pomocí Intake dříve, než se dostanou do projektu."
+      },
+      "navigation": {
+        "title": "Navigace",
+        "description": "Zorientujte se v Plane: boční panel, pracovní prostor a rychlé přepínání mezi projekty."
+      }
+    }
   }
 }

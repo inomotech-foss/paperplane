@@ -191,5 +191,59 @@
       "title": "Entdecken Sie, warum Teams zu Plane wechseln",
       "description": "Vergleichen Sie Plane mit den Tools, die Sie heute verwenden, und sehen Sie den Unterschied."
     }
+  },
+  "trainings": {
+    "title": "Schulungen",
+    "description": "Schritt-für-Schritt-Schulungen zu allen Funktionen. Wenn neue Funktionen erscheinen, tauchen hier neue Schulungen auf.",
+    "new": "Neu",
+    "start": "Schulung starten",
+    "resume": "Schulung fortsetzen",
+    "review": "Schulung wiederholen",
+    "step_count": "{count, plural, one {# Schritt} other {# Schritte}}",
+    "step_of": "Schritt {current} von {total}",
+    "modules": {
+      "work_items": {
+        "title": "Arbeitselemente",
+        "description": "Arbeitselemente sind die Bausteine von Plane. Lernen Sie, wie Sie sie erstellen, filtern und organisieren."
+      },
+      "cycles": {
+        "title": "Zyklen",
+        "description": "Teilen Sie die Arbeit Ihres Teams in Zyklen ein – Planes Variante von Sprints – und verfolgen Sie den Fortschritt."
+      },
+      "modules": {
+        "title": "Module",
+        "description": "Zerlegen Sie große Projekte in Module, um zusammengehörige Arbeitselemente zu gruppieren und gemeinsam zu verfolgen."
+      },
+      "views": {
+        "title": "Ansichten",
+        "description": "Speichern Sie eigene Filter als Ansichten, damit die wichtigsten Arbeitselemente immer nur einen Klick entfernt sind.",
+        "steps": {
+          "step_zero": {
+            "title": "Filter als Ansichten speichern",
+            "description": "Ansichten sind gespeicherte Filter. Erstellen Sie eine aus jeder Arbeitselement-Liste, um komplexe Filter mit einem Klick wiederzuverwenden."
+          },
+          "step_one": {
+            "title": "Eine neue Ansicht erstellen",
+            "description": "Passen Sie Filter, Gruppierung und Anzeigeoptionen in jeder Projekt- oder Workspace-Liste an und speichern Sie das Ergebnis als Ansicht."
+          },
+          "step_two": {
+            "title": "Ansichten mit dem Team teilen",
+            "description": "Veröffentlichen Sie eine Ansicht, damit alle im Projekt dieselbe Liste sehen, oder behalten Sie sie für sich."
+          }
+        }
+      },
+      "pages": {
+        "title": "Seiten",
+        "description": "Halten Sie Notizen, Dokumente und Besprechungsprotokolle in Seiten fest – direkt neben Ihrer Arbeit."
+      },
+      "intake": {
+        "title": "Intake",
+        "description": "Prüfen, akzeptieren oder lehnen Sie eingehende Anfragen mit Intake ab, bevor sie Ihr Projekt erreichen."
+      },
+      "navigation": {
+        "title": "Navigation",
+        "description": "Finden Sie sich in Plane zurecht: die Seitenleiste, Ihr Workspace und der schnelle Wechsel zwischen Projekten."
+      }
+    }
   }
 }
