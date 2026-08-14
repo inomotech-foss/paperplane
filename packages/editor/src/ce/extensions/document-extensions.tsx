@@ -6,6 +6,7 @@
 
 import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { AnyExtension } from "@tiptap/core";
+import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
 import {
   AnchorExtensionConfig,
   ChildPagesExtension,
@@ -85,6 +86,18 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),
     getExtension: ({ disabledExtensions, flaggedExtensions }) =>
       SlashCommands({ additionalOptions: documentSlashCommandOptions, disabledExtensions, flaggedExtensions }),
+  },
+  {
+    isEnabled: () => true,
+    getExtension: ({ provider, userDetails }) =>
+      CollaborationCursor.configure({
+        provider,
+        user: {
+          id: userDetails.id,
+          name: userDetails.name,
+          color: userDetails.color,
+        },
+      }),
   },
 ];
 

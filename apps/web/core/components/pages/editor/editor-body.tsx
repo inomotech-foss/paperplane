@@ -289,6 +289,8 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
     }),
     [currentUser?.display_name, currentUser?.id]
   );
+  // token for the header's own collaboration connection, used only to read presence/awareness
+  const collabAuthToken = useMemo(() => JSON.stringify(userConfig), [userConfig]);
 
   const blockWidthClassName = cn(
     "mx-auto block w-full max-w-[720px] bg-transparent transition-all duration-200 ease-in-out",
@@ -332,7 +334,14 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
         <div>
           <div className="page-header-container group/page-header">
             <div className={blockWidthClassName}>
-              <PageEditorHeaderRoot page={page} projectId={projectId} />
+              <PageEditorHeaderRoot
+                page={page}
+                projectId={projectId}
+                currentUserId={userConfig.id}
+                presenceDocId={pageId}
+                presenceServerUrl={realtimeConfig.url}
+                presenceAuthToken={collabAuthToken}
+              />
             </div>
           </div>
           <CollaborativeDocumentEditorWithRef
