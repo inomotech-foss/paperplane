@@ -93,6 +93,19 @@ class TestSyncWorkspaceMembership:
         assert WorkspaceMember.objects.filter(member=user).count() == 0
         assert "does-not-exist" in caplog.text
 
+    def test_deactivated_membership_is_not_reactivated(self):
+        workspace = make_workspace()
+        user = make_user()
+        Profile.objects.create(user=user)
+        WorkspaceMember.objects.create(workspace=workspace, member=user, role=15, is_active=False)
+
+        sync_workspace_membership(user=user, slug="acme", role=15)
+
+        member = WorkspaceMember.objects.get(member=user)
+        assert member.is_active is False
+        # Still no workspace to land in, so onboarding must stay pending.
+        assert Profile.objects.get(user=user).is_onboarded is False
+
     def test_joined_user_is_marked_onboarded(self):
         make_workspace()
         user = make_user()
@@ -145,6 +158,17 @@ class TestAutoJoinWorkspace:
 
         assert WorkspaceMember.objects.filter(member=user).count() == 0
 
+    def test_deactivated_membership_still_signs_in(self, settings, monkeypatch):
+        settings.SKIP_ENV_VAR = False
+        monkeypatch.setenv("AUTO_JOIN_WORKSPACE", "acme")
+        workspace = make_workspace()
+        user = make_user()
+        WorkspaceMember.objects.create(workspace=workspace, member=user, role=15, is_active=False)
+
+        auto_join_workspace(user=user)
+
+        assert WorkspaceMember.objects.get(member=user).is_active is False
+
 
 @pytest.mark.unit
 @pytest.mark.django_db
@@ -160,4 +184,13 @@ class TestRedirectionPath:
     def test_user_without_workspace_still_onboards(self):
         user = make_user()
 
+        assert get_redirection_path(user=user) == "onboarding"
+
+    def test_invited_user_who_never_onboarded_still_onboards(self):
+        workspace = make_workspace()
+        user = make_user()
+        WorkspaceMember.objects.create(workspace=workspace, member=user, role=15)
+
+        # Membership alone must not skip onboarding: only the auto-join path,
+        # which marks the profile onboarded, does that.
         assert get_redirection_path(user=user) == "onboarding"

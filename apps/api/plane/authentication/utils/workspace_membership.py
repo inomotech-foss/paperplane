@@ -51,9 +51,11 @@ def sync_workspace_membership(user, slug, role):
     with transaction.atomic():
         # Only ever adds: an existing membership may have been granted deliberately
         # at another role, so unlike instance admin this never removes or downgrades.
-        WorkspaceMember.objects.get_or_create(workspace=workspace, member=user, defaults={"role": role})
+        member, _ = WorkspaceMember.objects.get_or_create(workspace=workspace, member=user, defaults={"role": role})
         # Onboarding only exists to put a user in a workspace, which is done now.
-        Profile.objects.filter(user=user, is_onboarded=False).update(is_onboarded=True)
+        # A membership an admin deactivated is left alone, so that user still needs it.
+        if member.is_active:
+            Profile.objects.update_or_create(user=user, defaults={"is_onboarded": True})
 
 
 def auto_join_workspace(user):
