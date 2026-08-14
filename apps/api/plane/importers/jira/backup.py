@@ -30,8 +30,10 @@ class JiraIssue:
     comments: list = field(default_factory=list)
     issue_type: str = ""
     status: str = ""
+    status_category: str = ""
     priority: str = ""
     resolution: str = ""
+    creator_id: str = None
     reporter_id: str = None
     assignee_id: str = None
     parent_key: str = None
@@ -39,6 +41,8 @@ class JiraIssue:
     attachments: list = field(default_factory=list)
     created_at: datetime = None
     updated_at: datetime = None
+    resolved_at: datetime = None
+    due_date: str = ""
 
 
 def parse_timestamp(value):
@@ -79,6 +83,21 @@ def _attachments(fields):
     return [record.get("filename") or "" for record in (fields.get("attachment") or []) if record.get("filename")]
 
 
+def _status_category(fields):
+    """The workflow bucket a status sits in, as one of four stable keys.
+
+    Status names run to the dozens and are renamed freely; the category is what
+    every Jira site agrees on.
+    """
+    status = fields.get("status")
+    if not isinstance(status, dict):
+        return ""
+    category = status.get("statusCategory")
+    if not isinstance(category, dict):
+        return ""
+    return str(category.get("key") or category.get("name") or "")
+
+
 def _issue_from_record(record):
     fields = record.get("fields") or {}
     description = fields.get("description")
@@ -90,8 +109,10 @@ def _issue_from_record(record):
         comments=_comments(fields),
         issue_type=_named(fields.get("issuetype")),
         status=_named(fields.get("status")),
+        status_category=_status_category(fields),
         priority=_named(fields.get("priority")),
         resolution=_named(fields.get("resolution")),
+        creator_id=_account_id(fields.get("creator")),
         reporter_id=_account_id(fields.get("reporter")),
         assignee_id=_account_id(fields.get("assignee")),
         parent_key=str(parent.get("key")) if parent.get("key") else None,
@@ -99,6 +120,8 @@ def _issue_from_record(record):
         attachments=_attachments(fields),
         created_at=parse_timestamp(fields.get("created")),
         updated_at=parse_timestamp(fields.get("updated")) or parse_timestamp(fields.get("created")),
+        resolved_at=parse_timestamp(fields.get("resolutiondate")),
+        due_date=fields.get("duedate") or "",
     )
 
 
@@ -168,6 +191,15 @@ class JiraBackup:
         if not directory.is_dir():
             return []
         return sorted(path for path in directory.iterdir() if path.is_file() and not path.name.startswith(("~", ".")))
+
+
+def issue_number(key):
+    """`DEMO-6` -> 6, the number Plane keeps as the issue's sequence id."""
+    _, _, number = str(key or "").rpartition("-")
+    try:
+        return int(number)
+    except ValueError:
+        return None
 
 
 def project_keys(root):
