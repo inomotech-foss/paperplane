@@ -222,6 +222,7 @@
   "work_management": "Work management",
   "projects_and_issues": "Projects and work items",
   "projects_and_issues_description": "Toggle these on or off this project.",
+  "work_items_description": "Track and manage the work items in this project.",
   "cycles_description": "Timebox work per project and adjust the time period as needed. One cycle can be 2 weeks, the next 1 week.",
   "modules_description": "Organize work into sub-projects with dedicated leads and assignees.",
   "views_description": "Save custom sorts, filters, and display options or share them with your team.",

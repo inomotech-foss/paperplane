@@ -38,6 +38,7 @@ import {
   PriorityPropertyIcon,
   StartDatePropertyIcon,
   StatePropertyIcon,
+  WorkItemsIcon,
 } from "@plane/propel/icons";
 import { store } from "@/lib/store-context";
 import type { TProjectActivity } from "@plane/types";
@@ -76,6 +77,7 @@ export const iconsMap: ActivityIconMap = {
   cycle_view: CycleIcon,
   issue_views_view: Layers,
   page_view: FileText,
+  issue_view: WorkItemsIcon,
   intake_view: IntakeIcon,
 };
 
@@ -257,6 +259,7 @@ export const messages = (activity: TProjectActivity): { message: string | ReactN
     case "cycle_view":
     case "issue_views_view":
     case "page_view":
+    case "issue_view":
     case "intake_view":
       return {
         message: (

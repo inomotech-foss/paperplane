@@ -299,6 +299,13 @@
   },
   "disabled_project": {
     "empty_state": {
+      "work_item": {
+        "title": "Work items are not enabled for the project.",
+        "description": "Work items are the building blocks of your project. Enable work items from project settings to start using them.",
+        "primary_button": {
+          "text": "Manage features"
+        }
+      },
       "inbox": {
         "title": "Intake is not enabled for the project.",
         "description": "Intake helps you manage incoming requests to your project and add them as work items in your workflow. Enable intake from project settings to manage requests.",
