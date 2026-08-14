@@ -19,6 +19,7 @@ export * from "./mention";
 export * from "./page-attachments";
 export * from "./query-block";
 export * from "./slash-commands-suggestion";
+export * from "./work-item-embed";
 export * from "./document-collaborative-events";
 
 export * from "@/plane-editor/types";

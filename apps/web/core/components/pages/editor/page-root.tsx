@@ -187,6 +187,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
       <div className="flex size-full flex-col overflow-hidden">
         <PageVersionsOverlay
           editorComponent={PagesVersionEditor}
+          fetchAllVersions={handlers.fetchAllVersions}
           fetchVersionDetails={handlers.fetchVersionDetails}
           handleRestore={handleRestoreVersion}
           pageId={page.id ?? ""}

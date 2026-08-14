@@ -320,6 +320,13 @@
           "text": "Gerenciar funcionalidades"
         }
       },
+      "work_item": {
+        "title": "Os itens de trabalho não estão habilitados para o projeto.",
+        "description": "Os itens de trabalho são os blocos de construção do seu projeto. Habilite os itens de trabalho nas configurações do projeto para começar a usá-los.",
+        "primary_button": {
+          "text": "Gerenciar funcionalidades"
+        }
+      },
       "page": {
         "title": "As páginas não estão habilitadas para o projeto.",
         "description": "As páginas são os blocos de construção do seu projeto. Habilite as páginas nas configurações do projeto para começar a usá-las.",

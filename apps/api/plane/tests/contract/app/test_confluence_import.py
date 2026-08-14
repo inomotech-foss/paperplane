@@ -9,7 +9,17 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from plane.db.models import FileAsset, Label, Page, PageIndexEntry, PageLabel, Project, User, WorkspaceMember
+from plane.db.models import (
+    FileAsset,
+    Label,
+    Page,
+    PageIndexEntry,
+    PageLabel,
+    PageVersion,
+    Project,
+    User,
+    WorkspaceMember,
+)
 from plane.importers.confluence.backup import ConfluenceBackup
 from plane.importers.confluence.loader import ConfluenceLoader
 
@@ -172,6 +182,15 @@ class TestConfluenceImport:
         assert project.identifier == "IMS"
         assert project.external_source == "confluence"
 
+    def test_a_fresh_import_is_private_and_wiki_only(self, loader, ada):
+        """The backup carries no permission data, so a new project must default
+        to the safe state rather than public with work items exposed."""
+        summary = loader.run()
+
+        project = Project.objects.get(id=summary.project_id)
+        assert project.network == 0
+        assert project.issue_view is False
+
     def test_imports_every_page_with_the_hierarchy(self, loader, ada):
         summary = loader.run()
 
@@ -248,6 +267,34 @@ class TestConfluenceImport:
         assert page.created_at == datetime(2022, 10, 27, 19, 11, 16, 458000, tzinfo=timezone.utc)
         assert page.updated_at == datetime(2022, 11, 6, 21, 56, 58, 764000, tzinfo=timezone.utc)
 
+    def test_every_imported_page_gets_one_seed_version(self, loader, ada, create_user):
+        """The backup holds one body per page, so the seed is the whole history
+        there will ever be, and without it the timeline opens empty."""
+        loader.run()
+
+        pages = Page.objects.all()
+        assert pages.count() == 4
+        assert [PageVersion.objects.filter(page=page).count() for page in pages] == [1, 1, 1, 1]
+
+        page = Page.objects.get(name="Quality Processes")
+        version = PageVersion.objects.get(page=page)
+        assert version.last_saved_at == datetime(2022, 11, 6, 21, 56, 58, 764000, tzinfo=timezone.utc)
+        assert version.owned_by_id == ada.id
+        assert version.description_html == page.description_html
+        # An unmatched Confluence account falls back to the actor, as the page does.
+        assert PageVersion.objects.get(page__name="Orphan").owned_by_id == create_user.id
+
+    def test_rerun_does_not_stack_seed_versions(self, loader, ada):
+        loader.run()
+        loader.run()
+
+        assert PageVersion.objects.count() == 4
+
+    def test_dry_run_writes_no_versions(self, loader, ada):
+        loader.run(dry_run=True)
+
+        assert PageVersion.objects.count() == 0
+
     def test_rewrites_internal_links_to_plane_urls(self, loader, ada):
         summary = loader.run()
 
@@ -277,6 +324,21 @@ class TestConfluenceImport:
         assert second.project_id == first.project_id
         assert Page.objects.count() == 4
         assert Project.objects.count() == 1
+
+    def test_rerun_does_not_revert_an_admins_access_changes(self, loader, ada):
+        """A re-import must never silently undo a human decision to open a
+        project up or turn work items back on."""
+        first = loader.run()
+        project = Project.objects.get(id=first.project_id)
+        project.network = 2
+        project.issue_view = True
+        project.save(update_fields=["network", "issue_view"])
+
+        loader.run()
+
+        project.refresh_from_db()
+        assert project.network == 2
+        assert project.issue_view is True
 
     def test_rerun_picks_up_converter_improvements(self, loader, ada, backup_dir):
         loader.run()

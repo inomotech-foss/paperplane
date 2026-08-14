@@ -9,6 +9,7 @@ import pytest
 
 from plane.importers.confluence import (
     ResolvedAttachment,
+    ResolvedJiraIssue,
     ResolvedPage,
     ResolvedUser,
     Resolvers,
@@ -592,6 +593,55 @@ class TestJiraMacros:
         assert "jira" not in result.html
         assert result.unsupported_macros == {"jira": 1}
         assert not result.is_lossless
+
+    def _jira_issue_resolvers(self, issues=None):
+        return Resolvers(
+            jira_base_urls={"server-1": "https://example.atlassian.net"},
+            jira_issues=issues or {},
+        )
+
+    def test_a_key_matching_an_imported_work_item_becomes_an_embed(self):
+        issue = ResolvedJiraIssue(id="issue-1", project_id="project-1", workspace_id="workspace-1")
+        body = self._jira_macro(server_id="server-1", key="DEMO-12")
+
+        result = convert(body, self._jira_issue_resolvers({("DEMO", 12): issue}))
+
+        assert result.html == (
+            '<issue-embed-component entity_identifier="issue-1" entity_name="issue_embed" '
+            'id="issue-1" project_identifier="project-1" '
+            'workspace_identifier="workspace-1"></issue-embed-component>'
+        )
+        assert result.downgraded == {}
+        assert result.is_lossless
+
+    def test_a_key_matching_no_imported_work_item_keeps_the_link(self):
+        body = self._jira_macro(server_id="server-1", key="DEMO-12")
+
+        result = convert(body, self._jira_issue_resolvers())
+
+        assert result.html == '<a href="https://example.atlassian.net/browse/DEMO-12">DEMO-12</a>'
+        assert result.downgraded == {"jira": 1}
+        assert result.is_lossless
+
+    def test_a_key_whose_sequence_id_was_never_imported_stays_a_link(self):
+        issue = ResolvedJiraIssue(id="issue-1", project_id="project-1", workspace_id="workspace-1")
+        body = self._jira_macro(server_id="server-1", key="DEMO-99")
+
+        result = convert(body, self._jira_issue_resolvers({("DEMO", 12): issue}))
+
+        assert result.html == '<a href="https://example.atlassian.net/browse/DEMO-99">DEMO-99</a>'
+        assert result.downgraded == {"jira": 1}
+        assert result.is_lossless
+
+    def test_a_matching_sequence_id_in_a_different_project_is_not_matched(self):
+        issue = ResolvedJiraIssue(id="issue-1", project_id="project-1", workspace_id="workspace-1")
+        body = self._jira_macro(server_id="server-1", key="OTHER-12")
+
+        result = convert(body, self._jira_issue_resolvers({("DEMO", 12): issue}))
+
+        assert result.html == '<a href="https://example.atlassian.net/browse/OTHER-12">OTHER-12</a>'
+        assert result.downgraded == {"jira": 1}
+        assert result.is_lossless
 
 
 @dataclass

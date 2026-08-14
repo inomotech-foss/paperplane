@@ -8,20 +8,23 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { SmilePlus } from "lucide-react";
 // plane imports
+import type { TAwarenessUser } from "@plane/editor";
 import { EmojiPicker, EmojiIconPickerTypes } from "@plane/propel/emoji-icon-picker";
 import { cn } from "@plane/utils";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
+import { PageCollaborators } from "../page-collaborators";
 import { PageEditorHeaderLogoPicker } from "./logo-picker";
 
 type Props = {
   page: TPageInstance;
   projectId?: string;
+  collaborators: TAwarenessUser[];
 };
 
 export const PageEditorHeaderRoot = observer(function PageEditorHeaderRoot(props: Props) {
-  const { page } = props;
+  const { page, collaborators } = props;
   // states
   const [isLogoPickerOpen, setIsLogoPickerOpen] = useState(false);
   // derived values
@@ -31,7 +34,7 @@ export const PageEditorHeaderRoot = observer(function PageEditorHeaderRoot(props
 
   return (
     <>
-      <div className="flex h-[48px] items-end text-left">
+      <div className="flex h-[48px] items-end justify-between gap-2 text-left">
         {!isLogoSelected && (
           <div
             className={cn("opacity-0 transition-all duration-200 group-hover/page-header:opacity-100", {
@@ -70,6 +73,7 @@ export const PageEditorHeaderRoot = observer(function PageEditorHeaderRoot(props
             />
           </div>
         )}
+        <PageCollaborators collaborators={collaborators} />
       </div>
       <PageEditorHeaderLogoPicker className="mt-2 flex w-full flex-shrink-0" page={page} />
     </>

@@ -222,6 +222,7 @@
   "work_management": "Quản lý công việc",
   "projects_and_issues": "Dự án và mục công việc",
   "projects_and_issues_description": "Bật hoặc tắt các tính năng này trong dự án này. Có thể thay đổi theo thời gian phù hợp với nhu cầu.",
+  "work_items_description": "Theo dõi và quản lý các mục công việc trong dự án này.",
   "cycles_description": "Thiết lập thời gian làm việc theo dự án và điều chỉnh thời gian nếu cần. Một chu kỳ có thể là 2 tuần, chu kỳ tiếp theo là 1 tuần.",
   "modules_description": "Tổ chức công việc thành các dự án con với người lãnh đạo và người được phân công riêng.",
   "views_description": "Lưu các tùy chọn sắp xếp, lọc và hiển thị tùy chỉnh hoặc chia sẻ chúng với nhóm của bạn.",

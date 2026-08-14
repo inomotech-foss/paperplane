@@ -195,6 +195,18 @@ class TestProjectFeatures:
         assert "workflows" not in response.data
 
     @pytest.mark.django_db
+    def test_work_items_feature_is_switchable(self, api_key_client, workspace, project):
+        project.issue_view = True
+        project.save()
+
+        response = api_key_client.patch(features_url(workspace.slug, project.id), {"work_items": False}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["work_items"] is False
+        project.refresh_from_db()
+        assert project.issue_view is False
+
+    @pytest.mark.django_db
     def test_switching_a_feature_on(self, api_key_client, workspace, project):
         project.module_view = False
         project.save()

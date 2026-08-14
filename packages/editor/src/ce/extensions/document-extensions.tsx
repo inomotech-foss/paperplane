@@ -6,6 +6,7 @@
 
 import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { AnyExtension } from "@tiptap/core";
+import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
 import {
   AnchorExtensionConfig,
   ChildPagesExtension,
@@ -18,6 +19,7 @@ import {
   QueryBlockExtension,
   SlashCommands,
   TableOfContentsExtension,
+  WorkItemEmbedExtension,
 } from "@/extensions";
 // types
 import type { IEditorProps, TExtensions, TUserDetails } from "@/types";
@@ -32,6 +34,7 @@ export type TDocumentEditorAdditionalExtensionsProps = Pick<
   | "fileHandler"
   | "pageAttachmentsHandler"
   | "queryBlockHandler"
+  | "workItemEmbedHandler"
   | "extendedEditorProps"
 > & {
   isEditable: boolean;
@@ -82,9 +85,25 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
     getExtension: ({ queryBlockHandler }) => QueryBlockExtension(queryBlockHandler),
   },
   {
+    isEnabled: () => true,
+    getExtension: ({ workItemEmbedHandler }) => WorkItemEmbedExtension(workItemEmbedHandler),
+  },
+  {
     isEnabled: (disabledExtensions) => !disabledExtensions.includes("slash-commands"),
     getExtension: ({ disabledExtensions, flaggedExtensions }) =>
       SlashCommands({ additionalOptions: documentSlashCommandOptions, disabledExtensions, flaggedExtensions }),
+  },
+  {
+    isEnabled: () => true,
+    getExtension: ({ provider, userDetails }) =>
+      CollaborationCursor.configure({
+        provider,
+        user: {
+          id: userDetails.id,
+          name: userDetails.name,
+          color: userDetails.color,
+        },
+      }),
   },
 ];
 

@@ -58,6 +58,26 @@ def _issue_link(soup, base, key):
     return tag
 
 
+def _split_key(key):
+    """`DEMO-12` -> ("DEMO", 12), the project identifier and sequence id an
+    imported work item is looked up by."""
+    project_key, _, number = key.rpartition("-")
+    try:
+        return project_key, int(number)
+    except ValueError:
+        return None, None
+
+
+def _issue_embed(soup, issue):
+    tag = soup.new_tag("issue-embed-component")
+    tag["id"] = issue.id
+    tag["entity_identifier"] = issue.id
+    tag["entity_name"] = "issue_embed"
+    tag["project_identifier"] = issue.project_id
+    tag["workspace_identifier"] = issue.workspace_id
+    return tag
+
+
 def _search_link(soup, base, jql):
     if base is None:
         return NavigableString(jql)
@@ -68,13 +88,19 @@ def _search_link(soup, base, jql):
 
 
 def convert_jira_macro(soup, node, resolvers, result):
-    """A live link stands in for the issue: a lesser but faithful
-    representation, so this is always a downgrade, never a loss."""
+    """A key naming an imported work item becomes a real embed; anything else
+    falls back to a live link, a lesser but faithful representation and so
+    always a downgrade, never a loss."""
     parameters = macro_parameters(node)
     base = resolvers.jira_base_url(parameters.get("serverId", ""))
 
     key = parameters.get("key", "").strip()
     if key:
+        project_key, sequence_id = _split_key(key)
+        issue = resolvers.jira_issue(project_key, sequence_id)
+        if issue is not None:
+            node.replace_with(_issue_embed(soup, issue))
+            return
         result.downgraded["jira"] += 1
         node.replace_with(_issue_link(soup, base, key))
         return
