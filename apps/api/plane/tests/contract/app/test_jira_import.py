@@ -347,6 +347,7 @@ class TestCollidingKey:
             identifier="DEMO",
             network=2,
             issue_view=False,
+            is_issue_type_enabled=False,
             external_source="confluence",
             external_id="20742223",
         )
@@ -364,9 +365,18 @@ class TestCollidingKey:
 
         wiki.refresh_from_db()
         assert wiki.name == "Wiki Demo"
-        assert wiki.network == 2
         assert wiki.external_source == "confluence"
+
+    def test_the_existing_project_can_show_what_the_import_wrote(self, loader, ada, wiki):
+        """Both tabs the import fills are turned on, because a project holding
+        work items and their issue types has to be able to show them. The
+        visibility an admin chose is not part of that and stays put."""
+        loader.run()
+
+        wiki.refresh_from_db()
         assert wiki.issue_view is True
+        assert wiki.is_issue_type_enabled is True
+        assert wiki.network == 2
 
 
 @pytest.mark.contract

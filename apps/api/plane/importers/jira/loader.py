@@ -176,15 +176,18 @@ class JiraLoader:
         ``Project.identifier`` is the Jira key, so a Confluence space already
         imported under that key is the same project: the wiki and the work
         items belong together and the key has to keep pointing at one project.
-        An existing project keeps its settings and only gains the work items
-        tab.
+        An existing project keeps every setting an admin chose, visibility and
+        network included, and only gains the two tabs the import fills: it now
+        holds work items and the issue types they are typed with, so both have
+        to be reachable.
         """
         key = self.backup.project_key
         project = Project.objects.filter(workspace=self.workspace, identifier=key).first()
         if project is not None:
             summary.merged = project.external_source != self.EXTERNAL_SOURCE
-            if not project.issue_view:
+            if not (project.issue_view and project.is_issue_type_enabled):
                 project.issue_view = True
+                project.is_issue_type_enabled = True
                 project.save(disable_auto_set_user=True)
             return project
 
