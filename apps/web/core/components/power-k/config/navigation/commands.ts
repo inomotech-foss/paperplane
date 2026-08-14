@@ -294,8 +294,8 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
           ctx.params.projectId?.toString(),
           "issues",
         ]),
-      isEnabled: (ctx) => baseProjectConditions(ctx),
-      isVisible: (ctx) => baseProjectConditions(ctx),
+      isEnabled: (ctx) => baseProjectConditions(ctx) && !!getContextProject(ctx)?.issue_view,
+      isVisible: (ctx) => baseProjectConditions(ctx) && !!getContextProject(ctx)?.issue_view,
       closeOnSelect: true,
     },
     open_project_cycle: {

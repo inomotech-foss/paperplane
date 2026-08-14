@@ -320,6 +320,13 @@
           "text": "Özellikleri yönet"
         }
       },
+      "work_item": {
+        "title": "İş öğeleri bu proje için etkin değil.",
+        "description": "İş öğeleri projenizin yapı taşlarıdır. Kullanmaya başlamak için proje ayarlarından iş öğelerini etkinleştirin.",
+        "primary_button": {
+          "text": "Özellikleri yönet"
+        }
+      },
       "page": {
         "title": "Sayfalar bu proje için etkin değil.",
         "description": "Sayfalar projenizin yapı taşlarıdır. Kullanmaya başlamak için proje ayarlarından sayfaları etkinleştirin.",
