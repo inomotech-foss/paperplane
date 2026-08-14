@@ -236,6 +236,7 @@ def register_module_tools(mcp: FastMCP) -> None:
     def list_module_work_items(
         project_id: str,
         module_id: str,
+        pql: str | None = None,
         order_by: str | None = None,
         per_page: int | None = None,
         cursor: str | None = None,
@@ -248,6 +249,9 @@ def register_module_tools(mcp: FastMCP) -> None:
         Args:
             project_id: UUID of the project
             module_id: UUID of the module
+            pql: Plane Query Language expression to filter results, e.g.
+                `priority = "urgent"` or `state_group = "started"`. See
+                list_work_items for the full field and operator reference.
             order_by: Field to sort by; prefix with `-` for descending.
             per_page: Results per page, 1-100 (default 25).
             cursor: Pagination cursor from a previous response's `next_cursor`.
@@ -259,6 +263,7 @@ def register_module_tools(mcp: FastMCP) -> None:
         """
         client, workspace_slug = get_plane_client_context()
         params = WorkItemQueryParams(
+            pql=pql,
             order_by=order_by,
             per_page=per_page,
             cursor=cursor,

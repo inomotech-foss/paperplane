@@ -4,23 +4,26 @@
  * See the LICENSE file for details.
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { EyeIcon, TriangleAlert } from "lucide-react";
 // plane imports
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { TPageVersion } from "@plane/types";
-import { renderFormattedDate, renderFormattedTime } from "@plane/utils";
+import type { JSONContent, TPageVersion } from "@plane/types";
+import { isJSONContentEmpty, renderFormattedDate, renderFormattedTime } from "@plane/utils";
 // helpers
 import type { EPageStoreType } from "@/hooks/store";
 // local imports
+import { buildPageVersionDiff } from "./diff";
 import type { TVersionEditorProps } from "./editor";
 
 type Props = {
   activeVersion: string | null;
   editorComponent: React.FC<TVersionEditorProps>;
+  fetchAllVersions: (pageId: string) => Promise<TPageVersion[] | undefined>;
   fetchVersionDetails: (pageId: string, versionId: string) => Promise<TPageVersion | undefined>;
   handleClose: () => void;
   handleRestore: (descriptionHTML: string) => Promise<void>;
@@ -29,10 +32,26 @@ type Props = {
   storeType: EPageStoreType;
 };
 
+/** The version saved immediately before the one being viewed. */
+const previousVersionId = (versions: TPageVersion[] | undefined, activeVersion: string | null): string | null => {
+  const active = versions?.find((version) => version.id === activeVersion);
+  if (!versions || !active) return null;
+
+  const activeSavedAt = Date.parse(active.last_saved_at);
+  let previous: TPageVersion | null = null;
+  for (const version of versions) {
+    const savedAt = Date.parse(version.last_saved_at);
+    if (savedAt >= activeSavedAt) continue;
+    if (!previous || savedAt > Date.parse(previous.last_saved_at)) previous = version;
+  }
+  return previous?.id ?? null;
+};
+
 export const PageVersionsMainContent = observer(function PageVersionsMainContent(props: Props) {
   const {
     activeVersion,
     editorComponent,
+    fetchAllVersions,
     fetchVersionDetails,
     handleClose,
     handleRestore,
@@ -43,6 +62,9 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
   // states
   const [isRestoring, setIsRestoring] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isComparing, setIsComparing] = useState(false);
+  // translation
+  const { t } = useTranslation();
 
   const {
     data: versionDetails,
@@ -53,24 +75,47 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
     pageId && activeVersion ? () => fetchVersionDetails(pageId, activeVersion) : null
   );
 
+  // shares its key with the navigation pane timeline, so this is usually cached
+  const { data: versionsList } = useSWR(
+    pageId ? `PAGE_VERSIONS_LIST_${pageId}` : null,
+    pageId ? () => fetchAllVersions(pageId) : null
+  );
+
+  const previousVersion = previousVersionId(versionsList, activeVersion);
+
+  const { data: previousVersionDetails } = useSWR(
+    pageId && previousVersion && isComparing ? `PAGE_VERSION_${previousVersion}` : null,
+    pageId && previousVersion ? () => fetchVersionDetails(pageId, previousVersion) : null
+  );
+
+  // Both sides have to be in hand, or a still-loading fetch reads as a full rewrite.
+  const diffContent = useMemo(() => {
+    if (!isComparing || !versionDetails || !previousVersionDetails) return null;
+    const current = versionDetails.description_json as JSONContent | undefined;
+    if (isJSONContentEmpty(current)) return null;
+    return buildPageVersionDiff(previousVersionDetails.description_json as JSONContent | undefined, current);
+  }, [isComparing, previousVersionDetails, versionDetails]);
+
+  const compareEnabled = !!previousVersion && !isJSONContentEmpty(versionDetails?.description_json as JSONContent);
+
   const handleRestoreVersion = async () => {
     if (!restoreEnabled) return;
     setIsRestoring(true);
-    await handleRestore(versionDetails?.description_html ?? "<p></p>")
-      .then(() => {
-        setToast({
-          type: TOAST_TYPE.SUCCESS,
-          title: "Page version restored.",
-        });
-        handleClose();
-      })
-      .catch(() =>
-        setToast({
-          type: TOAST_TYPE.ERROR,
-          title: "Failed to restore page version.",
-        })
-      )
-      .finally(() => setIsRestoring(false));
+    try {
+      await handleRestore(versionDetails?.description_html ?? "<p></p>");
+      setToast({
+        type: TOAST_TYPE.SUCCESS,
+        title: "Page version restored.",
+      });
+      handleClose();
+    } catch {
+      setToast({
+        type: TOAST_TYPE.ERROR,
+        title: "Failed to restore page version.",
+      });
+    } finally {
+      setIsRestoring(false);
+    }
   };
 
   const handleRetry = async () => {
@@ -112,14 +157,30 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
                 View only
               </span>
             </div>
-            {restoreEnabled && (
-              <Button variant="primary" className="flex-shrink-0" onClick={handleRestoreVersion} loading={isRestoring}>
-                {isRestoring ? "Restoring" : "Restore"}
-              </Button>
-            )}
+            <div className="flex flex-shrink-0 items-center gap-2">
+              {compareEnabled && (
+                <Button
+                  variant={isComparing ? "primary" : "secondary"}
+                  aria-pressed={isComparing}
+                  onClick={() => setIsComparing((previous) => !previous)}
+                >
+                  {t("page_navigation_pane.tabs.info.version_history.highlight_changes")}
+                </Button>
+              )}
+              {restoreEnabled && (
+                <Button variant="primary" onClick={handleRestoreVersion} loading={isRestoring}>
+                  {isRestoring ? "Restoring" : "Restore"}
+                </Button>
+              )}
+            </div>
           </div>
           <div className="vertical-scrollbar scrollbar-sm h-full overflow-y-scroll pt-8">
-            <VersionEditor activeVersion={activeVersion} storeType={storeType} versionDetails={versionDetails} />
+            <VersionEditor
+              activeVersion={activeVersion}
+              diffContent={diffContent}
+              storeType={storeType}
+              versionDetails={versionDetails}
+            />
           </div>
         </>
       )}

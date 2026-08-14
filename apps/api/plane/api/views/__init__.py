@@ -87,6 +87,11 @@ from .work_item_archive import (
     WorkItemUnarchiveAPIEndpoint,
 )
 
+from .work_item_workspace import (
+    WorkspaceWorkItemCountAPIEndpoint,
+    WorkspaceWorkItemListAPIEndpoint,
+)
+
 from .project_feature import ProjectFeatureAPIEndpoint
 
 from .issue_property import (

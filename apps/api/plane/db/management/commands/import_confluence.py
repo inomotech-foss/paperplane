@@ -19,11 +19,16 @@ class Command(BaseCommand):
         parser.add_argument("--workspace", required=True, help="Target Plane workspace slug")
         parser.add_argument("--actor", required=True, help="Email of the user to fall back to for unmapped authors")
         parser.add_argument("--dry-run", action="store_true", help="Roll back instead of committing")
+        parser.add_argument(
+            "--include-personal", action="store_true", help="Allow importing a personal Confluence space"
+        )
 
     def handle(self, *args, **options):
         backup = ConfluenceBackup(options["backup_dir"], options["space"])
         if not backup.exists():
             raise CommandError(f"No space.json under {backup.space_dir}")
+        if backup.space_type() == "personal" and not options["include_personal"]:
+            raise CommandError(f"{options['space']} is a personal space; pass --include-personal to import it")
 
         try:
             workspace = Workspace.objects.get(slug=options["workspace"])
