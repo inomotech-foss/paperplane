@@ -25,10 +25,6 @@ export { ADDITIONAL_EXTENSIONS } from "@/plane-editor/constants/extensions";
 // types
 export * from "@/types";
 
-// contexts
-export { CollaborationProvider, useCollaboration } from "@/contexts/collaboration-context";
-export type { TCollabValue } from "@/contexts/collaboration-context";
-
 // additional exports
 export { TrailingNode } from "./core/extensions/trailing-node";
 export {

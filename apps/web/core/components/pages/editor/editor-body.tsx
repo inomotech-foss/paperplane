@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { LIVE_BASE_PATH, LIVE_BASE_URL } from "@plane/constants";
@@ -14,6 +14,7 @@ import type {
   EditorRefApi,
   EditorTitleRefApi,
   TAIMenuProps,
+  TAwarenessUser,
   TDiagramEditorProps,
   TDisplayConfig,
   TEmbedRenderProps,
@@ -289,8 +290,8 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
     }),
     [currentUser?.display_name, currentUser?.id]
   );
-  // token for the header's own collaboration connection, used only to read presence/awareness
-  const collabAuthToken = useMemo(() => JSON.stringify(userConfig), [userConfig]);
+  // presence, published by the editor's single collaboration connection
+  const [collaborators, setCollaborators] = useState<TAwarenessUser[]>([]);
 
   const blockWidthClassName = cn(
     "mx-auto block w-full max-w-[720px] bg-transparent transition-all duration-200 ease-in-out",
@@ -334,14 +335,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
         <div>
           <div className="page-header-container group/page-header">
             <div className={blockWidthClassName}>
-              <PageEditorHeaderRoot
-                page={page}
-                projectId={projectId}
-                currentUserId={userConfig.id}
-                presenceDocId={pageId}
-                presenceServerUrl={realtimeConfig.url}
-                presenceAuthToken={collabAuthToken}
-              />
+              <PageEditorHeaderRoot page={page} projectId={projectId} collaborators={collaborators} />
             </div>
           </div>
           <CollaborativeDocumentEditorWithRef
@@ -379,6 +373,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
               menu: getAIMenu,
             }}
             onAssetChange={updateAssetsList}
+            onCollaboratorsChange={setCollaborators}
             extendedEditorProps={extendedEditorProps}
             isFetchingFallbackBinary={isFetchingFallbackBinary}
           />

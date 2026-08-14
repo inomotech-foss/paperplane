@@ -8,7 +8,7 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { SmilePlus } from "lucide-react";
 // plane imports
-import { CollaborationProvider } from "@plane/editor";
+import type { TAwarenessUser } from "@plane/editor";
 import { EmojiPicker, EmojiIconPickerTypes } from "@plane/propel/emoji-icon-picker";
 import { cn } from "@plane/utils";
 // store
@@ -20,15 +20,11 @@ import { PageEditorHeaderLogoPicker } from "./logo-picker";
 type Props = {
   page: TPageInstance;
   projectId?: string;
-  currentUserId: string;
-  // used only to read presence/awareness for the collaborators avatar stack
-  presenceDocId: string;
-  presenceServerUrl: string;
-  presenceAuthToken: string;
+  collaborators: TAwarenessUser[];
 };
 
 export const PageEditorHeaderRoot = observer(function PageEditorHeaderRoot(props: Props) {
-  const { page, currentUserId, presenceDocId, presenceServerUrl, presenceAuthToken } = props;
+  const { page, collaborators } = props;
   // states
   const [isLogoPickerOpen, setIsLogoPickerOpen] = useState(false);
   // derived values
@@ -77,9 +73,7 @@ export const PageEditorHeaderRoot = observer(function PageEditorHeaderRoot(props
             />
           </div>
         )}
-        <CollaborationProvider docId={presenceDocId} serverUrl={presenceServerUrl} authToken={presenceAuthToken}>
-          <PageCollaborators currentUserId={currentUserId} />
-        </CollaborationProvider>
+        <PageCollaborators collaborators={collaborators} />
       </div>
       <PageEditorHeaderLogoPicker className="mt-2 flex w-full flex-shrink-0" page={page} />
     </>
