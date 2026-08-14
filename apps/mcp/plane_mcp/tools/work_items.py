@@ -66,6 +66,7 @@ def register_work_item_tools(mcp: FastMCP) -> None:
     @mcp.tool()
     def list_work_items(
         project_id: str,
+        pql: str | None = None,
         order_by: str | None = None,
         per_page: int | None = None,
         cursor: str | None = None,
@@ -82,6 +83,29 @@ def register_work_item_tools(mcp: FastMCP) -> None:
 
         Args:
             project_id: UUID of the project.
+            pql: Plane Query Language expression to filter results. Examples:
+                `priority = "urgent" AND assignee = currentUser()`,
+                `type = "<type id>"`, `state_group in ("started", "backlog")`,
+                `childOf("PROJ-12")`, `target_date >= now() - 7d`,
+                `cf["<property id>"] = "<option id>"`.
+
+                Fields: state, state_group, priority, project, type, label(s),
+                assignee(s), module, cycle, created_by, parent, target_date,
+                start_date. Custom properties use `cf["<property id>"]`
+                (find the id with list_work_item_properties).
+
+                Operators: `=` and `!=` on any field; `>`, `>=`, `<`, `<=` on
+                target_date/start_date only (`cf[]` allows just `>`/`<`); `~`
+                (case-insensitive contains) on text fields only; `in (...)`,
+                `not in (...)`, `is null`, `is not null` where the field allows
+                it. Combine with `AND`, `OR`, `NOT` and parentheses.
+
+                Values: quoted strings, numbers, `currentUser()`, or
+                `now() +/- Nd|Nw|Nh` (days/weeks/hours) for date fields.
+                `childOf("PROJ-12")` takes a work item identifier, not a UUID.
+
+                priority accepts urgent, high, medium, low, none. state_group
+                accepts backlog, unstarted, started, completed, cancelled.
             order_by: Sort field; prefix `-` for descending (e.g. `-created_at`).
             per_page: 1-100, default 25.
             cursor: From previous response's next_cursor.
@@ -104,6 +128,7 @@ def register_work_item_tools(mcp: FastMCP) -> None:
         client, workspace_slug = get_plane_client_context()
 
         params = WorkItemQueryParams(
+            pql=pql,
             order_by=order_by,
             per_page=per_page,
             cursor=cursor,
