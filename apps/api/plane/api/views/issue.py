@@ -88,6 +88,7 @@ from plane.utils.order_queryset import (
 )
 from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
 from .base import BaseAPIView
+from .work_item_filter import WorkItemFilterMixin
 from plane.utils.issue_property import build_issue_property_filters
 from plane.utils.host import base_host
 from plane.utils.issue_relation_mapper import get_actual_relation
@@ -117,6 +118,8 @@ from plane.utils.openapi import (
     EXTERNAL_ID_PARAMETER,
     EXTERNAL_SOURCE_PARAMETER,
     ORDER_BY_PARAMETER,
+    PQL_PARAMETER,
+    FILTERS_PARAMETER,
     SEARCH_PARAMETER_REQUIRED,
     LIMIT_PARAMETER,
     WORKSPACE_SEARCH_PARAMETER,
@@ -255,7 +258,7 @@ class WorkspaceIssueAPIEndpoint(BaseAPIView):
             )
 
 
-class IssueListCreateAPIEndpoint(BaseAPIView):
+class IssueListCreateAPIEndpoint(WorkItemFilterMixin, BaseAPIView):
     """
     This viewset provides `list` and `create` on issue level
     """
@@ -290,6 +293,8 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
         summary="List work items",
         description="Retrieve a paginated list of all work items in a project. Supports filtering, ordering, and field selection through query parameters.",  # noqa: E501
         parameters=[
+            PQL_PARAMETER,
+            FILTERS_PARAMETER,
             CURSOR_PARAMETER,
             PER_PAGE_PARAMETER,
             EXTERNAL_ID_PARAMETER,
@@ -315,6 +320,9 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
         Retrieve a paginated list of all work items in a project.
         Supports filtering, ordering, and field selection through query parameters.
 
+        Structured filtering is available through either `pql=<expression>` or a
+        JSON encoded `filters=<expression>`; supplying both is an error.
+
         Custom property filters (work item properties) are supported through
         `property__<property_id>=<value>` query parameters:
 
@@ -327,20 +335,6 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
         `.filter(property_values__property_id=..., property_values__value_number__gt=...)`
         on the work item queryset; multiple property filters are ANDed.
         """
-
-        unsupported_filters = [param for param in ("pql", "filters") if request.GET.get(param)]
-        if unsupported_filters:
-            return Response(
-                {
-                    "pql": (
-                        "PQL and structured filters are not supported on this Plane edition. "
-                        "Remove the pql/filters parameter and filter results client-side, or use "
-                        "a Plane edition that supports work item query filtering."
-                    ),
-                    "unsupported_parameters": unsupported_filters,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         external_id = request.GET.get("external_id")
         external_source = request.GET.get("external_source")
@@ -405,6 +399,14 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
             total_issue_queryset = total_issue_queryset.filter(**property_filter)
         if property_filters:
             total_issue_queryset = total_issue_queryset.distinct()
+
+        # `pql` / `filters` structured filtering
+        querysets, filter_error = self.filter_work_items(
+            request, slug, [issue_queryset, total_issue_queryset], project_id=project_id
+        )
+        if filter_error:
+            return filter_error
+        issue_queryset, total_issue_queryset = querysets
 
         # Priority Ordering
         if order_by_param == "priority" or order_by_param == "-priority":

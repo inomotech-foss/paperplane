@@ -19,20 +19,23 @@ from plane.utils.openapi import (
     CURSOR_PARAMETER,
     EXPAND_PARAMETER,
     FIELDS_PARAMETER,
+    FILTERS_PARAMETER,
     INVALID_REQUEST_RESPONSE,
     ORDER_BY_PARAMETER,
     PER_PAGE_PARAMETER,
+    PQL_PARAMETER,
     create_paginated_response,
     work_item_docs,
 )
 
 from .base import BaseAPIView
+from .work_item_filter import WorkItemFilterMixin
 
 # A work item is only archivable once it is out of play.
 ARCHIVABLE_STATE_GROUPS = ["completed", "cancelled"]
 
 
-class WorkItemArchiveListAPIEndpoint(BaseAPIView):
+class WorkItemArchiveListAPIEndpoint(WorkItemFilterMixin, BaseAPIView):
     """Archived work items of a project."""
 
     serializer_class = IssueSerializer
@@ -64,6 +67,8 @@ class WorkItemArchiveListAPIEndpoint(BaseAPIView):
         summary="List archived work items",
         description="Retrieve the work items that have been archived in a project.",
         parameters=[
+            PQL_PARAMETER,
+            FILTERS_PARAMETER,
             CURSOR_PARAMETER,
             PER_PAGE_PARAMETER,
             ORDER_BY_PARAMETER,
@@ -77,13 +82,17 @@ class WorkItemArchiveListAPIEndpoint(BaseAPIView):
                 "Paginated list of archived work items",
                 "Paginated Archived Work Items",
             ),
+            400: INVALID_REQUEST_RESPONSE,
         },
     )
     def get(self, request, slug, project_id):
         """List archived work items"""
+        querysets, error = self.filter_work_items(request, slug, [self.get_queryset()], project_id=project_id)
+        if error:
+            return error
         return self.paginate(
             request=request,
-            queryset=self.get_queryset(),
+            queryset=querysets[0],
             on_results=lambda issues: IssueSerializer(issues, many=True, fields=self.fields, expand=self.expand).data,
         )
 

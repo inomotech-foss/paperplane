@@ -22,6 +22,12 @@ from plane.utils.pql.parser import (
     NOW_PLACEHOLDER,
     parse_pql,
 )
+from plane.utils.pql.resolve import (
+    WorkItemFilterError,
+    apply_work_item_filters,
+    compile_work_item_filters,
+    resolve_group_by,
+)
 
 __all__ = [
     "CHILD_OF_PLACEHOLDER",
@@ -34,6 +40,10 @@ __all__ = [
     "CustomPropertyFilter",
     "FilterCompileError",
     "PQLSyntaxError",
+    "WorkItemFilterError",
+    "apply_work_item_filters",
     "compile_filters",
+    "compile_work_item_filters",
     "parse_pql",
+    "resolve_group_by",
 ]

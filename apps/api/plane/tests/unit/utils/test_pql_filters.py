@@ -26,6 +26,7 @@ MODULE_ID = "66666666-6666-4666-8666-666666666666"
 CYCLE_ID = "77777777-7777-4777-8777-777777777777"
 USER_ID = "88888888-8888-4888-8888-888888888888"
 PROPERTY_ID = "99999999-9999-4999-8999-999999999999"
+PARENT_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
 
 FIELD_CASES = [
     ({"state_id": STATE_ID}, Q(state_id=uuid.UUID(STATE_ID))),
@@ -50,6 +51,7 @@ FIELD_CASES = [
         Q(issue_cycle__cycle_id=uuid.UUID(CYCLE_ID)) & Q(issue_cycle__deleted_at__isnull=True),
     ),
     ({"created_by": USER_ID}, Q(created_by_id=uuid.UUID(USER_ID))),
+    ({"parent_id": PARENT_ID}, Q(parent_id=uuid.UUID(PARENT_ID))),
     ({"target_date": "2024-05-01"}, Q(target_date=date(2024, 5, 1))),
     ({"start_date": "2024-05-01"}, Q(start_date=date(2024, 5, 1))),
 ]

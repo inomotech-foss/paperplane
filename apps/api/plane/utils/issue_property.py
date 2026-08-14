@@ -299,7 +299,8 @@ def build_issue_property_filters(query_params, slug, project_id):
 
     Returns a tuple `(filters, error)` where `filters` is a list of filter
     kwargs dicts (one per query param, each targeting the `property_values`
-    relation) and `error` is an error message or None.
+    relation) and `error` is an error message or None. A `project_id` of None
+    resolves the properties workspace-wide, for the workspace level endpoints.
     """
     parsed_params = []
     for key in query_params.keys():
@@ -321,11 +322,13 @@ def build_issue_property_filters(query_params, slug, project_id):
     if not parsed_params:
         return [], None
 
+    property_scope = {"workspace__slug": slug}
+    if project_id is not None:
+        property_scope["project_id"] = project_id
     properties = {
         str(prop.id): prop
         for prop in IssueProperty.objects.filter(
-            workspace__slug=slug,
-            project_id=project_id,
+            **property_scope,
             id__in=[param[1] for param in parsed_params],
         )
     }
