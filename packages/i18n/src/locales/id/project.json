@@ -320,6 +320,13 @@
           "text": "Kelola fitur"
         }
       },
+      "work_item": {
+        "title": "Item kerja tidak diaktifkan untuk proyek ini.",
+        "description": "Item kerja adalah blok bangunan dari proyek Anda. Aktifkan item kerja dari pengaturan proyek untuk mulai menggunakannya.",
+        "primary_button": {
+          "text": "Kelola fitur"
+        }
+      },
       "page": {
         "title": "Halaman tidak diaktifkan untuk proyek ini.",
         "description": "Halaman adalah blok bangunan dari proyek Anda. Aktifkan halaman dari pengaturan proyek untuk mulai menggunakannya.",

@@ -222,6 +222,7 @@
   "work_management": "Gestionare muncă",
   "projects_and_issues": "Proiecte și activități",
   "projects_and_issues_description": "Activează sau dezactivează aceste opțiuni pentru proiect.",
+  "work_items_description": "Urmărește și gestionează activitățile din acest proiect.",
   "cycles_description": "Stabilește perioade de timp pentru fiecare proiect și ajustează-le după cum este necesar. Un ciclu poate dura 2 săptămâni, următorul 1 săptămână.",
   "modules_description": "Organizează munca în sub-proiecte cu lideri și responsabili dedicați.",
   "views_description": "Salvează sortările, filtrele și opțiunile de afișare personalizate sau distribuie-le echipei tale.",

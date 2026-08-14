@@ -320,6 +320,13 @@
           "text": "Funktionen verwalten"
         }
       },
+      "work_item": {
+        "title": "Arbeitselemente sind nicht aktiviert",
+        "description": "Aktivieren Sie Arbeitselemente in den Projekteinstellungen.",
+        "primary_button": {
+          "text": "Funktionen verwalten"
+        }
+      },
       "page": {
         "title": "Seiten sind nicht aktiviert",
         "description": "Aktivieren Sie Seiten in den Projekteinstellungen.",

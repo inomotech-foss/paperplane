@@ -19,6 +19,7 @@ FEATURE_FIELDS = {
     "cycles": "cycle_view",
     "views": "issue_views_view",
     "pages": "page_view",
+    "work_items": "issue_view",
     "intakes": "intake_view",
     "work_item_types": "is_issue_type_enabled",
 }

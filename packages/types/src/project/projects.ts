@@ -29,6 +29,7 @@ export interface IPartialProject {
   issue_views_view: boolean;
   module_view: boolean;
   page_view: boolean;
+  issue_view: boolean;
   inbox_view: boolean;
   guest_view_all_features?: boolean;
   project_lead?: IUserLite | string | null;

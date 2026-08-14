@@ -222,6 +222,7 @@
   "work_management": "Správa práce",
   "projects_and_issues": "Projekty a pracovní položky",
   "projects_and_issues_description": "Aktivujte nebo deaktivujte tyto funkce v projektu.",
+  "work_items_description": "Sledujte a spravujte pracovní položky v tomto projektu.",
   "cycles_description": "Časově vymezte práci podle projektu a podle potřeby upravte období. Jeden cyklus může trvat 2 týdny, další jen 1 týden.",
   "modules_description": "Organizujte práci do podprojektů s vyhrazenými vedoucími a přiřazenými osobami.",
   "views_description": "Uložte vlastní řazení, filtry a možnosti zobrazení nebo je sdílejte se svým týmem.",
