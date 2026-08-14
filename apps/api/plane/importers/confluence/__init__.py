@@ -3,7 +3,7 @@
 
 from .assets import AttachmentUploader, inline_filenames
 from .report import PageReport, SpaceReport, report_backup, report_space
-from .resolvers import ConversionResult, ResolvedAttachment, ResolvedPage, ResolvedUser, Resolvers
+from .resolvers import ConversionResult, ResolvedAttachment, ResolvedJiraIssue, ResolvedPage, ResolvedUser, Resolvers
 from .storage import storage_to_html
 
 __all__ = [
@@ -15,6 +15,7 @@ __all__ = [
     "report_space",
     "ConversionResult",
     "ResolvedAttachment",
+    "ResolvedJiraIssue",
     "ResolvedPage",
     "ResolvedUser",
     "Resolvers",
