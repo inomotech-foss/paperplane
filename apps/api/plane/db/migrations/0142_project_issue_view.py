@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('db', '0140_issue_property_value_external_id'),
+        ('db', '0141_issue_activity_external_id'),
     ]
 
     operations = [
