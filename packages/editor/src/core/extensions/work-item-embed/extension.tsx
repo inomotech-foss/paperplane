@@ -4,40 +4,54 @@
  * See the LICENSE file for details.
  */
 
-import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
+import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
+// types
+import type { TWorkItemEmbedHandler } from "@/types";
 // local imports
 import { WorkItemEmbedExtensionConfig } from "./extension-config";
 import type { TWorkItemEmbedAttributes } from "./types";
 import { EWorkItemEmbedAttributeNames } from "./types";
 
-type Props = {
-  widgetCallback: ({
-    issueId,
-    projectId,
-    workspaceSlug,
-  }: {
-    issueId: string;
-    projectId: string | undefined;
-    workspaceSlug: string | undefined;
-  }) => React.ReactNode;
+type TWorkItemEmbedOptions = {
+  renderComponent: TWorkItemEmbedHandler["renderComponent"] | undefined;
 };
 
-export function WorkItemEmbedExtension(props: Props) {
-  return WorkItemEmbedExtensionConfig.extend({
-    addNodeView() {
-      return ReactNodeViewRenderer((issueProps: NodeViewProps) => {
-        const attrs = issueProps.node.attrs as TWorkItemEmbedAttributes;
-        return (
-          <NodeViewWrapper key={attrs[EWorkItemEmbedAttributeNames.ID]}>
-            {props.widgetCallback({
-              issueId: attrs[EWorkItemEmbedAttributeNames.ENTITY_IDENTIFIER] ?? "",
+function WorkItemEmbed(props: NodeViewProps) {
+  const { renderComponent } = props.extension.options as TWorkItemEmbedOptions;
+  const attrs = props.node.attrs as TWorkItemEmbedAttributes;
+  const workItemId = attrs[EWorkItemEmbedAttributeNames.ENTITY_IDENTIFIER];
+
+  return (
+    <NodeViewWrapper className="issue-embed my-2 block">
+      <div contentEditable={false}>
+        {workItemId
+          ? renderComponent?.({
+              workItemId,
               projectId: attrs[EWorkItemEmbedAttributeNames.PROJECT_IDENTIFIER],
               workspaceSlug: attrs[EWorkItemEmbedAttributeNames.WORKSPACE_IDENTIFIER],
-            })}
-          </NodeViewWrapper>
-        );
-      });
+            })
+          : null}
+      </div>
+    </NodeViewWrapper>
+  );
+}
+
+/**
+ * The node stays registered even without a handler so a document editor that
+ * cannot supply one still keeps the node in its schema rather than dropping it.
+ */
+export function WorkItemEmbedExtension(handler: TWorkItemEmbedHandler | undefined) {
+  return WorkItemEmbedExtensionConfig.extend<TWorkItemEmbedOptions>({
+    addOptions(this) {
+      return {
+        ...this.parent?.(),
+        renderComponent: handler?.renderComponent,
+      };
+    },
+
+    addNodeView() {
+      return ReactNodeViewRenderer(WorkItemEmbed);
     },
   });
 }

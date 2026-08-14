@@ -180,5 +180,9 @@
       "title": "Titolo",
       "updated": "Ultimo aggiornamento"
     }
+  },
+  "page_work_item_embed": {
+    "loading": "Caricamento dell'elemento di lavoro",
+    "error": "Impossibile caricare questo elemento di lavoro"
   }
 }

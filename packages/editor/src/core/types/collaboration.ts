@@ -41,3 +41,10 @@ export type CollaborationState = {
 export type TServerHandler = {
   onStateChange: (state: CollaborationState) => void;
 };
+
+/** A remote collaborator's identity, as broadcast over Yjs awareness. */
+export type TAwarenessUser = {
+  id: string;
+  name: string;
+  color: string;
+};

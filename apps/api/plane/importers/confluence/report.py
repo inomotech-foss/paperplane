@@ -162,21 +162,23 @@ def report_space(backup, limit=None, pages=None, page_map=None, jira_base_urls=N
     return report
 
 
-def report_backup(root, spaces=None, limit=None, global_page_map=False, jira_base_urls=None):
+def report_backup(root, spaces=None, limit=None, global_page_map=False, jira_base_urls=None, include_personal=False):
     """Every space in a backup, worst fidelity first - the triage order.
 
     Link targets resolve against every space in the run, matching an import of
     those same spaces. ``global_page_map`` widens that to every backed-up space,
     so a single-space run scores its links the way a full import would, at the
-    cost of reading the whole backup.
+    cost of reading the whole backup. Personal spaces are excluded unless
+    ``include_personal`` is set, matching what an import would do.
     """
-    keys = list(spaces) if spaces else space_keys(root)
+    keys = list(spaces) if spaces else space_keys(root, include_personal=include_personal)
     backups = {key: ConfluenceBackup(root, key) for key in keys}
     pages = {key: backup.pages() for key, backup in backups.items()}
 
     page_map = _page_resolvers(page for space_pages in pages.values() for page in space_pages)
     if global_page_map:
-        page_map = _titles_across(root, [key for key in space_keys(root) if key not in pages]) | page_map
+        all_keys = space_keys(root, include_personal=include_personal)
+        page_map = _titles_across(root, [key for key in all_keys if key not in pages]) | page_map
 
     reports = [
         report_space(backups[key], limit=limit, pages=pages[key], page_map=page_map, jira_base_urls=jira_base_urls)

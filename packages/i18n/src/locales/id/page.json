@@ -180,5 +180,9 @@
       "title": "Judul",
       "updated": "Terakhir diperbarui"
     }
+  },
+  "page_work_item_embed": {
+    "loading": "Memuat item kerja",
+    "error": "Tidak dapat memuat item kerja ini"
   }
 }

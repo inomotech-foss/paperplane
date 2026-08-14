@@ -404,6 +404,18 @@ export const nodeRenderers: NodeRendererRegistry = {
     );
   },
 
+  "issue-embed-component": (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
+    const workItemId = (node.attrs?.entity_identifier as string) || "";
+
+    // The card is built from live work item data, which a PDF has none of, so
+    // name the embed rather than leaving a blank where a block used to be.
+    return (
+      <View key={ctx.getKey()} style={pdfStyles.embed}>
+        <Text>{workItemId ? `Work item (${workItemId})` : "Work item"}</Text>
+      </View>
+    );
+  },
+
   mention: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
     const id = (node.attrs?.id as string) || "";
     const entityIdentifier = (node.attrs?.entity_identifier as string) || "";

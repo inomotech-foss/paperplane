@@ -180,5 +180,9 @@
       "title": "Titel",
       "updated": "Zuletzt aktualisiert"
     }
+  },
+  "page_work_item_embed": {
+    "loading": "Arbeitselement wird geladen",
+    "error": "Dieses Arbeitselement konnte nicht geladen werden"
   }
 }
