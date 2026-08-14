@@ -23,6 +23,7 @@ import type {
 import type {
   IMarking,
   TAIHandler,
+  TAwarenessUser,
   TChildPagesHandler,
   TDiagramHandler,
   TDisplayConfig,
@@ -218,6 +219,7 @@ export type ICollaborativeDocumentEditorProps = Omit<IEditorProps, "initialValue
   realtimeConfig: TRealtimeConfig;
   serverHandler?: TServerHandler;
   user: TUserDetails;
+  onCollaboratorsChange?: (users: TAwarenessUser[]) => void;
   extendedDocumentEditorProps?: ICollaborativeDocumentEditorPropsExtended;
   updatePageProperties?: <T extends keyof EventToPayloadMap>(
     pageIds: string | string[],
