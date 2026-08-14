@@ -73,6 +73,13 @@ data:
   {{- end }}
   {{- $managed = concat $managed (list "IS_OIDC_ENABLED" "OIDC_ISSUER" "OIDC_CLIENT_ID" "OIDC_CLIENT_SECRET" "OIDC_PROVIDER_NAME" "OIDC_SCOPES" "OIDC_TRUST_EMAIL" "OIDC_AUTHORIZE_URL" "OIDC_TOKEN_URL" "OIDC_USERINFO_URL" "OIDC_JWKS_URL" "OIDC_ADMIN_CLAIM" "OIDC_ADMIN_ROLE") }}
   {{- end }}
+  {{- $workspace := .Values.provision.workspace | default dict }}
+  {{- with $workspace.slug }}
+  PROVISION_WORKSPACE_SLUG: {{ . | quote }}
+  PROVISION_WORKSPACE_NAME: {{ $workspace.name | default . | quote }}
+  PROVISION_WORKSPACE_ROLE: {{ $workspace.autoJoinRole | default "15" | quote }}
+  {{- $managed = concat $managed (list "PROVISION_WORKSPACE_SLUG" "PROVISION_WORKSPACE_NAME" "PROVISION_WORKSPACE_ROLE") }}
+  {{- end }}
   PROVISION_MANAGED_KEYS: {{ join "," $managed | quote }}
 {{- if and $oidc.enabled $oidc.clientSecret (not (get $files "OIDC_CLIENT_SECRET")) }}
 ---

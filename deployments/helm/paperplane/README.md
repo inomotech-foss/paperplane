@@ -729,6 +729,25 @@ provision:
         OIDC_CLIENT_SECRET: /mnt/secrets-store/client-secret
 ```
 
+### Provision a workspace and join it on SSO login
+
+Set `provision.workspace.slug` to create that workspace at startup and add every
+OIDC user to it on login, so a first-time user lands in it instead of the
+onboarding wizard. `provision.workspace.name` defaults to the slug.
+`provision.workspace.autoJoinRole` sets the role for new memberships (20 admin,
+15 member, 5 guest; default 15). Memberships are only ever added: an existing
+membership is never removed or downgraded.
+
+One slug drives both, so the join target cannot point at a workspace that does
+not exist.
+
+A workspace that already carries this slug is adopted untouched, keeping its
+owner, name and visibility. A newly created one is owned by an inactive bot
+user, because an install whose admins come from `oidc.adminRole` has no human
+user at startup and the owner field grants no permissions of its own. Do not
+delete that bot account: the owner foreign key cascades, so removing it would
+delete the workspace with it.
+
 ## Custom Ingress Routes
 
 If you are planning to use 3rd party ingress providers, here is the available route configuration

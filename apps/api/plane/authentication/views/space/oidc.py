@@ -13,6 +13,7 @@ from django.views import View
 # Module imports
 from plane.authentication.provider.oauth.oidc import OIDCOAuthProvider
 from plane.authentication.utils.login import user_login
+from plane.authentication.utils.workspace_membership import auto_join_workspace
 from plane.license.models import Instance
 from plane.authentication.utils.host import base_host
 from plane.authentication.adapter.error import (
@@ -89,6 +90,7 @@ class OIDCCallbackSpaceEndpoint(View):
         try:
             provider = OIDCOAuthProvider(request=request, code=code)
             user = provider.authenticate()
+            auto_join_workspace(user=user)
             # Login the user and record his device info
             user_login(request=request, user=user, is_space=True)
             # Process workspace and project invitations

@@ -15,6 +15,7 @@ from plane.authentication.utils.instance_admin import sync_instance_admin
 from plane.authentication.utils.login import user_login
 from plane.authentication.utils.redirection_path import get_redirection_path
 from plane.authentication.utils.user_auth_workflow import post_user_auth_workflow
+from plane.authentication.utils.workspace_membership import auto_join_workspace
 from plane.license.models import Instance
 from plane.authentication.utils.host import base_host
 from plane.authentication.adapter.error import (
@@ -94,6 +95,7 @@ class OIDCCallbackEndpoint(View):
             # Sync instance admin from the provider's role claim when configured.
             if provider.instance_admin is not None:
                 sync_instance_admin(user=user, is_admin=provider.instance_admin)
+            auto_join_workspace(user=user)
             # Login the user and record his device info
             user_login(request=request, user=user, is_app=True)
             # Get the redirection path

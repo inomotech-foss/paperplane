@@ -325,6 +325,22 @@ provision:
   # the OIDC/OAuth provider) and the interactive setup wizard is skipped.
   adminEmails: []
 
+  # The workspace created at startup and joined by every OIDC user on login, so
+  # a new SSO user lands in it instead of the onboarding wizard. Leave slug empty
+  # to provision nothing and leave membership unmanaged.
+  #
+  # An existing workspace with this slug is adopted untouched. A new one is owned
+  # by an inactive bot user, because a claim-based install has no human user at
+  # startup and the owner field carries no permissions. Do not delete that bot:
+  # the owner FK cascades, so removing it would delete the workspace.
+  workspace:
+    slug: ""
+    # Defaults to the slug when empty.
+    name: ""
+    # Role for the auto-joined membership: 20 admin, 15 member, 5 guest.
+    # Existing memberships are never removed or downgraded.
+    autoJoinRole: "15"
+
   auth:
     # Core login methods. true/false manages the toggle; null leaves it UI-owned.
     emailPassword: null
