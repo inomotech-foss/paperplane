@@ -187,6 +187,7 @@ class ProjectViewSet(BaseViewSet):
             "issue_views_view",
             "module_view",
             "page_view",
+            "issue_view",
             "inbox_view",
             "guest_view_all_features",
             "project_lead",

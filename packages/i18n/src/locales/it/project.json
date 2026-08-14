@@ -320,6 +320,13 @@
           "text": "Gestisci funzionalità"
         }
       },
+      "work_item": {
+        "title": "Gli elementi di lavoro non sono abilitati per il progetto.",
+        "description": "Gli elementi di lavoro sono i blocchi costitutivi del tuo progetto. Abilita gli elementi di lavoro dalle impostazioni del progetto per iniziare a usarli.",
+        "primary_button": {
+          "text": "Gestisci funzionalità"
+        }
+      },
       "page": {
         "title": "Le pagine non sono abilitate per il progetto.",
         "description": "Le pagine sono i blocchi costitutivi del tuo progetto. Abilita le pagine dalle impostazioni del progetto per iniziare a usarle.",

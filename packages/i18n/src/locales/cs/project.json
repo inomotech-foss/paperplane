@@ -320,6 +320,13 @@
           "text": "Spravovat funkce"
         }
       },
+      "work_item": {
+        "title": "Pracovní položky nejsou povoleny",
+        "description": "Aktivujte pracovní položky v nastavení projektu.",
+        "primary_button": {
+          "text": "Spravovat funkce"
+        }
+      },
       "page": {
         "title": "Stránky nejsou povoleny",
         "description": "Aktivujte stránky v nastavení projektu.",

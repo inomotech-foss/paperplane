@@ -222,6 +222,7 @@
   "work_management": "İş Yönetimi",
   "projects_and_issues": "Projeler ve İş Öğeleri",
   "projects_and_issues_description": "Bu projede bu özellikleri açıp kapatın.",
+  "work_items_description": "Bu projedeki iş öğelerini izleyin ve yönetin.",
   "cycles_description": "Projeye göre işi zamanla sınırlandırın ve gerektiğinde zaman dilimini ayarlayın. Bir döngü 2 hafta, bir sonraki 1 hafta olabilir.",
   "modules_description": "İşi, özel liderler ve atanmış kişilerle alt projelere ayırın.",
   "views_description": "Özel sıralamaları, filtreleri ve görüntüleme seçeneklerini kaydedin veya ekibinizle paylaşın.",
