@@ -27,6 +27,15 @@ class ResolvedPage:
     title: str
 
 
+@dataclass(frozen=True)
+class ResolvedJiraIssue:
+    """An imported Jira work item, as the editor's issue embed needs it."""
+
+    id: str
+    project_id: str
+    workspace_id: str
+
+
 class Resolvers:
     """Lookups the converter cannot perform itself.
 
@@ -34,11 +43,12 @@ class Resolvers:
     records the miss, so a partial map still produces a usable page.
     """
 
-    def __init__(self, users=None, attachments=None, pages=None, jira_base_urls=None):
+    def __init__(self, users=None, attachments=None, pages=None, jira_base_urls=None, jira_issues=None):
         self._users = users or {}
         self._attachments = attachments or {}
         self._pages = pages or {}
         self._jira_base_urls = jira_base_urls or {}
+        self._jira_issues = jira_issues or {}
 
     def user(self, account_id):
         return self._users.get(account_id)
@@ -61,6 +71,16 @@ class Resolvers:
 
     def jira_base_url(self, server_id):
         return self._jira_base_urls.get(server_id)
+
+    def jira_issue(self, project_key, sequence_id):
+        """The imported work item a Jira key such as ``DEMO-12`` became.
+
+        Keyed by project identifier plus sequence id rather than the key
+        itself, so a project renamed after import still resolves.
+        """
+        if not project_key or sequence_id is None:
+            return None
+        return self._jira_issues.get((project_key.upper(), sequence_id))
 
 
 @dataclass
