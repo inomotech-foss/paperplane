@@ -46,11 +46,27 @@ class Command(BaseCommand):
         self.stdout.write(f"work items  {summary.created} created, {summary.updated} updated")
         self.stdout.write(f"vocabulary  {summary.states} states, {summary.issue_types} issue types")
         self.stdout.write(f"comments    {summary.comments}")
+        self.stdout.write(f"structure   {summary.parents} parents, {summary.relations} relations")
+        self.stdout.write(f"planning    {summary.cycles} cycles, {summary.modules} modules, {summary.labels} labels")
+        self.stdout.write(f"history     {summary.activities} activity entries")
+        self.stdout.write(f"interest    {summary.subscribers} subscribers, {summary.votes} votes")
         self.stdout.write(f"attributed  {summary.attributed}/{total} to their original author")
         self.stdout.write(f"assets      {summary.attachments} attachments uploaded")
 
         if summary.attachments_skipped:
             self.stdout.write(self.style.WARNING("assets      not uploaded on a dry run, so links stay unresolved"))
+        if summary.downgraded_relations:
+            self.stdout.write(
+                self.style.WARNING(f"downgraded  {summary.downgraded_relations} links Plane cannot name became relates")
+            )
+        if summary.worklogs:
+            self.stdout.write(self.style.WARNING(f"dropped     {summary.worklogs} worklogs, no Plane model holds them"))
+        if summary.chrome:
+            self.stdout.write(self.style.WARNING(f"dropped     {len(summary.chrome)} custom fields"))
+        if summary.unresolved_parents:
+            self.stdout.write(self.style.WARNING(f"no parent   {len(summary.unresolved_parents)} keys not imported"))
+        if summary.unresolved_links:
+            self.stdout.write(self.style.WARNING(f"no target   {len(summary.unresolved_links)} links not imported"))
         if summary.actor_fallbacks:
             self.stdout.write(
                 self.style.WARNING(f"unmapped    {summary.actor_fallbacks} work items fell back to the actor")
