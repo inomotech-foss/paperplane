@@ -216,6 +216,9 @@ catalogs:
     '@types/cors':
       specifier: ^2.8.17
       version: 2.8.19
+    '@types/diff':
+      specifier: ^5.2.3
+      version: 5.2.3
     '@types/express-ws':
       specifier: ^3.0.5
       version: 3.0.5
@@ -1102,6 +1105,9 @@ importers:
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
+      diff:
+        specifier: 5.2.2
+        version: 5.2.2
       emoji-picker-react:
         specifier: 'catalog:'
         version: 4.12.2(react@18.3.1)
@@ -1208,6 +1214,9 @@ importers:
       '@testing-library/react':
         specifier: 'catalog:'
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@18.3.1)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@types/diff':
+        specifier: 'catalog:'
+        version: 5.2.3
       '@types/lodash-es':
         specifier: 'catalog:'
         version: 4.17.12
@@ -5251,6 +5260,9 @@ packages:
 
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
+
+  '@types/diff@5.2.3':
+    resolution: {integrity: sha512-K0Oqlrq3kQMaO2RhfrNQX5trmt+XLyom88zS0u84nnIcLvFnRUMRRHmrGny5GSM+kNO9IZLARsdQHDzkhAgmrQ==}
 
   '@types/doctrine@0.0.9':
     resolution: {integrity: sha512-eOIHzCUSH7SMfonMG1LsC2f8vxBFtho6NGBznK41R84YzPuvSBzrhEps33IsQiOW9+VL6NQ9DbjQJznk/S4uRA==}
@@ -12927,6 +12939,8 @@ snapshots:
       '@types/ms': 2.1.0
 
   '@types/deep-eql@4.0.2': {}
+
+  '@types/diff@5.2.3': {}
 
   '@types/doctrine@0.0.9': {}
 
