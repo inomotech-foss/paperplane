@@ -1,17 +1,28 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date
 
 from django.db import transaction
 
 from plane.db.models import (
+    Cycle,
+    CycleIssue,
     Issue,
+    IssueActivity,
     IssueAssignee,
     IssueComment,
+    IssueLabel,
+    IssueRelation,
     IssueSequence,
+    IssueSubscriber,
     IssueType,
+    IssueVote,
+    Label,
+    Module,
+    ModuleIssue,
     Project,
     ProjectIssueType,
     ProjectMember,
@@ -27,12 +38,28 @@ from ..confluence.resolvers import ResolvedUser, Resolvers
 from .adf import AdfResult, Tally, adf_to_html
 from .assets import IssueAttachmentUploader
 from .backup import issue_number
+from .relations import resolve as resolve_link
 from .states import GROUP_COLOURS, in_workflow_order, state_for
 
 # Jira's five default priorities onto Plane's five, which are the same ladder.
 PRIORITIES = {"highest": "urgent", "high": "high", "medium": "medium", "low": "low", "lowest": "none"}
 
 EPIC_TYPE = "epic"
+
+# Jira's field names onto the ones Plane's activity feed knows how to render.
+# Anything absent keeps the Jira name and still records who changed what.
+ACTIVITY_FIELDS = {
+    "summary": "name",
+    "status": "state",
+    "assignee": "assignees",
+    "duedate": "target_date",
+    "issuetype": "type",
+    "sprint": "cycles",
+    "fix version": "modules",
+    "component": "labels",
+}
+
+SORT_STEP = 10000
 
 
 @dataclass
@@ -53,6 +80,19 @@ class ImportSummary:
     attachments_skipped: bool = False
     missing_attachments: set = field(default_factory=set)
     unsupported_attachments: set = field(default_factory=set)
+    labels: int = 0
+    modules: int = 0
+    cycles: int = 0
+    parents: int = 0
+    relations: int = 0
+    downgraded_relations: int = 0
+    activities: int = 0
+    subscribers: int = 0
+    votes: int = 0
+    worklogs: int = 0
+    unresolved_parents: set = field(default_factory=set)
+    unresolved_links: set = field(default_factory=set)
+    chrome: set = field(default_factory=set)
     nodes: Tally = field(default_factory=Tally)
     marks: Tally = field(default_factory=Tally)
     unresolved_users: set = field(default_factory=set)
@@ -63,6 +103,24 @@ class ImportSummary:
         self.marks.update(result.marks)
         self.unresolved_users |= result.unresolved_users
         self.unresolved_attachments |= result.unresolved_attachments
+
+
+@dataclass
+class Index:
+    """What the second pass needs, gathered while the issues are written.
+
+    Jira exports issues in no particular order, so a parent, a link target or a
+    rank neighbour can appear after the issue that points at it. Nothing
+    relational can be written until every issue exists.
+    """
+
+    issues: dict = field(default_factory=dict)
+    labels: dict = field(default_factory=dict)
+    modules: dict = field(default_factory=dict)
+    cycles: dict = field(default_factory=dict)
+    parents: dict = field(default_factory=dict)
+    links: dict = field(default_factory=dict)
+    ranks: list = field(default_factory=list)
 
 
 def _due_date(value):
@@ -113,8 +171,13 @@ class JiraLoader:
             )
             summary.attachments_skipped = dry_run
 
+            index = Index()
             for issue in self.backup.issues():
-                self._load_issue(project, issue, states, types, default_type, users, uploader, summary)
+                self._load_issue(project, issue, states, types, default_type, users, uploader, index, summary)
+
+            self._resolve_parents(index, summary)
+            self._link_relations(index, summary)
+            self._rank(index)
 
             if uploader is not None:
                 summary.missing_attachments |= uploader.missing
@@ -272,7 +335,7 @@ class JiraLoader:
 
         return types, default
 
-    def _load_issue(self, project, jira_issue, states, types, default_type, users, uploader, summary):
+    def _load_issue(self, project, jira_issue, states, types, default_type, users, uploader, index, summary):
         author = self._author(jira_issue, users, summary)
         name, _ = state_for(jira_issue)
         issue_type = types.get(jira_issue.issue_type, default_type)
@@ -285,7 +348,37 @@ class JiraLoader:
         resolvers = self._resolvers(users, attachments)
         self._write_body(record, jira_issue, resolvers, summary)
         self._upsert_comments(record, jira_issue, resolvers, users, summary)
+        self._apply_labels(record, jira_issue, index, summary)
+        self._apply_modules(record, jira_issue, index, summary)
+        self._apply_cycles(record, jira_issue, index, summary)
+        self._apply_interest(record, jira_issue, users, summary)
+        self._apply_changelog(record, jira_issue, users, summary)
         self._align(record, jira_issue)
+        self._index(record, jira_issue, index, summary)
+
+    def _index(self, record, jira_issue, index, summary):
+        """Notes what can only be written once the whole file has been read.
+
+        Jira states a parent three ways and they do not always agree: the
+        `parent` field, an Epic Link custom field, and the parent's own subtask
+        list. The issue's own fields are the more reliable pair, so a subtask
+        listing only fills a gap.
+        """
+        index.issues[jira_issue.key] = record
+        index.ranks.append((jira_issue.rank, jira_issue.key))
+
+        parent_key = jira_issue.parent_key or jira_issue.epic_key
+        if parent_key:
+            index.parents[jira_issue.key] = parent_key
+        for child_key in jira_issue.subtask_keys:
+            index.parents.setdefault(child_key, jira_issue.key)
+
+        for link in jira_issue.links:
+            first, second, relation, exact = resolve_link(jira_issue.key, link)
+            index.links.setdefault((first, second), (relation, exact))
+
+        summary.worklogs += jira_issue.worklogs
+        summary.chrome |= set(jira_issue.chrome)
 
     def _author(self, jira_issue, users, summary):
         """Who filed the issue in Jira, or the actor when the account is unknown.
@@ -400,6 +493,231 @@ class JiraLoader:
                     created_at=comment.created_at, updated_at=comment.created_at
                 )
             summary.comments += 1
+
+    def _apply_labels(self, record, jira_issue, index, summary):
+        """Jira labels and components both become Plane labels.
+
+        Components are a separate taxonomy in Jira with no Plane counterpart,
+        and they read as labels wherever they are used, so the two collapse.
+        """
+        for name in dict.fromkeys(jira_issue.labels + jira_issue.components):
+            label = index.labels.get(name)
+            if label is None:
+                label, created = Label.objects.get_or_create(
+                    project=record.project,
+                    name=name,
+                    defaults={
+                        "workspace": self.workspace,
+                        "external_source": self.EXTERNAL_SOURCE,
+                        "external_id": name,
+                    },
+                )
+                index.labels[name] = label
+                summary.labels += int(created)
+            IssueLabel.objects.get_or_create(
+                issue=record, label=label, defaults={"project": record.project, "workspace": self.workspace}
+            )
+
+    def _apply_modules(self, record, jira_issue, index, summary):
+        """A fix version is the release an issue ships in, which is a module."""
+        for name in jira_issue.fix_versions:
+            module = index.modules.get(name)
+            if module is None:
+                module, created = Module.objects.get_or_create(
+                    project=record.project,
+                    name=name,
+                    defaults={
+                        "workspace": self.workspace,
+                        "external_source": self.EXTERNAL_SOURCE,
+                        "external_id": name,
+                    },
+                )
+                index.modules[name] = module
+                summary.modules += int(created)
+            ModuleIssue.objects.get_or_create(
+                issue=record, module=module, defaults={"project": record.project, "workspace": self.workspace}
+            )
+
+    def _apply_cycles(self, record, jira_issue, index, summary):
+        """Sprints, read off the issues rather than out of `sprints.json`.
+
+        The board endpoints failed during the backup and the sprint file holds
+        one sprint, so the issues are the only complete record. Plane puts an
+        issue in one cycle while Jira lists every sprint it passed through, so
+        the cycles are all created and the issue joins the last one.
+        """
+        for sprint in jira_issue.sprints:
+            if sprint.id not in index.cycles:
+                index.cycles[sprint.id] = self._cycle(record.project, sprint, summary)
+
+        if not jira_issue.sprints:
+            return
+        cycle = index.cycles[jira_issue.sprints[-1].id]
+        CycleIssue.objects.get_or_create(
+            issue=record, cycle=cycle, defaults={"project": record.project, "workspace": self.workspace}
+        )
+
+    def _cycle(self, project, sprint, summary):
+        cycle = Cycle.objects.filter(
+            project=project, external_source=self.EXTERNAL_SOURCE, external_id=sprint.id
+        ).first()
+        if cycle is not None:
+            return cycle
+
+        cycle = Cycle.objects.create(
+            project=project,
+            workspace=self.workspace,
+            name=sprint.name[:255],
+            description=sprint.goal,
+            owned_by=self.actor,
+            start_date=sprint.start_at,
+            end_date=sprint.completed_at or sprint.end_at,
+            external_source=self.EXTERNAL_SOURCE,
+            external_id=sprint.id,
+        )
+        summary.cycles += 1
+        return cycle
+
+    def _apply_interest(self, record, jira_issue, users, summary):
+        """Watchers become subscribers and voters become upvotes."""
+        for account_id in jira_issue.watcher_ids:
+            user = users.get(account_id)
+            if user is None:
+                summary.unmapped_accounts.add(account_id)
+                continue
+            _, created = IssueSubscriber.objects.get_or_create(
+                issue=record, subscriber=user, defaults={"project": record.project, "workspace": self.workspace}
+            )
+            summary.subscribers += int(created)
+
+        for account_id in jira_issue.voter_ids:
+            user = users.get(account_id)
+            if user is None:
+                summary.unmapped_accounts.add(account_id)
+                continue
+            _, created = IssueVote.objects.get_or_create(
+                issue=record,
+                actor=user,
+                defaults={"vote": 1, "project": record.project, "workspace": self.workspace},
+            )
+            summary.votes += int(created)
+
+    def _apply_changelog(self, record, jira_issue, users, summary):
+        """Jira's audit trail, kept whole.
+
+        The same ISO 9001 and 14001 obligation that made authorship worth
+        preserving applies to who changed what and when, so every entry keeps
+        its original actor and timestamp. There is no external id to be
+        idempotent on, so a re-run matches on the entry itself.
+        """
+        if not jira_issue.changelog:
+            return
+
+        seen = set(
+            IssueActivity.objects.filter(issue=record).values_list("field", "old_value", "new_value", "created_at")
+        )
+        rows, stamped = [], defaultdict(list)
+
+        for change in jira_issue.changelog:
+            actor = users.get(change.author_id) if change.author_id else None
+            if actor is None and change.author_id:
+                summary.unmapped_accounts.add(change.author_id)
+
+            name = ACTIVITY_FIELDS.get(change.field_name.strip().casefold(), change.field_name)[:255]
+            if (name, change.old_value, change.new_value, change.created_at) in seen:
+                continue
+
+            row = IssueActivity(
+                issue=record,
+                project=record.project,
+                workspace=self.workspace,
+                actor=actor or self.actor,
+                created_by=actor or self.actor,
+                verb="updated",
+                field=name,
+                old_value=change.old_value,
+                new_value=change.new_value,
+                comment=f"updated the {name}",
+                epoch=int(change.created_at.timestamp()) if change.created_at else None,
+            )
+            rows.append(row)
+            if change.created_at:
+                stamped[change.created_at].append(row.id)
+
+        IssueActivity.objects.bulk_create(rows, batch_size=500)
+        for moment, ids in stamped.items():
+            IssueActivity.objects.filter(id__in=ids).update(created_at=moment, updated_at=moment)
+        summary.activities += len(rows)
+
+    def _resolve_parents(self, index, summary):
+        """Parenting, once every issue exists.
+
+        A child routinely appears in the file before its parent, so a single
+        pass would drop the link. Written as an UPDATE because `Issue.save()`
+        would take the sequence lock and restamp the audit dates again.
+        """
+        for child_key, parent_key in index.parents.items():
+            child = index.issues.get(child_key)
+            if child is None:
+                continue
+            parent = self._lookup(parent_key, index)
+            if parent is None:
+                summary.unresolved_parents.add(parent_key)
+                continue
+            if parent.id == child.id or child.parent_id == parent.id:
+                continue
+            Issue.objects.filter(pk=child.pk).update(parent=parent)
+            child.parent_id = parent.id
+            summary.parents += 1
+
+    def _link_relations(self, index, summary):
+        for (first, second), (relation, exact) in index.links.items():
+            issue = self._lookup(first, index)
+            related = self._lookup(second, index)
+            if issue is None or related is None:
+                summary.unresolved_links.add(f"{first} {second}")
+                continue
+
+            _, created = IssueRelation.objects.get_or_create(
+                issue=issue,
+                related_issue=related,
+                defaults={
+                    "relation_type": relation,
+                    "project": issue.project,
+                    "workspace": self.workspace,
+                },
+            )
+            summary.relations += int(created)
+            if not exact:
+                summary.downgraded_relations += 1
+
+    def _lookup(self, key, index):
+        """An issue by Jira key, including one an earlier project brought in."""
+        if key in index.issues:
+            return index.issues[key]
+        found = Issue.objects.filter(
+            workspace=self.workspace, external_source=self.EXTERNAL_SOURCE, external_id=key
+        ).first()
+        index.issues[key] = found
+        return found
+
+    def _rank(self, index):
+        """Jira's LexoRank renumbered into Plane's sort order.
+
+        Jira keeps backlog position in a string that sorts lexicographically and
+        Plane keeps a float, so the strings are sorted and the positions handed
+        out again. An issue with no rank sorts after the ranked ones in the
+        order it was read.
+        """
+        ordered = sorted(enumerate(index.ranks), key=lambda item: (not item[1][0], item[1][0], item[0]))
+        records = []
+        for position, (_, (_, key)) in enumerate(ordered):
+            record = index.issues.get(key)
+            if record is None:
+                continue
+            record.sort_order = float((position + 1) * SORT_STEP)
+            records.append(record)
+        Issue.objects.bulk_update(records, ["sort_order"], batch_size=500)
 
     def _align(self, record, jira_issue):
         """Jira's own numbering and dates, written after the fact.
