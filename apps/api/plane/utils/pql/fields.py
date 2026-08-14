@@ -97,6 +97,9 @@ FILTER_FIELDS = {
         join_guard=(("issue_cycle__deleted_at__isnull", True),),
     ),
     "created_by": FilterField(path="created_by_id", value_type=UUID_TYPE, lookups=UUID_LOOKUPS),
+    # The landing field of the `childOf("PROJ-12")` placeholder, once the
+    # identifier has been resolved to a work item id.
+    "parent_id": FilterField(path="parent_id", value_type=UUID_TYPE, lookups=UUID_LOOKUPS),
     "target_date": FilterField(path="target_date", value_type=DATE_TYPE, lookups=DATE_LOOKUPS),
     "start_date": FilterField(path="start_date", value_type=DATE_TYPE, lookups=DATE_LOOKUPS),
 }

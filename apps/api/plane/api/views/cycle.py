@@ -50,9 +50,12 @@ from plane.utils.cycle_transfer_issues import transfer_cycle_issues
 from plane.utils.order_queryset import CYCLE_ORDER_BY_ALLOWLIST, ISSUE_ORDER_BY_ALLOWLIST, sanitize_order_by
 from plane.utils.host import base_host
 from .base import BaseAPIView
+from .work_item_filter import WorkItemFilterMixin
 from plane.bgtasks.webhook_task import model_activity
 from plane.utils.openapi.decorators import cycle_docs
 from plane.utils.openapi import (
+    PQL_PARAMETER,
+    FILTERS_PARAMETER,
     CURSOR_PARAMETER,
     PER_PAGE_PARAMETER,
     CYCLE_VIEW_PARAMETER,
@@ -859,7 +862,7 @@ class CycleArchiveUnarchiveAPIEndpoint(BaseAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class CycleIssueListCreateAPIEndpoint(BaseAPIView):
+class CycleIssueListCreateAPIEndpoint(WorkItemFilterMixin, BaseAPIView):
     """Cycle Issue List and Create Endpoint"""
 
     serializer_class = CycleIssueSerializer
@@ -896,7 +899,7 @@ class CycleIssueListCreateAPIEndpoint(BaseAPIView):
         operation_id="list_cycle_work_items",
         summary="List cycle work items",
         description="Retrieve all work items assigned to a cycle.",
-        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER],
+        parameters=[PQL_PARAMETER, FILTERS_PARAMETER, CURSOR_PARAMETER, PER_PAGE_PARAMETER],
         request={},
         responses={
             200: create_paginated_response(
@@ -950,9 +953,13 @@ class CycleIssueListCreateAPIEndpoint(BaseAPIView):
             )
         )
 
+        querysets, error = self.filter_work_items(request, slug, [issues], project_id=project_id)
+        if error:
+            return error
+
         return self.paginate(
             request=request,
-            queryset=(issues),
+            queryset=querysets[0],
             on_results=lambda issues: IssueSerializer(issues, many=True, fields=self.fields, expand=self.expand).data,
         )
 

@@ -92,6 +92,7 @@ FIELD_ALIASES = {
     "labels": "labels__id",
     "module": "issue_module__module_id",
     "module_id": "issue_module__module_id",
+    "parent": "parent_id",
     "project": "project_id",
     "state": "state_id",
     "type": "type_id",
