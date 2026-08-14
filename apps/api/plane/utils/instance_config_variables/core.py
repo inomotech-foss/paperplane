@@ -33,6 +33,26 @@ workspace_management_config_variables = [
         "category": "WORKSPACE_MANAGEMENT",
         "is_encrypted": False,
     },
+    # The workspace provisioned at startup and joined on login. One slug, so the
+    # join target cannot drift from the workspace that gets created.
+    {
+        "key": "PROVISION_WORKSPACE_SLUG",
+        "value": os.environ.get("PROVISION_WORKSPACE_SLUG", ""),
+        "category": "WORKSPACE_MANAGEMENT",
+        "is_encrypted": False,
+    },
+    {
+        "key": "PROVISION_WORKSPACE_NAME",
+        "value": os.environ.get("PROVISION_WORKSPACE_NAME", ""),
+        "category": "WORKSPACE_MANAGEMENT",
+        "is_encrypted": False,
+    },
+    {
+        "key": "PROVISION_WORKSPACE_ROLE",
+        "value": os.environ.get("PROVISION_WORKSPACE_ROLE", "15"),
+        "category": "WORKSPACE_MANAGEMENT",
+        "is_encrypted": False,
+    },
 ]
 
 # DRF rate strings ("<num>/<period>", period s/m/h/d). Read on the request path
@@ -279,18 +299,6 @@ oidc_config_variables = [
     {
         "key": "OIDC_ADMIN_ROLE",
         "value": os.environ.get("OIDC_ADMIN_ROLE", ""),
-        "category": "OIDC",
-        "is_encrypted": False,
-    },
-    {
-        "key": "AUTO_JOIN_WORKSPACE",
-        "value": os.environ.get("AUTO_JOIN_WORKSPACE", ""),
-        "category": "OIDC",
-        "is_encrypted": False,
-    },
-    {
-        "key": "AUTO_JOIN_WORKSPACE_ROLE",
-        "value": os.environ.get("AUTO_JOIN_WORKSPACE_ROLE", "15"),
         "category": "OIDC",
         "is_encrypted": False,
     },

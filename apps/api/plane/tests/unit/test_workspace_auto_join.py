@@ -121,8 +121,8 @@ class TestSyncWorkspaceMembership:
 class TestAutoJoinWorkspace:
     def test_joins_the_configured_workspace(self, settings, monkeypatch):
         settings.SKIP_ENV_VAR = False
-        monkeypatch.setenv("AUTO_JOIN_WORKSPACE", "acme")
-        monkeypatch.setenv("AUTO_JOIN_WORKSPACE_ROLE", "20")
+        monkeypatch.setenv("PROVISION_WORKSPACE_SLUG", "acme")
+        monkeypatch.setenv("PROVISION_WORKSPACE_ROLE", "20")
         make_workspace()
         user = make_user()
 
@@ -132,7 +132,7 @@ class TestAutoJoinWorkspace:
 
     def test_unset_setting_is_a_noop(self, settings, monkeypatch):
         settings.SKIP_ENV_VAR = False
-        monkeypatch.delenv("AUTO_JOIN_WORKSPACE", raising=False)
+        monkeypatch.delenv("PROVISION_WORKSPACE_SLUG", raising=False)
         make_workspace()
         user = make_user()
 
@@ -142,7 +142,7 @@ class TestAutoJoinWorkspace:
 
     def test_provisioning_failure_never_reaches_the_login(self, settings, monkeypatch):
         settings.SKIP_ENV_VAR = False
-        monkeypatch.setenv("AUTO_JOIN_WORKSPACE", "acme")
+        monkeypatch.setenv("PROVISION_WORKSPACE_SLUG", "acme")
         make_workspace()
         user = make_user()
 
@@ -160,7 +160,7 @@ class TestAutoJoinWorkspace:
 
     def test_deactivated_membership_still_signs_in(self, settings, monkeypatch):
         settings.SKIP_ENV_VAR = False
-        monkeypatch.setenv("AUTO_JOIN_WORKSPACE", "acme")
+        monkeypatch.setenv("PROVISION_WORKSPACE_SLUG", "acme")
         workspace = make_workspace()
         user = make_user()
         WorkspaceMember.objects.create(workspace=workspace, member=user, role=15, is_active=False)

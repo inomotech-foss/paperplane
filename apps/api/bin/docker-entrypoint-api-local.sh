@@ -31,6 +31,9 @@ python manage.py reconcile_instance_config
 # Bootstrap instance admins and settings from the environment
 python manage.py bootstrap_instance
 
+# Create the workspace configured for provisioning
+python manage.py provision_workspace
+
 # Reconcile the chart-managed OAuth application from the environment
 python manage.py provision_oauth_application
 

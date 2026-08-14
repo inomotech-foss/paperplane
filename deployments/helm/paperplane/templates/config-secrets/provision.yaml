@@ -65,15 +65,20 @@ data:
       (dict "key" "OIDC_JWKS_URL" "value" $oidc.jwksUrl "default" "")
       (dict "key" "OIDC_ADMIN_CLAIM" "value" $oidc.adminClaim "default" "roles")
       (dict "key" "OIDC_ADMIN_ROLE" "value" $oidc.adminRole "default" "")
-      (dict "key" "AUTO_JOIN_WORKSPACE" "value" $oidc.autoJoinWorkspace "default" "")
-      (dict "key" "AUTO_JOIN_WORKSPACE_ROLE" "value" $oidc.autoJoinWorkspaceRole "default" "15")
       (dict "key" "OIDC_CLIENT_ID" "value" $oidc.clientId "default" "")
       (dict "key" "OIDC_CLIENT_SECRET" "value" $oidc.clientSecret "default" "" "secret" true)
   }}
   {{- range $oidcVars }}
   {{- include "plane.provision.var" (dict "key" .key "value" .value "default" .default "files" $files "secret" .secret) | nindent 2 }}
   {{- end }}
-  {{- $managed = concat $managed (list "IS_OIDC_ENABLED" "OIDC_ISSUER" "OIDC_CLIENT_ID" "OIDC_CLIENT_SECRET" "OIDC_PROVIDER_NAME" "OIDC_SCOPES" "OIDC_TRUST_EMAIL" "OIDC_AUTHORIZE_URL" "OIDC_TOKEN_URL" "OIDC_USERINFO_URL" "OIDC_JWKS_URL" "OIDC_ADMIN_CLAIM" "OIDC_ADMIN_ROLE" "AUTO_JOIN_WORKSPACE" "AUTO_JOIN_WORKSPACE_ROLE") }}
+  {{- $managed = concat $managed (list "IS_OIDC_ENABLED" "OIDC_ISSUER" "OIDC_CLIENT_ID" "OIDC_CLIENT_SECRET" "OIDC_PROVIDER_NAME" "OIDC_SCOPES" "OIDC_TRUST_EMAIL" "OIDC_AUTHORIZE_URL" "OIDC_TOKEN_URL" "OIDC_USERINFO_URL" "OIDC_JWKS_URL" "OIDC_ADMIN_CLAIM" "OIDC_ADMIN_ROLE") }}
+  {{- end }}
+  {{- $workspace := .Values.provision.workspace | default dict }}
+  {{- with $workspace.slug }}
+  PROVISION_WORKSPACE_SLUG: {{ . | quote }}
+  PROVISION_WORKSPACE_NAME: {{ $workspace.name | default . | quote }}
+  PROVISION_WORKSPACE_ROLE: {{ $workspace.autoJoinRole | default "15" | quote }}
+  {{- $managed = concat $managed (list "PROVISION_WORKSPACE_SLUG" "PROVISION_WORKSPACE_NAME" "PROVISION_WORKSPACE_ROLE") }}
   {{- end }}
   PROVISION_MANAGED_KEYS: {{ join "," $managed | quote }}
 {{- if and $oidc.enabled $oidc.clientSecret (not (get $files "OIDC_CLIENT_SECRET")) }}

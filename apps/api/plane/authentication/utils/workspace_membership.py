@@ -28,16 +28,21 @@ def parse_role(role):
 
 
 def get_auto_join_settings():
+    """The provisioned workspace and the role to join it at.
+
+    Deliberately the same slug `provision_workspace` creates, so the join target
+    cannot drift from the workspace that exists.
+    """
     slug, role = get_configuration_value(
         [
-            {"key": "AUTO_JOIN_WORKSPACE", "default": os.environ.get("AUTO_JOIN_WORKSPACE", "")},
+            {"key": "PROVISION_WORKSPACE_SLUG", "default": os.environ.get("PROVISION_WORKSPACE_SLUG", "")},
             {
-                "key": "AUTO_JOIN_WORKSPACE_ROLE",
-                "default": os.environ.get("AUTO_JOIN_WORKSPACE_ROLE", str(DEFAULT_ROLE)),
+                "key": "PROVISION_WORKSPACE_ROLE",
+                "default": os.environ.get("PROVISION_WORKSPACE_ROLE", str(DEFAULT_ROLE)),
             },
         ]
     )
-    return (slug or "").strip(), parse_role(role)
+    return (slug or "").strip().lower(), parse_role(role)
 
 
 def sync_workspace_membership(user, slug, role):
