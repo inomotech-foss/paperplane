@@ -320,6 +320,13 @@
           "text": "Zarządzaj funkcjami"
         }
       },
+      "work_item": {
+        "title": "Elementy pracy nie są włączone",
+        "description": "Włącz elementy pracy w ustawieniach projektu.",
+        "primary_button": {
+          "text": "Zarządzaj funkcjami"
+        }
+      },
       "page": {
         "title": "Strony nie są włączone",
         "description": "Włącz strony w ustawieniach projektu.",

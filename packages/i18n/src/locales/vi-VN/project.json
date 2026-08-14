@@ -320,6 +320,13 @@
           "text": "Quản lý tính năng"
         }
       },
+      "work_item": {
+        "title": "Dự án chưa bật tính năng mục công việc.",
+        "description": "Mục công việc là khối xây dựng cơ bản của dự án. Bật mục công việc từ cài đặt dự án để bắt đầu sử dụng chúng.",
+        "primary_button": {
+          "text": "Quản lý tính năng"
+        }
+      },
       "page": {
         "title": "Dự án chưa bật tính năng trang.",
         "description": "Trang là khối xây dựng cơ bản của dự án. Bật trang từ cài đặt dự án để bắt đầu sử dụng chúng.",

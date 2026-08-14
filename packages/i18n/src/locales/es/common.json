@@ -222,6 +222,7 @@
   "work_management": "Gestión del trabajo",
   "projects_and_issues": "Proyectos y elementos de trabajo",
   "projects_and_issues_description": "Activa o desactiva estos en este proyecto.",
+  "work_items_description": "Rastrea y gestiona los elementos de trabajo de este proyecto.",
   "cycles_description": "Organiza el trabajo por proyecto en períodos de tiempo y ajusta la duración según sea necesario. Un ciclo puede ser de 2 semanas y el siguiente de 1 semana.",
   "modules_description": "Organiza el trabajo en subproyectos con líderes y responsables dedicados.",
   "views_description": "Guarda ordenamientos, filtros y opciones de visualización personalizadas o compártelos con tu equipo.",

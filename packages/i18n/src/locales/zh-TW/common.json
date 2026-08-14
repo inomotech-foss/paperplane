@@ -222,6 +222,7 @@
   "work_management": "工作管理",
   "projects_and_issues": "專案與工作事項",
   "projects_and_issues_description": "為此專案開啟或關閉這些功能。",
+  "work_items_description": "追蹤並管理此專案中的工作事項。",
   "cycles_description": "為每個專案設定工作時間區段，並依需求調整週期。一個週期可以是兩週，下一個是一週。",
   "modules_description": "將工作組織成子專案，並指派專屬的負責人與任務對象。",
   "views_description": "儲存自訂排序、篩選和顯示選項，或與團隊分享。",

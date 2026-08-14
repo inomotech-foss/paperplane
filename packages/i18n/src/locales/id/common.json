@@ -222,6 +222,7 @@
   "work_management": "Manajemen kerja",
   "projects_and_issues": "Proyek dan item kerja",
   "projects_and_issues_description": "Aktifkan atau nonaktifkan ini untuk proyek ini.",
+  "work_items_description": "Lacak dan kelola item kerja dalam proyek ini.",
   "cycles_description": "Tetapkan batas waktu kerja per proyek dan sesuaikan periode waktunya sesuai kebutuhan. Satu siklus bisa 2 minggu, berikutnya 1 minggu.",
   "modules_description": "Atur pekerjaan ke dalam sub-proyek dengan pemimpin dan penanggung jawab khusus.",
   "views_description": "Simpan pengurutan, filter, dan opsi tampilan khusus atau bagikan dengan tim Anda.",

@@ -320,6 +320,13 @@
           "text": "Gestionează funcțiile"
         }
       },
+      "work_item": {
+        "title": "Activitățile nu sunt activate pentru proiect.",
+        "description": "Activitățile sunt componentele de bază ale proiectului tău. Activează activitățile din setările proiectului pentru a începe să le folosești.",
+        "primary_button": {
+          "text": "Gestionează funcțiile"
+        }
+      },
       "page": {
         "title": "Funcția Documentație nu este activată pentru proiect.",
         "description": "Paginile sunt componentele de bază ale proiectului tău. Activează paginile din setările proiectului pentru a începe să le folosești.",

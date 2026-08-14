@@ -320,6 +320,13 @@
           "text": "Gestionar funciones"
         }
       },
+      "work_item": {
+        "title": "Los elementos de trabajo no están habilitados para el proyecto.",
+        "description": "Los elementos de trabajo son los componentes básicos de tu proyecto. Habilita los elementos de trabajo desde la configuración del proyecto para comenzar a usarlos.",
+        "primary_button": {
+          "text": "Gestionar funciones"
+        }
+      },
       "page": {
         "title": "Las Páginas no están habilitadas para el proyecto.",
         "description": "Las Páginas son los componentes básicos de tu proyecto. Habilita las páginas desde la configuración del proyecto para comenzar a usarlas.",

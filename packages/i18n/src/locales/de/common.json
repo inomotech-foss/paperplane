@@ -222,6 +222,7 @@
   "work_management": "Arbeitsverwaltung",
   "projects_and_issues": "Projekte und Arbeitselemente",
   "projects_and_issues_description": "Aktivieren oder deaktivieren Sie diese Funktionen im Projekt.",
+  "work_items_description": "Verfolgen und verwalten Sie die Arbeitselemente in diesem Projekt.",
   "cycles_description": "Zeitlich begrenzen Sie die Arbeit pro Projekt und passen Sie den Zeitraum bei Bedarf an. Ein Zyklus kann 2 Wochen dauern, der nächste nur 1 Woche.",
   "modules_description": "Organisieren Sie die Arbeit in Unterprojekte mit eigenen Leitern und Zuständigen.",
   "views_description": "Speichern Sie benutzerdefinierte Sortierungen, Filter und Anzeigeoptionen oder teilen Sie sie mit Ihrem Team.",
