@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { LIVE_BASE_PATH, LIVE_BASE_URL } from "@plane/constants";
@@ -14,6 +14,7 @@ import type {
   EditorRefApi,
   EditorTitleRefApi,
   TAIMenuProps,
+  TAwarenessUser,
   TDiagramEditorProps,
   TDisplayConfig,
   TEmbedRenderProps,
@@ -21,6 +22,7 @@ import type {
   TQueryBlockHandlerProps,
   TRealtimeConfig,
   TServerHandler,
+  TWorkItemEmbedHandlerProps,
 } from "@plane/editor";
 import { useTranslation } from "@plane/i18n";
 import type { TSearchEntityRequestPayload, TSearchResponse, TWebhookConnectionQueryParams } from "@plane/types";
@@ -52,6 +54,7 @@ import { PageDiagramEditor } from "./diagram-editor";
 import { PageEmbedBlock } from "./embed-block";
 import { PageEditorHeaderRoot } from "./header";
 import { PageContentBrowser } from "./summary";
+import { PageWorkItemEmbedBlock } from "./work-item-embed-block";
 import { EditorAIMenu } from "./ai/menu";
 
 const subscribeToNothing = () => () => {};
@@ -173,6 +176,21 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
     }),
     []
   );
+  // A page can embed a work item from another project, so the node's own scope
+  // wins and the page's scope only fills in what the node left out.
+  const workItemEmbedHandler = useMemo(
+    () => ({
+      // oxlint-disable-next-line no-shadow
+      renderComponent: (props: TWorkItemEmbedHandlerProps) => (
+        <PageWorkItemEmbedBlock
+          {...props}
+          projectId={props.projectId ?? projectId}
+          workspaceSlug={props.workspaceSlug ?? workspaceSlug}
+        />
+      ),
+    }),
+    [projectId, workspaceSlug]
+  );
   // Diagram sources and previews are page attachments, which are project scoped,
   // so a page outside a project renders its diagrams without offering editing.
   const diagramHandler = useMemo(
@@ -289,6 +307,8 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
     }),
     [currentUser?.display_name, currentUser?.id]
   );
+  // presence, published by the editor's single collaboration connection
+  const [collaborators, setCollaborators] = useState<TAwarenessUser[]>([]);
 
   const blockWidthClassName = cn(
     "mx-auto block w-full max-w-[720px] bg-transparent transition-all duration-200 ease-in-out",
@@ -332,7 +352,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
         <div>
           <div className="page-header-container group/page-header">
             <div className={blockWidthClassName}>
-              <PageEditorHeaderRoot page={page} projectId={projectId} />
+              <PageEditorHeaderRoot page={page} projectId={projectId} collaborators={collaborators} />
             </div>
           </div>
           <CollaborativeDocumentEditorWithRef
@@ -350,6 +370,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
             embedHandler={embedHandler}
             pageAttachmentsHandler={pageAttachmentsHandler}
             queryBlockHandler={queryBlockHandler}
+            workItemEmbedHandler={workItemEmbedHandler}
             mentionHandler={{
               searchCallback: async (query) => {
                 const res = await fetchMentions(query);
@@ -370,6 +391,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
               menu: getAIMenu,
             }}
             onAssetChange={updateAssetsList}
+            onCollaboratorsChange={setCollaborators}
             extendedEditorProps={extendedEditorProps}
             isFetchingFallbackBinary={isFetchingFallbackBinary}
           />

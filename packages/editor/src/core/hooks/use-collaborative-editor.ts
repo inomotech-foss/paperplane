@@ -70,6 +70,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
     titleRef,
     updatePageProperties,
     user,
+    workItemEmbedHandler,
   } = props;
 
   const { mainNavigationExtension, titleNavigationExtension, setMainEditor, setTitleEditor } = useEditorNavigation();
@@ -100,6 +101,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
         queryBlockHandler,
         provider,
         userDetails: user,
+        workItemEmbedHandler,
       }),
       mainNavigationExtension,
     ],
@@ -118,6 +120,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
       pageAttachmentsHandler,
       queryBlockHandler,
       user,
+      workItemEmbedHandler,
       mainNavigationExtension,
     ]
   );

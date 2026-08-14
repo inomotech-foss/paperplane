@@ -49,6 +49,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
     queryBlockHandler,
     user,
     value,
+    workItemEmbedHandler,
   } = props;
   const extensions: Extensions = useMemo(() => {
     const additionalExtensions: Extensions = [];
@@ -74,6 +75,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
           name: "",
           color: "",
         },
+        workItemEmbedHandler,
       })
     );
     return additionalExtensions;
@@ -89,6 +91,7 @@ function DocumentEditor(props: IDocumentEditorProps) {
     pageAttachmentsHandler,
     queryBlockHandler,
     user,
+    workItemEmbedHandler,
   ]);
 
   const editor = useEditor({

@@ -23,6 +23,7 @@ import type {
 import type {
   IMarking,
   TAIHandler,
+  TAwarenessUser,
   TChildPagesHandler,
   TDiagramHandler,
   TDisplayConfig,
@@ -38,6 +39,7 @@ import type {
   TRealtimeConfig,
   TServerHandler,
   TUserDetails,
+  TWorkItemEmbedHandler,
   TExtendedEditorRefApi,
   EventToPayloadMap,
 } from "@/types";
@@ -201,6 +203,7 @@ export type IEditorProps = {
   tabIndex?: number;
   value?: string | null;
   extendedEditorProps: IEditorPropsExtended;
+  workItemEmbedHandler?: TWorkItemEmbedHandler;
   workItemIdentifier?: string | null;
 };
 
@@ -218,6 +221,7 @@ export type ICollaborativeDocumentEditorProps = Omit<IEditorProps, "initialValue
   realtimeConfig: TRealtimeConfig;
   serverHandler?: TServerHandler;
   user: TUserDetails;
+  onCollaboratorsChange?: (users: TAwarenessUser[]) => void;
   extendedDocumentEditorProps?: ICollaborativeDocumentEditorPropsExtended;
   updatePageProperties?: <T extends keyof EventToPayloadMap>(
     pageIds: string | string[],

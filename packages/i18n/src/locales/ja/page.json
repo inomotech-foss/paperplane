@@ -180,5 +180,9 @@
       "title": "タイトル",
       "updated": "最終更新"
     }
+  },
+  "page_work_item_embed": {
+    "loading": "作業項目を読み込んでいます",
+    "error": "この作業項目を読み込めませんでした"
   }
 }
