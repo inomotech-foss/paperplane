@@ -10,7 +10,7 @@ import re
 # Django imports
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseRedirect
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import (
     Case,
     CharField,
@@ -44,6 +44,7 @@ from drf_spectacular.utils import (
 from plane.api.serializers import (
     IssueAttachmentSerializer,
     IssueActivitySerializer,
+    IssueActivityCreateSerializer,
     IssueCommentSerializer,
     IssueLinkSerializer,
     IssueRelationCreateSerializer,
@@ -87,6 +88,7 @@ from plane.utils.order_queryset import (
 )
 from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
 from .base import BaseAPIView
+from .work_item_filter import WorkItemFilterMixin
 from plane.utils.issue_property import build_issue_property_filters
 from plane.utils.host import base_host
 from plane.utils.issue_relation_mapper import get_actual_relation
@@ -116,6 +118,8 @@ from plane.utils.openapi import (
     EXTERNAL_ID_PARAMETER,
     EXTERNAL_SOURCE_PARAMETER,
     ORDER_BY_PARAMETER,
+    PQL_PARAMETER,
+    FILTERS_PARAMETER,
     SEARCH_PARAMETER_REQUIRED,
     LIMIT_PARAMETER,
     WORKSPACE_SEARCH_PARAMETER,
@@ -254,7 +258,7 @@ class WorkspaceIssueAPIEndpoint(BaseAPIView):
             )
 
 
-class IssueListCreateAPIEndpoint(BaseAPIView):
+class IssueListCreateAPIEndpoint(WorkItemFilterMixin, BaseAPIView):
     """
     This viewset provides `list` and `create` on issue level
     """
@@ -289,6 +293,8 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
         summary="List work items",
         description="Retrieve a paginated list of all work items in a project. Supports filtering, ordering, and field selection through query parameters.",  # noqa: E501
         parameters=[
+            PQL_PARAMETER,
+            FILTERS_PARAMETER,
             CURSOR_PARAMETER,
             PER_PAGE_PARAMETER,
             EXTERNAL_ID_PARAMETER,
@@ -314,6 +320,9 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
         Retrieve a paginated list of all work items in a project.
         Supports filtering, ordering, and field selection through query parameters.
 
+        Structured filtering is available through either `pql=<expression>` or a
+        JSON encoded `filters=<expression>`; supplying both is an error.
+
         Custom property filters (work item properties) are supported through
         `property__<property_id>=<value>` query parameters:
 
@@ -326,20 +335,6 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
         `.filter(property_values__property_id=..., property_values__value_number__gt=...)`
         on the work item queryset; multiple property filters are ANDed.
         """
-
-        unsupported_filters = [param for param in ("pql", "filters") if request.GET.get(param)]
-        if unsupported_filters:
-            return Response(
-                {
-                    "pql": (
-                        "PQL and structured filters are not supported on this Plane edition. "
-                        "Remove the pql/filters parameter and filter results client-side, or use "
-                        "a Plane edition that supports work item query filtering."
-                    ),
-                    "unsupported_parameters": unsupported_filters,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         external_id = request.GET.get("external_id")
         external_source = request.GET.get("external_source")
@@ -404,6 +399,14 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
             total_issue_queryset = total_issue_queryset.filter(**property_filter)
         if property_filters:
             total_issue_queryset = total_issue_queryset.distinct()
+
+        # `pql` / `filters` structured filtering
+        querysets, filter_error = self.filter_work_items(
+            request, slug, [issue_queryset, total_issue_queryset], project_id=project_id
+        )
+        if filter_error:
+            return filter_error
+        issue_queryset, total_issue_queryset = querysets
 
         # Priority Ordering
         if order_by_param == "priority" or order_by_param == "-priority":
@@ -1759,6 +1762,113 @@ class IssueActivityListAPIEndpoint(BaseAPIView):
             on_results=lambda issue_activity: (
                 IssueActivitySerializer(issue_activity, many=True, fields=self.fields, expand=self.expand).data
             ),
+        )
+
+    @issue_activity_docs(
+        operation_id="import_work_item_activities",
+        description=(
+            "Import historical activity onto a work item, preserving the original "
+            "timestamps and actors. Intended for migrations from another tracker: "
+            "accepts a single activity or a batch under `activities`, and skips any "
+            "entry whose external_source/external_id pair is already present."
+        ),
+        parameters=[ISSUE_ID_PARAMETER],
+        request=OpenApiRequest(request=IssueActivityCreateSerializer),
+        responses={
+            201: OpenApiResponse(description="Activities imported", response=IssueActivitySerializer),
+            400: INVALID_REQUEST_RESPONSE,
+            404: ISSUE_NOT_FOUND_RESPONSE,
+        },
+    )
+    def post(self, request, slug, project_id, issue_id):
+        """Import work item activities
+
+        Write history that happened elsewhere. Unlike every other write in this
+        API, this does NOT emit its own activity, webhook or notification — a
+        migration replays thousands of past events and must not spam anyone.
+        """
+        payload = request.data.get("activities") if isinstance(request.data, dict) else request.data
+        if payload is None:
+            payload = [request.data]
+        if not isinstance(payload, list):
+            return Response(
+                {"error": "activities must be a list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not payload:
+            return Response({"created": 0, "skipped": 0, "activities": []}, status=status.HTTP_201_CREATED)
+
+        issue = Issue.objects.filter(pk=issue_id, workspace__slug=slug, project_id=project_id).first()
+        if not issue:
+            return Response({"error": "Work item not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # one query for the whole batch instead of one per entry
+        incoming = {
+            (a.get("external_source"), str(a.get("external_id")))
+            for a in payload
+            if isinstance(a, dict) and a.get("external_source") and a.get("external_id")
+        }
+        already = set()
+        if incoming:
+            already = {
+                (src, str(ext))
+                for src, ext in IssueActivity.objects.filter(
+                    project_id=project_id,
+                    workspace__slug=slug,
+                    external_source__in={s for s, _ in incoming},
+                    external_id__in={e for _, e in incoming},
+                ).values_list("external_source", "external_id")
+            }
+
+        to_create, stamps, skipped, seen = [], [], 0, set()
+        for entry in payload:
+            if not isinstance(entry, dict):
+                return Response(
+                    {"error": "each activity must be an object"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            key = (entry.get("external_source"), str(entry.get("external_id")))
+            # skip what is already stored, and de-duplicate within the batch itself
+            if all(key) and (key in already or key in seen):
+                skipped += 1
+                continue
+            serializer = IssueActivityCreateSerializer(data=entry)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if all(key):
+                seen.add(key)
+            data = serializer.validated_data
+            created_at = data.pop("created_at", None) or timezone.now()
+            epoch = data.pop("epoch", None) or created_at.timestamp()
+            to_create.append(
+                IssueActivity(
+                    **data,
+                    issue_id=issue_id,
+                    project_id=project_id,
+                    workspace_id=issue.workspace_id,
+                    epoch=epoch,
+                )
+            )
+            stamps.append(created_at)
+
+        created = []
+        if to_create:
+            with transaction.atomic():
+                created = IssueActivity.objects.bulk_create(to_create, batch_size=100)
+                # created_at is auto_now_add: the insert stamps "now" onto the row AND
+                # onto the in-memory instance, so the original has to be kept aside
+                # (in `stamps`) and written back in a second pass.
+                for obj, original in zip(created, stamps):
+                    obj.created_at = original
+                IssueActivity.objects.bulk_update(created, ["created_at"], batch_size=100)
+
+        return Response(
+            {
+                "created": len(created),
+                "skipped": skipped,
+                "activities": IssueActivitySerializer(created, many=True).data,
+            },
+            status=status.HTTP_201_CREATED,
         )
 
 

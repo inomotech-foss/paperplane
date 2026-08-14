@@ -14,6 +14,7 @@ from plane.db.models import (
     Page,
     PageIndexEntry,
     PageLabel,
+    PageVersion,
     Project,
     ProjectMember,
     ProjectPage,
@@ -410,14 +411,36 @@ class ConfluenceLoader:
             if not is_valid:
                 raise ValueError(f"Page {page.id} ({page.title!r}) produced invalid HTML: {error}")
 
+            description_html = clean or "<p></p>"
             Page.objects.filter(pk=record.pk).update(
-                description_html=clean or "<p></p>",
+                description_html=description_html,
                 updated_at=page.updated_at,
             )
+            self._seed_version(record, page, description_html)
             self._write_index(record, result, users, summary)
 
         if uploader is not None:
             summary.unsupported_attachments |= uploader.unsupported
+
+    def _seed_version(self, record, page, description_html):
+        """Give an imported page the one version the backup can support.
+
+        Confluence exported a single body per page, so the seed is the whole
+        history there will ever be. A re-import must not stack a second one.
+        """
+        if PageVersion.objects.filter(page_id=record.pk).exists():
+            return
+
+        PageVersion.objects.create(
+            workspace=self.workspace,
+            page_id=record.pk,
+            owned_by_id=record.owned_by_id,
+            last_saved_at=page.updated_at,
+            description_html=description_html,
+            description_json=record.description_json,
+            description_binary=record.description_binary,
+            sub_pages_data={},
+        )
 
     def _write_index(self, record, result, users, summary):
         """Replace the page's queryable facts with the ones just extracted.
