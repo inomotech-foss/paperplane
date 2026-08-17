@@ -70,6 +70,11 @@ from .member import (
 )
 from .page import PageSerializer
 from .page_comment import PageCommentSerializer as PageCommentAPISerializer
+from .page_version import (
+    PageVersionSerializer as PageVersionAPISerializer,
+    PageVersionDetailSerializer as PageVersionDetailAPISerializer,
+    PageVersionCreateSerializer,
+)
 from .sticky import StickySerializer
 from .issue_property import (
     IssuePropertySerializer,

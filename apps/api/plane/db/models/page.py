@@ -165,12 +165,20 @@ class PageVersion(BaseModel):
     description_stripped = models.TextField(blank=True, null=True)
     description_json = models.JSONField(default=dict, blank=True)
     sub_pages_data = models.JSONField(default=dict, blank=True)
+    # set when a version was imported from another wiki instead of being produced
+    # by an edit here, so an import can be re-run without duplicating history
+    external_source = models.CharField(max_length=255, null=True, blank=True)
+    external_id = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         verbose_name = "Page Version"
         verbose_name_plural = "Page Versions"
         db_table = "page_versions"
         ordering = ("-created_at",)
+        indexes = [
+            # the import dedupe check filters on exactly these three
+            models.Index(fields=["page", "external_source", "external_id"], name="page_version_ext_idx")
+        ]
 
     def save(self, *args, **kwargs):
         # Strip the html tags using html parser
