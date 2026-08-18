@@ -10,6 +10,8 @@ from plane.api.views import (
     PageCommentListCreateAPIEndpoint,
     PageCommentDetailAPIEndpoint,
     PageCommentResolveAPIEndpoint,
+    PageVersionListCreateAPIEndpoint,
+    PageVersionDetailAPIEndpoint,
 )
 
 urlpatterns = [
@@ -37,5 +39,15 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/comments/<uuid:pk>/resolve/",
         PageCommentResolveAPIEndpoint.as_view(http_method_names=["post", "delete"]),
         name="page-comments-resolve",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/versions/",
+        PageVersionListCreateAPIEndpoint.as_view(http_method_names=["get", "post"]),
+        name="page-versions",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/versions/<uuid:pk>/",
+        PageVersionDetailAPIEndpoint.as_view(http_method_names=["get"]),
+        name="page-versions",
     ),
 ]

@@ -78,6 +78,10 @@ from .page_comment import (
     PageCommentDetailAPIEndpoint,
     PageCommentResolveAPIEndpoint,
 )
+from .page_version import (
+    PageVersionListCreateAPIEndpoint,
+    PageVersionDetailAPIEndpoint,
+)
 
 from .sticky import StickyViewSet
 
