@@ -43,7 +43,11 @@ export type TDocumentEditorAdditionalExtensionsProps = Pick<
 };
 
 export type TDocumentEditorAdditionalExtensionsRegistry = {
-  isEnabled: (disabledExtensions: TExtensions[], flaggedExtensions: TExtensions[]) => boolean;
+  isEnabled: (
+    disabledExtensions: TExtensions[],
+    flaggedExtensions: TExtensions[],
+    props: TDocumentEditorAdditionalExtensionsProps
+  ) => boolean;
   getExtension: (props: TDocumentEditorAdditionalExtensionsProps) => AnyExtension;
 };
 
@@ -94,7 +98,12 @@ const extensionRegistry: TDocumentEditorAdditionalExtensionsRegistry[] = [
       SlashCommands({ additionalOptions: documentSlashCommandOptions, disabledExtensions, flaggedExtensions }),
   },
   {
-    isEnabled: () => true,
+    // Only the collaborative editor has a Hocuspocus provider. Read-only mounts
+    // (a page version, a preview) pass none, and this extension dereferences
+    // `provider.awareness` while building its ProseMirror plugins — registering
+    // it without one throws before the editor is ever created.
+    isEnabled: (disabledExtensions, _flaggedExtensions, { provider }) =>
+      !!provider && !disabledExtensions.includes("collaboration-cursor"),
     getExtension: ({ provider, userDetails }) =>
       CollaborationCursor.configure({
         provider,
@@ -112,7 +121,7 @@ export function DocumentEditorAdditionalExtensions(props: TDocumentEditorAdditio
 
   const documentExtensions: AnyExtension[] = [];
   for (const config of extensionRegistry) {
-    if (config.isEnabled(disabledExtensions, flaggedExtensions)) {
+    if (config.isEnabled(disabledExtensions, flaggedExtensions, props)) {
       documentExtensions.push(config.getExtension(props));
     }
   }
