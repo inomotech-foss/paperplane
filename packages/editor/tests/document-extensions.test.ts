@@ -4,8 +4,10 @@
  * See the LICENSE file for details.
  */
 
+import { Editor } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
 
+import { CustomStarterKitExtension } from "@/extensions/starter-kit";
 import {
   DocumentEditorAdditionalExtensions,
   type TDocumentEditorAdditionalExtensionsProps,
@@ -61,6 +63,20 @@ describe("DocumentEditorAdditionalExtensions", () => {
       props({ provider: provider as never, disabledExtensions: ["collaboration-cursor"] })
     );
     expect(names(extensions)).not.toContain("collaborationCursor");
+  });
+
+  it("mounts a provider-less editor, as a page version does", () => {
+    // Membership assertions alone would not catch this: the throw happens when an extension
+    // builds its ProseMirror plugins, which only occurs once an editor is actually created.
+    const editor = new Editor({
+      element: document.createElement("div"),
+      editable: false,
+      extensions: [CustomStarterKitExtension({ enableHistory: true }), ...DocumentEditorAdditionalExtensions(props())],
+      content: "<p>version content</p>",
+    });
+
+    expect(editor.getText()).toBe("version content");
+    editor.destroy();
   });
 
   it("keeps every other extension in place without a provider", () => {

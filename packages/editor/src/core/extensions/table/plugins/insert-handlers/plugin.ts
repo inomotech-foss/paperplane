@@ -52,6 +52,10 @@ export const TableInsertPlugin = (editor: Editor): Plugin => {
   };
 
   const updateAllTables = () => {
+    // The deferred first run can land after the view is gone, and reading positions off a
+    // destroyed view throws.
+    if (editor.isDestroyed) return;
+
     if (!editor.isEditable) {
       // Clean up all tables if editor is not editable
       tableMap.forEach((_, tableElement) => {
