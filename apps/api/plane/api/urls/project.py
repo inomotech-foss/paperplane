@@ -11,6 +11,7 @@ from plane.api.views import (
     ProjectArchiveUnarchiveAPIEndpoint,
     ProjectFeatureAPIEndpoint,
     ProjectSummaryAPIEndpoint,
+    ProjectWorkItemSequenceAPIEndpoint,
 )
 
 urlpatterns = [
@@ -43,5 +44,10 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/features/",
         ProjectFeatureAPIEndpoint.as_view(http_method_names=["get", "patch"]),
         name="project-features",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-item-sequence/",
+        ProjectWorkItemSequenceAPIEndpoint.as_view(http_method_names=["get", "post"]),
+        name="project-work-item-sequence",
     ),
 ]
