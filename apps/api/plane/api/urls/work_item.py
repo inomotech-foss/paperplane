@@ -21,6 +21,7 @@ from plane.api.views import (
     IssueRelationRemoveAPIEndpoint,
     WorkItemArchiveAPIEndpoint,
     WorkItemArchiveListAPIEndpoint,
+    WorkItemRenumberAPIEndpoint,
     WorkItemUnarchiveAPIEndpoint,
     WorkspaceWorkItemCountAPIEndpoint,
     WorkspaceWorkItemListAPIEndpoint,
@@ -186,6 +187,11 @@ new_url_patterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/unarchive/",
         WorkItemUnarchiveAPIEndpoint.as_view(http_method_names=["post"]),
         name="work-item-unarchive",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/renumber/",
+        WorkItemRenumberAPIEndpoint.as_view(http_method_names=["post"]),
+        name="work-item-renumber",
     ),
 ]
 
