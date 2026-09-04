@@ -41,7 +41,12 @@ from plane.db.models import (
 )
 from plane.db.models.intake import IntakeIssueStatus
 from plane.utils.host import base_host
-from plane.utils.issue_sequence import IssueSequenceStartError, get_last_issue_sequence, set_next_issue_sequence
+from plane.utils.issue_sequence import (
+    IssueSequenceStartError,
+    get_last_issue_sequence,
+    issue_sequence_start_error,
+    set_next_issue_sequence,
+)
 from plane.utils.issue_type import get_or_create_default_issue_type
 from plane.utils.order_queryset import PROJECT_ORDER_BY_ALLOWLIST, sanitize_order_by
 
@@ -473,8 +478,11 @@ class ProjectIssueSequenceEndpoint(BaseAPIView):
 
         try:
             set_next_issue_sequence(project, start)
-        except IssueSequenceStartError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except IssueSequenceStartError:
+            # Rebuild the explanation from fresh data rather than echoing the exception to the client.
+            current = get_last_issue_sequence(project)
+            error = issue_sequence_start_error(project, start, current) or "The numbering could not be changed"
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"last_sequence": start - 1, "next_sequence": start}, status=status.HTTP_200_OK)
 

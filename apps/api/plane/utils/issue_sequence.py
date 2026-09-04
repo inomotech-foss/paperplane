@@ -39,6 +39,18 @@ def get_last_issue_sequence(project: Project) -> int:
     return IssueSequence.objects.filter(project=project).aggregate(largest=Max("sequence"))["largest"] or 0
 
 
+def issue_sequence_start_error(project: Project, start: int, current: int) -> str | None:
+    """Explain why `start` cannot become the next work item number, or return None when it can."""
+    if start < MIN_ISSUE_SEQUENCE_START:
+        return f"The start must be at least {MIN_ISSUE_SEQUENCE_START}"
+    if start <= current:
+        return (
+            f"{project.identifier} already reaches {project.identifier}-{current}; "
+            f"the start must be greater than {current}"
+        )
+    return None
+
+
 def set_next_issue_sequence(project: Project, start: int) -> int:
     """Make the next work item created in the project receive `start`.
 
@@ -46,18 +58,16 @@ def set_next_issue_sequence(project: Project, start: int) -> int:
     since numbers only ever count up.
     """
     if start < MIN_ISSUE_SEQUENCE_START:
-        raise IssueSequenceStartError(f"The start must be at least {MIN_ISSUE_SEQUENCE_START}")
+        raise IssueSequenceStartError(issue_sequence_start_error(project, start, 0))
 
     with transaction.atomic():
         # Serialise against concurrent work item creation so nothing can claim a number below the new start.
         lock_project_issue_sequence(project.id)
 
         current = get_last_issue_sequence(project)
-        if start <= current:
-            raise IssueSequenceStartError(
-                f"{project.identifier} already reaches {project.identifier}-{current}; "
-                f"the start must be greater than {current}"
-            )
+        error = issue_sequence_start_error(project, start, current)
+        if error is not None:
+            raise IssueSequenceStartError(error)
 
         # Issue.save() assigns MAX(sequence) + 1, so a placeholder at start - 1 with no work item
         # attached makes the next created work item receive exactly `start`.
