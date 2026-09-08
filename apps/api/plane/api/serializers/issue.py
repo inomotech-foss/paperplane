@@ -69,7 +69,9 @@ class IssueSerializer(BaseSerializer):
 
     class Meta:
         model = Issue
-        read_only_fields = ["id", "workspace", "project", "updated_by", "updated_at", "completed_at"]
+        # sequence_id is allocated on creation and changed only through the renumber endpoint,
+        # which keeps the per-project counter in step.
+        read_only_fields = ["id", "workspace", "project", "sequence_id", "updated_by", "updated_at", "completed_at"]
         exclude = ["description_json", "description_stripped"]
 
     def validate(self, data):

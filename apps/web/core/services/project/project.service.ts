@@ -19,6 +19,13 @@ import type { TProject, TPartialProject } from "@plane/types";
 // services
 import { APIService } from "@/services/api.service";
 
+export type TProjectIssueSequence = {
+  // highest work item number recorded for the project, 0 when it has none yet
+  last_sequence: number;
+  // number the next created work item receives
+  next_sequence: number;
+};
+
 export class ProjectService extends APIService {
   constructor() {
     super(API_BASE_URL);
@@ -192,6 +199,22 @@ export class ProjectService extends APIService {
     return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/search-issues/`, {
       params,
     })
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  async getIssueSequence(workspaceSlug: string, projectId: string): Promise<TProjectIssueSequence> {
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-sequence/`)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  async setIssueSequenceStart(workspaceSlug: string, projectId: string, start: number): Promise<TProjectIssueSequence> {
+    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-sequence/`, { start })
       .then((response) => response?.data)
       .catch((error) => {
         throw error?.response?.data;

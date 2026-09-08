@@ -41,6 +41,12 @@ from plane.db.models import (
 )
 from plane.db.models.intake import IntakeIssueStatus
 from plane.utils.host import base_host
+from plane.utils.issue_sequence import (
+    IssueSequenceStartError,
+    get_last_issue_sequence,
+    issue_sequence_start_error,
+    set_next_issue_sequence,
+)
 from plane.utils.issue_type import get_or_create_default_issue_type
 from plane.utils.order_queryset import PROJECT_ORDER_BY_ALLOWLIST, sanitize_order_by
 
@@ -445,6 +451,40 @@ class ProjectArchiveUnarchiveEndpoint(BaseAPIView):
         project.archived_at = None
         project.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProjectIssueSequenceEndpoint(BaseAPIView):
+    """Read and move the number the next work item created in a project receives."""
+
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
+    def get(self, request, slug, project_id):
+        project = Project.objects.get(pk=project_id, workspace__slug=slug)
+        last_sequence = get_last_issue_sequence(project)
+        return Response(
+            {"last_sequence": last_sequence, "next_sequence": last_sequence + 1},
+            status=status.HTTP_200_OK,
+        )
+
+    @allow_permission([ROLE.ADMIN])
+    def post(self, request, slug, project_id):
+        project = Project.objects.get(pk=project_id, workspace__slug=slug)
+
+        start = request.data.get("start")
+        if isinstance(start, bool) or not isinstance(start, int):
+            try:
+                start = int(str(start).strip())
+            except (TypeError, ValueError):
+                return Response({"error": "The start must be a whole number"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            set_next_issue_sequence(project, start)
+        except IssueSequenceStartError:
+            # Rebuild the explanation from fresh data rather than echoing the exception to the client.
+            current = get_last_issue_sequence(project)
+            error = issue_sequence_start_error(project, start, current) or "The numbering could not be changed"
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"last_sequence": start - 1, "next_sequence": start}, status=status.HTTP_200_OK)
 
 
 class ProjectIdentifierEndpoint(BaseAPIView):

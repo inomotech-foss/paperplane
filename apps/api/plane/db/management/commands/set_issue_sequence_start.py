@@ -3,12 +3,10 @@
 
 # Django imports
 from django.core.management.base import BaseCommand, CommandError
-from django.db import connection, transaction
-from django.db.models import Max
 
 # Module imports
-from plane.db.models import IssueSequence, Project
-from plane.utils.uuid import convert_uuid_to_integer
+from plane.db.models import Project
+from plane.utils.issue_sequence import IssueSequenceStartError, set_next_issue_sequence
 
 
 class Command(BaseCommand):
@@ -33,33 +31,18 @@ class Command(BaseCommand):
         project_identifier = options["project"]
         start = options["start"]
 
-        if start < 2:
-            raise CommandError("--start must be at least 2")
-
         project = Project.objects.filter(workspace__slug=workspace_slug, identifier__iexact=project_identifier).first()
         if project is None:
             raise CommandError(f"No project {project_identifier!r} found in workspace {workspace_slug!r}")
 
-        with transaction.atomic():
-            # Issue.save() serialises sequence allocation per project with this advisory lock; take the
-            # same lock so a work item created right now cannot claim a number below the new start.
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT pg_advisory_xact_lock(%s)", [convert_uuid_to_integer(project.id)])
-
-            current = IssueSequence.objects.filter(project=project).aggregate(largest=Max("sequence"))["largest"] or 0
-            if start <= current:
-                raise CommandError(
-                    f"{project.identifier} already reaches {project.identifier}-{current}; "
-                    f"--start must be greater than {current}"
-                )
-
-            # Issue.save() assigns MAX(sequence) + 1, so a placeholder at start - 1 with no work item
-            # attached makes the next created work item receive exactly `start`.
-            IssueSequence.objects.create(project=project, issue=None, sequence=start - 1)
+        try:
+            previous = set_next_issue_sequence(project, start)
+        except IssueSequenceStartError as e:
+            raise CommandError(str(e))
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Next work item in {project.identifier} will be {project.identifier}-{start} "
-                f"(previous maximum was {project.identifier}-{current})"
+                f"(previous maximum was {project.identifier}-{previous})"
             )
         )
