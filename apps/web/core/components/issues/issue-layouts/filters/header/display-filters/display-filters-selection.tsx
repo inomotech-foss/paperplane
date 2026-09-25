@@ -130,9 +130,10 @@ export const DisplayFiltersSelection = observer(function DisplayFiltersSelection
           <FilterExtraOptions
             selectedExtraOptions={getSelectedExtraOptions(displayFilters)}
             handleUpdate={(key, val) =>
-              handleDisplayFiltersUpdate({
-                [key]: val,
-              })
+              handleDisplayFiltersUpdate(
+                // nesting needs the children in the list, so turning it on also shows sub-work items
+                key === "hierarchy" && val ? { hierarchy: true, sub_issue: true } : { [key]: val }
+              )
             }
             enabledExtraOptions={layoutDisplayFiltersOptions?.extra_options.values}
           />

@@ -44,11 +44,12 @@ SEED_SOURCE = "seed_sales_funnel"
 
 CUSTOMER, STORY, QUOTE, INVOICE = "Customer", "Sales story", "Quote", "Invoice"
 
+# Icons are Material Symbols names, which is what the type picker in the web app stores.
 TYPES = {
-    CUSTOMER: {"icon": "Globe", "color": "#3f76ff", "description": "An account we sell to."},
-    STORY: {"icon": "Briefcase", "color": "#8b5cf6", "description": "An opportunity at a customer."},
-    QUOTE: {"icon": "FileText", "color": "#f59e0b", "description": "A priced offer for a sales story."},
-    INVOICE: {"icon": "DollarSign", "color": "#16a34a", "description": "A bill issued against a quote."},
+    CUSTOMER: {"icon": "domain", "color": "#3f76ff", "description": "An account we sell to."},
+    STORY: {"icon": "handshake", "color": "#8b5cf6", "description": "An opportunity at a customer."},
+    QUOTE: {"icon": "request_quote", "color": "#f59e0b", "description": "A priced offer for a sales story."},
+    INVOICE: {"icon": "receipt_long", "color": "#16a34a", "description": "A bill issued against a quote."},
 }
 
 # name, display name, type, scoped to type, options

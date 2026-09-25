@@ -538,6 +538,7 @@ class _Labels:
 
     def __init__(self, dimensions, groups, rows, slug):
         self.slug = slug
+        self.dimensions = dimensions
         self.by_dimension = []
         for index, dimension in enumerate(dimensions):
             keys = {key[index] for key in groups}
@@ -548,6 +549,10 @@ class _Labels:
     def label(self, index, key):
         if key == NONE_KEY:
             return NONE_LABEL
+        dimension = self.dimensions[index]
+        if dimension.is_time:
+            # buckets inserted to fill a gap never appear in `groups`, so name them here
+            return bucket_label(date.fromisoformat(key), dimension.bucket)
         return self.by_dimension[index].get(key, key)
 
     def _resolve(self, dimension, keys, rows):

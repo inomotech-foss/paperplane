@@ -144,23 +144,26 @@ export function WidgetChart(props: Props) {
         cornerRadius={3}
         innerRadius={chartType === "donut" ? "55%" : 0}
         showLabel={false}
-        legend={{ align: "center", verticalAlign: "bottom", layout: "horizontal" }}
+        legend={{ align: "right", verticalAlign: "middle", layout: "vertical" }}
         margin={{ top: 8, right: 8, bottom: 8, left: 8 }}
       />
     );
   }
 
+  // The card's subtitle already names the metric and the dimension, so the axes carry no titles.
   const axisProps = {
     className: cn("size-full", className),
     data: data.data,
-    xAxis: { key: "name" as const, label: dimensionLabel },
-    yAxis: { key: "count" as const, label: metricLabel, allowDecimals: true },
+    xAxis: { key: "name" as const },
+    yAxis: { key: "count" as const, allowDecimals: true },
     legend:
       seriesKeys.length > 0
         ? { align: "left" as const, verticalAlign: "bottom" as const, layout: "horizontal" as const }
         : undefined,
-    margin: { top: 12, right: 12, bottom: 12, left: 12 },
+    margin: { top: 8, right: 8, bottom: 4, left: -8 },
   };
+  // One colour per bar reads well for categories; a time series is one colour throughout.
+  const isTimeSeries = "bucket" in data.dimension && !!data.dimension.bucket;
 
   if (chartType === "line") {
     const lines: TLineItem<string>[] = valueKeys.map((key, index) => ({
@@ -195,7 +198,7 @@ export function WidgetChart(props: Props) {
     label: labelFor(key),
     stackId: "bar",
     fill:
-      seriesKeys.length > 0
+      seriesKeys.length > 0 || isTimeSeries
         ? colors[index % colors.length]
         : (payload: { key?: string }) =>
             colors[
