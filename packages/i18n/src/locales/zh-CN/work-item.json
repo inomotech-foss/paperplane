@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "显示子工作项",
-        "show_empty_groups": "显示空组"
+        "show_empty_groups": "显示空组",
+        "show_hierarchy": "嵌套显示在父项之下"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "查询，例如 type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "运行",
+    "clear": "清除",
+    "help": "查询帮助",
+    "applied": "已应用查询",
+    "invalid": "无法运行该查询",
+    "help_title": "Plane Query Language",
+    "help_intro": "使用 AND、OR、NOT 和括号组合条件。可以用名称代替 ID：state = \"Paid\"、type = \"Invoice\"、cf[\"Amount\"] > 1000。日期写作 \"2026-01-31\"。",
+    "help_operators": "运算符：= != > >= < <= ~（包含）、in (…)、not in (…)、is null、is not null",
+    "help_fields": "字段",
+    "help_functions": "函数",
+    "help_examples": "示例",
+    "example_invoices": "某客户 2026 年到期的已付款发票",
+    "example_everything": "某客户之下的全部内容",
+    "example_overdue": "逾期一周的未完成工作项",
+    "example_amount": "金额超过 1000 的我的工作项"
   }
 }

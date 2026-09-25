@@ -44,10 +44,11 @@ def register_work_item_property_tools(mcp: FastMCP) -> None:
 
         For PQL filtering by name, prefer calling with NO args — one workspace-wide
         fetch beats iterating every work item type. Each result includes the
-        `display_name` you can match in-memory before composing `cf["<id>"]` in PQL.
+        `display_name`; PQL accepts either, `cf["Amount"]` and `cf["<id>"]` mean
+        the same property.
 
         Each result includes:
-        - id: property UUID — use as cf["<id>"] in PQL filters
+        - id: property UUID — usable as cf["<id>"] in PQL filters (the display name works too)
         - display_name: user-facing label (e.g. "Fed", "Acceptance Criteria")
         - property_type: TEXT | OPTION | DECIMAL | BOOLEAN | DATETIME | RELATION | URL | EMAIL
         - options: for OPTION type, each option has id + name; use option id in PQL

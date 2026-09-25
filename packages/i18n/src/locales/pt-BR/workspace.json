@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Painéis",
+    "description": "Gráficos sobre seus itens de trabalho, cada um definido por uma consulta Plane Query Language.",
+    "create": "Novo painel",
+    "edit": "Editar",
+    "refresh": "Atualizar",
+    "no_description": "Sem descrição",
+    "widget_count": "{count} widgets",
+    "not_found": "Este painel não existe ou é privado.",
+    "empty": {
+      "title": "Nenhum painel ainda",
+      "description": "Monte um quadro de gráficos, como receita por mês ou faturas por cliente."
+    },
+    "form": {
+      "create_title": "Novo painel",
+      "edit_title": "Editar painel",
+      "name": "Nome",
+      "name_placeholder": "Pipeline de vendas",
+      "name_required": "Dê um nome ao painel",
+      "description": "Descrição",
+      "public": "Visível para todo o workspace",
+      "public_help": "Desativado, somente você pode abri-lo.",
+      "create": "Criar",
+      "save": "Salvar",
+      "save_error": "Não foi possível salvar o painel"
+    },
+    "delete": {
+      "action": "Excluir",
+      "title": "Excluir painel",
+      "content": "Excluir \"{name}\" e todos os seus widgets? Isso não pode ser desfeito.",
+      "error": "Não foi possível excluir o painel"
+    },
+    "widget": {
+      "add": "Adicionar widget",
+      "edit": "Editar widget",
+      "delete": "Excluir widget",
+      "refresh": "Atualizar",
+      "by": "por {dimension}",
+      "row_count": "{count} itens de trabalho",
+      "no_data": "Nenhum item de trabalho corresponde a esta consulta.",
+      "total": "Total",
+      "load_error": "Não foi possível carregar o widget",
+      "empty_title": "Nenhum widget ainda",
+      "empty_description": "Adicione um widget: uma consulta, o que medir e como dividir.",
+      "delete_title": "Excluir widget",
+      "delete_content": "Excluir \"{title}\"? Isso não pode ser desfeito.",
+      "delete_error": "Não foi possível excluir o widget"
+    },
+    "editor": {
+      "create_title": "Novo widget",
+      "edit_title": "Editar widget",
+      "title": "Título",
+      "title_placeholder": "Receita por mês",
+      "title_required": "Dê um título ao widget",
+      "description": "Subtítulo",
+      "description_placeholder": "Exibido abaixo do título (opcional)",
+      "query": "Consulta",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Deixe em branco para todos os itens de trabalho que você pode ver.",
+      "chart_type": "Gráfico",
+      "metric": "Medida",
+      "metric_field": "De",
+      "no_decimal_properties": "Adicione uma propriedade personalizada decimal para somá-la ou calcular a média.",
+      "dimension": "Dividir por",
+      "series": "Depois por",
+      "bucket": "Por",
+      "none": "Nenhum",
+      "full_width": "Largura total",
+      "preview": "Pré-visualização",
+      "run_preview": "Executar",
+      "preview_hint": "Execute a pré-visualização para ver o gráfico antes de salvar.",
+      "save": "Salvar widget",
+      "add": "Adicionar widget",
+      "save_error": "Não foi possível salvar o widget"
+    },
+    "chart_types": {
+      "number": "Número",
+      "bar": "Gráfico de barras",
+      "line": "Gráfico de linhas",
+      "area": "Gráfico de área",
+      "pie": "Gráfico de pizza",
+      "donut": "Gráfico de rosca",
+      "table": "Tabela"
+    },
+    "metrics": {
+      "count": "Número de itens de trabalho",
+      "sum": "Soma",
+      "avg": "Média",
+      "min": "Mínimo",
+      "max": "Máximo",
+      "estimate_points": "Pontos de estimativa"
+    },
+    "dimensions": {
+      "state": "Estado",
+      "state_group": "Grupo de estados",
+      "priority": "Prioridade",
+      "type": "Tipo de item de trabalho",
+      "project": "Projeto",
+      "assignee": "Responsável",
+      "label": "Etiqueta",
+      "cycle": "Ciclo",
+      "module": "Módulo",
+      "created_by": "Criado por",
+      "parent": "Item pai",
+      "target_date": "Data de vencimento",
+      "start_date": "Data de início",
+      "created_at": "Criado em",
+      "completed_at": "Concluído em",
+      "updated_at": "Atualizado em",
+      "ancestor_of": "{type} mais próximo"
+    },
+    "dimension_groups": {
+      "work_item": "Item de trabalho",
+      "dates": "Datas",
+      "ancestors": "Ancestrais",
+      "properties": "Propriedades personalizadas"
+    },
+    "buckets": {
+      "day": "Dia",
+      "week": "Semana",
+      "month": "Mês",
+      "quarter": "Trimestre",
+      "year": "Ano"
+    }
   }
 }

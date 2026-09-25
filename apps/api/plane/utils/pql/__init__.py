@@ -19,12 +19,15 @@ from plane.utils.pql.lexer import PQLSyntaxError
 from plane.utils.pql.parser import (
     CHILD_OF_PLACEHOLDER,
     CURRENT_USER_PLACEHOLDER,
+    DESCENDANT_OF_PLACEHOLDER,
     NOW_PLACEHOLDER,
     parse_pql,
 )
 from plane.utils.pql.resolve import (
     WorkItemFilterError,
     apply_work_item_filters,
+    compile_pql,
+    compile_query,
     compile_work_item_filters,
     resolve_group_by,
 )
@@ -32,6 +35,7 @@ from plane.utils.pql.resolve import (
 __all__ = [
     "CHILD_OF_PLACEHOLDER",
     "CURRENT_USER_PLACEHOLDER",
+    "DESCENDANT_OF_PLACEHOLDER",
     "FILTER_FIELDS",
     "MAX_FILTER_DEPTH",
     "NOW_PLACEHOLDER",
@@ -43,6 +47,8 @@ __all__ = [
     "WorkItemFilterError",
     "apply_work_item_filters",
     "compile_filters",
+    "compile_pql",
+    "compile_query",
     "compile_work_item_filters",
     "parse_pql",
     "resolve_group_by",

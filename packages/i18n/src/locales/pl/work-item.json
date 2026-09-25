@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "Pokaż elementy podrzędne",
-        "show_empty_groups": "Pokaż puste grupy"
+        "show_empty_groups": "Pokaż puste grupy",
+        "show_hierarchy": "Zagnieżdżaj pod elementami nadrzędnymi"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "Zapytanie, np. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "Uruchom",
+    "clear": "Wyczyść",
+    "help": "Pomoc do zapytań",
+    "applied": "Zapytanie zastosowane",
+    "invalid": "Nie udało się uruchomić zapytania",
+    "help_title": "Plane Query Language",
+    "help_intro": "Łącz warunki za pomocą AND, OR, NOT i nawiasów. Zamiast identyfikatorów działają nazwy: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Daty zapisuje się jako \"2026-01-31\".",
+    "help_operators": "Operatory: = != > >= < <= ~ (zawiera), in (…), not in (…), is null, is not null",
+    "help_fields": "Pola",
+    "help_functions": "Funkcje",
+    "help_examples": "Przykłady",
+    "example_invoices": "Opłacone faktury klienta z terminem w 2026 r.",
+    "example_everything": "Wszystko poniżej klienta",
+    "example_overdue": "Otwarte elementy pracy przeterminowane o tydzień",
+    "example_amount": "Twoje elementy pracy o kwocie powyżej 1000"
   }
 }

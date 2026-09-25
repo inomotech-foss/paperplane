@@ -62,6 +62,7 @@ from plane.db.models import (
     UserRecentVisit,
 )
 from plane.utils.filters import IssueComplexFilterBackend, IssueFilterSet
+from .query import filter_by_pql, without_sub_issue_toggle
 from plane.utils.global_paginator import paginate
 from plane.utils.grouper import (
     issue_group_values,
@@ -273,7 +274,7 @@ class IssueViewSet(BaseViewSet):
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
         query_params = request.query_params.copy()
 
-        filters = issue_filters(query_params, "GET")
+        filters = without_sub_issue_toggle(issue_filters(query_params, "GET"), request)
         order_by_param = request.GET.get("order_by", "-created_at")
 
         issue_queryset = self.get_queryset()
@@ -290,6 +291,11 @@ class IssueViewSet(BaseViewSet):
             return Response({"error": property_filter_error}, status=status.HTTP_400_BAD_REQUEST)
         for property_filter in property_filters:
             issue_queryset = issue_queryset.filter(**property_filter)
+
+        # Plane Query Language, `?pql=<expression>`
+        issue_queryset, pql_error = filter_by_pql(request, slug, issue_queryset, project_id=project_id)
+        if pql_error:
+            return pql_error
 
         # Keeping a copy of the queryset before applying annotations
         filtered_issue_queryset = copy.deepcopy(issue_queryset)

@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "Zobrazit podřízené položky",
-        "show_empty_groups": "Zobrazit prázdné skupiny"
+        "show_empty_groups": "Zobrazit prázdné skupiny",
+        "show_hierarchy": "Vnořit pod nadřazené položky"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "Dotaz, např. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "Spustit",
+    "clear": "Vymazat",
+    "help": "Nápověda k dotazu",
+    "applied": "Dotaz použit",
+    "invalid": "Dotaz se nepodařilo spustit",
+    "help_title": "Plane Query Language",
+    "help_intro": "Podmínky kombinujte pomocí AND, OR, NOT a závorek. Místo ID fungují názvy: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Data se zapisují jako \"2026-01-31\".",
+    "help_operators": "Operátory: = != > >= < <= ~ (obsahuje), in (…), not in (…), is null, is not null",
+    "help_fields": "Pole",
+    "help_functions": "Funkce",
+    "help_examples": "Příklady",
+    "example_invoices": "Zaplacené faktury zákazníka se splatností v roce 2026",
+    "example_everything": "Vše pod zákazníkem",
+    "example_overdue": "Otevřené pracovní položky týden po termínu",
+    "example_amount": "Vaše pracovní položky s částkou nad 1000"
   }
 }

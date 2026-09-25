@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Dashboards",
+    "description": "Charts over your work items, each one a Plane Query Language query.",
+    "create": "New dashboard",
+    "edit": "Edit",
+    "refresh": "Refresh",
+    "no_description": "No description",
+    "widget_count": "{count} widgets",
+    "not_found": "This dashboard does not exist or is private.",
+    "empty": {
+      "title": "No dashboards yet",
+      "description": "Build a board of charts, such as revenue per month or invoices per customer."
+    },
+    "form": {
+      "create_title": "New dashboard",
+      "edit_title": "Edit dashboard",
+      "name": "Name",
+      "name_placeholder": "Sales pipeline",
+      "name_required": "Give the dashboard a name",
+      "description": "Description",
+      "public": "Visible to the whole workspace",
+      "public_help": "Turned off, only you can open it.",
+      "create": "Create",
+      "save": "Save",
+      "save_error": "The dashboard could not be saved"
+    },
+    "delete": {
+      "action": "Delete",
+      "title": "Delete dashboard",
+      "content": "Delete \"{name}\" and all its widgets? This cannot be undone.",
+      "error": "The dashboard could not be deleted"
+    },
+    "widget": {
+      "add": "Add widget",
+      "edit": "Edit widget",
+      "delete": "Delete widget",
+      "refresh": "Refresh",
+      "by": "by {dimension}",
+      "row_count": "{count} work items",
+      "no_data": "No work items match this query.",
+      "total": "Total",
+      "load_error": "The widget could not be loaded",
+      "empty_title": "No widgets yet",
+      "empty_description": "Add a widget: a query, what to measure and how to split it.",
+      "delete_title": "Delete widget",
+      "delete_content": "Delete \"{title}\"? This cannot be undone.",
+      "delete_error": "The widget could not be deleted"
+    },
+    "editor": {
+      "create_title": "New widget",
+      "edit_title": "Edit widget",
+      "title": "Title",
+      "title_placeholder": "Revenue per month",
+      "title_required": "Give the widget a title",
+      "description": "Subtitle",
+      "description_placeholder": "Shown under the title (optional)",
+      "query": "Query",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Leave empty for every work item you can see.",
+      "chart_type": "Chart",
+      "metric": "Measure",
+      "metric_field": "Of",
+      "no_decimal_properties": "Add a decimal custom property to sum or average it.",
+      "dimension": "Split by",
+      "series": "Then by",
+      "bucket": "Per",
+      "none": "None",
+      "full_width": "Full width",
+      "preview": "Preview",
+      "run_preview": "Run",
+      "preview_hint": "Run the preview to see the chart before saving.",
+      "save": "Save widget",
+      "add": "Add widget",
+      "save_error": "The widget could not be saved"
+    },
+    "chart_types": {
+      "number": "Number",
+      "bar": "Bar chart",
+      "line": "Line chart",
+      "area": "Area chart",
+      "pie": "Pie chart",
+      "donut": "Donut chart",
+      "table": "Table"
+    },
+    "metrics": {
+      "count": "Count of work items",
+      "sum": "Sum",
+      "avg": "Average",
+      "min": "Minimum",
+      "max": "Maximum",
+      "estimate_points": "Estimate points"
+    },
+    "dimensions": {
+      "state": "State",
+      "state_group": "State group",
+      "priority": "Priority",
+      "type": "Work item type",
+      "project": "Project",
+      "assignee": "Assignee",
+      "label": "Label",
+      "cycle": "Cycle",
+      "module": "Module",
+      "created_by": "Created by",
+      "parent": "Parent",
+      "target_date": "Due date",
+      "start_date": "Start date",
+      "created_at": "Created on",
+      "completed_at": "Completed on",
+      "updated_at": "Updated on",
+      "ancestor_of": "Nearest {type}"
+    },
+    "dimension_groups": {
+      "work_item": "Work item",
+      "dates": "Dates",
+      "ancestors": "Ancestors",
+      "properties": "Custom properties"
+    },
+    "buckets": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year"
+    }
   }
 }

@@ -9,12 +9,13 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 // plane imports
-import { ISSUE_DISPLAY_FILTERS_BY_PAGE, PROJECT_VIEW_TRACKER_ELEMENTS } from "@plane/constants";
+import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE, PROJECT_VIEW_TRACKER_ELEMENTS } from "@plane/constants";
 import { EIssuesStoreType, EIssueLayoutTypes } from "@plane/types";
 import { Row, ERowVariant } from "@plane/ui";
 // hooks
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
+import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
 import { useIssues } from "@/hooks/store/use-issues";
 import { IssuesStoreContext } from "@/hooks/use-issue-layout-store";
 // local imports
@@ -89,6 +90,20 @@ export const ModuleLayoutRoot = observer(function ModuleLayoutRoot() {
                 }}
               />
             )}
+            <WorkItemQueryBar
+              workspaceSlug={workspaceSlug}
+              projectId={projectId}
+              value={appliedQuery(workItemFilters)}
+              onApply={(pql) =>
+                issuesFilter.updateFilters(
+                  workspaceSlug,
+                  projectId,
+                  EIssueFilterType.DISPLAY_FILTERS,
+                  { pql },
+                  moduleId
+                )
+              }
+            />
             <Row variant={ERowVariant.HUGGING} className="h-full w-full overflow-auto">
               <ModuleIssueLayout activeLayout={activeLayout} moduleId={moduleId} />
             </Row>

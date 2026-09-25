@@ -15,7 +15,7 @@ from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
 # Django imports
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone as django_timezone
 from django.utils.dateparse import parse_date, parse_datetime
 
@@ -483,3 +483,141 @@ def build_custom_property_condition_q(property_obj, operator, raw):
     lookup, parsed = _parse_condition_scalar(property_obj, raw)
     base_kwargs[f"property_values__{lookup}"] = parsed
     return Q(**base_kwargs)
+
+
+# --------------------------------------------------------------------------
+# Query language support: one `Q` per custom property comparison
+# --------------------------------------------------------------------------
+
+# The lookups each property type answers. Keys are the lookup names of
+# `plane.utils.pql.fields`.
+CUSTOM_PROPERTY_LOOKUPS_BY_TYPE = {
+    PropertyTypeChoices.TEXT: frozenset({"exact", "in", "icontains", "isnull"}),
+    PropertyTypeChoices.DECIMAL: frozenset({"exact", "in", "gt", "gte", "lt", "lte", "range", "isnull"}),
+    PropertyTypeChoices.OPTION: frozenset({"exact", "in", "isnull"}),
+    PropertyTypeChoices.DATETIME: frozenset({"exact", "gt", "gte", "lt", "lte", "range", "isnull"}),
+    PropertyTypeChoices.BOOLEAN: frozenset({"exact", "isnull"}),
+    PropertyTypeChoices.RELATION: frozenset({"exact", "in", "isnull"}),
+}
+
+
+def _is_date_only(raw):
+    return isinstance(raw, str) and len(raw.strip()) <= 10
+
+
+def _parse_lookup_datetime(raw):
+    """Parse a comparison value into an aware datetime; datetimes pass through."""
+    if isinstance(raw, django_timezone.datetime):
+        return raw if not django_timezone.is_naive(raw) else django_timezone.make_aware(raw)
+    return parse_datetime_value(raw)
+
+
+def _relation_user_id(property_obj, raw):
+    """Resolve a RELATION value: a user id, or a display name or email in the workspace."""
+    if isinstance(raw, (list, dict, bool)) or raw is None:
+        raise PropertyValueError("Value must be a user id, display name or email")
+    raw = str(raw).strip()
+    try:
+        return str(uuid.UUID(raw))
+    except ValueError:
+        pass
+    members = list(
+        WorkspaceMember.objects.filter(workspace_id=property_obj.workspace_id, is_active=True)
+        .filter(Q(member__display_name__iexact=raw) | Q(member__email__iexact=raw))
+        .values_list("member_id", flat=True)[:2]
+    )
+    if not members:
+        raise PropertyValueError(f"Unknown user '{raw}' in this workspace")
+    return str(members[0])
+
+
+def build_custom_property_lookup_q(property_obj, lookup, raw):
+    """Build the `Q` for `cf[<property>] <lookup> <raw>` on a work item queryset.
+
+    Each comparison becomes an `EXISTS` over the property's value rows, so it
+    composes correctly under `OR` and `NOT` and never multiplies rows through
+    a join. `isnull` is true for a work item with no value row at all.
+    Raises `PropertyValueError` for a lookup the property type does not
+    support or a value that does not parse.
+    """
+    property_type = property_obj.property_type
+    if lookup not in CUSTOM_PROPERTY_LOOKUPS_BY_TYPE.get(property_type, frozenset()):
+        raise PropertyValueError(
+            f"'{lookup}' is not supported on '{property_obj.display_name}' ({property_type.lower()} property)"
+        )
+
+    rows = IssuePropertyValue.objects.filter(
+        issue_id=OuterRef("id"), property_id=property_obj.id, deleted_at__isnull=True
+    )
+
+    if lookup == "isnull":
+        if not isinstance(raw, bool):
+            raise PropertyValueError("'is null' expects true or false")
+        has_value = Q(Exists(rows))
+        return ~has_value if raw else has_value
+
+    if lookup == "in":
+        values = list(raw) if isinstance(raw, (list, tuple)) else [raw]
+        if not values:
+            raise PropertyValueError("'in' expects a non-empty list of values")
+        column = None
+        parsed = []
+        for value in values:
+            column, value = _lookup_scalar(property_obj, value)
+            parsed.append(value)
+        return Q(Exists(rows.filter(**{f"{column}__in": parsed})))
+
+    if lookup == "icontains":
+        if isinstance(raw, (list, dict, bool)) or raw is None:
+            raise PropertyValueError("'~' expects a string")
+        return Q(Exists(rows.filter(value_text__icontains=str(raw))))
+
+    if lookup == "range":
+        values = raw if isinstance(raw, (list, tuple)) else None
+        if not values or len(values) != 2:
+            raise PropertyValueError("'range' expects a list of two values")
+        if property_type == PropertyTypeChoices.DECIMAL:
+            return Q(Exists(rows.filter(value_number__range=(parse_number(values[0]), parse_number(values[1])))))
+        start = _parse_lookup_datetime(values[0])
+        end = _parse_lookup_datetime(values[1])
+        if _is_date_only(values[1]):
+            end = end + timedelta(days=1) - timedelta(microseconds=1)
+        return Q(Exists(rows.filter(value_date__range=(start, end))))
+
+    if lookup in ("gt", "gte", "lt", "lte"):
+        if property_type == PropertyTypeChoices.DECIMAL:
+            return Q(Exists(rows.filter(**{f"value_number__{lookup}": parse_number(raw)})))
+        value = _parse_lookup_datetime(raw)
+        # A bare date means the whole day: "after 2026-01-01" starts on the
+        # 2nd and "up to 2026-12-31" includes the 31st.
+        if _is_date_only(raw) and lookup == "gt":
+            return Q(Exists(rows.filter(value_date__gte=value + timedelta(days=1))))
+        if _is_date_only(raw) and lookup == "lte":
+            return Q(Exists(rows.filter(value_date__lt=value + timedelta(days=1))))
+        return Q(Exists(rows.filter(**{f"value_date__{lookup}": value})))
+
+    # exact
+    if property_type == PropertyTypeChoices.DATETIME:
+        start = _parse_lookup_datetime(raw)
+        if _is_date_only(raw):
+            end = start + timedelta(days=1) - timedelta(microseconds=1)
+            return Q(Exists(rows.filter(value_date__range=(start, end))))
+        return Q(Exists(rows.filter(value_date=start)))
+    column, value = _lookup_scalar(property_obj, raw)
+    return Q(Exists(rows.filter(**{column: value})))
+
+
+def _lookup_scalar(property_obj, raw):
+    """Parse one comparison value into `(value column, parsed value)`."""
+    property_type = property_obj.property_type
+    if property_type == PropertyTypeChoices.DECIMAL:
+        return "value_number", parse_number(raw)
+    if property_type == PropertyTypeChoices.OPTION:
+        return "value_option_id", resolve_option(property_obj, raw).id
+    if property_type == PropertyTypeChoices.BOOLEAN:
+        return "value_boolean", parse_boolean(raw)
+    if property_type == PropertyTypeChoices.RELATION:
+        return "value_user_id", _relation_user_id(property_obj, raw)
+    if isinstance(raw, (list, dict, bool)) or raw is None:
+        raise PropertyValueError("Value must be a string")
+    return "value_text", str(raw)

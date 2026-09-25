@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "Afișează sub-activitățile",
-        "show_empty_groups": "Afișează grupurile goale"
+        "show_empty_groups": "Afișează grupurile goale",
+        "show_hierarchy": "Imbrică sub elementele părinte"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "Interogare, de ex. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "Rulează",
+    "clear": "Golește",
+    "help": "Ajutor pentru interogare",
+    "applied": "Interogare aplicată",
+    "invalid": "Interogarea nu a putut fi rulată",
+    "help_title": "Plane Query Language",
+    "help_intro": "Combină condițiile cu AND, OR, NOT și paranteze. Numele funcționează în locul ID-urilor: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Datele se scriu ca \"2026-01-31\".",
+    "help_operators": "Operatori: = != > >= < <= ~ (conține), in (…), not in (…), is null, is not null",
+    "help_fields": "Câmpuri",
+    "help_functions": "Funcții",
+    "help_examples": "Exemple",
+    "example_invoices": "Facturile plătite ale unui client, scadente în 2026",
+    "example_everything": "Tot ce se află sub un client",
+    "example_overdue": "Activități deschise, restante de o săptămână",
+    "example_amount": "Activitățile tale cu o sumă peste 1000"
   }
 }

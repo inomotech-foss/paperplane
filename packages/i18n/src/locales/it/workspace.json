@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Dashboard",
+    "description": "Grafici sui tuoi elementi di lavoro, ciascuno definito da una query Plane Query Language.",
+    "create": "Nuova dashboard",
+    "edit": "Modifica",
+    "refresh": "Aggiorna",
+    "no_description": "Nessuna descrizione",
+    "widget_count": "{count} widget",
+    "not_found": "Questa dashboard non esiste o è privata.",
+    "empty": {
+      "title": "Ancora nessuna dashboard",
+      "description": "Crea una bacheca di grafici, come il fatturato per mese o le fatture per cliente."
+    },
+    "form": {
+      "create_title": "Nuova dashboard",
+      "edit_title": "Modifica dashboard",
+      "name": "Nome",
+      "name_placeholder": "Pipeline di vendita",
+      "name_required": "Dai un nome alla dashboard",
+      "description": "Descrizione",
+      "public": "Visibile a tutto lo spazio di lavoro",
+      "public_help": "Se disattivato, solo tu puoi aprirla.",
+      "create": "Crea",
+      "save": "Salva",
+      "save_error": "Impossibile salvare la dashboard"
+    },
+    "delete": {
+      "action": "Elimina",
+      "title": "Elimina dashboard",
+      "content": "Eliminare \"{name}\" e tutti i suoi widget? L’operazione non può essere annullata.",
+      "error": "Impossibile eliminare la dashboard"
+    },
+    "widget": {
+      "add": "Aggiungi widget",
+      "edit": "Modifica widget",
+      "delete": "Elimina widget",
+      "refresh": "Aggiorna",
+      "by": "per {dimension}",
+      "row_count": "{count} elementi di lavoro",
+      "no_data": "Nessun elemento di lavoro corrisponde a questa query.",
+      "total": "Totale",
+      "load_error": "Impossibile caricare il widget",
+      "empty_title": "Ancora nessun widget",
+      "empty_description": "Aggiungi un widget: una query, cosa misurare e come suddividerlo.",
+      "delete_title": "Elimina widget",
+      "delete_content": "Eliminare \"{title}\"? L’operazione non può essere annullata.",
+      "delete_error": "Impossibile eliminare il widget"
+    },
+    "editor": {
+      "create_title": "Nuovo widget",
+      "edit_title": "Modifica widget",
+      "title": "Titolo",
+      "title_placeholder": "Fatturato per mese",
+      "title_required": "Dai un titolo al widget",
+      "description": "Sottotitolo",
+      "description_placeholder": "Mostrato sotto il titolo (facoltativo)",
+      "query": "Query",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Lascia vuoto per tutti gli elementi di lavoro che puoi vedere.",
+      "chart_type": "Grafico",
+      "metric": "Misura",
+      "metric_field": "Di",
+      "no_decimal_properties": "Aggiungi una proprietà personalizzata decimale per sommarla o calcolarne la media.",
+      "dimension": "Suddividi per",
+      "series": "Poi per",
+      "bucket": "Per",
+      "none": "Nessuno",
+      "full_width": "Larghezza piena",
+      "preview": "Anteprima",
+      "run_preview": "Esegui",
+      "preview_hint": "Esegui l’anteprima per vedere il grafico prima di salvare.",
+      "save": "Salva widget",
+      "add": "Aggiungi widget",
+      "save_error": "Impossibile salvare il widget"
+    },
+    "chart_types": {
+      "number": "Numero",
+      "bar": "Grafico a barre",
+      "line": "Grafico a linee",
+      "area": "Grafico ad area",
+      "pie": "Grafico a torta",
+      "donut": "Grafico ad anello",
+      "table": "Tabella"
+    },
+    "metrics": {
+      "count": "Numero di elementi di lavoro",
+      "sum": "Somma",
+      "avg": "Media",
+      "min": "Minimo",
+      "max": "Massimo",
+      "estimate_points": "Punti di stima"
+    },
+    "dimensions": {
+      "state": "Stato",
+      "state_group": "Gruppo di stati",
+      "priority": "Priorità",
+      "type": "Tipo di elemento di lavoro",
+      "project": "Progetto",
+      "assignee": "Assegnatario",
+      "label": "Etichetta",
+      "cycle": "Ciclo",
+      "module": "Modulo",
+      "created_by": "Creato da",
+      "parent": "Elemento padre",
+      "target_date": "Data di scadenza",
+      "start_date": "Data di inizio",
+      "created_at": "Creato il",
+      "completed_at": "Completato il",
+      "updated_at": "Aggiornato il",
+      "ancestor_of": "{type} più vicino"
+    },
+    "dimension_groups": {
+      "work_item": "Elemento di lavoro",
+      "dates": "Date",
+      "ancestors": "Antenati",
+      "properties": "Proprietà personalizzate"
+    },
+    "buckets": {
+      "day": "Giorno",
+      "week": "Settimana",
+      "month": "Mese",
+      "quarter": "Trimestre",
+      "year": "Anno"
+    }
   }
 }

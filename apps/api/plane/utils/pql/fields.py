@@ -32,6 +32,11 @@ ICONTAINS = "icontains"
 # of a bare field name and has no suffix.
 LOOKUP_SUFFIXES = (IN, GTE, LTE, GT, LT, RANGE, ISNULL, ICONTAINS)
 
+# Lookups a custom property leaf may carry. The pure compiler (no resolver)
+# keeps the narrower SDK contract, see `CUSTOM_PROPERTY_SDK_LOOKUPS`.
+CUSTOM_PROPERTY_LOOKUPS = frozenset({EXACT, IN, GT, GTE, LT, LTE, RANGE, ISNULL, ICONTAINS})
+CUSTOM_PROPERTY_SDK_LOOKUPS = frozenset({EXACT, GT, LT})
+
 UUID_LOOKUPS = frozenset({EXACT, IN, ISNULL})
 TEXT_LOOKUPS = frozenset({EXACT, IN, ISNULL, ICONTAINS})
 DATE_LOOKUPS = frozenset({EXACT, IN, GT, GTE, LT, LTE, RANGE, ISNULL})
@@ -41,6 +46,11 @@ PRIORITY_CHOICES = frozenset({"urgent", "high", "medium", "low", "none"})
 STATE_GROUP_CHOICES = frozenset({"backlog", "unstarted", "started", "completed", "cancelled"})
 
 CUSTOM_PROPERTY_PREFIX = "property__"
+
+# The landing field of `descendantOf("PROJ-12")`: every work item below the
+# given ones, at any depth. It has no ORM path of its own; the compiler turns
+# it into a recursive subquery on `parent_id`.
+ANCESTOR_FIELD = "ancestor_id"
 
 
 @dataclass(frozen=True)
@@ -54,6 +64,9 @@ class FilterField:
     # Extra kwargs that exclude soft-deleted rows of a join table, matching the
     # guards in plane.utils.issue_filters.
     join_guard: tuple = ()
+    # Whether `group_by` may use the field. False for fields that compile to a
+    # subquery instead of a column.
+    groupable: bool = True
 
 
 FILTER_FIELDS = {
@@ -100,8 +113,22 @@ FILTER_FIELDS = {
     # The landing field of the `childOf("PROJ-12")` placeholder, once the
     # identifier has been resolved to a work item id.
     "parent_id": FilterField(path="parent_id", value_type=UUID_TYPE, lookups=UUID_LOOKUPS),
+    # The landing field of `descendantOf("PROJ-12")`; compiled to a recursive
+    # subquery, so it cannot be grouped by.
+    ANCESTOR_FIELD: FilterField(
+        path=ANCESTOR_FIELD,
+        value_type=UUID_TYPE,
+        lookups=frozenset({EXACT, IN}),
+        groupable=False,
+    ),
+    "name": FilterField(path="name", value_type=TEXT_TYPE, lookups=TEXT_LOOKUPS, groupable=False),
     "target_date": FilterField(path="target_date", value_type=DATE_TYPE, lookups=DATE_LOOKUPS),
     "start_date": FilterField(path="start_date", value_type=DATE_TYPE, lookups=DATE_LOOKUPS),
+    # Timestamps compare on their calendar day, so `created_at >= "2026-01-01"`
+    # means what a person reading it expects.
+    "created_at": FilterField(path="created_at__date", value_type=DATE_TYPE, lookups=DATE_LOOKUPS),
+    "updated_at": FilterField(path="updated_at__date", value_type=DATE_TYPE, lookups=DATE_LOOKUPS),
+    "completed_at": FilterField(path="completed_at__date", value_type=DATE_TYPE, lookups=DATE_LOOKUPS),
 }
 
 # Part of the SDK vocabulary but backed by no model in this edition, so they get
@@ -143,22 +170,47 @@ def split_field_lookup(key):
 
 
 def split_custom_property_lookup(key):
-    """Split a `property__<uuid>[__gt|__lt]` leaf key into `(property_id, lookup)`.
+    """Split a `property__<ref>[__<lookup>]` leaf key into `(reference, lookup)`.
 
-    Returns `(None, None)` when the key is not a custom property key at all, and
-    raises `ValueError` when it is one but the id is not a UUID.
+    The reference is the property id, or, when a resolver is wired in, a
+    property name. A UUID reference is normalised to its canonical spelling.
+    Returns `(None, None)` when the key is not a custom property key at all,
+    and raises `ValueError` when the reference is empty.
     """
     if not key.startswith(CUSTOM_PROPERTY_PREFIX):
         return None, None
     rest = key[len(CUSTOM_PROPERTY_PREFIX) :]
     lookup = EXACT
-    for candidate in (GT, LT):
+    for candidate in sorted(CUSTOM_PROPERTY_LOOKUPS - {EXACT}, key=len, reverse=True):
         suffix = f"__{candidate}"
         if rest.endswith(suffix):
             rest = rest[: -len(suffix)]
             lookup = candidate
             break
-    return str(uuid.UUID(rest)), lookup
+    if not rest:
+        raise ValueError("empty custom property reference")
+    return normalise_property_reference(rest), lookup
+
+
+def normalise_property_reference(reference):
+    """Return a UUID reference in canonical form, any other reference as is."""
+    try:
+        return str(uuid.UUID(reference))
+    except (ValueError, AttributeError, TypeError):
+        return reference
+
+
+def is_uuid(value):
+    """Whether `value` is a UUID or a string spelling one."""
+    if isinstance(value, uuid.UUID):
+        return True
+    if not isinstance(value, str):
+        return False
+    try:
+        uuid.UUID(value)
+    except ValueError:
+        return False
+    return True
 
 
 def coerce_value(field, value):

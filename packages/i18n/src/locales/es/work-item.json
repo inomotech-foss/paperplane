@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "Mostrar sub-elementos",
-        "show_empty_groups": "Mostrar grupos vacíos"
+        "show_empty_groups": "Mostrar grupos vacíos",
+        "show_hierarchy": "Anidar bajo los elementos padre"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "Consulta, p. ej. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "Ejecutar",
+    "clear": "Limpiar",
+    "help": "Ayuda de la consulta",
+    "applied": "Consulta aplicada",
+    "invalid": "No se pudo ejecutar la consulta",
+    "help_title": "Plane Query Language",
+    "help_intro": "Combine condiciones con AND, OR, NOT y paréntesis. Los nombres sirven en lugar de los identificadores: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Las fechas se escriben como \"2026-01-31\".",
+    "help_operators": "Operadores: = != > >= < <= ~ (contiene), in (…), not in (…), is null, is not null",
+    "help_fields": "Campos",
+    "help_functions": "Funciones",
+    "help_examples": "Ejemplos",
+    "example_invoices": "Facturas pagadas de un cliente con vencimiento en 2026",
+    "example_everything": "Todo lo que hay bajo un cliente",
+    "example_overdue": "Elementos de trabajo abiertos con una semana de retraso",
+    "example_amount": "Sus elementos de trabajo con un importe superior a 1000"
   }
 }

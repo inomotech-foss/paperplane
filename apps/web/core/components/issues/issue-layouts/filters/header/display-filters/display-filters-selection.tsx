@@ -21,6 +21,7 @@ import {
   FilterOrderBy,
   FilterSubGroupBy,
 } from "@/components/issues/issue-layouts/filters";
+import { getSelectedExtraOptions } from "./extra-options";
 
 type Props = {
   displayFilters: IIssueDisplayFilterOptions | undefined;
@@ -127,14 +128,12 @@ export const DisplayFiltersSelection = observer(function DisplayFiltersSelection
       {layoutDisplayFiltersOptions?.extra_options.access && (
         <div className="py-2">
           <FilterExtraOptions
-            selectedExtraOptions={{
-              show_empty_groups: displayFilters?.show_empty_groups ?? true,
-              sub_issue: displayFilters?.sub_issue ?? true,
-            }}
+            selectedExtraOptions={getSelectedExtraOptions(displayFilters)}
             handleUpdate={(key, val) =>
-              handleDisplayFiltersUpdate({
-                [key]: val,
-              })
+              handleDisplayFiltersUpdate(
+                // nesting needs the children in the list, so turning it on also shows sub-work items
+                key === "hierarchy" && val ? { hierarchy: true, sub_issue: true } : { [key]: val }
+              )
             }
             enabledExtraOptions={layoutDisplayFiltersOptions?.extra_options.values}
           />

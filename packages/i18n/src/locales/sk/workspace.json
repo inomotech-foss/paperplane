@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Dashboardy",
+    "description": "Grafy nad vašimi pracovnými položkami, každý definovaný dopytom Plane Query Language.",
+    "create": "Nový dashboard",
+    "edit": "Upraviť",
+    "refresh": "Obnoviť",
+    "no_description": "Bez popisu",
+    "widget_count": "{count} widgetov",
+    "not_found": "Tento dashboard neexistuje alebo je súkromný.",
+    "empty": {
+      "title": "Zatiaľ žiadne dashboardy",
+      "description": "Zostavte nástenku grafov, napríklad tržby po mesiacoch alebo faktúry podľa zákazníka."
+    },
+    "form": {
+      "create_title": "Nový dashboard",
+      "edit_title": "Upraviť dashboard",
+      "name": "Názov",
+      "name_placeholder": "Obchodná pipeline",
+      "name_required": "Pomenujte dashboard",
+      "description": "Popis",
+      "public": "Viditeľný pre celý pracovný priestor",
+      "public_help": "Keď je vypnuté, otvoríte ho len vy.",
+      "create": "Vytvoriť",
+      "save": "Uložiť",
+      "save_error": "Dashboard sa nepodarilo uložiť"
+    },
+    "delete": {
+      "action": "Zmazať",
+      "title": "Zmazať dashboard",
+      "content": "Zmazať „{name}“ a všetky jeho widgety? Túto akciu nie je možné vrátiť späť.",
+      "error": "Dashboard sa nepodarilo zmazať"
+    },
+    "widget": {
+      "add": "Pridať widget",
+      "edit": "Upraviť widget",
+      "delete": "Zmazať widget",
+      "refresh": "Obnoviť",
+      "by": "podľa {dimension}",
+      "row_count": "{count} pracovných položiek",
+      "no_data": "Tomuto dopytu nezodpovedá žiadna pracovná položka.",
+      "total": "Spolu",
+      "load_error": "Widget sa nepodarilo načítať",
+      "empty_title": "Zatiaľ žiadne widgety",
+      "empty_description": "Pridajte widget: dopyt, čo merať a ako to rozdeliť.",
+      "delete_title": "Zmazať widget",
+      "delete_content": "Zmazať „{title}“? Túto akciu nie je možné vrátiť späť.",
+      "delete_error": "Widget sa nepodarilo zmazať"
+    },
+    "editor": {
+      "create_title": "Nový widget",
+      "edit_title": "Upraviť widget",
+      "title": "Názov",
+      "title_placeholder": "Tržby po mesiacoch",
+      "title_required": "Pomenujte widget",
+      "description": "Podtitul",
+      "description_placeholder": "Zobrazí sa pod názvom (voliteľné)",
+      "query": "Dopyt",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Nechajte prázdne pre všetky pracovné položky, ktoré vidíte.",
+      "chart_type": "Graf",
+      "metric": "Meranie",
+      "metric_field": "Z",
+      "no_decimal_properties": "Pridajte desatinnú vlastnú vlastnosť, aby ste ju mohli sčítať alebo priemerovať.",
+      "dimension": "Rozdeliť podľa",
+      "series": "Potom podľa",
+      "bucket": "Za",
+      "none": "Žiadne",
+      "full_width": "Plná šírka",
+      "preview": "Náhľad",
+      "run_preview": "Spustiť",
+      "preview_hint": "Spustite náhľad a pozrite si graf pred uložením.",
+      "save": "Uložiť widget",
+      "add": "Pridať widget",
+      "save_error": "Widget sa nepodarilo uložiť"
+    },
+    "chart_types": {
+      "number": "Číslo",
+      "bar": "Stĺpcový graf",
+      "line": "Čiarový graf",
+      "area": "Plošný graf",
+      "pie": "Koláčový graf",
+      "donut": "Prstencový graf",
+      "table": "Tabuľka"
+    },
+    "metrics": {
+      "count": "Počet pracovných položiek",
+      "sum": "Súčet",
+      "avg": "Priemer",
+      "min": "Minimum",
+      "max": "Maximum",
+      "estimate_points": "Body odhadu"
+    },
+    "dimensions": {
+      "state": "Stav",
+      "state_group": "Skupina stavov",
+      "priority": "Priorita",
+      "type": "Typ pracovnej položky",
+      "project": "Projekt",
+      "assignee": "Priradená osoba",
+      "label": "Štítok",
+      "cycle": "Cyklus",
+      "module": "Modul",
+      "created_by": "Vytvoril(a)",
+      "parent": "Nadradená položka",
+      "target_date": "Termín",
+      "start_date": "Dátum začiatku",
+      "created_at": "Vytvorené",
+      "completed_at": "Dokončené",
+      "updated_at": "Aktualizované",
+      "ancestor_of": "Najbližší {type}"
+    },
+    "dimension_groups": {
+      "work_item": "Pracovná položka",
+      "dates": "Dátumy",
+      "ancestors": "Nadradené položky",
+      "properties": "Vlastné vlastnosti"
+    },
+    "buckets": {
+      "day": "Deň",
+      "week": "Týždeň",
+      "month": "Mesiac",
+      "quarter": "Štvrťrok",
+      "year": "Rok"
+    }
   }
 }

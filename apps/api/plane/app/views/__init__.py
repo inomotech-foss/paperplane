@@ -131,6 +131,16 @@ from .issue.base import (
 
 from .issue.activity import IssueActivityEndpoint
 
+from .issue.query import WorkItemQueryFieldsEndpoint, WorkItemQueryValidateEndpoint
+
+from .dashboard import (
+    DashboardOptionsEndpoint,
+    DashboardViewSet,
+    DashboardWidgetDataEndpoint,
+    DashboardWidgetPreviewEndpoint,
+    DashboardWidgetViewSet,
+)
+
 from .issue.archive import IssueArchiveViewSet, BulkArchiveIssuesEndpoint
 
 from .issue.attachment import (

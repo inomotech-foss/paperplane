@@ -324,13 +324,22 @@ PQL_PARAMETER = OpenApiParameter(
     name="pql",
     type=OpenApiTypes.STR,
     location=OpenApiParameter.QUERY,
-    description="Plane Query Language expression. Human readable alternative to 'filters'; the two are mutually exclusive.",  # noqa: E501
+    description=(
+        "Plane Query Language expression. Human readable alternative to 'filters'; the two are mutually exclusive. "
+        'Names resolve to ids (state = "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches '
+        "direct children and descendantOf() every work item below one at any depth."
+    ),
     required=False,
     examples=[
         OpenApiExample(
             name="Urgent work items of the caller",
             value='priority = "urgent" AND assignee = currentUser()',
             description="Combine conditions with AND, OR, NOT and parentheses",
+        ),
+        OpenApiExample(
+            name="Paid invoices of a customer due this year",
+            value='descendantOf("CUST-1") AND type = "Invoice" AND state = "Paid" AND cf["Due date"] >= "2026-01-01"',
+            description="Walk the hierarchy below a work item and filter by names and custom properties",
         ),
     ],
 )

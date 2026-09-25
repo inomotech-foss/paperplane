@@ -23,7 +23,7 @@ class WorkItemFilterMixin:
         Returns `(querysets, error_response)`; the response is None on success.
         """
         try:
-            compiled = compile_work_item_filters(request, slug)
+            compiled = compile_work_item_filters(request, slug, project_id=project_id)
             return [apply_work_item_filters(queryset, compiled, slug, project_id) for queryset in querysets], None
         except WorkItemFilterError as exc:
             return querysets, Response(exc.payload, status=status.HTTP_400_BAD_REQUEST)

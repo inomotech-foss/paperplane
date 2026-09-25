@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "Показывать подэлементы",
-        "show_empty_groups": "Показывать пустые группы"
+        "show_empty_groups": "Показывать пустые группы",
+        "show_hierarchy": "Вкладывать под родительские элементы"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "Запрос, например type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "Выполнить",
+    "clear": "Очистить",
+    "help": "Справка по запросам",
+    "applied": "Запрос применён",
+    "invalid": "Не удалось выполнить запрос",
+    "help_title": "Plane Query Language",
+    "help_intro": "Объединяйте условия с помощью AND, OR, NOT и скобок. Вместо идентификаторов работают названия: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Даты записываются как \"2026-01-31\".",
+    "help_operators": "Операторы: = != > >= < <= ~ (содержит), in (…), not in (…), is null, is not null",
+    "help_fields": "Поля",
+    "help_functions": "Функции",
+    "help_examples": "Примеры",
+    "example_invoices": "Оплаченные счета клиента со сроком в 2026 году",
+    "example_everything": "Всё, что находится под клиентом",
+    "example_overdue": "Открытые рабочие элементы, просроченные на неделю",
+    "example_amount": "Ваши рабочие элементы с суммой больше 1000"
   }
 }

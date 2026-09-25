@@ -94,13 +94,16 @@ export class IssueFilterHelperStore implements IIssueFilterHelperStore {
     displayFilters: IIssueDisplayFilterOptions | undefined,
     acceptableParamsByLayout: TIssueParams[]
   ): Partial<Record<TIssueParams, string | boolean>> => {
+    const pql = displayFilters?.pql?.trim() || undefined;
     const computedDisplayFilters: Partial<Record<TIssueParams, undefined | string[] | boolean | string>> = {
       group_by: displayFilters?.group_by ? EIssueGroupByToServerOptions[displayFilters.group_by] : undefined,
       sub_group_by: displayFilters?.sub_group_by
         ? EIssueGroupByToServerOptions[displayFilters.sub_group_by]
         : undefined,
       order_by: displayFilters?.order_by || undefined,
-      sub_issue: displayFilters?.sub_issue ?? true,
+      // A query decides which work items match; hiding nested matches would
+      // make "all invoices of a customer" return nothing.
+      sub_issue: pql ? true : (displayFilters?.sub_issue ?? true),
     };
 
     const issueFiltersParams: Partial<Record<TIssueParams, boolean | string>> = {};
@@ -116,6 +119,9 @@ export class IssueFilterHelperStore implements IIssueFilterHelperStore {
 
     // work item filters
     if (richFilters) issueFiltersParams.filters = JSON.stringify(richFilters);
+
+    // Plane Query Language, on every layout
+    if (pql) issueFiltersParams.pql = pql;
 
     if (displayFilters?.layout) issueFiltersParams.layout = displayFilters?.layout;
 
@@ -265,7 +271,7 @@ export class IssueFilterHelperStore implements IIssueFilterHelperStore {
    * @returns
    */
   getShouldReFetchIssues = (displayFilters: IIssueDisplayFilterOptions) => {
-    const NON_SERVER_DISPLAY_FILTERS = ["order_by", "sub_issue", "type"];
+    const NON_SERVER_DISPLAY_FILTERS = ["order_by", "sub_issue", "type", "pql"];
     const displayFilterKeys = Object.keys(displayFilters);
 
     return NON_SERVER_DISPLAY_FILTERS.some((serverDisplayfilter: string) =>

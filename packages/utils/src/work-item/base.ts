@@ -283,6 +283,8 @@ export const getComputedDisplayFilters = (
     sub_group_by: filters?.sub_group_by || null,
     sub_issue: filters?.sub_issue || false,
     show_empty_groups: filters?.show_empty_groups || false,
+    hierarchy: filters?.hierarchy || false,
+    pql: filters?.pql || "",
   };
 };
 

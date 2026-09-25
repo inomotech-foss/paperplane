@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Tablouri de bord",
+    "description": "Grafice despre activitățile tale, fiecare definit de o interogare Plane Query Language.",
+    "create": "Tablou de bord nou",
+    "edit": "Editează",
+    "refresh": "Reîmprospătează",
+    "no_description": "Fără descriere",
+    "widget_count": "{count} widgeturi",
+    "not_found": "Acest tablou de bord nu există sau este privat.",
+    "empty": {
+      "title": "Niciun tablou de bord încă",
+      "description": "Construiește un panou de grafice, precum venitul pe lună sau facturile pe client."
+    },
+    "form": {
+      "create_title": "Tablou de bord nou",
+      "edit_title": "Editează tabloul de bord",
+      "name": "Nume",
+      "name_placeholder": "Pipeline de vânzări",
+      "name_required": "Dă un nume tabloului de bord",
+      "description": "Descriere",
+      "public": "Vizibil pentru întregul spațiu de lucru",
+      "public_help": "Dezactivat, doar tu îl poți deschide.",
+      "create": "Creează",
+      "save": "Salvează",
+      "save_error": "Tabloul de bord nu a putut fi salvat"
+    },
+    "delete": {
+      "action": "Șterge",
+      "title": "Șterge tabloul de bord",
+      "content": "Ștergi „{name}” și toate widgeturile sale? Această acțiune nu poate fi anulată.",
+      "error": "Tabloul de bord nu a putut fi șters"
+    },
+    "widget": {
+      "add": "Adaugă widget",
+      "edit": "Editează widgetul",
+      "delete": "Șterge widgetul",
+      "refresh": "Reîmprospătează",
+      "by": "după {dimension}",
+      "row_count": "{count} activități",
+      "no_data": "Nicio activitate nu corespunde acestei interogări.",
+      "total": "Total",
+      "load_error": "Widgetul nu a putut fi încărcat",
+      "empty_title": "Niciun widget încă",
+      "empty_description": "Adaugă un widget: o interogare, ce se măsoară și cum se împarte.",
+      "delete_title": "Șterge widgetul",
+      "delete_content": "Ștergi „{title}”? Această acțiune nu poate fi anulată.",
+      "delete_error": "Widgetul nu a putut fi șters"
+    },
+    "editor": {
+      "create_title": "Widget nou",
+      "edit_title": "Editează widgetul",
+      "title": "Titlu",
+      "title_placeholder": "Venit pe lună",
+      "title_required": "Dă un titlu widgetului",
+      "description": "Subtitlu",
+      "description_placeholder": "Afișat sub titlu (opțional)",
+      "query": "Interogare",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Lasă gol pentru toate activitățile pe care le poți vedea.",
+      "chart_type": "Grafic",
+      "metric": "Măsură",
+      "metric_field": "Din",
+      "no_decimal_properties": "Adaugă o proprietate personalizată zecimală pentru a o însuma sau a-i calcula media.",
+      "dimension": "Împarte după",
+      "series": "Apoi după",
+      "bucket": "Pe",
+      "none": "Niciuna",
+      "full_width": "Lățime completă",
+      "preview": "Previzualizare",
+      "run_preview": "Rulează",
+      "preview_hint": "Rulează previzualizarea pentru a vedea graficul înainte de salvare.",
+      "save": "Salvează widgetul",
+      "add": "Adaugă widgetul",
+      "save_error": "Widgetul nu a putut fi salvat"
+    },
+    "chart_types": {
+      "number": "Număr",
+      "bar": "Grafic cu bare",
+      "line": "Grafic liniar",
+      "area": "Grafic cu arii",
+      "pie": "Grafic circular",
+      "donut": "Grafic inel",
+      "table": "Tabel"
+    },
+    "metrics": {
+      "count": "Număr de activități",
+      "sum": "Sumă",
+      "avg": "Medie",
+      "min": "Minim",
+      "max": "Maxim",
+      "estimate_points": "Puncte de estimare"
+    },
+    "dimensions": {
+      "state": "Stare",
+      "state_group": "Grup de stări",
+      "priority": "Prioritate",
+      "type": "Tip de activitate",
+      "project": "Proiect",
+      "assignee": "Responsabil",
+      "label": "Etichetă",
+      "cycle": "Ciclu",
+      "module": "Modul",
+      "created_by": "Creat de",
+      "parent": "Părinte",
+      "target_date": "Data scadentă",
+      "start_date": "Data de început",
+      "created_at": "Creat la",
+      "completed_at": "Finalizat la",
+      "updated_at": "Actualizat la",
+      "ancestor_of": "Cel mai apropiat {type}"
+    },
+    "dimension_groups": {
+      "work_item": "Activitate",
+      "dates": "Date",
+      "ancestors": "Strămoși",
+      "properties": "Proprietăți personalizate"
+    },
+    "buckets": {
+      "day": "Zi",
+      "week": "Săptămână",
+      "month": "Lună",
+      "quarter": "Trimestru",
+      "year": "An"
+    }
   }
 }

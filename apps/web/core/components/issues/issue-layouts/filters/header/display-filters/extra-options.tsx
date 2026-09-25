@@ -24,13 +24,29 @@ const ISSUE_EXTRA_OPTIONS: {
     key: "show_empty_groups",
     titleTranslationKey: "issue.display.extra.show_empty_groups",
   }, // filter on front-end
+  {
+    key: "hierarchy",
+    titleTranslationKey: "issue.display.extra.show_hierarchy",
+  }, // table layout, nests loaded rows under their loaded parents on the front-end
 ];
 
+export type TSelectedExtraOptions = {
+  sub_issue: boolean;
+  show_empty_groups: boolean;
+  hierarchy?: boolean;
+};
+
+/** The extra option toggles as stored in the display filters, with their defaults. */
+export const getSelectedExtraOptions = (
+  displayFilters: IIssueDisplayFilterOptions | undefined
+): TSelectedExtraOptions => ({
+  show_empty_groups: displayFilters?.show_empty_groups ?? true,
+  sub_issue: displayFilters?.sub_issue ?? true,
+  hierarchy: displayFilters?.hierarchy ?? false,
+});
+
 type Props = {
-  selectedExtraOptions: {
-    sub_issue: boolean;
-    show_empty_groups: boolean;
-  };
+  selectedExtraOptions: TSelectedExtraOptions;
   handleUpdate: (key: keyof IIssueDisplayFilterOptions, val: boolean) => void;
   enabledExtraOptions: TIssueExtraOptions[];
 };

@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "Tampilkan sub-item kerja",
-        "show_empty_groups": "Tampilkan grup kosong"
+        "show_empty_groups": "Tampilkan grup kosong",
+        "show_hierarchy": "Susun di bawah item induk"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "Kueri, mis. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "Jalankan",
+    "clear": "Bersihkan",
+    "help": "Bantuan kueri",
+    "applied": "Kueri diterapkan",
+    "invalid": "Kueri tidak dapat dijalankan",
+    "help_title": "Plane Query Language",
+    "help_intro": "Gabungkan kondisi dengan AND, OR, NOT, dan tanda kurung. Nama dapat dipakai sebagai pengganti ID: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Tanggal ditulis sebagai \"2026-01-31\".",
+    "help_operators": "Operator: = != > >= < <= ~ (mengandung), in (…), not in (…), is null, is not null",
+    "help_fields": "Bidang",
+    "help_functions": "Fungsi",
+    "help_examples": "Contoh",
+    "example_invoices": "Faktur lunas seorang pelanggan yang jatuh tempo pada 2026",
+    "example_everything": "Semua yang ada di bawah seorang pelanggan",
+    "example_overdue": "Item kerja terbuka yang terlambat seminggu",
+    "example_amount": "Item kerja Anda dengan jumlah di atas 1000"
   }
 }

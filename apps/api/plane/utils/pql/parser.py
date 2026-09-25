@@ -16,7 +16,8 @@ Grammar:
     and_expr    := not_expr (AND not_expr)*
     not_expr    := NOT not_expr | primary
     primary     := '(' expression ')' | predicate
-    predicate   := field comparison | 'cf' '[' string ']' comparison | childOf '(' string ')'
+    predicate   := field comparison | 'cf' '[' string ']' comparison
+                 | ('childOf' | 'descendantOf') '(' string ')'
     comparison  := ('=' | '!=' | '>' | '>=' | '<' | '<=' | '~') value
                  | 'in' list | 'not' 'in' list
                  | 'is' 'null' | 'is' 'not' 'null'
@@ -29,17 +30,23 @@ case-insensitively, plus the short aliases in `FIELD_ALIASES` below that the
 SDK and the MCP server already advertise (`assignee`, `type`). No name outside
 the allowlist parses.
 
-Placeholders. Three constructs cannot be resolved without a request user, a
+Custom properties are addressed as `cf["<property id or name>"]` and accept
+every comparison the field grammar has. The parser emits them as
+`property__<reference>[__<lookup>]` leaves; what a reference and a lookup mean
+for a given property type is decided by the resolver, not here.
+
+Placeholders. Four constructs cannot be resolved without a request user, a
 clock or a database query, and this module stays pure, so it emits placeholder
 objects for the endpoint wiring to substitute before calling `compile_filters`:
 
-    currentUser()      {"$currentUser": True}       -> the request user's id
-    now() - 7d         {"$now": {"seconds": -604800}} -> that offset from now
-    childOf("PROJ-12") {"$childOf": "PROJ-12"}      -> the parent work item id
+    currentUser()            {"$currentUser": True}       -> the request user's id
+    now() - 7d               {"$now": {"seconds": -604800}} -> that offset from now
+    childOf("PROJ-12")       {"$childOf": "PROJ-12"}      -> the parent work item id
+    descendantOf("PROJ-12")  {"$descendantOf": "PROJ-12"} -> that item's id, as an ancestor
 
 The first two sit in value position inside an otherwise complete leaf; the
-third is a whole node, because the field it resolves to needs the identifier
-looked up first. `compile_filters` rejects all three unsubstituted, which is
+others are whole nodes, because the field they resolve to needs the identifier
+looked up first. `compile_filters` rejects all of them unsubstituted, which is
 the intended failure mode: substitution is not optional.
 """
 
@@ -78,16 +85,21 @@ from plane.utils.pql.lexer import (
 CURRENT_USER_PLACEHOLDER = "$currentUser"
 NOW_PLACEHOLDER = "$now"
 CHILD_OF_PLACEHOLDER = "$childOf"
+DESCENDANT_OF_PLACEHOLDER = "$descendantOf"
 
 MAX_PQL_DEPTH = 25
 
 # Short names the SDK and the MCP server advertise, resolved onto the allowlist.
 FIELD_ALIASES = {
     **SDK_FIELD_ALIASES,
+    "ancestor": "ancestor_id",
     "assignee": "assignees__id",
     "assignees": "assignees__id",
+    "completed": "completed_at",
+    "created": "created_at",
     "created_by_id": "created_by",
     "cycle": "cycle_id",
+    "due_date": "target_date",
     "label": "labels__id",
     "labels": "labels__id",
     "module": "issue_module__module_id",
@@ -95,7 +107,10 @@ FIELD_ALIASES = {
     "parent": "parent_id",
     "project": "project_id",
     "state": "state_id",
+    "status": "state_id",
+    "title": "name",
     "type": "type_id",
+    "updated": "updated_at",
 }
 
 KNOWN_FIELD_NAMES = sorted(set(FILTER_FIELDS) | set(FIELD_ALIASES))
@@ -110,11 +125,16 @@ OPERATOR_LOOKUPS = {
     "~": (ICONTAINS, False),
 }
 
-# `split_custom_property_lookup` understands these three and nothing else.
-CUSTOM_PROPERTY_OPERATORS = {"=": EXACT, ">": GT, "<": LT}
-
-FUNCTIONS = {"currentuser": "currentUser", "now": "now", "childof": "childOf"}
+FUNCTIONS = {
+    "currentuser": "currentUser",
+    "now": "now",
+    "childof": "childOf",
+    "descendantof": "descendantOf",
+}
 VALUE_FUNCTIONS = ("currentUser", "now")
+# Condition functions taking one quoted work item identifier, and the
+# placeholder node each one emits.
+IDENTIFIER_FUNCTIONS = {"childOf": CHILD_OF_PLACEHOLDER, "descendantOf": DESCENDANT_OF_PLACEHOLDER}
 
 KEYWORDS = frozenset({"and", "or", "not", "in", "is", "null"})
 
@@ -196,19 +216,19 @@ class _Parser:
             raise self._error(
                 token, f"unknown function '{token.value}'", "one of " + ", ".join(sorted(FUNCTIONS.values()))
             )
-        if name != "childOf":
+        if name not in IDENTIFIER_FUNCTIONS:
             raise self._error(token, f"{name}() is a value, not a condition", "a field name before it")
         arguments = self._parse_call_arguments()
         if len(arguments) != 1:
             raise self._error(
                 token,
-                f"childOf() takes exactly one argument, got {len(arguments)}",
-                'a quoted work item identifier such as childOf("PROJ-12")',
+                f"{name}() takes exactly one argument, got {len(arguments)}",
+                f'a quoted work item identifier such as {name}("PROJ-12")',
             )
         identifier, argument_token = arguments[0]
         if not isinstance(identifier, str) or argument_token.kind != STRING:
-            raise self._error(argument_token, "childOf() takes a quoted work item identifier", "a string literal")
-        return {CHILD_OF_PLACEHOLDER: identifier}
+            raise self._error(argument_token, f"{name}() takes a quoted work item identifier", "a string literal")
+        return {IDENTIFIER_FUNCTIONS[name]: identifier}
 
     def _parse_field_predicate(self):
         token = self._advance()
@@ -250,19 +270,39 @@ class _Parser:
     def _parse_custom_property(self):
         self._advance()
         self._expect(LBRACKET, "'[' after 'cf'")
-        key = self._expect(STRING, 'a quoted property id such as cf["<property uuid>"]')
+        key = self._expect(STRING, 'a quoted property id or name such as cf["Amount"]')
         self._expect(RBRACKET, "']'")
+        if not key.value.strip():
+            raise self._error(key, "empty custom property reference", "a property id or name")
+        name = f"{CUSTOM_PROPERTY_PREFIX}{key.value.strip()}"
         operator = self._peek()
-        if operator.kind != OPERATOR or operator.value not in CUSTOM_PROPERTY_OPERATORS:
-            raise self._error(
-                operator,
-                f"unexpected {operator.describe()} after a custom property",
-                "one of '=', '>', '<'",
-            )
-        self._advance()
-        lookup = CUSTOM_PROPERTY_OPERATORS[operator.value]
-        suffix = "" if lookup == EXACT else f"__{lookup}"
-        return {f"{CUSTOM_PROPERTY_PREFIX}{key.value}{suffix}": self._parse_value()}
+
+        if operator.kind == OPERATOR:
+            self._advance()
+            lookup, negated = OPERATOR_LOOKUPS[operator.value]
+            leaf = {_leaf_key(name, lookup): self._parse_value()}
+            return {"not": [leaf]} if negated else leaf
+
+        if operator.kind == IDENT:
+            keyword = operator.value.lower()
+            if keyword == "in":
+                self._advance()
+                return {_leaf_key(name, IN): self._parse_list()}
+            if keyword == "not":
+                self._advance()
+                self._expect_keyword("in", "'in' after 'not'")
+                return {"not": [{_leaf_key(name, IN): self._parse_list()}]}
+            if keyword == "is":
+                self._advance()
+                negated = bool(self._match_keyword("not"))
+                self._expect_keyword("null", "'null'")
+                return {_leaf_key(name, ISNULL): not negated}
+
+        raise self._error(
+            operator,
+            f"unexpected {operator.describe()} after a custom property",
+            "a comparison operator such as '=', '>', 'in' or 'is null'",
+        )
 
     def _parse_list(self):
         self._expect(LPAREN, "'(' to open a value list")

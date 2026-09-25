@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Dasbor",
+    "description": "Grafik atas item kerja Anda, masing-masing berupa kueri Plane Query Language.",
+    "create": "Dasbor baru",
+    "edit": "Sunting",
+    "refresh": "Segarkan",
+    "no_description": "Tanpa deskripsi",
+    "widget_count": "{count} widget",
+    "not_found": "Dasbor ini tidak ada atau bersifat privat.",
+    "empty": {
+      "title": "Belum ada dasbor",
+      "description": "Susun papan grafik, seperti pendapatan per bulan atau faktur per pelanggan."
+    },
+    "form": {
+      "create_title": "Dasbor baru",
+      "edit_title": "Sunting dasbor",
+      "name": "Nama",
+      "name_placeholder": "Pipeline penjualan",
+      "name_required": "Beri nama dasbor",
+      "description": "Deskripsi",
+      "public": "Terlihat oleh seluruh ruang kerja",
+      "public_help": "Jika dimatikan, hanya Anda yang dapat membukanya.",
+      "create": "Buat",
+      "save": "Simpan",
+      "save_error": "Dasbor tidak dapat disimpan"
+    },
+    "delete": {
+      "action": "Hapus",
+      "title": "Hapus dasbor",
+      "content": "Hapus \"{name}\" beserta semua widgetnya? Tindakan ini tidak dapat dibatalkan.",
+      "error": "Dasbor tidak dapat dihapus"
+    },
+    "widget": {
+      "add": "Tambah widget",
+      "edit": "Sunting widget",
+      "delete": "Hapus widget",
+      "refresh": "Segarkan",
+      "by": "berdasarkan {dimension}",
+      "row_count": "{count} item kerja",
+      "no_data": "Tidak ada item kerja yang cocok dengan kueri ini.",
+      "total": "Total",
+      "load_error": "Widget tidak dapat dimuat",
+      "empty_title": "Belum ada widget",
+      "empty_description": "Tambahkan widget: kueri, apa yang diukur, dan cara membaginya.",
+      "delete_title": "Hapus widget",
+      "delete_content": "Hapus \"{title}\"? Tindakan ini tidak dapat dibatalkan.",
+      "delete_error": "Widget tidak dapat dihapus"
+    },
+    "editor": {
+      "create_title": "Widget baru",
+      "edit_title": "Sunting widget",
+      "title": "Judul",
+      "title_placeholder": "Pendapatan per bulan",
+      "title_required": "Beri judul widget",
+      "description": "Subjudul",
+      "description_placeholder": "Ditampilkan di bawah judul (opsional)",
+      "query": "Kueri",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Kosongkan untuk semua item kerja yang dapat Anda lihat.",
+      "chart_type": "Grafik",
+      "metric": "Ukuran",
+      "metric_field": "Dari",
+      "no_decimal_properties": "Tambahkan properti kustom desimal untuk menjumlahkan atau merata-ratakannya.",
+      "dimension": "Bagi berdasarkan",
+      "series": "Lalu berdasarkan",
+      "bucket": "Per",
+      "none": "Tidak ada",
+      "full_width": "Lebar penuh",
+      "preview": "Pratinjau",
+      "run_preview": "Jalankan",
+      "preview_hint": "Jalankan pratinjau untuk melihat grafik sebelum menyimpan.",
+      "save": "Simpan widget",
+      "add": "Tambah widget",
+      "save_error": "Widget tidak dapat disimpan"
+    },
+    "chart_types": {
+      "number": "Angka",
+      "bar": "Grafik batang",
+      "line": "Grafik garis",
+      "area": "Grafik area",
+      "pie": "Grafik lingkaran",
+      "donut": "Grafik donat",
+      "table": "Tabel"
+    },
+    "metrics": {
+      "count": "Jumlah item kerja",
+      "sum": "Jumlah total",
+      "avg": "Rata-rata",
+      "min": "Minimum",
+      "max": "Maksimum",
+      "estimate_points": "Poin estimasi"
+    },
+    "dimensions": {
+      "state": "Status",
+      "state_group": "Grup status",
+      "priority": "Prioritas",
+      "type": "Tipe item kerja",
+      "project": "Proyek",
+      "assignee": "Penanggung jawab",
+      "label": "Label",
+      "cycle": "Siklus",
+      "module": "Modul",
+      "created_by": "Dibuat oleh",
+      "parent": "Induk",
+      "target_date": "Tanggal jatuh tempo",
+      "start_date": "Tanggal mulai",
+      "created_at": "Dibuat pada",
+      "completed_at": "Selesai pada",
+      "updated_at": "Diperbarui pada",
+      "ancestor_of": "{type} terdekat"
+    },
+    "dimension_groups": {
+      "work_item": "Item kerja",
+      "dates": "Tanggal",
+      "ancestors": "Leluhur",
+      "properties": "Properti kustom"
+    },
+    "buckets": {
+      "day": "Hari",
+      "week": "Minggu",
+      "month": "Bulan",
+      "quarter": "Kuartal",
+      "year": "Tahun"
+    }
   }
 }

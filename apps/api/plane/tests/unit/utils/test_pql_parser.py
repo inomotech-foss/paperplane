@@ -18,6 +18,7 @@ from django.db.models import Q
 from plane.utils.pql import (
     CHILD_OF_PLACEHOLDER,
     CURRENT_USER_PLACEHOLDER,
+    DESCENDANT_OF_PLACEHOLDER,
     NOW_PLACEHOLDER,
     FilterCompileError,
     PQLSyntaxError,
@@ -78,6 +79,31 @@ FUNCTION_CASES = [
     ("target_date < now() + 1w - 12h", {"target_date__lt": {NOW_PLACEHOLDER: {"seconds": WEEK - 43200}}}),
     ('childOf("PROJ-12")', {CHILD_OF_PLACEHOLDER: "PROJ-12"}),
     ('CHILDOF("PROJ-12")', {CHILD_OF_PLACEHOLDER: "PROJ-12"}),
+    ('descendantOf("PROJ-12")', {DESCENDANT_OF_PLACEHOLDER: "PROJ-12"}),
+    ('descendantof("PROJ-12")', {DESCENDANT_OF_PLACEHOLDER: "PROJ-12"}),
+    (
+        'descendantOf("CUST-1") AND type = "Invoice"',
+        {"and": [{DESCENDANT_OF_PLACEHOLDER: "CUST-1"}, {"type_id": "Invoice"}]},
+    ),
+]
+
+# Names in place of ids parse as plain strings; the resolver looks them up.
+NAME_CASES = [
+    ('state = "Paid"', {"state_id": "Paid"}),
+    ('status = "Paid"', {"state_id": "Paid"}),
+    ('type = "Invoice"', {"type_id": "Invoice"}),
+    ('parent = "CUST-1"', {"parent_id": "CUST-1"}),
+    ('ancestor = "CUST-1"', {"ancestor_id": "CUST-1"}),
+    ('ancestor in ("CUST-1", "CUST-2")', {"ancestor_id__in": ["CUST-1", "CUST-2"]}),
+    ('name ~ "acme"', {"name__icontains": "acme"}),
+    ('title ~ "acme"', {"name__icontains": "acme"}),
+    ('due_date >= "2026-01-01"', {"target_date__gte": "2026-01-01"}),
+    (
+        'created_at >= "2026-01-01" AND created < "2027-01-01"',
+        {"and": [{"created_at__gte": "2026-01-01"}, {"created_at__lt": "2027-01-01"}]},
+    ),
+    ("completed_at is null", {"completed_at__isnull": True}),
+    ("updated_at > now() - 1d", {"updated_at__gt": {NOW_PLACEHOLDER: {"seconds": -86400}}}),
 ]
 
 PRECEDENCE_CASES = [
@@ -147,6 +173,20 @@ CUSTOM_PROPERTY_CASES = [
     (f'cf["{PROPERTY_ID}"] < 5.5', {f"property__{PROPERTY_ID}__lt": 5.5}),
     (f'cf["{PROPERTY_ID}"] > -2', {f"property__{PROPERTY_ID}__gt": -2}),
     (f'cf["{PROPERTY_ID}"] = true', {f"property__{PROPERTY_ID}": "true"}),
+    # Every field comparison works on a custom property too.
+    (f'cf["{PROPERTY_ID}"] != 5', {"not": [{f"property__{PROPERTY_ID}": 5}]}),
+    (f'cf["{PROPERTY_ID}"] >= 5', {f"property__{PROPERTY_ID}__gte": 5}),
+    (f'cf["{PROPERTY_ID}"] <= 5', {f"property__{PROPERTY_ID}__lte": 5}),
+    (f'cf["{PROPERTY_ID}"] ~ "acme"', {f"property__{PROPERTY_ID}__icontains": "acme"}),
+    (f'cf["{PROPERTY_ID}"] in (1, 2)', {f"property__{PROPERTY_ID}__in": [1, 2]}),
+    (f'cf["{PROPERTY_ID}"] not in (1)', {"not": [{f"property__{PROPERTY_ID}__in": [1]}]}),
+    (f'cf["{PROPERTY_ID}"] is null', {f"property__{PROPERTY_ID}__isnull": True}),
+    (f'cf["{PROPERTY_ID}"] is not null', {f"property__{PROPERTY_ID}__isnull": False}),
+    # Names instead of ids, resolved later.
+    ('cf["Amount"] > 1000', {"property__Amount__gt": 1000}),
+    ('cf["Total amount"] >= 1000', {"property__Total amount__gte": 1000}),
+    ('cf["Due date"] < now() + 1w', {"property__Due date__lt": {NOW_PLACEHOLDER: {"seconds": WEEK}}}),
+    ('cf["Region"] = "north"', {"property__Region": "north"}),
 ]
 
 # The syntax the SDK and the MCP server already advertise to clients, verbatim.
@@ -202,10 +242,14 @@ ERROR_CASES = [
     ("target_date > now() - 7y", 23, "unknown duration unit 'y'"),
     ("priority & urgent", 9, "unexpected character '&'"),
     ("cf = 1", 3, "expected '[' after 'cf'"),
-    ("cf[1] = 2", 3, "quoted property id"),
+    ("cf[1] = 2", 3, "quoted property id or name"),
     ('cf["p" = 2', 7, "expected ']'"),
-    ('cf["p"] != 2', 8, "expected one of '=', '>', '<'"),
-    ('cf["p"] in (2)', 8, "expected one of '=', '>', '<'"),
+    ('cf[""] = 2', 3, "empty custom property reference"),
+    ('cf["p"] 2', 8, "unexpected '2' after a custom property"),
+    ('cf["p"] in 2', 11, "expected '(' to open a value list"),
+    ("descendantOf()", 0, "descendantOf() takes exactly one argument, got 0"),
+    ("descendantOf(PROJ)", 13, "descendantOf() takes a quoted work item identifier"),
+    ('assignee = descendantOf("PROJ-12")', 11, "descendantOf() is a condition, not a value"),
 ]
 
 COMPILE_CASES = [
@@ -242,6 +286,7 @@ COMPILE_CASES = [
     OPERATOR_CASES
     + FIELD_NAME_CASES
     + FUNCTION_CASES
+    + NAME_CASES
     + PRECEDENCE_CASES
     + IN_CASES
     + CUSTOM_PROPERTY_CASES
@@ -354,6 +399,7 @@ def test_parsed_custom_property_range_compiles():
         "assignee = currentUser()",
         "target_date > now() - 7d",
         'childOf("PROJ-12")',
+        'descendantOf("PROJ-12")',
     ],
 )
 def test_placeholders_do_not_compile_unsubstituted(query):

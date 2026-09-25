@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Dashboards",
+    "description": "Diagramme über Ihre Arbeitselemente, jedes eine Plane Query Language-Abfrage.",
+    "create": "Neues Dashboard",
+    "edit": "Bearbeiten",
+    "refresh": "Aktualisieren",
+    "no_description": "Keine Beschreibung",
+    "widget_count": "{count} Widgets",
+    "not_found": "Dieses Dashboard existiert nicht oder ist privat.",
+    "empty": {
+      "title": "Noch keine Dashboards",
+      "description": "Erstellen Sie eine Übersicht aus Diagrammen, etwa Umsatz pro Monat oder Rechnungen pro Kunde."
+    },
+    "form": {
+      "create_title": "Neues Dashboard",
+      "edit_title": "Dashboard bearbeiten",
+      "name": "Name",
+      "name_placeholder": "Vertriebspipeline",
+      "name_required": "Geben Sie dem Dashboard einen Namen",
+      "description": "Beschreibung",
+      "public": "Für den gesamten Workspace sichtbar",
+      "public_help": "Deaktiviert können nur Sie es öffnen.",
+      "create": "Erstellen",
+      "save": "Speichern",
+      "save_error": "Das Dashboard konnte nicht gespeichert werden"
+    },
+    "delete": {
+      "action": "Löschen",
+      "title": "Dashboard löschen",
+      "content": "„{name}“ und alle Widgets löschen? Dies kann nicht rückgängig gemacht werden.",
+      "error": "Das Dashboard konnte nicht gelöscht werden"
+    },
+    "widget": {
+      "add": "Widget hinzufügen",
+      "edit": "Widget bearbeiten",
+      "delete": "Widget löschen",
+      "refresh": "Aktualisieren",
+      "by": "nach {dimension}",
+      "row_count": "{count} Arbeitselemente",
+      "no_data": "Keine Arbeitselemente entsprechen dieser Abfrage.",
+      "total": "Gesamt",
+      "load_error": "Das Widget konnte nicht geladen werden",
+      "empty_title": "Noch keine Widgets",
+      "empty_description": "Fügen Sie ein Widget hinzu: eine Abfrage, was gemessen wird und wie es aufgeteilt wird.",
+      "delete_title": "Widget löschen",
+      "delete_content": "„{title}“ löschen? Dies kann nicht rückgängig gemacht werden.",
+      "delete_error": "Das Widget konnte nicht gelöscht werden"
+    },
+    "editor": {
+      "create_title": "Neues Widget",
+      "edit_title": "Widget bearbeiten",
+      "title": "Titel",
+      "title_placeholder": "Umsatz pro Monat",
+      "title_required": "Geben Sie dem Widget einen Titel",
+      "description": "Untertitel",
+      "description_placeholder": "Wird unter dem Titel angezeigt (optional)",
+      "query": "Abfrage",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Leer lassen für alle Arbeitselemente, die Sie sehen können.",
+      "chart_type": "Diagramm",
+      "metric": "Messgröße",
+      "metric_field": "Von",
+      "no_decimal_properties": "Fügen Sie eine Dezimal-Eigenschaft hinzu, um sie zu summieren oder zu mitteln.",
+      "dimension": "Aufteilen nach",
+      "series": "Dann nach",
+      "bucket": "Pro",
+      "none": "Keine",
+      "full_width": "Volle Breite",
+      "preview": "Vorschau",
+      "run_preview": "Ausführen",
+      "preview_hint": "Führen Sie die Vorschau aus, um das Diagramm vor dem Speichern zu sehen.",
+      "save": "Widget speichern",
+      "add": "Widget hinzufügen",
+      "save_error": "Das Widget konnte nicht gespeichert werden"
+    },
+    "chart_types": {
+      "number": "Zahl",
+      "bar": "Balkendiagramm",
+      "line": "Liniendiagramm",
+      "area": "Flächendiagramm",
+      "pie": "Kreisdiagramm",
+      "donut": "Ringdiagramm",
+      "table": "Tabelle"
+    },
+    "metrics": {
+      "count": "Anzahl der Arbeitselemente",
+      "sum": "Summe",
+      "avg": "Durchschnitt",
+      "min": "Minimum",
+      "max": "Maximum",
+      "estimate_points": "Schätzpunkte"
+    },
+    "dimensions": {
+      "state": "Status",
+      "state_group": "Statusgruppe",
+      "priority": "Priorität",
+      "type": "Arbeitselementtyp",
+      "project": "Projekt",
+      "assignee": "Zugewiesene Person",
+      "label": "Label",
+      "cycle": "Zyklus",
+      "module": "Modul",
+      "created_by": "Erstellt von",
+      "parent": "Übergeordnetes Element",
+      "target_date": "Fälligkeitsdatum",
+      "start_date": "Startdatum",
+      "created_at": "Erstellt am",
+      "completed_at": "Abgeschlossen am",
+      "updated_at": "Aktualisiert am",
+      "ancestor_of": "Nächstes {type}"
+    },
+    "dimension_groups": {
+      "work_item": "Arbeitselement",
+      "dates": "Datumsangaben",
+      "ancestors": "Übergeordnete Elemente",
+      "properties": "Benutzerdefinierte Eigenschaften"
+    },
+    "buckets": {
+      "day": "Tag",
+      "week": "Woche",
+      "month": "Monat",
+      "quarter": "Quartal",
+      "year": "Jahr"
+    }
   }
 }

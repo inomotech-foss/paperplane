@@ -78,31 +78,43 @@ def register_work_item_tools(mcp: FastMCP) -> None:
         """
         List the work items of a project.
 
-        For UUID fields (assignee, state, label, cycle, module, type) call the
-        relevant list tool first to get the UUID.
+        UUID fields (assignee, state, label, cycle, module, type, project) and
+        custom properties accept a name in place of the UUID, matched
+        case-insensitively within the project; a name that several rows share
+        matches all of them. Use the list tools only when a name is ambiguous.
 
         Args:
             project_id: UUID of the project.
             pql: Plane Query Language expression to filter results. Examples:
                 `priority = "urgent" AND assignee = currentUser()`,
-                `type = "<type id>"`, `state_group in ("started", "backlog")`,
-                `childOf("PROJ-12")`, `target_date >= now() - 7d`,
-                `cf["<property id>"] = "<option id>"`.
+                `type = "Invoice" AND state = "Paid"`,
+                `state_group in ("started", "backlog")`,
+                `childOf("PROJ-12")`, `descendantOf("CUST-1")`,
+                `target_date >= now() - 7d`, `cf["Amount"] > 1000`,
+                `cf["Due date"] >= "2026-01-01" AND cf["Due date"] < "2027-01-01"`.
 
-                Fields: state, state_group, priority, project, type, label(s),
-                assignee(s), module, cycle, created_by, parent, target_date,
-                start_date. Custom properties use `cf["<property id>"]`
-                (find the id with list_work_item_properties).
+                Fields: state (alias status), state_group, priority, project,
+                type, label(s), assignee(s), module, cycle, created_by, parent,
+                ancestor, name (alias title), target_date (alias due_date),
+                start_date, created_at, updated_at, completed_at. Custom
+                properties use `cf["<property name or id>"]`.
 
-                Operators: `=` and `!=` on any field; `>`, `>=`, `<`, `<=` on
-                target_date/start_date only (`cf[]` allows just `>`/`<`); `~`
-                (case-insensitive contains) on text fields only; `in (...)`,
-                `not in (...)`, `is null`, `is not null` where the field allows
-                it. Combine with `AND`, `OR`, `NOT` and parentheses.
+                Hierarchy: `childOf("PROJ-12")` matches direct children,
+                `descendantOf("PROJ-12")` every work item below it at any
+                depth (a customer's stories, quotes and invoices). Both take a
+                work item identifier, not a UUID; `parent = "PROJ-12"` and
+                `ancestor = "PROJ-12"` are the same thing as fields.
+
+                Operators: `=`, `!=`, `in (...)`, `not in (...)`, `is null`,
+                `is not null` on every field; `>`, `>=`, `<`, `<=` on dates,
+                timestamps and decimal properties; `~` (case-insensitive
+                contains) on text fields and text properties. Combine with
+                `AND`, `OR`, `NOT` and parentheses.
 
                 Values: quoted strings, numbers, `currentUser()`, or
-                `now() +/- Nd|Nw|Nh` (days/weeks/hours) for date fields.
-                `childOf("PROJ-12")` takes a work item identifier, not a UUID.
+                `now() +/- Nd|Nw|Nh` (days/weeks/hours) for date fields. A
+                bare date such as "2026-03-15" on a datetime property means
+                the whole day. Option properties take the option name or id.
 
                 priority accepts urgent, high, medium, low, none. state_group
                 accepts backlog, unstarted, started, completed, cancelled.
