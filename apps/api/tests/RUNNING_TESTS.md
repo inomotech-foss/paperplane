@@ -64,13 +64,13 @@ docker compose -f docker-compose-test.yml down -v
 
 ## How it works
 
-| Service      | Image                                | Purpose                                       |
-| ------------ | ------------------------------------ | --------------------------------------------- |
-| `test-db`    | `postgres:15.7-alpine`               | Application database                          |
-| `test-redis` | `valkey/valkey:7.2.11-alpine`        | Cache / Celery broker                         |
-| `test-mq`    | `rabbitmq:3.13.6-management-alpine`  | Task queue                                    |
-| `test-minio` | `minio/minio`                        | S3-compatible object storage                  |
-| `api-tests`  | built from `apps/api/Dockerfile.dev` | Installs `requirements/test.txt`, runs pytest |
+| Service      | Image                                        | Purpose                                       |
+| ------------ | -------------------------------------------- | --------------------------------------------- |
+| `test-db`    | `postgres:15.7-alpine`                       | Application database                          |
+| `test-redis` | `valkey/valkey:7.2.11-alpine`                | Cache / Celery broker                         |
+| `test-mq`    | `rabbitmq:3.13.6-management-alpine`          | Task queue                                    |
+| `test-minio` | `bitnamilegacy/minio:2025.7.23-debian-12-r5` | S3-compatible object storage                  |
+| `api-tests`  | built from `apps/api/Dockerfile.dev`         | Installs `requirements/test.txt`, runs pytest |
 
 All four dependencies expose health checks; `api-tests` waits for `service_healthy` on each via `depends_on`, so pytest only starts once the stack is ready.
 
@@ -81,5 +81,5 @@ Test-time env overrides live in the compose file itself (`POSTGRES_HOST=test-db`
 - **`./apps/api/.env: no such file or directory`** — run `./setup.sh` from the repo root.
 - **Port already in use** — none of the test services publish host ports; if you see this it's coming from a different compose stack. Stop the local stack (`docker compose -f docker-compose-local.yml down`).
 - **Stale image after dependency changes** — rebuild explicitly: `docker compose -f docker-compose-test.yml build --no-cache api-tests`.
-- **MinIO bucket missing** — the `test-minio` entrypoint creates the bucket named by `AWS_S3_BUCKET_NAME` (default `uploads`). Change the value in `apps/api/.env` and re-run.
+- **MinIO bucket missing** — the `test-minio` image creates the bucket named by `AWS_S3_BUCKET_NAME` (default `uploads`) on start-up via `MINIO_DEFAULT_BUCKETS`. Compose reads that variable from the repo-root `.env` (or the shell), while the API reads `apps/api/.env`, so change both and re-run.
 - **Database state leaking between runs** — confirm you ran `down -v` (not just `down`). The tmpfs mounts are torn down with the container, but the network and any externally created volumes need `-v` to clear.

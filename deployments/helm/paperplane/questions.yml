@@ -483,12 +483,7 @@ questions:
   - variable: minio.image
     label: "Docker Image"
     type: string
-    default: "minio/minio:latest"
-    show_if: "minio.local_setup=true"
-  - variable: minio.image_mc
-    label: "MinIO Client Docker Image"
-    type: string
-    default: "minio/mc:latest"
+    default: "bitnamilegacy/minio:2025.7.23-debian-12-r5"
     show_if: "minio.local_setup=true"
   - variable: minio.root_user
     label: "Root User"
