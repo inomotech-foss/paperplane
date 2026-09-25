@@ -22,9 +22,10 @@ type Params = {
 /**
  * Whether a table row can expand and what expanding it does. Children can
  * be shown from what the list already loaded; a fetch is only needed when
- * the work item has more children than that.
+ * the work item has more children than that. Plain derivation, no hooks,
+ * so the row may call it after its early returns.
  */
-export const useSubIssueExpansion = (params: Params) => {
+export const getSubIssueExpansion = (params: Params) => {
   const { issueDetail, workspaceSlug, subIssuesStore, loadedChildCount, setExpanded } = params;
   const subIssuesCount = issueDetail.sub_issues_count ?? 0;
   const hasChildren = subIssuesCount > 0 || loadedChildCount > 0;

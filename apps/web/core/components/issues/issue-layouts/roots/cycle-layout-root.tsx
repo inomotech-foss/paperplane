@@ -51,38 +51,59 @@ function CycleIssueLayout(props: {
   }
 }
 
-export const CycleLayoutRoot = observer(function CycleLayoutRoot() {
-  const { workspaceSlug: routerWorkspaceSlug, projectId: routerProjectId, cycleId: routerCycleId } = useParams();
-  const workspaceSlug = routerWorkspaceSlug ? routerWorkspaceSlug.toString() : undefined;
-  const projectId = routerProjectId ? routerProjectId.toString() : undefined;
-  const cycleId = routerCycleId ? routerCycleId.toString() : undefined;
-  // store hooks
-  const { issuesFilter } = useIssues(EIssuesStoreType.CYCLE);
-  const { getCycleById } = useCycle();
-  // state
-  const [transferIssuesModal, setTransferIssuesModal] = useState(false);
-  // derived values
-  const workItemFilters = cycleId ? issuesFilter?.getIssueFilters(cycleId) : undefined;
-  const activeLayout = workItemFilters?.displayFilters?.layout;
+/** Route params as plain strings; the layout renders nothing until all three are present. */
+const useCycleRouteIds = () => {
+  const { workspaceSlug, projectId, cycleId } = useParams();
+  return {
+    workspaceSlug: workspaceSlug?.toString(),
+    projectId: projectId?.toString(),
+    cycleId: cycleId?.toString(),
+  };
+};
 
+/** The cycle's stored filters, fetched once per cycle. */
+const useCycleWorkItemFilters = (
+  workspaceSlug: string | undefined,
+  projectId: string | undefined,
+  cycleId: string | undefined
+) => {
+  const { issuesFilter } = useIssues(EIssuesStoreType.CYCLE);
+  const workItemFilters = cycleId ? issuesFilter?.getIssueFilters(cycleId) : undefined;
   useSWR(
     workspaceSlug && projectId && cycleId ? `CYCLE_ISSUES_${workspaceSlug}_${projectId}_${cycleId}` : null,
     async () => {
-      if (workspaceSlug && projectId && cycleId) {
-        await issuesFilter?.fetchFilters(workspaceSlug, projectId, cycleId);
-      }
+      if (workspaceSlug && projectId && cycleId) await issuesFilter?.fetchFilters(workspaceSlug, projectId, cycleId);
     },
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
+  return { issuesFilter, workItemFilters };
+};
 
+/** Whether the cycle is over and whether its unfinished work can still be moved to another cycle. */
+const useCycleTransferState = (cycleId: string | undefined) => {
+  const { getCycleById } = useCycle();
   const cycleDetails = cycleId ? getCycleById(cycleId) : undefined;
-  const cycleStatus = cycleDetails?.status?.toLocaleLowerCase() ?? "draft";
-  const isCompletedCycle = cycleStatus === "completed";
-  const isProgressSnapshotEmpty = isEmpty(cycleDetails?.progress_snapshot);
+  const isCompletedCycle = (cycleDetails?.status?.toLocaleLowerCase() ?? "draft") === "completed";
+  const hasProgressSnapshot = !isEmpty(cycleDetails?.progress_snapshot);
   const transferableIssuesCount = cycleDetails
     ? cycleDetails.backlog_issues + cycleDetails.unstarted_issues + cycleDetails.started_issues
     : 0;
-  const canTransferIssues = isProgressSnapshotEmpty && transferableIssuesCount > 0;
+  return {
+    isCompletedCycle,
+    hasProgressSnapshot,
+    canTransferIssues: !hasProgressSnapshot && transferableIssuesCount > 0,
+  };
+};
+
+export const CycleLayoutRoot = observer(function CycleLayoutRoot() {
+  const { workspaceSlug, projectId, cycleId } = useCycleRouteIds();
+  // store hooks
+  const { issuesFilter, workItemFilters } = useCycleWorkItemFilters(workspaceSlug, projectId, cycleId);
+  const { isCompletedCycle, hasProgressSnapshot, canTransferIssues } = useCycleTransferState(cycleId);
+  // state
+  const [transferIssuesModal, setTransferIssuesModal] = useState(false);
+  // derived values
+  const activeLayout = workItemFilters?.displayFilters?.layout;
 
   if (!workspaceSlug || !projectId || !cycleId || !workItemFilters) return <></>;
   return (
@@ -105,11 +126,11 @@ export const CycleLayoutRoot = observer(function CycleLayoutRoot() {
               isOpen={transferIssuesModal}
             />
             <div className="relative flex h-full w-full flex-col overflow-hidden">
-              {cycleStatus === "completed" && (
+              {isCompletedCycle && (
                 <TransferIssues
                   handleClick={() => setTransferIssuesModal(true)}
                   canTransferIssues={canTransferIssues}
-                  disabled={!isEmpty(cycleDetails?.progress_snapshot)}
+                  disabled={hasProgressSnapshot}
                 />
               )}
               {cycleWorkItemsFilter && (

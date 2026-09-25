@@ -35,7 +35,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 import type { TRenderQuickActions } from "../list/list-view-types";
 import { isIssueNew } from "../utils";
 import { IssueColumn } from "./issue-column";
-import { useSubIssueExpansion } from "./use-sub-issue-expansion";
+import { getSubIssueExpansion } from "./sub-issue-expansion";
 
 interface Props {
   displayProperties: IIssueDisplayProperties;
@@ -241,7 +241,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
   );
   if (!issueDetail) return null;
 
-  const { hasChildren, handleToggleExpand } = useSubIssueExpansion({
+  const { hasChildren, handleToggleExpand } = getSubIssueExpansion({
     issueDetail,
     workspaceSlug: workspaceSlug?.toString(),
     subIssuesStore,
