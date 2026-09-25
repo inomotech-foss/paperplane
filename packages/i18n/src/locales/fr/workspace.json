@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Tableaux de bord",
+    "description": "Des graphiques sur vos éléments de travail, chacun défini par une requête Plane Query Language.",
+    "create": "Nouveau tableau de bord",
+    "edit": "Modifier",
+    "refresh": "Actualiser",
+    "no_description": "Aucune description",
+    "widget_count": "{count} widgets",
+    "not_found": "Ce tableau de bord n’existe pas ou est privé.",
+    "empty": {
+      "title": "Aucun tableau de bord pour l’instant",
+      "description": "Composez un tableau de graphiques, comme le chiffre d’affaires par mois ou les factures par client."
+    },
+    "form": {
+      "create_title": "Nouveau tableau de bord",
+      "edit_title": "Modifier le tableau de bord",
+      "name": "Nom",
+      "name_placeholder": "Pipeline commercial",
+      "name_required": "Donnez un nom au tableau de bord",
+      "description": "Description",
+      "public": "Visible par tout l’espace de travail",
+      "public_help": "Désactivé, vous seul pouvez l’ouvrir.",
+      "create": "Créer",
+      "save": "Enregistrer",
+      "save_error": "Le tableau de bord n’a pas pu être enregistré"
+    },
+    "delete": {
+      "action": "Supprimer",
+      "title": "Supprimer le tableau de bord",
+      "content": "Supprimer « {name} » et tous ses widgets ? Cette action est irréversible.",
+      "error": "Le tableau de bord n’a pas pu être supprimé"
+    },
+    "widget": {
+      "add": "Ajouter un widget",
+      "edit": "Modifier le widget",
+      "delete": "Supprimer le widget",
+      "refresh": "Actualiser",
+      "by": "par {dimension}",
+      "row_count": "{count} éléments de travail",
+      "no_data": "Aucun élément de travail ne correspond à cette requête.",
+      "total": "Total",
+      "load_error": "Le widget n’a pas pu être chargé",
+      "empty_title": "Aucun widget pour l’instant",
+      "empty_description": "Ajoutez un widget : une requête, ce qu’il faut mesurer et comment le répartir.",
+      "delete_title": "Supprimer le widget",
+      "delete_content": "Supprimer « {title} » ? Cette action est irréversible.",
+      "delete_error": "Le widget n’a pas pu être supprimé"
+    },
+    "editor": {
+      "create_title": "Nouveau widget",
+      "edit_title": "Modifier le widget",
+      "title": "Titre",
+      "title_placeholder": "Chiffre d’affaires par mois",
+      "title_required": "Donnez un titre au widget",
+      "description": "Sous-titre",
+      "description_placeholder": "Affiché sous le titre (facultatif)",
+      "query": "Requête",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Laissez vide pour tous les éléments de travail que vous pouvez voir.",
+      "chart_type": "Graphique",
+      "metric": "Mesure",
+      "metric_field": "De",
+      "no_decimal_properties": "Ajoutez une propriété personnalisée décimale pour la sommer ou en faire la moyenne.",
+      "dimension": "Répartir par",
+      "series": "Puis par",
+      "bucket": "Par",
+      "none": "Aucun",
+      "full_width": "Pleine largeur",
+      "preview": "Aperçu",
+      "run_preview": "Exécuter",
+      "preview_hint": "Exécutez l’aperçu pour voir le graphique avant d’enregistrer.",
+      "save": "Enregistrer le widget",
+      "add": "Ajouter le widget",
+      "save_error": "Le widget n’a pas pu être enregistré"
+    },
+    "chart_types": {
+      "number": "Nombre",
+      "bar": "Graphique à barres",
+      "line": "Graphique en courbes",
+      "area": "Graphique en aires",
+      "pie": "Camembert",
+      "donut": "Anneau",
+      "table": "Tableau"
+    },
+    "metrics": {
+      "count": "Nombre d’éléments de travail",
+      "sum": "Somme",
+      "avg": "Moyenne",
+      "min": "Minimum",
+      "max": "Maximum",
+      "estimate_points": "Points d’estimation"
+    },
+    "dimensions": {
+      "state": "État",
+      "state_group": "Groupe d’états",
+      "priority": "Priorité",
+      "type": "Type d’élément de travail",
+      "project": "Projet",
+      "assignee": "Assigné",
+      "label": "Étiquette",
+      "cycle": "Cycle",
+      "module": "Module",
+      "created_by": "Créé par",
+      "parent": "Parent",
+      "target_date": "Date d’échéance",
+      "start_date": "Date de début",
+      "created_at": "Créé le",
+      "completed_at": "Terminé le",
+      "updated_at": "Mis à jour le",
+      "ancestor_of": "{type} le plus proche"
+    },
+    "dimension_groups": {
+      "work_item": "Élément de travail",
+      "dates": "Dates",
+      "ancestors": "Ancêtres",
+      "properties": "Propriétés personnalisées"
+    },
+    "buckets": {
+      "day": "Jour",
+      "week": "Semaine",
+      "month": "Mois",
+      "quarter": "Trimestre",
+      "year": "Année"
+    }
   }
 }

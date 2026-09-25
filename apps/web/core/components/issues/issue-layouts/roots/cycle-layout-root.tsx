@@ -10,7 +10,7 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 // plane constants
-import { ISSUE_DISPLAY_FILTERS_BY_PAGE, PROJECT_VIEW_TRACKER_ELEMENTS } from "@plane/constants";
+import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE, PROJECT_VIEW_TRACKER_ELEMENTS } from "@plane/constants";
 import { EIssuesStoreType, EIssueLayoutTypes } from "@plane/types";
 // components
 import { TransferIssues } from "@/components/cycles/transfer-issues";
@@ -18,6 +18,7 @@ import { TransferIssuesModal } from "@/components/cycles/transfer-issues-modal";
 // hooks
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
+import { WorkItemQueryBar } from "@/components/work-item-query";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssues } from "@/hooks/store/use-issues";
 import { IssuesStoreContext } from "@/hooks/use-issue-layout-store";
@@ -119,6 +120,20 @@ export const CycleLayoutRoot = observer(function CycleLayoutRoot() {
                   }}
                 />
               )}
+              <WorkItemQueryBar
+                workspaceSlug={workspaceSlug}
+                projectId={projectId}
+                value={workItemFilters.displayFilters?.pql ?? ""}
+                onApply={(pql) =>
+                  issuesFilter.updateFilters(
+                    workspaceSlug,
+                    projectId,
+                    EIssueFilterType.DISPLAY_FILTERS,
+                    { pql },
+                    cycleId
+                  )
+                }
+              />
               <div className="h-full w-full overflow-auto">
                 <CycleIssueLayout activeLayout={activeLayout} cycleId={cycleId} isCompletedCycle={isCompletedCycle} />
               </div>

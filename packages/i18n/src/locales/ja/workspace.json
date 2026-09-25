@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "ダッシュボード",
+    "description": "作業項目に関するグラフです。各グラフは Plane Query Language のクエリで定義します。",
+    "create": "新しいダッシュボード",
+    "edit": "編集",
+    "refresh": "更新",
+    "no_description": "説明はありません",
+    "widget_count": "{count} 個のウィジェット",
+    "not_found": "このダッシュボードは存在しないか、非公開です。",
+    "empty": {
+      "title": "ダッシュボードはまだありません",
+      "description": "月別の売上や顧客別の請求書など、グラフを並べたボードを作成しましょう。"
+    },
+    "form": {
+      "create_title": "新しいダッシュボード",
+      "edit_title": "ダッシュボードを編集",
+      "name": "名前",
+      "name_placeholder": "営業パイプライン",
+      "name_required": "ダッシュボードに名前を付けてください",
+      "description": "説明",
+      "public": "ワークスペース全体に公開",
+      "public_help": "オフにすると、自分だけが開けます。",
+      "create": "作成",
+      "save": "保存",
+      "save_error": "ダッシュボードを保存できませんでした"
+    },
+    "delete": {
+      "action": "削除",
+      "title": "ダッシュボードを削除",
+      "content": "「{name}」とそのすべてのウィジェットを削除しますか？この操作は元に戻せません。",
+      "error": "ダッシュボードを削除できませんでした"
+    },
+    "widget": {
+      "add": "ウィジェットを追加",
+      "edit": "ウィジェットを編集",
+      "delete": "ウィジェットを削除",
+      "refresh": "更新",
+      "by": "{dimension} 別",
+      "row_count": "{count} 件の作業項目",
+      "no_data": "このクエリに一致する作業項目はありません。",
+      "total": "合計",
+      "load_error": "ウィジェットを読み込めませんでした",
+      "empty_title": "ウィジェットはまだありません",
+      "empty_description": "ウィジェットを追加しましょう：クエリ、集計する値、分割の方法を指定します。",
+      "delete_title": "ウィジェットを削除",
+      "delete_content": "「{title}」を削除しますか？この操作は元に戻せません。",
+      "delete_error": "ウィジェットを削除できませんでした"
+    },
+    "editor": {
+      "create_title": "新しいウィジェット",
+      "edit_title": "ウィジェットを編集",
+      "title": "タイトル",
+      "title_placeholder": "月別売上",
+      "title_required": "ウィジェットにタイトルを付けてください",
+      "description": "サブタイトル",
+      "description_placeholder": "タイトルの下に表示されます（任意）",
+      "query": "クエリ",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language です。空のままにすると、閲覧できるすべての作業項目が対象になります。",
+      "chart_type": "グラフ",
+      "metric": "集計値",
+      "metric_field": "対象",
+      "no_decimal_properties": "合計や平均を取るには、小数型のカスタムプロパティを追加してください。",
+      "dimension": "分割基準",
+      "series": "さらに分割",
+      "bucket": "単位",
+      "none": "なし",
+      "full_width": "全幅",
+      "preview": "プレビュー",
+      "run_preview": "実行",
+      "preview_hint": "保存する前に、プレビューを実行してグラフを確認してください。",
+      "save": "ウィジェットを保存",
+      "add": "ウィジェットを追加",
+      "save_error": "ウィジェットを保存できませんでした"
+    },
+    "chart_types": {
+      "number": "数値",
+      "bar": "棒グラフ",
+      "line": "折れ線グラフ",
+      "area": "面グラフ",
+      "pie": "円グラフ",
+      "donut": "ドーナツグラフ",
+      "table": "表"
+    },
+    "metrics": {
+      "count": "作業項目の件数",
+      "sum": "合計",
+      "avg": "平均",
+      "min": "最小",
+      "max": "最大",
+      "estimate_points": "見積もりポイント"
+    },
+    "dimensions": {
+      "state": "ステータス",
+      "state_group": "ステータスグループ",
+      "priority": "優先度",
+      "type": "作業項目タイプ",
+      "project": "プロジェクト",
+      "assignee": "担当者",
+      "label": "ラベル",
+      "cycle": "サイクル",
+      "module": "モジュール",
+      "created_by": "作成者",
+      "parent": "親",
+      "target_date": "期限日",
+      "start_date": "開始日",
+      "created_at": "作成日",
+      "completed_at": "完了日",
+      "updated_at": "更新日",
+      "ancestor_of": "最も近い{type}"
+    },
+    "dimension_groups": {
+      "work_item": "作業項目",
+      "dates": "日付",
+      "ancestors": "上位項目",
+      "properties": "カスタムプロパティ"
+    },
+    "buckets": {
+      "day": "日",
+      "week": "週",
+      "month": "月",
+      "quarter": "四半期",
+      "year": "年"
+    }
   }
 }

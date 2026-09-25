@@ -11,6 +11,8 @@ import type { IWorkItemFilterStore } from "@plane/shared-state";
 import { WorkItemFilterStore } from "@plane/shared-state";
 // plane web store
 import type { IBaseAnalyticsStore as IAnalyticsStore } from "@/store/analytics.store";
+import type { IWorkspaceDashboardStore } from "@/store/workspace-dashboard.store";
+import { WorkspaceDashboardStore } from "@/store/workspace-dashboard.store";
 import { BaseAnalyticsStore as AnalyticsStore } from "@/store/analytics.store";
 import type { IBasePowerKStore as IPowerKStore } from "@/store/base-power-k.store";
 import { BasePowerKStore as PowerKStore } from "@/store/base-power-k.store";
@@ -95,6 +97,7 @@ export class CoreRootStore {
   issueType: IIssueTypeStore;
   dashboard: IDashboardStore;
   analytics: IAnalyticsStore;
+  workspaceDashboards: IWorkspaceDashboardStore;
   projectPages: IProjectPageStore;
   router: IRouterStore;
   commandPalette: ICommandPaletteStore;
@@ -143,6 +146,7 @@ export class CoreRootStore {
     this.stickyStore = new StickyStore();
     this.editorAssetStore = new EditorAssetStore();
     this.analytics = new AnalyticsStore();
+    this.workspaceDashboards = new WorkspaceDashboardStore(this);
     this.workItemFilters = new WorkItemFilterStore();
     this.powerK = new PowerKStore();
     this.timelineStore = new TimeLineStore(this);

@@ -10,4 +10,11 @@ items always belong to a project; ask which if one is not named.
    delete_work_item by work item id (set parent=<work item id> to nest).
 5. List an epic's children: list_work_items(project_id, pql='childOf("<EPIC-IDENTIFIER>")')
    using the epic's human-readable identifier (e.g. "PROJ-12") from retrieve_work_item.
+   `descendantOf("<IDENTIFIER>")` lists everything below it at any depth.
+
+## Names in PQL
+
+`type = "Epic"`, `state = "Done"`, `assignee = "jane@example.com"` and
+`cf["Amount"] > 1000` resolve names to ids on the server, so look up UUIDs
+only when a name is ambiguous or the server reports it as unknown.
 """

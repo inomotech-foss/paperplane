@@ -24,12 +24,17 @@ const ISSUE_EXTRA_OPTIONS: {
     key: "show_empty_groups",
     titleTranslationKey: "issue.display.extra.show_empty_groups",
   }, // filter on front-end
+  {
+    key: "hierarchy",
+    titleTranslationKey: "issue.display.extra.show_hierarchy",
+  }, // table layout, nests loaded rows under their loaded parents on the front-end
 ];
 
 type Props = {
   selectedExtraOptions: {
     sub_issue: boolean;
     show_empty_groups: boolean;
+    hierarchy?: boolean;
   };
   handleUpdate: (key: keyof IIssueDisplayFilterOptions, val: boolean) => void;
   enabledExtraOptions: TIssueExtraOptions[];

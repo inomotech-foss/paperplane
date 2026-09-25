@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "하위 작업 항목 표시",
-        "show_empty_groups": "빈 그룹 표시"
+        "show_empty_groups": "빈 그룹 표시",
+        "show_hierarchy": "상위 항목 아래에 중첩 표시"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "쿼리, 예: type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "실행",
+    "clear": "지우기",
+    "help": "쿼리 도움말",
+    "applied": "쿼리가 적용되었습니다",
+    "invalid": "쿼리를 실행할 수 없습니다",
+    "help_title": "Plane Query Language",
+    "help_intro": "조건은 AND, OR, NOT과 괄호로 조합합니다. ID 대신 이름을 사용할 수 있습니다: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. 날짜는 \"2026-01-31\" 형식으로 작성합니다.",
+    "help_operators": "연산자: = != > >= < <= ~ (포함), in (…), not in (…), is null, is not null",
+    "help_fields": "필드",
+    "help_functions": "함수",
+    "help_examples": "예시",
+    "example_invoices": "특정 고객의 2026년 만기 결제 완료 청구서",
+    "example_everything": "특정 고객 아래의 모든 항목",
+    "example_overdue": "일주일 이상 기한이 지난 미완료 작업 항목",
+    "example_amount": "금액이 1000을 초과하는 내 작업 항목"
   }
 }

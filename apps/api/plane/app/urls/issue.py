@@ -31,9 +31,21 @@ from plane.app.views import (
     WorkItemDescriptionVersionEndpoint,
     IssueMetaEndpoint,
     IssueDetailIdentifierEndpoint,
+    WorkItemQueryFieldsEndpoint,
+    WorkItemQueryValidateEndpoint,
 )
 
 urlpatterns = [
+    path(
+        "workspaces/<str:slug>/work-item-query/validate/",
+        WorkItemQueryValidateEndpoint.as_view(),
+        name="work-item-query-validate",
+    ),
+    path(
+        "workspaces/<str:slug>/work-item-query/fields/",
+        WorkItemQueryFieldsEndpoint.as_view(),
+        name="work-item-query-fields",
+    ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/issues/list/",
         IssueListEndpoint.as_view(),

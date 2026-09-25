@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "サブ作業項目を表示",
-        "show_empty_groups": "空のグループを表示"
+        "show_empty_groups": "空のグループを表示",
+        "show_hierarchy": "親の下にネストして表示"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "クエリ（例：type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")）",
+    "run": "実行",
+    "clear": "クリア",
+    "help": "クエリのヘルプ",
+    "applied": "クエリを適用しました",
+    "invalid": "クエリを実行できませんでした",
+    "help_title": "Plane Query Language",
+    "help_intro": "条件は AND、OR、NOT と括弧で組み合わせます。ID の代わりに名前が使えます：state = \"Paid\"、type = \"Invoice\"、cf[\"Amount\"] > 1000。日付は \"2026-01-31\" の形式で書きます。",
+    "help_operators": "演算子：= != > >= < <= ~（含む）、in (…)、not in (…)、is null、is not null",
+    "help_fields": "フィールド",
+    "help_functions": "関数",
+    "help_examples": "例",
+    "example_invoices": "ある顧客の 2026 年期限の支払済み請求書",
+    "example_everything": "ある顧客の配下にあるすべて",
+    "example_overdue": "1 週間以上期限を過ぎた未完了の作業項目",
+    "example_amount": "金額が 1000 を超える自分の作業項目"
   }
 }

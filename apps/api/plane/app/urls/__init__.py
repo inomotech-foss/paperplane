@@ -7,6 +7,7 @@ from .api import urlpatterns as api_urls
 from .asset import urlpatterns as asset_urls
 from .automation import urlpatterns as automation_urls
 from .cycle import urlpatterns as cycle_urls
+from .dashboard import urlpatterns as dashboard_urls
 from .estimate import urlpatterns as estimate_urls
 from .external import urlpatterns as external_urls
 from .intake import urlpatterns as intake_urls
@@ -32,6 +33,7 @@ urlpatterns = [
     *asset_urls,
     *automation_urls,
     *cycle_urls,
+    *dashboard_urls,
     *estimate_urls,
     *external_urls,
     *intake_urls,

@@ -41,6 +41,7 @@ from plane.db.models import (
     ModuleIssue,
 )
 from plane.utils.issue_filters import issue_filters
+from plane.app.views.issue.query import filter_by_pql, without_sub_issue_toggle
 from plane.utils.order_queryset import VIEW_ORDER_BY_ALLOWLIST, order_issue_queryset, sanitize_order_by
 from plane.bgtasks.recent_visited_task import recent_visited_task
 from .. import BaseViewSet
@@ -229,13 +230,18 @@ class WorkspaceViewIssuesViewSet(BaseViewSet):
         order_by_param = request.GET.get("order_by", "-created_at")
 
         # Apply legacy filters
-        filters = issue_filters(request.query_params, "GET")
+        filters = without_sub_issue_toggle(issue_filters(request.query_params, "GET"), request)
         issue_queryset = issue_queryset.filter(**filters)
 
         # Get common project permission filters
         permission_filters = self._get_project_permission_filters()
         # Apply project permission filters to the issue queryset
         issue_queryset = issue_queryset.filter(permission_filters)
+
+        # Plane Query Language, `?pql=<expression>`
+        issue_queryset, pql_error = filter_by_pql(request, slug, issue_queryset)
+        if pql_error:
+            return pql_error
 
         # Base query for the counts
         total_issue_count_queryset = copy.deepcopy(issue_queryset)

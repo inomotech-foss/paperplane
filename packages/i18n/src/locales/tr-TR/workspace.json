@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Panolar",
+    "description": "İş öğeleriniz üzerinde grafikler; her biri bir Plane Query Language sorgusuyla tanımlanır.",
+    "create": "Yeni pano",
+    "edit": "Düzenle",
+    "refresh": "Yenile",
+    "no_description": "Açıklama yok",
+    "widget_count": "{count} widget",
+    "not_found": "Bu pano mevcut değil veya özel.",
+    "empty": {
+      "title": "Henüz pano yok",
+      "description": "Aylık gelir veya müşteri başına faturalar gibi grafiklerden bir pano oluşturun."
+    },
+    "form": {
+      "create_title": "Yeni pano",
+      "edit_title": "Panoyu düzenle",
+      "name": "Ad",
+      "name_placeholder": "Satış hattı",
+      "name_required": "Panoya bir ad verin",
+      "description": "Açıklama",
+      "public": "Tüm çalışma alanına görünür",
+      "public_help": "Kapalıyken yalnızca siz açabilirsiniz.",
+      "create": "Oluştur",
+      "save": "Kaydet",
+      "save_error": "Pano kaydedilemedi"
+    },
+    "delete": {
+      "action": "Sil",
+      "title": "Panoyu sil",
+      "content": "\"{name}\" ve tüm widget'ları silinsin mi? Bu işlem geri alınamaz.",
+      "error": "Pano silinemedi"
+    },
+    "widget": {
+      "add": "Widget ekle",
+      "edit": "Widget'ı düzenle",
+      "delete": "Widget'ı sil",
+      "refresh": "Yenile",
+      "by": "{dimension} bazında",
+      "row_count": "{count} iş öğesi",
+      "no_data": "Bu sorguyla eşleşen iş öğesi yok.",
+      "total": "Toplam",
+      "load_error": "Widget yüklenemedi",
+      "empty_title": "Henüz widget yok",
+      "empty_description": "Bir widget ekleyin: bir sorgu, neyin ölçüleceği ve nasıl bölüneceği.",
+      "delete_title": "Widget'ı sil",
+      "delete_content": "\"{title}\" silinsin mi? Bu işlem geri alınamaz.",
+      "delete_error": "Widget silinemedi"
+    },
+    "editor": {
+      "create_title": "Yeni widget",
+      "edit_title": "Widget'ı düzenle",
+      "title": "Başlık",
+      "title_placeholder": "Aylık gelir",
+      "title_required": "Widget'a bir başlık verin",
+      "description": "Alt başlık",
+      "description_placeholder": "Başlığın altında gösterilir (isteğe bağlı)",
+      "query": "Sorgu",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Görebildiğiniz tüm iş öğeleri için boş bırakın.",
+      "chart_type": "Grafik",
+      "metric": "Ölçüm",
+      "metric_field": "Alan",
+      "no_decimal_properties": "Toplamak veya ortalamasını almak için ondalık bir özel özellik ekleyin.",
+      "dimension": "Bölme ölçütü",
+      "series": "Sonra",
+      "bucket": "Periyot",
+      "none": "Yok",
+      "full_width": "Tam genişlik",
+      "preview": "Önizleme",
+      "run_preview": "Çalıştır",
+      "preview_hint": "Kaydetmeden önce grafiği görmek için önizlemeyi çalıştırın.",
+      "save": "Widget'ı kaydet",
+      "add": "Widget ekle",
+      "save_error": "Widget kaydedilemedi"
+    },
+    "chart_types": {
+      "number": "Sayı",
+      "bar": "Çubuk grafik",
+      "line": "Çizgi grafik",
+      "area": "Alan grafiği",
+      "pie": "Pasta grafik",
+      "donut": "Halka grafik",
+      "table": "Tablo"
+    },
+    "metrics": {
+      "count": "İş öğesi sayısı",
+      "sum": "Toplam",
+      "avg": "Ortalama",
+      "min": "En düşük",
+      "max": "En yüksek",
+      "estimate_points": "Tahmin puanları"
+    },
+    "dimensions": {
+      "state": "Durum",
+      "state_group": "Durum grubu",
+      "priority": "Öncelik",
+      "type": "İş öğesi türü",
+      "project": "Proje",
+      "assignee": "Atanan kişi",
+      "label": "Etiket",
+      "cycle": "Döngü",
+      "module": "Modül",
+      "created_by": "Oluşturan",
+      "parent": "Üst öğe",
+      "target_date": "Bitiş tarihi",
+      "start_date": "Başlangıç tarihi",
+      "created_at": "Oluşturulma tarihi",
+      "completed_at": "Tamamlanma tarihi",
+      "updated_at": "Güncellenme tarihi",
+      "ancestor_of": "En yakın {type}"
+    },
+    "dimension_groups": {
+      "work_item": "İş öğesi",
+      "dates": "Tarihler",
+      "ancestors": "Üst öğeler",
+      "properties": "Özel özellikler"
+    },
+    "buckets": {
+      "day": "Gün",
+      "week": "Hafta",
+      "month": "Ay",
+      "quarter": "Çeyrek",
+      "year": "Yıl"
+    }
   }
 }

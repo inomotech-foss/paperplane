@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "Untergeordnete Elemente anzeigen",
-        "show_empty_groups": "Leere Gruppen anzeigen"
+        "show_empty_groups": "Leere Gruppen anzeigen",
+        "show_hierarchy": "Unter übergeordneten Elementen einordnen"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "Abfrage, z. B. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "Ausführen",
+    "clear": "Leeren",
+    "help": "Hilfe zur Abfrage",
+    "applied": "Abfrage angewendet",
+    "invalid": "Die Abfrage konnte nicht ausgeführt werden",
+    "help_title": "Plane Query Language",
+    "help_intro": "Kombinieren Sie Bedingungen mit AND, OR, NOT und Klammern. Namen funktionieren anstelle von IDs: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Datumsangaben werden als \"2026-01-31\" geschrieben.",
+    "help_operators": "Operatoren: = != > >= < <= ~ (enthält), in (…), not in (…), is null, is not null",
+    "help_fields": "Felder",
+    "help_functions": "Funktionen",
+    "help_examples": "Beispiele",
+    "example_invoices": "Bezahlte Rechnungen eines Kunden, fällig in 2026",
+    "example_everything": "Alles unterhalb eines Kunden",
+    "example_overdue": "Offene Arbeitselemente, die seit einer Woche überfällig sind",
+    "example_amount": "Ihre Arbeitselemente mit einem Betrag über 1000"
   }
 }

@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "Hiển thị mục công việc con",
-        "show_empty_groups": "Hiển thị nhóm trống"
+        "show_empty_groups": "Hiển thị nhóm trống",
+        "show_hierarchy": "Lồng dưới mục cha"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "Truy vấn, ví dụ type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "Chạy",
+    "clear": "Xóa",
+    "help": "Trợ giúp truy vấn",
+    "applied": "Đã áp dụng truy vấn",
+    "invalid": "Không thể chạy truy vấn",
+    "help_title": "Plane Query Language",
+    "help_intro": "Kết hợp các điều kiện bằng AND, OR, NOT và dấu ngoặc. Có thể dùng tên thay cho ID: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Ngày được viết dạng \"2026-01-31\".",
+    "help_operators": "Toán tử: = != > >= < <= ~ (chứa), in (…), not in (…), is null, is not null",
+    "help_fields": "Trường",
+    "help_functions": "Hàm",
+    "help_examples": "Ví dụ",
+    "example_invoices": "Hóa đơn đã thanh toán của một khách hàng, đến hạn trong năm 2026",
+    "example_everything": "Mọi thứ bên dưới một khách hàng",
+    "example_overdue": "Mục công việc đang mở đã quá hạn một tuần",
+    "example_amount": "Mục công việc của bạn có số tiền trên 1000"
   }
 }

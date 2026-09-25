@@ -29,6 +29,7 @@ from plane.utils.grouper import (
     issue_queryset_grouper,
 )
 from plane.utils.issue_filters import issue_filters
+from plane.app.views.issue.query import filter_by_pql, without_sub_issue_toggle
 from plane.utils.order_queryset import order_issue_queryset
 from plane.utils.paginator import GroupedOffsetPaginator, SubGroupedOffsetPaginator
 from plane.app.permissions import allow_permission, ROLE
@@ -108,7 +109,7 @@ class CycleIssueViewSet(BaseViewSet):
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def list(self, request, slug, project_id, cycle_id):
-        filters = issue_filters(request.query_params, "GET")
+        filters = without_sub_issue_toggle(issue_filters(request.query_params, "GET"), request)
         issue_queryset = (
             Issue.issue_objects.filter(issue_cycle__cycle_id=cycle_id, issue_cycle__deleted_at__isnull=True)
             .filter(project_id=project_id)
@@ -120,6 +121,11 @@ class CycleIssueViewSet(BaseViewSet):
 
         # Apply legacy filters
         issue_queryset = issue_queryset.filter(**filters)
+
+        # Plane Query Language, `?pql=<expression>`
+        issue_queryset, pql_error = filter_by_pql(request, slug, issue_queryset, project_id=project_id)
+        if pql_error:
+            return pql_error
 
         # Total count queryset
         total_issue_queryset = copy.deepcopy(issue_queryset)

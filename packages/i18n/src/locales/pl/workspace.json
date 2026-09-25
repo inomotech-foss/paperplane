@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Pulpity",
+    "description": "Wykresy dla Twoich elementów pracy, każdy zdefiniowany zapytaniem Plane Query Language.",
+    "create": "Nowy pulpit",
+    "edit": "Edytuj",
+    "refresh": "Odśwież",
+    "no_description": "Brak opisu",
+    "widget_count": "{count} widżetów",
+    "not_found": "Ten pulpit nie istnieje lub jest prywatny.",
+    "empty": {
+      "title": "Nie ma jeszcze pulpitów",
+      "description": "Zbuduj tablicę wykresów, np. przychód w podziale na miesiące lub faktury na klienta."
+    },
+    "form": {
+      "create_title": "Nowy pulpit",
+      "edit_title": "Edytuj pulpit",
+      "name": "Nazwa",
+      "name_placeholder": "Lejek sprzedaży",
+      "name_required": "Nadaj pulpitowi nazwę",
+      "description": "Opis",
+      "public": "Widoczny dla całej przestrzeni roboczej",
+      "public_help": "Po wyłączeniu tylko Ty możesz go otworzyć.",
+      "create": "Utwórz",
+      "save": "Zapisz",
+      "save_error": "Nie udało się zapisać pulpitu"
+    },
+    "delete": {
+      "action": "Usuń",
+      "title": "Usuń pulpit",
+      "content": "Usunąć „{name}” wraz ze wszystkimi widżetami? Tej operacji nie można cofnąć.",
+      "error": "Nie udało się usunąć pulpitu"
+    },
+    "widget": {
+      "add": "Dodaj widżet",
+      "edit": "Edytuj widżet",
+      "delete": "Usuń widżet",
+      "refresh": "Odśwież",
+      "by": "wg {dimension}",
+      "row_count": "{count} elementów pracy",
+      "no_data": "Żaden element pracy nie pasuje do tego zapytania.",
+      "total": "Razem",
+      "load_error": "Nie udało się wczytać widżetu",
+      "empty_title": "Nie ma jeszcze widżetów",
+      "empty_description": "Dodaj widżet: zapytanie, co mierzyć i jak to podzielić.",
+      "delete_title": "Usuń widżet",
+      "delete_content": "Usunąć „{title}”? Tej operacji nie można cofnąć.",
+      "delete_error": "Nie udało się usunąć widżetu"
+    },
+    "editor": {
+      "create_title": "Nowy widżet",
+      "edit_title": "Edytuj widżet",
+      "title": "Tytuł",
+      "title_placeholder": "Przychód miesięcznie",
+      "title_required": "Nadaj widżetowi tytuł",
+      "description": "Podtytuł",
+      "description_placeholder": "Wyświetlany pod tytułem (opcjonalnie)",
+      "query": "Zapytanie",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Pozostaw puste, aby uwzględnić wszystkie widoczne elementy pracy.",
+      "chart_type": "Wykres",
+      "metric": "Miara",
+      "metric_field": "Z",
+      "no_decimal_properties": "Dodaj dziesiętną właściwość niestandardową, aby ją sumować lub uśredniać.",
+      "dimension": "Podziel według",
+      "series": "Następnie według",
+      "bucket": "Na",
+      "none": "Brak",
+      "full_width": "Pełna szerokość",
+      "preview": "Podgląd",
+      "run_preview": "Uruchom",
+      "preview_hint": "Uruchom podgląd, aby zobaczyć wykres przed zapisaniem.",
+      "save": "Zapisz widżet",
+      "add": "Dodaj widżet",
+      "save_error": "Nie udało się zapisać widżetu"
+    },
+    "chart_types": {
+      "number": "Liczba",
+      "bar": "Wykres słupkowy",
+      "line": "Wykres liniowy",
+      "area": "Wykres warstwowy",
+      "pie": "Wykres kołowy",
+      "donut": "Wykres pierścieniowy",
+      "table": "Tabela"
+    },
+    "metrics": {
+      "count": "Liczba elementów pracy",
+      "sum": "Suma",
+      "avg": "Średnia",
+      "min": "Minimum",
+      "max": "Maksimum",
+      "estimate_points": "Punkty estymacji"
+    },
+    "dimensions": {
+      "state": "Stan",
+      "state_group": "Grupa stanów",
+      "priority": "Priorytet",
+      "type": "Typ elementu pracy",
+      "project": "Projekt",
+      "assignee": "Osoba przypisana",
+      "label": "Etykieta",
+      "cycle": "Cykl",
+      "module": "Moduł",
+      "created_by": "Utworzone przez",
+      "parent": "Element nadrzędny",
+      "target_date": "Termin",
+      "start_date": "Data rozpoczęcia",
+      "created_at": "Utworzono",
+      "completed_at": "Ukończono",
+      "updated_at": "Zaktualizowano",
+      "ancestor_of": "Najbliższy {type}"
+    },
+    "dimension_groups": {
+      "work_item": "Element pracy",
+      "dates": "Daty",
+      "ancestors": "Elementy nadrzędne",
+      "properties": "Właściwości niestandardowe"
+    },
+    "buckets": {
+      "day": "Dzień",
+      "week": "Tydzień",
+      "month": "Miesiąc",
+      "quarter": "Kwartał",
+      "year": "Rok"
+    }
   }
 }

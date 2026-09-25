@@ -188,7 +188,7 @@ export const ISSUE_DISPLAY_FILTERS_BY_PAGE: TIssueFiltersToDisplayByPageType = {
         },
         extra_options: {
           access: true,
-          values: ["sub_issue"],
+          values: ["sub_issue", "hierarchy"],
         },
       },
       list: {
@@ -261,7 +261,7 @@ export const ISSUE_DISPLAY_FILTERS_BY_PAGE: TIssueFiltersToDisplayByPageType = {
         },
         extra_options: {
           access: true,
-          values: ["sub_issue"],
+          values: ["sub_issue", "hierarchy"],
         },
       },
       gantt_chart: {

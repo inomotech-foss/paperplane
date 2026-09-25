@@ -12,6 +12,7 @@ import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, TIssue } from
 // components
 import { SpreadsheetIssueRowLoader } from "@/components/ui/loader/layouts/spreadsheet-layout-loader";
 // hooks
+import { useIssues } from "@/hooks/store/use-issues";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useIssuesStore } from "@/hooks/use-issue-layout-store";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
@@ -19,6 +20,7 @@ import { useTableKeyboardNavigation } from "@/hooks/use-table-keyboard-navigatio
 // local imports
 import type { TRenderQuickActions } from "../list/list-view-types";
 import { getDisplayPropertiesCount } from "../utils";
+import { buildIssueHierarchy } from "./hierarchy";
 import { SpreadsheetIssueRow } from "./issue-row";
 import { SpreadsheetHeader } from "./spreadsheet-header";
 
@@ -66,6 +68,13 @@ export const SpreadsheetTable = observer(function SpreadsheetTable(props: Props)
   const {
     issues: { getIssueLoader },
   } = useIssuesStore();
+  const { issueMap } = useIssues();
+  // In hierarchy mode the loaded rows nest under their loaded parents; a row
+  // whose parent is not loaded stays at the top, so a query result of
+  // invoices stays flat while "everything below a customer" becomes a tree.
+  const isHierarchy = !!displayFilters?.hierarchy;
+  const hierarchy = isHierarchy ? buildIssueHierarchy(issueIds, (id) => issueMap[id]?.parent_id) : undefined;
+  const rowIds = hierarchy ? hierarchy.rootIds : issueIds;
 
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
@@ -123,10 +132,11 @@ export const SpreadsheetTable = observer(function SpreadsheetTable(props: Props)
         isEpic={isEpic}
       />
       <tbody>
-        {issueIds.map((id) => (
+        {rowIds.map((id) => (
           <SpreadsheetIssueRow
-            key={id}
+            key={`${isHierarchy ? "tree" : "flat"}-${id}`}
             issueId={id}
+            hierarchyChildIds={hierarchy?.childIdsByParentId}
             displayProperties={displayProperties}
             quickActions={quickActions}
             canEditProperties={canEditProperties}

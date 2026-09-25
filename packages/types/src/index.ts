@@ -36,6 +36,8 @@ export * from "./issues/issue-identifier";
 export * from "./issues/issue-property-values";
 export * from "./issues/issue-custom-property";
 export * from "./issues/issue-type";
+export * from "./issues/work-item-query";
+export * from "./workspace-dashboard";
 export * from "./layout";
 export * from "./module";
 export * from "./navigation-preferences";

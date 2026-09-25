@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "Bảng điều khiển",
+    "description": "Biểu đồ về các mục công việc của bạn, mỗi biểu đồ là một truy vấn Plane Query Language.",
+    "create": "Bảng điều khiển mới",
+    "edit": "Chỉnh sửa",
+    "refresh": "Làm mới",
+    "no_description": "Không có mô tả",
+    "widget_count": "{count} tiện ích",
+    "not_found": "Bảng điều khiển này không tồn tại hoặc ở chế độ riêng tư.",
+    "empty": {
+      "title": "Chưa có bảng điều khiển",
+      "description": "Tạo một bảng gồm các biểu đồ, chẳng hạn doanh thu theo tháng hoặc hóa đơn theo khách hàng."
+    },
+    "form": {
+      "create_title": "Bảng điều khiển mới",
+      "edit_title": "Chỉnh sửa bảng điều khiển",
+      "name": "Tên",
+      "name_placeholder": "Quy trình bán hàng",
+      "name_required": "Hãy đặt tên cho bảng điều khiển",
+      "description": "Mô tả",
+      "public": "Hiển thị cho toàn bộ không gian làm việc",
+      "public_help": "Khi tắt, chỉ bạn mới mở được.",
+      "create": "Tạo",
+      "save": "Lưu",
+      "save_error": "Không thể lưu bảng điều khiển"
+    },
+    "delete": {
+      "action": "Xóa",
+      "title": "Xóa bảng điều khiển",
+      "content": "Xóa \"{name}\" cùng tất cả tiện ích của nó? Không thể hoàn tác thao tác này.",
+      "error": "Không thể xóa bảng điều khiển"
+    },
+    "widget": {
+      "add": "Thêm tiện ích",
+      "edit": "Chỉnh sửa tiện ích",
+      "delete": "Xóa tiện ích",
+      "refresh": "Làm mới",
+      "by": "theo {dimension}",
+      "row_count": "{count} mục công việc",
+      "no_data": "Không có mục công việc nào khớp với truy vấn này.",
+      "total": "Tổng",
+      "load_error": "Không thể tải tiện ích",
+      "empty_title": "Chưa có tiện ích",
+      "empty_description": "Thêm một tiện ích: truy vấn, đo lường gì và chia theo cách nào.",
+      "delete_title": "Xóa tiện ích",
+      "delete_content": "Xóa \"{title}\"? Không thể hoàn tác thao tác này.",
+      "delete_error": "Không thể xóa tiện ích"
+    },
+    "editor": {
+      "create_title": "Tiện ích mới",
+      "edit_title": "Chỉnh sửa tiện ích",
+      "title": "Tiêu đề",
+      "title_placeholder": "Doanh thu theo tháng",
+      "title_required": "Hãy đặt tiêu đề cho tiện ích",
+      "description": "Phụ đề",
+      "description_placeholder": "Hiển thị dưới tiêu đề (tùy chọn)",
+      "query": "Truy vấn",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language. Để trống để lấy mọi mục công việc bạn có thể xem.",
+      "chart_type": "Biểu đồ",
+      "metric": "Số đo",
+      "metric_field": "Của",
+      "no_decimal_properties": "Thêm một thuộc tính tùy chỉnh dạng số thập phân để tính tổng hoặc trung bình.",
+      "dimension": "Chia theo",
+      "series": "Rồi theo",
+      "bucket": "Mỗi",
+      "none": "Không",
+      "full_width": "Toàn chiều rộng",
+      "preview": "Xem trước",
+      "run_preview": "Chạy",
+      "preview_hint": "Chạy xem trước để thấy biểu đồ trước khi lưu.",
+      "save": "Lưu tiện ích",
+      "add": "Thêm tiện ích",
+      "save_error": "Không thể lưu tiện ích"
+    },
+    "chart_types": {
+      "number": "Số",
+      "bar": "Biểu đồ cột",
+      "line": "Biểu đồ đường",
+      "area": "Biểu đồ vùng",
+      "pie": "Biểu đồ tròn",
+      "donut": "Biểu đồ vành khuyên",
+      "table": "Bảng"
+    },
+    "metrics": {
+      "count": "Số lượng mục công việc",
+      "sum": "Tổng",
+      "avg": "Trung bình",
+      "min": "Nhỏ nhất",
+      "max": "Lớn nhất",
+      "estimate_points": "Điểm ước tính"
+    },
+    "dimensions": {
+      "state": "Trạng thái",
+      "state_group": "Nhóm trạng thái",
+      "priority": "Mức ưu tiên",
+      "type": "Loại mục công việc",
+      "project": "Dự án",
+      "assignee": "Người được giao",
+      "label": "Nhãn",
+      "cycle": "Chu kỳ",
+      "module": "Mô-đun",
+      "created_by": "Người tạo",
+      "parent": "Mục cha",
+      "target_date": "Ngày đến hạn",
+      "start_date": "Ngày bắt đầu",
+      "created_at": "Ngày tạo",
+      "completed_at": "Ngày hoàn thành",
+      "updated_at": "Ngày cập nhật",
+      "ancestor_of": "{type} gần nhất"
+    },
+    "dimension_groups": {
+      "work_item": "Mục công việc",
+      "dates": "Ngày",
+      "ancestors": "Mục tổ tiên",
+      "properties": "Thuộc tính tùy chỉnh"
+    },
+    "buckets": {
+      "day": "Ngày",
+      "week": "Tuần",
+      "month": "Tháng",
+      "quarter": "Quý",
+      "year": "Năm"
+    }
   }
 }

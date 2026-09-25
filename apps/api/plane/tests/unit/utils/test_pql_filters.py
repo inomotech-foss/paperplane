@@ -13,9 +13,10 @@ from datetime import date
 
 import pytest
 from django.db.models import Q
+from django.db.models.expressions import RawSQL
 
 from plane.utils.pql import FILTER_FIELDS, FilterCompileError, compile_filters
-from plane.utils.pql.filters import MAX_FILTER_DEPTH, CustomPropertyFilter
+from plane.utils.pql.filters import DESCENDANTS_SQL, MAX_FILTER_DEPTH, CustomPropertyFilter, descendants_q
 
 STATE_ID = "11111111-1111-4111-8111-111111111111"
 PROJECT_ID = "22222222-2222-4222-8222-222222222222"
@@ -52,8 +53,13 @@ FIELD_CASES = [
     ),
     ({"created_by": USER_ID}, Q(created_by_id=uuid.UUID(USER_ID))),
     ({"parent_id": PARENT_ID}, Q(parent_id=uuid.UUID(PARENT_ID))),
+    ({"ancestor_id": PARENT_ID}, Q(id__in=RawSQL(DESCENDANTS_SQL, ([PARENT_ID],)))),
+    ({"name": "Acme"}, Q(name="Acme")),
     ({"target_date": "2024-05-01"}, Q(target_date=date(2024, 5, 1))),
     ({"start_date": "2024-05-01"}, Q(start_date=date(2024, 5, 1))),
+    ({"created_at": "2024-05-01"}, Q(created_at__date=date(2024, 5, 1))),
+    ({"updated_at": "2024-05-01"}, Q(updated_at__date=date(2024, 5, 1))),
+    ({"completed_at": "2024-05-01"}, Q(completed_at__date=date(2024, 5, 1))),
 ]
 
 LOOKUP_CASES = [
@@ -82,8 +88,9 @@ REJECTED_FIELDS = [
     "created_by__password",
     "created_by__token",
     "state__name",
-    "name",
+    "name__exact__description",
     "description_stripped",
+    "description_html",
     "workspace_id",
     "id",
     "",
@@ -300,3 +307,90 @@ class TestCustomPropertyLeaves:
     def test_invalid_property_id_is_rejected(self, key):
         with pytest.raises(FilterCompileError):
             compile_filters({key: "yes"})
+
+
+@pytest.mark.unit
+class TestDescendants:
+    """`ancestor_id` (the landing field of `descendantOf()`) compiles to a
+    recursive subquery over `parent_id`, never to a column comparison."""
+
+    def test_single_ancestor_compiles_to_the_recursive_subquery(self):
+        compiled = compile_filters({"ancestor_id": PARENT_ID})
+        assert compiled.q == descendants_q([PARENT_ID])
+        (child,) = compiled.q.children
+        assert child[0] == "id__in"
+        assert child[1].sql == DESCENDANTS_SQL
+        assert child[1].params == ([PARENT_ID],)
+
+    def test_several_ancestors_share_one_subquery(self):
+        compiled = compile_filters({"ancestor_id__in": [PARENT_ID, STATE_ID]})
+        assert compiled.q == descendants_q([PARENT_ID, STATE_ID])
+
+    @pytest.mark.parametrize("key", ["ancestor_id__isnull", "ancestor_id__icontains", "ancestor_id__gt"])
+    def test_other_lookups_are_rejected(self, key):
+        with pytest.raises(FilterCompileError):
+            compile_filters({key: PARENT_ID})
+
+    def test_value_must_be_a_uuid(self):
+        with pytest.raises(FilterCompileError):
+            compile_filters({"ancestor_id": "CUST-1"})
+
+
+@pytest.mark.unit
+class TestCustomPropertyResolver:
+    """With a resolver, custom property leaves become real `Q`s: any lookup,
+    any position, ids or names. The resolver is what the endpoints wire in."""
+
+    @staticmethod
+    def resolver(reference, lookup, value):
+        return Q(resolved=(reference, lookup, value))
+
+    def test_leaf_compiles_through_the_resolver(self):
+        compiled = compile_filters({f"property__{PROPERTY_ID}": "yes"}, custom_property_resolver=self.resolver)
+        assert compiled.q == Q(resolved=(PROPERTY_ID, "exact", "yes"))
+        assert compiled.custom_properties == []
+
+    def test_names_reach_the_resolver_untouched(self):
+        compiled = compile_filters({"property__Total amount__gte": 1000}, custom_property_resolver=self.resolver)
+        assert compiled.q == Q(resolved=("Total amount", "gte", 1000))
+
+    @pytest.mark.parametrize("lookup", ["in", "gte", "lte", "range", "isnull", "icontains"])
+    def test_every_lookup_is_forwarded(self, lookup):
+        compiled = compile_filters(
+            {f"property__{PROPERTY_ID}__{lookup}": [1, 2]}, custom_property_resolver=self.resolver
+        )
+        assert compiled.q == Q(resolved=(PROPERTY_ID, lookup, [1, 2]))
+
+    @pytest.mark.parametrize("operator", ["or", "not"])
+    def test_allowed_outside_conjunctive_position(self, operator):
+        compiled = compile_filters(
+            {operator: [{f"property__{PROPERTY_ID}": "yes"}, {"priority": "urgent"}]},
+            custom_property_resolver=self.resolver,
+        )
+        expected = Q(resolved=(PROPERTY_ID, "exact", "yes"))
+        expected = expected | Q(priority="urgent") if operator == "or" else ~(expected & Q(priority="urgent"))
+        assert compiled.q == expected
+
+    def test_resolver_errors_propagate(self):
+        def failing(reference, lookup, value):
+            raise FilterCompileError("nope", field=reference)
+
+        with pytest.raises(FilterCompileError) as excinfo:
+            compile_filters({"property__Amount": 1}, custom_property_resolver=failing)
+        assert excinfo.value.field == "Amount"
+
+    def test_without_a_resolver_names_and_extra_lookups_stay_rejected(self):
+        with pytest.raises(FilterCompileError):
+            compile_filters({"property__Amount": 1})
+        with pytest.raises(FilterCompileError):
+            compile_filters({f"property__{PROPERTY_ID}__gte": 1})
+
+
+@pytest.mark.unit
+class TestTimestampFields:
+    def test_timestamps_compare_on_their_calendar_day(self):
+        compiled = compile_filters({"created_at__gte": "2026-01-01", "completed_at__isnull": True})
+        assert compiled.q == Q(created_at__date__gte=date(2026, 1, 1)) & Q(completed_at__date__isnull=True)
+
+    def test_name_supports_contains(self):
+        assert compile_filters({"name__icontains": "acme"}).q == Q(name__icontains="acme")

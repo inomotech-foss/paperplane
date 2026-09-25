@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 // plane imports
-import { GLOBAL_VIEW_TRACKER_ELEMENTS, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@plane/constants";
+import { EIssueFilterType, GLOBAL_VIEW_TRACKER_ELEMENTS, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@plane/constants";
 import { EmptyStateDetailed } from "@plane/propel/empty-state";
 import type { EIssueLayoutTypes } from "@plane/types";
 import { EIssuesStoreType, STATIC_VIEW_TYPES } from "@plane/types";
@@ -19,6 +19,7 @@ import { IssuePeekOverview } from "@/components/issues/peek-overview";
 import { WorkspaceActiveLayout } from "@/components/views/helper";
 import { WorkspaceLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/workspace-level";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
+import { WorkItemQueryBar } from "@/components/work-item-query";
 // hooks
 import { useGlobalView } from "@/hooks/store/use-global-view";
 import { useIssues } from "@/hooks/store/use-issues";
@@ -43,7 +44,7 @@ export const AllIssueLayoutRoot = observer(function AllIssueLayoutRoot(props: Pr
   const searchParams = useSearchParams();
   // store hooks
   const {
-    issuesFilter: { filters, fetchFilters, updateFilterExpression },
+    issuesFilter: { filters, fetchFilters, updateFilterExpression, updateFilters },
     issues: { clear, groupedIssueIds, fetchIssues, fetchNextIssues },
   } = useIssues(EIssuesStoreType.GLOBAL);
   const { fetchAllGlobalViews, getViewDetailsById } = useGlobalView();
@@ -156,6 +157,13 @@ export const AllIssueLayoutRoot = observer(function AllIssueLayoutRoot(props: Pr
                   }}
                 />
               )}
+              <WorkItemQueryBar
+                workspaceSlug={workspaceSlug}
+                value={workItemFilters?.displayFilters?.pql ?? ""}
+                onApply={(pql) =>
+                  updateFilters(workspaceSlug, undefined, EIssueFilterType.DISPLAY_FILTERS, { pql }, globalViewId)
+                }
+              />
               <WorkspaceActiveLayout
                 activeLayout={activeLayout}
                 isDefaultView={isDefaultView}

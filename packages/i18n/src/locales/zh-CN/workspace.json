@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "仪表盘",
+    "description": "关于工作项的图表，每个图表由一条 Plane Query Language 查询定义。",
+    "create": "新建仪表盘",
+    "edit": "编辑",
+    "refresh": "刷新",
+    "no_description": "暂无描述",
+    "widget_count": "{count} 个小组件",
+    "not_found": "该仪表盘不存在或为私有。",
+    "empty": {
+      "title": "还没有仪表盘",
+      "description": "搭建一个图表看板，例如按月统计的收入或按客户统计的发票。"
+    },
+    "form": {
+      "create_title": "新建仪表盘",
+      "edit_title": "编辑仪表盘",
+      "name": "名称",
+      "name_placeholder": "销售管道",
+      "name_required": "请为仪表盘命名",
+      "description": "描述",
+      "public": "对整个工作区可见",
+      "public_help": "关闭后，只有您可以打开。",
+      "create": "创建",
+      "save": "保存",
+      "save_error": "无法保存仪表盘"
+    },
+    "delete": {
+      "action": "删除",
+      "title": "删除仪表盘",
+      "content": "删除“{name}”及其全部小组件？此操作无法撤销。",
+      "error": "无法删除仪表盘"
+    },
+    "widget": {
+      "add": "添加小组件",
+      "edit": "编辑小组件",
+      "delete": "删除小组件",
+      "refresh": "刷新",
+      "by": "按 {dimension}",
+      "row_count": "{count} 个工作项",
+      "no_data": "没有与该查询匹配的工作项。",
+      "total": "合计",
+      "load_error": "无法加载小组件",
+      "empty_title": "还没有小组件",
+      "empty_description": "添加一个小组件：一条查询、要统计的指标以及拆分方式。",
+      "delete_title": "删除小组件",
+      "delete_content": "删除“{title}”？此操作无法撤销。",
+      "delete_error": "无法删除小组件"
+    },
+    "editor": {
+      "create_title": "新建小组件",
+      "edit_title": "编辑小组件",
+      "title": "标题",
+      "title_placeholder": "按月收入",
+      "title_required": "请为小组件填写标题",
+      "description": "副标题",
+      "description_placeholder": "显示在标题下方（可选）",
+      "query": "查询",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language。留空则包含您可见的全部工作项。",
+      "chart_type": "图表",
+      "metric": "指标",
+      "metric_field": "字段",
+      "no_decimal_properties": "添加一个小数类型的自定义属性以进行求和或求平均。",
+      "dimension": "拆分依据",
+      "series": "再按",
+      "bucket": "每",
+      "none": "无",
+      "full_width": "全宽",
+      "preview": "预览",
+      "run_preview": "运行",
+      "preview_hint": "保存前先运行预览查看图表。",
+      "save": "保存小组件",
+      "add": "添加小组件",
+      "save_error": "无法保存小组件"
+    },
+    "chart_types": {
+      "number": "数字",
+      "bar": "柱状图",
+      "line": "折线图",
+      "area": "面积图",
+      "pie": "饼图",
+      "donut": "环形图",
+      "table": "表格"
+    },
+    "metrics": {
+      "count": "工作项数量",
+      "sum": "求和",
+      "avg": "平均值",
+      "min": "最小值",
+      "max": "最大值",
+      "estimate_points": "估算点数"
+    },
+    "dimensions": {
+      "state": "状态",
+      "state_group": "状态组",
+      "priority": "优先级",
+      "type": "工作项类型",
+      "project": "项目",
+      "assignee": "负责人",
+      "label": "标签",
+      "cycle": "周期",
+      "module": "模块",
+      "created_by": "创建者",
+      "parent": "父项",
+      "target_date": "截止日期",
+      "start_date": "开始日期",
+      "created_at": "创建日期",
+      "completed_at": "完成日期",
+      "updated_at": "更新日期",
+      "ancestor_of": "最近的{type}"
+    },
+    "dimension_groups": {
+      "work_item": "工作项",
+      "dates": "日期",
+      "ancestors": "上级项",
+      "properties": "自定义属性"
+    },
+    "buckets": {
+      "day": "日",
+      "week": "周",
+      "month": "月",
+      "quarter": "季度",
+      "year": "年"
+    }
   }
 }

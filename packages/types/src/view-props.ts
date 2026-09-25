@@ -58,7 +58,7 @@ export type TIssueOrderByOptions =
 
 export type TIssueGroupingFilters = "active" | "backlog";
 
-export type TIssueExtraOptions = "show_empty_groups" | "sub_issue";
+export type TIssueExtraOptions = "show_empty_groups" | "sub_issue" | "hierarchy";
 
 export type TIssueParams =
   | "priority"
@@ -86,7 +86,9 @@ export type TIssueParams =
   | "issue_type"
   | "layout"
   | "expand"
-  | "filters";
+  | "filters"
+  | "pql"
+  | "hierarchy";
 
 export type TCalendarLayouts = "month" | "week";
 
@@ -166,6 +168,10 @@ export interface IIssueDisplayFilterOptions {
   order_by?: TIssueOrderByOptions;
   show_empty_groups?: boolean;
   sub_issue?: boolean;
+  /** Nest loaded work items under their loaded parents (table layout). Client side only. */
+  hierarchy?: boolean;
+  /** Plane Query Language expression applied on top of the filters, empty for none. */
+  pql?: string;
 }
 export interface IIssueDisplayProperties {
   // Per-project work item custom properties, keyed by `custom_property_<property_id>`

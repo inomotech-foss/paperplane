@@ -65,7 +65,8 @@
       },
       "extra": {
         "show_sub_issues": "Show sub-work items",
-        "show_empty_groups": "Show empty groups"
+        "show_empty_groups": "Show empty groups",
+        "show_hierarchy": "Nest under parents"
       }
     },
     "layouts": {
@@ -464,5 +465,23 @@
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
     }
+  },
+  "work_item_query": {
+    "placeholder": "Query, e.g. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "run": "Run",
+    "clear": "Clear",
+    "help": "Query help",
+    "applied": "Query applied",
+    "invalid": "The query could not be run",
+    "help_title": "Plane Query Language",
+    "help_intro": "Combine conditions with AND, OR, NOT and parentheses. Names work in place of ids: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Dates are written as \"2026-01-31\".",
+    "help_operators": "Operators: = != > >= < <= ~ (contains), in (…), not in (…), is null, is not null",
+    "help_fields": "Fields",
+    "help_functions": "Functions",
+    "help_examples": "Examples",
+    "example_invoices": "Paid invoices of a customer, due in 2026",
+    "example_everything": "Everything below a customer",
+    "example_overdue": "Open work items overdue by a week",
+    "example_amount": "Your work items with an amount above 1000"
   }
 }

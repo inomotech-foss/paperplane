@@ -374,5 +374,130 @@
         }
       }
     }
+  },
+  "insight_dashboards": {
+    "title": "儀表板",
+    "description": "關於工作項目的圖表，每個圖表由一條 Plane Query Language 查詢定義。",
+    "create": "新增儀表板",
+    "edit": "編輯",
+    "refresh": "重新整理",
+    "no_description": "尚無說明",
+    "widget_count": "{count} 個小工具",
+    "not_found": "此儀表板不存在或為私人。",
+    "empty": {
+      "title": "還沒有儀表板",
+      "description": "建立一個圖表看板，例如按月統計的收入或按客戶統計的發票。"
+    },
+    "form": {
+      "create_title": "新增儀表板",
+      "edit_title": "編輯儀表板",
+      "name": "名稱",
+      "name_placeholder": "銷售管道",
+      "name_required": "請為儀表板命名",
+      "description": "說明",
+      "public": "整個工作區皆可檢視",
+      "public_help": "關閉後，只有您可以開啟。",
+      "create": "建立",
+      "save": "儲存",
+      "save_error": "無法儲存儀表板"
+    },
+    "delete": {
+      "action": "刪除",
+      "title": "刪除儀表板",
+      "content": "刪除「{name}」及其所有小工具？此操作無法復原。",
+      "error": "無法刪除儀表板"
+    },
+    "widget": {
+      "add": "新增小工具",
+      "edit": "編輯小工具",
+      "delete": "刪除小工具",
+      "refresh": "重新整理",
+      "by": "依 {dimension}",
+      "row_count": "{count} 個工作項目",
+      "no_data": "沒有符合此查詢的工作項目。",
+      "total": "合計",
+      "load_error": "無法載入小工具",
+      "empty_title": "還沒有小工具",
+      "empty_description": "新增一個小工具：一條查詢、要統計的指標以及拆分方式。",
+      "delete_title": "刪除小工具",
+      "delete_content": "刪除「{title}」？此操作無法復原。",
+      "delete_error": "無法刪除小工具"
+    },
+    "editor": {
+      "create_title": "新增小工具",
+      "edit_title": "編輯小工具",
+      "title": "標題",
+      "title_placeholder": "每月收入",
+      "title_required": "請為小工具填寫標題",
+      "description": "副標題",
+      "description_placeholder": "顯示於標題下方（選填）",
+      "query": "查詢",
+      "query_placeholder": "type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+      "query_help": "Plane Query Language。留空則包含您可檢視的所有工作項目。",
+      "chart_type": "圖表",
+      "metric": "指標",
+      "metric_field": "欄位",
+      "no_decimal_properties": "新增一個小數類型的自訂屬性以進行加總或平均。",
+      "dimension": "拆分依據",
+      "series": "再依",
+      "bucket": "每",
+      "none": "無",
+      "full_width": "全寬",
+      "preview": "預覽",
+      "run_preview": "執行",
+      "preview_hint": "儲存前先執行預覽查看圖表。",
+      "save": "儲存小工具",
+      "add": "新增小工具",
+      "save_error": "無法儲存小工具"
+    },
+    "chart_types": {
+      "number": "數字",
+      "bar": "長條圖",
+      "line": "折線圖",
+      "area": "面積圖",
+      "pie": "圓餅圖",
+      "donut": "環圈圖",
+      "table": "表格"
+    },
+    "metrics": {
+      "count": "工作項目數量",
+      "sum": "加總",
+      "avg": "平均值",
+      "min": "最小值",
+      "max": "最大值",
+      "estimate_points": "估算點數"
+    },
+    "dimensions": {
+      "state": "狀態",
+      "state_group": "狀態群組",
+      "priority": "優先順序",
+      "type": "工作項目類型",
+      "project": "專案",
+      "assignee": "負責人",
+      "label": "標籤",
+      "cycle": "週期",
+      "module": "模組",
+      "created_by": "建立者",
+      "parent": "父項",
+      "target_date": "截止日期",
+      "start_date": "開始日期",
+      "created_at": "建立日期",
+      "completed_at": "完成日期",
+      "updated_at": "更新日期",
+      "ancestor_of": "最近的{type}"
+    },
+    "dimension_groups": {
+      "work_item": "工作項目",
+      "dates": "日期",
+      "ancestors": "上層項目",
+      "properties": "自訂屬性"
+    },
+    "buckets": {
+      "day": "日",
+      "week": "週",
+      "month": "月",
+      "quarter": "季",
+      "year": "年"
+    }
   }
 }

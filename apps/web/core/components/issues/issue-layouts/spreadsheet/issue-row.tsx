@@ -52,6 +52,8 @@ interface Props {
   selectionHelpers: TSelectionHelper;
   shouldRenderByDefault?: boolean;
   isEpic?: boolean;
+  /** Loaded children per parent, set only in hierarchy mode. */
+  hierarchyChildIds?: Map<string, string[]>;
 }
 
 export const SpreadsheetIssueRow = observer(function SpreadsheetIssueRow(props: Props) {
@@ -71,16 +73,23 @@ export const SpreadsheetIssueRow = observer(function SpreadsheetIssueRow(props: 
     selectionHelpers,
     shouldRenderByDefault,
     isEpic = false,
+    hierarchyChildIds,
   } = props;
-  // states
-  const [isExpanded, setExpanded] = useState<boolean>(false);
+  // derived values
+  const loadedChildIds = hierarchyChildIds?.get(issueId) ?? [];
+  // states: a hierarchy row starts open, so the tree is visible at once
+  const [isExpanded, setExpanded] = useState<boolean>(loadedChildIds.length > 0);
   // store hooks
   const { subIssues: subIssuesStore } = useIssueDetail(isEpic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES);
   const { issueMap } = useIssues();
 
   // derived values
   const issue = issueMap[issueId];
-  const subIssues = subIssuesStore.subIssuesByIssueId(issueId);
+  const fetchedChildIds = subIssuesStore.subIssuesByIssueId(issueId) ?? [];
+  // loaded children first, then whatever the sub-work item fetch added
+  const subIssues = hierarchyChildIds
+    ? [...loadedChildIds, ...fetchedChildIds.filter((id) => !loadedChildIds.includes(id))]
+    : fetchedChildIds;
   const isIssueSelected = selectionHelpers.getIsEntitySelected(issueId);
   const isIssueActive = selectionHelpers.getIsEntityActive(issueId);
 
@@ -123,6 +132,7 @@ export const SpreadsheetIssueRow = observer(function SpreadsheetIssueRow(props: 
           spreadsheetColumnsList={spreadsheetColumnsList}
           selectionHelpers={selectionHelpers}
           isEpic={isEpic}
+          loadedChildCount={loadedChildIds.length}
         />
       </RenderIfVisible>
 
@@ -132,6 +142,7 @@ export const SpreadsheetIssueRow = observer(function SpreadsheetIssueRow(props: 
           <SpreadsheetIssueRow
             key={subIssueId}
             issueId={subIssueId}
+            hierarchyChildIds={hierarchyChildIds}
             displayProperties={displayProperties}
             quickActions={quickActions}
             canEditProperties={canEditProperties}
@@ -167,6 +178,8 @@ interface IssueRowDetailsProps {
   spacingLeft?: number;
   selectionHelpers: TSelectionHelper;
   isEpic?: boolean;
+  /** Children already loaded in hierarchy mode; the rest is fetched on expand. */
+  loadedChildCount?: number;
 }
 
 const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetailsProps) {
@@ -186,6 +199,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
     spacingLeft = 6,
     selectionHelpers,
     isEpic = false,
+    loadedChildCount = 0,
   } = props;
   // states
   const [isMenuActive, setIsMenuActive] = useState(false);
@@ -225,22 +239,23 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
   );
   if (!issueDetail) return null;
 
+  const subIssuesCount = issueDetail?.sub_issues_count ?? 0;
+  // Children can be shown from what the list already loaded; a fetch is only
+  // needed when the work item has more children than that.
+  const hasChildren = subIssuesCount > 0 || loadedChildCount > 0;
+  const needsFetch = subIssuesCount > loadedChildCount && !subIssuesStore.subIssuesByIssueId(issueId);
+
   const handleToggleExpand = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    if (nestingLevel >= 3) {
-      handleIssuePeekOverview(issueDetail);
-    } else {
-      setExpanded((prevState) => {
-        if (!prevState && workspaceSlug && issueDetail && issueDetail.project_id)
-          subIssuesStore.fetchSubIssues(workspaceSlug.toString(), issueDetail.project_id, issueDetail.id);
-        return !prevState;
-      });
-    }
+    setExpanded((prevState) => {
+      if (!prevState && needsFetch && workspaceSlug && issueDetail && issueDetail.project_id)
+        subIssuesStore.fetchSubIssues(workspaceSlug.toString(), issueDetail.project_id, issueDetail.id);
+      return !prevState;
+    });
   };
 
   const disableUserActions = !canEditProperties(issueDetail.project_id ?? undefined);
-  const subIssuesCount = issueDetail?.sub_issues_count ?? 0;
   const isIssueSelected = selectionHelpers.getIsEntitySelected(issueDetail.id);
   const projectIdentifier = getProjectIdentifierById(issueDetail.project_id);
 
@@ -339,7 +354,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
 
               {/* sub-issues chevron */}
               <div className="grid size-4 place-items-center">
-                {subIssuesCount > 0 && !isEpic && (
+                {hasChildren && !isEpic && (
                   <button
                     type="button"
                     className="grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"

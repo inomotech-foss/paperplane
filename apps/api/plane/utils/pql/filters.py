@@ -13,20 +13,34 @@ Only names in `plane.utils.pql.fields.FILTER_FIELDS` and lookups in that
 field's own lookup set ever reach the ORM. Anything else raises
 `FilterCompileError`, which callers turn into a 400.
 
-Custom property leaves (`property__<uuid>`) are collected separately rather
-than compiled into the `Q`, because resolving them needs the property type from
-the database. `plane.utils.issue_property.build_issue_property_filters` does
-that work and returns AND-ed filter kwargs, so custom property leaves are only
-accepted in conjunctive position.
+Custom property leaves (`property__<uuid>`) need the property type from the
+database to compile, and this module stays pure. Two modes exist:
+
+* Without a resolver, the SDK contract: the reference must be a property id,
+  only `=`, `>` and `<` are allowed, and the leaves are collected on
+  `CompiledFilters.custom_properties` instead of being compiled into the `Q`
+  (which is why they are only accepted in conjunctive position).
+  `plane.utils.issue_property.build_issue_property_filters` resolves them.
+* With a `custom_property_resolver` callback (what the endpoints wire in via
+  `plane.utils.pql.resolve`), every leaf compiles to a real `Q` returned by
+  the callback, so custom properties work anywhere in the tree, by id or by
+  name, with every lookup the property type supports.
+
+`ancestor_id` (the landing field of `descendantOf()`) compiles to a recursive
+subquery over `parent_id`, so a work item matches when the given item is
+anywhere above it.
 """
 
 from dataclasses import dataclass, field as dataclass_field
 from typing import Any
 
 from django.db.models import Q
+from django.db.models.expressions import RawSQL
 
 from plane.utils.pql.fields import (
+    ANCESTOR_FIELD,
     CUSTOM_PROPERTY_PREFIX,
+    CUSTOM_PROPERTY_SDK_LOOKUPS,
     EXACT,
     FILTER_FIELDS,
     ICONTAINS,
@@ -36,6 +50,7 @@ from plane.utils.pql.fields import (
     TEXT_TYPE,
     UNSUPPORTED_FIELDS,
     coerce_value,
+    is_uuid,
     split_custom_property_lookup,
     split_field_lookup,
 )
@@ -46,6 +61,18 @@ AND = "and"
 OR = "or"
 NOT = "not"
 GROUP_OPERATORS = (AND, OR, NOT)
+
+# Every work item below the given ones, at any depth. `UNION` (not `UNION ALL`)
+# keeps a cycle in `parent_id` from recursing forever.
+DESCENDANTS_SQL = (
+    "WITH RECURSIVE descendants AS ("
+    " SELECT id FROM issues WHERE parent_id = ANY(%s::uuid[]) AND deleted_at IS NULL"
+    " UNION"
+    " SELECT child.id FROM issues child"
+    " JOIN descendants ON child.parent_id = descendants.id"
+    " WHERE child.deleted_at IS NULL"
+    ") SELECT id FROM descendants"
+)
 
 
 class FilterCompileError(Exception):
@@ -76,8 +103,12 @@ class CompiledFilters:
     custom_properties: list = dataclass_field(default_factory=list)
 
 
-def compile_filters(expression):
+def compile_filters(expression, custom_property_resolver=None):
     """Compile a `filters` expression into a `CompiledFilters`.
+
+    `custom_property_resolver(reference, lookup, value)` returns the `Q` for a
+    custom property leaf; it may raise `FilterCompileError`. Without it the
+    leaves are collected instead (see the module docstring).
 
     Raises `FilterCompileError` on anything malformed or not allowlisted.
     """
@@ -86,11 +117,17 @@ def compile_filters(expression):
     if not expression:
         raise FilterCompileError("Filter expression must not be empty")
     compiled = CompiledFilters()
-    compiled.q = _compile_node(expression, 1, True, compiled)
+    compiled.q = _compile_node(expression, 1, True, compiled, custom_property_resolver)
     return compiled
 
 
-def _compile_node(node, depth, conjunctive, compiled):
+def descendants_q(parent_ids):
+    """A `Q` matching every work item below any of `parent_ids`, at any depth."""
+    ids = [str(parent_id) for parent_id in parent_ids]
+    return Q(id__in=RawSQL(DESCENDANTS_SQL, (ids,)))
+
+
+def _compile_node(node, depth, conjunctive, compiled, resolver):
     if depth > MAX_FILTER_DEPTH:
         raise FilterCompileError(f"Filter expression is nested deeper than {MAX_FILTER_DEPTH} levels")
     if not isinstance(node, dict):
@@ -102,15 +139,15 @@ def _compile_node(node, depth, conjunctive, compiled):
     if operators:
         if len(node) > 1:
             raise FilterCompileError(f"Group operator '{operators[0]}' must be the only key of its object")
-        return _compile_group(operators[0], node[operators[0]], depth, conjunctive, compiled)
+        return _compile_group(operators[0], node[operators[0]], depth, conjunctive, compiled, resolver)
 
     query = Q()
     for key, value in node.items():
-        query &= _compile_leaf(key, value, conjunctive, compiled)
+        query &= _compile_leaf(key, value, conjunctive, compiled, resolver)
     return query
 
 
-def _compile_group(operator, operand, depth, conjunctive, compiled):
+def _compile_group(operator, operand, depth, conjunctive, compiled, resolver):
     if operator == NOT:
         members = operand if isinstance(operand, list) else [operand]
     else:
@@ -121,17 +158,17 @@ def _compile_group(operator, operand, depth, conjunctive, compiled):
     child_conjunctive = conjunctive and operator == AND
     query = Q()
     for member in members:
-        child = _compile_node(member, depth + 1, child_conjunctive, compiled)
+        child = _compile_node(member, depth + 1, child_conjunctive, compiled, resolver)
         query = query & child if operator != OR else query | child
     return ~query if operator == NOT else query
 
 
-def _compile_leaf(key, value, conjunctive, compiled):
+def _compile_leaf(key, value, conjunctive, compiled, resolver):
     if not isinstance(key, str):
         raise FilterCompileError("Filter field names must be strings")
 
     if key.startswith(CUSTOM_PROPERTY_PREFIX):
-        return _compile_custom_property_leaf(key, value, conjunctive, compiled)
+        return _compile_custom_property_leaf(key, value, conjunctive, compiled, resolver)
 
     if key in UNSUPPORTED_FIELDS:
         raise FilterCompileError(f"Filter field '{key}' is not supported: {UNSUPPORTED_FIELDS[key]}", field=key)
@@ -148,7 +185,11 @@ def _compile_leaf(key, value, conjunctive, compiled):
             lookup=lookup,
         )
 
-    query = Q(**{_orm_key(field.path, lookup): _leaf_value(name, field, lookup, value)})
+    leaf_value = _leaf_value(name, field, lookup, value)
+    if name == ANCESTOR_FIELD:
+        return descendants_q(leaf_value if lookup == IN else [leaf_value])
+
+    query = Q(**{_orm_key(field.path, lookup): leaf_value})
     for guard_key, guard_value in field.join_guard:
         query &= Q(**{guard_key: guard_value})
     return query
@@ -190,11 +231,22 @@ def _coerce(name, field, lookup, value):
         raise FilterCompileError(f"Invalid value for '{name}': {exc}", field=name, lookup=lookup) from exc
 
 
-def _compile_custom_property_leaf(key, value, conjunctive, compiled):
+def _compile_custom_property_leaf(key, value, conjunctive, compiled, resolver):
     try:
-        property_id, lookup = split_custom_property_lookup(key)
+        reference, lookup = split_custom_property_lookup(key)
     except ValueError as exc:
         raise FilterCompileError(f"Invalid custom property filter '{key}'", field=key) from exc
+
+    if resolver is not None:
+        return resolver(reference, lookup, value)
+
+    # The SDK contract: an id, one of `=`, `>`, `<`, one scalar, AND-ed in.
+    if not is_uuid(reference):
+        raise FilterCompileError(f"Invalid custom property filter '{key}'", field=key)
+    if lookup not in CUSTOM_PROPERTY_SDK_LOOKUPS:
+        raise FilterCompileError(
+            f"Lookup '{lookup}' is not supported on custom property filter '{key}'", field=key, lookup=lookup
+        )
     if not conjunctive:
         raise FilterCompileError(
             f"Custom property filter '{key}' is only supported inside 'and' groups",
@@ -202,5 +254,5 @@ def _compile_custom_property_leaf(key, value, conjunctive, compiled):
         )
     if isinstance(value, (list, tuple, dict)):
         raise FilterCompileError(f"Custom property filter '{key}' expects a single value", field=key, lookup=lookup)
-    compiled.custom_properties.append(CustomPropertyFilter(property_id=property_id, lookup=lookup, value=value))
+    compiled.custom_properties.append(CustomPropertyFilter(property_id=reference, lookup=lookup, value=value))
     return Q()
