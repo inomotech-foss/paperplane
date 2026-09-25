@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { Dispatch, MouseEvent, MutableRefObject, SetStateAction } from "react";
+import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
@@ -35,6 +35,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 import type { TRenderQuickActions } from "../list/list-view-types";
 import { isIssueNew } from "../utils";
 import { IssueColumn } from "./issue-column";
+import { useSubIssueExpansion } from "./use-sub-issue-expansion";
 
 interface Props {
   displayProperties: IIssueDisplayProperties;
@@ -87,8 +88,9 @@ export const SpreadsheetIssueRow = observer(function SpreadsheetIssueRow(props: 
   const issue = issueMap[issueId];
   const fetchedChildIds = subIssuesStore.subIssuesByIssueId(issueId) ?? [];
   // loaded children first, then whatever the sub-work item fetch added
+  const loadedChildIdSet = new Set(loadedChildIds);
   const subIssues = hierarchyChildIds
-    ? [...loadedChildIds, ...fetchedChildIds.filter((id) => !loadedChildIds.includes(id))]
+    ? [...loadedChildIds, ...fetchedChildIds.filter((id) => !loadedChildIdSet.has(id))]
     : fetchedChildIds;
   const isIssueSelected = selectionHelpers.getIsEntitySelected(issueId);
   const isIssueActive = selectionHelpers.getIsEntityActive(issueId);
@@ -239,21 +241,13 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
   );
   if (!issueDetail) return null;
 
-  const subIssuesCount = issueDetail?.sub_issues_count ?? 0;
-  // Children can be shown from what the list already loaded; a fetch is only
-  // needed when the work item has more children than that.
-  const hasChildren = subIssuesCount > 0 || loadedChildCount > 0;
-  const needsFetch = subIssuesCount > loadedChildCount && !subIssuesStore.subIssuesByIssueId(issueId);
-
-  const handleToggleExpand = (e: MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setExpanded((prevState) => {
-      if (!prevState && needsFetch && workspaceSlug && issueDetail && issueDetail.project_id)
-        subIssuesStore.fetchSubIssues(workspaceSlug.toString(), issueDetail.project_id, issueDetail.id);
-      return !prevState;
-    });
-  };
+  const { hasChildren, handleToggleExpand } = useSubIssueExpansion({
+    issueDetail,
+    workspaceSlug: workspaceSlug?.toString(),
+    subIssuesStore,
+    loadedChildCount,
+    setExpanded,
+  });
 
   const disableUserActions = !canEditProperties(issueDetail.project_id ?? undefined);
   const isIssueSelected = selectionHelpers.getIsEntitySelected(issueDetail.id);

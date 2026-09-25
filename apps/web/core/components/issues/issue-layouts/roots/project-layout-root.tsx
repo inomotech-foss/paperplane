@@ -14,7 +14,7 @@ import { Spinner } from "@plane/ui";
 // components
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
-import { WorkItemQueryBar } from "@/components/work-item-query";
+import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { IssuesStoreContext } from "@/hooks/use-issue-layout-store";
@@ -90,7 +90,7 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
             <WorkItemQueryBar
               workspaceSlug={workspaceSlug}
               projectId={projectId}
-              value={workItemFilters.displayFilters?.pql ?? ""}
+              value={appliedQuery(workItemFilters)}
               onApply={(pql) =>
                 issuesFilter.updateFilters(workspaceSlug, projectId, EIssueFilterType.DISPLAY_FILTERS, { pql })
               }

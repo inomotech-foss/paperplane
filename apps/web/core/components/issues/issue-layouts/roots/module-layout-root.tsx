@@ -15,7 +15,7 @@ import { Row, ERowVariant } from "@plane/ui";
 // hooks
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
-import { WorkItemQueryBar } from "@/components/work-item-query";
+import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
 import { useIssues } from "@/hooks/store/use-issues";
 import { IssuesStoreContext } from "@/hooks/use-issue-layout-store";
 // local imports
@@ -93,7 +93,7 @@ export const ModuleLayoutRoot = observer(function ModuleLayoutRoot() {
             <WorkItemQueryBar
               workspaceSlug={workspaceSlug}
               projectId={projectId}
-              value={workItemFilters.displayFilters?.pql ?? ""}
+              value={appliedQuery(workItemFilters)}
               onApply={(pql) =>
                 issuesFilter.updateFilters(
                   workspaceSlug,

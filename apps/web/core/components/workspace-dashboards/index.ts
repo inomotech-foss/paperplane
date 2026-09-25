@@ -9,6 +9,8 @@ export * from "./dashboard-detail";
 export * from "./widget-card";
 export * from "./widget-chart";
 export * from "./widget-editor-modal";
+export * from "./widget-form-fields";
+export * from "./use-widget-form";
 export * from "./create-update-dashboard-modal";
 export * from "./delete-modals";
 export * from "./utils";

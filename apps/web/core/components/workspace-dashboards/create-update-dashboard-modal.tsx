@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
@@ -23,24 +23,39 @@ type Props = {
   onCreated?: (dashboard: TWorkspaceDashboard) => void;
 };
 
+/**
+ * The form mounts when the modal opens and unmounts when it closes, so its
+ * fields start from the dashboard being edited every time without an effect.
+ */
 export const CreateUpdateDashboardModal = observer(function CreateUpdateDashboardModal(props: Props) {
   const { isOpen, workspaceSlug, dashboard, onClose, onCreated } = props;
+  return (
+    <ModalCore isOpen={isOpen} handleClose={onClose} width={EModalWidth.XL}>
+      {isOpen && (
+        <DashboardForm
+          key={dashboard?.id ?? "new"}
+          workspaceSlug={workspaceSlug}
+          dashboard={dashboard}
+          onClose={onClose}
+          onCreated={onCreated}
+        />
+      )}
+    </ModalCore>
+  );
+});
+
+type TFormProps = Omit<Props, "isOpen">;
+
+const DashboardForm = observer(function DashboardForm(props: TFormProps) {
+  const { workspaceSlug, dashboard, onClose, onCreated } = props;
   const { t } = useTranslation();
   const { createDashboard, updateDashboard } = useWorkspaceDashboards();
   // states
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [isPublic, setIsPublic] = useState(true);
+  const [name, setName] = useState(dashboard?.name ?? "");
+  const [description, setDescription] = useState(dashboard?.description ?? "");
+  const [isPublic, setIsPublic] = useState(dashboard ? dashboard.access === 1 : true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setName(dashboard?.name ?? "");
-    setDescription(dashboard?.description ?? "");
-    setIsPublic(dashboard ? dashboard.access === 1 : true);
-    setError(null);
-  }, [isOpen, dashboard]);
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -69,52 +84,50 @@ export const CreateUpdateDashboardModal = observer(function CreateUpdateDashboar
   };
 
   return (
-    <ModalCore isOpen={isOpen} handleClose={onClose} width={EModalWidth.XL}>
-      <div className="flex flex-col gap-4 p-5">
-        <h3 className="text-16 font-medium text-primary">
-          {dashboard ? t("insight_dashboards.form.edit_title") : t("insight_dashboards.form.create_title")}
-        </h3>
-        <div className="flex flex-col gap-1">
-          <label className="text-12 text-secondary" htmlFor="dashboard-name">
-            {t("insight_dashboards.form.name")}
-          </label>
-          <Input
-            id="dashboard-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder={t("insight_dashboards.form.name_placeholder")}
-            hasError={!!error}
-            className="w-full"
-          />
-          {error && <p className="text-11 text-danger-primary">{error}</p>}
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-12 text-secondary" htmlFor="dashboard-description">
-            {t("insight_dashboards.form.description")}
-          </label>
-          <TextArea
-            id="dashboard-description"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            className="min-h-[72px] w-full"
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-12 text-secondary">{t("insight_dashboards.form.public")}</span>
-            <span className="text-11 text-tertiary">{t("insight_dashboards.form.public_help")}</span>
-          </div>
-          <ToggleSwitch value={isPublic} onChange={() => setIsPublic((value) => !value)} size="sm" />
-        </div>
-        <div className="flex items-center justify-end gap-2 border-t border-subtle-1 pt-3">
-          <Button variant="tertiary" size="sm" onClick={onClose}>
-            {t("cancel")}
-          </Button>
-          <Button variant="primary" size="sm" onClick={() => void handleSubmit()} loading={isSubmitting}>
-            {dashboard ? t("insight_dashboards.form.save") : t("insight_dashboards.form.create")}
-          </Button>
-        </div>
+    <div className="flex flex-col gap-4 p-5">
+      <h3 className="text-16 font-medium text-primary">
+        {dashboard ? t("insight_dashboards.form.edit_title") : t("insight_dashboards.form.create_title")}
+      </h3>
+      <div className="flex flex-col gap-1">
+        <label className="text-12 text-secondary" htmlFor="dashboard-name">
+          {t("insight_dashboards.form.name")}
+        </label>
+        <Input
+          id="dashboard-name"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder={t("insight_dashboards.form.name_placeholder")}
+          hasError={!!error}
+          className="w-full"
+        />
+        {error && <p className="text-11 text-danger-primary">{error}</p>}
       </div>
-    </ModalCore>
+      <div className="flex flex-col gap-1">
+        <label className="text-12 text-secondary" htmlFor="dashboard-description">
+          {t("insight_dashboards.form.description")}
+        </label>
+        <TextArea
+          id="dashboard-description"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          className="min-h-[72px] w-full"
+        />
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col">
+          <span className="text-12 text-secondary">{t("insight_dashboards.form.public")}</span>
+          <span className="text-11 text-tertiary">{t("insight_dashboards.form.public_help")}</span>
+        </div>
+        <ToggleSwitch value={isPublic} onChange={() => setIsPublic((value) => !value)} size="sm" />
+      </div>
+      <div className="flex items-center justify-end gap-2 border-t border-subtle-1 pt-3">
+        <Button variant="tertiary" size="sm" onClick={onClose}>
+          {t("cancel")}
+        </Button>
+        <Button variant="primary" size="sm" onClick={() => void handleSubmit()} loading={isSubmitting}>
+          {dashboard ? t("insight_dashboards.form.save") : t("insight_dashboards.form.create")}
+        </Button>
+      </div>
+    </div>
   );
 });

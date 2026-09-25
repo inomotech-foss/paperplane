@@ -6,3 +6,4 @@
 
 export * from "./query-bar";
 export * from "./query-help";
+export * from "./utils";

@@ -19,7 +19,7 @@ import { IssuePeekOverview } from "@/components/issues/peek-overview";
 import { WorkspaceActiveLayout } from "@/components/views/helper";
 import { WorkspaceLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/workspace-level";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
-import { WorkItemQueryBar } from "@/components/work-item-query";
+import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
 // hooks
 import { useGlobalView } from "@/hooks/store/use-global-view";
 import { useIssues } from "@/hooks/store/use-issues";
@@ -159,7 +159,7 @@ export const AllIssueLayoutRoot = observer(function AllIssueLayoutRoot(props: Pr
               )}
               <WorkItemQueryBar
                 workspaceSlug={workspaceSlug}
-                value={workItemFilters?.displayFilters?.pql ?? ""}
+                value={appliedQuery(workItemFilters)}
                 onApply={(pql) =>
                   updateFilters(workspaceSlug, undefined, EIssueFilterType.DISPLAY_FILTERS, { pql }, globalViewId)
                 }

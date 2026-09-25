@@ -21,6 +21,7 @@ import {
   FilterOrderBy,
   FilterSubGroupBy,
 } from "@/components/issues/issue-layouts/filters";
+import { getSelectedExtraOptions } from "./extra-options";
 
 type Props = {
   displayFilters: IIssueDisplayFilterOptions | undefined;
@@ -127,11 +128,7 @@ export const DisplayFiltersSelection = observer(function DisplayFiltersSelection
       {layoutDisplayFiltersOptions?.extra_options.access && (
         <div className="py-2">
           <FilterExtraOptions
-            selectedExtraOptions={{
-              show_empty_groups: displayFilters?.show_empty_groups ?? true,
-              sub_issue: displayFilters?.sub_issue ?? true,
-              hierarchy: displayFilters?.hierarchy ?? false,
-            }}
+            selectedExtraOptions={getSelectedExtraOptions(displayFilters)}
             handleUpdate={(key, val) =>
               handleDisplayFiltersUpdate({
                 [key]: val,
