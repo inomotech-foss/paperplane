@@ -24,26 +24,25 @@ services:
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
 
   plane-minio:
-    image: minio/minio
+    # minio/minio is no longer published; see docker-compose-test.yml.
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5
     restart: unless-stopped
     networks:
       - dev_env
-    entrypoint: >
-      /bin/sh -c "
-      mkdir -p /export/${AWS_S3_BUCKET_NAME} &&
-      minio server /export --console-address ':9090' &
-      sleep 5 &&
-      mc alias set myminio http://localhost:9000 ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} &&
-      mc mb myminio/${AWS_S3_BUCKET_NAME} -p || true
-      && tail -f /dev/null
-      "
+    # Start as root so the entrypoint can chown an `uploads` volume created by
+    # the old minio/minio image (which ran as root). The server itself is then
+    # started as the unprivileged `minio` user.
+    user: root
     volumes:
-      - uploads:/export
+      - uploads:/bitnami/minio/data
     env_file:
       - .env
     environment:
       MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
       MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+      MINIO_DEFAULT_BUCKETS: ${AWS_S3_BUCKET_NAME:-uploads}
+      MINIO_BROWSER: "on"
+      MINIO_CONSOLE_PORT_NUMBER: 9090
     ports:
       - "9000:9000"
       - "9090:9090"
