@@ -12,6 +12,7 @@ from plane.api.views import (
     ProjectFeatureAPIEndpoint,
     ProjectSummaryAPIEndpoint,
     ProjectWorkItemSequenceAPIEndpoint,
+    WorkItemNumberReleaseAPIEndpoint,
 )
 
 urlpatterns = [
@@ -49,5 +50,10 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/work-item-sequence/",
         ProjectWorkItemSequenceAPIEndpoint.as_view(http_method_names=["get", "post"]),
         name="project-work-item-sequence",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-item-sequence/<int:sequence_id>/",
+        WorkItemNumberReleaseAPIEndpoint.as_view(http_method_names=["delete"]),
+        name="project-work-item-number-release",
     ),
 ]

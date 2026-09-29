@@ -85,7 +85,11 @@ from .page_version import (
 
 from .sticky import StickyViewSet
 
-from .work_item_sequence import ProjectWorkItemSequenceAPIEndpoint, WorkItemRenumberAPIEndpoint
+from .work_item_sequence import (
+    ProjectWorkItemSequenceAPIEndpoint,
+    WorkItemNumberReleaseAPIEndpoint,
+    WorkItemRenumberAPIEndpoint,
+)
 from .work_item_archive import (
     WorkItemArchiveAPIEndpoint,
     WorkItemArchiveListAPIEndpoint,

@@ -120,3 +120,33 @@ def renumber_issue(issue: Issue, sequence: int) -> int:
         issue.sequence_id = sequence
 
     return previous
+
+
+def release_issue_sequence(project: Project, sequence: int) -> int:
+    """Make the number `sequence` available again, e.g. so a renumbered work item can take PROJ-3045.
+
+    Numbers are normally never reused: deleting a work item keeps its sequence row, and moving the
+    numbering forward leaves a placeholder row. This removes those rows for one number. Returns how
+    many rows were removed, 0 when the number was not recorded. Raises IssueSequenceTakenError when
+    a work item that still exists has the number; renumber that work item instead.
+
+    A work item in the trash keeps its sequence_id until it is purged. That is harmless, since
+    trashed work items are neither shown nor restored, but the number can appear twice in the
+    table until then.
+    """
+    if sequence < 1:
+        raise ValueError("The work item number must be at least 1")
+
+    with transaction.atomic():
+        # Serialise against work item creation, which reads MAX(sequence) under the same lock.
+        lock_project_issue_sequence(project.id)
+
+        if Issue.objects.filter(project=project, sequence_id=sequence).exists():
+            raise IssueSequenceTakenError(
+                f"{project.identifier}-{sequence} belongs to an existing work item; renumber it instead"
+            )
+
+        # all_objects and a plain queryset delete: the row must really go, not be soft-deleted.
+        removed, _ = IssueSequence.all_objects.filter(project=project, sequence=sequence).delete()
+
+    return removed
