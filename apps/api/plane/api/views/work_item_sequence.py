@@ -3,7 +3,8 @@
 
 """Work item numbering: where a project's counter stands, moving it forward, renumbering one item."""
 
-from drf_spectacular.utils import OpenApiExample, OpenApiRequest, OpenApiResponse
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiRequest, OpenApiResponse
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -14,6 +15,7 @@ from plane.utils.issue_sequence import (
     IssueSequenceTakenError,
     get_last_issue_sequence,
     issue_sequence_start_error,
+    release_issue_sequence,
     renumber_issue,
     set_next_issue_sequence,
 )
@@ -27,6 +29,14 @@ from plane.utils.openapi import (
 )
 
 from .base import BaseAPIView
+
+SEQUENCE_ID_PARAMETER = OpenApiParameter(
+    name="sequence_id",
+    description="The work item number, e.g. 3045 for PROJ-3045",
+    required=True,
+    type=OpenApiTypes.INT,
+    location=OpenApiParameter.PATH,
+)
 
 
 def parse_whole_number(value):
@@ -196,6 +206,66 @@ class WorkItemRenumberAPIEndpoint(BaseAPIView):
                 "identifier": f"{issue.project.identifier}-{sequence}",
                 "previous_sequence_id": previous,
                 "sequence_id": sequence,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class WorkItemNumberReleaseAPIEndpoint(BaseAPIView):
+    """Make one work item number available again."""
+
+    model = Project
+    permission_classes = [ProjectAdminPermission]
+
+    @project_docs(
+        operation_id="release_work_item_number",
+        summary="Release work item number",
+        description=(
+            "Make a work item number available again. Numbers are normally never reused: a deleted work item "
+            "keeps its number, and moving the numbering forward leaves a placeholder. Releasing such a number "
+            "lets a renumbered work item take it, or, when it is the highest number recorded, lets the next "
+            "created work item receive it. A number that belongs to an existing work item cannot be released; "
+            "renumber that work item instead. Project admins only."
+        ),
+        parameters=[PROJECT_ID_PARAMETER, SEQUENCE_ID_PARAMETER],
+        responses={
+            200: OpenApiResponse(
+                description="Work item numbering after the release",
+                examples=[
+                    OpenApiExample(
+                        name="Released",
+                        value={"identifier": "PROJ", "released": 3045, "last_sequence": 3195, "next_sequence": 3196},
+                    )
+                ],
+            ),
+            409: CONFLICT_RESPONSE,
+        },
+    )
+    def delete(self, request, slug, project_id, sequence_id):
+        """Release work item number"""
+        project = Project.objects.get(pk=project_id, workspace__slug=slug)
+
+        if sequence_id < 1:
+            return Response({"error": "The work item number must be at least 1"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            removed = release_issue_sequence(project, sequence_id)
+        except IssueSequenceTakenError:
+            return Response(
+                {"error": f"{project.identifier}-{sequence_id} belongs to an existing work item; renumber it instead"},
+                status=status.HTTP_409_CONFLICT,
+            )
+        if removed == 0:
+            return Response(
+                {"error": f"{project.identifier}-{sequence_id} is not recorded, so there is nothing to release"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            {
+                "identifier": project.identifier,
+                "released": sequence_id,
+                **ProjectWorkItemSequenceAPIEndpoint.payload(project, get_last_issue_sequence(project)),
             },
             status=status.HTTP_200_OK,
         )
