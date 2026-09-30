@@ -18,6 +18,7 @@ import { EIssuesStoreType, STATIC_VIEW_TYPES } from "@plane/types";
 import { IssuePeekOverview } from "@/components/issues/peek-overview";
 import { WorkspaceActiveLayout } from "@/components/views/helper";
 import { WorkspaceLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/workspace-level";
+import { FilterViewActions } from "@/components/rich-filters/view-actions";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
 import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
 // hooks
@@ -155,9 +156,20 @@ export const AllIssueLayoutRoot = observer(function AllIssueLayoutRoot(props: Pr
                   trackerElements={{
                     saveView: GLOBAL_VIEW_TRACKER_ELEMENTS.HEADER_SAVE_VIEW_BUTTON,
                   }}
+                  hideViewActions
                 />
               )}
               <WorkItemQueryBar
+                actions={
+                  globalWorkItemsFilter &&
+                  (globalWorkItemsFilter.canSaveView || globalWorkItemsFilter.canUpdateView) ? (
+                    <FilterViewActions
+                      filter={globalWorkItemsFilter}
+                      size="sm"
+                      trackerElements={{ saveView: GLOBAL_VIEW_TRACKER_ELEMENTS.HEADER_SAVE_VIEW_BUTTON }}
+                    />
+                  ) : undefined
+                }
                 workspaceSlug={workspaceSlug}
                 value={appliedQuery(workItemFilters)}
                 onApply={(pql) =>

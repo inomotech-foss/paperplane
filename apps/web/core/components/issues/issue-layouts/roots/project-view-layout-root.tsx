@@ -13,6 +13,7 @@ import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE, PROJECT_VIEW_TRACKER_E
 import { EIssuesStoreType, EIssueLayoutTypes } from "@plane/types";
 // hooks
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
+import { FilterViewActions } from "@/components/rich-filters/view-actions";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
 import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
 import { useIssues } from "@/hooks/store/use-issues";
@@ -108,9 +109,20 @@ export const ProjectViewLayoutRoot = observer(function ProjectViewLayoutRoot() {
                 trackerElements={{
                   saveView: PROJECT_VIEW_TRACKER_ELEMENTS.HEADER_SAVE_VIEW_BUTTON,
                 }}
+                hideViewActions
               />
             )}
             <WorkItemQueryBar
+              actions={
+                projectViewWorkItemsFilter &&
+                (projectViewWorkItemsFilter.canSaveView || projectViewWorkItemsFilter.canUpdateView) ? (
+                  <FilterViewActions
+                    filter={projectViewWorkItemsFilter}
+                    size="sm"
+                    trackerElements={{ saveView: PROJECT_VIEW_TRACKER_ELEMENTS.HEADER_SAVE_VIEW_BUTTON }}
+                  />
+                ) : undefined
+              }
               workspaceSlug={workspaceSlug}
               projectId={projectId}
               value={appliedQuery(workItemFilters)}

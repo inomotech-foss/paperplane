@@ -17,6 +17,7 @@ import { TransferIssues } from "@/components/cycles/transfer-issues";
 import { TransferIssuesModal } from "@/components/cycles/transfer-issues-modal";
 // hooks
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
+import { FilterViewActions } from "@/components/rich-filters/view-actions";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
 import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
 import { useCycle } from "@/hooks/store/use-cycle";
@@ -139,9 +140,19 @@ export const CycleLayoutRoot = observer(function CycleLayoutRoot() {
                   trackerElements={{
                     saveView: PROJECT_VIEW_TRACKER_ELEMENTS.CYCLE_HEADER_SAVE_AS_VIEW_BUTTON,
                   }}
+                  hideViewActions
                 />
               )}
               <WorkItemQueryBar
+                actions={
+                  cycleWorkItemsFilter && (cycleWorkItemsFilter.canSaveView || cycleWorkItemsFilter.canUpdateView) ? (
+                    <FilterViewActions
+                      filter={cycleWorkItemsFilter}
+                      size="sm"
+                      trackerElements={{ saveView: PROJECT_VIEW_TRACKER_ELEMENTS.CYCLE_HEADER_SAVE_AS_VIEW_BUTTON }}
+                    />
+                  ) : undefined
+                }
                 workspaceSlug={workspaceSlug}
                 projectId={projectId}
                 value={appliedQuery(workItemFilters)}

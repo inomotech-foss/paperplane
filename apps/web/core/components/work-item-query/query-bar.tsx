@@ -29,6 +29,8 @@ type Props = {
   value: string;
   onApply: (pql: string) => Promise<void> | void;
   className?: string;
+  /** Shown at the end of the line, e.g. "Save view" for the whole view. */
+  actions?: React.ReactNode;
 };
 
 /** Where a syntax error sits, drawn as a caret under the input. */
@@ -44,7 +46,7 @@ const errorMarker = (validation: TWorkItemQueryValidation | null, length: number
  * under the input, at the character that broke, instead of as a failed fetch.
  */
 export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props) {
-  const { workspaceSlug, projectId, value, onApply, className } = props;
+  const { workspaceSlug, projectId, value, onApply, className, actions } = props;
   // i18n
   const { t } = useTranslation();
   // states: `edits` is what the person typed since the last apply, null when
@@ -162,6 +164,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
         >
           <CircleHelp className="size-3.5" />
         </button>
+        {actions && <div className="flex shrink-0 items-center gap-2 border-l border-subtle pl-2">{actions}</div>}
       </div>
       {hasError && (
         <div className="font-mono flex flex-col gap-0.5 pl-11 text-11 text-danger-primary">
