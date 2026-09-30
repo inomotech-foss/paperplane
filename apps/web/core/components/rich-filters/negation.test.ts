@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FilterInstance, workItemFiltersAdapter } from "@plane/shared-state";
-import type { TWorkItemFilterExpression, TWorkItemFilterProperty } from "@plane/types";
+import type { SingleOrArray, TFilterValue, TWorkItemFilterExpression, TWorkItemFilterProperty } from "@plane/types";
 import { COLLECTION_OPERATOR, EQUALITY_OPERATOR, LOGICAL_OPERATOR } from "@plane/types";
 import {
   getOperatorForPayload,
@@ -37,6 +37,9 @@ const makeFilter = (initialExpression?: TWorkItemFilterExpression) => {
   ]);
   return filter;
 };
+
+// condition values are single values or lists; the config takes them the way the filter item passes them
+const value = (conditionValue: SingleOrArray<TFilterValue>) => conditionValue as TFilterValue;
 
 const external = (filter: ReturnType<typeof makeFilter>) =>
   filter.expression ? workItemFiltersAdapter.toExternal(filter.expression) : {};
@@ -83,11 +86,11 @@ describe("negated conditions in the click-together filters", () => {
     const stateConfig = filter.configManager.getConfigByProperty("state_id")!;
     const titleConfig = filter.configManager.getConfigByProperty("name")!;
 
-    expect(stateConfig.getAllDisplayOperatorOptionsByValue(["done"])).toEqual([
+    expect(stateConfig.getAllDisplayOperatorOptionsByValue(value(["done"]))).toEqual([
       { value: "in", label: "is" },
       { value: "not_in", label: "is not" },
     ]);
-    expect(stateConfig.getAllDisplayOperatorOptionsByValue(["done", "open"])).toEqual([
+    expect(stateConfig.getAllDisplayOperatorOptionsByValue(value(["done", "open"]))).toEqual([
       { value: "in", label: "is any of" },
       { value: "not_in", label: "is none of" },
     ]);
