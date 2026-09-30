@@ -19,6 +19,8 @@ import { BLOCK_HEIGHT } from "../constants";
 // components
 import { ChartDraggable } from "../helpers";
 import { useGanttResizable } from "../helpers/blockResizables/use-gantt-resizable";
+import { getBlockChartDates, isBlockOnChart, isBlockRolledUp } from "../views/helpers";
+import { GanttRollupBracket } from "./rollup-bracket";
 
 type Props = {
   blockId: string;
@@ -55,8 +57,11 @@ export const GanttChartBlock = observer(function GanttChartBlock(props: Props) {
 
   const { isMoving, handleBlockDrag } = useGanttResizable(block, resizableRef, ganttContainerRef, updateBlockDates);
 
-  const isBlockVisibleOnChart = block?.start_date || block?.target_date;
-  const isBlockComplete = block?.start_date && block?.target_date;
+  const isBlockVisibleOnChart = isBlockOnChart(block);
+  const chartDates = block ? getBlockChartDates(block) : undefined;
+  const isBlockComplete = !!chartDates?.start_date && !!chartDates?.target_date;
+  // a bar drawn from the children's dates has nothing of its own to drag
+  const isRolledUp = isBlockRolledUp(block);
 
   // hide the block if it doesn't have start and target dates and showAllBlocks is false
   if (!block || (!showAllBlocks && !isBlockVisibleOnChart)) return null;
@@ -96,9 +101,9 @@ export const GanttChartBlock = observer(function GanttChartBlock(props: Props) {
               block={block}
               blockToRender={blockToRender}
               handleBlockDrag={handleBlockDrag}
-              enableBlockLeftResize={enableBlockLeftResize}
-              enableBlockRightResize={enableBlockRightResize}
-              enableBlockMove={enableBlockMove && !!isBlockComplete}
+              enableBlockLeftResize={enableBlockLeftResize && !isRolledUp}
+              enableBlockRightResize={enableBlockRightResize && !isRolledUp}
+              enableBlockMove={enableBlockMove && isBlockComplete && !isRolledUp}
               enableDependency={enableDependency}
               isMoving={isMoving}
               ganttContainerRef={ganttContainerRef}
@@ -106,6 +111,7 @@ export const GanttChartBlock = observer(function GanttChartBlock(props: Props) {
           </div>
         </RenderIfVisible>
       )}
+      {isBlockVisibleOnChart && !isRolledUp && !!block.rollup?.position && <GanttRollupBracket block={block} />}
     </div>
   );
 });

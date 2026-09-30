@@ -17,6 +17,7 @@ import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //
 import { BLOCK_HEIGHT, SIDEBAR_WIDTH } from "../constants";
 import { ChartAddBlock } from "../helpers";
+import { isBlockOnChart } from "../views/helpers";
 
 type Props = {
   blockId: string;
@@ -74,7 +75,7 @@ export const BlockRow = observer(function BlockRow(props: Props) {
   // hide the block if it doesn't have start and target dates and showAllBlocks is false
   if (!block || !block.data || (!showAllBlocks && !(block.start_date && block.target_date))) return null;
 
-  const isBlockVisibleOnChart = block.start_date || block.target_date;
+  const isBlockVisibleOnChart = isBlockOnChart(block);
   const isBlockSelected = selectionHelpers.getIsEntitySelected(block.id);
   const isBlockFocused = selectionHelpers.getIsEntityActive(block.id);
   const isBlockHoveredOn = isBlockActive(block.id);

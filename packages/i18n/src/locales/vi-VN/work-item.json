@@ -489,5 +489,21 @@
     "example_everything": "Mọi thứ bên dưới một khách hàng",
     "example_overdue": "Mục công việc đang mở đã quá hạn một tuần",
     "example_amount": "Mục công việc của bạn có số tiền trên 1000"
+  },
+  "timeline_hierarchy": {
+    "menu": "Phân cấp",
+    "expand_all": "Mở rộng tất cả",
+    "collapse_all": "Thu gọn tất cả",
+    "show_levels": "{count, plural, one {Chỉ hiển thị cấp cao nhất} other {Hiển thị # cấp}}",
+    "show_all_levels": "Hiển thị tất cả các cấp",
+    "roll_up_dates": "Tổng hợp ngày từ mục con",
+    "expand": "Mở rộng",
+    "collapse": "Thu gọn",
+    "hidden_children": "{count, plural, other {Đã ẩn # mục con}}",
+    "load_error": "Không thể tải các mục con",
+    "rolled_up_bar": "{count, plural, other {Ngày được tổng hợp từ # mục bên dưới}}",
+    "children_span": "{count, plural, other {# mục bên dưới}}: {start} – {end}",
+    "starts_early": "{count, plural, other {Bắt đầu sớm hơn mục này # ngày}}",
+    "ends_late": "{count, plural, other {Kết thúc muộn hơn mục này # ngày}}"
   }
 }

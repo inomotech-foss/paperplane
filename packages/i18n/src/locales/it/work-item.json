@@ -489,5 +489,21 @@
     "example_everything": "Tutto ciò che si trova sotto un cliente",
     "example_overdue": "Elementi di lavoro aperti in ritardo di una settimana",
     "example_amount": "I tuoi elementi di lavoro con un importo superiore a 1000"
+  },
+  "timeline_hierarchy": {
+    "menu": "Gerarchia",
+    "expand_all": "Espandi tutto",
+    "collapse_all": "Comprimi tutto",
+    "show_levels": "{count, plural, one {Mostra solo il livello superiore} other {Mostra # livelli}}",
+    "show_all_levels": "Mostra tutti i livelli",
+    "roll_up_dates": "Aggrega le date dai sotto-elementi",
+    "expand": "Espandi",
+    "collapse": "Comprimi",
+    "hidden_children": "{count, plural, one {# sotto-elemento nascosto} other {# sotto-elementi nascosti}}",
+    "load_error": "Impossibile caricare i sotto-elementi",
+    "rolled_up_bar": "{count, plural, one {Date aggregate da # elemento sottostante} other {Date aggregate da # elementi sottostanti}}",
+    "children_span": "{count, plural, one {# elemento sottostante} other {# elementi sottostanti}}: {start} – {end}",
+    "starts_early": "{count, plural, one {Inizia # giorno prima di questo elemento} other {Inizia # giorni prima di questo elemento}}",
+    "ends_late": "{count, plural, one {Termina # giorno dopo questo elemento} other {Termina # giorni dopo questo elemento}}"
   }
 }

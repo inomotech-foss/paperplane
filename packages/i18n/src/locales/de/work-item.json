@@ -489,5 +489,21 @@
     "example_everything": "Alles unterhalb eines Kunden",
     "example_overdue": "Offene Arbeitselemente, die seit einer Woche überfällig sind",
     "example_amount": "Ihre Arbeitselemente mit einem Betrag über 1000"
+  },
+  "timeline_hierarchy": {
+    "menu": "Hierarchie",
+    "expand_all": "Alle ausklappen",
+    "collapse_all": "Alle einklappen",
+    "show_levels": "{count, plural, one {Nur oberste Ebene zeigen} other {# Ebenen zeigen}}",
+    "show_all_levels": "Alle Ebenen zeigen",
+    "roll_up_dates": "Termine aus Unterelementen übernehmen",
+    "expand": "Ausklappen",
+    "collapse": "Einklappen",
+    "hidden_children": "{count, plural, one {# Unterelement ausgeblendet} other {# Unterelemente ausgeblendet}}",
+    "load_error": "Unterelemente konnten nicht geladen werden",
+    "rolled_up_bar": "{count, plural, one {Termine aus # Element darunter übernommen} other {Termine aus # Elementen darunter übernommen}}",
+    "children_span": "{count, plural, one {# Element darunter} other {# Elemente darunter}}: {start} – {end}",
+    "starts_early": "{count, plural, one {Beginnt # Tag vor diesem Element} other {Beginnt # Tage vor diesem Element}}",
+    "ends_late": "{count, plural, one {Endet # Tag nach diesem Element} other {Endet # Tage nach diesem Element}}"
   }
 }

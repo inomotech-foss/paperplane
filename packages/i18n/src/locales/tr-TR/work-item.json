@@ -489,5 +489,21 @@
     "example_everything": "Bir müşterinin altındaki her şey",
     "example_overdue": "Bir haftadır gecikmiş açık iş öğeleri",
     "example_amount": "Tutarı 1000 üzerindeki iş öğeleriniz"
+  },
+  "timeline_hierarchy": {
+    "menu": "Hiyerarşi",
+    "expand_all": "Tümünü genişlet",
+    "collapse_all": "Tümünü daralt",
+    "show_levels": "{count, plural, one {Yalnızca üst düzeyi göster} other {# düzey göster}}",
+    "show_all_levels": "Tüm düzeyleri göster",
+    "roll_up_dates": "Tarihleri alt öğelerden topla",
+    "expand": "Genişlet",
+    "collapse": "Daralt",
+    "hidden_children": "{count, plural, one {# alt öğe gizli} other {# alt öğe gizli}}",
+    "load_error": "Alt öğeler yüklenemedi",
+    "rolled_up_bar": "{count, plural, one {Tarihler alttaki # öğeden alındı} other {Tarihler alttaki # öğeden alındı}}",
+    "children_span": "{count, plural, one {Altta # öğe} other {Altta # öğe}}: {start} – {end}",
+    "starts_early": "{count, plural, one {Bu öğeden # gün önce başlıyor} other {Bu öğeden # gün önce başlıyor}}",
+    "ends_late": "{count, plural, one {Bu öğeden # gün sonra bitiyor} other {Bu öğeden # gün sonra bitiyor}}"
   }
 }

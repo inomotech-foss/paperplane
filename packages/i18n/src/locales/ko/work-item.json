@@ -489,5 +489,21 @@
     "example_everything": "특정 고객 아래의 모든 항목",
     "example_overdue": "일주일 이상 기한이 지난 미완료 작업 항목",
     "example_amount": "금액이 1000을 초과하는 내 작업 항목"
+  },
+  "timeline_hierarchy": {
+    "menu": "계층",
+    "expand_all": "모두 펼치기",
+    "collapse_all": "모두 접기",
+    "show_levels": "{count, plural, one {최상위 수준만 표시} other {# 수준 표시}}",
+    "show_all_levels": "모든 수준 표시",
+    "roll_up_dates": "하위 작업 항목의 날짜 집계",
+    "expand": "펼치기",
+    "collapse": "접기",
+    "hidden_children": "{count, plural, other {하위 작업 항목 #개 숨김}}",
+    "load_error": "하위 작업 항목을 불러오지 못했습니다",
+    "rolled_up_bar": "{count, plural, other {아래 작업 항목 #개에서 집계한 날짜}}",
+    "children_span": "{count, plural, other {아래 작업 항목 #개}}: {start} – {end}",
+    "starts_early": "{count, plural, other {이 항목보다 #일 먼저 시작}}",
+    "ends_late": "{count, plural, other {이 항목보다 #일 늦게 종료}}"
   }
 }

@@ -489,5 +489,21 @@
     "example_everything": "Všetko pod zákazníkom",
     "example_overdue": "Otvorené pracovné položky týždeň po termíne",
     "example_amount": "Vaše pracovné položky so sumou nad 1000"
+  },
+  "timeline_hierarchy": {
+    "menu": "Hierarchia",
+    "expand_all": "Rozbaliť všetko",
+    "collapse_all": "Zbaliť všetko",
+    "show_levels": "{count, plural, one {Zobraziť len najvyššiu úroveň} few {Zobraziť # úrovne} other {Zobraziť # úrovní}}",
+    "show_all_levels": "Zobraziť všetky úrovne",
+    "roll_up_dates": "Preberať termíny z podriadených položiek",
+    "expand": "Rozbaliť",
+    "collapse": "Zbaliť",
+    "hidden_children": "{count, plural, one {# podriadená položka skrytá} few {# podriadené položky skryté} other {# podriadených položiek skrytých}}",
+    "load_error": "Podriadené položky sa nepodarilo načítať",
+    "rolled_up_bar": "{count, plural, one {Termíny prevzaté z # položky nižšie} other {Termíny prevzaté z # položiek nižšie}}",
+    "children_span": "{count, plural, one {# položka nižšie} few {# položky nižšie} other {# položiek nižšie}}: {start} – {end}",
+    "starts_early": "{count, plural, one {Začína # deň pred touto položkou} few {Začína # dni pred touto položkou} other {Začína # dní pred touto položkou}}",
+    "ends_late": "{count, plural, one {Končí # deň po tejto položke} few {Končí # dni po tejto položke} other {Končí # dní po tejto položke}}"
   }
 }

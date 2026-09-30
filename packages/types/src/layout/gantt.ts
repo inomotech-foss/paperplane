@@ -21,7 +21,35 @@ export interface IGanttBlock {
   start_date: string | undefined;
   target_date: string | undefined;
   meta?: Record<string, any>;
+  /** Dates of the work items below this block, set when the chart rolls dates up. */
+  rollup?: TGanttBlockRollup;
 }
+
+/**
+ * The date span of the work items below a parent (any depth), as the server
+ * computes it: earliest start to latest end. Either date is null when no
+ * descendant has one.
+ */
+export type TGanttDateRollup = {
+  start_date: string | null;
+  target_date: string | null;
+  children_count: number;
+  descendants_count: number;
+};
+
+export type TGanttBlockRollup = TGanttDateRollup & {
+  /** Where the children's span sits on the chart; undefined when no child is dated. */
+  position?: {
+    marginLeft: number;
+    width: number;
+  };
+  /**
+   * The block has no own start (or end) date, so its bar takes that side from
+   * the children. Such a bar is drawn hatched and cannot be dragged.
+   */
+  is_start_inferred: boolean;
+  is_target_inferred: boolean;
+};
 
 export interface IBlockUpdateData {
   sort_order?: {

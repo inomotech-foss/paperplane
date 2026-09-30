@@ -12,12 +12,15 @@ import type {
   ChartDataType,
   IBlockUpdateDependencyData,
   IGanttBlock,
+  TGanttBlockRollup,
+  TGanttDateRollup,
   TGanttViews,
   EGanttBlockType,
 } from "@plane/types";
 import { renderFormattedPayloadDate } from "@plane/utils";
 import { currentViewDataWithView } from "@/components/gantt-chart/data";
 import {
+  getBlockChartDates,
   getDateFromPositionOnGantt,
   getItemPositionWidth,
   getPositionFromDate,
@@ -184,11 +187,31 @@ export class BaseTimeLineStore implements IBaseTimelineStore {
   getBlockById = computedFn((blockId: string) => this.blocksMap[blockId]);
 
   /**
+   * Combine a block's own dates with the span of the work items below it. A side the
+   * block has no date for is taken from the children, unless that would put the bar's
+   * end before its start.
+   */
+  buildBlockRollup(block: IGanttBlock, rollup: TGanttDateRollup): TGanttBlockRollup {
+    let isStartInferred = !block.start_date && !!rollup.start_date;
+    let isTargetInferred = !block.target_date && !!rollup.target_date;
+    // dates are ISO "YYYY-MM-DD" strings, so they compare as text
+    if (isStartInferred && block.target_date && rollup.start_date! > block.target_date) isStartInferred = false;
+    if (isTargetInferred && block.start_date && rollup.target_date! < block.start_date) isTargetInferred = false;
+    return { ...rollup, is_start_inferred: isStartInferred, is_target_inferred: isTargetInferred };
+  }
+
+  /**
    * updates the BlocksMap from blockIds
    * @param getDataById
+   * @param getRollup the dates of the work items below a block, when the chart rolls dates up
    * @returns
    */
-  updateBlocks(getDataById: (id: string) => BlockData | undefined | null, type?: EGanttBlockType, index?: number) {
+  updateBlocks(
+    getDataById: (id: string) => BlockData | undefined | null,
+    type?: EGanttBlockType,
+    index?: number,
+    getRollup?: (id: string) => TGanttDateRollup | undefined
+  ) {
     if (!this.blockIds || !Array.isArray(this.blockIds) || this.isDragging) return true;
 
     const updatedBlockMaps: { path: string[]; value: any }[] = [];
@@ -211,9 +234,20 @@ export class BaseTimeLineStore implements IBaseTimelineStore {
           index,
           project_id: blockData?.project_id,
         },
+        // always set, so a rollup that goes away is cleared from the stored block
+        rollup: undefined,
       };
+      const rollup = getRollup?.(blockId);
+      if (rollup) block.rollup = this.buildBlockRollup(block, rollup);
       if (this.currentViewData && (this.currentViewData?.data?.startDate || this.currentViewData?.data?.dayWidth)) {
-        block.position = getItemPositionWidth(this.currentViewData, block);
+        block.position = getItemPositionWidth(this.currentViewData, { ...block, ...getBlockChartDates(block) });
+        if (block.rollup && (block.rollup.start_date || block.rollup.target_date)) {
+          block.rollup.position = getItemPositionWidth(this.currentViewData, {
+            ...block,
+            start_date: block.rollup.start_date ?? undefined,
+            target_date: block.rollup.target_date ?? undefined,
+          });
+        }
       }
 
       // create block updates if the block already exists, or push them to newBlocks
@@ -285,6 +319,7 @@ export class BaseTimeLineStore implements IBaseTimelineStore {
         if (!currBlock || !currBlock.position) return;
 
         currBlock.position.marginLeft += addedWidth;
+        if (currBlock.rollup?.position) currBlock.rollup.position.marginLeft += addedWidth;
       });
     });
   });

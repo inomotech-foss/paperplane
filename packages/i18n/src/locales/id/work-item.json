@@ -489,5 +489,21 @@
     "example_everything": "Semua yang ada di bawah seorang pelanggan",
     "example_overdue": "Item kerja terbuka yang terlambat seminggu",
     "example_amount": "Item kerja Anda dengan jumlah di atas 1000"
+  },
+  "timeline_hierarchy": {
+    "menu": "Hierarki",
+    "expand_all": "Bentangkan semua",
+    "collapse_all": "Ciutkan semua",
+    "show_levels": "{count, plural, one {Tampilkan level teratas saja} other {Tampilkan # level}}",
+    "show_all_levels": "Tampilkan semua level",
+    "roll_up_dates": "Ambil tanggal dari sub-item",
+    "expand": "Bentangkan",
+    "collapse": "Ciutkan",
+    "hidden_children": "{count, plural, other {# sub-item disembunyikan}}",
+    "load_error": "Sub-item tidak dapat dimuat",
+    "rolled_up_bar": "{count, plural, other {Tanggal diambil dari # item di bawahnya}}",
+    "children_span": "{count, plural, other {# item di bawahnya}}: {start} – {end}",
+    "starts_early": "{count, plural, other {Mulai # hari sebelum item ini}}",
+    "ends_late": "{count, plural, other {Berakhir # hari setelah item ini}}"
   }
 }

@@ -10,6 +10,7 @@ import { GANTT_TIMELINE_TYPE, type TTimelineTypeCore, type TTimelineType } from 
 // lib
 import { StoreContext } from "@/lib/store-context";
 import type { IBaseTimelineStore } from "@/store/timeline/base-timeline.store";
+import type { IIssuesTimeLineStore } from "@/store/timeline/issues-timeline.store";
 import type { ITimelineStore } from "@/store/timeline/timeline.store";
 import { useTimeLineType } from "@/components/gantt-chart/contexts";
 
@@ -47,4 +48,12 @@ export const useTimeLineChartStore = (): IBaseTimelineStore => {
   if (!timelineType) throw new Error("useTimeLineChartStore must be used within TimeLineTypeContext");
 
   return getTimelineStore(context.timelineStore, timelineType);
+};
+
+/** The work item timeline store, with the date roll-up that only work items have. */
+export const useIssuesTimeLineChart = (): IIssuesTimeLineStore => {
+  const context = useContext(StoreContext);
+  if (!context) throw new Error("useIssuesTimeLineChart must be used within StoreProvider");
+
+  return context.timelineStore.issuesTimeLineStore;
 };

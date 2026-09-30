@@ -489,5 +489,21 @@
     "example_everything": "Wszystko poniżej klienta",
     "example_overdue": "Otwarte elementy pracy przeterminowane o tydzień",
     "example_amount": "Twoje elementy pracy o kwocie powyżej 1000"
+  },
+  "timeline_hierarchy": {
+    "menu": "Hierarchia",
+    "expand_all": "Rozwiń wszystko",
+    "collapse_all": "Zwiń wszystko",
+    "show_levels": "{count, plural, one {Pokaż tylko najwyższy poziom} few {Pokaż # poziomy} other {Pokaż # poziomów}}",
+    "show_all_levels": "Pokaż wszystkie poziomy",
+    "roll_up_dates": "Przenoś daty z elementów podrzędnych",
+    "expand": "Rozwiń",
+    "collapse": "Zwiń",
+    "hidden_children": "{count, plural, one {# element podrzędny ukryty} few {# elementy podrzędne ukryte} other {# elementów podrzędnych ukrytych}}",
+    "load_error": "Nie udało się wczytać elementów podrzędnych",
+    "rolled_up_bar": "{count, plural, one {Daty przeniesione z # elementu poniżej} other {Daty przeniesione z # elementów poniżej}}",
+    "children_span": "{count, plural, one {# element poniżej} few {# elementy poniżej} other {# elementów poniżej}}: {start} – {end}",
+    "starts_early": "{count, plural, one {Zaczyna się # dzień przed tym elementem} other {Zaczyna się # dni przed tym elementem}}",
+    "ends_late": "{count, plural, one {Kończy się # dzień po tym elemencie} other {Kończy się # dni po tym elemencie}}"
   }
 }

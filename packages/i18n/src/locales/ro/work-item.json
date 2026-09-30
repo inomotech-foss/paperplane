@@ -489,5 +489,21 @@
     "example_everything": "Tot ce se află sub un client",
     "example_overdue": "Activități deschise, restante de o săptămână",
     "example_amount": "Activitățile tale cu o sumă peste 1000"
+  },
+  "timeline_hierarchy": {
+    "menu": "Ierarhie",
+    "expand_all": "Extinde tot",
+    "collapse_all": "Restrânge tot",
+    "show_levels": "{count, plural, one {Arată doar nivelul superior} few {Arată # niveluri} other {Arată # de niveluri}}",
+    "show_all_levels": "Arată toate nivelurile",
+    "roll_up_dates": "Preia datele din sub-elemente",
+    "expand": "Extinde",
+    "collapse": "Restrânge",
+    "hidden_children": "{count, plural, one {# sub-element ascuns} other {# sub-elemente ascunse}}",
+    "load_error": "Sub-elementele nu au putut fi încărcate",
+    "rolled_up_bar": "{count, plural, one {Date preluate din # element de dedesubt} other {Date preluate din # elemente de dedesubt}}",
+    "children_span": "{count, plural, one {# element dedesubt} other {# elemente dedesubt}}: {start} – {end}",
+    "starts_early": "{count, plural, one {Începe cu # zi înaintea acestui element} other {Începe cu # zile înaintea acestui element}}",
+    "ends_late": "{count, plural, one {Se termină la # zi după acest element} other {Se termină la # zile după acest element}}"
   }
 }
