@@ -21,7 +21,16 @@ import type {
   TFilterConditionPayload,
 } from "@plane/types";
 import { LOGICAL_OPERATOR } from "@plane/types";
-import { addAndCondition, createConditionNode, updateNodeInExpression } from "@plane/utils";
+import {
+  addAndCondition,
+  createConditionNode,
+  createNotGroupNode,
+  findImmediateParent,
+  findNodeById,
+  isNotGroupNode,
+  replaceNodeInExpression,
+  updateNodeInExpression,
+} from "@plane/utils";
 // local imports
 import type { IFilterInstance } from "./filter";
 
@@ -233,11 +242,11 @@ export class FilterInstanceHelper<
    */
   private _getConditionPayloadToAdd = (
     condition: TFilterConditionPayload<P, TFilterValue>,
-    _isNegation: boolean
+    isNegation: boolean
   ): TFilterExpression<P> => {
     const conditionNode = createConditionNode(condition);
 
-    return conditionNode;
+    return isNegation ? createNotGroupNode(conditionNode) : conditionNode;
   };
 
   /**
@@ -273,11 +282,21 @@ export class FilterInstanceHelper<
     expression: TFilterExpression<P>,
     conditionId: string,
     payload: Partial<TFilterConditionNode<P, TFilterValue>>,
-    _isNegation: boolean
+    isNegation: boolean
   ): TFilterExpression<P> | null => {
     // Update the condition with the payload
     updateNodeInExpression(expression, conditionId, payload);
 
-    return expression;
+    // a negated condition lives in a NOT group of its own: wrap or unwrap it when that changes
+    const parent = findImmediateParent(expression, conditionId);
+    const isNegated = !!parent && isNotGroupNode(parent);
+    if (isNegation === isNegated) return expression;
+
+    const condition = findNodeById(expression, conditionId);
+    if (!condition) return expression;
+    if (isNegation) {
+      return replaceNodeInExpression(expression, conditionId, createNotGroupNode(condition));
+    }
+    return parent ? replaceNodeInExpression(expression, parent.id, condition) : expression;
   };
 }

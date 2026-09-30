@@ -18,7 +18,14 @@ import type {
   TWorkItemFilterProperty,
 } from "@plane/types";
 import { LOGICAL_OPERATOR, MULTI_VALUE_OPERATORS, WORK_ITEM_FILTER_PROPERTY_KEYS } from "@plane/types";
-import { createConditionNode, createAndGroupNode, isAndGroupNode, isConditionNode } from "@plane/utils";
+import {
+  createConditionNode,
+  createAndGroupNode,
+  createNotGroupNode,
+  isAndGroupNode,
+  isConditionNode,
+  isNotGroupNode,
+} from "@plane/utils";
 // local imports
 import { FilterAdapter } from "../rich-filters/adapter";
 
@@ -81,6 +88,11 @@ class WorkItemFiltersAdapter extends FilterAdapter<TWorkItemFilterProperty, TWor
       return createAndGroupNode(convertedConditions);
     }
 
+    if (LOGICAL_OPERATOR.NOT in expression) {
+      const notExpression = expression as { [LOGICAL_OPERATOR.NOT]: TWorkItemFilterExpressionData };
+      return createNotGroupNode(this._convertExpressionToInternal(notExpression[LOGICAL_OPERATOR.NOT]));
+    }
+
     throw new Error(`Invalid expression: unknown structure with keys [${expressionKeys.join(", ")}]`);
   }
 
@@ -122,6 +134,10 @@ class WorkItemFiltersAdapter extends FilterAdapter<TWorkItemFilterProperty, TWor
       } as TWorkItemFilterExpressionData;
     }
 
+    if (isNotGroupNode(expression)) {
+      return { [LOGICAL_OPERATOR.NOT]: this._convertExpressionToExternal(expression.children[0]) };
+    }
+
     throw new Error(`Unknown group node type for expression`);
   }
 
@@ -137,7 +153,7 @@ class WorkItemFiltersAdapter extends FilterAdapter<TWorkItemFilterProperty, TWor
     if (keys.length === 0) return false;
 
     // Check if any key contains logical operators (would indicate it's a group)
-    const hasLogicalOperators = keys.some((key) => key === LOGICAL_OPERATOR.AND);
+    const hasLogicalOperators = keys.some((key) => key === LOGICAL_OPERATOR.AND || key === LOGICAL_OPERATOR.NOT);
     if (hasLogicalOperators) return false;
 
     // All keys must match the work item filter condition key pattern

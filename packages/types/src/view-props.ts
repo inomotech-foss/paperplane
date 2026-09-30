@@ -112,6 +112,11 @@ export const WORK_ITEM_FILTER_PROPERTY_KEYS = [
   "issue_type_id",
   "created_at",
   "updated_at",
+  // what the query language (PQL) can do, for the click-together filters as well
+  "completed_at",
+  "ancestor_id",
+  "parent_id",
+  "name",
 ] as const;
 /**
  * Filter property key of a work item custom property (typed custom field),
@@ -130,10 +135,14 @@ export type TWorkItemFilterConditionData = Partial<{
 }>;
 
 export type TWorkItemFilterAndGroup = {
-  [LOGICAL_OPERATOR.AND]: TWorkItemFilterConditionData[];
+  [LOGICAL_OPERATOR.AND]: TWorkItemFilterExpressionData[];
 };
 
-export type TWorkItemFilterGroup = TWorkItemFilterAndGroup;
+export type TWorkItemFilterNotGroup = {
+  [LOGICAL_OPERATOR.NOT]: TWorkItemFilterExpressionData;
+};
+
+export type TWorkItemFilterGroup = TWorkItemFilterAndGroup | TWorkItemFilterNotGroup;
 
 export type TWorkItemFilterExpressionData = TWorkItemFilterConditionData | TWorkItemFilterGroup;
 

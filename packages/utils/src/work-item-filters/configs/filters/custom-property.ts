@@ -14,6 +14,7 @@ import {
   getMultiSelectConfig,
   getNumberPickerConfig,
   getSingleSelectConfig,
+  getTextInputConfig,
 } from "../../../rich-filters/factories/configs/core";
 import type {
   TCreateFilterConfigParams,
@@ -124,6 +125,18 @@ const getCustomPropertyOperatorConfigsMap = (
         createOperatorConfigEntry(COMPARISON_OPERATOR.RANGE, params, (updatedParams) =>
           getDateRangePickerConfig(updatedParams)
         ),
+        createOperatorConfigEntry(COMPARISON_OPERATOR.GT, params, (updatedParams) =>
+          getDatePickerConfig(updatedParams)
+        ),
+        createOperatorConfigEntry(COMPARISON_OPERATOR.LT, params, (updatedParams) =>
+          getDatePickerConfig(updatedParams)
+        ),
+      ]);
+    case "TEXT":
+      return new Map([
+        createOperatorConfigEntry(EQUALITY_OPERATOR.ICONTAINS, params, (updatedParams) =>
+          getTextInputConfig(updatedParams)
+        ),
       ]);
     case "RELATION":
       return new Map([
@@ -132,7 +145,6 @@ const getCustomPropertyOperatorConfigsMap = (
         ),
       ]);
     default:
-      // TEXT properties are not filterable
       return undefined;
   }
 };

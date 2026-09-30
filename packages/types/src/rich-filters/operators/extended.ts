@@ -7,12 +7,16 @@
 /**
  * Extended logical operators
  */
-export const EXTENDED_LOGICAL_OPERATOR = {} as const;
+export const EXTENDED_LOGICAL_OPERATOR = {
+  NOT: "not",
+} as const;
 
 /**
  * Extended equality operators
  */
-export const EXTENDED_EQUALITY_OPERATOR = {} as const;
+export const EXTENDED_EQUALITY_OPERATOR = {
+  ICONTAINS: "icontains",
+} as const;
 
 /**
  * Extended collection operators
@@ -44,3 +48,15 @@ export const EXTENDED_OPERATORS = {
  * All extended operators that can be used in filter conditions
  */
 export type TExtendedSupportedOperators = (typeof EXTENDED_OPERATORS)[keyof typeof EXTENDED_OPERATORS];
+
+/**
+ * Display-only operators for a condition inside a NOT group, e.g. "is not" for `exact`
+ * or "is none of" for `in`. They never reach a payload: `getOperatorForPayload` turns
+ * them back into the positive operator plus `isNegation`.
+ */
+export const NEGATED_OPERATORS = {
+  NOT_EXACT: "not_exact",
+  NOT_IN: "not_in",
+  NOT_ICONTAINS: "not_icontains",
+} as const;
+export type TNegatedOperators = (typeof NEGATED_OPERATORS)[keyof typeof NEGATED_OPERATORS];

@@ -3,7 +3,7 @@
 # See the LICENSE file for details.
 
 # Django imports
-from django.db.models import Q, QuerySet
+from django.db.models import Exists, OuterRef, Q, QuerySet
 
 # Third party imports
 from rest_framework import status
@@ -96,6 +96,13 @@ class IssueSearchEndpoint(BaseAPIView):
         issues = issues.filter(target_date__isnull=True)
         return issues
 
+    # the work item pickers of the filters ("Below", "Parent") list more than the search does
+    MAX_LIMIT = 2000
+
+    def filter_issues_with_children(self, issues: QuerySet) -> QuerySet:
+        """Only work items that are the parent of another one."""
+        return issues.filter(Exists(Issue.issue_objects.filter(parent_id=OuterRef("pk"))))
+
     def get(self, request, slug, project_id):
         query = request.query_params.get("search", False)
         workspace_search = request.query_params.get("workspace_search", "false")
@@ -106,6 +113,11 @@ class IssueSearchEndpoint(BaseAPIView):
         sub_issue = request.query_params.get("sub_issue", "false")
         target_date = request.query_params.get("target_date", True)
         issue_id = request.query_params.get("issue_id", False)
+        has_children = request.query_params.get("has_children", "false")
+        try:
+            limit = min(max(int(request.query_params.get("limit", 100)), 1), self.MAX_LIMIT)
+        except ValueError:
+            limit = 100
 
         issues = Issue.issue_objects.filter(
             workspace__slug=slug,
@@ -138,6 +150,9 @@ class IssueSearchEndpoint(BaseAPIView):
         if target_date == "none":
             issues = self.filter_issues_without_target_date(issues)
 
+        if has_children == "true":
+            issues = self.filter_issues_with_children(issues).order_by("sequence_id")
+
         if ProjectMember.objects.filter(
             project_id=project_id, member=self.request.user, is_active=True, role=5
         ).exists():
@@ -156,6 +171,6 @@ class IssueSearchEndpoint(BaseAPIView):
                 "state__name",
                 "state__group",
                 "state__color",
-            )[:100],
+            )[:limit],
             status=status.HTTP_200_OK,
         )

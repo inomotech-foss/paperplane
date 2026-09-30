@@ -18,5 +18,6 @@ export type TUseFiltersOperatorConfigsProps = {
 
 export const useFiltersOperatorConfigs = (_props: TUseFiltersOperatorConfigsProps): TFiltersOperatorConfigs => ({
   allowedOperators: new Set([...Object.values(CORE_OPERATORS), ...Object.values(EXTENDED_OPERATORS)]),
-  allowNegative: false,
+  // "is not", "is none of", "does not contain": sent as a NOT group
+  allowNegative: true,
 });

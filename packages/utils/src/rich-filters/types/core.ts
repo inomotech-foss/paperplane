@@ -5,6 +5,7 @@
  */
 
 import type {
+  TFilterNotGroupNode,
   TFilterAndGroupNode,
   TFilterConditionNode,
   TFilterExpression,
@@ -46,6 +47,10 @@ export const isAndGroupNode = <P extends TFilterProperty>(
  * @param group - The group node to check
  * @returns True if the group has children property
  */
+export const isNotGroupNode = <P extends TFilterProperty>(
+  group: TFilterGroupNode<P>
+): group is TFilterNotGroupNode<P> => group.logicalOperator === LOGICAL_OPERATOR.NOT;
+
 export const hasChildrenProperty = <P extends TFilterProperty>(
   group: TFilterGroupNode<P>
 ): group is TFilterAndGroupNode<P> => {
