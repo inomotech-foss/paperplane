@@ -48,6 +48,7 @@ from plane.utils.host import base_host
 from .. import BaseViewSet, BaseAPIView
 from plane.utils.filters import IssueComplexFilterBackend
 from plane.utils.filters import IssueFilterSet
+from plane.utils.derived_properties import schedule_derived_refresh
 
 
 class IssueArchiveViewSet(BaseViewSet):
@@ -339,5 +340,6 @@ class BulkArchiveIssuesEndpoint(BaseAPIView):
             issue.archived_at = timezone.now().date()
             bulk_archive_issues.append(issue)
         Issue.objects.bulk_update(bulk_archive_issues, ["archived_at"])
+        schedule_derived_refresh(project_id)
 
         return Response({"archived_at": str(timezone.now().date())}, status=status.HTTP_200_OK)

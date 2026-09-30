@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import { useEffect } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
@@ -16,6 +17,7 @@ import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-propert
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
 // local imports
+import { InheritedValueHint } from "./derived-value";
 import { CustomPropertyIcon } from "./property-icon";
 import { CustomPropertyValueEditor } from "./value-editor";
 
@@ -29,7 +31,14 @@ export type TIssueCustomPropertiesProps = {
 export const IssueCustomProperties = observer(function IssueCustomProperties(props: TIssueCustomPropertiesProps) {
   const { workspaceSlug, projectId, issueId, disabled = false } = props;
   // store hooks
-  const { getActiveProjectPropertiesForType, getIssueValue, updateIssueValues } = useIssueCustomProperties();
+  const {
+    getActiveProjectPropertiesForType,
+    getIssueValue,
+    getDerivedSource,
+    updateIssueValues,
+    fetchIssueValues,
+    hasDerivedProperties,
+  } = useIssueCustomProperties();
   const {
     issue: { getIssueById },
   } = useIssueDetail();
@@ -41,6 +50,12 @@ export const IssueCustomProperties = observer(function IssueCustomProperties(pro
   // type-scoped properties still show; unscoped properties always show.
   const issueTypeId = getIssueById(issueId)?.type_id ?? getProjectDefaultIssueType(projectId)?.id ?? null;
   const properties = getActiveProjectPropertiesForType(projectId, issueTypeId);
+  const withDerived = hasDerivedProperties(projectId);
+
+  // this work item's own values, with where the inherited ones come from
+  useEffect(() => {
+    if (withDerived) fetchIssueValues(workspaceSlug, projectId, issueId).catch(() => undefined);
+  }, [withDerived, workspaceSlug, projectId, issueId, fetchIssueValues]);
 
   if (!properties || properties.length === 0) return null;
 
@@ -65,16 +80,30 @@ export const IssueCustomProperties = observer(function IssueCustomProperties(pro
       {properties.map((property) => (
         <SidebarPropertyListItem
           key={property.id}
-          icon={({ className }) => <CustomPropertyIcon propertyType={property.property_type} className={className} />}
+          icon={({ className }) => (
+            <CustomPropertyIcon
+              propertyType={property.property_type}
+              relationType={property.relation_type}
+              className={className}
+            />
+          )}
           label={property.display_name}
         >
-          <CustomPropertyValueEditor
-            property={property}
-            projectId={projectId}
-            value={getIssueValue(issueId, property.id)}
-            onChange={(value) => handleChange(property, value)}
-            disabled={disabled}
-          />
+          <div className="flex h-full w-full min-w-0 items-center">
+            <CustomPropertyValueEditor
+              property={property}
+              projectId={projectId}
+              value={getIssueValue(issueId, property.id)}
+              onChange={(value) => handleChange(property, value)}
+              disabled={disabled}
+            />
+            {property.derivation === "INHERIT" && getDerivedSource(issueId, property.id)?.source_issue_id && (
+              <InheritedValueHint
+                sourceIssueId={getDerivedSource(issueId, property.id)!.source_issue_id!}
+                projectId={projectId}
+              />
+            )}
+          </div>
         </SidebarPropertyListItem>
       ))}
     </div>

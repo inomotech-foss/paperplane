@@ -32,6 +32,7 @@ from plane.db.models import (
 )
 from plane.utils.content_validator import validate_html_content
 from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.utils.derived_properties import deferred_derived_refresh
 
 from ..confluence.naming import project_name
 from ..confluence.resolvers import ResolvedUser, Resolvers
@@ -150,6 +151,11 @@ class JiraLoader:
         self.storage = storage
 
     def run(self, dry_run=False):
+        """Load the backup; derived property values are recomputed once, at the end."""
+        with deferred_derived_refresh():
+            return self._run(dry_run=dry_run)
+
+    def _run(self, dry_run=False):
         summary = ImportSummary()
         statuses, type_names = self._vocabulary()
 

@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Zahl",
+      "datetime": "Datum",
+      "relation": "Mitglied",
+      "work_item": "Arbeitselement"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Wert",
+      "none": "Von Hand gesetzt",
+      "none_help": "Wird von Hand ausgefüllt",
+      "inherit": "Vom übergeordneten Element geerbt",
+      "inherit_help": "Leere Werte übernehmen den Wert des übergeordneten Elements; ein hier gesetzter Wert wird nach unten weitergegeben",
+      "lookup": "Von einem Vorfahren",
+      "lookup_help": "Der nächste Vorfahre eines Typs oder einer seiner Werte",
+      "rollup": "Von unten aggregiert",
+      "rollup_help": "Summe, Anzahl, frühestes Datum … der Elemente darunter",
+      "ancestor_type": "Typ des Vorfahren",
+      "pick_type": "Typ wählen",
+      "take": "Übernehmen",
+      "the_item_itself": "Das Element selbst",
+      "include_self_lookup": "Ein Element dieses Typs ist sein eigenes",
+      "include_self_rollup": "Das Element selbst einbeziehen",
+      "of": "von",
+      "of_work_items": "von Elementen des Typs",
+      "any_type": "beliebigem Typ",
+      "scope_children": "Direkte Unterelemente",
+      "scope_descendants": "Alle Ebenen darunter",
+      "source_items": "Elemente",
+      "source_start_date": "Startdatum",
+      "source_target_date": "Fälligkeitsdatum",
+      "summary_inherit": "Vom übergeordneten Element geerbt, außer hier gesetzt",
+      "summary_lookup_item": "Der {type} darüber",
+      "summary_lookup_property": "{property} des {type} darüber",
+      "summary_rollup": "{function} von {source} darunter",
+      "summary_rollup_typed": "{function} von {source} der {type} darunter",
+      "computed_readonly": "Aus der Hierarchie der Arbeitselemente berechnet",
+      "inherited_from": "Geerbt von",
+      "functions": {
+        "sum": "Summe",
+        "avg": "Durchschnitt",
+        "min": "Minimum",
+        "max": "Maximum",
+        "count": "Anzahl",
+        "earliest": "Frühestes",
+        "latest": "Spätestes",
+        "count_true": "Anzahl markiert",
+        "percent_true": "% markiert"
+      }
     }
   },
   "work_item_query": {

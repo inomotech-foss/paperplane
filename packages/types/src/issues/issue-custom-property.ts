@@ -25,6 +25,52 @@ export type TIssueCustomPropertyOption = {
 };
 
 /**
+ * Where a property's values come from.
+ * - NONE: people set them.
+ * - INHERIT: a work item without its own value takes its parent's.
+ * - LOOKUP: the nearest ancestor of a type, or one of its values (read-only).
+ * - ROLLUP: an aggregate over the work items below (read-only).
+ */
+export const ISSUE_CUSTOM_PROPERTY_DERIVATIONS = ["NONE", "INHERIT", "LOOKUP", "ROLLUP"] as const;
+
+export type TIssueCustomPropertyDerivation = (typeof ISSUE_CUSTOM_PROPERTY_DERIVATIONS)[number];
+
+export type TIssueCustomPropertyRollupFunction =
+  | "sum"
+  | "avg"
+  | "min"
+  | "max"
+  | "count"
+  | "earliest"
+  | "latest"
+  | "count_true"
+  | "percent_true";
+
+export type TIssueCustomPropertyLookupConfig = {
+  /** The work item type of the ancestor to take the value from. */
+  issue_type: string;
+  /** "item" for the ancestor itself (a work item reference), else a property id. */
+  source: "item" | string;
+  /** Whether a work item of that type takes its own value (a customer is its own customer). */
+  include_self: boolean;
+};
+
+export type TIssueCustomPropertyRollupConfig = {
+  /** A property id, or a built-in: "items" (count work items), "start_date", "target_date". */
+  source: "items" | "start_date" | "target_date" | string;
+  function: TIssueCustomPropertyRollupFunction;
+  scope: "children" | "descendants";
+  /** Only count work items of this type, e.g. only invoices. */
+  issue_type: string | null;
+  include_self: boolean;
+};
+
+export type TIssueCustomPropertyDerivationConfig =
+  | Record<string, never>
+  | TIssueCustomPropertyLookupConfig
+  | TIssueCustomPropertyRollupConfig;
+
+/**
  * A custom property (typed custom field) defined on a project.
  */
 export type TIssueCustomProperty = {
@@ -34,8 +80,11 @@ export type TIssueCustomProperty = {
   property_type: TIssueCustomPropertyType;
   /** An OPTION property with `is_multi` holds several options at once. */
   is_multi: boolean;
-  /** What a RELATION property points at. Only "USER" is supported. */
-  relation_type: "USER" | null;
+  /**
+   * What a RELATION property points at: a member, or a work item (only as a value
+   * looked up from an ancestor).
+   */
+  relation_type: "USER" | "ISSUE" | null;
   is_active: boolean;
   is_required: boolean;
   sort_order: number;
@@ -48,6 +97,8 @@ export type TIssueCustomProperty = {
    * applies to all work item types of the project (unscoped).
    */
   issue_type: string | null;
+  derivation: TIssueCustomPropertyDerivation;
+  derivation_config: TIssueCustomPropertyDerivationConfig;
 };
 
 /**
@@ -69,6 +120,11 @@ export type TIssueCustomPropertyValueMap = Record<string, TIssueCustomPropertyVa
 export type TIssueCustomPropertyValuesResponse = {
   values: TIssueCustomPropertyValueMap;
   display: TIssueCustomPropertyValueMap;
+  /**
+   * For each value computed from the hierarchy, the work item it was taken from
+   * (null for roll-ups, which come from many).
+   */
+  derived?: Record<string, { source_issue_id: string | null }>;
 };
 
 /**

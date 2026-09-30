@@ -101,8 +101,12 @@ class IssueManager(SoftDeletionManager):
         )
 
 
+# Changes to these fields can change property values derived from the hierarchy.
+DERIVED_PROPERTY_INPUTS = frozenset({"parent_id", "type_id", "start_date", "target_date", "archived_at", "deleted_at"})
+
+
 class Issue(ChangeTrackerMixin, ProjectBaseModel):
-    TRACKED_FIELDS = ["state_id"]
+    TRACKED_FIELDS = ["state_id", *sorted(DERIVED_PROPERTY_INPUTS)]
 
     PRIORITY_CHOICES = (
         ("urgent", "Urgent"),
@@ -180,7 +184,17 @@ class Issue(ChangeTrackerMixin, ProjectBaseModel):
     def save(self, *args, **kwargs):
         self._ensure_default_state()
         kwargs = self._sync_completed_at(kwargs)
+        is_new = self._state.adding
 
+        self._save_issue(*args, **kwargs)
+
+        if is_new or DERIVED_PROPERTY_INPUTS & set(getattr(self, "_changes_on_save", ())):
+            # deferred import: the utility imports the models
+            from plane.utils.derived_properties import schedule_derived_refresh
+
+            schedule_derived_refresh(self.project_id)
+
+    def _save_issue(self, *args, **kwargs):
         if self._state.adding:
             with transaction.atomic():
                 # Create a lock for this specific project using a transaction-level advisory lock

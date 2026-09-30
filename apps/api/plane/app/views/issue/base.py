@@ -75,6 +75,7 @@ from plane.utils.issue_property import build_issue_property_filters
 from plane.utils.order_queryset import order_issue_queryset
 from plane.utils.paginator import GroupedOffsetPaginator, SubGroupedOffsetPaginator
 from plane.utils.timezone_converter import user_timezone_converter
+from plane.utils.derived_properties import schedule_derived_refresh
 
 from .. import BaseAPIView, BaseViewSet
 
@@ -796,6 +797,7 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
 
         # Finally, delete the issues themselves
         issues.delete()
+        schedule_derived_refresh(project_id)
 
         return Response(
             {"message": f"{total_issues} issues were deleted"},
@@ -1186,6 +1188,7 @@ class IssueBulkUpdateDateEndpoint(BaseAPIView):
 
         # Bulk update issues
         Issue.objects.bulk_update(issues_to_update, ["start_date", "target_date"])
+        schedule_derived_refresh(project_id)
 
         return Response({"message": "Issues updated successfully"}, status=status.HTTP_200_OK)
 

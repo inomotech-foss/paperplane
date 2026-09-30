@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "数値",
+      "datetime": "日付",
+      "relation": "メンバー",
+      "work_item": "作業項目"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "値",
+      "none": "手動で設定",
+      "none_help": "各自が手で入力します",
+      "inherit": "親から継承",
+      "inherit_help": "空の値は親の値を使い、ここで設定した値は下位に引き継がれます",
+      "lookup": "祖先から",
+      "lookup_help": "指定したタイプの最も近い祖先、またはその値",
+      "rollup": "下位から集計",
+      "rollup_help": "下位の作業項目の合計・件数・最も早い日付など",
+      "ancestor_type": "祖先のタイプ",
+      "pick_type": "タイプを選択",
+      "take": "取得する値",
+      "the_item_itself": "その作業項目自体",
+      "include_self_lookup": "このタイプの作業項目は自分自身を参照",
+      "include_self_rollup": "その作業項目自体を含める",
+      "of": "の",
+      "of_work_items": "次のタイプの作業項目",
+      "any_type": "任意のタイプ",
+      "scope_children": "直下の子",
+      "scope_descendants": "下位のすべての階層",
+      "source_items": "作業項目",
+      "source_start_date": "開始日",
+      "source_target_date": "期日",
+      "summary_inherit": "ここで設定しない限り親から継承",
+      "summary_lookup_item": "上位の {type}",
+      "summary_lookup_property": "上位の {type} の {property}",
+      "summary_rollup": "下位の {source} の{function}",
+      "summary_rollup_typed": "下位の {type} の {source} の{function}",
+      "computed_readonly": "作業項目の階層から計算",
+      "inherited_from": "継承元",
+      "functions": {
+        "sum": "合計",
+        "avg": "平均",
+        "min": "最小",
+        "max": "最大",
+        "count": "件数",
+        "earliest": "最も早い",
+        "latest": "最も遅い",
+        "count_true": "チェック数",
+        "percent_true": "チェック率"
+      }
     }
   },
   "work_item_query": {

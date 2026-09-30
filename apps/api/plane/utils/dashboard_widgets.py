@@ -54,7 +54,7 @@ from plane.db.models import (
     User,
     CycleIssue,
 )
-from plane.utils.issue_property import number_to_json
+from plane.utils.issue_property import number_to_json, relation_column
 from plane.utils.pql import WorkItemFilterError, compile_pql, parse_pql
 from plane.utils.pql.lexer import PQLSyntaxError
 
@@ -493,7 +493,8 @@ def _property_annotation(property_obj):
     )
     if property_obj.is_multi_option:
         return _id_array(rows, "value_option_id")
-    column = PROPERTY_VALUE_COLUMNS[property_obj.property_type]
+    column = relation_column(property_obj) if property_obj.property_type == PropertyTypeChoices.RELATION else None
+    column = column or PROPERTY_VALUE_COLUMNS[property_obj.property_type]
     return Subquery(rows.order_by("-created_at").values(column)[:1])
 
 
@@ -597,6 +598,8 @@ class _Labels:
     def _property_labels(self, property_obj, keys):
         if property_obj.property_type == PropertyTypeChoices.OPTION:
             return self._names(IssuePropertyOption, "name", keys)
+        if property_obj.is_issue_relation:
+            return self._work_item_labels(keys, [])
         if property_obj.property_type == PropertyTypeChoices.RELATION:
             return self._names(User, "display_name", keys)
         if property_obj.property_type == PropertyTypeChoices.BOOLEAN:

@@ -28,6 +28,7 @@ from plane.utils.timezone_converter import user_timezone_converter
 from collections import defaultdict
 from plane.utils.host import base_host
 from plane.utils.order_queryset import order_issue_queryset
+from plane.utils.derived_properties import schedule_derived_refresh
 
 
 class SubIssuesEndpoint(BaseAPIView):
@@ -231,6 +232,7 @@ class SubIssuesEndpoint(BaseAPIView):
             sub_issue.parent = parent_issue
 
         _ = Issue.objects.bulk_update(sub_issues, ["parent"], batch_size=10)
+        schedule_derived_refresh(project_id)
 
         # Only the issues that were actually re-parented — i.e. the project-scoped
         # `sub_issues`, not the raw caller-supplied ids. Otherwise a cross-project id

@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Angka",
+      "datetime": "Tanggal",
+      "relation": "Anggota",
+      "work_item": "Item kerja"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Nilai",
+      "none": "Diisi oleh orang",
+      "none_help": "Setiap orang mengisinya secara manual",
+      "inherit": "Diwarisi dari induk",
+      "inherit_help": "Nilai kosong mengambil nilai induk; nilai yang diisi di sini diteruskan ke bawah",
+      "lookup": "Dari leluhur",
+      "lookup_help": "Leluhur terdekat dari suatu tipe, atau salah satu nilainya",
+      "rollup": "Diakumulasi dari bawah",
+      "rollup_help": "Jumlah, hitungan, tanggal paling awal… item di bawahnya",
+      "ancestor_type": "Tipe leluhur",
+      "pick_type": "Pilih tipe",
+      "take": "Ambil",
+      "the_item_itself": "Item itu sendiri",
+      "include_self_lookup": "Item dengan tipe ini adalah leluhurnya sendiri",
+      "include_self_rollup": "Sertakan item itu sendiri",
+      "of": "dari",
+      "of_work_items": "dari item bertipe",
+      "any_type": "tipe apa pun",
+      "scope_children": "Anak langsung",
+      "scope_descendants": "Semua level di bawah",
+      "source_items": "Item",
+      "source_start_date": "Tanggal mulai",
+      "source_target_date": "Tanggal jatuh tempo",
+      "summary_inherit": "Diwarisi dari induk kecuali diisi di sini",
+      "summary_lookup_item": "{type} di atasnya",
+      "summary_lookup_property": "{property} dari {type} di atasnya",
+      "summary_rollup": "{function} dari {source} di bawah",
+      "summary_rollup_typed": "{function} dari {source} bertipe {type} di bawah",
+      "computed_readonly": "Dihitung dari hierarki item kerja",
+      "inherited_from": "Diwarisi dari",
+      "functions": {
+        "sum": "Jumlah",
+        "avg": "Rata-rata",
+        "min": "Minimum",
+        "max": "Maksimum",
+        "count": "Hitungan",
+        "earliest": "Paling awal",
+        "latest": "Paling akhir",
+        "count_true": "Jumlah dicentang",
+        "percent_true": "% dicentang"
+      }
     }
   },
   "work_item_query": {

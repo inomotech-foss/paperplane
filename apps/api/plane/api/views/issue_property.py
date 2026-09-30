@@ -21,6 +21,13 @@ from plane.db.models import (
     IssueProperty,
     IssuePropertyOption,
     IssuePropertyValue,
+    PropertyDerivationChoices,
+)
+from plane.utils.derived_properties import (
+    dependents_of,
+    derived_value_sources,
+    refresh_derived_values_now,
+    refresh_derived_values_safely,
 )
 from plane.utils.issue_property import (
     OPTION_PROPERTY_TYPES,
@@ -147,6 +154,8 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
                         option_serializer.is_valid(raise_exception=True)
                         option_serializer.save(property=issue_property, project_id=project_id)
 
+                if issue_property.derivation != PropertyDerivationChoices.NONE:
+                    refresh_derived_values_safely(project_id)
                 issue_property = self.get_queryset().get(pk=issue_property.id)
                 return Response(
                     IssuePropertySerializer(issue_property).data,
@@ -278,6 +287,8 @@ class IssuePropertyDetailAPIEndpoint(BaseAPIView):
                     status=status.HTTP_409_CONFLICT,
                 )
             serializer.save()
+            # a changed derivation (or a property switched off it) changes stored values
+            refresh_derived_values_safely(project_id)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -294,7 +305,17 @@ class IssuePropertyDetailAPIEndpoint(BaseAPIView):
         removed along with it.
         """
         issue_property = IssueProperty.objects.get(workspace__slug=slug, project_id=project_id, pk=property_id)
+        dependents = dependents_of(issue_property)
+        if dependents:
+            return Response(
+                {
+                    "error": "Other properties are derived from this one: "
+                    + ", ".join(dependent.display_name for dependent in dependents)
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         issue_property.delete()
+        refresh_derived_values_safely(project_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -508,6 +529,7 @@ class IssuePropertyOptionDetailAPIEndpoint(BaseAPIView):
             pk=option_id,
         )
         option.delete()
+        refresh_derived_values_now(project_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -531,7 +553,7 @@ class IssuePropertyValueAPIEndpoint(BaseAPIView):
                 project__project_projectmember__member=self.request.user,
                 project__project_projectmember__is_active=True,
             )
-            .select_related("property", "value_option", "value_user")
+            .select_related("property", "value_option", "value_user", "value_issue__project")
         )
 
     @issue_property_docs(
@@ -550,9 +572,13 @@ class IssuePropertyValueAPIEndpoint(BaseAPIView):
         names in `display`. Multi-select values are lists.
         """
         # Ensure the work item exists in the project
-        Issue.issue_objects.get(pk=work_item_id, project_id=project_id, workspace__slug=slug)
+        issue = Issue.issue_objects.get(pk=work_item_id, project_id=project_id, workspace__slug=slug)
         values, display = build_value_maps(self.get_queryset())
-        return Response({"values": values, "display": display}, status=status.HTTP_200_OK)
+        properties = list(
+            IssueProperty.objects.filter(project_id=project_id).exclude(derivation=PropertyDerivationChoices.NONE)
+        )
+        derived = derived_value_sources(issue, properties)
+        return Response({"values": values, "display": display, "derived": derived}, status=status.HTTP_200_OK)
 
     @issue_property_docs(
         operation_id="update_work_item_property_values",
@@ -585,8 +611,14 @@ class IssuePropertyValueAPIEndpoint(BaseAPIView):
             IssuePropertyValue.objects.filter(issue=issue, property_id__in=properties.keys()).delete(soft=False)
             IssuePropertyValue.objects.bulk_create(new_rows)
 
+        # values inherited from this one, or rolled up from it, change too
+        refresh_derived_values_now(project_id)
         values, display = build_value_maps(self.get_queryset())
-        return Response({"values": values, "display": display}, status=status.HTTP_200_OK)
+        properties = list(
+            IssueProperty.objects.filter(project_id=project_id).exclude(derivation=PropertyDerivationChoices.NONE)
+        )
+        derived = derived_value_sources(issue, properties)
+        return Response({"values": values, "display": display, "derived": derived}, status=status.HTTP_200_OK)
 
 
 class IssuePropertySingleValueAPIEndpoint(BaseAPIView):
@@ -610,7 +642,7 @@ class IssuePropertySingleValueAPIEndpoint(BaseAPIView):
                 project__project_projectmember__member=self.request.user,
                 project__project_projectmember__is_active=True,
             )
-            .select_related("property", "value_option", "value_user")
+            .select_related("property", "value_option", "value_user", "value_issue__project")
         )
 
     def serialize(self, rows, issue_property):
@@ -649,6 +681,7 @@ class IssuePropertySingleValueAPIEndpoint(BaseAPIView):
         with transaction.atomic():
             IssuePropertyValue.objects.filter(issue=issue, property_id=property_id).delete(soft=False)
             IssuePropertyValue.objects.bulk_create(new_rows)
+        refresh_derived_values_now(project_id)
         return issue_property, None
 
     @issue_property_docs(
@@ -728,7 +761,17 @@ class IssuePropertySingleValueAPIEndpoint(BaseAPIView):
     )
     def delete(self, request, slug, project_id, work_item_id, property_id):
         """Clear one work item property value"""
+        issue_property = IssueProperty.objects.get(pk=property_id, project_id=project_id, workspace__slug=slug)
+        if issue_property.is_computed:
+            return Response(
+                {
+                    "error": f"'{issue_property.display_name}' is computed from the work item hierarchy "
+                    "and cannot be set"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if not self.get_queryset().exists():
             return Response({"error": "This property has no value on this work item"}, status=status.HTTP_404_NOT_FOUND)
         self.get_queryset().delete(soft=False)
+        refresh_derived_values_now(project_id)
         return Response(status=status.HTTP_204_NO_CONTENT)

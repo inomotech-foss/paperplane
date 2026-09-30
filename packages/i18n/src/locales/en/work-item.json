@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Number",
+      "datetime": "Date",
+      "relation": "Member",
+      "work_item": "Work item"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Value",
+      "none": "Set by people",
+      "none_help": "Everyone fills it in by hand",
+      "inherit": "Inherited from parent",
+      "inherit_help": "Empty values take the parent's value; a value set here flows down",
+      "lookup": "From an ancestor",
+      "lookup_help": "The nearest ancestor of a type, or one of its values",
+      "rollup": "Rolled up from below",
+      "rollup_help": "Sum, count, earliest date… of the work items below",
+      "ancestor_type": "Ancestor type",
+      "pick_type": "Choose a type",
+      "take": "Take",
+      "the_item_itself": "The work item itself",
+      "include_self_lookup": "A work item of this type is its own",
+      "include_self_rollup": "Include the work item itself",
+      "of": "of",
+      "of_work_items": "of work items of type",
+      "any_type": "any type",
+      "scope_children": "Direct children",
+      "scope_descendants": "All levels below",
+      "source_items": "Work items",
+      "source_start_date": "Start date",
+      "source_target_date": "Due date",
+      "summary_inherit": "Inherited from the parent unless set here",
+      "summary_lookup_item": "The {type} above",
+      "summary_lookup_property": "{property} of the {type} above",
+      "summary_rollup": "{function} of {source} below",
+      "summary_rollup_typed": "{function} of {source} of {type} below",
+      "computed_readonly": "Computed from the work item hierarchy",
+      "inherited_from": "Inherited from",
+      "functions": {
+        "sum": "Sum",
+        "avg": "Average",
+        "min": "Minimum",
+        "max": "Maximum",
+        "count": "Count",
+        "earliest": "Earliest",
+        "latest": "Latest",
+        "count_true": "Count of checked",
+        "percent_true": "% checked"
+      }
     }
   },
   "work_item_query": {

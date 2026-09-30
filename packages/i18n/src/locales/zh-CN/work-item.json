@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "数字",
+      "datetime": "日期",
+      "relation": "成员",
+      "work_item": "工作项"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "值",
+      "none": "手动设置",
+      "none_help": "由成员手动填写",
+      "inherit": "从父项继承",
+      "inherit_help": "空值取父项的值；在此设置的值会向下传递",
+      "lookup": "来自祖先",
+      "lookup_help": "某类型最近的祖先，或其某个值",
+      "rollup": "从下级汇总",
+      "rollup_help": "下级工作项的总和、数量、最早日期等",
+      "ancestor_type": "祖先类型",
+      "pick_type": "选择类型",
+      "take": "取值",
+      "the_item_itself": "工作项本身",
+      "include_self_lookup": "该类型的工作项引用自身",
+      "include_self_rollup": "包含工作项本身",
+      "of": "的",
+      "of_work_items": "以下类型的工作项",
+      "any_type": "任意类型",
+      "scope_children": "直接子项",
+      "scope_descendants": "下方所有层级",
+      "source_items": "工作项",
+      "source_start_date": "开始日期",
+      "source_target_date": "截止日期",
+      "summary_inherit": "除非在此设置，否则从父项继承",
+      "summary_lookup_item": "上级 {type}",
+      "summary_lookup_property": "上级 {type} 的 {property}",
+      "summary_rollup": "下级 {source} 的{function}",
+      "summary_rollup_typed": "下级 {type} 的 {source} 的{function}",
+      "computed_readonly": "根据工作项层级计算",
+      "inherited_from": "继承自",
+      "functions": {
+        "sum": "总和",
+        "avg": "平均值",
+        "min": "最小值",
+        "max": "最大值",
+        "count": "数量",
+        "earliest": "最早",
+        "latest": "最晚",
+        "count_true": "已勾选数",
+        "percent_true": "勾选比例"
+      }
     }
   },
   "work_item_query": {
