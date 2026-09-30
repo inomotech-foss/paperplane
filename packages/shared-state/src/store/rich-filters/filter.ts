@@ -296,7 +296,8 @@ export class FilterInstance<P extends TFilterProperty, E extends TExternalFilter
    * @returns True if the filter instance can be saved, false otherwise.
    */
   get canSaveView(): IFilterInstance<P, E>["canSaveView"] {
-    return this.hasActiveFilters && !!this.saveViewOptions && !this.saveViewOptions.isDisabled;
+    const hasSomethingToSave = this.hasActiveFilters || !!this.saveViewOptions?.hasAdditionalContent;
+    return hasSomethingToSave && !!this.saveViewOptions && !this.saveViewOptions.isDisabled;
   }
 
   /**

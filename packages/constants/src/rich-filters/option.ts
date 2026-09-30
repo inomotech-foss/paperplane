@@ -32,6 +32,11 @@ export type TSaveViewOptions<E extends TExternalFilter> = {
   label?: string;
   onViewSave: (expression: E) => void | Promise<void>;
   isDisabled?: boolean;
+  /**
+   * The view holds something worth saving besides the filter conditions, e.g. a
+   * query typed into the query bar, so it can be saved without any conditions.
+   */
+  hasAdditionalContent?: boolean;
 };
 
 /**

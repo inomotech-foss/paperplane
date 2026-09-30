@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import React, { useCallback, useState } from "react";
+import React from "react";
 import { observer } from "mobx-react";
 import { ListFilterPlus } from "lucide-react";
 import { Transition } from "@headlessui/react";
@@ -17,6 +17,7 @@ import { cn, EHeaderVariant, Header, Loader } from "@plane/ui";
 import type { TAddFilterButtonProps } from "./add-filters/button";
 import { AddFilterButton } from "./add-filters/button";
 import { FilterItem } from "./filter-item/root";
+import { FilterViewActions } from "./view-actions";
 
 export type TFiltersRowProps<K extends TFilterProperty, E extends TExternalFilter> = {
   buttonConfig?: TAddFilterButtonProps<K, E>["buttonConfig"];
@@ -28,6 +29,11 @@ export type TFiltersRowProps<K extends TFilterProperty, E extends TExternalFilte
     saveView?: string;
     updateView?: string;
   };
+  /**
+   * Leave "Save view" / "Update view" out of the row because the page shows them
+   * elsewhere (next to the query bar), so they are there even when the row is hidden.
+   */
+  hideViewActions?: boolean;
 };
 
 export const FiltersRow = observer(function FiltersRow<K extends TFilterProperty, E extends TExternalFilter>(
@@ -39,14 +45,14 @@ export const FiltersRow = observer(function FiltersRow<K extends TFilterProperty
     filter,
     variant = "header",
     trackerElements,
+    hideViewActions = false,
   } = props;
-  // states
-  const [isUpdating, setIsUpdating] = useState(false);
   // derived values
   const disabledAllOperations = disabledAllOperationsProp || !filter.configManager.areConfigsReady;
   const hasAnyConditions = filter.allConditionsForDisplay.length > 0;
   const hasAvailableOperations =
-    !disabledAllOperations && (filter.canClearFilters || filter.canSaveView || filter.canUpdateView);
+    !disabledAllOperations &&
+    (filter.canClearFilters || (!hideViewActions && (filter.canSaveView || filter.canUpdateView)));
 
   const headerButtonConfig: Partial<TAddFilterButtonProps<K, E>["buttonConfig"]> = {
     label: null,
@@ -55,15 +61,6 @@ export const FiltersRow = observer(function FiltersRow<K extends TFilterProperty
   const modalButtonConfig: Partial<TAddFilterButtonProps<K, E>["buttonConfig"]> = {
     label: !hasAnyConditions ? "Filters" : null,
   };
-
-  const handleUpdate = useCallback(async () => {
-    setIsUpdating(true);
-    try {
-      await filter.updateView();
-    } finally {
-      setTimeout(() => setIsUpdating(false), 240); // To avoid flickering
-    }
-  }, [filter]);
 
   const leftContent = (
     <>
@@ -99,28 +96,7 @@ export const FiltersRow = observer(function FiltersRow<K extends TFilterProperty
           {filter.clearFilterOptions?.label ?? "Clear all"}
         </Button>
       </ElementTransition>
-      <ElementTransition show={filter.canSaveView}>
-        <Button
-          variant="secondary"
-          className={COMMON_OPERATION_BUTTON_CLASSNAME}
-          onClick={filter.saveView}
-          data-ph-element={trackerElements?.saveView}
-        >
-          {filter.saveViewOptions?.label ?? "Save view"}
-        </Button>
-      </ElementTransition>
-      <ElementTransition show={filter.canUpdateView}>
-        <Button
-          variant="secondary"
-          className={COMMON_OPERATION_BUTTON_CLASSNAME}
-          onClick={handleUpdate}
-          loading={isUpdating}
-          disabled={isUpdating}
-          data-ph-element={trackerElements?.updateView}
-        >
-          {isUpdating ? "Confirming" : (filter.updateViewOptions?.label ?? "Update view")}
-        </Button>
-      </ElementTransition>
+      {!hideViewActions && <FilterViewActions filter={filter} trackerElements={trackerElements} />}
     </>
   );
 

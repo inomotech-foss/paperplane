@@ -6,6 +6,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { isEqual, cloneDeep } from "lodash-es";
+import { toJS } from "mobx";
 import { observer } from "mobx-react";
 // plane imports
 import { DEFAULT_GLOBAL_VIEWS_LIST, EUserPermissionsLevel } from "@plane/constants";
@@ -79,15 +80,16 @@ export const WorkspaceLevelWorkItemFiltersHOC = observer(function WorkspaceLevel
   );
   const createViewLabel = useMemo(() => props.saveViewOptions?.label, [props.saveViewOptions?.label]);
   const updateViewLabel = useMemo(() => props.updateViewOptions?.label, [props.updateViewOptions?.label]);
-  const hasAdditionalChanges = useMemo(
-    () =>
-      !isEqual(initialWorkItemFilters?.displayFilters, viewDetails?.display_filters) ||
-      !isEqual(
-        removeNillKeys(initialWorkItemFilters?.displayProperties),
-        removeNillKeys(viewDetails?.display_properties)
-      ),
-    [initialWorkItemFilters, viewDetails]
-  );
+  // Compared on every render, not memoized on the props object: a changed query is a
+  // change inside the store's observable display filters, which leaves that object (and
+  // the layout root that builds it) untouched, so a memo keyed on it never saw the change
+  // and "Update view" did not appear. Reading the values here lets MobX re-render on it.
+  const hasAdditionalChanges =
+    !isEqual(toJS(initialWorkItemFilters?.displayFilters), viewDetails?.display_filters) ||
+    !isEqual(
+      removeNillKeys(toJS(initialWorkItemFilters?.displayProperties)),
+      removeNillKeys(viewDetails?.display_properties)
+    );
 
   const getDefaultViewDetailPayload: () => Partial<IWorkspaceView> = useCallback(
     () => ({
@@ -157,13 +159,16 @@ export const WorkspaceLevelWorkItemFiltersHOC = observer(function WorkspaceLevel
     [viewDetails, updateGlobalView, workspaceSlug, getViewFilterPayload]
   );
 
+  // a query in the query bar is part of the view too, so it can be saved on its own
+  const hasQuery = !!initialWorkItemFilters?.displayFilters?.pql?.trim();
   const saveViewOptions = useMemo(
     () => ({
       label: createViewLabel,
       isDisabled: !canCreateView,
+      hasAdditionalContent: hasQuery,
       onViewSave: handleViewSave,
     }),
-    [createViewLabel, canCreateView, handleViewSave]
+    [createViewLabel, canCreateView, hasQuery, handleViewSave]
   );
 
   const updateViewOptions = useMemo(

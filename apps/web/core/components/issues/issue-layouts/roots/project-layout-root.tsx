@@ -13,6 +13,7 @@ import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
 import { Spinner } from "@plane/ui";
 // components
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
+import { FilterViewActions } from "@/components/rich-filters/view-actions";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
 import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
 // hooks
@@ -85,9 +86,20 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
                 trackerElements={{
                   saveView: PROJECT_VIEW_TRACKER_ELEMENTS.PROJECT_HEADER_SAVE_AS_VIEW_BUTTON,
                 }}
+                hideViewActions
               />
             )}
             <WorkItemQueryBar
+              actions={
+                projectWorkItemsFilter &&
+                (projectWorkItemsFilter.canSaveView || projectWorkItemsFilter.canUpdateView) ? (
+                  <FilterViewActions
+                    filter={projectWorkItemsFilter}
+                    size="sm"
+                    trackerElements={{ saveView: PROJECT_VIEW_TRACKER_ELEMENTS.PROJECT_HEADER_SAVE_AS_VIEW_BUTTON }}
+                  />
+                ) : undefined
+              }
               workspaceSlug={workspaceSlug}
               projectId={projectId}
               value={appliedQuery(workItemFilters)}
