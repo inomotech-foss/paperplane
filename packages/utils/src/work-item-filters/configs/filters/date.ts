@@ -5,12 +5,29 @@
  */
 
 // plane imports
-import type { TFilterProperty } from "@plane/types";
+import type { TFilterProperty, TOperatorConfigMap } from "@plane/types";
+import { COMPARISON_OPERATOR } from "@plane/types";
 // local imports
 import type { TCreateFilterConfig, TCreateDateFilterParams } from "../../../rich-filters";
-import { createFilterConfig, getSupportedDateOperators } from "../../../rich-filters";
+import {
+  createFilterConfig,
+  createOperatorConfigEntry,
+  getDatePickerConfig,
+  getSupportedDateOperators,
+} from "../../../rich-filters";
 
 // ------------ Date filters ------------
+
+/**
+ * The date operators of a work item date: on, between, and after / before, which the
+ * work item filters (and the query language) support. Both exclude the day itself.
+ */
+export const getWorkItemDateOperators = (params: TCreateDateFilterParams): TOperatorConfigMap =>
+  new Map([
+    ...getSupportedDateOperators(params),
+    createOperatorConfigEntry(COMPARISON_OPERATOR.GT, params, (updatedParams) => getDatePickerConfig(updatedParams)),
+    createOperatorConfigEntry(COMPARISON_OPERATOR.LT, params, (updatedParams) => getDatePickerConfig(updatedParams)),
+  ]);
 
 /**
  * Get the start date filter config
@@ -27,7 +44,7 @@ export const getStartDateFilterConfig =
       ...params,
       icon: params.filterIcon,
       allowMultipleFilters: true,
-      supportedOperatorConfigsMap: getSupportedDateOperators(params),
+      supportedOperatorConfigsMap: getWorkItemDateOperators(params),
     });
 
 /**
@@ -45,7 +62,7 @@ export const getTargetDateFilterConfig =
       ...params,
       icon: params.filterIcon,
       allowMultipleFilters: true,
-      supportedOperatorConfigsMap: getSupportedDateOperators(params),
+      supportedOperatorConfigsMap: getWorkItemDateOperators(params),
     });
 
 /**
@@ -63,7 +80,7 @@ export const getCreatedAtFilterConfig =
       ...params,
       icon: params.filterIcon,
       allowMultipleFilters: true,
-      supportedOperatorConfigsMap: getSupportedDateOperators(params),
+      supportedOperatorConfigsMap: getWorkItemDateOperators(params),
     });
 
 /**
@@ -81,5 +98,23 @@ export const getUpdatedAtFilterConfig =
       ...params,
       icon: params.filterIcon,
       allowMultipleFilters: true,
-      supportedOperatorConfigsMap: getSupportedDateOperators(params),
+      supportedOperatorConfigsMap: getWorkItemDateOperators(params),
+    });
+
+/**
+ * Get the completed at filter config
+ * @template K - The filter key
+ * @param key - The filter key to use
+ * @returns A function that takes parameters and returns the completed at filter config
+ */
+export const getCompletedAtFilterConfig =
+  <P extends TFilterProperty>(key: P): TCreateFilterConfig<P, TCreateDateFilterParams> =>
+  (params: TCreateDateFilterParams) =>
+    createFilterConfig<P>({
+      id: key,
+      label: "Completed at",
+      ...params,
+      icon: params.filterIcon,
+      allowMultipleFilters: true,
+      supportedOperatorConfigsMap: getWorkItemDateOperators(params),
     });

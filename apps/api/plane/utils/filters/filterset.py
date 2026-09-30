@@ -193,6 +193,34 @@ class IssueFilterSet(BaseFilterSet):
     updated_at__exact = filters.DateFilter(field_name="updated_at", lookup_expr="date")
     updated_at__range = DateCSVRangeFilter(field_name="updated_at", lookup_expr="date__range")
 
+    # The capabilities of the query language (plane.utils.pql), for the click-together
+    # filters: when a work item was completed, before / after any date, the hierarchy
+    # (below a work item at any depth, or directly under it) and words in the title.
+    completed_at = filters.DateFilter(field_name="completed_at", lookup_expr="date")
+    completed_at__exact = filters.DateFilter(field_name="completed_at", lookup_expr="date")
+    completed_at__range = DateCSVRangeFilter(field_name="completed_at", lookup_expr="date__range")
+
+    # "after" / "before" a day, the day itself excluded
+    start_date__gt = filters.DateFilter(field_name="start_date", lookup_expr="gt")
+    start_date__lt = filters.DateFilter(field_name="start_date", lookup_expr="lt")
+    target_date__gt = filters.DateFilter(field_name="target_date", lookup_expr="gt")
+    target_date__lt = filters.DateFilter(field_name="target_date", lookup_expr="lt")
+    created_at__gt = filters.DateFilter(field_name="created_at", lookup_expr="date__gt")
+    created_at__lt = filters.DateFilter(field_name="created_at", lookup_expr="date__lt")
+    updated_at__gt = filters.DateFilter(field_name="updated_at", lookup_expr="date__gt")
+    updated_at__lt = filters.DateFilter(field_name="updated_at", lookup_expr="date__lt")
+    completed_at__gt = filters.DateFilter(field_name="completed_at", lookup_expr="date__gt")
+    completed_at__lt = filters.DateFilter(field_name="completed_at", lookup_expr="date__lt")
+
+    # every work item below the given ones, at any depth: descendantOf() in a query
+    ancestor_id = filters.UUIDFilter(method="filter_ancestor_id")
+    ancestor_id__in = UUIDInFilter(method="filter_ancestor_id", lookup_expr="in")
+    # directly under the given ones: childOf() in a query
+    parent_id = filters.UUIDFilter(field_name="parent_id")
+    parent_id__in = UUIDInFilter(field_name="parent_id", lookup_expr="in")
+
+    name__icontains = filters.CharFilter(field_name="name", lookup_expr="icontains")
+
     class Meta:
         model = Issue
         fields = {
@@ -214,6 +242,13 @@ class IssueFilterSet(BaseFilterSet):
         if value in (False, "false", "False", 0, "0"):
             return Q(archived_at__isnull=True)
         return Q()  # No filter
+
+    def filter_ancestor_id(self, queryset, name, value):
+        """Work items below the given ones at any depth (cycle-safe recursive query)."""
+        # deferred import: plane.utils.pql imports the filter helpers of this package
+        from plane.utils.pql.filters import descendants_q
+
+        return descendants_q(value if isinstance(value, (list, tuple)) else [value])
 
     # Filter methods with soft delete exclusion for relations
 

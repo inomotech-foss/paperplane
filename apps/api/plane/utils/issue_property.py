@@ -378,7 +378,7 @@ CUSTOM_PROPERTY_CONDITION_KEY_RE = re.compile(
     r"(?:__(?P<operator>[a-z_]+))?$"
 )
 
-CUSTOM_PROPERTY_SUPPORTED_OPERATORS = {"exact", "in", "gt", "lt", "range"}
+CUSTOM_PROPERTY_SUPPORTED_OPERATORS = {"exact", "in", "gt", "lt", "range", "icontains"}
 
 
 def parse_custom_property_condition_key(key):
@@ -435,9 +435,25 @@ def build_custom_property_condition_q(property_obj, operator, raw):
         "property_values__deleted_at__isnull": True,
     }
 
+    if operator == "icontains":
+        if property_obj.property_type != PropertyTypeChoices.TEXT:
+            raise PropertyValueError("'icontains' filters are only supported for TEXT properties")
+        if isinstance(raw, (list, dict, bool)) or raw is None or not str(raw).strip():
+            raise PropertyValueError("'icontains' expects some text")
+        base_kwargs["property_values__value_text__icontains"] = str(raw)
+        return Q(**base_kwargs)
+
     if operator in ("gt", "lt"):
+        if property_obj.property_type == PropertyTypeChoices.DATETIME:
+            # "after" / "before" a day: the whole day is excluded
+            day = parse_datetime_value(raw)
+            if operator == "gt":
+                base_kwargs["property_values__value_date__gte"] = day + timedelta(days=1)
+            else:
+                base_kwargs["property_values__value_date__lt"] = day
+            return Q(**base_kwargs)
         if property_obj.property_type != PropertyTypeChoices.DECIMAL:
-            raise PropertyValueError(f"'{operator}' filters are only supported for DECIMAL properties")
+            raise PropertyValueError(f"'{operator}' filters are only supported for DECIMAL and DATETIME properties")
         base_kwargs[f"property_values__value_number__{operator}"] = parse_number(raw)
         return Q(**base_kwargs)
 

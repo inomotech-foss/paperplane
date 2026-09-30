@@ -22,4 +22,5 @@ export const transformGroup = <P extends TFilterProperty>(
 ): TTreeTransformResult<P> =>
   processGroupNode(group, {
     onAndGroup: (andGroup) => transformGroupWithChildren(andGroup, transformFn),
+    onNotGroup: (notGroup) => transformGroupWithChildren(notGroup, transformFn),
   });

@@ -12,6 +12,7 @@ import type { TBaseFilterFieldConfig } from "./shared";
  */
 export const EXTENDED_FILTER_FIELD_TYPE = {
   NUMBER: "number",
+  TEXT: "text",
 } as const;
 
 // -------- NUMBER FILTER CONFIGURATION --------
@@ -26,9 +27,25 @@ export type TNumberFilterFieldConfig<V extends TFilterValue> = TBaseFilterFieldC
   defaultValue?: V;
 };
 
+// -------- TEXT FILTER CONFIGURATION --------
+
+/**
+ * Text filter configuration - free text matched with `icontains` (the title, text
+ * custom properties).
+ * - defaultValue: Initial text
+ * - placeholder: Hint shown while the input is empty
+ */
+export type TTextFilterFieldConfig<V extends TFilterValue> = TBaseFilterFieldConfig & {
+  type: typeof EXTENDED_FILTER_FIELD_TYPE.TEXT;
+  defaultValue?: V;
+  placeholder?: string;
+};
+
 // -------- UNION TYPES --------
 
 /**
  * All extended filter configurations
  */
-export type TExtendedFilterFieldConfigs<V extends TFilterValue = TFilterValue> = TNumberFilterFieldConfig<V>;
+export type TExtendedFilterFieldConfigs<V extends TFilterValue = TFilterValue> =
+  | TNumberFilterFieldConfig<V>
+  | TTextFilterFieldConfig<V>;

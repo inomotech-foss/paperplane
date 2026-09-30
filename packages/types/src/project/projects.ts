@@ -157,6 +157,10 @@ export type TProjectIssuesSearchParams = {
   workspace_search: boolean;
   target_date?: string;
   epic?: boolean;
+  /** only work items that have sub-work items */
+  has_children?: boolean;
+  /** at most this many results (default 100, at most 2000) */
+  limit?: number;
 };
 
 export interface ISearchIssueResponse {

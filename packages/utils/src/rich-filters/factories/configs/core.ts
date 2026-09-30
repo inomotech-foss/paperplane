@@ -155,3 +155,16 @@ export const getNumberPickerConfig = (config: TNumberConfig) =>
     type: FILTER_FIELD_TYPE.NUMBER,
     ...config,
   });
+
+// ------------ Text filters ------------
+
+export type TTextConfig = TBaseFilterFieldConfig & {
+  defaultValue?: string;
+  placeholder?: string;
+};
+
+export const getTextInputConfig = (config: TTextConfig) =>
+  createFilterFieldConfig<typeof FILTER_FIELD_TYPE.TEXT, string>({
+    type: FILTER_FIELD_TYPE.TEXT,
+    ...config,
+  });

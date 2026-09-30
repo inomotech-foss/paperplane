@@ -7,6 +7,7 @@
 import { v4 as uuidv4 } from "uuid";
 // plane imports
 import type {
+  TFilterNotGroupNode,
   TFilterAndGroupNode,
   TFilterConditionNode,
   TFilterConditionPayload,
@@ -41,4 +42,12 @@ export const createAndGroupNode = <P extends TFilterProperty>(
   type: FILTER_NODE_TYPE.GROUP,
   logicalOperator: LOGICAL_OPERATOR.AND,
   children: nodes,
+});
+
+/** Negate one node: `state is Done` becomes `state is not Done`. */
+export const createNotGroupNode = <P extends TFilterProperty>(node: TFilterExpression<P>): TFilterNotGroupNode<P> => ({
+  id: uuidv4(),
+  type: FILTER_NODE_TYPE.GROUP,
+  logicalOperator: LOGICAL_OPERATOR.NOT,
+  children: [node],
 });

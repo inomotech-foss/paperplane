@@ -12,7 +12,7 @@ import {
   CORE_COMPARISON_OPERATOR,
   CORE_MULTI_VALUE_OPERATORS,
 } from "./core";
-import type { TExtendedSupportedOperators } from "./extended";
+import type { TExtendedSupportedOperators, TNegatedOperators } from "./extended";
 import {
   EXTENDED_LOGICAL_OPERATOR,
   EXTENDED_EQUALITY_OPERATOR,
@@ -64,7 +64,7 @@ export type TSupportedOperators = TCoreSupportedOperators | TExtendedSupportedOp
 /**
  * All operators available for use in rich filters UI, including negated versions.
  */
-export type TAllAvailableOperatorsForDisplay = TSupportedOperators;
+export type TAllAvailableOperatorsForDisplay = TSupportedOperators | TNegatedOperators;
 
 // -------- RE-EXPORTS --------
 

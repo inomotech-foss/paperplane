@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useMemo } from "react";
-import { AtSign, Briefcase, Layers } from "lucide-react";
+import { AtSign, Briefcase, CircleCheck, CornerLeftUp, Layers, ListTree, Type } from "lucide-react";
 // plane imports
 import { Logo } from "@plane/propel/emoji-icon-picker";
 import {
@@ -34,8 +34,13 @@ import type {
   TWorkItemFilterProperty,
 } from "@plane/types";
 import { Avatar } from "@plane/ui";
+import type { TWorkItemFilterOption } from "@plane/utils";
 import {
   getAssigneeFilterConfig,
+  getBelowWorkItemFilterConfig,
+  getCompletedAtFilterConfig,
+  getParentWorkItemFilterConfig,
+  getTitleFilterConfig,
   getCustomPropertyFilterConfig,
   getCreatedAtFilterConfig,
   getCreatedByFilterConfig,
@@ -68,6 +73,10 @@ import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 // plane web imports
 import { useFiltersOperatorConfigs } from "@/hooks/rich-filters/use-filters-operator-configs";
+// services
+import { ProjectService } from "@/services/project";
+
+const projectService = new ProjectService();
 
 export type TWorkItemFiltersEntityProps = {
   workspaceSlug: string;
@@ -146,6 +155,32 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
     [projectIds, getProjectById]
   );
   const areAllConfigsInitialized = useMemo(() => isLoaderReady(projectLoader), [projectLoader]);
+  // the work items with sub-work items, for "Below" and "Parent"; loaded once per project, when a picker opens
+  const getParentWorkItems = useMemo(() => {
+    let request: Promise<TWorkItemFilterOption[]> | undefined;
+    return () => {
+      if (!projectId) return Promise.resolve([]);
+      request ??= projectService
+        .projectIssuesSearch(workspaceSlug, projectId, {
+          search: "",
+          workspace_search: false,
+          has_children: true,
+          limit: 2000,
+        })
+        .then((workItems) =>
+          workItems.map((workItem) => ({
+            id: workItem.id,
+            name: workItem.name,
+            identifier: `${workItem.project__identifier}-${workItem.sequence_id}`,
+          }))
+        )
+        .catch((error: unknown) => {
+          request = undefined; // try again next time
+          throw error;
+        });
+      return request;
+    };
+  }, [workspaceSlug, projectId]);
 
   /**
    * Checks if a filter is enabled based on the filters to show.
@@ -357,6 +392,52 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
     [operatorConfigs]
   );
 
+  // completed at filter config
+  const completedAtFilterConfig = useMemo(
+    () =>
+      getCompletedAtFilterConfig<TWorkItemFilterProperty>("completed_at")({
+        isEnabled: true,
+        filterIcon: CircleCheck,
+        ...operatorConfigs,
+      }),
+    [operatorConfigs]
+  );
+
+  // title filter config
+  const titleFilterConfig = useMemo(
+    () =>
+      getTitleFilterConfig<TWorkItemFilterProperty>("name")({
+        isEnabled: true,
+        filterIcon: Type,
+        ...operatorConfigs,
+      }),
+    [operatorConfigs]
+  );
+
+  // below (any depth) and parent (direct) filter configs
+  const belowFilterConfig = useMemo(
+    () =>
+      getBelowWorkItemFilterConfig<TWorkItemFilterProperty>("ancestor_id")({
+        isEnabled: !!projectId,
+        filterIcon: ListTree,
+        getWorkItems: getParentWorkItems,
+        tooltipContent: "Work items anywhere below the picked ones: their children, grandchildren, ...",
+        ...operatorConfigs,
+      }),
+    [projectId, getParentWorkItems, operatorConfigs]
+  );
+  const parentFilterConfig = useMemo(
+    () =>
+      getParentWorkItemFilterConfig<TWorkItemFilterProperty>("parent_id")({
+        isEnabled: !!projectId,
+        filterIcon: CornerLeftUp,
+        getWorkItems: getParentWorkItems,
+        tooltipContent: "Work items directly under the picked ones",
+        ...operatorConfigs,
+      }),
+    [projectId, getParentWorkItems, operatorConfigs]
+  );
+
   // project filter config
   const projectFilterConfig = useMemo(
     () =>
@@ -410,6 +491,7 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
   return {
     areAllConfigsInitialized,
     configs: [
+      titleFilterConfig,
       stateFilterConfig,
       stateGroupFilterConfig,
       assigneeFilterConfig,
@@ -420,10 +502,13 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
       cycleFilterConfig,
       moduleFilterConfig,
       issueTypeFilterConfig,
+      belowFilterConfig,
+      parentFilterConfig,
       startDateFilterConfig,
       targetDateFilterConfig,
       createdAtFilterConfig,
       updatedAtFilterConfig,
+      completedAtFilterConfig,
       createdByFilterConfig,
       subscriberFilterConfig,
       ...customPropertyFilterConfigs,
@@ -445,6 +530,10 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
       target_date: targetDateFilterConfig,
       created_at: createdAtFilterConfig,
       updated_at: updatedAtFilterConfig,
+      completed_at: completedAtFilterConfig,
+      name: titleFilterConfig,
+      ancestor_id: belowFilterConfig,
+      parent_id: parentFilterConfig,
       ...Object.fromEntries(customPropertyFilterConfigs.map((config) => [config.id, config])),
     },
     isFilterEnabled,
