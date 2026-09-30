@@ -59,6 +59,9 @@ class Adapter:
     def create_update_account(self, user):
         raise NotImplementedError
 
+    def get_linked_user(self):
+        return None
+
     def authenticate(self):
         raise NotImplementedError
 
@@ -313,6 +316,20 @@ class Adapter:
         user.save()
         return user
 
+    def __change_email(self, user, email):
+        if User.objects.filter(email=email).exclude(pk=user.pk).exists():
+            self.logger.warning(
+                "Provider email is already used by another user",
+                extra={"user_id": str(user.id), "provider": self.provider},
+            )
+            raise AuthenticationException(
+                error_code=AUTHENTICATION_ERROR_CODES["USER_ALREADY_EXIST"],
+                error_message="USER_ALREADY_EXIST",
+                payload={"email": email},
+            )
+        user.email = email
+        user.save(update_fields=["email"])
+
     def complete_login_or_signup(self):
         # Get email
         email = self.user_data.get("email")
@@ -320,8 +337,9 @@ class Adapter:
         # Sanitize email
         email = self.sanitize_email(email)
 
-        # Check if the user is present
-        user = User.objects.filter(email=email).first()
+        # A user already linked to this provider identity wins over an email match,
+        # so a changed address at the provider does not create a second account.
+        user = self.get_linked_user() or User.objects.filter(email=email).first()
 
         # Reject explicitly-deactivated accounts (GHSA-rmmf-rj2q-3rrg).
         # The deactivation endpoint always sets last_logout_time, so using it
@@ -349,6 +367,9 @@ class Adapter:
                 error_message="BOT_USER_LOGIN_FORBIDDEN",
                 payload={"email": email},
             )
+
+        if user and user.email != email:
+            self.__change_email(user, email)
 
         # True = new user (signup), False = returning user (login)
         is_signup = not bool(user)
