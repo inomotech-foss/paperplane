@@ -1,0 +1,66 @@
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { observer } from "mobx-react";
+import { useParams } from "next/navigation";
+import useSWR from "swr";
+// plane imports
+import { useTranslation } from "@plane/i18n";
+import { ScrollArea } from "@makeplane/propel/components/scroll-area";
+// components
+import { SubPageItem } from "@/components/pages/sub-page-item";
+// hooks
+import type { EPageStoreType } from "@/hooks/store";
+import { usePageStore } from "@/hooks/store";
+// store
+import type { TPageInstance } from "@/store/pages/base-page";
+
+type Props = {
+  page: TPageInstance;
+  storeType: EPageStoreType;
+};
+
+export const PageNavigationPaneSubPagesTabPanel = observer(function PageNavigationPaneSubPagesTabPanel(props: Props) {
+  const { page, storeType } = props;
+  // router
+  const { workspaceSlug } = useParams();
+  // store hooks
+  const { getChildPageIds, fetchPagesList } = usePageStore(storeType);
+  // translation
+  const { t } = useTranslation();
+  // derived values
+  const projectId = page.project_ids?.[0];
+  // make sure the project pages list is available when the page is opened directly
+  useSWR(
+    workspaceSlug && projectId ? `PROJECT_PAGES_${projectId}` : null,
+    workspaceSlug && projectId ? () => fetchPagesList(workspaceSlug.toString(), projectId) : null
+  );
+  const subPageIds = page.id ? getChildPageIds(page.id) : [];
+
+  if (subPageIds.length === 0)
+    return (
+      <div className="grid size-full place-items-center px-4">
+        <div className="space-y-2.5 text-center">
+          <h4 className="text-14 font-medium">{t("page_navigation_pane.tabs.sub_pages.empty_state.title")}</h4>
+          <p className="text-13 font-medium text-secondary">
+            {t("page_navigation_pane.tabs.sub_pages.empty_state.description")}
+          </p>
+        </div>
+      </div>
+    );
+
+  return (
+    <div className="flex size-full flex-col overflow-hidden">
+      <ScrollArea orientation="vertical">
+        <div className="mt-2 space-y-0.5 px-2.5">
+          {subPageIds.map((subPageId) => (
+            <SubPageItem key={subPageId} pageId={subPageId} storeType={storeType} />
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+});

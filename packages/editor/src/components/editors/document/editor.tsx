@@ -1,0 +1,145 @@
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import type { Extensions } from "@tiptap/core";
+import type { MutableRefObject } from "react";
+import { forwardRef, useMemo } from "react";
+// plane imports
+import { cn } from "@plane/utils";
+// components
+import { PageRenderer } from "@/components/editors";
+// constants
+import { DEFAULT_DISPLAY_CONFIG } from "@/constants/config";
+// extensions
+import { HeadingListExtension, SideMenuExtension } from "@/extensions";
+// helpers
+import { getEditorClassNames } from "@/helpers/common";
+// hooks
+import { useEditor } from "@/hooks/use-editor";
+// plane editor extensions
+import { DocumentEditorAdditionalExtensions } from "@/extensions/document-extensions";
+// types
+import type { EditorRefApi, IDocumentEditorProps } from "@/types";
+
+function DocumentEditor(props: IDocumentEditorProps) {
+  const {
+    bubbleMenuEnabled = false,
+    childPagesHandler,
+    containerClassName,
+    diagramHandler,
+    disabledExtensions,
+    displayConfig = DEFAULT_DISPLAY_CONFIG,
+    editable,
+    editorClassName = "",
+    embedHandler,
+    extendedEditorProps,
+    fileHandler,
+    flaggedExtensions,
+    forwardedRef,
+    getEditorMetaData,
+    handleEditorReady,
+    id,
+    isTouchDevice,
+    mentionHandler,
+    onChange,
+    pageAttachmentsHandler,
+    queryBlockHandler,
+    user,
+    value,
+    workItemEmbedHandler,
+  } = props;
+  const extensions: Extensions = useMemo(() => {
+    const additionalExtensions: Extensions = [];
+    additionalExtensions.push(
+      SideMenuExtension({
+        aiEnabled: !disabledExtensions?.includes("ai"),
+        dragDropEnabled: true,
+      }),
+      HeadingListExtension,
+      ...DocumentEditorAdditionalExtensions({
+        childPagesHandler,
+        diagramHandler,
+        disabledExtensions,
+        embedHandler,
+        extendedEditorProps,
+        flaggedExtensions,
+        isEditable: editable,
+        fileHandler,
+        pageAttachmentsHandler,
+        queryBlockHandler,
+        userDetails: user ?? {
+          id: "",
+          name: "",
+          color: "",
+        },
+        workItemEmbedHandler,
+      })
+    );
+    return additionalExtensions;
+  }, [
+    childPagesHandler,
+    diagramHandler,
+    disabledExtensions,
+    editable,
+    embedHandler,
+    extendedEditorProps,
+    fileHandler,
+    flaggedExtensions,
+    pageAttachmentsHandler,
+    queryBlockHandler,
+    user,
+    workItemEmbedHandler,
+  ]);
+
+  const editor = useEditor({
+    disabledExtensions,
+    editable,
+    editorClassName,
+    enableHistory: true,
+    extendedEditorProps,
+    extensions,
+    fileHandler,
+    flaggedExtensions,
+    forwardedRef,
+    getEditorMetaData,
+    handleEditorReady,
+    id,
+    initialValue: value,
+    mentionHandler,
+    onChange,
+  });
+
+  const editorContainerClassName = getEditorClassNames({
+    containerClassName,
+  });
+
+  if (!editor) return null;
+
+  return (
+    <PageRenderer
+      bubbleMenuEnabled={bubbleMenuEnabled}
+      displayConfig={displayConfig}
+      editor={editor}
+      editorContainerClassName={cn(editorContainerClassName, "document-editor")}
+      extendedEditorProps={extendedEditorProps}
+      id={id}
+      flaggedExtensions={flaggedExtensions}
+      disabledExtensions={disabledExtensions}
+      isTouchDevice={!!isTouchDevice}
+    />
+  );
+}
+
+const DocumentEditorWithRef = forwardRef(function DocumentEditorWithRef(
+  props: IDocumentEditorProps,
+  ref: React.ForwardedRef<EditorRefApi>
+) {
+  return <DocumentEditor {...props} forwardedRef={ref as MutableRefObject<EditorRefApi | null>} />;
+});
+
+DocumentEditorWithRef.displayName = "DocumentEditorWithRef";
+
+export { DocumentEditorWithRef };

@@ -6,14 +6,13 @@
 
 import { useState } from "react";
 import { isEmpty } from "lodash-es";
-import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
+import type { FieldErrors } from "react-hook-form";
 // plane internal packages
 import { API_BASE_URL } from "@plane/constants";
-import { Button, getButtonStyling } from "@plane/propel/button";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+import { Switch } from "@makeplane/propel/components/switch";
+import { setToast } from "@plane/blocks/toast";
 import type { IFormattedInstanceConfiguration, TInstanceOidcAuthenticationConfigurationKeys } from "@plane/types";
-import { ToggleSwitch } from "@plane/ui";
 // components
 import { ConfirmDiscardModal } from "@/components/common/confirm-discard-modal";
 import type { TControllerInputFormField } from "@/components/common/controller-input";
@@ -21,7 +20,7 @@ import { ControllerInput } from "@/components/common/controller-input";
 import type { TControllerSwitchFormField } from "@/components/common/controller-switch";
 import { ControllerSwitch } from "@/components/common/controller-switch";
 import type { TCopyField } from "@/components/common/copy-field";
-import { CopyField } from "@/components/common/copy-field";
+import { ProviderFormActions, ProviderServiceDetails } from "@/components/authentication/provider-config-form";
 // hooks
 import { useInstance } from "@/hooks/store";
 
@@ -36,41 +35,8 @@ const OIDC_FORM_SWITCH_FIELD: TControllerSwitchFormField<OidcConfigFormValues> =
   label: "OIDC",
 };
 
-export function InstanceOIDCConfigForm(props: Props) {
-  const { config } = props;
-  // states
-  const [isDiscardChangesModalOpen, setIsDiscardChangesModalOpen] = useState(false);
-  // store hooks
-  const { updateInstanceConfigurations, managedConfigurationKeys } = useInstance();
-  // Keys reconciled by the Helm chart are owned by the deploy and shown read-only.
-  const isManaged = (key: string) => managedConfigurationKeys.has(key);
-  const hasManagedFields = managedConfigurationKeys.size > 0;
-  // form data
-  const {
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors, isDirty, isSubmitting },
-  } = useForm<OidcConfigFormValues>({
-    defaultValues: {
-      OIDC_ISSUER: config["OIDC_ISSUER"],
-      OIDC_CLIENT_ID: config["OIDC_CLIENT_ID"],
-      OIDC_CLIENT_SECRET: config["OIDC_CLIENT_SECRET"],
-      OIDC_PROVIDER_NAME: config["OIDC_PROVIDER_NAME"] || "SSO",
-      OIDC_SCOPES: config["OIDC_SCOPES"] || "openid email profile",
-      OIDC_TRUST_EMAIL: config["OIDC_TRUST_EMAIL"] || "0",
-      OIDC_AUTHORIZE_URL: config["OIDC_AUTHORIZE_URL"],
-      OIDC_TOKEN_URL: config["OIDC_TOKEN_URL"],
-      OIDC_USERINFO_URL: config["OIDC_USERINFO_URL"],
-      OIDC_JWKS_URL: config["OIDC_JWKS_URL"],
-      ENABLE_OIDC_SYNC: config["ENABLE_OIDC_SYNC"] || "0",
-      ENABLE_OIDC_SIGNUP: config["ENABLE_OIDC_SIGNUP"] || "1",
-    },
-  });
-
-  const originURL = !isEmpty(API_BASE_URL) ? API_BASE_URL : typeof window !== "undefined" ? window.location.origin : "";
-
-  const OIDC_FORM_FIELDS: TControllerInputFormField[] = [
+const getOidcFormFields = (errors: FieldErrors<OidcConfigFormValues>) => {
+  const main: TControllerInputFormField<OidcConfigFormValues>[] = [
     {
       key: "OIDC_ISSUER",
       type: "text",
@@ -117,7 +83,7 @@ export function InstanceOIDCConfigForm(props: Props) {
 
   // Optional: discovery covers these for most providers; set them only to override
   // a discovery document or for a provider that does not publish one.
-  const OIDC_ADVANCED_FIELDS: TControllerInputFormField[] = [
+  const advanced: TControllerInputFormField<OidcConfigFormValues>[] = [
     {
       key: "OIDC_SCOPES",
       type: "text",
@@ -164,6 +130,44 @@ export function InstanceOIDCConfigForm(props: Props) {
       required: false,
     },
   ];
+  return { main, advanced };
+};
+
+export function InstanceOIDCConfigForm(props: Props) {
+  const { config } = props;
+  // states
+  const [isDiscardChangesModalOpen, setIsDiscardChangesModalOpen] = useState(false);
+  // store hooks
+  const { updateInstanceConfigurations, managedConfigurationKeys } = useInstance();
+  // Keys reconciled by the Helm chart are owned by the deploy and shown read-only.
+  const isManaged = (key: string) => managedConfigurationKeys.has(key);
+  const hasManagedFields = managedConfigurationKeys.size > 0;
+  // form data
+  const {
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors, isDirty, isSubmitting },
+  } = useForm<OidcConfigFormValues>({
+    defaultValues: {
+      OIDC_ISSUER: config["OIDC_ISSUER"],
+      OIDC_CLIENT_ID: config["OIDC_CLIENT_ID"],
+      OIDC_CLIENT_SECRET: config["OIDC_CLIENT_SECRET"],
+      OIDC_PROVIDER_NAME: config["OIDC_PROVIDER_NAME"] || "SSO",
+      OIDC_SCOPES: config["OIDC_SCOPES"] || "openid email profile",
+      OIDC_TRUST_EMAIL: config["OIDC_TRUST_EMAIL"] || "0",
+      OIDC_AUTHORIZE_URL: config["OIDC_AUTHORIZE_URL"],
+      OIDC_TOKEN_URL: config["OIDC_TOKEN_URL"],
+      OIDC_USERINFO_URL: config["OIDC_USERINFO_URL"],
+      OIDC_JWKS_URL: config["OIDC_JWKS_URL"],
+      ENABLE_OIDC_SYNC: config["ENABLE_OIDC_SYNC"] || "0",
+      ENABLE_OIDC_SIGNUP: config["ENABLE_OIDC_SIGNUP"] || "1",
+    },
+  });
+
+  const originURL = !isEmpty(API_BASE_URL) ? API_BASE_URL : typeof window !== "undefined" ? window.location.origin : "";
+
+  const { main: OIDC_FORM_FIELDS, advanced: OIDC_ADVANCED_FIELDS } = getOidcFormFields(errors);
 
   const OIDC_SERVICE_FIELD: TCopyField[] = [
     {
@@ -180,7 +184,7 @@ export function InstanceOIDCConfigForm(props: Props) {
     try {
       const response = await updateInstanceConfigurations(payload);
       setToast({
-        type: TOAST_TYPE.SUCCESS,
+        type: "success",
         title: "Done!",
         message: "Your OIDC authentication is configured. You should test it now.",
       });
@@ -245,9 +249,10 @@ export function InstanceOIDCConfigForm(props: Props) {
                   control={control}
                   name="OIDC_TRUST_EMAIL"
                   render={({ field: { value, onChange } }) => (
-                    <ToggleSwitch
-                      value={value === "1"}
-                      onChange={() => onChange(value === "1" ? "0" : "1")}
+                    <Switch
+                      aria-label="Trust provider email addresses"
+                      checked={value === "1"}
+                      onCheckedChange={() => onChange(value === "1" ? "0" : "1")}
                       size="sm"
                       disabled={isManaged("OIDC_TRUST_EMAIL")}
                     />
@@ -268,9 +273,10 @@ export function InstanceOIDCConfigForm(props: Props) {
                   control={control}
                   name="ENABLE_OIDC_SIGNUP"
                   render={({ field: { value, onChange } }) => (
-                    <ToggleSwitch
-                      value={value === "1"}
-                      onChange={() => onChange(value === "1" ? "0" : "1")}
+                    <Switch
+                      aria-label="Allow sign-up via SSO"
+                      checked={value === "1"}
+                      onCheckedChange={() => onChange(value === "1" ? "0" : "1")}
                       size="sm"
                       disabled={isManaged("ENABLE_OIDC_SIGNUP")}
                     />
@@ -302,31 +308,14 @@ export function InstanceOIDCConfigForm(props: Props) {
                 disabled={isManaged(field.key)}
               />
             ))}
-            <div className="flex flex-col gap-1 pt-4">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={(e) => void handleSubmit(onSubmit)(e)}
-                  loading={isSubmitting}
-                  disabled={!isDirty}
-                >
-                  {isSubmitting ? "Saving" : "Save changes"}
-                </Button>
-                <Link href="/authentication" className={getButtonStyling("secondary", "lg")} onClick={handleGoBack}>
-                  Go back
-                </Link>
-              </div>
-            </div>
+            <ProviderFormActions
+              isDirty={isDirty}
+              isSubmitting={isSubmitting}
+              onSave={(e) => void handleSubmit(onSubmit)(e)}
+              onGoBack={handleGoBack}
+            />
           </div>
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex flex-col gap-y-4 rounded-lg bg-layer-1 px-6 pt-1.5 pb-4">
-              <div className="pt-2 text-18 font-medium">Plane-provided details for your provider</div>
-              {OIDC_SERVICE_FIELD.map((field) => (
-                <CopyField key={field.key} label={field.label} url={field.url} description={field.description} />
-              ))}
-            </div>
-          </div>
+          <ProviderServiceDetails title="Plane-provided details for your provider" fields={OIDC_SERVICE_FIELD} />
         </div>
       </div>
     </>

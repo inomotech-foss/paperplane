@@ -6,23 +6,18 @@
 
 import { useState } from "react";
 import { isEmpty } from "lodash-es";
-import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { Monitor } from "lucide-react";
 // plane internal packages
 import { API_BASE_URL } from "@plane/constants";
-import { Button, getButtonStyling } from "@plane/propel/button";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+import { setToast } from "@plane/blocks/toast";
 import type { IFormattedInstanceConfiguration, TInstanceGithubAuthenticationConfigurationKeys } from "@plane/types";
 // components
 import { CodeBlock } from "@/components/common/code-block";
 import { ConfirmDiscardModal } from "@/components/common/confirm-discard-modal";
 import type { TControllerInputFormField } from "@/components/common/controller-input";
 import type { TControllerSwitchFormField } from "@/components/common/controller-switch";
-import { ControllerSwitch } from "@/components/common/controller-switch";
-import { ControllerInput } from "@/components/common/controller-input";
 import type { TCopyField } from "@/components/common/copy-field";
-import { CopyField } from "@/components/common/copy-field";
+import { ProviderConfigFormLayout, ProviderWebServiceDetails } from "@/components/authentication/provider-config-form";
 // hooks
 import { useInstance } from "@/hooks/store";
 
@@ -60,7 +55,7 @@ export function InstanceGithubConfigForm(props: Props) {
 
   const originURL = !isEmpty(API_BASE_URL) ? API_BASE_URL : typeof window !== "undefined" ? window.location.origin : "";
 
-  const GITHUB_FORM_FIELDS: TControllerInputFormField[] = [
+  const GITHUB_FORM_FIELDS: TControllerInputFormField<GithubConfigFormValues>[] = [
     {
       key: "GITHUB_CLIENT_ID",
       type: "text",
@@ -165,7 +160,7 @@ export function InstanceGithubConfigForm(props: Props) {
     try {
       const response = await updateInstanceConfigurations(payload);
       setToast({
-        type: TOAST_TYPE.SUCCESS,
+        type: "success",
         title: "Done!",
         message: "Your GitHub authentication is configured. You should test it now.",
       });
@@ -194,68 +189,23 @@ export function InstanceGithubConfigForm(props: Props) {
         onDiscardHref="/authentication"
         handleClose={() => setIsDiscardChangesModalOpen(false)}
       />
-      <div className="flex flex-col gap-8">
-        <div className="grid w-full grid-cols-2 gap-x-12 gap-y-8">
-          <div className="col-span-2 flex flex-col gap-y-4 pt-1 md:col-span-1">
-            <div className="pt-2.5 text-18 font-medium">GitHub-provided details for Plane</div>
-            {GITHUB_FORM_FIELDS.map((field) => (
-              <ControllerInput
-                key={field.key}
-                control={control}
-                type={field.type}
-                name={field.key}
-                label={field.label}
-                description={field.description}
-                placeholder={field.placeholder}
-                error={field.error}
-                required={field.required}
-              />
-            ))}
-            <ControllerSwitch control={control} field={GITHUB_FORM_SWITCH_FIELD} />
-            <div className="flex flex-col gap-1 pt-4">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={(e) => void handleSubmit(onSubmit)(e)}
-                  loading={isSubmitting}
-                  disabled={!isDirty}
-                >
-                  {isSubmitting ? "Saving" : "Save changes"}
-                </Button>
-                <Link href="/authentication" className={getButtonStyling("secondary", "lg")} onClick={handleGoBack}>
-                  Go back
-                </Link>
-              </div>
-            </div>
-          </div>
-          <div className="col-span-2 flex flex-col gap-y-6 md:col-span-1">
-            <div className="pt-2 text-18 font-medium">Plane-provided details for GitHub</div>
-
-            <div className="flex flex-col gap-y-4">
-              {/* common service details */}
-              <div className="flex flex-col gap-y-4 rounded-lg bg-layer-1 px-6 py-4">
-                {GITHUB_COMMON_SERVICE_DETAILS.map((field) => (
-                  <CopyField key={field.key} label={field.label} url={field.url} description={field.description} />
-                ))}
-              </div>
-
-              {/* web service details */}
-              <div className="flex flex-col overflow-hidden rounded-lg">
-                <div className="flex items-center gap-x-3 bg-layer-3 px-6 py-3 text-11 font-medium text-secondary uppercase">
-                  <Monitor className="h-3 w-3" />
-                  Web
-                </div>
-                <div className="flex flex-col gap-y-4 bg-layer-1 px-6 py-4">
-                  {GITHUB_SERVICE_DETAILS.map((field) => (
-                    <CopyField key={field.key} label={field.label} url={field.url} description={field.description} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ProviderConfigFormLayout
+        title="GitHub-provided details for Plane"
+        control={control}
+        fields={GITHUB_FORM_FIELDS}
+        switchField={GITHUB_FORM_SWITCH_FIELD}
+        isDirty={isDirty}
+        isSubmitting={isSubmitting}
+        onSave={(e) => void handleSubmit(onSubmit)(e)}
+        onGoBack={handleGoBack}
+        serviceDetails={
+          <ProviderWebServiceDetails
+            title="Plane-provided details for GitHub"
+            commonFields={GITHUB_COMMON_SERVICE_DETAILS}
+            webFields={GITHUB_SERVICE_DETAILS}
+          />
+        }
+      />
     </>
   );
 }

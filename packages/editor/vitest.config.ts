@@ -10,10 +10,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@/plane-editor": path.resolve(__dirname, "./src/ce"),
-      "@/styles": path.resolve(__dirname, "./src/styles"),
-      "@": path.resolve(__dirname, "./src/core"),
-      src: path.resolve(__dirname, "./src"),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });

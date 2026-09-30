@@ -6,10 +6,22 @@
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 // plane imports
-import { Button } from "@plane/propel/button";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+import { Button } from "@makeplane/propel/components/button";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogContent,
+  DialogHeader,
+  DialogHeading,
+  DialogMain,
+  DialogTitle,
+} from "@makeplane/propel/components/dialog";
+import { Field } from "@makeplane/propel/components/field";
+import { Input, InputGroup } from "@makeplane/propel/components/input";
+import { TextArea, TextAreaGroup } from "@makeplane/propel/components/text-area";
+import { setToast } from "@plane/blocks/toast";
 import type { IOAuthApplication } from "@plane/types";
-import { EModalPosition, EModalWidth, Input, ModalCore, TextArea } from "@plane/ui";
 // hooks
 import { useOAuthApplication } from "@/hooks/store";
 
@@ -49,86 +61,111 @@ export function OAuthApplicationForm(props: Props) {
     try {
       if (application) {
         await updateApplication(application.id, payload);
-        setToast({ type: TOAST_TYPE.SUCCESS, title: "Saved", message: `${payload.name} was updated.` });
+        setToast({ type: "success", title: "Saved", message: `${payload.name} was updated.` });
         handleClose();
       } else {
         onCreated(await createApplication(payload));
       }
     } catch (error) {
       const message = (error as { error?: string })?.error ?? "Check the name and redirect URIs and try again.";
-      setToast({ type: TOAST_TYPE.ERROR, title: "That did not work", message });
+      setToast({ type: "error", title: "That did not work", message });
     }
   };
 
   return (
-    <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.TOP} width={EModalWidth.XXL}>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="space-y-4 p-5">
-          <h3 className="text-16 font-medium text-primary">
-            {isEditing ? "Edit application" : "Register an application"}
-          </h3>
-          <div className="space-y-1">
-            <label className="text-13 font-medium text-secondary" htmlFor="name">
-              Name
-            </label>
-            <Controller
-              control={control}
-              name="name"
-              rules={{ required: "Give the application a name." }}
-              render={({ field: { value, onChange } }) => (
-                <Input
-                  id="name"
-                  type="text"
-                  value={value}
-                  onChange={onChange}
-                  hasError={Boolean(errors.name)}
-                  placeholder="Plane MCP"
-                  className="w-full"
-                />
-              )}
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+    >
+      <DialogContent size="md">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogMain>
+            <DialogHeader>
+              <DialogHeading>
+                <DialogTitle>{isEditing ? "Edit application" : "Register an application"}</DialogTitle>
+              </DialogHeading>
+            </DialogHeader>
+            <DialogBody>
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-13 font-medium text-secondary" htmlFor="name">
+                    Name
+                  </label>
+                  <Controller
+                    control={control}
+                    name="name"
+                    rules={{ required: "Give the application a name." }}
+                    render={({ field: { value, onChange } }) => (
+                      <Field name="name" invalid={Boolean(errors.name)}>
+                        <InputGroup size="lg">
+                          <Input
+                            size="lg"
+                            id="name"
+                            type="text"
+                            value={value}
+                            onChange={onChange}
+                            placeholder="Plane MCP"
+                          />
+                        </InputGroup>
+                      </Field>
+                    )}
+                  />
+                  {errors.name && <p className="text-danger text-11">{errors.name.message}</p>}
+                </div>
+                <div className="space-y-1">
+                  <label className="text-13 font-medium text-secondary" htmlFor="redirect_uris">
+                    Redirect URIs
+                  </label>
+                  <Controller
+                    control={control}
+                    name="redirect_uris"
+                    rules={{ required: "At least one redirect URI is required." }}
+                    render={({ field: { value, onChange } }) => (
+                      <Field name="redirect_uris" invalid={Boolean(errors.redirect_uris)}>
+                        <TextAreaGroup resize="none">
+                          <TextArea
+                            size="md"
+                            surface="field"
+                            id="redirect_uris"
+                            value={value}
+                            onChange={onChange}
+                            placeholder="https://mcp.example.com/http/auth/callback"
+                            rows={4}
+                          />
+                        </TextAreaGroup>
+                      </Field>
+                    )}
+                  />
+                  <p className="text-11 text-tertiary">
+                    One per line. They must match the client&apos;s callback exactly, and only http and https are
+                    accepted.
+                  </p>
+                  {errors.redirect_uris && <p className="text-danger text-11">{errors.redirect_uris.message}</p>}
+                </div>
+                {isEditing && (
+                  <p className="text-11 text-tertiary">
+                    The client ID stays the same, so deployed clients keep working. The secret cannot be changed or read
+                    back.
+                  </p>
+                )}
+              </div>
+            </DialogBody>
+          </DialogMain>
+          <DialogActions>
+            <Button variant="secondary" size="md" stretch="auto" onClick={handleClose} label="Cancel" />
+            <Button
+              variant="primary"
+              size="md"
+              stretch="auto"
+              type="submit"
+              loading={isSubmitting}
+              label={isEditing ? "Save changes" : "Register"}
             />
-            {errors.name && <p className="text-danger text-11">{errors.name.message}</p>}
-          </div>
-          <div className="space-y-1">
-            <label className="text-13 font-medium text-secondary" htmlFor="redirect_uris">
-              Redirect URIs
-            </label>
-            <Controller
-              control={control}
-              name="redirect_uris"
-              rules={{ required: "At least one redirect URI is required." }}
-              render={({ field: { value, onChange } }) => (
-                <TextArea
-                  id="redirect_uris"
-                  value={value}
-                  onChange={onChange}
-                  hasError={Boolean(errors.redirect_uris)}
-                  placeholder="https://mcp.example.com/http/auth/callback"
-                  className="w-full resize-none text-13"
-                  rows={4}
-                />
-              )}
-            />
-            <p className="text-11 text-tertiary">
-              One per line. They must match the client&apos;s callback exactly, and only http and https are accepted.
-            </p>
-            {errors.redirect_uris && <p className="text-danger text-11">{errors.redirect_uris.message}</p>}
-          </div>
-          {isEditing && (
-            <p className="text-11 text-tertiary">
-              The client ID stays the same, so deployed clients keep working. The secret cannot be changed or read back.
-            </p>
-          )}
-        </div>
-        <div className="flex items-center justify-end gap-2 border-t border-subtle px-5 py-4">
-          <Button variant="secondary" size="sm" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" size="sm" type="submit" loading={isSubmitting}>
-            {isEditing ? "Save changes" : "Register"}
-          </Button>
-        </div>
-      </form>
-    </ModalCore>
+          </DialogActions>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

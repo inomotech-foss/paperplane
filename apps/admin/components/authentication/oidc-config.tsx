@@ -7,12 +7,12 @@
 import { observer } from "mobx-react";
 import Link from "next/link";
 // icons
-import { Settings2 } from "lucide-react";
+import { SettingsOutline } from "@makeplane/propel/icons";
 // plane internal packages
-import { getButtonStyling } from "@plane/propel/button";
+import { AnchorButton } from "@makeplane/propel/components/anchor-button";
+import { Button } from "@makeplane/propel/components/button";
+import { Switch } from "@makeplane/propel/components/switch";
 import type { TInstanceAuthenticationMethodKeys } from "@plane/types";
-import { ToggleSwitch } from "@plane/ui";
-import { cn } from "@plane/utils";
 // hooks
 import { useInstance } from "@/hooks/store";
 
@@ -34,25 +34,27 @@ export const OIDCConfiguration = observer(function OIDCConfiguration(props: Prop
     <>
       {OIDCConfigured ? (
         <div className="flex items-center gap-4">
-          <Link href="/authentication/oidc" className={cn(getButtonStyling("link", "base"), "font-medium")}>
-            Edit
-          </Link>
-          <ToggleSwitch
-            value={Boolean(parseInt(OIDCConfig))}
-            onChange={() => {
-              Boolean(parseInt(OIDCConfig)) === true
-                ? updateConfig("IS_OIDC_ENABLED", "0")
-                : updateConfig("IS_OIDC_ENABLED", "1");
+          <AnchorButton variant="primary" size="sm" render={<Link href="/authentication/oidc" />} label="Edit" />
+          <Switch
+            checked={Boolean(parseInt(OIDCConfig))}
+            onCheckedChange={() => {
+              updateConfig("IS_OIDC_ENABLED", parseInt(OIDCConfig) ? "0" : "1");
             }}
             size="sm"
+            aria-label="Enable OIDC"
             disabled={disabled}
           />
         </div>
       ) : (
-        <Link href="/authentication/oidc" className={cn(getButtonStyling("secondary", "base"), "text-tertiary")}>
-          <Settings2 className="h-4 w-4 p-0.5 text-tertiary" />
-          Configure
-        </Link>
+        <Button
+          variant="secondary"
+          size="sm"
+          stretch="auto"
+          nativeButton={false}
+          render={<Link href="/authentication/oidc" />}
+          icon={<SettingsOutline className="h-4 w-4 p-0.5 text-tertiary" />}
+          label="Configure"
+        />
       )}
     </>
   );

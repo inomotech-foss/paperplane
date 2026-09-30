@@ -143,6 +143,9 @@
       "error_message": "Page could not be removed from the collection. Please try again."
     }
   },
+  "page_content_limit_banner": {
+    "message": "Content limit reached and live sync is off. Create a new page or use nested pages to continue syncing."
+  },
   "page_list_tree": {
     "expand_button": "Expand sub-pages",
     "collapse_button": "Collapse sub-pages"

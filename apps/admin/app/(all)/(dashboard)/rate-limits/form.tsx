@@ -6,8 +6,8 @@
 
 import { useForm } from "react-hook-form";
 // plane internal packages
-import { Button } from "@plane/propel/button";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+import { Button } from "@makeplane/propel/components/button";
+import { setToast } from "@plane/blocks/toast";
 import type { IFormattedInstanceConfiguration, TInstanceRateLimitConfigurationKeys } from "@plane/types";
 // components
 import type { TControllerInputFormField } from "@/components/common/controller-input";
@@ -47,7 +47,7 @@ export function InstanceRateLimitForm(props: Props) {
     },
   });
 
-  const rateLimitFormFields: TControllerInputFormField[] = [
+  const rateLimitFormFields: TControllerInputFormField<RateLimitFormValues>[] = [
     {
       key: "API_KEY_RATE_LIMIT",
       type: "text",
@@ -102,7 +102,7 @@ export function InstanceRateLimitForm(props: Props) {
     }
     if (hasInvalid) {
       setToast({
-        type: TOAST_TYPE.ERROR,
+        type: "error",
         title: "Invalid rate limit",
         message: "Enter each limit as count/period, e.g. 60/minute.",
       });
@@ -112,7 +112,7 @@ export function InstanceRateLimitForm(props: Props) {
     await updateInstanceConfigurations(payload)
       .then(() =>
         setToast({
-          type: TOAST_TYPE.SUCCESS,
+          type: "success",
           title: "Success",
           message: "Rate limits updated successfully. Changes apply within a few seconds.",
         })
@@ -144,9 +144,15 @@ export function InstanceRateLimitForm(props: Props) {
         ))}
       </div>
       <div className="flex max-w-4xl items-center py-1">
-        <Button variant="primary" size="lg" onClick={handleSubmit(onSubmit)} loading={isSubmitting} disabled={!isDirty}>
-          {isSubmitting ? "Saving" : "Save changes"}
-        </Button>
+        <Button
+          variant="primary"
+          size="md"
+          stretch="auto"
+          onClick={handleSubmit(onSubmit)}
+          loading={isSubmitting}
+          disabled={!isDirty}
+          label={isSubmitting ? "Saving" : "Save changes"}
+        />
       </div>
     </div>
   );

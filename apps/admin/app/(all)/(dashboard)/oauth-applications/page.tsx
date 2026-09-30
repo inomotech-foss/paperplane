@@ -7,12 +7,13 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 // plane imports
-import { Button } from "@plane/propel/button";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+import { Button } from "@makeplane/propel/components/button";
+import { ConfirmDialog } from "@plane/blocks/dialog";
+import { setToast } from "@plane/blocks/toast";
 import type { IOAuthApplication } from "@plane/types";
-import { AlertModalCore, Loader } from "@plane/ui";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
+import { Skeleton } from "@/components/common/skeleton";
 // hooks
 import { useOAuthApplication } from "@/hooks/store";
 // types
@@ -45,14 +46,14 @@ const OAuthApplicationsPage = observer(function OAuthApplicationsPage(_props: Ro
     try {
       await deleteApplication(revoking.id);
       setToast({
-        type: TOAST_TYPE.SUCCESS,
+        type: "success",
         title: "Revoked",
         message: `${revoking.name} can no longer sign anyone in.`,
       });
       setRevoking(undefined);
     } catch (error) {
       const message = (error as { error?: string })?.error ?? "The application was not revoked.";
-      setToast({ type: TOAST_TYPE.ERROR, title: "That did not work", message });
+      setToast({ type: "error", title: "That did not work", message });
     } finally {
       setIsRevoking(false);
     }
@@ -73,21 +74,21 @@ const OAuthApplicationsPage = observer(function OAuthApplicationsPage(_props: Ro
           </div>
           <Button
             variant="primary"
-            size="base"
+            size="md"
+            stretch="auto"
             onClick={() => {
               setEditing(undefined);
               setIsFormOpen(true);
             }}
-          >
-            Register application
-          </Button>
+            label="Register application"
+          />
         </div>
 
         {loader === "init-loader" ? (
-          <Loader className="space-y-4">
-            <Loader.Item height="96px" width="100%" />
-            <Loader.Item height="96px" width="100%" />
-          </Loader>
+          <Skeleton className="space-y-4">
+            <Skeleton.Item height="96px" width="100%" />
+            <Skeleton.Item height="96px" width="100%" />
+          </Skeleton>
         ) : applicationIds.length === 0 ? (
           <p className="rounded-lg border border-subtle bg-layer-1 p-6 text-13 text-tertiary">
             No applications yet. Register one to get a client ID and secret for the MCP server.
@@ -121,7 +122,7 @@ const OAuthApplicationsPage = observer(function OAuthApplicationsPage(_props: Ro
 
       {created && <OAuthApplicationCredentials application={created} handleClose={() => setCreated(undefined)} />}
 
-      <AlertModalCore
+      <ConfirmDialog
         isOpen={Boolean(revoking)}
         handleClose={() => setRevoking(undefined)}
         handleSubmit={handleRevoke}

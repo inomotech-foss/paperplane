@@ -6,9 +6,9 @@
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { Loader } from "@plane/ui";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
+import { Skeleton } from "@/components/common/skeleton";
 // hooks
 import { useInstance } from "@/hooks/store";
 // types
@@ -33,12 +33,12 @@ const InstanceRateLimitsPage = observer(function InstanceRateLimitsPage(_props: 
       {formattedConfig ? (
         <InstanceRateLimitForm config={formattedConfig} />
       ) : (
-        <Loader className="space-y-10">
-          <Loader.Item height="50px" width="75%" />
-          <Loader.Item height="50px" width="75%" />
-          <Loader.Item height="50px" width="40%" />
-          <Loader.Item height="50px" width="20%" />
-        </Loader>
+        <Skeleton className="space-y-10">
+          <Skeleton.Item height="50px" width="75%" />
+          <Skeleton.Item height="50px" width="75%" />
+          <Skeleton.Item height="50px" width="40%" />
+          <Skeleton.Item height="50px" width="20%" />
+        </Skeleton>
       )}
     </PageWrapper>
   );

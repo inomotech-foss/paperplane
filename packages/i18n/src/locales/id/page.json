@@ -143,6 +143,9 @@
       "error_message": "Halaman tidak dapat dihapus dari koleksi. Silakan coba lagi."
     }
   },
+  "page_content_limit_banner": {
+    "message": "Batas konten tercapai dan sinkronisasi langsung nonaktif. Buat halaman baru atau gunakan halaman bertingkat untuk melanjutkan sinkronisasi."
+  },
   "page_list_tree": {
     "expand_button": "Perluas subhalaman",
     "collapse_button": "Ciutkan subhalaman"

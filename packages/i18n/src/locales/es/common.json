@@ -8,6 +8,7 @@
   "submit": "Enviar",
   "cancel": "Cancelar",
   "loading": "Cargando",
+  "searching": "Buscando...",
   "error": "Error",
   "success": "Éxito",
   "warning": "Advertencia",
@@ -304,6 +305,9 @@
   "create_new_label": "Crear nueva etiqueta",
   "label_name": "Nombre de etiqueta",
   "failed_to_create_label": "No se pudo crear la etiqueta. Por favor, inténtelo de nuevo.",
+  "no_matching_labels": "No hay etiquetas coincidentes",
+  "adding_label": "Agregando \"{name}\"",
+  "add_label_to_labels": "Agregar \"{name}\" a etiquetas",
   "start_date": "Fecha de inicio",
   "end_date": "Fecha de fin",
   "due_date": "Fecha de vencimiento",
@@ -523,6 +527,7 @@
       "updated_on": "Actualizado el"
     },
     "sort": {
+      "label": "Ordenar",
       "asc": "Ascendente",
       "desc": "Descendente",
       "created_on": "Creado el",
@@ -620,7 +625,8 @@
       "enable": "Habilitar",
       "disable": "Deshabilitar",
       "copy_markdown": "Copiar markdown",
-      "reply": "Responder"
+      "reply": "Responder",
+      "add_reaction": "Agregar una reacción"
     },
     "name": "Nombre",
     "discard": "Descartar",
@@ -868,5 +874,6 @@
       "description": "Exporta elementos de trabajo a un archivo JSON.",
       "short_description": "Exportar como json"
     }
-  }
+  },
+  "labels_count": "{count, plural, one {# etiqueta} other {# etiquetas}}"
 }

@@ -6,8 +6,8 @@
 
 import { useForm } from "react-hook-form";
 import { Lightbulb } from "lucide-react";
-import { Button } from "@plane/propel/button";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+import { Button } from "@makeplane/propel/components/button";
+import { setToast } from "@plane/blocks/toast";
 import type { IFormattedInstanceConfiguration, TInstanceServiceDeskConfigurationKeys } from "@plane/types";
 // components
 import type { TControllerInputFormField } from "@/components/common/controller-input";
@@ -39,7 +39,7 @@ export function InstanceServiceDeskForm(props: IInstanceServiceDeskForm) {
     },
   });
 
-  const serviceDeskFormFields: TControllerInputFormField[] = [
+  const serviceDeskFormFields: TControllerInputFormField<ServiceDeskFormValues>[] = [
     {
       key: "SERVICE_DESK_MS365_TENANT_ID",
       type: "text",
@@ -85,7 +85,7 @@ export function InstanceServiceDeskForm(props: IInstanceServiceDeskForm) {
     await updateInstanceConfigurations(payload)
       .then(() =>
         setToast({
-          type: TOAST_TYPE.SUCCESS,
+          type: "success",
           title: "Success",
           message: "Service Desk settings updated successfully",
         })
@@ -120,9 +120,14 @@ export function InstanceServiceDeskForm(props: IInstanceServiceDeskForm) {
       </div>
 
       <div className="flex flex-col items-start gap-4">
-        <Button variant="primary" size="lg" onClick={handleSubmit(onSubmit)} loading={isSubmitting}>
-          {isSubmitting ? "Saving" : "Save changes"}
-        </Button>
+        <Button
+          variant="primary"
+          size="md"
+          stretch="auto"
+          onClick={handleSubmit(onSubmit)}
+          loading={isSubmitting}
+          label={isSubmitting ? "Saving" : "Save changes"}
+        />
 
         <div className="relative inline-flex items-center gap-1.5 rounded-sm border border-accent-subtle bg-accent-subtle px-4 py-2 text-caption-sm-regular text-accent-secondary">
           <Lightbulb className="size-4 shrink-0" />

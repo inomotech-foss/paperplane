@@ -7,6 +7,7 @@
 export * from "./array";
 export * from "./attachment";
 export * from "./auth";
+export * from "./avatar-fallback";
 export * from "./calendar";
 export * from "./color";
 export * from "./common";

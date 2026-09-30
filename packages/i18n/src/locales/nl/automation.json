@@ -1,0 +1,478 @@
+{
+  "automations": {
+    "settings": {
+      "title": "Aangepaste automatiseringen",
+      "create_automation": "Automatisering aanmaken"
+    },
+    "scope": {
+      "label": "Bereik",
+      "run_on": "Uitvoeren op"
+    },
+    "trigger": {
+      "label": "Trigger",
+      "add_trigger": "Trigger toevoegen",
+      "sidebar_header": "Triggerconfiguratie",
+      "input_label": "Wat is de trigger voor deze automatisering?",
+      "input_placeholder": "Kies een optie",
+      "section_plane_events": "Plane-gebeurtenissen",
+      "section_time_based": "Tijdgebaseerd",
+      "fixed_schedule": "Vast schema",
+      "schedule": {
+        "frequency": "Frequentie",
+        "select_day": "Kies dag",
+        "day_of_month": "Dag van de maand",
+        "monthly_every": "Elke",
+        "monthly_day_aria": "Dag {day}",
+        "time": "Tijd",
+        "hour": "Uur",
+        "minute": "Minuut",
+        "hour_suffix": "uur",
+        "minute_suffix": "min",
+        "am": "AM",
+        "pm": "PM",
+        "timezone": "Tijdzone",
+        "timezone_placeholder": "Kies een tijdzone",
+        "frequency_daily": "Dagelijks",
+        "frequency_weekly": "Wekelijks",
+        "frequency_monthly": "Maandelijks",
+        "on": "Op",
+        "validation_weekly_day_required": "Kies ten minste één dag van de week.",
+        "validation_monthly_date_required": "Kies een dag van de maand.",
+        "main_content_schedule_summary_daily": "Elke dag om {time} ({timezone}).",
+        "main_content_schedule_summary_weekly": "Elke week op {days} om {time} ({timezone}).",
+        "main_content_schedule_summary_monthly": "Elke maand op dag {day} om {time} ({timezone}).",
+        "schedule_mode": "Schemamodus",
+        "schedule_mode_fixed": "Vast",
+        "schedule_mode_cron": "Cron",
+        "cron_expression_label": "Voer Cron-expressie in",
+        "cron_expression_placeholder": "0 9 * * 1-5",
+        "cron_invalid": "Ongeldige cron-expressie.",
+        "cron_preview": "Deze Cron-expressie wordt uitgevoerd als \"{description}\".",
+        "main_content_cron_summary": "{description} ({timezone})."
+      },
+      "button": {
+        "previous": "Terug",
+        "next": "Actie toevoegen"
+      },
+      "warning": {
+        "disabled_trigger_switching": "Je kunt het triggertype niet wijzigen nadat het is aangemaakt"
+      }
+    },
+    "condition": {
+      "label": "Mits",
+      "add_condition": "Voorwaarde toevoegen",
+      "adding_condition": "Voorwaarde toevoegen"
+    },
+    "action": {
+      "label": "Actie",
+      "add_action": "Actie toevoegen",
+      "sidebar_header": "Acties",
+      "input_label": "Wat doet de automatisering?",
+      "input_placeholder": "Kies een optie",
+      "handler_name": {
+        "add_comment": "Reactie toevoegen",
+        "change_property": "Eigenschap wijzigen",
+        "run_script": "Script uitvoeren",
+        "send_notification": "Melding versturen",
+        "create_work_item": "Werkitem aanmaken",
+        "archive_work_item": "Werkitem archiveren",
+        "call_webhook": "Webhook aanroepen"
+      },
+      "configuration": {
+        "label": "Configuratie",
+        "change_property": {
+          "placeholders": {
+            "property_name": "Kies een eigenschap",
+            "change_type": "Kies",
+            "property_value_select": "{count, plural, one{Kies waarde} other{Kies waarden}}",
+            "property_value_select_date": "Kies datum"
+          },
+          "validation": {
+            "property_name_required": "Eigenschapsnaam is verplicht",
+            "change_type_required": "Wijzigingstype is verplicht",
+            "property_value_required": "Eigenschapswaarde is verplicht"
+          }
+        },
+        "add_comment": {
+          "placeholder": "Schrijf de reactie die deze automatisering moet plaatsen."
+        },
+        "send_notification": {
+          "recipients_label": "Ontvangers",
+          "members_placeholder": "Kies leden",
+          "title_label": "Titel",
+          "title_placeholder": "Korte samenvatting",
+          "message_label": "Bericht",
+          "message_placeholder": "Wat moeten de ontvangers weten?"
+        },
+        "create_work_item": {
+          "name_label": "Titel",
+          "name_placeholder": "Geef een naam voor het werkitem dat deze automatisering aanmaakt",
+          "description_label": "Omschrijving",
+          "description_placeholder": "Omschrijf het werkitem",
+          "state_label": "Status",
+          "priority_label": "Prioriteit",
+          "assignees_label": "Toegewezenen",
+          "labels_label": "Labels",
+          "due_in_days_label": "Vervalt over (dagen na uitvoering)",
+          "link_to_trigger_label": "Maak er een subwerkitem van het werkitem dat dit heeft geactiveerd",
+          "project_label": "Project",
+          "project_hint": "Laat leeg om het werkitem aan te maken in het project waarvoor de uitvoering geldt."
+        },
+        "call_webhook": {
+          "url_label": "URL",
+          "url_placeholder": "https://example.com/hooks/plane",
+          "method_label": "Methode",
+          "payload_label": "Payload",
+          "payload_placeholder": "Laat dit leeg om de standaard payload te versturen."
+        },
+        "archive_work_item": {
+          "description": "Voor deze actie is geen configuratie nodig."
+        },
+        "relative_date": {
+          "mode_label": "Datum",
+          "mode_absolute": "Een specifieke datum",
+          "mode_relative": "Relatief aan de uitvoering",
+          "days_label": "Dagen na de uitvoering"
+        }
+      },
+      "comment_block": {
+        "title": "Reactie toevoegen"
+      },
+      "run_script_block": {
+        "title": "Script uitvoeren"
+      },
+      "change_property_block": {
+        "title": "Eigenschap wijzigen"
+      },
+      "validation": {
+        "delete_only_action": "Schakel de automatisering uit voordat je de enige actie verwijdert."
+      }
+    },
+    "conjunctions": {
+      "and": "En",
+      "or": "Of",
+      "if": "Als",
+      "then": "Dan"
+    },
+    "enable": {
+      "alert": "Klik op 'Inschakelen' zodra je automatisering klaar is. Eenmaal ingeschakeld is de automatisering klaar om te draaien.",
+      "validation": {
+        "required": "Een automatisering moet een trigger en ten minste één actie hebben om te kunnen worden ingeschakeld."
+      }
+    },
+    "delete": {
+      "validation": {
+        "enabled": "Een automatisering moet worden uitgeschakeld voordat je hem verwijdert."
+      }
+    },
+    "table": {
+      "title": "Titel van automatisering",
+      "scope": "Bereik",
+      "projects": "Projecten",
+      "last_run_on": "Laatst uitgevoerd op",
+      "created_on": "Aangemaakt op",
+      "last_updated_on": "Laatst bijgewerkt op",
+      "last_run_status": "Status laatste uitvoering",
+      "average_duration": "Gemiddelde duur",
+      "owner": "Eigenaar",
+      "executions": "Uitvoeringen"
+    },
+    "create_modal": {
+      "heading": {
+        "create": "Automatisering aanmaken",
+        "update": "Automatisering bijwerken"
+      },
+      "title": {
+        "placeholder": "Geef je automatisering een naam.",
+        "required_error": "Titel is verplicht"
+      },
+      "description": {
+        "placeholder": "Beschrijf je automatisering."
+      },
+      "submit_button": {
+        "create": "Automatisering aanmaken",
+        "update": "Automatisering bijwerken"
+      }
+    },
+    "delete_modal": {
+      "heading": "Automatisering verwijderen"
+    },
+    "activity": {
+      "filters": {
+        "show_fails": "Mislukkingen tonen",
+        "all": "Alle",
+        "only_activity": "Alleen activiteit",
+        "only_run_history": "Alleen uitvoeringsgeschiedenis"
+      },
+      "run_history": {
+        "initiator": "Initiator"
+      }
+    },
+    "toasts": {
+      "create": {
+        "success": {
+          "title": "Gelukt!",
+          "message": "Automatisering succesvol aangemaakt."
+        },
+        "error": {
+          "title": "Fout!",
+          "message": "Aanmaken van automatisering mislukt."
+        }
+      },
+      "update": {
+        "success": {
+          "title": "Gelukt!",
+          "message": "Automatisering succesvol bijgewerkt."
+        },
+        "error": {
+          "title": "Fout!",
+          "message": "Bijwerken van automatisering mislukt."
+        }
+      },
+      "enable": {
+        "success": {
+          "title": "Gelukt!",
+          "message": "Automatisering succesvol ingeschakeld."
+        },
+        "error": {
+          "title": "Fout!",
+          "message": "Inschakelen van automatisering mislukt."
+        }
+      },
+      "disable": {
+        "success": {
+          "title": "Gelukt!",
+          "message": "Automatisering succesvol uitgeschakeld."
+        },
+        "error": {
+          "title": "Fout!",
+          "message": "Uitschakelen van automatisering mislukt."
+        }
+      },
+      "delete": {
+        "success": {
+          "title": "Automatisering verwijderd",
+          "message": "{name}, de automatisering, is nu uit je project verwijderd."
+        },
+        "error": {
+          "title": "We konden die automatisering deze keer niet verwijderen.",
+          "message": "Probeer hem opnieuw te verwijderen of kom er later op terug. Als het dan niet lukt om hem te verwijderen, neem dan contact met ons op."
+        }
+      },
+      "action": {
+        "create": {
+          "error": {
+            "title": "Fout!",
+            "message": "Aanmaken van actie mislukt. Probeer het opnieuw!"
+          }
+        },
+        "update": {
+          "error": {
+            "title": "Fout!",
+            "message": "Bijwerken van actie mislukt. Probeer het opnieuw!"
+          }
+        }
+      },
+      "run_now": {
+        "success": {
+          "title": "In de wachtrij",
+          "message": "De automatisering wordt op de achtergrond uitgevoerd."
+        },
+        "error": {
+          "title": "Fout!",
+          "message": "We konden die uitvoering niet in de wachtrij zetten. Probeer het opnieuw."
+        }
+      }
+    },
+    "empty_state": {
+      "no_automations": {
+        "title": "Er zijn nog geen automatiseringen om te tonen.",
+        "description": "Automatiseringen helpen je repetitieve taken te elimineren door triggers, voorwaarden en acties in te stellen. Maak er een aan om tijd te besparen en het werk moeiteloos door te laten lopen."
+      },
+      "upgrade": {
+        "title": "Automatiseringen",
+        "description": "Automatiseringen zijn een manier om taken in je project te automatiseren.",
+        "sub_description": "Krijg 80% van je beheertijd terug als je Automatiseringen gebruikt."
+      }
+    },
+    "global_automations": {
+      "project_select": {
+        "label": "Kies projecten waarop deze automatisering wordt uitgevoerd",
+        "all_projects": {
+          "label": "Alle projecten",
+          "description": "De automatisering wordt uitgevoerd voor alle projecten in de werkruimte."
+        },
+        "select_projects": {
+          "label": "Projecten kiezen",
+          "description": "De automatisering wordt uitgevoerd voor geselecteerde projecten in de werkruimte.",
+          "placeholder": "Kies projecten"
+        }
+      },
+      "settings": {
+        "sidebar_label": "Automatiseringen",
+        "title": "Automatiseringen",
+        "description": "Standaardiseer processen in je hele werkruimte met globale automatiseringen."
+      },
+      "table": {
+        "scope": {
+          "global": "Globaal",
+          "project": {
+            "label": "Project",
+            "multiple": "Meerdere",
+            "all": "Alle"
+          }
+        }
+      }
+    },
+    "triggers": {
+      "work_item_created": "Werkitem is aangemaakt",
+      "work_item_updated": "Werkitem is bijgewerkt",
+      "work_item_deleted": "Werkitem is verwijderd",
+      "work_item_state_changed": "Status verandert",
+      "work_item_priority_changed": "Prioriteit verandert",
+      "work_item_assignees_changed": "Toegewezenen veranderen",
+      "work_item_labels_changed": "Labels veranderen",
+      "work_item_target_date_changed": "Vervaldatum verandert",
+      "work_item_parent_changed": "Bovenliggend werkitem verandert",
+      "work_item_comment_created": "Reactie is toegevoegd",
+      "work_item_added_to_cycle": "Werkitem is toegevoegd aan een cyclus",
+      "work_item_added_to_module": "Werkitem is toegevoegd aan een module",
+      "schedule": "Volgens een schema"
+    },
+    "properties": {
+      "state": "Status",
+      "state_group": "Statusgroep",
+      "priority": "Prioriteit",
+      "assignees": "Toegewezenen",
+      "labels": "Labels",
+      "modules": "Modules",
+      "cycle": "Cyclus",
+      "work_item_type": "Type werkitem",
+      "created_by": "Gemaakt door",
+      "triggered_by": "Geactiveerd door",
+      "project": "Project",
+      "name": "Titel",
+      "description": "Omschrijving",
+      "target_date": "Vervaldatum",
+      "start_date": "Startdatum",
+      "created_at": "Aangemaakt op",
+      "updated_at": "Laatst bijgewerkt op",
+      "estimate": "Inschatting",
+      "parent": "Bovenliggend werkitem",
+      "is_archived": "Gearchiveerd",
+      "sub_work_item_count": "Aantal subwerkitems"
+    },
+    "operators": {
+      "eq": "is",
+      "neq": "is niet",
+      "in": "is een van",
+      "not_in": "is geen van",
+      "contains": "bevat",
+      "not_contains": "bevat niet",
+      "is_empty": "is leeg",
+      "is_not_empty": "is niet leeg",
+      "gt": "is na",
+      "gte": "is op of na",
+      "lt": "is voor",
+      "lte": "is op of voor",
+      "changed": "is veranderd",
+      "changed_to": "is veranderd naar",
+      "changed_from": "is veranderd van",
+      "due_in_days": "vervalt binnen",
+      "overdue_by_days": "is minstens zoveel dagen te laat",
+      "older_than_days": "is ouder dan"
+    },
+    "operator_suffix": {
+      "days": "dagen"
+    },
+    "change_types": {
+      "set": "Instellen op",
+      "add": "Toevoegen",
+      "remove": "Verwijderen",
+      "clear": "Leegmaken",
+      "shift_days": "Verschuiven met"
+    },
+    "recipients": {
+      "assignees": "Toegewezenen",
+      "created_by": "Maker",
+      "actor": "Wie dit heeft geactiveerd",
+      "subscribers": "Abonnees",
+      "project_admins": "Projectbeheerders",
+      "specific_members": "Specifieke leden"
+    },
+    "state_groups": {
+      "backlog": "Backlog",
+      "unstarted": "Te doen",
+      "started": "Bezig",
+      "completed": "Klaar",
+      "cancelled": "Geannuleerd"
+    },
+    "priorities": {
+      "urgent": "Urgent",
+      "high": "Hoog",
+      "medium": "Gemiddeld",
+      "low": "Laag",
+      "none": "Geen"
+    },
+    "designer": {
+      "back_to_list": "Terug naar automatiseringen",
+      "run_now": "Nu uitvoeren",
+      "enable": "Inschakelen",
+      "disable": "Uitschakelen",
+      "enabled": "Ingeschakeld",
+      "disabled": "Uitgeschakeld",
+      "not_found": "We konden die automatisering niet vinden.",
+      "select_property": "Kies een eigenschap",
+      "select_operator": "Kies een voorwaarde",
+      "select_value": "Kies een waarde",
+      "enter_value": "Voer een waarde in",
+      "add_condition_group": "Geneste groep toevoegen",
+      "remove_condition": "Voorwaarde verwijderen",
+      "remove_group": "Groep verwijderen",
+      "remove_action": "Actie verwijderen",
+      "no_conditions": "Deze automatisering wordt elke keer uitgevoerd als de trigger afgaat.",
+      "owner": "Eigenaar",
+      "template_variables_label": "Variabelen die je kunt gebruiken",
+      "template_variables_hint": "Zet een variabelenaam tussen dubbele accolades om de waarde ervan in te voegen.",
+      "scheduled_target_label": "Uitvoeren op",
+      "scheduled_target_project": "Het project, één keer per uitvoering",
+      "scheduled_target_work_items": "Elk werkitem dat aan de voorwaarden voldoet",
+      "workspace_scope_note": "Een werkruimte-automatisering wordt uitgevoerd over meerdere projecten heen, dus statussen, labels, modules en cycli zijn hier niet beschikbaar — die bestaan per project."
+    },
+    "run_history": {
+      "title": "Uitvoeringsgeschiedenis",
+      "empty": "Deze automatisering is nog niet uitgevoerd.",
+      "started_at": "Gestart",
+      "duration": "Duur",
+      "status": "Status",
+      "trigger_source": "Geactiveerd door",
+      "processed_count": "Werkitems",
+      "step_error": "Fout",
+      "source_event": "Gebeurtenis",
+      "source_schedule": "Schema",
+      "source_manual": "Handmatig",
+      "status_success": "Geslaagd",
+      "status_failed": "Mislukt",
+      "status_partial": "Deels geslaagd",
+      "status_skipped": "Overgeslagen"
+    },
+    "days_of_week": {
+      "sunday": "Zondag",
+      "monday": "Maandag",
+      "tuesday": "Dinsdag",
+      "wednesday": "Woensdag",
+      "thursday": "Donderdag",
+      "friday": "Vrijdag",
+      "saturday": "Zaterdag"
+    },
+    "days_of_week_initial": {
+      "sunday": "Z",
+      "monday": "M",
+      "tuesday": "D",
+      "wednesday": "W",
+      "thursday": "D",
+      "friday": "V",
+      "saturday": "Z"
+    }
+  }
+}

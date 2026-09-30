@@ -20,18 +20,18 @@ export * from "@/helpers/common";
 export * from "@/helpers/yjs-utils";
 
 export { CORE_EXTENSIONS } from "@/constants/extension";
-export { ADDITIONAL_EXTENSIONS } from "@/plane-editor/constants/extensions";
+export { ADDITIONAL_EXTENSIONS } from "@/constants/extensions";
 
 // types
 export * from "@/types";
 
 // additional exports
-export { TrailingNode } from "./core/extensions/trailing-node";
+export { TrailingNode } from "@/extensions/trailing-node";
 export {
   COMMENT_MARK_CLASS,
   COMMENT_MARK_DATA_ATTRIBUTE,
   COMMENT_MARK_RESOLVED_ATTRIBUTE,
   EDITOR_COMMENT_RESOLVE_EVENT,
   EDITOR_COMMENT_UNSET_EVENT,
-} from "./core/extensions/comment/comment-mark";
-export { EDITOR_COMMENT_CREATE_EVENT } from "./core/helpers/editor-commands";
+} from "@/extensions/comment/comment-mark";
+export { EDITOR_COMMENT_CREATE_EVENT } from "@/helpers/editor-commands";

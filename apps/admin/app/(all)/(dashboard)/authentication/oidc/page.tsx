@@ -8,13 +8,14 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 // plane internal packages
-import { setPromiseToast } from "@plane/propel/toast";
-import { Loader, ToggleSwitch } from "@plane/ui";
+import { Switch } from "@makeplane/propel/components/switch";
+import { setPromiseToast } from "@plane/blocks/toast";
 // assets
 import oidcLogo from "@/app/assets/logos/oidc-logo.svg?url";
 // components
 import { AuthenticationMethodCard } from "@/components/authentication/authentication-method-card";
 import { PageWrapper } from "@/components/common/page-wrapper";
+import { Skeleton } from "@/components/common/skeleton";
 // hooks
 import { useInstance } from "@/hooks/store";
 // types
@@ -55,6 +56,7 @@ const InstanceOIDCAuthenticationPage = observer(function InstanceOIDCAuthenticat
     await updateConfigPromise
       .then(() => {
         setIsSubmitting(false);
+        return;
       })
       .catch((err) => {
         console.error(err);
@@ -72,9 +74,10 @@ const InstanceOIDCAuthenticationPage = observer(function InstanceOIDCAuthenticat
           description="Allow members to log in or sign up to Plane with your OpenID Connect provider, such as Microsoft Entra."
           icon={<img src={oidcLogo} height={24} width={24} alt="OIDC Logo" />}
           config={
-            <ToggleSwitch
-              value={isOIDCEnabled}
-              onChange={() => {
+            <Switch
+              aria-label="Enable OIDC authentication"
+              checked={isOIDCEnabled}
+              onCheckedChange={() => {
                 updateConfig("IS_OIDC_ENABLED", isOIDCEnabled ? "0" : "1");
               }}
               size="sm"
@@ -89,13 +92,13 @@ const InstanceOIDCAuthenticationPage = observer(function InstanceOIDCAuthenticat
       {formattedConfig ? (
         <InstanceOIDCConfigForm config={formattedConfig} />
       ) : (
-        <Loader className="space-y-8">
-          <Loader.Item height="50px" width="25%" />
-          <Loader.Item height="50px" />
-          <Loader.Item height="50px" />
-          <Loader.Item height="50px" />
-          <Loader.Item height="50px" width="50%" />
-        </Loader>
+        <Skeleton className="space-y-8">
+          <Skeleton.Item height="50px" width="25%" />
+          <Skeleton.Item height="50px" />
+          <Skeleton.Item height="50px" />
+          <Skeleton.Item height="50px" />
+          <Skeleton.Item height="50px" width="50%" />
+        </Skeleton>
       )}
     </PageWrapper>
   );

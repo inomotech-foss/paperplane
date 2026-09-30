@@ -143,6 +143,9 @@
       "error_message": "La page n'a pas pu être retirée de la collection. Veuillez réessayer."
     }
   },
+  "page_content_limit_banner": {
+    "message": "Limite de contenu atteinte et la synchronisation en direct est désactivée. Créez une nouvelle page ou utilisez des pages imbriquées pour continuer la synchronisation."
+  },
   "page_list_tree": {
     "expand_button": "Développer les sous-pages",
     "collapse_button": "Réduire les sous-pages"

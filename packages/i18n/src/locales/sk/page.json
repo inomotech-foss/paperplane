@@ -143,6 +143,9 @@
       "error_message": "Stránku sa nepodarilo odstrániť z kolekcie. Skúste to prosím znova."
     }
   },
+  "page_content_limit_banner": {
+    "message": "Bol dosiahnutý limit obsahu a živá synchronizácia je vypnutá. Vytvorte novú stránku alebo použite vnorené stránky na pokračovanie synchronizácie."
+  },
   "page_list_tree": {
     "expand_button": "Rozbaliť podstránky",
     "collapse_button": "Zbaliť podstránky"

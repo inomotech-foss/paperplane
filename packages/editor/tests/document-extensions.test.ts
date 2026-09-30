@@ -11,7 +11,7 @@ import { CustomStarterKitExtension } from "@/extensions/starter-kit";
 import {
   DocumentEditorAdditionalExtensions,
   type TDocumentEditorAdditionalExtensionsProps,
-} from "@/plane-editor/extensions";
+} from "@/extensions/document-extensions";
 
 // Several extensions read fields off their handler as they are constructed, and
 // this suite is only about which extensions get registered. One self-returning

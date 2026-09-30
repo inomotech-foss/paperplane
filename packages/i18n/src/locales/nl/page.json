@@ -1,0 +1,191 @@
+{
+  "page_navigation_pane": {
+    "tabs": {
+      "outline": {
+        "label": "Overzicht",
+        "empty_state": {
+          "title": "Ontbrekende koppen",
+          "description": "Laten we wat koppen op deze pagina zetten om ze hier te zien."
+        }
+      },
+      "sub_pages": {
+        "label": "Pagina's",
+        "empty_state": {
+          "title": "Geen subpagina's",
+          "description": "Pagina's die onder deze pagina zijn genest, verschijnen hier."
+        }
+      },
+      "info": {
+        "label": "Info",
+        "document_info": {
+          "words": "Woorden",
+          "characters": "Tekens",
+          "paragraphs": "Alinea's",
+          "read_time": "Leestijd"
+        },
+        "actors_info": {
+          "edited_by": "Bewerkt door",
+          "created_by": "Aangemaakt door"
+        },
+        "version_history": {
+          "label": "Versiegeschiedenis",
+          "current_version": "Huidige versie",
+          "highlight_changes": "Wijzigingen markeren"
+        }
+      },
+      "assets": {
+        "label": "Assets",
+        "download_button": "Downloaden",
+        "empty_state": {
+          "title": "Ontbrekende afbeeldingen",
+          "description": "Voeg afbeeldingen toe om ze hier te zien."
+        },
+        "attachments": {
+          "title": "Bijlagen",
+          "empty_state": {
+            "title": "Geen bijlagen"
+          },
+          "dropzone": "Klik of sleep bestanden hierheen",
+          "uploading": "Uploaden...",
+          "too_large": "Bestand is te groot (max {size} MB)",
+          "upload_success": "Bijlage toegevoegd",
+          "upload_error": "Het bestand kon niet worden geüpload",
+          "delete_error": "De bijlage kon niet worden verwijderd"
+        },
+        "embedded": {
+          "title": "Ingesloten afbeeldingen"
+        }
+      },
+      "comments": {
+        "label": "Reacties",
+        "empty_state": {
+          "title": "Geen reacties",
+          "description": "Voeg reacties toe om ze hier te zien."
+        },
+        "comment": "Reactie",
+        "reply": "Beantwoorden",
+        "reply_placeholder": "Reageren...",
+        "composer_placeholder": "Voeg een reactie toe...",
+        "resolve": "Oplossen",
+        "unresolve": "Heropenen",
+        "resolved": "Opgelost",
+        "unresolved": "Open",
+        "edited": "bewerkt"
+      }
+    },
+    "toasts": {
+      "errors": {
+        "wrong_name": "De sticky-naam mag niet langer zijn dan 100 tekens.",
+        "already_exists": "Er bestaat al een sticky zonder omschrijving"
+      },
+      "created": {
+        "title": "Sticky aangemaakt",
+        "message": "De sticky is succesvol aangemaakt"
+      },
+      "not_created": {
+        "title": "Sticky niet aangemaakt",
+        "message": "De sticky kon niet worden aangemaakt"
+      },
+      "updated": {
+        "title": "Sticky bijgewerkt",
+        "message": "De sticky is succesvol bijgewerkt"
+      },
+      "not_updated": {
+        "title": "Sticky niet bijgewerkt",
+        "message": "De sticky kon niet worden bijgewerkt"
+      },
+      "removed": {
+        "title": "Sticky verwijderd",
+        "message": "De sticky is succesvol verwijderd"
+      },
+      "not_removed": {
+        "title": "Sticky niet verwijderd",
+        "message": "De sticky kon niet worden verwijderd"
+      }
+    },
+    "open_button": "Navigatievenster openen",
+    "close_button": "Navigatievenster sluiten",
+    "outline_floating_button": "Overzicht openen"
+  },
+  "page_actions": {
+    "move_page": {
+      "submit_button": {
+        "default": "Verplaatsen",
+        "loading": "Verplaatsen"
+      },
+      "cannot_move_to_teamspace": "Privépagina's en gedeelde pagina's kunnen niet naar een teamspace worden verplaatst.",
+      "placeholders": {
+        "workspace_to_all": "Zoek naar projecten en teamspaces",
+        "workspace_to_project": "Zoek naar projecten",
+        "project_to_all": "Zoek naar projecten en teamspaces",
+        "project_to_project": "Zoek naar projecten",
+        "project_to_all_with_wiki": "Zoek naar wiki-collecties, projecten en teamspaces",
+        "project_to_project_with_wiki": "Zoek naar wiki-collecties en projecten"
+      },
+      "toasts": {
+        "success": {
+          "title": "Gelukt!",
+          "message": "Pagina succesvol verplaatst."
+        },
+        "error": {
+          "title": "Fout!",
+          "message": "Pagina kon niet worden verplaatst. Probeer het later opnieuw."
+        },
+        "collection_error": {
+          "title": "Verplaatst naar wiki",
+          "message": "Pagina is verplaatst naar de wiki, maar kon niet aan de geselecteerde collectie worden toegevoegd. De pagina blijft in Algemeen."
+        }
+      }
+    },
+    "remove_from_collection": {
+      "label": "Uit collectie verwijderen",
+      "success_message": "Pagina uit collectie verwijderd.",
+      "error_message": "Pagina kon niet uit de collectie worden verwijderd. Probeer het opnieuw."
+    }
+  },
+  "page_content_limit_banner": {
+    "message": "Inhoudslimiet bereikt en live-synchronisatie staat uit. Maak een nieuwe pagina aan of gebruik geneste pagina's om te blijven synchroniseren."
+  },
+  "page_list_tree": {
+    "expand_button": "Subpagina's uitklappen",
+    "collapse_button": "Subpagina's inklappen"
+  },
+  "page_diagram": {
+    "editor_title": "Diagrameditor",
+    "load_error": "Het diagram kon niet worden geopend",
+    "save_error": "Het diagram kon niet worden opgeslagen"
+  },
+  "page_embed": {
+    "url_input_placeholder": "Plak een URL om in te sluiten",
+    "submit_button": "Insluiten",
+    "invalid_url_error": "Voer een geldige http- of https-URL in",
+    "empty_state": "Nog geen embed toegevoegd",
+    "origin_not_allowed": "Deze herkomst kan hier niet worden ingesloten.",
+    "iframe_title": "Ingesloten inhoud"
+  },
+  "page_query_block": {
+    "loading": "Pagina's laden",
+    "error": "Pagina's konden niet worden geladen",
+    "unsupported": "Deze paginalijst is nog niet beschikbaar",
+    "unknown_user": "Onbekende gebruiker",
+    "page_count": "{count, plural, one {# pagina} other {# pagina's}}",
+    "empty_state": {
+      "tree": "Nog geen subpagina's",
+      "pages": "Geen pagina's komen overeen met deze lijst",
+      "contributors": "Nog geen bijdragers",
+      "search": "Geen pagina's komen overeen met je zoekopdracht",
+      "labels": "Nog geen labels in gebruik",
+      "tasks": "Nog geen taken",
+      "decisions": "Nog geen beslissingen vastgelegd"
+    },
+    "search_placeholder": "Pagina's zoeken",
+    "columns": {
+      "title": "Titel",
+      "updated": "Laatst bijgewerkt"
+    }
+  },
+  "page_work_item_embed": {
+    "loading": "Werkitem laden",
+    "error": "Dit werkitem kon niet worden geladen"
+  }
+}

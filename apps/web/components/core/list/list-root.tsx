@@ -1,0 +1,26 @@
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import React from "react";
+import { Row, ERowVariant } from "@plane/blocks/layout";
+
+interface IListContainer {
+  children: React.ReactNode;
+  containerRef?: React.Ref<HTMLDivElement>;
+}
+
+export function ListLayout(props: IListContainer) {
+  const { children, containerRef } = props;
+  return (
+    <Row
+      ref={containerRef}
+      variant={ERowVariant.HUGGING}
+      className="vertical-scrollbar scrollbar-lg flex h-full w-full flex-col overflow-y-auto"
+    >
+      {children}
+    </Row>
+  );
+}

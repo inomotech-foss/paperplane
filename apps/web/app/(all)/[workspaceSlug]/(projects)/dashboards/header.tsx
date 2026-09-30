@@ -8,8 +8,9 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane imports
 import { useTranslation } from "@plane/i18n";
-import { BarIcon } from "@plane/propel/icons";
-import { Breadcrumbs, Header } from "@plane/ui";
+import { DashboardsOutline } from "@makeplane/propel/icons";
+import { Breadcrumbs } from "@plane/blocks/breadcrumb";
+import { Header } from "@plane/blocks/layout";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 // hooks
@@ -30,7 +31,7 @@ export const WorkspaceDashboardsHeader = observer(function WorkspaceDashboardsHe
               <BreadcrumbLink
                 href={`/${workspaceSlug?.toString()}/dashboards/`}
                 label={t("insight_dashboards.title")}
-                icon={<BarIcon className="size-4 text-secondary" />}
+                icon={<DashboardsOutline className="size-4 text-secondary" />}
               />
             }
           />

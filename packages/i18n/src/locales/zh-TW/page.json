@@ -143,6 +143,9 @@
       "error_message": "無法將頁面從集合中移除。請再試一次。"
     }
   },
+  "page_content_limit_banner": {
+    "message": "已達到內容上限，即時同步已關閉。請建立新頁面或使用巢狀頁面以繼續同步。"
+  },
   "page_list_tree": {
     "expand_button": "展開子頁面",
     "collapse_button": "摺疊子頁面"
