@@ -100,6 +100,17 @@ class OauthAdapter(Adapter):
     def set_user_data(self, data):
         self.user_data = data
 
+    def get_linked_user(self):
+        provider_id = (self.user_data or {}).get("user", {}).get("provider_id")
+        if not provider_id:
+            return None
+        account = (
+            Account.objects.filter(provider=self.provider, provider_account_id=provider_id)
+            .select_related("user")
+            .first()
+        )
+        return account.user if account else None
+
     def create_update_account(self, user):
         try:
             # Check if the account already exists
