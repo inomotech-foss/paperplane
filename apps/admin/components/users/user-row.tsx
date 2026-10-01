@@ -4,19 +4,20 @@
  */
 
 import { observer } from "mobx-react";
-import { GitMerge, Trash2, UserCheck, UserX } from "lucide-react";
 // plane imports
 import { Avatar } from "@makeplane/propel/components/avatar";
 import { Badge } from "@makeplane/propel/components/badge";
-import { Icon } from "@makeplane/propel/components/icon";
-import { MenuContent, MenuItem } from "@makeplane/propel/components/menu";
 import { TableActionCell, TableCell, TableRow } from "@makeplane/propel/components/table";
 import type { IInstanceUser } from "@plane/types";
 import { renderFormattedDate } from "@plane/utils";
 // hooks
 import { useInstanceUser, useUser } from "@/hooks/store";
+// local
+import { UserRowMenu } from "./user-row-menu";
+import type { TUserRowAction } from "./user-row-menu";
+import { UserStatusBadge } from "./user-status-badge";
 
-export type TUserRowAction = "deactivate" | "reactivate" | "merge" | "delete";
+export type { TUserRowAction };
 
 type Props = {
   userId: string;
@@ -32,8 +33,7 @@ export const UserRow = observer(function UserRow(props: Props) {
 
   if (!user) return null;
 
-  const isSelf = currentUser?.id === user.id;
-  const isDeleted = Boolean(user.deleted_at);
+  const locked = Boolean(user.deleted_at) || currentUser?.id === user.id;
   const name = [user.first_name, user.last_name].filter(Boolean).join(" ") || user.display_name;
 
   return (
@@ -52,40 +52,13 @@ export const UserRow = observer(function UserRow(props: Props) {
         <span className="flex items-center gap-1">
           {user.is_instance_admin && <Badge size="xs" variant="brand" label="Instance admin" />}
           {user.is_bot && <Badge size="xs" variant="grey" label="Bot" />}
-          {isDeleted ? (
-            <Badge size="xs" variant="danger" label={user.merged_into ? "Merged" : "Deleted"} />
-          ) : user.is_active ? (
-            <Badge size="xs" variant="success" label="Active" />
-          ) : (
-            <Badge size="xs" variant="neutral" label="Deactivated" />
-          )}
+          <UserStatusBadge user={user} />
         </span>
       </TableCell>
       <TableCell align="end">{user.workspace_count}</TableCell>
       <TableCell>{user.last_login_time ? renderFormattedDate(user.last_login_time) : "Never"}</TableCell>
-      <TableActionCell aria-label={`Actions for ${user.email}`} disabled={isDeleted || isSelf}>
-        <MenuContent side="bottom" align="end">
-          {user.is_active ? (
-            <MenuItem label="Deactivate" icon={<Icon icon={UserX} />} onClick={() => onAction("deactivate", user)} />
-          ) : (
-            <MenuItem
-              label="Reactivate"
-              icon={<Icon icon={UserCheck} />}
-              onClick={() => onAction("reactivate", user)}
-            />
-          )}
-          {!user.is_bot && (
-            <MenuItem label="Merge into..." icon={<Icon icon={GitMerge} />} onClick={() => onAction("merge", user)} />
-          )}
-          {!user.is_bot && (
-            <MenuItem
-              label="Delete"
-              variant="danger"
-              icon={<Icon icon={Trash2} />}
-              onClick={() => onAction("delete", user)}
-            />
-          )}
-        </MenuContent>
+      <TableActionCell aria-label={`Actions for ${user.email}`} disabled={locked}>
+        <UserRowMenu user={user} onAction={onAction} />
       </TableActionCell>
     </TableRow>
   );

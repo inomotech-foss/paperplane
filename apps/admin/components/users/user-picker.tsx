@@ -36,7 +36,8 @@ export function UserPicker(props: Props) {
     return () => clearTimeout(handle);
   }, [query, selected]);
 
-  const candidates = results.filter((user) => !excludeIds.includes(user.id));
+  const excluded = new Set(excludeIds);
+  const candidates = results.filter((user) => !excluded.has(user.id));
 
   if (selected) {
     return (
