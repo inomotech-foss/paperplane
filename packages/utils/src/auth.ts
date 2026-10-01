@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 // plane imports
 import type { TAuthErrorInfo } from "@plane/constants";
-import { E_PASSWORD_STRENGTH, EErrorAlertType, EAuthErrorCodes } from "@plane/constants";
+import { E_PASSWORD_STRENGTH, EErrorAlertType, EAuthErrorCodes, LOGIN_MEDIUM_LABELS } from "@plane/constants";
 
 /**
  * @description Password strength levels
@@ -84,7 +84,7 @@ export const getPasswordCriteria = (password: string): PasswordCriteria[] => [
 
 // Error code messages
 const errorCodeMessages: {
-  [key in EAuthErrorCodes]: { title: string; message: (email?: string) => ReactNode };
+  [key in EAuthErrorCodes]: { title: string; message: (email?: string, provider?: string) => ReactNode };
 } = {
   // global
   [EAuthErrorCodes.INSTANCE_NOT_CONFIGURED]: {
@@ -228,6 +228,11 @@ const errorCodeMessages: {
     title: `GitLab OAuth provider error`,
     message: () => `GitLab OAuth provider error. Please try again.`,
   },
+  [EAuthErrorCodes.OAUTH_EMAIL_CONFLICT]: {
+    title: `Email belongs to another account`,
+    message: (email, provider) =>
+      `The email ${email ? `${email} ` : ""}from your ${LOGIN_MEDIUM_LABELS[provider as keyof typeof LOGIN_MEDIUM_LABELS] || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
+  },
   // Reset Password
   [EAuthErrorCodes.INVALID_PASSWORD_TOKEN]: {
     title: `Invalid password token`,
@@ -307,7 +312,11 @@ const errorCodeMessages: {
 };
 
 // Error handler
-export const authErrorHandler = (errorCode: EAuthErrorCodes, email?: string): TAuthErrorInfo | undefined => {
+export const authErrorHandler = (
+  errorCode: EAuthErrorCodes,
+  email?: string,
+  provider?: string
+): TAuthErrorInfo | undefined => {
   const bannerAlertErrorCodes = [
     EAuthErrorCodes.INSTANCE_NOT_CONFIGURED,
     EAuthErrorCodes.INVALID_EMAIL,
@@ -340,6 +349,7 @@ export const authErrorHandler = (errorCode: EAuthErrorCodes, email?: string): TA
     EAuthErrorCodes.GOOGLE_OAUTH_PROVIDER_ERROR,
     EAuthErrorCodes.GITHUB_OAUTH_PROVIDER_ERROR,
     EAuthErrorCodes.GITLAB_OAUTH_PROVIDER_ERROR,
+    EAuthErrorCodes.OAUTH_EMAIL_CONFLICT,
     EAuthErrorCodes.INVALID_PASSWORD_TOKEN,
     EAuthErrorCodes.EXPIRED_PASSWORD_TOKEN,
     EAuthErrorCodes.INCORRECT_OLD_PASSWORD,
@@ -362,7 +372,7 @@ export const authErrorHandler = (errorCode: EAuthErrorCodes, email?: string): TA
       type: EErrorAlertType.BANNER_ALERT,
       code: errorCode,
       title: errorCodeMessages[errorCode]?.title || "Error",
-      message: errorCodeMessages[errorCode]?.message(email) || "Something went wrong. Please try again.",
+      message: errorCodeMessages[errorCode]?.message(email, provider) || "Something went wrong. Please try again.",
     };
 
   return undefined;

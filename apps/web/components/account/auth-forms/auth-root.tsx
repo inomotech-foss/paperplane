@@ -39,6 +39,7 @@ export const AuthRoot = observer(function AuthRoot(props: TAuthRoot) {
   const invitation_id = searchParams.get("invitation_id");
   const workspaceSlug = searchParams.get("slug");
   const error_code = searchParams.get("error_code");
+  const providerParam = searchParams.get("provider");
   // props
   const { authMode: currentAuthMode } = props;
   // states
@@ -62,7 +63,11 @@ export const AuthRoot = observer(function AuthRoot(props: TAuthRoot) {
 
   useEffect(() => {
     if (error_code && authMode) {
-      const errorhandler = authErrorHandler(error_code?.toString() as EAuthenticationErrorCodes);
+      const errorhandler = authErrorHandler(
+        error_code?.toString() as EAuthenticationErrorCodes,
+        emailParam,
+        providerParam
+      );
       if (errorhandler) {
         // password error handler
         if ([EAuthenticationErrorCodes.AUTHENTICATION_FAILED_SIGN_UP].includes(errorhandler.code)) {
@@ -100,7 +105,7 @@ export const AuthRoot = observer(function AuthRoot(props: TAuthRoot) {
         setErrorInfo(errorhandler);
       }
     }
-  }, [error_code, authMode]);
+  }, [error_code, authMode, emailParam, providerParam]);
 
   if (!authMode) return <></>;
 

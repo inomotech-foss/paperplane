@@ -60,6 +60,7 @@ export const InstanceSignInForm = observer(function InstanceSignInForm() {
   const emailParam = searchParams.get("email") || undefined;
   const errorCode = searchParams.get("error_code") || undefined;
   const errorMessage = searchParams.get("error_message") || undefined;
+  const providerParam = searchParams.get("provider") || undefined;
   // state
   const [showPassword, setShowPassword] = useState(false);
   const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined);
@@ -109,12 +110,12 @@ export const InstanceSignInForm = observer(function InstanceSignInForm() {
 
   useEffect(() => {
     if (errorCode) {
-      const errorDetail = authErrorHandler(errorCode?.toString() as EAdminAuthErrorCodes);
+      const errorDetail = authErrorHandler(errorCode?.toString() as EAdminAuthErrorCodes, emailParam, providerParam);
       if (errorDetail) {
         setErrorInfo(errorDetail);
       }
     }
-  }, [errorCode]);
+  }, [errorCode, emailParam, providerParam]);
 
   return (
     <>
