@@ -138,6 +138,25 @@ def plane_server(live_server):
 
 
 @pytest.fixture
+def instance_admin_client(api_client, create_user):
+    """Return a session client whose user is an instance admin"""
+    from django.utils import timezone
+
+    from plane.license.models import Instance, InstanceAdmin
+
+    instance = Instance.objects.create(
+        instance_name="test",
+        instance_id="test",
+        current_version="1",
+        latest_version="1",
+        last_checked_at=timezone.now(),
+    )
+    InstanceAdmin.objects.create(instance=instance, user=create_user, role=20)
+    api_client.force_authenticate(user=create_user)
+    return api_client
+
+
+@pytest.fixture
 def workspace(create_user):
     """
     Create a new workspace and return the

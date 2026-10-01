@@ -5,13 +5,14 @@
 # Third party imports
 from rest_framework.response import Response
 from rest_framework import status
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import OuterRef, Func, F
+from django.shortcuts import get_object_or_404
 
 # Module imports
 from plane.app.views.base import BaseAPIView
 from plane.license.api.permissions import InstanceAdminPermission
-from plane.db.models import Workspace, WorkspaceMember, Project
+from plane.db.models import Profile, Project, User, Workspace, WorkspaceMember
 from plane.license.api.serializers import WorkspaceSerializer
 from plane.utils.constants import RESTRICTED_WORKSPACE_SLUGS
 
@@ -108,3 +109,57 @@ class InstanceWorkSpaceEndpoint(BaseAPIView):
                     {"slug": "The workspace with the slug already exists"},
                     status=status.HTTP_409_CONFLICT,
                 )
+
+
+def annotated_workspaces():
+    project_count = (
+        Project.objects.filter(workspace_id=OuterRef("id"))
+        .order_by()
+        .annotate(count=Func(F("id"), function="Count"))
+        .values("count")
+    )
+    member_count = (
+        WorkspaceMember.objects.filter(workspace=OuterRef("id"), member__is_bot=False, is_active=True)
+        .order_by()
+        .annotate(count=Func(F("id"), function="Count"))
+        .values("count")
+    )
+    return Workspace.objects.annotate(total_projects=project_count, total_members=member_count).select_related("owner")
+
+
+class InstanceWorkSpaceDetailEndpoint(BaseAPIView):
+    permission_classes = [InstanceAdminPermission]
+
+    def get(self, request, pk):
+        workspace = get_object_or_404(annotated_workspaces(), pk=pk)
+        return Response(WorkspaceSerializer(workspace).data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk):
+        workspace = get_object_or_404(Workspace, pk=pk)
+        Profile.objects.filter(last_workspace_id=workspace.id).update(last_workspace_id=None)
+        workspace.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class InstanceWorkSpaceTransferOwnerEndpoint(BaseAPIView):
+    permission_classes = [InstanceAdminPermission]
+
+    def post(self, request, pk):
+        workspace = get_object_or_404(Workspace, pk=pk)
+        owner_id = request.data.get("owner")
+        if not owner_id:
+            return Response({"error": "owner is required"}, status=status.HTTP_400_BAD_REQUEST)
+        owner = get_object_or_404(User, pk=owner_id)
+        if owner.is_bot or owner.deleted_at or not owner.is_active:
+            return Response({"error": "The new owner must be an active user."}, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            workspace.owner = owner
+            workspace.save(update_fields=["owner"])
+            membership = WorkspaceMember.objects.filter(workspace=workspace, member=owner).first()
+            if membership is None:
+                WorkspaceMember.objects.create(workspace=workspace, member=owner, role=20)
+            else:
+                membership.role = 20
+                membership.is_active = True
+                membership.save()
+        return Response(WorkspaceSerializer(annotated_workspaces().get(pk=pk)).data, status=status.HTTP_200_OK)

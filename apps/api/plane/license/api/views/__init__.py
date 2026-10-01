@@ -26,6 +26,16 @@ from .admin import (
 
 from .workspace import (
     InstanceWorkSpaceAvailabilityCheckEndpoint,
+    InstanceWorkSpaceDetailEndpoint,
     InstanceWorkSpaceEndpoint,
+    InstanceWorkSpaceTransferOwnerEndpoint,
 )
 from .oauth_application import InstanceOAuthApplicationEndpoint
+from .user import (
+    InstanceUserDeactivateEndpoint,
+    InstanceUserDetailEndpoint,
+    InstanceUserEndpoint,
+    InstanceUserMergeEndpoint,
+    InstanceUserMergePreviewEndpoint,
+    InstanceUserReactivateEndpoint,
+)

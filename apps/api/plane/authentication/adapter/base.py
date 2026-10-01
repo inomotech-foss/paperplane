@@ -348,7 +348,7 @@ class Adapter:
         # and is allowed through for its first login; an account deactivated via
         # the API has last_logout_time set and is blocked regardless of whether
         # it had previously logged in.
-        if user and not user.is_active and user.last_logout_time is not None:
+        if user and (user.deleted_at or (not user.is_active and user.last_logout_time is not None)):
             raise AuthenticationException(
                 error_code=AUTHENTICATION_ERROR_CODES["USER_ACCOUNT_DEACTIVATED"],
                 error_message="USER_ACCOUNT_DEACTIVATED",
