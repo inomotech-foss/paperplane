@@ -16,6 +16,7 @@ export function useSidebarMenu(): TSidebarMenuItem[] {
     coreSidebarMenuLinks.authentication,
     coreSidebarMenuLinks["oauth-applications"],
     coreSidebarMenuLinks.workspace,
+    coreSidebarMenuLinks.users,
     coreSidebarMenuLinks.ai,
     coreSidebarMenuLinks.image,
     coreSidebarMenuLinks["rate-limits"],

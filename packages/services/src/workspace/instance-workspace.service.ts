@@ -68,4 +68,28 @@ export class InstanceWorkspaceService extends APIService {
         throw error?.response?.data;
       });
   }
+
+  async retrieve(workspaceId: string): Promise<IWorkspace> {
+    return this.get(`/api/instances/workspaces/${workspaceId}/`)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  async destroy(workspaceId: string): Promise<void> {
+    return this.delete(`/api/instances/workspaces/${workspaceId}/`)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  async transferOwner(workspaceId: string, ownerId: string): Promise<IWorkspace> {
+    return this.post(`/api/instances/workspaces/${workspaceId}/transfer-owner/`, { owner: ownerId })
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
 }

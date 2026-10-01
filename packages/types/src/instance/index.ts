@@ -13,4 +13,5 @@ export * from "./image";
 export * from "./oauth-application";
 export * from "./rate-limit";
 export * from "./service-desk";
+export * from "./user";
 export * from "./workspace";
