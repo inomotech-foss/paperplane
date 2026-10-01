@@ -489,5 +489,21 @@
     "example_everything": "Alles onder een klant",
     "example_overdue": "Open werkitems die een week te laat zijn",
     "example_amount": "Jouw werkitems met een bedrag boven 1000"
+  },
+  "timeline_hierarchy": {
+    "menu": "Hiërarchie",
+    "expand_all": "Alles uitklappen",
+    "collapse_all": "Alles inklappen",
+    "show_levels": "{count, plural, one {Alleen het bovenste niveau tonen} other {# niveaus tonen}}",
+    "show_all_levels": "Alle niveaus tonen",
+    "roll_up_dates": "Datums overnemen van subwerkitems",
+    "expand": "Uitklappen",
+    "collapse": "Inklappen",
+    "hidden_children": "{count, plural, one {# subwerkitem verborgen} other {# subwerkitems verborgen}}",
+    "load_error": "De subwerkitems konden niet worden geladen",
+    "rolled_up_bar": "{count, plural, one {Datums overgenomen van # werkitem eronder} other {Datums overgenomen van # werkitems eronder}}",
+    "children_span": "{count, plural, one {# werkitem eronder} other {# werkitems eronder}}: {start} – {end}",
+    "starts_early": "{count, plural, one {Begint # dag vóór dit item} other {Begint # dagen vóór dit item}}",
+    "ends_late": "{count, plural, one {Eindigt # dag na dit item} other {Eindigt # dagen na dit item}}"
   }
 }

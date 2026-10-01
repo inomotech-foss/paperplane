@@ -11,6 +11,7 @@ import type {
   TIssueParams,
   IIssueDisplayProperties,
   TBulkOperationsPayload,
+  TGanttDateRollup,
   TIssue,
   TIssueActivity,
   TIssueLink,
@@ -131,6 +132,24 @@ export class IssueService extends APIService {
       params: { issues: issueIds.join(",") },
     })
       .then(async (response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  /**
+   * The date span of the work items below each listed work item, for rolling
+   * dates up on the timeline. Work items without children are left out.
+   */
+  async getDateRollups(
+    workspaceSlug: string,
+    projectId: string,
+    issueIds: string[]
+  ): Promise<Record<string, TGanttDateRollup>> {
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-date-rollups/`, {
+      params: { issue_ids: issueIds.join(",") },
+    })
+      .then((response) => response?.data)
       .catch((error) => {
         throw error?.response?.data;
       });

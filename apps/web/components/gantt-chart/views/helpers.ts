@@ -135,3 +135,25 @@ export const getPositionFromDate = (chartData: ChartDataType, date: string | Dat
   // get scroll position from the number of days and width of each day
   return positionDaysDifference * chartData.data.dayWidth + offsetWidth;
 };
+
+/**
+ * The dates a block is drawn with: its own dates, with a missing side taken from
+ * the work items below it when the chart rolls dates up.
+ */
+export const getBlockChartDates = (block: IGanttBlock) => ({
+  start_date:
+    block.start_date ?? (block.rollup?.is_start_inferred ? (block.rollup.start_date ?? undefined) : undefined),
+  target_date:
+    block.target_date ?? (block.rollup?.is_target_inferred ? (block.rollup.target_date ?? undefined) : undefined),
+});
+
+/** Whether a block has a bar on the chart, from its own dates or rolled up ones. */
+export const isBlockOnChart = (block: IGanttBlock | undefined) => {
+  if (!block) return false;
+  const { start_date, target_date } = getBlockChartDates(block);
+  return !!start_date || !!target_date;
+};
+
+/** Whether (part of) a block's bar comes from the work items below it; such bars are not draggable. */
+export const isBlockRolledUp = (block: IGanttBlock | undefined) =>
+  !!block?.rollup && (block.rollup.is_start_inferred || block.rollup.is_target_inferred);

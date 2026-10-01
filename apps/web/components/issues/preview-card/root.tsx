@@ -24,10 +24,12 @@ type Props = {
     name?: string;
   };
   workItem: Pick<TIssue, "id" | "name" | "sequence_id" | "priority" | "start_date" | "target_date" | "type_id">;
+  /** Extra lines at the bottom of the card, e.g. where a timeline bar's dates come from. */
+  footer?: React.ReactNode;
 };
 
 export const WorkItemPreviewCard = observer(function WorkItemPreviewCard(props: Props) {
-  const { projectId, stateDetails, workItem } = props;
+  const { projectId, stateDetails, workItem, footer } = props;
   // store hooks
   const { getProjectIdentifierById } = useProject();
   const { getStateById } = useProjectState();
@@ -64,6 +66,7 @@ export const WorkItemPreviewCard = observer(function WorkItemPreviewCard(props: 
           targetDate={workItem.target_date}
         />
       </div>
+      {footer && <div className="border-t border-subtle pt-2 text-11 text-secondary">{footer}</div>}
     </div>
   );
 });

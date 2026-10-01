@@ -489,5 +489,21 @@
     "example_everything": "Everything below a customer",
     "example_overdue": "Open work items overdue by a week",
     "example_amount": "Your work items with an amount above 1000"
+  },
+  "timeline_hierarchy": {
+    "menu": "Hierarchy",
+    "expand_all": "Expand all",
+    "collapse_all": "Collapse all",
+    "show_levels": "{count, plural, one {Show top level only} other {Show # levels}}",
+    "show_all_levels": "Show all levels",
+    "roll_up_dates": "Roll up dates from sub-work items",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "hidden_children": "{count, plural, one {# sub-work item hidden} other {# sub-work items hidden}}",
+    "load_error": "Could not load the sub-work items",
+    "rolled_up_bar": "{count, plural, one {Dates rolled up from # work item below} other {Dates rolled up from # work items below}}",
+    "children_span": "{count, plural, one {# work item below} other {# work items below}}: {start} – {end}",
+    "starts_early": "{count, plural, one {Starts # day before this item} other {Starts # days before this item}}",
+    "ends_late": "{count, plural, one {Ends # day after this item} other {Ends # days after this item}}"
   }
 }

@@ -45,6 +45,8 @@ type ChartViewRootProps = {
   quickAdd?: React.ReactNode | undefined;
   showToday: boolean;
   isEpic?: boolean;
+  /** Extra controls shown in the chart header, e.g. expand / collapse of the hierarchy. */
+  headerActions?: React.ReactNode;
 };
 
 const timelineViewHelpers = {
@@ -77,6 +79,7 @@ export const ChartViewRoot = observer(function ChartViewRoot(props: ChartViewRoo
     showToday,
     updateBlockDates,
     isEpic = false,
+    headerActions,
   } = props;
   // states
   const [itemsContainerWidth, setItemsContainerWidth] = useState(0);
@@ -193,6 +196,7 @@ export const ChartViewRoot = observer(function ChartViewRoot(props: ChartViewRoo
         handleToday={handleToday}
         loaderTitle={loaderTitle}
         showToday={showToday}
+        actions={headerActions}
       />
       <GanttChartMainContent
         blockIds={blockIds}

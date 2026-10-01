@@ -489,5 +489,21 @@
     "example_everything": "某客戶之下的所有內容",
     "example_overdue": "逾期一週的未完成工作項目",
     "example_amount": "金額超過 1000 的我的工作項目"
+  },
+  "timeline_hierarchy": {
+    "menu": "層級",
+    "expand_all": "全部展開",
+    "collapse_all": "全部摺疊",
+    "show_levels": "{count, plural, one {僅顯示頂層} other {顯示 # 層}}",
+    "show_all_levels": "顯示所有層級",
+    "roll_up_dates": "從子工作項目彙總日期",
+    "expand": "展開",
+    "collapse": "摺疊",
+    "hidden_children": "{count, plural, other {已隱藏 # 個子工作項目}}",
+    "load_error": "無法載入子工作項目",
+    "rolled_up_bar": "{count, plural, other {日期彙總自下方 # 個工作項目}}",
+    "children_span": "{count, plural, other {下方 # 個工作項目}}：{start} – {end}",
+    "starts_early": "{count, plural, other {比此項目早 # 天開始}}",
+    "ends_late": "{count, plural, other {比此項目晚 # 天結束}}"
   }
 }

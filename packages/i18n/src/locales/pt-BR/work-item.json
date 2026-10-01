@@ -489,5 +489,21 @@
     "example_everything": "Tudo abaixo de um cliente",
     "example_overdue": "Itens de trabalho abertos com uma semana de atraso",
     "example_amount": "Seus itens de trabalho com valor acima de 1000"
+  },
+  "timeline_hierarchy": {
+    "menu": "Hierarquia",
+    "expand_all": "Expandir tudo",
+    "collapse_all": "Recolher tudo",
+    "show_levels": "{count, plural, one {Mostrar apenas o nível superior} other {Mostrar # níveis}}",
+    "show_all_levels": "Mostrar todos os níveis",
+    "roll_up_dates": "Consolidar datas dos subitens",
+    "expand": "Expandir",
+    "collapse": "Recolher",
+    "hidden_children": "{count, plural, one {# subitem oculto} other {# subitens ocultos}}",
+    "load_error": "Não foi possível carregar os subitens",
+    "rolled_up_bar": "{count, plural, one {Datas consolidadas de # item abaixo} other {Datas consolidadas de # itens abaixo}}",
+    "children_span": "{count, plural, one {# item abaixo} other {# itens abaixo}}: {start} – {end}",
+    "starts_early": "{count, plural, one {Começa # dia antes deste item} other {Começa # dias antes deste item}}",
+    "ends_late": "{count, plural, one {Termina # dia depois deste item} other {Termina # dias depois deste item}}"
   }
 }

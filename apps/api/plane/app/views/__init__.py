@@ -170,6 +170,8 @@ from .issue.reaction import IssueReactionViewSet
 
 from .issue.sub_issue import SubIssuesEndpoint
 
+from .issue.hierarchy import IssueDateRollupEndpoint
+
 from .issue.subscriber import IssueSubscriberViewSet
 
 from .issue.version import IssueVersionEndpoint, WorkItemDescriptionVersionEndpoint
