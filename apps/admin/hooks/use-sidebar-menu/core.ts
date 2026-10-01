@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { BrainCog, Gauge, Headset, Plug } from "lucide-react";
+import { BrainCog, Gauge, Headset, Plug, Users } from "lucide-react";
 // plane imports
 import { ImageOutline, LockOutline, MailOutline, SettingsOutline, WorkspaceOutline } from "@makeplane/propel/icons";
 // types
@@ -15,6 +15,7 @@ export type TCoreSidebarMenuKey =
   | "email"
   | "service-desk"
   | "workspace"
+  | "users"
   | "authentication"
   | "ai"
   | "image"
@@ -45,6 +46,12 @@ export const coreSidebarMenuLinks: Record<TCoreSidebarMenuKey, TSidebarMenuItem>
     name: "Workspaces",
     description: "Manage all workspaces on this instance.",
     href: `/workspace/`,
+  },
+  users: {
+    Icon: Users,
+    name: "Users",
+    description: "Deactivate, merge or delete user accounts.",
+    href: `/users/`,
   },
   authentication: {
     Icon: LockOutline,

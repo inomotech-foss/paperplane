@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { set } from "lodash-es";
+import { set, unset } from "lodash-es";
 import { action, observable, runInAction, makeObservable, computed } from "mobx";
 // plane imports
 import { InstanceWorkspaceService } from "@plane/services";
@@ -27,6 +27,8 @@ export interface IWorkspaceStore {
   fetchNextWorkspaces: () => Promise<IWorkspace[]>;
   // curd actions
   createWorkspace: (data: IWorkspace) => Promise<IWorkspace>;
+  deleteWorkspace: (workspaceId: string) => Promise<void>;
+  transferOwner: (workspaceId: string, ownerId: string) => Promise<IWorkspace>;
 }
 
 export class WorkspaceStore implements IWorkspaceStore {
@@ -53,6 +55,8 @@ export class WorkspaceStore implements IWorkspaceStore {
       fetchNextWorkspaces: action,
       // curd actions
       createWorkspace: action,
+      deleteWorkspace: action,
+      transferOwner: action,
     });
     this.instanceWorkspaceService = new InstanceWorkspaceService();
   }
@@ -152,5 +156,20 @@ export class WorkspaceStore implements IWorkspaceStore {
     } finally {
       this.loader = "loaded";
     }
+  };
+
+  deleteWorkspace = async (workspaceId: string): Promise<void> => {
+    await this.instanceWorkspaceService.destroy(workspaceId);
+    runInAction(() => {
+      unset(this.workspaces, [workspaceId]);
+    });
+  };
+
+  transferOwner = async (workspaceId: string, ownerId: string): Promise<IWorkspace> => {
+    const workspace = await this.instanceWorkspaceService.transferOwner(workspaceId, ownerId);
+    runInAction(() => {
+      set(this.workspaces, [workspaceId], workspace);
+    });
+    return workspace;
   };
 }
