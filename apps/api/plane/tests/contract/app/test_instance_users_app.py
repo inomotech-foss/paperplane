@@ -71,7 +71,8 @@ class TestInstanceUserList:
     @pytest.mark.django_db
     def test_non_admins_are_refused(self, api_client, alice):
         api_client.force_authenticate(user=alice)
-        assert api_client.get(URL).status_code == 403
+        response = api_client.get(URL)
+        assert response.status_code == 403
 
 
 @pytest.mark.contract
@@ -89,7 +90,8 @@ class TestInstanceUserDetail:
 
     @pytest.mark.django_db
     def test_unknown_user_is_404(self, instance_admin_client):
-        assert instance_admin_client.get(f"{URL}00000000-0000-0000-0000-000000000000/").status_code == 404
+        response = instance_admin_client.get(f"{URL}00000000-0000-0000-0000-000000000000/")
+        assert response.status_code == 404
 
 
 @pytest.mark.contract
@@ -147,8 +149,9 @@ class TestInstanceUserDelete:
 
     @pytest.mark.django_db
     def test_refuses_the_caller_and_bots(self, instance_admin_client, create_user, create_bot_user):
-        assert instance_admin_client.delete(f"{URL}{create_user.id}/").status_code == 400
-        assert instance_admin_client.delete(f"{URL}{create_bot_user.id}/").status_code == 400
+        for target in (create_user, create_bot_user):
+            response = instance_admin_client.delete(f"{URL}{target.id}/")
+            assert response.status_code == 400
 
 
 @pytest.mark.contract
@@ -177,7 +180,8 @@ class TestInstanceUserMerge:
 
     @pytest.mark.django_db
     def test_refusals(self, instance_admin_client, alice, bob, create_user):
-        assert instance_admin_client.post(f"{URL}{alice.id}/merge/", {}, format="json").status_code == 400
+        response = instance_admin_client.post(f"{URL}{alice.id}/merge/", {}, format="json")
+        assert response.status_code == 400
         same = instance_admin_client.post(f"{URL}{alice.id}/merge/", {"source": str(alice.id)}, format="json")
         assert same.status_code == 400
         own = instance_admin_client.post(f"{URL}{alice.id}/merge/", {"source": str(create_user.id)}, format="json")

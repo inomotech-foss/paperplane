@@ -51,7 +51,8 @@ class TestInstanceWorkspaceDetail:
     @pytest.mark.django_db
     def test_non_admins_are_refused(self, api_client, owner, workspace):
         api_client.force_authenticate(user=owner)
-        assert api_client.delete(f"{URL}{workspace.id}/").status_code == 403
+        response = api_client.delete(f"{URL}{workspace.id}/")
+        assert response.status_code == 403
         assert Workspace.objects.filter(pk=workspace.id).exists()
 
 
