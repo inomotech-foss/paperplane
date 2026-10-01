@@ -1,6 +1,8 @@
 # Plane MCP Server
 
-A Model Context Protocol (MCP) server for Plane integration. This server provides tools and resources for interacting with Plane through AI agents.
+A [Model Context Protocol](https://modelcontextprotocol.io) server for
+[Plane](https://plane.so). Gives an AI agent tools to read and manage projects,
+work items, cycles, modules and more.
 
 Vendored from [makeplane/plane-mcp-server](https://github.com/makeplane/plane-mcp-server) (MIT, see LICENSE) as a git subtree, and changed to match this fork's API. Sync with:
 
@@ -10,24 +12,18 @@ git subtree pull --prefix apps/mcp mcp-upstream <tag> --squash
 
 Issues and contributions belong in this repository, not upstream.
 
-## Features
+Built on [FastMCP](https://github.com/jlowin/fastmcp) and the official
+[`plane-sdk`](https://pypi.org/project/plane-sdk/).
 
-* 🔧 **Plane Integration**: Interact with Plane APIs and services
-* 🔌 **Multiple Transports**: Supports stdio, SSE, and streamable HTTP transports
-* 🌐 **Remote & Local**: Works both locally and as a remote service
-* 🛠️ **Extensible**: Easy to add new tools and resources
+- **19 tools**, one per Plane resource, covering 113 operations
+- **Local or remote** — stdio, streamable HTTP, SSE
+- **OAuth or API key** authentication
 
-## Usage
+## Quick start
 
-The server supports three transport methods. **We recommend using `uvx`** as it doesn't require installation.
+Get an API key from Plane: **Workspace Settings → API tokens**.
 
-**Requirements**:
-- **Python 3.10+** (for stdio transport, via `uvx`)
-- **Node.js 22+** (for remote transports, via `npx`)
-
-### 1. Stdio Transport (for local use)
-
-**MCP Client Configuration** (using uvx - recommended):
+Add this to your MCP client's configuration:
 
 ```json
 {
@@ -37,21 +33,34 @@ The server supports three transport methods. **We recommend using `uvx`** as it 
       "args": ["plane-mcp-server", "stdio"],
       "env": {
         "PLANE_API_KEY": "<your-api-key>",
-        "PLANE_WORKSPACE_SLUG": "<your-workspace-slug>",
-        "PLANE_BASE_URL": "https://api.plane.so"
+        "PLANE_WORKSPACE_SLUG": "<your-workspace-slug>"
       }
     }
   }
 }
 ```
 
-### 2. Remote HTTP Transport with OAuth
+`uvx` needs no install step. Requires Python 3.10+.
 
-Connect to the hosted Plane MCP server using OAuth authentication.
+For a self-hosted Plane, add `"PLANE_BASE_URL": "https://plane.example.com"`.
 
-**URL**: `https://mcp.plane.so/http/mcp`
+## Transports
 
-**MCP Client Configuration** (for tools like Claude Desktop without native remote MCP support):
+### stdio — local
+
+Runs as a subprocess of your MCP client. Configuration as shown above; needs
+`PLANE_API_KEY` and `PLANE_WORKSPACE_SLUG`.
+
+```bash
+PLANE_API_KEY=... PLANE_WORKSPACE_SLUG=... uvx plane-mcp-server stdio
+```
+
+### HTTP with OAuth — hosted
+
+`https://mcp.plane.so/http/mcp`
+
+The OAuth flow is handled on connect; no credentials in your config. For clients
+without native remote MCP support, bridge with `mcp-remote`:
 
 ```json
 {
@@ -64,19 +73,16 @@ Connect to the hosted Plane MCP server using OAuth authentication.
 }
 ```
 
-**Note**: OAuth authentication will be handled automatically when connecting to the remote server.
+Requires Node.js 22+.
 
-### 3. Remote HTTP Transport using PAT Token
+### HTTP with a personal access token — hosted
 
-Connect to the hosted Plane MCP server using a Personal Access Token (PAT).
+`https://mcp.plane.so/http/api-key/mcp`
 
-**URL**: `https://mcp.plane.so/http/api-key/mcp`
-
-**Headers**:
-- `Authorization: Bearer <PAT_TOKEN>`
-- `X-Workspace-slug: <SLUG>`
-
-**MCP Client Configuration** (for tools like Claude Desktop without native remote MCP support):
+| Header | Value |
+|---|---|
+| `Authorization` | `Bearer <PAT>` |
+| `X-Workspace-slug` | `<workspace-slug>` |
 
 ```json
 {
@@ -85,57 +91,85 @@ Connect to the hosted Plane MCP server using a Personal Access Token (PAT).
       "command": "npx",
       "args": ["mcp-remote@latest", "https://mcp.plane.so/http/api-key/mcp"],
       "headers": {
-        "Authorization": "Bearer <PAT_TOKEN>",
-        "X-Workspace-slug": "<SLUG>"
+        "Authorization": "Bearer <PAT>",
+        "X-Workspace-slug": "<workspace-slug>"
       }
     }
   }
 }
 ```
 
-### 4. SSE Transport (Legacy)
+### SSE — deprecated
 
-⚠️ **Legacy Transport**: SSE (Server-Sent Events) transport is maintained for backward compatibility. New implementations should use the HTTP transport (sections 2 or 3) instead.
+`https://mcp.plane.so/sse` is maintained for backward compatibility only. Use an
+HTTP transport instead.
 
-Connect to the hosted Plane MCP server using OAuth authentication via Server-Sent Events.
+## Tools
 
-**URL**: `https://mcp.plane.so/sse`
+The server advertises 19 tools, one per resource. Each takes an `action`
+parameter that selects the operation:
 
-**MCP Client Configuration** (for tools that support SSE transport):
-
-```json
-{
-  "mcpServers": {
-    "plane": {
-      "command": "npx",
-      "args": ["mcp-remote@latest", "https://mcp.plane.so/sse"]
-    }
-  }
-}
+```python
+workitem(action="create", project_id=..., name="Fix login")
+workitem(action="list", project_id=..., pql='state_group = "started"')
+cycle(action="archive", project_id=..., cycle_id=...)
 ```
 
-**Note**: OAuth authentication will be handled automatically when connecting to the remote server. This transport is deprecated in favor of the HTTP transport.
+Every tool's description lists its actions with their required and optional
+parameters, so the catalogue is self-documenting at call time.
 
+**→ [Full tool and action reference](plane_mcp/tools/README.md)**
+
+### Querying work items
+
+The work item, cycle and module lists and the work item count accept **PQL**,
+Plane's query language, as this fork's API parses it:
+
+```python
+workitem(action="list", project_id=..., pql='state_group = "started" AND priority = "urgent"')
+workitem(action="list", project_id=..., pql='descendantOf("CUST-1") AND type = "Invoice" AND state = "Paid"')
+workitem(action="count", pql='assignee = currentUser()', group_by="state_id")
+```
+
+Names resolve to ids on the server, custom properties are addressed as
+`cf["<name or id>"]`, and `descendantOf()` walks the whole hierarchy below a
+work item. Call `get_pql_reference` for the full syntax and worked examples.
+
+### Upgrading from the per-operation tools
+
+Earlier releases exposed one tool per API operation. **Existing integrations keep
+working**: 103 of those 106 names still resolve to the consolidated tool, so a
+saved prompt or script calling `create_work_item` or `list_cycles` needs no
+change. They are no longer advertised, and they keep the parameter names they
+shipped with (`work_item_id`, not `workitem_id`).
+
+Three names chose between two operations with a parameter
+(`manage_project_archive(archive=False)`), which one tool-and-action pair cannot
+reproduce; calling one tells you its replacement. `get_pql_reference` is
+unchanged.
 
 ## Configuration
 
 ### Authentication
 
-The server requires authentication via environment variables:
+| Variable | Required for | Purpose |
+|---|---|---|
+| `PLANE_API_KEY` | stdio | API key |
+| `PLANE_WORKSPACE_SLUG` | stdio | Target workspace |
+| `PLANE_BASE_URL` | optional | Plane API URL (default `https://api.plane.so`) |
 
-- `PLANE_BASE_URL`: Base URL for Plane API (default: `https://api.plane.so`) - Optional
-- `PLANE_API_KEY`: API key for authentication (required for stdio transport)
-- `PLANE_WORKSPACE_SLUG`: Workspace slug identifier (required for stdio transport)
-- `PLANE_ACCESS_TOKEN`: Access token for authentication (alternative to API key)
+The remote transports carry credentials in the connection — the OAuth flow or the
+PAT headers — and need none of these.
 
-**Example** (for stdio transport):
-```bash
-export PLANE_BASE_URL="https://api.plane.so"
-export PLANE_API_KEY="your-api-key"
-export PLANE_WORKSPACE_SLUG="your-workspace-slug"
-```
+Self-hosting the server itself:
 
-**Note**: For remote HTTP transports (OAuth or PAT), authentication is handled via the connection method (OAuth flow or PAT headers) and does not require these environment variables.
+| Variable | Purpose |
+|---|---|
+| `PLANE_INTERNAL_BASE_URL` | Internal URL for server-to-server calls, preferred over `PLANE_BASE_URL` |
+| `REDIS_URL` | OAuth token storage as one connection URL (`redis://` or `rediss://` for TLS); wins over host/port |
+| `REDIS_HOST` / `REDIS_PORT` | OAuth token storage; falls back to in-memory |
+| `PLANE_OAUTH_PROVIDER_*` | OAuth client credentials and base URL |
+| `MCP_PATH_PREFIX` | Path prefix for the HTTP routes, when mounted behind a proxy — `/plane` serves `/plane/http/mcp` |
 
 ### Workspaces
 
@@ -143,253 +177,80 @@ On the consent screen the user ticks which workspaces the client may reach, and 
 
 ### OAuth redirect URIs
 
-For the OAuth HTTP/SSE transports, the server validates each client's redirect URI against an allowlist. Common MCP clients (Cursor, VS Code, Claude.ai, ChatGPT connectors, localhost) are allowed by default.
+The OAuth transports validate each client's redirect URI against an allowlist.
+Common clients (Cursor, VS Code, Claude.ai, ChatGPT connectors, localhost) are
+allowed by default.
 
-To onboard a new client without a code change or release, append extra patterns via an environment variable:
-
-- `PLANE_OAUTH_ALLOWED_REDIRECT_URIS`: Comma-separated redirect URI patterns appended to the built-in allowlist.
+To onboard a new client without a release, append patterns:
 
 ```bash
 export PLANE_OAUTH_ALLOWED_REDIRECT_URIS="https://newclient.com/cb,https://other.app/oauth/*"
 ```
 
-Patterns support glob matching (`*` matches any port, path segment, or subdomain). For security, keep the host pinned and wildcard only the port/path.
+`*` matches any port, path segment or subdomain. Keep the host pinned and
+wildcard only the port or path.
 
 ### Logging
 
-The server emits structured JSON logs. Each tool call is logged with its tool name, duration, status, and (when available) the opaque user id and workspace slug.
-
-- `LOG_USER_INFO`: When `true`, include user info (PII such as the display name) in logs alongside the opaque user id. Defaults to `false` so PII is never logged unless explicitly opted in. Only the OAuth and PAT (header) HTTP transports carry a display name; stdio is unaffected.
+Structured JSON. Each tool call logs its name, duration, status and — when
+available — an opaque user id and the workspace slug.
 
 ```bash
-export LOG_USER_INFO="true"
+export LOG_USER_INFO=false    # also log the display name (PII);
+export LOG_PAYLOADS=false    # keep request payloads out of logs; default true
 ```
 
-## Available Tools
-
-The server provides tools for interacting with Plane. All tools use Pydantic models from the Plane SDK for type safety and validation.
-
-Tools for features this fork does not have have been removed, so everything listed here reaches a real endpoint. `list_work_items`, `list_cycle_work_items`, and `list_module_work_items` accept a `pql` argument (Plane Query Language, e.g. `priority = "urgent" AND assignee = currentUser()` or `descendantOf("CUST-1") AND type = "Invoice" AND state = "Paid"`) alongside the plain query parameters each list tool takes. Names resolve to ids on the server, custom properties are addressed as `cf["<name or id>"]`, and `descendantOf()` walks the whole hierarchy below a work item.
-
-### Projects
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_projects` | List all projects in a workspace with optional pagination and filtering |
-| `create_project` | Create a new project with name, identifier, and optional configuration |
-| `retrieve_project` | Retrieve a project by ID |
-| `update_project` | Update a project with partial data |
-| `delete_project` | Delete a project by ID |
-| `get_project_members` | Get all members of a project |
-| `update_project_features` | Update features configuration of a project |
-
-### Work Items
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_work_items` | List all work items in a project with optional filtering and pagination |
-| `create_work_item` | Create a new work item with name, assignees, labels, and other attributes |
-| `retrieve_work_item` | Retrieve a work item by ID with optional field expansion |
-| `retrieve_work_item_by_identifier` | Retrieve a work item by project identifier and issue sequence number |
-| `update_work_item` | Update a work item with partial data |
-| `delete_work_item` | Delete a work item by ID |
-| `search_work_items` | Search work items across a workspace with query string |
-
-### Cycles
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_cycles` | List cycles in a project (set `archived=true` for archived) |
-| `create_cycle` | Create a new cycle with name, dates, and owner |
-| `retrieve_cycle` | Retrieve a cycle by ID |
-| `update_cycle` | Update a cycle with partial data |
-| `delete_cycle` | Delete a cycle by ID |
-| `manage_cycle_work_items` | Add and/or remove work items on a cycle |
-| `list_cycle_work_items` | List work items in a cycle |
-| `transfer_cycle_work_items` | Transfer work items from one cycle to another |
-| `manage_cycle_archive` | Archive or unarchive a cycle |
-
-### Modules
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_modules` | List modules in a project (set `archived=true` for archived) |
-| `create_module` | Create a new module with name, dates, status, and members |
-| `retrieve_module` | Retrieve a module by ID |
-| `update_module` | Update a module with partial data |
-| `delete_module` | Delete a module by ID |
-| `manage_module_work_items` | Add and/or remove work items on a module |
-| `list_module_work_items` | List work items in a module |
-| `manage_module_archive` | Archive or unarchive a module |
-
-### Intake Work Items
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_intake_work_items` | List all intake work items in a project with optional pagination |
-| `create_intake_work_item` | Create a new intake work item in a project |
-| `retrieve_intake_work_item` | Retrieve an intake work item by work item ID with optional field expansion |
-| `update_intake_work_item` | Update an intake work item with partial data |
-| `delete_intake_work_item` | Delete an intake work item by work item ID |
-
-### Work Item Properties
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_work_item_properties` | List work item properties for a work item type |
-| `create_work_item_property` | Create a new work item property with type, settings, and validation rules |
-| `retrieve_work_item_property` | Retrieve a work item property by ID |
-| `update_work_item_property` | Update a work item property with partial data |
-| `delete_work_item_property` | Delete a work item property by ID |
-
-### Labels
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_labels` | List all labels in a project |
-| `create_label` | Create a new label |
-| `retrieve_label` | Retrieve a label by ID |
-| `update_label` | Update a label by ID |
-| `delete_label` | Delete a label by ID |
-
-### States
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_states` | List all states in a project |
-| `create_state` | Create a new state |
-| `retrieve_state` | Retrieve a state by ID |
-| `update_state` | Update a state by ID |
-| `delete_state` | Delete a state by ID |
-
-### Work Item Comments
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_work_item_comments` | List comments for a work item |
-| `retrieve_work_item_comment` | Retrieve a specific comment for a work item |
-| `create_work_item_comment` | Create a comment for a work item |
-| `update_work_item_comment` | Update a comment for a work item |
-| `delete_work_item_comment` | Delete a comment for a work item |
-
-### Work Item Links
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_work_item_links` | List links for a work item |
-| `retrieve_work_item_link` | Retrieve a specific link for a work item |
-| `create_work_item_link` | Create a link for a work item |
-| `update_work_item_link` | Update a link for a work item |
-| `delete_work_item_link` | Delete a link for a work item |
-
-### Work Item Types
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_work_item_types` | List all work item types in a project |
-| `create_work_item_type` | Create a new work item type |
-| `retrieve_work_item_type` | Retrieve a work item type by ID |
-| `update_work_item_type` | Update a work item type by ID |
-| `delete_work_item_type` | Delete a work item type by ID |
-| `import_work_item_types_to_project` | Bulk-link workspace-level work item types to a project |
-| `resolve_work_item_type` | Find or create a named type for a project, auto-handling workspace vs project scope and import |
-
-### Work Item Relations
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_work_item_relations` | List relations for a work item |
-| `create_work_item_relation` | Create relations for a work item |
-| `remove_work_item_relation` | Remove a relation from a work item |
-
-### Work Item Activities
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_work_item_activities` | List activities for a work item |
-| `retrieve_work_item_activity` | Retrieve a specific activity for a work item |
-
-### Pages
-
-| Tool Name | Description |
-|-----------|-------------|
-| `list_pages` | List the pages of a project |
-| `retrieve_page` | Retrieve a page by ID |
-| `create_page` | Create a page in a project |
-
-### Workspaces
-
-| Tool Name | Description |
-|-----------|-------------|
-| `get_workspace_members` | Get all members of the current workspace |
-
-### Users
-
-| Tool Name | Description |
-|-----------|-------------|
-| `get_me` | Get current authenticated user information |
-
-**Total Tools**: 100+ tools across 20 categories
+Only the OAuth and PAT transports carry a display name; stdio is unaffected.
 
 ## Development
 
-### Running Tests
-
 ```bash
-pytest
+cd apps/mcp
+uv sync --extra dev
 ```
 
-### Code Formatting
+Run the server against a workspace:
 
 ```bash
-black plane_mcp/
-ruff check plane_mcp/
+PLANE_API_KEY=... PLANE_WORKSPACE_SLUG=... uv run python -m plane_mcp stdio
+uv run python -m plane_mcp http            # port 8211
 ```
+
+Tests, format, lint:
+
+```bash
+uv run pytest --ignore=tests/test_integration.py   # no network or credentials needed
+uv run ruff format .                               # line length 120
+uv run ruff check .                                # rules E, F, I, UP, B
+```
+
+The suite runs fully offline — every action of every resource is
+executed against a stand-in that binds each call against the genuine `plane-sdk`
+signature. See [`plane_mcp/tools/README.md`](plane_mcp/tools/README.md#tests).
+
+Live integration tests are skipped unless you point them at a running server:
+
+```bash
+export PLANE_TEST_API_KEY=... PLANE_TEST_WORKSPACE_SLUG=...
+export PLANE_TEST_MCP_URL=http://localhost:8211    # optional; this is the default
+uv run pytest tests/test_integration.py -v
+```
+
+They write real data to that workspace.
+
+### Repository layout
+
+| Path | Contents |
+|---|---|
+| `plane_mcp/__main__.py` | entry point; picks the transport from `argv[1]` |
+| `plane_mcp/server.py` | one factory per transport |
+| `plane_mcp/client.py` | resolves credentials into a `plane-sdk` client |
+| `plane_mcp/auth/` | OAuth provider and header auth |
+| `plane_mcp/workspace.py` | the per-call workspace choice |
+| `plane_mcp/tools/` | the tool surface: one module per Plane resource |
+| `plane_mcp/toolkit/` | shared building blocks for the tool surface |
+| `plane_mcp/pql_reference.py` | PQL syntax reference served to models |
 
 ## License
 
-MIT License - see LICENSE for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Deprecation Notice
-
-⚠️ **The Node.js-based `plane-mcp-server` is deprecated and no longer maintained.**
-
-This repository represents the new Python+FastMCP based implementation of the Plane MCP server. If you were using the previous Node.js version, please migrate to this Python-based version for continued support and updates.
-
-The new implementation offers:
-- Better type safety with Pydantic models
-- Improved performance with FastMCP
-- Enhanced tool coverage
-- Active maintenance and development
-
-For migration assistance, please refer to the configuration examples in this README or open an issue for support.
-
-**Old Node.js Configuration (Deprecated):**
-
-If you were using the previous Node.js-based `@makeplane/plane-mcp-server`, your configuration looked like this:
-
-```json
-{
-  "mcpServers": {
-    "plane": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@makeplane/plane-mcp-server"
-      ],
-      "env": {
-        "PLANE_API_KEY": "<YOUR_API_KEY>",
-        "PLANE_API_HOST_URL": "<HOST_URL_FOR_SELF_HOSTED>",
-        "PLANE_WORKSPACE_SLUG": "<YOUR_WORKSPACE_SLUG>"
-      }
-    }
-  }
-}
-```
-
-**Please migrate to the new Python-based configuration shown in the Usage section above.**
-
+MIT — see [LICENSE](LICENSE).

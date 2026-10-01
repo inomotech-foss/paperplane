@@ -1,18 +1,38 @@
-"""
-Simple integration test for Plane MCP Server.
+"""End-to-end test for the Plane MCP Server, against a live workspace.
 
-Environment Variables Required:
-    PLANE_TEST_API_KEY: API key for authentication
-    PLANE_TEST_WORKSPACE_SLUG: Workspace slug for testing
-    PLANE_TEST_MCP_URL: MCP server URL (default: http://localhost:8211)
+Drives a running server over streamable HTTP and writes real data: a project,
+work items and an epic, then deletes all of it.
+
+Tools are called by their pre-consolidation names, which still resolve, so this
+also covers that compatibility path.
+
+Environment variables:
+    PLANE_TEST_API_KEY:        API key for authentication (required)
+    PLANE_TEST_WORKSPACE_SLUG: Workspace slug to write to (required)
+    PLANE_TEST_MCP_URL:        Server URL (default: http://localhost:8211)
+
+Skipped unless the two required variables are set.
 """
 
 import asyncio
 import os
 import uuid
 
+import pytest
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
+
+# These tests write to a live Plane workspace through a running server, so they
+# are skipped unless it has been pointed at one. Without this a fresh clone
+# fails two tests on the first `pytest`, which reads as a broken checkout rather
+# than as optional coverage.
+pytestmark = pytest.mark.skipif(
+    not (os.getenv("PLANE_TEST_API_KEY") and os.getenv("PLANE_TEST_WORKSPACE_SLUG")),
+    reason=(
+        "live integration test: set PLANE_TEST_API_KEY and PLANE_TEST_WORKSPACE_SLUG, "
+        "and run a server at PLANE_TEST_MCP_URL (default http://localhost:8211)"
+    ),
+)
 
 
 def get_config():
@@ -42,7 +62,7 @@ def extract_result(result):
         if hasattr(content, "text"):
             try:
                 return json.loads(content.text)
-            except json.JSONDecodeError:
+            except ValueError:
                 return {"raw": content.text}
     return {}
 
@@ -208,100 +228,27 @@ def test_full_integration():
     asyncio.run(run_integration_test())
 
 
-# Expected tools that should be registered with the MCP server
+# The advertised catalogue; retired names resolve but are not listed.
 EXPECTED_TOOLS = [
-    # Project tools
-    "create_project",
-    "list_projects",
-    "retrieve_project",
-    "update_project",
-    "delete_project",
-    # Work item tools
-    "create_work_item",
-    "list_work_items",
-    "retrieve_work_item",
-    "update_work_item",
-    "delete_work_item",
-    # Label tools
-    "list_labels",
-    "create_label",
-    "retrieve_label",
-    "update_label",
-    "delete_label",
-    # State tools
-    "list_states",
-    "create_state",
-    "retrieve_state",
-    "update_state",
-    "delete_state",
-    # Page tools
-    "list_pages",
-    "retrieve_page",
-    "create_page",
-    # Work item activity tools
-    "list_work_item_activities",
-    "retrieve_work_item_activity",
-    # Work item comment tools
-    "list_work_item_comments",
-    "retrieve_work_item_comment",
-    "create_work_item_comment",
-    "update_work_item_comment",
-    "delete_work_item_comment",
-    # Work item link tools
-    "list_work_item_links",
-    "retrieve_work_item_link",
-    "create_work_item_link",
-    "update_work_item_link",
-    "delete_work_item_link",
-    # Work item relation tools
-    "list_work_item_relations",
-    "create_work_item_relation",
-    "remove_work_item_relation",
-    # Work item type tools
-    "list_work_item_types",
-    "create_work_item_type",
-    "retrieve_work_item_type",
-    "update_work_item_type",
-    "delete_work_item_type",
-    "import_work_item_types_to_project",
-    "resolve_work_item_type",
-    # Workspace tools
-    "get_workspace_members",
-    "get_features",
-    "update_workspace_features",
-    # Cycle tools
-    "list_cycles",
-    "create_cycle",
-    "retrieve_cycle",
-    "update_cycle",
-    "delete_cycle",
-    "manage_cycle_work_items",
-    "list_cycle_work_items",
-    "transfer_cycle_work_items",
-    "manage_cycle_archive",
-    # Module tools
-    "list_modules",
-    "create_module",
-    "retrieve_module",
-    "update_module",
-    "delete_module",
-    "manage_module_work_items",
-    "list_module_work_items",
-    "manage_module_archive",
-    # Intake tools
-    "list_intake_work_items",
-    "create_intake_work_item",
-    "retrieve_intake_work_item",
-    "update_intake_work_item",
-    "delete_intake_work_item",
-    # User tools
-    "get_me",
-    # Work item property tools
-    "list_work_item_properties",
-    "create_work_item_property",
-    "retrieve_work_item_property",
-    "update_work_item_property",
-    "delete_work_item_property",
+    "cycle",
+    "get_pql_reference",
+    "intake",
+    "label",
+    "member",
+    "module",
+    "page",
+    "project",
+    "project_estimate",
+    "state",
+    "workitem",
+    "workitem_activity",
+    "workitem_attachment",
+    "workitem_comment",
+    "workitem_link",
+    "workitem_property",
+    "workitem_relation",
+    "workitem_type",
+    "workspace",
 ]
 
 

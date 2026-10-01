@@ -11,7 +11,8 @@ from fastmcp.server.auth.auth import AccessToken
 from plane_mcp import client as client_module
 from plane_mcp import workspace as workspace_module
 from plane_mcp.auth import plane_oauth_provider
-from plane_mcp.middleware import WorkspaceSelectionMiddleware
+from plane_mcp.middleware import ValidateActionArguments, WorkspaceSelectionMiddleware
+from plane_mcp.server import get_header_mcp, get_stdio_mcp
 
 
 def _grant(monkeypatch, *slugs):
@@ -172,3 +173,11 @@ def test_the_client_context_follows_the_selection(monkeypatch):
 
     with workspace_module.selected_workspace("globex"):
         assert client_module.get_plane_client_context().workspace_slug == "globex"
+
+
+@pytest.mark.parametrize("factory", [get_stdio_mcp, get_header_mcp])
+def test_the_workspace_is_picked_before_the_arguments_are_validated(factory):
+    """Validation refuses arguments no action takes, and no action takes workspace_slug."""
+    stack = [type(m) for m in factory().middleware]
+
+    assert stack.index(WorkspaceSelectionMiddleware) < stack.index(ValidateActionArguments)
