@@ -19,8 +19,16 @@ from plane.license.api.views import (
     InstanceAdminSignOutEndpoint,
     InstanceAdminUserSessionEndpoint,
     InstanceWorkSpaceAvailabilityCheckEndpoint,
+    InstanceWorkSpaceDetailEndpoint,
     InstanceWorkSpaceEndpoint,
+    InstanceWorkSpaceTransferOwnerEndpoint,
     InstanceOAuthApplicationEndpoint,
+    InstanceUserDeactivateEndpoint,
+    InstanceUserDetailEndpoint,
+    InstanceUserEndpoint,
+    InstanceUserMergeEndpoint,
+    InstanceUserMergePreviewEndpoint,
+    InstanceUserReactivateEndpoint,
 )
 
 urlpatterns = [
@@ -84,6 +92,34 @@ urlpatterns = [
         name="instance-workspace-availability",
     ),
     path("workspaces/", InstanceWorkSpaceEndpoint.as_view(), name="instance-workspace"),
+    path(
+        "workspaces/<uuid:pk>/",
+        InstanceWorkSpaceDetailEndpoint.as_view(),
+        name="instance-workspace-detail",
+    ),
+    path(
+        "workspaces/<uuid:pk>/transfer-owner/",
+        InstanceWorkSpaceTransferOwnerEndpoint.as_view(),
+        name="instance-workspace-transfer-owner",
+    ),
+    path("users/", InstanceUserEndpoint.as_view(), name="instance-users"),
+    path("users/<uuid:pk>/", InstanceUserDetailEndpoint.as_view(), name="instance-user-detail"),
+    path(
+        "users/<uuid:pk>/deactivate/",
+        InstanceUserDeactivateEndpoint.as_view(),
+        name="instance-user-deactivate",
+    ),
+    path(
+        "users/<uuid:pk>/reactivate/",
+        InstanceUserReactivateEndpoint.as_view(),
+        name="instance-user-reactivate",
+    ),
+    path("users/<uuid:pk>/merge/", InstanceUserMergeEndpoint.as_view(), name="instance-user-merge"),
+    path(
+        "users/<uuid:pk>/merge/preview/",
+        InstanceUserMergePreviewEndpoint.as_view(),
+        name="instance-user-merge-preview",
+    ),
     # OAuth clients, registered by an instance admin.
     path(
         "oauth-applications/",

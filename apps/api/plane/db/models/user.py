@@ -125,6 +125,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     # masking
     masked_at = models.DateTimeField(null=True)
 
+    # soft deletion by an instance admin
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    merged_into = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="merged_users",
+    )
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 
