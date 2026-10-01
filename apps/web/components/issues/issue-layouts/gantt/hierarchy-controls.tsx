@@ -62,6 +62,7 @@ export const GanttHierarchyControls = observer(function GanttHierarchyControls(p
           render={
             <button
               type="button"
+              aria-label={t("timeline_hierarchy.menu")}
               className="flex items-center gap-1 rounded-md bg-layer-transparent p-1 px-2 text-11 hover:bg-layer-transparent-hover"
             />
           }

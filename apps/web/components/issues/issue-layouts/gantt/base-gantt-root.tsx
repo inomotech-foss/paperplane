@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane imports
@@ -34,7 +34,7 @@ import { QuickAddIssueRoot } from "../quick-add/root";
 import { IssueGanttBlock } from "./blocks";
 import type { TGanttExpansion } from "./hierarchy";
 import { DEFAULT_GANTT_EXPANSION, buildGanttRows, showGanttLevels, toggleGanttRow } from "./hierarchy";
-import type { TGanttHierarchyContext } from "./hierarchy-context";
+import type { TGanttHierarchyContext, TGanttRowState } from "./hierarchy-context";
 import { GanttHierarchyContext } from "./hierarchy-context";
 import { GanttHierarchyControls } from "./hierarchy-controls";
 
@@ -161,21 +161,33 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
     [rows, expansion, setExpansion, getIssueById, isEpic, workspaceSlug, subIssuesStore, t]
   );
 
-  const hierarchyContext: TGanttHierarchyContext = {
-    getRowState: (issueId) => {
-      const row = rows.get(issueId);
-      if (!row) return undefined;
-      const isExpanded = row.isExpanded && row.childIds.length > 0;
-      return {
-        depth: row.depth,
-        hasChildren: hasChildren(issueId),
-        isExpanded,
-        isLoading: loadingParentIds.has(issueId),
-        hiddenCount: isExpanded ? 0 : (getIssueById(issueId)?.sub_issues_count ?? row.childIds.length),
-      };
-    },
-    toggleRow: (issueId) => void toggleRow(issueId),
-  };
+  // the row states as plain data, so the context value only changes when one of them does
+  const rowStates: Record<string, TGanttRowState> = {};
+  for (const [issueId, row] of rows) {
+    const isExpanded = row.isExpanded && row.childIds.length > 0;
+    rowStates[issueId] = {
+      depth: row.depth,
+      hasChildren: hasChildren(issueId),
+      isExpanded,
+      isLoading: loadingParentIds.has(issueId),
+      hiddenCount: isExpanded ? 0 : (getIssueById(issueId)?.sub_issues_count ?? row.childIds.length),
+    };
+  }
+  const rowStatesKey = JSON.stringify(rowStates);
+  // toggleRow closes over this render's rows; the context reaches the latest one through a ref
+  const toggleRowRef = useRef(toggleRow);
+  useEffect(() => {
+    toggleRowRef.current = toggleRow;
+  });
+  const hierarchyContext = useMemo<TGanttHierarchyContext>(
+    () => ({
+      getRowState: (issueId) => rowStates[issueId],
+      toggleRow: (issueId) => void toggleRowRef.current(issueId),
+    }),
+    // rowStates is rebuilt on every render; its content, in rowStatesKey, is what matters
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
+    [rowStatesKey]
+  );
 
   const nextPageResults = issues.getPaginationData(undefined, undefined)?.nextPageResults;
 
@@ -231,8 +243,6 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
   return (
     <IssueLayoutHOC layout={EIssueLayoutTypes.GANTT}>
       <TimeLineTypeContext.Provider value={GANTT_TIMELINE_TYPE.ISSUE}>
-        {/* the rows are rebuilt on every render of this observer, so memoizing the value would not help */}
-        {/* oxlint-disable-next-line eslint-plugin-react/jsx-no-constructed-context-values */}
         <GanttHierarchyContext.Provider value={hierarchyContext}>
           <div className="h-full w-full">
             <GanttChartRoot

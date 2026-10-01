@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { createContext, useContext } from "react";
+import { createContext, use } from "react";
 
 export type TGanttRowState = {
   /** 0 for a top-level row. */
@@ -27,4 +27,4 @@ export type TGanttHierarchyContext = {
 /** Fold state of the work item timeline, read by the sidebar rows. */
 export const GanttHierarchyContext = createContext<TGanttHierarchyContext | null>(null);
 
-export const useGanttHierarchy = () => useContext(GanttHierarchyContext);
+export const useGanttHierarchy = () => use(GanttHierarchyContext);

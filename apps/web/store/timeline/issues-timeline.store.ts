@@ -5,6 +5,7 @@
  */
 
 import { set } from "lodash-es";
+import type { IReactionDisposer } from "mobx";
 import { action, autorun, makeObservable, observable, runInAction } from "mobx";
 import type { TGanttDateRollup } from "@plane/types";
 import { getValueFromLocalStorage, setValueIntoLocalStorage } from "@/hooks/use-local-storage";
@@ -32,6 +33,8 @@ export class IssuesTimeLineStore extends BaseTimeLineStore implements IIssuesTim
   dateRollupMap: Record<string, TGanttDateRollup> = {};
 
   issueService = new IssueService();
+  // keeps the bars in sync with the work items and their rolled-up dates
+  private disposeBlockSync: IReactionDisposer;
 
   constructor(_rootStore: RootStore) {
     super(_rootStore);
@@ -42,12 +45,17 @@ export class IssuesTimeLineStore extends BaseTimeLineStore implements IIssuesTim
       toggleDateRollup: action,
     });
 
-    autorun(() => {
+    this.disposeBlockSync = autorun(() => {
       const getIssueById = this.rootStore.issue.issues.getIssueById;
       const getRollup = this.isDateRollupEnabled ? (issueId: string) => this.dateRollupMap[issueId] : undefined;
       this.updateBlocks(getIssueById, undefined, undefined, getRollup);
     });
   }
+
+  /** Stops syncing the bars, for tearing the store down. */
+  dispose = () => {
+    this.disposeBlockSync();
+  };
 
   toggleDateRollup = () => {
     this.isDateRollupEnabled = !this.isDateRollupEnabled;
