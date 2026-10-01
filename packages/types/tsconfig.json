@@ -1,5 +1,0 @@
-{
-  "extends": "@plane/typescript-config/node-library.json",
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
-}

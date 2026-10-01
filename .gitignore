@@ -1,119 +1,58 @@
-node_modules
-.next
-.yarn
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-### NextJS ###
-# Dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
 
 # Testing
-/coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
 
-# Next.js
-/.next/
-/out/
+# Mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
-# Production
-dist/
-out/
-build/
-.react-router/
-
-# Misc
-.DS_Store
-*.pem
-.history
-tsconfig.tsbuildinfo
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.pnpm-debug.log*
-
-# Local env files
+# Environment variables
 .env
 .env.local
-.env.development.local
 .env.test.local
-.env.production.local
 
-# Vercel
-.vercel
-
-# Turborepo
-.turbo
-
-## Django ##
-venv
-.venv
-*.pyc
-staticfiles
-mediafiles
-.env
-.DS_Store
-logs/
-htmlcov/
-.coverage
-
-node_modules/
-assets/dist/
-npm-debug.log
-yarn-error.log
-pnpm-debug.log
-
-# Editor directories and files
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-package-lock.json
-.vscode
-
-# Sentry
-.sentryclirc
-
-# lock files
-package-lock.json
-
-
-
-.secrets
-tmp/
-
-## packages
-dist
-.temp/
-deploy/selfhost/plane-app/
-
-## Storybook
-*storybook.log
-output.css
-
-dev-editor
-# Redis
-*.rdb
-*.rdb.gz
-
-storybook-static
-
-CLAUDE.md
-
-build/
-.react-router/
-
-build/
-.react-router/
-temp/
-scripts/
-!packages/i18n/scripts/
-
-# i18n auto-generated types (regenerated on every build)
-packages/i18n/src/types/keys.generated.ts
-
-# Local security notes (not for version control)
-/security/
+# Ignore cursor AI rules
+.cursor/rules/codacy.mdc
