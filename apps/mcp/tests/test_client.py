@@ -13,7 +13,7 @@ import time
 import pytest
 from fastmcp.server.auth.auth import AccessToken
 
-import plane_mcp.client as client_module
+from plane_mcp import client as client_module
 from plane_mcp.client import current_workspace, get_plane_client_context
 
 WORKSPACE = {"id": "ws-1", "name": "Acme Inc", "slug": "acme", "logo_url": None}

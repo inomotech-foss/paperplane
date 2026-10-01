@@ -89,10 +89,8 @@ def _ping_redis_url(url: str, *, password: str | None = None, timeout_seconds: f
     except Exception as exc:
         raise RuntimeError(f"Redis connection failed during startup PING: {exc}") from exc
     finally:
-        try:
+        with contextlib.suppress(Exception):
             client.close()
-        except Exception:
-            pass
 
     logger.info("Redis connection verified (PING succeeded)")
 
