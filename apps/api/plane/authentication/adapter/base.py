@@ -323,9 +323,9 @@ class Adapter:
                 extra={"user_id": str(user.id), "provider": self.provider},
             )
             raise AuthenticationException(
-                error_code=AUTHENTICATION_ERROR_CODES["USER_ALREADY_EXIST"],
-                error_message="USER_ALREADY_EXIST",
-                payload={"email": email},
+                error_code=AUTHENTICATION_ERROR_CODES["OAUTH_EMAIL_CONFLICT"],
+                error_message="OAUTH_EMAIL_CONFLICT",
+                payload={"email": email, "provider": self.provider},
             )
         user.email = email
         user.save(update_fields=["email"])

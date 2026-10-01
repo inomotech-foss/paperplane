@@ -7,7 +7,7 @@
 import Link from "next/link";
 // plane packages
 import type { TAdminAuthErrorInfo } from "@plane/constants";
-import { SUPPORT_EMAIL, EAdminAuthErrorCodes } from "@plane/constants";
+import { SUPPORT_EMAIL, EAdminAuthErrorCodes, LOGIN_MEDIUM_LABELS } from "@plane/constants";
 
 export enum EErrorAlertType {
   BANNER_ALERT = "BANNER_ALERT",
@@ -18,7 +18,7 @@ export enum EErrorAlertType {
 }
 
 const errorCodeMessages: {
-  [key in EAdminAuthErrorCodes]: { title: string; message: (email?: string) => React.ReactNode };
+  [key in EAdminAuthErrorCodes]: { title: string; message: (email?: string, provider?: string) => React.ReactNode };
 } = {
   // admin
   [EAdminAuthErrorCodes.ADMIN_ALREADY_EXIST]: {
@@ -73,9 +73,18 @@ const errorCodeMessages: {
     title: `User account deactivated`,
     message: () => `User account deactivated. Please contact ${SUPPORT_EMAIL ? SUPPORT_EMAIL : "administrator"}.`,
   },
+  [EAdminAuthErrorCodes.OAUTH_EMAIL_CONFLICT]: {
+    title: `Email belongs to another account`,
+    message: (email, provider) =>
+      `The email ${email ? `${email} ` : ""}from your ${LOGIN_MEDIUM_LABELS[provider as keyof typeof LOGIN_MEDIUM_LABELS] || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
+  },
 };
 
-export const authErrorHandler = (errorCode: EAdminAuthErrorCodes, email?: string): TAdminAuthErrorInfo | undefined => {
+export const authErrorHandler = (
+  errorCode: EAdminAuthErrorCodes,
+  email?: string,
+  provider?: string
+): TAdminAuthErrorInfo | undefined => {
   const bannerAlertErrorCodes = [
     EAdminAuthErrorCodes.ADMIN_ALREADY_EXIST,
     EAdminAuthErrorCodes.REQUIRED_ADMIN_EMAIL_PASSWORD_FIRST_NAME,
@@ -86,6 +95,7 @@ export const authErrorHandler = (errorCode: EAdminAuthErrorCodes, email?: string
     EAdminAuthErrorCodes.ADMIN_USER_ALREADY_EXIST,
     EAdminAuthErrorCodes.ADMIN_USER_DOES_NOT_EXIST,
     EAdminAuthErrorCodes.ADMIN_USER_DEACTIVATED,
+    EAdminAuthErrorCodes.OAUTH_EMAIL_CONFLICT,
   ];
 
   if (bannerAlertErrorCodes.includes(errorCode))
@@ -93,7 +103,7 @@ export const authErrorHandler = (errorCode: EAdminAuthErrorCodes, email?: string
       type: EErrorAlertType.BANNER_ALERT,
       code: errorCode,
       title: errorCodeMessages[errorCode]?.title || "Error",
-      message: errorCodeMessages[errorCode]?.message(email) || "Something went wrong. Please try again.",
+      message: errorCodeMessages[errorCode]?.message(email, provider) || "Something went wrong. Please try again.",
     };
 
   return undefined;

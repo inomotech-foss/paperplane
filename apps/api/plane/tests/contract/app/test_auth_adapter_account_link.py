@@ -86,9 +86,27 @@ class TestOauthAccountLink:
         with pytest.raises(AuthenticationException) as exc:
             _FakeOauthAdapter(request_obj, "oidc", "new@plane.so", "sub-1").complete_login_or_signup()
 
-        assert exc.value.error_code == AUTHENTICATION_ERROR_CODES["USER_ALREADY_EXIST"]
+        assert exc.value.error_code == AUTHENTICATION_ERROR_CODES["OAUTH_EMAIL_CONFLICT"]
         user.refresh_from_db()
         assert user.email == "old@plane.so"
+
+    @pytest.mark.django_db
+    @patch("plane.authentication.adapter.base.user_activation_email")
+    def test_email_conflict_error_is_distinct_and_carries_provider(self, _email, request_obj):
+        user = _make_user("old@plane.so")
+        _link(user, "oidc", "sub-1")
+        _make_user("new@plane.so")
+
+        with pytest.raises(AuthenticationException) as exc:
+            _FakeOauthAdapter(request_obj, "oidc", "new@plane.so", "sub-1").complete_login_or_signup()
+
+        assert exc.value.error_code != AUTHENTICATION_ERROR_CODES["USER_ALREADY_EXIST"]
+        assert exc.value.get_error_dict() == {
+            "error_code": AUTHENTICATION_ERROR_CODES["OAUTH_EMAIL_CONFLICT"],
+            "error_message": "OAUTH_EMAIL_CONFLICT",
+            "email": "new@plane.so",
+            "provider": "oidc",
+        }
 
     @pytest.mark.django_db
     @patch("plane.authentication.adapter.base.user_activation_email")

@@ -6,7 +6,7 @@
 
 import { Link } from "react-router";
 // helpers
-import { SUPPORT_EMAIL } from "@plane/constants";
+import { LOGIN_MEDIUM_LABELS, SUPPORT_EMAIL } from "@plane/constants";
 
 export enum EPageTypes {
   INIT = "INIT",
@@ -65,6 +65,7 @@ export enum EAuthenticationErrorCodes {
   GOOGLE_OAUTH_PROVIDER_ERROR = "5115",
   GITHUB_OAUTH_PROVIDER_ERROR = "5120",
   GITLAB_OAUTH_PROVIDER_ERROR = "5121",
+  OAUTH_EMAIL_CONFLICT = "5031",
   // Reset Password
   INVALID_PASSWORD_TOKEN = "5125",
   EXPIRED_PASSWORD_TOKEN = "5130",
@@ -93,7 +94,10 @@ export type TAuthErrorInfo = {
 };
 
 const errorCodeMessages: {
-  [key in EAuthenticationErrorCodes]: { title: string; message: (email?: string) => React.ReactNode };
+  [key in EAuthenticationErrorCodes]: {
+    title: string;
+    message: (email?: string, provider?: string) => React.ReactNode;
+  };
 } = {
   // global
   [EAuthenticationErrorCodes.INSTANCE_NOT_CONFIGURED]: {
@@ -131,7 +135,7 @@ const errorCodeMessages: {
         Your account is already registered.&nbsp;
         <Link
           className="font-medium underline underline-offset-4 transition-all hover:font-bold"
-          to={`/sign-in${email ? `?email=${encodeURIComponent(email)}` : ``}`}
+          to={`/${email ? `?email=${encodeURIComponent(email)}` : ``}`}
         >
           Sign In
         </Link>
@@ -261,6 +265,11 @@ const errorCodeMessages: {
     title: `GitLab OAuth provider error`,
     message: () => `GitLab OAuth provider error. Please try again.`,
   },
+  [EAuthenticationErrorCodes.OAUTH_EMAIL_CONFLICT]: {
+    title: `Email belongs to another account`,
+    message: (email, provider) =>
+      `The email ${email ? `${email} ` : ""}from your ${LOGIN_MEDIUM_LABELS[provider as keyof typeof LOGIN_MEDIUM_LABELS] || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
+  },
 
   // Reset Password
   [EAuthenticationErrorCodes.INVALID_PASSWORD_TOKEN]: {
@@ -343,7 +352,11 @@ const errorCodeMessages: {
   },
 };
 
-export const authErrorHandler = (errorCode: EAuthenticationErrorCodes, email?: string): TAuthErrorInfo | undefined => {
+export const authErrorHandler = (
+  errorCode: EAuthenticationErrorCodes,
+  email?: string | null,
+  provider?: string | null
+): TAuthErrorInfo | undefined => {
   const bannerAlertErrorCodes = [
     EAuthenticationErrorCodes.INSTANCE_NOT_CONFIGURED,
     EAuthenticationErrorCodes.INVALID_EMAIL,
@@ -376,6 +389,7 @@ export const authErrorHandler = (errorCode: EAuthenticationErrorCodes, email?: s
     EAuthenticationErrorCodes.GOOGLE_OAUTH_PROVIDER_ERROR,
     EAuthenticationErrorCodes.GITHUB_OAUTH_PROVIDER_ERROR,
     EAuthenticationErrorCodes.GITLAB_OAUTH_PROVIDER_ERROR,
+    EAuthenticationErrorCodes.OAUTH_EMAIL_CONFLICT,
     EAuthenticationErrorCodes.INVALID_PASSWORD_TOKEN,
     EAuthenticationErrorCodes.EXPIRED_PASSWORD_TOKEN,
     EAuthenticationErrorCodes.INCORRECT_OLD_PASSWORD,
@@ -398,7 +412,9 @@ export const authErrorHandler = (errorCode: EAuthenticationErrorCodes, email?: s
       type: EErrorAlertType.BANNER_ALERT,
       code: errorCode,
       title: errorCodeMessages[errorCode]?.title || "Error",
-      message: errorCodeMessages[errorCode]?.message(email) || "Something went wrong. Please try again.",
+      message:
+        errorCodeMessages[errorCode]?.message(email ?? undefined, provider ?? undefined) ||
+        "Something went wrong. Please try again.",
     };
 
   return undefined;

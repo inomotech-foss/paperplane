@@ -33,6 +33,7 @@ export const AuthRoot = observer(function AuthRoot() {
   const searchParams = useSearchParams();
   const emailParam = searchParams.get("email") || undefined;
   const error_code = searchParams.get("error_code") || undefined;
+  const providerParam = searchParams.get("provider");
   const nextPath = searchParams.get("next_path") || undefined;
   // states
   const [authMode, setAuthMode] = useState<EAuthModes>(EAuthModes.SIGN_UP);
@@ -45,7 +46,11 @@ export const AuthRoot = observer(function AuthRoot() {
 
   useEffect(() => {
     if (error_code) {
-      const errorhandler = authErrorHandler(error_code?.toString() as EAuthenticationErrorCodes);
+      const errorhandler = authErrorHandler(
+        error_code?.toString() as EAuthenticationErrorCodes,
+        emailParam,
+        providerParam
+      );
       if (errorhandler) {
         if (errorhandler.code === EAuthenticationErrorCodes.AUTHENTICATION_FAILED_SIGN_IN) {
           setAuthMode(EAuthModes.SIGN_IN);
@@ -78,7 +83,7 @@ export const AuthRoot = observer(function AuthRoot() {
         setErrorInfo(errorhandler);
       }
     }
-  }, [error_code]);
+  }, [error_code, emailParam, providerParam]);
 
   const isSMTPConfigured = config?.is_smtp_configured || false;
   const isMagicLoginEnabled = config?.is_magic_login_enabled || false;
