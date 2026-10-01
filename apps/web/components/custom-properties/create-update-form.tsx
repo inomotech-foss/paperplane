@@ -14,28 +14,13 @@ import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { Logo } from "@plane/blocks/emoji-icon-picker";
 import { Select } from "@plane/blocks/select";
 import { setToast } from "@plane/blocks/toast";
-import type {
-  TIssueCustomProperty,
-  TIssueCustomPropertyDerivation,
-  TIssueCustomPropertyLookupConfig,
-  TIssueCustomPropertyRollupConfig,
-  TIssueCustomPropertyType,
-  TLogoProps,
-} from "@plane/types";
+import type { TIssueCustomProperty, TIssueCustomPropertyType, TLogoProps } from "@plane/types";
 import { ISSUE_CUSTOM_PROPERTY_TYPES } from "@plane/types";
 // local imports
 import { CustomPropertyIcon } from "@/components/issues/issue-detail/custom-properties/property-icon";
-import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
-import {
-  ROLLUP_BUILTIN_SOURCES,
-  getLookupConfig,
-  getRollupConfig,
-  getRollupFunctions,
-  getRollupResultType,
-  isDerivationSource,
-} from "./derivation";
 import { DerivationSettings } from "./derivation-settings";
+import { useDerivationDraft } from "./use-derivation-draft";
 
 export type TCustomPropertyOperationsCallbacks = {
   createProperty: (data: Partial<TIssueCustomProperty>) => Promise<TIssueCustomProperty>;
@@ -50,20 +35,20 @@ type TCreateUpdateCustomPropertyFormProps = {
   onClose: () => void;
 };
 
-const DEFAULT_LOOKUP: TIssueCustomPropertyLookupConfig = { issue_type: "", source: "item", include_self: true };
-const DEFAULT_ROLLUP: TIssueCustomPropertyRollupConfig = {
-  source: "items",
-  function: "count",
-  scope: "descendants",
-  issue_type: null,
-  include_self: false,
-};
-
 /** The translation key of a property type label; a work item reference has its own. */
 export const getPropertyTypeLabelKey = (propertyType: TIssueCustomPropertyType, relationType?: string | null) =>
   propertyType === "RELATION" && relationType === "ISSUE"
     ? "work_item_custom_properties.types.work_item"
     : `work_item_custom_properties.types.${propertyType.toLowerCase()}`;
+
+/** The API's reason a property could not be saved, e.g. a derivation that would form a cycle. */
+const getSaveErrorMessage = (error: unknown): string | undefined => {
+  const details = error as { error?: string; derivation_config?: string | string[] } | undefined;
+  const derivationError = Array.isArray(details?.derivation_config)
+    ? details.derivation_config[0]
+    : details?.derivation_config;
+  return derivationError ?? details?.error;
+};
 
 export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCustomPropertyForm(
   props: TCreateUpdateCustomPropertyFormProps
@@ -75,18 +60,10 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
   const { t } = useTranslation();
   // store hooks
   const { getActiveProjectIssueTypes, getIssueTypeById } = useIssueTypes();
-  const { getProjectProperties, getPropertyById } = useIssueCustomProperties();
   // states
   const [displayName, setDisplayName] = useState(propertyToUpdate?.display_name ?? "");
   const [propertyType, setPropertyType] = useState<TIssueCustomPropertyType>(propertyToUpdate?.property_type ?? "TEXT");
   const [issueType, setIssueType] = useState<string | null>(propertyToUpdate?.issue_type ?? null);
-  const [derivation, setDerivation] = useState<TIssueCustomPropertyDerivation>(propertyToUpdate?.derivation ?? "NONE");
-  const [lookup, setLookup] = useState<TIssueCustomPropertyLookupConfig>(
-    (propertyToUpdate && getLookupConfig(propertyToUpdate)) || DEFAULT_LOOKUP
-  );
-  const [rollup, setRollup] = useState<TIssueCustomPropertyRollupConfig>(
-    (propertyToUpdate && getRollupConfig(propertyToUpdate)) || DEFAULT_ROLLUP
-  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   // derived values
   const issueTypes = getActiveProjectIssueTypes(projectId?.toString()) ?? [];
@@ -96,47 +73,23 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
     { id: "", name: t("work_item_custom_properties.settings.applies_to_all_types") },
     ...issueTypes.map((type) => ({ id: type.id, name: type.name, logo_props: type.logo_props })),
   ];
-  const sourceProperties = (getProjectProperties(projectId?.toString()) ?? []).filter(
-    (property) => isDerivationSource(property) && property.id !== propertyToUpdate?.id
-  );
-  const lookupSource = lookup.source === "item" ? null : getPropertyById(lookup.source);
-  const rollupSource = (ROLLUP_BUILTIN_SOURCES as readonly string[]).includes(rollup.source)
-    ? null
-    : getPropertyById(rollup.source);
-  const rollupFunctions = getRollupFunctions(rollup.source, rollupSource);
+  const draft = useDerivationDraft(projectId?.toString(), propertyToUpdate);
 
   const isUpdating = !!propertyToUpdate;
 
-  // the type follows from the derivation for looked up and rolled up values
-  const resolved: { type: TIssueCustomPropertyType; relationType: "USER" | "ISSUE" | null; isMulti: boolean } =
-    derivation === "LOOKUP"
-      ? lookup.source === "item"
-        ? { type: "RELATION", relationType: "ISSUE", isMulti: false }
-        : {
-            type: lookupSource?.property_type ?? propertyType,
-            relationType: lookupSource?.relation_type ?? null,
-            isMulti: !!lookupSource?.is_multi,
-          }
-      : derivation === "ROLLUP"
-        ? { type: getRollupResultType(rollup.function), relationType: null, isMulti: false }
-        : { type: propertyType, relationType: propertyType === "RELATION" ? "USER" : null, isMulti: false };
-  const isTypeDerived = derivation === "LOOKUP" || derivation === "ROLLUP";
-  const isConfigComplete = derivation !== "LOOKUP" || !!lookup.issue_type;
-
-  const derivationConfig =
-    derivation === "LOOKUP" ? lookup : derivation === "ROLLUP" ? rollup : ({} as Record<string, never>);
+  const resolved = draft.resolveType(propertyType);
 
   const handleSubmit = async () => {
     const trimmedName = displayName.trim();
-    if (!trimmedName || !isConfigComplete) return;
+    if (!trimmedName || !draft.isComplete) return;
     setIsSubmitting(true);
     try {
       if (isUpdating)
         await operationsCallbacks.updateProperty(propertyToUpdate.id, {
           display_name: trimmedName,
           issue_type: issueType,
-          derivation,
-          derivation_config: derivationConfig,
+          derivation: draft.derivation,
+          derivation_config: draft.derivationConfig,
         });
       else
         await operationsCallbacks.createProperty({
@@ -146,21 +99,16 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
           relation_type: resolved.relationType,
           is_multi: resolved.isMulti,
           issue_type: issueType,
-          derivation,
-          derivation_config: derivationConfig,
+          derivation: draft.derivation,
+          derivation_config: draft.derivationConfig,
         });
       onClose();
     } catch (error) {
-      const details = error as { error?: string; derivation_config?: string | string[] };
-      const derivationError = Array.isArray(details?.derivation_config)
-        ? details.derivation_config[0]
-        : details?.derivation_config;
       setToast({
         type: "error",
         title: t("common.error.label"),
         message:
-          derivationError ??
-          details?.error ??
+          getSaveErrorMessage(error) ??
           t(
             isUpdating
               ? "work_item_custom_properties.settings.update_error"
@@ -192,12 +140,12 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
           getOptionIcon={(type) => <CustomPropertyIcon propertyType={type} className="size-3.5" />}
           showSearch={false}
           pinSelected={false}
-          disabled={isUpdating || isTypeDerived}
+          disabled={isUpdating || draft.isTypeDerived}
         >
           <Select.Trigger<TIssueCustomPropertyType>
             variant="select-md"
             className="w-auto"
-            disabled={isUpdating || isTypeDerived}
+            disabled={isUpdating || draft.isTypeDerived}
             prependIcon={
               <CustomPropertyIcon
                 propertyType={resolved.type}
@@ -254,20 +202,20 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
           size="xs"
           stretch="auto"
           loading={isSubmitting}
-          disabled={!displayName.trim() || !isConfigComplete}
+          disabled={!displayName.trim() || !draft.isComplete}
           label={isUpdating ? t("common.update") : t("common.create")}
         />
       </div>
 
       <DerivationSettings
-        derivation={derivation}
-        onDerivationChange={setDerivation}
-        lookup={lookup}
-        onLookupChange={setLookup}
-        rollup={rollup}
-        onRollupChange={setRollup}
-        rollupFunctions={rollupFunctions}
-        sourceProperties={sourceProperties}
+        derivation={draft.derivation}
+        onDerivationChange={draft.setDerivation}
+        lookup={draft.lookup}
+        onLookupChange={draft.setLookup}
+        rollup={draft.rollup}
+        onRollupChange={draft.setRollup}
+        rollupFunctions={draft.rollupFunctions}
+        sourceProperties={draft.sourceProperties}
       />
     </form>
   );
