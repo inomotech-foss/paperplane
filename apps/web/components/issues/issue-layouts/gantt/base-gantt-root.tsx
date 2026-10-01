@@ -63,6 +63,29 @@ export type GanttStoreType =
   | EIssuesStoreType.PROJECT_VIEW
   | EIssuesStoreType.EPIC;
 
+type TRowStateSources = {
+  hasChildren: (issueId: string) => boolean;
+  isLoading: (issueId: string) => boolean;
+  /** The work item's sub-work item count, which also counts children the view does not list. */
+  getSubIssueCount: (issueId: string) => number | undefined;
+};
+
+/** The fold state of every row, as the sidebar rows read it. */
+const getRowStates = (rows: ReturnType<typeof buildGanttRows>["rows"], sources: TRowStateSources) => {
+  const rowStates: Record<string, TGanttRowState> = {};
+  for (const [issueId, row] of rows) {
+    const isExpanded = row.isExpanded && row.childIds.length > 0;
+    rowStates[issueId] = {
+      depth: row.depth,
+      hasChildren: sources.hasChildren(issueId),
+      isExpanded,
+      isLoading: sources.isLoading(issueId),
+      hiddenCount: isExpanded ? 0 : (sources.getSubIssueCount(issueId) ?? row.childIds.length),
+    };
+  }
+  return rowStates;
+};
+
 export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRoot) {
   const { viewId, isCompletedCycle = false, isEpic = false } = props;
   const { t } = useTranslation();
@@ -162,17 +185,11 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
   );
 
   // the row states as plain data, so the context value only changes when one of them does
-  const rowStates: Record<string, TGanttRowState> = {};
-  for (const [issueId, row] of rows) {
-    const isExpanded = row.isExpanded && row.childIds.length > 0;
-    rowStates[issueId] = {
-      depth: row.depth,
-      hasChildren: hasChildren(issueId),
-      isExpanded,
-      isLoading: loadingParentIds.has(issueId),
-      hiddenCount: isExpanded ? 0 : (getIssueById(issueId)?.sub_issues_count ?? row.childIds.length),
-    };
-  }
+  const rowStates = getRowStates(rows, {
+    hasChildren,
+    isLoading: (issueId) => loadingParentIds.has(issueId),
+    getSubIssueCount: (issueId) => getIssueById(issueId)?.sub_issues_count,
+  });
   const rowStatesKey = JSON.stringify(rowStates);
   // toggleRow closes over this render's rows; the context reaches the latest one through a ref
   const toggleRowRef = useRef(toggleRow);

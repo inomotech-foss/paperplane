@@ -34,6 +34,7 @@ import { useTimeLineChart } from "@/hooks/use-timeline-chart";
 import { WorkItemPreviewCard } from "../../preview-card";
 import { getBlockViewDetails } from "../utils";
 import type { GanttStoreType } from "./base-gantt-root";
+import type { TGanttRowState } from "./hierarchy-context";
 import { useGanttHierarchy } from "./hierarchy-context";
 
 type Props = {
@@ -142,6 +143,64 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
   );
 });
 
+/**
+ * How deep a sidebar row is indented: from the timeline's tree, else the number of
+ * ancestors that are themselves in the chart (the block list is hierarchy-ordered).
+ */
+const useNestingDepth = (issueId: string, rowState: TGanttRowState | undefined) => {
+  const {
+    issue: { getIssueById },
+  } = useIssueDetail();
+  const { getBlockById } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
+  if (rowState) return rowState.depth;
+  let depth = 0;
+  const seenIds = new Set([issueId]);
+  let parentId = getIssueById(issueId)?.parent_id;
+  while (parentId && !seenIds.has(parentId) && getBlockById(parentId)) {
+    depth += 1;
+    seenIds.add(parentId);
+    parentId = getIssueById(parentId)?.parent_id;
+  }
+  return depth;
+};
+
+type TGanttRowToggleProps = {
+  rowState: TGanttRowState | undefined;
+  onToggle: () => void;
+};
+
+/** The chevron that folds and unfolds a row, or a spinner while its children load. */
+const GanttRowToggle = observer(function GanttRowToggle(props: TGanttRowToggleProps) {
+  const { rowState, onToggle } = props;
+  const { t } = useTranslation();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onToggle();
+  };
+
+  let content: React.ReactNode = null;
+  if (rowState?.isLoading) content = <Spinner height="12px" width="12px" />;
+  else if (rowState?.hasChildren)
+    content = (
+      <button
+        type="button"
+        className="grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
+        onClick={handleClick}
+        aria-expanded={rowState.isExpanded}
+        aria-label={t(rowState.isExpanded ? "timeline_hierarchy.collapse" : "timeline_hierarchy.expand")}
+      >
+        <ChevronRightOutline
+          className={cn("size-4 transition-transform", { "rotate-90": rowState.isExpanded })}
+          strokeWidth={2.5}
+        />
+      </button>
+    );
+
+  return <span className="grid size-4 flex-shrink-0 place-items-center">{content}</span>;
+});
+
 // rendering issues on gantt sidebar
 export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(props: Props) {
   const { issueId, isEpic = false } = props;
@@ -160,7 +219,6 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
   // handlers
   const { handleRedirection } = useIssuePeekOverviewRedirection(isEpic);
 
-  const { getBlockById } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
   const hierarchy = useGanttHierarchy();
   const { t } = useTranslation();
 
@@ -170,24 +228,7 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
   const projectIdentifier = getProjectIdentifierById(issueDetails?.project_id);
   const rowState = hierarchy?.getRowState(issueId);
 
-  // nesting depth: from the timeline's tree, else the number of ancestors that
-  // are themselves in the chart (the block list is hierarchy-ordered)
-  let nestingDepth = rowState?.depth ?? 0;
-  if (!rowState) {
-    const seenIds = new Set([issueId]);
-    let parentId = issueDetails?.parent_id;
-    while (parentId && !seenIds.has(parentId) && getBlockById(parentId)) {
-      nestingDepth += 1;
-      seenIds.add(parentId);
-      parentId = getIssueById(parentId)?.parent_id;
-    }
-  }
-
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    hierarchy?.toggleRow(issueId);
-  };
+  const nestingDepth = useNestingDepth(issueId, rowState);
 
   const handleIssuePeekOverview = (e: any) => {
     e.stopPropagation(true);
@@ -214,28 +255,7 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
     >
       <div className="relative flex h-full w-full cursor-pointer items-center gap-2">
         {nestingDepth > 0 && <span aria-hidden className="flex-shrink-0" style={{ width: `${nestingDepth * 16}px` }} />}
-        {hierarchy && (
-          <span className="grid size-4 flex-shrink-0 place-items-center">
-            {rowState?.isLoading ? (
-              <Spinner height="12px" width="12px" />
-            ) : (
-              rowState?.hasChildren && (
-                <button
-                  type="button"
-                  className="grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
-                  onClick={handleToggle}
-                  aria-expanded={rowState.isExpanded}
-                  aria-label={t(rowState.isExpanded ? "timeline_hierarchy.collapse" : "timeline_hierarchy.expand")}
-                >
-                  <ChevronRightOutline
-                    className={cn("size-4 transition-transform", { "rotate-90": rowState.isExpanded })}
-                    strokeWidth={2.5}
-                  />
-                </button>
-              )
-            )}
-          </span>
-        )}
+        {hierarchy && <GanttRowToggle rowState={rowState} onToggle={() => hierarchy.toggleRow(issueId)} />}
         {issueDetails?.project_id && (
           <IssueIdentifier
             issueId={issueDetails.id}
