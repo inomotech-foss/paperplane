@@ -59,6 +59,8 @@ export const CustomPropertyItem = observer(function CustomPropertyItem(props: TC
   if (isEditing)
     return (
       <CreateUpdateCustomPropertyForm
+        // the form starts from the property's values; a different property gets a fresh form
+        key={property.id}
         propertyToUpdate={property}
         operationsCallbacks={operationsCallbacks}
         onClose={() => setIsEditing(false)}

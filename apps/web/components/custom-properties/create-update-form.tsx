@@ -4,14 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
-import { Switch } from "@makeplane/propel/components/switch";
 import { Logo } from "@plane/blocks/emoji-icon-picker";
 import { Select } from "@plane/blocks/select";
 import { setToast } from "@plane/blocks/toast";
@@ -20,12 +19,10 @@ import type {
   TIssueCustomPropertyDerivation,
   TIssueCustomPropertyLookupConfig,
   TIssueCustomPropertyRollupConfig,
-  TIssueCustomPropertyRollupFunction,
   TIssueCustomPropertyType,
   TLogoProps,
 } from "@plane/types";
-import { ISSUE_CUSTOM_PROPERTY_DERIVATIONS, ISSUE_CUSTOM_PROPERTY_TYPES } from "@plane/types";
-import { cn } from "@plane/utils";
+import { ISSUE_CUSTOM_PROPERTY_TYPES } from "@plane/types";
 // local imports
 import { CustomPropertyIcon } from "@/components/issues/issue-detail/custom-properties/property-icon";
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
@@ -38,6 +35,7 @@ import {
   getRollupResultType,
   isDerivationSource,
 } from "./derivation";
+import { DerivationSettings } from "./derivation-settings";
 
 export type TCustomPropertyOperationsCallbacks = {
   createProperty: (data: Partial<TIssueCustomProperty>) => Promise<TIssueCustomProperty>;
@@ -66,57 +64,6 @@ export const getPropertyTypeLabelKey = (propertyType: TIssueCustomPropertyType, 
   propertyType === "RELATION" && relationType === "ISSUE"
     ? "work_item_custom_properties.types.work_item"
     : `work_item_custom_properties.types.${propertyType.toLowerCase()}`;
-
-function FieldLabel(props: { children: React.ReactNode }) {
-  return <span className="text-11 whitespace-nowrap text-tertiary">{props.children}</span>;
-}
-
-const propertyIcon = (property: TIssueCustomProperty) => (
-  <CustomPropertyIcon
-    propertyType={property.property_type}
-    relationType={property.relation_type}
-    className="size-3.5"
-  />
-);
-
-type TPickOption = { value: string; label: string; icon?: React.ReactNode; description?: string };
-
-/** A compact single select over a few fixed options, for the derivation settings. */
-function PickOne(props: {
-  options: TPickOption[];
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
-}) {
-  const { options, value, onChange, placeholder, disabled } = props;
-  const selected = options.find((option) => option.value === value) ?? null;
-  return (
-    <Select<TPickOption>
-      getValues={() => options}
-      value={selected}
-      onChange={onChange}
-      getOptionValue={(option) => option.value}
-      getOptionLabel={(option) => option.label}
-      getOptionIcon={(option) => option.icon}
-      getOptionDescription={(option) => option.description}
-      showSearch={options.length > 8}
-      pinSelected={false}
-      disabled={disabled}
-    >
-      <Select.Trigger<TPickOption>
-        variant="select-md"
-        className="w-auto"
-        disabled={disabled}
-        prependIcon={selected?.icon ? <>{selected.icon}</> : undefined}
-      >
-        <span className={cn("min-w-0 grow truncate text-left whitespace-nowrap", { "text-placeholder": !selected })}>
-          {selected?.label ?? placeholder}
-        </span>
-      </Select.Trigger>
-    </Select>
-  );
-}
 
 export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCustomPropertyForm(
   props: TCreateUpdateCustomPropertyFormProps
@@ -157,15 +104,6 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
     ? null
     : getPropertyById(rollup.source);
   const rollupFunctions = getRollupFunctions(rollup.source, rollupSource);
-
-  useEffect(() => {
-    setDisplayName(propertyToUpdate?.display_name ?? "");
-    setPropertyType(propertyToUpdate?.property_type ?? "TEXT");
-    setIssueType(propertyToUpdate?.issue_type ?? null);
-    setDerivation(propertyToUpdate?.derivation ?? "NONE");
-    setLookup((propertyToUpdate && getLookupConfig(propertyToUpdate)) || DEFAULT_LOOKUP);
-    setRollup((propertyToUpdate && getRollupConfig(propertyToUpdate)) || DEFAULT_ROLLUP);
-  }, [propertyToUpdate]);
 
   const isUpdating = !!propertyToUpdate;
 
@@ -233,33 +171,6 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
       setIsSubmitting(false);
     }
   };
-
-  // "" stands for "none picked" in the pickers below
-  const issueTypeSelect = (
-    value: string | null,
-    onChange: (value: string | null) => void,
-    emptyLabel: string,
-    allowEmpty = true
-  ) => (
-    <PickOne
-      value={value ?? ""}
-      onChange={(next) => onChange(next || null)}
-      placeholder={emptyLabel}
-      options={[
-        ...(allowEmpty ? [{ value: "", label: emptyLabel }] : []),
-        ...issueTypes.map((type) => ({
-          value: type.id,
-          label: type.name,
-          icon: <Logo logo={type.logo_props} size={14} />,
-        })),
-      ]}
-    />
-  );
-
-  const sourceLabel = (source: string) =>
-    (ROLLUP_BUILTIN_SOURCES as readonly string[]).includes(source)
-      ? t(`work_item_custom_properties.derivation.source_${source}`)
-      : (getPropertyById(source)?.display_name ?? source);
 
   return (
     <form
@@ -348,109 +259,16 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
         />
       </div>
 
-      {/* where the values come from */}
-      <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-2 pl-1">
-        <FieldLabel>{t("work_item_custom_properties.derivation.label")}</FieldLabel>
-        <PickOne
-          value={derivation}
-          onChange={(value) => setDerivation(value as TIssueCustomPropertyDerivation)}
-          options={ISSUE_CUSTOM_PROPERTY_DERIVATIONS.map((option) => ({
-            value: option,
-            label: t(`work_item_custom_properties.derivation.${option.toLowerCase()}`),
-            description: t(`work_item_custom_properties.derivation.${option.toLowerCase()}_help`),
-          }))}
-        />
-
-        {derivation === "LOOKUP" && (
-          <>
-            <FieldLabel>{t("work_item_custom_properties.derivation.ancestor_type")}</FieldLabel>
-            {issueTypeSelect(
-              lookup.issue_type || null,
-              (value) => setLookup({ ...lookup, issue_type: value ?? "" }),
-              t("work_item_custom_properties.derivation.pick_type"),
-              false
-            )}
-            <FieldLabel>{t("work_item_custom_properties.derivation.take")}</FieldLabel>
-            <PickOne
-              value={lookup.source}
-              onChange={(value) => setLookup({ ...lookup, source: value })}
-              options={[
-                { value: "item", label: t("work_item_custom_properties.derivation.the_item_itself") },
-                ...sourceProperties
-                  .filter((property) => !(property.property_type === "RELATION" && property.relation_type === "ISSUE"))
-                  .map((property) => ({
-                    value: property.id,
-                    label: property.display_name,
-                    icon: propertyIcon(property),
-                  })),
-              ]}
-            />
-            <label className="flex items-center gap-1.5">
-              <Switch
-                size="sm"
-                checked={lookup.include_self}
-                onCheckedChange={(value) => setLookup({ ...lookup, include_self: value })}
-              />
-              <FieldLabel>{t("work_item_custom_properties.derivation.include_self_lookup")}</FieldLabel>
-            </label>
-          </>
-        )}
-
-        {derivation === "ROLLUP" && (
-          <>
-            <PickOne
-              value={rollup.function}
-              onChange={(value) => setRollup({ ...rollup, function: value as TIssueCustomPropertyRollupFunction })}
-              options={rollupFunctions.map((fn) => ({
-                value: fn,
-                label: t(`work_item_custom_properties.derivation.functions.${fn}`),
-              }))}
-            />
-            <FieldLabel>{t("work_item_custom_properties.derivation.of")}</FieldLabel>
-            <PickOne
-              value={rollup.source}
-              onChange={(value) => {
-                const functions = getRollupFunctions(value, getPropertyById(value));
-                setRollup({
-                  ...rollup,
-                  source: value,
-                  function: functions.includes(rollup.function) ? rollup.function : (functions[0] ?? "count"),
-                });
-              }}
-              options={[
-                ...ROLLUP_BUILTIN_SOURCES.map((source) => ({ value: source, label: sourceLabel(source) })),
-                ...sourceProperties.map((property) => ({
-                  value: property.id,
-                  label: property.display_name,
-                  icon: propertyIcon(property),
-                })),
-              ]}
-            />
-            <FieldLabel>{t("work_item_custom_properties.derivation.of_work_items")}</FieldLabel>
-            {issueTypeSelect(
-              rollup.issue_type,
-              (value) => setRollup({ ...rollup, issue_type: value }),
-              t("work_item_custom_properties.derivation.any_type")
-            )}
-            <PickOne
-              value={rollup.scope}
-              onChange={(value) => setRollup({ ...rollup, scope: value as TIssueCustomPropertyRollupConfig["scope"] })}
-              options={[
-                { value: "descendants", label: t("work_item_custom_properties.derivation.scope_descendants") },
-                { value: "children", label: t("work_item_custom_properties.derivation.scope_children") },
-              ]}
-            />
-            <label className="flex items-center gap-1.5">
-              <Switch
-                size="sm"
-                checked={rollup.include_self}
-                onCheckedChange={(value) => setRollup({ ...rollup, include_self: value })}
-              />
-              <FieldLabel>{t("work_item_custom_properties.derivation.include_self_rollup")}</FieldLabel>
-            </label>
-          </>
-        )}
-      </div>
+      <DerivationSettings
+        derivation={derivation}
+        onDerivationChange={setDerivation}
+        lookup={lookup}
+        onLookupChange={setLookup}
+        rollup={rollup}
+        onRollupChange={setRollup}
+        rollupFunctions={rollupFunctions}
+        sourceProperties={sourceProperties}
+      />
     </form>
   );
 });
