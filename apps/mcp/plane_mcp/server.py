@@ -9,7 +9,12 @@ from mcp.types import Icon
 
 from plane_mcp.auth import PlaneHeaderAuthProvider, PlaneOAuthProvider
 from plane_mcp.instructions import SERVER_INSTRUCTIONS
-from plane_mcp.middleware import PlaneLoggingMiddleware, WorkspaceSelectionMiddleware
+from plane_mcp.middleware import (
+    CoerceArguments,
+    PlaneLoggingMiddleware,
+    ValidateActionArguments,
+    WorkspaceSelectionMiddleware,
+)
 from plane_mcp.storage import build_token_store
 from plane_mcp.tools import register_tools
 
@@ -33,6 +38,9 @@ DEFAULT_ALLOWED_REDIRECT_URIS = [
     # ChatGPT connectors — per-connector callback + legacy redirect
     "https://chatgpt.com/connector/oauth/*",
     "https://chatgpt.com/connector_platform_oauth_redirect",
+    # Gemini custom apps (Spark) — the path carries a per-user, per-connector id
+    "https://oauth-redirect.googleusercontent.com/r/*",
+    "https://grok.com/connectors-oauth-exchange-code/",
 ]
 
 
@@ -46,6 +54,20 @@ def get_allowed_client_redirect_uris() -> list[str]:
         if uri and uri not in allowed:
             allowed.append(uri)
     return allowed
+
+
+LOG_PAYLOADS = os.getenv("LOG_PAYLOADS", "true").lower() == "true"
+
+
+def _configured(mcp: FastMCP) -> FastMCP:
+    """The middleware stack and tools every transport shares."""
+    mcp.add_middleware(PlaneLoggingMiddleware(include_payloads=LOG_PAYLOADS))
+    # Strips workspace_slug before validation would refuse it as a stray argument.
+    mcp.add_middleware(WorkspaceSelectionMiddleware())
+    mcp.add_middleware(CoerceArguments())
+    mcp.add_middleware(ValidateActionArguments())
+    register_tools(mcp)
+    return mcp
 
 
 def get_oauth_mcp(base_path: str = "/") -> FastMCP:
@@ -67,10 +89,7 @@ def get_oauth_mcp(base_path: str = "/") -> FastMCP:
             allowed_client_redirect_uris=get_allowed_client_redirect_uris(),
         ),
     )
-    oauth_mcp.add_middleware(PlaneLoggingMiddleware(include_payloads=True))
-    oauth_mcp.add_middleware(WorkspaceSelectionMiddleware())
-    register_tools(oauth_mcp)
-    return oauth_mcp
+    return _configured(oauth_mcp)
 
 
 def get_header_mcp():
@@ -81,10 +100,7 @@ def get_header_mcp():
             required_scopes=["read", "write"],
         ),
     )
-    header_mcp.add_middleware(PlaneLoggingMiddleware(include_payloads=True))
-    header_mcp.add_middleware(WorkspaceSelectionMiddleware())
-    register_tools(header_mcp)
-    return header_mcp
+    return _configured(header_mcp)
 
 
 def get_stdio_mcp():
@@ -92,6 +108,4 @@ def get_stdio_mcp():
         "Plane MCP Server (stdio)",
         instructions=SERVER_INSTRUCTIONS,
     )
-    stdio_mcp.add_middleware(PlaneLoggingMiddleware(include_payloads=True))
-    register_tools(stdio_mcp)
-    return stdio_mcp
+    return _configured(stdio_mcp)
