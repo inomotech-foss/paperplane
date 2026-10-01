@@ -40,11 +40,12 @@ export const DeleteCustomPropertyModal = observer(function DeleteCustomPropertyM
     try {
       await deleteProperty(workspaceSlug.toString(), projectId.toString(), property.id);
       onClose();
-    } catch {
+    } catch (error) {
       setToast({
         type: "error",
         title: t("common.error.label"),
-        message: t("work_item_custom_properties.settings.delete_error"),
+        // e.g. "Other properties are derived from this one: Total hours"
+        message: (error as { error?: string })?.error ?? t("work_item_custom_properties.settings.delete_error"),
       });
     } finally {
       setIsSubmitting(false);

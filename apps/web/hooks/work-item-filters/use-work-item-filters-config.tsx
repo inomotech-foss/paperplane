@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import { sortBy } from "lodash-es";
 import { useCallback, useMemo } from "react";
 import { CircleCheck, CornerLeftUp, Layers, ListTree, Type } from "lucide-react";
 import {
@@ -61,10 +62,16 @@ import {
   isLoaderReady,
 } from "@plane/utils";
 // components
+import {
+  getLookupConfig,
+  getOptionsProperty,
+  isWorkItemReferenceProperty,
+} from "@/components/custom-properties/derivation";
 import { CustomPropertyIcon } from "@/components/issues/issue-detail/custom-properties/property-icon";
 // store hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
+import { useIssues } from "@/hooks/store/use-issues";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { useLabel } from "@/hooks/store/use-label";
 import { useMember } from "@/hooks/store/use-member";
@@ -113,7 +120,8 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
   const { getModuleById } = useModule();
   const { getStateById } = useProjectState();
   const { getUserDetails } = useMember();
-  const { getActiveProjectProperties } = useIssueCustomProperties();
+  const { getActiveProjectProperties, getPropertyById } = useIssueCustomProperties();
+  const { issueMap } = useIssues();
   const { getActiveProjectIssueTypes } = useIssueTypes();
   // derived values
   const operatorConfigs = useFiltersOperatorConfigs({ workspaceSlug });
@@ -464,15 +472,42 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
     [isFilterEnabled, projectId, getActiveProjectIssueTypes, operatorConfigs]
   );
 
+  // the loaded work items of a type, as filter options of a work item reference (e.g. the customers)
+  const projectIdentifier = projectId ? getProjectById(projectId)?.identifier : undefined;
+  const getWorkItemsOfType = useCallback(
+    (issueTypeId: string | undefined) =>
+      !issueTypeId || !projectId
+        ? []
+        : sortBy(
+            Object.values(issueMap)
+              .filter((issue) => issue.project_id === projectId && issue.type_id === issueTypeId && !issue.archived_at)
+              .map((issue) => ({
+                id: issue.id,
+                label: `${projectIdentifier ?? ""}-${issue.sequence_id} ${issue.name}`,
+              })),
+            "label"
+          ),
+    [issueMap, projectId, projectIdentifier]
+  );
+
   // custom property filter configs (typed custom fields of the project)
   const customPropertyFilterConfigs = useMemo(() => {
     const customProperties = projectId ? (getActiveProjectProperties(projectId) ?? []) : [];
     return customProperties.map((property) =>
       getCustomPropertyFilterConfig<TWorkItemFilterProperty>(`customproperty_${property.id}`)({
-        property,
+        // a property looked up from an ancestor's option property filters by the source's options
+        property: { ...property, options: getOptionsProperty(property, getPropertyById).options },
+        // a work item reference (e.g. "Customer") filters by the loaded work items of that type
+        workItems: isWorkItemReferenceProperty(property)
+          ? getWorkItemsOfType(getLookupConfig(property)?.issue_type)
+          : undefined,
         isEnabled: true,
         filterIcon: (iconProps) => (
-          <CustomPropertyIcon propertyType={property.property_type} className={iconProps.className} />
+          <CustomPropertyIcon
+            propertyType={property.property_type}
+            relationType={property.relation_type}
+            className={iconProps.className}
+          />
         ),
         members: members ?? [],
         getMemberIcon: (memberDetails) => (
@@ -486,7 +521,7 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
         ...operatorConfigs,
       })
     );
-  }, [projectId, getActiveProjectProperties, members, operatorConfigs]);
+  }, [projectId, getActiveProjectProperties, getPropertyById, getWorkItemsOfType, members, operatorConfigs]);
 
   return {
     areAllConfigsInitialized,

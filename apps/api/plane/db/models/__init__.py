@@ -108,6 +108,7 @@ from .issue_property import (
     IssueProperty,
     IssuePropertyOption,
     IssuePropertyValue,
+    PropertyDerivationChoices,
     PropertyRelationTypeChoices,
     PropertyTypeChoices,
 )

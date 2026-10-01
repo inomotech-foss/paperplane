@@ -46,6 +46,9 @@ import {
 } from "./base-issues-utils";
 import type { IBaseIssueFilterStore } from "./issue-filter-helper.store";
 
+// Work item fields that inherited, looked-up and rolled-up property values depend on.
+const DERIVED_PROPERTY_INPUTS = ["parent_id", "type_id", "start_date", "target_date", "archived_at"] as const;
+
 export type TIssueDisplayFilterOptions = Exclude<TIssueGroupByOptions, null> | "target_date";
 
 export enum EIssueGroupedAction {
@@ -552,6 +555,15 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
    * @param shouldSync If False then only issue is to be updated in the store not call API to update
    * @returns
    */
+  /**
+   * Custom property values derived from the hierarchy (inherited, looked up, rolled up)
+   * follow parents, types and dates, so refetch them after such a change.
+   */
+  refreshDerivedPropertyValues(workspaceSlug: string, projectId: string, data?: Partial<TIssue>) {
+    if (data && !DERIVED_PROPERTY_INPUTS.some((field) => field in data)) return;
+    this.rootIssueStore.rootStore.issueCustomProperty.refreshDerivedValues(workspaceSlug, projectId);
+  }
+
   async issueUpdate(
     workspaceSlug: string,
     projectId: string,
@@ -577,6 +589,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
 
       // call API to update the issue
       await this.issueService.patchIssue(workspaceSlug, projectId, issueId, data);
+      this.refreshDerivedPropertyValues(workspaceSlug, projectId, data);
 
       // call fetch Parent Stats
       this.fetchParentStats(workspaceSlug, projectId);
@@ -602,6 +615,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
 
     // Male API call
     await this.issueService.deleteIssue(workspaceSlug, projectId, issueId);
+    this.refreshDerivedPropertyValues(workspaceSlug, projectId);
     // Remove from Respective issue Id list
     runInAction(() => {
       this.removeIssueFromList(issueId);
@@ -624,6 +638,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     this.updateParentStats(issueBeforeArchive, undefined);
     // Male API call
     const response = await this.issueArchiveService.archiveIssue(workspaceSlug, projectId, issueId);
+    this.refreshDerivedPropertyValues(workspaceSlug, projectId);
     // call fetch Parent stats
     this.fetchParentStats(workspaceSlug, projectId);
     runInAction(() => {
@@ -784,6 +799,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       });
 
       await this.issueService.updateIssueDates(workspaceSlug, projectId, updates);
+      this.refreshDerivedPropertyValues(workspaceSlug, projectId);
     } catch (e) {
       runInAction(() => {
         // oxlint-disable-next-line no-shadow

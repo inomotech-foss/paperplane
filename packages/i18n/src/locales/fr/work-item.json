@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Nombre",
+      "datetime": "Date",
+      "relation": "Membre",
+      "work_item": "Élément de travail"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Valeur",
+      "none": "Saisie manuelle",
+      "none_help": "Chacun la saisit à la main",
+      "inherit": "Héritée du parent",
+      "inherit_help": "Les valeurs vides prennent celle du parent ; une valeur saisie ici est transmise vers le bas",
+      "lookup": "Depuis un ancêtre",
+      "lookup_help": "L'ancêtre le plus proche d'un type, ou l'une de ses valeurs",
+      "rollup": "Agrégée depuis le bas",
+      "rollup_help": "Somme, nombre, date la plus ancienne… des éléments en dessous",
+      "ancestor_type": "Type d'ancêtre",
+      "pick_type": "Choisir un type",
+      "take": "Prendre",
+      "the_item_itself": "L'élément lui-même",
+      "include_self_lookup": "Un élément de ce type est son propre ancêtre",
+      "include_self_rollup": "Inclure l'élément lui-même",
+      "of": "de",
+      "of_work_items": "des éléments de type",
+      "any_type": "tout type",
+      "scope_children": "Enfants directs",
+      "scope_descendants": "Tous les niveaux en dessous",
+      "source_items": "Éléments",
+      "source_start_date": "Date de début",
+      "source_target_date": "Date d'échéance",
+      "summary_inherit": "Héritée du parent, sauf si elle est saisie ici",
+      "summary_lookup_item": "Le {type} au-dessus",
+      "summary_lookup_property": "{property} du {type} au-dessus",
+      "summary_rollup": "{function} de {source} en dessous",
+      "summary_rollup_typed": "{function} de {source} des {type} en dessous",
+      "computed_readonly": "Calculée à partir de la hiérarchie des éléments",
+      "inherited_from": "Héritée de",
+      "functions": {
+        "sum": "Somme",
+        "avg": "Moyenne",
+        "min": "Minimum",
+        "max": "Maximum",
+        "count": "Nombre",
+        "earliest": "Plus ancienne",
+        "latest": "Plus récente",
+        "count_true": "Nombre cochés",
+        "percent_true": "% cochés"
+      }
     }
   },
   "work_item_query": {

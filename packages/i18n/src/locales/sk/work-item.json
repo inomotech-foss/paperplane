@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Číslo",
+      "datetime": "Dátum",
+      "relation": "Člen",
+      "work_item": "Pracovná položka"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Hodnota",
+      "none": "Zadávajú ľudia",
+      "none_help": "Každý ju vyplní ručne",
+      "inherit": "Zdedené z nadradenej",
+      "inherit_help": "Prázdne hodnoty prevezmú hodnotu nadradenej položky; hodnota zadaná tu sa odovzdá nižšie",
+      "lookup": "Z predka",
+      "lookup_help": "Najbližší predok daného typu alebo jedna z jeho hodnôt",
+      "rollup": "Agregované zdola",
+      "rollup_help": "Súčet, počet, najskorší dátum… položiek nižšie",
+      "ancestor_type": "Typ predka",
+      "pick_type": "Vyberte typ",
+      "take": "Prevziať",
+      "the_item_itself": "Samotná položka",
+      "include_self_lookup": "Položka tohto typu je svojou vlastnou",
+      "include_self_rollup": "Zahrnúť samotnú položku",
+      "of": "z",
+      "of_work_items": "z položiek typu",
+      "any_type": "ľubovoľného typu",
+      "scope_children": "Priame podriadené",
+      "scope_descendants": "Všetky úrovne nižšie",
+      "source_items": "Položky",
+      "source_start_date": "Dátum začiatku",
+      "source_target_date": "Termín",
+      "summary_inherit": "Zdedené z nadradenej, ak nie je zadané tu",
+      "summary_lookup_item": "{type} vyššie",
+      "summary_lookup_property": "{property} z {type} vyššie",
+      "summary_rollup": "{function} z {source} nižšie",
+      "summary_rollup_typed": "{function} z {source} typu {type} nižšie",
+      "computed_readonly": "Vypočítané z hierarchie pracovných položiek",
+      "inherited_from": "Zdedené z",
+      "functions": {
+        "sum": "Súčet",
+        "avg": "Priemer",
+        "min": "Minimum",
+        "max": "Maximum",
+        "count": "Počet",
+        "earliest": "Najskorší",
+        "latest": "Najneskorší",
+        "count_true": "Počet označených",
+        "percent_true": "% označených"
+      }
     }
   },
   "work_item_query": {

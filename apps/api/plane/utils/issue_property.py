@@ -21,9 +21,11 @@ from django.utils.dateparse import parse_date, parse_datetime
 
 # Module imports
 from plane.db.models import (
+    Issue,
     IssueProperty,
     IssuePropertyOption,
     IssuePropertyValue,
+    PropertyDerivationChoices,
     PropertyTypeChoices,
     WorkspaceMember,
 )
@@ -81,6 +83,21 @@ def parse_datetime_value(raw):
     return value
 
 
+def options_property(property_obj):
+    """The property whose options an OPTION value refers to.
+
+    A property looked up from an option property of an ancestor shows the source's
+    options, so filters and queries resolve option names against the source.
+    """
+    if property_obj.derivation == PropertyDerivationChoices.LOOKUP:
+        source = (property_obj.derivation_config or {}).get("source")
+        if source and source != "item":
+            source_property = IssueProperty.objects.filter(pk=source, project_id=property_obj.project_id).first()
+            if source_property is not None:
+                return source_property
+    return property_obj
+
+
 def resolve_option(property_obj, raw):
     """Resolve a raw request value to an option of the property.
 
@@ -89,6 +106,7 @@ def resolve_option(property_obj, raw):
     """
     if isinstance(raw, (list, dict, bool)) or raw is None:
         raise PropertyValueError("Value must be an option id or option name")
+    property_obj = options_property(property_obj)
     raw = str(raw)
     try:
         option_id = uuid.UUID(raw)
@@ -116,8 +134,9 @@ def number_to_json(number):
 def value_to_json(value):
     """Serialize a single IssuePropertyValue row to `(value, display)` JSON scalars.
 
-    The related ``property``, ``value_option`` and ``value_user`` must be
-    select_related on the row for this to stay query-free.
+    The related ``property``, ``value_option``, ``value_user`` and
+    ``value_issue__project`` must be select_related on the row for this to stay
+    query-free.
     """
     property_type = value.property.property_type
     if property_type in OPTION_PROPERTY_TYPES:
@@ -132,6 +151,12 @@ def value_to_json(value):
     elif property_type == PropertyTypeChoices.BOOLEAN:
         json_value = value.value_boolean
         display = value.value_boolean
+    elif property_type == PropertyTypeChoices.RELATION and value.property.is_issue_relation:
+        json_value = str(value.value_issue_id) if value.value_issue_id else None
+        display = None
+        if value.value_issue_id:
+            referenced = value.value_issue
+            display = f"{referenced.project.identifier}-{referenced.sequence_id} {referenced.name}"
     elif property_type == PropertyTypeChoices.RELATION:
         json_value = str(value.value_user_id) if value.value_user_id else None
         display = value.value_user.display_name if value.value_user_id else None
@@ -187,6 +212,10 @@ def build_value_rows(issue, property_obj, raw):
         "workspace_id": issue.workspace_id,
         "project_id": issue.project_id,
     }
+    if property_obj.is_computed:
+        raise PropertyValueError(
+            f"'{property_obj.display_name}' is computed from the work item hierarchy and cannot be set"
+        )
     # None (or an empty list) clears the property values
     if raw is None or raw == [] or raw == "":
         return []
@@ -357,7 +386,7 @@ def build_issue_property_filters(query_params, slug, project_id):
             elif property_obj.property_type == PropertyTypeChoices.DATETIME:
                 filter_kwargs["property_values__value_date"] = parse_datetime_value(raw)
             elif property_obj.property_type == PropertyTypeChoices.RELATION:
-                filter_kwargs["property_values__value_user_id"] = str(uuid.UUID(str(raw)))
+                filter_kwargs[f"property_values__{relation_column(property_obj)}"] = str(uuid.UUID(str(raw)))
             else:
                 filter_kwargs["property_values__value_text"] = raw
         except ValueError:
@@ -414,6 +443,8 @@ def _parse_condition_scalar(property_obj, raw):
     if property_type == PropertyTypeChoices.DATETIME:
         return "value_date", parse_datetime_value(raw)
     if property_type == PropertyTypeChoices.RELATION:
+        if property_obj.is_issue_relation:
+            return "value_issue_id", _relation_issue_id(property_obj, raw)
         try:
             return "value_user_id", str(uuid.UUID(str(raw)))
         except (ValueError, TypeError):
@@ -528,6 +559,41 @@ def _parse_lookup_datetime(raw):
     return parse_datetime_value(raw)
 
 
+def relation_column(property_obj):
+    """The value column a RELATION property stores its reference in."""
+    return "value_issue_id" if property_obj.is_issue_relation else "value_user_id"
+
+
+def _relation_issue_id(property_obj, raw):
+    """Resolve a work item reference: an id, an identifier like `PROJ-12`, or an exact name."""
+    if isinstance(raw, (list, dict, bool)) or raw is None:
+        raise PropertyValueError("Value must be a work item id, identifier (PROJ-12) or name")
+    raw = str(raw).strip()
+    try:
+        return str(uuid.UUID(raw))
+    except ValueError:
+        pass
+    issues = Issue.issue_objects.filter(workspace_id=property_obj.workspace_id)
+    identifier = re.match(r"^([A-Za-z0-9_]+)-(\d+)$", raw)
+    if identifier:
+        match = issues.filter(
+            project__identifier__iexact=identifier.group(1), sequence_id=int(identifier.group(2))
+        ).values_list("id", flat=True)
+    else:
+        match = issues.filter(project_id=property_obj.project_id, name__iexact=raw).values_list("id", flat=True)
+    found = list(match[:2])
+    if not found:
+        raise PropertyValueError(f"Unknown work item '{raw}'")
+    return str(found[0])
+
+
+def relation_value(property_obj, raw):
+    """`(column, id)` for a RELATION comparison value: a user or a work item."""
+    if property_obj.is_issue_relation:
+        return "value_issue_id", _relation_issue_id(property_obj, raw)
+    return "value_user_id", _relation_user_id(property_obj, raw)
+
+
 def _relation_user_id(property_obj, raw):
     """Resolve a RELATION value: a user id, or a display name or email in the workspace."""
     if isinstance(raw, (list, dict, bool)) or raw is None:
@@ -633,7 +699,7 @@ def _lookup_scalar(property_obj, raw):
     if property_type == PropertyTypeChoices.BOOLEAN:
         return "value_boolean", parse_boolean(raw)
     if property_type == PropertyTypeChoices.RELATION:
-        return "value_user_id", _relation_user_id(property_obj, raw)
+        return relation_value(property_obj, raw)
     if isinstance(raw, (list, dict, bool)) or raw is None:
         raise PropertyValueError("Value must be a string")
     return "value_text", str(raw)

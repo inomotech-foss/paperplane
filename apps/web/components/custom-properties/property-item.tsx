@@ -5,7 +5,7 @@
  */
 
 import { sortBy } from "lodash-es";
-import { ChevronDown, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, CornerDownRight, Pencil, Sigma, Trash2 } from "lucide-react";
 import { observer } from "mobx-react";
 import { useState } from "react";
 // plane imports
@@ -16,9 +16,10 @@ import { Switch } from "@makeplane/propel/components/switch";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { cn } from "@plane/utils";
 // local imports
+import { useDescribeDerivation } from "@/components/issues/issue-detail/custom-properties/derived-value";
 import { CustomPropertyIcon } from "@/components/issues/issue-detail/custom-properties/property-icon";
 import type { TCustomPropertyOperationsCallbacks } from "./create-update-form";
-import { CreateUpdateCustomPropertyForm } from "./create-update-form";
+import { CreateUpdateCustomPropertyForm, getPropertyTypeLabelKey } from "./create-update-form";
 import type { TCustomPropertyOptionOperationsCallbacks } from "./options-list";
 import { CustomPropertyOptionsList } from "./options-list";
 
@@ -37,8 +38,10 @@ export const CustomPropertyItem = observer(function CustomPropertyItem(props: TC
   // states
   const [isEditing, setIsEditing] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
-  // derived values
-  const hasOptions = property.property_type === "OPTION";
+  const describeDerivation = useDescribeDerivation();
+  // derived values: a looked-up option property shows the source's options, it has none to manage
+  const hasOptions = property.property_type === "OPTION" && property.derivation !== "LOOKUP";
+  const derivationSummary = property.derivation === "NONE" ? undefined : describeDerivation(property);
   const sortedOptions = sortBy(property.options, "sort_order");
 
   const handleToggleActive = async (isActive: boolean) => {
@@ -56,6 +59,8 @@ export const CustomPropertyItem = observer(function CustomPropertyItem(props: TC
   if (isEditing)
     return (
       <CreateUpdateCustomPropertyForm
+        // the form starts from the property's values; a different property gets a fresh form
+        key={property.id}
         propertyToUpdate={property}
         operationsCallbacks={operationsCallbacks}
         onClose={() => setIsEditing(false)}
@@ -78,13 +83,27 @@ export const CustomPropertyItem = observer(function CustomPropertyItem(props: TC
           ) : (
             <span className="size-4 shrink-0" />
           )}
-          <CustomPropertyIcon propertyType={property.property_type} className="size-3.5 shrink-0 text-tertiary" />
+          <CustomPropertyIcon
+            propertyType={property.property_type}
+            relationType={property.relation_type}
+            className="size-3.5 shrink-0 text-tertiary"
+          />
           <span className={cn("truncate text-13", { "text-placeholder line-through": !property.is_active })}>
             {property.display_name}
           </span>
           <span className="shrink-0 rounded-sm bg-layer-1 px-1.5 py-0.5 text-10 text-tertiary uppercase">
-            {t(`work_item_custom_properties.types.${property.property_type.toLowerCase()}`)}
+            {t(getPropertyTypeLabelKey(property.property_type, property.relation_type))}
           </span>
+          {derivationSummary && (
+            <span className="flex min-w-0 items-center gap-1 truncate text-11 text-tertiary">
+              {property.derivation === "ROLLUP" ? (
+                <Sigma className="size-3 flex-shrink-0" />
+              ) : (
+                <CornerDownRight className="size-3 flex-shrink-0" />
+              )}
+              <span className="truncate">{derivationSummary}</span>
+            </span>
+          )}
           {hasOptions && (
             <span className="shrink-0 text-11 text-placeholder">
               {t("work_item_custom_properties.settings.option_count", { count: property.options.length })}

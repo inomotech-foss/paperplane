@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Număr",
+      "datetime": "Dată",
+      "relation": "Membru",
+      "work_item": "Element de lucru"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Valoare",
+      "none": "Setată de oameni",
+      "none_help": "Fiecare o completează manual",
+      "inherit": "Moștenită de la părinte",
+      "inherit_help": "Valorile goale preiau valoarea părintelui; o valoare setată aici se transmite în jos",
+      "lookup": "De la un strămoș",
+      "lookup_help": "Cel mai apropiat strămoș de un tip sau una dintre valorile lui",
+      "rollup": "Agregată de jos",
+      "rollup_help": "Sumă, număr, cea mai timpurie dată… a elementelor de dedesubt",
+      "ancestor_type": "Tipul strămoșului",
+      "pick_type": "Alege un tip",
+      "take": "Preia",
+      "the_item_itself": "Elementul însuși",
+      "include_self_lookup": "Un element de acest tip este propriul său",
+      "include_self_rollup": "Include elementul însuși",
+      "of": "din",
+      "of_work_items": "din elementele de tipul",
+      "any_type": "orice tip",
+      "scope_children": "Copii direcți",
+      "scope_descendants": "Toate nivelurile de dedesubt",
+      "source_items": "Elemente",
+      "source_start_date": "Data de început",
+      "source_target_date": "Data scadentă",
+      "summary_inherit": "Moștenită de la părinte, dacă nu e setată aici",
+      "summary_lookup_item": "{type} de deasupra",
+      "summary_lookup_property": "{property} din {type} de deasupra",
+      "summary_rollup": "{function} din {source} de dedesubt",
+      "summary_rollup_typed": "{function} din {source} de tip {type} de dedesubt",
+      "computed_readonly": "Calculată din ierarhia elementelor",
+      "inherited_from": "Moștenită de la",
+      "functions": {
+        "sum": "Sumă",
+        "avg": "Medie",
+        "min": "Minim",
+        "max": "Maxim",
+        "count": "Număr",
+        "earliest": "Cea mai timpurie",
+        "latest": "Cea mai târzie",
+        "count_true": "Număr bifate",
+        "percent_true": "% bifate"
+      }
     }
   },
   "work_item_query": {

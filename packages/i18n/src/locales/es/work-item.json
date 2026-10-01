@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Número",
+      "datetime": "Fecha",
+      "relation": "Miembro",
+      "work_item": "Elemento de trabajo"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Valor",
+      "none": "Lo definen las personas",
+      "none_help": "Cada uno lo rellena a mano",
+      "inherit": "Heredado del padre",
+      "inherit_help": "Los valores vacíos toman el del padre; un valor definido aquí se transmite hacia abajo",
+      "lookup": "De un ancestro",
+      "lookup_help": "El ancestro más cercano de un tipo, o uno de sus valores",
+      "rollup": "Acumulado desde abajo",
+      "rollup_help": "Suma, recuento, fecha más temprana… de los elementos inferiores",
+      "ancestor_type": "Tipo de ancestro",
+      "pick_type": "Elige un tipo",
+      "take": "Tomar",
+      "the_item_itself": "El propio elemento",
+      "include_self_lookup": "Un elemento de este tipo es el suyo propio",
+      "include_self_rollup": "Incluir el propio elemento",
+      "of": "de",
+      "of_work_items": "de elementos del tipo",
+      "any_type": "cualquier tipo",
+      "scope_children": "Hijos directos",
+      "scope_descendants": "Todos los niveles inferiores",
+      "source_items": "Elementos",
+      "source_start_date": "Fecha de inicio",
+      "source_target_date": "Fecha de vencimiento",
+      "summary_inherit": "Heredado del padre salvo que se defina aquí",
+      "summary_lookup_item": "El {type} superior",
+      "summary_lookup_property": "{property} del {type} superior",
+      "summary_rollup": "{function} de {source} inferiores",
+      "summary_rollup_typed": "{function} de {source} de {type} inferiores",
+      "computed_readonly": "Calculado a partir de la jerarquía de elementos",
+      "inherited_from": "Heredado de",
+      "functions": {
+        "sum": "Suma",
+        "avg": "Promedio",
+        "min": "Mínimo",
+        "max": "Máximo",
+        "count": "Recuento",
+        "earliest": "Más temprana",
+        "latest": "Más tardía",
+        "count_true": "Recuento marcados",
+        "percent_true": "% marcados"
+      }
     }
   },
   "work_item_query": {

@@ -33,11 +33,14 @@ from plane.db.models import (
     IssueType,
     Project,
     ProjectIssueType,
+    PropertyDerivationChoices,
+    PropertyRelationTypeChoices,
     PropertyTypeChoices,
     State,
     User,
     Workspace,
 )
+from plane.utils.derived_properties import deferred_derived_refresh, schedule_derived_refresh, validate_derivation
 from plane.utils.issue_type import get_or_create_default_issue_type
 
 SEED_SOURCE = "seed_sales_funnel"
@@ -60,6 +63,43 @@ PROPERTIES = (
     ("invoice_amount", "Invoice amount", PropertyTypeChoices.DECIMAL, INVOICE, ()),
     ("invoice_number", "Invoice number", PropertyTypeChoices.TEXT, INVOICE, ()),
     ("paid_on", "Paid on", PropertyTypeChoices.DATETIME, INVOICE, ()),
+)
+
+# Properties whose values come from the hierarchy: the customer every work item belongs
+# to, the customer's industry on everything below it, and what was invoiced below a
+# customer, story or quote.
+# name, display name, type, relation type, derivation, config (type names resolved on seeding)
+DERIVED_PROPERTIES = (
+    (
+        "customer",
+        "Customer",
+        PropertyTypeChoices.RELATION,
+        PropertyRelationTypeChoices.ISSUE,
+        PropertyDerivationChoices.LOOKUP,
+        {"issue_type": CUSTOMER, "source": "item", "include_self": True},
+    ),
+    (
+        "customer_industry",
+        "Customer industry",
+        PropertyTypeChoices.OPTION,
+        None,
+        PropertyDerivationChoices.LOOKUP,
+        {"issue_type": CUSTOMER, "source": "industry", "include_self": True},
+    ),
+    (
+        "invoiced",
+        "Invoiced",
+        PropertyTypeChoices.DECIMAL,
+        None,
+        PropertyDerivationChoices.ROLLUP,
+        {
+            "source": "invoice_amount",
+            "function": "sum",
+            "scope": "descendants",
+            "issue_type": INVOICE,
+            "include_self": False,
+        },
+    ),
 )
 
 # name, group, colour
@@ -218,12 +258,14 @@ class Command(BaseCommand):
             raise CommandError(f"No project '{options['project']}' in workspace '{workspace.slug}'")
         user = self._creator(workspace, options.get("user"))
 
-        with impersonate(user), transaction.atomic():
+        # derived values are computed once, after everything is in place
+        with deferred_derived_refresh(), impersonate(user), transaction.atomic():
             if options["reset"]:
                 removed = self._reset(project)
                 self.stdout.write(f"Removed {removed} previously seeded work items")
             types = self._types(workspace, project)
             properties = self._properties(workspace, project, types)
+            self._derived_properties(workspace, project, types, properties)
             states = self._states(workspace, project)
             seeded = Issue.objects.filter(project=project, external_source=SEED_SOURCE).exists()
             if seeded:
@@ -297,6 +339,33 @@ class Command(BaseCommand):
                 )
             properties[name] = prop
         return properties
+
+    def _derived_properties(self, workspace, project, types, properties):
+        for name, display_name, property_type, relation_type, derivation, config in DERIVED_PROPERTIES:
+            config = dict(config)
+            if config.get("issue_type"):
+                config["issue_type"] = str(types[config["issue_type"]].id)
+            if config.get("source") in properties:
+                config["source"] = str(properties[config["source"]].id)
+            attrs = {
+                "property_type": property_type,
+                "relation_type": relation_type,
+                "is_multi": False,
+                "derivation": derivation,
+                "derivation_config": config,
+            }
+            IssueProperty.objects.get_or_create(
+                project=project,
+                name=name,
+                defaults={
+                    "workspace": workspace,
+                    "display_name": display_name,
+                    **attrs,
+                    "derivation_config": validate_derivation(project.id, attrs),
+                },
+            )
+        # computed once the seed is complete (see deferred_derived_refresh in handle)
+        schedule_derived_refresh(project.id)
 
     def _states(self, workspace, project):
         states = {}

@@ -15,7 +15,7 @@ import type {
   TIssueCustomPropertyValueMap,
 } from "@plane/types";
 // services
-import { IssueCustomPropertyService } from "@/services/issue";
+import { IssueCustomPropertyService, IssueService } from "@/services/issue";
 // store
 import type { CoreRootStore } from "./root.store";
 
@@ -36,6 +36,17 @@ export interface IIssueCustomPropertyStore {
   getPropertyById: (propertyId: string) => TIssueCustomProperty | null;
   getIssueValues: (issueId: string) => TIssueCustomPropertyValueMap | undefined;
   getIssueValue: (issueId: string, propertyId: string) => TIssueCustomPropertyValue | undefined;
+  /** The work item a derived value on a work item was taken from; null for roll-ups. */
+  getDerivedSource: (issueId: string, propertyId: string) => { source_issue_id: string | null } | undefined;
+  /** Whether the project has properties whose values come from the hierarchy. */
+  hasDerivedProperties: (projectId: string | undefined | null) => boolean;
+  /**
+   * Refetch the values of all work items of a project, after a change that can move
+   * derived values elsewhere in the tree (a parent, a date, a source value).
+   */
+  refreshDerivedValues: (workspaceSlug: string, projectId: string) => void;
+  /** Load work items that property values refer to, so their names can be shown. */
+  ensureWorkItemsLoaded: (workspaceSlug: string, projectId: string, issueIds: string[]) => void;
   // fetch actions
   fetchProjectProperties: (workspaceSlug: string, projectId: string) => Promise<TIssueCustomProperty[]>;
   fetchBulkValues: (workspaceSlug: string, projectId: string) => Promise<void>;
@@ -80,6 +91,12 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
   // observables
   propertyMap: Record<string, TIssueCustomProperty> = {};
   issueValuesMap: Record<string, TIssueCustomPropertyValueMap> = {};
+  derivedSourcesMap: Record<string, Record<string, { source_issue_id: string | null }>> = {};
+  // pending refreshes and work item loads, so bursts of changes cost one request
+  private refreshTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+  private requestedWorkItemIds = new Set<string>();
+  private workItemQueue: Record<string, Set<string>> = {};
+  private workItemTimers: Record<string, ReturnType<typeof setTimeout>> = {};
   // loaders
   fetchedMap: Record<string, boolean> = {};
   valuesFetchedMap: Record<string, boolean> = {};
@@ -87,11 +104,13 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
   rootStore;
   // services
   customPropertyService;
+  issueService;
 
   constructor(_rootStore: CoreRootStore) {
     makeObservable(this, {
       propertyMap: observable,
       issueValuesMap: observable,
+      derivedSourcesMap: observable,
       fetchedMap: observable,
       valuesFetchedMap: observable,
       fetchProjectProperties: action,
@@ -108,6 +127,7 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
 
     this.rootStore = _rootStore;
     this.customPropertyService = new IssueCustomPropertyService();
+    this.issueService = new IssueService();
   }
 
   /**
@@ -151,6 +171,45 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
 
   getIssueValue = computedFn((issueId: string, propertyId: string) => this.issueValuesMap?.[issueId]?.[propertyId]);
 
+  getDerivedSource = computedFn(
+    (issueId: string, propertyId: string) => this.derivedSourcesMap?.[issueId]?.[propertyId]
+  );
+
+  hasDerivedProperties = computedFn(
+    (projectId: string | undefined | null) =>
+      !!this.getProjectProperties(projectId)?.some((property) => property.derivation !== "NONE")
+  );
+
+  refreshDerivedValues = (workspaceSlug: string, projectId: string) => {
+    if (!this.hasDerivedProperties(projectId)) return;
+    clearTimeout(this.refreshTimers[projectId]);
+    this.refreshTimers[projectId] = setTimeout(() => {
+      delete this.refreshTimers[projectId];
+      void this.fetchBulkValues(workspaceSlug, projectId).catch(() => undefined);
+    }, 300);
+  };
+
+  ensureWorkItemsLoaded = (workspaceSlug: string, projectId: string, issueIds: string[]) => {
+    const getIssueById = this.rootStore.issue.issues.getIssueById;
+    const missing = issueIds.filter((issueId) => !getIssueById(issueId) && !this.requestedWorkItemIds.has(issueId));
+    if (missing.length === 0) return;
+    missing.forEach((issueId) => this.requestedWorkItemIds.add(issueId));
+    // collect the ids asked for while rows render and load them in one request per project
+    const key = `${workspaceSlug}/${projectId}`;
+    const queue = (this.workItemQueue[key] ??= new Set());
+    missing.forEach((issueId) => queue.add(issueId));
+    if (this.workItemTimers[key]) return;
+    this.workItemTimers[key] = setTimeout(() => {
+      delete this.workItemTimers[key];
+      const ids = [...(this.workItemQueue[key] ?? [])];
+      delete this.workItemQueue[key];
+      void this.issueService
+        .retrieveIssues(workspaceSlug, projectId, ids)
+        .then((issues) => this.rootStore.issue.issues.addIssue(issues))
+        .catch(() => ids.forEach((issueId) => this.requestedWorkItemIds.delete(issueId)));
+    }, 50);
+  };
+
   /**
    * Fetches all custom properties (with their options) of a project.
    */
@@ -191,6 +250,7 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
     await this.customPropertyService.getIssueValues(workspaceSlug, projectId, issueId).then((response) => {
       runInAction(() => {
         set(this.issueValuesMap, [issueId], response.values);
+        set(this.derivedSourcesMap, [issueId], response.derived ?? {});
       });
     });
 
@@ -203,6 +263,7 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
       runInAction(() => {
         set(this.propertyMap, [response.id], response);
       });
+      this.refreshDerivedValues(workspaceSlug, projectId);
       return response;
     });
 
@@ -221,6 +282,8 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
       runInAction(() => {
         set(this.propertyMap, [propertyId], response);
       });
+      if (originalProperty?.derivation !== "NONE" || response.derivation !== "NONE")
+        void this.fetchBulkValues(workspaceSlug, projectId).catch(() => undefined);
       return response;
     } catch (error) {
       runInAction(() => {
@@ -313,7 +376,10 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
       const response = await this.customPropertyService.updateIssueValues(workspaceSlug, projectId, issueId, data);
       runInAction(() => {
         set(this.issueValuesMap, [issueId], response.values);
+        set(this.derivedSourcesMap, [issueId], response.derived ?? {});
       });
+      // inherited and rolled-up values of other work items may have changed with this one
+      this.refreshDerivedValues(workspaceSlug, projectId);
     } catch (error) {
       runInAction(() => {
         set(this.issueValuesMap, [issueId], originalValues);

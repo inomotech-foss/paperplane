@@ -27,11 +27,14 @@ from plane.db.models import (
     Project,
     ProjectIssueType,
     ProjectMember,
+    PropertyDerivationChoices,
+    PropertyRelationTypeChoices,
     PropertyTypeChoices,
     State,
     User,
     WorkspaceMember,
 )
+from plane.utils.derived_properties import refresh_derived_values
 
 
 @pytest.fixture
@@ -300,6 +303,45 @@ class TestWidgetData:
             f"{identifier(funnel['acme'])} Acme": 1750,
             f"{identifier(funnel['globex'])} Globex": 99,
         }
+
+    @pytest.mark.django_db
+    def test_revenue_per_customer_through_a_derived_customer_field(
+        self, session_client, workspace, project, funnel, amount, types
+    ):
+        # every work item carries its customer as a work item reference computed from the tree
+        customer = IssueProperty.objects.create(
+            name="customer",
+            display_name="Customer",
+            property_type=PropertyTypeChoices.RELATION,
+            relation_type=PropertyRelationTypeChoices.ISSUE,
+            derivation=PropertyDerivationChoices.LOOKUP,
+            derivation_config={"issue_type": str(types["Customer"].id), "source": "item", "include_self": True},
+            project=project,
+            workspace=workspace,
+        )
+        refresh_derived_values(project.id)
+
+        per_customer = self.preview(
+            session_client,
+            workspace,
+            chart_type="pie",
+            query='type = "Invoice"',
+            metric={"function": "sum", "field": f"property:{amount.id}"},
+            dimension={"field": f"property:{customer.id}"},
+        )
+        acme_only = self.preview(
+            session_client,
+            workspace,
+            chart_type="number",
+            query=f'type = "Invoice" AND cf["Customer"] = "{identifier(funnel["acme"])}"',
+            metric={"function": "sum", "field": f"property:{amount.id}"},
+        )
+
+        assert rows(per_customer) == {
+            f"{identifier(funnel['acme'])} Acme": 1750,
+            f"{identifier(funnel['globex'])} Globex": 99,
+        }
+        assert acme_only["total"] == 1750
 
     @pytest.mark.django_db
     def test_one_customer_over_a_period_as_a_number(self, session_client, workspace, funnel, amount, due):

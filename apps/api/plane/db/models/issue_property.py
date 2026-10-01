@@ -25,9 +25,35 @@ class PropertyTypeChoices(models.TextChoices):
 
 
 class PropertyRelationTypeChoices(models.TextChoices):
-    """What a RELATION property points at. Only users are supported."""
+    """What a RELATION property points at: a user, or a work item (only as a value
+    derived from the hierarchy, see `PropertyDerivationChoices.LOOKUP`)."""
 
     USER = "USER", "User"
+    ISSUE = "ISSUE", "Work item"
+
+
+class PropertyDerivationChoices(models.TextChoices):
+    """Where a property's values come from.
+
+    - NONE: people set them.
+    - INHERIT: a work item without its own value takes its parent's (effective) value,
+      so a value set on a customer flows down to every work item below it. Own values
+      still win and flow further down.
+    - LOOKUP: the value of the nearest ancestor of a given work item type: the ancestor
+      itself (a work item reference, e.g. "Customer") or one of its property values.
+      Read-only.
+    - ROLLUP: an aggregate over the work items below (sum, count, earliest date...).
+      Read-only.
+
+    Derived values are stored as ordinary value rows marked `is_derived`, so filters,
+    queries, dashboards and exports see them like any other value. They are recomputed
+    whenever the hierarchy, a source value or the configuration changes.
+    """
+
+    NONE = "NONE", "Manual"
+    INHERIT = "INHERIT", "Inherit from parent"
+    LOOKUP = "LOOKUP", "From ancestor"
+    ROLLUP = "ROLLUP", "Roll up from children"
 
 
 class IssueProperty(ProjectBaseModel):
@@ -62,6 +88,15 @@ class IssueProperty(ProjectBaseModel):
         db_index=True,
         help_text="The work item type this property is scoped to. NULL means the property applies to every work item type in the project.",  # noqa: E501
     )
+    derivation = models.CharField(
+        max_length=20,
+        choices=PropertyDerivationChoices.choices,
+        default=PropertyDerivationChoices.NONE,
+    )
+    # INHERIT: {}. LOOKUP: {"issue_type": id, "source": "item" | property id, "include_self": bool}.
+    # ROLLUP: {"source": property id | "start_date" | "target_date" | "items", "function": ...,
+    #          "scope": "children" | "descendants", "issue_type": id | null, "include_self": bool}.
+    derivation_config = models.JSONField(default=dict, blank=True)
 
     class Meta:
         unique_together = ["project", "name", "deleted_at"]
@@ -81,6 +116,18 @@ class IssueProperty(ProjectBaseModel):
     def is_multi_option(self):
         """Whether this property holds several options at once."""
         return self.property_type == PropertyTypeChoices.OPTION and self.is_multi
+
+    @property
+    def is_computed(self):
+        """Whether the values come only from the hierarchy, so nobody can set them."""
+        return self.derivation in (PropertyDerivationChoices.LOOKUP, PropertyDerivationChoices.ROLLUP)
+
+    @property
+    def is_issue_relation(self):
+        return (
+            self.property_type == PropertyTypeChoices.RELATION
+            and self.relation_type == PropertyRelationTypeChoices.ISSUE
+        )
 
     def save(self, *args, **kwargs):
         if self._state.adding:
@@ -178,6 +225,15 @@ class IssuePropertyValue(ProjectBaseModel):
         blank=True,
         related_name="+",
     )
+    value_issue = models.ForeignKey(
+        "db.Issue",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    # Computed from the hierarchy (see IssueProperty.derivation) rather than set by someone.
+    is_derived = models.BooleanField(default=False)
     external_source = models.CharField(max_length=255, null=True, blank=True)
     external_id = models.CharField(max_length=255, blank=True, null=True)
 
@@ -187,6 +243,7 @@ class IssuePropertyValue(ProjectBaseModel):
             models.Index(fields=["property", "value_number"], name="issue_prop_value_number_idx"),
             models.Index(fields=["property", "value_option"], name="issue_prop_value_option_idx"),
             models.Index(fields=["issue"], name="issue_prop_value_issue_idx"),
+            models.Index(fields=["property", "value_issue"], name="issue_prop_value_ref_idx"),
         ]
         verbose_name = "Issue Property Value"
         verbose_name_plural = "Issue Property Values"

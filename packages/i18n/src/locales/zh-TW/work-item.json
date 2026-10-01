@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "數字",
+      "datetime": "日期",
+      "relation": "成員",
+      "work_item": "工作項目"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "值",
+      "none": "手動設定",
+      "none_help": "由成員手動填寫",
+      "inherit": "從父項目繼承",
+      "inherit_help": "空值取父項目的值；在此設定的值會向下傳遞",
+      "lookup": "來自祖先",
+      "lookup_help": "某類型最近的祖先，或其某個值",
+      "rollup": "從下層彙總",
+      "rollup_help": "下層工作項目的總和、數量、最早日期等",
+      "ancestor_type": "祖先類型",
+      "pick_type": "選擇類型",
+      "take": "取值",
+      "the_item_itself": "工作項目本身",
+      "include_self_lookup": "該類型的工作項目參照自身",
+      "include_self_rollup": "包含工作項目本身",
+      "of": "的",
+      "of_work_items": "以下類型的工作項目",
+      "any_type": "任意類型",
+      "scope_children": "直接子項目",
+      "scope_descendants": "下方所有層級",
+      "source_items": "工作項目",
+      "source_start_date": "開始日期",
+      "source_target_date": "截止日期",
+      "summary_inherit": "除非在此設定，否則從父項目繼承",
+      "summary_lookup_item": "上層 {type}",
+      "summary_lookup_property": "上層 {type} 的 {property}",
+      "summary_rollup": "下層 {source} 的{function}",
+      "summary_rollup_typed": "下層 {type} 的 {source} 的{function}",
+      "computed_readonly": "依工作項目層級計算",
+      "inherited_from": "繼承自",
+      "functions": {
+        "sum": "總和",
+        "avg": "平均值",
+        "min": "最小值",
+        "max": "最大值",
+        "count": "數量",
+        "earliest": "最早",
+        "latest": "最晚",
+        "count_true": "已勾選數",
+        "percent_true": "勾選比例"
+      }
     }
   },
   "work_item_query": {

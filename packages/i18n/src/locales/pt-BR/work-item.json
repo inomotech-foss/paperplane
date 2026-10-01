@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Número",
+      "datetime": "Data",
+      "relation": "Membro",
+      "work_item": "Item de trabalho"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Valor",
+      "none": "Definido pelas pessoas",
+      "none_help": "Cada um preenche à mão",
+      "inherit": "Herdado do pai",
+      "inherit_help": "Valores vazios assumem o valor do pai; um valor definido aqui passa para baixo",
+      "lookup": "De um ancestral",
+      "lookup_help": "O ancestral mais próximo de um tipo, ou um de seus valores",
+      "rollup": "Consolidado de baixo",
+      "rollup_help": "Soma, contagem, data mais cedo… dos itens abaixo",
+      "ancestor_type": "Tipo de ancestral",
+      "pick_type": "Escolha um tipo",
+      "take": "Usar",
+      "the_item_itself": "O próprio item",
+      "include_self_lookup": "Um item deste tipo é o próprio",
+      "include_self_rollup": "Incluir o próprio item",
+      "of": "de",
+      "of_work_items": "de itens do tipo",
+      "any_type": "qualquer tipo",
+      "scope_children": "Filhos diretos",
+      "scope_descendants": "Todos os níveis abaixo",
+      "source_items": "Itens",
+      "source_start_date": "Data de início",
+      "source_target_date": "Data de vencimento",
+      "summary_inherit": "Herdado do pai, a menos que definido aqui",
+      "summary_lookup_item": "O {type} acima",
+      "summary_lookup_property": "{property} do {type} acima",
+      "summary_rollup": "{function} de {source} abaixo",
+      "summary_rollup_typed": "{function} de {source} de {type} abaixo",
+      "computed_readonly": "Calculado a partir da hierarquia de itens",
+      "inherited_from": "Herdado de",
+      "functions": {
+        "sum": "Soma",
+        "avg": "Média",
+        "min": "Mínimo",
+        "max": "Máximo",
+        "count": "Contagem",
+        "earliest": "Mais cedo",
+        "latest": "Mais tarde",
+        "count_true": "Contagem marcados",
+        "percent_true": "% marcados"
+      }
     }
   },
   "work_item_query": {

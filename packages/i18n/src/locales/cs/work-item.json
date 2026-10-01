@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Číslo",
+      "datetime": "Datum",
+      "relation": "Člen",
+      "work_item": "Pracovní položka"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Hodnota",
+      "none": "Zadávají lidé",
+      "none_help": "Každý ji vyplní ručně",
+      "inherit": "Zděděno z nadřazené",
+      "inherit_help": "Prázdné hodnoty převezmou hodnotu nadřazené položky; hodnota zadaná zde se předá níže",
+      "lookup": "Z předka",
+      "lookup_help": "Nejbližší předek daného typu nebo jedna z jeho hodnot",
+      "rollup": "Agregováno zespodu",
+      "rollup_help": "Součet, počet, nejdřívější datum… položek níže",
+      "ancestor_type": "Typ předka",
+      "pick_type": "Vyberte typ",
+      "take": "Převzít",
+      "the_item_itself": "Samotná položka",
+      "include_self_lookup": "Položka tohoto typu je svou vlastní",
+      "include_self_rollup": "Zahrnout samotnou položku",
+      "of": "z",
+      "of_work_items": "z položek typu",
+      "any_type": "libovolného typu",
+      "scope_children": "Přímé podřízené",
+      "scope_descendants": "Všechny úrovně níže",
+      "source_items": "Položky",
+      "source_start_date": "Datum zahájení",
+      "source_target_date": "Termín",
+      "summary_inherit": "Zděděno z nadřazené, pokud není zadáno zde",
+      "summary_lookup_item": "{type} výše",
+      "summary_lookup_property": "{property} z {type} výše",
+      "summary_rollup": "{function} z {source} níže",
+      "summary_rollup_typed": "{function} z {source} typu {type} níže",
+      "computed_readonly": "Vypočteno z hierarchie pracovních položek",
+      "inherited_from": "Zděděno z",
+      "functions": {
+        "sum": "Součet",
+        "avg": "Průměr",
+        "min": "Minimum",
+        "max": "Maximum",
+        "count": "Počet",
+        "earliest": "Nejdřívější",
+        "latest": "Nejpozdější",
+        "count_true": "Počet zaškrtnutých",
+        "percent_true": "% zaškrtnutých"
+      }
     }
   },
   "work_item_query": {

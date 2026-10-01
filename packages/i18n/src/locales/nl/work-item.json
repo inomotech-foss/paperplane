@@ -445,7 +445,11 @@
       "multi_option": "Meervoudige keuzelijst",
       "date": "Datum",
       "boolean": "Selectievakje",
-      "user": "Lid"
+      "user": "Lid",
+      "decimal": "Getal",
+      "datetime": "Datum",
+      "relation": "Lid",
+      "work_item": "Werkitem"
     },
     "display": {
       "label": "Aangepaste velden"
@@ -470,6 +474,49 @@
       "move_option_up": "Optie omhoog verplaatsen",
       "move_option_down": "Optie omlaag verplaatsen",
       "applies_to_all_types": "Alle types"
+    },
+    "derivation": {
+      "label": "Waarde",
+      "none": "Ingevuld door mensen",
+      "none_help": "Iedereen vult het met de hand in",
+      "inherit": "Overgenomen van bovenliggend item",
+      "inherit_help": "Lege waarden nemen de waarde van het bovenliggende item over; een hier ingestelde waarde wordt doorgegeven naar beneden",
+      "lookup": "Van een voorouder",
+      "lookup_help": "De dichtstbijzijnde voorouder van een type, of een van zijn waarden",
+      "rollup": "Samengevat van onderliggende items",
+      "rollup_help": "Som, aantal, vroegste datum… van de werkitems eronder",
+      "ancestor_type": "Type voorouder",
+      "pick_type": "Kies een type",
+      "take": "Neem",
+      "the_item_itself": "Het werkitem zelf",
+      "include_self_lookup": "Een werkitem van dit type is zijn eigen voorouder",
+      "include_self_rollup": "Het werkitem zelf meetellen",
+      "of": "van",
+      "of_work_items": "van werkitems van type",
+      "any_type": "elk type",
+      "scope_children": "Directe onderliggende items",
+      "scope_descendants": "Alle niveaus eronder",
+      "source_items": "Werkitems",
+      "source_start_date": "Startdatum",
+      "source_target_date": "Einddatum",
+      "summary_inherit": "Overgenomen van het bovenliggende item, tenzij hier ingesteld",
+      "summary_lookup_item": "Het bovenliggende {type}",
+      "summary_lookup_property": "{property} van het bovenliggende {type}",
+      "summary_rollup": "{function} van {source} eronder",
+      "summary_rollup_typed": "{function} van {source} van {type} eronder",
+      "computed_readonly": "Berekend uit de hiërarchie van werkitems",
+      "inherited_from": "Overgenomen van",
+      "functions": {
+        "sum": "Som",
+        "avg": "Gemiddelde",
+        "min": "Minimum",
+        "max": "Maximum",
+        "count": "Aantal",
+        "earliest": "Vroegste",
+        "latest": "Laatste",
+        "count_true": "Aantal aangevinkt",
+        "percent_true": "% aangevinkt"
+      }
     }
   },
   "work_item_query": {

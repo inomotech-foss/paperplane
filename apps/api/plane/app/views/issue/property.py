@@ -26,6 +26,13 @@ from plane.db.models import (
     IssuePropertyValue,
     Project,
     ProjectMember,
+    PropertyDerivationChoices,
+)
+from plane.utils.derived_properties import (
+    dependents_of,
+    derived_value_sources,
+    refresh_derived_values_now,
+    refresh_derived_values_safely,
 )
 from plane.utils.issue_property import (
     OPTION_PROPERTY_TYPES,
@@ -108,6 +115,8 @@ class IssuePropertyViewSet(BaseViewSet):
                         option_serializer.is_valid(raise_exception=True)
                         option_serializer.save(property=issue_property, project_id=project_id)
 
+                if issue_property.derivation != PropertyDerivationChoices.NONE:
+                    refresh_derived_values_safely(project_id)
                 issue_property = self.get_queryset().get(pk=issue_property.id)
                 return Response(
                     IssuePropertySerializer(issue_property).data,
@@ -134,6 +143,8 @@ class IssuePropertyViewSet(BaseViewSet):
                     {"error": "Work item property with the same name already exists in the project"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+            # a changed derivation (or a property switched off it) changes stored values
+            refresh_derived_values_safely(project_id)
             issue_property = self.get_queryset().get(pk=pk)
             return Response(IssuePropertySerializer(issue_property).data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -141,7 +152,17 @@ class IssuePropertyViewSet(BaseViewSet):
     @allow_permission([ROLE.ADMIN])
     def destroy(self, request, slug, project_id, pk):
         issue_property = IssueProperty.objects.get(workspace__slug=slug, project_id=project_id, pk=pk)
+        dependents = dependents_of(issue_property)
+        if dependents:
+            return Response(
+                {
+                    "error": "Other properties are derived from this one: "
+                    + ", ".join(dependent.display_name for dependent in dependents)
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         issue_property.delete()
+        refresh_derived_values_safely(project_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -212,15 +233,17 @@ class IssuePropertyOptionViewSet(BaseViewSet):
             workspace__slug=slug, project_id=project_id, property_id=property_id, pk=pk
         )
         option.delete()
+        refresh_derived_values_now(project_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class IssuePropertyValueEndpoint(BaseAPIView):
     """Property values of a single work item.
 
-    GET returns `{"values": {property_id: value(s)}, "display": {...}}`,
-    PUT bulk-replaces the values of the listed properties (same semantics as
-    the public v1 endpoint).
+    GET returns `{"values": {property_id: value(s)}, "display": {...}, "derived": {...}}`,
+    where `derived` names, for each value computed from the hierarchy, the work item it
+    was taken from (`source_issue_id`, null for roll-ups). PUT bulk-replaces the values
+    of the listed properties (same semantics as the public v1 endpoint).
     """
 
     model = IssuePropertyValue
@@ -235,15 +258,21 @@ class IssuePropertyValueEndpoint(BaseAPIView):
                 project__project_projectmember__member=self.request.user,
                 project__project_projectmember__is_active=True,
             )
-            .select_related("property", "value_option", "value_user")
+            .select_related("property", "value_option", "value_user", "value_issue__project")
         )
+
+    def payload(self, issue):
+        values, display = build_value_maps(self.get_queryset())
+        properties = list(
+            IssueProperty.objects.filter(project_id=issue.project_id).exclude(derivation=PropertyDerivationChoices.NONE)
+        )
+        return {"values": values, "display": display, "derived": derived_value_sources(issue, properties)}
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, issue_id):
         # Ensure the work item exists in the project
-        Issue.objects.get(pk=issue_id, project_id=project_id, workspace__slug=slug)
-        values, display = build_value_maps(self.get_queryset())
-        return Response({"values": values, "display": display}, status=status.HTTP_200_OK)
+        issue = Issue.objects.get(pk=issue_id, project_id=project_id, workspace__slug=slug)
+        return Response(self.payload(issue), status=status.HTTP_200_OK)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def put(self, request, slug, project_id, issue_id):
@@ -256,9 +285,10 @@ class IssuePropertyValueEndpoint(BaseAPIView):
             # Replace semantics: drop existing values of the listed properties
             IssuePropertyValue.objects.filter(issue=issue, property_id__in=properties.keys()).delete(soft=False)
             IssuePropertyValue.objects.bulk_create(new_rows)
+        # values inherited from this one, or rolled up from it, change too
+        refresh_derived_values_now(project_id)
 
-        values, display = build_value_maps(self.get_queryset())
-        return Response({"values": values, "display": display}, status=status.HTTP_200_OK)
+        return Response(self.payload(issue), status=status.HTTP_200_OK)
 
 
 class BulkIssuePropertyValueEndpoint(BaseAPIView):
@@ -282,7 +312,7 @@ class BulkIssuePropertyValueEndpoint(BaseAPIView):
                 project__project_projectmember__is_active=True,
             )
             .filter(issue__archived_at__isnull=True, issue__is_draft=False)
-            .select_related("property", "value_option", "value_user")
+            .select_related("property", "value_option", "value_user", "value_issue__project")
         )
 
         issue_ids_param = request.GET.get("issue_ids")

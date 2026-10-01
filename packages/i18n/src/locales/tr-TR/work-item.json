@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Sayı",
+      "datetime": "Tarih",
+      "relation": "Üye",
+      "work_item": "İş öğesi"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Değer",
+      "none": "Elle girilir",
+      "none_help": "Herkes elle doldurur",
+      "inherit": "Üst öğeden devralınır",
+      "inherit_help": "Boş değerler üst öğenin değerini alır; burada girilen değer aşağı aktarılır",
+      "lookup": "Bir üst öğeden",
+      "lookup_help": "Bir türün en yakın üst öğesi veya onun değerlerinden biri",
+      "rollup": "Alttan toplanır",
+      "rollup_help": "Alttaki öğelerin toplamı, sayısı, en erken tarihi…",
+      "ancestor_type": "Üst öğe türü",
+      "pick_type": "Bir tür seçin",
+      "take": "Al",
+      "the_item_itself": "Öğenin kendisi",
+      "include_self_lookup": "Bu türdeki bir öğe kendi üst öğesidir",
+      "include_self_rollup": "Öğenin kendisini dahil et",
+      "of": "/",
+      "of_work_items": "türündeki öğelerin",
+      "any_type": "herhangi bir tür",
+      "scope_children": "Doğrudan alt öğeler",
+      "scope_descendants": "Alttaki tüm düzeyler",
+      "source_items": "Öğeler",
+      "source_start_date": "Başlangıç tarihi",
+      "source_target_date": "Bitiş tarihi",
+      "summary_inherit": "Burada girilmedikçe üst öğeden devralınır",
+      "summary_lookup_item": "Üstteki {type}",
+      "summary_lookup_property": "Üstteki {type} öğesinin {property} değeri",
+      "summary_rollup": "Alttaki {source}: {function}",
+      "summary_rollup_typed": "Alttaki {type} öğelerinin {source}: {function}",
+      "computed_readonly": "İş öğesi hiyerarşisinden hesaplanır",
+      "inherited_from": "Devralındığı yer",
+      "functions": {
+        "sum": "Toplam",
+        "avg": "Ortalama",
+        "min": "En küçük",
+        "max": "En büyük",
+        "count": "Sayı",
+        "earliest": "En erken",
+        "latest": "En geç",
+        "count_true": "İşaretli sayısı",
+        "percent_true": "% işaretli"
+      }
     }
   },
   "work_item_query": {

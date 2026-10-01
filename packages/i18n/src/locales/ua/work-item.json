@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Число",
+      "datetime": "Дата",
+      "relation": "Учасник",
+      "work_item": "Робочий елемент"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Значення",
+      "none": "Задається вручну",
+      "none_help": "Кожен заповнює вручну",
+      "inherit": "Успадковується від батьківського",
+      "inherit_help": "Порожні значення беруть значення батьківського; значення, задане тут, передається вниз",
+      "lookup": "Від предка",
+      "lookup_help": "Найближчий предок типу або одне з його значень",
+      "rollup": "Зводиться знизу",
+      "rollup_help": "Сума, кількість, найраніша дата… елементів нижче",
+      "ancestor_type": "Тип предка",
+      "pick_type": "Оберіть тип",
+      "take": "Взяти",
+      "the_item_itself": "Сам елемент",
+      "include_self_lookup": "Елемент цього типу сам собі предок",
+      "include_self_rollup": "Враховувати сам елемент",
+      "of": "з",
+      "of_work_items": "з елементів типу",
+      "any_type": "будь-якого типу",
+      "scope_children": "Прямі дочірні",
+      "scope_descendants": "Усі рівні нижче",
+      "source_items": "Елементи",
+      "source_start_date": "Дата початку",
+      "source_target_date": "Термін",
+      "summary_inherit": "Успадковується від батьківського, якщо не задано тут",
+      "summary_lookup_item": "{type} вище",
+      "summary_lookup_property": "{property} з {type} вище",
+      "summary_rollup": "{function}: {source} нижче",
+      "summary_rollup_typed": "{function}: {source} типу {type} нижче",
+      "computed_readonly": "Обчислюється за ієрархією робочих елементів",
+      "inherited_from": "Успадковано від",
+      "functions": {
+        "sum": "Сума",
+        "avg": "Середнє",
+        "min": "Мінімум",
+        "max": "Максимум",
+        "count": "Кількість",
+        "earliest": "Найраніша",
+        "latest": "Найпізніша",
+        "count_true": "Позначених",
+        "percent_true": "% позначених"
+      }
     }
   },
   "work_item_query": {

@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "숫자",
+      "datetime": "날짜",
+      "relation": "멤버",
+      "work_item": "작업 항목"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "값",
+      "none": "직접 입력",
+      "none_help": "각자 직접 입력합니다",
+      "inherit": "상위 항목에서 상속",
+      "inherit_help": "비어 있는 값은 상위 항목의 값을 사용하고, 여기서 설정한 값은 하위로 전달됩니다",
+      "lookup": "상위 조상에서",
+      "lookup_help": "지정한 유형의 가장 가까운 조상 또는 그 값",
+      "rollup": "하위에서 집계",
+      "rollup_help": "하위 작업 항목의 합계, 개수, 가장 이른 날짜 등",
+      "ancestor_type": "조상 유형",
+      "pick_type": "유형 선택",
+      "take": "가져올 값",
+      "the_item_itself": "작업 항목 자체",
+      "include_self_lookup": "이 유형의 작업 항목은 자기 자신을 참조",
+      "include_self_rollup": "작업 항목 자체 포함",
+      "of": "의",
+      "of_work_items": "다음 유형의 작업 항목",
+      "any_type": "모든 유형",
+      "scope_children": "직접 하위 항목",
+      "scope_descendants": "하위 모든 수준",
+      "source_items": "작업 항목",
+      "source_start_date": "시작일",
+      "source_target_date": "마감일",
+      "summary_inherit": "여기서 설정하지 않으면 상위 항목에서 상속",
+      "summary_lookup_item": "상위 {type}",
+      "summary_lookup_property": "상위 {type}의 {property}",
+      "summary_rollup": "하위 {source}의 {function}",
+      "summary_rollup_typed": "하위 {type}의 {source} {function}",
+      "computed_readonly": "작업 항목 계층에서 계산됨",
+      "inherited_from": "상속 출처",
+      "functions": {
+        "sum": "합계",
+        "avg": "평균",
+        "min": "최소",
+        "max": "최대",
+        "count": "개수",
+        "earliest": "가장 이른",
+        "latest": "가장 늦은",
+        "count_true": "선택된 수",
+        "percent_true": "선택 비율"
+      }
     }
   },
   "work_item_query": {

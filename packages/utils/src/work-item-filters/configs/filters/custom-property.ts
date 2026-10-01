@@ -31,6 +31,8 @@ export type TCreateCustomPropertyFilterParams = TCreateFilterConfigParams &
     property: TIssueCustomProperty;
     members: IUserLite[];
     getMemberIcon?: (member: IUserLite) => React.ReactNode;
+    /** The work items a work item reference property can point at, e.g. the customers. */
+    workItems?: { id: string; label: string }[];
   };
 
 /**
@@ -74,6 +76,20 @@ const getCustomPropertyMemberMultiSelectConfig = (params: TCreateCustomPropertyF
 /**
  * Helper to get the boolean single select config for BOOLEAN custom properties.
  */
+const getCustomPropertyWorkItemMultiSelectConfig = (params: TCreateCustomPropertyFilterParams) =>
+  getMultiSelectConfig<{ id: string; label: string }, string, undefined>(
+    {
+      items: params.workItems ?? [],
+      getId: (workItem) => workItem.id,
+      getLabel: (workItem) => workItem.label,
+      getValue: (workItem) => workItem.id,
+    },
+    {
+      singleValueOperator: EQUALITY_OPERATOR.EXACT,
+      ...params,
+    }
+  );
+
 const getCustomPropertyBooleanSelectConfig = (params: TCreateCustomPropertyFilterParams) =>
   getSingleSelectConfig<{ value: boolean; label: string }, TFilterValue, undefined>(
     {
@@ -139,6 +155,12 @@ const getCustomPropertyOperatorConfigsMap = (
         ),
       ]);
     case "RELATION":
+      if (params.property.relation_type === "ISSUE")
+        return new Map([
+          createOperatorConfigEntry(COLLECTION_OPERATOR.IN, params, (updatedParams) =>
+            getCustomPropertyWorkItemMultiSelectConfig(updatedParams)
+          ),
+        ]);
       return new Map([
         createOperatorConfigEntry(COLLECTION_OPERATOR.IN, params, (updatedParams) =>
           getCustomPropertyMemberMultiSelectConfig(updatedParams)

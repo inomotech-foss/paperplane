@@ -165,6 +165,11 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
     const response = await this.issueService.addSubIssues(workspaceSlug, projectId, parentIssueId, {
       sub_issue_ids: issueIds,
     });
+    // values inherited from the new parent, or rolled up into it, change
+    this.rootIssueDetailStore.rootIssueStore.rootStore.issueCustomProperty.refreshDerivedValues(
+      workspaceSlug,
+      projectId
+    );
 
     const subIssuesStateDistribution = response?.state_distribution ?? {};
     const subIssues = Array.isArray(response?.sub_issues) ? response.sub_issues : [];

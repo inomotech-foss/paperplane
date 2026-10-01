@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Số",
+      "datetime": "Ngày",
+      "relation": "Thành viên",
+      "work_item": "Mục công việc"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Giá trị",
+      "none": "Do người dùng nhập",
+      "none_help": "Mọi người tự nhập",
+      "inherit": "Kế thừa từ mục cha",
+      "inherit_help": "Giá trị trống lấy giá trị của mục cha; giá trị nhập ở đây được truyền xuống",
+      "lookup": "Từ mục tổ tiên",
+      "lookup_help": "Mục tổ tiên gần nhất của một loại, hoặc một giá trị của nó",
+      "rollup": "Tổng hợp từ bên dưới",
+      "rollup_help": "Tổng, số lượng, ngày sớm nhất… của các mục bên dưới",
+      "ancestor_type": "Loại tổ tiên",
+      "pick_type": "Chọn loại",
+      "take": "Lấy",
+      "the_item_itself": "Chính mục đó",
+      "include_self_lookup": "Mục thuộc loại này là tổ tiên của chính nó",
+      "include_self_rollup": "Bao gồm chính mục đó",
+      "of": "của",
+      "of_work_items": "của các mục loại",
+      "any_type": "mọi loại",
+      "scope_children": "Mục con trực tiếp",
+      "scope_descendants": "Tất cả các cấp bên dưới",
+      "source_items": "Mục",
+      "source_start_date": "Ngày bắt đầu",
+      "source_target_date": "Ngày đến hạn",
+      "summary_inherit": "Kế thừa từ mục cha trừ khi nhập ở đây",
+      "summary_lookup_item": "{type} phía trên",
+      "summary_lookup_property": "{property} của {type} phía trên",
+      "summary_rollup": "{function} của {source} bên dưới",
+      "summary_rollup_typed": "{function} của {source} thuộc {type} bên dưới",
+      "computed_readonly": "Được tính từ phân cấp mục công việc",
+      "inherited_from": "Kế thừa từ",
+      "functions": {
+        "sum": "Tổng",
+        "avg": "Trung bình",
+        "min": "Nhỏ nhất",
+        "max": "Lớn nhất",
+        "count": "Số lượng",
+        "earliest": "Sớm nhất",
+        "latest": "Muộn nhất",
+        "count_true": "Số đã chọn",
+        "percent_true": "% đã chọn"
+      }
     }
   },
   "work_item_query": {

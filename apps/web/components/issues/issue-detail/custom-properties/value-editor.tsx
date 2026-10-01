@@ -13,8 +13,10 @@ import type { SelectVariant } from "@plane/blocks/select";
 import type { TIssueCustomProperty, TIssueCustomPropertyValue } from "@plane/types";
 import { cn, getDate, renderFormattedPayloadDate } from "@plane/utils";
 // components
+import { isComputedProperty } from "@/components/custom-properties/derivation";
 import { MemberSelect } from "@/components/dropdowns/member/member-select";
 // local imports
+import { CustomPropertyDerivedValue } from "./derived-value";
 import { CustomPropertyOptionSelect } from "./option-select";
 
 type TCustomPropertyValueEditorProps = {
@@ -192,6 +194,9 @@ const VALUE_EDITORS: Partial<
 
 export function CustomPropertyValueEditor(props: TCustomPropertyValueEditorProps) {
   const { property, projectId, value, onChange, disabled = false, variant = "select-ghost-md" } = props;
+  // looked up and rolled up values come from the hierarchy and cannot be edited
+  if (isComputedProperty(property))
+    return <CustomPropertyDerivedValue property={property} projectId={projectId} value={value} />;
   const Editor = VALUE_EDITORS[property.property_type];
   if (!Editor) return null;
   return (

@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Число",
+      "datetime": "Дата",
+      "relation": "Участник",
+      "work_item": "Рабочий элемент"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Значение",
+      "none": "Задаётся вручную",
+      "none_help": "Каждый заполняет вручную",
+      "inherit": "Наследуется от родителя",
+      "inherit_help": "Пустые значения берут значение родителя; значение, заданное здесь, передаётся вниз",
+      "lookup": "От предка",
+      "lookup_help": "Ближайший предок типа или одно из его значений",
+      "rollup": "Сводится снизу",
+      "rollup_help": "Сумма, количество, самая ранняя дата… элементов ниже",
+      "ancestor_type": "Тип предка",
+      "pick_type": "Выберите тип",
+      "take": "Взять",
+      "the_item_itself": "Сам элемент",
+      "include_self_lookup": "Элемент этого типа сам себе предок",
+      "include_self_rollup": "Учитывать сам элемент",
+      "of": "из",
+      "of_work_items": "из элементов типа",
+      "any_type": "любого типа",
+      "scope_children": "Прямые дочерние",
+      "scope_descendants": "Все уровни ниже",
+      "source_items": "Элементы",
+      "source_start_date": "Дата начала",
+      "source_target_date": "Срок",
+      "summary_inherit": "Наследуется от родителя, если не задано здесь",
+      "summary_lookup_item": "{type} выше",
+      "summary_lookup_property": "{property} из {type} выше",
+      "summary_rollup": "{function}: {source} ниже",
+      "summary_rollup_typed": "{function}: {source} типа {type} ниже",
+      "computed_readonly": "Вычисляется по иерархии рабочих элементов",
+      "inherited_from": "Унаследовано от",
+      "functions": {
+        "sum": "Сумма",
+        "avg": "Среднее",
+        "min": "Минимум",
+        "max": "Максимум",
+        "count": "Количество",
+        "earliest": "Самая ранняя",
+        "latest": "Самая поздняя",
+        "count_true": "Отмеченных",
+        "percent_true": "% отмеченных"
+      }
     }
   },
   "work_item_query": {

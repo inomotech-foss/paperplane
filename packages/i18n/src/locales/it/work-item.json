@@ -445,7 +445,11 @@
       "multi_option": "Multi select",
       "date": "Date",
       "boolean": "Checkbox",
-      "user": "Member"
+      "user": "Member",
+      "decimal": "Numero",
+      "datetime": "Data",
+      "relation": "Membro",
+      "work_item": "Elemento di lavoro"
     },
     "display": {
       "label": "Custom fields"
@@ -470,6 +474,49 @@
       "move_option_up": "Move option up",
       "move_option_down": "Move option down",
       "applies_to_all_types": "All types"
+    },
+    "derivation": {
+      "label": "Valore",
+      "none": "Impostato a mano",
+      "none_help": "Ognuno lo compila a mano",
+      "inherit": "Ereditato dal padre",
+      "inherit_help": "I valori vuoti prendono quello del padre; un valore impostato qui passa verso il basso",
+      "lookup": "Da un antenato",
+      "lookup_help": "L'antenato più vicino di un tipo, o uno dei suoi valori",
+      "rollup": "Aggregato dal basso",
+      "rollup_help": "Somma, conteggio, data più vicina… degli elementi sottostanti",
+      "ancestor_type": "Tipo di antenato",
+      "pick_type": "Scegli un tipo",
+      "take": "Prendi",
+      "the_item_itself": "L'elemento stesso",
+      "include_self_lookup": "Un elemento di questo tipo è il proprio",
+      "include_self_rollup": "Includi l'elemento stesso",
+      "of": "di",
+      "of_work_items": "di elementi del tipo",
+      "any_type": "qualsiasi tipo",
+      "scope_children": "Figli diretti",
+      "scope_descendants": "Tutti i livelli sottostanti",
+      "source_items": "Elementi",
+      "source_start_date": "Data di inizio",
+      "source_target_date": "Data di scadenza",
+      "summary_inherit": "Ereditato dal padre salvo impostato qui",
+      "summary_lookup_item": "Il {type} sopra",
+      "summary_lookup_property": "{property} del {type} sopra",
+      "summary_rollup": "{function} di {source} sottostanti",
+      "summary_rollup_typed": "{function} di {source} dei {type} sottostanti",
+      "computed_readonly": "Calcolato dalla gerarchia degli elementi",
+      "inherited_from": "Ereditato da",
+      "functions": {
+        "sum": "Somma",
+        "avg": "Media",
+        "min": "Minimo",
+        "max": "Massimo",
+        "count": "Conteggio",
+        "earliest": "Più vicina",
+        "latest": "Più lontana",
+        "count_true": "Conteggio selezionati",
+        "percent_true": "% selezionati"
+      }
     }
   },
   "work_item_query": {
