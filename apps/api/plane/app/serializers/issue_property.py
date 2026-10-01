@@ -9,7 +9,6 @@ from rest_framework import serializers
 from .base import BaseSerializer
 from plane.db.models import IssueProperty, IssuePropertyOption, IssueType
 from plane.utils.derived_properties import validate_derivation
-from plane.utils.issue_property import PropertyValueError
 
 # fields whose change needs the derivation settings checked again
 DERIVATION_FIELDS = ("derivation", "derivation_config", "property_type", "relation_type", "is_multi", "is_required")
@@ -65,10 +64,8 @@ class IssuePropertySerializer(BaseSerializer):
 
         # where the values come from: set by people, inherited, looked up or rolled up
         if project_id is not None and (self.instance is None or any(field in data for field in DERIVATION_FIELDS)):
-            try:
-                data["derivation_config"] = validate_derivation(project_id, data, self.instance)
-            except PropertyValueError as error:
-                raise serializers.ValidationError({"derivation_config": str(error)})
+            # rejects a bad setting with a ValidationError on derivation_config
+            data["derivation_config"] = validate_derivation(project_id, data, self.instance)
         return data
 
     def create(self, validated_data):

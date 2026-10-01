@@ -4,16 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import {
-  AlignLeft,
-  Calendar,
-  CheckSquare,
-  ChevronDownSquare,
-  Hash,
-  Layers,
-  ListChecks,
-  UserCircle2,
-} from "lucide-react";
+import { AlignLeft, Calendar, CheckSquare, ChevronDownSquare, Hash, Layers, UserCircle2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 // plane imports
 import type { TIssueCustomPropertyType } from "@plane/types";

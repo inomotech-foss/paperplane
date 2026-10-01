@@ -27,6 +27,9 @@ from decimal import Decimal
 # Django imports
 from django.db import transaction
 
+# Third party imports
+from rest_framework import serializers
+
 # Module imports
 from plane.db.models import (
     Issue,
@@ -39,7 +42,6 @@ from plane.db.models import (
     PropertyTypeChoices,
 )
 from plane.utils.issue_hierarchy import IssueTree
-from plane.utils.issue_property import PropertyValueError
 
 logger = logging.getLogger("plane.api")
 
@@ -71,29 +73,37 @@ SOURCE_DERIVATIONS = (PropertyDerivationChoices.NONE, PropertyDerivationChoices.
 # --------------------------------------------------------------------------
 
 
+class DerivationConfigError(serializers.ValidationError):
+    """A derivation setting the API rejects. Its message is written for the caller and is
+    reported on `derivation_config`, so a serializer can let it propagate as it is."""
+
+    def __init__(self, message):
+        super().__init__({"derivation_config": message})
+
+
 def _as_uuid(raw, what):
     try:
         return uuid.UUID(str(raw))
     except (TypeError, ValueError):
-        raise PropertyValueError(f"{what} must be an id")
+        raise DerivationConfigError(f"{what} must be an id")
 
 
 def _project_issue_type(project_id, raw, what="issue_type"):
     issue_type_id = _as_uuid(raw, what)
     if not ProjectIssueType.objects.filter(project_id=project_id, issue_type_id=issue_type_id).exists():
-        raise PropertyValueError(f"{what} is not a work item type of this project")
+        raise DerivationConfigError(f"{what} is not a work item type of this project")
     return str(issue_type_id)
 
 
 def _source_property(project_id, raw, instance):
     source_id = _as_uuid(raw, "source")
     if instance is not None and source_id == instance.id:
-        raise PropertyValueError("A property cannot be derived from itself")
+        raise DerivationConfigError("A property cannot be derived from itself")
     source = IssueProperty.objects.filter(project_id=project_id, pk=source_id).first()
     if source is None:
-        raise PropertyValueError("source is not a property of this project")
+        raise DerivationConfigError("source is not a property of this project")
     if source.derivation not in SOURCE_DERIVATIONS:
-        raise PropertyValueError(
+        raise DerivationConfigError(
             f"'{source.display_name}' is itself looked up or rolled up; "
             "use a property people set, or one inherited from the parent"
         )
@@ -119,7 +129,7 @@ def validate_derivation(project_id, attrs, instance=None):
     """Check a property's derivation settings; return the normalized `derivation_config`.
 
     `attrs` holds the incoming (partial) fields; missing ones come from `instance`.
-    Raises PropertyValueError with a message meant for the caller.
+    Raises DerivationConfigError, which the API reports on `derivation_config`.
     """
 
     def get(field, default=None):
@@ -133,7 +143,7 @@ def validate_derivation(project_id, attrs, instance=None):
     relation_type = get("relation_type")
     is_multi = bool(get("is_multi", False))
     if not isinstance(config, dict):
-        raise PropertyValueError("derivation_config must be an object")
+        raise DerivationConfigError("derivation_config must be an object")
 
     is_issue_relation = (
         property_type == PropertyTypeChoices.RELATION and relation_type == PropertyRelationTypeChoices.ISSUE
@@ -143,29 +153,29 @@ def validate_derivation(project_id, attrs, instance=None):
         was_manual = instance.derivation in SOURCE_DERIVATIONS
         becomes_computed = derivation not in SOURCE_DERIVATIONS
         if was_manual and becomes_computed and instance.values.filter(is_derived=False).exists():
-            raise PropertyValueError(
+            raise DerivationConfigError(
                 "This property holds values people set; it can only become looked up or rolled up while it is empty"
             )
         if becomes_computed and dependents_of(instance):
-            raise PropertyValueError("Other properties are derived from this one; it has to stay a source")
+            raise DerivationConfigError("Other properties are derived from this one; it has to stay a source")
 
     if derivation in (PropertyDerivationChoices.LOOKUP, PropertyDerivationChoices.ROLLUP) and get("is_required"):
-        raise PropertyValueError("A looked up or rolled up property cannot be required")
+        raise DerivationConfigError("A looked up or rolled up property cannot be required")
 
     if derivation in SOURCE_DERIVATIONS:
         if is_issue_relation:
-            raise PropertyValueError("A work item property can only take its value from an ancestor (LOOKUP)")
+            raise DerivationConfigError("A work item property can only take its value from an ancestor (LOOKUP)")
         return {}
 
     if derivation == PropertyDerivationChoices.LOOKUP:
         issue_type = _project_issue_type(project_id, config.get("issue_type"))
         include_self = config.get("include_self", True)
         if not isinstance(include_self, bool):
-            raise PropertyValueError("include_self must be true or false")
+            raise DerivationConfigError("include_self must be true or false")
         source = config.get("source", "item")
         if source == "item":
             if not is_issue_relation:
-                raise PropertyValueError(
+                raise DerivationConfigError(
                     "Looking up the ancestor itself needs a RELATION property with relation_type ISSUE"
                 )
             return {"issue_type": issue_type, "source": "item", "include_self": include_self}
@@ -175,7 +185,7 @@ def validate_derivation(project_id, attrs, instance=None):
             or bool(source_property.is_multi) != is_multi
             or (property_type == PropertyTypeChoices.RELATION and source_property.relation_type != relation_type)
         ):
-            raise PropertyValueError(
+            raise DerivationConfigError(
                 f"The property must have the same type as '{source_property.display_name}' to show its value"
             )
         return {"issue_type": issue_type, "source": str(source_property.id), "include_self": include_self}
@@ -190,18 +200,18 @@ def validate_derivation(project_id, attrs, instance=None):
         function = config.get("function")
         allowed = rollup_functions_for(source)
         if function not in allowed:
-            raise PropertyValueError(f"function must be one of {', '.join(allowed)} for this source")
+            raise DerivationConfigError(f"function must be one of {', '.join(allowed)} for this source")
         expected_type = (
             PropertyTypeChoices.DATETIME if function in DATE_RESULT_FUNCTIONS else PropertyTypeChoices.DECIMAL
         )
         if property_type != expected_type or is_multi:
-            raise PropertyValueError(f"A roll-up with '{function}' needs a {expected_type} property")
+            raise DerivationConfigError(f"A roll-up with '{function}' needs a {expected_type} property")
         scope = config.get("scope", "descendants")
         if scope not in ROLLUP_SCOPES:
-            raise PropertyValueError("scope must be 'children' or 'descendants'")
+            raise DerivationConfigError("scope must be 'children' or 'descendants'")
         include_self = config.get("include_self", False)
         if not isinstance(include_self, bool):
-            raise PropertyValueError("include_self must be true or false")
+            raise DerivationConfigError("include_self must be true or false")
         issue_type = config.get("issue_type")
         return {
             "source": source_key,
@@ -211,7 +221,7 @@ def validate_derivation(project_id, attrs, instance=None):
             "include_self": include_self,
         }
 
-    raise PropertyValueError(f"Unknown derivation '{derivation}'")
+    raise DerivationConfigError(f"Unknown derivation '{derivation}'")
 
 
 def dependents_of(property_obj):
