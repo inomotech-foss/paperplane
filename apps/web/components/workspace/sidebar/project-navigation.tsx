@@ -21,7 +21,7 @@ import {
 import type { EUserProjectRoles } from "@plane/types";
 // plane ui
 // components
-import { isWorkItemsEnabled } from "@/components/settings/project/work-items-dependency";
+import { isProjectFeatureEnabled } from "@/components/settings/project/work-items-dependency";
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
@@ -65,7 +65,6 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
     : undefined;
   const workItem = workItemId ? getIssueById(workItemId) : undefined;
   const project = getPartialProjectById(projectId);
-  const workItemsEnabled = isWorkItemsEnabled(project);
   // handlers
   const handleProjectClick = () => {
     if (window.innerWidth < 768) {
@@ -96,7 +95,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         href: `/${workspaceSlug}/projects/${projectId}/cycles`,
         icon: CyclesOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
-        shouldRender: workItemsEnabled && (project?.cycle_view ?? false),
+        shouldRender: isProjectFeatureEnabled(project, "cycle_view"),
         sortOrder: 2,
       },
       {
@@ -106,7 +105,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         href: `/${workspaceSlug}/projects/${projectId}/modules`,
         icon: ModuleOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
-        shouldRender: workItemsEnabled && (project?.module_view ?? false),
+        shouldRender: isProjectFeatureEnabled(project, "module_view"),
         sortOrder: 3,
       },
       {
@@ -116,7 +115,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         href: `/${workspaceSlug}/projects/${projectId}/views`,
         icon: ViewsOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
-        shouldRender: workItemsEnabled && (project?.issue_views_view ?? false),
+        shouldRender: isProjectFeatureEnabled(project, "issue_views_view"),
         sortOrder: 4,
       },
       {
@@ -136,11 +135,11 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         href: `/${workspaceSlug}/projects/${projectId}/intake`,
         icon: IntakeOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
-        shouldRender: workItemsEnabled && (project?.inbox_view ?? false),
+        shouldRender: isProjectFeatureEnabled(project, "inbox_view"),
         sortOrder: 6,
       },
     ],
-    [project, workItemsEnabled]
+    [project]
   );
 
   // memoized navigation items and adding additional navigation items

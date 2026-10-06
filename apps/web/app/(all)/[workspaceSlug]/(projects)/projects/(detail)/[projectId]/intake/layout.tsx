@@ -8,6 +8,7 @@ import { Outlet } from "react-router";
 // components
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
+import { ProjectWorkItemsGuard } from "@/components/project/work-items-guard";
 import { ProjectInboxHeader } from "@/components/projects/settings/intake/header";
 
 export default function ProjectInboxIssuesLayout() {
@@ -15,7 +16,9 @@ export default function ProjectInboxIssuesLayout() {
     <>
       <AppHeader header={<ProjectInboxHeader />} />
       <ContentWrapper>
-        <Outlet />
+        <ProjectWorkItemsGuard>
+          <Outlet />
+        </ProjectWorkItemsGuard>
       </ContentWrapper>
     </>
   );

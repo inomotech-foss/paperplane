@@ -17,6 +17,7 @@ import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 // components
 import { EUserProjectRoles } from "@plane/types";
 import type { TPowerKCommandConfig, TPowerKContext } from "@/components/power-k/core/types";
+import { isProjectFeatureEnabled } from "@/components/settings/project/work-items-dependency";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
@@ -103,10 +104,15 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
       icon: WorkItemsOutline,
       keySequence: "nv",
       action: () => toggleCreateViewModal(true),
-      isEnabled: (ctx) => Boolean(getProjectDetails(ctx)?.issue_views_view && hasProjectMemberLevelPermissions(ctx)),
+      isEnabled: (ctx) =>
+        Boolean(
+          isProjectFeatureEnabled(getProjectDetails(ctx), "issue_views_view") && hasProjectMemberLevelPermissions(ctx)
+        ),
       isVisible: (ctx) =>
         Boolean(
-          ctx.params.projectId && getProjectDetails(ctx)?.issue_views_view && hasProjectMemberLevelPermissions(ctx)
+          ctx.params.projectId &&
+          isProjectFeatureEnabled(getProjectDetails(ctx), "issue_views_view") &&
+          hasProjectMemberLevelPermissions(ctx)
         ),
       closeOnSelect: true,
     },
@@ -118,9 +124,14 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
       icon: CyclesOutline,
       keySequence: "nc",
       action: () => toggleCreateCycleModal(true),
-      isEnabled: (ctx) => Boolean(getProjectDetails(ctx)?.cycle_view && hasProjectMemberLevelPermissions(ctx)),
+      isEnabled: (ctx) =>
+        Boolean(isProjectFeatureEnabled(getProjectDetails(ctx), "cycle_view") && hasProjectMemberLevelPermissions(ctx)),
       isVisible: (ctx) =>
-        Boolean(ctx.params.projectId && getProjectDetails(ctx)?.cycle_view && hasProjectMemberLevelPermissions(ctx)),
+        Boolean(
+          ctx.params.projectId &&
+          isProjectFeatureEnabled(getProjectDetails(ctx), "cycle_view") &&
+          hasProjectMemberLevelPermissions(ctx)
+        ),
       closeOnSelect: true,
     },
     create_module: {
@@ -131,9 +142,16 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
       icon: ModuleOutline,
       keySequence: "nm",
       action: () => toggleCreateModuleModal(true),
-      isEnabled: (ctx) => Boolean(getProjectDetails(ctx)?.module_view && hasProjectMemberLevelPermissions(ctx)),
+      isEnabled: (ctx) =>
+        Boolean(
+          isProjectFeatureEnabled(getProjectDetails(ctx), "module_view") && hasProjectMemberLevelPermissions(ctx)
+        ),
       isVisible: (ctx) =>
-        Boolean(ctx.params.projectId && getProjectDetails(ctx)?.module_view && hasProjectMemberLevelPermissions(ctx)),
+        Boolean(
+          ctx.params.projectId &&
+          isProjectFeatureEnabled(getProjectDetails(ctx), "module_view") &&
+          hasProjectMemberLevelPermissions(ctx)
+        ),
       closeOnSelect: true,
     },
     create_project: {

@@ -6,8 +6,10 @@
 import { describe, expect, it } from "vitest";
 import { GROUPED_PROJECT_SETTINGS, PROJECT_SETTINGS_CATEGORY, PROJECT_SETTINGS_FLAT_MAP } from "@plane/constants";
 import {
+  FEATURE_NEEDS_WORK_ITEMS,
   filterVisibleProjectSettings,
   findProjectSetting,
+  isProjectFeatureEnabled,
   isProjectSettingVisible,
   isWorkItemsEnabled,
 } from "./work-items-dependency";
@@ -26,6 +28,34 @@ describe("isWorkItemsEnabled", () => {
   it("follows issue_view", () => {
     expect(isWorkItemsEnabled(enabled)).toBe(true);
     expect(isWorkItemsEnabled(disabled)).toBe(false);
+  });
+});
+
+describe("isProjectFeatureEnabled", () => {
+  it("needs both work items and the feature", () => {
+    expect(isProjectFeatureEnabled({ issue_view: true, cycle_view: true }, "cycle_view")).toBe(true);
+    expect(isProjectFeatureEnabled({ issue_view: false, cycle_view: true }, "cycle_view")).toBe(false);
+    expect(isProjectFeatureEnabled({ issue_view: true, cycle_view: false }, "cycle_view")).toBe(false);
+  });
+
+  it("treats an unknown project as disabled", () => {
+    expect(isProjectFeatureEnabled(undefined, "inbox_view")).toBe(false);
+  });
+});
+
+describe("work items dependency decisions", () => {
+  it("has an explicit decision for every Features entry", () => {
+    const decided = Object.keys(FEATURE_NEEDS_WORK_ITEMS);
+    for (const item of GROUPED_PROJECT_SETTINGS[PROJECT_SETTINGS_CATEGORY.FEATURES]) {
+      expect(decided, `decide whether ${item.key} needs work items`).toContain(item.key);
+    }
+  });
+
+  it("puts every setting in a category", () => {
+    const grouped = Object.values(GROUPED_PROJECT_SETTINGS)
+      .flat()
+      .map((item) => item.key);
+    for (const item of PROJECT_SETTINGS_FLAT_MAP) expect(grouped).toContain(item.key);
   });
 });
 
