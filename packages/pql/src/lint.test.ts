@@ -4,7 +4,7 @@
 import { EditorState } from "@codemirror/state";
 import { describe, expect, it, vi } from "vitest";
 
-import { diagnostic, diagnosticsKey, lintSource, syntaxDiagnostics, unplacedClass } from "./lint.js";
+import { diagnostic, diagnosticsKey, isTypingAtEnd, lintSource, syntaxDiagnostics, unplacedClass } from "./lint.js";
 import { parseField } from "./state.js";
 
 const stateOf = (doc: string) => EditorState.create({ doc, extensions: [parseField] });
@@ -85,6 +85,56 @@ describe("lintSource", () => {
     });
     await vi.advanceTimersByTimeAsync(10);
     expect(await result).toEqual([]);
+    vi.useRealTimers();
+  });
+});
+
+describe("an unfinished query at the caret", () => {
+  const typing = "priority = high AND lab";
+  const at = (doc: string, anchor: number, hasFocus: boolean) => ({
+    state: EditorState.create({ doc, selection: { anchor }, extensions: [parseField] }),
+    hasFocus,
+  });
+
+  it("knows when the person is typing at the end", () => {
+    expect(isTypingAtEnd(at(typing, typing.length, true))).toBe(true);
+    expect(isTypingAtEnd(at(`${typing}  `, typing.length, true))).toBe(true);
+    expect(isTypingAtEnd(at(typing, 3, true))).toBe(false);
+    expect(isTypingAtEnd(at(typing, typing.length, false))).toBe(false);
+  });
+
+  it("holds an error at the end back while the caret is there", () => {
+    const source = lintSource({ syntaxDelay: 100 });
+    expect(source(at(typing, typing.length, true))).toEqual([]);
+    expect(source.isHolding()).toBe(true);
+  });
+
+  it("shows a held error at once on blur or when the caret moves away", () => {
+    for (const released of [at(typing, typing.length, false), at(typing, 3, true)]) {
+      const source = lintSource({ syntaxDelay: 100 });
+      source(at(typing, typing.length, true));
+      expect(source(released)).toMatchObject([{ from: typing.length }]);
+      expect(source.isHolding()).toBe(false);
+    }
+  });
+
+  it("debounces an error at the end that was never held", async () => {
+    vi.useFakeTimers();
+    const result = lintSource({ syntaxDelay: 100 })(at(typing, typing.length, false));
+    expect(Array.isArray(result)).toBe(false);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(await result).toMatchObject([{ from: typing.length }]);
+    vi.useRealTimers();
+  });
+
+  it("still flags an error in the middle while typing at the end", async () => {
+    vi.useFakeTimers();
+    const doc = "priority urgent AND state = x";
+    const source = lintSource({ syntaxDelay: 100 });
+    const result = source(at(doc, doc.length, true));
+    expect(source.isHolding()).toBe(false);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(await result).toMatchObject([{ from: 9, to: 15 }]);
     vi.useRealTimers();
   });
 });

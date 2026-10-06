@@ -49,32 +49,57 @@ export function diagnosticsKey(diagnostics: readonly Diagnostic[]): string {
   return JSON.stringify(diagnostics.map((d) => [d.from, d.to, d.message]));
 }
 
+type LintView = { state: EditorState; hasFocus?: boolean };
+
+// The editor has focus and an empty caret at the end of the query, so the person is still typing there.
+export function isTypingAtEnd(view: LintView): boolean {
+  const { main } = view.state.selection;
+  return !!view.hasFocus && main.empty && main.head >= view.state.doc.toString().trimEnd().length;
+}
+
 // Syntax errors wait `syntaxDelay` ms and the validator `validateDelay` ms without newer input.
+// A syntax error that reaches the end of the query is held back while the person types there.
 export function lintSource(options: LintOptions) {
   let latest = 0;
-  return (view: { state: EditorState }): Diagnostic[] | Promise<Diagnostic[]> => {
+  let held: string | null = null;
+  const source = (view: LintView): Diagnostic[] | Promise<Diagnostic[]> => {
     const state = view.state;
-    const source = state.doc.toString();
+    const text = state.doc.toString();
     const syntax = syntaxDiagnostics(state);
     const validate = options.validate;
     const run = ++latest;
-    if (syntax.length === 0 && (!validate || !source.trim())) return [];
+    const wasHeld = held === text;
+    held = null;
+    if (syntax.length === 0 && (!validate || !text.trim())) return [];
+    if (syntax.length > 0 && syntax.every((d) => d.to >= text.trimEnd().length)) {
+      if (isTypingAtEnd(view)) {
+        held = text;
+        return [];
+      }
+      // Blur or a caret move released a held error; the person has stopped typing, so show it now.
+      if (wasHeld) return syntax;
+    }
     const delay = syntax.length > 0 ? (options.syntaxDelay ?? 700) : (options.validateDelay ?? 400);
     return new Promise((resolve) => {
       setTimeout(async () => {
         if (run !== latest) return resolve([]);
         if (syntax.length > 0 || !validate) return resolve(syntax);
-        const error = await validate(source);
-        resolve(run === latest && error ? [diagnostic(source, error)] : []);
+        const error = await validate(text);
+        resolve(run === latest && error ? [diagnostic(text, error)] : []);
       }, delay);
     });
   };
+  return Object.assign(source, { isHolding: () => held !== null });
 }
 
 export function pqlLinter(options: LintOptions = {}): Extension {
+  const source = lintSource(options);
   const extensions: Extension[] = [
     parseField,
-    linter(lintSource(options), { delay: 0 }),
+    linter(source, {
+      delay: 0,
+      needsRefresh: (update) => source.isHolding() && (update.focusChanged || update.selectionSet),
+    }),
     EditorView.baseTheme({ [`.cm-lintRange.${unplacedClass}`]: { backgroundImage: "none", textDecoration: "none" } }),
   ];
   const onDiagnostics = options.onDiagnostics;
