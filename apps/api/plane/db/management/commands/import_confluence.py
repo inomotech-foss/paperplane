@@ -82,6 +82,12 @@ class Command(BaseCommand):
             )
         if summary.unresolved_pages:
             self.stdout.write(self.style.WARNING(f"dead links  {len(summary.unresolved_pages)} unresolved page titles"))
+        if summary.unresolved_wiki_urls:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"dead urls   {len(summary.unresolved_wiki_urls)} Confluence page URLs not in the backup"
+                )
+            )
         if summary.unresolved_attachments:
             self.stdout.write(
                 self.style.WARNING(

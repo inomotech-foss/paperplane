@@ -12,6 +12,7 @@ from .links import (
     convert_page_links,
     convert_space_links,
     convert_user_mentions,
+    convert_wiki_urls,
 )
 from .macros import convert_adf_extensions, convert_structured_macros
 from .page_index import index_page
@@ -54,6 +55,7 @@ def storage_to_html(body, resolvers=None, result=None):
     convert_user_mentions(soup, resolvers, result)
     convert_attachment_links(soup, resolvers, result)
     convert_page_links(soup, resolvers, result)
+    convert_wiki_urls(soup, resolvers, result)
     convert_space_links(soup)
     convert_emoticons(soup)
     convert_times(soup)

@@ -93,6 +93,8 @@ class ConversionResult:
     unresolved_users: set = field(default_factory=set)
     unresolved_attachments: set = field(default_factory=set)
     unresolved_pages: set = field(default_factory=set)
+    # Pasted page URLs whose page is not in the backup: an export gap, not a loss here.
+    unresolved_wiki_urls: set = field(default_factory=set)
     dropped_layouts: int = 0
     downgraded: Counter = field(default_factory=Counter)
     dropped_chrome: Counter = field(default_factory=Counter)
