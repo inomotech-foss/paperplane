@@ -8,12 +8,11 @@ import { useMemo } from "react";
 import type { ColumnDef, Row, RowData, Table } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { useTheme } from "next-themes";
 import useSWR from "swr";
 // plane package imports
 import { DownloadOutline } from "@makeplane/propel/icons";
 import type { ChartXAxisDateGrouping } from "@plane/constants";
-import { ANALYTICS_X_AXIS_VALUES, ANALYTICS_Y_AXIS_VALUES, CHART_COLOR_PALETTES, EChartModels } from "@plane/constants";
+import { ANALYTICS_X_AXIS_VALUES, ANALYTICS_Y_AXIS_VALUES, EChartModels } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { Icon } from "@makeplane/propel/components/icon";
@@ -25,6 +24,7 @@ import { generateExtendedColors, parseChartData } from "@/components/chart/utils
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
 import { useProjectState } from "@/hooks/store/use-project-state";
+import { useChartPalette } from "@/hooks/use-chart-palette";
 import { AnalyticsService } from "@/services/analytics.service";
 import { exportCSV } from "../export";
 import { DataTable } from "../insight-table/data-table";
@@ -56,7 +56,7 @@ const PriorityChart = observer(function PriorityChart(props: Props) {
   // store hooks
   const { selectedDuration, selectedProjects, selectedCycle, selectedModule, isPeekView, isEpic } = useAnalytics();
   const { workspaceStates } = useProjectState();
-  const { resolvedTheme } = useTheme();
+  const chartPalette = useChartPalette();
   // router
   const params = useParams();
   const workspaceSlug = params.workspaceSlug.toString();
@@ -90,15 +90,14 @@ const PriorityChart = observer(function PriorityChart(props: Props) {
     if (!parsedData) return [];
     let parsedBars: TBarItem<string>[];
     const schemaKeys = Object.keys(parsedData.schema);
-    const baseColors = CHART_COLOR_PALETTES[0]?.[resolvedTheme === "dark" ? "dark" : "light"];
-    const extendedColors = generateExtendedColors(baseColors ?? [], schemaKeys.length);
+    const extendedColors = generateExtendedColors(chartPalette, schemaKeys.length);
     if (chart_model === EChartModels.BASIC) {
       parsedBars = [
         {
           key: "count",
           label: "Count",
           stackId: "bar-one",
-          fill: (payload) => generateBarColor(payload.key, { x_axis, y_axis, group_by }, baseColors, workspaceStates),
+          fill: (payload) => generateBarColor(payload.key, { x_axis, y_axis, group_by }, chartPalette, workspaceStates),
           textClassName: "",
           showPercentage: false,
           showTopBorderRadius: () => true,
@@ -138,7 +137,7 @@ const PriorityChart = observer(function PriorityChart(props: Props) {
       parsedBars = [];
     }
     return parsedBars;
-  }, [chart_model, group_by, parsedData, resolvedTheme, workspaceStates, x_axis, y_axis]);
+  }, [chart_model, chartPalette, group_by, parsedData, workspaceStates, x_axis, y_axis]);
 
   const yAxisLabel = useMemo(
     () => ANALYTICS_Y_AXIS_VALUES.find((item) => item.value === props.y_axis)?.label ?? props.y_axis,
