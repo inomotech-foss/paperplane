@@ -16,6 +16,7 @@ from plane.bgtasks.service_desk_task import (
     service_desk_maintain_subscriptions,
     service_desk_poll,
     service_desk_send_reply,
+    service_desk_sync_mailbox,
 )
 from plane.utils.ms365_graph import MSGraphError
 from plane.db.models import (
@@ -25,6 +26,7 @@ from plane.db.models import (
     IssueEmailMessage,
     IssueEmailThread,
     IssueSubscriber,
+    Project,
     ServiceDeskConfig,
     User,
 )
@@ -187,6 +189,29 @@ class TestServiceDeskPoll:
         fake_client, _ = _run_poll([_graph_message()])
         fake_client.list_unread_messages.assert_not_called()
         assert Issue.objects.count() == 0
+
+    @pytest.mark.django_db
+    def test_work_items_off_leaves_mail_unread(self, service_desk_config):
+        Project.objects.filter(pk=service_desk_config.project_id).update(issue_view=False)
+        fake_client, _ = _run_poll([_graph_message()])
+        fake_client.list_unread_messages.assert_not_called()
+        fake_client.mark_message_read.assert_not_called()
+        assert Issue.objects.count() == 0
+        assert IntakeIssue.objects.count() == 0
+
+    @pytest.mark.django_db
+    def test_push_sync_skips_work_items_off(self, service_desk_config):
+        Project.objects.filter(pk=service_desk_config.project_id).update(issue_view=False)
+        with (
+            patch("plane.bgtasks.service_desk_task.redis_instance"),
+            patch(
+                "plane.bgtasks.service_desk_task.get_service_desk_configuration",
+                return_value=("tenant", "client", "secret"),
+            ),
+            patch("plane.bgtasks.service_desk_task.MSGraphMailClient") as mock_client,
+        ):
+            service_desk_sync_mailbox(str(service_desk_config.id))
+        mock_client.assert_not_called()
 
 
 @pytest.mark.unit
@@ -411,6 +436,21 @@ class TestMaintainSubscriptions:
         service_desk_config.refresh_from_db()
         assert service_desk_config.graph_subscription_id is None
         assert service_desk_config.graph_subscription_expires_at is None
+
+    @pytest.mark.django_db
+    def test_work_items_off_drops_subscription(self, service_desk_config):
+        Project.objects.filter(pk=service_desk_config.project_id).update(issue_view=False)
+        service_desk_config.graph_subscription_id = "sub-1"
+        service_desk_config.graph_subscription_expires_at = timezone.now() + timedelta(hours=1)
+        service_desk_config.save()
+        fake_client = MagicMock()
+        _run_maintain(fake_client)
+
+        fake_client.delete_subscription.assert_called_once_with("sub-1")
+        fake_client.renew_subscription.assert_not_called()
+        fake_client.create_subscription.assert_not_called()
+        service_desk_config.refresh_from_db()
+        assert service_desk_config.graph_subscription_id is None
 
     @pytest.mark.django_db
     def test_no_notification_url_stays_polling_only(self, service_desk_config):

@@ -897,3 +897,72 @@ class TestActivityHook:
         )
 
         assert spy.call_args.kwargs["automation_context"] == chain
+
+
+class TestWorkItemsSwitch:
+    def _dispatch_created(self, work_item, project, user):
+        from plane.bgtasks.automation_task import dispatch_work_item_automations
+
+        dispatch_work_item_automations(
+            "issue.activity.created",
+            str(work_item.id),
+            str(project.id),
+            str(project.workspace_id),
+            str(user.id),
+        )
+
+    def _priority_rule(self, project, user, **kwargs):
+        automation = make_automation(project, user, **kwargs)
+        add_action(
+            automation, ActionType.CHANGE_PROPERTY, {"property": "priority", "change_type": "set", "value": "urgent"}
+        )
+        return automation
+
+    def test_event_runs_while_work_items_are_on(self, project, create_user, work_item):
+        self._priority_rule(project, create_user)
+
+        self._dispatch_created(work_item, project, create_user)
+
+        work_item.refresh_from_db()
+        assert work_item.priority == "urgent"
+
+    def test_event_is_skipped_while_work_items_are_off(self, project, create_user, work_item):
+        automation = self._priority_rule(project, create_user)
+        Project.objects.filter(pk=project.pk).update(issue_view=False)
+
+        self._dispatch_created(work_item, project, create_user)
+
+        work_item.refresh_from_db()
+        assert work_item.priority == "none"
+        assert not AutomationRun.objects.filter(automation=automation).exists()
+
+    def test_scheduled_targets_skip_projects_with_work_items_off(self, db, workspace, create_user):
+        from plane.automation import dispatch
+
+        on = Project.objects.create(name="On", identifier="ON", workspace=workspace, created_by=create_user)
+        Project.objects.create(
+            name="Off", identifier="OFF", workspace=workspace, created_by=create_user, issue_view=False
+        )
+        automation = Automation.objects.create(
+            workspace=workspace,
+            scope=AutomationScope.WORKSPACE,
+            name="Everywhere",
+            trigger_type=TriggerType.SCHEDULE,
+            applies_to_all_projects=True,
+            is_enabled=True,
+            owned_by=create_user,
+        )
+
+        assert list(dispatch.target_projects(automation).values_list("id", flat=True)) == [on.id]
+
+    def test_run_now_is_skipped_while_work_items_are_off(self, project, create_user, work_item):
+        from plane.bgtasks.automation_task import run_automation_now
+
+        automation = self._priority_rule(project, create_user)
+        Project.objects.filter(pk=project.pk).update(issue_view=False)
+
+        run_automation_now(str(automation.id), str(create_user.id))
+
+        work_item.refresh_from_db()
+        assert work_item.priority == "none"
+        assert not AutomationRun.objects.filter(automation=automation).exists()

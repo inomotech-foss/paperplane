@@ -110,11 +110,13 @@ def due_scheduled_automations(now):
 
 def target_projects(automation):
     """The projects a scheduled automation should sweep."""
+    # Automations stop while a project has work items turned off.
+    projects = Project.objects.filter(issue_view=True)
     if automation.scope == AutomationScope.PROJECT:
-        return Project.objects.filter(pk=automation.project_id)
+        return projects.filter(pk=automation.project_id)
     if automation.applies_to_all_projects:
-        return Project.objects.filter(workspace_id=automation.workspace_id)
-    return Project.objects.filter(
+        return projects.filter(workspace_id=automation.workspace_id)
+    return projects.filter(
         workspace_id=automation.workspace_id,
         project_automation_links__automation_id=automation.id,
         project_automation_links__deleted_at__isnull=True,
