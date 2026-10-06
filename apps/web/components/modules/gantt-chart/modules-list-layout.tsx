@@ -15,7 +15,6 @@ import { TimeLineTypeContext } from "@/components/gantt-chart/contexts";
 import { ModuleGanttBlock } from "@/components/modules";
 // hooks
 import { useModule } from "@/hooks/store/use-module";
-import { useModuleFilter } from "@/hooks/store/use-module-filter";
 import { useProject } from "@/hooks/store/use-project";
 
 export const ModulesListGanttChartView = observer(function ModulesListGanttChartView() {
@@ -24,7 +23,6 @@ export const ModulesListGanttChartView = observer(function ModulesListGanttChart
   // store
   const { currentProjectDetails } = useProject();
   const { getFilteredModuleIds, updateModuleDetails } = useModule();
-  const { currentProjectDisplayFilters: displayFilters } = useModuleFilter();
 
   // derived values
   const filteredModuleIds = projectId ? getFilteredModuleIds(projectId.toString()) : undefined;
@@ -67,7 +65,7 @@ export const ModulesListGanttChartView = observer(function ModulesListGanttChart
         enableBlockLeftResize={isAllowed}
         enableBlockRightResize={isAllowed}
         enableBlockMove={isAllowed}
-        enableReorder={isAllowed && displayFilters?.order_by === "sort_order"}
+        enableReorder={isAllowed}
         enableAddBlock={isAllowed}
         updateBlockDates={updateBlockDates}
         showAllBlocks

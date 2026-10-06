@@ -35,6 +35,7 @@ import { CycleService } from "@/services/cycle.service";
 import { IssueArchiveService, IssueService } from "@/services/issue";
 import { ModuleService } from "@/services/module.service";
 //
+import { getWorkItemOrderBy } from "@/store/timeline-order";
 import type { IIssueRootStore } from "../root.store";
 import {
   getDifference,
@@ -283,7 +284,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     const displayFilters = this.issueFilterStore?.issueFilters?.displayFilters;
     if (!displayFilters) return;
 
-    return displayFilters?.order_by;
+    return getWorkItemOrderBy(displayFilters);
   }
 
   // current Group by value

@@ -30,6 +30,7 @@ import { EIssueLayoutTypes } from "@plane/types";
 import { getComputedDisplayFilters, getComputedDisplayProperties } from "@plane/utils";
 // lib
 import { storage } from "@/lib/local-storage";
+import { getWorkItemOrderBy } from "@/store/timeline-order";
 
 interface ILocalStoreIssueFilters {
   key: EIssuesStoreType;
@@ -100,7 +101,7 @@ export class IssueFilterHelperStore implements IIssueFilterHelperStore {
       sub_group_by: displayFilters?.sub_group_by
         ? EIssueGroupByToServerOptions[displayFilters.sub_group_by]
         : undefined,
-      order_by: displayFilters?.order_by || undefined,
+      order_by: getWorkItemOrderBy(displayFilters),
       // A query decides which work items match; hiding nested matches would
       // make "all invoices of a customer" return nothing.
       sub_issue: pql ? true : (displayFilters?.sub_issue ?? true),

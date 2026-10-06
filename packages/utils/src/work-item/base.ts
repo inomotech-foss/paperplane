@@ -128,6 +128,9 @@ export const handleIssueQueryParamsByLayout = (
     queryParams.push(option as TIssueParams);
   });
 
+  // the timeline offers no order option but always fetches in manual order
+  if (layout === EIssueLayoutTypes.GANTT) queryParams.push("order_by");
+
   // add extra options query params
   if (currentViewLayoutOptions.extra_options.access) {
     currentViewLayoutOptions.extra_options.values.forEach((option) => {

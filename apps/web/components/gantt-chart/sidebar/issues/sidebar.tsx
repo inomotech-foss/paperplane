@@ -13,6 +13,7 @@ import type { IBlockUpdateData } from "@plane/types";
 import { Loader } from "@plane/blocks/skeleton";
 // components
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
+import { useGanttHierarchy } from "@/components/issues/issue-layouts/gantt/hierarchy-context";
 import { GanttLayoutListItemLoader } from "@/components/ui/loader/layouts/gantt-layout-loader";
 //hooks
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
@@ -21,7 +22,7 @@ import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 // local imports
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
 import { GanttDnDHOC } from "../gantt-dnd-HOC";
-import { handleOrderChange } from "../utils";
+import { getSiblingDrop, handleOrderChange } from "../utils";
 import { IssuesSidebarBlock } from "./block";
 
 type Props = {
@@ -52,6 +53,8 @@ export const IssueGanttSidebar = observer(function IssueGanttSidebar(props: Prop
   } = props;
 
   const { getBlockById } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
+  const hierarchy = useGanttHierarchy();
+  const getParentId = hierarchy ? (blockId: string) => hierarchy.getRowState(blockId)?.parentId : undefined;
 
   const {
     issues: { getIssueLoader },
@@ -73,8 +76,19 @@ export const IssueGanttSidebar = observer(function IssueGanttSidebar(props: Prop
     droppedBlockId: string | undefined,
     dropAtEndOfList: boolean
   ) => {
-    handleOrderChange(draggingBlockId, droppedBlockId, dropAtEndOfList, blockIds, getBlockById, blockUpdateHandler);
+    handleOrderChange(
+      draggingBlockId,
+      droppedBlockId,
+      dropAtEndOfList,
+      blockIds,
+      getBlockById,
+      blockUpdateHandler,
+      getParentId
+    );
   };
+
+  const canDropBlock = (draggingBlockId: string, droppedBlockId: string, dropAtEndOfList: boolean) =>
+    !!getSiblingDrop({ blockIds, draggingBlockId, droppedBlockId, dropAtEndOfList, getParentId });
 
   return (
     <div>
@@ -101,6 +115,7 @@ export const IssueGanttSidebar = observer(function IssueGanttSidebar(props: Prop
                   isLastChild={index === blockIds.length - 1}
                   isDragEnabled={enableReorder}
                   onDrop={handleOnDrop}
+                  canDropBlock={canDropBlock}
                 >
                   {(isDragging: boolean) => (
                     <IssuesSidebarBlock

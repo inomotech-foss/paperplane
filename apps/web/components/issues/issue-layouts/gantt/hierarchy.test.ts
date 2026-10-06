@@ -83,6 +83,23 @@ describe("buildGanttRows", () => {
     expect(rows.get("story")?.depth).toBe(1);
   });
 
+  it("orders fetched children by sort order and follows a sort order change", () => {
+    const sortOrder: Record<string, number> = { c1: 300, c2: 100, c3: 200 };
+    const build = () =>
+      buildGanttRows({
+        issueIds: ["p"],
+        getParentId: parents({ p: null, c1: "p", c2: "p", c3: "p" }),
+        getFetchedChildIds: (id) => (id === "p" ? ["c1", "c2", "c3"] : undefined),
+        getSortOrder: (id) => sortOrder[id],
+        expansion: DEFAULT_GANTT_EXPANSION,
+      }).visibleIds;
+
+    expect(build()).toEqual(["p", "c2", "c3", "c1"]);
+    // c1 dropped between c2 and c3
+    sortOrder.c1 = 150;
+    expect(build()).toEqual(["p", "c2", "c1", "c3"]);
+  });
+
   it("keeps the view's order among siblings", () => {
     const { visibleIds } = buildGanttRows({
       issueIds: ["b", "a2", "a", "a1"],

@@ -9,6 +9,8 @@ import { createContext, use } from "react";
 export type TGanttRowState = {
   /** 0 for a top-level row. */
   depth: number;
+  /** The row this one is nested under; null for a top-level row. */
+  parentId: string | null;
   /** Whether the work item has children, loaded or not. */
   hasChildren: boolean;
   /** Children are showing below the row. */
