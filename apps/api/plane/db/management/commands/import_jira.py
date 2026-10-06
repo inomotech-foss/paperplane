@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 from plane.db.models import User, Workspace
 from plane.importers.jira.backup import JiraBackup
 from plane.importers.jira.loader import JiraLoader
+from plane.importers.users import UserRules, add_user_arguments
 
 
 class Command(BaseCommand):
@@ -19,6 +20,7 @@ class Command(BaseCommand):
         parser.add_argument("--workspace", required=True, help="Target Plane workspace slug")
         parser.add_argument("--actor", required=True, help="Email of the user to fall back to for unmapped accounts")
         parser.add_argument("--dry-run", action="store_true", help="Roll back instead of committing")
+        add_user_arguments(parser)
 
     def handle(self, *args, **options):
         backup = JiraBackup(options["backup_dir"], options["project"])
@@ -35,7 +37,12 @@ class Command(BaseCommand):
         except User.DoesNotExist:
             raise CommandError(f"No user with email {options['actor']!r}")
 
-        summary = JiraLoader(workspace.slug, actor, backup).run(dry_run=options["dry_run"])
+        try:
+            user_rules = UserRules.from_options(options)
+        except ValueError as error:
+            raise CommandError(str(error))
+
+        summary = JiraLoader(workspace.slug, actor, backup, user_rules=user_rules).run(dry_run=options["dry_run"])
         self._report(summary, dry_run=options["dry_run"])
 
     def _report(self, summary, dry_run):

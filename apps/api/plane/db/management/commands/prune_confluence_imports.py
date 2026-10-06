@@ -8,6 +8,7 @@ from django.utils import timezone
 from plane.db.models import Project, ProjectMember, ProjectPage, User, Workspace
 from plane.importers.confluence.backup import ConfluenceBackup, space_keys
 from plane.importers.confluence.loader import ConfluenceLoader
+from plane.importers.users import UserMatcher, UserRules, add_user_arguments
 
 EXTERNAL_SOURCE = ConfluenceLoader.EXTERNAL_SOURCE
 ADMIN_ROLE = 20
@@ -67,6 +68,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--assign-owners", action="store_true", help="Make each space's Confluence owner a project admin"
         )
+        add_user_arguments(parser)
 
     def handle(self, *args, **options):
         dry_run = not options["no_dry_run"]
@@ -74,6 +76,11 @@ class Command(BaseCommand):
             workspace = Workspace.objects.get(slug=options["workspace"])
         except Workspace.DoesNotExist:
             raise CommandError(f"No workspace with slug {options['workspace']!r}")
+
+        try:
+            user_rules = UserRules.from_options(options)
+        except ValueError as error:
+            raise CommandError(str(error))
 
         spaces = _spaces(options["backup_dir"])
         keys = [key.strip() for key in (options["spaces"] or "").split(",") if key.strip()]
@@ -105,7 +112,7 @@ class Command(BaseCommand):
             if options["archive"]:
                 self._archive(scope, keys)
             if options["assign_owners"]:
-                self._assign_owners(scope, spaces, options["backup_dir"])
+                self._assign_owners(scope, spaces, options["backup_dir"], user_rules)
             if not any(passes):
                 self.stdout.write("no pass selected, nothing to do")
             if dry_run:
@@ -181,23 +188,20 @@ class Command(BaseCommand):
         if rows:
             queryset.update(archived_at=timezone.now())
 
-    def _assign_owners(self, scope, spaces, backup_dir):
+    def _assign_owners(self, scope, spaces, backup_dir, user_rules):
         """Grant the space owner admin on the project.
 
-        Owners are matched by email through the backup's user mapping; anyone
+        Owners are matched the same way the loader matches authors; anyone
         without an active Plane account is reported, not invented.
         """
         accounts = ConfluenceBackup(backup_dir, next(iter(spaces), "")).users() if spaces else {}
+        matcher = UserMatcher(User.objects.filter(is_active=True, is_bot=False), user_rules)
         by_external_id = {_external_id(backup): backup for backup in spaces.values()}
         rows, missing = [], []
         for project in scope:
             backup = by_external_id.get(project.external_id)
             account = accounts.get(backup.space_owner_id()) if backup else None
-            user = (
-                User.objects.filter(email__iexact=account.email, is_active=True).first()
-                if account and account.email
-                else None
-            )
+            user = matcher.match(account) if account else None
             if user is None:
                 missing.append(project.identifier)
                 continue

@@ -264,6 +264,19 @@ class TestAssignOwners:
         assert "no active user for the owner of: PSNL1" in output
         assert not ProjectMember.objects.filter(project=personal_project).exists()
 
+    def test_owner_on_another_domain(self, workspace, backup_dir, personal_project):
+        user = User.objects.create(username="moved-owner", email="owner@new.example")
+
+        run(
+            backup_dir=str(backup_dir),
+            workspace=workspace.slug,
+            no_dry_run=True,
+            assign_owners=True,
+            email_domain=["plane.so=new.example"],
+        )
+
+        assert ProjectMember.objects.get(project=personal_project, member=user).role == 20
+
     def test_is_idempotent(self, workspace, backup_dir, personal_project, owner):
         run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, assign_owners=True)
         output = run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, assign_owners=True)
