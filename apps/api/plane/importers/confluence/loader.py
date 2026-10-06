@@ -51,6 +51,15 @@ PLACEHOLDER_HTML = (
 )
 
 
+@dataclass(frozen=True)
+class Change:
+    """One structural change the run makes (or, on a dry run, would make)."""
+
+    kind: str
+    title: str
+    detail: str = ""
+
+
 @dataclass
 class ImportSummary:
     project_id: str = None
@@ -61,7 +70,9 @@ class ImportSummary:
     containers: int = 0
     archived: int = 0
     locally_edited: int = 0
+    reordered: int = 0
     owner_granted: bool = False
+    changes: list = field(default_factory=list)
     attributed: int = 0
     unmapped_authors: set = field(default_factory=set)
     placeholders: int = 0
@@ -308,6 +319,14 @@ class ConfluenceLoader:
             summary.labels += 1
 
     @staticmethod
+    def _parent_name(parent):
+        if parent is None:
+            return "root"
+        if isinstance(parent, Page):
+            return parent.name
+        return Page.objects.filter(pk=parent).values_list("name", flat=True).first() or "root"
+
+    @staticmethod
     def _locally_edited(record, page):
         return bool(page.updated_at and record.updated_at and record.updated_at > page.updated_at + _EDIT_SLACK)
 
@@ -344,12 +363,16 @@ class ConfluenceLoader:
                 )
                 created.add(page.id)
                 summary.created += 1
+                summary.changes.append(Change("create", page.title, "placeholder" if page.placeholder else ""))
             elif self._locally_edited(record, page):
                 local_updated_at = record.updated_at
                 edited.add(page.id)
                 summary.locally_edited += 1
                 summary.updated += 1
+                summary.changes.append(Change("keep", record.name, f"edited in Plane {record.updated_at:%Y-%m-%d}"))
             else:
+                if record.name != page.title:
+                    summary.changes.append(Change("rename", record.name, page.title))
                 record.name = page.title
                 record.owned_by = owner or self.actor
                 summary.updated += 1
@@ -363,13 +386,24 @@ class ConfluenceLoader:
             if parent is None:
                 summary.roots += 1
 
+            sort_order = orders.get(page.id, record.sort_order)
+            if page.id not in created:
+                if record.parent_id != (parent.pk if parent else None):
+                    summary.changes.append(
+                        Change(
+                            "move", page.title, f"{self._parent_name(record.parent_id)} -> {self._parent_name(parent)}"
+                        )
+                    )
+                if record.sort_order != sort_order:
+                    summary.reordered += 1
             record.parent = parent
-            record.sort_order = orders.get(page.id, record.sort_order)
+            record.sort_order = sort_order
             # Archived in Confluence means archived here; never the reverse,
             # since an admin may have archived or restored a page by hand.
             if page.archived and record.archived_at is None:
                 record.archived_at = (page.updated_at or timezone.now()).date()
                 summary.archived += 1
+                summary.changes.append(Change("archive", page.title))
             record.save(disable_auto_set_user=True)
             ProjectPage.objects.get_or_create(project=project, page=record, workspace=self.workspace)
             self._link_labels(record, page.labels, labels, summary)

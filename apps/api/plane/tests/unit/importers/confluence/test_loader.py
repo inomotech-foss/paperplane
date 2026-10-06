@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from plane.db.models import Page, Project, ProjectMember, User, WorkspaceMember
 from plane.importers.confluence.backup import SORT_STEP, ConfluenceBackup
-from plane.importers.confluence.loader import PLACEHOLDER_HTML, ConfluenceLoader
+from plane.importers.confluence.loader import PLACEHOLDER_HTML, Change, ConfluenceLoader
 
 OWNER = {"accountId": "acc-owner", "displayName": "Space Owner", "emailAddress": "owner@plane.so"}
 SPACE = {"id": "100", "key": "DEMO", "name": "Demo", "type": "global", "status": "current", "spaceOwnerId": "acc-owner"}
@@ -148,3 +148,24 @@ class TestLocalEdits:
         loader.run()
 
         assert "Hello" in by_external_id("11").description_html
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+class TestPlan:
+    def test_first_run_lists_every_creation(self, loader):
+        summary = loader.run(dry_run=True)
+
+        assert Change("create", "Folder 99", "placeholder") in summary.changes
+        assert sum(1 for change in summary.changes if change.kind == "create") == 6
+        assert not Page.objects.filter(external_source="confluence").exists()
+
+    def test_second_run_lists_only_what_changes(self, loader):
+        loader.run()
+        Page.objects.filter(pk=by_external_id("12").pk).update(parent=None, sort_order=1)
+
+        summary = loader.run(dry_run=True)
+
+        assert summary.changes == [Change("move", "First", "root -> Home")]
+        assert summary.reordered == 1
+        assert by_external_id("12").parent is None
