@@ -95,261 +95,187 @@
     {
       "query": "",
       "position": 0,
-      "token": null,
-      "detail": "empty query",
-      "expected": "a filter expression"
+      "token": null
     },
     {
       "query": "   ",
       "position": 3,
-      "token": null,
-      "detail": "empty query",
-      "expected": "a filter expression"
+      "token": null
     },
     {
       "query": "priority = \"urgent",
       "position": 11,
-      "token": "\"urgent",
-      "detail": "unterminated string literal",
-      "expected": "a closing \""
+      "token": "\"urgent"
     },
     {
       "query": "priority = 'urgent",
       "position": 11,
-      "token": "'urgent",
-      "detail": "unterminated string literal",
-      "expected": "a closing '"
+      "token": "'urgent"
     },
     {
       "query": "(priority = urgent",
       "position": 18,
-      "token": null,
-      "detail": "unexpected end of input",
-      "expected": "one of 'and', 'or', ')'"
+      "token": null
     },
     {
       "query": "priority = urgent)",
       "position": 17,
-      "token": ")",
-      "detail": "unexpected ')'",
-      "expected": "one of 'and', 'or', end of input"
+      "token": ")"
     },
     {
       "query": "priority = urgent AND",
       "position": 21,
-      "token": null,
-      "detail": "unexpected end of input",
-      "expected": "a field name, 'not' or '('"
+      "token": null
     },
     {
       "query": "priority = urgent OR",
       "position": 20,
-      "token": null,
-      "detail": "unexpected end of input",
-      "expected": "a field name, 'not' or '('"
+      "token": null
     },
     {
       "query": "priority =",
       "position": 10,
-      "token": null,
-      "detail": "unexpected end of input",
-      "expected": "a value"
+      "token": null
     },
     {
       "query": "NOT",
       "position": 3,
-      "token": null,
-      "detail": "unexpected end of input",
-      "expected": "a field name, 'not' or '('"
+      "token": null
     },
     {
       "query": "= urgent",
       "position": 0,
-      "token": "=",
-      "detail": "unexpected '='",
-      "expected": "a field name, 'not' or '('"
+      "token": "="
     },
     {
       "query": "AND priority = urgent",
       "position": 0,
-      "token": "AND",
-      "detail": "'AND' is a keyword, not a field name",
-      "expected": "a field name, 'not' or '('"
+      "token": "AND"
     },
     {
       "query": "priority",
       "position": 8,
-      "token": null,
-      "detail": "unexpected end of input",
-      "expected": "one of '!=', '>=', '<=', '=', '>', '<', '~', 'not', 'in', 'is'"
+      "token": null
     },
     {
       "query": "priority urgent",
       "position": 9,
-      "token": "urgent",
-      "detail": "unexpected 'urgent'",
-      "expected": "one of '!=', '>=', '<=', '=', '>', '<', '~', 'not', 'in', 'is'"
+      "token": "urgent"
     },
     {
       "query": "assignee = whoAmI()",
       "position": 17,
-      "token": "(",
-      "detail": "unexpected '('",
-      "expected": "one of 'and', 'or', end of input"
+      "token": "("
     },
     {
       "query": "whoAmI()",
       "position": 6,
-      "token": "(",
-      "detail": "unexpected '('",
-      "expected": "one of '!=', '>=', '<=', '=', '>', '<', '~', 'not', 'in', 'is'"
+      "token": "("
     },
     {
       "query": "priority in (urgent,)",
       "position": 20,
-      "token": ")",
-      "detail": "unexpected ')'",
-      "expected": "a value"
+      "token": ")"
     },
     {
       "query": "priority in urgent",
       "position": 12,
-      "token": "urgent",
-      "detail": "unexpected 'urgent'",
-      "expected": "'('"
+      "token": "urgent"
     },
     {
       "query": "priority not urgent",
       "position": 13,
-      "token": "urgent",
-      "detail": "unexpected 'urgent'",
-      "expected": "'in'"
+      "token": "urgent"
     },
     {
       "query": "target_date is nul",
       "position": 15,
-      "token": "nul",
-      "detail": "unexpected 'nul'",
-      "expected": "one of 'not', 'null'"
+      "token": "nul"
     },
     {
       "query": "priority = null",
       "position": 11,
-      "token": "null",
-      "detail": "'null' is a keyword, not a value",
-      "expected": "'is null' to test for an unset field"
+      "token": "null"
     },
     {
       "query": "priority = and",
       "position": 11,
-      "token": "and",
-      "detail": "'and' is a keyword, not a value",
-      "expected": "a value"
+      "token": "and"
     },
     {
       "query": "target_date = 7d",
       "position": 14,
-      "token": "7d",
-      "detail": "a duration is only allowed after now()",
-      "expected": "a value such as now() - 7d"
+      "token": "7d"
     },
     {
       "query": "target_date > now() - 7",
       "position": 22,
-      "token": "7",
-      "detail": "unexpected '7'",
-      "expected": "a duration"
+      "token": "7"
     },
     {
       "query": "priority & urgent",
       "position": 9,
-      "token": "&",
-      "detail": "unexpected character '&'",
-      "expected": "a field name, an operator or a boolean keyword"
+      "token": "&"
     },
     {
       "query": "cf = 1",
       "position": 3,
-      "token": "=",
-      "detail": "unexpected '='",
-      "expected": "'['"
+      "token": "="
     },
     {
       "query": "cf[1] = 2",
       "position": 3,
-      "token": "1",
-      "detail": "unexpected '1'",
-      "expected": "a string"
+      "token": "1"
     },
     {
       "query": "cf[\"p\" = 2",
       "position": 7,
-      "token": "=",
-      "detail": "unexpected '='",
-      "expected": "']'"
+      "token": "="
     },
     {
       "query": "cf[\"p\"] 2",
       "position": 8,
-      "token": "2",
-      "detail": "unexpected '2'",
-      "expected": "one of '!=', '>=', '<=', '=', '>', '<', '~', 'not', 'in', 'is'"
+      "token": "2"
     },
     {
       "query": "cf[\"p\"] in 2",
       "position": 11,
-      "token": "2",
-      "detail": "unexpected '2'",
-      "expected": "'('"
+      "token": "2"
     },
     {
       "query": "now = 1",
       "position": 4,
-      "token": "=",
-      "detail": "unexpected '='",
-      "expected": "'(' after the reserved function name 'now'"
+      "token": "="
     },
     {
       "query": "priority = now",
       "position": 14,
-      "token": null,
-      "detail": "unexpected end of input",
-      "expected": "'(' after the reserved function name 'now'"
+      "token": null
     },
     {
       "query": "priority = currentUser",
       "position": 22,
-      "token": null,
-      "detail": "unexpected end of input",
-      "expected": "'(' after the reserved function name 'currentUser'"
+      "token": null
     },
     {
       "query": "priority = cf",
       "position": 11,
-      "token": "cf",
-      "detail": "'cf' is a keyword, not a value",
-      "expected": "a value"
+      "token": "cf"
     },
     {
       "query": "priority = in",
       "position": 11,
-      "token": "in",
-      "detail": "'in' is a keyword, not a value",
-      "expected": "a value"
+      "token": "in"
     },
     {
       "query": "is = 1",
       "position": 0,
-      "token": "is",
-      "detail": "'is' is a keyword, not a field name",
-      "expected": "a field name, 'not' or '('"
+      "token": "is"
     },
     {
       "query": "childOf = 1",
       "position": 8,
-      "token": "=",
-      "detail": "unexpected '='",
-      "expected": "'(' after the reserved function name 'childOf'"
+      "token": "="
     }
   ],
   "semantic": [

@@ -39,6 +39,7 @@
     "@plane/typescript-config": "workspace:*",
     "antlr-ng": "catalog:",
     "esbuild": "catalog:",
+    "jsdom": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

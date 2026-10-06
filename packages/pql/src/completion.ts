@@ -3,11 +3,12 @@
 
 import type { Completion, CompletionContext, CompletionResult, CompletionSource } from "@codemirror/autocomplete";
 import { CodeCompletionCore } from "antlr4-c3";
-import { CharStream, CommonTokenStream, Token } from "antlr4ng";
+import { CharStream, CommonTokenStream, type ParserRuleContext, ParseTreeWalker, Token } from "antlr4ng";
 
 import { PQLLexer } from "./generated/PQLLexer.js";
-import { PQLParser } from "./generated/PQLParser.js";
-import { FUNCTION_TOKENS, KEYWORD_TOKENS, OPERATOR_TOKENS } from "./parse.js";
+import { PQLListener } from "./generated/PQLListener.js";
+import { type CustomPropertyPredicateContext, PQLParser, type PredicateContext } from "./generated/PQLParser.js";
+import { FUNCTION_TOKENS, KEYWORD_TOKENS, OPERATOR_TOKENS, parseQuery } from "./parse.js";
 import { type FieldInfo, type Vocabulary, findField } from "./vocabulary.js";
 
 const P = PQLParser;
@@ -28,38 +29,18 @@ export type Candidates = {
 
 export type Position = {
   caretTokenIndex: number;
-  tokens: Set<number>;
-  rules: Set<number>;
+  tokens: Token[];
+  tokenCandidates: Set<number>;
+  // Preferred rule -> token index where it starts.
+  rules: Map<number, number>;
 };
+
+// The predicate the caret sits in: a field name, or a custom property reference.
+export type Subject = { field: string | null; property: string | null };
 
 const PREFERRED_RULES = new Set([P.RULE_fieldName, P.RULE_operator, P.RULE_value, P.RULE_propertyReference]);
-const CONDITION_FUNCTIONS: Record<number, string> = { [P.CHILDOF]: "childOf", [P.DESCENDANTOF]: "descendantOf" };
 const WORD_RE = /^[\p{L}_][\p{L}\p{N}_]*$/u;
 const DURATION_EXAMPLES = ["1d", "7d", "2w", "12h"];
-
-const LOOKUP_OPERATORS: Record<string, string[]> = {
-  exact: ["=", "!="],
-  gt: [">"],
-  gte: [">="],
-  lt: ["<"],
-  lte: ["<="],
-  icontains: ["~"],
-  in: ["in (", "not in ("],
-  isnull: ["is null", "is not null"],
-};
-const ALL_OPERATORS = ["=", "!=", ">", ">=", "<", "<=", "~", "in (", "not in (", "is null", "is not null"];
-const VALUE_TOKENS = new Set([
-  P.STRING,
-  P.NUMBER,
-  P.IDENT,
-  P.DURATION,
-  P.COMMA,
-  P.LPAREN,
-  P.RPAREN,
-  P.PLUS,
-  P.MINUS,
-  ...FUNCTION_TOKENS,
-]);
 
 function isWordLike(token: Token): boolean {
   return (
@@ -78,37 +59,52 @@ export function caretTokenIndex(tokens: Token[], caret: number): number {
   return tokens.length - 1;
 }
 
-export function positionAt(source: string, caret = source.length): Position & { tokens_: Token[] } {
+export function positionAt(source: string, caret = source.length): Position {
   const lexer = new PQLLexer(CharStream.fromString(source));
   lexer.removeErrorListeners();
   const stream = new CommonTokenStream(lexer);
+  stream.fill();
   const parser = new PQLParser(stream);
   parser.removeErrorListeners();
-  parser.query();
   const tokens = stream.getTokens();
   const index = caretTokenIndex(tokens, caret);
-  // c3 reuses one result object per core, so each pass gets its own.
+  // Preferred rules absorb the tokens inside them, so the token pass runs without them.
   const tokenCore = new CodeCompletionCore(parser);
   const ruleCore = new CodeCompletionCore(parser);
   ruleCore.preferredRules = PREFERRED_RULES;
   return {
     caretTokenIndex: index,
-    tokens: new Set(tokenCore.collectCandidates(index).tokens.keys()),
-    rules: new Set(ruleCore.collectCandidates(index).rules.keys()),
-    tokens_: tokens,
+    tokens,
+    tokenCandidates: new Set(tokenCore.collectCandidates(index).tokens.keys()),
+    rules: new Map([...ruleCore.collectCandidates(index).rules].map(([rule, info]) => [rule, info.startTokenIndex])),
   };
 }
 
-// The field a value or operator belongs to: the IDENT before the operator,
-// skipping back over whatever of the value has been typed.
-export function fieldBefore(tokens: Token[], index: number, valuePosition: boolean): string | null {
-  let i = index - 1;
-  if (valuePosition) {
-    while (i >= 0 && VALUE_TOKENS.has(tokens[i]!.type)) i--;
-    if (i >= 0 && (OPERATOR_TOKENS.has(tokens[i]!.type) || tokens[i]!.type === P.IN)) i--;
-    if (i >= 0 && tokens[i]!.type === P.NOT) i--;
+class PredicateFinder extends PQLListener {
+  found: PredicateContext | CustomPropertyPredicateContext | null = null;
+
+  constructor(private readonly index: number) {
+    super();
   }
-  return i >= 0 && tokens[i]!.type === P.IDENT ? (tokens[i]!.text ?? null) : null;
+
+  private consider(ctx: ParserRuleContext) {
+    const start = ctx.start?.tokenIndex ?? Infinity;
+    const stop = ctx.stop?.tokenIndex ?? Infinity;
+    if (start < this.index && stop >= this.index - 1) this.found = ctx as PredicateContext;
+  }
+
+  override enterPredicate = (ctx: PredicateContext): void => this.consider(ctx);
+  override enterCustomPropertyPredicate = (ctx: CustomPropertyPredicateContext): void => this.consider(ctx);
+}
+
+export function subjectAt(source: string, tokenIndex: number): Subject {
+  const finder = new PredicateFinder(tokenIndex);
+  ParseTreeWalker.DEFAULT.walk(finder, parseQuery(source).tree);
+  const found = finder.found;
+  if (!found) return { field: null, property: null };
+  if ("fieldName" in found) return { field: found.fieldName()?.getText() ?? null, property: null };
+  const reference = found.propertyReference().getText();
+  return { field: null, property: reference.slice(1, -1) };
 }
 
 export function quote(value: string): string {
@@ -119,28 +115,46 @@ function bareOrQuoted(value: string): string {
   return WORD_RE.test(value) ? value : quote(value);
 }
 
-function operatorsFor(field: FieldInfo | undefined): string[] {
-  if (!field) return ALL_OPERATORS;
-  const operators = new Set(field.lookups.flatMap((lookup) => LOOKUP_OPERATORS[lookup] ?? []));
-  return ALL_OPERATORS.filter((operator) => operators.has(operator));
+// Operators the grammar allows here, in the field's display order or, without a field, the vocabulary's.
+function operatorCandidates(position: Position, vocabulary: Vocabulary, field: FieldInfo | undefined): string[] {
+  const allowed = new Set<string>();
+  for (const type of position.tokenCandidates) {
+    if (OPERATOR_TOKENS.has(type)) allowed.add(P.literalNames[type]!.slice(1, -1));
+    if (type === P.IN) allowed.add("in");
+    if (type === P.NOT) allowed.add("not in");
+    if (type === P.IS) allowed.add("is null").add("is not null");
+  }
+  const ordered = field ? field.operators : [...new Set(vocabulary.fields.flatMap((f) => f.operators))];
+  return ordered.filter((operator) => allowed.has(operator));
 }
 
-async function valueCandidates(vocabulary: Vocabulary, fieldName: string | null, prefix: string): Promise<Candidate[]> {
-  const field = fieldName ? findField(vocabulary, fieldName) : undefined;
+function valueFunctions(vocabulary: Vocabulary, field: FieldInfo | undefined): Candidate[] {
   const options: Candidate[] = [];
-  if (field?.choices) {
-    for (const choice of field.choices) options.push({ label: choice, insert: bareOrQuoted(choice), type: "value" });
+  for (const { name, kind } of vocabulary.functions) {
+    if (kind !== "value") continue;
+    if (name === "currentUser" && !field?.people) continue;
+    if (name === "now" && field?.type !== "date") continue;
+    options.push({ label: `${name}()`, insert: `${name}()`, type: "function", boost: 1 });
+    if (name === "now") options.push({ label: "now() - 7d", insert: "now() - 7d", type: "function" });
   }
-  if (field?.people && vocabulary.functions.includes("currentUser")) {
-    options.push({ label: "currentUser()", insert: "currentUser()", type: "function", boost: 1 });
+  return options;
+}
+
+async function valueCandidates(
+  vocabulary: Vocabulary,
+  subject: Subject,
+  prefix: string,
+  closer: string
+): Promise<Candidate[]> {
+  const field = subject.field ? findField(vocabulary, subject.field) : undefined;
+  const options: Candidate[] = [];
+  for (const choice of field?.choices ?? []) {
+    options.push({ label: choice, insert: closer ? choice + closer : bareOrQuoted(choice), type: "value" });
   }
-  if (field?.type === "date" && vocabulary.functions.includes("now")) {
-    options.push({ label: "now()", insert: "now()", type: "function", boost: 1 });
-    options.push({ label: "now() - 7d", insert: "now() - 7d", type: "function" });
-  }
+  options.push(...valueFunctions(vocabulary, field));
   if (field && !field.choices && vocabulary.valuesFor) {
     for (const name of await vocabulary.valuesFor(field.name, prefix)) {
-      options.push({ label: name, insert: quote(name), type: "value" });
+      options.push({ label: name, insert: closer ? name + closer : quote(name), type: "value" });
     }
   }
   return options;
@@ -152,10 +166,10 @@ function fieldCandidates(vocabulary: Vocabulary, position: Position): Candidate[
     const names = [...new Set([...field.aliases, field.name])];
     names.forEach((name, i) => options.push({ label: name, insert: name, type: "field", boost: i === 0 ? 1 : 0 }));
   }
-  if (position.tokens.has(P.NOT)) options.push({ label: "not", insert: "not ", type: "keyword" });
-  if (position.tokens.has(P.CF)) options.push({ label: 'cf[""]', insert: 'cf[""]', type: "field", cursor: 4 });
-  for (const [type, name] of Object.entries(CONDITION_FUNCTIONS)) {
-    if (position.tokens.has(Number(type)) && vocabulary.functions.includes(name)) {
+  if (position.tokenCandidates.has(P.NOT)) options.push({ label: "not", insert: "not ", type: "keyword" });
+  if (position.tokenCandidates.has(P.CF)) options.push({ label: 'cf[""]', insert: 'cf[""]', type: "field", cursor: 4 });
+  for (const { name, kind } of vocabulary.functions) {
+    if (kind === "condition") {
       options.push({ label: `${name}("")`, insert: `${name}("")`, type: "function", cursor: name.length + 2 });
     }
   }
@@ -164,40 +178,53 @@ function fieldCandidates(vocabulary: Vocabulary, position: Position): Candidate[
 
 export async function candidatesAt(source: string, caret: number, vocabulary: Vocabulary): Promise<Candidates> {
   const position = positionAt(source, caret);
-  const { tokens_: tokens, caretTokenIndex: index } = position;
+  const { tokens, caretTokenIndex: index } = position;
   const caretToken = tokens[index]!;
   const inWord = caretToken.type !== Token.EOF && caretToken.start < caret;
+  const inLiteral = tokens.some((t) => !isWordLike(t) && t.type !== Token.EOF && t.start < caret && caret <= t.stop);
+  if (inLiteral) return { from: caret, options: [] };
   let from = inWord ? caretToken.start : caret;
   // The lexer drops an unterminated string, so an open quote only shows in the source.
   const gapStart = index > 0 ? tokens[index - 1]!.stop + 1 : 0;
   const openQuote = inWord ? -1 : source.slice(gapStart, caret).search(/["']/);
-  if (openQuote >= 0) from = gapStart + openQuote;
-  const prefix = source.slice(openQuote >= 0 ? from + 1 : from, caret);
+  const closer = openQuote >= 0 ? source[gapStart + openQuote]! : "";
+  if (openQuote >= 0) from = gapStart + openQuote + 1;
+  const prefix = source.slice(from, caret);
+  const spaced = (text: string) => (from === caret && caret > 0 && !/\s/.test(source[caret - 1]!) ? ` ${text}` : text);
   const options: Candidate[] = [];
+  const valueStartsHere = position.rules.get(P.RULE_value) === index;
 
-  if (position.tokens.has(P.DURATION)) {
+  if (position.tokenCandidates.has(P.DURATION)) {
     for (const example of DURATION_EXAMPLES) options.push({ label: example, insert: example, type: "value" });
   } else if (position.rules.has(P.RULE_fieldName)) {
     options.push(...fieldCandidates(vocabulary, position));
   } else if (position.rules.has(P.RULE_operator)) {
-    const field = fieldBefore(tokens, index, false);
-    for (const operator of operatorsFor(field ? findField(vocabulary, field) : undefined)) {
-      options.push({ label: operator, insert: `${operator} `, type: "operator" });
+    const subject = subjectAt(source, index);
+    const field = subject.field ? findField(vocabulary, subject.field) : undefined;
+    for (const operator of operatorCandidates(position, vocabulary, field)) {
+      options.push({
+        label: operator,
+        insert: spaced(operator.endsWith("in") ? `${operator} (` : `${operator} `),
+        type: "operator",
+      });
     }
-  } else if (position.tokens.has(P.NULL)) {
+  } else if (position.tokenCandidates.has(P.NULL)) {
     options.push({ label: "null", insert: "null", type: "keyword" });
-    if (position.tokens.has(P.NOT)) options.push({ label: "not null", insert: "not null", type: "keyword" });
-  } else if (position.tokens.has(P.IN)) {
-    options.push({ label: "in (", insert: "in (", type: "operator" });
+    if (position.tokenCandidates.has(P.NOT)) options.push({ label: "not null", insert: "not null", type: "keyword" });
+  } else if (position.tokenCandidates.has(P.IN)) {
+    options.push({ label: "in (", insert: spaced("in ("), type: "operator" });
   } else if (position.rules.has(P.RULE_propertyReference)) {
     for (const name of (await vocabulary.valuesFor?.("cf", prefix)) ?? []) {
-      options.push({ label: name, insert: quote(name), type: "value" });
+      options.push({ label: name, insert: closer ? name + closer : quote(name), type: "value" });
     }
-  } else if (position.rules.has(P.RULE_value)) {
-    options.push(...(await valueCandidates(vocabulary, fieldBefore(tokens, index, true), prefix)));
+  } else if (valueStartsHere) {
+    options.push(...(await valueCandidates(vocabulary, subjectAt(source, index), prefix, closer)));
   }
-  if (position.tokens.has(P.AND) && !position.rules.has(P.RULE_value)) {
-    options.push({ label: "and", insert: "and ", type: "keyword" }, { label: "or", insert: "or ", type: "keyword" });
+  if (position.tokenCandidates.has(P.AND) && !valueStartsHere) {
+    options.push(
+      { label: "and", insert: spaced("and "), type: "keyword" },
+      { label: "or", insert: spaced("or "), type: "keyword" }
+    );
   }
   return { from, options };
 }
@@ -222,6 +249,6 @@ export function pqlCompletionSource(vocabulary: Vocabulary): CompletionSource {
   return async (context: CompletionContext): Promise<CompletionResult | null> => {
     const { from, options } = await candidatesAt(context.state.doc.toString(), context.pos, vocabulary);
     if (context.aborted || options.length === 0) return null;
-    return { from, options: options.map(toCompletion), validFor: /^[\p{L}\p{N}_]*$/u };
+    return { from, options: options.map(toCompletion), validFor: /^[\p{L}\p{N}_ ]*$/u };
   };
 }

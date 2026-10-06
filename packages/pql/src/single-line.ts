@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { EditorState, type Extension } from "@codemirror/state";
+import { type ChangeSpec, EditorState, type Extension } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 
 export type SingleLineOptions = {
@@ -9,11 +9,14 @@ export type SingleLineOptions = {
   onCancel?: (view: EditorView) => void;
 };
 
-// Newlines become spaces, so pasted multi-line text keeps its length and selection.
+// Each inserted newline becomes a space, so lengths and the selection stay as they were.
 export const rejectNewlines: Extension = EditorState.transactionFilter.of((tr) => {
   if (!tr.docChanged || tr.newDoc.lines === 1) return tr;
-  const text = tr.newDoc.toString().replace(/\r|\n/g, " ");
-  return [tr, { changes: { from: 0, to: tr.newDoc.length, insert: text }, sequential: true }];
+  const changes: ChangeSpec[] = [];
+  tr.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
+    changes.push({ from: fromA, to: toA, insert: inserted.toString().replace(/\n/g, " ") });
+  });
+  return { changes, selection: tr.selection, effects: tr.effects, scrollIntoView: tr.scrollIntoView };
 });
 
 export function singleLine(options: SingleLineOptions = {}): Extension {

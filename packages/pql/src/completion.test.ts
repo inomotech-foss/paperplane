@@ -3,46 +3,13 @@
 
 import { describe, expect, it } from "vitest";
 
-import { candidatesAt, quote } from "./completion.js";
-import type { Vocabulary } from "./vocabulary.js";
-
-const vocabulary: Vocabulary = {
-  fields: [
-    {
-      name: "priority",
-      aliases: [],
-      type: "text",
-      lookups: ["exact", "in", "isnull", "icontains"],
-      choices: ["urgent", "high", "medium", "low", "none"],
-    },
-    { name: "state_id", aliases: ["state", "status"], type: "uuid", lookups: ["exact", "in", "isnull"], choices: null },
-    {
-      name: "assignees__id",
-      aliases: ["assignee", "assignees"],
-      type: "uuid",
-      lookups: ["exact", "in", "isnull"],
-      choices: null,
-      people: true,
-    },
-    {
-      name: "target_date",
-      aliases: ["due_date"],
-      type: "date",
-      lookups: ["exact", "in", "gt", "gte", "lt", "lte", "isnull"],
-      choices: null,
-    },
-  ],
-  functions: ["childOf", "currentUser", "descendantOf", "now"],
-  valuesFor: async (field, prefix) => {
-    if (field === "cf")
-      return ["Severity", "Amount"].filter((name) => name.toLowerCase().startsWith(prefix.toLowerCase()));
-    if (field === "state_id") return ["In Progress", "Done"];
-    return [];
-  },
-};
+import { candidatesAt, positionAt, quote, subjectAt } from "./completion.js";
+import { vocabulary } from "./test-vocabulary.js";
 
 const labels = async (source: string, caret = source.length) =>
   (await candidatesAt(source, caret, vocabulary)).options.map((option) => option.label);
+const inserts = async (source: string, caret = source.length) =>
+  (await candidatesAt(source, caret, vocabulary)).options.map((option) => option.insert);
 
 describe("candidatesAt", () => {
   it("offers fields, not and condition functions at the start", async () => {
@@ -71,8 +38,8 @@ describe("candidatesAt", () => {
     expect(result.options.map((o) => o.label)).toContain("priority");
   });
 
-  it("offers only the operators the field supports", async () => {
-    expect(await labels("priority ")).toEqual(["=", "!=", "~", "in (", "not in (", "is null", "is not null"]);
+  it("offers the operators the field declares, in its order", async () => {
+    expect(await labels("priority ")).toEqual(["=", "!=", "~", "in", "not in", "is null", "is not null"]);
     expect(await labels("due_date ")).toEqual([
       "=",
       "!=",
@@ -80,11 +47,18 @@ describe("candidatesAt", () => {
       ">=",
       "<",
       "<=",
-      "in (",
-      "not in (",
+      "in",
+      "not in",
       "is null",
       "is not null",
     ]);
+    expect(await inserts("priority ")).toContain("in (");
+  });
+
+  it("offers every operator the grammar allows on a custom property", async () => {
+    expect(await labels('cf["Amount"] ')).toEqual(
+      expect.arrayContaining(["=", "!=", ">", "~", "in", "not in", "is null", "is not null"])
+    );
   });
 
   it("offers static choices after an operator", async () => {
@@ -99,6 +73,10 @@ describe("candidatesAt", () => {
     ]);
   });
 
+  it("finds the field across a value list", async () => {
+    expect(await labels("state in (a, ")).toEqual(["In Progress", "Done"]);
+  });
+
   it("offers currentUser() for people fields", async () => {
     expect(await labels("assignee = ")).toEqual(["currentUser()"]);
   });
@@ -107,20 +85,24 @@ describe("candidatesAt", () => {
     expect(await labels("due_date < ")).toEqual(["now()", "now() - 7d"]);
   });
 
+  it("offers nothing field-specific for a custom property value", async () => {
+    expect(await labels('cf["p"] in (')).toEqual([]);
+  });
+
   it("starts a new predicate after and", async () => {
     expect(await labels("assignee = currentUser() and ")).toContain("priority");
   });
 
-  it("completes custom property names inside cf[", async () => {
+  it("completes custom property names after the opening quote", async () => {
     const result = await candidatesAt('cf["Sev', 7, vocabulary);
-    expect(result.from).toBe(3);
-    expect(result.options.map((o) => o.insert)).toEqual(['"Severity"']);
+    expect(result.from).toBe(4);
+    expect(result.options.map((o) => o.insert)).toEqual(['Severity"']);
   });
 
-  it("completes an unterminated string value from its quote", async () => {
+  it("completes an unterminated string value after its quote", async () => {
     const result = await candidatesAt('state = "In', 11, vocabulary);
-    expect(result.from).toBe(8);
-    expect(result.options.map((o) => o.insert)).toEqual(['"In Progress"', '"Done"']);
+    expect(result.from).toBe(9);
+    expect(result.options.map((o) => o.insert)).toEqual(['In Progress"', 'Done"']);
   });
 
   it("offers fields after not (", async () => {
@@ -132,7 +114,17 @@ describe("candidatesAt", () => {
   });
 
   it("offers and/or after a complete predicate", async () => {
-    expect(await labels("priority = urgent ")).toEqual(["and", "or"]);
+    expect(await inserts("priority = urgent ")).toEqual(["and ", "or "]);
+  });
+
+  it("adds a space when the caret touches a number or duration", async () => {
+    expect(await inserts('cf["n"] = 5')).toEqual([" and ", " or "]);
+    expect(await inserts("due_date < now() - 7d")).toEqual([" and ", " or "]);
+  });
+
+  it("offers nothing inside a string or number", async () => {
+    expect(await labels('priority = "urgent"', 14)).toEqual([]);
+    expect(await labels('cf["n"] = 125', 11)).toEqual([]);
   });
 
   it("completes is null", async () => {
@@ -143,6 +135,27 @@ describe("candidatesAt", () => {
     const result = await candidatesAt("", 0, vocabulary);
     const childOf = result.options.find((o) => o.label === 'childOf("")');
     expect(childOf?.cursor).toBe('childOf("'.length);
+  });
+});
+
+describe("subjectAt", () => {
+  it("reads the field or property reference the caret belongs to", () => {
+    expect(subjectAt("priority = ", positionAt("priority = ").caretTokenIndex)).toEqual({
+      field: "priority",
+      property: null,
+    });
+    expect(subjectAt("state in (a, ", positionAt("state in (a, ").caretTokenIndex)).toEqual({
+      field: "state",
+      property: null,
+    });
+    expect(subjectAt('cf["Amount"] > ', positionAt('cf["Amount"] > ').caretTokenIndex)).toEqual({
+      field: null,
+      property: "Amount",
+    });
+    expect(subjectAt("priority = urgent and ", positionAt("priority = urgent and ").caretTokenIndex)).toEqual({
+      field: null,
+      property: null,
+    });
   });
 });
 

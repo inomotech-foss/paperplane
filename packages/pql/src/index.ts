@@ -8,6 +8,7 @@ import { pqlCompletionSource } from "./completion.js";
 import { pqlHighlighting } from "./highlight.js";
 import { type LintOptions, pqlLinter } from "./lint.js";
 import { type SingleLineOptions, singleLine } from "./single-line.js";
+import { parseField } from "./state.js";
 import type { Vocabulary } from "./vocabulary.js";
 
 export type PqlOptions = LintOptions &
@@ -17,6 +18,7 @@ export type PqlOptions = LintOptions &
 
 export function pql(options: PqlOptions): Extension[] {
   return [
+    parseField,
     pqlHighlighting(),
     pqlLinter(options),
     autocompletion({ override: [pqlCompletionSource(options.vocabulary)], icons: false }),
@@ -26,9 +28,17 @@ export function pql(options: PqlOptions): Extension[] {
 
 export { PQLLexer } from "./generated/PQLLexer.js";
 export { PQLParser } from "./generated/PQLParser.js";
-export { candidatesAt, pqlCompletionSource, type Candidate, type Candidates } from "./completion.js";
+export {
+  candidatesAt,
+  pqlCompletionSource,
+  subjectAt,
+  type Candidate,
+  type Candidates,
+  type Subject,
+} from "./completion.js";
 export { highlightTokens, pqlHighlighting } from "./highlight.js";
 export { pqlLinter, syntaxDiagnostics, type LintOptions, type SemanticError } from "./lint.js";
 export { parseQuery, syntaxError, tokenName, tokenize, type ParseResult, type PqlSyntaxError } from "./parse.js";
 export { rejectNewlines, singleLine, type SingleLineOptions } from "./single-line.js";
-export { findField, type FieldInfo, type Vocabulary } from "./vocabulary.js";
+export { parseField, parsed } from "./state.js";
+export { findField, type FieldInfo, type FunctionInfo, type Vocabulary } from "./vocabulary.js";

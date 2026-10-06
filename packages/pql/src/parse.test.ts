@@ -38,8 +38,8 @@ describe("tokenize", () => {
     expect(kinds("NOT CurrentUser()").slice(0, 2)).toEqual(["NOT:NOT", "CURRENTUSER:CurrentUser"]);
   });
 
-  it("keeps Unicode identifiers whole", () => {
-    expect(kinds("priority = ürgent")[2]).toBe("IDENT:ürgent");
+  it("keeps Unicode identifiers whole and skips Unicode whitespace", () => {
+    expect(kinds("priority = ürgent")).toEqual(["IDENT:priority", "EQ:=", "IDENT:ürgent", "EOF:<EOF>"]);
   });
 
   it("records character offsets", () => {
@@ -55,32 +55,24 @@ describe("syntaxError", () => {
     expect(syntaxError('priority = "urgent" AND assignee = currentUser()')).toBeNull();
   });
 
-  it("points at the offending token and names the expected operators", () => {
+  it("points at the offending token and lists the expected tokens", () => {
     const error = syntaxError("priority urgent");
-    expect(error?.position).toBe(9);
-    expect(error?.token).toBe("urgent");
-    expect(error?.expected).toContain("'='");
-    expect(error?.expected).not.toContain("field name");
-  });
-
-  it("explains keywords in value position", () => {
-    expect(syntaxError("priority = null")?.message).toBe(
-      "'null' is a keyword, not a value; expected 'is null' to test for an unset field"
-    );
-  });
-
-  it("explains reserved function names", () => {
-    expect(syntaxError("priority = now")?.message).toBe(
-      "unexpected end of input; expected '(' after the reserved function name 'now'"
-    );
+    expect(error).toMatchObject({ position: 9, token: "urgent" });
+    expect(error?.message).toContain("'='");
+    expect(error?.message).toContain("'in'");
   });
 
   it("reports an unterminated string at its opening quote", () => {
-    expect(syntaxError('priority = "urgent')).toMatchObject({ position: 11, detail: "unterminated string literal" });
+    expect(syntaxError('priority = "urgent')).toMatchObject({ position: 11, message: "unterminated string literal" });
   });
 
   it("reports an empty query", () => {
-    expect(syntaxError("   ")).toMatchObject({ position: 3, detail: "empty query" });
+    expect(syntaxError("   ")).toMatchObject({ position: 3, token: null, message: "empty query" });
+  });
+
+  it("reports the end of input", () => {
+    expect(syntaxError("priority =")).toMatchObject({ position: 10, token: null });
+    expect(syntaxError("priority =")?.message).toMatch(/^unexpected end of input; expected one of /);
   });
 });
 

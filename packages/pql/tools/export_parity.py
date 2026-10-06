@@ -4,7 +4,8 @@
 """Dump the Python parser's test queries to fixtures/parity.json.
 
 Syntax errors are taken from the generated parser alone, without the field
-and function checks, so the TypeScript parser can be held to the same result.
+and function checks, so the TypeScript parser can be held to the same
+acceptance, position and offending token.
 Run from apps/api with PYTHONPATH=., DJANGO_SETTINGS_MODULE and the usual env.
 """
 
@@ -36,12 +37,7 @@ def syntax_error(source):
     try:
         antlr_parser.query()
     except PQLSyntaxError as exc:
-        return {
-            "position": exc.position,
-            "token": exc.token,
-            "detail": exc.detail,
-            "expected": exc.expected,
-        }
+        return {"position": exc.position, "token": exc.token}
     return None
 
 

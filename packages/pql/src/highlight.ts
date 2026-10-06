@@ -9,7 +9,8 @@ import { ParseTreeWalker, Token } from "antlr4ng";
 
 import { PQLListener } from "./generated/PQLListener.js";
 import { type FieldNameContext, PQLParser } from "./generated/PQLParser.js";
-import { FUNCTION_TOKENS, KEYWORD_TOKENS, OPERATOR_TOKENS, parseQuery } from "./parse.js";
+import { FUNCTION_TOKENS, KEYWORD_TOKENS, OPERATOR_TOKENS, type ParseResult, parseQuery } from "./parse.js";
+import { parseField, parsed } from "./state.js";
 
 const P = PQLParser;
 
@@ -36,21 +37,21 @@ export function tagFor(token: Token, fieldTokens: Set<number>): Tag | null {
   return null;
 }
 
-export function highlightTokens(source: string): { token: Token; tag: Tag }[] {
-  const { tree, tokens } = parseQuery(source);
+export function highlightTokens(result: ParseResult | string): { token: Token; tag: Tag }[] {
+  const { tree, tokens } = typeof result === "string" ? parseQuery(result) : result;
   const collector = new FieldCollector();
   ParseTreeWalker.DEFAULT.walk(collector, tree);
-  const result: { token: Token; tag: Tag }[] = [];
+  const tagged: { token: Token; tag: Tag }[] = [];
   for (const token of tokens) {
     const tag = tagFor(token, collector.fields);
-    if (tag) result.push({ token, tag });
+    if (tag) tagged.push({ token, tag });
   }
-  return result;
+  return tagged;
 }
 
 function decorate(state: EditorState): DecorationSet {
   const marks = [];
-  for (const { token, tag } of highlightTokens(state.doc.toString())) {
+  for (const { token, tag } of highlightTokens(parsed(state))) {
     const cls = highlightingFor(state, [tag]);
     if (cls) marks.push(Decoration.mark({ class: cls }).range(token.start, token.stop + 1));
   }
@@ -58,18 +59,21 @@ function decorate(state: EditorState): DecorationSet {
 }
 
 export function pqlHighlighting(): Extension {
-  return ViewPlugin.fromClass(
-    class {
-      decorations: DecorationSet;
+  return [
+    parseField,
+    ViewPlugin.fromClass(
+      class {
+        decorations: DecorationSet;
 
-      constructor(view: EditorView) {
-        this.decorations = decorate(view.state);
-      }
+        constructor(view: EditorView) {
+          this.decorations = decorate(view.state);
+        }
 
-      update(update: ViewUpdate) {
-        if (update.docChanged || update.viewportChanged) this.decorations = decorate(update.state);
-      }
-    },
-    { decorations: (plugin) => plugin.decorations }
-  );
+        update(update: ViewUpdate) {
+          if (update.docChanged) this.decorations = decorate(update.state);
+        }
+      },
+      { decorations: (plugin) => plugin.decorations }
+    ),
+  ];
 }
