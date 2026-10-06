@@ -521,6 +521,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Tautan muncul di bilah samping di bawah fitur proyek. Gunakan URL http(s) atau jalur di aplikasi ini yang diawali dengan /.",
+      "url_invalid": "Masukkan URL http(s) atau jalur yang diawali dengan /.",
+      "move_up": "Pindah ke atas",
+      "move_down": "Pindah ke bawah"
     }
   }
 }

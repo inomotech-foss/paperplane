@@ -521,6 +521,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Odkazy se zobrazují v postranním panelu pod funkcemi projektu. Použijte URL http(s) nebo cestu v této aplikaci začínající znakem /.",
+      "url_invalid": "Zadejte URL http(s) nebo cestu začínající znakem /.",
+      "move_up": "Posunout nahoru",
+      "move_down": "Posunout dolů"
     }
   }
 }

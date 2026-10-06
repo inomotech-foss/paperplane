@@ -521,6 +521,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "链接显示在侧边栏中项目功能的下方。请使用 http(s) URL 或以 / 开头的本应用内路径。",
+      "url_invalid": "请输入 http(s) URL 或以 / 开头的路径。",
+      "move_up": "上移",
+      "move_down": "下移"
     }
   }
 }

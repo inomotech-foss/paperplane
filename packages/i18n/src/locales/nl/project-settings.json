@@ -521,6 +521,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Links verschijnen in de zijbalk onder de projectfuncties. Gebruik een http(s)-URL of een pad in deze app dat met / begint.",
+      "url_invalid": "Voer een http(s)-URL in of een pad dat met / begint.",
+      "move_up": "Omhoog verplaatsen",
+      "move_down": "Omlaag verplaatsen"
     }
   }
 }
