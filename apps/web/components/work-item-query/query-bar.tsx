@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { lazy, Suspense, useCallback, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { CircleHelp, Play, X } from "lucide-react";
@@ -56,6 +56,8 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
   const [runError, setRunError] = useState<string | null>(null);
   const [inlineErrors, setInlineErrors] = useState<string[]>([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  // Set when the fallback is focused, so the editor takes focus as soon as it mounts.
+  const focusOnMount = useRef(false);
   // derived values
   const draft = edits ?? value;
   const isDirty = draft.trim() !== value.trim();
@@ -141,7 +143,15 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
         <div className="group/query relative flex min-w-0 flex-1">
           <Suspense
             fallback={
-              <div className={editorBoxClass(hasError, cn({ "text-placeholder": !draft }))}>
+              // Focusable so a click before CodeMirror loads is handed on to it.
+              <div
+                role="textbox"
+                tabIndex={0}
+                aria-label={t("work_item_query.placeholder")}
+                aria-readonly
+                onFocus={() => (focusOnMount.current = true)}
+                className={editorBoxClass(hasError, cn({ "text-placeholder": !draft }))}
+              >
                 <span className="truncate">{draft || t("work_item_query.placeholder")}</span>
               </div>
             }
@@ -160,15 +170,17 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
               placeholder={t("work_item_query.placeholder")}
               ariaLabel={t("work_item_query.placeholder")}
               hasError={hasError}
+              focusOnMount={focusOnMount}
             />
           </Suspense>
-          {/* Floats below the box, so an error never shifts the page. */}
+          {/* Floats below the box, so an error never shifts the page; an open completion list hides it. */}
           {hasError && (
             <div
               role="alert"
               className={cn(
                 "absolute top-full left-0 z-30 mt-1 w-max max-w-full flex-col gap-0.5 rounded-md border border-subtle bg-layer-1 px-2 py-1 text-11 text-danger-primary shadow-overlay-100",
-                runError ? "flex" : "hidden group-focus-within/query:flex"
+                runError ? "flex" : "hidden group-focus-within/query:flex",
+                "group-has-[.cm-tooltip-autocomplete]/query:hidden!"
               )}
             >
               {errors.map((message) => (

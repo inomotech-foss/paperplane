@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { useEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { Annotation, Compartment, EditorState } from "@codemirror/state";
 import { EditorView, placeholder as placeholderExtension } from "@codemirror/view";
@@ -18,6 +18,8 @@ type Props = PqlOptions & {
   ariaLabel: string;
   hasError: boolean;
   className?: string;
+  // Set by the lazy-load fallback when it was focused; the editor takes focus once it mounts.
+  focusOnMount?: RefObject<boolean>;
 };
 
 const highlightStyle = HighlightStyle.define([
@@ -96,7 +98,8 @@ const chrome = (placeholder: string, ariaLabel: string, hasError: boolean) => [
 
 /** The CodeMirror view behind the query bar; loaded lazily, so it owns every CodeMirror import. */
 export default function QueryEditor(props: Props) {
-  const { value, onChange, placeholder, ariaLabel, hasError, className, vocabulary, ...callbacks } = props;
+  const { value, onChange, placeholder, ariaLabel, hasError, className, vocabulary, focusOnMount, ...callbacks } =
+    props;
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const configured = useRef<Vocabulary | null>(null);
@@ -149,6 +152,11 @@ export default function QueryEditor(props: Props) {
       editor.dispatch({ selection: { anchor }, scrollIntoView: true });
     };
     box.addEventListener("mousedown", onMouseDown);
+    if (focusOnMount?.current) {
+      focusOnMount.current = false;
+      editor.focus();
+      editor.dispatch({ selection: { anchor: editor.state.doc.length } });
+    }
     return () => {
       box.removeEventListener("mousedown", onMouseDown);
       editor.destroy();
