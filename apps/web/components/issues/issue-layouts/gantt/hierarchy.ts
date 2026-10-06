@@ -49,15 +49,17 @@ export const isRowExpandedByDefault = (expansion: TGanttExpansion, depth: number
  * `issueIds` is the view's ordered list; children that are part of it nest under
  * their parent, keeping the view's order among siblings. `getFetchedChildIds`
  * adds children loaded separately (when the view only lists top-level work
- * items), after the listed ones. A parent cycle never hides its members.
+ * items), after the listed ones and ordered by `getSortOrder`. A parent cycle
+ * never hides its members.
  */
 export const buildGanttRows = (params: {
   issueIds: string[];
   getParentId: (issueId: string) => string | null | undefined;
   getFetchedChildIds?: (issueId: string) => string[] | undefined;
+  getSortOrder?: (issueId: string) => number | undefined;
   expansion: TGanttExpansion;
 }): TGanttRows => {
-  const { issueIds, getParentId, getFetchedChildIds, expansion } = params;
+  const { issueIds, getParentId, getFetchedChildIds, getSortOrder, expansion } = params;
   const { rootIds, childIdsByParentId } = buildIssueHierarchy(issueIds, getParentId);
 
   const rows = new Map<string, TGanttRow>();
@@ -69,7 +71,10 @@ export const buildGanttRows = (params: {
     const fetched = getFetchedChildIds?.(issueId);
     if (!fetched?.length) return listed;
     const listedSet = new Set(listed);
-    return [...listed, ...fetched.filter((childId) => !listedSet.has(childId))];
+    const unlisted = fetched.filter((childId) => !listedSet.has(childId));
+    // the timeline is in manual order, also for children fetched in another order
+    if (getSortOrder) unlisted.sort((a, b) => (getSortOrder(a) ?? 0) - (getSortOrder(b) ?? 0));
+    return [...listed, ...unlisted];
   };
 
   // Iterative depth-first walk; `hidden` is true below a folded row, where rows

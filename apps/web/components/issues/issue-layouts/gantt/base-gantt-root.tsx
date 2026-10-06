@@ -133,6 +133,7 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
     getParentId: (issueId) => getIssueById(issueId)?.parent_id,
     getFetchedChildIds: (issueId) =>
       fetchedParentIds.has(issueId) ? subIssuesStore.subIssuesByIssueId(issueId) : undefined,
+    getSortOrder: (issueId) => getIssueById(issueId)?.sort_order,
     expansion,
   });
   const hasChildren = (issueId: string) =>
