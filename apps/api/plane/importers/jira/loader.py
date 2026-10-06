@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 
 from django.db import transaction
 
@@ -62,6 +62,10 @@ ACTIVITY_FIELDS = {
 
 SORT_STEP = 10000
 
+# An issue whose Plane row is newer than its Jira record was worked on in
+# Plane; the slack absorbs timestamp rounding.
+_EDIT_SLACK = timedelta(seconds=1)
+
 
 @dataclass
 class ImportSummary:
@@ -71,6 +75,7 @@ class ImportSummary:
     merged: bool = False
     created: int = 0
     updated: int = 0
+    kept: int = 0
     comments: int = 0
     states: int = 0
     issue_types: int = 0
@@ -345,6 +350,16 @@ class JiraLoader:
         return types, default
 
     def _load_issue(self, project, jira_issue, states, types, default_type, users, uploader, index, summary):
+        existing = Issue.objects.filter(
+            project=project, external_source=self.EXTERNAL_SOURCE, external_id=jira_issue.key
+        ).first()
+        if existing is not None and self._locally_edited(existing, jira_issue):
+            # Worked on in Plane since it was imported: nothing from Jira can be
+            # newer. Still registered so parents and links of other issues resolve.
+            summary.kept += 1
+            index.issues[jira_issue.key] = existing
+            return
+
         author = self._author(jira_issue, users, summary)
         name, _ = state_for(jira_issue)
         issue_type = types.get(jira_issue.issue_type, default_type)
@@ -406,6 +421,12 @@ class JiraLoader:
             summary.unmapped_accounts.add(account_id)
         summary.actor_fallbacks += 1
         return self.actor
+
+    @staticmethod
+    def _locally_edited(record, jira_issue):
+        return bool(
+            jira_issue.updated_at and record.updated_at and record.updated_at > jira_issue.updated_at + _EDIT_SLACK
+        )
 
     def _upsert_issue(self, project, jira_issue, state, issue_type, author, summary):
         record = Issue.objects.filter(

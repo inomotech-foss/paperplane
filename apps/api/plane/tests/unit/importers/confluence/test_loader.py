@@ -149,20 +149,78 @@ class TestLocalEdits:
 
         assert by_external_id("11").description_binary is None
 
-    def test_an_edited_page_keeps_its_binary_document(self, loader):
+    def test_a_save_that_changed_no_words_is_not_an_edit(self, loader):
+        """The editor rewrites markup and bumps the timestamp just by saving."""
         loader.run()
-        Page.objects.filter(pk=by_external_id("11").pk).update(description_binary=b"edited", updated_at=timezone.now())
+        Page.objects.filter(pk=by_external_id("11").pk).update(
+            description_html="<p class='x'>Hello&#xFE0F;</p>", description_binary=b"opened", updated_at=timezone.now()
+        )
 
-        loader.run()
+        summary = loader.run()
 
-        assert bytes(by_external_id("11").description_binary) == b"edited"
+        page = by_external_id("11")
+        assert page.description_html == "<p>Hello</p>"
+        assert page.description_binary is None
+        assert summary.kept == 0
 
-    def test_full_run_rewrites_an_unedited_body(self, loader):
+    def test_changed_words_are_kept_whatever_the_timestamp_says(self, loader):
         loader.run()
         page = by_external_id("11")
-        Page.objects.filter(pk=page.pk).update(description_html="<p>changed</p>", updated_at=page.updated_at)
+        Page.objects.filter(pk=page.pk).update(
+            description_html="<p>Hello</p><p>Mine</p>", description_binary=b"edited", updated_at=page.updated_at
+        )
 
+        summary = loader.run()
+
+        page = by_external_id("11")
+        assert page.description_html == "<p>Hello</p><p>Mine</p>"
+        assert bytes(page.description_binary) == b"edited"
+        assert summary.kept == 1
+        assert Change("keep", "Second", "+1 -0 lines, id 11") in summary.changes
+
+    def test_take_overwrites_a_kept_page(self, loader):
         loader.run()
+        Page.objects.filter(pk=by_external_id("11").pk).update(
+            description_html="<p>Mine</p>", updated_at=timezone.now()
+        )
+
+        summary = loader.run(take=["11"])
+
+        assert "Hello" in by_external_id("11").description_html
+        assert summary.kept == 0
+
+    def test_plan_writes_a_diff_per_kept_page(self, loader, tmp_path):
+        loader.run()
+        Page.objects.filter(pk=by_external_id("11").pk).update(description_html="<p>Hello</p><p>Mine</p>")
+
+        loader.run(dry_run=True, diff_dir=tmp_path / "diffs")
+
+        diff = (tmp_path / "diffs" / "DEMO-11.diff").read_text()
+        assert diff.startswith("Second\n")
+        assert "+Mine" in diff
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+class TestDeletions:
+    def test_a_page_deleted_in_plane_stays_deleted(self, loader):
+        loader.run()
+        by_external_id("11").delete()
+
+        summary = loader.run()
+
+        assert not Page.objects.filter(external_source="confluence", external_id="11").exists()
+        assert summary.skipped_deleted == 1
+        assert Change("skip", "Second", "deleted in Plane") in summary.changes
+
+    def test_a_project_deleted_in_plane_is_not_recreated(self, loader):
+        loader.run()
+        Project.objects.get(external_source="confluence", external_id="100").delete()
+
+        summary = loader.run()
+
+        assert summary.skipped == "project was deleted in Plane"
+        assert not Project.objects.filter(external_source="confluence", external_id="100").exists()
 
         assert "Hello" in by_external_id("11").description_html
 
