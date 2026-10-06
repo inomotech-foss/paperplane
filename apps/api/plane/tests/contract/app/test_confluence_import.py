@@ -340,14 +340,20 @@ class TestConfluenceImport:
         assert project.network == 2
         assert project.issue_view is True
 
-    def test_rerun_picks_up_converter_improvements(self, loader, ada, backup_dir):
-        loader.run()
-        page = Page.objects.get(name="Orphan")
-        Page.objects.filter(pk=page.pk).update(description_html="<p>stale</p>")
+    def test_rerun_picks_up_converter_improvements(self, workspace, create_user, backup_dir, ada):
+        """A body nobody touched in Plane follows whatever the conversion now
+        produces, modelled here by the backup saying something new."""
+        space_dir = backup_dir / "confluence" / "IMS"
+        ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(backup_dir, "IMS")).run()
 
-        loader.run()
+        improved = [
+            dict(page, body={"storage": {"value": "<p>Improved</p>"}}) if page["id"] == PAGES[0]["id"] else page
+            for page in PAGES
+        ]
+        space_dir.joinpath("pages.jsonl").write_text("\n".join(json.dumps(page) for page in improved))
+        ConfluenceLoader(workspace.slug, create_user, ConfluenceBackup(backup_dir, "IMS")).run()
 
-        assert Page.objects.get(name="Orphan").description_html != "<p>stale</p>"
+        assert Page.objects.get(external_id=PAGES[0]["id"]).description_html == "<p>Improved</p>"
 
     def test_dry_run_writes_nothing(self, loader, ada):
         summary = loader.run(dry_run=True)

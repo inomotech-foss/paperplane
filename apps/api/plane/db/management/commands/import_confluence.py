@@ -2,6 +2,7 @@
 # See the LICENSE file for details.
 
 import json
+from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -24,6 +25,10 @@ class Command(BaseCommand):
             action="store_true",
             help="Dry run that also lists every page it would create, move, rename or archive",
         )
+        parser.add_argument(
+            "--take", help="Comma-separated Confluence page ids whose Plane edits the backup may overwrite"
+        )
+        parser.add_argument("--diff-dir", help="Directory to write one diff per kept page into")
         parser.add_argument(
             "--structure-only",
             action="store_true",
@@ -51,8 +56,16 @@ class Command(BaseCommand):
             raise CommandError(f"No user with email {options['actor']!r}")
 
         dry_run = options["dry_run"] or options["plan"]
+        take = [item.strip() for item in (options["take"] or "").split(",") if item.strip()]
+        if options["diff_dir"]:
+            Path(options["diff_dir"]).mkdir(parents=True, exist_ok=True)
         loader = ConfluenceLoader(workspace.slug, actor, backup)
-        summary = loader.run(dry_run=dry_run, structure_only=options["structure_only"])
+        summary = loader.run(
+            dry_run=dry_run, structure_only=options["structure_only"], take=take, diff_dir=options["diff_dir"]
+        )
+        if summary.skipped:
+            self.stdout.write(self.style.WARNING(f"skipped     {summary.skipped}"))
+            return
         self._report(summary, dry_run=dry_run)
         if options["plan"]:
             self._plan(summary)
@@ -65,8 +78,10 @@ class Command(BaseCommand):
             self.stdout.write(f"folders     {summary.containers} placeholder pages for folders and databases")
         if summary.archived:
             self.stdout.write(f"archived    {summary.archived} pages archived as in Confluence")
-        if summary.locally_edited:
-            self.stdout.write(f"kept        {summary.locally_edited} pages edited in Plane, bodies left alone")
+        if summary.kept:
+            self.stdout.write(f"kept        {summary.kept} pages whose text was changed in Plane, bodies left alone")
+        if summary.skipped_deleted:
+            self.stdout.write(f"skipped     {summary.skipped_deleted} pages deleted in Plane")
         if summary.owner_granted:
             self.stdout.write("owner       space owner added as project admin")
         self.stdout.write(f"attributed  {summary.attributed}/{total} to their original author")
@@ -109,7 +124,7 @@ class Command(BaseCommand):
         if dry_run:
             self.stdout.write(self.style.WARNING("dry run, rolled back"))
 
-    KINDS = ("create", "move", "rename", "archive", "keep")
+    KINDS = ("create", "move", "rename", "archive", "keep", "skip")
 
     def _plan(self, summary):
         counts = ", ".join(f"{kind} {sum(1 for c in summary.changes if c.kind == kind)}" for kind in self.KINDS)

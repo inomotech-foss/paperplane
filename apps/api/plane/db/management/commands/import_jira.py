@@ -44,6 +44,8 @@ class Command(BaseCommand):
         if summary.merged:
             self.stdout.write("project     merged into the project already holding this key")
         self.stdout.write(f"work items  {summary.created} created, {summary.updated} updated")
+        if summary.kept:
+            self.stdout.write(f"kept        {summary.kept} work items changed in Plane since their import, left alone")
         self.stdout.write(f"vocabulary  {summary.states} states, {summary.issue_types} issue types")
         self.stdout.write(f"comments    {summary.comments}")
         self.stdout.write(f"structure   {summary.parents} parents, {summary.relations} relations")

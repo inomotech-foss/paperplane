@@ -5,6 +5,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from pathlib import Path
 
 from django.conf import settings
 from django.db import transaction
@@ -35,6 +36,7 @@ from .jira import derive_base_urls
 from .naming import project_identifier, project_name
 from .resolvers import ConversionResult, ResolvedJiraIssue, ResolvedPage, ResolvedUser, Resolvers
 from .storage import storage_to_html
+from .text import same_text, text_diff
 
 _ACCOUNT_ID = re.compile(r'ri:account-id="([^"]+)"')
 
@@ -70,6 +72,10 @@ class ImportSummary:
     containers: int = 0
     archived: int = 0
     locally_edited: int = 0
+    kept: int = 0
+    skipped_deleted: int = 0
+    # Set when the whole space was left alone, with the reason.
+    skipped: str = ""
     reordered: int = 0
     owner_granted: bool = False
     changes: list = field(default_factory=list)
@@ -127,11 +133,19 @@ class ConfluenceLoader:
         self.site = backup.site()
         self.jira_project_keys = backup.jira_project_keys()
 
-    def run(self, dry_run=False, structure_only=False):
-        """Load the space. ``structure_only`` repairs parents, order, archive
-        flags and placeholders but rewrites no body that already exists."""
+    def run(self, dry_run=False, structure_only=False, take=(), diff_dir=None):
+        """Load the space.
+
+        A page whose readable text was changed in Plane keeps its body unless
+        its Confluence id is in ``take``; with ``diff_dir`` the plan writes
+        each such difference to a file. ``structure_only`` repairs parents,
+        order, archive flags and placeholders but rewrites no existing body.
+        """
         summary = ImportSummary()
         space = self.backup.space()
+        if self._project_deleted(space):
+            summary.skipped = "project was deleted in Plane"
+            return summary
         pages = order_parents_first(self.backup.pages())
         orders = sibling_sort_orders(pages)
 
@@ -143,13 +157,19 @@ class ConfluenceLoader:
 
             # Two passes: Confluence links pages by title, so no link can be
             # rewritten until every page in the space has an id.
-            records, created, edited = self._upsert_pages(project, pages, orders, users, summary)
-            # A body edited in Plane is never overwritten; a structure pass
-            # writes bodies only for pages it just created.
-            writable = {page.id for page in pages} - edited
-            if structure_only:
-                writable &= created
-            self._write_bodies(project, pages, records, users, summary, dry_run, only=writable)
+            records, created, _ = self._upsert_pages(project, pages, orders, users, summary)
+            self._write_bodies(
+                project,
+                pages,
+                records,
+                users,
+                summary,
+                dry_run,
+                only=created if structure_only else None,
+                created=created,
+                take=set(take),
+                diff_dir=diff_dir,
+            )
 
             if dry_run:
                 transaction.set_rollback(True)
@@ -226,6 +246,19 @@ class ConfluenceLoader:
 
         WorkspaceMember.objects.get_or_create(workspace=self.workspace, member=user, defaults={"role": 5})
         return user
+
+    def _project_deleted(self, space):
+        """True if this space's project was deleted in Plane and never recreated.
+
+        A deletion is a decision; a re-run must not undo it.
+        """
+        external_id = str(space.get("id") or space.get("key") or self.backup.space_key)
+        projects = Project.all_objects.filter(
+            workspace=self.workspace, external_source=self.EXTERNAL_SOURCE, external_id=external_id
+        )
+        return (
+            projects.filter(deleted_at__isnull=False).exists() and not projects.filter(deleted_at__isnull=True).exists()
+        )
 
     def _get_or_create_project(self, space, users=None, summary=None):
         """The project for this space, created on first sight.
@@ -336,23 +369,30 @@ class ConfluenceLoader:
         """Create or refresh every page row.
 
         Structure (parent, order, archive flag) always follows the backup.
-        Title, owner and timestamps are left alone on a page someone edited in
-        Plane since the import, and its id is reported back so the body pass
-        skips it too. Returns the records plus the ids created and edited.
+        Title, owner and timestamps are left alone on a page someone touched
+        in Plane since the import; whether its body is kept is decided by
+        content in the body pass. A page deleted in Plane stays deleted.
+        Returns the records plus the ids created and touched.
         """
         labels = self._upsert_labels(pages)
-        records, created, edited = {}, set(), set()
+        records, created, touched = {}, set(), set()
         for page in pages:
             owner = users.get(page.author_id)
             if owner is None and page.author_id and not page.placeholder:
                 summary.unmapped_authors.add(page.author_id)
 
-            record = Page.objects.filter(
+            rows = Page.all_objects.filter(
                 workspace=self.workspace,
                 external_source=self.EXTERNAL_SOURCE,
                 external_id=page.id,
-            ).first()
+            )
+            record = rows.filter(deleted_at__isnull=True).first()
             local_updated_at = None
+
+            if record is None and rows.exists():
+                summary.skipped_deleted += 1
+                summary.changes.append(Change("skip", page.title, "deleted in Plane"))
+                continue
 
             if record is None:
                 record = Page(
@@ -368,10 +408,9 @@ class ConfluenceLoader:
                 summary.changes.append(Change("create", page.title, "placeholder" if page.placeholder else ""))
             elif self._locally_edited(record, page):
                 local_updated_at = record.updated_at
-                edited.add(page.id)
+                touched.add(page.id)
                 summary.locally_edited += 1
                 summary.updated += 1
-                summary.changes.append(Change("keep", record.name, f"edited in Plane {record.updated_at:%Y-%m-%d}"))
             else:
                 if record.name != page.title:
                     summary.changes.append(Change("rename", record.name, page.title))
@@ -418,7 +457,7 @@ class ConfluenceLoader:
             )
             records[page.id] = record
 
-        return records, created, edited
+        return records, created, touched
 
     def _space_keys_by_project(self):
         """Which Confluence space each imported project came from.
@@ -500,8 +539,25 @@ class ConfluenceLoader:
             ).select_related("project")
         }
 
-    def _write_bodies(self, project, pages, records, users, summary, dry_run, only=None):
-        """Convert and store every body in ``only`` (all pages by default)."""
+    def _write_bodies(
+        self,
+        project,
+        pages,
+        records,
+        users,
+        summary,
+        dry_run,
+        only=None,
+        created=frozenset(),
+        take=frozenset(),
+        diff_dir=None,
+    ):
+        """Convert and store every body in ``only`` (all pages by default).
+
+        An existing page whose readable text differs from the conversion was
+        changed by someone in Plane: it is kept, reported, and on request
+        diffed to a file, unless ``take`` names it.
+        """
         user_map = {
             account_id: ResolvedUser(id=str(user.id), display_name=user.display_name)
             for account_id, user in users.items()
@@ -550,6 +606,15 @@ class ConfluenceLoader:
                 raise ValueError(f"Page {page.id} ({page.title!r}) produced invalid HTML: {error}")
 
             description_html = clean or "<p></p>"
+            if page.id not in created and page.id not in take and self._changed_in_plane(record, page):
+                diff, added, removed = text_diff(description_html, record.description_html, "backup", "plane")
+                summary.kept += 1
+                summary.changes.append(Change("keep", page.title, f"+{added} -{removed} lines, id {page.id}"))
+                if diff_dir:
+                    path = Path(diff_dir) / f"{self.backup.space_key}-{page.id}.diff"
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(f"{page.title}\nplane page {record.pk}\n\n{diff}\n")
+                continue
             # The editor prefers the binary document over the HTML once a page
             # has been opened, so a rewritten body only shows if the binary is
             # dropped and rebuilt from the HTML. Pages edited in Plane never
@@ -566,13 +631,37 @@ class ConfluenceLoader:
         if uploader is not None:
             summary.unsupported_attachments |= uploader.unsupported
 
+    @staticmethod
+    def _seed(record):
+        """The version the import wrote: what the page looked like before anyone
+        in Plane touched it."""
+        return PageVersion.objects.filter(page_id=record.pk).order_by("created_at").first()
+
+    def _changed_in_plane(self, record, page):
+        """Did someone change the words of this page in Plane?
+
+        Compared against the import's own earlier output, not the new
+        conversion: a better converter changes the text too, and that must
+        not look like an edit. A page with no seed falls back to the timestamp.
+        """
+        seed = self._seed(record)
+        if seed is None:
+            return self._locally_edited(record, page)
+        return not same_text(record.description_html, seed.description_html)
+
     def _seed_version(self, record, page, description_html):
-        """Give an imported page the one version the backup can support.
+        """Keep the page's first version equal to what the import wrote.
 
         Confluence exported a single body per page, so the seed is the whole
-        history there will ever be. A re-import must not stack a second one.
+        history there will ever be, and it is the baseline the next run
+        compares Plane's text against. A re-import refreshes it rather than
+        stacking a second one.
         """
-        if PageVersion.objects.filter(page_id=record.pk).exists():
+        seed = self._seed(record)
+        if seed is not None:
+            PageVersion.objects.filter(pk=seed.pk).update(
+                description_html=description_html, last_saved_at=page.updated_at
+            )
             return
 
         PageVersion.objects.create(
