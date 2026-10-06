@@ -20,6 +20,11 @@
         "rules": ["react-doctor/prefer-dynamic-import"]
       },
       {
+        "// reason": "The file is itself the chunk the query bar loads with React.lazy.",
+        "files": ["**/work-item-query/editor.tsx"],
+        "rules": ["react-doctor/prefer-dynamic-import"]
+      },
+      {
         "files": ["**/animated-counter/animated-counter.tsx"],
         "rules": [
           "react-doctor/no-adjust-state-on-prop-change",
