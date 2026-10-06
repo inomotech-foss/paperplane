@@ -483,7 +483,7 @@ questions:
   - variable: minio.image
     label: "Docker Image"
     type: string
-    default: "bitnamilegacy/minio:2025.7.23-debian-12-r5"
+    default: "docker.io/pgsty/minio:RELEASE.2026-08-04T00-00-00Z"
     show_if: "minio.local_setup=true"
   - variable: minio.root_user
     label: "Root User"
