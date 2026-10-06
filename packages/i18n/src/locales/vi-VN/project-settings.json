@@ -521,6 +521,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Liên kết hiển thị trên thanh bên, bên dưới các tính năng của dự án. Hãy dùng URL http(s) hoặc một đường dẫn trong ứng dụng này bắt đầu bằng /.",
+      "url_invalid": "Nhập URL http(s) hoặc đường dẫn bắt đầu bằng /.",
+      "move_up": "Di chuyển lên",
+      "move_down": "Di chuyển xuống"
     }
   }
 }

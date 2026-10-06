@@ -521,6 +521,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Odkazy sa zobrazujú na bočnom paneli pod funkciami projektu. Použite URL http(s) alebo cestu v tejto aplikácii začínajúcu znakom /.",
+      "url_invalid": "Zadajte URL http(s) alebo cestu začínajúcu znakom /.",
+      "move_up": "Posunúť nahor",
+      "move_down": "Posunúť nadol"
     }
   }
 }

@@ -521,6 +521,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Links werden in der Seitenleiste unter den Projektfunktionen angezeigt. Verwenden Sie eine http(s)-URL oder einen Pfad in dieser App, der mit / beginnt.",
+      "url_invalid": "Eine http(s)-URL oder einen Pfad eingeben, der mit / beginnt.",
+      "move_up": "Nach oben verschieben",
+      "move_down": "Nach unten verschieben"
     }
   }
 }
