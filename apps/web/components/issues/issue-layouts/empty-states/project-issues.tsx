@@ -15,6 +15,7 @@ import { EIssuesStoreType, EUserProjectRoles } from "@plane/types";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useWorkItemFilterInstance } from "@/hooks/store/work-item-filters/use-work-item-filter-instance";
+import { useAppliedFilters } from "@/components/work-item-query";
 
 export const ProjectEmptyState = observer(function ProjectEmptyState() {
   // router
@@ -27,6 +28,7 @@ export const ProjectEmptyState = observer(function ProjectEmptyState() {
   const { allowPermissions } = useUserPermissions();
   // derived values
   const projectWorkItemFilter = useWorkItemFilterInstance(EIssuesStoreType.PROJECT, projectId);
+  const { hasFilters, clearAll } = useAppliedFilters(EIssuesStoreType.PROJECT, projectId, projectWorkItemFilter);
 
   const canPerformEmptyStateActions = allowPermissions(
     [EUserProjectRoles.ADMIN, EUserProjectRoles.MEMBER],
@@ -35,7 +37,7 @@ export const ProjectEmptyState = observer(function ProjectEmptyState() {
 
   return (
     <div className="relative h-full w-full overflow-y-auto">
-      {projectWorkItemFilter?.hasActiveFilters ? (
+      {hasFilters ? (
         <EmptyStateDetailed
           assetKey="search"
           title={t("common_empty_state.search.title")}
@@ -43,8 +45,8 @@ export const ProjectEmptyState = observer(function ProjectEmptyState() {
           actions={[
             {
               label: t("project_issues.empty_state.issues_empty_filter.secondary_button.text"),
-              onClick: projectWorkItemFilter?.clearFilters,
-              disabled: !canPerformEmptyStateActions || !projectWorkItemFilter,
+              onClick: () => void clearAll(),
+              disabled: !canPerformEmptyStateActions,
               variant: "secondary",
             },
           ]}

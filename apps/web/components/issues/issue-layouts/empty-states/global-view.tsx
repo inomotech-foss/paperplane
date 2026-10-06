@@ -5,6 +5,7 @@
  */
 
 import { observer } from "mobx-react";
+import { useParams } from "next/navigation";
 // plane imports
 import { EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
@@ -14,6 +15,10 @@ import { EIssuesStoreType, EUserWorkspaceRoles } from "@plane/types";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
+import { useWorkItemFilterInstance } from "@/hooks/store/work-item-filters/use-work-item-filter-instance";
+import { useAppliedFilters } from "@/components/work-item-query";
+// local imports
+import { NoMatchingWorkItemsEmptyState } from "./no-matching";
 
 export const GlobalViewEmptyState = observer(function GlobalViewEmptyState() {
   // plane imports
@@ -22,6 +27,10 @@ export const GlobalViewEmptyState = observer(function GlobalViewEmptyState() {
   const { workspaceProjectIds } = useProject();
   const { toggleCreateIssueModal, toggleCreateProjectModal } = useCommandPalette();
   const { allowPermissions } = useUserPermissions();
+  const { globalViewId: routerGlobalViewId } = useParams();
+  const globalViewId = routerGlobalViewId ? routerGlobalViewId.toString() : undefined;
+  const viewWorkItemFilter = useWorkItemFilterInstance(EIssuesStoreType.GLOBAL, globalViewId);
+  const { hasFilters, clearAll } = useAppliedFilters(EIssuesStoreType.GLOBAL, globalViewId, viewWorkItemFilter);
   // derived values
   const hasMemberLevelPermission = allowPermissions(
     [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
@@ -48,6 +57,8 @@ export const GlobalViewEmptyState = observer(function GlobalViewEmptyState() {
       />
     );
   }
+
+  if (hasFilters) return <NoMatchingWorkItemsEmptyState onClear={() => void clearAll()} />;
 
   return (
     <EmptyStateDetailed

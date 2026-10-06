@@ -5,6 +5,7 @@
  */
 
 import { observer } from "mobx-react";
+import { useParams } from "next/navigation";
 // components
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { EmptyStateDetailed } from "@plane/blocks/empty-state";
@@ -12,17 +13,27 @@ import { EIssuesStoreType } from "@plane/types";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useUserPermissions } from "@/hooks/store/user";
+import { useWorkItemFilterInstance } from "@/hooks/store/work-item-filters/use-work-item-filter-instance";
+import { useAppliedFilters } from "@/components/work-item-query";
+// local imports
+import { NoMatchingWorkItemsEmptyState } from "./no-matching";
 
 export const ProjectViewEmptyState = observer(function ProjectViewEmptyState() {
   // store hooks
   const { toggleCreateIssueModal } = useCommandPalette();
   const { allowPermissions } = useUserPermissions();
+  const { viewId: routerViewId } = useParams();
+  const viewId = routerViewId ? routerViewId.toString() : undefined;
+  const viewWorkItemFilter = useWorkItemFilterInstance(EIssuesStoreType.PROJECT_VIEW, viewId);
+  const { hasFilters, clearAll } = useAppliedFilters(EIssuesStoreType.PROJECT_VIEW, viewId, viewWorkItemFilter);
 
   // auth
   const isCreatingIssueAllowed = allowPermissions(
     [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
     EUserPermissionsLevel.PROJECT
   );
+
+  if (hasFilters) return <NoMatchingWorkItemsEmptyState onClear={() => void clearAll()} />;
 
   return (
     // TODO: Add translation
