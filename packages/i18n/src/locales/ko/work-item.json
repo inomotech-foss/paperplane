@@ -67,6 +67,11 @@
         "show_sub_issues": "하위 작업 항목 표시",
         "show_empty_groups": "빈 그룹 표시",
         "show_hierarchy": "상위 항목 아래에 중첩 표시"
+      },
+      "color_by": {
+        "label": "색상 기준",
+        "state": "상태",
+        "key": "키"
       }
     },
     "layouts": {

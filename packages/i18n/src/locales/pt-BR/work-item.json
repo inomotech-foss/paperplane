@@ -67,6 +67,11 @@
         "show_sub_issues": "Mostrar sub-itens de trabalho",
         "show_empty_groups": "Mostrar grupos vazios",
         "show_hierarchy": "Aninhar sob os itens pai"
+      },
+      "color_by": {
+        "label": "Colorir por",
+        "state": "Estado",
+        "key": "Chave"
       }
     },
     "layouts": {

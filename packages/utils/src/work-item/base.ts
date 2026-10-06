@@ -285,6 +285,7 @@ export const getComputedDisplayFilters = (
     show_empty_groups: filters?.show_empty_groups || false,
     hierarchy: filters?.hierarchy || false,
     pql: filters?.pql || "",
+    color_by: filters?.color_by || "state",
   };
 };
 

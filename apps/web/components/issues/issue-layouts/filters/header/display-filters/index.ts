@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+export * from "./color-by";
 export * from "./display-filters-selection";
 export * from "./display-properties";
 export * from "./extra-options";
