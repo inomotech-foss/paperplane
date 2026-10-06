@@ -30,10 +30,10 @@ from plane.db.models import (
     ProjectMemberInvite,
     WorkspaceMember,
     Project,
-    ProjectUserProperty,
 )
 from plane.db.models.project import ProjectNetwork
 from plane.utils.host import base_host
+from plane.utils.project_sort_order import create_missing_project_user_properties
 
 
 class ProjectInvitationsViewset(BaseViewSet):
@@ -135,7 +135,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
         workspace_member = WorkspaceMember.objects.get(member=request.user, workspace__slug=slug, is_active=True)
 
         # Get all the projects
-        projects = Project.objects.filter(id__in=project_ids, workspace__slug=slug).only("id", "network")
+        projects = Project.objects.filter(id__in=project_ids, workspace__slug=slug).only("id", "name", "network")
         # Check if user has permission to join each project
         for project in projects:
             if project.network == ProjectNetwork.SECRET.value and workspace_member.role != ROLE.ADMIN.value:
@@ -172,18 +172,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
             ignore_conflicts=True,
         )
 
-        ProjectUserProperty.objects.bulk_create(
-            [
-                ProjectUserProperty(
-                    project_id=project_id,
-                    user=request.user,
-                    workspace=workspace,
-                    created_by=request.user,
-                )
-                for project_id in validated_project_ids
-            ],
-            ignore_conflicts=True,
-        )
+        create_missing_project_user_properties(request.user, workspace, projects)
 
         return Response({"message": "Projects joined successfully"}, status=status.HTTP_201_CREATED)
 
