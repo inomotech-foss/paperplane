@@ -552,5 +552,10 @@
     "children_span": "{count, plural, one {# položka níže} few {# položky níže} other {# položek níže}}: {start} – {end}",
     "starts_early": "{count, plural, one {Začíná # den před touto položkou} few {Začíná # dny před touto položkou} other {Začíná # dní před touto položkou}}",
     "ends_late": "{count, plural, one {Končí # den po této položce} few {Končí # dny po této položce} other {Končí # dní po této položce}}"
+  },
+  "timeline_reorder": {
+    "title": "Nelze přeuspořádat",
+    "message": "Přetahování funguje jen při ručním řazení.",
+    "switch_to_manual": "Přepnout na ruční řazení"
   }
 }

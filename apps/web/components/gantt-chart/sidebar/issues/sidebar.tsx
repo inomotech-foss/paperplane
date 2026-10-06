@@ -35,6 +35,7 @@ type Props = {
   showAllBlocks?: boolean;
   selectionHelpers?: TSelectionHelper;
   isEpic?: boolean;
+  onEnableManualOrder?: () => void;
 };
 
 export const IssueGanttSidebar = observer(function IssueGanttSidebar(props: Props) {
@@ -49,6 +50,7 @@ export const IssueGanttSidebar = observer(function IssueGanttSidebar(props: Prop
     showAllBlocks = false,
     selectionHelpers,
     isEpic = false,
+    onEnableManualOrder,
   } = props;
 
   const { getBlockById } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
@@ -101,6 +103,7 @@ export const IssueGanttSidebar = observer(function IssueGanttSidebar(props: Prop
                   isLastChild={index === blockIds.length - 1}
                   isDragEnabled={enableReorder}
                   onDrop={handleOnDrop}
+                  onEnableManualOrder={onEnableManualOrder}
                 >
                   {(isDragging: boolean) => (
                     <IssuesSidebarBlock

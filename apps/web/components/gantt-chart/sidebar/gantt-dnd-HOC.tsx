@@ -10,7 +10,8 @@ import { draggable, dropTargetForElements } from "@atlaskit/pragmatic-drag-and-d
 import { attachInstruction, extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import { observer } from "mobx-react";
 import { useOutsideClickDetector } from "@plane/hooks";
-import { setToast } from "@plane/blocks/toast";
+import { useTranslation } from "@plane/i18n";
+import { dismissToast, setToast } from "@plane/blocks/toast";
 import { DropIndicator } from "@plane/blocks/common";
 import { HIGHLIGHT_WITH_LINE, highlightIssueOnDrop } from "@/components/issues/issue-layouts/utils";
 
@@ -20,10 +21,13 @@ type Props = {
   isDragEnabled: boolean;
   children: (isDragging: boolean) => React.ReactNode;
   onDrop: (draggingBlockId: string | undefined, droppedBlockId: string | undefined, dropAtEndOfList: boolean) => void;
+  /** Set when drag is off only because the list is not in manual order. */
+  onEnableManualOrder?: () => void;
 };
 
 export const GanttDnDHOC = observer(function GanttDnDHOC(props: Props) {
-  const { id, isLastChild, children, onDrop, isDragEnabled } = props;
+  const { id, isLastChild, children, onDrop, isDragEnabled, onEnableManualOrder } = props;
+  const { t } = useTranslation();
   // states
   const [isDragging, setIsDragging] = useState(false);
   const [instruction, setInstruction] = useState<"DRAG_OVER" | "DRAG_BELOW" | undefined>(undefined);
@@ -104,13 +108,22 @@ export const GanttDnDHOC = observer(function GanttDnDHOC(props: Props) {
       className={"relative"}
       ref={blockRef}
       onDragStart={() => {
-        if (!isDragEnabled) {
-          setToast({
-            title: "Warning!",
-            type: "warning",
-            message: "Drag and drop is only enabled when sorted by manual",
-          });
-        }
+        if (isDragEnabled || !onEnableManualOrder) return;
+        const toastId = setToast({
+          type: "warning",
+          title: t("timeline_reorder.title"),
+          message: t("timeline_reorder.message"),
+          actionItems: [
+            {
+              label: t("timeline_reorder.switch_to_manual"),
+              primary: true,
+              onClick: () => {
+                onEnableManualOrder();
+                dismissToast(toastId);
+              },
+            },
+          ],
+        });
       }}
     >
       <DropIndicator classNames="absolute top-0" isVisible={instruction === "DRAG_OVER"} />

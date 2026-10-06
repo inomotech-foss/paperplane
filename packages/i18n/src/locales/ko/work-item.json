@@ -552,5 +552,10 @@
     "children_span": "{count, plural, other {아래 작업 항목 #개}}: {start} – {end}",
     "starts_early": "{count, plural, other {이 항목보다 #일 먼저 시작}}",
     "ends_late": "{count, plural, other {이 항목보다 #일 늦게 종료}}"
+  },
+  "timeline_reorder": {
+    "title": "순서를 변경할 수 없습니다",
+    "message": "드래그 앤 드롭은 수동 정렬에서만 사용할 수 있습니다.",
+    "switch_to_manual": "수동 정렬로 전환"
   }
 }

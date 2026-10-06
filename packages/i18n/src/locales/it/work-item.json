@@ -552,5 +552,10 @@
     "children_span": "{count, plural, one {# elemento sottostante} other {# elementi sottostanti}}: {start} – {end}",
     "starts_early": "{count, plural, one {Inizia # giorno prima di questo elemento} other {Inizia # giorni prima di questo elemento}}",
     "ends_late": "{count, plural, one {Termina # giorno dopo questo elemento} other {Termina # giorni dopo questo elemento}}"
+  },
+  "timeline_reorder": {
+    "title": "Impossibile riordinare",
+    "message": "Il trascinamento funziona solo con l'ordinamento manuale.",
+    "switch_to_manual": "Passa all'ordinamento manuale"
   }
 }

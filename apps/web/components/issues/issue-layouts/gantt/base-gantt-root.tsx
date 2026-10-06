@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane imports
-import { ALL_ISSUES, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
+import { ALL_ISSUES, EIssueFilterType, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
 import type { EIssuesStoreType, IBlockUpdateData, TIssue } from "@plane/types";
@@ -94,7 +94,7 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
 
   const storeType = useIssueStoreType() as GanttStoreType;
   const { issues, issuesFilter } = useIssues(storeType);
-  const { fetchIssues, fetchNextIssues, updateIssue, quickAddIssue } = useIssuesActions(storeType);
+  const { fetchIssues, fetchNextIssues, updateIssue, quickAddIssue, updateFilters } = useIssuesActions(storeType);
   const { initGantt } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
   const { isDateRollupEnabled, fetchDateRollups } = useIssuesTimeLineChart();
   // store hooks
@@ -224,6 +224,11 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
   };
 
   const isAllowed = allowPermissions([EUserPermissions.ADMIN, EUserPermissions.MEMBER], EUserPermissionsLevel.PROJECT);
+  const isManualOrder = appliedDisplayFilters?.order_by === "sort_order";
+  const enableManualOrder = () => {
+    if (!projectId) return;
+    void updateFilters(projectId.toString(), EIssueFilterType.DISPLAY_FILTERS, { order_by: "sort_order" });
+  };
   const updateBlockDates = useCallback(
     (
       updates: {
@@ -269,11 +274,18 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
               blockIds={visibleIds}
               blockUpdateHandler={updateIssueBlockStructure}
               blockToRender={(data: TIssue) => <IssueGanttBlock issueId={data.id} isEpic={isEpic} />}
-              sidebarToRender={(props) => <IssueGanttSidebar {...props} showAllBlocks isEpic={isEpic} />}
+              sidebarToRender={(props) => (
+                <IssueGanttSidebar
+                  {...props}
+                  showAllBlocks
+                  isEpic={isEpic}
+                  onEnableManualOrder={isAllowed && !isManualOrder ? enableManualOrder : undefined}
+                />
+              )}
               enableBlockLeftResize={isAllowed}
               enableBlockRightResize={isAllowed}
               enableBlockMove={isAllowed}
-              enableReorder={appliedDisplayFilters?.order_by === "sort_order" && isAllowed}
+              enableReorder={isManualOrder && isAllowed}
               enableAddBlock={isAllowed}
               enableSelection={isBulkOperationsEnabled && isAllowed}
               quickAdd={quickAdd}

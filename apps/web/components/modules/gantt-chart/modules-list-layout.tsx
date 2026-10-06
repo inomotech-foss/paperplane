@@ -24,7 +24,7 @@ export const ModulesListGanttChartView = observer(function ModulesListGanttChart
   // store
   const { currentProjectDetails } = useProject();
   const { getFilteredModuleIds, updateModuleDetails } = useModule();
-  const { currentProjectDisplayFilters: displayFilters } = useModuleFilter();
+  const { currentProjectDisplayFilters: displayFilters, updateDisplayFilters } = useModuleFilter();
 
   // derived values
   const filteredModuleIds = projectId ? getFilteredModuleIds(projectId.toString()) : undefined;
@@ -52,6 +52,11 @@ export const ModulesListGanttChartView = observer(function ModulesListGanttChart
   };
 
   const isAllowed = currentProjectDetails?.member_role === 20 || currentProjectDetails?.member_role === 15;
+  const isManualOrder = displayFilters?.order_by === "sort_order";
+  const enableManualOrder = () => {
+    if (!projectId) return;
+    updateDisplayFilters(projectId.toString(), { order_by: "sort_order" });
+  };
 
   if (!filteredModuleIds) return null;
 
@@ -61,13 +66,18 @@ export const ModulesListGanttChartView = observer(function ModulesListGanttChart
         title="Modules"
         loaderTitle="Modules"
         blockIds={filteredModuleIds}
-        sidebarToRender={(props) => <ModuleGanttSidebar {...props} />}
+        sidebarToRender={(props) => (
+          <ModuleGanttSidebar
+            {...props}
+            onEnableManualOrder={isAllowed && !isManualOrder ? enableManualOrder : undefined}
+          />
+        )}
         blockUpdateHandler={(block, payload) => handleModuleUpdate(block, payload)}
         blockToRender={(data: IModule) => <ModuleGanttBlock moduleId={data.id} />}
         enableBlockLeftResize={isAllowed}
         enableBlockRightResize={isAllowed}
         enableBlockMove={isAllowed}
-        enableReorder={isAllowed && displayFilters?.order_by === "sort_order"}
+        enableReorder={isAllowed && isManualOrder}
         enableAddBlock={isAllowed}
         updateBlockDates={updateBlockDates}
         showAllBlocks

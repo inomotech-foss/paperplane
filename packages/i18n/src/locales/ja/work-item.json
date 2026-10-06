@@ -552,5 +552,10 @@
     "children_span": "{count, plural, other {下位の作業項目 # 件}}: {start} – {end}",
     "starts_early": "{count, plural, other {この項目より # 日早く開始}}",
     "ends_late": "{count, plural, other {この項目より # 日遅く終了}}"
+  },
+  "timeline_reorder": {
+    "title": "並べ替えできません",
+    "message": "ドラッグ＆ドロップは手動の並び順でのみ使用できます。",
+    "switch_to_manual": "手動の並び順に切り替え"
   }
 }

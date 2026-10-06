@@ -552,5 +552,10 @@
     "children_span": "{count, plural, one {# Element darunter} other {# Elemente darunter}}: {start} – {end}",
     "starts_early": "{count, plural, one {Beginnt # Tag vor diesem Element} other {Beginnt # Tage vor diesem Element}}",
     "ends_late": "{count, plural, one {Endet # Tag nach diesem Element} other {Endet # Tage nach diesem Element}}"
+  },
+  "timeline_reorder": {
+    "title": "Neuordnen nicht möglich",
+    "message": "Drag & Drop funktioniert nur bei manueller Sortierung.",
+    "switch_to_manual": "Zu manueller Sortierung wechseln"
   }
 }

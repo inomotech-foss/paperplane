@@ -22,10 +22,11 @@ type Props = {
   blockUpdateHandler: (block: any, payload: IBlockUpdateData) => void;
   blockIds: string[];
   enableReorder: boolean;
+  onEnableManualOrder?: () => void;
 };
 
 export const ModuleGanttSidebar = observer(function ModuleGanttSidebar(props: Props) {
-  const { blockUpdateHandler, blockIds, enableReorder } = props;
+  const { blockUpdateHandler, blockIds, enableReorder, onEnableManualOrder } = props;
 
   const { getBlockById } = useTimeLineChart(GANTT_TIMELINE_TYPE.MODULE);
 
@@ -47,6 +48,7 @@ export const ModuleGanttSidebar = observer(function ModuleGanttSidebar(props: Pr
             isLastChild={index === blockIds.length - 1}
             isDragEnabled={enableReorder}
             onDrop={handleOnDrop}
+            onEnableManualOrder={onEnableManualOrder}
           >
             {(isDragging: boolean) => <ModulesSidebarBlock blockId={blockId} isDragging={isDragging} />}
           </GanttDnDHOC>
