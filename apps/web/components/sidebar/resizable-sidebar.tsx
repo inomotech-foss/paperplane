@@ -5,7 +5,7 @@
  */
 
 import type { ReactElement } from "react";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 // helpers
 import { usePlatformOS, useResizableWidth } from "@plane/hooks";
 import { cn } from "@plane/utils";
@@ -46,8 +46,6 @@ export function ResizableSidebar({
   isAnyExtendedSidebarExpanded = false,
   isAnySidebarDropdownOpen = false,
 }: ResizableSidebarProps) {
-  // states
-  const [isHoveringTrigger, setIsHoveringTrigger] = useState(false);
   // refs
   const peekTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // hooks
@@ -65,7 +63,6 @@ export function ResizableSidebar({
   const toggleCollapsed = useCallback(() => {
     toggleCollapsedProp();
     setShowPeek(false);
-    setIsHoveringTrigger(false);
     if (peekTimeoutRef.current) {
       clearTimeout(peekTimeoutRef.current);
     }
@@ -97,23 +94,10 @@ export function ResizableSidebar({
     []
   );
 
-  useEffect(() => {
-    if (!isAnySidebarDropdownOpen && isCollapsed && isHoveringTrigger) {
-      handlePeekLeave();
-    }
-  }, [isAnySidebarDropdownOpen]);
-
-  useEffect(() => {
-    if (!isAnyExtendedSidebarExpanded && isCollapsed && isHoveringTrigger) {
-      handlePeekLeave();
-    }
-  }, [isAnyExtendedSidebarExpanded]);
-
   // Reset peek when sidebar is expanded
   useEffect(() => {
     if (!isCollapsed) {
       setShowPeek(false);
-      setIsHoveringTrigger(false);
       if (peekTimeoutRef.current) {
         clearTimeout(peekTimeoutRef.current);
       }
