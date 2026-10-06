@@ -45,4 +45,6 @@ jobs:
         run: pnpm --filter @plane/pql run generate
 
       - name: Check the committed output is current
-        run: git diff --exit-code -- apps/api/plane/utils/pql/generated packages/pql/src/generated
+        run: |
+          git status --porcelain -- apps/api/plane/utils/pql/generated packages/pql/src/generated | tee stale-generated.txt
+          test ! -s stale-generated.txt

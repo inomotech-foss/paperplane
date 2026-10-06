@@ -527,7 +527,7 @@
     "applied": "クエリを適用しました",
     "invalid": "クエリを実行できませんでした",
     "help_title": "Plane Query Language",
-    "help_intro": "条件は AND、OR、NOT と括弧で組み合わせます。ID の代わりに名前が使えます：state = \"Paid\"、type = \"Invoice\"、cf[\"Amount\"] > 1000。日付は \"2026-01-31\" の形式で書きます。",
+    "help_intro": "条件は AND、OR、NOT と括弧で組み合わせます。ID の代わりに名前が使えます：state = \"Paid\"、type = \"Invoice\"、cf[\"Amount\"] > 1000。日付は \"2026-01-31\" の形式で書きます。キーワード、cf、now などの関数名は予約語です。値として使うには引用符で囲んでください。",
     "help_operators": "演算子：= != > >= < <= ~（含む）、in (…)、not in (…)、is null、is not null",
     "help_fields": "フィールド",
     "help_functions": "関数",

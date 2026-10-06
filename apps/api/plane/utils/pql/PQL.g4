@@ -154,5 +154,5 @@ IDENT
     ;
 
 WS
-    : [ \t\r\n]+ -> skip
+    : [\p{White_Space}]+ -> skip
     ;

@@ -352,6 +352,8 @@ NAME_RESOLVERS = {
     ANCESTOR_FIELD: _resolve_work_item,
 }
 
+MEMBER_FIELDS = frozenset(name for name, resolver in NAME_RESOLVERS.items() if resolver is _resolve_member)
+
 
 # ---------------------------------------------------------------------------
 # Custom properties

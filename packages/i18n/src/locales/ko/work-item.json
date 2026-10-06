@@ -527,7 +527,7 @@
     "applied": "쿼리가 적용되었습니다",
     "invalid": "쿼리를 실행할 수 없습니다",
     "help_title": "Plane Query Language",
-    "help_intro": "조건은 AND, OR, NOT과 괄호로 조합합니다. ID 대신 이름을 사용할 수 있습니다: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. 날짜는 \"2026-01-31\" 형식으로 작성합니다.",
+    "help_intro": "조건은 AND, OR, NOT과 괄호로 조합합니다. ID 대신 이름을 사용할 수 있습니다: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. 날짜는 \"2026-01-31\" 형식으로 작성합니다. 키워드, cf, now 같은 함수 이름은 예약어입니다. 값으로 사용하려면 따옴표로 묶으세요.",
     "help_operators": "연산자: = != > >= < <= ~ (포함), in (…), not in (…), is null, is not null",
     "help_fields": "필드",
     "help_functions": "함수",

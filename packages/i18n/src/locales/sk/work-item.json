@@ -527,7 +527,7 @@
     "applied": "Dopyt použitý",
     "invalid": "Dopyt sa nepodarilo spustiť",
     "help_title": "Plane Query Language",
-    "help_intro": "Podmienky kombinujte pomocou AND, OR, NOT a zátvoriek. Namiesto ID fungujú názvy: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Dátumy sa zapisujú ako \"2026-01-31\".",
+    "help_intro": "Podmienky kombinujte pomocou AND, OR, NOT a zátvoriek. Namiesto ID fungujú názvy: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Dátumy sa zapisujú ako \"2026-01-31\". Kľúčové slová, cf a názvy funkcií ako now sú vyhradené: ak ich chcete použiť ako hodnoty, dajte ich do úvodzoviek.",
     "help_operators": "Operátory: = != > >= < <= ~ (obsahuje), in (…), not in (…), is null, is not null",
     "help_fields": "Polia",
     "help_functions": "Funkcie",

@@ -28,7 +28,8 @@ from plane.utils.pql import (
 )
 from plane.utils.pql.filters import CustomPropertyFilter
 from plane.utils.pql.generated.PQLLexer import PQLLexer
-from plane.utils.pql.parser import MAX_PQL_DEPTH, RESERVED_WORDS
+from plane.utils.pql.generated.PQLParser import PQLParser
+from plane.utils.pql.parser import MAX_PQL_DEPTH, RESERVED_TOKENS
 
 STATE_ID = "11111111-1111-4111-8111-111111111111"
 LABEL_ID = "44444444-4444-4444-8444-444444444444"
@@ -347,10 +348,20 @@ def test_nesting_below_the_bound_parses():
     assert parse_pql("(" * depth + "priority = urgent" + ")" * depth) == {"priority": "urgent"}
 
 
-def test_deep_nesting_is_rejected_before_recursing():
+@pytest.mark.parametrize(
+    "query",
+    ["(" * 5000 + "priority = urgent" + ")" * 5000, "not " * 1500 + "priority = urgent"],
+)
+def test_deep_nesting_is_rejected_before_recursing(query):
     with pytest.raises(PQLSyntaxError) as excinfo:
-        parse_pql("(" * 5000 + "priority = urgent" + ")" * 5000)
+        parse_pql(query)
     assert "nested deeper than" in excinfo.value.message
+
+
+def test_not_chains_count_towards_the_depth():
+    assert parse_pql("not " * (MAX_PQL_DEPTH - 1) + "priority = urgent")
+    with pytest.raises(PQLSyntaxError):
+        parse_pql("not " * MAX_PQL_DEPTH + "priority = urgent")
 
 
 @pytest.mark.parametrize("query,position", [("priority", 8), ("priority urgent", 9)])
@@ -391,24 +402,25 @@ def test_reserved_words_are_rejected_clearly(query, position, detail):
     assert detail in excinfo.value.message
 
 
-def test_reserved_words_cover_keywords_cf_and_functions():
-    assert RESERVED_WORDS == {
-        "and",
-        "or",
-        "not",
-        "in",
-        "is",
-        "null",
-        "cf",
-        "currentuser",
-        "now",
-        "childof",
-        "descendantof",
+RESERVED_WORDS = sorted(PQLParser.literalNames[token].strip("'") for token in RESERVED_TOKENS)
+
+
+@pytest.mark.parametrize("word", RESERVED_WORDS)
+def test_reserved_words_are_not_bare_values(word):
+    with pytest.raises(PQLSyntaxError) as excinfo:
+        parse_pql(f"priority = {word}")
+    assert excinfo.value.position in (11, 11 + len(word))
+    assert parse_pql(f'priority = "{word}"') == {"priority": word}
+
+
+def test_unicode_whitespace_is_skipped():
+    assert parse_pql("priority\u00a0=\u00a0urgent\u2003AND\u3000state_group = started") == {
+        "and": [{"priority": "urgent"}, {"state__group": "started"}]
     }
 
 
-def test_quoted_reserved_words_are_values():
-    assert parse_pql('priority = "now" AND name = "cf"') == {"and": [{"priority": "now"}, {"name": "cf"}]}
+def test_duration_units_are_case_insensitive():
+    assert parse_pql("target_date > NOW() - 7D") == {"target_date__gt": {NOW_PLACEHOLDER: {"seconds": -WEEK}}}
 
 
 def test_unicode_identifiers():

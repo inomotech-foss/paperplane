@@ -527,7 +527,7 @@
     "applied": "Kueri diterapkan",
     "invalid": "Kueri tidak dapat dijalankan",
     "help_title": "Plane Query Language",
-    "help_intro": "Gabungkan kondisi dengan AND, OR, NOT, dan tanda kurung. Nama dapat dipakai sebagai pengganti ID: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Tanggal ditulis sebagai \"2026-01-31\".",
+    "help_intro": "Gabungkan kondisi dengan AND, OR, NOT, dan tanda kurung. Nama dapat dipakai sebagai pengganti ID: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Tanggal ditulis sebagai \"2026-01-31\". Kata kunci, cf, dan nama fungsi seperti now bersifat khusus: apit dengan tanda kutip untuk memakainya sebagai nilai.",
     "help_operators": "Operator: = != > >= < <= ~ (mengandung), in (…), not in (…), is null, is not null",
     "help_fields": "Bidang",
     "help_functions": "Fungsi",

@@ -24,11 +24,11 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "antlr4ng": "3.0.16"
+    "antlr4ng": "catalog:"
   },
   "devDependencies": {
     "@plane/typescript-config": "workspace:*",
-    "antlr-ng": "1.0.10",
+    "antlr-ng": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   }

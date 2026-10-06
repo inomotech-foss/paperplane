@@ -527,7 +527,7 @@
     "applied": "Query toegepast",
     "invalid": "De query kon niet worden uitgevoerd",
     "help_title": "Plane Query Language",
-    "help_intro": "Combineer voorwaarden met AND, OR, NOT en haakjes. Namen werken in plaats van ID's: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Datums worden geschreven als \"2026-01-31\".",
+    "help_intro": "Combineer voorwaarden met AND, OR, NOT en haakjes. Namen werken in plaats van ID's: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Datums worden geschreven als \"2026-01-31\". Sleutelwoorden, cf en functienamen zoals now zijn gereserveerd: zet ze tussen aanhalingstekens om ze als waarde te gebruiken.",
     "help_operators": "Operatoren: = != > >= < <= ~ (bevat), in (…), not in (…), is null, is not null",
     "help_fields": "Velden",
     "help_functions": "Functies",

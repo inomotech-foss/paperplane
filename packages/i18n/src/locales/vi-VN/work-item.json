@@ -527,7 +527,7 @@
     "applied": "Đã áp dụng truy vấn",
     "invalid": "Không thể chạy truy vấn",
     "help_title": "Plane Query Language",
-    "help_intro": "Kết hợp các điều kiện bằng AND, OR, NOT và dấu ngoặc. Có thể dùng tên thay cho ID: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Ngày được viết dạng \"2026-01-31\".",
+    "help_intro": "Kết hợp các điều kiện bằng AND, OR, NOT và dấu ngoặc. Có thể dùng tên thay cho ID: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Ngày được viết dạng \"2026-01-31\". Từ khóa, cf và tên hàm như now là từ dành riêng: hãy đặt trong dấu ngoặc kép để dùng làm giá trị.",
     "help_operators": "Toán tử: = != > >= < <= ~ (chứa), in (…), not in (…), is null, is not null",
     "help_fields": "Trường",
     "help_functions": "Hàm",

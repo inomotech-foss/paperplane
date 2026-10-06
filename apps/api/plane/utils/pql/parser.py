@@ -128,12 +128,24 @@ ESCAPES = {"\\": "\\", '"': '"', "'": "'", "n": "\n", "r": "\r", "t": "\t"}
 # Durations only need whole units; a work item query is never sub-hour precise.
 DURATION_UNITS = {"h": 3600, "d": 86400, "w": 604800}
 
-KEYWORDS = frozenset({"and", "or", "not", "in", "is", "null"})
-RESERVED_WORDS = KEYWORDS | {"cf"} | set(FUNCTIONS)
-
 FUNCTION_TOKENS = frozenset({PQLParser.CURRENTUSER, PQLParser.NOW, PQLParser.CHILDOF, PQLParser.DESCENDANTOF})
 KEYWORD_TOKENS = frozenset({PQLParser.AND, PQLParser.OR, PQLParser.NOT, PQLParser.IN, PQLParser.IS, PQLParser.NULL})
 RESERVED_TOKENS = KEYWORD_TOKENS | {PQLParser.CF} | FUNCTION_TOKENS
+
+# PQL operator strings in display order; the lookup each one needs and whether it negates.
+PQL_OPERATORS = (
+    ("=", EXACT, False),
+    ("!=", EXACT, True),
+    (">", GT, False),
+    (">=", GTE, False),
+    ("<", LT, False),
+    ("<=", LTE, False),
+    ("~", ICONTAINS, False),
+    ("in", IN, False),
+    ("not in", IN, True),
+    ("is null", ISNULL, False),
+    ("is not null", ISNULL, True),
+)
 
 TOKEN_DISPLAY = {
     Token.EOF: "end of input",
@@ -179,8 +191,12 @@ def _display(token_type):
     return TOKEN_DISPLAY.get(token_type) or PQLParser.literalNames[token_type]
 
 
-def _resolve_field(source, token):
-    name = FIELD_ALIASES.get(token.text.lower(), token.text.lower())
+def _field_name(token):
+    return FIELD_ALIASES.get(token.text.lower(), token.text.lower())
+
+
+def _check_field(source, token):
+    name = _field_name(token)
     if name in FILTER_FIELDS:
         return name
     if name in UNSUPPORTED_FIELDS:
@@ -262,7 +278,7 @@ class _SyntaxChecks(PQLListener):
         self.source = source
         self.depth = 0
 
-    def enterPrimary(self, ctx):
+    def enterNotExpr(self, ctx):
         if self.depth >= MAX_PQL_DEPTH:
             raise _error(
                 self.source,
@@ -272,13 +288,13 @@ class _SyntaxChecks(PQLListener):
             )
         self.depth += 1
 
-    def exitPrimary(self, ctx):
+    def exitNotExpr(self, ctx):
         self.depth -= 1
 
     def exitFieldName(self, ctx):
         if self.parser.getCurrentToken().type == PQLParser.LPAREN:
             raise _unknown_function(self.source, ctx.start)
-        _resolve_field(self.source, ctx.start)
+        _check_field(self.source, ctx.start)
 
     def exitIdentValue(self, ctx):
         if self.parser.getCurrentToken().type == PQLParser.LPAREN:
@@ -316,7 +332,7 @@ class _AstBuilder(PQLVisitor):
     def visitPredicate(self, ctx):
         if ctx.fieldName() is None:
             return self.visit(ctx.conditionFunction())
-        name = _resolve_field(self.source, ctx.fieldName().start)
+        name = _field_name(ctx.fieldName().start)
         return self._comparison(ctx.comparison(), name, FILTER_FIELDS[name])
 
     def visitCustomPropertyPredicate(self, ctx):
@@ -405,7 +421,7 @@ class _AstBuilder(PQLVisitor):
 
     def _duration(self, token):
         digits = len(token.text) - len(token.text.lstrip("0123456789"))
-        unit = token.text[digits:]
+        unit = token.text[digits:].lower()
         if unit not in DURATION_UNITS:
             raise PQLSyntaxError(
                 f"unknown duration unit '{unit}'",
@@ -444,7 +460,7 @@ class _AstBuilder(PQLVisitor):
             raise self._error(
                 token,
                 f"operator '{token.text}' is not supported on field '{name}'",
-                "one of " + ", ".join(sorted(_operators_for(field))),
+                "one of " + ", ".join(operators_for(field)),
             )
 
     def _error(self, token, detail, expected=None):
@@ -455,11 +471,6 @@ def _leaf_key(name, lookup):
     return name if lookup == EXACT else f"{name}__{lookup}"
 
 
-def _operators_for(field):
-    symbols = {lookup: symbol for symbol, (lookup, negated) in OPERATOR_LOOKUPS.items() if not negated}
-    available = {symbols[lookup] for lookup in field.lookups if lookup in symbols}
-    if IN in field.lookups:
-        available.add("in")
-    if ISNULL in field.lookups:
-        available.add("is null")
-    return available
+def operators_for(field):
+    """The PQL operators a field supports, in display order."""
+    return [symbol for symbol, lookup, _ in PQL_OPERATORS if lookup in field.lookups]

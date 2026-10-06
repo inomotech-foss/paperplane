@@ -182,5 +182,10 @@ class TestFieldsEndpoint:
         by_name = {field["name"]: field for field in response.data["fields"]}
         assert "state" in by_name["state_id"]["aliases"]
         assert "status" in by_name["state_id"]["aliases"]
-        assert "descendantOf" in response.data["functions"]
+        assert {"name": "descendantOf", "kind": "condition"} in response.data["functions"]
+        assert {"name": "now", "kind": "value"} in response.data["functions"]
         assert by_name["priority"]["choices"] == ["high", "low", "medium", "none", "urgent"]
+        assert by_name["priority"]["operators"] == ["=", "!=", "~", "in", "not in", "is null", "is not null"]
+        assert by_name["target_date"]["operators"][:6] == ["=", "!=", ">", ">=", "<", "<="]
+        assert by_name["assignees__id"]["people"] is True
+        assert by_name["state_id"]["people"] is False

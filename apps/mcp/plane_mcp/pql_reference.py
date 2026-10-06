@@ -47,6 +47,8 @@ OPERATORS
   >  >=  <  <=                                             dates, timestamps, decimal properties
   ~  (case-insensitive contains)                           name, text properties
   AND  OR  NOT  and parentheses
+  Reserved words: and or not in is null cf currentUser now childOf descendantOf.
+  Quote one ("now") to use it as a value.
 
 FUNCTIONS
   currentUser()                    the caller
@@ -123,8 +125,9 @@ childOf("PROJ-12")         direct children of that work item
 descendantOf("PROJ-12")    every work item below it, at any depth
 ```
 
-`childOf` and `descendantOf` take a work item identifier such as PROJ-12 or a UUID,
-never a title. `parent = "PROJ-12"` and `ancestor = "PROJ-12"` are the same filters as
+The function names, `cf` and the keywords `and`, `or`, `not`, `in`, `is` and `null`
+are reserved words: quote them (`"now"`) to use them as values. `childOf` and
+`descendantOf` take a work item identifier such as PROJ-12 or a UUID, never a title. `parent = "PROJ-12"` and `ancestor = "PROJ-12"` are the same filters as
 fields.
 
 ### Resolving a UUID

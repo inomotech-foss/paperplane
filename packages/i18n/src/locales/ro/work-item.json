@@ -527,7 +527,7 @@
     "applied": "Interogare aplicată",
     "invalid": "Interogarea nu a putut fi rulată",
     "help_title": "Plane Query Language",
-    "help_intro": "Combină condițiile cu AND, OR, NOT și paranteze. Numele funcționează în locul ID-urilor: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Datele se scriu ca \"2026-01-31\".",
+    "help_intro": "Combină condițiile cu AND, OR, NOT și paranteze. Numele funcționează în locul ID-urilor: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Datele se scriu ca \"2026-01-31\". Cuvintele cheie, cf și numele de funcții precum now sunt rezervate: pune-le între ghilimele pentru a le folosi ca valori.",
     "help_operators": "Operatori: = != > >= < <= ~ (conține), in (…), not in (…), is null, is not null",
     "help_fields": "Câmpuri",
     "help_functions": "Funcții",

@@ -23,14 +23,24 @@ export type TWorkItemQueryField = {
   name: string;
   type: "uuid" | "text" | "date";
   lookups: string[];
+  /** PQL operator strings the field accepts, in display order. */
+  operators: string[];
   choices: string[] | null;
   aliases: string[];
+  /** Values are workspace members, so currentUser() applies. */
+  people: boolean;
+};
+
+export type TWorkItemQueryFunction = {
+  name: string;
+  /** A condition stands alone (`childOf("X")`); a value follows an operator (`now()`). */
+  kind: "condition" | "value";
 };
 
 /** The vocabulary of Plane Query Language, for hints and completion. */
 export type TWorkItemQueryFields = {
   fields: TWorkItemQueryField[];
   unsupported: Record<string, string>;
-  functions: string[];
+  functions: TWorkItemQueryFunction[];
   custom_property_syntax: string;
 };

@@ -23,7 +23,8 @@ from plane.app.permissions import ROLE, allow_permission
 from plane.app.views.base import BaseAPIView
 from plane.utils.pql import PQLSyntaxError, WorkItemFilterError, compile_pql, parse_pql
 from plane.utils.pql.fields import FILTER_FIELDS, UNSUPPORTED_FIELDS
-from plane.utils.pql.parser import FIELD_ALIASES, FUNCTIONS
+from plane.utils.pql.parser import FIELD_ALIASES, FUNCTIONS, VALUE_FUNCTIONS, operators_for
+from plane.utils.pql.resolve import MEMBER_FIELDS
 
 
 def pql_param(request):
@@ -96,6 +97,8 @@ class WorkItemQueryFieldsEndpoint(BaseAPIView):
                 "name": name,
                 "type": field.value_type,
                 "lookups": sorted(field.lookups),
+                "operators": operators_for(field),
+                "people": name in MEMBER_FIELDS,
                 "choices": sorted(field.choices) if field.choices else None,
                 "aliases": sorted(alias for alias, target in FIELD_ALIASES.items() if target == name),
             }
@@ -105,7 +108,10 @@ class WorkItemQueryFieldsEndpoint(BaseAPIView):
             {
                 "fields": fields,
                 "unsupported": UNSUPPORTED_FIELDS,
-                "functions": sorted(set(FUNCTIONS.values())),
+                "functions": [
+                    {"name": name, "kind": "value" if name in VALUE_FUNCTIONS else "condition"}
+                    for name in sorted(set(FUNCTIONS.values()))
+                ],
                 "custom_property_syntax": 'cf["<property id or name>"]',
             },
             status=status.HTTP_200_OK,

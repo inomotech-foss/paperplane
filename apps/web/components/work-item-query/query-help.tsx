@@ -70,7 +70,7 @@ export function WorkItemQueryHelp(props: Props) {
                 <li
                   key={field.name}
                   className="font-mono rounded-sm bg-layer-2 px-1.5 py-0.5 text-11 text-primary"
-                  title={[...field.aliases, ...field.lookups].join(", ")}
+                  title={[...field.aliases, ...field.operators].join(", ")}
                 >
                   {field.aliases[0] ?? field.name}
                 </li>
@@ -81,7 +81,7 @@ export function WorkItemQueryHelp(props: Props) {
             </ul>
             <h5 className="mt-2 font-medium text-primary">{t("work_item_query.help_functions")}</h5>
             <ul className="flex flex-wrap gap-1">
-              {fields.functions.map((name) => (
+              {fields.functions.map(({ name }) => (
                 <li key={name} className="font-mono rounded-sm bg-layer-2 px-1.5 py-0.5 text-11 text-primary">
                   {name}()
                 </li>
