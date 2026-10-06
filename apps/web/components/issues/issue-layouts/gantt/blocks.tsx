@@ -6,7 +6,6 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { useTheme } from "next-themes";
 // plane imports
 import { Popover, PopoverContent, PopoverTrigger } from "@makeplane/propel/components/popover";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
@@ -31,11 +30,12 @@ import { useProjectState } from "@/hooks/store/use-project-state";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { useChartPalette } from "@/hooks/use-chart-palette";
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
 // local imports
 import { WorkItemPreviewCard } from "../../preview-card";
 import { getBlockViewDetails } from "../utils";
-import { getKeyPalette, getWorkItemKeyColor } from "./bar-color";
+import { getBarColor } from "./bar-color";
 import type { GanttStoreType } from "./base-gantt-root";
 import type { TGanttRowState } from "./hierarchy-context";
 import { useGanttHierarchy } from "./hierarchy-context";
@@ -58,7 +58,7 @@ const useResolvedIssueType = (issue: ReturnType<ReturnType<typeof useIssueDetail
 };
 
 export const IssueGanttBlock = observer(function IssueGanttBlock(props: TGanttBlockProps) {
-  const { issueId, isEpic, colorBy = "state" } = props;
+  const { issueId, isEpic, colorBy } = props;
   // router
   const { workspaceSlug: routerWorkspaceSlug } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
@@ -70,7 +70,7 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: TGanttBl
   const { getProjectIdentifierById } = useProject();
   // hooks
   const { isMobile } = usePlatformOS();
-  const { resolvedTheme } = useTheme();
+  const chartPalette = useChartPalette();
   const { handleRedirection } = useIssuePeekOverviewRedirection(isEpic);
   const { getBlockById } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
   const { t } = useTranslation();
@@ -83,14 +83,13 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: TGanttBl
   const stateDetails =
     issueDetails && getProjectStates(issueDetails?.project_id)?.find((state) => state?.id == issueDetails?.state_id);
 
-  const barColor =
-    colorBy === "key"
-      ? getWorkItemKeyColor(
-          getProjectIdentifierById(issueDetails?.project_id),
-          issueDetails?.sequence_id,
-          getKeyPalette(resolvedTheme)
-        )
-      : stateDetails?.color;
+  const barColor = getBarColor({
+    colorBy,
+    stateColor: stateDetails?.color,
+    projectIdentifier: getProjectIdentifierById(issueDetails?.project_id),
+    sequenceId: issueDetails?.sequence_id,
+    palette: chartPalette,
+  });
 
   const { blockStyle } = getBlockViewDetails(issueDetails, barColor ?? "");
 

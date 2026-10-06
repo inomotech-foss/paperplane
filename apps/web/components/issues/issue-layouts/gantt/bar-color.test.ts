@@ -3,9 +3,9 @@
 
 import { describe, expect, it } from "vitest";
 import { CHART_COLOR_PALETTES } from "@plane/constants";
-import { getKeyPalette, getWorkItemKeyColor } from "./bar-color";
+import { getBarColor, getWorkItemKeyColor } from "./bar-color";
 
-const palette = getKeyPalette("light");
+const palette = CHART_COLOR_PALETTES[0]?.light ?? [];
 
 describe("getWorkItemKeyColor", () => {
   it("is deterministic", () => {
@@ -43,10 +43,18 @@ describe("getWorkItemKeyColor", () => {
   });
 });
 
-describe("getKeyPalette", () => {
-  it("picks the palette for the theme", () => {
-    expect(getKeyPalette("dark")).toBe(CHART_COLOR_PALETTES[0]?.dark);
-    expect(getKeyPalette("light")).toBe(CHART_COLOR_PALETTES[0]?.light);
-    expect(getKeyPalette(undefined)).toBe(CHART_COLOR_PALETTES[0]?.light);
+describe("getBarColor", () => {
+  const base = { stateColor: "#123456", projectIdentifier: "FOO", palette };
+
+  it("uses the state colour by default", () => {
+    expect(getBarColor({ ...base, colorBy: undefined, sequenceId: 7 })).toBe("#123456");
+  });
+
+  it("uses the key colour in key mode", () => {
+    expect(getBarColor({ ...base, colorBy: "key", sequenceId: 7 })).toBe(getWorkItemKeyColor("FOO", 7, palette));
+  });
+
+  it("falls back to the state colour without a sequence id", () => {
+    expect(getBarColor({ ...base, colorBy: "key", sequenceId: undefined })).toBe("#123456");
   });
 });

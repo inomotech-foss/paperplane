@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { CHART_COLOR_PALETTES } from "@plane/constants";
-
-/** The categorical palette for bars coloured by work item key. */
-export const getKeyPalette = (resolvedTheme: string | undefined): readonly string[] =>
-  CHART_COLOR_PALETTES[0]?.[resolvedTheme === "dark" ? "dark" : "light"] ?? [];
+import { DEFAULT_TIMELINE_COLOR_BY } from "@plane/constants";
+import type { TTimelineColorBy } from "@plane/types";
 
 const hashIdentifier = (identifier: string) => {
   let hash = 0;
@@ -21,4 +18,17 @@ export const getWorkItemKeyColor = (
 ): string | undefined => {
   if (sequenceId === undefined || palette.length === 0) return undefined;
   return palette[(hashIdentifier(projectIdentifier ?? "") + Math.abs(sequenceId)) % palette.length];
+};
+
+/** Bar colour for a work item; key mode falls back to the state colour when there is no key yet. */
+export const getBarColor = (args: {
+  colorBy: TTimelineColorBy | undefined;
+  stateColor: string | undefined;
+  projectIdentifier: string | undefined;
+  sequenceId: number | undefined;
+  palette: readonly string[];
+}): string | undefined => {
+  const { colorBy = DEFAULT_TIMELINE_COLOR_BY, stateColor, projectIdentifier, sequenceId, palette } = args;
+  if (colorBy !== "key") return stateColor;
+  return getWorkItemKeyColor(projectIdentifier, sequenceId, palette) ?? stateColor;
 };
