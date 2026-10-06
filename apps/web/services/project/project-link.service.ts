@@ -18,6 +18,14 @@ export class ProjectLinkService extends APIService {
       });
   }
 
+  async list(workspaceSlug: string, projectId: string): Promise<TProjectSidebarLink[]> {
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/links/`)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
   async create(
     workspaceSlug: string,
     projectId: string,

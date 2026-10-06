@@ -17,15 +17,42 @@ const makeLink = (id: string, project: string, sortOrder: number): TProjectSideb
 
 const makeStore = (links: TProjectSidebarLink[]) => {
   const store = new ProjectLinkStore();
-  store.linkMap = Object.fromEntries(links.map((link) => [link.id, link]));
+  store.linkMap = { ws: Object.fromEntries(links.map((link) => [link.id, link])) };
   return store;
 };
+
+const ids = (links: TProjectSidebarLink[]) => links.map((link) => link.id);
 
 describe("ProjectLinkStore", () => {
   it("returns a project's links in sort order", () => {
     const store = makeStore([makeLink("b", "p1", 2000), makeLink("a", "p1", 1000), makeLink("x", "p2", 500)]);
 
-    expect(store.getLinksByProjectId("p1").map((link) => link.id)).toEqual(["a", "b"]);
+    expect(ids(store.getLinksByProjectId("ws", "p1"))).toEqual(["a", "b"]);
+  });
+
+  it("keeps each workspace's links when switching workspaces", async () => {
+    const store = new ProjectLinkStore();
+    const listWorkspaceLinks = vi.fn((slug: string) =>
+      Promise.resolve(slug === "a" ? [makeLink("a1", "pa", 1000)] : [makeLink("b1", "pb", 1000)])
+    );
+    store.linkService.listWorkspaceLinks = listWorkspaceLinks;
+
+    await store.fetchWorkspaceLinks("a");
+    await store.fetchWorkspaceLinks("b");
+
+    expect(ids(store.getLinksByProjectId("a", "pa"))).toEqual(["a1"]);
+    expect(ids(store.getLinksByProjectId("b", "pb"))).toEqual(["b1"]);
+    expect(store.getLinksByProjectId("a", "pb")).toEqual([]);
+  });
+
+  it("refetches a single project without touching the others", async () => {
+    const store = makeStore([makeLink("old", "p1", 1000), makeLink("x", "p2", 500)]);
+    store.linkService.list = vi.fn().mockResolvedValue([makeLink("new", "p1", 1000)]);
+
+    await store.fetchProjectLinks("ws", "p1");
+
+    expect(ids(store.getLinksByProjectId("ws", "p1"))).toEqual(["new"]);
+    expect(ids(store.getLinksByProjectId("ws", "p2"))).toEqual(["x"]);
   });
 
   it("restores the previous order when reordering fails", async () => {
@@ -34,7 +61,7 @@ describe("ProjectLinkStore", () => {
 
     await expect(store.reorderLinks("ws", "p1", ["b", "a"])).rejects.toEqual({ error: "nope" });
 
-    expect(store.getLinksByProjectId("p1").map((link) => link.id)).toEqual(["a", "b"]);
+    expect(ids(store.getLinksByProjectId("ws", "p1"))).toEqual(["a", "b"]);
   });
 
   it("applies the server order after reordering", async () => {
@@ -43,6 +70,6 @@ describe("ProjectLinkStore", () => {
 
     await store.reorderLinks("ws", "p1", ["b", "a"]);
 
-    expect(store.getLinksByProjectId("p1").map((link) => link.id)).toEqual(["b", "a"]);
+    expect(ids(store.getLinksByProjectId("ws", "p1"))).toEqual(["b", "a"]);
   });
 });

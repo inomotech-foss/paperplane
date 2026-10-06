@@ -208,7 +208,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
           </Link>
         );
       })}
-      <ProjectSidebarLinks projectId={project.id} onInternalClick={handleProjectClick} />
+      <ProjectSidebarLinks workspaceSlug={workspaceSlug} projectId={project.id} onInternalClick={handleProjectClick} />
     </>
   );
 });

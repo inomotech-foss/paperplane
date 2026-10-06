@@ -19,7 +19,7 @@ import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
 import type { TProjectSidebarLink, TProjectSidebarLinkPayload } from "@plane/types";
 import { useProjectLink } from "@/hooks/store/use-project-link";
-import { isValidProjectLinkUrl } from "@/store/project/project-link-url";
+import { getProjectLinkErrorMessage, isValidProjectLinkUrl } from "@/store/project/project-link-url";
 
 type TLinkFormProps = {
   initial?: TProjectSidebarLinkPayload;
@@ -106,13 +106,14 @@ type TLinkRowProps = {
   link: TProjectSidebarLink;
   isFirst: boolean;
   isLast: boolean;
+  isMoving: boolean;
   onMove: (direction: -1 | 1) => void;
   onEdit: () => void;
   onDelete: () => void;
 };
 
 function ProjectLinkRow(props: TLinkRowProps) {
-  const { link, isFirst, isLast, onMove, onEdit, onDelete } = props;
+  const { link, isFirst, isLast, isMoving, onMove, onEdit, onDelete } = props;
   const { t } = useTranslation();
 
   return (
@@ -126,7 +127,7 @@ function ProjectLinkRow(props: TLinkRowProps) {
         <IconButton
           variant="ghost"
           size="sm"
-          disabled={isFirst}
+          disabled={isFirst || isMoving}
           onClick={() => onMove(-1)}
           icon={<Icon icon={ChevronUpOutline} />}
           aria-label={t("project_settings.links.move_up")}
@@ -134,7 +135,7 @@ function ProjectLinkRow(props: TLinkRowProps) {
         <IconButton
           variant="ghost"
           size="sm"
-          disabled={isLast}
+          disabled={isLast || isMoving}
           onClick={() => onMove(1)}
           icon={<Icon icon={ChevronDownOutline} />}
           aria-label={t("project_settings.links.move_down")}
@@ -169,22 +170,23 @@ export const ProjectLinksSettings = observer(function ProjectLinksSettings(props
   const { getLinksByProjectId, createLink, updateLink, deleteLink, reorderLinks } = useProjectLink();
   // "new" or the id of the link being edited
   const [editing, setEditing] = useState<string | null>(null);
+  const [isMoving, setIsMoving] = useState(false);
 
-  const links = getLinksByProjectId(projectId);
+  const links = getLinksByProjectId(workspaceSlug, projectId);
 
-  const showError = (key: "not_created" | "not_updated" | "not_removed") =>
+  const showError = (key: "not_created" | "not_updated" | "not_removed", error?: unknown) =>
     setToast({
       type: "error",
       title: t(`links.toasts.${key}.title`),
-      message: t(`links.toasts.${key}.message`),
+      message: getProjectLinkErrorMessage(error) ?? t(`links.toasts.${key}.message`),
     });
 
   const handleCreate = async (data: TProjectSidebarLinkPayload) => {
     try {
       await createLink(workspaceSlug, projectId, data);
       setEditing(null);
-    } catch {
-      showError("not_created");
+    } catch (error) {
+      showError("not_created", error);
     }
   };
 
@@ -192,27 +194,31 @@ export const ProjectLinksSettings = observer(function ProjectLinksSettings(props
     try {
       await updateLink(workspaceSlug, projectId, linkId, data);
       setEditing(null);
-    } catch {
-      showError("not_updated");
+    } catch (error) {
+      showError("not_updated", error);
     }
   };
 
   const handleDelete = async (linkId: string) => {
     try {
       await deleteLink(workspaceSlug, projectId, linkId);
-    } catch {
-      showError("not_removed");
+    } catch (error) {
+      showError("not_removed", error);
     }
   };
 
   const handleMove = async (index: number, direction: -1 | 1) => {
+    if (isMoving) return;
     const ids = links.map((link) => link.id);
     const target = index + direction;
     [ids[index], ids[target]] = [ids[target], ids[index]];
+    setIsMoving(true);
     try {
       await reorderLinks(workspaceSlug, projectId, ids);
-    } catch {
-      showError("not_updated");
+    } catch (error) {
+      showError("not_updated", error);
+    } finally {
+      setIsMoving(false);
     }
   };
 
@@ -235,6 +241,7 @@ export const ProjectLinksSettings = observer(function ProjectLinksSettings(props
             link={link}
             isFirst={index === 0}
             isLast={index === links.length - 1}
+            isMoving={isMoving}
             onMove={(direction) => void handleMove(index, direction)}
             onEdit={() => setEditing(link.id)}
             onDelete={() => void handleDelete(link.id)}

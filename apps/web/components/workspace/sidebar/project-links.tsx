@@ -8,9 +8,11 @@ import { usePathname } from "next/navigation";
 import { LinkOutline, NewTabOutline } from "@makeplane/propel/icons";
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
 import { useProjectLink } from "@/hooks/store/use-project-link";
+import { useWorkspace } from "@/hooks/store/use-workspace";
 import { resolveProjectLink } from "@/store/project/project-link-url";
 
 type TProjectSidebarLinksProps = {
+  workspaceSlug: string;
   projectId: string;
   onInternalClick: () => void;
 };
@@ -23,10 +25,12 @@ const getClientOrigin = () => window.location.origin;
 const getServerOrigin = () => "";
 
 export const ProjectSidebarLinks = observer(function ProjectSidebarLinks(props: TProjectSidebarLinksProps) {
-  const { projectId, onInternalClick } = props;
+  const { workspaceSlug, projectId, onInternalClick } = props;
   const pathname = usePathname();
   const { getLinksByProjectId } = useProjectLink();
-  const links = getLinksByProjectId(projectId);
+  const { workspaces } = useWorkspace();
+  const links = getLinksByProjectId(workspaceSlug, projectId);
+  const workspaceSlugs = new Set(Object.values(workspaces).map((workspace) => workspace.slug));
   const origin = useSyncExternalStore(subscribeToNothing, getClientOrigin, getServerOrigin);
 
   if (!origin) return null;
@@ -34,7 +38,7 @@ export const ProjectSidebarLinks = observer(function ProjectSidebarLinks(props: 
   return (
     <>
       {links.map((link) => {
-        const resolved = resolveProjectLink(link.url, origin);
+        const resolved = resolveProjectLink(link.url, origin, workspaceSlugs);
         if (!resolved) return null;
 
         const content = (
