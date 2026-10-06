@@ -93,6 +93,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
   label_ids: string[] | undefined;
   owned_by: string | undefined;
   parent: string | null | undefined;
+  sort_order: number;
   access: EPageAccess | undefined;
   is_favorite: boolean;
   is_locked: boolean;
@@ -131,6 +132,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
     this.label_ids = page?.label_ids || undefined;
     this.owned_by = page?.owned_by || undefined;
     this.parent = page?.parent ?? null;
+    this.sort_order = page?.sort_order ?? 65535;
     this.access = page?.access || EPageAccess.PUBLIC;
     this.is_favorite = page?.is_favorite || false;
     this.is_locked = page?.is_locked || false;
@@ -157,6 +159,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       label_ids: observable,
       owned_by: observable.ref,
       parent: observable.ref,
+      sort_order: observable.ref,
       access: observable.ref,
       is_favorite: observable.ref,
       is_locked: observable.ref,
@@ -234,6 +237,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       label_ids: this.label_ids,
       owned_by: this.owned_by,
       parent: this.parent,
+      sort_order: this.sort_order,
       access: this.access,
       logo_props: this.logo_props,
       is_favorite: this.is_favorite,

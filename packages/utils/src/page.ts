@@ -46,6 +46,10 @@ export const orderPages = (
   let orderedPages: TPage[] = [];
   if (pages.length === 0 || !sortByKey) return [];
 
+  if (sortByKey === "sort_order") {
+    orderedPages = sortBy(pages, [(m) => m.sort_order, (m) => m.name?.toLowerCase()]);
+    if (sortByOrder === "desc") orderedPages = orderedPages.reverse();
+  }
   if (sortByKey === "name") {
     orderedPages = sortBy(pages, [(m) => m.name?.toLowerCase()]);
     if (sortByOrder === "desc") orderedPages = orderedPages.reverse();
