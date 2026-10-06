@@ -258,6 +258,27 @@ class TestAssignOwners:
         assert ProjectMember.objects.get(project=personal_project, member=owner).role == 20
         assert "PSNL1 -> owner@plane.so" in output
 
+    @pytest.mark.parametrize(
+        ("email", "display_name"),
+        [("owner@other.example", "Someone Else"), ("someone@other.example", "Space Owner")],
+    )
+    def test_owner_on_another_domain_or_by_name_still_matches(
+        self, workspace, backup_dir, personal_project, email, display_name
+    ):
+        """The backup's addresses are on an old domain."""
+        user = User.objects.create(username="moved", email=email, display_name=display_name)
+
+        run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, assign_owners=True)
+
+        assert ProjectMember.objects.get(project=personal_project, member=user).role == 20
+
+    def test_inactive_user_is_not_matched(self, workspace, backup_dir, personal_project):
+        User.objects.create(username="gone", email="owner@plane.so", display_name="Space Owner", is_active=False)
+
+        output = run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, assign_owners=True)
+
+        assert "no active user for the owner of: PSNL1" in output
+
     def test_owner_without_an_account_is_reported(self, workspace, backup_dir, personal_project):
         output = run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, assign_owners=True)
 

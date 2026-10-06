@@ -181,35 +181,61 @@ class Command(BaseCommand):
         if rows:
             queryset.update(archived_at=timezone.now())
 
+    @staticmethod
+    def _active_users():
+        """Active Plane users keyed the ways a Confluence account can match one.
+
+        The backup's addresses are often on an old domain, so besides the full
+        address the part before the @ and the display name are tried, the
+        same fallbacks the loader uses for authorship.
+        """
+        by_key = {}
+        for user in User.objects.filter(is_active=True, is_bot=False):
+            names = (
+                user.email,
+                (user.email or "").split("@")[0],
+                user.display_name,
+                f"{user.first_name} {user.last_name}",
+            )
+            for name in names:
+                key = (name or "").strip().casefold()
+                if key:
+                    by_key.setdefault(key, user)
+        return by_key
+
+    @staticmethod
+    def _match(account, users):
+        for name in (account.email, (account.email or "").split("@")[0], account.display_name):
+            key = (name or "").strip().casefold()
+            if key and key in users:
+                return users[key]
+        return None
+
     def _assign_owners(self, scope, spaces, backup_dir):
         """Grant the space owner admin on the project.
 
-        Owners are matched by email through the backup's user mapping; anyone
-        without an active Plane account is reported, not invented.
+        Anyone without an active Plane account is reported, not invented.
         """
         accounts = ConfluenceBackup(backup_dir, next(iter(spaces), "")).users() if spaces else {}
+        users = self._active_users()
         by_external_id = {_external_id(backup): backup for backup in spaces.values()}
         rows, missing = [], []
         for project in scope:
             backup = by_external_id.get(project.external_id)
             account = accounts.get(backup.space_owner_id()) if backup else None
-            user = (
-                User.objects.filter(email__iexact=account.email, is_active=True).first()
-                if account and account.email
-                else None
-            )
+            user = self._match(account, users) if account else None
             if user is None:
                 missing.append(project.identifier)
                 continue
             member, created = ProjectMember.objects.get_or_create(
                 project=project, member=user, defaults={"role": ADMIN_ROLE}
             )
-            if not created and (member.role != ADMIN_ROLE or not member.is_active):
+            if not created and member.role == ADMIN_ROLE and member.is_active:
+                continue
+            if not created:
                 member.role = ADMIN_ROLE
                 member.is_active = True
                 member.save(update_fields=["role", "is_active"])
-            elif not created:
-                continue
             rows.append((project.id, f"{project.identifier} -> {user.email}"))
         self._report("assign-owners", rows)
         if missing:
