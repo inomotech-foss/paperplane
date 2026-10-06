@@ -387,3 +387,18 @@ class ProjectUserProperty(ProjectBaseModel):
     def __str__(self):
         """Return properties status of the project"""
         return str(self.user)
+
+
+class ProjectLink(ProjectBaseModel):
+    title = models.CharField(max_length=255)
+    url = models.TextField()
+    sort_order = models.FloatField(default=65535)
+
+    class Meta:
+        verbose_name = "Project Link"
+        verbose_name_plural = "Project Links"
+        db_table = "project_links"
+        ordering = ("sort_order", "created_at")
+
+    def __str__(self):
+        return f"{self.project.name} {self.title}"
