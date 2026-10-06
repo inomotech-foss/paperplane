@@ -20,11 +20,12 @@ import { cn, getPageName } from "@plane/utils";
 import { EPageStoreType, usePageStore } from "@/hooks/store";
 import { useAppRouter } from "@/hooks/use-app-router";
 import useLocalStorage from "@/hooks/use-local-storage";
+import { MAX_SIDEBAR_WIDTH, MIN_SIDEBAR_WIDTH, useResizableWidth } from "./use-resizable-width";
 
-const SIDEBAR_WIDTH = 260;
 const ROW_HEIGHT = 30;
 const ROW_OVERSCAN = 10;
 const COLLAPSE_STORAGE_KEY = "page_details_tree_collapsed";
+const WIDTH_STORAGE_KEY = "page_details_tree_width";
 
 const storeType = EPageStoreType.PROJECT;
 
@@ -104,6 +105,7 @@ export const PageDetailsTreeSidebar = observer(function PageDetailsTreeSidebar()
     false
   );
   const isCollapsed = !!storedCollapsed;
+  const resize = useResizableWidth(WIDTH_STORAGE_KEY);
   // refs
   const scrollRef = useRef<HTMLDivElement>(null);
   // derived values
@@ -154,8 +156,8 @@ export const PageDetailsTreeSidebar = observer(function PageDetailsTreeSidebar()
 
   return (
     <div
-      className="flex h-full flex-shrink-0 flex-col border-r border-subtle bg-surface-1"
-      style={{ width: `${SIDEBAR_WIDTH}px` }}
+      className="relative flex h-full min-h-0 flex-shrink-0 flex-col border-r border-subtle bg-surface-1"
+      style={{ width: `${resize.width}px` }}
     >
       <div className="flex flex-shrink-0 items-center justify-between px-3 py-2.5">
         <span className="text-11 font-semibold text-tertiary uppercase">Pages</span>
@@ -168,7 +170,7 @@ export const PageDetailsTreeSidebar = observer(function PageDetailsTreeSidebar()
           <PanelLeftClose className="size-4" />
         </button>
       </div>
-      <div ref={scrollRef} className="vertical-scrollbar scrollbar-sm h-full overflow-y-auto px-2 pb-4">
+      <div ref={scrollRef} className="vertical-scrollbar scrollbar-sm min-h-0 flex-1 overflow-y-auto px-2 pb-4">
         <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualizer.getVirtualItems().map((virtualItem) => {
             const row = rows[virtualItem.index];
@@ -191,6 +193,26 @@ export const PageDetailsTreeSidebar = observer(function PageDetailsTreeSidebar()
           })}
         </div>
       </div>
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-valuenow={resize.width}
+        aria-valuemin={MIN_SIDEBAR_WIDTH}
+        aria-valuemax={MAX_SIDEBAR_WIDTH}
+        tabIndex={0}
+        aria-label="Resize page tree"
+        className={cn(
+          "absolute top-0 right-0 z-[20] h-full w-1 translate-x-1/2 cursor-ew-resize touch-none transition-colors duration-200",
+          resize.isResizing ? "w-1.5 bg-layer-1" : "hover:bg-surface-2"
+        )}
+        onPointerDown={resize.onPointerDown}
+        onPointerMove={resize.onPointerMove}
+        onPointerUp={resize.onPointerUp}
+        onPointerCancel={resize.onPointerCancel}
+        onLostPointerCapture={resize.onLostPointerCapture}
+        onKeyDown={resize.onKeyDown}
+        onDoubleClick={resize.reset}
+      />
     </div>
   );
 });
