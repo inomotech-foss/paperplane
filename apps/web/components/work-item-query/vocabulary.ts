@@ -4,9 +4,6 @@
 import type { Vocabulary } from "@plane/pql";
 import type { TWorkItemQueryFields } from "@plane/types";
 
-// Fields whose values are workspace members.
-const PEOPLE_FIELDS = new Set(["assignees__id", "created_by"]);
-
 export type ValuesFor = Vocabulary["valuesFor"];
 
 /** The fields endpoint payload in the shape the editor package completes from. */
@@ -16,8 +13,9 @@ export const toVocabulary = (fields: TWorkItemQueryFields | undefined, valuesFor
     aliases: field.aliases,
     type: field.type,
     lookups: field.lookups,
+    operators: field.operators,
     choices: field.choices,
-    people: PEOPLE_FIELDS.has(field.name),
+    people: field.people,
   })),
   functions: fields?.functions ?? [],
   valuesFor,

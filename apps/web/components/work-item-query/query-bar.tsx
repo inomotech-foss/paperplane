@@ -17,6 +17,7 @@ import { cn } from "@plane/utils";
 // services
 import { WorkItemQueryService } from "@/services/issue";
 // local imports
+import { editorBoxClass } from "./editor-classes";
 import { WorkItemQueryHelp } from "./query-help";
 import { useValuesFor } from "./values";
 import { toVocabulary } from "./vocabulary";
@@ -72,9 +73,18 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
 
   const validate = useCallback(
     async (pql: string): Promise<SemanticError | null> => {
-      const result = await workItemQueryService.validate(workspaceSlug, pql, projectId);
-      if (result.valid) return null;
-      return { position: result.position, token: result.token, message: result.error ?? t("work_item_query.invalid") };
+      try {
+        const result = await workItemQueryService.validate(workspaceSlug, pql, projectId);
+        if (result.valid) return null;
+        return {
+          position: result.position,
+          token: result.token,
+          message: result.error ?? t("work_item_query.invalid"),
+        };
+      } catch {
+        // The run button reports a failed request; a stale underline would be wrong.
+        return null;
+      }
     },
     [workspaceSlug, projectId, t]
   );
@@ -130,12 +140,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
         </span>
         <Suspense
           fallback={
-            <div
-              className={cn(
-                "font-mono h-7 w-full min-w-0 flex-1 rounded-sm border bg-layer-1 px-2 text-12 leading-7 text-placeholder",
-                hasError ? "border-danger-strong" : "border-subtle-1"
-              )}
-            >
+            <div className={editorBoxClass(hasError, cn("leading-7", { "text-placeholder": !draft }))}>
               {draft || t("work_item_query.placeholder")}
             </div>
           }
