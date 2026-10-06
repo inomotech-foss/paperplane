@@ -4,7 +4,7 @@
 import { EditorState } from "@codemirror/state";
 import { describe, expect, it, vi } from "vitest";
 
-import { diagnostic, diagnosticsKey, lintSource, syntaxDiagnostics } from "./lint.js";
+import { diagnostic, diagnosticsKey, lintSource, syntaxDiagnostics, unplacedClass } from "./lint.js";
 import { parseField } from "./state.js";
 
 const stateOf = (doc: string) => EditorState.create({ doc, extensions: [parseField] });
@@ -28,16 +28,41 @@ describe("diagnostic", () => {
   it("clamps the range to the document", () => {
     expect(diagnostic("abc", { position: 10, token: "zz", message: "m" })).toMatchObject({ from: 3, to: 3 });
     expect(diagnostic("abc", { position: 1, token: "bcdef", message: "m" })).toMatchObject({ from: 1, to: 3 });
-    expect(diagnostic("abc", { position: null, message: "m" })).toMatchObject({ from: 0, to: 1 });
+  });
+
+  it("spans the query without an underline when the error has no position", () => {
+    for (const position of [null, undefined]) {
+      expect(diagnostic("abc", { position, message: "m" })).toMatchObject({
+        from: 0,
+        to: 3,
+        message: "m",
+        markClass: unplacedClass,
+      });
+    }
   });
 });
 
 describe("lintSource", () => {
-  it("returns syntax diagnostics at once and skips validation", () => {
+  it("holds a syntax error back until typing pauses and skips validation", async () => {
+    vi.useFakeTimers();
     const validate = vi.fn();
-    const result = lintSource({ validate })({ state: stateOf("priority") });
-    expect(result).toMatchObject([{ from: 8, to: 8 }]);
+    const source = lintSource({ validate, syntaxDelay: 100 });
+    const typing = source({ state: stateOf("priori") });
+    const paused = source({ state: stateOf("priority") });
+    await vi.advanceTimersByTimeAsync(99);
+    let settled = false;
+    void Promise.resolve(paused).then(() => (settled = true));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await typing).toEqual([]);
+    expect(await paused).toMatchObject([{ from: 8, to: 8 }]);
     expect(validate).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it("clears at once for a valid query without a validator", () => {
+    expect(lintSource({})({ state: stateOf("priority = urgent") })).toEqual([]);
   });
 
   it("debounces the validator and keeps only the latest run", async () => {
