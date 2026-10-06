@@ -4,10 +4,11 @@
 import re
 from collections import Counter
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 
 from plane.db.models import (
     Issue,
@@ -29,7 +30,7 @@ from plane.utils.content_validator import validate_html_content
 from plane.utils.issue_type import get_or_create_default_issue_type
 
 from .assets import AttachmentUploader
-from .backup import ConfluenceBackup, order_parents_first, space_keys
+from .backup import ConfluenceBackup, order_parents_first, sibling_sort_orders, space_keys
 from .jira import derive_base_urls
 from .naming import project_identifier, project_name
 from .resolvers import ConversionResult, ResolvedJiraIssue, ResolvedPage, ResolvedUser, Resolvers
@@ -40,6 +41,15 @@ _ACCOUNT_ID = re.compile(r'ri:account-id="([^"]+)"')
 # What the Jira loader stamps on every work item it creates.
 _JIRA_EXTERNAL_SOURCE = "jira"
 
+# The loader writes the backup's own timestamp back onto a page, so anything
+# later than that is an edit made in Plane. The slack absorbs rounding.
+_EDIT_SLACK = timedelta(seconds=1)
+
+PLACEHOLDER_HTML = (
+    "<p>This page stands in for a Confluence folder or database the export did not include. "
+    "Rename it and move it where it belongs.</p>"
+)
+
 
 @dataclass
 class ImportSummary:
@@ -48,6 +58,10 @@ class ImportSummary:
     created: int = 0
     updated: int = 0
     roots: int = 0
+    containers: int = 0
+    archived: int = 0
+    locally_edited: int = 0
+    owner_granted: bool = False
     attributed: int = 0
     unmapped_authors: set = field(default_factory=set)
     placeholders: int = 0
@@ -100,21 +114,29 @@ class ConfluenceLoader:
         self.site = backup.site()
         self.jira_project_keys = backup.jira_project_keys()
 
-    def run(self, dry_run=False):
+    def run(self, dry_run=False, structure_only=False):
+        """Load the space. ``structure_only`` repairs parents, order, archive
+        flags and placeholders but rewrites no body that already exists."""
         summary = ImportSummary()
         space = self.backup.space()
         pages = order_parents_first(self.backup.pages())
+        orders = sibling_sort_orders(pages)
 
         with transaction.atomic():
-            users = self._user_map(pages, summary)
-            project = self._get_or_create_project(space)
+            users = self._user_map(pages, summary, extra={self.backup.space_owner_id()})
+            project = self._get_or_create_project(space, users, summary)
             summary.project_id = str(project.id)
             summary.project_name = project.name
 
             # Two passes: Confluence links pages by title, so no link can be
             # rewritten until every page in the space has an id.
-            records = self._upsert_pages(project, pages, users, summary)
-            self._write_bodies(project, pages, records, users, summary, dry_run)
+            records, created, edited = self._upsert_pages(project, pages, orders, users, summary)
+            # A body edited in Plane is never overwritten; a structure pass
+            # writes bodies only for pages it just created.
+            writable = {page.id for page in pages} - edited
+            if structure_only:
+                writable &= created
+            self._write_bodies(project, pages, records, users, summary, dry_run, only=writable)
 
             if dry_run:
                 transaction.set_rollback(True)
@@ -132,12 +154,13 @@ class ConfluenceLoader:
             found.update(_ACCOUNT_ID.findall(page.body))
         return found
 
-    def _user_map(self, pages, summary=None):
+    def _user_map(self, pages, summary=None, extra=()):
         """Confluence accountId -> Plane user, matched on email then display name.
 
         Anything still unmatched gets a placeholder account, so a page keeps its
         original author and a mention keeps its name rather than collapsing onto
-        whoever ran the import.
+        whoever ran the import. ``extra`` names accounts to map besides the
+        ones the pages reference, such as the space owner.
         """
         accounts = self.backup.users()
         if not accounts:
@@ -153,7 +176,7 @@ class ConfluenceLoader:
             for key in filter(None, (member.display_name, f"{member.first_name} {member.last_name}".strip())):
                 by_display_name.setdefault(key.casefold(), member)
 
-        referenced = self._referenced_accounts(pages)
+        referenced = self._referenced_accounts(pages) | {account for account in extra if account}
         mapping = {}
         for account_id, account in accounts.items():
             match = by_email.get(account.email.casefold()) if account.email else None
@@ -191,7 +214,14 @@ class ConfluenceLoader:
         WorkspaceMember.objects.get_or_create(workspace=self.workspace, member=user, defaults={"role": 5})
         return user
 
-    def _get_or_create_project(self, space):
+    def _get_or_create_project(self, space, users=None, summary=None):
+        """The project for this space, created on first sight.
+
+        Everything set here is set on create only: a re-import must never
+        revert an admin's choice. A space that was archived in Confluence
+        starts archived, and the space owner becomes a project admin so a
+        personal space reaches the one person it belongs to.
+        """
         identifier_key = space.get("key") or self.backup.space_key
         existing = Project.objects.filter(
             workspace=self.workspace,
@@ -216,8 +246,14 @@ class ConfluenceLoader:
             # Only set on create: a re-import must never revert an admin's choice.
             network=0,
             issue_view=False,
+            archived_at=timezone.now() if self.backup.space_status() == "archived" else None,
         )
         ProjectMember.objects.get_or_create(project=project, member=self.actor, defaults={"role": 20})
+        owner = (users or {}).get(self.backup.space_owner_id())
+        if owner is not None and owner.is_active and owner != self.actor:
+            ProjectMember.objects.get_or_create(project=project, member=owner, defaults={"role": 20})
+            if summary is not None:
+                summary.owner_granted = True
         State.objects.bulk_create(
             [
                 State(
@@ -271,12 +307,23 @@ class ConfluenceLoader:
             PageLabel.objects.create(page=record, label_id=label_id, workspace=self.workspace)
             summary.labels += 1
 
-    def _upsert_pages(self, project, pages, users, summary):
+    @staticmethod
+    def _locally_edited(record, page):
+        return bool(page.updated_at and record.updated_at and record.updated_at > page.updated_at + _EDIT_SLACK)
+
+    def _upsert_pages(self, project, pages, orders, users, summary):
+        """Create or refresh every page row.
+
+        Structure (parent, order, archive flag) always follows the backup.
+        Title, owner and timestamps are left alone on a page someone edited in
+        Plane since the import, and its id is reported back so the body pass
+        skips it too. Returns the records plus the ids created and edited.
+        """
         labels = self._upsert_labels(pages)
-        records = {}
+        records, created, edited = {}, set(), set()
         for page in pages:
             owner = users.get(page.author_id)
-            if owner is None and page.author_id:
+            if owner is None and page.author_id and not page.placeholder:
                 summary.unmapped_authors.add(page.author_id)
 
             record = Page.objects.filter(
@@ -284,9 +331,10 @@ class ConfluenceLoader:
                 external_source=self.EXTERNAL_SOURCE,
                 external_id=page.id,
             ).first()
+            local_updated_at = None
 
             if record is None:
-                record = Page.objects.create(
+                record = Page(
                     workspace=self.workspace,
                     name=page.title,
                     owned_by=owner or self.actor,
@@ -294,31 +342,47 @@ class ConfluenceLoader:
                     external_source=self.EXTERNAL_SOURCE,
                     external_id=page.id,
                 )
+                created.add(page.id)
                 summary.created += 1
+            elif self._locally_edited(record, page):
+                local_updated_at = record.updated_at
+                edited.add(page.id)
+                summary.locally_edited += 1
+                summary.updated += 1
             else:
                 record.name = page.title
                 record.owned_by = owner or self.actor
-                record.save(disable_auto_set_user=True)
                 summary.updated += 1
 
             if owner is not None:
                 summary.attributed += 1
+            if page.placeholder:
+                summary.containers += 1
 
             parent = records.get(page.parent_id)
             if parent is None:
                 summary.roots += 1
 
             record.parent = parent
+            record.sort_order = orders.get(page.id, record.sort_order)
+            # Archived in Confluence means archived here; never the reverse,
+            # since an admin may have archived or restored a page by hand.
+            if page.archived and record.archived_at is None:
+                record.archived_at = (page.updated_at or timezone.now()).date()
+                summary.archived += 1
             record.save(disable_auto_set_user=True)
             ProjectPage.objects.get_or_create(project=project, page=record, workspace=self.workspace)
             self._link_labels(record, page.labels, labels, summary)
 
             # auto_now_add / auto_now win on save(), so the real Confluence
-            # timestamps have to be written with an UPDATE.
-            Page.objects.filter(pk=record.pk).update(created_at=page.created_at, updated_at=page.updated_at)
+            # timestamps have to be written with an UPDATE. An edited page keeps
+            # its own updated_at, which is what marks it as edited next time.
+            Page.objects.filter(pk=record.pk).update(
+                created_at=page.created_at, updated_at=local_updated_at or page.updated_at
+            )
             records[page.id] = record
 
-        return records
+        return records, created, edited
 
     def _space_keys_by_project(self):
         """Which Confluence space each imported project came from.
@@ -400,7 +464,8 @@ class ConfluenceLoader:
             ).select_related("project")
         }
 
-    def _write_bodies(self, project, pages, records, users, summary, dry_run):
+    def _write_bodies(self, project, pages, records, users, summary, dry_run, only=None):
+        """Convert and store every body in ``only`` (all pages by default)."""
         user_map = {
             account_id: ResolvedUser(id=str(user.id), display_name=user.display_name)
             for account_id, user in users.items()
@@ -422,7 +487,11 @@ class ConfluenceLoader:
 
         for page in pages:
             record = records.get(page.id)
-            if record is None:
+            if record is None or (only is not None and page.id not in only):
+                continue
+            if page.placeholder:
+                Page.objects.filter(pk=record.pk).update(description_html=PLACEHOLDER_HTML, updated_at=page.updated_at)
+                self._seed_version(record, page, PLACEHOLDER_HTML)
                 continue
 
             attachments = {} if uploader is None else uploader.upload_for_page(page.id, record, page.body)

@@ -8,12 +8,20 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from plane.db.models import Page, Project, ProjectPage
+from plane.db.models import Page, Project, ProjectMember, ProjectPage, User
 
-GLOBAL_SPACE_A = {"id": "111", "key": "DEMO", "name": "Demo Space", "type": "global"}
+GLOBAL_SPACE_A = {"id": "111", "key": "DEMO", "name": "Demo Space", "type": "global", "status": "current"}
 # A space with no "type" key at all is treated as global, same as report_confluence.
-GLOBAL_SPACE_B = {"id": "222", "key": "WIKI", "name": "Wiki Space"}
-PERSONAL_SPACE = {"id": "333", "key": "PSNL1", "name": "A Personal Space", "type": "personal"}
+GLOBAL_SPACE_B = {"id": "222", "key": "WIKI", "name": "Wiki Space", "status": "archived"}
+PERSONAL_SPACE = {
+    "id": "333",
+    "key": "PSNL1",
+    "name": "A Personal Space",
+    "type": "personal",
+    "status": "current",
+    "spaceOwnerId": "acc-owner",
+}
+OWNER = {"accountId": "acc-owner", "displayName": "Space Owner", "emailAddress": "owner@plane.so"}
 
 
 def _write_space(backup_dir, space):
@@ -27,7 +35,13 @@ def backup_dir(tmp_path):
     _write_space(tmp_path, GLOBAL_SPACE_A)
     _write_space(tmp_path, GLOBAL_SPACE_B)
     _write_space(tmp_path, PERSONAL_SPACE)
+    (tmp_path / "user_mapping.json").write_text(json.dumps([OWNER]))
     return tmp_path
+
+
+@pytest.fixture
+def owner():
+    return User.objects.create(username="space-owner", email=OWNER["emailAddress"], display_name="Space Owner")
 
 
 @pytest.fixture
@@ -97,7 +111,10 @@ def run(**options):
 
 def snapshot(*projects):
     """A comparable snapshot of the fields every pass might change."""
-    return [(p.pk, p.deleted_at, p.network, p.issue_view) for p in (Project.all_objects.get(pk=p.pk) for p in projects)]
+    return [
+        (p.pk, p.deleted_at, p.network, p.issue_view, p.page_view, p.archived_at)
+        for p in (Project.all_objects.get(pk=p.pk) for p in projects)
+    ]
 
 
 @pytest.mark.unit
@@ -181,6 +198,81 @@ class TestDisableWorkItems:
 
 @pytest.mark.unit
 @pytest.mark.django_db
+class TestScope:
+    def test_spaces_limits_a_pass(self, workspace, backup_dir, demo_project, wiki_project):
+        run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, make_secret=True, spaces="DEMO")
+
+        assert Project.objects.get(pk=demo_project.pk).network == 0
+        assert Project.objects.get(pk=wiki_project.pk).network == 2
+
+    def test_personal_limits_a_pass(self, workspace, backup_dir, demo_project, personal_project):
+        run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, make_secret=True, personal=True)
+
+        assert Project.objects.get(pk=personal_project.pk).network == 0
+        assert Project.objects.get(pk=demo_project.pk).network == 2
+
+    def test_unknown_space_key_raises(self, workspace, backup_dir):
+        with pytest.raises(CommandError):
+            run(backup_dir=str(backup_dir), workspace=workspace.slug, make_secret=True, spaces="NOPE")
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+class TestArchiveStale:
+    def test_archives_projects_whose_space_is_archived(self, workspace, backup_dir, demo_project, wiki_project):
+        run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, archive_stale=True)
+
+        assert Project.objects.get(pk=wiki_project.pk).archived_at is not None
+        assert Project.objects.get(pk=demo_project.pk).archived_at is None
+
+    def test_is_idempotent(self, workspace, backup_dir, wiki_project):
+        run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, archive_stale=True)
+        first = Project.objects.get(pk=wiki_project.pk).archived_at
+
+        output = run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, archive_stale=True)
+
+        assert "0 project(s)" in output
+        assert Project.objects.get(pk=wiki_project.pk).archived_at == first
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+class TestAssignOwners:
+    def test_owner_becomes_admin(self, workspace, backup_dir, personal_project, owner):
+        output = run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, assign_owners=True)
+
+        assert ProjectMember.objects.get(project=personal_project, member=owner).role == 20
+        assert "PSNL1 -> owner@plane.so" in output
+
+    def test_owner_without_an_account_is_reported(self, workspace, backup_dir, personal_project):
+        output = run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, assign_owners=True)
+
+        assert "no active user for the owner of: PSNL1" in output
+        assert not ProjectMember.objects.filter(project=personal_project).exists()
+
+    def test_is_idempotent(self, workspace, backup_dir, personal_project, owner):
+        run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, assign_owners=True)
+        output = run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, assign_owners=True)
+
+        assert "0 project(s)" in output
+        assert ProjectMember.objects.filter(project=personal_project, member=owner).count() == 1
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+class TestDisablePages:
+    def test_hides_pages_on_the_named_projects_of_any_source(self, workspace, backup_dir, other_source_project):
+        run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, disable_pages=True, spaces="OTHR")
+
+        assert Project.objects.get(pk=other_source_project.pk).page_view is False
+
+    def test_needs_spaces(self, workspace, backup_dir):
+        with pytest.raises(CommandError):
+            run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, disable_pages=True)
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
 class TestSafety:
     def test_no_pass_flag_is_a_safe_noop(self, workspace, backup_dir, demo_project, wiki_project, personal_project):
         before = snapshot(demo_project, wiki_project, personal_project)
@@ -201,6 +293,8 @@ class TestSafety:
             prune_personal=True,
             make_secret=True,
             disable_work_items=True,
+            archive_stale=True,
+            assign_owners=True,
         )
 
         after = snapshot(demo_project, wiki_project, personal_project)
@@ -216,6 +310,8 @@ class TestSafety:
             prune_personal=True,
             make_secret=True,
             disable_work_items=True,
+            archive_stale=True,
+            assign_owners=True,
         )
 
         after = snapshot(other_source_project)
