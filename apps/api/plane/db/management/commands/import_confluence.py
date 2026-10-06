@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 from plane.db.models import User, Workspace
 from plane.importers.confluence.backup import ConfluenceBackup
 from plane.importers.confluence.loader import ConfluenceLoader
+from plane.importers.users import UserRules, add_user_arguments
 
 
 class Command(BaseCommand):
@@ -37,6 +38,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--include-personal", action="store_true", help="Allow importing a personal Confluence space"
         )
+        add_user_arguments(parser)
 
     def handle(self, *args, **options):
         backup = ConfluenceBackup(options["backup_dir"], options["space"])
@@ -55,11 +57,16 @@ class Command(BaseCommand):
         except User.DoesNotExist:
             raise CommandError(f"No user with email {options['actor']!r}")
 
+        try:
+            user_rules = UserRules.from_options(options)
+        except ValueError as error:
+            raise CommandError(str(error))
+
         dry_run = options["dry_run"] or options["plan"]
         take = [item.strip() for item in (options["take"] or "").split(",") if item.strip()]
         if options["diff_dir"]:
             Path(options["diff_dir"]).mkdir(parents=True, exist_ok=True)
-        loader = ConfluenceLoader(workspace.slug, actor, backup)
+        loader = ConfluenceLoader(workspace.slug, actor, backup, user_rules=user_rules)
         summary = loader.run(
             dry_run=dry_run, structure_only=options["structure_only"], take=take, diff_dir=options["diff_dir"]
         )
@@ -93,6 +100,12 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.WARNING(
                     f"unmapped    {len(summary.unmapped_authors)} Confluence authors, fell back to actor"
+                )
+            )
+        if summary.unmatched_accounts:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"unmatched   {len(summary.unmatched_accounts)} accounts with no Plane user, kept as placeholders"
                 )
             )
         if summary.unresolved_pages:
@@ -133,3 +146,5 @@ class Command(BaseCommand):
             for change in sorted((c for c in summary.changes if c.kind == kind), key=lambda c: c.title.casefold()):
                 detail = f": {change.detail}" if change.detail else ""
                 self.stdout.write(f"  {kind:<8}{change.title}{detail}")
+        for name in sorted(summary.unmatched_accounts, key=str.casefold):
+            self.stdout.write(f"  {'unmatched':<8}{name}")

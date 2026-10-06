@@ -30,6 +30,7 @@ from plane.db.models.state import DEFAULT_STATES
 from plane.utils.content_validator import validate_html_content
 from plane.utils.issue_type import get_or_create_default_issue_type
 
+from ..users import UserMatcher
 from .assets import AttachmentUploader
 from .backup import ConfluenceBackup, order_parents_first, sibling_sort_orders, space_keys
 from .jira import derive_base_urls
@@ -82,6 +83,8 @@ class ImportSummary:
     attributed: int = 0
     unmapped_authors: set = field(default_factory=set)
     placeholders: int = 0
+    # Display names of accounts that matched no Plane user.
+    unmatched_accounts: set = field(default_factory=set)
     unsupported_macros: Counter = field(default_factory=Counter)
     unresolved_pages: set = field(default_factory=set)
     unresolved_wiki_urls: set = field(default_factory=set)
@@ -123,10 +126,12 @@ class ConfluenceLoader:
         page_url_template="/{slug}/projects/{project}/pages/{page}/",
         storage=None,
         jira_base_urls=None,
+        user_rules=None,
     ):
         self.workspace = Workspace.objects.get(slug=workspace_slug)
         self.actor = actor
         self.backup = backup
+        self.user_rules = user_rules
         self.page_url_template = page_url_template
         self.storage = storage
         self.jira_base_urls = jira_base_urls if jira_base_urls is not None else settings.CONFLUENCE_JIRA_BASE_URLS
@@ -203,21 +208,16 @@ class ConfluenceLoader:
         members = User.objects.filter(
             member_workspace__workspace=self.workspace, member_workspace__is_active=True
         ).distinct()
-        by_email, by_display_name = {}, {}
-        for member in members:
-            if member.email:
-                by_email.setdefault(member.email.casefold(), member)
-            for key in filter(None, (member.display_name, f"{member.first_name} {member.last_name}".strip())):
-                by_display_name.setdefault(key.casefold(), member)
+        matcher = UserMatcher(members, self.user_rules)
 
         referenced = self._referenced_accounts(pages) | {account for account in extra if account}
         mapping = {}
         for account_id, account in accounts.items():
-            match = by_email.get(account.email.casefold()) if account.email else None
-            if match is None and account.display_name:
-                match = by_display_name.get(account.display_name.casefold())
+            match = matcher.match(account)
             if match is None and account_id not in referenced:
                 continue
+            if match is None and summary is not None:
+                summary.unmatched_accounts.add(account.display_name or account_id)
             mapping[account_id] = match or self._placeholder_user(account, summary)
         return mapping
 

@@ -36,6 +36,7 @@ from plane.utils.derived_properties import deferred_derived_refresh
 
 from ..confluence.naming import project_name
 from ..confluence.resolvers import ResolvedUser, Resolvers
+from ..users import UserMatcher
 from .adf import AdfResult, Tally, adf_to_html
 from .assets import IssueAttachmentUploader
 from .backup import issue_number
@@ -149,11 +150,12 @@ class JiraLoader:
 
     EXTERNAL_SOURCE = "jira"
 
-    def __init__(self, workspace_slug, actor, backup, storage=None):
+    def __init__(self, workspace_slug, actor, backup, storage=None, user_rules=None):
         self.workspace = Workspace.objects.get(slug=workspace_slug)
         self.actor = actor
         self.backup = backup
         self.storage = storage
+        self.user_rules = user_rules
 
     def run(self, dry_run=False):
         """Load the backup; derived property values are recomputed once, at the end."""
@@ -228,18 +230,10 @@ class JiraLoader:
         members = User.objects.filter(
             member_workspace__workspace=self.workspace, member_workspace__is_active=True
         ).distinct()
-        by_email, by_display_name = {}, {}
-        for member in members:
-            if member.email:
-                by_email.setdefault(member.email.casefold(), member)
-            for key in filter(None, (member.display_name, f"{member.first_name} {member.last_name}".strip())):
-                by_display_name.setdefault(key.casefold(), member)
-
+        matcher = UserMatcher(members, self.user_rules)
         mapping = {}
         for account_id, account in accounts.items():
-            match = by_email.get(account.email.casefold()) if account.email else None
-            if match is None and account.display_name:
-                match = by_display_name.get(account.display_name.casefold())
+            match = matcher.match(account)
             if match is not None:
                 mapping[account_id] = match
         return mapping

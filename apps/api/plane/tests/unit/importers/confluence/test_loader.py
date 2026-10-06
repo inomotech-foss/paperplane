@@ -9,6 +9,7 @@ from django.utils import timezone
 from plane.db.models import Page, PageVersion, Project, ProjectMember, User, WorkspaceMember
 from plane.importers.confluence.backup import SORT_STEP, ConfluenceBackup
 from plane.importers.confluence.loader import PLACEHOLDER_HTML, Change, ConfluenceLoader
+from plane.importers.users import UserRules
 
 OWNER = {"accountId": "acc-owner", "displayName": "Space Owner", "emailAddress": "owner@plane.so"}
 SPACE = {"id": "100", "key": "DEMO", "name": "Demo", "type": "global", "status": "current", "spaceOwnerId": "acc-owner"}
@@ -95,6 +96,24 @@ class TestStructure:
         project = Project.objects.get(external_source="confluence", external_id="100")
         assert ProjectMember.objects.get(project=project, member=owner).role == 20
         assert summary.owner_granted is True
+
+    def test_unmatched_owner_is_reported(self, workspace, create_user, tmp_path):
+        loader = ConfluenceLoader(workspace.slug, create_user, write_backup(tmp_path), storage=object())
+
+        assert loader.run().unmatched_accounts == {"Space Owner"}
+
+    def test_owner_matched_through_a_domain_rule(self, workspace, create_user, tmp_path):
+        user = User.objects.create(username="moved-owner", email="owner@new.example")
+        WorkspaceMember.objects.create(workspace=workspace, member=user, role=15)
+        rules = UserRules(domains={"plane.so": "new.example"})
+        loader = ConfluenceLoader(
+            workspace.slug, create_user, write_backup(tmp_path), storage=object(), user_rules=rules
+        )
+
+        summary = loader.run()
+
+        assert ProjectMember.objects.get(project_id=summary.project_id, member=user).role == 20
+        assert not summary.unmatched_accounts
 
     def test_archived_space_starts_archived(self, workspace, create_user, owner, tmp_path):
         backup = write_backup(tmp_path, space={**SPACE, "status": "archived"})
