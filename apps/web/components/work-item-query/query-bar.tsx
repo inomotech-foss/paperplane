@@ -4,22 +4,26 @@
  * See the LICENSE file for details.
  */
 
-import type { KeyboardEvent } from "react";
-import { useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { CircleHelp, Play, X } from "lucide-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
+import type { SemanticError } from "@plane/pql";
 import type { TWorkItemQueryValidation } from "@plane/types";
 import { cn } from "@plane/utils";
 // services
 import { WorkItemQueryService } from "@/services/issue";
 // local imports
 import { WorkItemQueryHelp } from "./query-help";
+import { useValuesFor } from "./values";
+import { toVocabulary } from "./vocabulary";
 
 const workItemQueryService = new WorkItemQueryService();
+
+const QueryEditor = lazy(() => import("./editor"));
 
 type Props = {
   workspaceSlug: string;
@@ -33,39 +37,51 @@ type Props = {
   actions?: React.ReactNode;
 };
 
-/** Where a syntax error sits, drawn as a caret under the input. */
-const errorMarker = (validation: TWorkItemQueryValidation | null, length: number): string | null => {
-  if (!validation || validation.valid || validation.position === undefined) return null;
-  return `${" ".repeat(Math.max(0, Math.min(validation.position, length)))}^`;
-};
-
 /**
  * A single line where a person types a Plane Query Language expression
  * (`type = "Invoice" AND state = "Paid" AND descendantOf("CUST-1")`) to filter
- * the list. The query is validated before it is applied, so a typo shows up
- * under the input, at the character that broke, instead of as a failed fetch.
+ * the list, with highlighting, completion and inline errors. The query is
+ * validated before it is applied, so a typo shows up under the editor instead
+ * of as a failed fetch.
  */
 export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props) {
   const { workspaceSlug, projectId, value, onApply, className, actions } = props;
   // i18n
   const { t } = useTranslation();
   // states: `edits` is what the person typed since the last apply, null when
-  // the input shows the applied query, so an applied query never goes stale.
+  // the editor shows the applied query, so an applied query never goes stale.
   const [edits, setEdits] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [validation, setValidation] = useState<TWorkItemQueryValidation | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
+  const [inlineErrors, setInlineErrors] = useState<string[]>([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   // derived values
   const draft = edits ?? value;
   const isDirty = draft.trim() !== value.trim();
   const isApplied = value.trim().length > 0;
-  const hasError = validation !== null && !validation.valid;
+  const errors = inlineErrors.length > 0 ? inlineErrors : runError ? [runError] : [];
+  const hasError = errors.length > 0;
 
   const { data: fields } = useSWR(
-    isHelpOpen ? `WORK_ITEM_QUERY_FIELDS_${workspaceSlug}` : null,
+    `WORK_ITEM_QUERY_FIELDS_${workspaceSlug}`,
     () => workItemQueryService.fields(workspaceSlug),
     { revalidateOnFocus: false }
   );
+  const valuesFor = useValuesFor(projectId);
+  const vocabulary = useMemo(() => toVocabulary(fields, valuesFor), [fields, valuesFor]);
+
+  const validate = useCallback(
+    async (pql: string): Promise<SemanticError | null> => {
+      const result = await workItemQueryService.validate(workspaceSlug, pql, projectId);
+      if (result.valid) return null;
+      return { position: result.position, token: result.token, message: result.error ?? t("work_item_query.invalid") };
+    },
+    [workspaceSlug, projectId, t]
+  );
+
+  const onDiagnostics = useCallback((diagnostics: { message: string }[]) => {
+    setInlineErrors(diagnostics.map((diagnostic) => diagnostic.message));
+  }, []);
 
   const run = async () => {
     const pql = draft.trim();
@@ -73,17 +89,17 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
     setIsRunning(true);
     try {
       if (pql) {
-        const result = await workItemQueryService.validate(workspaceSlug, pql, projectId);
+        const result: TWorkItemQueryValidation = await workItemQueryService.validate(workspaceSlug, pql, projectId);
         if (!result.valid) {
-          setValidation(result);
+          setRunError(result.error ?? t("work_item_query.invalid"));
           return;
         }
       }
-      setValidation(null);
+      setRunError(null);
       await onApply(pql);
       setEdits(null);
     } catch (error) {
-      setValidation({ valid: false, error: (error as { error?: string })?.error ?? t("work_item_query.invalid") });
+      setRunError((error as { error?: string })?.error ?? t("work_item_query.invalid"));
     } finally {
       setIsRunning(false);
     }
@@ -91,22 +107,14 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
 
   const clear = async () => {
     setEdits(null);
-    setValidation(null);
+    setRunError(null);
     if (isApplied) await onApply("");
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      void run();
-    }
-    if (event.key === "Escape") {
-      setEdits(null);
-      setValidation(null);
-    }
+  const revert = () => {
+    setEdits(null);
+    setRunError(null);
   };
-
-  const marker = errorMarker(validation, draft.length);
 
   return (
     <div className={cn("flex flex-col gap-1 border-b border-subtle-1 bg-surface-1 px-4 py-2", className)}>
@@ -120,24 +128,34 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
         >
           PQL
         </span>
-        <input
-          type="text"
-          value={draft}
-          onChange={(event) => {
-            setEdits(event.target.value);
-            setValidation(null);
-          }}
-          onKeyDown={handleKeyDown}
-          placeholder={t("work_item_query.placeholder")}
-          spellCheck={false}
-          autoComplete="off"
-          aria-label={t("work_item_query.placeholder")}
-          aria-invalid={hasError}
-          className={cn(
-            "font-mono h-7 w-full min-w-0 flex-1 rounded-sm border bg-layer-1 px-2 text-12 text-primary outline-none placeholder:text-placeholder focus:border-accent-strong",
-            hasError ? "border-danger-strong" : "border-subtle-1"
-          )}
-        />
+        <Suspense
+          fallback={
+            <div
+              className={cn(
+                "font-mono h-7 w-full min-w-0 flex-1 rounded-sm border bg-layer-1 px-2 text-12 leading-7 text-placeholder",
+                hasError ? "border-danger-strong" : "border-subtle-1"
+              )}
+            >
+              {draft || t("work_item_query.placeholder")}
+            </div>
+          }
+        >
+          <QueryEditor
+            value={draft}
+            onChange={(next) => {
+              setEdits(next);
+              setRunError(null);
+            }}
+            onSubmit={() => void run()}
+            onCancel={revert}
+            vocabulary={vocabulary}
+            validate={validate}
+            onDiagnostics={onDiagnostics}
+            placeholder={t("work_item_query.placeholder")}
+            ariaLabel={t("work_item_query.placeholder")}
+            hasError={hasError}
+          />
+        </Suspense>
         <Button
           variant={isDirty ? "primary" : "secondary"}
           size="sm"
@@ -172,9 +190,10 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
         {actions && <div className="flex shrink-0 items-center gap-2 border-l border-subtle pl-2">{actions}</div>}
       </div>
       {hasError && (
-        <div className="font-mono flex flex-col gap-0.5 pl-11 text-11 text-danger-primary">
-          {marker && <pre className="m-0 leading-none whitespace-pre">{marker}</pre>}
-          <span className="font-sans">{validation?.error}</span>
+        <div className="flex flex-col gap-0.5 pl-11 text-11 text-danger-primary" role="alert">
+          {errors.map((message) => (
+            <span key={message}>{message}</span>
+          ))}
         </div>
       )}
       {isHelpOpen && <WorkItemQueryHelp fields={fields} onClose={() => setIsHelpOpen(false)} />}
