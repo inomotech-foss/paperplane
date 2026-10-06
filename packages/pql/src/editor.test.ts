@@ -47,6 +47,10 @@ describe("pqlCompletionSource through CodeMirror's filter", () => {
   it("filters field names by prefix", async () => {
     expect(await completionsFor("pri")).toEqual(["priority"]);
   });
+
+  it("ranks a lookup path such as assignees__id below the plain names", async () => {
+    expect(await completionsFor("assig")).toEqual(["assignee", "assignees", "assignees__id"]);
+  });
 });
 
 function editorFor(doc: string, options: SingleLineOptions = {}): EditorView {
