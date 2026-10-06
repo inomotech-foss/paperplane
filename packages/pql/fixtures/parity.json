@@ -1,0 +1,376 @@
+{
+  "valid": [
+    "(((priority = urgent)))",
+    "(priority = low OR priority = high) AND state__group = started",
+    "CHILDOF(\"PROJ-12\")",
+    "NOT (priority = urgent AND state__group = started)",
+    "NOT priority = urgent AND state__group = started",
+    "NOT priority = urgent OR state__group = started",
+    "TARGET_DATE IS NULL",
+    "ancestor = \"CUST-1\"",
+    "ancestor in (\"CUST-1\", \"CUST-2\")",
+    "assignee = \"55555555-5555-4555-8555-555555555555\"",
+    "assignee = currentUser()",
+    "assignee = currentuser()",
+    "assignee in (currentUser())",
+    "assignees__id = \"55555555-5555-4555-8555-555555555555\"",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] != 5",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] < 5.5",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] <= 5",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] = \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa\"",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] = true",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] > -2",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] > 5",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] >= 5",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] in (1, 2)",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] is not null",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] is null",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] not in (1)",
+    "cf[\"99999999-9999-4999-8999-999999999999\"] ~ \"acme\"",
+    "cf[\"<property.id>\"] = \"<option.id>\"",
+    "cf[\"Amount\"] > 1000",
+    "cf[\"Due date\"] < now() + 1w",
+    "cf[\"Region\"] = \"north\"",
+    "cf[\"Total amount\"] >= 1000",
+    "childOf(\"<EPIC-IDENTIFIER>\")",
+    "childOf(\"PROJ-12\")",
+    "completed_at is null",
+    "created_at >= \"2026-01-01\" AND created < \"2027-01-01\"",
+    "created_by != currentUser()",
+    "cycle = \"11111111-1111-4111-8111-111111111111\"",
+    "descendantOf(\"CUST-1\") AND type = \"Invoice\"",
+    "descendantOf(\"PROJ-12\")",
+    "descendantof(\"PROJ-12\")",
+    "due_date >= \"2026-01-01\"",
+    "label = \"44444444-4444-4444-8444-444444444444\"",
+    "module = \"11111111-1111-4111-8111-111111111111\"",
+    "name ~ \"acme\"",
+    "parent = \"CUST-1\"",
+    "priority != urgent",
+    "priority = \"\"",
+    "priority = \"back\\\\slash\"",
+    "priority = \"it's urgent\"",
+    "priority = \"line\\nbreak\"",
+    "priority = \"say \\\"urgent\\\"\"",
+    "priority = \"tab\\there\"",
+    "priority = \"urgent\"",
+    "priority = \"urgent\" AND assignee = currentUser()",
+    "priority = 'it\\'s urgent'",
+    "priority = 'say \"urgent\"'",
+    "priority = 'urgent'",
+    "priority = low AND priority = high AND priority = medium",
+    "priority = low OR priority = high AND state__group = started",
+    "priority = low Or priority = high",
+    "priority = low and priority = high",
+    "priority = urgent",
+    "priority in (urgent, high)",
+    "priority not in (low)",
+    "priority ~ \"urg\"",
+    "start_date < \"2024-05-01\"",
+    "start_date <= \"2024-05-01\"",
+    "state = \"11111111-1111-4111-8111-111111111111\"",
+    "state = \"Paid\"",
+    "state__group = started",
+    "state__group in (backlog, \"unstarted\", started, completed)",
+    "state__group in (started)",
+    "state__group in (unstarted, started)",
+    "state__group not in (backlog)",
+    "state_group = started",
+    "status = \"Paid\"",
+    "target_date < now() + 1w",
+    "target_date < now() + 1w - 12h",
+    "target_date = now()",
+    "target_date > \"2024-05-01\"",
+    "target_date > now() - 7d",
+    "target_date >= \"2024-05-01\"",
+    "target_date is not null",
+    "target_date is null",
+    "title ~ \"acme\"",
+    "type = \"33333333-3333-4333-8333-333333333333\"",
+    "type = \"<type id>\"",
+    "type = \"Invoice\"",
+    "updated_at > now() - 1d"
+  ],
+  "invalid": [
+    {
+      "query": "",
+      "position": 0,
+      "token": null,
+      "detail": "empty query",
+      "expected": "a filter expression"
+    },
+    {
+      "query": "   ",
+      "position": 3,
+      "token": null,
+      "detail": "empty query",
+      "expected": "a filter expression"
+    },
+    {
+      "query": "priority = \"urgent",
+      "position": 11,
+      "token": "\"urgent",
+      "detail": "unterminated string literal",
+      "expected": "a closing \""
+    },
+    {
+      "query": "priority = 'urgent",
+      "position": 11,
+      "token": "'urgent",
+      "detail": "unterminated string literal",
+      "expected": "a closing '"
+    },
+    {
+      "query": "(priority = urgent",
+      "position": 18,
+      "token": null,
+      "detail": "unexpected end of input",
+      "expected": "one of 'and', 'or', ')'"
+    },
+    {
+      "query": "priority = urgent)",
+      "position": 17,
+      "token": ")",
+      "detail": "unexpected ')'",
+      "expected": "one of 'and', 'or', end of input"
+    },
+    {
+      "query": "priority = urgent AND",
+      "position": 21,
+      "token": null,
+      "detail": "unexpected end of input",
+      "expected": "a field name, 'not' or '('"
+    },
+    {
+      "query": "priority = urgent OR",
+      "position": 20,
+      "token": null,
+      "detail": "unexpected end of input",
+      "expected": "a field name, 'not' or '('"
+    },
+    {
+      "query": "priority =",
+      "position": 10,
+      "token": null,
+      "detail": "unexpected end of input",
+      "expected": "a value"
+    },
+    {
+      "query": "NOT",
+      "position": 3,
+      "token": null,
+      "detail": "unexpected end of input",
+      "expected": "a field name, 'not' or '('"
+    },
+    {
+      "query": "= urgent",
+      "position": 0,
+      "token": "=",
+      "detail": "unexpected '='",
+      "expected": "a field name, 'not' or '('"
+    },
+    {
+      "query": "AND priority = urgent",
+      "position": 0,
+      "token": "AND",
+      "detail": "'AND' is a keyword, not a field name",
+      "expected": "a field name, 'not' or '('"
+    },
+    {
+      "query": "priority",
+      "position": 8,
+      "token": null,
+      "detail": "unexpected end of input",
+      "expected": "one of '!=', '>=', '<=', '=', '>', '<', '~', 'not', 'in', 'is'"
+    },
+    {
+      "query": "priority urgent",
+      "position": 9,
+      "token": "urgent",
+      "detail": "unexpected 'urgent'",
+      "expected": "one of '!=', '>=', '<=', '=', '>', '<', '~', 'not', 'in', 'is'"
+    },
+    {
+      "query": "assignee = whoAmI()",
+      "position": 17,
+      "token": "(",
+      "detail": "unexpected '('",
+      "expected": "one of 'and', 'or', end of input"
+    },
+    {
+      "query": "whoAmI()",
+      "position": 6,
+      "token": "(",
+      "detail": "unexpected '('",
+      "expected": "one of '!=', '>=', '<=', '=', '>', '<', '~', 'not', 'in', 'is'"
+    },
+    {
+      "query": "priority in (urgent,)",
+      "position": 20,
+      "token": ")",
+      "detail": "unexpected ')'",
+      "expected": "a value"
+    },
+    {
+      "query": "priority in urgent",
+      "position": 12,
+      "token": "urgent",
+      "detail": "unexpected 'urgent'",
+      "expected": "'('"
+    },
+    {
+      "query": "priority not urgent",
+      "position": 13,
+      "token": "urgent",
+      "detail": "unexpected 'urgent'",
+      "expected": "'in'"
+    },
+    {
+      "query": "target_date is nul",
+      "position": 15,
+      "token": "nul",
+      "detail": "unexpected 'nul'",
+      "expected": "one of 'not', 'null'"
+    },
+    {
+      "query": "priority = null",
+      "position": 11,
+      "token": "null",
+      "detail": "'null' is a keyword, not a value",
+      "expected": "'is null' to test for an unset field"
+    },
+    {
+      "query": "priority = and",
+      "position": 11,
+      "token": "and",
+      "detail": "'and' is a keyword, not a value",
+      "expected": "a value"
+    },
+    {
+      "query": "target_date = 7d",
+      "position": 14,
+      "token": "7d",
+      "detail": "a duration is only allowed after now()",
+      "expected": "a value such as now() - 7d"
+    },
+    {
+      "query": "target_date > now() - 7",
+      "position": 22,
+      "token": "7",
+      "detail": "unexpected '7'",
+      "expected": "a duration"
+    },
+    {
+      "query": "priority & urgent",
+      "position": 9,
+      "token": "&",
+      "detail": "unexpected character '&'",
+      "expected": "a field name, an operator or a boolean keyword"
+    },
+    {
+      "query": "cf = 1",
+      "position": 3,
+      "token": "=",
+      "detail": "unexpected '='",
+      "expected": "'['"
+    },
+    {
+      "query": "cf[1] = 2",
+      "position": 3,
+      "token": "1",
+      "detail": "unexpected '1'",
+      "expected": "a string"
+    },
+    {
+      "query": "cf[\"p\" = 2",
+      "position": 7,
+      "token": "=",
+      "detail": "unexpected '='",
+      "expected": "']'"
+    },
+    {
+      "query": "cf[\"p\"] 2",
+      "position": 8,
+      "token": "2",
+      "detail": "unexpected '2'",
+      "expected": "one of '!=', '>=', '<=', '=', '>', '<', '~', 'not', 'in', 'is'"
+    },
+    {
+      "query": "cf[\"p\"] in 2",
+      "position": 11,
+      "token": "2",
+      "detail": "unexpected '2'",
+      "expected": "'('"
+    },
+    {
+      "query": "now = 1",
+      "position": 4,
+      "token": "=",
+      "detail": "unexpected '='",
+      "expected": "'(' after the reserved function name 'now'"
+    },
+    {
+      "query": "priority = now",
+      "position": 14,
+      "token": null,
+      "detail": "unexpected end of input",
+      "expected": "'(' after the reserved function name 'now'"
+    },
+    {
+      "query": "priority = currentUser",
+      "position": 22,
+      "token": null,
+      "detail": "unexpected end of input",
+      "expected": "'(' after the reserved function name 'currentUser'"
+    },
+    {
+      "query": "priority = cf",
+      "position": 11,
+      "token": "cf",
+      "detail": "'cf' is a keyword, not a value",
+      "expected": "a value"
+    },
+    {
+      "query": "priority = in",
+      "position": 11,
+      "token": "in",
+      "detail": "'in' is a keyword, not a value",
+      "expected": "a value"
+    },
+    {
+      "query": "is = 1",
+      "position": 0,
+      "token": "is",
+      "detail": "'is' is a keyword, not a field name",
+      "expected": "a field name, 'not' or '('"
+    },
+    {
+      "query": "childOf = 1",
+      "position": 8,
+      "token": "=",
+      "detail": "unexpected '='",
+      "expected": "'(' after the reserved function name 'childOf'"
+    }
+  ],
+  "semantic": [
+    "priority = \"bad \\q escape\"",
+    "foo = urgent",
+    "assignees__email = x",
+    "milestone_id = x",
+    "priority > urgent",
+    "target_date ~ x",
+    "childOf()",
+    "childOf(\"A\", \"B\")",
+    "childOf(PROJ)",
+    "assignee = currentUser(1)",
+    "target_date = now(1)",
+    "currentUser()",
+    "assignee = childOf(\"PROJ-12\")",
+    "priority in ()",
+    "target_date > now() - 7y",
+    "cf[\"\"] = 2",
+    "descendantOf()",
+    "descendantOf(PROJ)",
+    "assignee = descendantOf(\"PROJ-12\")"
+  ]
+}

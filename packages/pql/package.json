@@ -2,7 +2,7 @@
   "name": "@plane/pql",
   "version": "1.4.2",
   "private": true,
-  "description": "Plane Query Language grammar and the parsers generated from it",
+  "description": "Plane Query Language grammar, the parsers generated from it and CodeMirror language support",
   "license": "AGPL-3.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -16,6 +16,8 @@
     "build": "tsdown",
     "dev": "tsdown --watch --no-clean",
     "generate": "node tools/generate.mjs",
+    "bundle-size": "node tools/bundle.mjs",
+    "test": "vitest run",
     "check:lint": "oxlint .",
     "check:types": "tsc --noEmit",
     "check:format": "oxfmt --check .",
@@ -24,12 +26,21 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "catalog:",
+    "@codemirror/language": "catalog:",
+    "@codemirror/lint": "catalog:",
+    "@codemirror/state": "catalog:",
+    "@codemirror/view": "catalog:",
+    "@lezer/highlight": "catalog:",
+    "antlr4-c3": "catalog:",
     "antlr4ng": "catalog:"
   },
   "devDependencies": {
     "@plane/typescript-config": "workspace:*",
     "antlr-ng": "catalog:",
+    "esbuild": "catalog:",
     "tsdown": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
