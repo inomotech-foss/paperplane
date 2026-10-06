@@ -67,7 +67,8 @@ class WorkItemQueryValidateEndpoint(BaseAPIView):
     `{"valid": true, "expression": <filters AST>}` or `{"valid": false, ...}`
     carrying the same payload a list endpoint would reject the query with
     (`error`, and for syntax errors `position`, `line`, `column`, `token`,
-    `expected`).
+    `expected`). Errors about a field or value, such as an unknown name or an
+    invalid choice, carry the `position` and `token` of that field or value.
     """
 
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")

@@ -75,14 +75,19 @@ DESCENDANTS_SQL = (
 )
 
 
+# Marks an error that is not about one particular value.
+NO_VALUE = object()
+
+
 class FilterCompileError(Exception):
     """A structured, catchable error describing why a filter was rejected."""
 
-    def __init__(self, message, field=None, lookup=None):
+    def __init__(self, message, field=None, lookup=None, value=NO_VALUE):
         super().__init__(message)
         self.message = message
         self.field = field
         self.lookup = lookup
+        self.value = value
 
     def as_dict(self):
         return {"error": self.message, "field": self.field, "lookup": self.lookup}
@@ -228,7 +233,7 @@ def _coerce(name, field, lookup, value):
     try:
         return coerce_value(field, value)
     except (ValueError, TypeError) as exc:
-        raise FilterCompileError(f"Invalid value for '{name}': {exc}", field=name, lookup=lookup) from exc
+        raise FilterCompileError(f"Invalid value for '{name}': {exc}", field=name, lookup=lookup, value=value) from exc
 
 
 def _compile_custom_property_leaf(key, value, conjunctive, compiled, resolver):

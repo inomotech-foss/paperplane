@@ -55,14 +55,14 @@ from plane.utils.pql.fields import (
     is_uuid,
     split_field_lookup,
 )
-from plane.utils.pql.filters import FilterCompileError, compile_filters
+from plane.utils.pql.filters import NO_VALUE, FilterCompileError, compile_filters
 from plane.utils.pql.errors import PQLSyntaxError
 from plane.utils.pql.parser import (
     CHILD_OF_PLACEHOLDER,
     CURRENT_USER_PLACEHOLDER,
     DESCENDANT_OF_PLACEHOLDER,
     NOW_PLACEHOLDER,
-    parse_pql,
+    parse_pql_with_spans,
 )
 
 PARENT_FIELD = "parent_id"
@@ -73,9 +73,12 @@ WORK_ITEM_IDENTIFIER_RE = re.compile(r"^([A-Za-z0-9]+)-(\d+)$")
 class WorkItemFilterError(Exception):
     """A rejected filter request, carrying the response body for a 400."""
 
-    def __init__(self, payload):
+    def __init__(self, payload, field=None, value=NO_VALUE):
         super().__init__(payload.get("error", "Invalid filter"))
         self.payload = payload
+        # The field and value at fault, used to point at them in the PQL source.
+        self.field = field
+        self.value = value
 
 
 class QueryContext:
@@ -94,10 +97,33 @@ def compile_pql(source, user, slug, project_id=None, now=None):
     Raises `WorkItemFilterError` with the payload for a 400.
     """
     try:
-        expression = parse_pql(source)
+        expression, spans = parse_pql_with_spans(source)
     except PQLSyntaxError as exc:
         raise WorkItemFilterError(exc.as_dict()) from exc
-    return compile_query(expression, user, slug, project_id=project_id, now=now)
+    try:
+        return compile_query(expression, user, slug, project_id=project_id, now=now)
+    except WorkItemFilterError as exc:
+        _locate(exc, spans)
+        raise
+
+
+def _locate(error, spans):
+    """Add the `position` and `token` of the value, else the field, the error is about."""
+    if error.field is None or "position" in error.payload:
+        return
+    names = {error.field, f"{CUSTOM_PROPERTY_PREFIX}{error.field}"}
+    candidates = [span for span in spans if span.field in names]
+    span = None
+    if error.value is not NO_VALUE:
+        span = next((span for span in candidates if span.is_value and _same(span.value, error.value)), None)
+    if span is None:
+        span = next((span for span in candidates if not span.is_value), None)
+    if span is not None:
+        error.payload.update(position=span.position, token=span.token)
+
+
+def _same(left, right):
+    return type(left) is type(right) and left == right
 
 
 def compile_query(expression, user, slug, project_id=None, now=None):
@@ -113,7 +139,7 @@ def compile_query(expression, user, slug, project_id=None, now=None):
     try:
         return compile_filters(expression, custom_property_resolver=_custom_property_resolver(context))
     except FilterCompileError as exc:
-        raise WorkItemFilterError(exc.as_dict()) from exc
+        raise WorkItemFilterError(exc.as_dict(), field=exc.field, value=exc.value) from exc
 
 
 def compile_work_item_filters(request, slug, project_id=None):
@@ -175,14 +201,24 @@ def _substitute(node, context):
     if len(node) == 1:
         key, value = next(iter(node.items()))
         if key == CHILD_OF_PLACEHOLDER:
-            return {PARENT_FIELD: _resolve_work_item_identifier(value, context)}
+            return {PARENT_FIELD: _attributed(PARENT_FIELD, value, _resolve_work_item_identifier, context)}
         if key == DESCENDANT_OF_PLACEHOLDER:
-            return {ANCESTOR_FIELD: _resolve_work_item_identifier(value, context)}
+            return {ANCESTOR_FIELD: _attributed(ANCESTOR_FIELD, value, _resolve_work_item_identifier, context)}
         if key == CURRENT_USER_PLACEHOLDER and value is True:
             return str(context.user.id)
         if key == NOW_PLACEHOLDER and isinstance(value, dict):
             return context.now + timedelta(seconds=value.get("seconds", 0))
     return {key: _substitute(value, context) for key, value in node.items()}
+
+
+def _attributed(field, value, resolver, context):
+    """Run `resolver(value, context)`, blaming `field` and `value` for a rejection."""
+    try:
+        return resolver(value, context)
+    except WorkItemFilterError as exc:
+        if exc.field is None:
+            exc.field, exc.value = field, value
+        raise
 
 
 def _resolve_work_item_identifier(identifier, context):
@@ -243,7 +279,7 @@ def _resolve_names(node, context):
             if is_uuid(item):
                 ids.append(str(item))
             else:
-                ids.extend(resolver(item, context))
+                ids.extend(_attributed(name, item, resolver, context))
         if lookup == EXACT and len(ids) == 1:
             resolved[key] = ids[0]
         else:
@@ -368,7 +404,9 @@ def _custom_property_resolver(context):
             try:
                 query |= build_custom_property_lookup_q(property_obj, lookup, value)
             except PropertyValueError as exc:
-                raise FilterCompileError(f'cf["{reference}"]: {exc}', field=reference, lookup=lookup) from exc
+                raise FilterCompileError(
+                    f'cf["{reference}"]: {exc}', field=reference, lookup=lookup, value=value
+                ) from exc
         return query
 
     return resolve

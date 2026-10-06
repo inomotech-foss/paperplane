@@ -166,6 +166,37 @@ class TestValidateEndpoint:
         response = session_client.post(self.url(workspace), {"pql": 'state = "Overdue"'})
         assert response.data["valid"] is False
         assert "Overdue" in response.data["error"]
+        assert response.data["position"] == 8
+        assert response.data["token"] == '"Overdue"'
+
+    @pytest.mark.django_db
+    def test_invalid_value_carries_its_position(self, session_client, workspace, project, items):
+        response = session_client.post(self.url(workspace), {"pql": 'state = "Paid" AND priority = h'})
+        assert response.data["valid"] is False
+        assert "Invalid value for 'priority'" in response.data["error"]
+        assert response.data["position"] == 30
+        assert response.data["token"] == "h"
+
+    @pytest.mark.django_db
+    def test_invalid_list_value_points_at_that_value(self, session_client, workspace, project, items):
+        response = session_client.post(self.url(workspace), {"pql": "priority in (high, nope)"})
+        assert response.data["valid"] is False
+        assert response.data["position"] == 19
+        assert response.data["token"] == "nope"
+
+    @pytest.mark.django_db
+    def test_unknown_work_item_points_at_the_identifier(self, session_client, workspace, project, items):
+        response = session_client.post(self.url(workspace), {"pql": 'descendantOf("SALES-999")'})
+        assert response.data["valid"] is False
+        assert response.data["position"] == 13
+        assert response.data["token"] == '"SALES-999"'
+
+    @pytest.mark.django_db
+    def test_unknown_custom_property_points_at_its_reference(self, session_client, workspace, project, items):
+        response = session_client.post(self.url(workspace), {"pql": 'state = "Paid" AND cf["Nope"] = 1'})
+        assert response.data["valid"] is False
+        assert response.data["position"] == 22
+        assert response.data["token"] == '"Nope"'
 
     @pytest.mark.django_db
     def test_missing_query(self, session_client, workspace):
