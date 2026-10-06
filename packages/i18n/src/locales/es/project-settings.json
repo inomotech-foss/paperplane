@@ -528,6 +528,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Los enlaces aparecen en la barra lateral debajo de las funciones del proyecto. Use una URL http(s) o una ruta de esta aplicación que empiece por /.",
+      "url_invalid": "Introduzca una URL http(s) o una ruta que empiece por /.",
+      "move_up": "Subir",
+      "move_down": "Bajar"
     }
   }
 }

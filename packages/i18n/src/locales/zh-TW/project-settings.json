@@ -528,6 +528,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "連結會顯示在側邊欄中專案功能的下方。請使用 http(s) URL 或以 / 開頭的本應用程式內路徑。",
+      "url_invalid": "請輸入 http(s) URL 或以 / 開頭的路徑。",
+      "move_up": "上移",
+      "move_down": "下移"
     }
   }
 }

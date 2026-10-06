@@ -528,6 +528,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Os links aparecem na barra lateral abaixo dos recursos do projeto. Use uma URL http(s) ou um caminho deste app que comece com /.",
+      "url_invalid": "Insira uma URL http(s) ou um caminho que comece com /.",
+      "move_up": "Mover para cima",
+      "move_down": "Mover para baixo"
     }
   }
 }

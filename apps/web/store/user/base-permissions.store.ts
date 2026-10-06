@@ -164,6 +164,7 @@ export class BaseUserPermissionStore implements IBaseUserPermissionStore {
    */
   fetchWorkspaceLevelProjectEntities = (workspaceSlug: string, projectId: string): void => {
     void this.store.projectRoot.project.fetchProjectDetails(workspaceSlug, projectId);
+    void this.store.projectRoot.link.fetchProjectLinks(workspaceSlug, projectId);
   };
 
   /**

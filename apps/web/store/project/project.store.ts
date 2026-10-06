@@ -628,6 +628,7 @@ export class ProjectStore implements IProjectStore {
         runInAction(() => {
           set(this.projectMap, [projectId, "archived_at"], null);
         });
+        void this.rootStore.projectRoot.link.fetchProjectLinks(workspaceSlug, projectId);
       })
       .catch((error) => {
         console.log("Failed to restore project from project store");

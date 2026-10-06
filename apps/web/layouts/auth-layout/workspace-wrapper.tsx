@@ -24,6 +24,7 @@ import { LogoSpinner } from "@/components/common/logo-spinner";
 import {
   WORKSPACE_MEMBERS,
   WORKSPACE_PARTIAL_PROJECTS,
+  WORKSPACE_PROJECT_LINKS,
   WORKSPACE_MEMBER_ME_INFORMATION,
   WORKSPACE_PROJECTS_ROLES_INFORMATION,
   WORKSPACE_FAVORITE,
@@ -35,6 +36,7 @@ import {
 import { useFavorite } from "@/hooks/store/use-favorite";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
+import { useProjectLink } from "@/hooks/store/use-project-link";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
@@ -52,6 +54,7 @@ export const WorkspaceAuthWrapper = observer(function WorkspaceAuthWrapper(props
   // store hooks
   const { signOut, data: currentUser } = useUser();
   const { fetchPartialProjects } = useProject();
+  const { fetchWorkspaceLinks } = useProjectLink();
   const { fetchFavorite } = useFavorite();
   const {
     workspace: { fetchWorkspaceMembers },
@@ -87,6 +90,11 @@ export const WorkspaceAuthWrapper = observer(function WorkspaceAuthWrapper(props
   useSWR(
     workspaceSlug && currentWorkspace ? WORKSPACE_PARTIAL_PROJECTS(workspaceSlug.toString()) : null,
     workspaceSlug && currentWorkspace ? () => fetchPartialProjects(workspaceSlug.toString()) : null,
+    { revalidateIfStale: false, revalidateOnFocus: false }
+  );
+  useSWR(
+    workspaceSlug && currentWorkspace ? WORKSPACE_PROJECT_LINKS(workspaceSlug.toString()) : null,
+    workspaceSlug && currentWorkspace ? () => fetchWorkspaceLinks(workspaceSlug.toString()) : null,
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
   // fetch workspace members

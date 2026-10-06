@@ -28,6 +28,8 @@ import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
+// local imports
+import { ProjectSidebarLinks } from "./project-links";
 
 export type TNavigationItem = {
   name: string;
@@ -207,6 +209,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
           </Link>
         );
       })}
+      <ProjectSidebarLinks workspaceSlug={workspaceSlug} projectId={project.id} onInternalClick={handleProjectClick} />
     </>
   );
 });

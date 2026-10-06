@@ -528,6 +528,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Bağlantılar kenar çubuğunda proje özelliklerinin altında görünür. Bir http(s) URL'si veya bu uygulamada / ile başlayan bir yol kullanın.",
+      "url_invalid": "Bir http(s) URL'si veya / ile başlayan bir yol girin.",
+      "move_up": "Yukarı taşı",
+      "move_down": "Aşağı taşı"
     }
   }
 }

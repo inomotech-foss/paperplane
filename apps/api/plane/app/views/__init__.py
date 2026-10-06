@@ -25,6 +25,13 @@ from .project.member import (
     ProjectMemberPreferenceEndpoint,
 )
 
+from .project.link import (
+    ProjectLinkEndpoint,
+    ProjectLinkDetailEndpoint,
+    ProjectLinkReorderEndpoint,
+    WorkspaceProjectLinkEndpoint,
+)
+
 from .user.base import (
     UserEndpoint,
     UpdateUserOnBoardedEndpoint,

@@ -528,6 +528,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Linki są wyświetlane na pasku bocznym pod funkcjami projektu. Należy użyć adresu URL http(s) lub ścieżki w tej aplikacji zaczynającej się od /.",
+      "url_invalid": "Wprowadź adres URL http(s) lub ścieżkę zaczynającą się od /.",
+      "move_up": "Przenieś w górę",
+      "move_down": "Przenieś w dół"
     }
   }
 }

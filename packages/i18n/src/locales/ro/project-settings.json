@@ -528,6 +528,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Linkurile apar în bara laterală sub funcțiile proiectului. Folosiți o adresă URL http(s) sau o cale din această aplicație care începe cu /.",
+      "url_invalid": "Introduceți o adresă URL http(s) sau o cale care începe cu /.",
+      "move_up": "Mutați în sus",
+      "move_down": "Mutați în jos"
     }
   }
 }

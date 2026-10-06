@@ -528,6 +528,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Les liens apparaissent dans la barre latérale sous les fonctionnalités du projet. Utilisez une URL http(s) ou un chemin de cette application commençant par /.",
+      "url_invalid": "Saisissez une URL http(s) ou un chemin commençant par /.",
+      "move_up": "Monter",
+      "move_down": "Descendre"
     }
   }
 }

@@ -528,6 +528,12 @@
           }
         }
       }
+    },
+    "links": {
+      "description": "Links appear in the sidebar below the project's features. Use an http(s) URL or a path in this app starting with /.",
+      "url_invalid": "Enter an http(s) URL or a path starting with /.",
+      "move_up": "Move up",
+      "move_down": "Move down"
     }
   }
 }
