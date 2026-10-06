@@ -1,0 +1,11 @@
+{
+  "extends": "@plane/typescript-config/base.json",
+  "compilerOptions": {
+    "lib": ["es2023", "DOM"],
+    "exactOptionalPropertyTypes": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["src"],
+  "exclude": ["dist", "node_modules"]
+}

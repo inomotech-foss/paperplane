@@ -56,7 +56,7 @@ from plane.utils.pql.fields import (
     split_field_lookup,
 )
 from plane.utils.pql.filters import FilterCompileError, compile_filters
-from plane.utils.pql.lexer import PQLSyntaxError
+from plane.utils.pql.errors import PQLSyntaxError
 from plane.utils.pql.parser import (
     CHILD_OF_PLACEHOLDER,
     CURRENT_USER_PLACEHOLDER,
@@ -351,6 +351,8 @@ NAME_RESOLVERS = {
     PARENT_FIELD: _resolve_work_item,
     ANCESTOR_FIELD: _resolve_work_item,
 }
+
+MEMBER_FIELDS = frozenset(name for name, resolver in NAME_RESOLVERS.items() if resolver is _resolve_member)
 
 
 # ---------------------------------------------------------------------------

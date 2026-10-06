@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-"""Unit tests for the PQL lexer and parser.
+"""Unit tests for the PQL parser.
 
 The parser is pure: text in, `filters` AST out, no clock, no request and no
 database. The end-to-end table at the bottom is the load-bearing one, because
@@ -13,6 +13,7 @@ import uuid
 from datetime import date
 
 import pytest
+from antlr4 import InputStream
 from django.db.models import Q
 
 from plane.utils.pql import (
@@ -26,8 +27,9 @@ from plane.utils.pql import (
     parse_pql,
 )
 from plane.utils.pql.filters import CustomPropertyFilter
-from plane.utils.pql.lexer import DURATION, EOF, IDENT, NUMBER, OPERATOR, STRING, tokenize
-from plane.utils.pql.parser import MAX_PQL_DEPTH
+from plane.utils.pql.generated.PQLLexer import PQLLexer
+from plane.utils.pql.generated.PQLParser import PQLParser
+from plane.utils.pql.parser import MAX_PQL_DEPTH, RESERVED_TOKENS
 
 STATE_ID = "11111111-1111-4111-8111-111111111111"
 LABEL_ID = "44444444-4444-4444-8444-444444444444"
@@ -206,7 +208,7 @@ ERROR_CASES = [
     ('priority = "urgent', 11, "unterminated string literal"),
     ("priority = 'urgent", 11, "unterminated string literal"),
     ('priority = "bad \\q escape"', 16, "unknown escape sequence"),
-    ("(priority = urgent", 18, "expected ')'"),
+    ("(priority = urgent", 18, "expected one of 'and', 'or', ')'"),
     ("priority = urgent)", 17, "unexpected ')'"),
     ("priority = urgent AND", 21, "unexpected end of input"),
     ("priority = urgent OR", 20, "unexpected end of input"),
@@ -232,21 +234,21 @@ ERROR_CASES = [
     ("whoAmI()", 0, "unknown function 'whoAmI'"),
     ("priority in ()", 13, "empty value list"),
     ("priority in (urgent,)", 20, "unexpected ')'"),
-    ("priority in urgent", 12, "expected '(' to open a value list"),
-    ("priority not urgent", 13, "expected 'in' after 'not'"),
-    ("target_date is nul", 15, "expected 'null'"),
+    ("priority in urgent", 12, "expected '('"),
+    ("priority not urgent", 13, "expected 'in'"),
+    ("target_date is nul", 15, "expected one of 'not', 'null'"),
     ("priority = null", 11, "'null' is a keyword, not a value"),
     ("priority = and", 11, "'and' is a keyword, not a value"),
     ("target_date = 7d", 14, "a duration is only allowed after now()"),
     ("target_date > now() - 7", 22, "expected a duration"),
     ("target_date > now() - 7y", 23, "unknown duration unit 'y'"),
     ("priority & urgent", 9, "unexpected character '&'"),
-    ("cf = 1", 3, "expected '[' after 'cf'"),
-    ("cf[1] = 2", 3, "quoted property id or name"),
+    ("cf = 1", 3, "expected '['"),
+    ("cf[1] = 2", 3, "expected a string"),
     ('cf["p" = 2', 7, "expected ']'"),
     ('cf[""] = 2', 3, "empty custom property reference"),
-    ('cf["p"] 2', 8, "unexpected '2' after a custom property"),
-    ('cf["p"] in 2', 11, "expected '(' to open a value list"),
+    ('cf["p"] 2', 8, "unexpected '2'"),
+    ('cf["p"] in 2', 11, "expected '('"),
     ("descendantOf()", 0, "descendantOf() takes exactly one argument, got 0"),
     ("descendantOf(PROJ)", 13, "descendantOf() takes a quoted work item identifier"),
     ('assignee = descendantOf("PROJ-12")', 11, "descendantOf() is a condition, not a value"),
@@ -338,40 +340,113 @@ def test_nesting_is_bounded():
     with pytest.raises(PQLSyntaxError) as excinfo:
         parse_pql("(" * (MAX_PQL_DEPTH + 1) + "priority = urgent" + ")" * (MAX_PQL_DEPTH + 1))
     assert "nested deeper than" in excinfo.value.message
+    assert excinfo.value.position == MAX_PQL_DEPTH
 
 
-def test_tokenize_kinds():
-    kinds = [token.kind for token in tokenize('priority = "x" AND target_date > now() - 7d')]
-    assert kinds == [
-        IDENT,
-        OPERATOR,
-        STRING,
-        IDENT,
-        IDENT,
-        OPERATOR,
-        IDENT,
-        "(",
-        ")",
-        "-",
-        DURATION,
-        EOF,
-    ]
+def test_nesting_below_the_bound_parses():
+    depth = MAX_PQL_DEPTH - 1
+    assert parse_pql("(" * depth + "priority = urgent" + ")" * depth) == {"priority": "urgent"}
 
 
-def test_tokenize_records_offsets():
-    tokens = tokenize("priority = urgent")
-    assert (tokens[0].start, tokens[0].end) == (0, 8)
-    assert (tokens[1].start, tokens[1].end) == (9, 10)
-    assert (tokens[2].start, tokens[2].end) == (11, 17)
-    assert tokens[-1].kind == EOF
+@pytest.mark.parametrize(
+    "query",
+    ["(" * 5000 + "priority = urgent" + ")" * 5000, "not " * 1500 + "priority = urgent"],
+)
+def test_deep_nesting_is_rejected_before_recursing(query):
+    with pytest.raises(PQLSyntaxError) as excinfo:
+        parse_pql(query)
+    assert "nested deeper than" in excinfo.value.message
 
 
-def test_tokenize_numbers_and_durations():
-    tokens = tokenize("1 2.5 3w")
-    assert [(token.kind, token.value) for token in tokens[:3]] == [
-        (NUMBER, 1),
-        (NUMBER, 2.5),
-        (DURATION, 3 * 604800),
+def test_not_chains_count_towards_the_depth():
+    assert parse_pql("not " * (MAX_PQL_DEPTH - 1) + "priority = urgent")
+    with pytest.raises(PQLSyntaxError):
+        parse_pql("not " * MAX_PQL_DEPTH + "priority = urgent")
+
+
+@pytest.mark.parametrize("query,position", [("priority", 8), ("priority urgent", 9)])
+def test_missing_operator_expects_an_operator(query, position):
+    with pytest.raises(PQLSyntaxError) as excinfo:
+        parse_pql(query)
+    error = excinfo.value
+    assert error.position == position
+    assert "'='" in error.expected
+    assert "'in'" in error.expected
+    assert "field name" not in error.expected
+
+
+def test_unknown_field_is_reported_before_what_follows_it():
+    with pytest.raises(PQLSyntaxError) as excinfo:
+        parse_pql("foo bar baz")
+    error = excinfo.value
+    assert (error.position, error.token) == (0, "foo")
+    assert "unknown field 'foo'" in error.message
+
+
+RESERVED_WORD_CASES = [
+    ("now = 1", 4, "expected '(' after the reserved function name 'now'"),
+    ("priority = now", 14, "expected '(' after the reserved function name 'now'"),
+    ("priority = currentUser", 22, "expected '(' after the reserved function name 'currentUser'"),
+    ("priority = cf", 11, "'cf' is a keyword, not a value"),
+    ("priority = in", 11, "'in' is a keyword, not a value"),
+    ("is = 1", 0, "'is' is a keyword, not a field name"),
+    ("childOf = 1", 8, "expected '(' after the reserved function name 'childOf'"),
+]
+
+
+@pytest.mark.parametrize("query,position,detail", RESERVED_WORD_CASES)
+def test_reserved_words_are_rejected_clearly(query, position, detail):
+    with pytest.raises(PQLSyntaxError) as excinfo:
+        parse_pql(query)
+    assert excinfo.value.position == position
+    assert detail in excinfo.value.message
+
+
+RESERVED_WORDS = sorted(PQLParser.literalNames[token].strip("'") for token in RESERVED_TOKENS)
+
+
+@pytest.mark.parametrize("word", RESERVED_WORDS)
+def test_reserved_words_are_not_bare_values(word):
+    with pytest.raises(PQLSyntaxError) as excinfo:
+        parse_pql(f"priority = {word}")
+    assert excinfo.value.position in (11, 11 + len(word))
+    assert parse_pql(f'priority = "{word}"') == {"priority": word}
+
+
+def test_unicode_whitespace_is_skipped():
+    assert parse_pql("priority\u00a0=\u00a0urgent\u2003AND\u3000state_group = started") == {
+        "and": [{"priority": "urgent"}, {"state__group": "started"}]
+    }
+
+
+def test_duration_units_are_case_insensitive():
+    assert parse_pql("target_date > NOW() - 7D") == {"target_date__gt": {NOW_PLACEHOLDER: {"seconds": -WEEK}}}
+
+
+def test_unicode_identifiers():
+    assert parse_pql("priority = ürgent") == {"priority": "ürgent"}
+    with pytest.raises(PQLSyntaxError) as excinfo:
+        parse_pql("straße = 1")
+    assert (excinfo.value.position, excinfo.value.token) == (0, "straße")
+    assert "unknown field" in excinfo.value.message
+
+
+def test_lexer_token_types():
+    lexer = PQLLexer(InputStream('priority = "x" AND target_date > now() - 7d 2.5'))
+    types = [token.type for token in lexer.getAllTokens()]
+    assert types == [
+        PQLLexer.IDENT,
+        PQLLexer.EQ,
+        PQLLexer.STRING,
+        PQLLexer.AND,
+        PQLLexer.IDENT,
+        PQLLexer.GT,
+        PQLLexer.NOW,
+        PQLLexer.LPAREN,
+        PQLLexer.RPAREN,
+        PQLLexer.MINUS,
+        PQLLexer.DURATION,
+        PQLLexer.NUMBER,
     ]
 
 

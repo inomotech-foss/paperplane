@@ -527,7 +527,7 @@
     "applied": "Abfrage angewendet",
     "invalid": "Die Abfrage konnte nicht ausgeführt werden",
     "help_title": "Plane Query Language",
-    "help_intro": "Kombinieren Sie Bedingungen mit AND, OR, NOT und Klammern. Namen funktionieren anstelle von IDs: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Datumsangaben werden als \"2026-01-31\" geschrieben.",
+    "help_intro": "Kombinieren Sie Bedingungen mit AND, OR, NOT und Klammern. Namen funktionieren anstelle von IDs: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Datumsangaben werden als \"2026-01-31\" geschrieben. Schlüsselwörter, cf und Funktionsnamen wie now sind reserviert: Setzen Sie sie in Anführungszeichen, um sie als Werte zu verwenden.",
     "help_operators": "Operatoren: = != > >= < <= ~ (enthält), in (…), not in (…), is null, is not null",
     "help_fields": "Felder",
     "help_functions": "Funktionen",

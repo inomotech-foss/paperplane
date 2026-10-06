@@ -527,7 +527,7 @@
     "applied": "Zapytanie zastosowane",
     "invalid": "Nie udało się uruchomić zapytania",
     "help_title": "Plane Query Language",
-    "help_intro": "Łącz warunki za pomocą AND, OR, NOT i nawiasów. Zamiast identyfikatorów działają nazwy: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Daty zapisuje się jako \"2026-01-31\".",
+    "help_intro": "Łącz warunki za pomocą AND, OR, NOT i nawiasów. Zamiast identyfikatorów działają nazwy: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Daty zapisuje się jako \"2026-01-31\". Słowa kluczowe, cf i nazwy funkcji takie jak now są zarezerwowane: aby użyć ich jako wartości, ujmij je w cudzysłów.",
     "help_operators": "Operatory: = != > >= < <= ~ (zawiera), in (…), not in (…), is null, is not null",
     "help_fields": "Pola",
     "help_functions": "Funkcje",

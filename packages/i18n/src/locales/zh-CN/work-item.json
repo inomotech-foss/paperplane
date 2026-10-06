@@ -527,7 +527,7 @@
     "applied": "已应用查询",
     "invalid": "无法运行该查询",
     "help_title": "Plane Query Language",
-    "help_intro": "使用 AND、OR、NOT 和括号组合条件。可以用名称代替 ID：state = \"Paid\"、type = \"Invoice\"、cf[\"Amount\"] > 1000。日期写作 \"2026-01-31\"。",
+    "help_intro": "使用 AND、OR、NOT 和括号组合条件。可以用名称代替 ID：state = \"Paid\"、type = \"Invoice\"、cf[\"Amount\"] > 1000。日期写作 \"2026-01-31\"。关键字、cf 和 now 等函数名为保留字：若要作为值使用，请加上引号。",
     "help_operators": "运算符：= != > >= < <= ~（包含）、in (…)、not in (…)、is null、is not null",
     "help_fields": "字段",
     "help_functions": "函数",

@@ -527,7 +527,7 @@
     "applied": "Sorgu uygulandı",
     "invalid": "Sorgu çalıştırılamadı",
     "help_title": "Plane Query Language",
-    "help_intro": "Koşulları AND, OR, NOT ve parantezlerle birleştirin. Kimlikler yerine adlar kullanılabilir: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Tarihler \"2026-01-31\" biçiminde yazılır.",
+    "help_intro": "Koşulları AND, OR, NOT ve parantezlerle birleştirin. Kimlikler yerine adlar kullanılabilir: state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Tarihler \"2026-01-31\" biçiminde yazılır. Anahtar sözcükler, cf ve now gibi işlev adları ayrılmıştır: değer olarak kullanmak için tırnak içine alın.",
     "help_operators": "Operatörler: = != > >= < <= ~ (içerir), in (…), not in (…), is null, is not null",
     "help_fields": "Alanlar",
     "help_functions": "Fonksiyonlar",

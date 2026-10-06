@@ -527,7 +527,7 @@
     "applied": "Requête appliquée",
     "invalid": "La requête n’a pas pu être exécutée",
     "help_title": "Plane Query Language",
-    "help_intro": "Combinez des conditions avec AND, OR, NOT et des parenthèses. Les noms remplacent les identifiants : state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Les dates s’écrivent \"2026-01-31\".",
+    "help_intro": "Combinez des conditions avec AND, OR, NOT et des parenthèses. Les noms remplacent les identifiants : state = \"Paid\", type = \"Invoice\", cf[\"Amount\"] > 1000. Les dates s’écrivent \"2026-01-31\". Les mots-clés, cf et les noms de fonction comme now sont réservés : mettez-les entre guillemets pour les utiliser comme valeurs.",
     "help_operators": "Opérateurs : = != > >= < <= ~ (contient), in (…), not in (…), is null, is not null",
     "help_fields": "Champs",
     "help_functions": "Fonctions",

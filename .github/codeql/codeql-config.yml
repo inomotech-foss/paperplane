@@ -1,0 +1,3 @@
+paths-ignore:
+  - apps/api/plane/utils/pql/generated
+  - packages/pql/src/generated

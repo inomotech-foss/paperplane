@@ -527,7 +527,7 @@
     "applied": "已套用查詢",
     "invalid": "無法執行此查詢",
     "help_title": "Plane Query Language",
-    "help_intro": "使用 AND、OR、NOT 與括號組合條件。可以用名稱取代 ID：state = \"Paid\"、type = \"Invoice\"、cf[\"Amount\"] > 1000。日期寫作 \"2026-01-31\"。",
+    "help_intro": "使用 AND、OR、NOT 與括號組合條件。可以用名稱取代 ID：state = \"Paid\"、type = \"Invoice\"、cf[\"Amount\"] > 1000。日期寫作 \"2026-01-31\"。關鍵字、cf 與 now 等函式名稱為保留字：若要作為值使用，請加上引號。",
     "help_operators": "運算子：= != > >= < <= ~（包含）、in (…)、not in (…)、is null、is not null",
     "help_fields": "欄位",
     "help_functions": "函式",
