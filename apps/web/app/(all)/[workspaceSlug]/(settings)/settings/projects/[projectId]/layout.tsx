@@ -10,6 +10,7 @@ import { Outlet } from "react-router";
 // components
 import { getProjectActivePath } from "@/components/settings/helper";
 import { SettingsMobileNav } from "@/components/settings/mobile/nav";
+import { ProjectSettingsWorkItemsGuard } from "@/components/settings/project/work-items-guard";
 // layouts
 import { ProjectAuthWrapper } from "@/layouts/auth-layout/project-wrapper";
 // types
@@ -33,7 +34,9 @@ function ProjectDetailSettingsLayout({ params }: Route.ComponentProps) {
             <ProjectSettingsSidebarRoot projectId={projectId} />
           </div>
           <ProjectAuthWrapper workspaceSlug={workspaceSlug} projectId={projectId}>
-            <Outlet />
+            <ProjectSettingsWorkItemsGuard workspaceSlug={workspaceSlug} projectId={projectId}>
+              <Outlet />
+            </ProjectSettingsWorkItemsGuard>
           </ProjectAuthWrapper>
         </div>
       </div>

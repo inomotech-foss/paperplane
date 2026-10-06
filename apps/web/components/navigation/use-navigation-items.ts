@@ -17,6 +17,7 @@ import {
 } from "@makeplane/propel/icons";
 import type { EUserProjectRoles, IPartialProject } from "@plane/types";
 import type { TNavigationItem } from "@/components/navigation/tab-navigation-root";
+import { isProjectFeatureEnabled } from "@/components/settings/project/work-items-dependency";
 
 type UseNavigationItemsProps = {
   workspaceSlug: string;
@@ -57,7 +58,7 @@ export const useNavigationItems = ({
         href: `/${workspaceSlug}/projects/${projectId}/cycles`,
         icon: CyclesOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
-        shouldRender: !!project?.cycle_view,
+        shouldRender: isProjectFeatureEnabled(project, "cycle_view"),
         sortOrder: 2,
       },
       {
@@ -67,7 +68,7 @@ export const useNavigationItems = ({
         href: `/${workspaceSlug}/projects/${projectId}/modules`,
         icon: ModuleOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
-        shouldRender: !!project?.module_view,
+        shouldRender: isProjectFeatureEnabled(project, "module_view"),
         sortOrder: 3,
       },
       {
@@ -77,7 +78,7 @@ export const useNavigationItems = ({
         href: `/${workspaceSlug}/projects/${projectId}/views`,
         icon: ViewsOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
-        shouldRender: !!project?.issue_views_view,
+        shouldRender: isProjectFeatureEnabled(project, "issue_views_view"),
         sortOrder: 4,
       },
       {
@@ -97,7 +98,7 @@ export const useNavigationItems = ({
         href: `/${workspaceSlug}/projects/${projectId}/intake`,
         icon: IntakeOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
-        shouldRender: !!project?.inbox_view,
+        shouldRender: isProjectFeatureEnabled(project, "inbox_view"),
         sortOrder: 6,
       },
     ],

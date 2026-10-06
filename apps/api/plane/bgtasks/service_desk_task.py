@@ -17,6 +17,7 @@ from crum import impersonate
 
 # Django imports
 from django.conf import settings
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.utils.html import strip_tags
@@ -472,8 +473,11 @@ def service_desk_sync_mailbox(config_id):
     Triggered by Graph change notifications (push) and by the periodic
     reconciliation poll; a per-mailbox lock keeps the two from racing.
     """
+    # Mail for a project with work items off stays unread until they are back on.
     config = (
-        ServiceDeskConfig.objects.filter(pk=config_id, is_enabled=True, deleted_at__isnull=True)
+        ServiceDeskConfig.objects.filter(
+            pk=config_id, is_enabled=True, deleted_at__isnull=True, project__issue_view=True
+        )
         .select_related("project", "project__workspace")
         .first()
     )
@@ -514,9 +518,9 @@ def service_desk_poll():
         tenant_id, client_id, client_secret = get_service_desk_configuration()
         if not (tenant_id and client_id and client_secret):
             return
-        config_ids = ServiceDeskConfig.objects.filter(is_enabled=True, deleted_at__isnull=True).values_list(
-            "id", flat=True
-        )
+        config_ids = ServiceDeskConfig.objects.filter(
+            is_enabled=True, deleted_at__isnull=True, project__issue_view=True
+        ).values_list("id", flat=True)
         for config_id in config_ids:
             service_desk_sync_mailbox(str(config_id))
     finally:
@@ -542,9 +546,11 @@ def service_desk_maintain_subscriptions():
     client = MSGraphMailClient(tenant_id, client_id, client_secret)
     now = timezone.now()
 
-    # Disabled mailboxes should stop pushing.
+    # Disabled mailboxes and projects with work items off should stop pushing.
     for config in ServiceDeskConfig.objects.filter(
-        is_enabled=False, deleted_at__isnull=True, graph_subscription_id__isnull=False
+        Q(is_enabled=False) | Q(project__issue_view=False),
+        deleted_at__isnull=True,
+        graph_subscription_id__isnull=False,
     ):
         try:
             client.delete_subscription(config.graph_subscription_id)
@@ -559,7 +565,7 @@ def service_desk_maintain_subscriptions():
     if not notification_url:
         return
 
-    for config in ServiceDeskConfig.objects.filter(is_enabled=True, deleted_at__isnull=True):
+    for config in ServiceDeskConfig.objects.filter(is_enabled=True, deleted_at__isnull=True, project__issue_view=True):
         try:
             if (
                 config.graph_subscription_id

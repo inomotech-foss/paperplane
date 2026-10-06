@@ -18,6 +18,7 @@ import {
   StateOutline,
   TriggerOutline,
   ViewsOutline,
+  WorkItemsOutline,
 } from "@makeplane/propel/icons";
 // plane imports
 import type { ISvgIcons } from "@plane/blocks/icons";
@@ -28,6 +29,7 @@ import { SettingIcon } from "@/components/icons/attachment";
 export const PROJECT_SETTINGS_ICONS: Record<TProjectSettingsTabs, LucideIcon | React.FC<ISvgIcons>> = {
   general: SettingIcon,
   members: MembersOutline,
+  features_work_items: WorkItemsOutline,
   features_cycles: CyclesOutline,
   features_modules: ModuleOutline,
   features_views: ViewsOutline,

@@ -323,6 +323,13 @@
       "description": "Benzersiz özelliklere sahip farklı iş öğesi türleri oluşturun ve özelleştirin"
     },
     "features": {
+      "work_items": {
+        "title": "İş öğeleri",
+        "short_title": "İş öğeleri",
+        "description": "Bu projedeki görevleri, hataları ve diğer işleri takip edin.",
+        "toggle_title": "İş öğelerini etkinleştir",
+        "toggle_description": "Kapatıldığında iş yapısı ayarları, döngüler, modüller, görünümler, Intake, otomasyonlar ve Service Desk gizlenir. Otomasyonlar ve Service Desk de çalışmayı durdurur."
+      },
       "cycles": {
         "title": "Döngüler",
         "short_title": "Döngüler",

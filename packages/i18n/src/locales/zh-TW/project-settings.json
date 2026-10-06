@@ -323,6 +323,13 @@
       "description": "使用獨特屬性建立和自訂不同類型的工作事項"
     },
     "features": {
+      "work_items": {
+        "title": "工作項目",
+        "short_title": "工作項目",
+        "description": "追蹤此專案中的任務、缺陷和其他工作。",
+        "toggle_title": "啟用工作項目",
+        "toggle_description": "關閉後，工作結構設定、週期、模組、檢視、Intake、自動化和 Service Desk 將被隱藏。自動化和 Service Desk 也會停止執行。"
+      },
       "cycles": {
         "title": "週期",
         "short_title": "週期",

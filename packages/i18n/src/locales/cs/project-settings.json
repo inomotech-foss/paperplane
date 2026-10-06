@@ -323,6 +323,13 @@
       "description": "Vytvářejte a přizpůsobujte různé typy pracovních položek s jedinečnými vlastnostmi"
     },
     "features": {
+      "work_items": {
+        "title": "Pracovní položky",
+        "short_title": "Pracovní položky",
+        "description": "Sledujte úkoly, chyby a další práci v tomto projektu.",
+        "toggle_title": "Povolit pracovní položky",
+        "toggle_description": "Vypnutím skryjete nastavení struktury práce, cykly, moduly, zobrazení, Intake, automatizace a Service Desk. Automatizace a Service Desk se také přestanou spouštět."
+      },
       "cycles": {
         "title": "Cykly",
         "short_title": "Cykly",

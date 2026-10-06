@@ -323,6 +323,13 @@
       "description": "Create and customize different types of work items with unique properties"
     },
     "features": {
+      "work_items": {
+        "title": "Work items",
+        "short_title": "Work items",
+        "description": "Track tasks, bugs and other work in this project.",
+        "toggle_title": "Enable work items",
+        "toggle_description": "Turning this off hides work structure settings, cycles, modules, views, Intake, automations and Service Desk. Automations and Service Desk also stop running."
+      },
       "cycles": {
         "title": "Cycles",
         "short_title": "Cycles",

@@ -71,7 +71,7 @@ def dispatch_work_item_automations(
         if not automations:
             return
 
-        project = Project.objects.filter(pk=project_id).select_related("workspace").first()
+        project = Project.objects.filter(pk=project_id, issue_view=True).select_related("workspace").first()
         if project is None:
             return
 

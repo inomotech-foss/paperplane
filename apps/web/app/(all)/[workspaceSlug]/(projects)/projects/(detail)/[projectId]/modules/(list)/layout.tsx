@@ -8,6 +8,7 @@ import { Outlet } from "react-router";
 // components
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
+import { ProjectWorkItemsGuard } from "@/components/project/work-items-guard";
 import { ModulesListHeader } from "./header";
 import { ModulesListMobileHeader } from "./mobile-header";
 
@@ -16,7 +17,9 @@ export default function ProjectModulesListLayout() {
     <>
       <AppHeader header={<ModulesListHeader />} mobileHeader={<ModulesListMobileHeader />} />
       <ContentWrapper>
-        <Outlet />
+        <ProjectWorkItemsGuard>
+          <Outlet />
+        </ProjectWorkItemsGuard>
       </ContentWrapper>
     </>
   );

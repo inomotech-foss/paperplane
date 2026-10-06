@@ -21,6 +21,7 @@ import {
 import type { EUserProjectRoles } from "@plane/types";
 // plane ui
 // components
+import { isProjectFeatureEnabled } from "@/components/settings/project/work-items-dependency";
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
@@ -96,7 +97,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         href: `/${workspaceSlug}/projects/${projectId}/cycles`,
         icon: CyclesOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
-        shouldRender: project?.cycle_view ?? false,
+        shouldRender: isProjectFeatureEnabled(project, "cycle_view"),
         sortOrder: 2,
       },
       {
@@ -106,7 +107,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         href: `/${workspaceSlug}/projects/${projectId}/modules`,
         icon: ModuleOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
-        shouldRender: project?.module_view ?? false,
+        shouldRender: isProjectFeatureEnabled(project, "module_view"),
         sortOrder: 3,
       },
       {
@@ -116,7 +117,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         href: `/${workspaceSlug}/projects/${projectId}/views`,
         icon: ViewsOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
-        shouldRender: project?.issue_views_view ?? false,
+        shouldRender: isProjectFeatureEnabled(project, "issue_views_view"),
         sortOrder: 4,
       },
       {
@@ -136,7 +137,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         href: `/${workspaceSlug}/projects/${projectId}/intake`,
         icon: IntakeOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
-        shouldRender: project?.inbox_view ?? false,
+        shouldRender: isProjectFeatureEnabled(project, "inbox_view"),
         sortOrder: 6,
       },
     ],

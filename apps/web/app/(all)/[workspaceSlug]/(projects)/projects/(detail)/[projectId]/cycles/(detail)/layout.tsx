@@ -8,6 +8,7 @@ import { Outlet } from "react-router";
 // components
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
+import { ProjectWorkItemsGuard } from "@/components/project/work-items-guard";
 import { CycleIssuesHeader } from "./header";
 import { CycleIssuesMobileHeader } from "./mobile-header";
 
@@ -16,7 +17,9 @@ export default function ProjectCycleIssuesLayout() {
     <>
       <AppHeader header={<CycleIssuesHeader />} mobileHeader={<CycleIssuesMobileHeader />} />
       <ContentWrapper>
-        <Outlet />
+        <ProjectWorkItemsGuard>
+          <Outlet />
+        </ProjectWorkItemsGuard>
       </ContentWrapper>
     </>
   );

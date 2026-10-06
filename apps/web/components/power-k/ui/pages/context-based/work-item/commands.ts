@@ -30,6 +30,7 @@ import { EIssueServiceType, EUserPermissions } from "@plane/types";
 import { copyTextToClipboard } from "@plane/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
+import { isProjectFeatureEnabled } from "@/components/settings/project/work-items-dependency";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
@@ -329,8 +330,8 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
         }
       },
       modifierShortcut: "shift+c",
-      isEnabled: () => Boolean(projectDetails?.cycle_view && isEditingAllowed),
-      isVisible: () => Boolean(projectDetails?.cycle_view && isEditingAllowed),
+      isEnabled: () => Boolean(isProjectFeatureEnabled(projectDetails, "cycle_view") && isEditingAllowed),
+      isVisible: () => Boolean(isProjectFeatureEnabled(projectDetails, "cycle_view") && isEditingAllowed),
       closeOnSelect: true,
     },
     {
@@ -361,8 +362,8 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
         }
       },
       modifierShortcut: "shift+m",
-      isEnabled: () => Boolean(projectDetails?.module_view && isEditingAllowed),
-      isVisible: () => Boolean(projectDetails?.module_view && isEditingAllowed),
+      isEnabled: () => Boolean(isProjectFeatureEnabled(projectDetails, "module_view") && isEditingAllowed),
+      isVisible: () => Boolean(isProjectFeatureEnabled(projectDetails, "module_view") && isEditingAllowed),
       closeOnSelect: false,
     },
     {

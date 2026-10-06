@@ -323,6 +323,13 @@
       "description": "Crie e personalize diferentes tipos de itens de trabalho com propriedades únicas"
     },
     "features": {
+      "work_items": {
+        "title": "Itens de trabalho",
+        "short_title": "Itens de trabalho",
+        "description": "Acompanhe tarefas, bugs e outros trabalhos neste projeto.",
+        "toggle_title": "Ativar itens de trabalho",
+        "toggle_description": "Desativar oculta as configurações de estrutura de trabalho, ciclos, módulos, visualizações, Intake, automações e Service Desk. As automações e o Service Desk também deixam de ser executados."
+      },
       "cycles": {
         "title": "Ciclos",
         "short_title": "Ciclos",

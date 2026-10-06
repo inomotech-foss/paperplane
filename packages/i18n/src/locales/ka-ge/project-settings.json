@@ -323,6 +323,13 @@
       "description": "Create and customize different types of work items with unique properties"
     },
     "features": {
+      "work_items": {
+        "title": "სამუშაო ელემენტები",
+        "short_title": "სამუშაო ელემენტები",
+        "description": "თვალი ადევნეთ ამოცანებს, ხარვეზებს და სხვა სამუშაოს ამ პროექტში.",
+        "toggle_title": "სამუშაო ელემენტების ჩართვა",
+        "toggle_description": "გამორთვისას დაიმალება სამუშაო სტრუქტურის პარამეტრები, ციკლები, მოდულები, ხედები, Intake, ავტომატიზაციები და Service Desk. ავტომატიზაციები და Service Desk ასევე წყვეტენ მუშაობას."
+      },
       "cycles": {
         "title": "Cycles",
         "short_title": "Cycles",

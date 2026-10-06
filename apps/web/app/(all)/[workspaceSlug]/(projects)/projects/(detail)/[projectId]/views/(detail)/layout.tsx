@@ -7,6 +7,7 @@
 import { Outlet } from "react-router";
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
+import { ProjectWorkItemsGuard } from "@/components/project/work-items-guard";
 // local components
 import { ProjectViewIssuesHeader } from "./[viewId]/header";
 
@@ -15,7 +16,9 @@ export default function ProjectViewIssuesLayout() {
     <>
       <AppHeader header={<ProjectViewIssuesHeader />} />
       <ContentWrapper>
-        <Outlet />
+        <ProjectWorkItemsGuard>
+          <Outlet />
+        </ProjectWorkItemsGuard>
       </ContentWrapper>
     </>
   );

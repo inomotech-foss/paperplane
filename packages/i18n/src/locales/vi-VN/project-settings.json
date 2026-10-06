@@ -323,6 +323,13 @@
       "description": "Tạo và tùy chỉnh các loại mục công việc khác nhau với các thuộc tính riêng"
     },
     "features": {
+      "work_items": {
+        "title": "Mục công việc",
+        "short_title": "Mục công việc",
+        "description": "Theo dõi nhiệm vụ, lỗi và các công việc khác trong dự án này.",
+        "toggle_title": "Bật mục công việc",
+        "toggle_description": "Khi tắt, cài đặt cấu trúc công việc, chu kỳ, mô-đun, chế độ xem, Intake, tự động hóa và Service Desk sẽ bị ẩn. Tự động hóa và Service Desk cũng ngừng chạy."
+      },
       "cycles": {
         "title": "Chu kỳ",
         "short_title": "Chu kỳ",

@@ -18,8 +18,10 @@ import { useTranslation } from "@plane/i18n";
 // components
 import { SettingsSidebarItem } from "@/components/settings/sidebar/item";
 // hooks
+import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 // local imports
+import { filterVisibleProjectSettings } from "../work-items-dependency";
 import { PROJECT_SETTINGS_ICONS } from "./item-icon";
 
 type Props = {
@@ -35,13 +37,16 @@ export const ProjectSettingsSidebarItemCategories = observer(function ProjectSet
   const pathname = usePathname();
   // store hooks
   const { allowPermissions } = useUserPermissions();
+  const { getPartialProjectById } = useProject();
   // translation
   const { t } = useTranslation();
+  // derived values
+  const project = getPartialProjectById(projectId);
 
   return (
     <div className="mt-3 flex flex-col divide-y divide-subtle px-3">
       {PROJECT_SETTINGS_CATEGORIES.map((category) => {
-        const categoryItems = GROUPED_PROJECT_SETTINGS[category];
+        const categoryItems = filterVisibleProjectSettings(GROUPED_PROJECT_SETTINGS[category], project);
         const accessibleItems = categoryItems.filter((item) =>
           allowPermissions(item.access, EUserPermissionsLevel.PROJECT, workspaceSlug, projectId)
         );
