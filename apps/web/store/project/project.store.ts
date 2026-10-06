@@ -17,6 +17,7 @@ import { IssueLabelService, IssueService } from "@/services/issue";
 import { ProjectService, ProjectStateService, ProjectArchiveService } from "@/services/project";
 // store
 import type { CoreRootStore } from "../root.store";
+import { sortProjectsBySortOrder } from "./project-order";
 
 type ProjectOverviewCollapsible = "links" | "attachments" | "milestones";
 
@@ -241,7 +242,7 @@ export class ProjectStore implements IProjectStore {
     if (!currentWorkspace) return [];
 
     let projects = Object.values(this.projectMap ?? {});
-    projects = sortBy(projects, "sort_order");
+    projects = sortProjectsBySortOrder(projects);
 
     const projectIds = projects
       .filter((project) => project.workspace === currentWorkspace.id && !!project.member_role && !project.archived_at)
