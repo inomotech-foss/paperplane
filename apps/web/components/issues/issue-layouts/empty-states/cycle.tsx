@@ -22,6 +22,7 @@ import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useWorkItemFilterInstance } from "@/hooks/store/work-item-filters/use-work-item-filter-instance";
+import { useAppliedFilters } from "@/components/work-item-query";
 
 export const CycleEmptyState = observer(function CycleEmptyState() {
   // router
@@ -40,6 +41,7 @@ export const CycleEmptyState = observer(function CycleEmptyState() {
   const { allowPermissions } = useUserPermissions();
   // derived values
   const cycleWorkItemFilter = useWorkItemFilterInstance(EIssuesStoreType.CYCLE, cycleId);
+  const { hasFilters, clearAll } = useAppliedFilters(EIssuesStoreType.CYCLE, cycleId, cycleWorkItemFilter);
   const cycleDetails = cycleId ? getCycleById(cycleId) : undefined;
   const isCompletedCycleSnapshotAvailable = !isEmpty(cycleDetails?.progress_snapshot ?? {});
   const isCompletedAndEmpty = isCompletedCycleSnapshotAvailable || cycleDetails?.status?.toLowerCase() === "completed";
@@ -89,7 +91,7 @@ export const CycleEmptyState = observer(function CycleEmptyState() {
             title={t("project_cycles.empty_state.completed_no_issues.title")}
             description={t("project_cycles.empty_state.completed_no_issues.description")}
           />
-        ) : cycleWorkItemFilter?.hasActiveFilters ? (
+        ) : hasFilters ? (
           <EmptyStateDetailed
             assetKey="search"
             title={t("common_empty_state.search.title")}
@@ -97,8 +99,8 @@ export const CycleEmptyState = observer(function CycleEmptyState() {
             actions={[
               {
                 label: "Clear filters",
-                onClick: cycleWorkItemFilter?.clearFilters,
-                disabled: !canPerformEmptyStateActions || !cycleWorkItemFilter,
+                onClick: () => void clearAll(),
+                disabled: !canPerformEmptyStateActions,
                 variant: "secondary",
               },
             ]}

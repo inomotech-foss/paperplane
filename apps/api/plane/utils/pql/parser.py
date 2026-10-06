@@ -46,11 +46,15 @@ are reserved words: they cannot be used as a bare value or a field name. Quote
 them to use them as a value.
 """
 
+from dataclasses import dataclass
+from typing import Any
+
 from antlr4 import CommonTokenStream, InputStream, Token
 from antlr4.error.ErrorListener import ErrorListener
 
 from plane.utils.pql.errors import PQLSyntaxError
 from plane.utils.pql.fields import (
+    ANCESTOR_FIELD,
     CUSTOM_PROPERTY_PREFIX,
     EXACT,
     FIELD_ALIASES as SDK_FIELD_ALIASES,
@@ -122,6 +126,8 @@ VALUE_FUNCTIONS = ("currentUser", "now")
 # Condition functions taking one quoted work item identifier, and the
 # placeholder node each one emits.
 IDENTIFIER_FUNCTIONS = {"childOf": CHILD_OF_PLACEHOLDER, "descendantOf": DESCENDANT_OF_PLACEHOLDER}
+# The field each of those resolves onto, for error positions.
+IDENTIFIER_FUNCTION_FIELDS = {"childOf": "parent_id", "descendantOf": ANCESTOR_FIELD}
 
 ESCAPES = {"\\": "\\", '"': '"', "'": "'", "n": "\n", "r": "\r", "t": "\t"}
 
@@ -156,12 +162,28 @@ TOKEN_DISPLAY = {
 }
 
 
+@dataclass(frozen=True)
+class Span:
+    """Where a field name (`value` unset) or one of its values sits in the source."""
+
+    field: str
+    position: int
+    token: str
+    value: Any = None
+    is_value: bool = False
+
+
 def parse_pql(source):
     """Parse a PQL string into a `filters` AST.
 
     Raises `PQLSyntaxError`, which carries the offset, line, column, offending
     token and what was expected there.
     """
+    return parse_pql_with_spans(source)[0]
+
+
+def parse_pql_with_spans(source):
+    """Parse like `parse_pql`, also returning the `Span` of every field and value."""
     if not isinstance(source, str):
         raise PQLSyntaxError("query must be a string", "", 0, expected="a PQL expression")
     lexer = PQLLexer(InputStream(source))
@@ -171,7 +193,8 @@ def parse_pql(source):
     parser.removeErrorListeners()
     parser.addErrorListener(_ParserErrors(source))
     parser.addParseListener(_SyntaxChecks(parser, source))
-    return _AstBuilder(source).visit(parser.query())
+    builder = _AstBuilder(source)
+    return builder.visit(parser.query()), builder.spans
 
 
 def _error(source, token, detail, expected=None):
@@ -304,6 +327,7 @@ class _SyntaxChecks(PQLListener):
 class _AstBuilder(PQLVisitor):
     def __init__(self, source):
         self.source = source
+        self.spans = []
 
     def visitQuery(self, ctx):
         return self.visit(ctx.expression())
@@ -333,6 +357,7 @@ class _AstBuilder(PQLVisitor):
         if ctx.fieldName() is None:
             return self.visit(ctx.conditionFunction())
         name = _field_name(ctx.fieldName().start)
+        self._span(name, ctx.fieldName())
         return self._comparison(ctx.comparison(), name, FILTER_FIELDS[name])
 
     def visitCustomPropertyPredicate(self, ctx):
@@ -340,29 +365,40 @@ class _AstBuilder(PQLVisitor):
         key = self._unescape(key_token)
         if not key.strip():
             raise self._error(key_token, "empty custom property reference", "a property id or name")
-        return self._comparison(ctx.comparison(), f"{CUSTOM_PROPERTY_PREFIX}{key.strip()}", None)
+        name = f"{CUSTOM_PROPERTY_PREFIX}{key.strip()}"
+        self._span(name, ctx.propertyReference())
+        return self._comparison(ctx.comparison(), name, None)
 
     def _comparison(self, ctx, name, field):
         if isinstance(ctx, PQLParser.CompareOperatorContext):
             operator = ctx.operator().start
             lookup, negated = OPERATOR_LOOKUPS[operator.text]
             self._check_lookup(field, name, lookup, operator)
-            leaf = {_leaf_key(name, lookup): self.visit(ctx.value())}
+            leaf = {_leaf_key(name, lookup): self._located(name, ctx.value())}
             return {"not": [leaf]} if negated else leaf
         if isinstance(ctx, PQLParser.InListContext):
             self._check_lookup(field, name, IN, ctx.start)
-            return {_leaf_key(name, IN): self._value_list(ctx.valueList())}
+            return {_leaf_key(name, IN): self._value_list(name, ctx.valueList())}
         if isinstance(ctx, PQLParser.NotInListContext):
             self._check_lookup(field, name, IN, ctx.start)
-            return {"not": [{_leaf_key(name, IN): self._value_list(ctx.valueList())}]}
+            return {"not": [{_leaf_key(name, IN): self._value_list(name, ctx.valueList())}]}
         self._check_lookup(field, name, ISNULL, ctx.start)
         return {_leaf_key(name, ISNULL): ctx.NOT() is None}
 
-    def _value_list(self, ctx):
+    def _value_list(self, name, ctx):
         values = ctx.value()
         if not values:
             raise self._error(ctx.RPAREN().symbol, "empty value list", "at least one value")
-        return [self.visit(value) for value in values]
+        return [self._located(name, value) for value in values]
+
+    def _span(self, name, ctx, value=None, is_value=False):
+        start, stop = ctx.start.start, ctx.stop.stop + 1
+        self.spans.append(Span(name, start, self.source[start:stop], value, is_value))
+
+    def _located(self, name, ctx):
+        value = self.visit(ctx)
+        self._span(name, ctx, value, is_value=True)
+        return value
 
     def _arguments(self, ctx):
         return ctx.arguments().value() if ctx.arguments() is not None else []
@@ -382,6 +418,7 @@ class _AstBuilder(PQLVisitor):
             )
         if not isinstance(arguments[0], PQLParser.StringValueContext):
             raise self._error(arguments[0].start, f"{name}() takes a quoted work item identifier", "a string literal")
+        self._span(IDENTIFIER_FUNCTION_FIELDS[name], arguments[0], values[0], is_value=True)
         return {IDENTIFIER_FUNCTIONS[name]: values[0]}
 
     def visitStringValue(self, ctx):

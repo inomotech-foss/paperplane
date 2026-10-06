@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { useEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { Annotation, Compartment, EditorState } from "@codemirror/state";
 import { EditorView, placeholder as placeholderExtension } from "@codemirror/view";
@@ -18,6 +18,8 @@ type Props = PqlOptions & {
   ariaLabel: string;
   hasError: boolean;
   className?: string;
+  // Set by the lazy-load fallback when it was focused; the editor takes focus once it mounts.
+  focusOnMount?: RefObject<boolean>;
 };
 
 const highlightStyle = HighlightStyle.define([
@@ -31,15 +33,54 @@ const highlightStyle = HighlightStyle.define([
   { tag: tags.punctuation, class: "text-tertiary" },
 ]);
 
+// Colours are propel's raw theme variables; the Tailwind `--*-color-*` aliases are inlined and not defined at runtime.
+// The `&.cm-editor` prefix outranks CodeMirror's light and dark base theme selectors.
 const theme = EditorView.theme({
-  "&": { height: "100%", fontSize: "inherit", backgroundColor: "transparent" },
+  "&": { flex: "1 1 auto", minWidth: "0", fontSize: "inherit", backgroundColor: "transparent" },
   "&.cm-focused": { outline: "none" },
-  ".cm-scroller": { fontFamily: "inherit", lineHeight: "inherit", overflow: "hidden" },
-  ".cm-content": { padding: "0", caretColor: "currentColor" },
+  ".cm-scroller": { fontFamily: "inherit", lineHeight: "inherit", overflowX: "auto", scrollbarWidth: "none" },
+  ".cm-scroller::-webkit-scrollbar": { display: "none" },
+  ".cm-content": { padding: "0", caretColor: "var(--txt-primary)" },
   ".cm-line": { padding: "0" },
-  ".cm-placeholder": { color: "var(--text-color-placeholder)" },
-  ".cm-lintRange-error": { textDecoration: "underline wavy var(--text-color-danger-primary)", backgroundImage: "none" },
-  ".cm-tooltip": { zIndex: "50" },
+  ".cm-placeholder": { color: "var(--txt-placeholder)" },
+  ".cm-lintRange-error": { textDecoration: "underline wavy var(--txt-danger-primary)", backgroundImage: "none" },
+  "&.cm-editor .cm-tooltip": {
+    zIndex: "50",
+    overflow: "hidden",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "8px",
+    backgroundColor: "var(--bg-layer-1)",
+    boxShadow: "var(--shadow-overlay-100)",
+    color: "var(--txt-primary)",
+    fontFamily: "var(--font-body)",
+    fontSize: "var(--text-13)",
+    lineHeight: "20px",
+  },
+  "&.cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul": {
+    fontFamily: "inherit",
+    minWidth: "12rem",
+    maxHeight: "18rem",
+    padding: "4px",
+  },
+  "&.cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li": {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    height: "28px",
+    padding: "0 8px",
+    borderRadius: "6px",
+    color: "var(--txt-primary)",
+  },
+  "&.cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected]": {
+    backgroundColor: "var(--bg-layer-transparent-hover)",
+    color: "var(--txt-primary)",
+  },
+  "&.cm-editor .cm-completionLabel": { flex: "1 1 auto", minWidth: "0", overflow: "hidden", textOverflow: "ellipsis" },
+  "&.cm-editor .cm-completionDetail": { marginLeft: "auto", fontStyle: "normal", color: "var(--txt-tertiary)" },
+  "&.cm-editor .cm-completionMatchedText": { textDecoration: "none", fontWeight: "600" },
+  "&.cm-editor .cm-tooltip.cm-tooltip-lint": { padding: "4px", maxWidth: "32rem" },
+  "&.cm-editor .cm-diagnostic": { padding: "4px 8px", borderRadius: "6px", color: "var(--txt-primary)" },
+  "&.cm-editor .cm-diagnostic-error": { borderLeft: "3px solid var(--border-danger-strong)" },
 });
 
 // Marks a document replacement that came from the `value` prop rather than typing.
@@ -57,7 +98,8 @@ const chrome = (placeholder: string, ariaLabel: string, hasError: boolean) => [
 
 /** The CodeMirror view behind the query bar; loaded lazily, so it owns every CodeMirror import. */
 export default function QueryEditor(props: Props) {
-  const { value, onChange, placeholder, ariaLabel, hasError, className, vocabulary, ...callbacks } = props;
+  const { value, onChange, placeholder, ariaLabel, hasError, className, vocabulary, focusOnMount, ...callbacks } =
+    props;
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const configured = useRef<Vocabulary | null>(null);
@@ -99,7 +141,24 @@ export default function QueryEditor(props: Props) {
       }),
     });
     view.current = editor;
+    // The box padding is outside CodeMirror; a click there still focuses and places the caret.
+    const box = host.current;
+    const onMouseDown = (event: MouseEvent) => {
+      if (event.target !== box || event.button !== 0) return;
+      event.preventDefault();
+      const line = editor.contentDOM.getBoundingClientRect();
+      const anchor = editor.posAtCoords({ x: event.clientX, y: line.top + line.height / 2 }, false);
+      editor.focus();
+      editor.dispatch({ selection: { anchor }, scrollIntoView: true });
+    };
+    box.addEventListener("mousedown", onMouseDown);
+    if (focusOnMount?.current) {
+      focusOnMount.current = false;
+      editor.focus();
+      editor.dispatch({ selection: { anchor: editor.state.doc.length } });
+    }
     return () => {
+      box.removeEventListener("mousedown", onMouseDown);
       editor.destroy();
       view.current = null;
     };

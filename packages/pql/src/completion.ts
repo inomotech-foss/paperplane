@@ -160,11 +160,17 @@ async function valueCandidates(
   return options;
 }
 
+// Lookup paths such as `labels__id` still parse, but rank below the names people type.
+function fieldBoost(name: string, index: number): number {
+  if (name.includes("__")) return -1;
+  return index === 0 ? 1 : 0;
+}
+
 function fieldCandidates(vocabulary: Vocabulary, position: Position): Candidate[] {
   const options: Candidate[] = [];
   for (const field of vocabulary.fields) {
     const names = [...new Set([...field.aliases, field.name])];
-    names.forEach((name, i) => options.push({ label: name, insert: name, type: "field", boost: i === 0 ? 1 : 0 }));
+    names.forEach((name, i) => options.push({ label: name, insert: name, type: "field", boost: fieldBoost(name, i) }));
   }
   if (position.tokenCandidates.has(P.NOT)) options.push({ label: "not", insert: "not ", type: "keyword" });
   if (position.tokenCandidates.has(P.CF)) options.push({ label: 'cf[""]', insert: 'cf[""]', type: "field", cursor: 4 });

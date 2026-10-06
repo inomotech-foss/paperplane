@@ -6,4 +6,5 @@
 
 export * from "./query-bar";
 export * from "./query-help";
+export * from "./use-applied-filters";
 export * from "./utils";

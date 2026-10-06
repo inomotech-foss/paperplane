@@ -39,6 +39,6 @@ export {
 export { highlightTokens, pqlHighlighting } from "./highlight.js";
 export { pqlLinter, syntaxDiagnostics, type LintOptions, type SemanticError } from "./lint.js";
 export { parseQuery, syntaxError, tokenName, tokenize, type ParseResult, type PqlSyntaxError } from "./parse.js";
-export { rejectNewlines, singleLine, type SingleLineOptions } from "./single-line.js";
+export { rejectNewlines, singleLine, singleLineKeymap, type SingleLineOptions } from "./single-line.js";
 export { parseField, parsed } from "./state.js";
 export { findField, type FieldInfo, type FunctionInfo, type Vocabulary } from "./vocabulary.js";

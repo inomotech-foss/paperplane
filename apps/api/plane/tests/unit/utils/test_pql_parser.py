@@ -29,7 +29,7 @@ from plane.utils.pql import (
 from plane.utils.pql.filters import CustomPropertyFilter
 from plane.utils.pql.generated.PQLLexer import PQLLexer
 from plane.utils.pql.generated.PQLParser import PQLParser
-from plane.utils.pql.parser import MAX_PQL_DEPTH, RESERVED_TOKENS
+from plane.utils.pql.parser import MAX_PQL_DEPTH, RESERVED_TOKENS, parse_pql_with_spans
 
 STATE_ID = "11111111-1111-4111-8111-111111111111"
 LABEL_ID = "44444444-4444-4444-8444-444444444444"
@@ -488,3 +488,21 @@ def test_unknown_field_error_lists_the_allowlist():
         parse_pql("summary ~ x")
     assert "priority" in excinfo.value.expected
     assert "state__group" in excinfo.value.expected
+
+
+def test_spans_locate_fields_and_values():
+    _, spans = parse_pql_with_spans('state = "Done" AND priority in (high, "urgent") AND cf["Amount"] > 5')
+    assert [(span.field, span.position, span.token, span.value, span.is_value) for span in spans] == [
+        ("state_id", 0, "state", None, False),
+        ("state_id", 8, '"Done"', "Done", True),
+        ("priority", 19, "priority", None, False),
+        ("priority", 32, "high", "high", True),
+        ("priority", 38, '"urgent"', "urgent", True),
+        ("property__Amount", 55, '"Amount"', None, False),
+        ("property__Amount", 67, "5", 5, True),
+    ]
+
+
+def test_spans_locate_identifier_function_arguments():
+    _, spans = parse_pql_with_spans('childOf("PROJ-1")')
+    assert [(span.field, span.position, span.token) for span in spans] == [("parent_id", 8, '"PROJ-1"')]
