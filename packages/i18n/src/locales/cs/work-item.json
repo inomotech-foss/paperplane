@@ -67,6 +67,11 @@
         "show_sub_issues": "Zobrazit podřízené položky",
         "show_empty_groups": "Zobrazit prázdné skupiny",
         "show_hierarchy": "Vnořit pod nadřazené položky"
+      },
+      "color_by": {
+        "label": "Barvit podle",
+        "state": "Stav",
+        "key": "Klíč"
       }
     },
     "layouts": {

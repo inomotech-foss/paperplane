@@ -67,6 +67,11 @@
         "show_sub_issues": "Alt iş öğelerini göster",
         "show_empty_groups": "Boş grupları göster",
         "show_hierarchy": "Üst öğelerin altında iç içe göster"
+      },
+      "color_by": {
+        "label": "Renklendirme ölçütü",
+        "state": "Durum",
+        "key": "Anahtar"
       }
     },
     "layouts": {

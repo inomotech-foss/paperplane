@@ -6,7 +6,7 @@ import json
 import pytest
 from django.utils import timezone
 
-from plane.db.models import Page, Project, ProjectMember, User, WorkspaceMember
+from plane.db.models import Page, PageVersion, Project, ProjectMember, User, WorkspaceMember
 from plane.importers.confluence.backup import SORT_STEP, ConfluenceBackup
 from plane.importers.confluence.loader import PLACEHOLDER_HTML, Change, ConfluenceLoader
 
@@ -163,11 +163,10 @@ class TestLocalEdits:
         assert page.description_binary is None
         assert summary.kept == 0
 
-    def test_changed_words_are_kept_whatever_the_timestamp_says(self, loader):
+    def test_changed_words_are_kept(self, loader):
         loader.run()
-        page = by_external_id("11")
-        Page.objects.filter(pk=page.pk).update(
-            description_html="<p>Hello</p><p>Mine</p>", description_binary=b"edited", updated_at=page.updated_at
+        Page.objects.filter(pk=by_external_id("11").pk).update(
+            description_html="<p>Hello</p><p>Mine</p>", description_binary=b"edited", updated_at=timezone.now()
         )
 
         summary = loader.run()
@@ -177,6 +176,32 @@ class TestLocalEdits:
         assert bytes(page.description_binary) == b"edited"
         assert summary.kept == 1
         assert Change("keep", "Second", "+1 -0 lines, id 11") in summary.changes
+
+    def test_a_page_nobody_saved_follows_the_backup(self, loader):
+        """Differing text alone is a converter change, not an edit."""
+        loader.run()
+        page = by_external_id("11")
+        Page.objects.filter(pk=page.pk).update(description_html="<p>Old converter</p>", updated_at=page.updated_at)
+
+        summary = loader.run()
+
+        assert by_external_id("11").description_html == "<p>Hello</p>"
+        assert summary.kept == 0
+
+    def test_imported_history_is_never_rewritten(self, loader):
+        loader.run()
+        page = by_external_id("11")
+        PageVersion.objects.filter(page_id=page.pk).delete()
+        Page.objects.filter(pk=page.pk).update(description_html="<p>Rev 1</p>", updated_at=page.updated_at)
+        old = PageVersion.objects.create(
+            workspace=page.workspace, page_id=page.pk, owned_by_id=page.owned_by_id, description_html="<p>Rev 1</p>"
+        )
+
+        loader.run()
+
+        assert by_external_id("11").description_html == "<p>Hello</p>"
+        assert PageVersion.objects.filter(page_id=page.pk).count() == 1
+        assert PageVersion.objects.get(pk=old.pk).description_html == "<p>Rev 1</p>"
 
     def test_take_overwrites_a_kept_page(self, loader):
         loader.run()
@@ -191,7 +216,9 @@ class TestLocalEdits:
 
     def test_plan_writes_a_diff_per_kept_page(self, loader, tmp_path):
         loader.run()
-        Page.objects.filter(pk=by_external_id("11").pk).update(description_html="<p>Hello</p><p>Mine</p>")
+        Page.objects.filter(pk=by_external_id("11").pk).update(
+            description_html="<p>Hello</p><p>Mine</p>", updated_at=timezone.now()
+        )
 
         loader.run(dry_run=True, diff_dir=tmp_path / "diffs")
 

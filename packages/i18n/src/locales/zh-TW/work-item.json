@@ -67,6 +67,11 @@
         "show_sub_issues": "顯示子工作事項",
         "show_empty_groups": "顯示空群組",
         "show_hierarchy": "巢狀顯示於父項之下"
+      },
+      "color_by": {
+        "label": "顏色依據",
+        "state": "狀態",
+        "key": "鍵"
       }
     },
     "layouts": {

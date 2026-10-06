@@ -67,6 +67,11 @@
         "show_sub_issues": "Mostra sotto-elementi di lavoro",
         "show_empty_groups": "Mostra gruppi vuoti",
         "show_hierarchy": "Annida sotto gli elementi padre"
+      },
+      "color_by": {
+        "label": "Colora per",
+        "state": "Stato",
+        "key": "Chiave"
       }
     },
     "layouts": {

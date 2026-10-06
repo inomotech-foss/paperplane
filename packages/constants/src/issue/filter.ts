@@ -268,6 +268,7 @@ export const ISSUE_DISPLAY_FILTERS_BY_PAGE: TIssueFiltersToDisplayByPageType = {
         display_properties: ["key", "issue_type"],
         display_filters: {
           type: ["active", "backlog"],
+          color_by: ["state", "key"],
         },
         extra_options: {
           access: true,

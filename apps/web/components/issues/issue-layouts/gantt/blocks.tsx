@@ -14,6 +14,7 @@ import { Logo } from "@plane/blocks/emoji-icon-picker";
 import { ControlLink } from "@plane/blocks/layout";
 import { Spinner } from "@plane/blocks/spinner";
 import { useTranslation } from "@plane/i18n";
+import type { TTimelineColorBy } from "@plane/types";
 import { GANTT_TIMELINE_TYPE } from "@plane/types";
 import { cn, generateWorkItemLink, renderFormattedDate } from "@plane/utils";
 // components
@@ -29,10 +30,12 @@ import { useProjectState } from "@/hooks/store/use-project-state";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { useChartPalette } from "@/hooks/use-chart-palette";
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
 // local imports
 import { WorkItemPreviewCard } from "../../preview-card";
 import { getBlockViewDetails } from "../utils";
+import { getBarColor } from "./bar-color";
 import type { GanttStoreType } from "./base-gantt-root";
 import type { TGanttRowState } from "./hierarchy-context";
 import { useGanttHierarchy } from "./hierarchy-context";
@@ -40,6 +43,10 @@ import { useGanttHierarchy } from "./hierarchy-context";
 type Props = {
   issueId: string;
   isEpic?: boolean;
+};
+
+type TGanttBlockProps = Props & {
+  colorBy?: TTimelineColorBy;
 };
 
 // Resolve the work item type to show for an issue — its explicit type, else
@@ -50,8 +57,8 @@ const useResolvedIssueType = (issue: ReturnType<ReturnType<typeof useIssueDetail
   return getIssueTypeById(issue?.type_id) ?? getProjectDefaultIssueType(issue?.project_id);
 };
 
-export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
-  const { issueId, isEpic } = props;
+export const IssueGanttBlock = observer(function IssueGanttBlock(props: TGanttBlockProps) {
+  const { issueId, isEpic, colorBy } = props;
   // router
   const { workspaceSlug: routerWorkspaceSlug } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
@@ -60,8 +67,10 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
   const {
     issue: { getIssueById },
   } = useIssueDetail();
+  const { getProjectIdentifierById } = useProject();
   // hooks
   const { isMobile } = usePlatformOS();
+  const chartPalette = useChartPalette();
   const { handleRedirection } = useIssuePeekOverviewRedirection(isEpic);
   const { getBlockById } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
   const { t } = useTranslation();
@@ -74,7 +83,15 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
   const stateDetails =
     issueDetails && getProjectStates(issueDetails?.project_id)?.find((state) => state?.id == issueDetails?.state_id);
 
-  const { blockStyle } = getBlockViewDetails(issueDetails, stateDetails?.color ?? "");
+  const barColor = getBarColor({
+    colorBy,
+    stateColor: stateDetails?.color,
+    projectIdentifier: getProjectIdentifierById(issueDetails?.project_id),
+    sequenceId: issueDetails?.sequence_id,
+    palette: chartPalette,
+  });
+
+  const { blockStyle } = getBlockViewDetails(issueDetails, barColor ?? "");
 
   const handleIssuePeekOverview = () => handleRedirection(workspaceSlug, issueDetails, isMobile);
 
