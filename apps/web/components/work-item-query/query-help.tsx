@@ -46,7 +46,7 @@ export function WorkItemQueryHelp(props: Props) {
       <div className="flex flex-col gap-2 md:col-span-2">
         <h4 className="text-13 font-medium text-primary">{t("work_item_query.help_title")}</h4>
         <p>{t("work_item_query.help_intro")}</p>
-        <p className="font-mono text-11">{t("work_item_query.help_operators")}</p>
+        <p className="font-code text-11">{t("work_item_query.help_operators")}</p>
       </div>
       <div className="flex flex-col gap-1.5">
         <h5 className="font-medium text-primary">{t("work_item_query.help_examples")}</h5>
@@ -54,7 +54,7 @@ export function WorkItemQueryHelp(props: Props) {
           {EXAMPLES.map((example) => (
             <li key={example.labelKey} className="flex flex-col gap-0.5">
               <span>{t(example.labelKey)}</span>
-              <code className="font-mono rounded-sm bg-layer-2 px-1.5 py-0.5 text-11 break-all text-primary">
+              <code className="rounded-sm bg-layer-2 px-1.5 py-0.5 font-code text-11 break-all text-primary">
                 {example.query}
               </code>
             </li>
@@ -69,20 +69,20 @@ export function WorkItemQueryHelp(props: Props) {
               {fields.fields.map((field) => (
                 <li
                   key={field.name}
-                  className="font-mono rounded-sm bg-layer-2 px-1.5 py-0.5 text-11 text-primary"
+                  className="rounded-sm bg-layer-2 px-1.5 py-0.5 font-code text-11 text-primary"
                   title={[...field.aliases, ...field.operators].join(", ")}
                 >
                   {field.aliases[0] ?? field.name}
                 </li>
               ))}
-              <li className="font-mono rounded-sm bg-layer-2 px-1.5 py-0.5 text-11 text-primary">
+              <li className="rounded-sm bg-layer-2 px-1.5 py-0.5 font-code text-11 text-primary">
                 {fields.custom_property_syntax}
               </li>
             </ul>
             <h5 className="mt-2 font-medium text-primary">{t("work_item_query.help_functions")}</h5>
             <ul className="flex flex-wrap gap-1">
               {fields.functions.map(({ name }) => (
-                <li key={name} className="font-mono rounded-sm bg-layer-2 px-1.5 py-0.5 text-11 text-primary">
+                <li key={name} className="rounded-sm bg-layer-2 px-1.5 py-0.5 font-code text-11 text-primary">
                   {name}()
                 </li>
               ))}

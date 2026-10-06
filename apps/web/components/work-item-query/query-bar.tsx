@@ -130,7 +130,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
     <div className={cn("flex flex-col gap-1 border-b border-subtle-1 bg-surface-1 px-4 py-2", className)}>
       <div className="flex items-center gap-2">
         <span
-          className={cn("font-mono shrink-0 rounded-sm px-1.5 py-0.5 text-10 font-semibold tracking-wide", {
+          className={cn("shrink-0 rounded-sm px-1.5 py-0.5 font-code text-10 font-semibold tracking-wide", {
             "bg-accent-primary/10 text-accent-primary": isApplied,
             "bg-layer-2 text-tertiary": !isApplied,
           })}
@@ -138,29 +138,45 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
         >
           PQL
         </span>
-        <Suspense
-          fallback={
-            <div className={editorBoxClass(hasError, cn("leading-7", { "text-placeholder": !draft }))}>
-              {draft || t("work_item_query.placeholder")}
+        <div className="group/query relative flex min-w-0 flex-1">
+          <Suspense
+            fallback={
+              <div className={editorBoxClass(hasError, cn({ "text-placeholder": !draft }))}>
+                <span className="truncate">{draft || t("work_item_query.placeholder")}</span>
+              </div>
+            }
+          >
+            <QueryEditor
+              value={draft}
+              onChange={(next) => {
+                setEdits(next);
+                setRunError(null);
+              }}
+              onSubmit={() => void run()}
+              onCancel={revert}
+              vocabulary={vocabulary}
+              validate={validate}
+              onDiagnostics={onDiagnostics}
+              placeholder={t("work_item_query.placeholder")}
+              ariaLabel={t("work_item_query.placeholder")}
+              hasError={hasError}
+            />
+          </Suspense>
+          {/* Floats below the box, so an error never shifts the page. */}
+          {hasError && (
+            <div
+              role="alert"
+              className={cn(
+                "absolute top-full left-0 z-30 mt-1 w-max max-w-full flex-col gap-0.5 rounded-md border border-subtle bg-layer-1 px-2 py-1 text-11 text-danger-primary shadow-overlay-100",
+                runError ? "flex" : "hidden group-focus-within/query:flex"
+              )}
+            >
+              {errors.map((message) => (
+                <span key={message}>{message}</span>
+              ))}
             </div>
-          }
-        >
-          <QueryEditor
-            value={draft}
-            onChange={(next) => {
-              setEdits(next);
-              setRunError(null);
-            }}
-            onSubmit={() => void run()}
-            onCancel={revert}
-            vocabulary={vocabulary}
-            validate={validate}
-            onDiagnostics={onDiagnostics}
-            placeholder={t("work_item_query.placeholder")}
-            ariaLabel={t("work_item_query.placeholder")}
-            hasError={hasError}
-          />
-        </Suspense>
+          )}
+        </div>
         <Button
           variant={isDirty ? "primary" : "secondary"}
           size="sm"
@@ -194,13 +210,6 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
         </button>
         {actions && <div className="flex shrink-0 items-center gap-2 border-l border-subtle pl-2">{actions}</div>}
       </div>
-      {hasError && (
-        <div className="flex flex-col gap-0.5 pl-11 text-11 text-danger-primary" role="alert">
-          {errors.map((message) => (
-            <span key={message}>{message}</span>
-          ))}
-        </div>
-      )}
       {isHelpOpen && <WorkItemQueryHelp fields={fields} onClose={() => setIsHelpOpen(false)} />}
     </div>
   );
