@@ -145,15 +145,17 @@ export const ModuleViewHeader = observer(function ModuleViewHeader() {
           )}
         </div>
       </div>
-      <ModuleOrderByDropdown
-        value={displayFilters?.order_by}
-        onChange={(val) => {
-          if (!projectId || val === displayFilters?.order_by) return;
-          updateDisplayFilters(projectId.toString(), {
-            order_by: val,
-          });
-        }}
-      />
+      {displayFilters?.layout !== "gantt" && (
+        <ModuleOrderByDropdown
+          value={displayFilters?.order_by}
+          onChange={(val) => {
+            if (!projectId || val === displayFilters?.order_by) return;
+            updateDisplayFilters(projectId.toString(), {
+              order_by: val,
+            });
+          }}
+        />
+      )}
       <FiltersDropdown
         icon={<FilterOutline className="h-3 w-3" />}
         title="Filters"

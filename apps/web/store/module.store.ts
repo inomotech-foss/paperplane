@@ -18,6 +18,7 @@ import { ModuleArchiveService } from "@/services/module_archive.service";
 import { ProjectService } from "@/services/project";
 // store
 import type { CoreRootStore } from "./root.store";
+import { getModuleOrderBy } from "./timeline-order";
 
 export interface IModuleStore {
   //Loaders
@@ -180,7 +181,7 @@ export class ModulesStore implements IModuleStore {
         m.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
         shouldFilterModule(m, displayFilters ?? {}, filters ?? {})
     );
-    modules = orderModules(modules, displayFilters?.order_by);
+    modules = orderModules(modules, getModuleOrderBy(displayFilters));
     const moduleIds = modules.map((m) => m.id);
     return moduleIds;
   });

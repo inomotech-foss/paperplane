@@ -77,6 +77,7 @@ const getRowStates = (rows: ReturnType<typeof buildGanttRows>["rows"], sources: 
     const isExpanded = row.isExpanded && row.childIds.length > 0;
     rowStates[issueId] = {
       depth: row.depth,
+      parentId: row.parentId,
       hasChildren: sources.hasChildren(issueId),
       isExpanded,
       isLoading: sources.isLoading(issueId),
@@ -93,7 +94,7 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
   const { workspaceSlug, projectId } = useParams();
 
   const storeType = useIssueStoreType() as GanttStoreType;
-  const { issues, issuesFilter } = useIssues(storeType);
+  const { issues } = useIssues(storeType);
   const { fetchIssues, fetchNextIssues, updateIssue, quickAddIssue } = useIssuesActions(storeType);
   const { initGantt } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
   const { isDateRollupEnabled, fetchDateRollups } = useIssuesTimeLineChart();
@@ -113,7 +114,6 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
   const [fetchedParentIds, setFetchedParentIds] = useState<Set<string>>(() => new Set());
   const [loadingParentIds, setLoadingParentIds] = useState<Set<string>>(() => new Set());
 
-  const appliedDisplayFilters = issuesFilter.issueFilters?.displayFilters;
   // plane web hooks
   const isBulkOperationsEnabled = useBulkOperationStatus();
   // derived values
@@ -273,7 +273,7 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
               enableBlockLeftResize={isAllowed}
               enableBlockRightResize={isAllowed}
               enableBlockMove={isAllowed}
-              enableReorder={appliedDisplayFilters?.order_by === "sort_order" && isAllowed}
+              enableReorder={isAllowed}
               enableAddBlock={isAllowed}
               enableSelection={isBulkOperationsEnabled && isAllowed}
               quickAdd={quickAdd}
