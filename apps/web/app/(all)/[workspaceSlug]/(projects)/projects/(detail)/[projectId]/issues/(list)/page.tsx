@@ -52,7 +52,7 @@ function ProjectIssuesPage({ params }: Route.ComponentProps) {
           primaryButton={{
             text: t("disabled_project.empty_state.work_item.primary_button.text"),
             onClick: () => {
-              router.push(`/${workspaceSlug}/settings/projects/${projectId}/features`);
+              router.push(`/${workspaceSlug}/settings/projects/${projectId}/features/work-items/`);
             },
             disabled: !canPerformEmptyStateActions,
           }}

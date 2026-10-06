@@ -323,6 +323,13 @@
       "description": "Créez et personnalisez différents types d’éléments de travail avec des propriétés uniques"
     },
     "features": {
+      "work_items": {
+        "title": "Éléments de travail",
+        "short_title": "Éléments de travail",
+        "description": "Suivez les tâches, les bogues et tout autre travail de ce projet.",
+        "toggle_title": "Activer les éléments de travail",
+        "toggle_description": "Les cycles, modules, vues et Intake sont masqués tant que les éléments de travail sont désactivés."
+      },
       "cycles": {
         "title": "Cycles",
         "short_title": "Cycles",

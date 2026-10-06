@@ -323,6 +323,13 @@
       "description": "Maak en pas verschillende typen werkitems aan met unieke eigenschappen"
     },
     "features": {
+      "work_items": {
+        "title": "Werkitems",
+        "short_title": "Werkitems",
+        "description": "Volg taken, bugs en ander werk in dit project.",
+        "toggle_title": "Werkitems inschakelen",
+        "toggle_description": "Cycli, modules, weergaven en Intake zijn verborgen zolang werkitems uitgeschakeld zijn."
+      },
       "cycles": {
         "title": "Cycli",
         "short_title": "Cycli",

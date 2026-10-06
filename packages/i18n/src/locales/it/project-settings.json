@@ -323,6 +323,13 @@
       "description": "Crea e personalizza diversi tipi di elementi di lavoro con proprietà uniche"
     },
     "features": {
+      "work_items": {
+        "title": "Elementi di lavoro",
+        "short_title": "Elementi di lavoro",
+        "description": "Monitoraggio di attività, bug e altro lavoro in questo progetto.",
+        "toggle_title": "Abilita elementi di lavoro",
+        "toggle_description": "Cicli, moduli, viste e Intake sono nascosti finché gli elementi di lavoro sono disattivati."
+      },
       "cycles": {
         "title": "Cicli",
         "short_title": "Cicli",

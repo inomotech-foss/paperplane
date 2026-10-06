@@ -17,6 +17,7 @@ import {
 } from "@makeplane/propel/icons";
 import type { EUserProjectRoles, IPartialProject } from "@plane/types";
 import type { TNavigationItem } from "@/components/navigation/tab-navigation-root";
+import { isWorkItemsEnabled } from "@/components/settings/project/work-items-dependency";
 
 type UseNavigationItemsProps = {
   workspaceSlug: string;
@@ -36,6 +37,7 @@ export const useNavigationItems = ({
   project,
   allowPermissions,
 }: UseNavigationItemsProps): TNavigationItem[] => {
+  const workItemsEnabled = isWorkItemsEnabled(project);
   // Base navigation items
   const baseNavigation = useCallback(
     // oxlint-disable-next-line no-shadow
@@ -57,7 +59,7 @@ export const useNavigationItems = ({
         href: `/${workspaceSlug}/projects/${projectId}/cycles`,
         icon: CyclesOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
-        shouldRender: !!project?.cycle_view,
+        shouldRender: workItemsEnabled && !!project?.cycle_view,
         sortOrder: 2,
       },
       {
@@ -67,7 +69,7 @@ export const useNavigationItems = ({
         href: `/${workspaceSlug}/projects/${projectId}/modules`,
         icon: ModuleOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
-        shouldRender: !!project?.module_view,
+        shouldRender: workItemsEnabled && !!project?.module_view,
         sortOrder: 3,
       },
       {
@@ -77,7 +79,7 @@ export const useNavigationItems = ({
         href: `/${workspaceSlug}/projects/${projectId}/views`,
         icon: ViewsOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
-        shouldRender: !!project?.issue_views_view,
+        shouldRender: workItemsEnabled && !!project?.issue_views_view,
         sortOrder: 4,
       },
       {
@@ -97,11 +99,11 @@ export const useNavigationItems = ({
         href: `/${workspaceSlug}/projects/${projectId}/intake`,
         icon: IntakeOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
-        shouldRender: !!project?.inbox_view,
+        shouldRender: workItemsEnabled && !!project?.inbox_view,
         sortOrder: 6,
       },
     ],
-    [project]
+    [project, workItemsEnabled]
   );
 
   // Combine, filter, and sort navigation items

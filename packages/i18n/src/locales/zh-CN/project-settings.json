@@ -323,6 +323,13 @@
       "description": "创建和自定义具有独特属性的不同类型工作项"
     },
     "features": {
+      "work_items": {
+        "title": "工作项",
+        "short_title": "工作项",
+        "description": "跟踪此项目中的任务、缺陷和其他工作。",
+        "toggle_title": "启用工作项",
+        "toggle_description": "工作项关闭时，周期、模块、视图和 Intake 将被隐藏。"
+      },
       "cycles": {
         "title": "周期",
         "short_title": "周期",

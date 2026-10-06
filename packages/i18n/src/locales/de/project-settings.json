@@ -323,6 +323,13 @@
       "description": "Erstellen und passen Sie verschiedene Typen von Arbeitselementen mit einzigartigen Eigenschaften an"
     },
     "features": {
+      "work_items": {
+        "title": "Arbeitselemente",
+        "short_title": "Arbeitselemente",
+        "description": "Verfolgen Sie Aufgaben, Fehler und andere Arbeit in diesem Projekt.",
+        "toggle_title": "Arbeitselemente aktivieren",
+        "toggle_description": "Zyklen, Module, Ansichten und Intake sind ausgeblendet, solange Arbeitselemente deaktiviert sind."
+      },
       "cycles": {
         "title": "Zyklen",
         "short_title": "Zyklen",
