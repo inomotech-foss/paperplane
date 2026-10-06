@@ -1,10 +1,21 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import html
 import json
+import re
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Content types a page can hang off that the backup tool never fetched.
+CONTAINER_TYPES = ("folder", "database")
+
+SORT_STEP = 10000
+
+_CONTAINER_LINK = re.compile(r'<a\s[^>]*href="[^"]*/(folder|database)/(\d+)[^"]*"[^>]*>(.*?)</a>', re.S)
+_TAG = re.compile(r"<[^>]+>")
 
 
 @dataclass(frozen=True)
@@ -20,6 +31,13 @@ class ConfluencePage:
     title: str
     body: str
     parent_id: str = None
+    # "page", "folder" or "database"; None for a root.
+    parent_type: str = None
+    # Order among siblings, as Confluence stored it.
+    position: int = None
+    archived: bool = False
+    # Stands in for a container the backup does not hold.
+    placeholder: bool = False
     author_id: str = None
     created_at: datetime = None
     updated_at: datetime = None
@@ -42,15 +60,26 @@ def _label_name(label):
     return (label.get("name") if isinstance(label, dict) else label) or ""
 
 
+def _position(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _page_from_record(record):
     version = record.get("version") or {}
     parent_id = record.get("parentId")
+    # The backup writes a literal "None" string for absent parents.
+    parent_id = str(parent_id) if parent_id and str(parent_id) != "None" else None
     return ConfluencePage(
         id=str(record["id"]),
         title=(record.get("title") or "Untitled")[:255],
         body=((record.get("body") or {}).get("storage") or {}).get("value") or "",
-        # The backup writes a literal "None" string for absent parents.
-        parent_id=str(parent_id) if parent_id and str(parent_id) != "None" else None,
+        parent_id=parent_id,
+        parent_type=(record.get("parentType") or "page") if parent_id else None,
+        position=_position(record.get("position")),
+        archived=(record.get("status") or "") == "archived",
         author_id=record.get("authorId") or record.get("ownerId"),
         created_at=parse_timestamp(record.get("createdAt")),
         updated_at=parse_timestamp(version.get("createdAt")) or parse_timestamp(record.get("createdAt")),
@@ -101,6 +130,81 @@ def drop_template_scaffolding(pages):
     return kept
 
 
+def _container_names(pages):
+    """Container titles recoverable from links, keyed by (type, id).
+
+    Most links to a folder show the URL as their text, which is no name at all,
+    so only text that is not a URL counts.
+    """
+    names = {}
+    for page in pages:
+        for kind, container_id, text in _CONTAINER_LINK.findall(page.body):
+            text = html.unescape(_TAG.sub("", text)).strip()
+            if text and "://" not in text:
+                names.setdefault((kind, container_id), text[:255])
+    return names
+
+
+def add_container_placeholders(pages):
+    """Stand in for the folders and databases the backup never fetched.
+
+    The export only holds pages, so a page kept in a folder points at an id
+    with no record and would otherwise land at the root. One placeholder page
+    per container keeps its pages together. The container's own title and
+    parent are gone, so the placeholder sits at the root under whatever name a
+    link to it reveals, or its id, for a human to fix.
+    """
+    known = {page.id for page in pages}
+    orphans = [
+        page for page in pages if page.parent_type in CONTAINER_TYPES and page.parent_id and page.parent_id not in known
+    ]
+    if not orphans:
+        return pages
+
+    names = _container_names(pages)
+    placeholders = {}
+    for page in orphans:
+        key = (page.parent_type, page.parent_id)
+        placeholder = placeholders.get(key)
+        if placeholder is None:
+            placeholder = placeholders[key] = ConfluencePage(
+                id=f"{page.parent_type}-{page.parent_id}",
+                title=names.get(key) or f"{page.parent_type.capitalize()} {page.parent_id}",
+                body="",
+                placeholder=True,
+                created_at=page.created_at,
+                updated_at=page.updated_at,
+            )
+        else:
+            stamps = [stamp for stamp in (placeholder.created_at, page.created_at) if stamp]
+            placeholder.created_at = min(stamps) if stamps else None
+            stamps = [stamp for stamp in (placeholder.updated_at, page.updated_at) if stamp]
+            placeholder.updated_at = max(stamps) if stamps else None
+        page.parent_id = placeholder.id
+        page.parent_type = "page"
+    return pages + list(placeholders.values())
+
+
+def sibling_sort_orders(pages):
+    """Plane `sort_order` per page id, from Confluence's sibling position.
+
+    Positions only mean something among siblings, so each parent's children are
+    ranked and spaced `SORT_STEP` apart to leave room for a manual reorder.
+    Placeholders carry no position and go last, by title.
+    """
+    known = {page.id for page in pages}
+    siblings = defaultdict(list)
+    for page in pages:
+        siblings[page.parent_id if page.parent_id in known else None].append(page)
+
+    orders = {}
+    for group in siblings.values():
+        group.sort(key=lambda page: (page.position is None, page.position or 0, page.title.casefold()))
+        for rank, page in enumerate(group, start=1):
+            orders[page.id] = rank * SORT_STEP
+    return orders
+
+
 class ConfluenceBackup:
     """A `backup/confluence/<SPACE>/` tree as written by the backup tool."""
 
@@ -125,11 +229,24 @@ class ConfluenceBackup:
         except (OSError, ValueError):
             return ""
 
+    def space_status(self):
+        """The space's Confluence status, "current" or "archived"; "" if unknown."""
+        try:
+            return (self.space().get("status") or "").strip()
+        except (OSError, ValueError):
+            return ""
+
+    def space_owner_id(self):
+        try:
+            return (self.space().get("spaceOwnerId") or "").strip()
+        except (OSError, ValueError):
+            return ""
+
     def pages(self):
         path = self.space_dir / "pages.jsonl"
         with path.open() as handle:
             pages = [_page_from_record(json.loads(line)) for line in handle if line.strip()]
-        return drop_template_scaffolding(pages)
+        return add_container_placeholders(drop_template_scaffolding(pages))
 
     def users(self):
         """accountId -> ConfluenceUser, shared across spaces."""

@@ -269,6 +269,9 @@ class JiraLoader:
             description=f"Imported from Jira project {key}",
             network=0,
             issue_view=True,
+            # The wiki for a Jira project lives in a Confluence space, so a
+            # project created here has nothing to show under Pages.
+            page_view=False,
             is_issue_type_enabled=True,
             external_source=self.EXTERNAL_SOURCE,
             external_id=str(details.get("id") or key),

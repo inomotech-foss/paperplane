@@ -20,6 +20,11 @@ class Command(BaseCommand):
         parser.add_argument("--actor", required=True, help="Email of the user to fall back to for unmapped authors")
         parser.add_argument("--dry-run", action="store_true", help="Roll back instead of committing")
         parser.add_argument(
+            "--structure-only",
+            action="store_true",
+            help="Repair parents, order, archive flags and folder placeholders without rewriting existing bodies",
+        )
+        parser.add_argument(
             "--include-personal", action="store_true", help="Allow importing a personal Confluence space"
         )
 
@@ -41,13 +46,21 @@ class Command(BaseCommand):
             raise CommandError(f"No user with email {options['actor']!r}")
 
         loader = ConfluenceLoader(workspace.slug, actor, backup)
-        summary = loader.run(dry_run=options["dry_run"])
+        summary = loader.run(dry_run=options["dry_run"], structure_only=options["structure_only"])
         self._report(summary, dry_run=options["dry_run"])
 
     def _report(self, summary, dry_run):
         total = summary.created + summary.updated
         self.stdout.write(f"project     {summary.project_name} ({summary.project_id})")
         self.stdout.write(f"pages       {summary.created} created, {summary.updated} updated, {summary.roots} roots")
+        if summary.containers:
+            self.stdout.write(f"folders     {summary.containers} placeholder pages for folders and databases")
+        if summary.archived:
+            self.stdout.write(f"archived    {summary.archived} pages archived as in Confluence")
+        if summary.locally_edited:
+            self.stdout.write(f"kept        {summary.locally_edited} pages edited in Plane, bodies left alone")
+        if summary.owner_granted:
+            self.stdout.write("owner       space owner added as project admin")
         self.stdout.write(f"attributed  {summary.attributed}/{total} to their original author")
         self.stdout.write(f"assets      {summary.attachments} attachments uploaded")
 
