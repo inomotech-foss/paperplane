@@ -58,6 +58,9 @@ export type TIssueOrderByOptions =
 
 export type TIssueGroupingFilters = "active" | "backlog";
 
+/** What the timeline bars take their colour from. */
+export type TTimelineColorBy = "state" | "key";
+
 export type TIssueExtraOptions = "show_empty_groups" | "sub_issue" | "hierarchy";
 
 export type TIssueParams =
@@ -181,6 +184,8 @@ export interface IIssueDisplayFilterOptions {
   hierarchy?: boolean;
   /** Plane Query Language expression applied on top of the filters, empty for none. */
   pql?: string;
+  /** Timeline bar colour source. */
+  color_by?: TTimelineColorBy;
 }
 export interface IIssueDisplayProperties {
   // Per-project work item custom properties, keyed by `custom_property_<property_id>`

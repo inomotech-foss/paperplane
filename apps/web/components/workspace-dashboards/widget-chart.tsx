@@ -5,9 +5,7 @@
  */
 
 import { useMemo } from "react";
-import { useTheme } from "next-themes";
 // plane imports
-import { CHART_COLOR_PALETTES } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { AreaChart } from "@plane/blocks/charts/area-chart";
 import { BarChart } from "@plane/blocks/charts/bar-chart";
@@ -17,6 +15,7 @@ import type { TAreaItem, TBarItem, TDashboardChartType, TDashboardWidgetData, TL
 import { cn } from "@plane/utils";
 // components
 import { generateExtendedColors } from "@/components/chart/utils";
+import { useChartPalette } from "@/hooks/use-chart-palette";
 // local imports
 import { formatMetricValue } from "./utils";
 
@@ -48,13 +47,12 @@ const outermostSeriesKey = (
 export function WidgetChart(props: Props) {
   const { chartType, data, metricLabel, dimensionLabel, className } = props;
   const { t } = useTranslation();
-  const { resolvedTheme } = useTheme();
+  const chartPalette = useChartPalette();
 
   const seriesKeys = useMemo(() => Object.keys(data.schema ?? {}), [data.schema]);
   const colors = useMemo(() => {
-    const base = CHART_COLOR_PALETTES[0]?.[resolvedTheme === "dark" ? "dark" : "light"] ?? [];
-    return generateExtendedColors(base, Math.max(seriesKeys.length, data.data.length, 1));
-  }, [resolvedTheme, seriesKeys.length, data.data.length]);
+    return generateExtendedColors(chartPalette, Math.max(seriesKeys.length, data.data.length, 1));
+  }, [chartPalette, seriesKeys.length, data.data.length]);
 
   // Every chart plots `count` unless a series splits it into one key per series value.
   const valueKeys = seriesKeys.length > 0 ? seriesKeys : [VALUE_KEY];

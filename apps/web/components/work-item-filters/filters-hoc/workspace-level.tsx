@@ -24,6 +24,7 @@ import { useProject } from "@/hooks/store/use-project";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 // local imports
 import { WorkItemFiltersHOC } from "./base";
+import { hasDisplayFilterChanges } from "./display-filters";
 import type { TEnableSaveViewProps, TEnableUpdateViewProps, TSharedWorkItemFiltersHOCProps } from "./shared";
 
 type TWorkspaceLevelWorkItemFiltersHOCProps = TSharedWorkItemFiltersHOCProps & {
@@ -85,7 +86,7 @@ export const WorkspaceLevelWorkItemFiltersHOC = observer(function WorkspaceLevel
   // the layout root that builds it) untouched, so a memo keyed on it never saw the change
   // and "Update view" did not appear. Reading the values here lets MobX re-render on it.
   const hasAdditionalChanges =
-    !isEqual(toJS(initialWorkItemFilters?.displayFilters), viewDetails?.display_filters) ||
+    hasDisplayFilterChanges(toJS(initialWorkItemFilters?.displayFilters), viewDetails?.display_filters) ||
     !isEqual(
       removeNillKeys(toJS(initialWorkItemFilters?.displayProperties)),
       removeNillKeys(viewDetails?.display_properties)

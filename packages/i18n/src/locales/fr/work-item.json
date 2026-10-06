@@ -67,6 +67,11 @@
         "show_sub_issues": "Afficher les sous-éléments",
         "show_empty_groups": "Afficher les groupes vides",
         "show_hierarchy": "Imbriquer sous les parents"
+      },
+      "color_by": {
+        "label": "Colorer par",
+        "state": "État",
+        "key": "Clé"
       }
     },
     "layouts": {

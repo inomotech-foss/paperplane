@@ -16,6 +16,7 @@ import type {
   TIssueGroupByOptions,
   TIssueGroupingFilters,
   TIssueOrderByOptions,
+  TTimelineColorBy,
 } from "./view-props";
 import type { IWorkspaceLite } from "./workspace";
 
@@ -153,6 +154,7 @@ export interface ILayoutDisplayFiltersOptions {
     sub_group_by?: TIssueGroupByOptions[];
     order_by?: TIssueOrderByOptions[];
     type?: TIssueGroupingFilters[];
+    color_by?: TTimelineColorBy[];
   };
   extra_options: {
     access: boolean;

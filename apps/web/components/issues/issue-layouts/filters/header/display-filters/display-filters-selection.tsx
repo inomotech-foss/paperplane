@@ -15,6 +15,7 @@ import type {
 } from "@plane/types";
 // components
 import {
+  FilterColorBy,
   FilterDisplayProperties,
   FilterExtraOptions,
   FilterGroupBy,
@@ -123,6 +124,12 @@ export const DisplayFiltersSelection = observer(function DisplayFiltersSelection
           />
         </div>
       )}
+
+      <FilterColorBy
+        displayFilters={displayFilters}
+        layoutDisplayFiltersOptions={layoutDisplayFiltersOptions}
+        handleDisplayFiltersUpdate={handleDisplayFiltersUpdate}
+      />
 
       {/* Options */}
       {layoutDisplayFiltersOptions?.extra_options.access && (

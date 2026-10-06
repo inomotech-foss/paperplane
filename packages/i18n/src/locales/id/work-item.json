@@ -67,6 +67,11 @@
         "show_sub_issues": "Tampilkan sub-item kerja",
         "show_empty_groups": "Tampilkan grup kosong",
         "show_hierarchy": "Susun di bawah item induk"
+      },
+      "color_by": {
+        "label": "Warnai berdasarkan",
+        "state": "Status",
+        "key": "Kunci"
       }
     },
     "layouts": {

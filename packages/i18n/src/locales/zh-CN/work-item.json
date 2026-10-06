@@ -67,6 +67,11 @@
         "show_sub_issues": "显示子工作项",
         "show_empty_groups": "显示空组",
         "show_hierarchy": "嵌套显示在父项之下"
+      },
+      "color_by": {
+        "label": "颜色依据",
+        "state": "状态",
+        "key": "键"
       }
     },
     "layouts": {
