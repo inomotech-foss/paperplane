@@ -20,6 +20,11 @@ class Command(BaseCommand):
         parser.add_argument("--actor", required=True, help="Email of the user to fall back to for unmapped authors")
         parser.add_argument("--dry-run", action="store_true", help="Roll back instead of committing")
         parser.add_argument(
+            "--plan",
+            action="store_true",
+            help="Dry run that also lists every page it would create, move, rename or archive",
+        )
+        parser.add_argument(
             "--structure-only",
             action="store_true",
             help="Repair parents, order, archive flags and folder placeholders without rewriting existing bodies",
@@ -45,9 +50,12 @@ class Command(BaseCommand):
         except User.DoesNotExist:
             raise CommandError(f"No user with email {options['actor']!r}")
 
+        dry_run = options["dry_run"] or options["plan"]
         loader = ConfluenceLoader(workspace.slug, actor, backup)
-        summary = loader.run(dry_run=options["dry_run"], structure_only=options["structure_only"])
-        self._report(summary, dry_run=options["dry_run"])
+        summary = loader.run(dry_run=dry_run, structure_only=options["structure_only"])
+        self._report(summary, dry_run=dry_run)
+        if options["plan"]:
+            self._plan(summary)
 
     def _report(self, summary, dry_run):
         total = summary.created + summary.updated
@@ -94,3 +102,13 @@ class Command(BaseCommand):
             self.stdout.write(f"chrome      {json.dumps(dict(summary.dropped_chrome))}")
         if dry_run:
             self.stdout.write(self.style.WARNING("dry run, rolled back"))
+
+    KINDS = ("create", "move", "rename", "archive", "keep")
+
+    def _plan(self, summary):
+        counts = ", ".join(f"{kind} {sum(1 for c in summary.changes if c.kind == kind)}" for kind in self.KINDS)
+        self.stdout.write(f"plan        {counts}, reorder {summary.reordered}")
+        for kind in self.KINDS:
+            for change in sorted((c for c in summary.changes if c.kind == kind), key=lambda c: c.title.casefold()):
+                detail = f": {change.detail}" if change.detail else ""
+                self.stdout.write(f"  {kind:<8}{change.title}{detail}")

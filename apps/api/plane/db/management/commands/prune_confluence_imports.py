@@ -62,6 +62,9 @@ class Command(BaseCommand):
             "--archive-stale", action="store_true", help="Archive projects whose space is archived in Confluence"
         )
         parser.add_argument(
+            "--archive", action="store_true", help="Archive the projects named by --spaces, whatever Confluence says"
+        )
+        parser.add_argument(
             "--assign-owners", action="store_true", help="Make each space's Confluence owner a project admin"
         )
 
@@ -84,6 +87,7 @@ class Command(BaseCommand):
             options["disable_work_items"],
             options["disable_pages"],
             options["archive_stale"],
+            options["archive"],
             options["assign_owners"],
         )
         with transaction.atomic():
@@ -98,6 +102,8 @@ class Command(BaseCommand):
                 self._disable_pages(workspace, keys)
             if options["archive_stale"]:
                 self._archive_stale(scope, spaces)
+            if options["archive"]:
+                self._archive(scope, keys)
             if options["assign_owners"]:
                 self._assign_owners(scope, spaces, options["backup_dir"])
             if not any(passes):
@@ -162,6 +168,16 @@ class Command(BaseCommand):
         queryset = scope.filter(external_id__in=archived_ids, archived_at__isnull=True)
         rows = list(queryset.values_list("id", "identifier"))
         self._report("archive-stale", rows)
+        if rows:
+            queryset.update(archived_at=timezone.now())
+
+    def _archive(self, scope, keys):
+        """For a space that is still current in Confluence but whose team is gone."""
+        if not keys:
+            raise CommandError("--archive needs --spaces to name the projects")
+        queryset = scope.filter(archived_at__isnull=True)
+        rows = list(queryset.values_list("id", "identifier"))
+        self._report("archive", rows)
         if rows:
             queryset.update(archived_at=timezone.now())
 

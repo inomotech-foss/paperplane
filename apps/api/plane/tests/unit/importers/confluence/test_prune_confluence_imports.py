@@ -237,6 +237,20 @@ class TestArchiveStale:
 
 @pytest.mark.unit
 @pytest.mark.django_db
+class TestArchive:
+    def test_archives_only_the_named_projects(self, workspace, backup_dir, demo_project, wiki_project):
+        run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, archive=True, spaces="DEMO")
+
+        assert Project.objects.get(pk=demo_project.pk).archived_at is not None
+        assert Project.objects.get(pk=wiki_project.pk).archived_at is None
+
+    def test_needs_spaces(self, workspace, backup_dir, demo_project):
+        with pytest.raises(CommandError):
+            run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, archive=True)
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
 class TestAssignOwners:
     def test_owner_becomes_admin(self, workspace, backup_dir, personal_project, owner):
         output = run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=True, assign_owners=True)
