@@ -51,33 +51,35 @@ export function PageOrderByDropdown(props: Props) {
             label={option.label}
             selected={sortKey === option.key}
             onClick={() =>
-              onChange({
-                key: option.key,
-              })
+              onChange(option.key === "sort_order" ? { key: option.key, order: "asc" } : { key: option.key })
             }
           />
         ))}
-        <MenuSeparator />
-        <MenuItem
-          label={t("common.sort.asc")}
-          selected={!isDescending}
-          onClick={() => {
-            if (isDescending)
-              onChange({
-                order: "asc",
-              });
-          }}
-        />
-        <MenuItem
-          label={t("common.sort.desc")}
-          selected={isDescending}
-          onClick={() => {
-            if (!isDescending)
-              onChange({
-                order: "desc",
-              });
-          }}
-        />
+        {sortKey !== "sort_order" && (
+          <>
+            <MenuSeparator />
+            <MenuItem
+              label={t("common.sort.asc")}
+              selected={!isDescending}
+              onClick={() => {
+                if (isDescending)
+                  onChange({
+                    order: "asc",
+                  });
+              }}
+            />
+            <MenuItem
+              label={t("common.sort.desc")}
+              selected={isDescending}
+              onClick={() => {
+                if (!isDescending)
+                  onChange({
+                    order: "desc",
+                  });
+              }}
+            />
+          </>
+        )}
       </MenuContent>
     </Menu>
   );
