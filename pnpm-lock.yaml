@@ -234,6 +234,9 @@ catalogs:
     antlr-ng:
       specifier: 1.0.10
       version: 1.0.10
+    antlr4-c3:
+      specifier: 3.4.4
+      version: 3.4.4
     antlr4ng:
       specifier: 3.0.16
       version: 3.0.16
@@ -1664,7 +1667,7 @@ importers:
         specifier: 'catalog:'
         version: 1.2.5
       antlr4-c3:
-        specifier: 3.4.4
+        specifier: 'catalog:'
         version: 3.4.4
       antlr4ng:
         specifier: 'catalog:'
