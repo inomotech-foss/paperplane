@@ -328,7 +328,7 @@
         "short_title": "Éléments de travail",
         "description": "Suivez les tâches, les bogues et tout autre travail de ce projet.",
         "toggle_title": "Activer les éléments de travail",
-        "toggle_description": "Les cycles, modules, vues et Intake sont masqués tant que les éléments de travail sont désactivés."
+        "toggle_description": "La désactivation masque les paramètres de structure du travail, les cycles, modules, vues, Intake, automatisations et Service Desk. Les automatisations et Service Desk cessent aussi de fonctionner."
       },
       "cycles": {
         "title": "Cycles",

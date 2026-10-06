@@ -328,7 +328,7 @@
         "short_title": "Work items",
         "description": "Track tasks, bugs and other work in this project.",
         "toggle_title": "Enable work items",
-        "toggle_description": "Cycles, modules, views and Intake are hidden while work items are off."
+        "toggle_description": "Turning this off hides work structure settings, cycles, modules, views, Intake, automations and Service Desk. Automations and Service Desk also stop running."
       },
       "cycles": {
         "title": "Cycles",

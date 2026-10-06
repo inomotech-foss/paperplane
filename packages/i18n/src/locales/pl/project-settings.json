@@ -328,7 +328,7 @@
         "short_title": "Elementy pracy",
         "description": "Śledzenie zadań, błędów i innej pracy w tym projekcie.",
         "toggle_title": "Włącz elementy pracy",
-        "toggle_description": "Cykle, moduły, widoki i Intake są ukryte, gdy elementy pracy są wyłączone."
+        "toggle_description": "Wyłączenie ukrywa ustawienia struktury pracy, cykle, moduły, widoki, Intake, automatyzacje i Service Desk. Automatyzacje i Service Desk również przestają działać."
       },
       "cycles": {
         "title": "Cykle",

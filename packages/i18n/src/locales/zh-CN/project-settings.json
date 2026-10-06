@@ -328,7 +328,7 @@
         "short_title": "工作项",
         "description": "跟踪此项目中的任务、缺陷和其他工作。",
         "toggle_title": "启用工作项",
-        "toggle_description": "工作项关闭时，周期、模块、视图和 Intake 将被隐藏。"
+        "toggle_description": "关闭后，工作结构设置、周期、模块、视图、Intake、自动化和 Service Desk 将被隐藏。自动化和 Service Desk 也会停止运行。"
       },
       "cycles": {
         "title": "周期",

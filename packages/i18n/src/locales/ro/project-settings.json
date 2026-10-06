@@ -328,7 +328,7 @@
         "short_title": "Elemente de lucru",
         "description": "Urmăriți sarcinile, erorile și alte activități din acest proiect.",
         "toggle_title": "Activați elementele de lucru",
-        "toggle_description": "Ciclurile, modulele, vizualizările și Intake sunt ascunse cât timp elementele de lucru sunt dezactivate."
+        "toggle_description": "Dezactivarea ascunde setările structurii de lucru, ciclurile, modulele, vizualizările, Intake, automatizările și Service Desk. Automatizările și Service Desk nu mai rulează nici ele."
       },
       "cycles": {
         "title": "Cicluri",

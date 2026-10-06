@@ -328,7 +328,7 @@
         "short_title": "Werkitems",
         "description": "Volg taken, bugs en ander werk in dit project.",
         "toggle_title": "Werkitems inschakelen",
-        "toggle_description": "Cycli, modules, weergaven en Intake zijn verborgen zolang werkitems uitgeschakeld zijn."
+        "toggle_description": "Uitschakelen verbergt de instellingen voor werkstructuur, cycli, modules, weergaven, Intake, automatiseringen en Service Desk. Automatiseringen en Service Desk stoppen ook met draaien."
       },
       "cycles": {
         "title": "Cycli",

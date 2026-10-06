@@ -328,7 +328,7 @@
         "short_title": "İş öğeleri",
         "description": "Bu projedeki görevleri, hataları ve diğer işleri takip edin.",
         "toggle_title": "İş öğelerini etkinleştir",
-        "toggle_description": "İş öğeleri kapalıyken döngüler, modüller, görünümler ve Intake gizlenir."
+        "toggle_description": "Kapatıldığında iş yapısı ayarları, döngüler, modüller, görünümler, Intake, otomasyonlar ve Service Desk gizlenir. Otomasyonlar ve Service Desk de çalışmayı durdurur."
       },
       "cycles": {
         "title": "Döngüler",

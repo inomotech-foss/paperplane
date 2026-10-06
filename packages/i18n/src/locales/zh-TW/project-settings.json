@@ -328,7 +328,7 @@
         "short_title": "工作項目",
         "description": "追蹤此專案中的任務、缺陷和其他工作。",
         "toggle_title": "啟用工作項目",
-        "toggle_description": "工作項目關閉時，週期、模組、檢視和 Intake 將被隱藏。"
+        "toggle_description": "關閉後，工作結構設定、週期、模組、檢視、Intake、自動化和 Service Desk 將被隱藏。自動化和 Service Desk 也會停止執行。"
       },
       "cycles": {
         "title": "週期",

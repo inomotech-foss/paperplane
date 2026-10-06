@@ -328,7 +328,7 @@
         "short_title": "Item kerja",
         "description": "Lacak tugas, bug, dan pekerjaan lain dalam proyek ini.",
         "toggle_title": "Aktifkan item kerja",
-        "toggle_description": "Siklus, modul, tampilan, dan Intake disembunyikan selama item kerja dinonaktifkan."
+        "toggle_description": "Menonaktifkan ini akan menyembunyikan pengaturan struktur kerja, siklus, modul, tampilan, Intake, otomatisasi, dan Service Desk. Otomatisasi dan Service Desk juga berhenti berjalan."
       },
       "cycles": {
         "title": "Siklus",

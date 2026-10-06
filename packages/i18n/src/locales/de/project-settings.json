@@ -328,7 +328,7 @@
         "short_title": "Arbeitselemente",
         "description": "Verfolgen Sie Aufgaben, Fehler und andere Arbeit in diesem Projekt.",
         "toggle_title": "Arbeitselemente aktivieren",
-        "toggle_description": "Zyklen, Module, Ansichten und Intake sind ausgeblendet, solange Arbeitselemente deaktiviert sind."
+        "toggle_description": "Wenn deaktiviert, werden Einstellungen zur Arbeitsstruktur, Zyklen, Module, Ansichten, Intake, Automatisierungen und Service Desk ausgeblendet. Automatisierungen und Service Desk werden außerdem nicht mehr ausgeführt."
       },
       "cycles": {
         "title": "Zyklen",

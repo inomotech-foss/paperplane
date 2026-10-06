@@ -328,7 +328,7 @@
         "short_title": "Elementos de trabajo",
         "description": "Seguimiento de tareas, errores y otro trabajo en este proyecto.",
         "toggle_title": "Habilitar elementos de trabajo",
-        "toggle_description": "Los ciclos, módulos, vistas e Intake se ocultan mientras los elementos de trabajo estén desactivados."
+        "toggle_description": "Al desactivarlo se ocultan los ajustes de estructura de trabajo, ciclos, módulos, vistas, Intake, automatizaciones y Service Desk. Las automatizaciones y Service Desk también dejan de ejecutarse."
       },
       "cycles": {
         "title": "Ciclos",

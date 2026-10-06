@@ -328,7 +328,7 @@
         "short_title": "Pracovné položky",
         "description": "Sledujte úlohy, chyby a ďalšiu prácu v tomto projekte.",
         "toggle_title": "Povoliť pracovné položky",
-        "toggle_description": "Cykly, moduly, zobrazenia a Intake sú skryté, kým sú pracovné položky vypnuté."
+        "toggle_description": "Vypnutím sa skryjú nastavenia štruktúry práce, cykly, moduly, zobrazenia, Intake, automatizácie a Service Desk. Automatizácie a Service Desk sa tiež prestanú spúšťať."
       },
       "cycles": {
         "title": "Cykly",
