@@ -105,8 +105,8 @@ export class ProjectPageStore implements IProjectPageStore {
   error: TError | undefined = undefined;
   filters: TPageFilters = {
     searchQuery: "",
-    sortKey: "updated_at",
-    sortBy: "desc",
+    sortKey: "sort_order",
+    sortBy: "asc",
   };
   expandedPageIds: Record<string, boolean> = {}; // pageId => isExpanded, collapsed by default
   // service

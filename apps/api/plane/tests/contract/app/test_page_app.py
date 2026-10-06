@@ -93,3 +93,21 @@ class TestProjectPagesAppEndpoint:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["id"] == child.id
+
+
+@pytest.mark.contract
+class TestPageSortOrderAppEndpoint:
+    """sort_order must be readable and writable through the page API"""
+
+    @pytest.mark.django_db
+    def test_patch_sort_order_is_returned_and_persisted(self, session_client, workspace, project, create_user):
+        page = make_page(workspace, project, create_user, "Ordered Page")
+        url = f"/api/workspaces/{workspace.slug}/projects/{project.id}/pages/{page.id}/"
+
+        patch_response = session_client.patch(url, {"sort_order": 123456.5}, format="json")
+        assert patch_response.status_code == status.HTTP_200_OK
+        assert patch_response.data["sort_order"] == 123456.5
+
+        get_response = session_client.get(url)
+        assert get_response.status_code == status.HTTP_200_OK
+        assert get_response.data["sort_order"] == 123456.5
