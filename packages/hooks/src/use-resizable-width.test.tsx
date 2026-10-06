@@ -3,22 +3,17 @@
  * See the LICENSE file for details.
  */
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { useResizableWidth } from "./use-resizable-width";
 
-let stored: number | null = null;
-const setValue = vi.fn((value: number) => {
-  stored = value;
-});
-
-vi.mock("@/hooks/use-local-storage", () => ({
-  default: () => ({ storedValue: stored, setValue }),
-}));
-
-import { DEFAULT_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH, MIN_SIDEBAR_WIDTH, useResizableWidth } from "./use-resizable-width";
+const KEY = "width";
+const DEFAULT = 260;
+const MIN = 200;
+const MAX = 480;
 
 function Harness() {
-  const r = useResizableWidth("key");
+  const r = useResizableWidth({ storageKey: KEY, defaultWidth: DEFAULT, minWidth: MIN, maxWidth: MAX });
   return (
     <div data-testid="box" data-resizing={r.isResizing} style={{ width: `${r.width}px` }}>
       <div
@@ -43,6 +38,14 @@ beforeAll(() => {
   window.PointerEvent ??= class extends MouseEvent {} as unknown as typeof PointerEvent;
 });
 
+beforeEach(() => localStorage.clear());
+afterEach(cleanup);
+
+const store = (value: number) => localStorage.setItem(KEY, JSON.stringify(value));
+const persisted = () => JSON.parse(localStorage.getItem(KEY) ?? "null");
+const boxWidth = () => screen.getByTestId("box").style.width;
+const isResizing = () => screen.getByTestId("box").dataset.resizing;
+
 const drag = (from: number, to: number) => {
   const handle = screen.getByTestId("handle");
   fireEvent.pointerDown(handle, { clientX: from });
@@ -50,65 +53,58 @@ const drag = (from: number, to: number) => {
   fireEvent.pointerUp(handle, { clientX: to });
 };
 
-const boxWidth = () => screen.getByTestId("box").style.width;
-const isResizing = () => screen.getByTestId("box").dataset.resizing;
-
 describe("useResizableWidth", () => {
-  beforeEach(() => setValue.mockClear());
-
   it("applies the stored width", () => {
-    stored = 320;
+    store(320);
     render(<Harness />);
-    expect(screen.getByTestId("box").style.width).toBe("320px");
+    expect(boxWidth()).toBe("320px");
   });
 
   it("falls back to the default width", () => {
-    stored = null;
     render(<Harness />);
-    expect(screen.getByTestId("box").style.width).toBe(`${DEFAULT_SIDEBAR_WIDTH}px`);
+    expect(boxWidth()).toBe(`${DEFAULT}px`);
   });
 
   it("resizes by dragging and persists the result", () => {
-    stored = 300;
+    store(300);
     render(<Harness />);
     drag(300, 350);
-    expect(setValue).toHaveBeenLastCalledWith(350);
+    expect(boxWidth()).toBe("350px");
+    expect(persisted()).toBe(350);
   });
 
   it("clamps to the minimum and maximum", () => {
-    stored = 300;
-    const { unmount } = render(<Harness />);
-    drag(300, -500);
-    expect(setValue).toHaveBeenLastCalledWith(MIN_SIDEBAR_WIDTH);
-    unmount();
-    stored = 300;
+    store(300);
     render(<Harness />);
-    drag(300, 2000);
-    expect(setValue).toHaveBeenLastCalledWith(MAX_SIDEBAR_WIDTH);
+    drag(300, -500);
+    expect(persisted()).toBe(MIN);
+    drag(MIN, 2000);
+    expect(persisted()).toBe(MAX);
   });
 
   it("resets to the default on double click", () => {
-    stored = 400;
+    store(400);
     render(<Harness />);
     fireEvent.doubleClick(screen.getByTestId("handle"));
-    expect(setValue).toHaveBeenLastCalledWith(DEFAULT_SIDEBAR_WIDTH);
+    expect(persisted()).toBe(DEFAULT);
+    expect(boxWidth()).toBe(`${DEFAULT}px`);
   });
 
   it("updates the width and resizing flag during the drag", () => {
-    stored = 300;
+    store(300);
     render(<Harness />);
     const handle = screen.getByTestId("handle");
     fireEvent.pointerDown(handle, { clientX: 300 });
     expect(isResizing()).toBe("true");
     fireEvent.pointerMove(handle, { clientX: 340 });
     expect(boxWidth()).toBe("340px");
-    expect(setValue).not.toHaveBeenCalled();
+    expect(persisted()).toBe(300);
     fireEvent.pointerUp(handle, { clientX: 340 });
     expect(isResizing()).toBe("false");
   });
 
   it("ignores pointermove without pointerdown", () => {
-    stored = 300;
+    store(300);
     render(<Harness />);
     fireEvent.pointerMove(screen.getByTestId("handle"), { clientX: 400 });
     expect(boxWidth()).toBe("300px");
@@ -116,34 +112,34 @@ describe("useResizableWidth", () => {
   });
 
   it("ignores non-primary buttons", () => {
-    stored = 300;
+    store(300);
     render(<Harness />);
     fireEvent.pointerDown(screen.getByTestId("handle"), { clientX: 300, button: 2 });
     expect(isResizing()).toBe("false");
   });
 
   it.each(["pointerCancel", "lostPointerCapture"] as const)("commits the drag on %s", (event) => {
-    stored = 300;
+    store(300);
     render(<Harness />);
     const handle = screen.getByTestId("handle");
     fireEvent.pointerDown(handle, { clientX: 300 });
     fireEvent.pointerMove(handle, { clientX: 330 });
     fireEvent[event](handle, { clientX: 330 });
-    expect(setValue).toHaveBeenLastCalledWith(330);
+    expect(persisted()).toBe(330);
     expect(isResizing()).toBe("false");
   });
 
   it("resizes with the keyboard within the clamp", () => {
-    stored = 300;
+    store(300);
     render(<Harness />);
     const handle = screen.getByTestId("handle");
     fireEvent.keyDown(handle, { key: "ArrowRight" });
-    expect(setValue).toHaveBeenLastCalledWith(316);
+    expect(persisted()).toBe(316);
     fireEvent.keyDown(handle, { key: "ArrowLeft" });
-    expect(setValue).toHaveBeenLastCalledWith(284);
+    expect(persisted()).toBe(300);
     fireEvent.keyDown(handle, { key: "Home" });
-    expect(setValue).toHaveBeenLastCalledWith(MIN_SIDEBAR_WIDTH);
+    expect(persisted()).toBe(MIN);
     fireEvent.keyDown(handle, { key: "End" });
-    expect(setValue).toHaveBeenLastCalledWith(MAX_SIDEBAR_WIDTH);
+    expect(persisted()).toBe(MAX);
   });
 });

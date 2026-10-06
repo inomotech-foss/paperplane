@@ -18,6 +18,7 @@
     "check:lint": "oxlint --max-warnings=4 .",
     "check:types": "tsc --noEmit",
     "check:format": "oxfmt --check .",
+    "test": "vitest run",
     "fix:lint": "oxlint --fix .",
     "fix:format": "oxfmt .",
     "clean": "rm -rf .turbo && rm -rf .next && rm -rf node_modules && rm -rf dist"
@@ -27,9 +28,12 @@
   },
   "devDependencies": {
     "@plane/typescript-config": "workspace:*",
+    "@testing-library/react": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
+    "jsdom": "catalog:",
     "tsdown": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

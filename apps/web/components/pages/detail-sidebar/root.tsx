@@ -11,6 +11,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 // plane imports
 import { EPageAccess } from "@plane/constants";
+import { useResizableWidth } from "@plane/hooks";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { PagesOutline } from "@makeplane/propel/icons";
 import { Logo } from "@plane/blocks/emoji-icon-picker";
@@ -20,12 +21,14 @@ import { cn, getPageName } from "@plane/utils";
 import { EPageStoreType, usePageStore } from "@/hooks/store";
 import { useAppRouter } from "@/hooks/use-app-router";
 import useLocalStorage from "@/hooks/use-local-storage";
-import { MAX_SIDEBAR_WIDTH, MIN_SIDEBAR_WIDTH, useResizableWidth } from "./use-resizable-width";
 
 const ROW_HEIGHT = 30;
 const ROW_OVERSCAN = 10;
 const COLLAPSE_STORAGE_KEY = "page_details_tree_collapsed";
 const WIDTH_STORAGE_KEY = "page_details_tree_width";
+const DEFAULT_SIDEBAR_WIDTH = 260;
+const MIN_SIDEBAR_WIDTH = 200;
+const MAX_SIDEBAR_WIDTH = 480;
 
 const storeType = EPageStoreType.PROJECT;
 
@@ -105,7 +108,12 @@ export const PageDetailsTreeSidebar = observer(function PageDetailsTreeSidebar()
     false
   );
   const isCollapsed = !!storedCollapsed;
-  const resize = useResizableWidth(WIDTH_STORAGE_KEY);
+  const resize = useResizableWidth({
+    storageKey: WIDTH_STORAGE_KEY,
+    defaultWidth: DEFAULT_SIDEBAR_WIDTH,
+    minWidth: MIN_SIDEBAR_WIDTH,
+    maxWidth: MAX_SIDEBAR_WIDTH,
+  });
   // refs
   const scrollRef = useRef<HTMLDivElement>(null);
   // derived values

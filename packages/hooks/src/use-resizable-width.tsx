@@ -5,21 +5,23 @@
 
 import { useCallback, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
-import useLocalStorage from "@/hooks/use-local-storage";
+import { useLocalStorage } from "./use-local-storage";
 
-export const DEFAULT_SIDEBAR_WIDTH = 260;
-export const MIN_SIDEBAR_WIDTH = 200;
-export const MAX_SIDEBAR_WIDTH = 480;
+export type TResizableWidthOptions = {
+  storageKey: string;
+  defaultWidth: number;
+  minWidth: number;
+  maxWidth: number;
+  keyStep?: number;
+};
 
-const KEY_STEP = 16;
-
-const clampWidth = (value: number) => Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, value));
-
-export const useResizableWidth = (storageKey: string) => {
-  const { storedValue, setValue } = useLocalStorage<number>(storageKey, DEFAULT_SIDEBAR_WIDTH);
+export const useResizableWidth = (options: TResizableWidthOptions) => {
+  const { storageKey, defaultWidth, minWidth, maxWidth, keyStep = 16 } = options;
+  const clamp = useCallback((value: number) => Math.min(maxWidth, Math.max(minWidth, value)), [minWidth, maxWidth]);
+  const { storedValue, setValue } = useLocalStorage<number>(storageKey, defaultWidth);
   const [dragWidth, setDragWidth] = useState<number | null>(null);
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
-  const storedWidth = typeof storedValue === "number" ? clampWidth(storedValue) : DEFAULT_SIDEBAR_WIDTH;
+  const storedWidth = typeof storedValue === "number" ? clamp(storedValue) : defaultWidth;
   const width = dragWidth ?? storedWidth;
 
   const onPointerDown = useCallback(
@@ -33,47 +35,50 @@ export const useResizableWidth = (storageKey: string) => {
     [width]
   );
 
-  const onPointerMove = useCallback((e: ReactPointerEvent<HTMLElement>) => {
-    const drag = dragRef.current;
-    if (!drag) return;
-    setDragWidth(clampWidth(drag.startWidth + e.clientX - drag.startX));
-  }, []);
+  const onPointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLElement>) => {
+      const drag = dragRef.current;
+      if (!drag) return;
+      setDragWidth(clamp(drag.startWidth + e.clientX - drag.startX));
+    },
+    [clamp]
+  );
 
   const onPointerUp = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
       const drag = dragRef.current;
       if (!drag) return;
       dragRef.current = null;
-      setValue(clampWidth(drag.startWidth + e.clientX - drag.startX));
+      setValue(clamp(drag.startWidth + e.clientX - drag.startX));
       setDragWidth(null);
     },
-    [setValue]
+    [clamp, setValue]
   );
 
   const onKeyDown = useCallback(
     (e: ReactKeyboardEvent<HTMLElement>) => {
       const next =
         e.key === "ArrowLeft"
-          ? width - KEY_STEP
+          ? width - keyStep
           : e.key === "ArrowRight"
-            ? width + KEY_STEP
+            ? width + keyStep
             : e.key === "Home"
-              ? MIN_SIDEBAR_WIDTH
+              ? minWidth
               : e.key === "End"
-                ? MAX_SIDEBAR_WIDTH
+                ? maxWidth
                 : null;
       if (next === null) return;
       e.preventDefault();
-      setValue(clampWidth(next));
+      setValue(clamp(next));
     },
-    [width, setValue]
+    [width, keyStep, minWidth, maxWidth, clamp, setValue]
   );
 
   const reset = useCallback(() => {
     dragRef.current = null;
     setDragWidth(null);
-    setValue(DEFAULT_SIDEBAR_WIDTH);
-  }, [setValue]);
+    setValue(defaultWidth);
+  }, [defaultWidth, setValue]);
 
   return {
     width,
