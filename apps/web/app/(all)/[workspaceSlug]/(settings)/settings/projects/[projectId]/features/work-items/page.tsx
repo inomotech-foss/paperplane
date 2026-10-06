@@ -13,7 +13,7 @@ import { PageHead } from "@/components/core/page-title";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
 import { ProjectSettingsFeatureControlItem } from "@/components/settings/project/content/feature-control-item";
-import { ProjectSettingsItemHeader } from "@/components/settings/project/item-header";
+import { ProjectSettingsTabHeader } from "@/components/settings/project/tab-header";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -38,7 +38,7 @@ function FeaturesWorkItemsSettingsPage({ params }: Route.ComponentProps) {
   }
 
   return (
-    <SettingsContentWrapper header={<ProjectSettingsItemHeader settingKey="features_work_items" />}>
+    <SettingsContentWrapper header={<ProjectSettingsTabHeader tab="features_work_items" />}>
       <PageHead title={pageTitle} />
       <section className="w-full">
         <SettingsHeading

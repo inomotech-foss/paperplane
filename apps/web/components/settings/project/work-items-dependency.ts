@@ -10,7 +10,7 @@ type TWorkItemsFlag = Partial<Pick<IPartialProject, "issue_view">> | undefined |
 
 export type TWorkItemsDependentFeature = "cycle_view" | "module_view" | "issue_views_view" | "inbox_view";
 
-type TFeatureSetting = Extract<TProjectSettingsTabs, `features_${string}`>;
+type TFeatureSetting = Extract<TProjectSettingsTabs, `features_${string}` | "links">;
 
 // Features entries are decided one by one, other categories as a whole.
 const CATEGORY_NEEDS_WORK_ITEMS: Record<PROJECT_SETTINGS_CATEGORY, boolean | "per-item"> = {
@@ -27,6 +27,7 @@ export const FEATURE_NEEDS_WORK_ITEMS: Record<TFeatureSetting, boolean> = {
   features_views: true,
   features_pages: false,
   features_intake: true,
+  links: false,
 };
 
 const SETTING_CATEGORY = new Map<TProjectSettingsTabs, PROJECT_SETTINGS_CATEGORY>(

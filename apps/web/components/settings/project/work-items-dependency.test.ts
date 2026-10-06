@@ -64,6 +64,10 @@ describe("isProjectSettingVisible", () => {
     expect(isProjectSettingVisible("features_work_items", disabled)).toBe(true);
   });
 
+  it("keeps project links visible", () => {
+    expect(isProjectSettingVisible("links", disabled)).toBe(true);
+  });
+
   it("hides dependent settings only when work items are off", () => {
     expect(isProjectSettingVisible("features_cycles", enabled)).toBe(true);
     expect(isProjectSettingVisible("features_cycles", disabled)).toBe(false);
@@ -79,7 +83,11 @@ describe("filterVisibleProjectSettings", () => {
 
   it("keeps only independent settings when work items are off", () => {
     expect(keys(PROJECT_SETTINGS_CATEGORY.GENERAL, disabled)).toEqual(["general", "members"]);
-    expect(keys(PROJECT_SETTINGS_CATEGORY.FEATURES, disabled)).toEqual(["features_work_items", "features_pages"]);
+    expect(keys(PROJECT_SETTINGS_CATEGORY.FEATURES, disabled)).toEqual([
+      "features_work_items",
+      "features_pages",
+      "links",
+    ]);
     expect(keys(PROJECT_SETTINGS_CATEGORY.WORK_STRUCTURE, disabled)).toEqual([]);
     expect(keys(PROJECT_SETTINGS_CATEGORY.EXECUTION, disabled)).toEqual([]);
   });
