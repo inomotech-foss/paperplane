@@ -13,9 +13,12 @@ import { ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { EPageAccess } from "@plane/constants";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { PagesOutline } from "@makeplane/propel/icons";
+import { DropIndicator } from "@plane/blocks/common";
 import { Logo } from "@plane/blocks/emoji-icon-picker";
 import type { TPageNavigationTabs } from "@plane/types";
 import { cn, getPageName } from "@plane/utils";
+// components
+import { usePageTreeDnd } from "@/components/pages/use-page-tree-dnd";
 // hooks
 import { EPageStoreType, usePageStore } from "@/hooks/store";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -24,6 +27,7 @@ import useLocalStorage from "@/hooks/use-local-storage";
 const SIDEBAR_WIDTH = 260;
 const ROW_HEIGHT = 30;
 const ROW_OVERSCAN = 10;
+const TREE_INDENT_PER_LEVEL = 14;
 const COLLAPSE_STORAGE_KEY = "page_details_tree_collapsed";
 
 const storeType = EPageStoreType.PROJECT;
@@ -42,23 +46,52 @@ const PageTreeRow = observer(function PageTreeRow(props: TTreeRowProps) {
   const router = useAppRouter();
   // store hooks
   const { getPageById, isPageExpanded, togglePageExpanded } = usePageStore(storeType);
+  // refs
+  const rowRef = useRef<HTMLDivElement>(null);
   // derived values
   const page = getPageById(pageId);
   const isExpanded = isPageExpanded(pageId);
+  const isDraggable = !!page && !!page.canCurrentUserMovePage && !page.archived_at && !page.is_locked;
+  const { isDragging, dropInstruction } = usePageTreeDnd({
+    elementRef: rowRef,
+    pageId,
+    storeType,
+    depth,
+    indentPerLevel: TREE_INDENT_PER_LEVEL,
+    hasChildPages: hasChildren,
+    isExpanded,
+    isDraggable,
+    isEnabled: !!page,
+  });
 
   if (!page) return null;
   const pageName = getPageName(page.name);
 
   // The toggle overlays the navigate button, which spans the whole row including the indent.
-  const indent = depth * 14 + 4;
+  const indent = depth * TREE_INDENT_PER_LEVEL + 4;
 
   return (
     <div
+      ref={rowRef}
       className={cn(
         "relative flex h-[30px] w-full items-center rounded-sm text-13",
-        isActive ? "bg-layer-1 font-medium text-primary" : "text-secondary hover:bg-layer-transparent-hover"
+        isActive ? "bg-layer-1 font-medium text-primary" : "text-secondary hover:bg-layer-transparent-hover",
+        {
+          "opacity-50": isDragging,
+          "ring-accent-primary ring-1 ring-inset": dropInstruction === "make-child",
+        }
       )}
     >
+      {dropInstruction === "reorder-above" && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10">
+          <DropIndicator isVisible />
+        </div>
+      )}
+      {dropInstruction === "reorder-below" && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10">
+          <DropIndicator isVisible />
+        </div>
+      )}
       <button
         type="button"
         className="flex h-full w-full min-w-0 cursor-pointer items-center gap-1 self-stretch pr-2 text-left"

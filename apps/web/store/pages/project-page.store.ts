@@ -19,6 +19,7 @@ import { filterPagesByPageType, getPageName, orderPages, shouldFilterPage } from
 import { ProjectPageService } from "@/services/page";
 // store
 import type { CoreRootStore } from "../root.store";
+import { renumberedSortOrder } from "./page-order";
 import { flattenVisibleTree } from "./page-tree";
 import type { TProjectPage } from "./project-page";
 import { ProjectPage } from "./project-page";
@@ -79,6 +80,7 @@ export interface IProjectPageStore {
   isPageExpanded: (pageId: string) => boolean;
   togglePageExpanded: (pageId: string) => void;
   expandPages: (pageIds: string[]) => void;
+  renumberSiblings: (parentId: string | null, orderedIds: string[]) => Promise<void>;
   updateFilters: <T extends keyof TPageFilters>(filterKey: T, filterValue: TPageFilters[T]) => void;
   clearAllFilters: () => void;
   // actions
@@ -128,6 +130,7 @@ export class ProjectPageStore implements IProjectPageStore {
       // helper actions
       togglePageExpanded: action,
       expandPages: action,
+      renumberSiblings: action,
       updateFilters: action,
       clearAllFilters: action,
       // actions
@@ -375,6 +378,22 @@ export class ProjectPageStore implements IProjectPageStore {
         if (!this.expandedPageIds[pageId]) set(this.expandedPageIds, [pageId], true);
       }
     });
+  };
+
+  renumberSiblings = async (parentId: string | null, orderedIds: string[]) => {
+    const pages = orderedIds.map((id) => this.getPageById(id));
+    if (pages.some((page) => page && (page.is_locked || !page.canCurrentUserMovePage))) {
+      throw new Error("Sibling pages cannot be reordered");
+    }
+    const updates: Promise<void>[] = [];
+    pages.forEach((page, index) => {
+      const sortOrder = renumberedSortOrder(index);
+      if (!page || (page.sort_order === sortOrder && (page.parent ?? null) === parentId)) return;
+      updates.push(page.move({ parentId, sortOrder }));
+    });
+    const results = await Promise.allSettled(updates);
+    const failed = results.find((result): result is PromiseRejectedResult => result.status === "rejected");
+    if (failed) throw failed.reason;
   };
 
   updateFilters = <T extends keyof TPageFilters>(filterKey: T, filterValue: TPageFilters[T]) => {
