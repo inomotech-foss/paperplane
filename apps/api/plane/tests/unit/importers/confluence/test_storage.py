@@ -46,7 +46,10 @@ def resolvers():
             "Flow.drawio": ResolvedAttachment(id=DIAGRAM_ID, filename="Flow.drawio", is_image=False),
             "Flow.drawio.png": ResolvedAttachment(id=DIAGRAM_PNG_ID, filename="Flow.drawio.png", is_image=True),
         },
-        pages={("QA", "Test Plan"): ResolvedPage(id="p1", url="/w/projects/p/pages/1/", title="Test Plan")},
+        pages={
+            ("QA", "Test Plan"): ResolvedPage(id="p1", url="/w/projects/p/pages/1/", title="Test Plan"),
+            ("id", "1"): ResolvedPage(id="p1", url="/w/projects/p/pages/1/", title="Test Plan"),
+        },
     )
 
 
@@ -139,6 +142,54 @@ class TestLinks:
         body = '<p><ac:link ac:anchor="Section1"><ac:link-body>jump</ac:link-body></ac:link></p>'
 
         assert '<a href="#Section1">jump</a>' in convert(body, resolvers).html
+
+    def test_page_link_with_an_anchor_keeps_both(self, resolvers):
+        body = (
+            '<p><ac:link ac:anchor="Scope"><ri:page ri:space-key="QA" ri:content-title="Test Plan"/>'
+            "<ac:link-body>scope</ac:link-body></ac:link></p>"
+        )
+
+        assert '<a href="/w/projects/p/pages/1/#Scope">scope</a>' in convert(body, resolvers).html
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://x.atlassian.net/wiki/spaces/QA/pages/1/Test+Plan",
+            "https://x.atlassian.net/wiki/spaces/QA/pages/edit-v2/1",
+            "https://x.atlassian.net/wiki/pages/viewpage.action?pageId=1",
+            "https://x.atlassian.net/wiki/x/AQ",
+        ],
+    )
+    def test_pasted_page_url_resolves_by_id(self, resolvers, url):
+        body = f'<p><a href="{url}">read this</a></p>'
+
+        assert '<a href="/w/projects/p/pages/1/">read this</a>' in convert(body, resolvers).html
+
+    def test_pasted_page_url_keeps_its_fragment(self, resolvers):
+        body = '<p><a href="https://x.atlassian.net/wiki/spaces/QA/pages/1/Test+Plan#Scope">read</a></p>'
+
+        assert '<a href="/w/projects/p/pages/1/#Scope">read</a>' in convert(body, resolvers).html
+
+    def test_pasted_page_url_shown_as_itself_gets_the_title(self, resolvers):
+        url = "https://x.atlassian.net/wiki/spaces/QA/pages/1/Test+Plan"
+        body = f'<p><a href="{url}">{url}</a></p>'
+
+        assert '<a href="/w/projects/p/pages/1/">Test Plan</a>' in convert(body, resolvers).html
+
+    def test_pasted_url_to_an_unexported_page_is_left_and_reported(self, resolvers):
+        url = "https://x.atlassian.net/wiki/spaces/QA/pages/999/Gone"
+        body = f'<p><a href="{url}">gone</a></p>'
+
+        result = convert(body, resolvers)
+
+        assert f'<a href="{url}">gone</a>' in result.html
+        assert result.unresolved_wiki_urls == {url}
+        assert result.is_lossless
+
+    def test_other_atlassian_urls_are_untouched(self, resolvers):
+        url = "https://x.atlassian.net/browse/DEMO-1"
+
+        assert f'<a href="{url}">DEMO-1</a>' in convert(f'<p><a href="{url}">DEMO-1</a></p>', resolvers).html
 
 
 @pytest.mark.unit

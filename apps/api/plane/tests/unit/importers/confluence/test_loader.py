@@ -140,6 +140,23 @@ class TestLocalEdits:
         assert by_external_id("11").description_html == "<p>changed</p>"
         assert "Hello" in by_external_id("15").description_html
 
+    def test_rewriting_a_body_drops_the_stale_binary_document(self, loader):
+        loader.run()
+        page = by_external_id("11")
+        Page.objects.filter(pk=page.pk).update(description_binary=b"opened", updated_at=page.updated_at)
+
+        loader.run()
+
+        assert by_external_id("11").description_binary is None
+
+    def test_an_edited_page_keeps_its_binary_document(self, loader):
+        loader.run()
+        Page.objects.filter(pk=by_external_id("11").pk).update(description_binary=b"edited", updated_at=timezone.now())
+
+        loader.run()
+
+        assert bytes(by_external_id("11").description_binary) == b"edited"
+
     def test_full_run_rewrites_an_unedited_body(self, loader):
         loader.run()
         page = by_external_id("11")

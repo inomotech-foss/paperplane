@@ -78,6 +78,7 @@ class ImportSummary:
     placeholders: int = 0
     unsupported_macros: Counter = field(default_factory=Counter)
     unresolved_pages: set = field(default_factory=set)
+    unresolved_wiki_urls: set = field(default_factory=set)
     unresolved_attachments: set = field(default_factory=set)
     unsupported_attachments: set = field(default_factory=set)
     attachments: int = 0
@@ -91,6 +92,7 @@ class ImportSummary:
     def absorb(self, result):
         self.unsupported_macros.update(result.unsupported_macros)
         self.unresolved_pages |= result.unresolved_pages
+        self.unresolved_wiki_urls |= result.unresolved_wiki_urls
         self.unresolved_attachments |= result.unresolved_attachments
         self.dropped_layouts += result.dropped_layouts
         self.downgraded.update(result.downgraded)
@@ -548,8 +550,14 @@ class ConfluenceLoader:
                 raise ValueError(f"Page {page.id} ({page.title!r}) produced invalid HTML: {error}")
 
             description_html = clean or "<p></p>"
+            # The editor prefers the binary document over the HTML once a page
+            # has been opened, so a rewritten body only shows if the binary is
+            # dropped and rebuilt from the HTML. Pages edited in Plane never
+            # reach this point.
             Page.objects.filter(pk=record.pk).update(
                 description_html=description_html,
+                description_binary=None,
+                description_json={},
                 updated_at=page.updated_at,
             )
             self._seed_version(record, page, description_html)
