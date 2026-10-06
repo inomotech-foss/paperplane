@@ -98,9 +98,24 @@ describe("useResizableWidth", () => {
     expect(isResizing()).toBe("true");
     fireEvent.pointerMove(handle, { clientX: 340 });
     expect(boxWidth()).toBe("340px");
-    expect(persisted()).toBe(300);
+    expect(persisted()).toBe(340);
     fireEvent.pointerUp(handle, { clientX: 340 });
     expect(isResizing()).toBe("false");
+  });
+
+  it("sets the body cursor while resizing and restores it on release or unmount", () => {
+    store(300);
+    const { unmount } = render(<Harness />);
+    const handle = screen.getByTestId("handle");
+    fireEvent.pointerDown(handle, { clientX: 300 });
+    expect(document.body.style.cursor).toBe("ew-resize");
+    expect(document.body.style.userSelect).toBe("none");
+    fireEvent.pointerUp(handle, { clientX: 300 });
+    expect(document.body.style.cursor).toBe("");
+    fireEvent.pointerDown(handle, { clientX: 300 });
+    unmount();
+    expect(document.body.style.cursor).toBe("");
+    expect(document.body.style.userSelect).toBe("");
   });
 
   it("ignores pointermove without pointerdown", () => {

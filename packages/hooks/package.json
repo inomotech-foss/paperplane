@@ -32,6 +32,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "jsdom": "catalog:",
+    "react-dom": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

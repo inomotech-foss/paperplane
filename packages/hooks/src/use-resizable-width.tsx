@@ -38,7 +38,6 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
       if (e.button !== 0) return;
-      e.preventDefault();
       e.currentTarget.setPointerCapture?.(e.pointerId);
       dragRef.current = { startX: e.clientX, startWidth: width };
       setDragWidth(width);
@@ -50,9 +49,11 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
     (e: ReactPointerEvent<HTMLElement>) => {
       const drag = dragRef.current;
       if (!drag) return;
-      setDragWidth(clamp(drag.startWidth + e.clientX - drag.startX));
+      const next = clamp(drag.startWidth + e.clientX - drag.startX);
+      setDragWidth(next);
+      setValue(next);
     },
-    [clamp]
+    [clamp, setValue]
   );
 
   const onPointerUp = useCallback(
