@@ -4,10 +4,11 @@
 import uuid
 
 import pytest
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from plane.db.models import Project, ProjectLink, ProjectMember, User, WorkspaceMember
+from plane.db.models import Project, ProjectLink, ProjectMember, User, Workspace, WorkspaceMember
 
 ADMIN, MEMBER, GUEST = 20, 15, 5
 
@@ -135,6 +136,11 @@ class TestProjectLinkUrlValidation:
             "http://example.com",
             "/ws/projects/abc/pages/def",
             "/ws/projects/abc/pages/?q=1#top",
+            "http://wiki/x",
+            "https://intranet:8443/a?b=c#d",
+            "HTTPS://Example.com",
+            "http://user:pw@wiki/",
+            "http://[::1]:8000/",
         ],
     )
     def test_accepts(self, workspace, project, clients, url):
@@ -161,6 +167,14 @@ class TestProjectLinkUrlValidation:
             "relative/path",
             "",
             "   ",
+            "http://",
+            "http:///x",
+            "http:/wiki",
+            "https://user@/x",
+            "http://wiki:port/",
+            "http://wiki\\x",
+            "http://wi ki/",
+            "/a\\b",
         ],
     )
     def test_rejects(self, workspace, project, clients, url):
@@ -233,6 +247,107 @@ class TestProjectLinkOrdering:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    @pytest.mark.parametrize("body", [[], ["a"], "x", 1, None])
+    def test_reorder_rejects_non_object_body(self, workspace, project, link, clients, body):
+        response = clients["admin"].post(_links_url(workspace.slug, project.id, "reorder/"), body, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_tied_sort_order_falls_back_to_creation_time(self, workspace, project, clients):
+        first = ProjectLink.objects.create(project=project, title="a", url="/a", sort_order=1000)
+        second = ProjectLink.objects.create(project=project, title="b", url="/b", sort_order=1000)
+
+        listed = clients["member"].get(_links_url(workspace.slug, project.id)).json()
+
+        assert [item["id"] for item in listed] == [str(first.id), str(second.id)]
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestInactiveProjects:
+    @pytest.fixture(params=["archived", "deleted"])
+    def inactive(self, request, project):
+        if request.param == "archived":
+            project.archived_at = timezone.now()
+            project.save()
+        else:
+            project.delete()
+        return project
+
+    def test_list_is_empty(self, workspace, link, clients, inactive):
+        response = clients["admin"].get(_links_url(workspace.slug, inactive.id))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == []
+
+    def test_workspace_list_excludes(self, workspace, link, clients, inactive):
+        response = clients["admin"].get(f"/api/workspaces/{workspace.slug}/project-links/")
+
+        assert response.json() == []
+
+    def test_create_is_not_found(self, workspace, clients, inactive):
+        response = clients["admin"].post(
+            _links_url(workspace.slug, inactive.id), {"title": "T", "url": "/x"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert not ProjectLink.all_objects.filter(project=inactive, title="T").exists()
+
+    def test_update_delete_reorder_are_not_found(self, workspace, link, clients, inactive):
+        client = clients["admin"]
+        responses = [
+            client.patch(_links_url(workspace.slug, inactive.id, f"{link.id}/"), {"title": "X"}, format="json"),
+            client.delete(_links_url(workspace.slug, inactive.id, f"{link.id}/")),
+            client.post(
+                _links_url(workspace.slug, inactive.id, "reorder/"), {"link_ids": [str(link.id)]}, format="json"
+            ),
+        ]
+
+        for response in responses:
+            assert response.status_code == status.HTTP_404_NOT_FOUND
+        stored = ProjectLink.all_objects.get(pk=link.id)
+        assert (stored.title, stored.sort_order) == ("Wiki", 1000)
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestCrossWorkspace:
+    @pytest.fixture
+    def foreign(self, create_user):
+        other = Workspace.objects.create(name="Other", owner=create_user, slug="other-workspace")
+        WorkspaceMember.objects.create(workspace=other, member=create_user, role=ADMIN)
+        project = Project.objects.create(name="Foreign", identifier="FOR", workspace=other, created_by=create_user)
+        ProjectMember.objects.create(workspace=other, project=project, member=create_user, role=ADMIN)
+        link = ProjectLink.objects.create(project=project, title="Foreign", url="/f", sort_order=1000)
+        client = APIClient()
+        client.force_authenticate(user=create_user)
+        return client, project, link
+
+    def test_slug_mismatch_is_rejected(self, workspace, foreign):
+        client, project, link = foreign
+        responses = [
+            client.get(_links_url(workspace.slug, project.id)),
+            client.post(_links_url(workspace.slug, project.id), {"title": "T", "url": "/x"}, format="json"),
+            client.patch(_links_url(workspace.slug, project.id, f"{link.id}/"), {"title": "X"}, format="json"),
+            client.delete(_links_url(workspace.slug, project.id, f"{link.id}/")),
+            client.post(
+                _links_url(workspace.slug, project.id, "reorder/"), {"link_ids": [str(link.id)]}, format="json"
+            ),
+        ]
+
+        for response in responses:
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+        link.refresh_from_db()
+        assert link.title == "Foreign"
+        assert ProjectLink.objects.filter(project=project).count() == 1
+
+    def test_workspace_list_excludes_other_workspace(self, workspace, foreign):
+        client, _, _ = foreign
+
+        response = client.get(f"/api/workspaces/{workspace.slug}/project-links/")
+
+        assert response.json() == []
+
 
 @pytest.mark.contract
 @pytest.mark.django_db
@@ -255,5 +370,12 @@ class TestWorkspaceProjectLinks:
         ProjectMember.objects.filter(project=project, member__email="member@plane.so").update(is_active=False)
 
         response = clients["member"].get(f"/api/workspaces/{workspace.slug}/project-links/")
+
+        assert response.json() == []
+
+    def test_excludes_deleted_links(self, workspace, project, link, clients):
+        link.delete()
+
+        response = clients["admin"].get(f"/api/workspaces/{workspace.slug}/project-links/")
 
         assert response.json() == []

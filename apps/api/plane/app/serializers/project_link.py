@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.validators import URLValidator
+import re
+
 from rest_framework import serializers
 
 from plane.db.models import ProjectLink
@@ -11,26 +11,28 @@ from .base import BaseSerializer
 
 MAX_URL_LENGTH = 2048
 
-_absolute_url_validator = URLValidator(schemes=["http", "https"])
+# Mirrored in apps/web/store/project/project-link-url.ts; keep both in sync.
+_ABSOLUTE_URL = re.compile(
+    r"^https?://(?:[^/?#@]*@)?(?:\[[0-9a-f:.]+\]|[^/?#@:\[\]]+)(?::[0-9]{1,5})?(?:[/?#].*)?$", re.IGNORECASE
+)
+# Whitespace, control characters and backslashes are reinterpreted by browsers.
+_FORBIDDEN = re.compile(r"[\s\x00-\x1f\x7f\\]")
+
+INVALID_URL_MESSAGE = "Only http(s) URLs with a host and paths starting with a single / are allowed."
 
 
 def validate_project_link_url(value: str) -> str:
-    """Allow http(s) URLs and same-origin paths only."""
+    """Allow http(s) URLs with a host and same-origin paths only."""
     value = value.strip()
-    if not value or len(value) > MAX_URL_LENGTH:
-        raise serializers.ValidationError("Invalid URL.")
-    # Browsers strip or reinterpret whitespace and control characters.
-    if any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in value):
-        raise serializers.ValidationError("Invalid URL.")
+    if not value or len(value) > MAX_URL_LENGTH or _FORBIDDEN.search(value):
+        raise serializers.ValidationError(INVALID_URL_MESSAGE)
     if value.startswith("/"):
-        # "//host" and "/\host" are protocol-relative and leave the origin.
-        if value.startswith("//") or "\\" in value:
-            raise serializers.ValidationError("Invalid URL.")
+        # "//host" is protocol-relative and leaves the origin.
+        if value.startswith("//"):
+            raise serializers.ValidationError(INVALID_URL_MESSAGE)
         return value
-    try:
-        _absolute_url_validator(value)
-    except DjangoValidationError:
-        raise serializers.ValidationError("Only http(s) URLs and paths starting with / are allowed.")
+    if not _ABSOLUTE_URL.match(value):
+        raise serializers.ValidationError(INVALID_URL_MESSAGE)
     return value
 
 
