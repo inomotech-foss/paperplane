@@ -606,11 +606,7 @@ class ConfluenceLoader:
                 raise ValueError(f"Page {page.id} ({page.title!r}) produced invalid HTML: {error}")
 
             description_html = clean or "<p></p>"
-            if (
-                page.id not in created
-                and page.id not in take
-                and not same_text(record.description_html, description_html)
-            ):
+            if page.id not in created and page.id not in take and self._changed_in_plane(record, page):
                 diff, added, removed = text_diff(description_html, record.description_html, "backup", "plane")
                 summary.kept += 1
                 summary.changes.append(Change("keep", page.title, f"+{added} -{removed} lines, id {page.id}"))
@@ -635,13 +631,37 @@ class ConfluenceLoader:
         if uploader is not None:
             summary.unsupported_attachments |= uploader.unsupported
 
+    @staticmethod
+    def _seed(record):
+        """The version the import wrote: what the page looked like before anyone
+        in Plane touched it."""
+        return PageVersion.objects.filter(page_id=record.pk).order_by("created_at").first()
+
+    def _changed_in_plane(self, record, page):
+        """Did someone change the words of this page in Plane?
+
+        Compared against the import's own earlier output, not the new
+        conversion: a better converter changes the text too, and that must
+        not look like an edit. A page with no seed falls back to the timestamp.
+        """
+        seed = self._seed(record)
+        if seed is None:
+            return self._locally_edited(record, page)
+        return not same_text(record.description_html, seed.description_html)
+
     def _seed_version(self, record, page, description_html):
-        """Give an imported page the one version the backup can support.
+        """Keep the page's first version equal to what the import wrote.
 
         Confluence exported a single body per page, so the seed is the whole
-        history there will ever be. A re-import must not stack a second one.
+        history there will ever be, and it is the baseline the next run
+        compares Plane's text against. A re-import refreshes it rather than
+        stacking a second one.
         """
-        if PageVersion.objects.filter(page_id=record.pk).exists():
+        seed = self._seed(record)
+        if seed is not None:
+            PageVersion.objects.filter(pk=seed.pk).update(
+                description_html=description_html, last_saved_at=page.updated_at
+            )
             return
 
         PageVersion.objects.create(
