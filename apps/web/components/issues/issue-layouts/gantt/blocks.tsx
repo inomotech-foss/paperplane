@@ -14,7 +14,6 @@ import { Logo } from "@plane/blocks/emoji-icon-picker";
 import { ControlLink } from "@plane/blocks/layout";
 import { Spinner } from "@plane/blocks/spinner";
 import { useTranslation } from "@plane/i18n";
-import type { TTimelineColorBy } from "@plane/types";
 import { GANTT_TIMELINE_TYPE } from "@plane/types";
 import { cn, generateWorkItemLink, renderFormattedDate } from "@plane/utils";
 // components
@@ -45,10 +44,6 @@ type Props = {
   isEpic?: boolean;
 };
 
-type TGanttBlockProps = Props & {
-  colorBy?: TTimelineColorBy;
-};
-
 // Resolve the work item type to show for an issue — its explicit type, else
 // the project's default — mirroring IssueTypeDropdown's display behavior.
 // Returns null when the project has no work item types configured.
@@ -57,8 +52,8 @@ const useResolvedIssueType = (issue: ReturnType<ReturnType<typeof useIssueDetail
   return getIssueTypeById(issue?.type_id) ?? getProjectDefaultIssueType(issue?.project_id);
 };
 
-export const IssueGanttBlock = observer(function IssueGanttBlock(props: TGanttBlockProps) {
-  const { issueId, isEpic, colorBy } = props;
+export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
+  const { issueId, isEpic } = props;
   // router
   const { workspaceSlug: routerWorkspaceSlug } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
@@ -68,6 +63,8 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: TGanttBl
     issue: { getIssueById },
   } = useIssueDetail();
   const { getProjectIdentifierById } = useProject();
+  const storeType = useIssueStoreType() as GanttStoreType;
+  const { issuesFilter } = useIssues(storeType);
   // hooks
   const { isMobile } = usePlatformOS();
   const chartPalette = useChartPalette();
@@ -84,7 +81,7 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: TGanttBl
     issueDetails && getProjectStates(issueDetails?.project_id)?.find((state) => state?.id == issueDetails?.state_id);
 
   const barColor = getBarColor({
-    colorBy,
+    colorBy: issuesFilter.issueFilters?.displayFilters?.color_by,
     stateColor: stateDetails?.color,
     projectIdentifier: getProjectIdentifierById(issueDetails?.project_id),
     sequenceId: issueDetails?.sequence_id,
