@@ -1,0 +1,4 @@
+# Merged into code scanning default setup via the github-codeql-config-file repository property.
+paths-ignore:
+  - apps/api/plane/utils/pql/generated
+  - packages/pql/src/generated
