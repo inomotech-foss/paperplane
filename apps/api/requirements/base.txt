@@ -75,3 +75,5 @@ drf-spectacular==0.29.0
 nh3==0.2.18
 # OAuth 2.0 provider
 django-oauth-toolkit==3.4.0
+# PQL parser runtime; the pin must match checkVersion() in plane/utils/pql/generated
+antlr4-python3-runtime==4.13.2

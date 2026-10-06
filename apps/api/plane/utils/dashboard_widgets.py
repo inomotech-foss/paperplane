@@ -55,8 +55,7 @@ from plane.db.models import (
     CycleIssue,
 )
 from plane.utils.issue_property import number_to_json, relation_column
-from plane.utils.pql import WorkItemFilterError, compile_pql, parse_pql
-from plane.utils.pql.lexer import PQLSyntaxError
+from plane.utils.pql import PQLSyntaxError, WorkItemFilterError, compile_pql, parse_pql
 
 CHART_TYPES = ("number", "bar", "line", "area", "pie", "donut", "table")
 METRIC_FUNCTIONS = ("count", "sum", "avg", "min", "max")

@@ -21,9 +21,8 @@ from rest_framework.response import Response
 
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.views.base import BaseAPIView
-from plane.utils.pql import WorkItemFilterError, compile_pql, parse_pql
+from plane.utils.pql import PQLSyntaxError, WorkItemFilterError, compile_pql, parse_pql
 from plane.utils.pql.fields import FILTER_FIELDS, UNSUPPORTED_FIELDS
-from plane.utils.pql.lexer import PQLSyntaxError
 from plane.utils.pql.parser import FIELD_ALIASES, FUNCTIONS
 
 

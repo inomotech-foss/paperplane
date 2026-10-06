@@ -9,21 +9,13 @@ compiles, so `parse_pql` output is a valid `compile_filters` input:
     priority = "urgent" AND assignee = currentUser()
     {"and": [{"priority": "urgent"}, {"assignees__id": {"$currentUser": True}}]}
 
-Grammar:
-
-    expression  := or_expr
-    or_expr     := and_expr (OR and_expr)*
-    and_expr    := not_expr (AND not_expr)*
-    not_expr    := NOT not_expr | primary
-    primary     := '(' expression ')' | predicate
-    predicate   := field comparison | 'cf' '[' string ']' comparison
-                 | ('childOf' | 'descendantOf') '(' string ')'
-    comparison  := ('=' | '!=' | '>' | '>=' | '<' | '<=' | '~') value
-                 | 'in' list | 'not' 'in' list
-                 | 'is' 'null' | 'is' 'not' 'null'
-    list        := '(' value (',' value)* ')'
-    value       := string | number | identifier | 'currentUser' '(' ')' | now_expr
-    now_expr    := 'now' '(' ')' (('+' | '-') duration)*
+The syntax lives in `PQL.g4`; the lexer, parser, listener and visitor under
+`generated/` are produced from it by `pnpm --filter @plane/pql run generate`
+and committed. This module adds what the grammar leaves open: the field
+allowlist and aliases, which operators a field supports, function arity,
+string escapes, duration units and the nesting limit. Checks that must point
+at a token before the parser moves past it (unknown field, unknown function,
+nesting depth) run in a parse listener; the rest run in the AST visitor.
 
 Field names are the allowlist in `plane.utils.pql.fields`, matched
 case-insensitively, plus the short aliases in `FIELD_ALIASES` below that the
@@ -48,8 +40,16 @@ The first two sit in value position inside an otherwise complete leaf; the
 others are whole nodes, because the field they resolve to needs the identifier
 looked up first. `compile_filters` rejects all of them unsubstituted, which is
 the intended failure mode: substitution is not optional.
+
+Keywords (`and`, `or`, `not`, `in`, `is`, `null`), `cf` and the function names
+are reserved words: they cannot be used as a bare value or a field name. Quote
+them to use them as a value.
 """
 
+from antlr4 import CommonTokenStream, InputStream, Token
+from antlr4.error.ErrorListener import ErrorListener
+
+from plane.utils.pql.errors import PQLSyntaxError
 from plane.utils.pql.fields import (
     CUSTOM_PROPERTY_PREFIX,
     EXACT,
@@ -64,23 +64,10 @@ from plane.utils.pql.fields import (
     LTE,
     UNSUPPORTED_FIELDS,
 )
-from plane.utils.pql.lexer import (
-    COMMA,
-    DURATION,
-    EOF,
-    IDENT,
-    LBRACKET,
-    LPAREN,
-    MINUS,
-    NUMBER,
-    OPERATOR,
-    PLUS,
-    RBRACKET,
-    RPAREN,
-    STRING,
-    PQLSyntaxError,
-    tokenize,
-)
+from plane.utils.pql.generated.PQLLexer import PQLLexer
+from plane.utils.pql.generated.PQLListener import PQLListener
+from plane.utils.pql.generated.PQLParser import PQLParser
+from plane.utils.pql.generated.PQLVisitor import PQLVisitor
 
 CURRENT_USER_PLACEHOLDER = "$currentUser"
 NOW_PLACEHOLDER = "$now"
@@ -136,7 +123,25 @@ VALUE_FUNCTIONS = ("currentUser", "now")
 # placeholder node each one emits.
 IDENTIFIER_FUNCTIONS = {"childOf": CHILD_OF_PLACEHOLDER, "descendantOf": DESCENDANT_OF_PLACEHOLDER}
 
+ESCAPES = {"\\": "\\", '"': '"', "'": "'", "n": "\n", "r": "\r", "t": "\t"}
+
+# Durations only need whole units; a work item query is never sub-hour precise.
+DURATION_UNITS = {"h": 3600, "d": 86400, "w": 604800}
+
 KEYWORDS = frozenset({"and", "or", "not", "in", "is", "null"})
+RESERVED_WORDS = KEYWORDS | {"cf"} | set(FUNCTIONS)
+
+FUNCTION_TOKENS = frozenset({PQLParser.CURRENTUSER, PQLParser.NOW, PQLParser.CHILDOF, PQLParser.DESCENDANTOF})
+KEYWORD_TOKENS = frozenset({PQLParser.AND, PQLParser.OR, PQLParser.NOT, PQLParser.IN, PQLParser.IS, PQLParser.NULL})
+RESERVED_TOKENS = KEYWORD_TOKENS | {PQLParser.CF} | FUNCTION_TOKENS
+
+TOKEN_DISPLAY = {
+    Token.EOF: "end of input",
+    PQLParser.IDENT: "an identifier",
+    PQLParser.STRING: "a string",
+    PQLParser.NUMBER: "a number",
+    PQLParser.DURATION: "a duration",
+}
 
 
 def parse_pql(source):
@@ -147,289 +152,303 @@ def parse_pql(source):
     """
     if not isinstance(source, str):
         raise PQLSyntaxError("query must be a string", "", 0, expected="a PQL expression")
-    return _Parser(source, tokenize(source)).parse()
+    lexer = PQLLexer(InputStream(source))
+    lexer.removeErrorListeners()
+    lexer.addErrorListener(_LexerErrors(source))
+    parser = PQLParser(CommonTokenStream(lexer))
+    parser.removeErrorListeners()
+    parser.addErrorListener(_ParserErrors(source))
+    parser.addParseListener(_SyntaxChecks(parser, source))
+    return _AstBuilder(source).visit(parser.query())
 
 
-class _Parser:
-    def __init__(self, source, tokens):
+def _error(source, token, detail, expected=None):
+    text = None if token.type == Token.EOF else token.text
+    return PQLSyntaxError(detail, source, token.start, token=text, expected=expected)
+
+
+def _describe(token):
+    if token.type == Token.EOF:
+        return "end of input"
+    if token.type == PQLParser.STRING:
+        return f"string {token.text}"
+    return f"'{token.text}'"
+
+
+def _display(token_type):
+    return TOKEN_DISPLAY.get(token_type) or PQLParser.literalNames[token_type]
+
+
+def _resolve_field(source, token):
+    name = FIELD_ALIASES.get(token.text.lower(), token.text.lower())
+    if name in FILTER_FIELDS:
+        return name
+    if name in UNSUPPORTED_FIELDS:
+        raise _error(
+            source, token, f"field '{token.text}' is not supported: {UNSUPPORTED_FIELDS[name]}", "another field"
+        )
+    raise _error(source, token, f"unknown field '{token.text}'", "one of " + ", ".join(KNOWN_FIELD_NAMES))
+
+
+def _unknown_function(source, token):
+    return _error(source, token, f"unknown function '{token.text}'", "one of " + ", ".join(sorted(FUNCTIONS.values())))
+
+
+class _LexerErrors(ErrorListener):
+    def __init__(self, source):
         self.source = source
-        self.tokens = tokens
-        self.index = 0
 
-    def parse(self):
-        if self._peek().kind == EOF:
-            raise self._error(self._peek(), "empty query", "a filter expression")
-        node = self._parse_or(0)
-        token = self._peek()
-        if token.kind != EOF:
-            raise self._error(token, f"unexpected {token.describe()}", "'AND', 'OR' or end of input")
-        return node
+    def syntaxError(self, recognizer, offending_symbol, line, column, msg, e):
+        start = recognizer._tokenStartCharIndex
+        char = self.source[start]
+        if char in "\"'":
+            raise PQLSyntaxError(
+                "unterminated string literal",
+                self.source,
+                start,
+                token=self.source[start:],
+                expected=f"a closing {char}",
+            )
+        raise PQLSyntaxError(
+            f"unexpected character '{char}'",
+            self.source,
+            start,
+            token=char,
+            expected="a field name, an operator or a boolean keyword",
+        )
 
-    def _parse_or(self, depth):
-        members = [self._parse_and(depth)]
-        while self._match_keyword("or"):
-            members.append(self._parse_and(depth))
-        return members[0] if len(members) == 1 else {"or": members}
 
-    def _parse_and(self, depth):
-        members = [self._parse_not(depth)]
-        while self._match_keyword("and"):
-            members.append(self._parse_not(depth))
-        return members[0] if len(members) == 1 else {"and": members}
+class _ParserErrors(ErrorListener):
+    def __init__(self, source):
+        self.source = source
 
-    def _parse_not(self, depth):
-        if self._match_keyword("not"):
-            return {"not": [self._parse_not(depth)]}
-        return self._parse_primary(depth)
+    def syntaxError(self, recognizer, offending, line, column, msg, e):
+        if offending.type == Token.EOF and offending.tokenIndex == 0:
+            raise _error(self.source, offending, "empty query", "a filter expression")
+        expected = set(e.getExpectedTokens() if e is not None else recognizer.getExpectedTokens())
+        previous = recognizer.getTokenStream().get(offending.tokenIndex - 1) if offending.tokenIndex > 0 else None
+        detail = f"unexpected {_describe(offending)}"
+        field_position = PQLParser.IDENT in expected and PQLParser.NOT in expected
+        value_position = PQLParser.IDENT in expected and PQLParser.NOT not in expected
+        if offending.type in RESERVED_TOKENS and field_position:
+            raise _error(
+                self.source,
+                offending,
+                f"'{offending.text}' is a keyword, not a field name",
+                "a field name, 'not' or '('",
+            )
+        if offending.type in RESERVED_TOKENS and value_position:
+            hint = "'is null' to test for an unset field" if offending.type == PQLParser.NULL else "a value"
+            raise _error(self.source, offending, f"'{offending.text}' is a keyword, not a value", hint)
+        if offending.type == PQLParser.DURATION and value_position:
+            raise _error(self.source, offending, "a duration is only allowed after now()", "a value such as now() - 7d")
+        if field_position:
+            raise _error(self.source, offending, detail, "a field name, 'not' or '('")
+        if value_position:
+            raise _error(self.source, offending, detail, "a value")
+        if expected == {PQLParser.LPAREN} and previous is not None and previous.type in FUNCTION_TOKENS:
+            raise _error(self.source, offending, detail, f"'(' after the reserved function name '{previous.text}'")
+        names = [_display(token_type) for token_type in sorted(expected, key=lambda t: (t < PQLParser.NEQ, t))]
+        if isinstance(recognizer._ctx, (PQLParser.QueryContext, PQLParser.PrimaryContext)):
+            names = ["'and'", "'or'", *names]
+        raise _error(self.source, offending, detail, names[0] if len(names) == 1 else "one of " + ", ".join(names))
 
-    def _parse_primary(self, depth):
-        if depth >= MAX_PQL_DEPTH:
-            raise self._error(
-                self._peek(),
+
+class _SyntaxChecks(PQLListener):
+    """Checks that must fire at the token they concern, before the parser moves on."""
+
+    def __init__(self, parser, source):
+        self.parser = parser
+        self.source = source
+        self.depth = 0
+
+    def enterPrimary(self, ctx):
+        if self.depth >= MAX_PQL_DEPTH:
+            raise _error(
+                self.source,
+                self.parser.getCurrentToken(),
                 f"expression is nested deeper than {MAX_PQL_DEPTH} levels",
                 "a shallower expression",
             )
-        if self._peek().kind == LPAREN:
-            self._advance()
-            node = self._parse_or(depth + 1)
-            self._expect(RPAREN, "')'")
-            return node
-        return self._parse_predicate()
+        self.depth += 1
 
-    def _parse_predicate(self):
-        token = self._peek()
-        if token.kind != IDENT:
-            raise self._error(token, f"unexpected {token.describe()}", "a field name, 'NOT' or '('")
-        lowered = token.value.lower()
-        if lowered in KEYWORDS:
-            raise self._error(token, f"'{token.value}' is a keyword, not a field name", "a field name, 'NOT' or '('")
-        if lowered == "cf":
-            return self._parse_custom_property()
-        if self._peek(1).kind == LPAREN:
-            return self._parse_predicate_function()
-        return self._parse_field_predicate()
+    def exitPrimary(self, ctx):
+        self.depth -= 1
 
-    def _parse_predicate_function(self):
-        token = self._peek()
-        name = FUNCTIONS.get(token.value.lower())
-        if name is None:
-            raise self._error(
-                token, f"unknown function '{token.value}'", "one of " + ", ".join(sorted(FUNCTIONS.values()))
-            )
+    def exitFieldName(self, ctx):
+        if self.parser.getCurrentToken().type == PQLParser.LPAREN:
+            raise _unknown_function(self.source, ctx.start)
+        _resolve_field(self.source, ctx.start)
+
+    def exitIdentValue(self, ctx):
+        if self.parser.getCurrentToken().type == PQLParser.LPAREN:
+            raise _unknown_function(self.source, ctx.start)
+
+
+class _AstBuilder(PQLVisitor):
+    def __init__(self, source):
+        self.source = source
+
+    def visitQuery(self, ctx):
+        return self.visit(ctx.expression())
+
+    def visitExpression(self, ctx):
+        return self.visit(ctx.orExpr())
+
+    def visitOrExpr(self, ctx):
+        members = [self.visit(child) for child in ctx.andExpr()]
+        return members[0] if len(members) == 1 else {"or": members}
+
+    def visitAndExpr(self, ctx):
+        members = [self.visit(child) for child in ctx.notExpr()]
+        return members[0] if len(members) == 1 else {"and": members}
+
+    def visitNotExpr(self, ctx):
+        if ctx.NOT() is not None:
+            return {"not": [self.visit(ctx.notExpr())]}
+        return self.visit(ctx.primary())
+
+    def visitPrimary(self, ctx):
+        if ctx.expression() is not None:
+            return self.visit(ctx.expression())
+        return self.visit(ctx.getChild(0))
+
+    def visitPredicate(self, ctx):
+        if ctx.fieldName() is None:
+            return self.visit(ctx.conditionFunction())
+        name = _resolve_field(self.source, ctx.fieldName().start)
+        return self._comparison(ctx.comparison(), name, FILTER_FIELDS[name])
+
+    def visitCustomPropertyPredicate(self, ctx):
+        key_token = ctx.propertyReference().STRING().symbol
+        key = self._unescape(key_token)
+        if not key.strip():
+            raise self._error(key_token, "empty custom property reference", "a property id or name")
+        return self._comparison(ctx.comparison(), f"{CUSTOM_PROPERTY_PREFIX}{key.strip()}", None)
+
+    def _comparison(self, ctx, name, field):
+        if isinstance(ctx, PQLParser.CompareOperatorContext):
+            operator = ctx.operator().start
+            lookup, negated = OPERATOR_LOOKUPS[operator.text]
+            self._check_lookup(field, name, lookup, operator)
+            leaf = {_leaf_key(name, lookup): self.visit(ctx.value())}
+            return {"not": [leaf]} if negated else leaf
+        if isinstance(ctx, PQLParser.InListContext):
+            self._check_lookup(field, name, IN, ctx.start)
+            return {_leaf_key(name, IN): self._value_list(ctx.valueList())}
+        if isinstance(ctx, PQLParser.NotInListContext):
+            self._check_lookup(field, name, IN, ctx.start)
+            return {"not": [{_leaf_key(name, IN): self._value_list(ctx.valueList())}]}
+        self._check_lookup(field, name, ISNULL, ctx.start)
+        return {_leaf_key(name, ISNULL): ctx.NOT() is None}
+
+    def _value_list(self, ctx):
+        values = ctx.value()
+        if not values:
+            raise self._error(ctx.RPAREN().symbol, "empty value list", "at least one value")
+        return [self.visit(value) for value in values]
+
+    def _arguments(self, ctx):
+        return ctx.arguments().value() if ctx.arguments() is not None else []
+
+    def visitConditionFunction(self, ctx):
+        token = ctx.functionName().start
+        name = FUNCTIONS[token.text.lower()]
         if name not in IDENTIFIER_FUNCTIONS:
             raise self._error(token, f"{name}() is a value, not a condition", "a field name before it")
-        arguments = self._parse_call_arguments()
-        if len(arguments) != 1:
+        arguments = self._arguments(ctx.callArguments())
+        values = [self.visit(argument) for argument in arguments]
+        if len(values) != 1:
             raise self._error(
                 token,
-                f"{name}() takes exactly one argument, got {len(arguments)}",
+                f"{name}() takes exactly one argument, got {len(values)}",
                 f'a quoted work item identifier such as {name}("PROJ-12")',
             )
-        identifier, argument_token = arguments[0]
-        if not isinstance(identifier, str) or argument_token.kind != STRING:
-            raise self._error(argument_token, f"{name}() takes a quoted work item identifier", "a string literal")
-        return {IDENTIFIER_FUNCTIONS[name]: identifier}
+        if not isinstance(arguments[0], PQLParser.StringValueContext):
+            raise self._error(arguments[0].start, f"{name}() takes a quoted work item identifier", "a string literal")
+        return {IDENTIFIER_FUNCTIONS[name]: values[0]}
 
-    def _parse_field_predicate(self):
-        token = self._advance()
-        name = self._resolve_field(token)
-        field = FILTER_FIELDS[name]
-        operator = self._peek()
+    def visitStringValue(self, ctx):
+        return self._unescape(ctx.STRING().symbol)
 
-        if operator.kind == OPERATOR:
-            self._advance()
-            lookup, negated = OPERATOR_LOOKUPS[operator.value]
-            self._check_lookup(field, name, lookup, operator)
-            leaf = {_leaf_key(name, lookup): self._parse_value()}
-            return {"not": [leaf]} if negated else leaf
+    def visitNumberValue(self, ctx):
+        text = ctx.NUMBER().getText()
+        number = float(text) if "." in text else int(text)
+        return -number if ctx.MINUS() is not None else number
 
-        if operator.kind == IDENT:
-            keyword = operator.value.lower()
-            if keyword == "in":
-                self._advance()
-                self._check_lookup(field, name, IN, operator)
-                return {_leaf_key(name, IN): self._parse_list()}
-            if keyword == "not":
-                self._advance()
-                self._expect_keyword("in", "'in' after 'not'")
-                self._check_lookup(field, name, IN, operator)
-                return {"not": [{_leaf_key(name, IN): self._parse_list()}]}
-            if keyword == "is":
-                self._advance()
-                negated = bool(self._match_keyword("not"))
-                self._expect_keyword("null", "'null'")
-                self._check_lookup(field, name, ISNULL, operator)
-                return {_leaf_key(name, ISNULL): not negated}
+    def visitIdentValue(self, ctx):
+        return ctx.getText()
 
-        raise self._error(
-            operator,
-            f"unexpected {operator.describe()} after field '{name}'",
-            "a comparison operator such as '=', 'in', '~' or 'is null'",
-        )
-
-    def _parse_custom_property(self):
-        self._advance()
-        self._expect(LBRACKET, "'[' after 'cf'")
-        key = self._expect(STRING, 'a quoted property id or name such as cf["Amount"]')
-        self._expect(RBRACKET, "']'")
-        if not key.value.strip():
-            raise self._error(key, "empty custom property reference", "a property id or name")
-        name = f"{CUSTOM_PROPERTY_PREFIX}{key.value.strip()}"
-        operator = self._peek()
-
-        if operator.kind == OPERATOR:
-            self._advance()
-            lookup, negated = OPERATOR_LOOKUPS[operator.value]
-            leaf = {_leaf_key(name, lookup): self._parse_value()}
-            return {"not": [leaf]} if negated else leaf
-
-        if operator.kind == IDENT:
-            keyword = operator.value.lower()
-            if keyword == "in":
-                self._advance()
-                return {_leaf_key(name, IN): self._parse_list()}
-            if keyword == "not":
-                self._advance()
-                self._expect_keyword("in", "'in' after 'not'")
-                return {"not": [{_leaf_key(name, IN): self._parse_list()}]}
-            if keyword == "is":
-                self._advance()
-                negated = bool(self._match_keyword("not"))
-                self._expect_keyword("null", "'null'")
-                return {_leaf_key(name, ISNULL): not negated}
-
-        raise self._error(
-            operator,
-            f"unexpected {operator.describe()} after a custom property",
-            "a comparison operator such as '=', '>', 'in' or 'is null'",
-        )
-
-    def _parse_list(self):
-        self._expect(LPAREN, "'(' to open a value list")
-        if self._peek().kind == RPAREN:
-            raise self._error(self._peek(), "empty value list", "at least one value")
-        values = [self._parse_value()]
-        while self._peek().kind == COMMA:
-            self._advance()
-            values.append(self._parse_value())
-        self._expect(RPAREN, "',' or ')'")
-        return values
-
-    def _parse_value(self):
-        token = self._peek()
-        if token.kind in (STRING, NUMBER):
-            self._advance()
-            return token.value
-        if token.kind == MINUS and self._peek(1).kind == NUMBER:
-            self._advance()
-            return -self._advance().value
-        if token.kind == IDENT:
-            if self._peek(1).kind == LPAREN:
-                return self._parse_value_function()
-            if token.value.lower() in KEYWORDS:
-                hint = "'is null' to test for an unset field" if token.value.lower() == "null" else "a value"
-                raise self._error(token, f"'{token.value}' is a keyword, not a value", hint)
-            self._advance()
-            return token.value
-        if token.kind == DURATION:
-            raise self._error(token, "a duration is only allowed after now()", "a value such as now() - 7d")
-        raise self._error(token, f"unexpected {token.describe()}", "a value")
-
-    def _parse_value_function(self):
-        token = self._peek()
-        name = FUNCTIONS.get(token.value.lower())
-        if name is None:
-            raise self._error(
-                token, f"unknown function '{token.value}'", "one of " + ", ".join(sorted(FUNCTIONS.values()))
-            )
+    def visitFunctionValue(self, ctx):
+        call = ctx.valueFunction()
+        token = call.functionName().start
+        name = FUNCTIONS[token.text.lower()]
         if name not in VALUE_FUNCTIONS:
             raise self._error(token, f"{name}() is a condition, not a value", "one of " + ", ".join(VALUE_FUNCTIONS))
-        arguments = self._parse_call_arguments()
+        arguments = self._arguments(call.callArguments())
+        for argument in arguments:
+            self.visit(argument)
         if arguments:
             raise self._error(token, f"{name}() takes no arguments, got {len(arguments)}", f"{name}()")
+        offsets = ctx.durationOffset()
         if name == "currentUser":
+            if offsets:
+                raise self._error(
+                    offsets[0].start, f"unexpected {_describe(offsets[0].start)}", "one of 'and', 'or', end of input"
+                )
             return {CURRENT_USER_PLACEHOLDER: True}
-        return {NOW_PLACEHOLDER: {"seconds": self._parse_now_offset()}}
-
-    def _parse_now_offset(self):
         seconds = 0
-        while self._peek().kind in (PLUS, MINUS):
-            sign = 1 if self._advance().kind == PLUS else -1
-            duration = self._peek()
-            if duration.kind != DURATION:
-                raise self._error(duration, f"unexpected {duration.describe()}", "a duration such as 7d, 2w or 12h")
-            self._advance()
-            seconds += sign * duration.value
-        return seconds
+        for offset in offsets:
+            sign = -1 if offset.sign().MINUS() is not None else 1
+            seconds += sign * self._duration(offset.DURATION().symbol)
+        return {NOW_PLACEHOLDER: {"seconds": seconds}}
 
-    def _parse_call_arguments(self):
-        self._advance()
-        self._expect(LPAREN, "'(' after a function name")
-        arguments = []
-        if self._peek().kind != RPAREN:
-            token = self._peek()
-            arguments.append((self._parse_value(), token))
-            while self._peek().kind == COMMA:
-                self._advance()
-                token = self._peek()
-                arguments.append((self._parse_value(), token))
-        self._expect(RPAREN, "')' to close the argument list")
-        return arguments
-
-    def _resolve_field(self, token):
-        name = token.value.lower()
-        name = FIELD_ALIASES.get(name, name)
-        if name in FILTER_FIELDS:
-            return name
-        if name in UNSUPPORTED_FIELDS:
-            raise self._error(
-                token,
-                f"field '{token.value}' is not supported: {UNSUPPORTED_FIELDS[name]}",
-                "another field",
+    def _duration(self, token):
+        digits = len(token.text) - len(token.text.lstrip("0123456789"))
+        unit = token.text[digits:]
+        if unit not in DURATION_UNITS:
+            raise PQLSyntaxError(
+                f"unknown duration unit '{unit}'",
+                self.source,
+                token.start + digits,
+                token=unit,
+                expected="one of " + ", ".join(sorted(DURATION_UNITS)),
             )
-        raise self._error(token, f"unknown field '{token.value}'", "one of " + ", ".join(KNOWN_FIELD_NAMES))
+        return int(token.text[:digits]) * DURATION_UNITS[unit]
+
+    def _unescape(self, token):
+        body = token.text[1:-1]
+        parts = []
+        cursor = 0
+        while cursor < len(body):
+            char = body[cursor]
+            if char != "\\":
+                parts.append(char)
+                cursor += 1
+                continue
+            escape = body[cursor + 1]
+            if escape not in ESCAPES:
+                raise PQLSyntaxError(
+                    f"unknown escape sequence '\\{escape}'",
+                    self.source,
+                    token.start + 1 + cursor,
+                    token=f"\\{escape}",
+                    expected="one of " + ", ".join("\\" + key for key in ESCAPES),
+                )
+            parts.append(ESCAPES[escape])
+            cursor += 2
+        return "".join(parts)
 
     def _check_lookup(self, field, name, lookup, token):
-        if lookup not in field.lookups:
+        if field is not None and lookup not in field.lookups:
             raise self._error(
                 token,
                 f"operator '{token.text}' is not supported on field '{name}'",
                 "one of " + ", ".join(sorted(_operators_for(field))),
             )
 
-    def _peek(self, offset=0):
-        index = min(self.index + offset, len(self.tokens) - 1)
-        return self.tokens[index]
-
-    def _advance(self):
-        token = self._peek()
-        if token.kind != EOF:
-            self.index += 1
-        return token
-
-    def _expect(self, kind, expected):
-        token = self._peek()
-        if token.kind != kind:
-            raise self._error(token, f"unexpected {token.describe()}", expected)
-        return self._advance()
-
-    def _match_keyword(self, keyword):
-        token = self._peek()
-        if token.kind == IDENT and token.value.lower() == keyword:
-            self._advance()
-            return token
-        return None
-
-    def _expect_keyword(self, keyword, expected):
-        token = self._match_keyword(keyword)
-        if token is None:
-            found = self._peek()
-            raise self._error(found, f"unexpected {found.describe()}", expected)
-        return token
-
     def _error(self, token, detail, expected=None):
-        text = None if token.kind == EOF else token.text
-        return PQLSyntaxError(detail, self.source, token.start, token=text, expected=expected)
+        return _error(self.source, token, detail, expected)
 
 
 def _leaf_key(name, lookup):
