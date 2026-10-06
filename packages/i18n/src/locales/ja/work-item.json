@@ -67,6 +67,11 @@
         "show_sub_issues": "サブ作業項目を表示",
         "show_empty_groups": "空のグループを表示",
         "show_hierarchy": "親の下にネストして表示"
+      },
+      "color_by": {
+        "label": "色分けの基準",
+        "state": "状態",
+        "key": "キー"
       }
     },
     "layouts": {

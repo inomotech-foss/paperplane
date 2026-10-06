@@ -67,6 +67,11 @@
         "show_sub_issues": "Subwerkitems tonen",
         "show_empty_groups": "Lege groepen tonen",
         "show_hierarchy": "Onder bovenliggende werkitems nesten"
+      },
+      "color_by": {
+        "label": "Kleuren op",
+        "state": "Status",
+        "key": "Sleutel"
       }
     },
     "layouts": {

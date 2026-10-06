@@ -67,6 +67,11 @@
         "show_sub_issues": "Afișează sub-activitățile",
         "show_empty_groups": "Afișează grupurile goale",
         "show_hierarchy": "Imbrică sub elementele părinte"
+      },
+      "color_by": {
+        "label": "Colorare după",
+        "state": "Stare",
+        "key": "Cheie"
       }
     },
     "layouts": {

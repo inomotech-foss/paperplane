@@ -157,7 +157,7 @@ class ConfluenceLoader:
 
             # Two passes: Confluence links pages by title, so no link can be
             # rewritten until every page in the space has an id.
-            records, created, _ = self._upsert_pages(project, pages, orders, users, summary)
+            records, created, touched = self._upsert_pages(project, pages, orders, users, summary)
             self._write_bodies(
                 project,
                 pages,
@@ -167,6 +167,7 @@ class ConfluenceLoader:
                 dry_run,
                 only=created if structure_only else None,
                 created=created,
+                touched=touched,
                 take=set(take),
                 diff_dir=diff_dir,
             )
@@ -549,14 +550,17 @@ class ConfluenceLoader:
         dry_run,
         only=None,
         created=frozenset(),
+        touched=frozenset(),
         take=frozenset(),
         diff_dir=None,
     ):
         """Convert and store every body in ``only`` (all pages by default).
 
-        An existing page whose readable text differs from the conversion was
-        changed by someone in Plane: it is kept, reported, and on request
-        diffed to a file, unless ``take`` names it.
+        A page saved in Plane since the import (``touched``, judged by the
+        timestamp before this run wrote anything) whose readable text differs
+        from the conversion is kept, reported, and on request diffed to a
+        file, unless ``take`` names it. Opening a page saves it, so the text
+        decides; the timestamp only narrows which pages are compared.
         """
         user_map = {
             account_id: ResolvedUser(id=str(user.id), display_name=user.display_name)
@@ -606,7 +610,7 @@ class ConfluenceLoader:
                 raise ValueError(f"Page {page.id} ({page.title!r}) produced invalid HTML: {error}")
 
             description_html = clean or "<p></p>"
-            if page.id not in created and page.id not in take and self._changed_in_plane(record, page):
+            if page.id in touched and page.id not in take and not same_text(record.description_html, description_html):
                 diff, added, removed = text_diff(description_html, record.description_html, "backup", "plane")
                 summary.kept += 1
                 summary.changes.append(Change("keep", page.title, f"+{added} -{removed} lines, id {page.id}"))
@@ -631,37 +635,13 @@ class ConfluenceLoader:
         if uploader is not None:
             summary.unsupported_attachments |= uploader.unsupported
 
-    @staticmethod
-    def _seed(record):
-        """The version the import wrote: what the page looked like before anyone
-        in Plane touched it."""
-        return PageVersion.objects.filter(page_id=record.pk).order_by("created_at").first()
-
-    def _changed_in_plane(self, record, page):
-        """Did someone change the words of this page in Plane?
-
-        Compared against the import's own earlier output, not the new
-        conversion: a better converter changes the text too, and that must
-        not look like an edit. A page with no seed falls back to the timestamp.
-        """
-        seed = self._seed(record)
-        if seed is None:
-            return self._locally_edited(record, page)
-        return not same_text(record.description_html, seed.description_html)
-
     def _seed_version(self, record, page, description_html):
-        """Keep the page's first version equal to what the import wrote.
+        """Give an imported page the one version the backup can support.
 
-        Confluence exported a single body per page, so the seed is the whole
-        history there will ever be, and it is the baseline the next run
-        compares Plane's text against. A re-import refreshes it rather than
-        stacking a second one.
+        Only for a page with no versions at all: one that has them carries
+        its Confluence history, which is never rewritten.
         """
-        seed = self._seed(record)
-        if seed is not None:
-            PageVersion.objects.filter(pk=seed.pk).update(
-                description_html=description_html, last_saved_at=page.updated_at
-            )
+        if PageVersion.objects.filter(page_id=record.pk).exists():
             return
 
         PageVersion.objects.create(

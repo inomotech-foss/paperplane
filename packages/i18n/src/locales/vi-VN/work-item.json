@@ -67,6 +67,11 @@
         "show_sub_issues": "Hiển thị mục công việc con",
         "show_empty_groups": "Hiển thị nhóm trống",
         "show_hierarchy": "Lồng dưới mục cha"
+      },
+      "color_by": {
+        "label": "Tô màu theo",
+        "state": "Trạng thái",
+        "key": "Khóa"
       }
     },
     "layouts": {
