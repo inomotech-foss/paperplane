@@ -3,7 +3,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useLocalStorage } from "./use-local-storage";
 
@@ -23,6 +23,17 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const storedWidth = typeof storedValue === "number" ? clamp(storedValue) : defaultWidth;
   const width = dragWidth ?? storedWidth;
+  const isResizing = dragWidth !== null;
+
+  useEffect(() => {
+    if (!isResizing) return;
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+    return () => {
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [isResizing]);
 
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
@@ -82,7 +93,7 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
 
   return {
     width,
-    isResizing: dragWidth !== null,
+    isResizing,
     onPointerDown,
     onPointerMove,
     onPointerUp,

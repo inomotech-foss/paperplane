@@ -4,12 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import { useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { useParams, usePathname } from "next/navigation";
 import { SIDEBAR_WIDTH } from "@plane/constants";
-import { useLocalStorage } from "@plane/hooks";
 // components
 import { ResizableSidebar } from "@/components/sidebar/resizable-sidebar";
 // hooks
@@ -28,9 +26,6 @@ export const ProjectAppSidebar = observer(function ProjectAppSidebar() {
     isExtendedSidebarOpened,
     isAnySidebarDropdownOpen,
   } = useAppTheme();
-  const { storedValue, setValue } = useLocalStorage("sidebarWidth", SIDEBAR_WIDTH);
-  // states
-  const [sidebarWidth, setSidebarWidth] = useState<number>(storedValue ?? SIDEBAR_WIDTH);
   // routes
   const { workspaceSlug } = useParams();
   const pathname = usePathname();
@@ -39,21 +34,16 @@ export const ProjectAppSidebar = observer(function ProjectAppSidebar() {
 
   const isNotificationsPath = pathname.includes(`/${workspaceSlug}/notifications`);
 
-  // handlers
-  const handleWidthChange = (width: number) => setValue(width);
-
   if (isNotificationsPath) return null;
 
   return (
     <>
       <ResizableSidebar
         showPeek={sidebarPeek}
-        defaultWidth={storedValue ?? 250}
-        width={sidebarWidth}
-        setWidth={setSidebarWidth}
+        storageKey="sidebarWidth"
+        defaultWidth={SIDEBAR_WIDTH}
         defaultCollapsed={sidebarCollapsed}
         peekDuration={1500}
-        onWidthChange={handleWidthChange}
         onCollapsedChange={toggleSidebar}
         isCollapsed={sidebarCollapsed}
         toggleCollapsed={toggleSidebar}
