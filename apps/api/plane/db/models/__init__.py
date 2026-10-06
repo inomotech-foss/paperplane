@@ -65,6 +65,7 @@ from .project import (
     Project,
     ProjectBaseModel,
     ProjectIdentifier,
+    ProjectLink,
     ProjectMember,
     ProjectMemberInvite,
     ProjectNetwork,
