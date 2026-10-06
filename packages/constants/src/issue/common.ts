@@ -140,6 +140,8 @@ export const ISSUE_ORDER_BY_OPTIONS: {
   { key: "-priority", titleTranslationKey: "common.priority" },
 ];
 
+export const DEFAULT_TIMELINE_COLOR_BY: TTimelineColorBy = "state";
+
 export const TIMELINE_COLOR_BY_OPTIONS: {
   key: TTimelineColorBy;
   titleTranslationKey: string;

@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import { TIMELINE_COLOR_BY_OPTIONS } from "@plane/constants";
+import { DEFAULT_TIMELINE_COLOR_BY, TIMELINE_COLOR_BY_OPTIONS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import type { IIssueDisplayFilterOptions, ILayoutDisplayFiltersOptions } from "@plane/types";
 // components
@@ -24,7 +24,7 @@ export const FilterColorBy = observer(function FilterColorBy(props: Props) {
   const enabledKeys = new Set(layoutDisplayFiltersOptions?.display_filters.color_by ?? []);
   if (enabledKeys.size === 0) return null;
 
-  const activeColorBy = displayFilters?.color_by ?? "state";
+  const activeColorBy = displayFilters?.color_by ?? DEFAULT_TIMELINE_COLOR_BY;
 
   return (
     <div className="py-2">
