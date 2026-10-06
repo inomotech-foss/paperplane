@@ -24,7 +24,7 @@ export default function ProjectPageDetailsLayout({ params }: Route.ComponentProp
   return (
     <>
       <AppHeader header={<PageDetailsHeader />} />
-      <div className="flex h-full w-full overflow-hidden">
+      <div className="flex min-h-0 w-full flex-1 overflow-hidden">
         <PageDetailsTreeSidebar />
         <div className="h-full min-w-0 flex-1">
           <ContentWrapper>
