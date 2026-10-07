@@ -27,7 +27,7 @@ export function PowerKProjectsMenu({ projects, onSelect }: Props) {
           <Logo logo={project.logo_props} size={14} />
         </span>
       )}
-      getValue={(project) => project.name}
+      getValue={(project) => `${project.name} ${project.identifier}`}
       getLabel={(project) => project.name}
       onSelect={onSelect}
       emptyText="No projects found"
