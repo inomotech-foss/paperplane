@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 import useSWR from "swr";
 // components
 import { EUserPermissionsLevel } from "@plane/constants";
-import type { IState, TStateOperationsCallbacks } from "@plane/types";
+import type { IState, TStateCreatePayload, TStateOperationsCallbacks } from "@plane/types";
 import { EUserProjectRoles } from "@plane/types";
 import { ProjectStateLoader, GroupList } from "@/components/project-states";
 // hooks
@@ -52,7 +52,7 @@ export const ProjectStateRoot = observer(function ProjectStateRoot(props: TProje
   // State operations callbacks
   const stateOperationsCallbacks: TStateOperationsCallbacks = useMemo(
     () => ({
-      createState: async (data: Partial<IState>) => createState(workspaceSlug, projectId, data),
+      createState: async (data: TStateCreatePayload) => createState(workspaceSlug, projectId, data),
       updateState: async (stateId: string, data: Partial<IState>) =>
         updateState(workspaceSlug, projectId, stateId, data),
       deleteState: async (stateId: string) => deleteState(workspaceSlug, projectId, stateId),

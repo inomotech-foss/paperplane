@@ -14,6 +14,7 @@ import type { IIntakeState, IState } from "@plane/types";
 import { sortStates } from "@plane/utils";
 // plane web
 import { ProjectStateService } from "@/services/project/project-state.service";
+import type { TStateCreateBody } from "@/services/project/project-state.service";
 import type { RootStore } from "@/store/root.store";
 
 export interface IStateStore {
@@ -40,7 +41,7 @@ export interface IStateStore {
   fetchProjectIntakeState: (workspaceSlug: string, projectId: string) => Promise<IIntakeState>;
   fetchWorkspaceStates: (workspaceSlug: string) => Promise<IState[]>;
   // crud actions
-  createState: (workspaceSlug: string, projectId: string, data: Partial<IState>) => Promise<IState>;
+  createState: (workspaceSlug: string, projectId: string, data: TStateCreateBody) => Promise<IState>;
   updateState: (
     workspaceSlug: string,
     projectId: string,
@@ -261,7 +262,7 @@ export class StateStore implements IStateStore {
    * @param data
    * @returns
    */
-  createState = async (workspaceSlug: string, projectId: string, data: Partial<IState>) =>
+  createState = async (workspaceSlug: string, projectId: string, data: TStateCreateBody) =>
     await this.stateService.createState(workspaceSlug, projectId, data).then((response) => {
       runInAction(() => {
         set(this.stateMap, [response?.id], response);

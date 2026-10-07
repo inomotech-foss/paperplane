@@ -31,8 +31,10 @@ export interface IStateResponse {
   [key: string]: IState[];
 }
 
+export type TStateCreatePayload = Pick<IState, "name" | "color" | "group" | "description">;
+
 export type TStateOperationsCallbacks = {
-  createState: (data: Partial<IState>) => Promise<IState>;
+  createState: (data: TStateCreatePayload) => Promise<IState>;
   updateState: (stateId: string, data: Partial<IState>) => Promise<IState | undefined>;
   deleteState: (stateId: string) => Promise<void>;
   moveStatePosition: (stateId: string, data: Partial<IState>) => Promise<void>;

@@ -4,22 +4,23 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiRequestBody } from "@plane/api-types";
 import { unwrap } from "@plane/services";
 import type { IIntakeState, IState } from "@plane/types";
 import { apiClient } from "@/services/api-client";
 
 const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
+export type TStateCreateBody = ApiRequestBody<"/api/workspaces/{slug}/projects/{project_id}/states/", "post">;
+
 const statePath = (slug: string, project_id: string, pk: string) => ({ path: { slug, project_id, pk } });
 
 /** Errors are thrown as `ApiError` from `@plane/services`. */
 export class ProjectStateService {
-  async createState(workspaceSlug: string, projectId: string, data: Partial<IState>): Promise<IState> {
-    // The API requires both; a missing one fails validation with a 400 as before.
-    const { name = "", color = "", ...rest } = data;
+  async createState(workspaceSlug: string, projectId: string, data: TStateCreateBody): Promise<IState> {
     return unwrap(
       apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/states/", {
         params: projectPath(workspaceSlug, projectId),
-        body: { ...rest, name, color },
+        body: data,
       })
     );
   }
