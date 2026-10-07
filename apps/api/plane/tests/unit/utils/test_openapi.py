@@ -19,9 +19,11 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
-from plane.db.models import Issue, State
+from plane.app.serializers import IssueRelationSerializer, NotificationSerializer
+from plane.db.models import Issue, IssueRelation, Notification, State, User
 from plane.tests.factories import ProjectFactory, WorkspaceFactory
 from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated_response
+from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, _source_presence
 from plane.utils.openapi.surfaces import SURFACES
 from plane.utils.paginator import BasePaginator, GroupedOffsetPaginator, SubGroupedOffsetPaginator
 
@@ -161,3 +163,45 @@ class TestPaginatedResponse:
         )
         assert data["results"] == {}
         jsonschema.validate(data, _response_schema(GROUPED))
+
+
+def _component(serializer_class):
+    class View(APIView):
+        @extend_schema(responses=serializer_class)
+        def get(self, request):
+            pass
+
+    with patched_settings({"PREPROCESSING_HOOKS": []}):
+        schema = SchemaGenerator(patterns=[path("items/", View.as_view())]).get_schema(request=None, public=True)
+    response = schema["paths"]["/items/"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
+    return schema["components"]["schemas"][response["$ref"].split("/")[-1]]
+
+
+@pytest.mark.unit
+class TestSerializedPresence:
+    def test_source_paths(self):
+        assert _source_presence(Issue, "name") == ALWAYS
+        assert _source_presence(Issue, "state") == MAYBE_NULL
+        assert _source_presence(Issue, "project.name") == ALWAYS
+        assert _source_presence(Issue, "state.name") == OMITTED
+        assert _source_presence(User, "profile") == MAYBE_NULL
+        assert _source_presence(User, "profile.theme") == MAYBE_NULL
+        assert _source_presence(Issue, "assignees") == ALWAYS
+        assert _source_presence(Issue, "nope") == OMITTED
+
+    def test_null_foreign_key_is_required_and_nullable(self):
+        schema = _component(NotificationSerializer)
+        assert "triggered_by_details" in schema["required"]
+        assert schema["properties"]["triggered_by_details"]["nullable"] is True
+
+        data = NotificationSerializer(Notification(triggered_by=None)).data
+        assert data["triggered_by_details"] is None
+
+    def test_path_through_null_foreign_key_is_optional(self):
+        schema = _component(IssueRelationSerializer)
+        assert "state_id" not in schema["required"]
+        assert "name" in schema["required"]
+
+        data = IssueRelationSerializer(IssueRelation(related_issue=Issue(name="a", state=None))).data
+        assert "state_id" not in data
+        assert data["name"] == "a"
