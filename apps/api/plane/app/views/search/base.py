@@ -315,8 +315,17 @@ class SearchEndpoint(BaseAPIView):
         response_data = {}
 
         if project_id:
+            is_project_member = ProjectMember.objects.filter(
+                workspace__slug=slug,
+                project_id=project_id,
+                member=request.user,
+                is_active=True,
+            ).exists()
             for query_type in query_types:
                 if query_type == "user_mention":
+                    if not is_project_member:
+                        response_data["user_mention"] = []
+                        continue
                     fields = [
                         "member__first_name",
                         "member__last_name",
