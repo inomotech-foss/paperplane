@@ -18,9 +18,7 @@ import type {
   IIssueDisplayProperties,
   IIssueFilterOptions,
   IIssueFilters,
-  IIssueFiltersResponse,
   IssuePaginationOptions,
-  TIssueKanbanFilters,
   TIssueParams,
   TStaticViewTypes,
   TWorkItemFilterExpression,
@@ -31,14 +29,22 @@ import { getComputedDisplayFilters, getComputedDisplayProperties } from "@plane/
 // lib
 import { storage } from "@/lib/local-storage";
 import { getWorkItemOrderBy } from "@/store/timeline-order";
+import type { ILocalStoreIssueFilters, TLocalIssueFilters } from "./local-issue-filters";
+import { parseLocalIssueFilters } from "./local-issue-filters";
 
-interface ILocalStoreIssueFilters {
-  key: EIssuesStoreType;
-  workspaceSlug: string;
-  viewId: string | undefined; // It can be projectId, moduleId, cycleId, projectViewId
-  userId: string | undefined;
-  filters: IIssueFilters;
-}
+const LOCAL_ISSUE_FILTERS_KEY = "issue_local_filters";
+
+const isSameEntry = (
+  filter: ILocalStoreIssueFilters,
+  currentView: EIssuesStoreType,
+  workspaceSlug: string,
+  viewId: string | undefined,
+  userId: string | undefined
+) =>
+  filter.key === currentView &&
+  filter.workspaceSlug === workspaceSlug &&
+  filter.viewId === viewId &&
+  filter.userId === userId;
 
 export interface IBaseIssueFilterStore {
   // observables
@@ -61,10 +67,10 @@ export interface IIssueFilterHelperStore {
     type: TStaticViewTypes
   ) => Partial<Record<TIssueParams, string>> | undefined;
   computedDisplayFilters(
-    displayFilters: IIssueDisplayFilterOptions,
+    displayFilters: IIssueDisplayFilterOptions | undefined,
     defaultValues?: IIssueDisplayFilterOptions
   ): IIssueDisplayFilterOptions;
-  computedDisplayProperties(filters: IIssueDisplayProperties): IIssueDisplayProperties;
+  computedDisplayProperties(filters: IIssueDisplayProperties | undefined): IIssueDisplayProperties;
 }
 
 export class IssueFilterHelperStore implements IIssueFilterHelperStore {
@@ -188,7 +194,7 @@ export class IssueFilterHelperStore implements IIssueFilterHelperStore {
    * @returns {IIssueDisplayFilterOptions}
    */
   computedDisplayFilters = (
-    displayFilters: IIssueDisplayFilterOptions,
+    displayFilters: IIssueDisplayFilterOptions | undefined,
     defaultValues?: IIssueDisplayFilterOptions
   ): IIssueDisplayFilterOptions => {
     const computedFilters = getComputedDisplayFilters(displayFilters, defaultValues);
@@ -200,69 +206,40 @@ export class IssueFilterHelperStore implements IIssueFilterHelperStore {
    * @param {IIssueDisplayProperties} displayProperties
    * @returns {IIssueDisplayProperties}
    */
-  computedDisplayProperties = (displayProperties: IIssueDisplayProperties): IIssueDisplayProperties =>
+  computedDisplayProperties = (displayProperties: IIssueDisplayProperties | undefined): IIssueDisplayProperties =>
     getComputedDisplayProperties(displayProperties);
 
   handleIssuesLocalFilters = {
-    fetchFiltersFromStorage: () => {
-      const _filters = storage.get("issue_local_filters");
-      return _filters ? JSON.parse(_filters) : [];
-    },
+    fetchFiltersFromStorage: (): ILocalStoreIssueFilters[] =>
+      parseLocalIssueFilters(storage.get(LOCAL_ISSUE_FILTERS_KEY)),
 
     get: (
       currentView: EIssuesStoreType,
       workspaceSlug: string,
       viewId: string | undefined, // It can be projectId, moduleId, cycleId, projectViewId
       userId: string | undefined
-    ) => {
-      const storageFilters = this.handleIssuesLocalFilters.fetchFiltersFromStorage();
-      const currentFilterIndex = storageFilters.findIndex(
-        (filter: ILocalStoreIssueFilters) =>
-          filter.key === currentView &&
-          filter.workspaceSlug === workspaceSlug &&
-          filter.viewId === viewId &&
-          filter.userId === userId
-      );
-      if (!currentFilterIndex && currentFilterIndex.length < 0) return undefined;
+    ): TLocalIssueFilters | undefined =>
+      this.handleIssuesLocalFilters
+        .fetchFiltersFromStorage()
+        .find((filter) => isSameEntry(filter, currentView, workspaceSlug, viewId, userId))?.filters,
 
-      return storageFilters[currentFilterIndex]?.filters || {};
-    },
-
-    set: (
+    set: <T extends EIssueFilterType>(
       currentView: EIssuesStoreType,
-      filterType: EIssueFilterType,
+      filterType: T,
       workspaceSlug: string,
       viewId: string | undefined, // It can be projectId, moduleId, cycleId, projectViewId
       userId: string | undefined,
-      filters: Partial<IIssueFiltersResponse & { kanban_filters: TIssueKanbanFilters }>
+      filters: Pick<TLocalIssueFilters, T>
     ) => {
       const storageFilters = this.handleIssuesLocalFilters.fetchFiltersFromStorage();
-      const currentFilterIndex = storageFilters.findIndex(
-        (filter: ILocalStoreIssueFilters) =>
-          filter.key === currentView &&
-          filter.workspaceSlug === workspaceSlug &&
-          filter.viewId === viewId &&
-          filter.userId === userId
-      );
+      const entry = storageFilters.find((filter) => isSameEntry(filter, currentView, workspaceSlug, viewId, userId));
+      const merged: TLocalIssueFilters = { ...entry?.filters };
+      merged[filterType] = filters[filterType];
 
-      if (currentFilterIndex < 0)
-        storageFilters.push({
-          key: currentView,
-          workspaceSlug: workspaceSlug,
-          viewId: viewId,
-          userId: userId,
-          filters: filters,
-        });
-      else
-        storageFilters[currentFilterIndex] = {
-          ...storageFilters[currentFilterIndex],
-          filters: {
-            ...storageFilters[currentFilterIndex].filters,
-            [filterType]: filters[filterType as keyof IIssueFiltersResponse],
-          },
-        };
+      if (entry) entry.filters = merged;
+      else storageFilters.push({ key: currentView, workspaceSlug, viewId, userId, filters: merged });
       // All group_by "filters" are stored in a single array, will cause inconsistency in case of duplicated values
-      storage.set("issue_local_filters", JSON.stringify(storageFilters));
+      storage.set(LOCAL_ISSUE_FILTERS_KEY, JSON.stringify(storageFilters));
     },
   };
 

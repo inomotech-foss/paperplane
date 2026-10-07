@@ -24,14 +24,8 @@ import {
 } from "@makeplane/propel/components/dialog";
 import { EmojiPicker, Logo } from "@plane/blocks/emoji-icon-picker";
 import { ViewsOutline } from "@makeplane/propel/icons";
-import type {
-  IIssueDisplayFilterOptions,
-  IIssueDisplayProperties,
-  IProjectView,
-  EIssueLayoutTypes,
-  IIssueFilters,
-} from "@plane/types";
-import { EViewAccess, EIssuesStoreType } from "@plane/types";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, IProjectView, IIssueFilters } from "@plane/types";
+import { EViewAccess, EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
 import { getComputedDisplayFilters, getComputedDisplayProperties, getTabIndex } from "@plane/utils";
 // components
 import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";
@@ -244,7 +238,9 @@ export const ProjectViewForm = observer(function ProjectViewForm(props: Props) {
                         <FiltersDropdown title={t("common.display")}>
                           <DisplayFiltersSelection
                             layoutDisplayFiltersOptions={
-                              ISSUE_DISPLAY_FILTERS_BY_PAGE.issues.layoutOptions[displayFilters.layout]
+                              ISSUE_DISPLAY_FILTERS_BY_PAGE.issues.layoutOptions[
+                                displayFilters.layout ?? EIssueLayoutTypes.LIST
+                              ]
                             }
                             displayFilters={displayFilters ?? {}}
                             handleDisplayFiltersUpdate={(updatedDisplayFilter: Partial<IIssueDisplayFilterOptions>) => {

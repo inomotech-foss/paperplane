@@ -149,7 +149,7 @@ export class ProjectViewIssuesFilter extends IssueFilterHelperStore implements I
     const displayProperties: IIssueDisplayProperties = this.computedDisplayProperties(viewDetails?.display_properties);
 
     // fetching the kanban toggle helpers in the local storage
-    const kanbanFilters = {
+    const kanbanFilters: TIssueKanbanFilters = {
       group_by: [],
       sub_group_by: [],
     };

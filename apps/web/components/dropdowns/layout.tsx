@@ -18,7 +18,7 @@ type TLayoutOption = { key: EIssueLayoutTypes; i18n_label: string };
 
 type TLayoutDropDown = {
   onChange: (value: EIssueLayoutTypes) => void;
-  value: EIssueLayoutTypes;
+  value?: EIssueLayoutTypes;
   disabledLayouts?: EIssueLayoutTypes[];
 };
 

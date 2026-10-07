@@ -5,7 +5,7 @@
  */
 
 import type { IProjectMemberNavigationPreferences } from "./project";
-import type { TIssue } from "./issues/issue";
+import type { EIssueLayoutTypes, TIssue } from "./issues/issue";
 import type { LOGICAL_OPERATOR, TSupportedOperators } from "./rich-filters";
 import type { CompleteOrEmpty } from "./utils";
 
@@ -176,7 +176,7 @@ export interface IIssueDisplayFilterOptions {
   };
   group_by?: TIssueGroupByOptions;
   sub_group_by?: TIssueGroupByOptions;
-  layout?: any; // TODO: Need to fix this and set it to enum EIssueLayoutTypes
+  layout?: EIssueLayoutTypes;
   order_by?: TIssueOrderByOptions;
   show_empty_groups?: boolean;
   sub_issue?: boolean;
