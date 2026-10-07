@@ -327,6 +327,13 @@
           "text": "Gerenciar funcionalidades"
         }
       },
+      "no_features": {
+        "title": "Nenhuma funcionalidade está habilitada para este projeto.",
+        "description": "Habilite uma funcionalidade nas configurações do projeto para começar a usar este projeto.",
+        "primary_button": {
+          "text": "Gerenciar funcionalidades"
+        }
+      },
       "page": {
         "title": "As páginas não estão habilitadas para o projeto.",
         "description": "As páginas são os blocos de construção do seu projeto. Habilite as páginas nas configurações do projeto para começar a usá-las.",

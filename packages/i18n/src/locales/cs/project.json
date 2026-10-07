@@ -327,6 +327,13 @@
           "text": "Spravovat funkce"
         }
       },
+      "no_features": {
+        "title": "Pro tento projekt nejsou povoleny žádné funkce.",
+        "description": "Aktivujte funkci v nastavení projektu, abyste mohli projekt začít používat.",
+        "primary_button": {
+          "text": "Spravovat funkce"
+        }
+      },
       "page": {
         "title": "Stránky nejsou povoleny",
         "description": "Aktivujte stránky v nastavení projektu.",

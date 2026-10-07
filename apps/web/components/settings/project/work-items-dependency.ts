@@ -5,6 +5,7 @@
 
 import { GROUPED_PROJECT_SETTINGS, PROJECT_SETTINGS_CATEGORY } from "@plane/constants";
 import type { IPartialProject, TProjectSettingsItem, TProjectSettingsTabs } from "@plane/types";
+import { PROJECT_FEATURES } from "@/components/project/features/features";
 
 type TWorkItemsFlag = Partial<Pick<IPartialProject, "issue_view">> | undefined | null;
 
@@ -20,13 +21,8 @@ const CATEGORY_NEEDS_WORK_ITEMS: Record<PROJECT_SETTINGS_CATEGORY, boolean | "pe
   [PROJECT_SETTINGS_CATEGORY.EXECUTION]: true,
 };
 
-export const FEATURE_NEEDS_WORK_ITEMS: Record<TFeatureSetting, boolean> = {
-  features_work_items: false,
-  features_cycles: true,
-  features_modules: true,
-  features_views: true,
-  features_pages: false,
-  features_intake: true,
+export const FEATURE_NEEDS_WORK_ITEMS: Partial<Record<TFeatureSetting, boolean>> = {
+  ...Object.fromEntries(PROJECT_FEATURES.map((feature) => [feature.settingsKey, feature.needsWorkItems])),
   links: false,
 };
 

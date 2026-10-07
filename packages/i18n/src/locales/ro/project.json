@@ -327,6 +327,13 @@
           "text": "Gestionează funcțiile"
         }
       },
+      "no_features": {
+        "title": "Nicio funcție nu este activată pentru acest proiect.",
+        "description": "Activați o funcție din setările proiectului pentru a începe să utilizați acest proiect.",
+        "primary_button": {
+          "text": "Gestionează funcțiile"
+        }
+      },
       "page": {
         "title": "Funcția Documentație nu este activată pentru proiect.",
         "description": "Paginile sunt componentele de bază ale proiectului tău. Activează paginile din setările proiectului pentru a începe să le folosești.",

@@ -7,7 +7,6 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
-import { useTheme } from "next-themes";
 import { EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { EmptyStateDetailed } from "@plane/blocks/empty-state";
@@ -16,22 +15,17 @@ import { EUserProjectRoles } from "@plane/types";
 // components
 import { Header, EHeaderVariant } from "@plane/blocks/layout";
 import { calculateTotalFilters } from "@plane/utils";
-// assets
-import darkEmptyState from "@/app/assets/empty-state/disabled-feature/cycles-dark.webp?url";
-import lightEmptyState from "@/app/assets/empty-state/disabled-feature/cycles-light.webp?url";
 // components
 import { PageHead } from "@/components/core/page-title";
 import { CycleAppliedFiltersList } from "@/components/cycles/applied-filters";
 import { CyclesView } from "@/components/cycles/cycles-view";
 import { CycleCreateUpdateModal } from "@/components/cycles/modal";
-import { DetailedEmptyState } from "@/components/empty-state/detailed-empty-state-root";
 import { CycleModuleListLayoutLoader } from "@/components/ui/loader/cycle-module-list-loader";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useCycleFilter } from "@/hooks/store/use-cycle-filter";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
-import { useAppRouter } from "@/hooks/use-app-router";
 import type { Route } from "./+types/page";
 
 function ProjectCyclesPage({ params }: Route.ComponentProps) {
@@ -39,23 +33,17 @@ function ProjectCyclesPage({ params }: Route.ComponentProps) {
   const [createModal, setCreateModal] = useState(false);
   // store hooks
   const { currentProjectCycleIds, loader } = useCycle();
-  const { getProjectById, currentProjectDetails } = useProject();
-  // router
-  const router = useAppRouter();
+  const { getProjectById } = useProject();
   const { workspaceSlug, projectId } = params;
-  // theme hook
-  const { resolvedTheme } = useTheme();
   // plane hooks
   const { t } = useTranslation();
   // cycle filters hook
   const { clearAllFilters, currentProjectFilters, updateFilters } = useCycleFilter();
   const { allowPermissions } = useUserPermissions();
   // derived values
-  const resolvedEmptyState = resolvedTheme === "light" ? lightEmptyState : darkEmptyState;
   const totalCycles = currentProjectCycleIds?.length ?? 0;
   const project = getProjectById(projectId);
   const pageTitle = project?.name ? `${project?.name} - ${t("common.cycles", { count: 2 })}` : undefined;
-  const hasAdminLevelPermission = allowPermissions([EUserProjectRoles.ADMIN], EUserPermissionsLevel.PROJECT);
   const hasMemberLevelPermission = allowPermissions(
     [EUserProjectRoles.ADMIN, EUserProjectRoles.MEMBER],
     EUserPermissionsLevel.PROJECT
@@ -69,25 +57,6 @@ function ProjectCyclesPage({ params }: Route.ComponentProps) {
 
     updateFilters(projectId, { [key]: newValues });
   };
-
-  // No access to cycle
-  if (currentProjectDetails?.cycle_view === false)
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <DetailedEmptyState
-          title={t("disabled_project.empty_state.cycle.title")}
-          description={t("disabled_project.empty_state.cycle.description")}
-          assetPath={resolvedEmptyState}
-          primaryButton={{
-            text: t("disabled_project.empty_state.cycle.primary_button.text"),
-            onClick: () => {
-              router.push(`/${workspaceSlug}/settings/projects/${projectId}/features`);
-            },
-            disabled: !hasAdminLevelPermission,
-          }}
-        />
-      </div>
-    );
 
   if (loader) return <CycleModuleListLayoutLoader />;
 

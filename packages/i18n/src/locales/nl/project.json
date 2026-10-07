@@ -306,6 +306,13 @@
           "text": "Functies beheren"
         }
       },
+      "no_features": {
+        "title": "Er zijn geen functies ingeschakeld voor dit project.",
+        "description": "Schakel een functie in via de projectinstellingen om dit project te gaan gebruiken.",
+        "primary_button": {
+          "text": "Functies beheren"
+        }
+      },
       "inbox": {
         "title": "Intake is niet ingeschakeld voor het project.",
         "description": "Intake helpt je binnenkomende verzoeken aan je project te beheren en ze als werkitems toe te voegen aan je workflow. Schakel intake in via de projectinstellingen om verzoeken te beheren.",

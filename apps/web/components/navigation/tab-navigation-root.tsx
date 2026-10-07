@@ -4,13 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import React, { useEffect } from "react";
+import type React from "react";
 import { observer } from "mobx-react";
-import { useParams, useLocation, useNavigate } from "react-router";
+import { useParams, useLocation } from "react-router";
 import { EUserPermissionsLevel, EUserPermissions } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { Tabs, TabsList } from "@makeplane/propel/components/tabs";
-import type { EUserProjectRoles } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
@@ -18,28 +17,22 @@ import { useUserPermissions } from "@/hooks/store/user";
 // local imports
 import { LeaveProjectModal } from "../project/leave-project-modal";
 import { PublishProjectModal } from "../project/publish-project/modal";
+import { getProjectNavigationItems } from "./navigation-items";
 import { ProjectActionsMenu } from "./project-actions-menu";
 import { ProjectHeader } from "./project-header";
 import { TabNavigationOverflowMenu } from "./tab-navigation-overflow-menu";
-import { DEFAULT_TAB_KEY } from "./tab-navigation-utils";
 import { TabNavigationVisibleItem } from "./tab-navigation-visible-item";
 import { UnderlineTabLink } from "./underline-tab-link";
 import { useActiveTab } from "./use-active-tab";
 import { useProjectActions } from "./use-project-actions";
 import { useResponsiveTabLayout } from "./use-responsive-tab-layout";
 import { useTabPreferences } from "./use-tab-preferences";
-import { useNavigationItems } from "./use-navigation-items";
 
-// Local type definition for navigation items with app-specific fields
 export type TNavigationItem = {
-  name: string;
-  href: string;
-  icon: React.ElementType;
-  access: EUserPermissions[] | EUserProjectRoles[];
-  shouldRender: boolean;
-  sortOrder: number;
-  i18n_key: string;
   key: string;
+  i18n_key: string;
+  icon: React.ElementType;
+  href: string;
 };
 
 type TTabNavigationRootProps = {
@@ -52,12 +45,11 @@ export const TabNavigationRoot = observer(function TabNavigationRoot(props: TTab
   const { workItem: workItemIdentifierFromRoute } = useParams();
   const location = useLocation();
   const pathname = location.pathname;
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   // Store hooks
   const { getPartialProjectById } = useProject();
-  const { allowPermissions } = useUserPermissions();
+  const { allowPermissions, getProjectRoleByWorkspaceSlugAndProjectId } = useUserPermissions();
   const {
     issue: { getIssueIdByIdentifier, getIssueById },
   } = useIssueDetail();
@@ -75,13 +67,14 @@ export const TabNavigationRoot = observer(function TabNavigationRoot(props: TTab
   const workItem = workItemId ? getIssueById(workItemId) : undefined;
   const project = getPartialProjectById(projectId);
 
-  // Navigation items hook
-  const navigationItems = useNavigationItems({
-    workspaceSlug,
-    projectId,
-    project,
-    allowPermissions,
-  });
+  const navigationItems = project
+    ? getProjectNavigationItems(
+        workspaceSlug,
+        projectId,
+        project,
+        getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId)
+      )
+    : [];
 
   // Active tab hook
   const { isActive, activeItem } = useActiveTab({
@@ -106,19 +99,13 @@ export const TabNavigationRoot = observer(function TabNavigationRoot(props: TTab
     activeItem,
   });
 
-  // Filter and sort navigation items
-  const allNavigationItems = navigationItems
-    .filter((item) => item.shouldRender)
-    // oxlint-disable-next-line unicorn/no-array-sort
-    .sort((a: TNavigationItem, b: TNavigationItem) => a.sortOrder - b.sortOrder);
-
   // Split items into two categories:
   // 1. visibleNavigationItems: Items NOT user-hidden (may still overflow due to space)
   // 2. hiddenNavigationItems: Items user explicitly hid (always in overflow with "Show" icon)
   const hiddenTabKeys = new Set(tabPreferences.hiddenTabs);
   const visibleNavigationItems: TNavigationItem[] = [];
   const hiddenNavigationItems: TNavigationItem[] = [];
-  for (const item of allNavigationItems) {
+  for (const item of navigationItems) {
     if (hiddenTabKeys.has(item.key)) hiddenNavigationItems.push(item);
     else visibleNavigationItems.push(item);
   }
@@ -130,26 +117,7 @@ export const TabNavigationRoot = observer(function TabNavigationRoot(props: TTab
     isActive,
   });
 
-  // Redirect to default tab when navigating to project root
-  useEffect(() => {
-    const projectRootPath = `/${workspaceSlug}/projects/${projectId}`;
-    const isProjectRoot = pathname === projectRootPath || pathname === `${projectRootPath}/`;
-
-    if (isProjectRoot && allNavigationItems.length > 0) {
-      // Find the default tab in available items
-      const defaultTabItem = allNavigationItems.find((item: TNavigationItem) => item.key === tabPreferences.defaultTab);
-
-      // If default tab exists and is enabled, use it; otherwise fall back to work_items
-      const targetItem =
-        defaultTabItem || allNavigationItems.find((item: TNavigationItem) => item.key === DEFAULT_TAB_KEY);
-
-      if (targetItem) {
-        navigate(targetItem.href, { replace: true });
-      }
-    }
-  }, [pathname, workspaceSlug, projectId, tabPreferences.defaultTab, allNavigationItems, navigate]);
-
-  if (allNavigationItems.length === 0) return null;
+  if (navigationItems.length === 0) return null;
   if (!project) return null;
 
   // Permission checks
@@ -201,7 +169,7 @@ export const TabNavigationRoot = observer(function TabNavigationRoot(props: TTab
               <TabsList>
                 {/* Render visible tab items */}
                 {visibleItems.map((item) => {
-                  const originalIndex = allNavigationItems.indexOf(item);
+                  const originalIndex = navigationItems.indexOf(item);
 
                   return (
                     <TabNavigationVisibleItem
@@ -237,7 +205,7 @@ export const TabNavigationRoot = observer(function TabNavigationRoot(props: TTab
                 <div className="-mb-3">
                   <TabsList>
                     {visibleNavigationItems.map((item: TNavigationItem) => {
-                      const originalIndex = allNavigationItems.indexOf(item);
+                      const originalIndex = navigationItems.indexOf(item);
                       return (
                         <div
                           key={`measure-hidden-${item.key}`}

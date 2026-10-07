@@ -327,6 +327,13 @@
           "text": "Kelola fitur"
         }
       },
+      "no_features": {
+        "title": "Tidak ada fitur yang diaktifkan untuk proyek ini.",
+        "description": "Aktifkan fitur dari pengaturan proyek untuk mulai menggunakan proyek ini.",
+        "primary_button": {
+          "text": "Kelola fitur"
+        }
+      },
       "page": {
         "title": "Halaman tidak diaktifkan untuk proyek ini.",
         "description": "Halaman adalah blok bangunan dari proyek Anda. Aktifkan halaman dari pengaturan proyek untuk mulai menggunakannya.",

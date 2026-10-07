@@ -327,6 +327,13 @@
           "text": "Zarządzaj funkcjami"
         }
       },
+      "no_features": {
+        "title": "Żadne funkcje nie są włączone w tym projekcie.",
+        "description": "Włącz funkcję w ustawieniach projektu, aby zacząć korzystać z tego projektu.",
+        "primary_button": {
+          "text": "Zarządzaj funkcjami"
+        }
+      },
       "page": {
         "title": "Strony nie są włączone",
         "description": "Włącz strony w ustawieniach projektu.",

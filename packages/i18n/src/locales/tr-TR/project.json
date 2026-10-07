@@ -327,6 +327,13 @@
           "text": "Özellikleri yönet"
         }
       },
+      "no_features": {
+        "title": "Bu proje için etkin bir özellik yok.",
+        "description": "Bu projeyi kullanmaya başlamak için proje ayarlarından bir özelliği etkinleştirin.",
+        "primary_button": {
+          "text": "Özellikleri yönet"
+        }
+      },
       "page": {
         "title": "Sayfalar bu proje için etkin değil.",
         "description": "Sayfalar projenizin yapı taşlarıdır. Kullanmaya başlamak için proje ayarlarından sayfaları etkinleştirin.",

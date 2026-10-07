@@ -327,6 +327,13 @@
           "text": "Gérer les fonctionnalités"
         }
       },
+      "no_features": {
+        "title": "Aucune fonctionnalité n’est activée pour ce projet.",
+        "description": "Activez une fonctionnalité depuis les paramètres du projet pour commencer à utiliser ce projet.",
+        "primary_button": {
+          "text": "Gérer les fonctionnalités"
+        }
+      },
       "page": {
         "title": "Les Pages ne sont pas activées pour le projet.",
         "description": "Les Pages sont les éléments constitutifs de votre projet. Activez les pages depuis les paramètres du projet pour commencer à les utiliser.",
