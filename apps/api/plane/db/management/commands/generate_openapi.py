@@ -12,8 +12,6 @@ from drf_spectacular.renderers import OpenApiYamlRenderer
 from drf_spectacular.settings import patched_settings, spectacular_settings
 from drf_spectacular.validation import validate_schema
 
-# Registers the authentication extensions.
-import plane.utils.openapi  # noqa: F401
 from plane.utils.openapi.surfaces import SURFACES
 
 DEFAULT_OUTPUT_DIR = Path(settings.BASE_DIR).parent / "openapi"

@@ -628,4 +628,6 @@ ENABLE_DRF_SPECTACULAR = os.environ.get("ENABLE_DRF_SPECTACULAR", "0") == "1"
 
 REST_FRAMEWORK["DEFAULT_SCHEMA_CLASS"] = "plane.utils.openapi.schema.AutoSchema"
 INSTALLED_APPS.append("drf_spectacular")
-from .openapi import SPECTACULAR_SETTINGS  # noqa: E402, F401
+from . import openapi  # noqa: E402
+
+SPECTACULAR_SETTINGS = openapi.SPECTACULAR_SETTINGS
