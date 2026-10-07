@@ -10,13 +10,12 @@ import { Controller, useForm } from "react-hook-form";
 // Plane Imports
 import { Field } from "@makeplane/propel/components/field";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
-import { ORGANIZATION_SIZE, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
+import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { EditOutline } from "@makeplane/propel/icons";
 import { setToast } from "@plane/blocks/toast";
 import type { IWorkspace } from "@plane/types";
-import { Select, SelectContent, SelectItem, SelectList, SelectTrigger } from "@makeplane/propel/components/select";
 import { cn, copyUrlToClipboard, getFileURL, validateWorkspaceName } from "@plane/utils";
 // components
 import { WorkspaceImageUploadModal } from "@/components/core/modals/workspace-image-upload-modal";
@@ -30,7 +29,6 @@ import { DeleteWorkspaceSection } from "@/components/workspace/delete-workspace-
 const defaultValues: Partial<IWorkspace> = {
   name: "",
   url: "",
-  organization_size: "2-10",
   logo_url: null,
   timezone: "UTC",
 };
@@ -64,7 +62,6 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
 
     const payload: Partial<IWorkspace> = {
       name: formData.name,
-      organization_size: formData.organization_size,
       timezone: formData.timezone,
     };
 
@@ -218,34 +215,6 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
                 )}
               />
               {errors.name && <p className="text-caption-sm-regular text-danger-primary">{errors.name.message}</p>}
-            </div>
-            <div className="flex flex-col gap-2">
-              <h4 className="text-body-sm-medium text-tertiary">
-                {t("workspace_settings.settings.general.company_size")}
-              </h4>
-              <Controller
-                name="organization_size"
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <Select<string>
-                    value={value || null}
-                    onValueChange={(next) => onChange(next ?? "")}
-                    disabled={!isAdmin}
-                  >
-                    <SelectTrigger
-                      size="2xl"
-                      placeholder={t("workspace_settings.settings.general.errors.company_size.select_a_range")}
-                    />
-                    <SelectContent side="bottom" align="end">
-                      <SelectList>
-                        {ORGANIZATION_SIZE.map((item) => (
-                          <SelectItem key={item} value={item} size="lg" label={item} />
-                        ))}
-                      </SelectList>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
             </div>
             <div className="flex flex-col gap-2">
               <h4 className="text-body-sm-medium text-tertiary">{t("workspace_settings.settings.general.url")}</h4>

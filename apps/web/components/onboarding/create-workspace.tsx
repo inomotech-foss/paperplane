@@ -10,14 +10,13 @@ import { Controller, useForm } from "react-hook-form";
 // constants
 import { Field } from "@makeplane/propel/components/field";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
-import { ORGANIZATION_SIZE, RESTRICTED_URLS } from "@plane/constants";
+import { RESTRICTED_URLS } from "@plane/constants";
 // types
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/elements/button";
 import { setToast } from "@plane/blocks/toast";
 import type { IUser, IWorkspace, TOnboardingSteps } from "@plane/types";
 // ui
-import { Select } from "@plane/blocks/select";
 import { Spinner } from "@plane/blocks/spinner";
 import { validateWorkspaceName, validateSlug } from "@plane/utils";
 // hooks
@@ -57,7 +56,6 @@ export const CreateWorkspace = observer(function CreateWorkspace(props: Props) {
     defaultValues: {
       name: "",
       slug: "",
-      organization_size: "",
     },
     mode: "onChange",
   });
@@ -227,49 +225,6 @@ export const CreateWorkspace = observer(function CreateWorkspace(props: Props) {
             <p className="text-13 text-danger-primary">{t("workspace_creation.errors.validation.url_alphanumeric")}</p>
           )}
           {errors.slug && <span className="text-13 text-danger-primary">{errors.slug.message}</span>}
-        </div>
-        <hr className="w-full border-strong" />
-        <div className="space-y-1">
-          <label
-            className="text-13 font-medium text-tertiary after:ml-0.5 after:text-danger-primary after:content-['*']"
-            htmlFor="organization_size"
-          >
-            {t("workspace_creation.form.organization_size.label")}
-          </label>
-          <div className="w-full">
-            <Controller
-              name="organization_size"
-              control={control}
-              rules={{ required: t("common.errors.required") }}
-              render={({ field: { value, onChange } }) => (
-                <Select<string>
-                  value={ORGANIZATION_SIZE.find((item) => item === value) ?? null}
-                  onChange={onChange}
-                  getValues={() => ORGANIZATION_SIZE}
-                  getOptionValue={(item) => item}
-                  getOptionLabel={(item) => item}
-                  showSearch={false}
-                  pinSelected={false}
-                  placeholder={t("workspace_creation.form.organization_size.placeholder")}
-                >
-                  <Select.Trigger<string> id="organization_size" variant="select-xl">
-                    {(selected) => (
-                      <span className="grow truncate text-left">
-                        {selected[0] ?? (
-                          <span className="text-placeholder">
-                            {t("workspace_creation.form.organization_size.placeholder")}
-                          </span>
-                        )}
-                      </span>
-                    )}
-                  </Select.Trigger>
-                </Select>
-              )}
-            />
-            {errors.organization_size && (
-              <span className="text-13 text-danger-primary">{errors.organization_size.message}</span>
-            )}
-          </div>
         </div>
         <Button variant="primary" type="submit" size="lg" stretch="full" disabled={isButtonDisabled}>
           {isSubmitting ? <Spinner height="20px" width="20px" /> : t("workspace_creation.button.default")}
