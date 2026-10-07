@@ -328,7 +328,26 @@
         "short_title": "Elementos de trabajo",
         "description": "Seguimiento de tareas, errores y otro trabajo en este proyecto.",
         "toggle_title": "Habilitar elementos de trabajo",
-        "toggle_description": "Al desactivarlo se ocultan los ajustes de estructura de trabajo, ciclos, módulos, vistas, Intake, automatizaciones y Service Desk. Las automatizaciones y Service Desk también dejan de ejecutarse."
+        "toggle_description": "Al desactivarlo se ocultan los ajustes de estructura de trabajo, ciclos, módulos, vistas, Intake, automatizaciones y Service Desk. Las automatizaciones y Service Desk también dejan de ejecutarse.",
+        "numbering": {
+          "title": "Numeración de elementos de trabajo",
+          "next_work_item": "Siguiente elemento de trabajo: {id}",
+          "change": "Cambiar",
+          "modal": {
+            "title": "Cambiar la numeración de elementos de trabajo",
+            "description": "Los números solo pueden aumentar. Los elementos de trabajo existentes conservan sus números.",
+            "label": "Número del siguiente elemento de trabajo"
+          },
+          "errors": {
+            "whole_number": "Introduzca un número entero.",
+            "minimum": "El número debe ser al menos {number}.",
+            "generic": "No se pudo cambiar la numeración. Inténtelo de nuevo."
+          },
+          "toast": {
+            "title": "Numeración actualizada",
+            "message": "El siguiente elemento de trabajo será {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Ciclos",

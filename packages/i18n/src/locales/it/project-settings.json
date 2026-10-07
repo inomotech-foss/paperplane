@@ -328,7 +328,26 @@
         "short_title": "Elementi di lavoro",
         "description": "Monitoraggio di attività, bug e altro lavoro in questo progetto.",
         "toggle_title": "Abilita elementi di lavoro",
-        "toggle_description": "Disattivandolo si nascondono le impostazioni della struttura di lavoro, cicli, moduli, viste, Intake, automatizzazioni e Service Desk. Anche le automatizzazioni e Service Desk smettono di funzionare."
+        "toggle_description": "Disattivandolo si nascondono le impostazioni della struttura di lavoro, cicli, moduli, viste, Intake, automatizzazioni e Service Desk. Anche le automatizzazioni e Service Desk smettono di funzionare.",
+        "numbering": {
+          "title": "Numerazione degli elementi di lavoro",
+          "next_work_item": "Prossimo elemento di lavoro: {id}",
+          "change": "Modifica",
+          "modal": {
+            "title": "Modifica la numerazione degli elementi di lavoro",
+            "description": "I numeri possono solo aumentare. Gli elementi di lavoro esistenti mantengono i loro numeri.",
+            "label": "Numero del prossimo elemento di lavoro"
+          },
+          "errors": {
+            "whole_number": "Inserisci un numero intero.",
+            "minimum": "Il numero deve essere almeno {number}.",
+            "generic": "Impossibile modificare la numerazione. Riprova."
+          },
+          "toast": {
+            "title": "Numerazione aggiornata",
+            "message": "Il prossimo elemento di lavoro sarà {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Cicli",

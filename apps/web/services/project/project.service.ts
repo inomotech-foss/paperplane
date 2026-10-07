@@ -205,14 +205,6 @@ export class ProjectService extends APIService {
       });
   }
 
-  async getIssueSequence(workspaceSlug: string, projectId: string): Promise<TProjectIssueSequence> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-sequence/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
   async setIssueSequenceStart(workspaceSlug: string, projectId: string, start: number): Promise<TProjectIssueSequence> {
     return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-sequence/`, { start })
       .then((response) => response?.data)

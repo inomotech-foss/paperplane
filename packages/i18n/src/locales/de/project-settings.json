@@ -328,7 +328,26 @@
         "short_title": "Arbeitselemente",
         "description": "Verfolgen Sie Aufgaben, Fehler und andere Arbeit in diesem Projekt.",
         "toggle_title": "Arbeitselemente aktivieren",
-        "toggle_description": "Wenn deaktiviert, werden Einstellungen zur Arbeitsstruktur, Zyklen, Module, Ansichten, Intake, Automatisierungen und Service Desk ausgeblendet. Automatisierungen und Service Desk werden außerdem nicht mehr ausgeführt."
+        "toggle_description": "Wenn deaktiviert, werden Einstellungen zur Arbeitsstruktur, Zyklen, Module, Ansichten, Intake, Automatisierungen und Service Desk ausgeblendet. Automatisierungen und Service Desk werden außerdem nicht mehr ausgeführt.",
+        "numbering": {
+          "title": "Nummerierung der Arbeitselemente",
+          "next_work_item": "Nächstes Arbeitselement: {id}",
+          "change": "Ändern",
+          "modal": {
+            "title": "Nummerierung der Arbeitselemente ändern",
+            "description": "Nummern können nur steigen. Bestehende Arbeitselemente behalten ihre Nummern.",
+            "label": "Nummer des nächsten Arbeitselements"
+          },
+          "errors": {
+            "whole_number": "Ganze Zahl eingeben.",
+            "minimum": "Die Nummer muss mindestens {number} sein.",
+            "generic": "Die Nummerierung konnte nicht geändert werden. Bitte erneut versuchen."
+          },
+          "toast": {
+            "title": "Nummerierung aktualisiert",
+            "message": "Das nächste Arbeitselement wird {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Zyklen",

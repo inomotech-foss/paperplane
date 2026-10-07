@@ -328,7 +328,26 @@
         "short_title": "Itens de trabalho",
         "description": "Acompanhe tarefas, bugs e outros trabalhos neste projeto.",
         "toggle_title": "Ativar itens de trabalho",
-        "toggle_description": "Desativar oculta as configurações de estrutura de trabalho, ciclos, módulos, visualizações, Intake, automações e Service Desk. As automações e o Service Desk também deixam de ser executados."
+        "toggle_description": "Desativar oculta as configurações de estrutura de trabalho, ciclos, módulos, visualizações, Intake, automações e Service Desk. As automações e o Service Desk também deixam de ser executados.",
+        "numbering": {
+          "title": "Numeração de itens de trabalho",
+          "next_work_item": "Próximo item de trabalho: {id}",
+          "change": "Alterar",
+          "modal": {
+            "title": "Alterar a numeração de itens de trabalho",
+            "description": "Os números só podem aumentar. Os itens de trabalho existentes mantêm seus números.",
+            "label": "Número do próximo item de trabalho"
+          },
+          "errors": {
+            "whole_number": "Insira um número inteiro.",
+            "minimum": "O número deve ser pelo menos {number}.",
+            "generic": "Não foi possível alterar a numeração. Tente novamente."
+          },
+          "toast": {
+            "title": "Numeração atualizada",
+            "message": "O próximo item de trabalho será {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Ciclos",

@@ -328,7 +328,26 @@
         "short_title": "Éléments de travail",
         "description": "Suivez les tâches, les bogues et tout autre travail de ce projet.",
         "toggle_title": "Activer les éléments de travail",
-        "toggle_description": "La désactivation masque les paramètres de structure du travail, les cycles, modules, vues, Intake, automatisations et Service Desk. Les automatisations et Service Desk cessent aussi de fonctionner."
+        "toggle_description": "La désactivation masque les paramètres de structure du travail, les cycles, modules, vues, Intake, automatisations et Service Desk. Les automatisations et Service Desk cessent aussi de fonctionner.",
+        "numbering": {
+          "title": "Numérotation des éléments de travail",
+          "next_work_item": "Prochain élément de travail : {id}",
+          "change": "Modifier",
+          "modal": {
+            "title": "Modifier la numérotation des éléments de travail",
+            "description": "Les numéros ne peuvent qu'augmenter. Les éléments de travail existants conservent leur numéro.",
+            "label": "Numéro du prochain élément de travail"
+          },
+          "errors": {
+            "whole_number": "Saisissez un nombre entier.",
+            "minimum": "Le numéro doit être supérieur ou égal à {number}.",
+            "generic": "Impossible de modifier la numérotation. Veuillez réessayer."
+          },
+          "toast": {
+            "title": "Numérotation mise à jour",
+            "message": "Le prochain élément de travail sera {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Cycles",

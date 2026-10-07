@@ -10,9 +10,11 @@ import { useTranslation } from "@plane/i18n";
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { PageHead } from "@/components/core/page-title";
+import { ProjectIssueSequenceSection } from "@/components/project/settings/issue-sequence-section";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
 import { ProjectSettingsFeatureControlItem } from "@/components/settings/project/content/feature-control-item";
+import { isWorkItemsEnabled } from "@/components/settings/project/work-items-dependency";
 import { ProjectSettingsTabHeader } from "@/components/settings/project/tab-header";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
@@ -45,7 +47,7 @@ function FeaturesWorkItemsSettingsPage({ params }: Route.ComponentProps) {
           title={t("project_settings.features.work_items.title")}
           description={t("project_settings.features.work_items.description")}
         />
-        <div className="mt-7">
+        <div className="mt-7 flex flex-col gap-3">
           <ProjectSettingsFeatureControlItem
             title={t("project_settings.features.work_items.toggle_title")}
             description={t("project_settings.features.work_items.toggle_description")}
@@ -54,6 +56,9 @@ function FeaturesWorkItemsSettingsPage({ params }: Route.ComponentProps) {
             value={!!currentProjectDetails?.issue_view}
             workspaceSlug={workspaceSlug}
           />
+          {isWorkItemsEnabled(currentProjectDetails) && (
+            <ProjectIssueSequenceSection workspaceSlug={workspaceSlug} projectId={projectId} />
+          )}
         </div>
       </section>
     </SettingsContentWrapper>

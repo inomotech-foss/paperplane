@@ -328,7 +328,26 @@
         "short_title": "İş öğeleri",
         "description": "Bu projedeki görevleri, hataları ve diğer işleri takip edin.",
         "toggle_title": "İş öğelerini etkinleştir",
-        "toggle_description": "Kapatıldığında iş yapısı ayarları, döngüler, modüller, görünümler, Intake, otomasyonlar ve Service Desk gizlenir. Otomasyonlar ve Service Desk de çalışmayı durdurur."
+        "toggle_description": "Kapatıldığında iş yapısı ayarları, döngüler, modüller, görünümler, Intake, otomasyonlar ve Service Desk gizlenir. Otomasyonlar ve Service Desk de çalışmayı durdurur.",
+        "numbering": {
+          "title": "İş öğesi numaralandırması",
+          "next_work_item": "Sonraki iş öğesi: {id}",
+          "change": "Değiştir",
+          "modal": {
+            "title": "İş öğesi numaralandırmasını değiştir",
+            "description": "Numaralar yalnızca artabilir. Mevcut iş öğeleri numaralarını korur.",
+            "label": "Sonraki iş öğesinin numarası"
+          },
+          "errors": {
+            "whole_number": "Bir tam sayı girin.",
+            "minimum": "Numara en az {number} olmalıdır.",
+            "generic": "Numaralandırma değiştirilemedi. Lütfen tekrar deneyin."
+          },
+          "toast": {
+            "title": "Numaralandırma güncellendi",
+            "message": "Sonraki iş öğesi {id} olacak."
+          }
+        }
       },
       "cycles": {
         "title": "Döngüler",

@@ -328,7 +328,26 @@
         "short_title": "Werkitems",
         "description": "Volg taken, bugs en ander werk in dit project.",
         "toggle_title": "Werkitems inschakelen",
-        "toggle_description": "Uitschakelen verbergt de instellingen voor werkstructuur, cycli, modules, weergaven, Intake, automatiseringen en Service Desk. Automatiseringen en Service Desk stoppen ook met draaien."
+        "toggle_description": "Uitschakelen verbergt de instellingen voor werkstructuur, cycli, modules, weergaven, Intake, automatiseringen en Service Desk. Automatiseringen en Service Desk stoppen ook met draaien.",
+        "numbering": {
+          "title": "Nummering van werkitems",
+          "next_work_item": "Volgend werkitem: {id}",
+          "change": "Wijzigen",
+          "modal": {
+            "title": "Nummering van werkitems wijzigen",
+            "description": "Nummers kunnen alleen omhoog. Bestaande werkitems behouden hun nummer.",
+            "label": "Nummer van het volgende werkitem"
+          },
+          "errors": {
+            "whole_number": "Voer een geheel getal in.",
+            "minimum": "Het nummer moet minimaal {number} zijn.",
+            "generic": "De nummering kon niet worden gewijzigd. Probeer het opnieuw."
+          },
+          "toast": {
+            "title": "Nummering bijgewerkt",
+            "message": "Het volgende werkitem wordt {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Cycli",

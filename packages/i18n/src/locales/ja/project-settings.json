@@ -328,7 +328,26 @@
         "short_title": "作業項目",
         "description": "このプロジェクトのタスク、バグ、その他の作業を追跡します。",
         "toggle_title": "作業項目を有効にする",
-        "toggle_description": "無効にすると、作業構造の設定、サイクル、モジュール、ビュー、Intake、自動化、Service Desk が非表示になります。自動化と Service Desk の実行も停止します。"
+        "toggle_description": "無効にすると、作業構造の設定、サイクル、モジュール、ビュー、Intake、自動化、Service Desk が非表示になります。自動化と Service Desk の実行も停止します。",
+        "numbering": {
+          "title": "作業項目の番号付け",
+          "next_work_item": "次の作業項目：{id}",
+          "change": "変更",
+          "modal": {
+            "title": "作業項目の番号付けを変更",
+            "description": "番号は増やすことしかできません。既存の作業項目の番号は変わりません。",
+            "label": "次の作業項目の番号"
+          },
+          "errors": {
+            "whole_number": "整数を入力してください。",
+            "minimum": "番号は{number}以上にしてください。",
+            "generic": "番号付けを変更できませんでした。もう一度お試しください。"
+          },
+          "toast": {
+            "title": "番号付けを更新しました",
+            "message": "次の作業項目は {id} になります。"
+          }
+        }
       },
       "cycles": {
         "title": "サイクル",

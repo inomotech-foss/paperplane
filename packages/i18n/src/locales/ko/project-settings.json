@@ -328,7 +328,26 @@
         "short_title": "작업 항목",
         "description": "이 프로젝트의 작업, 버그 및 기타 업무를 추적합니다.",
         "toggle_title": "작업 항목 활성화",
-        "toggle_description": "끄면 작업 구조 설정, 사이클, 모듈, 보기, Intake, 자동화 및 Service Desk가 숨겨집니다. 자동화와 Service Desk의 실행도 중지됩니다."
+        "toggle_description": "끄면 작업 구조 설정, 사이클, 모듈, 보기, Intake, 자동화 및 Service Desk가 숨겨집니다. 자동화와 Service Desk의 실행도 중지됩니다.",
+        "numbering": {
+          "title": "작업 항목 번호 매기기",
+          "next_work_item": "다음 작업 항목: {id}",
+          "change": "변경",
+          "modal": {
+            "title": "작업 항목 번호 매기기 변경",
+            "description": "번호는 늘릴 수만 있습니다. 기존 작업 항목의 번호는 유지됩니다.",
+            "label": "다음 작업 항목 번호"
+          },
+          "errors": {
+            "whole_number": "정수를 입력하세요.",
+            "minimum": "번호는 {number} 이상이어야 합니다.",
+            "generic": "번호 매기기를 변경할 수 없습니다. 다시 시도하세요."
+          },
+          "toast": {
+            "title": "번호 매기기가 업데이트되었습니다",
+            "message": "다음 작업 항목은 {id}입니다."
+          }
+        }
       },
       "cycles": {
         "title": "사이클",
