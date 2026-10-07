@@ -18683,6 +18683,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/ProjectLite'
           readOnly: true
+          nullable: true
         workspace_detail:
           allOf:
           - $ref: '#/components/schemas/WorkspaceLite'
@@ -19203,6 +19204,7 @@ components:
         order:
           type: number
           format: double
+          readOnly: true
       required:
       - id
       - project_id
@@ -19563,6 +19565,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/UserLite'
           readOnly: true
+          nullable: true
         issue_detail:
           allOf:
           - $ref: '#/components/schemas/IssueFlat'
@@ -20167,6 +20170,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/UserLite'
           readOnly: true
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -20653,7 +20657,6 @@ components:
       - sequence_id
       - relation_type
       - name
-      - state_id
       - priority
       - created_by
       - created_at
@@ -20684,6 +20687,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/StateLite'
           readOnly: true
+          nullable: true
         project_detail:
           allOf:
           - $ref: '#/components/schemas/ProjectLite'
@@ -22072,6 +22076,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/UserLite'
           readOnly: true
+          nullable: true
         is_inbox_issue:
           type: boolean
           readOnly: true
@@ -22617,6 +22622,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/UserLite'
           readOnly: true
+          nullable: true
         comment_reactions:
           type: array
           items:
@@ -22639,6 +22645,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/UserLite'
           readOnly: true
+          nullable: true
         edited_at:
           type: string
           format: date-time
@@ -23860,9 +23867,6 @@ components:
         sequence:
           type: number
           format: double
-        order:
-          type: number
-          format: double
     PatchedStickyRequest:
       type: object
       properties:
@@ -24535,6 +24539,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/UserAdminLite'
           readOnly: true
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -24807,6 +24812,7 @@ components:
         order:
           type: number
           format: double
+          readOnly: true
       required:
       - id
       - project_id
@@ -24920,9 +24926,6 @@ components:
           type: string
           title: State Description
         sequence:
-          type: number
-          format: double
-        order:
           type: number
           format: double
       required:

@@ -7795,7 +7795,7 @@ export interface components {
         DeployBoard: {
             /** Format: uuid */
             readonly id: string;
-            readonly project_details: components["schemas"]["ProjectLite"];
+            readonly project_details: components["schemas"]["ProjectLite"] | null;
             readonly workspace_detail: components["schemas"]["WorkspaceLite"];
             /** Format: date-time */
             readonly created_at: string;
@@ -8041,7 +8041,7 @@ export interface components {
             /** Format: double */
             sequence: number;
             /** Format: double */
-            order?: number;
+            readonly order?: number;
         };
         /**
          * @description * `-2` - Pending
@@ -8184,7 +8184,7 @@ export interface components {
         IssueComment: {
             /** Format: uuid */
             readonly id: string;
-            readonly actor_detail: components["schemas"]["UserLite"];
+            readonly actor_detail: components["schemas"]["UserLite"] | null;
             readonly issue_detail: components["schemas"]["IssueFlat"];
             readonly project_detail: components["schemas"]["ProjectLite"];
             readonly workspace_detail: components["schemas"]["WorkspaceLite"];
@@ -8424,7 +8424,7 @@ export interface components {
         IssueLink: {
             /** Format: uuid */
             readonly id: string;
-            readonly created_by_detail: components["schemas"]["UserLite"];
+            readonly created_by_detail: components["schemas"]["UserLite"] | null;
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -8638,7 +8638,7 @@ export interface components {
             readonly relation_type: string;
             readonly name: string;
             /** Format: uuid */
-            readonly state_id: string;
+            readonly state_id?: string;
             readonly priority: string;
             /** Format: uuid */
             readonly created_by: string | null;
@@ -8662,7 +8662,7 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             readonly label_details: components["schemas"]["LabelLite"][];
-            readonly state_detail: components["schemas"]["StateLite"];
+            readonly state_detail: components["schemas"]["StateLite"] | null;
             readonly project_detail: components["schemas"]["ProjectLite"];
             readonly assignee_details: components["schemas"]["UserLite"][];
             readonly sub_issues_count?: number;
@@ -9275,7 +9275,7 @@ export interface components {
         Notification: {
             /** Format: uuid */
             readonly id: string;
-            readonly triggered_by_details: components["schemas"]["UserLite"];
+            readonly triggered_by_details: components["schemas"]["UserLite"] | null;
             readonly is_inbox_issue?: boolean;
             readonly is_intake_issue?: boolean;
             readonly is_mentioned_notification?: boolean;
@@ -9511,14 +9511,14 @@ export interface components {
             readonly comment_stripped: string;
             /** Format: uuid */
             readonly actor: string | null;
-            readonly actor_detail: components["schemas"]["UserLite"];
+            readonly actor_detail: components["schemas"]["UserLite"] | null;
             readonly comment_reactions: components["schemas"]["PageCommentReaction"][];
             readonly is_resolved: boolean;
             /** Format: date-time */
             readonly resolved_at: string | null;
             /** Format: uuid */
             readonly resolved_by: string | null;
-            readonly resolved_by_detail: components["schemas"]["UserLite"];
+            readonly resolved_by_detail: components["schemas"]["UserLite"] | null;
             /** Format: date-time */
             readonly edited_at: string | null;
             external_id: string | null;
@@ -10122,8 +10122,6 @@ export interface components {
             description?: string;
             /** Format: double */
             sequence?: number;
-            /** Format: double */
-            order?: number;
         };
         PatchedStickyRequest: {
             /** Format: date-time */
@@ -10434,7 +10432,7 @@ export interface components {
             readonly id: string;
             readonly workspace: components["schemas"]["WorkspaceLite"];
             readonly project: components["schemas"]["ProjectLite"];
-            readonly member: components["schemas"]["UserAdminLite"];
+            readonly member: components["schemas"]["UserAdminLite"] | null;
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -10557,7 +10555,7 @@ export interface components {
             /** Format: double */
             sequence: number;
             /** Format: double */
-            order?: number;
+            readonly order?: number;
         };
         /**
          * @description * `backlog` - Backlog
@@ -10618,8 +10616,6 @@ export interface components {
             description?: string;
             /** Format: double */
             sequence?: number;
-            /** Format: double */
-            order?: number;
         };
         Sticky: {
             /** Format: uuid */
