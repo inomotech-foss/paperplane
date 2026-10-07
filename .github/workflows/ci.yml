@@ -92,6 +92,11 @@ jobs:
     needs: changes
     uses: ./.github/workflows/pql-grammar-check.yml
 
+  api-types:
+    name: API types
+    needs: changes
+    uses: ./.github/workflows/api-types-check.yml
+
   mcp:
     name: MCP
     needs: changes
@@ -119,7 +124,7 @@ jobs:
   # The only required check. Skipped jobs pass, failed or cancelled ones fail.
   gate:
     name: CI gate
-    needs: [changes, api, coverage, migrations, web, i18n, pql, mcp, helm, react-doctor]
+    needs: [changes, api, coverage, migrations, web, i18n, pql, api-types, mcp, helm, react-doctor]
     if: always() && (github.event_name != 'pull_request' || !github.event.pull_request.draft)
     runs-on: ubuntu-latest
     timeout-minutes: 5
