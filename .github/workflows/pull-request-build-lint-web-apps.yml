@@ -122,17 +122,16 @@ jobs:
           path: .turbo
           key: turbo-${{ runner.os }}-${{ github.event.pull_request.base.sha }}-${{ github.sha }}
 
-  # Lint check - no build dependency, OxLint is a standalone Rust binary
+  # Type-aware lint needs the built declarations of workspace packages
   check-lint:
     name: check:lint
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: |
-      github.event_name == 'merge_group' ||
-      github.event.pull_request.draft == false
+    needs: build
+    timeout-minutes: 15
     env:
       TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
       TURBO_SCM_HEAD: ${{ github.sha }}
+      NODE_OPTIONS: "--max-old-space-size=4096"
     steps:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
@@ -159,6 +158,12 @@ jobs:
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             pnpm-store-${{ runner.os }}-
+
+      - name: Restore Turbo cache
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.event.pull_request.base.sha }}-${{ github.sha }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

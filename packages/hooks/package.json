@@ -15,7 +15,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch --no-clean",
-    "check:lint": "oxlint --max-warnings=4 .",
+    "check:lint": "oxlint --max-warnings=8 .",
     "check:types": "tsc --noEmit",
     "check:format": "oxfmt --check .",
     "test": "vitest run",

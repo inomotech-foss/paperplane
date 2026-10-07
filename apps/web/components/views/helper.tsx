@@ -14,9 +14,6 @@ export type TWorkspaceLayoutProps = {
   toggleLoading: (value: boolean) => void;
   workspaceSlug: string;
   globalViewId: string;
-  routeFilters: {
-    [key: string]: string;
-  };
   fetchNextPages: () => void;
   globalViewsLoading: boolean;
   issuesLoading: boolean;
@@ -30,7 +27,6 @@ export function WorkspaceActiveLayout(props: TWorkspaceLayoutProps) {
     toggleLoading,
     workspaceSlug,
     globalViewId,
-    routeFilters,
     fetchNextPages,
     globalViewsLoading,
     issuesLoading,
@@ -44,7 +40,6 @@ export function WorkspaceActiveLayout(props: TWorkspaceLayoutProps) {
           toggleLoading={toggleLoading}
           workspaceSlug={workspaceSlug}
           globalViewId={globalViewId}
-          routeFilters={routeFilters}
           fetchNextPages={fetchNextPages}
           globalViewsLoading={globalViewsLoading}
           issuesLoading={issuesLoading}

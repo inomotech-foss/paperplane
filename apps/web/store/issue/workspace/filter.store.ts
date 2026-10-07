@@ -22,7 +22,7 @@ import type {
   TSupportedFilterForUpdate,
 } from "@plane/types";
 import { EIssuesStoreType, EIssueLayoutTypes, STATIC_VIEW_TYPES } from "@plane/types";
-import { handleIssueQueryParamsByLayout } from "@plane/utils";
+import { handleIssueQueryParamsByLayout, getDisplayFilterCorrections } from "@plane/utils";
 // services
 import { WorkspaceService } from "@/services/workspace.service";
 // local imports
@@ -171,13 +171,13 @@ export class WorkspaceIssuesFilter extends IssueFilterHelperStore implements IWo
 
     // Get the view details if the view is not a static view
     if (STATIC_VIEW_TYPES.includes(viewId) === false) {
-      const _filters = await this.issueFilterService.getViewDetails(workspaceSlug, viewId);
-      richFilters = _filters?.rich_filters;
-      displayFilters = this.computedDisplayFilters(_filters?.display_filters, {
+      const viewDetails = await this.issueFilterService.getViewDetails(workspaceSlug, viewId);
+      richFilters = viewDetails?.rich_filters;
+      displayFilters = this.computedDisplayFilters(viewDetails?.display_filters, {
         layout: EIssueLayoutTypes.SPREADSHEET,
         order_by: "-created_at",
       });
-      displayProperties = this.computedDisplayProperties(_filters?.display_properties);
+      displayProperties = this.computedDisplayProperties(viewDetails?.display_properties);
     }
 
     // override existing order by if ordered by manual sort_order
@@ -229,24 +229,9 @@ export class WorkspaceIssuesFilter extends IssueFilterHelperStore implements IWo
           const updatedDisplayFilters = filters as IIssueDisplayFilterOptions;
           _filters.displayFilters = { ..._filters.displayFilters, ...updatedDisplayFilters };
 
-          // set sub_group_by to null if group_by is set to null
-          if (_filters.displayFilters.group_by === null) {
-            _filters.displayFilters.sub_group_by = null;
-            updatedDisplayFilters.sub_group_by = null;
-          }
-          // set sub_group_by to null if layout is switched to kanban group_by and sub_group_by are same
-          if (
-            _filters.displayFilters.layout === "kanban" &&
-            _filters.displayFilters.group_by === _filters.displayFilters.sub_group_by
-          ) {
-            _filters.displayFilters.sub_group_by = null;
-            updatedDisplayFilters.sub_group_by = null;
-          }
-          // set group_by to state if layout is switched to kanban and group_by is null
-          if (_filters.displayFilters.layout === "kanban" && _filters.displayFilters.group_by === null) {
-            _filters.displayFilters.group_by = "state";
-            updatedDisplayFilters.group_by = "state";
-          }
+          const corrections = getDisplayFilterCorrections(_filters.displayFilters);
+          Object.assign(_filters.displayFilters, corrections);
+          Object.assign(updatedDisplayFilters, corrections);
 
           runInAction(() => {
             Object.keys(updatedDisplayFilters).forEach((_key) => {

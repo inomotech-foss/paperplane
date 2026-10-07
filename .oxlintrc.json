@@ -1,5 +1,8 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "options": {
+    "typeAware": true
+  },
   "plugins": ["react", "typescript", "jsx-a11y", "import", "promise", "unicorn", "oxc"],
   "categories": {
     "correctness": "warn",
@@ -37,10 +40,9 @@
   ],
   "rules": {
     "react/react-in-jsx-scope": "off",
-    "react/prop-types": "off",
     "unicorn/filename-case": "off",
     "unicorn/no-null": "off",
-    "unicorn/prevent-abbreviations": "off",
+    "no-underscore-dangle": "off",
     "no-unused-vars": [
       "warn",
       {
@@ -50,6 +52,85 @@
         "destructuredArrayIgnorePattern": "^_",
         "ignoreRestSiblings": true
       }
-    ]
-  }
+    ],
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/no-unsafe-type-assertion": "error",
+    "typescript/use-unknown-in-catch-callback-variable": "error",
+    "typescript/await-thenable": "off",
+    "typescript/consistent-return": "off",
+    "typescript/no-array-delete": "off",
+    "typescript/no-base-to-string": "off",
+    "typescript/no-duplicate-type-constituents": "off",
+    "typescript/no-floating-promises": "off",
+    "typescript/no-for-in-array": "off",
+    "typescript/no-generated-empty-object-type": "off",
+    "typescript/no-implied-eval": "off",
+    "typescript/no-meaningless-void-operator": "off",
+    "typescript/no-misused-spread": "off",
+    "typescript/no-redundant-type-constituents": "off",
+    "typescript/no-unnecessary-boolean-literal-compare": "off",
+    "typescript/no-unnecessary-template-expression": "off",
+    "typescript/no-unnecessary-type-arguments": "off",
+    "typescript/no-unnecessary-type-assertion": "off",
+    "typescript/no-unnecessary-type-conversion": "off",
+    "typescript/no-unnecessary-type-parameters": "off",
+    "typescript/no-unsafe-enum-comparison": "off",
+    "typescript/no-unsafe-unary-minus": "off",
+    "typescript/no-useless-default-assignment": "off",
+    "typescript/require-array-sort-compare": "off",
+    "typescript/restrict-template-expressions": "off",
+    "typescript/unbound-method": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.{js,mjs,cjs}"],
+      "rules": {
+        "typescript/no-unsafe-argument": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-call": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/no-unsafe-return": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "typescript/use-unknown-in-catch-callback-variable": "off"
+      }
+    },
+    // Packages not yet clean of any. This list shrinks to empty.
+    {
+      "files": [
+        "apps/admin/**",
+        "apps/live/**",
+        "apps/space/**",
+        "apps/web/**",
+        "packages/blocks/**",
+        "packages/codemods/**",
+        "packages/constants/**",
+        "packages/decorators/**",
+        "packages/editor/**",
+        "packages/hooks/**",
+        "packages/i18n/**",
+        "packages/pql/**",
+        "packages/services/**",
+        "packages/shared-state/**",
+        "packages/types/**",
+        "packages/utils/**"
+      ],
+      "rules": {
+        "typescript/ban-ts-comment": "off",
+        "typescript/no-explicit-any": "off",
+        "typescript/no-unsafe-argument": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-call": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/no-unsafe-return": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "typescript/use-unknown-in-catch-callback-variable": "off"
+      }
+    }
+  ]
 }

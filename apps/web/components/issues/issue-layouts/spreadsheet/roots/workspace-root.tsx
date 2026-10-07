@@ -29,9 +29,6 @@ type Props = {
   toggleLoading: (value: boolean) => void;
   workspaceSlug: string;
   globalViewId: string;
-  routeFilters: {
-    [key: string]: string;
-  };
   fetchNextPages: () => void;
   globalViewsLoading: boolean;
   issuesLoading: boolean;

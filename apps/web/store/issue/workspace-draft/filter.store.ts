@@ -21,7 +21,7 @@ import type {
   TSupportedFilterForUpdate,
 } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
-import { handleIssueQueryParamsByLayout } from "@plane/utils";
+import { handleIssueQueryParamsByLayout, getDisplayFilterCorrections } from "@plane/utils";
 // services
 import { IssueFiltersService } from "@/services/issue_filter.service";
 // helpers
@@ -142,7 +142,7 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
       undefined
     );
 
-    const richFilters: TWorkItemFilterExpression = _filters?.rich_filters;
+    const richFilters: TWorkItemFilterExpression = _filters?.rich_filters ?? {};
     const displayFilters: IIssueDisplayFilterOptions = this.computedDisplayFilters(_filters?.display_filters);
     const displayProperties: IIssueDisplayProperties = this.computedDisplayProperties(_filters?.display_properties);
     const kanbanFilters = {
@@ -206,24 +206,9 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
           const updatedDisplayFilters = filters as IIssueDisplayFilterOptions;
           _filters.displayFilters = { ..._filters.displayFilters, ...updatedDisplayFilters };
 
-          // set sub_group_by to null if group_by is set to null
-          if (_filters.displayFilters.group_by === null) {
-            _filters.displayFilters.sub_group_by = null;
-            updatedDisplayFilters.sub_group_by = null;
-          }
-          // set sub_group_by to null if layout is switched to kanban group_by and sub_group_by are same
-          if (
-            _filters.displayFilters.layout === "kanban" &&
-            _filters.displayFilters.group_by === _filters.displayFilters.sub_group_by
-          ) {
-            _filters.displayFilters.sub_group_by = null;
-            updatedDisplayFilters.sub_group_by = null;
-          }
-          // set group_by to priority if layout is switched to kanban and group_by is null
-          if (_filters.displayFilters.layout === "kanban" && _filters.displayFilters.group_by === null) {
-            _filters.displayFilters.group_by = "priority";
-            updatedDisplayFilters.group_by = "priority";
-          }
+          const corrections = getDisplayFilterCorrections(_filters.displayFilters, "priority");
+          Object.assign(_filters.displayFilters, corrections);
+          Object.assign(updatedDisplayFilters, corrections);
 
           runInAction(() => {
             Object.keys(updatedDisplayFilters).forEach((_key) => {
