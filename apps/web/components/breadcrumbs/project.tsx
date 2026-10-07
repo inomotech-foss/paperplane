@@ -15,6 +15,7 @@ import { SwitcherLabel } from "@/components/common/switcher-label";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { getProjectUrl } from "@/components/project/features/features";
 
 type TProjectBreadcrumbProps = {
   workspaceSlug: string;
@@ -66,13 +67,13 @@ export const ProjectBreadcrumb = observer(function ProjectBreadcrumb(props: TPro
           selectedItemKey={currentProjectDetails.id}
           navigationItems={switcherOptions}
           onChange={(value: string) => {
-            router.push(`/${workspaceSlug}/projects/${value}/issues`);
+            router.push(getProjectUrl(workspaceSlug, value));
           }}
           label={currentProjectDetails.name}
           icon={<Logo logo={currentProjectDetails.logo_props} size={14} />}
           handleOnClick={() => {
             if (handleOnClick) handleOnClick();
-            else router.push(`/${workspaceSlug}/projects/${currentProjectDetails.id}/issues/`);
+            else router.push(getProjectUrl(workspaceSlug, currentProjectDetails.id));
           }}
           placeholder={t("common.project")}
           searchPlaceholder={t("common.search.label")}

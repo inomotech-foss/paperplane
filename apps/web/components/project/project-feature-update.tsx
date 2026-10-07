@@ -16,6 +16,7 @@ import { Logo } from "@plane/blocks/emoji-icon-picker";
 import { useProject } from "@/hooks/store/use-project";
 // plane web imports
 import { ProjectFeaturesList } from "@/components/project/settings/features-list";
+import { getProjectUrl } from "@/components/project/features/features";
 
 type Props = {
   workspaceSlug: string;
@@ -54,7 +55,7 @@ export const ProjectFeatureUpdate = observer(function ProjectFeatureUpdate(props
           size="md"
           stretch="auto"
           nativeButton={false}
-          render={<Link href={`/${workspaceSlug}/projects/${projectId}/issues`} onClick={onClose} />}
+          render={<Link href={getProjectUrl(workspaceSlug, projectId)} onClick={onClose} />}
           label={t("open_project")}
         />
       </DialogActions>

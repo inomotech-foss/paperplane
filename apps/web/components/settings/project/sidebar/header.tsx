@@ -17,6 +17,8 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useProject } from "@/hooks/store/use-project";
 import { useWorkspace } from "@/hooks/store/use-workspace";
+// components
+import { getProjectUrl } from "@/components/project/features/features";
 
 type Props = {
   projectId: string;
@@ -32,13 +34,14 @@ export const ProjectSettingsSidebarHeader = observer(function ProjectSettingsSid
   const { getPartialProjectById } = useProject();
   // derived values
   const projectDetails = getPartialProjectById(projectId);
-  const currentProjectRole = currentWorkspace?.slug
-    ? getProjectRoleByWorkspaceSlugAndProjectId(currentWorkspace.slug, projectId)
+  const workspaceSlug = currentWorkspace?.slug;
+  const currentProjectRole = workspaceSlug
+    ? getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId)
     : undefined;
   // translation
   const { t } = useTranslation();
 
-  if (!currentProjectRole) return null;
+  if (!workspaceSlug || !currentProjectRole) return null;
 
   return (
     <div className="shrink-0">
@@ -48,7 +51,7 @@ export const ProjectSettingsSidebarHeader = observer(function ProjectSettingsSid
           size="sm"
           icon={<Icon icon={ArrowNarrowLeftOutline} />}
           aria-label="Back to project"
-          onClick={() => router.push(`/${currentWorkspace?.slug}/projects/${projectId}/issues/`)}
+          onClick={() => router.push(getProjectUrl(workspaceSlug, projectId))}
         />
         <p>Project settings</p>
       </div>

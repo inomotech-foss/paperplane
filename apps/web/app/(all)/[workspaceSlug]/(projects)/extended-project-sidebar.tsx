@@ -26,6 +26,7 @@ import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import type { TProject } from "@plane/types";
 import { ExtendedSidebarWrapper } from "./extended-sidebar-wrapper";
+import { getProjectUrl } from "@/components/project/features/features";
 
 export const ExtendedProjectSidebar = observer(function ExtendedProjectSidebar() {
   // refs
@@ -87,7 +88,7 @@ export const ExtendedProjectSidebar = observer(function ExtendedProjectSidebar()
   const handleClose = useCallback(() => toggleExtendedProjectSidebar(false), [toggleExtendedProjectSidebar]);
 
   const handleCopyText = (projectId: string) => {
-    copyUrlToClipboard(`${workspaceSlug}/projects/${projectId}/issues`).then(() => {
+    copyUrlToClipboard(getProjectUrl(workspaceSlug, projectId)).then(() => {
       setToast({
         type: "success",
         title: t("link_copied"),

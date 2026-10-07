@@ -96,7 +96,6 @@ export const TabNavigationRoot = observer(function TabNavigationRoot(props: TTab
   } = useProjectActions({
     workspaceSlug,
     projectId,
-    activeItem,
   });
 
   // Split items into two categories:
