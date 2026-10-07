@@ -2,7 +2,7 @@
   "printWidth": 120,
   "tabWidth": 2,
   "trailingComma": "es5",
-  "ignorePatterns": ["packages/pql/src/generated/**"],
+  "ignorePatterns": ["packages/api-types/src/generated/**", "packages/pql/src/generated/**"],
   "sortTailwindcss": {
     "stylesheet": "packages/tailwind-config/index.css",
     "functions": ["cn", "clsx", "cva"]

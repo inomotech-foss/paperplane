@@ -31,6 +31,7 @@
     "coverage/**",
     "dist/**",
     "**/public/**",
+    "packages/api-types/src/generated/**",
     "packages/pql/src/generated/**",
     "storybook-static/**"
   ],

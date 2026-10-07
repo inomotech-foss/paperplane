@@ -22,6 +22,15 @@
 - **Testing**: All features require unit tests, use existing test framework per package
 - **Components**: Primitives come from the published `@makeplane/propel` npm package (`@makeplane/propel/components/*`, `elements/*`, `icons`); composite/Plane-specific components live in `@plane/blocks` (`packages/blocks`, subpath imports only, e.g. `@plane/blocks/toast`)
 
+## API types
+
+Frontend API types are generated from the backend's OpenAPI schemas. After changing a view, serializer or `extend_schema` annotation, regenerate both and commit the output; CI fails when it is stale:
+
+- `python manage.py generate_openapi` in `apps/api` writes `apps/api/openapi/{internal,admin,v1}.yaml` (no database needed)
+- `pnpm --filter @plane/api-types run generate` writes `packages/api-types/src/generated/`
+
+New service code calls the API through `createApiClient` and `unwrap` from `@plane/services` (see `apps/web/services/project/project-state.service.ts`). Describe paginated responses with `paginated_response()` from `plane.utils.openapi.pagination`.
+
 ## Backend tests (Docker)
 
 The Django/pytest suite for `apps/api` runs in an isolated stack defined by `docker-compose-test.yml` at the repo root.

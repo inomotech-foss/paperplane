@@ -4,87 +4,76 @@
  * See the LICENSE file for details.
  */
 
-// services
-import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type { IIntakeState, IState } from "@plane/types";
-import { APIService } from "@/services/api.service";
-// helpers
-// types
+import { apiClient } from "@/services/api-client";
 
-export class ProjectStateService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
+const statePath = (slug: string, project_id: string, pk: string) => ({ path: { slug, project_id, pk } });
 
-  async createState(workspaceSlug: string, projectId: string, data: any): Promise<IState> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/states/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ProjectStateService {
+  async createState(workspaceSlug: string, projectId: string, data: Partial<IState>): Promise<IState> {
+    // The API requires both; a missing one fails validation with a 400 as before.
+    const { name = "", color = "", ...rest } = data;
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/states/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: { ...rest, name, color },
+      })
+    );
   }
 
   async markDefault(workspaceSlug: string, projectId: string, stateId: string): Promise<void> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/states/${stateId}/mark-default/`, {})
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/states/{pk}/mark-default/", {
+        params: statePath(workspaceSlug, projectId, stateId),
+      })
+    );
   }
 
   async getStates(workspaceSlug: string, projectId: string): Promise<IState[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/states/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/states/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
   }
 
   async getIntakeState(workspaceSlug: string, projectId: string): Promise<IIntakeState> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/intake-state/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/intake-state/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
   }
 
-  async getState(workspaceSlug: string, projectId: string, stateId: string): Promise<any> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/states/${stateId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async getState(workspaceSlug: string, projectId: string, stateId: string): Promise<IState> {
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/states/{pk}/", {
+        params: statePath(workspaceSlug, projectId, stateId),
+      })
+    );
   }
 
-  async updateState(workspaceSlug: string, projectId: string, stateId: string, data: IState): Promise<any> {
-    return this.put(`/api/workspaces/${workspaceSlug}/projects/${projectId}/states/${stateId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+  async patchState(workspaceSlug: string, projectId: string, stateId: string, data: Partial<IState>): Promise<IState> {
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/states/{pk}/", {
+        params: statePath(workspaceSlug, projectId, stateId),
+        body: data,
+      })
+    );
   }
 
-  async patchState(workspaceSlug: string, projectId: string, stateId: string, data: Partial<IState>): Promise<any> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/states/${stateId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async deleteState(workspaceSlug: string, projectId: string, stateId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/states/${stateId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+  async deleteState(workspaceSlug: string, projectId: string, stateId: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/states/{pk}/", {
+        params: statePath(workspaceSlug, projectId, stateId),
+      })
+    );
   }
 
   async getWorkspaceStates(workspaceSlug: string): Promise<IState[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/states/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(apiClient.GET("/api/workspaces/{slug}/states/", { params: { path: { slug: workspaceSlug } } }));
   }
 }
