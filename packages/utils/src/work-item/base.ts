@@ -299,6 +299,31 @@ export const getComputedDisplayFilters = (
 };
 
 /**
+ * Grouping fixes the filter stores apply after every display filter change:
+ * no sub-group without a group, no sub-group equal to the group in kanban, and kanban always grouped.
+ */
+export const getDisplayFilterCorrections = (
+  displayFilters: IIssueDisplayFilterOptions,
+  kanbanGroupBy: Exclude<TIssueGroupByOptions, null> = "state"
+): Pick<IIssueDisplayFilterOptions, "group_by" | "sub_group_by"> => {
+  const corrections: Pick<IIssueDisplayFilterOptions, "group_by" | "sub_group_by"> = {};
+  const isKanban = displayFilters.layout === EIssueLayoutTypes.KANBAN;
+  if (displayFilters.group_by === null || (isKanban && displayFilters.group_by === displayFilters.sub_group_by)) {
+    corrections.sub_group_by = null;
+  }
+  if (isKanban && displayFilters.group_by === null) corrections.group_by = kanbanGroupBy;
+  return corrections;
+};
+
+export const normalizeDisplayFilters = (
+  displayFilters: IIssueDisplayFilterOptions,
+  kanbanGroupBy?: Exclude<TIssueGroupByOptions, null>
+): IIssueDisplayFilterOptions => ({
+  ...displayFilters,
+  ...getDisplayFilterCorrections(displayFilters, kanbanGroupBy),
+});
+
+/**
  * @description This method is used to apply the display properties on the issues
  * @param {IIssueDisplayProperties} displayProperties
  * @returns {IIssueDisplayProperties}
