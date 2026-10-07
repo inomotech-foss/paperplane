@@ -6,7 +6,7 @@
 
 import React, { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 // plane imports
 import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@plane/constants";
@@ -41,8 +41,6 @@ export const AllIssueLayoutRoot = observer(function AllIssueLayoutRoot(props: Pr
   const { workspaceSlug: routerWorkspaceSlug, globalViewId: routerGlobalViewId } = useParams();
   const workspaceSlug = routerWorkspaceSlug ? routerWorkspaceSlug.toString() : undefined;
   const globalViewId = routerGlobalViewId ? routerGlobalViewId.toString() : undefined;
-  // search params
-  const searchParams = useSearchParams();
   // store hooks
   const {
     issuesFilter: { filters, fetchFilters, updateFilterExpression, updateFilters },
@@ -72,12 +70,6 @@ export const AllIssueLayoutRoot = observer(function AllIssueLayoutRoot(props: Pr
 
   // Custom hooks
   useWorkspaceIssueProperties(workspaceSlug);
-
-  // Route filters
-  const routeFilters: { [key: string]: string } = {};
-  searchParams.forEach((value: string, key: string) => {
-    routeFilters[key] = value;
-  });
 
   // Fetch next pages callback
   const fetchNextPages = useCallback(() => {
@@ -171,7 +163,6 @@ export const AllIssueLayoutRoot = observer(function AllIssueLayoutRoot(props: Pr
                 toggleLoading={toggleLoading}
                 workspaceSlug={workspaceSlug}
                 globalViewId={globalViewId}
-                routeFilters={routeFilters}
                 fetchNextPages={fetchNextPages}
                 globalViewsLoading={globalViewsLoading}
                 issuesLoading={issuesLoading}
