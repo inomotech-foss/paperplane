@@ -7,9 +7,8 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-import { TickCircleOutline } from "@makeplane/propel/icons";
 // plane imports
-import { ORGANIZATION_SIZE, RESTRICTED_URLS } from "@plane/constants";
+import { RESTRICTED_URLS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { Button as ButtonElement } from "@makeplane/propel/elements/button";
@@ -28,7 +27,7 @@ import { CommonOnboardingHeader } from "../common";
 
 type Props = {
   user: IUser | undefined;
-  onComplete: (skipInvites?: boolean) => void;
+  onComplete: () => void;
   handleCurrentViewChange: () => void;
   hasInvitations?: boolean;
 };
@@ -64,7 +63,6 @@ export const WorkspaceCreateStep = observer(function WorkspaceCreateStep({
     defaultValues: {
       name: "",
       slug: "",
-      organization_size: "",
     },
     mode: "onChange",
   });
@@ -85,7 +83,7 @@ export const WorkspaceCreateStep = observer(function WorkspaceCreateStep({
           });
           await fetchWorkspaces();
           await completeStep(workspaceResponse.id);
-          onComplete(formData.organization_size === "Just myself");
+          onComplete();
         } catch {
           setToast({
             type: "error",
@@ -244,50 +242,6 @@ export const WorkspaceCreateStep = observer(function WorkspaceCreateStep({
             <p className="text-13 text-danger-primary">{t("workspace_creation.errors.validation.url_alphanumeric")}</p>
           )}
           {errors.slug && <span className="text-13 text-danger-primary">{errors.slug.message}</span>}
-        </div>
-        <div className="flex flex-col gap-2">
-          <label
-            className="text-13 font-medium text-tertiary after:ml-0.5 after:text-danger-primary after:content-['*']"
-            htmlFor="organization_size"
-          >
-            {t("workspace_creation.form.organization_size.label")}
-          </label>
-          <div className="w-full">
-            <Controller
-              name="organization_size"
-              control={control}
-              rules={{ required: t("common.errors.required") }}
-              render={({ field: { value, onChange } }) => (
-                <div className="flex flex-wrap gap-3">
-                  {ORGANIZATION_SIZE.map((size) => {
-                    const isSelected = value === size;
-                    return (
-                      <button
-                        key={size}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          onChange(size);
-                        }}
-                        className={`flex items-center justify-between gap-1 rounded-lg border px-3 py-2 text-13 transition-all duration-200 ${
-                          isSelected
-                            ? "border-subtle bg-layer-1 text-secondary"
-                            : "border-subtle text-tertiary hover:border-strong"
-                        }`}
-                      >
-                        <TickCircleOutline className={cn("size-4 text-placeholder", isSelected && "text-secondary")} />
-
-                        <span className="font-medium">{size}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            />
-            {errors.organization_size && (
-              <span className="text-13 text-danger-primary">{errors.organization_size.message}</span>
-            )}
-          </div>
         </div>
       </div>
       <div className="flex flex-col gap-4">

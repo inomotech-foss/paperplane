@@ -10,13 +10,11 @@ import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { Field } from "@makeplane/propel/components/field";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
-import { ORGANIZATION_SIZE, RESTRICTED_URLS } from "@plane/constants";
+import { RESTRICTED_URLS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { setToast } from "@plane/blocks/toast";
 import type { IWorkspace } from "@plane/types";
-// ui
-import { Select } from "@plane/blocks/select";
 import { validateWorkspaceName, validateSlug } from "@plane/utils";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
@@ -29,9 +27,8 @@ type Props = {
   defaultValues: {
     name: string;
     slug: string;
-    organization_size: string;
   };
-  setDefaultValues: Dispatch<SetStateAction<Pick<IWorkspace, "name" | "slug" | "organization_size">>>;
+  setDefaultValues: Dispatch<SetStateAction<Pick<IWorkspace, "name" | "slug">>>;
   secondaryButton?: React.ReactNode;
   primaryButtonText?: {
     loading: string;
@@ -206,42 +203,6 @@ export const CreateWorkspaceForm = observer(function CreateWorkspaceForm(props: 
             <p className="text-13 text-danger-primary">{t("workspace_creation.errors.validation.url_alphanumeric")}</p>
           )}
           {errors.slug && <span className="text-11 text-danger-primary">{errors.slug.message}</span>}
-        </div>
-        <div className="flex flex-col gap-2 text-13">
-          <span>
-            {t("workspace_creation.form.organization_size.label")}
-            <span className="ml-0.5 text-danger-primary">*</span>
-          </span>
-          <div className="w-full">
-            <Controller
-              name="organization_size"
-              control={control}
-              rules={{ required: t("common.errors.required") }}
-              render={({ field: { value, onChange } }) => (
-                <Select<string>
-                  value={ORGANIZATION_SIZE.find((item) => item === value) ?? null}
-                  onChange={onChange}
-                  getValues={() => ORGANIZATION_SIZE}
-                  getOptionValue={(item) => item}
-                  getOptionLabel={(item) => item}
-                  showSearch={false}
-                  pinSelected={false}
-                  placeholder={t("workspace_creation.form.organization_size.placeholder")}
-                >
-                  <Select.Trigger<string> variant="select-2xl">
-                    {(selected) => (
-                      <span className="grow truncate text-left">
-                        {selected[0] ?? t("workspace_creation.form.organization_size.placeholder")}
-                      </span>
-                    )}
-                  </Select.Trigger>
-                </Select>
-              )}
-            />
-            {errors.organization_size && (
-              <span className="text-13 text-danger-primary">{errors.organization_size.message}</span>
-            )}
-          </div>
         </div>
       </div>
       <div className="flex items-center gap-4">

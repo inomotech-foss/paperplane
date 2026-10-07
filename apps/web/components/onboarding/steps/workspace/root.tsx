@@ -46,7 +46,7 @@ export const WorkspaceSetupStep = observer(function WorkspaceSetupStep({ invitat
       ) : (
         <WorkspaceCreateStep
           user={user}
-          onComplete={(skipInvites) => handleStepChange(EOnboardingSteps.WORKSPACE_CREATE_OR_JOIN, skipInvites)}
+          onComplete={() => handleStepChange(EOnboardingSteps.WORKSPACE_CREATE_OR_JOIN)}
           handleCurrentViewChange={() => setCurrentView(ECreateOrJoinWorkspaceViews.WORKSPACE_JOIN)}
           hasInvitations={invitations.length > 0}
         />

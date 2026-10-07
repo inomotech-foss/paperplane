@@ -32,10 +32,9 @@ const CreateWorkspacePage = observer(function CreateWorkspacePage() {
   const { data: currentUser } = useUser();
   const { updateUserProfile } = useUserProfile();
   // states
-  const [defaultValues, setDefaultValues] = useState<Pick<IWorkspace, "name" | "slug" | "organization_size">>({
+  const [defaultValues, setDefaultValues] = useState<Pick<IWorkspace, "name" | "slug">>({
     name: "",
     slug: "",
-    organization_size: "",
   });
   // derived values
   const isWorkspaceCreationDisabled = config?.is_workspace_creation_disabled ?? false;
