@@ -32,7 +32,16 @@ class _FakeOauthAdapter(OauthAdapter):
     """OAuth adapter with pre-baked user data that saves a real Account."""
 
     def __init__(self, request, provider, user_data):
-        Adapter.__init__(self, request=request, provider=provider)
+        super().__init__(
+            request=request,
+            provider=provider,
+            client_id="client",
+            scope="openid",
+            redirect_uri="https://plane.example.com/callback",
+            auth_url="https://idp.example.com/authorize",
+            token_url="https://idp.example.com/token",
+            userinfo_url="https://idp.example.com/userinfo",
+        )
         self.user_data = user_data
 
 
