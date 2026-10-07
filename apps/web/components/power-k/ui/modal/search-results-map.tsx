@@ -93,7 +93,7 @@ export const POWER_K_SEARCH_RESULTS_GROUPS_MAP: Record<TPowerKSearchResultsKeys,
     icon: DocumentationOutline,
     itemName: (page: IWorkspacePageSearchResult) => (
       <p>
-        <span className="text-11 text-tertiary">{page.project__identifiers?.[0]}</span> {page.name}
+        <span className="text-11 text-tertiary">{page.project_identifiers?.[0]}</span> {page.name}
       </p>
     ),
     path: (page: IWorkspacePageSearchResult, projectId: string | undefined) => {

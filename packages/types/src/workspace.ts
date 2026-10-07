@@ -141,7 +141,7 @@ export interface IWorkspacePageSearchResult {
   id: string;
   name: string;
   project_ids: string[];
-  project__identifiers: string[];
+  project_identifiers: string[];
   workspace__slug: string;
 }
 
