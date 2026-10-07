@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - "opened"
+      - "synchronize"
+      - "reopened"
+      - "ready_for_review"
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Path filters only apply to pull requests. Merge groups and manual runs run
+  # everything, so the queue checks the exact tree that lands on main.
+  changes:
+    name: Detect changes
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      api: ${{ steps.diff.outputs.api }}
+      mcp: ${{ steps.diff.outputs.mcp }}
+      helm: ${{ steps.diff.outputs.helm }}
+    steps:
+      # The PR merge ref: HEAD^1 is the base branch tip.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 2
+          filter: blob:none
+
+      - id: diff
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = pull_request ]; then
+            git diff --name-only HEAD^1 HEAD > changed.txt
+          else
+            echo ".github/workflows/" > changed.txt
+          fi
+          cat changed.txt
+          match() {
+            if grep -qE "^(\.github/workflows/|$1)" changed.txt; then echo true; else echo false; fi
+          }
+          {
+            echo "api=$(match 'apps/api/|docker-compose-test\.yml$')"
+            echo "mcp=$(match 'apps/mcp/')"
+            echo "helm=$(match 'deployments/helm/')"
+          } | tee -a "$GITHUB_OUTPUT"
+
+  api:
+    name: API
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    uses: ./.github/workflows/pull-request-build-lint-api.yml
+
+  coverage:
+    name: Coverage
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    permissions:
+      contents: read
+      code-quality: write
+    uses: ./.github/workflows/code-coverage.yml
+
+  migrations:
+    name: Migrations
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    uses: ./.github/workflows/migration-check.yml
+
+  web:
+    name: Web
+    needs: changes
+    uses: ./.github/workflows/pull-request-build-lint-web-apps.yml
+
+  i18n:
+    name: i18n
+    needs: changes
+    uses: ./.github/workflows/i18n-sync-check.yml
+
+  pql:
+    name: PQL
+    needs: changes
+    uses: ./.github/workflows/pql-grammar-check.yml
+
+  mcp:
+    name: MCP
+    needs: changes
+    if: needs.changes.outputs.mcp == 'true'
+    uses: ./.github/workflows/pull-request-test-mcp.yml
+
+  helm:
+    name: Helm
+    needs: changes
+    if: needs.changes.outputs.helm == 'true'
+    uses: ./.github/workflows/helm-lint.yml
+
+  # Diffs against the PR base, so it runs on pull requests only.
+  react-doctor:
+    name: React Doctor
+    needs: changes
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      statuses: write
+    uses: ./.github/workflows/react-doctor.yml
+
+  # The only required check. Skipped jobs pass, failed or cancelled ones fail.
+  gate:
+    name: CI gate
+    needs: [changes, api, coverage, migrations, web, i18n, pql, mcp, helm, react-doctor]
+    if: always() && (github.event_name != 'pull_request' || !github.event.pull_request.draft)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          echo "$NEEDS" | jq -e '.changes.result == "success" and all(.[]; .result == "success" or .result == "skipped")' > /dev/null
