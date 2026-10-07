@@ -5,7 +5,6 @@
 # Python imports
 import json
 import uuid
-from uuid import UUID
 
 
 # Module imports
@@ -24,6 +23,7 @@ from plane.db.models import (
     UserNotificationPreference,
     ProjectMember,
 )
+from plane.utils.mentions import mentionable_user_ids
 from django.db.models import Subquery
 
 # Third Party imports
@@ -227,6 +227,8 @@ def notifications(
             2. From the latest set of mentions, extract the users which are not a subscribers & make them subscribers
             """
 
+            project = Project.objects.get(pk=project_id)
+
             # get the list of active project members
             project_members = ProjectMember.objects.filter(project_id=project_id, is_active=True).values_list(
                 "member_id", flat=True
@@ -234,7 +236,7 @@ def notifications(
 
             # Get new mentions from the newer instance
             new_mentions = get_new_mentions(requested_instance=requested_data, current_instance=current_instance)
-            new_mentions = list(set(new_mentions) & {str(member) for member in project_members})
+            new_mentions = list(mentionable_user_ids(project, new_mentions))
             removed_mention = get_removed_mentions(requested_instance=requested_data, current_instance=current_instance)
 
             comment_mentions = []
@@ -260,9 +262,8 @@ def notifications(
                         new_value=issue_comment_new_value,
                     )
                     comment_mentions = comment_mentions + new_comment_mentions
-                    comment_mentions = [
-                        mention for mention in comment_mentions if UUID(mention) in set(project_members)
-                    ]
+
+            comment_mentions = list(mentionable_user_ids(project, comment_mentions))
 
             comment_mention_subscribers = extract_mentions_as_subscribers(
                 project_id=project_id, issue_id=issue_id, mentions=all_comment_mentions
@@ -297,8 +298,6 @@ def notifications(
                     )
                 except Exception:
                     pass
-
-            project = Project.objects.get(pk=project_id)
 
             issue_assignees = IssueAssignee.objects.filter(
                 issue_id=issue_id,

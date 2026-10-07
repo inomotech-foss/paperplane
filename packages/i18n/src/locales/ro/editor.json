@@ -61,5 +61,8 @@
       "use_this": "Folosește aceasta",
       "refine": "Rafinează"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Nu este în proiect"
   }
 }

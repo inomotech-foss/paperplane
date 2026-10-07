@@ -15,12 +15,14 @@ from plane.celery import app as celery_app
 from plane.db.models import (
     EmailNotificationLog,
     Issue,
+    IssueSubscriber,
     Notification,
     Project,
     ProjectMember,
     State,
     User,
     UserNotificationPreference,
+    WorkspaceMember,
 )
 
 
@@ -139,3 +141,61 @@ class TestIssueCommentMentions:
         response = session_client.post(url, {"comment_html": mention_html(member.id)}, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert EmailNotificationLog.objects.filter(receiver=member, entity_name="issue").exists()
+
+
+def workspace_user(workspace, email, role):
+    user = User.objects.create(email=email, username=email.split("@")[0], first_name="Ws", last_name="User")
+    WorkspaceMember.objects.create(workspace=workspace, member=user, role=role)
+    return user
+
+
+@pytest.mark.contract
+class TestPublicProjectMentions:
+    @pytest.mark.django_db
+    def test_comment_mention_of_workspace_member_notifies_without_subscribing(
+        self, eager_celery, session_client, workspace, project, issue
+    ):
+        ws_member = workspace_user(workspace, "wsmember@plane.so", 15)
+        UserNotificationPreference.objects.filter(user=ws_member).update(mention=True)
+        url = comments_url(workspace.slug, project.id, issue.id)
+        response = session_client.post(url, {"comment_html": mention_html(ws_member.id)}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Notification.objects.filter(receiver=ws_member, sender="in_app:issue_activities:mentioned").exists()
+        assert EmailNotificationLog.objects.filter(receiver=ws_member, entity_name="issue").exists()
+        assert not IssueSubscriber.objects.filter(issue=issue, subscriber=ws_member).exists()
+        assert not ProjectMember.objects.filter(project=project, member=ws_member).exists()
+
+    @pytest.mark.django_db
+    def test_description_mention_of_workspace_member_notifies(
+        self, eager_celery, session_client, workspace, project, issue
+    ):
+        ws_member = workspace_user(workspace, "wsmember@plane.so", 15)
+        UserNotificationPreference.objects.filter(user=ws_member).update(mention=False)
+        response = session_client.patch(
+            f"/api/workspaces/{workspace.slug}/projects/{project.id}/issues/{issue.id}/",
+            {"description_html": mention_html(ws_member.id)},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert Notification.objects.filter(receiver=ws_member, sender="in_app:issue_activities:mentioned").exists()
+
+    @pytest.mark.django_db
+    def test_comment_mention_of_workspace_guest_creates_no_notification(
+        self, eager_celery, session_client, workspace, project, issue
+    ):
+        guest = workspace_user(workspace, "guest@plane.so", 5)
+        url = comments_url(workspace.slug, project.id, issue.id)
+        response = session_client.post(url, {"comment_html": mention_html(guest.id)}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert not Notification.objects.filter(receiver=guest).exists()
+
+    @pytest.mark.django_db
+    def test_secret_project_mention_of_workspace_member_creates_no_notification(
+        self, eager_celery, session_client, workspace, project, issue
+    ):
+        Project.objects.filter(pk=project.id).update(network=0)
+        ws_member = workspace_user(workspace, "wsmember@plane.so", 15)
+        url = comments_url(workspace.slug, project.id, issue.id)
+        response = session_client.post(url, {"comment_html": mention_html(ws_member.id)}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert not Notification.objects.filter(receiver=ws_member).exists()

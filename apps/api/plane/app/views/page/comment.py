@@ -27,6 +27,7 @@ from plane.db.models import (
     EmailNotificationLog,
     UserNotificationPreference,
 )
+from plane.utils.mentions import mentionable_user_ids
 
 
 def _extract_mentioned_user_ids(html):
@@ -80,7 +81,7 @@ class PageCommentViewSet(BaseViewSet):
         """Create in-app notifications for users newly mentioned in a comment.
 
         On edit, ``previous_html`` is passed so only newly added mentions are
-        notified. Only active project members (excluding the author) are.
+        notified. Only mentionable users (excluding the author) are.
         """
         mentioned = _extract_mentioned_user_ids(comment.comment_html)
         if previous_html is not None:
@@ -88,18 +89,10 @@ class PageCommentViewSet(BaseViewSet):
         mentioned.discard(str(request.user.id))
         if not mentioned:
             return
-        recipients = {
-            str(member_id)
-            for member_id in ProjectMember.objects.filter(
-                workspace__slug=slug,
-                project_id=project_id,
-                member_id__in=mentioned,
-                is_active=True,
-            ).values_list("member_id", flat=True)
-        }
+        project = Project.objects.get(pk=project_id, workspace__slug=slug)
+        recipients = mentionable_user_ids(project, mentioned)
         if not recipients:
             return
-        project = Project.objects.get(pk=project_id)
         page = comment.page
         actor_name = request.user.display_name or request.user.email
         Notification.objects.bulk_create(

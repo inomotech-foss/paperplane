@@ -61,5 +61,8 @@
       "use_this": "Übernehmen",
       "refine": "Verfeinern"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Nicht im Projekt"
   }
 }

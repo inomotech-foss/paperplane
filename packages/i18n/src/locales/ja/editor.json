@@ -61,5 +61,8 @@
       "use_this": "これを使用",
       "refine": "改良"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "プロジェクト未参加"
   }
 }

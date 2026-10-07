@@ -8,6 +8,7 @@ import { useCallback } from "react";
 // plane editor
 import { Avatar } from "@makeplane/propel/components/avatar";
 import type { TMentionSection, TMentionSuggestion } from "@plane/editor";
+import { useTranslation } from "@plane/i18n";
 // plane types
 import type { TSearchEntities, TSearchEntityRequestPayload, TSearchResponse, TUserSearchResponse } from "@plane/types";
 // helpers
@@ -22,6 +23,7 @@ type TArgs = {
 
 export const useEditorMention = (args: TArgs) => {
   const { enableAdvancedMentions = false, searchEntity } = args;
+  const { t } = useTranslation();
   // additional mentions
   const { editorMentionTypes, updateAdditionalSections } = useAdditionalEditorMention({
     enableAdvancedMentions,
@@ -56,6 +58,7 @@ export const useEditorMention = (args: TArgs) => {
               entity_identifier: user.member__id,
               entity_name: "user_mention",
               title: user.member__display_name,
+              hint: user.is_project_member === false ? t("mention_suggestions.not_in_project") : undefined,
             }));
             suggestionSections.push({
               key: "users",
@@ -73,7 +76,7 @@ export const useEditorMention = (args: TArgs) => {
         throw error;
       }
     },
-    [editorMentionTypes, searchEntity, updateAdditionalSections]
+    [editorMentionTypes, searchEntity, t, updateAdditionalSections]
   );
 
   return {

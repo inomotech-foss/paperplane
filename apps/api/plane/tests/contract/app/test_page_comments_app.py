@@ -347,3 +347,48 @@ class TestPageCommentsAppEndpoint:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         asset.refresh_from_db()
         assert str(asset.page_comment_id) == str(comment.id)
+
+
+def workspace_user(workspace, email, role):
+    user = User.objects.create(email=email, username=email.split("@")[0], first_name="Ws", last_name="User")
+    WorkspaceMember.objects.create(workspace=workspace, member=user, role=role)
+    return user
+
+
+@pytest.mark.contract
+class TestPageCommentPublicProjectMentions:
+    @pytest.mark.django_db
+    def test_mention_of_workspace_member_notifies(self, session_client, workspace, project, page):
+        ws_member = workspace_user(workspace, "wsmember@plane.so", 15)
+        UserNotificationPreference.objects.filter(user=ws_member).update(mention=True)
+        url = base_url(workspace.slug, project.id, page.id)
+        response = session_client.post(url, {"comment_html": mention_html(ws_member.id)}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Notification.objects.filter(receiver=ws_member, entity_name="page").count() == 1
+        assert EmailNotificationLog.objects.filter(receiver=ws_member, entity_name="page").count() == 1
+        assert not ProjectMember.objects.filter(project=project, member=ws_member).exists()
+
+    @pytest.mark.django_db
+    def test_mention_of_workspace_guest_creates_no_notification(self, session_client, workspace, project, page):
+        guest = workspace_user(workspace, "guest@plane.so", 5)
+        url = base_url(workspace.slug, project.id, page.id)
+        response = session_client.post(url, {"comment_html": mention_html(guest.id)}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert not Notification.objects.filter(receiver=guest).exists()
+
+    @pytest.mark.django_db
+    def test_secret_project_mention_of_workspace_member_creates_no_notification(
+        self, session_client, workspace, project, page
+    ):
+        Project.objects.filter(pk=project.id).update(network=0)
+        ws_member = workspace_user(workspace, "wsmember@plane.so", 15)
+        url = base_url(workspace.slug, project.id, page.id)
+        response = session_client.post(url, {"comment_html": mention_html(ws_member.id)}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert not Notification.objects.filter(receiver=ws_member).exists()
+
+    @pytest.mark.django_db
+    def test_invalid_mention_id_is_ignored(self, session_client, workspace, project, page):
+        url = base_url(workspace.slug, project.id, page.id)
+        response = session_client.post(url, {"comment_html": mention_html("not-a-uuid")}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED

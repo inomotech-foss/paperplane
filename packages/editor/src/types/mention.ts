@@ -13,6 +13,7 @@ export type TMentionSuggestion = {
   icon: React.ReactNode;
   id: string;
   subTitle?: string;
+  hint?: string;
   title: string;
 };
 

@@ -194,6 +194,9 @@ export const MentionsListDropdown = forwardRef(function MentionsListDropdown(pro
                       <h5 className="flex-shrink-0 text-11 whitespace-nowrap text-tertiary">{item.subTitle}</h5>
                     )}
                     <p className="flex-grow truncate">{item.title}</p>
+                    {item.hint && (
+                      <span className="flex-shrink-0 text-10 whitespace-nowrap text-tertiary">{item.hint}</span>
+                    )}
                   </button>
                 );
               })}

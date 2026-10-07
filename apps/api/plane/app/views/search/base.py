@@ -29,6 +29,7 @@ from rest_framework.response import Response
 # Module imports
 from plane.app.views.base import BaseAPIView
 from plane.app.permissions import WorkspaceUserPermission
+from plane.utils.mentions import mentionable_users
 from plane.db.models import (
     Workspace,
     Project,
@@ -323,14 +324,11 @@ class SearchEndpoint(BaseAPIView):
             ).exists()
             for query_type in query_types:
                 if query_type == "user_mention":
-                    if not is_project_member:
+                    project = Project.objects.filter(pk=project_id, workspace__slug=slug).first()
+                    if not is_project_member or project is None:
                         response_data["user_mention"] = []
                         continue
-                    fields = [
-                        "member__first_name",
-                        "member__last_name",
-                        "member__display_name",
-                    ]
+                    fields = ["first_name", "last_name", "display_name"]
                     q = Q()
 
                     if query:
@@ -338,41 +336,36 @@ class SearchEndpoint(BaseAPIView):
                             q |= Q(**{f"{field}__icontains": query})
 
                     users = (
-                        ProjectMember.objects.filter(
-                            q,
-                            is_active=True,
-                            workspace__slug=slug,
-                            member__is_bot=False,
-                            project_id=project_id,
-                        )
+                        mentionable_users(project)
+                        .filter(q, is_bot=False)
                         .annotate(
-                            member__avatar_url=Case(
+                            mention_avatar_url=Case(
                                 When(
-                                    member__avatar_asset__isnull=False,
+                                    avatar_asset__isnull=False,
                                     then=Concat(
                                         Value("/api/assets/v2/static/"),
-                                        Cast("member__avatar_asset", CharField()),
+                                        Cast("avatar_asset", CharField()),
                                         Value("/"),
                                     ),
                                 ),
-                                When(
-                                    member__avatar_asset__isnull=True,
-                                    then="member__avatar",
-                                ),
+                                When(avatar_asset__isnull=True, then="avatar"),
                                 default=Value(None),
                                 output_field=CharField(),
                             )
                         )
-                        .order_by("-created_at")
+                        .order_by("-is_project_member", "display_name")
+                        .values("mention_avatar_url", "display_name", "id", "is_project_member")[:count]
                     )
 
-                    users = users.distinct().values(
-                        "member__avatar_url",
-                        "member__display_name",
-                        "member__id",
-                    )
-
-                    response_data["user_mention"] = list(users[:count])
+                    response_data["user_mention"] = [
+                        {
+                            "member__avatar_url": user["mention_avatar_url"],
+                            "member__display_name": user["display_name"],
+                            "member__id": user["id"],
+                            "is_project_member": user["is_project_member"],
+                        }
+                        for user in users
+                    ]
 
                 elif query_type == "project":
                     fields = ["name", "identifier"]

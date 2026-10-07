@@ -61,5 +61,8 @@
       "use_this": "Bunu kullan",
       "refine": "İyileştir"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Projede değil"
   }
 }
