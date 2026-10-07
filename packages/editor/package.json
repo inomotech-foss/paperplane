@@ -27,7 +27,7 @@
     "dev": "tsdown --watch --no-clean",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:lint": "oxlint --max-warnings=416 .",
+    "check:lint": "oxlint --max-warnings=142 .",
     "check:types": "tsc --noEmit",
     "check:format": "oxfmt --check .",
     "fix:lint": "oxlint --fix .",

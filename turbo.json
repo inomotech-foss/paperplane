@@ -52,6 +52,7 @@
       "outputs": []
     },
     "check:lint": {
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "!**/*.md"],
       "outputs": []
     },
@@ -77,6 +78,7 @@
       "outputs": []
     },
     "fix:lint": {
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "!**/*.md"],
       "outputs": []
     },

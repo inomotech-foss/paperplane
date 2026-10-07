@@ -14,6 +14,7 @@
 
 - **Imports**: Use `workspace:*` for internal packages, `catalog:` for external deps
 - **TypeScript**: Strict mode enabled, all files must be typed
+- **No `any`**: `any`, unsafe `any` flows and type assertions are forbidden (enforced by oxlint type-aware rules)
 - **Formatting**: oxfmt, run `pnpm fix:format`
 - **Linting**: OxLint with shared `.oxlintrc.json` config
 - **Naming**: camelCase for variables/functions, PascalCase for components/types
