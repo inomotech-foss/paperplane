@@ -83,9 +83,11 @@ class TestAdapterSignupMapping:
         assert user.display_name == "someone"
 
     @pytest.mark.django_db
-    @patch.object(Adapter, "download_and_upload_avatar", return_value=None)
+    @patch("plane.authentication.adapter.base.sync_user_avatar")
     @patch("plane.authentication.adapter.base.user_activation_email")
-    def test_unloadable_avatar_url_is_dropped_on_download_failure(self, _email, _dl, request_obj):
+    def test_signup_stores_persistable_avatar_and_enqueues_download(
+        self, _email, task, request_obj, django_capture_on_commit_callbacks
+    ):
         adapter = _FakeAdapter(
             request_obj,
             provider="oidc",
@@ -102,7 +104,9 @@ class TestAdapterSignupMapping:
             },
             persistable_avatar="",  # provider drops token-gated URLs
         )
-        user = adapter.complete_login_or_signup()
+        with django_capture_on_commit_callbacks(execute=True):
+            user = adapter.complete_login_or_signup()
         user.refresh_from_db()
         assert user.avatar == ""
         assert user.avatar_asset is None
+        task.delay.assert_called_once_with(str(user.id), "oidc", "https://graph.microsoft.com/v1.0/me/photo/$value", "")

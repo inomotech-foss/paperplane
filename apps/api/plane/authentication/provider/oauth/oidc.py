@@ -13,6 +13,7 @@ from jwt import PyJWKClient
 
 # Module imports
 from plane.authentication.adapter.oauth import OauthAdapter
+from plane.bgtasks.user_avatar_task import is_graph_url
 from plane.authentication.utils.instance_admin import role_grants_admin
 from plane.license.utils.instance_value import get_configuration_value
 from plane.authentication.adapter.error import (
@@ -23,16 +24,6 @@ from plane.authentication.adapter.error import (
 # Algorithms we accept for id_token signatures. Symmetric (HS*) is intentionally
 # excluded: it would let anyone holding the client secret forge tokens.
 ID_TOKEN_ALGORITHMS = ["RS256", "RS384", "RS512", "ES256", "ES384", "ES512"]
-
-# Microsoft Graph photo-endpoint hosts (global + national clouds).
-MS_GRAPH_HOSTS = frozenset(
-    {
-        "graph.microsoft.com",
-        "graph.microsoft.us",
-        "dod-graph.microsoft.us",
-        "microsoftgraph.chinacloudapi.cn",
-    }
-)
 
 
 def derive_names(given_name, family_name, full_name):
@@ -304,17 +295,8 @@ class OIDCOAuthProvider(OauthAdapter):
             }
         )
 
-    def get_avatar_download_headers(self):
-        # Graph photos are token-gated. Send the bearer only to Graph hosts.
-        avatar = (self.user_data or {}).get("user", {}).get("avatar", "")
-        if (urlparse(avatar).hostname or "").lower() in MS_GRAPH_HOSTS:
-            token = (self.token_data or {}).get("access_token")
-            if token:
-                return {"Authorization": f"Bearer {token}"}
-        return {}
-
     def get_persistable_avatar_url(self, avatar_url):
         # The browser can't load a token-gated Graph URL, so never store it raw.
-        if (urlparse(avatar_url or "").hostname or "").lower() in MS_GRAPH_HOSTS:
+        if is_graph_url(avatar_url):
             return ""
         return avatar_url or ""

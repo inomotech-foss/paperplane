@@ -4,7 +4,6 @@
 
 """Contract tests for refreshing profile data from the provider on login."""
 
-import hashlib
 import uuid
 from unittest.mock import patch
 
@@ -12,7 +11,9 @@ import pytest
 from django.test import RequestFactory
 
 from plane.authentication.adapter.base import Adapter
-from plane.db.models import FileAsset, Profile, User
+from plane.authentication.adapter.oauth import OauthAdapter
+from plane.bgtasks.user_avatar_task import sync_user_avatar
+from plane.db.models import Account, FileAsset, Profile, User
 
 
 class _FakeAdapter(Adapter):
@@ -25,6 +26,23 @@ class _FakeAdapter(Adapter):
 
     def get_persistable_avatar_url(self, avatar_url):
         return ""
+
+
+class _FakeOauthAdapter(OauthAdapter):
+    """OAuth adapter with pre-baked user data that saves a real Account."""
+
+    def __init__(self, request, provider, user_data):
+        super().__init__(
+            request=request,
+            provider=provider,
+            client_id="client",
+            scope="openid",
+            redirect_uri="https://plane.example.com/callback",
+            auth_url="https://idp.example.com/authorize",
+            token_url="https://idp.example.com/token",
+            userinfo_url="https://idp.example.com/userinfo",
+        )
+        self.user_data = user_data
 
 
 @pytest.fixture
@@ -101,11 +119,11 @@ class TestLoginProfileRefresh:
 class TestLoginAvatarRefresh:
     @pytest.mark.django_db
     @patch("plane.authentication.adapter.base.user_activation_email")
-    def test_unchanged_avatar_is_not_reuploaded(self, _email, request_obj):
-        content = b"image-bytes"
-        source_hash = hashlib.sha256(content).hexdigest()
+    def test_login_enqueues_avatar_sync_instead_of_fetching(
+        self, _email, request_obj, django_capture_on_commit_callbacks
+    ):
         user = _make_user("avatar@plane.so")
-        asset = _avatar_asset(user, source_hash, "existing-avatar.png")
+        asset = _avatar_asset(user, "hash", "existing-avatar.png")
         user.avatar_asset = asset
         user.save()
 
@@ -113,39 +131,56 @@ class TestLoginAvatarRefresh:
             request_obj, provider="oidc", user_data=_user_data("avatar@plane.so", avatar="https://idp/pic")
         )
         with (
-            patch.object(Adapter, "_fetch_avatar_bytes", return_value=(content, "image/png", "png")),
-            patch.object(Adapter, "_store_avatar") as store,
-            patch.object(Adapter, "delete_old_avatar") as delete,
+            patch("plane.authentication.adapter.base.sync_user_avatar") as task,
+            patch("plane.bgtasks.user_avatar_task.fetch_avatar_bytes") as fetch,
+            django_capture_on_commit_callbacks(execute=True),
         ):
             result = adapter.complete_login_or_signup()
 
-        store.assert_not_called()
-        delete.assert_not_called()
+        fetch.assert_not_called()
+        task.delay.assert_called_once_with(str(user.id), "oidc", "https://idp/pic", "")
         result.refresh_from_db()
         assert result.avatar_asset_id == asset.id
 
     @pytest.mark.django_db
     @patch("plane.authentication.adapter.base.user_activation_email")
-    def test_changed_avatar_swaps_asset(self, _email, request_obj):
-        user = _make_user("avatar2@plane.so")
-        old_asset = _avatar_asset(user, "old-hash", "old-avatar.png")
-        user.avatar_asset = old_asset
+    def test_login_without_provider_avatar_keeps_existing(
+        self, _email, request_obj, django_capture_on_commit_callbacks
+    ):
+        user = _make_user("noavatar@plane.so")
+        asset = _avatar_asset(user, "hash", "uploaded-avatar.png")
+        user.avatar_asset = asset
         user.save()
 
-        new_content = b"new-image"
-        new_asset = _avatar_asset(user, hashlib.sha256(new_content).hexdigest(), "new-avatar.png")
-
-        adapter = _FakeAdapter(
-            request_obj, provider="oidc", user_data=_user_data("avatar2@plane.so", avatar="https://idp/pic")
-        )
+        adapter = _FakeAdapter(request_obj, provider="oidc", user_data=_user_data("noavatar@plane.so"))
         with (
-            patch.object(Adapter, "_fetch_avatar_bytes", return_value=(new_content, "image/png", "png")),
-            patch.object(Adapter, "_store_avatar", return_value=new_asset) as store,
-            patch.object(Adapter, "delete_old_avatar") as delete,
+            patch("plane.authentication.adapter.base.sync_user_avatar") as task,
+            django_capture_on_commit_callbacks(execute=True),
         ):
             result = adapter.complete_login_or_signup()
 
-        store.assert_called_once()
-        delete.assert_called_once()
+        task.delay.assert_not_called()
         result.refresh_from_db()
-        assert result.avatar_asset_id == new_asset.id
+        assert result.avatar_asset_id == asset.id
+
+    @pytest.mark.django_db
+    @patch("plane.authentication.adapter.base.user_activation_email")
+    def test_avatar_task_reads_token_saved_by_login(self, _email, request_obj):
+        user = _make_user("graph@plane.so")
+        graph_url = "https://graph.microsoft.com/v1.0/me/photo/$value"
+        adapter = _FakeOauthAdapter(
+            request_obj, provider="oidc", user_data=_user_data("graph@plane.so", avatar=graph_url)
+        )
+        adapter.token_data = {"access_token": "fresh-token"}
+
+        with (
+            patch("plane.authentication.adapter.base.sync_user_avatar") as task,
+            patch("plane.bgtasks.user_avatar_task.fetch_avatar_bytes", return_value=None) as fetch,
+            # Outside a transaction on_commit runs at once, so the enqueue must follow the account save.
+            patch("plane.authentication.adapter.base.transaction.on_commit", side_effect=lambda fn, robust: fn()),
+        ):
+            task.delay.side_effect = sync_user_avatar
+            adapter.complete_login_or_signup()
+
+        assert Account.objects.filter(user=user, provider="oidc").exists()
+        fetch.assert_called_once_with(graph_url, {"Authorization": "Bearer fresh-token"})
