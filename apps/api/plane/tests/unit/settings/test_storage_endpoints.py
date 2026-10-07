@@ -58,11 +58,13 @@ class TestS3StorageEndpoints:
         public_call.assert_not_called()
 
     @patch.dict(os.environ, MINIO_ENV, clear=True)
-    def test_is_server_signs_against_internal_endpoint(self, public_request):
-        storage = S3Storage(request=public_request, is_server=True)
+    def test_upload_does_not_leak_content_type_between_calls(self):
+        storage = S3Storage()
+        with patch.object(storage.ops_client, "upload_fileobj") as upload:
+            storage.upload_file(b"x", "a.png", content_type="image/png")
+            storage.upload_file(b"x", "b.bin")
 
-        assert storage.generate_presigned_url("a.png").startswith(f"{INTERNAL}/uploads/a.png")
-        assert storage.ops_client is storage.s3_client
+        assert upload.call_args_list[1].kwargs["ExtraArgs"] == {}
 
     @patch.dict(os.environ, {**MINIO_ENV, "AWS_S3_ENDPOINT_URL": ""}, clear=True)
     def test_without_internal_endpoint_ops_fall_back_to_request_host(self, public_request):

@@ -4,7 +4,7 @@ from django.db import migrations
 from django.db.models import Q
 
 # Kept in sync with MS_GRAPH_HOSTS in
-# plane/bgtasks/user_avatar_task.py; inlined so the migration stays
+# plane/authentication/provider/oauth/oidc.py; inlined so the migration stays
 # self-contained.
 MS_GRAPH_HOSTS = {
     "graph.microsoft.com",

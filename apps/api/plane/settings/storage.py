@@ -29,7 +29,7 @@ class S3Storage(S3Boto3Storage):
 
     """S3 storage class to generate presigned URLs for S3 objects"""
 
-    def __init__(self, request=None, is_server=False):
+    def __init__(self, request=None):
         # Get the AWS credentials and bucket name from the environment
         self.aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
         # Use the AWS_SECRET_ACCESS_KEY environment variable for the secret key
@@ -55,11 +55,7 @@ class S3Storage(S3Boto3Storage):
                 aws_access_key_id=self.aws_access_key_id,
                 aws_secret_access_key=self.aws_secret_access_key,
                 region_name=self.aws_region,
-                endpoint_url=(
-                    f"{endpoint_protocol}://{request.get_host()}"
-                    if request and not is_server
-                    else self.aws_s3_endpoint_url
-                ),
+                endpoint_url=(f"{endpoint_protocol}://{request.get_host()}" if request else self.aws_s3_endpoint_url),
                 config=CLIENT_CONFIG,
             )
         else:
@@ -74,9 +70,7 @@ class S3Storage(S3Boto3Storage):
             )
 
         # The request host may be unreachable from inside the cluster.
-        self.ops_endpoint_url = (
-            self.aws_s3_endpoint_url if os.environ.get("USE_MINIO") == "1" and request and not is_server else None
-        )
+        self.ops_endpoint_url = self.aws_s3_endpoint_url if os.environ.get("USE_MINIO") == "1" and request else None
 
     @cached_property
     def ops_client(self):
@@ -214,10 +208,11 @@ class S3Storage(S3Boto3Storage):
         file_obj,
         object_name: str,
         content_type: str = None,
-        extra_args: dict = {},
+        extra_args: dict = None,
     ) -> bool:
         """Upload a file directly to S3"""
         try:
+            extra_args = dict(extra_args or {})
             if content_type:
                 extra_args["ContentType"] = content_type
 
