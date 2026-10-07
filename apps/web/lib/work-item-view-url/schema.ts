@@ -19,6 +19,8 @@ import {
   formatFlagDiff,
   formatRichFilters,
   groupByCodec,
+  isBuiltInDisplayProperty,
+  isCustomDisplayPropertyKey,
   layoutCodec,
   orderByCodec,
   parseCalendarAnchor,
@@ -30,8 +32,8 @@ import {
   richFiltersEqual,
   timelineZoomCodec,
 } from "./codecs";
-import { getLayoutOptions } from "./pages";
-import type { TWorkItemPage, TWorkItemViewState } from "./types";
+import { getLayoutOptions, isLayout, isPageLayout } from "./pages";
+import type { TCalendarClock, TStatePath, TWorkItemPage, TWorkItemViewState } from "./types";
 
 export type TViewParam = "l" | "g" | "sg" | "o" | "x" | "cal" | "color" | "d" | "z" | "p" | "f" | "q" | "peek";
 
@@ -42,26 +44,28 @@ export type TParamContext = {
   calendarLayout: TCalendarLayouts;
 };
 
+export type TEncodeContext = TParamContext & { clock: TCalendarClock };
+
 export type TDecoded = { state: TWorkItemViewState; ok: boolean };
+
+/** Applies a parsed param to a state; `ok` is false if parts did not apply. */
+export type TApplyParam = (state: TWorkItemViewState, context: TParamContext) => TDecoded;
 
 export type TViewParamSpec = {
   param: TViewParam;
-  /** Where the value lives in TWorkItemViewState. */
-  paths: readonly string[];
-  appliesTo: (page: TWorkItemPage, layout: EIssueLayoutTypes | undefined) => boolean;
+  /** The state fields the param owns on this page and layout; none means it does not apply. */
+  paths: (page: TWorkItemPage, layout: EIssueLayoutTypes | undefined) => readonly TStatePath[];
   /** Undefined omits the param. */
-  encode: (state: TWorkItemViewState, baseline: TWorkItemViewState, context: TParamContext) => string | undefined;
-  decode: (raw: string, state: TWorkItemViewState, context: TParamContext) => TDecoded;
+  encode: (state: TWorkItemViewState, baseline: TWorkItemViewState, context: TEncodeContext) => string | undefined;
+  /** Parses without a baseline; undefined if invalid. */
+  parse: (raw: string, page: TWorkItemPage) => TApplyParam | undefined;
 };
 
-const isLayout = (value: unknown): value is EIssueLayoutTypes =>
-  typeof value === "string" && layoutCodec.parse(value)?.value === value;
-
-export const getStateLayout = (state: TWorkItemViewState): EIssueLayoutTypes | undefined =>
-  isLayout(state.displayFilters.layout) ? state.displayFilters.layout : undefined;
+export const getStateLayout = (page: TWorkItemPage, state: TWorkItemViewState): EIssueLayoutTypes | undefined =>
+  isPageLayout(page, state.displayFilters.layout) ? state.displayFilters.layout : undefined;
 
 export const getParamContext = (page: TWorkItemPage, state: TWorkItemViewState): TParamContext => {
-  const layout = getStateLayout(state);
+  const layout = getStateLayout(page, state);
   return {
     page,
     layout,
@@ -69,6 +73,22 @@ export const getParamContext = (page: TWorkItemPage, state: TWorkItemViewState):
     calendarLayout: state.displayFilters.calendar?.layout ?? "month",
   };
 };
+
+const flagsFor = (options: ILayoutDisplayFiltersOptions | undefined): TViewFlag[] =>
+  options?.extra_options.access ? options.extra_options.values : [];
+
+const displayScopeFor = (
+  page: TWorkItemPage,
+  options: ILayoutDisplayFiltersOptions | undefined
+): TDisplayPropertyScope => {
+  const builtIn = (options?.display_properties ?? []).filter(isBuiltInDisplayProperty);
+  return { builtIn, custom: page.customProperties && builtIn.length > 0 };
+};
+
+const pathsIf =
+  (paths: readonly TStatePath[], applies: (page: TWorkItemPage, layout: EIssueLayoutTypes | undefined) => boolean) =>
+  (page: TWorkItemPage, layout: EIssueLayoutTypes | undefined) =>
+    applies(page, layout) ? paths : [];
 
 const hasDisplayFilter =
   (key: keyof ILayoutDisplayFiltersOptions["display_filters"]) =>
@@ -79,17 +99,6 @@ const hasDisplayFilter =
 
 const isLayoutOf = (target: EIssueLayoutTypes) => (page: TWorkItemPage, layout: EIssueLayoutTypes | undefined) =>
   layout === target && page.layouts.includes(target);
-
-const flagsFor = (options: ILayoutDisplayFiltersOptions | undefined): TViewFlag[] =>
-  options?.extra_options.access ? options.extra_options.values : [];
-
-const displayScopeFor = (
-  page: TWorkItemPage,
-  options: ILayoutDisplayFiltersOptions | undefined
-): TDisplayPropertyScope => {
-  const builtIn = options?.display_properties ?? [];
-  return { builtIn, custom: page.customProperties && builtIn.length > 0 };
-};
 
 type TField<T> = {
   get: (state: TWorkItemViewState) => T | undefined;
@@ -111,40 +120,51 @@ const groupByField = (key: "group_by" | "sub_group_by"): TField<TIssueGroupByOpt
 
 type TValueParam<T> = {
   param: TViewParam;
-  paths: readonly string[];
-  appliesTo: TViewParamSpec["appliesTo"];
+  paths: TViewParamSpec["paths"];
   field: TField<T>;
   codec: TCodec<T>;
-  format?: (value: T, context: TParamContext) => string;
-  accepts?: (value: T, context: TParamContext) => boolean;
+  format?: (value: T, context: TEncodeContext) => string;
+  /** The value encoded for the baseline; defaults to the baseline's value. */
+  reference?: (baseline: TWorkItemViewState, context: TEncodeContext) => string | undefined;
+  acceptsParsed?: (value: T, page: TWorkItemPage) => boolean;
+  acceptsApplied?: (value: T, context: TParamContext) => boolean;
   always?: boolean;
 };
 
 const valueParam = <T>({
   param,
   paths,
-  appliesTo,
   field,
   codec,
   format = (value) => codec.format(value),
-  accepts,
+  reference,
+  acceptsParsed,
+  acceptsApplied,
   always = false,
 }: TValueParam<T>): TViewParamSpec => ({
   param,
   paths,
-  appliesTo,
   encode: (state, baseline, context) => {
     const value = field.get(state);
     if (value === undefined) return undefined;
     const encoded = format(value, context);
     if (always) return encoded;
     const base = field.get(baseline);
-    return base !== undefined && format(base, context) === encoded ? undefined : encoded;
+    const baseEncoded = reference
+      ? reference(baseline, context)
+      : base === undefined
+        ? undefined
+        : format(base, context);
+    return baseEncoded === encoded ? undefined : encoded;
   },
-  decode: (raw, state, context) => {
+  parse: (raw, page) => {
     const parsed = codec.parse(raw);
-    if (!parsed || (accepts && !accepts(parsed.value, context))) return { state, ok: false };
-    return { state: field.set(state, parsed.value), ok: true };
+    if (!parsed || (acceptsParsed && !acceptsParsed(parsed.value, page))) return undefined;
+    const { value } = parsed;
+    return (state, context) =>
+      acceptsApplied && !acceptsApplied(value, context)
+        ? { state, ok: false }
+        : { state: field.set(state, value), ok: true };
   },
 });
 
@@ -155,54 +175,59 @@ const allowedGroups = (key: "group_by" | "sub_group_by") => (value: TIssueGroupB
 export const VIEW_PARAMS: readonly TViewParamSpec[] = [
   valueParam({
     param: "l",
-    paths: ["displayFilters.layout"],
-    appliesTo: () => true,
+    paths: () => ["displayFilters.layout"],
     field: {
-      get: getStateLayout,
+      get: (state) => (isLayout(state.displayFilters.layout) ? state.displayFilters.layout : undefined),
       set: (state, layout) => ({ ...state, displayFilters: { ...state.displayFilters, layout } }),
     },
     codec: layoutCodec,
-    accepts: (layout, { page }) => page.layouts.includes(layout),
+    acceptsParsed: (layout, page) => page.layouts.includes(layout),
     always: true,
   }),
   valueParam({
     param: "g",
-    paths: ["displayFilters.group_by"],
-    appliesTo: hasDisplayFilter("group_by"),
+    paths: pathsIf(["displayFilters.group_by"], hasDisplayFilter("group_by")),
     field: groupByField("group_by"),
     codec: groupByCodec,
-    accepts: allowedGroups("group_by"),
+    acceptsApplied: allowedGroups("group_by"),
   }),
   valueParam({
     param: "sg",
-    paths: ["displayFilters.sub_group_by"],
-    appliesTo: hasDisplayFilter("sub_group_by"),
+    paths: pathsIf(["displayFilters.sub_group_by"], hasDisplayFilter("sub_group_by")),
     field: groupByField("sub_group_by"),
     codec: groupByCodec,
-    accepts: allowedGroups("sub_group_by"),
+    acceptsApplied: allowedGroups("sub_group_by"),
   }),
   valueParam({
     param: "o",
-    paths: ["displayFilters.order_by"],
-    appliesTo: hasDisplayFilter("order_by"),
+    paths: pathsIf(["displayFilters.order_by"], hasDisplayFilter("order_by")),
     field: displayFilterField("order_by"),
     codec: orderByCodec,
   }),
   {
     param: "x",
-    paths: ["displayFilters.sub_issue", "displayFilters.show_empty_groups", "displayFilters.hierarchy"],
-    appliesTo: (page, layout) => flagsFor(getLayoutOptions(page, layout)).length > 0,
+    paths: (page, layout) =>
+      flagsFor(getLayoutOptions(page, layout)).map((flag): TStatePath => `displayFilters.${flag}`),
     encode: (state, baseline, { options }) =>
       formatFlagDiff(state.displayFilters, baseline.displayFilters, flagsFor(options)),
-    decode: (raw, state, { options }) => {
-      const { values, invalid } = parseFlagDiff(raw, flagsFor(options));
-      return { state: { ...state, displayFilters: { ...state.displayFilters, ...values } }, ok: invalid.length === 0 };
+    parse: (raw) => {
+      const { values, invalid } = parseFlagDiff(raw);
+      return (state, { options }) => {
+        const flags = flagsFor(options);
+        const applicable = new Set<string>(flags);
+        const displayFilters = { ...state.displayFilters };
+        for (const flag of flags) {
+          const value = values[flag];
+          if (value !== undefined) displayFilters[flag] = value;
+        }
+        const ok = invalid.length === 0 && Object.keys(values).every((flag) => applicable.has(flag));
+        return { state: { ...state, displayFilters }, ok };
+      };
     },
   },
   valueParam({
     param: "cal",
-    paths: ["displayFilters.calendar.layout"],
-    appliesTo: isLayoutOf(EIssueLayoutTypes.CALENDAR),
+    paths: pathsIf(["displayFilters.calendar.layout"], isLayoutOf(EIssueLayoutTypes.CALENDAR)),
     field: {
       get: (state) => state.displayFilters.calendar?.layout ?? "month",
       set: (state, layout) => ({
@@ -214,68 +239,79 @@ export const VIEW_PARAMS: readonly TViewParamSpec[] = [
   }),
   valueParam({
     param: "color",
-    paths: ["displayFilters.color_by"],
-    appliesTo: hasDisplayFilter("color_by"),
+    paths: pathsIf(["displayFilters.color_by"], hasDisplayFilter("color_by")),
+    // baselines omit the default color_by while the store may hold "state": compare toSearch output, not states
     field: displayFilterField("color_by", DEFAULT_TIMELINE_COLOR_BY),
     codec: colorByCodec,
   }),
   valueParam({
     param: "d",
-    paths: ["calendarAnchor"],
-    appliesTo: isLayoutOf(EIssueLayoutTypes.CALENDAR),
+    paths: pathsIf(["calendarAnchor"], isLayoutOf(EIssueLayoutTypes.CALENDAR)),
     field: {
       get: (state) => state.calendarAnchor,
       set: (state, calendarAnchor) => ({ ...state, calendarAnchor }),
     },
     codec: { parse: parseCalendarAnchor, format: (anchor) => anchor },
-    format: (anchor, { calendarLayout }) => formatCalendarAnchor(anchor, calendarLayout),
+    format: (anchor, { calendarLayout, clock }) => formatCalendarAnchor(anchor, calendarLayout, clock.weekStart),
+    reference: (_, { calendarLayout, clock }) => formatCalendarAnchor(clock.today, calendarLayout, clock.weekStart),
   }),
   valueParam({
     param: "z",
-    paths: ["timelineZoom"],
-    appliesTo: isLayoutOf(EIssueLayoutTypes.GANTT),
+    paths: pathsIf(["timelineZoom"], isLayoutOf(EIssueLayoutTypes.GANTT)),
     field: {
       get: (state) => state.timelineZoom ?? DEFAULT_TIMELINE_ZOOM,
       set: (state, timelineZoom) => ({ ...state, timelineZoom }),
     },
     codec: timelineZoomCodec,
+    reference: () => DEFAULT_TIMELINE_ZOOM,
   }),
   {
     param: "p",
-    paths: ["displayProperties"],
-    appliesTo: (page, layout) => displayScopeFor(page, getLayoutOptions(page, layout)).builtIn.length > 0,
+    paths: (page, layout) => {
+      const scope = displayScopeFor(page, getLayoutOptions(page, layout));
+      const paths: TStatePath[] = scope.builtIn.map((key): TStatePath => `displayProperties.${key}`);
+      if (scope.custom) paths.push("displayProperties.custom_property_*");
+      return paths;
+    },
     encode: (state, baseline, { page, options }) =>
       formatDisplayPropertyDiff(state.displayProperties, baseline.displayProperties, displayScopeFor(page, options)),
-    decode: (raw, state, { page, options }) => {
-      const { values, invalid } = parseDisplayPropertyDiff(raw, displayScopeFor(page, options));
-      return {
-        state: { ...state, displayProperties: { ...state.displayProperties, ...values } },
-        ok: invalid.length === 0,
+    parse: (raw) => {
+      const { values, invalid } = parseDisplayPropertyDiff(raw);
+      return (state, { page, options }) => {
+        const scope = displayScopeFor(page, options);
+        const builtIn = new Set<string>(scope.builtIn);
+        const displayProperties = { ...state.displayProperties };
+        let ok = invalid.length === 0;
+        for (const [key, value] of Object.entries(values)) {
+          if (value === undefined) continue;
+          if (isBuiltInDisplayProperty(key) && builtIn.has(key)) displayProperties[key] = value;
+          else if (isCustomDisplayPropertyKey(key) && scope.custom) displayProperties[key] = value;
+          else ok = false;
+        }
+        return { state: { ...state, displayProperties }, ok };
       };
     },
   },
   {
     param: "f",
-    paths: ["richFilters"],
-    appliesTo: () => true,
+    paths: () => ["richFilters"],
     encode: (state, baseline) =>
       richFiltersEqual(state.richFilters, baseline.richFilters) ? undefined : formatRichFilters(state.richFilters),
-    decode: (raw, state) => {
+    parse: (raw) => {
       const parsed = parseRichFilters(raw);
-      return parsed ? { state: { ...state, richFilters: parsed.value }, ok: true } : { state, ok: false };
+      if (!parsed) return undefined;
+      return (state) => ({ state: { ...state, richFilters: parsed.value }, ok: true });
     },
   },
   valueParam({
     param: "q",
-    paths: ["displayFilters.pql"],
-    appliesTo: (page) => page.pql,
+    paths: (page) => (page.pql ? ["displayFilters.pql"] : []),
     field: displayFilterField("pql", ""),
     codec: pqlCodec,
   }),
   valueParam({
     param: "peek",
-    paths: ["peek"],
-    appliesTo: () => true,
+    paths: () => ["peek"],
     field: {
       get: (state) => state.peek,
       set: (state, peek) => ({ ...state, peek }),
@@ -285,3 +321,7 @@ export const VIEW_PARAMS: readonly TViewParamSpec[] = [
 ];
 
 export const VIEW_PARAM_NAMES: ReadonlySet<string> = new Set(VIEW_PARAMS.map(({ param }) => param));
+
+/** The state fields the URL owns on a page and layout; apply only these from a parsed URL. */
+export const getApplicablePaths = (page: TWorkItemPage, layout: EIssueLayoutTypes | undefined): TStatePath[] =>
+  VIEW_PARAMS.flatMap((spec) => spec.paths(page, layout));

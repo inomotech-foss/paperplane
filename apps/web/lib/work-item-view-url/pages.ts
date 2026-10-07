@@ -70,12 +70,25 @@ export const getLayoutOptions = (
     ? ISSUE_DISPLAY_FILTERS_BY_PAGE[page.filtersKey].layoutOptions[layout]
     : undefined;
 
+export const isLayout = (value: unknown): value is EIssueLayoutTypes => ALL_LAYOUTS.some((layout) => layout === value);
+
+export const isPageLayout = (page: TWorkItemPage, value: unknown): value is EIssueLayoutTypes =>
+  isLayout(value) && page.layouts.includes(value);
+
+/** The layout if the page renders it, else the page's default layout. */
+export const getPageLayout = (page: TWorkItemPage, value: unknown): EIssueLayoutTypes => {
+  if (isPageLayout(page, value)) return value;
+  const fallback: unknown = page.defaults?.layout;
+  return isPageLayout(page, fallback) ? fallback : page.layouts[0];
+};
+
 /** The state a page shows without stored preferences; for saved views, the view's config. */
 export const getPageBaseline = (page: TWorkItemPage, view?: TSavedViewConfig): TWorkItemViewState => {
   const displayFilters = getComputedDisplayFilters(
     page.forced ? { ...view?.display_filters, ...page.forced } : view?.display_filters,
     page.defaults
   );
+  displayFilters.layout = getPageLayout(page, displayFilters.layout);
   if (page.sortOrderFallback && displayFilters.order_by === "sort_order") {
     displayFilters.order_by = page.sortOrderFallback;
   }

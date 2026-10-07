@@ -22,7 +22,7 @@ import type {
   TSupportedFilterForUpdate,
 } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
-import { handleIssueQueryParamsByLayout } from "@plane/utils";
+import { handleIssueQueryParamsByLayout, getDisplayFilterCorrections } from "@plane/utils";
 // services
 import { ViewService } from "@/services/view.service";
 import type { IBaseIssueFilterStore } from "../helpers/issue-filter-helper.store";
@@ -233,24 +233,9 @@ export class ProjectViewIssuesFilter extends IssueFilterHelperStore implements I
           const updatedDisplayFilters = filters as IIssueDisplayFilterOptions;
           _filters.displayFilters = { ..._filters.displayFilters, ...updatedDisplayFilters };
 
-          // set sub_group_by to null if group_by is set to null
-          if (_filters.displayFilters.group_by === null) {
-            _filters.displayFilters.sub_group_by = null;
-            updatedDisplayFilters.sub_group_by = null;
-          }
-          // set sub_group_by to null if layout is switched to kanban group_by and sub_group_by are same
-          if (
-            _filters.displayFilters.layout === "kanban" &&
-            _filters.displayFilters.group_by === _filters.displayFilters.sub_group_by
-          ) {
-            _filters.displayFilters.sub_group_by = null;
-            updatedDisplayFilters.sub_group_by = null;
-          }
-          // set group_by to state if layout is switched to kanban and group_by is null
-          if (_filters.displayFilters.layout === "kanban" && _filters.displayFilters.group_by === null) {
-            _filters.displayFilters.group_by = "state";
-            updatedDisplayFilters.group_by = "state";
-          }
+          const corrections = getDisplayFilterCorrections(_filters.displayFilters);
+          Object.assign(_filters.displayFilters, corrections);
+          Object.assign(updatedDisplayFilters, corrections);
 
           runInAction(() => {
             Object.keys(updatedDisplayFilters).forEach((_key) => {

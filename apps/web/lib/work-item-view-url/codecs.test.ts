@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { IIssueDisplayProperties, TWorkItemFilterExpression } from "@plane/types";
-import { EIssueLayoutTypes } from "@plane/types";
+import { EIssueLayoutTypes, EStartOfTheWeek } from "@plane/types";
 import { getComputedDisplayProperties } from "@plane/utils";
 import {
   formatCalendarAnchor,
@@ -24,6 +24,8 @@ import {
 
 const CP = "0b5c6a3e-8f1d-4c2a-9e7b-1a2b3c4d5e6f";
 const CP_KEY = `custom_property_${CP}` as const;
+const S1 = "11111111-1111-4111-8111-111111111111";
+const S2 = "22222222-2222-4222-8222-222222222222";
 
 const json = (value: unknown) =>
   `j.${btoa(JSON.stringify(value)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`;
@@ -84,9 +86,20 @@ describe("calendar anchor", () => {
     expect(parseCalendarAnchor(raw)).toBeUndefined()
   );
 
-  it("formats by calendar layout", () => {
-    expect(formatCalendarAnchor("2026-10-05", "month")).toBe("2026-10");
-    expect(formatCalendarAnchor("2026-10-05", "week")).toBe("2026-10-05");
+  it("writes the month in month layout", () => {
+    expect(formatCalendarAnchor("2026-10-05", "month", EStartOfTheWeek.MONDAY)).toBe("2026-10");
+  });
+
+  // 2026-10-07 is a Wednesday
+  it.each([
+    ["2026-10-07", EStartOfTheWeek.SUNDAY, "2026-10-04"],
+    ["2026-10-07", EStartOfTheWeek.MONDAY, "2026-10-05"],
+    ["2026-10-07", EStartOfTheWeek.WEDNESDAY, "2026-10-07"],
+    ["2026-10-07", EStartOfTheWeek.THURSDAY, "2026-10-01"],
+    ["2026-10-04", EStartOfTheWeek.MONDAY, "2026-09-28"],
+    ["2026-01-01", EStartOfTheWeek.MONDAY, "2025-12-29"],
+  ])("writes the week of %s starting on day %s as %s", (anchor, weekStart, expected) => {
+    expect(formatCalendarAnchor(anchor, "week", weekStart)).toBe(expected);
   });
 });
 
@@ -95,15 +108,27 @@ describe("peek", () => {
     ["INOMO2-123", "INOMO2", 123, "INOMO2-123"],
     ["inomo2-123", "INOMO2", 123, "INOMO2-123"],
     ["WEB-007", "WEB", 7, "WEB-7"],
+    ["ABCDEFGHIJKL-1", "ABCDEFGHIJKL", 1, "ABCDEFGHIJKL-1"],
+    ["ÇİZ-4", "ÇİZ", 4, "ÇİZ-4"],
   ])("parses %s", (raw, projectIdentifier, sequenceId, formatted) => {
     const parsed = peekCodec.parse(raw);
     expect(parsed).toEqual({ value: { projectIdentifier, sequenceId } });
     expect(parsed && peekCodec.format(parsed.value)).toBe(formatted);
   });
 
-  it.each(["INOMO2", "INOMO2-0", "-12", "WEB-1-2", "WEB-x", "WEB 1", "WEB-99999999999999999"])("rejects %j", (raw) =>
-    expect(peekCodec.parse(raw)).toBeUndefined()
-  );
+  it.each([
+    "INOMO2",
+    "INOMO2-0",
+    "-12",
+    "WEB-1-2",
+    "WEB-x",
+    "WEB 1",
+    "WEB-99999999999999999",
+    "ABCDEFGHIJKLM-1",
+    "WE.B-1",
+    "ÅB-1",
+    "WEB-١",
+  ])("rejects %j", (raw) => expect(peekCodec.parse(raw)).toBeUndefined());
 });
 
 describe("flag diff", () => {
@@ -124,19 +149,18 @@ describe("flag diff", () => {
   });
 
   it("reads on and off entries, with + or a decoded space as on", () => {
-    expect(parseFlagDiff("sub,-empty", all)).toEqual({
-      values: { sub_issue: true, show_empty_groups: false },
-      invalid: [],
-    });
-    expect(parseFlagDiff("+tree", all).values).toEqual({ hierarchy: true });
-    expect(parseFlagDiff(" tree", all).values).toEqual({ hierarchy: true });
+    expect(parseFlagDiff("sub,-empty")).toEqual({ values: { sub_issue: true, show_empty_groups: false }, invalid: [] });
+    expect(parseFlagDiff("+tree").values).toEqual({ hierarchy: true });
+    expect(parseFlagDiff(" tree").values).toEqual({ hierarchy: true });
   });
 
-  it("reports unknown and inapplicable entries", () => {
-    expect(parseFlagDiff("sub,bogus,tree", ["sub_issue"])).toEqual({
-      values: { sub_issue: true },
-      invalid: ["bogus", "tree"],
-    });
+  it.each([
+    ["sub,bogus", { sub_issue: true }, ["bogus"]],
+    [",", {}, ["", ""]],
+    ["", {}, [""]],
+    ["sub,", { sub_issue: true }, [""]],
+  ])("reports unknown and empty entries in %j", (raw, values, invalid) => {
+    expect(parseFlagDiff(raw)).toEqual({ values, invalid });
   });
 });
 
@@ -163,38 +187,38 @@ describe("display property diff", () => {
   });
 
   it("reads built-ins and custom properties", () => {
-    expect(parseDisplayPropertyDiff(`-labels,cp.${CP.toUpperCase()},-cp.${CP}`, { builtIn, custom: true })).toEqual({
+    expect(parseDisplayPropertyDiff(`-labels,cp.${CP.toUpperCase()},-cp.${CP}`)).toEqual({
       values: { labels: false, [CP_KEY]: false },
       invalid: [],
     });
   });
 
   it.each([
-    ["unknown name", "-bogus", true, ["bogus"]],
-    ["inapplicable built-in", "-assignee", true, ["assignee"]],
-    ["custom property id that is not a uuid", "cp.123", true, ["cp.123"]],
-    ["custom property out of scope", `cp.${CP}`, false, [`cp.${CP}`]],
-  ])("reports %s", (_, raw, custom, invalid) => {
-    expect(parseDisplayPropertyDiff(raw, { builtIn, custom }).invalid).toEqual(invalid);
+    ["unknown name", "-bogus", ["bogus"]],
+    ["custom property id that is not a uuid", "cp.123", ["cp.123"]],
+    ["empty entry", "labels,,", ["", ""]],
+  ])("reports %s", (_, raw, invalid) => {
+    expect(parseDisplayPropertyDiff(raw).invalid).toEqual(invalid);
   });
 });
 
 describe("rich filters", () => {
   const compact: [string, TWorkItemFilterExpression, string][] = [
-    ["a condition", { state_id__in: "a,b" }, "state_id:in:a,b"],
+    ["a condition", { state_id__in: `${S1},${S2}` }, `state_id:in:${S1},${S2}`],
     [
       "an AND of conditions",
       { and: [{ priority__in: "urgent,high" }, { name__icontains: "tcu bug" }] },
       "priority:in:urgent,high;name:icontains:tcu bug",
     ],
-    ["a negated condition", { not: { state_id__in: "done" } }, "!state_id:in:done"],
+    ["a negated condition", { not: { state_id__in: S1 } }, `!state_id:in:${S1}`],
     [
       "negated conditions in an AND",
-      { and: [{ not: { label_id__in: "x" } }, { target_date__range: "2026-01-01,2026-02-01" }] },
-      "!label_id:in:x;target_date:range:2026-01-01,2026-02-01",
+      { and: [{ not: { label_id__in: S1 } }, { target_date__range: "2026-01-01,2026-02-01" }] },
+      `!label_id:in:${S1};target_date:range:2026-01-01,2026-02-01`,
     ],
     ["a custom property", { [`customproperty_${CP}__exact`]: "yes" }, `cp.${CP}:exact:yes`],
     ["a single date", { start_date__gt: "2026-10-01" }, "start_date:gt:2026-10-01"],
+    ["state groups", { state_group__in: "started,completed" }, "state_group:in:started,completed"],
   ];
 
   it.each(compact)("writes %s in the compact grammar", (_, expression, expected) => {
@@ -203,16 +227,14 @@ describe("rich filters", () => {
   });
 
   const fallback: [string, TWorkItemFilterExpression][] = [
-    ["a nested AND", { and: [{ and: [{ state_id__in: "a" }, { priority__in: "high" }] }, { label_id__in: "b" }] }],
-    ["a NOT group", { not: { and: [{ state_id__in: "a" }, { priority__in: "high" }] } }],
-    ["a double negation", { not: { not: { state_id__in: "a" } } }],
+    ["the deepest AND the API accepts", { and: [{ and: [{ and: [{ and: [{ state_id__in: S1 }] }] }] }] }],
+    ["a nested AND", { and: [{ and: [{ state_id__in: S1 }, { priority__in: "high" }] }, { label_id__in: S2 }] }],
     ["a value with ;", { name__icontains: "a;b" }],
     ["a value with :", { name__icontains: "fix: crash" }],
     ["a single value with ,", { name__icontains: "a, b" }],
-    ["an empty value", { name__icontains: "" }],
-    ["a non-string value", { name__exact: 5 }],
-    ["a custom property id that is not a uuid", { customproperty_abc__exact: "x" }],
+    ["a number for a custom property", { [`customproperty_${CP}__gt`]: 5 }],
     ["non-ASCII text", { name__icontains: "Grüße; ✓" }],
+    ["the deepest tree the API accepts", { and: [{ and: [{ and: [{ not: { state_id__in: S1 } }] }] }] }],
   ];
 
   it.each(fallback)("falls back to JSON for %s", (_, expression) => {
@@ -221,48 +243,95 @@ describe("rich filters", () => {
     expect(parseRichFilters(encoded)).toEqual({ value: expression });
   });
 
-  it("writes none for no filters", () => {
-    expect(formatRichFilters({})).toBe("none");
+  it.each([{}, null, undefined])("writes none for %j", (expression) => {
+    expect(formatRichFilters(expression)).toBe("none");
+  });
+
+  it("reads none as no filters", () => {
     expect(parseRichFilters("none")).toEqual({ value: {} });
   });
 
   it("unwraps a single AND child", () => {
-    expect(formatRichFilters({ and: [{ state_id__in: "a" }] })).toBe("state_id:in:a");
+    expect(formatRichFilters({ and: [{ state_id__in: S1 }] })).toBe(`state_id:in:${S1}`);
   });
 
   it.each([
-    "state:in:a",
-    "state_id:bogus:a",
-    "state_id:in:",
-    "state_id:in",
-    "state_id:in:a:b",
-    "state_id:in:a;",
-    "name:icontains:a,b",
-    "cp.123:exact:x",
-    "!!state_id:in:a",
-    "",
-    "j.",
-    "j.!!!",
-    json({ and: [] }),
-    json({ bogus__in: "a" }),
-    json({ state_id__in: "a", priority__in: "b" }),
-    json({ state_id__in: ["a"] }),
-    json({}),
-    "j.e25vdCBqc29u",
-  ])("rejects %j", (raw) => expect(parseRichFilters(raw)).toBeUndefined());
+    [`state_id:in:${S1}, ${S2}`, `${S1},${S2}`],
+    [`state_id:in:${S1},,${S2}`, `${S1},${S2}`],
+    [`state_id:in:${S1},`, S1],
+    ["target_date:range: 2026-01-01 , 2026-02-01", "2026-01-01,2026-02-01"],
+  ])("canonicalizes the list in %j", (raw, value) => {
+    const [property, operator] = raw.split(":");
+    expect(parseRichFilters(raw)).toEqual({ value: { [`${property}__${operator}`]: value } });
+  });
 
-  it.each<[string, TWorkItemFilterExpression, TWorkItemFilterExpression, boolean]>([
+  it("canonicalizes lists in the store state", () => {
+    expect(formatRichFilters({ priority__in: "high, low," })).toBe("priority:in:high,low");
+  });
+
+  it.each([
+    ["an unknown property", "state:in:x"],
+    ["an unknown operator", `state_id:bogus:${S1}`],
+    ["an empty value", "state_id:in:"],
+    ["a whitespace value", "name:icontains:   "],
+    ["a missing value", "state_id:in"],
+    ["a colon in the value", "name:icontains:a:b"],
+    ["an empty item", `state_id:in:${S1};`],
+    ["a comma in a single value", "name:icontains:a,b"],
+    ["a custom property id that is not a uuid", "cp.123:exact:x"],
+    ["a double negation", `!!state_id:in:${S1}`],
+    ["gt on priority", "priority:gt:high"],
+    ["in on name", "name:in:a,b"],
+    ["range on state", `state_id:range:${S1},${S2}`],
+    ["an invalid range", "target_date:range:2026-13-45,banana"],
+    ["a one-sided range", "target_date:range:2026-01-01"],
+    ["a three-sided range", "target_date:range:2026-01-01,2026-01-02,2026-01-03"],
+    ["an invalid date", "start_date:gt:2026-02-30"],
+    ["a state id that is not a uuid", "state_id:in:done"],
+    ["an unknown priority", "priority:in:critical"],
+    ["an unknown state group", "state_group:exact:doing"],
+    ["icontains on a date", "start_date:icontains:2026"],
+    ["nothing", ""],
+    ["an empty JSON payload", "j."],
+    ["invalid base64", "j.!!!"],
+    ["invalid JSON", "j.e25vdCBqc29u"],
+    ["an empty AND", json({ and: [] })],
+    ["an OR", json({ or: [{ state_id__in: S1 }] })],
+    ["an unknown JSON property", json({ bogus__in: "a" })],
+    ["two conditions in one leaf", json({ state_id__in: S1, priority__in: "high" })],
+    ["a list value", json({ state_id__in: [S1] })],
+    ["empty JSON", json({})],
+    ["a custom property in JSON that is not a uuid", json({ customproperty_abc__exact: "x" })],
+    ["an empty value in JSON", json({ name__icontains: "" })],
+    ["a number for a built-in", json({ name__icontains: 5 })],
+    ["a NOT group", json({ not: { and: [{ state_id__in: S1 }, { priority__in: "high" }] } })],
+    ["a double negation in JSON", json({ not: { not: { state_id__in: S1 } } })],
+    [
+      "a tree deeper than the API allows",
+      json({ and: [{ and: [{ and: [{ and: [{ and: [{ state_id__in: S1 }] }] }] }] }] }),
+    ],
+    [
+      "a negation deeper than the API allows",
+      json({ and: [{ and: [{ and: [{ and: [{ not: { state_id__in: S1 } }] }] }] }] }),
+    ],
+  ])("rejects %s", (_, raw) => expect(parseRichFilters(raw)).toBeUndefined());
+
+  it.each<
+    [string, TWorkItemFilterExpression | null | undefined, TWorkItemFilterExpression | null | undefined, boolean]
+  >([
     ["empty", {}, {}, true],
+    ["null and empty", null, {}, true],
+    ["undefined and empty", undefined, {}, true],
     [
       "reordered AND",
-      { and: [{ state_id__in: "a" }, { priority__in: "high" }] },
-      { and: [{ priority__in: "high" }, { state_id__in: "a" }] },
+      { and: [{ state_id__in: S1 }, { priority__in: "high" }] },
+      { and: [{ priority__in: "high" }, { state_id__in: S1 }] },
       true,
     ],
-    ["single AND child", { and: [{ state_id__in: "a" }] }, { state_id__in: "a" }, true],
-    ["different values", { state_id__in: "a" }, { state_id__in: "b" }, false],
-    ["negated", { state_id__in: "a" }, { not: { state_id__in: "a" } }, false],
-    ["empty vs set", {}, { state_id__in: "a" }, false],
+    ["single AND child", { and: [{ state_id__in: S1 }] }, { state_id__in: S1 }, true],
+    ["different values", { state_id__in: S1 }, { state_id__in: S2 }, false],
+    ["negated", { state_id__in: S1 }, { not: { state_id__in: S1 } }, false],
+    ["empty vs set", {}, { state_id__in: S1 }, false],
   ])("compares %s", (_, a, b, equal) => {
     expect(richFiltersEqual(a, b)).toBe(equal);
   });
