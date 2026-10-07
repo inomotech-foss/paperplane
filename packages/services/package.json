@@ -23,10 +23,12 @@
     "clean": "rm -rf .turbo && rm -rf .next && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
+    "@plane/api-types": "workspace:*",
     "@plane/constants": "workspace:*",
     "@plane/types": "workspace:*",
     "axios": "catalog:",
-    "file-type": "catalog:"
+    "file-type": "catalog:",
+    "openapi-fetch": "catalog:"
   },
   "devDependencies": {
     "@plane/typescript-config": "workspace:*",

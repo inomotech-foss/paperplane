@@ -1,3 +1,5 @@
 *.sh text eol=lf
 apps/api/plane/utils/pql/generated/** linguist-generated=true
 packages/pql/src/generated/** linguist-generated=true
+apps/api/openapi/*.yaml linguist-generated=true
+packages/api-types/src/generated/** linguist-generated=true
