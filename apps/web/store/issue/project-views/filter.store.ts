@@ -263,7 +263,7 @@ export class ProjectViewIssuesFilter extends IssueFilterHelperStore implements I
           });
 
           if (this.getShouldClearIssues(updatedDisplayFilters)) {
-            this.rootIssueStore.projectIssues.clear(true); // clear issues for local store when some filters like layout changes
+            this.rootIssueStore.projectViewIssues.clear(true); // clear issues for local store when some filters like layout changes
           }
 
           if (this.getShouldReFetchIssues(updatedDisplayFilters)) {

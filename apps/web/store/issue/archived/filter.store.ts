@@ -139,7 +139,7 @@ export class ArchivedIssuesFilter extends IssueFilterHelperStore implements IArc
   fetchFilters = async (workspaceSlug: string, projectId: string) => {
     const _filters = this.handleIssuesLocalFilters.get(EIssuesStoreType.ARCHIVED, workspaceSlug, projectId, undefined);
 
-    const richFilters: TWorkItemFilterExpression = _filters?.richFilters;
+    const richFilters: TWorkItemFilterExpression = _filters?.rich_filters;
     const displayFilters: IIssueDisplayFilterOptions = this.computedDisplayFilters({
       ..._filters?.display_filters,
       sub_issue: true,
