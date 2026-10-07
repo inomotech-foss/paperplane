@@ -30,6 +30,7 @@ import { isProjectFeatureEnabled } from "@/components/settings/project/work-item
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
+import { getProjectUrl } from "@/components/project/features/features";
 
 export type TPowerKNavigationCommandKeys =
   | "open_workspace"
@@ -164,7 +165,8 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       page: "open-project",
       onSelect: (data, ctx) => {
         const projectDetails = data as IPartialProject;
-        handlePowerKNavigate(ctx, [ctx.params.workspaceSlug?.toString(), "projects", projectDetails.id, "issues"]);
+        const workspaceSlug = ctx.params.workspaceSlug?.toString();
+        if (workspaceSlug) ctx.router.push(getProjectUrl(workspaceSlug, projectDetails.id));
       },
       isEnabled: (ctx) => baseWorkspaceConditions(ctx),
       isVisible: (ctx) => baseWorkspaceConditions(ctx),

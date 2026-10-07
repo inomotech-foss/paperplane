@@ -24,6 +24,7 @@ import { generateWorkItemLink } from "@plane/utils";
 // components
 import type { TPowerKSearchResultsKeys } from "@/components/power-k/core/types";
 import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
+import { getProjectUrl } from "@/components/project/features/features";
 
 export type TPowerKSearchResultGroupDetails = {
   icon?: React.ComponentType<{ className?: string }>;
@@ -108,7 +109,7 @@ export const POWER_K_SEARCH_RESULTS_GROUPS_MAP: Record<TPowerKSearchResultsKeys,
   project: {
     icon: ProjectsOutline,
     itemName: (project: IWorkspaceProjectSearchResult) => project?.name,
-    path: (project: IWorkspaceProjectSearchResult) => `/${project?.workspace__slug}/projects/${project?.id}/issues/`,
+    path: (project: IWorkspaceProjectSearchResult) => getProjectUrl(project?.workspace__slug, project?.id),
     title: "Projects",
   },
   workspace: {

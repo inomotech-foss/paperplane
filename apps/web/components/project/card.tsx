@@ -46,6 +46,7 @@ import { CoverImage } from "@/components/common/cover-image";
 import { DeleteProjectModal } from "./delete-project-modal";
 import { JoinProjectModal } from "./join-project-modal";
 import { ArchiveRestoreProjectModal } from "./archive-restore-modal";
+import { getProjectUrl } from "@/components/project/features/features";
 
 type Props = {
   project: IProject;
@@ -129,7 +130,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
     });
   };
 
-  const projectLink = `${workspaceSlug}/projects/${project.id}/issues`;
+  const projectLink = getProjectUrl(workspaceSlug, project.id);
   const handleCopyText = () =>
     copyUrlToClipboard(projectLink).then(() =>
       setToast({
@@ -138,7 +139,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
         message: "Project link copied to clipboard.",
       })
     );
-  const handleOpenInNewTab = () => window.open(`/${projectLink}`, "_blank");
+  const handleOpenInNewTab = () => window.open(projectLink, "_blank", "noopener,noreferrer");
 
   const MENU_ITEMS: TContextMenuItem[] = [
     {
@@ -214,7 +215,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
       )}
       <Link
         ref={projectCardRef}
-        href={`/${workspaceSlug}/projects/${project.id}/issues`}
+        href={projectLink}
         onClick={(e) => {
           if (!isMemberOfProject || isArchived) {
             e.preventDefault();

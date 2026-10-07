@@ -33,6 +33,7 @@ import { useProjectNavigationPreferences } from "@/hooks/use-navigation-preferen
 import type { TProject } from "@plane/types";
 // local imports
 import { SidebarProjectsListItem } from "./projects-list-item";
+import { getProjectUrl } from "@/components/project/features/features";
 
 export const SidebarProjectsList = observer(function SidebarProjectsList() {
   // states
@@ -69,7 +70,7 @@ export const SidebarProjectsList = observer(function SidebarProjectsList() {
     projectPreferences.showLimitedProjects && joinedProjects.length > projectPreferences.limitedProjectsCount;
 
   const handleCopyText = (projectId: string) => {
-    copyUrlToClipboard(`${workspaceSlug}/projects/${projectId}/issues`).then(() => {
+    copyUrlToClipboard(getProjectUrl(workspaceSlug, projectId)).then(() => {
       setToast({
         type: "success",
         title: t("link_copied"),

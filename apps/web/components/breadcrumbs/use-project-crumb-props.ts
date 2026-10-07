@@ -8,6 +8,7 @@
 import type { TCrumbLabelProps } from "@plane/blocks/breadcrumb";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
+import { getProjectUrl } from "@/components/project/features/features";
 
 /**
  * Ruling 39. The project crumb is rendered through `CommonProjectBreadcrumbs` / `ProjectBreadcrumb`,
@@ -36,6 +37,6 @@ export function useProjectCrumbProps(
 
   return {
     crumbLabel: project?.name,
-    crumbHref: workspaceSlug && projectId ? `/${workspaceSlug}/projects/${projectId}/issues/` : undefined,
+    crumbHref: workspaceSlug && projectId ? getProjectUrl(workspaceSlug, projectId) : undefined,
   };
 }

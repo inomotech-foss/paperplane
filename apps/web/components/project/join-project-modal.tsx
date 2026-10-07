@@ -22,6 +22,7 @@ import {
 // hooks
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { getProjectUrl } from "@/components/project/features/features";
 
 // type
 type TJoinProjectModalProps = {
@@ -45,7 +46,7 @@ export function JoinProjectModal(props: TJoinProjectModalProps) {
 
     await joinProject(workspaceSlug, project.id)
       .then(() => {
-        router.push(`/${workspaceSlug}/projects/${project.id}/issues`);
+        router.push(getProjectUrl(workspaceSlug, project.id));
         handleClose();
         return;
       })
