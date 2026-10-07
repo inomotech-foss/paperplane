@@ -623,9 +623,9 @@ SCRIPT_CAPABLE_MIME_TYPES: frozenset[str] = frozenset(
 # Seed directory path
 SEED_DIR = os.path.join(BASE_DIR, "seeds")
 
+# Only gates the schema routes; generate_openapi works without it.
 ENABLE_DRF_SPECTACULAR = os.environ.get("ENABLE_DRF_SPECTACULAR", "0") == "1"
 
-if ENABLE_DRF_SPECTACULAR:
-    REST_FRAMEWORK["DEFAULT_SCHEMA_CLASS"] = "drf_spectacular.openapi.AutoSchema"
-    INSTALLED_APPS.append("drf_spectacular")
-    from .openapi import SPECTACULAR_SETTINGS  # noqa: F401
+REST_FRAMEWORK["DEFAULT_SCHEMA_CLASS"] = "plane.utils.openapi.schema.AutoSchema"
+INSTALLED_APPS.append("drf_spectacular")
+from .openapi import SPECTACULAR_SETTINGS  # noqa: E402, F401

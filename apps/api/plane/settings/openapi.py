@@ -34,6 +34,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "SCHEMA_PATH_PREFIX": "/api/v1/",
     "SCHEMA_CACHE_TIMEOUT": 0,  # disables caching
+    "ENABLE_DJANGO_DEPLOY_CHECK": False,
     # ========================================================================
     # Processing Hooks
     # ========================================================================

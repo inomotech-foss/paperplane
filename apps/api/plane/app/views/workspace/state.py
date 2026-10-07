@@ -3,11 +3,12 @@
 # See the LICENSE file for details.
 
 # Third party modules
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
 # Module imports
-from plane.app.serializers import StateSerializer
+from plane.app.serializers import OrderedStateSerializer, StateSerializer
 from plane.app.views.base import BaseAPIView
 from plane.db.models import State
 from plane.app.permissions import WorkspaceEntityPermission
@@ -18,6 +19,7 @@ class WorkspaceStatesEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
     use_read_replica = True
 
+    @extend_schema(responses={200: OrderedStateSerializer(many=True)})
     def get(self, request, slug):
         states = State.objects.filter(
             workspace__slug=slug,

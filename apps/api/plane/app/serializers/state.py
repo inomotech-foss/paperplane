@@ -34,6 +34,28 @@ class StateSerializer(BaseSerializer):
         return attrs
 
 
+PROJECT_STATE_GROUP_CHOICES = [choice for choice in StateGroup.choices if choice[0] != StateGroup.TRIAGE]
+TRIAGE_STATE_GROUP_CHOICES = [(StateGroup.TRIAGE.value, StateGroup.TRIAGE.label)]
+
+
+class ProjectStateSerializer(StateSerializer):
+    """Schema only: the project state endpoints never return the triage state."""
+
+    group = serializers.ChoiceField(choices=PROJECT_STATE_GROUP_CHOICES)
+
+
+class OrderedStateSerializer(ProjectStateSerializer):
+    """Schema only: the list endpoints always set the in-group order."""
+
+    order = serializers.FloatField()
+
+
+class IntakeStateSerializer(StateSerializer):
+    """Schema only: the intake state is the project's triage state."""
+
+    group = serializers.ChoiceField(choices=TRIAGE_STATE_GROUP_CHOICES)
+
+
 class StateLiteSerializer(BaseSerializer):
     class Meta:
         model = State

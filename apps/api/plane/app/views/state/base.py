@@ -10,17 +10,24 @@ from collections import defaultdict
 from django.db.utils import IntegrityError
 
 # Third party imports
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework.response import Response
 from rest_framework import status
 
 # Module imports
 from .. import BaseViewSet, BaseAPIView
-from plane.app.serializers import StateSerializer
+from plane.app.serializers import (
+    IntakeStateSerializer,
+    OrderedStateSerializer,
+    ProjectStateSerializer,
+    StateSerializer,
+)
 from plane.app.permissions import ROLE, allow_permission
 from plane.db.models import State, Issue
 from plane.utils.cache import invalidate_cache
 
 
+@extend_schema_view(retrieve=extend_schema(responses=ProjectStateSerializer))
 class StateViewSet(BaseViewSet):
     serializer_class = StateSerializer
     model = State
@@ -42,6 +49,7 @@ class StateViewSet(BaseViewSet):
             .distinct()
         )
 
+    @extend_schema(responses={200: ProjectStateSerializer})
     @invalidate_cache(path="workspaces/:slug/states/", url_params=True, user=False)
     @allow_permission([ROLE.ADMIN])
     def create(self, request, slug, project_id):
@@ -58,6 +66,7 @@ class StateViewSet(BaseViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+    @extend_schema(responses={200: ProjectStateSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def partial_update(self, request, slug, project_id, pk):
         try:
@@ -74,6 +83,7 @@ class StateViewSet(BaseViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+    @extend_schema(responses={200: OrderedStateSerializer(many=True)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def list(self, request, slug, project_id):
         states = StateSerializer(self.get_queryset(), many=True).data
@@ -101,6 +111,7 @@ class StateViewSet(BaseViewSet):
 
         return Response(states, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Marked as default")})
     @invalidate_cache(path="workspaces/:slug/states/", url_params=True, user=False)
     @allow_permission([ROLE.ADMIN])
     def mark_as_default(self, request, slug, project_id, pk):
@@ -134,6 +145,7 @@ class StateViewSet(BaseViewSet):
 
 
 class IntakeStateEndpoint(BaseAPIView):
+    @extend_schema(responses={200: IntakeStateSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id):
         state = State.triage_objects.filter(workspace__slug=slug, project_id=project_id).first()
