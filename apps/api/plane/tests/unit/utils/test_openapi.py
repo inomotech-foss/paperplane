@@ -8,7 +8,7 @@ import pytest
 import yaml
 from django.core.management import CommandError, call_command
 from django.db.models import Q
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 from django.urls import path
 from drf_spectacular.generators import SchemaGenerator
 from drf_spectacular.settings import patched_settings
@@ -20,6 +20,7 @@ from rest_framework.request import Request
 from rest_framework.views import APIView
 
 from plane.app.serializers import IssueRelationSerializer, NotificationSerializer
+from plane.db.management.commands.generate_openapi import generate_schema
 from plane.db.models import Issue, IssueRelation, Notification, State, User
 from plane.tests.factories import ProjectFactory, WorkspaceFactory
 from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated_response
@@ -55,6 +56,12 @@ class TestGenerateOpenapi:
         assert "order" not in components["ProjectState"]["required"]
         assert "order" in components["OrderedState"]["required"]
         assert "id" not in components["StateRequest"].get("properties", {})
+
+    @override_settings(SESSION_COOKIE_NAME="foo")
+    def test_ignores_the_deployment_session_cookie_name(self):
+        schema, _ = generate_schema("internal")
+        schemes = schema["components"]["securitySchemes"]
+        assert schemes["cookieAuth"]["name"] == schemes["sessionAuth"]["name"] == "session-id"
 
     def test_rejects_unknown_surface(self, tmp_path):
         with pytest.raises(CommandError, match="Unknown surface: nope"):
