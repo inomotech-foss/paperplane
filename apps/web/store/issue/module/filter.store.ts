@@ -153,7 +153,7 @@ export class ModuleIssuesFilter extends IssueFilterHelperStore implements IModul
     const displayProperties: IIssueDisplayProperties = this.computedDisplayProperties(_filters?.display_properties);
 
     // fetching the kanban toggle helpers in the local storage
-    const kanbanFilters = {
+    const kanbanFilters: TIssueKanbanFilters = {
       group_by: [],
       sub_group_by: [],
     };

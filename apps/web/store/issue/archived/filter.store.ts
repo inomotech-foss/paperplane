@@ -139,13 +139,13 @@ export class ArchivedIssuesFilter extends IssueFilterHelperStore implements IArc
   fetchFilters = async (workspaceSlug: string, projectId: string) => {
     const _filters = this.handleIssuesLocalFilters.get(EIssuesStoreType.ARCHIVED, workspaceSlug, projectId, undefined);
 
-    const richFilters: TWorkItemFilterExpression = _filters?.rich_filters;
+    const richFilters: TWorkItemFilterExpression = _filters?.rich_filters ?? {};
     const displayFilters: IIssueDisplayFilterOptions = this.computedDisplayFilters({
       ..._filters?.display_filters,
       sub_issue: true,
     });
     const displayProperties: IIssueDisplayProperties = this.computedDisplayProperties(_filters?.display_properties);
-    const kanbanFilters = {
+    const kanbanFilters: TIssueKanbanFilters = {
       group_by: [],
       sub_group_by: [],
     };

@@ -140,7 +140,7 @@ export class ProfileIssuesFilter extends IssueFilterHelperStore implements IProf
     this.userId = userId;
     const _filters = this.handleIssuesLocalFilters.get(EIssuesStoreType.PROFILE, workspaceSlug, userId, undefined);
 
-    const richFilters: TWorkItemFilterExpression = _filters?.rich_filters;
+    const richFilters: TWorkItemFilterExpression = _filters?.rich_filters ?? {};
     const displayFilters: IIssueDisplayFilterOptions = this.computedDisplayFilters(_filters?.display_filters);
     const displayProperties: IIssueDisplayProperties = this.computedDisplayProperties(_filters?.display_properties);
     const kanbanFilters = {

@@ -142,7 +142,7 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
     const displayProperties = this.computedDisplayProperties(_filters?.display_properties);
 
     // fetching the kanban toggle helpers in the local storage
-    const kanbanFilters = {
+    const kanbanFilters: TIssueKanbanFilters = {
       group_by: [],
       sub_group_by: [],
     };

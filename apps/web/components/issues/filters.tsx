@@ -60,7 +60,9 @@ export const HeaderFilters = observer(function HeaderFilters(props: Props) {
   } = useIssues(storeType);
   // derived values
   const activeLayout = issueFilters?.displayFilters?.layout;
-  const layoutDisplayFiltersOptions = ISSUE_STORE_TO_FILTERS_MAP[storeType]?.layoutOptions[activeLayout];
+  const layoutDisplayFiltersOptions = activeLayout
+    ? ISSUE_STORE_TO_FILTERS_MAP[storeType]?.layoutOptions[activeLayout]
+    : undefined;
 
   const handleLayoutChange = useCallback(
     (layout: EIssueLayoutTypes) => {

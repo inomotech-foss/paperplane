@@ -4,6 +4,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EIssueFilterType } from "@plane/constants";
 import type { TWorkItemFilterExpression } from "@plane/types";
+import { EIssueLayoutTypes } from "@plane/types";
 import { ArchivedIssuesFilter } from "./archived/filter.store";
 import { ProjectViewIssuesFilter } from "./project-views/filter.store";
 import type { IIssueRootStore } from "./root.store";
@@ -21,7 +22,7 @@ afterEach(() => {
 
 describe("ArchivedIssuesFilter", () => {
   it("restores rich filters from local storage", async () => {
-    const richFilters = { state_id__in: "s1" } as unknown as TWorkItemFilterExpression;
+    const richFilters: TWorkItemFilterExpression = { state_id__in: "s1" };
     await new ArchivedIssuesFilter(makeRootStore()).updateFilterExpression("ws", "p1", richFilters);
 
     const store = new ArchivedIssuesFilter(makeRootStore());
@@ -44,7 +45,7 @@ describe("ProjectViewIssuesFilter", () => {
       },
     };
 
-    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { layout: "list" }, "v1");
+    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { layout: EIssueLayoutTypes.LIST }, "v1");
 
     expect(root.projectViewIssues.clear).toHaveBeenCalledWith(true);
     expect(root.projectIssues.clear).not.toHaveBeenCalled();

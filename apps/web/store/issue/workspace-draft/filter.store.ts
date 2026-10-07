@@ -142,7 +142,7 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
       undefined
     );
 
-    const richFilters: TWorkItemFilterExpression = _filters?.rich_filters;
+    const richFilters: TWorkItemFilterExpression = _filters?.rich_filters ?? {};
     const displayFilters: IIssueDisplayFilterOptions = this.computedDisplayFilters(_filters?.display_filters);
     const displayProperties: IIssueDisplayProperties = this.computedDisplayProperties(_filters?.display_properties);
     const kanbanFilters = {
