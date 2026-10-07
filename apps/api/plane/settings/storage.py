@@ -5,15 +5,22 @@
 # Python imports
 import os
 import uuid
+from functools import cached_property
 
 # Third party imports
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from urllib.parse import quote
 
 # Module imports
 from plane.utils.exception_logger import log_exception
 from storages.backends.s3boto3 import S3Boto3Storage
+
+# The boto3 default of a 60s connect timeout plus retries outlasts any proxy timeout.
+CLIENT_CONFIG = Config(
+    signature_version="s3v4", connect_timeout=5, read_timeout=60, retries={"total_max_attempts": 2, "mode": "standard"}
+)
 
 
 class S3Storage(S3Boto3Storage):
@@ -22,7 +29,7 @@ class S3Storage(S3Boto3Storage):
 
     """S3 storage class to generate presigned URLs for S3 objects"""
 
-    def __init__(self, request=None):
+    def __init__(self, request=None, is_server=False):
         # Get the AWS credentials and bucket name from the environment
         self.aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
         # Use the AWS_SECRET_ACCESS_KEY environment variable for the secret key
@@ -48,8 +55,12 @@ class S3Storage(S3Boto3Storage):
                 aws_access_key_id=self.aws_access_key_id,
                 aws_secret_access_key=self.aws_secret_access_key,
                 region_name=self.aws_region,
-                endpoint_url=(f"{endpoint_protocol}://{request.get_host()}" if request else self.aws_s3_endpoint_url),
-                config=boto3.session.Config(signature_version="s3v4"),
+                endpoint_url=(
+                    f"{endpoint_protocol}://{request.get_host()}"
+                    if request and not is_server
+                    else self.aws_s3_endpoint_url
+                ),
+                config=CLIENT_CONFIG,
             )
         else:
             # Create an S3 client
@@ -59,8 +70,27 @@ class S3Storage(S3Boto3Storage):
                 aws_secret_access_key=self.aws_secret_access_key,
                 region_name=self.aws_region,
                 endpoint_url=self.aws_s3_endpoint_url,
-                config=boto3.session.Config(signature_version="s3v4"),
+                config=CLIENT_CONFIG,
             )
+
+        # The request host may be unreachable from inside the cluster.
+        self.ops_endpoint_url = (
+            self.aws_s3_endpoint_url if os.environ.get("USE_MINIO") == "1" and request and not is_server else None
+        )
+
+    @cached_property
+    def ops_client(self):
+        """Client for server-side calls. s3_client signs URLs for the browser."""
+        if not self.ops_endpoint_url:
+            return self.s3_client
+        return boto3.client(
+            "s3",
+            aws_access_key_id=self.aws_access_key_id,
+            aws_secret_access_key=self.aws_secret_access_key,
+            region_name=self.aws_region,
+            endpoint_url=self.ops_endpoint_url,
+            config=CLIENT_CONFIG,
+        )
 
     def generate_presigned_post(self, object_name, file_type, file_size, expiration=None):
         """Generate a presigned URL to upload an S3 object"""
@@ -142,7 +172,7 @@ class S3Storage(S3Boto3Storage):
     def get_object_metadata(self, object_name):
         """Get the metadata for an S3 object"""
         try:
-            response = self.s3_client.head_object(Bucket=self.aws_storage_bucket_name, Key=object_name)
+            response = self.ops_client.head_object(Bucket=self.aws_storage_bucket_name, Key=object_name)
         except ClientError as e:
             # A missing object (upload never completed) is expected, not an error
             if e.response.get("Error", {}).get("Code") not in ("404", "NoSuchKey"):
@@ -160,7 +190,7 @@ class S3Storage(S3Boto3Storage):
     def get_object(self, object_name):
         """Open an S3 object for reading. The caller must consume or close the body."""
         try:
-            return self.s3_client.get_object(Bucket=self.aws_storage_bucket_name, Key=object_name)
+            return self.ops_client.get_object(Bucket=self.aws_storage_bucket_name, Key=object_name)
         except ClientError as e:
             log_exception(e)
             return None
@@ -168,7 +198,7 @@ class S3Storage(S3Boto3Storage):
     def copy_object(self, object_name, new_object_name):
         """Copy an S3 object to a new location"""
         try:
-            response = self.s3_client.copy_object(
+            response = self.ops_client.copy_object(
                 Bucket=self.aws_storage_bucket_name,
                 CopySource={"Bucket": self.aws_storage_bucket_name, "Key": object_name},
                 Key=new_object_name,
@@ -191,7 +221,7 @@ class S3Storage(S3Boto3Storage):
             if content_type:
                 extra_args["ContentType"] = content_type
 
-            self.s3_client.upload_fileobj(
+            self.ops_client.upload_fileobj(
                 file_obj,
                 self.aws_storage_bucket_name,
                 object_name,
@@ -205,7 +235,7 @@ class S3Storage(S3Boto3Storage):
     def delete_files(self, object_names):
         """Delete an S3 object"""
         try:
-            self.s3_client.delete_objects(
+            self.ops_client.delete_objects(
                 Bucket=self.aws_storage_bucket_name,
                 Delete={"Objects": [{"Key": object_name} for object_name in object_names]},
             )

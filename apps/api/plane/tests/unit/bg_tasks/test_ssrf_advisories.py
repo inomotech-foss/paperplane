@@ -41,7 +41,7 @@ from bs4 import BeautifulSoup
 
 from plane.utils.ip_address import validate_url
 from plane.bgtasks.work_item_link_task import fetch_and_encode_favicon, DEFAULT_FAVICON
-from plane.authentication.adapter.base import Adapter
+from plane.bgtasks.user_avatar_task import fetch_avatar_bytes
 
 
 def _addr(ip):
@@ -237,20 +237,15 @@ class TestFaviconRebinding:
 
 # ---------------------------------------------------------------------------
 # OAuth avatar SSRF — GHSA-cv9p-325g-wmv5 / GHSA-hx79-5pj5-qh42 (avatar hop)
-# download_and_upload_avatar must reject avatar URLs that point at, or redirect
-# to, internal addresses, returning None (no fetch stored as an asset).
+# fetch_avatar_bytes must reject avatar URLs that point at, or redirect to,
+# internal addresses, returning None (no fetch stored as an asset).
 # ---------------------------------------------------------------------------
 @pytest.mark.unit
 class TestOAuthAvatarSSRF:
-    def _adapter(self):
-        return Adapter(request=MagicMock(), provider="gitea")
-
     @patch("plane.utils.url_security.resolve_and_validate")
     def test_avatar_to_internal_ip_is_blocked(self, mock_resolve):
         mock_resolve.side_effect = ValueError(_BLOCKED)
-        result = self._adapter().download_and_upload_avatar(
-            "http://169.254.169.254/latest/meta-data/", user=MagicMock()
-        )
+        result = fetch_avatar_bytes("http://169.254.169.254/latest/meta-data/")
         assert result is None
         mock_resolve.assert_called()  # SSRF validation was actually attempted
 
@@ -261,15 +256,15 @@ class TestOAuthAvatarSSRF:
         mock_resolve.side_effect = [["93.184.216.34"], ValueError(_BLOCKED)]
         session = mock_session_cls.return_value
         session.request.return_value = _resp(302, headers={"Location": "http://169.254.169.254/imds"})
-        result = self._adapter().download_and_upload_avatar("https://evil.example.com/avatar", user=MagicMock())
+        result = fetch_avatar_bytes("https://evil.example.com/avatar")
         assert result is None
 
-    @patch("plane.authentication.adapter.base.pinned_fetch_following_redirects")
+    @patch("plane.bgtasks.user_avatar_task.pinned_fetch_following_redirects")
     def test_avatar_uses_ssrf_safe_client(self, mock_fetch):
         # Wiring guard: the avatar path must go through the pinned client, never
         # a raw requests.get (which would re-resolve + follow redirects freely).
         mock_fetch.side_effect = ValueError(_BLOCKED)
-        result = self._adapter().download_and_upload_avatar("https://cdn.example.com/a.png", user=MagicMock())
+        result = fetch_avatar_bytes("https://cdn.example.com/a.png")
         assert result is None
         assert mock_fetch.call_args.args[0] == "GET"
         assert mock_fetch.call_args.args[1] == "https://cdn.example.com/a.png"

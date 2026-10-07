@@ -77,7 +77,7 @@ class OauthAdapter(Adapter):
     def get_user_token(self, data, headers=None):
         try:
             headers = headers or {}
-            response = requests.post(self.get_token_url(), data=data, headers=headers)
+            response = requests.post(self.get_token_url(), data=data, headers=headers, timeout=10)
             response.raise_for_status()
             return response.json()
         except requests.RequestException:
@@ -88,7 +88,7 @@ class OauthAdapter(Adapter):
     def get_user_response(self):
         try:
             headers = {"Authorization": f"Bearer {self.token_data.get('access_token')}"}
-            response = requests.get(self.get_user_info_url(), headers=headers)
+            response = requests.get(self.get_user_info_url(), headers=headers, timeout=10)
             response.raise_for_status()
             return response.json()
         except requests.RequestException:
