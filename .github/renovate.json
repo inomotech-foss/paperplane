@@ -104,7 +104,7 @@
     {
       "description": "oxc lint/format tooling",
       "groupName": "oxc-tooling",
-      "matchPackageNames": ["oxlint", "oxfmt", "react-doctor"]
+      "matchPackageNames": ["oxlint", "oxlint-tsgolint", "oxfmt", "react-doctor"]
     },
     {
       "description": "Storybook",

@@ -7,6 +7,7 @@
 import { Redis as HocuspocusRedis } from "@hocuspocus/extension-redis";
 import { OutgoingMessage } from "@hocuspocus/server";
 import type { onConfigurePayload } from "@hocuspocus/server";
+import type IORedis from "ioredis";
 import { logger } from "@plane/logger";
 import { AppError } from "@/lib/errors";
 import { redisManager } from "@/redis";
@@ -22,6 +23,9 @@ const getRedisClient = () => {
 };
 
 export class Redis extends HocuspocusRedis {
+  // The base types these with ioredis 4, whose types it does not ship. They are duplicates of our ioredis 5 client.
+  declare pub: IORedis;
+  declare sub: IORedis;
   private adminHandlers = new Map<AdminCommand, AdminCommandHandler>();
   private readonly ADMIN_CHANNEL = "hocuspocus:admin";
 
@@ -34,7 +38,7 @@ export class Redis extends HocuspocusRedis {
 
     // Subscribe to admin channel
     await new Promise<void>((resolve, reject) => {
-      this.sub.subscribe(this.ADMIN_CHANNEL, (error: Error) => {
+      this.sub.subscribe(this.ADMIN_CHANNEL, (error?: Error | null) => {
         if (error) {
           logger.error(`[Redis] Failed to subscribe to admin channel:`, error);
           reject(error);
@@ -104,7 +108,7 @@ export class Redis extends HocuspocusRedis {
   async onDestroy() {
     // Unsubscribe from admin channel
     await new Promise<void>((resolve) => {
-      this.sub.unsubscribe(this.ADMIN_CHANNEL, (error: Error) => {
+      this.sub.unsubscribe(this.ADMIN_CHANNEL, (error?: Error | null) => {
         if (error) {
           logger.error(`[Redis] Error unsubscribing from admin channel:`, error);
         }
@@ -132,7 +136,7 @@ export class Redis extends HocuspocusRedis {
     const channel = this["pubKey"](documentName);
     const encodedMessage = Buffer.concat([emptyPrefix, Buffer.from(message.toUint8Array())]);
 
-    const result = await this.pub.publishBuffer(channel, encodedMessage);
+    const result = await this.pub.publish(channel, encodedMessage);
 
     logger.info(`REDIS_EXTENSION: Published to ${documentName}, ${result} subscribers`);
 

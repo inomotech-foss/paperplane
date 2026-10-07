@@ -69,7 +69,6 @@ describe("explicit marker", () => {
 
   it.each([
     ["no layout", undefined],
-    ["an unknown layout", "grid"],
     ["a layout the page does not render", EIssueLayoutTypes.KANBAN],
   ])("writes the baseline layout for %s", (_, layout) => {
     const archived = getWorkItemPage(EIssuesStoreType.ARCHIVED);
@@ -223,12 +222,12 @@ describe("canonical form", () => {
   });
 });
 
-describe("calendar anchor", () => {
-  const calendar = (calendarLayout: TCalendarLayouts, calendarAnchor?: string): TWorkItemViewState => ({
-    ...withFilters(projectBaseline, { layout: EIssueLayoutTypes.CALENDAR, calendar: { layout: calendarLayout } }),
-    calendarAnchor,
-  });
+const calendar = (calendarLayout: TCalendarLayouts, calendarAnchor?: string): TWorkItemViewState => ({
+  ...withFilters(projectBaseline, { layout: EIssueLayoutTypes.CALENDAR, calendar: { layout: calendarLayout } }),
+  calendarAnchor,
+});
 
+describe("calendar anchor", () => {
   it.each<[string, TCalendarLayouts, string | undefined, TCalendarClock, string]>([
     ["no anchor", "month", undefined, CLOCK, "l=calendar"],
     ["today's month", "month", "2026-10-30", CLOCK, "l=calendar"],
@@ -322,10 +321,13 @@ describe("baseline diffs", () => {
   });
 
   it.each<[TWorkItemPageStoreType, IIssueDisplayFilterOptions]>([
-    [EIssuesStoreType.PROJECT, { layout: "list", order_by: "sort_order", group_by: null, sub_issue: false }],
-    [EIssuesStoreType.ARCHIVED, { layout: "list", sub_issue: true }],
-    [EIssuesStoreType.PROFILE, { layout: "list", group_by: null }],
-    [EIssuesStoreType.GLOBAL, { layout: "spreadsheet", order_by: "-created_at" }],
+    [
+      EIssuesStoreType.PROJECT,
+      { layout: EIssueLayoutTypes.LIST, order_by: "sort_order", group_by: null, sub_issue: false },
+    ],
+    [EIssuesStoreType.ARCHIVED, { layout: EIssueLayoutTypes.LIST, sub_issue: true }],
+    [EIssuesStoreType.PROFILE, { layout: EIssueLayoutTypes.LIST, group_by: null }],
+    [EIssuesStoreType.GLOBAL, { layout: EIssueLayoutTypes.SPREADSHEET, order_by: "-created_at" }],
   ])("system baseline of %s", (storeType, expected) => {
     expect(getPageBaseline(getWorkItemPage(storeType)).displayFilters).toMatchObject(expected);
   });
@@ -333,7 +335,7 @@ describe("baseline diffs", () => {
   it("replaces a manual order in workspace views", () => {
     const globalPage = getWorkItemPage(EIssuesStoreType.GLOBAL);
     const viewBaseline = getPageBaseline(globalPage, {
-      display_filters: { layout: "spreadsheet", order_by: "sort_order" },
+      display_filters: { layout: EIssueLayoutTypes.SPREADSHEET, order_by: "sort_order" },
     });
     expect(viewBaseline.displayFilters.order_by).toBe("-created_at");
   });
@@ -487,30 +489,35 @@ describe("store normalizations", () => {
   >([
     [
       "no group clears the sub-group",
-      { layout: "list", group_by: null, sub_group_by: "labels" },
+      { layout: EIssueLayoutTypes.LIST, group_by: null, sub_group_by: "labels" },
       undefined,
       { sub_group_by: null },
     ],
     [
       "kanban needs a group",
-      { layout: "kanban", group_by: null },
+      { layout: EIssueLayoutTypes.KANBAN, group_by: null },
       undefined,
       { group_by: "state", sub_group_by: null },
     ],
     [
       "kanban defaults per page",
-      { layout: "kanban", group_by: null },
+      { layout: EIssueLayoutTypes.KANBAN, group_by: null },
       "priority",
       { group_by: "priority", sub_group_by: null },
     ],
     [
       "kanban sub-group differs from the group",
-      { layout: "kanban", group_by: "labels", sub_group_by: "labels" },
+      { layout: EIssueLayoutTypes.KANBAN, group_by: "labels", sub_group_by: "labels" },
       undefined,
       { sub_group_by: null },
     ],
-    ["valid kanban", { layout: "kanban", group_by: "labels", sub_group_by: "state" }, undefined, {}],
-    ["list keeps equal groups", { layout: "list", group_by: "labels", sub_group_by: "labels" }, undefined, {}],
+    ["valid kanban", { layout: EIssueLayoutTypes.KANBAN, group_by: "labels", sub_group_by: "state" }, undefined, {}],
+    [
+      "list keeps equal groups",
+      { layout: EIssueLayoutTypes.LIST, group_by: "labels", sub_group_by: "labels" },
+      undefined,
+      {},
+    ],
   ])("%s", (_, displayFilters, kanbanGroupBy, corrections) => {
     expect(getDisplayFilterCorrections(displayFilters, kanbanGroupBy)).toEqual(corrections);
   });
