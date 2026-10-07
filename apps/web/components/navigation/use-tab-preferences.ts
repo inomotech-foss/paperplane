@@ -8,7 +8,6 @@ import { useMemo } from "react";
 import { setToast } from "@plane/blocks/toast";
 import { useMember } from "@/hooks/store/use-member";
 import { useUser } from "@/hooks/store/user";
-import { DEFAULT_TAB_KEY } from "./tab-navigation-utils";
 import type { TTabPreferences } from "./tab-navigation-utils";
 
 export type TTabPreferencesHook = {
@@ -40,14 +39,14 @@ export const useTabPreferences = (workspaceSlug: string, projectId: string): TTa
 
   // Get preferences from store
   const storePreferences = getProjectUserProperties(projectId);
-  const defaultTab = storePreferences?.preferences?.navigation?.default_tab || DEFAULT_TAB_KEY;
-  const hideInMoreMenu = storePreferences?.preferences?.navigation?.hide_in_more_menu || [];
+  const defaultTab = storePreferences?.preferences?.navigation?.default_tab || undefined;
+  const hideInMoreMenu = storePreferences?.preferences?.navigation?.hide_in_more_menu;
 
   // Convert store preferences to component format
   const tabPreferences: TTabPreferences = useMemo(() => {
     return {
       defaultTab,
-      hiddenTabs: hideInMoreMenu,
+      hiddenTabs: hideInMoreMenu ?? [],
     };
   }, [defaultTab, hideInMoreMenu]);
 
@@ -61,7 +60,7 @@ export const useTabPreferences = (workspaceSlug: string, projectId: string): TTa
       preferences: {
         pages: storePreferences?.preferences?.pages || { block_display: false },
         navigation: {
-          default_tab: newPreferences.defaultTab,
+          default_tab: newPreferences.defaultTab ?? "",
           hide_in_more_menu: newPreferences.hiddenTabs,
         },
       },
@@ -70,10 +69,10 @@ export const useTabPreferences = (workspaceSlug: string, projectId: string): TTa
 
   /**
    * Toggle default tab setting
-   * If tab is already default, resets to work_items; otherwise sets as default
+   * If tab is already default, clears the default; otherwise sets as default
    */
   const handleToggleDefaultTab = (tabKey: string) => {
-    const newDefaultTab = tabKey === tabPreferences.defaultTab ? DEFAULT_TAB_KEY : tabKey;
+    const newDefaultTab = tabKey === tabPreferences.defaultTab ? undefined : tabKey;
     const newPreferences = { ...tabPreferences, defaultTab: newDefaultTab };
     updatePreferences(newPreferences)
       .then(() => {

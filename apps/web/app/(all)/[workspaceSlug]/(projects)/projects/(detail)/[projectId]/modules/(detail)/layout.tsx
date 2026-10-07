@@ -8,19 +8,18 @@ import { Outlet } from "react-router";
 // components
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
-import { ProjectWorkItemsGuard } from "@/components/project/work-items-guard";
+import { ProjectFeatureGuard } from "@/components/project/features/feature-guard";
 import { ModuleIssuesHeader } from "./header";
 import { ModuleIssuesMobileHeader } from "./mobile-header";
+import type { Route } from "./+types/layout";
 
-export default function ProjectModuleIssuesLayout() {
+export default function ProjectModuleIssuesLayout({ params }: Route.ComponentProps) {
   return (
-    <>
+    <ProjectFeatureGuard feature="modules" workspaceSlug={params.workspaceSlug} projectId={params.projectId}>
       <AppHeader header={<ModuleIssuesHeader />} mobileHeader={<ModuleIssuesMobileHeader />} />
       <ContentWrapper>
-        <ProjectWorkItemsGuard>
-          <Outlet />
-        </ProjectWorkItemsGuard>
+        <Outlet />
       </ContentWrapper>
-    </>
+    </ProjectFeatureGuard>
   );
 }

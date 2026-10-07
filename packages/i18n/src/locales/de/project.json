@@ -327,6 +327,13 @@
           "text": "Funktionen verwalten"
         }
       },
+      "no_features": {
+        "title": "Für dieses Projekt sind keine Funktionen aktiviert.",
+        "description": "Aktivieren Sie eine Funktion in den Projekteinstellungen, um dieses Projekt zu verwenden.",
+        "primary_button": {
+          "text": "Funktionen verwalten"
+        }
+      },
       "page": {
         "title": "Seiten sind nicht aktiviert",
         "description": "Aktivieren Sie Seiten in den Projekteinstellungen.",

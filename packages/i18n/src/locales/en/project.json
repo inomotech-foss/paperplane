@@ -306,6 +306,13 @@
           "text": "Manage features"
         }
       },
+      "no_features": {
+        "title": "No features are enabled for this project.",
+        "description": "Enable a feature from project settings to start using this project.",
+        "primary_button": {
+          "text": "Manage features"
+        }
+      },
       "inbox": {
         "title": "Intake is not enabled for the project.",
         "description": "Intake helps you manage incoming requests to your project and add them as work items in your workflow. Enable intake from project settings to manage requests.",

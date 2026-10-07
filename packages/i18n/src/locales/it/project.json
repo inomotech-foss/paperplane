@@ -327,6 +327,13 @@
           "text": "Gestisci funzionalità"
         }
       },
+      "no_features": {
+        "title": "Nessuna funzionalità è abilitata per questo progetto.",
+        "description": "Abiliti una funzionalità dalle impostazioni del progetto per iniziare a usare questo progetto.",
+        "primary_button": {
+          "text": "Gestisci funzionalità"
+        }
+      },
       "page": {
         "title": "Le pagine non sono abilitate per il progetto.",
         "description": "Le pagine sono i blocchi costitutivi del tuo progetto. Abilita le pagine dalle impostazioni del progetto per iniziare a usarle.",

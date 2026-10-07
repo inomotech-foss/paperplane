@@ -11,16 +11,14 @@ import { useTranslation } from "@plane/i18n";
 import { ProjectsOutline } from "@makeplane/propel/icons";
 import type { TLogoProps } from "@plane/types";
 import { Select } from "@plane/blocks/select";
+// components
+import { getProjectUrl } from "@/components/project/features/features";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
-import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
 // local imports
 import { SwitcherIcon } from "../common/switcher-label";
 import { ProjectHeaderButton } from "./project-header-button";
-import { getTabUrl } from "./tab-navigation-utils";
-import { useTabPreferences } from "./use-tab-preferences";
-import { useNavigationItems } from "./use-navigation-items";
 
 type TProjectHeaderProps = {
   workspaceSlug: string;
@@ -41,33 +39,9 @@ export const ProjectHeader = observer(function ProjectHeader(props: TProjectHead
   const router = useAppRouter();
   // store hooks
   const { joinedProjectIds, getPartialProjectById } = useProject();
-  const { allowPermissions } = useUserPermissions();
 
   // Get current project details
   const currentProjectDetails = getPartialProjectById(projectId);
-
-  // Get available navigation items for this project
-  const navigationItems = useNavigationItems({
-    workspaceSlug: workspaceSlug,
-    projectId,
-    project: currentProjectDetails,
-    allowPermissions,
-  });
-
-  // Get preferences from hook
-  const { tabPreferences } = useTabPreferences(workspaceSlug, projectId);
-
-  // Memoize available tab keys
-  const availableTabKeys = useMemo(() => navigationItems.map((item) => item.key), [navigationItems]);
-
-  // Memoize validated default tab key
-  const validatedDefaultTabKey = useMemo(
-    () =>
-      availableTabKeys.includes(tabPreferences.defaultTab)
-        ? tabPreferences.defaultTab
-        : availableTabKeys[0] || "work_items",
-    [availableTabKeys, tabPreferences.defaultTab]
-  );
 
   // Memoize switcher options to prevent recalculation on every render
   const switcherOptions = useMemo<TProjectSwitcherOption[]>(
@@ -91,10 +65,10 @@ export const ProjectHeader = observer(function ProjectHeader(props: TProjectHead
   const handleProjectChange = useCallback(
     (value: string) => {
       if (value !== currentProjectDetails?.id) {
-        router.push(getTabUrl(workspaceSlug, value, validatedDefaultTabKey));
+        router.push(getProjectUrl(workspaceSlug, value));
       }
     },
-    [currentProjectDetails?.id, router, workspaceSlug, validatedDefaultTabKey]
+    [currentProjectDetails?.id, router, workspaceSlug]
   );
 
   // Early return if no project details

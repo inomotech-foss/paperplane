@@ -7,20 +7,19 @@
 import { Outlet } from "react-router";
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
-import { ProjectWorkItemsGuard } from "@/components/project/work-items-guard";
+import { ProjectFeatureGuard } from "@/components/project/features/feature-guard";
 // local components
 import { ProjectViewsHeader } from "./header";
 import { ViewMobileHeader } from "./mobile-header";
+import type { Route } from "./+types/layout";
 
-export default function ProjectViewsListLayout() {
+export default function ProjectViewsListLayout({ params }: Route.ComponentProps) {
   return (
-    <>
+    <ProjectFeatureGuard feature="views" workspaceSlug={params.workspaceSlug} projectId={params.projectId}>
       <AppHeader header={<ProjectViewsHeader />} mobileHeader={<ViewMobileHeader />} />
       <ContentWrapper>
-        <ProjectWorkItemsGuard>
-          <Outlet />
-        </ProjectWorkItemsGuard>
+        <Outlet />
       </ContentWrapper>
-    </>
+    </ProjectFeatureGuard>
   );
 }

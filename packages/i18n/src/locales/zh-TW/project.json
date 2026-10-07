@@ -327,6 +327,13 @@
           "text": "管理功能"
         }
       },
+      "no_features": {
+        "title": "此專案未啟用任何功能。",
+        "description": "請在專案設定中啟用功能以開始使用此專案。",
+        "primary_button": {
+          "text": "管理功能"
+        }
+      },
       "page": {
         "title": "頁面未啟用於此專案。",
         "description": "頁面是專案的基本組成部分。從專案設定啟用頁面以開始使用。",

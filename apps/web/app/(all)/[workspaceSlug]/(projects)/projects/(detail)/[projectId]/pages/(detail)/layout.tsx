@@ -10,6 +10,7 @@ import useSWR from "swr";
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
 import { PageDetailsTreeSidebar } from "@/components/pages/detail-sidebar/root";
+import { ProjectFeatureGuard } from "@/components/project/features/feature-guard";
 // plane web hooks
 import { EPageStoreType, usePageStore } from "@/hooks/store";
 // local components
@@ -22,7 +23,7 @@ export default function ProjectPageDetailsLayout({ params }: Route.ComponentProp
   // fetching pages list
   useSWR(`PROJECT_PAGES_${projectId}`, () => fetchPagesList(workspaceSlug, projectId));
   return (
-    <>
+    <ProjectFeatureGuard feature="pages" workspaceSlug={workspaceSlug} projectId={projectId}>
       <AppHeader header={<PageDetailsHeader />} />
       <div className="flex min-h-0 w-full flex-1 overflow-hidden">
         <PageDetailsTreeSidebar />
@@ -32,6 +33,6 @@ export default function ProjectPageDetailsLayout({ params }: Route.ComponentProp
           </ContentWrapper>
         </div>
       </div>
-    </>
+    </ProjectFeatureGuard>
   );
 }

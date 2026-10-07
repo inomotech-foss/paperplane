@@ -327,6 +327,13 @@
           "text": "Quản lý tính năng"
         }
       },
+      "no_features": {
+        "title": "Dự án này chưa bật tính năng nào.",
+        "description": "Bật một tính năng từ cài đặt dự án để bắt đầu sử dụng dự án này.",
+        "primary_button": {
+          "text": "Quản lý tính năng"
+        }
+      },
       "page": {
         "title": "Dự án chưa bật tính năng trang.",
         "description": "Trang là khối xây dựng cơ bản của dự án. Bật trang từ cài đặt dự án để bắt đầu sử dụng chúng.",
