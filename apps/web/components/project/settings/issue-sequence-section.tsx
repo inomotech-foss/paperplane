@@ -25,7 +25,7 @@ export const ProjectIssueSequenceSection = observer(function ProjectIssueSequenc
   // states
   const [isModalOpen, setIsModalOpen] = useState(false);
   // store hooks
-  const { currentProjectDetails, fetchProjectDetails } = useProject();
+  const { currentProjectDetails, setProjectNextSequence } = useProject();
 
   if (!currentProjectDetails) return null;
 
@@ -41,7 +41,7 @@ export const ProjectIssueSequenceSection = observer(function ProjectIssueSequenc
           nextSequence={nextSequence}
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          onUpdated={() => fetchProjectDetails(workspaceSlug, projectId)}
+          onUpdated={(next) => setProjectNextSequence(projectId, next)}
         />
       )}
       <SettingsBoxedControlItem

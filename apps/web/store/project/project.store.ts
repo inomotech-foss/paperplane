@@ -54,6 +54,7 @@ export interface IProjectStore {
 
   // helper actions
   processProjectAfterCreation: (workspaceSlug: string, data: TProject) => void;
+  setProjectNextSequence: (projectId: string, nextSequence: number) => void;
 
   // fetch actions
   fetchPartialProjects: (workspaceSlug: string) => Promise<TPartialProject[]>;
@@ -118,6 +119,7 @@ export class ProjectStore implements IProjectStore {
       currentProjectNextSequenceId: computed,
       // helper actions
       processProjectAfterCreation: action,
+      setProjectNextSequence: action,
       // fetch actions
       fetchPartialProjects: action,
       fetchProjects: action,
@@ -299,6 +301,12 @@ export class ProjectStore implements IProjectStore {
       set(this.projectMap, [data.id], data);
       // updating the user project role in workspaceProjectsPermissions
       set(this.rootStore.user.permission.workspaceProjectsPermissions, [workspaceSlug, data.id], data.member_role);
+    });
+  };
+
+  setProjectNextSequence = (projectId: string, nextSequence: number) => {
+    runInAction(() => {
+      set(this.projectMap, [projectId, "next_work_item_sequence"], nextSequence);
     });
   };
 

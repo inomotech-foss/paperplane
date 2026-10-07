@@ -31,7 +31,7 @@ type Props = {
   nextSequence: number;
   isOpen: boolean;
   onClose: () => void;
-  onUpdated: () => void;
+  onUpdated: (nextSequence: number) => void;
 };
 
 const projectService = new ProjectService();
@@ -77,7 +77,7 @@ export function IssueSequenceStartModal(props: Props) {
           title: "Numbering updated",
           message: `The next work item will be ${identifier}-${updated.next_sequence}.`,
         });
-        onUpdated();
+        onUpdated(updated.next_sequence);
         handleClose();
         return;
       })
