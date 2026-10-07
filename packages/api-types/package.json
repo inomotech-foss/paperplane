@@ -1,0 +1,32 @@
+{
+  "name": "@plane/api-types",
+  "version": "1.4.2",
+  "private": true,
+  "description": "TypeScript types generated from the API's OpenAPI schemas",
+  "license": "AGPL-3.0",
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "generate": "openapi-typescript ../../apps/api/openapi/internal.yaml -o src/generated/internal.ts && openapi-typescript ../../apps/api/openapi/admin.yaml -o src/generated/admin.ts && openapi-typescript ../../apps/api/openapi/v1.yaml -o src/generated/v1.ts",
+    "check:lint": "oxlint --max-warnings=0 .",
+    "check:types": "tsc --noEmit",
+    "check:format": "oxfmt --check .",
+    "fix:lint": "oxlint --fix .",
+    "fix:format": "oxfmt .",
+    "clean": "rm -rf .turbo && rm -rf node_modules"
+  },
+  "dependencies": {
+    "openapi-typescript-helpers": "catalog:"
+  },
+  "devDependencies": {
+    "@plane/typescript-config": "workspace:*",
+    "openapi-typescript": "catalog:",
+    "typescript": "catalog:"
+  }
+}

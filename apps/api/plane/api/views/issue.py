@@ -2298,15 +2298,13 @@ class IssueAttachmentDetailAPIEndpoint(BaseAPIView):
         ],
         request=OpenApiRequest(
             request={
-                "application/json": {
-                    "type": "object",
-                    "properties": {
-                        "is_uploaded": {
-                            "type": "boolean",
-                            "description": "Mark attachment as uploaded",
-                        }
-                    },
-                }
+                "type": "object",
+                "properties": {
+                    "is_uploaded": {
+                        "type": "boolean",
+                        "description": "Mark attachment as uploaded",
+                    }
+                },
             },
             examples=[ATTACHMENT_UPLOAD_CONFIRM_EXAMPLE],
         ),

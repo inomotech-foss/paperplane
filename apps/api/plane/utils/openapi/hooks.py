@@ -23,6 +23,20 @@ def preprocess_filter_api_v1_paths(endpoints):
     return filtered
 
 
+ADMIN_PATH_PREFIX = "/api/instances/"
+V1_PATH_PREFIX = "/api/v1/"
+
+
+def preprocess_filter_internal_paths(endpoints):
+    """Keep the session-authenticated paths the web and space apps call."""
+    return [endpoint for endpoint in endpoints if not endpoint[0].startswith((V1_PATH_PREFIX, ADMIN_PATH_PREFIX))]
+
+
+def preprocess_filter_admin_paths(endpoints):
+    """Keep the instance admin paths the admin app calls."""
+    return [endpoint for endpoint in endpoints if endpoint[0].startswith(ADMIN_PATH_PREFIX)]
+
+
 def generate_operation_summary(method, path, tag):
     """
     Generate a human-readable summary for an operation.

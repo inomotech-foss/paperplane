@@ -21,3 +21,4 @@ export * from "./label";
 export * from "./state";
 export * from "./issue";
 export * from "./helpers";
+export * from "./client";

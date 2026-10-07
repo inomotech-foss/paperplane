@@ -11,6 +11,7 @@ import { setToast } from "@plane/blocks/toast";
 import type { IState, TStateGroups, TStateOperationsCallbacks } from "@plane/types";
 // components
 import { StateForm } from "@/components/project-states";
+import { isStateNameTaken, serverErrorMessage } from "./errors";
 
 type TStateCreate = {
   groupKey: TStateGroups;
@@ -33,7 +34,12 @@ export const StateCreate = observer(function StateCreate(props: TStateCreate) {
     if (!groupKey) return { status: "error" };
 
     try {
-      await createStateCallback({ ...formData, group: groupKey });
+      await createStateCallback({
+        name: formData.name ?? "",
+        color: formData.color ?? "",
+        description: formData.description ?? "",
+        group: groupKey,
+      });
 
       setToast({
         type: "success",
@@ -43,8 +49,7 @@ export const StateCreate = observer(function StateCreate(props: TStateCreate) {
       handleClose();
       return { status: "success" };
     } catch (error) {
-      const errorStatus = error as { status: number; data: { error: string } };
-      if (errorStatus?.status === 400) {
+      if (isStateNameTaken(error)) {
         setToast({
           type: "error",
           title: "Error!",
@@ -55,7 +60,7 @@ export const StateCreate = observer(function StateCreate(props: TStateCreate) {
         setToast({
           type: "error",
           title: "Error!",
-          message: errorStatus.data.error ?? "State could not be created. Please try again.",
+          message: serverErrorMessage(error) ?? "State could not be created. Please try again.",
         });
         return { status: "error" };
       }

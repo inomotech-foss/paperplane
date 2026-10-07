@@ -33,8 +33,6 @@ class IntakeIssuePublicViewSet(BaseViewSet):
     serializer_class = IntakeIssueSerializer
     model = IntakeIssue
 
-    filterset_fields = ["status"]
-
     def get_queryset(self):
         project_deploy_board = DeployBoard.objects.get(
             workspace__slug=self.kwargs.get("slug"),

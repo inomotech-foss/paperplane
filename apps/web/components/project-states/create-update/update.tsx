@@ -10,6 +10,7 @@ import { setToast } from "@plane/blocks/toast";
 import type { IState, TStateOperationsCallbacks } from "@plane/types";
 // components
 import { StateForm } from "@/components/project-states";
+import { isStateNameTaken, serverErrorMessage } from "./errors";
 
 type TStateUpdate = {
   state: IState;
@@ -40,8 +41,7 @@ export const StateUpdate = observer(function StateUpdate(props: TStateUpdate) {
       handleClose();
       return { status: "success" };
     } catch (error) {
-      const errorStatus = error as { status: number };
-      if (errorStatus?.status === 400) {
+      if (isStateNameTaken(error)) {
         setToast({
           type: "error",
           title: "Error!",
@@ -52,7 +52,7 @@ export const StateUpdate = observer(function StateUpdate(props: TStateUpdate) {
         setToast({
           type: "error",
           title: "Error!",
-          message: "State could not be updated. Please try again.",
+          message: serverErrorMessage(error) ?? "State could not be updated. Please try again.",
         });
         return { status: "error" };
       }

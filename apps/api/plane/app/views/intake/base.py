@@ -96,8 +96,6 @@ class IntakeIssueViewSet(BaseViewSet):
     serializer_class = IntakeIssueSerializer
     model = IntakeIssue
 
-    filterset_fields = ["status"]
-
     def get_queryset(self):
         return (
             Issue.objects.filter(

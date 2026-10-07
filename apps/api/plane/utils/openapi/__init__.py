@@ -14,7 +14,11 @@ This module provides reusable components for API documentation:
 """
 
 # Authentication extensions
-from .auth import APIKeyAuthenticationExtension
+from .auth import (
+    APIKeyAuthenticationExtension,
+    OAuthBearerAuthenticationExtension,
+    SessionAuthenticationExtension,
+)
 
 # Parameters
 from .parameters import (
@@ -193,6 +197,8 @@ from .hooks import (
 __all__ = [
     # Authentication
     "APIKeyAuthenticationExtension",
+    "OAuthBearerAuthenticationExtension",
+    "SessionAuthenticationExtension",
     # Parameters
     "WORKSPACE_SLUG_PARAMETER",
     "PROJECT_ID_PARAMETER",
