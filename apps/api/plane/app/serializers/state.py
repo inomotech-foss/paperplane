@@ -10,7 +10,7 @@ from plane.db.models import State, StateGroup
 
 
 class StateSerializer(BaseSerializer):
-    order = serializers.FloatField(required=False)
+    order = serializers.FloatField(read_only=True)
 
     class Meta:
         model = State
