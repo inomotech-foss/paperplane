@@ -454,16 +454,7 @@ class ProjectArchiveUnarchiveEndpoint(BaseAPIView):
 
 
 class ProjectIssueSequenceEndpoint(BaseAPIView):
-    """Read and move the number the next work item created in a project receives."""
-
-    @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
-    def get(self, request, slug, project_id):
-        project = Project.objects.get(pk=project_id, workspace__slug=slug)
-        last_sequence = get_last_issue_sequence(project)
-        return Response(
-            {"last_sequence": last_sequence, "next_sequence": last_sequence + 1},
-            status=status.HTTP_200_OK,
-        )
+    """Move the number the next work item created in a project receives."""
 
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):

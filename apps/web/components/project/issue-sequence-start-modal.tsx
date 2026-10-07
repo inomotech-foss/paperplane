@@ -23,22 +23,21 @@ import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { setToast } from "@plane/blocks/toast";
 // services
 import { ProjectService } from "@/services/project";
-import type { TProjectIssueSequence } from "@/services/project";
 
 type Props = {
   workspaceSlug: string;
   projectId: string;
   identifier: string;
-  sequence: TProjectIssueSequence;
+  nextSequence: number;
   isOpen: boolean;
   onClose: () => void;
-  onUpdated: (sequence: TProjectIssueSequence) => void;
+  onUpdated: () => void;
 };
 
 const projectService = new ProjectService();
 
 export function IssueSequenceStartModal(props: Props) {
-  const { workspaceSlug, projectId, identifier, sequence, isOpen, onClose, onUpdated } = props;
+  const { workspaceSlug, projectId, identifier, nextSequence, isOpen, onClose, onUpdated } = props;
   // states
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +46,8 @@ export function IssueSequenceStartModal(props: Props) {
   const { t } = useTranslation();
   // derived values
   const start = /^\d+$/.test(value.trim()) ? Number(value.trim()) : null;
-  const isValid = start !== null && start > sequence.last_sequence;
+  const lastSequence = nextSequence - 1;
+  const isValid = start !== null && start > lastSequence;
 
   const handleClose = () => {
     setValue("");
@@ -62,8 +62,8 @@ export function IssueSequenceStartModal(props: Props) {
       setError("Enter a whole number.");
       return;
     }
-    if (start <= sequence.last_sequence) {
-      setError(`The number must be greater than ${sequence.last_sequence}.`);
+    if (start <= lastSequence) {
+      setError(`The number must be greater than ${lastSequence}.`);
       return;
     }
 
@@ -77,7 +77,7 @@ export function IssueSequenceStartModal(props: Props) {
           title: "Numbering updated",
           message: `The next work item will be ${identifier}-${updated.next_sequence}.`,
         });
-        onUpdated(updated);
+        onUpdated();
         handleClose();
         return;
       })
@@ -104,9 +104,9 @@ export function IssueSequenceStartModal(props: Props) {
             </DialogHeader>
             <DialogBody>
               <p className="text-13 text-secondary">
-                The next work item created in this project is currently {identifier}-{sequence.next_sequence}. Enter the
-                number the next work item should receive instead. Numbers only count up, and existing work items keep
-                their numbers.
+                The next work item created in this project is currently {identifier}-{nextSequence}. Enter the number
+                the next work item should receive instead. Numbers only count up, and existing work items keep their
+                numbers.
               </p>
               <div className="mt-4 flex flex-col gap-1">
                 <label htmlFor="issue-sequence-start" className="text-13">
@@ -128,7 +128,7 @@ export function IssueSequenceStartModal(props: Props) {
                           setValue(e.target.value);
                           setError(null);
                         }}
-                        placeholder={String(sequence.next_sequence)}
+                        placeholder={String(nextSequence)}
                       />
                     </InputGroup>
                   </Field>

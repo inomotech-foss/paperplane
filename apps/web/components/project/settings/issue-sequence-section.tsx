@@ -6,15 +6,12 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import useSWR from "swr";
 // plane imports
 import { Button } from "@makeplane/propel/components/button";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
-// services
-import { ProjectService } from "@/services/project";
 // local imports
 import { IssueSequenceStartModal } from "../issue-sequence-start-modal";
 
@@ -23,52 +20,45 @@ type Props = {
   projectId: string;
 };
 
-const projectService = new ProjectService();
-
 export const ProjectIssueSequenceSection = observer(function ProjectIssueSequenceSection(props: Props) {
   const { workspaceSlug, projectId } = props;
   // states
   const [isModalOpen, setIsModalOpen] = useState(false);
   // store hooks
-  const { currentProjectDetails } = useProject();
-  // fetch the current numbering
-  const { data: sequence, mutate } = useSWR(
-    workspaceSlug && projectId ? `PROJECT_ISSUE_SEQUENCE_${workspaceSlug}_${projectId}` : null,
-    workspaceSlug && projectId ? () => projectService.getIssueSequence(workspaceSlug, projectId) : null
-  );
+  const { currentProjectDetails, fetchProjectDetails } = useProject();
 
   if (!currentProjectDetails) return null;
 
-  const identifier = currentProjectDetails.identifier;
+  const { identifier, next_work_item_sequence: nextSequence } = currentProjectDetails;
 
   return (
     <div className="mt-10">
-      {sequence && (
+      {nextSequence !== undefined && (
         <IssueSequenceStartModal
           workspaceSlug={workspaceSlug}
           projectId={projectId}
           identifier={identifier}
-          sequence={sequence}
+          nextSequence={nextSequence}
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          onUpdated={(updated) => mutate(updated, { revalidate: false })}
+          onUpdated={() => fetchProjectDetails(workspaceSlug, projectId)}
         />
       )}
       <SettingsBoxedControlItem
         title="Work item numbering"
         description={
-          sequence ? (
-            <>
-              The next work item created in this project will be{" "}
+          <>
+            The next work item created in this project will be{" "}
+            {nextSequence !== undefined ? (
               <span className="font-medium text-primary">
-                {identifier}-{sequence.next_sequence}
+                {identifier}-{nextSequence}
               </span>
-              . You can move the numbering forward, for example to start new work items at {identifier}-5000. Existing
-              work items keep their numbers.
-            </>
-          ) : (
-            "Loading the current numbering."
-          )
+            ) : (
+              <span className="inline-block h-3 w-16 animate-pulse rounded-sm bg-layer-1 align-middle" />
+            )}
+            . You can move the numbering forward, for example to start new work items at {identifier}-5000. Existing
+            work items keep their numbers.
+          </>
         }
         control={
           <Button
@@ -76,7 +66,7 @@ export const ProjectIssueSequenceSection = observer(function ProjectIssueSequenc
             size="sm"
             stretch="auto"
             onClick={() => setIsModalOpen(true)}
-            disabled={!sequence}
+            disabled={nextSequence === undefined}
             label="Change"
           />
         }

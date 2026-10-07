@@ -29,43 +29,6 @@ def url(workspace, project):
 
 @pytest.mark.contract
 @pytest.mark.django_db
-class TestProjectIssueSequenceGet:
-    def test_reports_the_next_number_for_an_empty_project(self, session_client, workspace, project, create_user):
-        ProjectMember.objects.create(project=project, member=create_user, role=15)
-
-        response = session_client.get(url(workspace, project))
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data == {"last_sequence": 0, "next_sequence": 1}
-
-    def test_reports_the_next_number_after_existing_items(self, session_client, workspace, project, create_user):
-        ProjectMember.objects.create(project=project, member=create_user, role=20)
-        create_issue(project, "First")
-        create_issue(project, "Second")
-
-        response = session_client.get(url(workspace, project))
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data == {"last_sequence": 2, "next_sequence": 3}
-
-    def test_guests_cannot_read_it(self, session_client, workspace, project, create_user):
-        demote_from_workspace_admin(workspace, create_user)
-        ProjectMember.objects.create(project=project, member=create_user, role=5)
-
-        response = session_client.get(url(workspace, project))
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-
-    def test_non_members_cannot_read_it(self, session_client, workspace, project, create_user):
-        demote_from_workspace_admin(workspace, create_user)
-
-        response = session_client.get(url(workspace, project))
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-
-
-@pytest.mark.contract
-@pytest.mark.django_db
 class TestProjectIssueSequencePost:
     def test_next_item_receives_the_start_number(self, session_client, workspace, project, create_user):
         ProjectMember.objects.create(project=project, member=create_user, role=20)
@@ -79,6 +42,16 @@ class TestProjectIssueSequencePost:
         assert create_issue(project, "Third").sequence_id == 5001
         first.refresh_from_db()
         assert first.sequence_id == 1
+
+    def test_project_details_report_the_new_next_number(self, session_client, workspace, project, create_user):
+        ProjectMember.objects.create(project=project, member=create_user, role=20)
+        create_issue(project, "First")
+
+        session_client.post(url(workspace, project), {"start": 5000}, format="json")
+        response = session_client.get(f"/api/workspaces/{workspace.slug}/projects/{project.id}/")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["next_work_item_sequence"] == 5000
 
     def test_accepts_a_numeric_string(self, session_client, workspace, project, create_user):
         ProjectMember.objects.create(project=project, member=create_user, role=20)
