@@ -61,5 +61,8 @@
       "use_this": "Використати це",
       "refine": "Уточнити"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Не в проєкті"
   }
 }

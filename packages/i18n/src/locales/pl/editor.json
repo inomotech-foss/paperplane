@@ -61,5 +61,8 @@
       "use_this": "Użyj tego",
       "refine": "Udoskonal"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Poza projektem"
   }
 }

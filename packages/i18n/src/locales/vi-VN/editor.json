@@ -61,5 +61,8 @@
       "use_this": "Sử dụng cái này",
       "refine": "Tinh chỉnh"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Không thuộc dự án"
   }
 }

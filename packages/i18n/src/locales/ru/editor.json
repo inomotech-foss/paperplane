@@ -61,5 +61,8 @@
       "use_this": "Использовать это",
       "refine": "Уточнить"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Не в проекте"
   }
 }

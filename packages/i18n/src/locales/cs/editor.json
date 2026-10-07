@@ -61,5 +61,8 @@
       "use_this": "Použít toto",
       "refine": "Upřesnit"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Není v projektu"
   }
 }

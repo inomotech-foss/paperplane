@@ -18,6 +18,7 @@ export type TUserSearchResponse = {
   member__avatar_url: IUser["avatar_url"];
   member__display_name: IUser["display_name"];
   member__id: IUser["id"];
+  is_project_member?: boolean;
 };
 
 export type TProjectSearchResponse = {

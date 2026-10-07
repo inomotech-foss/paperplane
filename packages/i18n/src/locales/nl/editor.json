@@ -61,5 +61,8 @@
       "use_this": "Deze gebruiken",
       "refine": "Verfijnen"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Niet in project"
   }
 }

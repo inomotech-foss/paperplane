@@ -61,5 +61,8 @@
       "use_this": "Gunakan ini",
       "refine": "Perbaiki"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Tidak ada di proyek"
   }
 }

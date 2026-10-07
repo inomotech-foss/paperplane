@@ -61,5 +61,8 @@
       "use_this": "Použiť toto",
       "refine": "Upraviť"
     }
+  },
+  "mention_suggestions": {
+    "not_in_project": "Nie je v projekte"
   }
 }
