@@ -50,6 +50,13 @@ import { FilterConfigManager } from "./config-manager";
 import type { IFilterInstanceHelper } from "./filter-helpers";
 import { FilterInstanceHelper } from "./filter-helpers";
 
+export type TResetExpressionOptions = {
+  /** Also make the expression the one changes are compared to. Defaults to true. */
+  resetInitial?: boolean;
+  /** Call onExpressionChange. Defaults to true; false only mirrors an expression set elsewhere. */
+  notify?: boolean;
+};
+
 /**
  * Interface for a filter instance.
  * Provides methods to manage the filter expression and notify changes.
@@ -94,7 +101,7 @@ export interface IFilterInstance<P extends TFilterProperty, E extends TExternalF
   // visibility
   toggleVisibility: (isVisible?: boolean) => void;
   // filter expression actions
-  resetExpression: (externalExpression: E, shouldResetInitialExpression?: boolean) => void;
+  resetExpression: (externalExpression: E, options?: TResetExpressionOptions) => void;
   // filter condition
   findConditionsByPropertyAndOperator: (
     property: P,
@@ -327,12 +334,12 @@ export class FilterInstance<P extends TFilterProperty, E extends TExternalFilter
    * @param externalExpression - The external expression to reset to.
    */
   resetExpression: IFilterInstance<P, E>["resetExpression"] = action(
-    (externalExpression, shouldResetInitialExpression = true) => {
+    (externalExpression, { resetInitial = true, notify = true } = {}) => {
       this.expression = this.helper.initializeExpression(externalExpression);
-      if (shouldResetInitialExpression) {
+      if (resetInitial) {
         this._resetInitialFilterExpression();
       }
-      this._notifyExpressionChange();
+      if (notify) this._notifyExpressionChange();
     }
   );
 

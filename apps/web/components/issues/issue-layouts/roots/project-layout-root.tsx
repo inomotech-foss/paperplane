@@ -6,7 +6,6 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
 // plane constants
 import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@plane/constants";
 import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
@@ -19,6 +18,7 @@ import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { IssuesStoreContext } from "@/hooks/use-issue-layout-store";
+import { useWorkItemViewUrl } from "@/lib/work-item-view-url/provider";
 // local imports
 import { IssuePeekOverview } from "../../peek-overview";
 import { CalendarLayout } from "../calendar/roots/project-root";
@@ -51,19 +51,11 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
   const projectId = routerProjectId ? routerProjectId.toString() : undefined;
   // hooks
   const { issues, issuesFilter } = useIssues(EIssuesStoreType.PROJECT);
+  // the route loads the filters and applies the URL to them
+  const pqlDraft = useWorkItemViewUrl()?.pqlDraft;
   // derived values
   const workItemFilters = projectId ? issuesFilter?.getIssueFilters(projectId) : undefined;
   const activeLayout = workItemFilters?.displayFilters?.layout;
-
-  useSWR(
-    workspaceSlug && projectId ? `PROJECT_ISSUES_${workspaceSlug}_${projectId}` : null,
-    async () => {
-      if (workspaceSlug && projectId) {
-        await issuesFilter?.fetchFilters(workspaceSlug, projectId);
-      }
-    },
-    { revalidateIfStale: false, revalidateOnFocus: false }
-  );
 
   if (!workspaceSlug || !projectId || !workItemFilters) return <></>;
   return (
@@ -82,6 +74,8 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
           <div className="relative flex h-full w-full flex-col overflow-hidden">
             {projectWorkItemsFilter && <WorkItemFiltersRow filter={projectWorkItemsFilter} hideViewActions />}
             <WorkItemQueryBar
+              key={pqlDraft?.id}
+              draft={pqlDraft}
               actions={
                 projectWorkItemsFilter &&
                 (projectWorkItemsFilter.canSaveView || projectWorkItemsFilter.canUpdateView) ? (

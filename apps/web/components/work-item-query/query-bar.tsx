@@ -26,12 +26,23 @@ const workItemQueryService = new WorkItemQueryService();
 
 const QueryEditor = lazy(() => import("./editor"));
 
+type TQueryDraft = { query: string; error: string };
+
+/** `edits` is what the person typed since the last apply, null when the editor shows the applied query. */
+const useDraftState = (draft: TQueryDraft | undefined) => {
+  const [edits, setEdits] = useState<string | null>(draft ? draft.query : null);
+  const [runError, setRunError] = useState<string | null>(draft ? draft.error : null);
+  return { edits, setEdits, runError, setRunError };
+};
+
 type Props = {
   workspaceSlug: string;
   /** Scopes name resolution (states, types, properties) to one project. */
   projectId?: string;
   /** The query currently applied to the list, empty for none. */
   value: string;
+  /** A query shown unapplied with its error, e.g. an invalid one from a link. Read on mount. */
+  draft?: TQueryDraft;
   onApply: (pql: string) => Promise<void> | void;
   className?: string;
   /** Shown at the end of the line, e.g. "Save view" for the whole view. */
@@ -46,14 +57,12 @@ type Props = {
  * of as a failed fetch.
  */
 export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props) {
-  const { workspaceSlug, projectId, value, onApply, className, actions } = props;
+  const { workspaceSlug, projectId, value, draft: initialDraft, onApply, className, actions } = props;
   // i18n
   const { t } = useTranslation();
-  // states: `edits` is what the person typed since the last apply, null when
-  // the editor shows the applied query, so an applied query never goes stale.
-  const [edits, setEdits] = useState<string | null>(null);
+  // states: an applied query never goes stale, as `edits` is null while it is shown
+  const { edits, setEdits, runError, setRunError } = useDraftState(initialDraft);
   const [isRunning, setIsRunning] = useState(false);
-  const [runError, setRunError] = useState<string | null>(null);
   const [inlineErrors, setInlineErrors] = useState<string[]>([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   // Set when the fallback is focused, so the editor takes focus as soon as it mounts.
