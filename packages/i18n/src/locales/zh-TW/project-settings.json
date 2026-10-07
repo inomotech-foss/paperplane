@@ -328,7 +328,26 @@
         "short_title": "工作項目",
         "description": "追蹤此專案中的任務、缺陷和其他工作。",
         "toggle_title": "啟用工作項目",
-        "toggle_description": "關閉後，工作結構設定、週期、模組、檢視、Intake、自動化和 Service Desk 將被隱藏。自動化和 Service Desk 也會停止執行。"
+        "toggle_description": "關閉後，工作結構設定、週期、模組、檢視、Intake、自動化和 Service Desk 將被隱藏。自動化和 Service Desk 也會停止執行。",
+        "numbering": {
+          "title": "工作項目編號",
+          "next_work_item": "下一個工作項目：{id}",
+          "change": "變更",
+          "modal": {
+            "title": "變更工作項目編號",
+            "description": "編號只能增加。現有工作項目保留其編號。",
+            "label": "下一個工作項目的編號"
+          },
+          "errors": {
+            "whole_number": "請輸入整數。",
+            "minimum": "編號必須至少為 {number}。",
+            "generic": "無法變更編號。請再試一次。"
+          },
+          "toast": {
+            "title": "編號已更新",
+            "message": "下一個工作項目將是 {id}。"
+          }
+        }
       },
       "cycles": {
         "title": "週期",

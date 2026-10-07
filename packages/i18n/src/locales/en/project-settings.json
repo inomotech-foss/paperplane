@@ -328,7 +328,26 @@
         "short_title": "Work items",
         "description": "Track tasks, bugs and other work in this project.",
         "toggle_title": "Enable work items",
-        "toggle_description": "Turning this off hides work structure settings, cycles, modules, views, Intake, automations and Service Desk. Automations and Service Desk also stop running."
+        "toggle_description": "Turning this off hides work structure settings, cycles, modules, views, Intake, automations and Service Desk. Automations and Service Desk also stop running.",
+        "numbering": {
+          "title": "Work item numbering",
+          "next_work_item": "Next work item: {id}",
+          "change": "Change",
+          "modal": {
+            "title": "Change work item numbering",
+            "description": "Numbers only go up. Existing work items keep their numbers.",
+            "label": "Next work item number"
+          },
+          "errors": {
+            "whole_number": "Enter a whole number.",
+            "minimum": "The number must be at least {number}.",
+            "generic": "The numbering could not be changed. Please try again."
+          },
+          "toast": {
+            "title": "Numbering updated",
+            "message": "The next work item will be {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Cycles",

@@ -328,7 +328,26 @@
         "short_title": "Elementy pracy",
         "description": "Śledzenie zadań, błędów i innej pracy w tym projekcie.",
         "toggle_title": "Włącz elementy pracy",
-        "toggle_description": "Wyłączenie ukrywa ustawienia struktury pracy, cykle, moduły, widoki, Intake, automatyzacje i Service Desk. Automatyzacje i Service Desk również przestają działać."
+        "toggle_description": "Wyłączenie ukrywa ustawienia struktury pracy, cykle, moduły, widoki, Intake, automatyzacje i Service Desk. Automatyzacje i Service Desk również przestają działać.",
+        "numbering": {
+          "title": "Numeracja elementów pracy",
+          "next_work_item": "Następny element pracy: {id}",
+          "change": "Zmień",
+          "modal": {
+            "title": "Zmień numerację elementów pracy",
+            "description": "Numery mogą tylko rosnąć. Istniejące elementy pracy zachowują swoje numery.",
+            "label": "Numer następnego elementu pracy"
+          },
+          "errors": {
+            "whole_number": "Wprowadź liczbę całkowitą.",
+            "minimum": "Numer musi wynosić co najmniej {number}.",
+            "generic": "Nie udało się zmienić numeracji. Spróbuj ponownie."
+          },
+          "toast": {
+            "title": "Zaktualizowano numerację",
+            "message": "Następny element pracy otrzyma numer {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Cykle",

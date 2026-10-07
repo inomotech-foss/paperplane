@@ -328,7 +328,26 @@
         "short_title": "Elemente de lucru",
         "description": "Urmăriți sarcinile, erorile și alte activități din acest proiect.",
         "toggle_title": "Activați elementele de lucru",
-        "toggle_description": "Dezactivarea ascunde setările structurii de lucru, ciclurile, modulele, vizualizările, Intake, automatizările și Service Desk. Automatizările și Service Desk nu mai rulează nici ele."
+        "toggle_description": "Dezactivarea ascunde setările structurii de lucru, ciclurile, modulele, vizualizările, Intake, automatizările și Service Desk. Automatizările și Service Desk nu mai rulează nici ele.",
+        "numbering": {
+          "title": "Numerotarea elementelor de lucru",
+          "next_work_item": "Următorul element de lucru: {id}",
+          "change": "Modificați",
+          "modal": {
+            "title": "Modificați numerotarea elementelor de lucru",
+            "description": "Numerele pot doar să crească. Elementele de lucru existente își păstrează numerele.",
+            "label": "Numărul următorului element de lucru"
+          },
+          "errors": {
+            "whole_number": "Introduceți un număr întreg.",
+            "minimum": "Numărul trebuie să fie cel puțin {number}.",
+            "generic": "Numerotarea nu a putut fi modificată. Încercați din nou."
+          },
+          "toast": {
+            "title": "Numerotare actualizată",
+            "message": "Următorul element de lucru va fi {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Cicluri",

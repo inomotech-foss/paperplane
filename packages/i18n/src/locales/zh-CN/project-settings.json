@@ -328,7 +328,26 @@
         "short_title": "工作项",
         "description": "跟踪此项目中的任务、缺陷和其他工作。",
         "toggle_title": "启用工作项",
-        "toggle_description": "关闭后，工作结构设置、周期、模块、视图、Intake、自动化和 Service Desk 将被隐藏。自动化和 Service Desk 也会停止运行。"
+        "toggle_description": "关闭后，工作结构设置、周期、模块、视图、Intake、自动化和 Service Desk 将被隐藏。自动化和 Service Desk 也会停止运行。",
+        "numbering": {
+          "title": "工作项编号",
+          "next_work_item": "下一个工作项：{id}",
+          "change": "更改",
+          "modal": {
+            "title": "更改工作项编号",
+            "description": "编号只能增加。现有工作项保留其编号。",
+            "label": "下一个工作项的编号"
+          },
+          "errors": {
+            "whole_number": "请输入整数。",
+            "minimum": "编号必须至少为 {number}。",
+            "generic": "无法更改编号。请重试。"
+          },
+          "toast": {
+            "title": "编号已更新",
+            "message": "下一个工作项将是 {id}。"
+          }
+        }
       },
       "cycles": {
         "title": "周期",

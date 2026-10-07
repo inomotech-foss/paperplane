@@ -46,8 +46,9 @@ export function IssueSequenceStartModal(props: Props) {
   const { t } = useTranslation();
   // derived values
   const start = /^\d+$/.test(value.trim()) ? Number(value.trim()) : null;
-  const lastSequence = nextSequence - 1;
-  const isValid = start !== null && start > lastSequence;
+  // the server rejects starts below 2
+  const minimum = Math.max(nextSequence, 2);
+  const isValid = start !== null && start >= minimum;
 
   const handleClose = () => {
     setValue("");
@@ -59,11 +60,11 @@ export function IssueSequenceStartModal(props: Props) {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (start === null) {
-      setError("Enter a whole number.");
+      setError(t("project_settings.features.work_items.numbering.errors.whole_number"));
       return;
     }
-    if (start <= lastSequence) {
-      setError(`The number must be greater than ${lastSequence}.`);
+    if (start < minimum) {
+      setError(t("project_settings.features.work_items.numbering.errors.minimum", { number: String(minimum) }));
       return;
     }
 
@@ -74,15 +75,17 @@ export function IssueSequenceStartModal(props: Props) {
       .then((updated) => {
         setToast({
           type: "success",
-          title: "Numbering updated",
-          message: `The next work item will be ${identifier}-${updated.next_sequence}.`,
+          title: t("project_settings.features.work_items.numbering.toast.title"),
+          message: t("project_settings.features.work_items.numbering.toast.message", {
+            id: `${identifier}-${updated.next_sequence}`,
+          }),
         });
         onUpdated(updated.next_sequence);
         handleClose();
         return;
       })
-      .catch((response: { error?: string } | undefined) => {
-        setError(response?.error ?? "The numbering could not be changed. Please try again.");
+      .catch(() => {
+        setError(t("project_settings.features.work_items.numbering.errors.generic"));
       })
       .finally(() => setIsLoading(false));
   };
@@ -99,18 +102,16 @@ export function IssueSequenceStartModal(props: Props) {
           <DialogMain>
             <DialogHeader>
               <DialogHeading>
-                <DialogTitle>Change work item numbering</DialogTitle>
+                <DialogTitle>{t("project_settings.features.work_items.numbering.modal.title")}</DialogTitle>
               </DialogHeading>
             </DialogHeader>
             <DialogBody>
               <p className="text-13 text-secondary">
-                The next work item created in this project is currently {identifier}-{nextSequence}. Enter the number
-                the next work item should receive instead. Numbers only count up, and existing work items keep their
-                numbers.
+                {t("project_settings.features.work_items.numbering.modal.description")}
               </p>
               <div className="mt-4 flex flex-col gap-1">
                 <label htmlFor="issue-sequence-start" className="text-13">
-                  Next work item number
+                  {t("project_settings.features.work_items.numbering.modal.label")}
                 </label>
                 <div className="flex items-center gap-2">
                   <span className="text-13 font-medium text-secondary">{identifier}-</span>

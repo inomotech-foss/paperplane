@@ -328,7 +328,26 @@
         "short_title": "Pracovní položky",
         "description": "Sledujte úkoly, chyby a další práci v tomto projektu.",
         "toggle_title": "Povolit pracovní položky",
-        "toggle_description": "Vypnutím skryjete nastavení struktury práce, cykly, moduly, zobrazení, Intake, automatizace a Service Desk. Automatizace a Service Desk se také přestanou spouštět."
+        "toggle_description": "Vypnutím skryjete nastavení struktury práce, cykly, moduly, zobrazení, Intake, automatizace a Service Desk. Automatizace a Service Desk se také přestanou spouštět.",
+        "numbering": {
+          "title": "Číslování pracovních položek",
+          "next_work_item": "Další pracovní položka: {id}",
+          "change": "Změnit",
+          "modal": {
+            "title": "Změnit číslování pracovních položek",
+            "description": "Čísla se mohou jen zvyšovat. Stávající pracovní položky si svá čísla ponechají.",
+            "label": "Číslo další pracovní položky"
+          },
+          "errors": {
+            "whole_number": "Zadejte celé číslo.",
+            "minimum": "Číslo musí být alespoň {number}.",
+            "generic": "Číslování se nepodařilo změnit. Zkuste to prosím znovu."
+          },
+          "toast": {
+            "title": "Číslování aktualizováno",
+            "message": "Další pracovní položka bude {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Cykly",

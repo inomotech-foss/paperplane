@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
@@ -26,13 +27,15 @@ export const ProjectIssueSequenceSection = observer(function ProjectIssueSequenc
   const [isModalOpen, setIsModalOpen] = useState(false);
   // store hooks
   const { currentProjectDetails, setProjectNextSequence } = useProject();
+  // translation
+  const { t } = useTranslation();
 
   if (!currentProjectDetails) return null;
 
   const { identifier, next_work_item_sequence: nextSequence } = currentProjectDetails;
 
   return (
-    <div className="mt-10">
+    <>
       {nextSequence !== undefined && (
         <IssueSequenceStartModal
           workspaceSlug={workspaceSlug}
@@ -45,20 +48,13 @@ export const ProjectIssueSequenceSection = observer(function ProjectIssueSequenc
         />
       )}
       <SettingsBoxedControlItem
-        title="Work item numbering"
+        title={t("project_settings.features.work_items.numbering.title")}
         description={
-          <>
-            The next work item created in this project will be{" "}
-            {nextSequence !== undefined ? (
-              <span className="font-medium text-primary">
-                {identifier}-{nextSequence}
-              </span>
-            ) : (
-              <span className="inline-block h-3 w-16 animate-pulse rounded-sm bg-layer-1 align-middle" />
-            )}
-            . You can move the numbering forward, for example to start new work items at {identifier}-5000. Existing
-            work items keep their numbers.
-          </>
+          nextSequence !== undefined ? (
+            t("project_settings.features.work_items.numbering.next_work_item", { id: `${identifier}-${nextSequence}` })
+          ) : (
+            <span className="inline-block h-3 w-32 animate-pulse rounded-sm bg-layer-1 align-middle" />
+          )
         }
         control={
           <Button
@@ -67,10 +63,10 @@ export const ProjectIssueSequenceSection = observer(function ProjectIssueSequenc
             stretch="auto"
             onClick={() => setIsModalOpen(true)}
             disabled={nextSequence === undefined}
-            label="Change"
+            label={t("project_settings.features.work_items.numbering.change")}
           />
         }
       />
-    </div>
+    </>
   );
 });

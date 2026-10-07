@@ -328,7 +328,26 @@
         "short_title": "Mục công việc",
         "description": "Theo dõi nhiệm vụ, lỗi và các công việc khác trong dự án này.",
         "toggle_title": "Bật mục công việc",
-        "toggle_description": "Khi tắt, cài đặt cấu trúc công việc, chu kỳ, mô-đun, chế độ xem, Intake, tự động hóa và Service Desk sẽ bị ẩn. Tự động hóa và Service Desk cũng ngừng chạy."
+        "toggle_description": "Khi tắt, cài đặt cấu trúc công việc, chu kỳ, mô-đun, chế độ xem, Intake, tự động hóa và Service Desk sẽ bị ẩn. Tự động hóa và Service Desk cũng ngừng chạy.",
+        "numbering": {
+          "title": "Đánh số mục công việc",
+          "next_work_item": "Mục công việc tiếp theo: {id}",
+          "change": "Thay đổi",
+          "modal": {
+            "title": "Thay đổi cách đánh số mục công việc",
+            "description": "Số chỉ có thể tăng lên. Các mục công việc hiện có giữ nguyên số của chúng.",
+            "label": "Số của mục công việc tiếp theo"
+          },
+          "errors": {
+            "whole_number": "Nhập một số nguyên.",
+            "minimum": "Số phải lớn hơn hoặc bằng {number}.",
+            "generic": "Không thể thay đổi cách đánh số. Vui lòng thử lại."
+          },
+          "toast": {
+            "title": "Đã cập nhật cách đánh số",
+            "message": "Mục công việc tiếp theo sẽ là {id}."
+          }
+        }
       },
       "cycles": {
         "title": "Chu kỳ",
