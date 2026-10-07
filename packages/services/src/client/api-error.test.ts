@@ -12,9 +12,23 @@ describe("ApiError", () => {
     expect(error).toMatchObject({ status: 400, data: { error: "taken" } });
   });
 
-  it("copies body keys so readers of error.response.data keep working", () => {
-    const error = new ApiError(response(400), { error: "taken", detail: "x", status: "ignored" });
-    expect(error).toMatchObject({ error: "taken", detail: "x", status: 400 });
+  it("mirrors only error, detail and code", () => {
+    const body = { error: "taken", detail: "x", code: "c", status: "s", name: "n", data: "d", toString: "t" };
+    const error = new ApiError(response(400), body);
+    expect(error).toMatchObject({ error: "taken", detail: "x", code: "c", status: 400, name: "ApiError", data: body });
+    expect(String(error)).toBe("ApiError: API request failed with status 400");
+  });
+
+  it("mirrors only string values", () => {
+    const error = new ApiError(response(400), { error: ["a"], detail: 1 });
+    expect(error.error).toBeUndefined();
+    expect(error.detail).toBeUndefined();
+  });
+
+  it("has undefined data for an empty body", () => {
+    expect(new ApiError(response(500), "").data).toBeUndefined();
+    expect(new ApiError(response(500), undefined).data).toBeUndefined();
+    expect(new ApiError(response(500), undefined).error).toBeUndefined();
   });
 
   it("uses the body message as the error message", () => {

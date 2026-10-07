@@ -83,6 +83,18 @@ describe("createApiClient", () => {
     expect(error).toMatchObject({ status: 404, data: { error: "missing" } });
   });
 
+  it.each([
+    ["no Content-Length", () => new Response(null, { status: 502 })],
+    ["Content-Length 0", () => new Response(null, { status: 502, headers: { "Content-Length": "0" } })],
+  ])("throws an ApiError with undefined data for an empty error body (%s)", async (_, response) => {
+    const { client } = setup(response);
+    const error: unknown = await unwrap(client.GET("/api/items/{id}/", { params: { path: { id: "1" } } })).catch(
+      (e: unknown) => e
+    );
+    expect(isApiError(error) && error.data).toBeUndefined();
+    expect(error).toMatchObject({ status: 502, error: undefined });
+  });
+
   it("calls onUnauthorized on a 401 and still fails the request", async () => {
     const onUnauthorized = vi.fn();
     const { client } = setup(() => json({ detail: "no session" }, 401), onUnauthorized);
