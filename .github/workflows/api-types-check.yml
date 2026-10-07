@@ -2,17 +2,7 @@ name: API types check
 
 on:
   workflow_dispatch:
-  pull_request:
-    types:
-      - "opened"
-      - "synchronize"
-      - "reopened"
-      - "ready_for_review"
-  merge_group:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
 
 permissions:
   contents: read
@@ -22,7 +12,6 @@ jobs:
     name: check:api-types
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     env:
       DJANGO_SETTINGS_MODULE: plane.settings.production
       # Schema generation reads views and serializers only; nothing is contacted.
