@@ -58,7 +58,8 @@ export const NotificationsRoot = observer(function NotificationsRoot({ workspace
     currentWorkspace?.slug ? `WORKSPACE_NOTIFICATION_${currentWorkspace?.slug}` : null,
     currentWorkspace?.slug
       ? () => getNotifications(currentWorkspace?.slug, notificationMutation, notificationLoader)
-      : null
+      : null,
+    { revalidateOnFocus: true }
   );
 
   // fetching user project member info
