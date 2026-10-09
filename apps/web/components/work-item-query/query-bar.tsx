@@ -71,8 +71,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
   const draft = edits ?? value;
   const isDirty = draft.trim() !== value.trim();
   const isApplied = value.trim().length > 0;
-  const errors = inlineErrors.length > 0 ? inlineErrors : runError ? [runError] : [];
-  const hasError = errors.length > 0;
+  const hasError = inlineErrors.length > 0 || !!runError;
 
   const { data: fields } = useSWR(
     `WORK_ITEM_QUERY_FIELDS_${workspaceSlug}`,
@@ -182,17 +181,16 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
               focusOnMount={focusOnMount}
             />
           </Suspense>
-          {/* Floats below the box, so an error never shifts the page; an open completion list hides it. */}
-          {hasError && (
+          {/* Typing errors float below the box, so typing never shifts the page; an open completion list hides them. */}
+          {inlineErrors.length > 0 && !runError && (
             <div
               role="alert"
               className={cn(
-                "absolute top-full left-0 z-30 mt-1 w-max max-w-full flex-col gap-0.5 rounded-md border border-subtle bg-layer-1 px-2 py-1 text-11 text-danger-primary shadow-overlay-100",
-                runError ? "flex" : "hidden group-focus-within/query:flex",
-                "group-has-[.cm-tooltip-autocomplete]/query:hidden!"
+                "absolute top-full left-0 z-30 mt-1 hidden w-max max-w-full flex-col gap-0.5 rounded-md border border-subtle bg-layer-1 px-2 py-1 text-11 text-danger-primary shadow-overlay-100",
+                "group-focus-within/query:flex group-has-[.cm-tooltip-autocomplete]/query:hidden!"
               )}
             >
-              {errors.map((message) => (
+              {inlineErrors.map((message) => (
                 <span key={message}>{message}</span>
               ))}
             </div>
@@ -231,6 +229,11 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
         </button>
         {actions && <div className="flex shrink-0 items-center gap-2 border-l border-subtle pl-2">{actions}</div>}
       </div>
+      {runError && (
+        <p role="alert" className="text-11 text-danger-primary">
+          {runError}
+        </p>
+      )}
       {isHelpOpen && <WorkItemQueryHelp fields={fields} onClose={() => setIsHelpOpen(false)} />}
     </div>
   );
