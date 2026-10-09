@@ -4,7 +4,8 @@
 import { useCallback, useEffect } from "react";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { observer } from "mobx-react";
-import { createMemoryRouter, RouterProvider, useLoaderData, useParams } from "react-router";
+import { createMemoryRouter, Outlet, RouterProvider, useLoaderData, useParams } from "react-router";
+import useSWR, { SWRConfig } from "swr";
 import type { LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EIssueFilterType } from "@plane/constants";
@@ -117,20 +118,50 @@ const setup = (initialEntry: string, options: { holdValidation?: boolean } = {})
     );
   }
 
+  /** Project-level data the parent route fetches, like ProjectAuthWrapper. */
+  const projectFetches = vi.fn(async (key: string) => key);
+  const projectMounts = vi.fn();
+  function Project() {
+    const { projectId = "" } = useParams();
+    useSWR(`PROJECT_DETAILS_${projectId}`, projectFetches);
+    useEffect(() => projectMounts(), []);
+    return <Outlet />;
+  }
+
   const router = createMemoryRouter(
     [
-      { path: "/:projectId/issues", loader, shouldRevalidate: shouldRevalidateView, Component: Layout },
+      {
+        path: "/:projectId",
+        Component: Project,
+        children: [{ path: "issues", loader, shouldRevalidate: shouldRevalidateView, Component: Layout }],
+      },
       { path: "/other", Component: () => <output data-testid="other" /> },
     ],
     { initialEntries: [initialEntry] }
   );
-  render(<RouterProvider router={router} />);
+  render(
+    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+      <RouterProvider router={router} />
+    </SWRConfig>
+  );
 
   const search = () => router.state.location.search;
   const release = () => act(() => releases.splice(0).forEach((resolve) => resolve()));
   const change = (filters: Parameters<ProjectIssuesFilter["updateFilters"]>[3]) =>
     act(() => store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, filters));
-  return { router, store, update, effects, fetches, fetchProjectUserProperties, search, release, change };
+  return {
+    router,
+    store,
+    update,
+    effects,
+    fetches,
+    fetchProjectUserProperties,
+    projectFetches,
+    projectMounts,
+    search,
+    release,
+    change,
+  };
 };
 
 afterEach(() => {
@@ -196,6 +227,22 @@ describe("work item view route", () => {
     await waitFor(() => expect(search()).toBe("?l=table&o=priority"));
     expect(effects.refetch).toHaveBeenCalledOnce();
     expect(store.savedFilters.p1.displayFilters?.order_by).toBe("priority");
+  });
+
+  it("reruns only the view loader on a view change, not the project route", async () => {
+    const { store, search, fetches, projectFetches, projectMounts, change } = setup("/p1/issues?l=list");
+    await waitFor(() => expect(layout()).toBe("p1/list"));
+    await waitFor(() => expect(projectFetches).toHaveBeenCalledOnce());
+
+    await change({ layout: EIssueLayoutTypes.KANBAN });
+    await waitFor(() => expect(layout()).toBe("p1/kanban"));
+    await change({ calendar: { show_weekends: true } });
+    await act(() => store.updateFilterExpression("ws", "p1", { priority__in: "urgent" }));
+    await waitFor(() => expect(search()).toContain("f=priority:in:urgent"));
+
+    expect(fetches).toEqual(["p1/list", "p1/kanban"]);
+    expect(projectFetches).toHaveBeenCalledOnce();
+    expect(projectMounts).toHaveBeenCalledOnce();
   });
 
   it("shows a change the URL does not carry by rerunning the loader", async () => {
