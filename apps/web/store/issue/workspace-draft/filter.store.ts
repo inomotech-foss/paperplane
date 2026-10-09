@@ -9,7 +9,7 @@ import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { computedFn } from "mobx-utils";
 // Plane Imports
 import type { TSupportedFilterTypeForUpdate } from "@plane/constants";
-import { EIssueFilterType } from "@plane/constants";
+import { EDraftIssuePaginationType, EIssueFilterType } from "@plane/constants";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
@@ -29,6 +29,11 @@ import type { IBaseIssueFilterStore } from "../helpers/issue-filter-helper.store
 import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
 // types
 import type { IIssueRootStore } from "../root.store";
+import type { IWorkspaceDraftIssues } from "./issue.store";
+
+type TWorkspaceDraftFiltersRoot = Pick<IIssueRootStore, "workspaceSlug"> & {
+  workspaceDraftIssues: Pick<IWorkspaceDraftIssues, "fetchIssues">;
+};
 
 export interface IWorkspaceDraftIssuesFilter extends IBaseIssueFilterStore {
   // observables
@@ -56,11 +61,11 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
   workspaceSlug: string = "";
   filters: { [userId: string]: IIssueFilters } = {};
   // root store
-  rootIssueStore: IIssueRootStore;
+  rootIssueStore: TWorkspaceDraftFiltersRoot;
   // services
   issueFilterService;
 
-  constructor(_rootStore: IIssueRootStore) {
+  constructor(_rootStore: TWorkspaceDraftFiltersRoot) {
     super();
     makeObservable(this, {
       // observables
@@ -133,12 +138,18 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
     }
   );
 
+  private refetchIssues = (workspaceSlug: string) => {
+    this.rootIssueStore.workspaceDraftIssues
+      .fetchIssues(workspaceSlug, "mutation", EDraftIssuePaginationType.CURRENT)
+      .catch((error: unknown) => console.error("error while refetching draft work items", error));
+  };
+
   fetchFilters = async (workspaceSlug: string) => {
     this.workspaceSlug = workspaceSlug;
     const _filters = this.handleIssuesLocalFilters.get(
-      EIssuesStoreType.PROFILE,
+      EIssuesStoreType.WORKSPACE_DRAFT,
       workspaceSlug,
-      workspaceSlug,
+      undefined,
       undefined
     );
 
@@ -173,16 +184,14 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
         set(this.filters, [workspaceSlug, "richFilters"], filters);
       });
 
-      this.rootIssueStore.profileIssues.fetchIssuesWithExistingPagination(workspaceSlug, workspaceSlug, "mutation");
+      this.refetchIssues(workspaceSlug);
       this.handleIssuesLocalFilters.set(
-        EIssuesStoreType.PROFILE,
+        EIssuesStoreType.WORKSPACE_DRAFT,
         EIssueFilterType.FILTERS,
         workspaceSlug,
-        workspaceSlug,
         undefined,
-        {
-          rich_filters: filters,
-        }
+        undefined,
+        { rich_filters: filters }
       );
     } catch (error) {
       console.log("error while updating rich filters", error);
@@ -220,11 +229,18 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
             });
           });
 
-          this.rootIssueStore.profileIssues.fetchIssuesWithExistingPagination(workspaceSlug, workspaceSlug, "mutation");
+          this.refetchIssues(workspaceSlug);
 
-          this.handleIssuesLocalFilters.set(EIssuesStoreType.PROFILE, type, workspaceSlug, workspaceSlug, undefined, {
-            display_filters: _filters.displayFilters,
-          });
+          this.handleIssuesLocalFilters.set(
+            EIssuesStoreType.WORKSPACE_DRAFT,
+            type,
+            workspaceSlug,
+            undefined,
+            undefined,
+            {
+              display_filters: _filters.displayFilters,
+            }
+          );
 
           break;
         }
@@ -242,9 +258,16 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
             });
           });
 
-          this.handleIssuesLocalFilters.set(EIssuesStoreType.PROFILE, type, workspaceSlug, workspaceSlug, undefined, {
-            display_properties: _filters.displayProperties,
-          });
+          this.handleIssuesLocalFilters.set(
+            EIssuesStoreType.WORKSPACE_DRAFT,
+            type,
+            workspaceSlug,
+            undefined,
+            undefined,
+            {
+              display_properties: _filters.displayProperties,
+            }
+          );
           break;
         }
 

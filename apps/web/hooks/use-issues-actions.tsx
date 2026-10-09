@@ -11,8 +11,6 @@ import { useParams } from "next/navigation";
 import type { TSupportedFilterTypeForUpdate } from "@plane/constants";
 import { EDraftIssuePaginationType } from "@plane/constants";
 import type {
-  IIssueDisplayFilterOptions,
-  IIssueDisplayProperties,
   IssuePaginationOptions,
   TIssue,
   TIssuesResponse,
@@ -736,9 +734,8 @@ const useGlobalIssueActions = () => {
 
 const useWorkspaceDraftIssueActions = () => {
   // router
-  const { workspaceSlug: routerWorkspaceSlug, globalViewId: routerGlobalViewId } = useParams();
+  const { workspaceSlug: routerWorkspaceSlug } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
-  const globalViewId = routerGlobalViewId?.toString();
   // store hooks
   const { issues, issuesFilter } = useIssues(EIssuesStoreType.WORKSPACE_DRAFT);
   const fetchIssues = useCallback(
@@ -785,12 +782,11 @@ const useWorkspaceDraftIssueActions = () => {
   // );
 
   const updateFilters = useCallback(
-    async (projectId: string, filterType: TSupportedFilterTypeForUpdate, filters: TSupportedFilterForUpdate) => {
-      filters = filters as IIssueDisplayFilterOptions | IIssueDisplayProperties;
-      if (!globalViewId || !workspaceSlug) return;
+    async (_projectId: string, filterType: TSupportedFilterTypeForUpdate, filters: TSupportedFilterForUpdate) => {
+      if (!workspaceSlug) return;
       return await issuesFilter.updateFilters(workspaceSlug, filterType, filters);
     },
-    [globalViewId, workspaceSlug, issuesFilter]
+    [workspaceSlug, issuesFilter]
   );
 
   return useMemo(

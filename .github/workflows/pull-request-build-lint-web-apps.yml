@@ -2,20 +2,10 @@ name: Build and lint web apps
 
 on:
   workflow_dispatch:
-  pull_request:
-    types:
-      - "opened"
-      - "synchronize"
-      - "reopened"
-      - "ready_for_review"
-  merge_group:
+  workflow_call:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   # Format check has no build dependencies - run immediately in parallel
@@ -23,9 +13,6 @@ jobs:
     name: check:format
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: |
-      github.event_name == 'merge_group' ||
-      github.event.pull_request.draft == false
     env:
       TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
       TURBO_SCM_HEAD: ${{ github.sha }}
@@ -67,9 +54,6 @@ jobs:
     name: Build packages
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: |
-      github.event_name == 'merge_group' ||
-      github.event.pull_request.draft == false
     env:
       TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
       TURBO_SCM_HEAD: ${{ github.sha }}
