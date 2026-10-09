@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { action, makeObservable, observable, reaction } from "mobx";
 import { NavigationType, useLocation, useNavigate, useNavigationType } from "react-router";
 import type { EStartOfTheWeek, IIssueFilters } from "@plane/types";
-import { applyViewState, getUnverifiedPql, resolveViewState, toViewState, withPql } from "./apply";
+import { applyViewState, getUnverifiedPql, resolveViewState, toViewState, trimmedPql, withPql } from "./apply";
 import type { TViewStateEffects, TViewStateStore } from "./apply";
 import { getPageBaseline } from "./pages";
 import { VIEW_URL_WRITE, buildViewSearch, isViewUrlWrite } from "./route";
@@ -29,31 +29,58 @@ export type TViewUrlAdapter = {
 };
 
 /** A query from the URL that did not validate; the query bar shows it unapplied. */
-export type TPqlDraft = { id: number; query: string; error: string };
+export type TPqlDraft = { query: string; error: string };
+
+type TApplied = {
+  /** The entity key the URL was applied for. */
+  key: string;
+  /** Changes when the query bar has to drop what it shows, e.g. after back to another query. */
+  queryBarId: number;
+  pqlDraft: TPqlDraft | undefined;
+};
 
 /** What the page learns from the provider; observable, so read it in observers. */
 class ViewUrlStatus {
-  appliedKey: string | undefined = undefined;
-  pqlDraft: TPqlDraft | undefined = undefined;
+  applied: TApplied | undefined = undefined;
 
   constructor() {
-    makeObservable(this, { appliedKey: observable.ref, pqlDraft: observable.ref, setApplied: action });
+    makeObservable(this, { applied: observable.ref, setApplied: action });
   }
 
-  setApplied(key: string, draft: Omit<TPqlDraft, "id"> | undefined) {
-    this.appliedKey = key;
-    if (draft) this.pqlDraft = { id: (this.pqlDraft?.id ?? 0) + 1, ...draft };
+  setApplied(key: string, pqlChanged: boolean, pqlDraft?: TPqlDraft) {
+    const previous = this.applied;
+    const resetQueryBar = previous?.key !== key || pqlChanged || !!previous.pqlDraft || !!pqlDraft;
+    const queryBarId = (previous?.queryBarId ?? 0) + (resetQueryBar ? 1 : 0);
+    this.applied = { key, queryBarId, pqlDraft };
   }
 }
 
 const ViewUrlContext = createContext<{ status: ViewUrlStatus; key: string } | null>(null);
 
+export type TWorkItemViewUrlState = {
+  ready: boolean;
+  /** Use as the query bar's key. */
+  queryBarId: number;
+  pqlDraft: TPqlDraft | undefined;
+};
+
 /** Null outside a page whose route owns the view params. Call from observers. */
-export const useWorkItemViewUrl = (): { ready: boolean; pqlDraft: TPqlDraft | undefined } | null => {
+export const useWorkItemViewUrl = (): TWorkItemViewUrlState | null => {
   const context = useContext(ViewUrlContext);
   if (!context) return null;
-  return { ready: context.status.appliedKey === context.key, pqlDraft: context.status.pqlDraft };
+  const { applied } = context.status;
+  if (applied?.key !== context.key) return { ready: false, queryBarId: 0, pqlDraft: undefined };
+  return { ready: true, queryBarId: applied.queryBarId, pqlDraft: applied.pqlDraft };
 };
+
+/** Past this a load or check counts as failed, so the page never stays blank. */
+const REQUEST_TIMEOUT_MS = 15_000;
+
+const withTimeout = <T,>(promise: Promise<T>): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`no response after ${REQUEST_TIMEOUT_MS} ms`)), REQUEST_TIMEOUT_MS);
+    promise.then(resolve, reject).finally(() => clearTimeout(timer));
+  });
 
 const toDay = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -85,60 +112,102 @@ export function WorkItemViewUrlProvider(props: TProps) {
   const navigate = useNavigate();
   const [today] = useState(() => toDay(new Date()));
   const [status] = useState(() => new ViewUrlStatus());
-  const lastWrite = useRef<string>(undefined);
+  /** The search of a write that has not landed yet. */
+  const pendingSearch = useRef<string>(undefined);
+  /** An apply of a URL that is still loading or validating. */
+  const applying = useRef<{ cancelled: boolean }>(undefined);
 
   const clock = useMemo<TCalendarClock>(() => ({ today, weekStart }), [today, weekStart]);
   const baseline = useMemo(() => ({ ...getPageBaseline(page), calendarAnchor: today }), [page, today]);
 
+  useEffect(() => {
+    if (!isViewUrlWrite(location.state) || location.search === pendingSearch.current) pendingSearch.current = undefined;
+  }, [location]);
+
   const writeUrl = useEffectEvent(() => {
     const current = adapter.store.filters[adapter.entityId];
-    if (!current) return;
-    const search = buildViewSearch(toViewState(current), page, baseline, clock, new URLSearchParams(location.search));
-    const write = `${location.key}?${search}`;
-    if (`?${search}` === location.search || lastWrite.current === write) return;
-    lastWrite.current = write;
-    void navigate(
-      { pathname: location.pathname, search, hash: location.hash },
-      { replace: true, preventScrollReset: true, state: VIEW_URL_WRITE }
-    );
+    // a URL still being applied wins; its apply writes the result
+    if (!current || (applying.current && !applying.current.cancelled)) return;
+    const shownSearch = pendingSearch.current ?? location.search;
+    const search = buildViewSearch(toViewState(current), page, baseline, clock, new URLSearchParams(shownSearch));
+    if (`?${search}` === shownSearch) return;
+    pendingSearch.current = `?${search}`;
+    Promise.resolve(
+      navigate(
+        { pathname: location.pathname, search, hash: location.hash },
+        { replace: true, preventScrollReset: true, state: VIEW_URL_WRITE }
+      )
+    ).catch((error: unknown) => console.error(error));
   });
 
+  /** Shows the saved preferences when the URL cannot be applied. */
+  const showSaved = (key: string) => {
+    const saved = adapter.getSaved() ?? fallbackFilters(baseline);
+    applyViewState(adapter.store, adapter.entityId, toViewState(saved), saved.kanbanFilters);
+    status.setApplied(key, true);
+  };
+
+  const validate = async (pql: string): Promise<string | undefined> => {
+    if (!adapter.validatePql) return undefined;
+    try {
+      return await withTimeout(adapter.validatePql(pql));
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  };
+
   const applyUrl = useEffectEvent(async (view: TParsedSearch, key: string, run: { cancelled: boolean }) => {
-    const mounted = status.appliedKey === key;
+    const mounted = status.applied?.key === key;
     // our own writes already match the store
     if (mounted && navigationType === NavigationType.Replace && isViewUrlWrite(location.state)) return;
-    let saved = adapter.getSaved();
-    if (!saved) {
-      try {
-        saved = await adapter.loadSaved();
-      } catch (error) {
-        console.error(error);
-        saved = fallbackFilters(baseline);
+    applying.current = run;
+    try {
+      let saved = adapter.getSaved();
+      if (!saved) {
+        try {
+          saved = await withTimeout(adapter.loadSaved());
+        } catch (error) {
+          console.error(error);
+          saved = fallbackFilters(baseline);
+        }
+        if (run.cancelled) return;
       }
-      if (run.cancelled) return;
-    }
-    const savedState = toViewState(saved);
-    const shown = adapter.store.filters[adapter.entityId];
-    let { state } = resolveViewState(view, page, baseline, savedState);
-    let draft: Omit<TPqlDraft, "id"> | undefined;
-    const pql = getUnverifiedPql(state, [savedState, shown && toViewState(shown)]);
-    if (pql && adapter.validatePql) {
-      const error = await adapter.validatePql(pql);
-      if (run.cancelled) return;
-      if (error !== undefined) {
-        state = withPql(state, baseline.displayFilters.pql);
-        draft = { query: pql, error };
+      const savedState = toViewState(saved);
+      const shown = adapter.store.filters[adapter.entityId];
+      let { state } = resolveViewState(view, page, baseline, savedState);
+      let draft: TPqlDraft | undefined;
+      const pql = getUnverifiedPql(state, [savedState, shown && toViewState(shown)]);
+      if (pql) {
+        const error = await validate(pql);
+        if (run.cancelled) return;
+        if (error !== undefined) {
+          state = withPql(state, baseline.displayFilters.pql);
+          draft = { query: pql, error };
+        }
       }
+      const pqlChanged = trimmedPql(shown && toViewState(shown)) !== trimmedPql(state);
+      applyViewState(
+        adapter.store,
+        adapter.entityId,
+        state,
+        saved.kanbanFilters,
+        mounted ? adapter.effects : undefined
+      );
+      status.setApplied(key, pqlChanged, draft);
+    } catch (error) {
+      console.error(error);
+      if (!run.cancelled && !mounted) showSaved(key);
+    } finally {
+      if (applying.current === run) applying.current = undefined;
     }
-    applyViewState(adapter.store, adapter.entityId, state, saved.kanbanFilters, mounted ? adapter.effects : undefined);
-    status.setApplied(key, draft);
-    writeUrl();
+    if (!run.cancelled) writeUrl();
   });
 
   const { key } = adapter;
   useEffect(() => {
     const run = { cancelled: false };
-    void applyUrl(parsed, key, run);
+    applyUrl(parsed, key, run).catch((error: unknown) => console.error(error));
     return () => {
       run.cancelled = true;
     };
@@ -149,7 +218,7 @@ export function WorkItemViewUrlProvider(props: TProps) {
     return reaction(
       () => {
         const current = store.filters[entityId];
-        if (status.appliedKey !== adapter.key || !current) return undefined;
+        if (status.applied?.key !== adapter.key || !current) return undefined;
         return buildViewSearch(toViewState(current), page, baseline, clock);
       },
       () => writeUrl()

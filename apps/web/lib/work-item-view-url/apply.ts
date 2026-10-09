@@ -87,7 +87,7 @@ export const resolveViewState = (
   return { state: normalizeViewState(state, page), invalid: merged.invalid };
 };
 
-const trimmedPql = (state: TWorkItemViewState | undefined) => state?.displayFilters.pql?.trim() ?? "";
+export const trimmedPql = (state: TWorkItemViewState | undefined) => state?.displayFilters.pql?.trim() ?? "";
 
 /** The query that needs validation before it is applied: one the person has not already seen applied. */
 export const getUnverifiedPql = (

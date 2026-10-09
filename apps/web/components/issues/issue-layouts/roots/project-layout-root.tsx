@@ -52,7 +52,7 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
   // hooks
   const { issues, issuesFilter } = useIssues(EIssuesStoreType.PROJECT);
   // the route loads the filters and applies the URL to them
-  const pqlDraft = useWorkItemViewUrl()?.pqlDraft;
+  const viewUrl = useWorkItemViewUrl();
   // derived values
   const workItemFilters = projectId ? issuesFilter?.getIssueFilters(projectId) : undefined;
   const activeLayout = workItemFilters?.displayFilters?.layout;
@@ -74,8 +74,8 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
           <div className="relative flex h-full w-full flex-col overflow-hidden">
             {projectWorkItemsFilter && <WorkItemFiltersRow filter={projectWorkItemsFilter} hideViewActions />}
             <WorkItemQueryBar
-              key={pqlDraft?.id}
-              draft={pqlDraft}
+              key={viewUrl?.queryBarId}
+              draft={viewUrl?.pqlDraft}
               actions={
                 projectWorkItemsFilter &&
                 (projectWorkItemsFilter.canSaveView || projectWorkItemsFilter.canUpdateView) ? (

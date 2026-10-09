@@ -35,33 +35,49 @@ const SAVED: Record<string, IProjectUserPropertiesResponse> = {
 type TSetup = {
   /** Holds back loading the saved preferences until resolved. */
   holdLoad?: boolean;
+  /** Holds back query checks until resolved. */
+  holdValidation?: boolean;
   invalidPql?: string;
+  /** Makes the first read of the saved preferences throw. */
+  breakApply?: boolean;
 };
 
 const setup = (initialEntry: string, options: TSetup = {}) => {
   const projectIssues = { clear: vi.fn(), fetchIssuesWithExistingPagination: vi.fn() };
-  const store = new ProjectIssuesFilter({ projectId: "p1", currentUserId: "u1", projectIssues });
-  const load = vi.spyOn(store.projectService, "getProjectUserProperties");
   const releases: (() => void)[] = [];
-  load.mockImplementation(async (_, projectId) => {
+  const load = vi.fn(async (_: string, projectId: string) => {
     if (options.holdLoad) await new Promise<void>((resolve) => releases.push(resolve));
     return SAVED[projectId];
+  });
+  const members = { getProjectUserProperties: () => null, fetchProjectUserProperties: load };
+  const store = new ProjectIssuesFilter({
+    projectId: "p1",
+    currentUserId: "u1",
+    projectIssues,
+    rootStore: { memberRoot: { project: members } },
   });
   const update = vi
     .spyOn(store.projectService, "updateProjectUserProperties")
     .mockImplementation(async (_, projectId) => SAVED[projectId]);
   const effects = { clear: vi.fn(), refetch: vi.fn(), setRichFilters: vi.fn() };
   const adapters = new Map<string, TViewUrlAdapter>();
+  let broken = 0;
   const getAdapter = (projectId: string) => {
     const adapter = adapters.get(projectId) ?? {
       key: projectId,
       entityId: projectId,
       page,
       store,
-      getSaved: (): IIssueFilters | undefined => store.savedFilters[projectId],
-      loadSaved: () => store.fetchSavedFilters("ws", projectId),
+      getSaved: (): IIssueFilters | undefined => {
+        if (options.breakApply && broken++ === 0) throw new Error("broken");
+        return store.savedFilters[projectId];
+      },
+      loadSaved: () => store.loadSavedFilters("ws", projectId),
       effects,
-      validatePql: async (pql: string) => (pql === options.invalidPql ? "Unknown field" : undefined),
+      validatePql: async (pql: string) => {
+        if (options.holdValidation) await new Promise<void>((resolve) => releases.push(resolve));
+        return pql === options.invalidPql ? "Unknown field" : undefined;
+      },
     };
     adapters.set(projectId, adapter);
     return adapter;
@@ -74,6 +90,7 @@ const setup = (initialEntry: string, options: TSetup = {}) => {
     return (
       <>
         <output data-testid="layout">{layout}</output>
+        <output data-testid="query-bar">{context?.queryBarId}</output>
         {context?.pqlDraft && (
           <output data-testid="draft">{`${context.pqlDraft.query}|${context.pqlDraft.error}`}</output>
         )}
@@ -184,6 +201,73 @@ describe("WorkItemViewUrlProvider", () => {
     await waitFor(() => expect(search()).toBe("?l=list"));
     expect(screen.getByTestId("draft").textContent).toBe("nope = 1|Unknown field");
     expect(store.getIssueFilters("p1")?.displayFilters?.pql ?? "").toBe("");
+  });
+
+  it("does not carry an invalid query's draft to the next project", async () => {
+    const { router, search } = setup("/p1/issues?l=list&q=nope", { invalidPql: "nope" });
+    await screen.findByTestId("draft");
+
+    await act(() => router.navigate("/p2/issues"));
+    await waitFor(() => expect(search()).toBe("?l=table&o=-priority"));
+    expect(screen.queryByTestId("draft")).toBeNull();
+  });
+
+  it("resets the query bar when back or forward shows another query", async () => {
+    const { router } = setup("/p1/issues?l=list&q=a");
+    await waitFor(() => expect(screen.getByTestId("layout").textContent).toBe(EIssueLayoutTypes.LIST));
+    const before = screen.getByTestId("query-bar").textContent;
+
+    await act(() => router.navigate("/p1/issues?l=list&q=b"));
+    await waitFor(() => expect(screen.getByTestId("query-bar").textContent).not.toBe(before));
+  });
+
+  it("ends on the last of several quick changes", async () => {
+    const { store, search } = setup("/p1/issues?l=list");
+    await waitFor(() => expect(screen.getByTestId("layout").textContent).toBe(EIssueLayoutTypes.LIST));
+
+    await act(async () => {
+      void store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { layout: EIssueLayoutTypes.CALENDAR });
+      await Promise.resolve();
+      void store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { layout: EIssueLayoutTypes.LIST });
+    });
+
+    await waitFor(() => expect(store.getIssueFilters("p1")?.displayFilters?.layout).toBe(EIssueLayoutTypes.LIST));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+    expect(search()).toBe("?l=list");
+  });
+
+  it("keeps a URL that is still being checked when the view changes meanwhile", async () => {
+    const { router, store, release, search } = setup("/p1/issues?l=list", { holdValidation: true });
+    await waitFor(() => expect(screen.getByTestId("layout").textContent).toBe(EIssueLayoutTypes.LIST));
+
+    await act(() => router.navigate("/p1/issues?l=list&q=a"));
+    await act(() => store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { order_by: "-created_at" }));
+    expect(search()).toBe("?l=list&q=a");
+
+    await release();
+    await waitFor(() => expect(store.getIssueFilters("p1")?.displayFilters?.pql).toBe("a"));
+    expect(search()).toBe("?l=list&q=a");
+  });
+
+  it("opens the page when applying the URL fails", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { search } = setup("/p1/issues?l=calendar", { breakApply: true });
+    await waitFor(() => expect(screen.getByTestId("layout").textContent).toBe(EIssueLayoutTypes.LIST));
+    expect(search()).toBe("?l=list");
+    expect(error).toHaveBeenCalled();
+  });
+
+  it("opens the page when the saved preferences never arrive", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      setup("/p1/issues?l=list", { holdLoad: true });
+      await screen.findByTestId("loading");
+      await act(() => vi.advanceTimersByTimeAsync(20_000));
+      await waitFor(() => expect(screen.getByTestId("layout").textContent).toBe(EIssueLayoutTypes.LIST));
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("ignores a slow load for a URL that is no longer shown", async () => {
