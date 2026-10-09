@@ -33,7 +33,8 @@ export const TopNavigationRoot = observer(function TopNavigationRoot() {
   // Fetch notification count
   useSWR(
     workspaceSlug ? "WORKSPACE_UNREAD_NOTIFICATION_COUNT" : null,
-    workspaceSlug ? () => getUnreadNotificationsCount(workspaceSlug.toString()) : null
+    workspaceSlug ? () => getUnreadNotificationsCount(workspaceSlug.toString()) : null,
+    { revalidateOnFocus: true }
   );
 
   // Calculate notification count

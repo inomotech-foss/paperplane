@@ -7,11 +7,11 @@
 import { lazy, Suspense } from "react";
 import { SWRConfig } from "swr";
 // Plane Imports
-import { WEB_SWR_CONFIG } from "@plane/constants";
 import { TranslationProvider } from "@plane/i18n";
 import { PlaneToastProvider } from "@plane/blocks/toast";
 // mobx store provider
 import { StoreProvider } from "@/lib/store-context";
+import { WEB_SWR_CONFIG } from "@/lib/swr-config";
 
 // lazy imports
 const AppProgressBar = lazy(function AppProgressBar() {
