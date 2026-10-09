@@ -27,7 +27,7 @@ export const useProjectViewUrlAdapter = (workspaceSlug: string, projectId: strin
       page: PROJECT_WORK_ITEMS_PAGE,
       store: issuesFilter,
       getSaved: () => issuesFilter.savedFilters[projectId],
-      loadSaved: () => issuesFilter.fetchSavedFilters(workspaceSlug, projectId),
+      loadSaved: () => issuesFilter.loadSavedFilters(workspaceSlug, projectId),
       effects: {
         clear: () => issues.clear(true),
         refetch: () => {

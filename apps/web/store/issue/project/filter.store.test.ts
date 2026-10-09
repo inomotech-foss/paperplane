@@ -20,25 +20,40 @@ const userProperties: IProjectUserPropertiesResponse = {
   preferences: { pages: { block_display: false }, navigation: { default_tab: "", hide_in_more_menu: [] } },
 };
 
-const setup = async () => {
+const createStore = () => {
   const projectIssues = { clear: vi.fn(), fetchIssuesWithExistingPagination: vi.fn() };
-  const store = new ProjectIssuesFilter({ projectId: "p1", currentUserId: "u1", projectIssues });
-  vi.spyOn(store.projectService, "getProjectUserProperties").mockResolvedValue(userProperties);
+  const fetchProjectUserProperties = vi.fn(async () => userProperties);
+  const members = { getProjectUserProperties: () => null, fetchProjectUserProperties };
+  const store = new ProjectIssuesFilter({
+    projectId: "p1",
+    currentUserId: "u1",
+    projectIssues,
+    rootStore: { memberRoot: { project: members } },
+  });
   const update = vi.spyOn(store.projectService, "updateProjectUserProperties").mockResolvedValue(userProperties);
-  const saved = await store.fetchSavedFilters("ws", "p1");
-  return { store, saved, update, projectIssues };
+  return { store, update, projectIssues, fetchProjectUserProperties };
+};
+
+const setup = async () => {
+  const context = createStore();
+  const saved = await context.store.fetchSavedFilters("ws", "p1");
+  return { ...context, saved };
 };
 
 /** Shows the state a link asks for, the way the route does. */
-const openLink = async (search: string) => {
-  const context = await setup();
+const showLink = (store: ProjectIssuesFilter, search: string, saved = getPageBaseline(page)) => {
   const { state } = resolveViewState(
     parseSearch(new URLSearchParams(search), page),
     page,
     getPageBaseline(page),
-    toViewState(context.saved)
+    saved
   );
-  applyViewState(context.store, "p1", state, context.saved.kanbanFilters);
+  applyViewState(store, "p1", state, undefined);
+};
+
+const openLink = async (search: string) => {
+  const context = await setup();
+  showLink(context.store, search, toViewState(context.saved));
   return context;
 };
 
@@ -48,12 +63,6 @@ describe("ProjectIssuesFilter saved preferences", () => {
     expect(saved.displayFilters?.layout).toBe(EIssueLayoutTypes.KANBAN);
     expect(store.savedFilters.p1).toBe(saved);
     expect(store.filters.p1).toBeUndefined();
-  });
-
-  it("does not save a view opened from a link", async () => {
-    const { store, update } = await openLink("l=list&o=-created_at&f=priority:in:urgent&p=-key");
-    expect(store.getIssueFilters("p1")?.displayFilters?.layout).toBe(EIssueLayoutTypes.LIST);
-    expect(update).not.toHaveBeenCalled();
   });
 
   it("saves only the changed display filter", async () => {
@@ -95,6 +104,28 @@ describe("ProjectIssuesFilter saved preferences", () => {
     expect(update).toHaveBeenCalledWith("ws", "p1", { rich_filters: { priority__in: "high" } });
     expect(store.savedFilters.p1.richFilters).toEqual({ priority__in: "high" });
     expect(store.savedFilters.p1.displayFilters?.order_by).toBe("-priority");
+  });
+
+  it("loads the saved preferences before saving a change", async () => {
+    const { store, update, fetchProjectUserProperties } = createStore();
+    showLink(store, "l=list&o=-created_at");
+    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { sub_issue: false });
+
+    expect(fetchProjectUserProperties).toHaveBeenCalledTimes(1);
+    const persisted = update.mock.calls[0][2].display_filters;
+    expect(persisted?.order_by).toBe("-priority");
+    expect(persisted?.sub_issue).toBe(false);
+  });
+
+  it("shows but does not save a change when the saved preferences cannot be loaded", async () => {
+    const { store, update, fetchProjectUserProperties } = createStore();
+    fetchProjectUserProperties.mockRejectedValueOnce(new Error("offline"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    showLink(store, "l=list&o=-created_at");
+    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_PROPERTIES, { estimate: false });
+
+    expect(update).not.toHaveBeenCalled();
+    expect(store.getIssueFilters("p1")?.displayProperties?.estimate).toBe(false);
   });
 
   it("keeps the shown filters when saving fails", async () => {

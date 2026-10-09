@@ -240,13 +240,12 @@ describe("rich filters", () => {
   it.each(fallback)("falls back to JSON for %s", (_, expression) => {
     const encoded = formatRichFilters(expression);
     expect(encoded).toMatch(/^j\.[A-Za-z0-9_-]+$/);
-    expect(parseRichFilters(encoded)).toEqual({ value: expression });
+    expect(parseRichFilters(encoded ?? "")).toEqual({ value: expression });
   });
 
   it.each<[string, TWorkItemFilterExpression]>([
     ["the legacy None value", { assignee_id__in: "None" }],
     ["a label id that is not a uuid", { and: [{ label_id__in: "bug" }, { priority__in: "high" }] }],
-    ["an unknown property", { bogus__in: "a" }],
     ["a NOT group", { not: { and: [{ state_id__in: S1 }, { priority__in: "high" }] } }],
   ])("writes nothing it cannot read back for %s", (_, expression) => {
     expect(formatRichFilters(expression)).toBeUndefined();

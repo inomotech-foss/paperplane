@@ -15,6 +15,7 @@ import type {
   IIssueDisplayProperties,
   TIssueKanbanFilters,
   IIssueFilters,
+  IProjectUserPropertiesResponse,
   TIssueParams,
   IssuePaginationOptions,
   TWorkItemFilterExpression,
@@ -27,6 +28,7 @@ import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
 // helpers
 // types
 import type { IIssueRootStore } from "../root.store";
+import type { IProjectMemberStore } from "@/store/member/project/base-project-member.store";
 import type { IProjectIssues } from "./issue.store";
 import { ProjectService } from "@/services/project";
 // constants
@@ -47,8 +49,10 @@ export interface IProjectIssuesFilter extends IBaseIssueFilterStore {
   /** Saved preferences per project. The shown filters may come from a link instead. */
   savedFilters: Record<string, IIssueFilters>;
   // action
-  /** Loads the saved preferences into savedFilters; does not change the shown filters. */
+  /** Fetches the saved preferences into savedFilters; does not change the shown filters. */
   fetchSavedFilters: (workspaceSlug: string, projectId: string) => Promise<IIssueFilters>;
+  /** The saved preferences, fetched only if neither this store nor the member store has them. */
+  loadSavedFilters: (workspaceSlug: string, projectId: string) => Promise<IIssueFilters>;
   updateFilterExpression: (
     workspaceSlug: string,
     projectId: string,
@@ -65,6 +69,21 @@ export interface IProjectIssuesFilter extends IBaseIssueFilterStore {
 /** The parts of the issue root store the filters use. */
 export type TProjectIssuesFilterRoot = Pick<IIssueRootStore, "projectId" | "currentUserId"> & {
   projectIssues: Pick<IProjectIssues, "clear" | "fetchIssuesWithExistingPagination">;
+  rootStore: {
+    memberRoot: { project: Pick<IProjectMemberStore, "getProjectUserProperties" | "fetchProjectUserProperties"> };
+  };
+};
+
+type TCalendarOptions = NonNullable<IIssueDisplayFilterOptions["calendar"]>;
+
+/** The calendar options that differ from the shown ones; the options menu sends all of them. */
+const changedCalendarOptions = (shown: TCalendarOptions | undefined, next: TCalendarOptions): TCalendarOptions => {
+  const changed: TCalendarOptions = {};
+  if (next.layout !== undefined && next.layout !== shown?.layout) changed.layout = next.layout;
+  if (next.show_weekends !== undefined && next.show_weekends !== shown?.show_weekends) {
+    changed.show_weekends = next.show_weekends;
+  }
+  return changed;
 };
 
 export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProjectIssuesFilter {
@@ -145,9 +164,42 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
     }
   );
 
-  fetchSavedFilters = async (workspaceSlug: string, projectId: string): Promise<IIssueFilters> => {
-    const _filters = await this.projectService.getProjectUserProperties(workspaceSlug, projectId);
+  private get projectMembers() {
+    return this.rootIssueStore.rootStore.memberRoot.project;
+  }
 
+  fetchSavedFilters = async (workspaceSlug: string, projectId: string): Promise<IIssueFilters> =>
+    this.setSavedFilters(
+      workspaceSlug,
+      projectId,
+      await this.projectMembers.fetchProjectUserProperties(workspaceSlug, projectId)
+    );
+
+  loadSavedFilters = async (workspaceSlug: string, projectId: string): Promise<IIssueFilters> => {
+    const saved = this.savedFilters[projectId];
+    if (saved) return saved;
+    const properties =
+      this.projectMembers.getProjectUserProperties(projectId) ??
+      (await this.projectMembers.fetchProjectUserProperties(workspaceSlug, projectId));
+    // another caller may have loaded and changed them meanwhile
+    return this.savedFilters[projectId] ?? this.setSavedFilters(workspaceSlug, projectId, properties);
+  };
+
+  /** Undefined if they cannot be loaded; a change is then shown but not saved. */
+  private loadSavedForUpdate = async (workspaceSlug: string, projectId: string) => {
+    try {
+      return await this.loadSavedFilters(workspaceSlug, projectId);
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  };
+
+  private setSavedFilters = (
+    workspaceSlug: string,
+    projectId: string,
+    _filters: IProjectUserPropertiesResponse
+  ): IIssueFilters => {
     // fetching the kanban toggle helpers in the local storage
     const kanbanFilters: TIssueKanbanFilters = {
       group_by: [],
@@ -175,15 +227,6 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
     return saved;
   };
 
-  private savePreferences = <K extends "richFilters" | "displayFilters" | "displayProperties">(
-    projectId: string,
-    key: K,
-    value: IIssueFilters[K]
-  ) => {
-    const saved = this.savedFilters[projectId];
-    if (saved) saved[key] = value;
-  };
-
   /**
    * NOTE: This method is designed as a fallback function for the work item filter store.
    * Only use this method directly when initializing filter instances.
@@ -200,7 +243,9 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
       });
 
       this.rootIssueStore.projectIssues.fetchIssuesWithExistingPagination(workspaceSlug, projectId, "mutation");
-      this.savePreferences(projectId, "richFilters", filters);
+      const saved = this.savedFilters[projectId];
+      if (saved) saved.richFilters = filters;
+      // only rich_filters is sent, so this needs no snapshot of the other keys
       await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, {
         rich_filters: filters,
       });
@@ -223,12 +268,13 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
 
       switch (type) {
         case EIssueFilterType.DISPLAY_FILTERS: {
-          const updatedDisplayFilters = filters as IIssueDisplayFilterOptions;
-          // only the changed keys are saved, so a view opened from a link does not become the preference
-          const savedDisplayFilters = normalizeDisplayFilters({
-            ...(this.savedFilters[projectId]?.displayFilters ?? _filters.displayFilters),
-            ...updatedDisplayFilters,
-          });
+          const changes = filters as IIssueDisplayFilterOptions;
+          const shownCalendar = _filters.displayFilters.calendar;
+          const changedCalendar = changes.calendar && changedCalendarOptions(shownCalendar, changes.calendar);
+          const updatedDisplayFilters: IIssueDisplayFilterOptions = {
+            ...changes,
+            ...(changes.calendar && { calendar: { ...shownCalendar, ...changes.calendar } }),
+          };
           _filters.displayFilters = { ..._filters.displayFilters, ...updatedDisplayFilters };
 
           const corrections = getDisplayFilterCorrections(_filters.displayFilters);
@@ -253,7 +299,15 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
             this.rootIssueStore.projectIssues.fetchIssuesWithExistingPagination(workspaceSlug, projectId, "mutation");
           }
 
-          this.savePreferences(projectId, "displayFilters", savedDisplayFilters);
+          // only the changed keys are saved, so a view opened from a link does not become the preference
+          const saved = await this.loadSavedForUpdate(workspaceSlug, projectId);
+          if (!saved) break;
+          const savedDisplayFilters = normalizeDisplayFilters({
+            ...saved.displayFilters,
+            ...changes,
+            ...(changedCalendar && { calendar: { ...saved.displayFilters?.calendar, ...changedCalendar } }),
+          });
+          saved.displayFilters = savedDisplayFilters;
           await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, {
             display_filters: savedDisplayFilters,
           });
@@ -262,10 +316,6 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
         }
         case EIssueFilterType.DISPLAY_PROPERTIES: {
           const updatedDisplayProperties = filters as IIssueDisplayProperties;
-          const savedDisplayProperties = {
-            ...(this.savedFilters[projectId]?.displayProperties ?? _filters.displayProperties),
-            ...updatedDisplayProperties,
-          };
 
           runInAction(() => {
             Object.keys(updatedDisplayProperties).forEach((_key) => {
@@ -277,7 +327,10 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
             });
           });
 
-          this.savePreferences(projectId, "displayProperties", savedDisplayProperties);
+          const saved = await this.loadSavedForUpdate(workspaceSlug, projectId);
+          if (!saved) break;
+          const savedDisplayProperties = { ...saved.displayProperties, ...updatedDisplayProperties };
+          saved.displayProperties = savedDisplayProperties;
           await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, {
             display_properties: savedDisplayProperties,
           });
