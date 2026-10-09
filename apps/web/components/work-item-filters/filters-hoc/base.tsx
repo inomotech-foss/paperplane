@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
 // plane imports
@@ -60,53 +60,48 @@ const WorkItemFilterRoot = observer(function WorkItemFilterRoot(props: TWorkItem
     showOnMount,
     ...entityConfigProps
   } = props;
+  // states
+  const [temporaryId] = useState(() => uuidv4());
   // store hooks
-  const { getOrCreateFilter, deleteFilter } = useWorkItemFilters();
+  const { getFilter, getOrCreateFilter, deleteFilter } = useWorkItemFilters();
   // derived values
-  const workItemEntityID = useMemo(
-    () => (isTemporary ? `TEMP-${entityId ?? uuidv4()}` : entityId),
-    [isTemporary, entityId]
-  );
-  // memoize initial values to prevent re-computations when reference changes
-  const initialUserFilters = useMemo(() => initialWorkItemFilters.richFilters, [initialWorkItemFilters]);
+  const workItemEntityID = isTemporary ? `TEMP-${entityId ?? temporaryId}` : entityId;
+  const workItemLayoutFilter = getFilter(entityType, workItemEntityID);
   const workItemFiltersConfig = useWorkItemFiltersConfig({
     allowedFilters: filtersToShowByLayout ? filtersToShowByLayout : [],
     ...entityConfigProps,
   });
-  // get or create filter instance
-  const workItemLayoutFilter = useMemo(
-    () =>
-      getOrCreateFilter({
-        entityType,
-        entityId: workItemEntityID,
-        initialExpression: initialUserFilters,
-        onExpressionChange: updateFilters,
-        expressionOptions: {
-          saveViewOptions,
-          updateViewOptions,
-        },
-        showOnMount,
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [entityType, workItemEntityID, saveViewOptions, updateViewOptions, updateFilters]
-  );
 
-  // delete filter instance when component unmounts
-  useEffect(
-    () => () => {
-      deleteFilter(entityType, workItemEntityID);
-    },
-    [deleteFilter, entityType, workItemEntityID]
-  );
+  useLayoutEffect(() => () => deleteFilter(entityType, workItemEntityID), [deleteFilter, entityType, workItemEntityID]);
 
-  useEffect(() => {
-    workItemLayoutFilter.configManager.setAreConfigsReady(workItemFiltersConfig.areAllConfigsInitialized);
-    workItemLayoutFilter.configManager.registerAll(workItemFiltersConfig.configs);
+  // Creating the filter re-renders other observers, so it must not happen during render. A layout
+  // effect still runs before the first paint. On an existing filter this only refreshes the options.
+  useLayoutEffect(() => {
+    getOrCreateFilter({
+      entityType,
+      entityId: workItemEntityID,
+      initialExpression: initialWorkItemFilters.richFilters,
+      onExpressionChange: updateFilters,
+      expressionOptions: { saveViewOptions, updateViewOptions },
+      showOnMount,
+    });
   }, [
-    workItemFiltersConfig.areAllConfigsInitialized,
-    workItemFiltersConfig.configs,
-    workItemLayoutFilter.configManager,
+    entityType,
+    getOrCreateFilter,
+    initialWorkItemFilters.richFilters,
+    saveViewOptions,
+    showOnMount,
+    updateFilters,
+    updateViewOptions,
+    workItemEntityID,
   ]);
 
+  useEffect(() => {
+    if (!workItemLayoutFilter) return;
+    workItemLayoutFilter.configManager.setAreConfigsReady(workItemFiltersConfig.areAllConfigsInitialized);
+    workItemLayoutFilter.configManager.registerAll(workItemFiltersConfig.configs);
+  }, [workItemFiltersConfig.areAllConfigsInitialized, workItemFiltersConfig.configs, workItemLayoutFilter]);
+
+  if (!workItemLayoutFilter) return null;
   return <>{typeof children === "function" ? children({ filter: workItemLayoutFilter }) : children}</>;
 });
