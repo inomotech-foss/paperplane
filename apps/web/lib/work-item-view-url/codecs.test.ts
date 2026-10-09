@@ -243,6 +243,28 @@ describe("rich filters", () => {
     expect(parseRichFilters(encoded)).toEqual({ value: expression });
   });
 
+  it.each<[string, TWorkItemFilterExpression]>([
+    ["the legacy None value", { assignee_id__in: "None" }],
+    ["a label id that is not a uuid", { and: [{ label_id__in: "bug" }, { priority__in: "high" }] }],
+    ["an unknown property", { bogus__in: "a" }],
+    ["a NOT group", { not: { and: [{ state_id__in: S1 }, { priority__in: "high" }] } }],
+  ])("writes nothing it cannot read back for %s", (_, expression) => {
+    expect(formatRichFilters(expression)).toBeUndefined();
+  });
+
+  it.each<TWorkItemFilterExpression>([
+    ...compact.map(([, expression]) => expression),
+    ...fallback.map(([, expression]) => expression),
+    { [`customproperty_${CP.toUpperCase()}__exact`]: "yes" },
+    { and: [{ state_id__in: S1 }] },
+    { priority__in: "high, low," },
+  ])("reads back what it writes for %j", (expression) => {
+    const encoded = formatRichFilters(expression);
+    expect(encoded).toBeDefined();
+    const parsed = parseRichFilters(encoded ?? "");
+    expect(parsed && richFiltersEqual(parsed.value, expression)).toBe(true);
+  });
+
   it.each([{}, null, undefined])("writes none for %j", (expression) => {
     expect(formatRichFilters(expression)).toBe("none");
   });
