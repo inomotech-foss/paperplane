@@ -125,15 +125,14 @@ describe("applyViewState", () => {
   it("replaces the filters while the list is not shown", () => {
     const store = makeStore();
     const next = resolve("l=list").state;
-    applyViewState(store, "p1", next, { group_by: [], sub_group_by: [] });
+    applyViewState(store, "p1", next);
     expect(toViewState(store.filters.p1)).toEqual({ ...next, richFilters: {} });
-    expect(store.filters.p1.kanbanFilters).toEqual({ group_by: [], sub_group_by: [] });
   });
 
   it("clears on a layout change and lets the new layout fetch", () => {
     const store = makeStore({ p1: shown() });
     const effects = makeEffects();
-    applyViewState(store, "p1", resolve("l=list&o=-priority").state, undefined, effects);
+    applyViewState(store, "p1", resolve("l=list&o=-priority").state, effects);
     expect(store.filters.p1.displayFilters?.layout).toBe(EIssueLayoutTypes.LIST);
     expect(store.filters.p1.kanbanFilters?.group_by).toEqual(["collapsed"]);
     expect(effects.clear).toHaveBeenCalledOnce();
@@ -144,7 +143,7 @@ describe("applyViewState", () => {
     const store = makeStore({ p1: shown() });
     const effects = makeEffects();
     const next = { ...saved, richFilters: { priority__in: "high" } };
-    applyViewState(store, "p1", next, undefined, effects);
+    applyViewState(store, "p1", next, effects);
     expect(store.filters.p1.richFilters).toEqual({ priority__in: "high" });
     expect(effects.setRichFilters).toHaveBeenCalledWith({ priority__in: "high" });
     expect(effects.refetch).toHaveBeenCalledOnce();
@@ -154,7 +153,7 @@ describe("applyViewState", () => {
   it("does nothing when the state is already shown", () => {
     const store = makeStore({ p1: shown() });
     const effects = makeEffects();
-    applyViewState(store, "p1", saved, undefined, effects);
+    applyViewState(store, "p1", saved, effects);
     expect(effects.refetch).not.toHaveBeenCalled();
     expect(effects.clear).not.toHaveBeenCalled();
     expect(effects.setRichFilters).not.toHaveBeenCalled();

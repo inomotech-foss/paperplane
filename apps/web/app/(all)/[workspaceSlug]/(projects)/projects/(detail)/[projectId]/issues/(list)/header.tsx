@@ -6,6 +6,6 @@
 
 import { IssuesHeader } from "@/components/issues/header";
 
-export function ProjectIssuesHeader(props: { showFilters: boolean }) {
-  return <IssuesHeader showFilters={props.showFilters} />;
+export function ProjectIssuesHeader() {
+  return <IssuesHeader />;
 }

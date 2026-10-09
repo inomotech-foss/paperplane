@@ -212,7 +212,12 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
 
       switch (type) {
         case EIssueFilterType.DISPLAY_FILTERS: {
-          const updatedDisplayFilters = filters as IIssueDisplayFilterOptions;
+          const changes = filters as IIssueDisplayFilterOptions;
+          // calendar changes carry only the changed options
+          const updatedDisplayFilters: IIssueDisplayFilterOptions = {
+            ...changes,
+            ...(changes.calendar && { calendar: { ..._filters.displayFilters?.calendar, ...changes.calendar } }),
+          };
           _filters.displayFilters = { ..._filters.displayFilters, ...updatedDisplayFilters };
 
           const corrections = getDisplayFilterCorrections(_filters.displayFilters, "priority");

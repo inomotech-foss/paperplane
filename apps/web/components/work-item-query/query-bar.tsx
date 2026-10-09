@@ -26,12 +26,26 @@ const workItemQueryService = new WorkItemQueryService();
 
 const QueryEditor = lazy(() => import("./editor"));
 
-type TQueryDraft = { query: string; error: string };
+type TQueryDraft = { query: string; error?: string };
 
-/** `edits` is what the person typed since the last apply, null when the editor shows the applied query. */
-const useDraftState = (draft: TQueryDraft | undefined) => {
+/**
+ * `edits` is what the person typed since the last apply, null when the editor shows the applied query.
+ * A new draft replaces it, and so does another applied query, e.g. after going back.
+ */
+const useDraftState = (value: string, draft: TQueryDraft | undefined, invalid: string) => {
   const [edits, setEdits] = useState<string | null>(draft ? draft.query : null);
-  const [runError, setRunError] = useState<string | null>(draft ? draft.error : null);
+  const [runError, setRunError] = useState<string | null>(draft ? (draft.error ?? invalid) : null);
+  const [source, setSource] = useState({ value, draft });
+  if (source.value !== value || source.draft !== draft) {
+    setSource({ value, draft });
+    if (draft && draft !== source.draft) {
+      setEdits(draft.query);
+      setRunError(draft.error ?? invalid);
+    } else if (source.value !== value) {
+      setEdits(null);
+      setRunError(null);
+    }
+  }
   return { edits, setEdits, runError, setRunError };
 };
 
@@ -41,7 +55,7 @@ type Props = {
   projectId?: string;
   /** The query currently applied to the list, empty for none. */
   value: string;
-  /** A query shown unapplied with its error, e.g. an invalid one from a link. Read on mount. */
+  /** A query shown unapplied with its error, e.g. an invalid one from a link. */
   draft?: TQueryDraft;
   onApply: (pql: string) => Promise<void> | void;
   className?: string;
@@ -57,11 +71,11 @@ type Props = {
  * of as a failed fetch.
  */
 export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props) {
-  const { workspaceSlug, projectId, value, draft: initialDraft, onApply, className, actions } = props;
+  const { workspaceSlug, projectId, value, draft: linkDraft, onApply, className, actions } = props;
   // i18n
   const { t } = useTranslation();
   // states: an applied query never goes stale, as `edits` is null while it is shown
-  const { edits, setEdits, runError, setRunError } = useDraftState(initialDraft);
+  const { edits, setEdits, runError, setRunError } = useDraftState(value, linkDraft, t("work_item_query.invalid"));
   const [isRunning, setIsRunning] = useState(false);
   const [inlineErrors, setInlineErrors] = useState<string[]>([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);

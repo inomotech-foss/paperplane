@@ -33,7 +33,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 import { CommonProjectBreadcrumbs } from "@/components/breadcrumbs/common";
 import { useProjectCrumbProps } from "@/components/breadcrumbs/use-project-crumb-props";
 
-export const IssuesHeader = observer(function IssuesHeader({ showFilters = true }: { showFilters?: boolean }) {
+export const IssuesHeader = observer(function IssuesHeader() {
   // router
   const { workspaceSlug, projectId } = useParams();
   const projectCrumb = useProjectCrumbProps(workspaceSlug?.toString(), projectId?.toString());
@@ -110,16 +110,14 @@ export const IssuesHeader = observer(function IssuesHeader({ showFilters = true 
         )}
       </Header.LeftItem>
       <Header.RightItem>
-        {showFilters && (
-          <div className="hidden gap-2 md:flex">
-            <HeaderFilters
-              projectId={projectId}
-              currentProjectDetails={currentProjectDetails}
-              workspaceSlug={workspaceSlug}
-              canUserCreateIssue={canUserCreateIssue}
-            />
-          </div>
-        )}
+        <div className="hidden gap-2 md:flex">
+          <HeaderFilters
+            projectId={projectId}
+            currentProjectDetails={currentProjectDetails}
+            workspaceSlug={workspaceSlug}
+            canUserCreateIssue={canUserCreateIssue}
+          />
+        </div>
         {canUserCreateIssue && (
           <Button
             variant="primary"

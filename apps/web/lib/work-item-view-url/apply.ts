@@ -154,14 +154,13 @@ export type TViewStateEffects = {
 };
 
 /**
- * Sets a view state as the shown filters without saving it. Without effects the list is not shown
- * yet, so the state replaces the filters and the list fetches when it mounts.
+ * Sets a view state as the shown filters without saving it. Without effects the list is not shown,
+ * so the state replaces the filters and the list fetches when it mounts.
  */
 export const applyViewState = (
   store: TViewStateStore,
   entityId: string,
   next: TWorkItemViewState,
-  kanbanFilters: IIssueFilters["kanbanFilters"],
   effects?: TViewStateEffects
 ) => {
   const current = store.filters[entityId];
@@ -171,7 +170,7 @@ export const applyViewState = (
         richFilters: next.richFilters ?? {},
         displayFilters: next.displayFilters,
         displayProperties: next.displayProperties,
-        kanbanFilters: current?.kanbanFilters ?? kanbanFilters,
+        kanbanFilters: current?.kanbanFilters,
       };
     });
     return;

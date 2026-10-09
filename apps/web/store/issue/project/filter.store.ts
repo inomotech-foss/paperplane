@@ -22,7 +22,11 @@ import type {
   TSupportedFilterForUpdate,
 } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
-import { handleIssueQueryParamsByLayout, getDisplayFilterCorrections, normalizeDisplayFilters } from "@plane/utils";
+import { handleIssueQueryParamsByLayout, normalizeDisplayFilters } from "@plane/utils";
+import { applyViewState, toViewState } from "@/lib/work-item-view-url/apply";
+import { applyViewIntent, mergeDisplayFilters } from "@/lib/work-item-view-url/intent";
+import type { TViewIntent, TViewRoute } from "@/lib/work-item-view-url/intent";
+import { getWorkItemPage } from "@/lib/work-item-view-url/pages";
 import type { IBaseIssueFilterStore } from "../helpers/issue-filter-helper.store";
 import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
 // helpers
@@ -48,6 +52,9 @@ export interface IProjectIssuesFilter extends IBaseIssueFilterStore {
   getShouldReFetchIssues: (displayFilters: IIssueDisplayFilterOptions) => boolean;
   /** Saved preferences per project. The shown filters may come from a link instead. */
   savedFilters: Record<string, IIssueFilters>;
+  /** The route showing a project from the URL. UI changes for that project go to it, not into `filters`. */
+  viewRoute: TViewRoute | undefined;
+  setViewRoute: (route: TViewRoute | undefined) => void;
   // action
   /** Fetches the saved preferences into savedFilters; does not change the shown filters. */
   fetchSavedFilters: (workspaceSlug: string, projectId: string) => Promise<IIssueFilters>;
@@ -67,29 +74,21 @@ export interface IProjectIssuesFilter extends IBaseIssueFilterStore {
 }
 
 /** The parts of the issue root store the filters use. */
-export type TProjectIssuesFilterRoot = Pick<IIssueRootStore, "projectId" | "currentUserId"> & {
+export type TProjectIssuesFilterRoot = Pick<IIssueRootStore, "projectId" | "currentUserId" | "workspaceSlug"> & {
   projectIssues: Pick<IProjectIssues, "clear" | "fetchIssuesWithExistingPagination">;
   rootStore: {
     memberRoot: { project: Pick<IProjectMemberStore, "getProjectUserProperties" | "fetchProjectUserProperties"> };
+    user: { data?: { id: string } };
   };
 };
 
-type TCalendarOptions = NonNullable<IIssueDisplayFilterOptions["calendar"]>;
-
-/** The calendar options that differ from the shown ones; the options menu sends all of them. */
-const changedCalendarOptions = (shown: TCalendarOptions | undefined, next: TCalendarOptions): TCalendarOptions => {
-  const changed: TCalendarOptions = {};
-  if (next.layout !== undefined && next.layout !== shown?.layout) changed.layout = next.layout;
-  if (next.show_weekends !== undefined && next.show_weekends !== shown?.show_weekends) {
-    changed.show_weekends = next.show_weekends;
-  }
-  return changed;
-};
+const PROJECT_PAGE = getWorkItemPage(EIssuesStoreType.PROJECT);
 
 export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProjectIssuesFilter {
   // observables
   filters: { [projectId: string]: IIssueFilters } = {};
   savedFilters: Record<string, IIssueFilters> = {};
+  viewRoute: TViewRoute | undefined = undefined;
   // root store
   rootIssueStore: TProjectIssuesFilterRoot;
   // services
@@ -128,11 +127,26 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
   }
 
   getIssueFilters(projectId: string) {
-    const displayFilters = this.filters[projectId] || undefined;
-    if (isEmpty(displayFilters)) return undefined;
+    const filters = this.filters[projectId];
+    if (!filters || isEmpty(filters)) return undefined;
 
-    return this.computedIssueFilters(displayFilters);
+    return this.computedIssueFilters({
+      ...filters,
+      kanbanFilters: filters.kanbanFilters ?? this.getStoredKanbanFilters(projectId),
+    });
   }
+
+  /** Collapsed groups are kept per user in local storage, so they are read once the user is known. */
+  private getStoredKanbanFilters = computedFn((projectId: string): TIssueKanbanFilters | undefined => {
+    const { workspaceSlug, rootStore } = this.rootIssueStore;
+    const userId = rootStore.user.data?.id;
+    if (!workspaceSlug || !userId) return undefined;
+    const stored = this.handleIssuesLocalFilters.get(EIssuesStoreType.PROJECT, workspaceSlug, projectId, userId);
+    return {
+      group_by: stored?.kanban_filters?.group_by || [],
+      sub_group_by: stored?.kanban_filters?.sub_group_by || [],
+    };
+  });
 
   getAppliedFilters(projectId: string) {
     const userFilters = this.getIssueFilters(projectId);
@@ -164,16 +178,16 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
     }
   );
 
+  setViewRoute = (route: TViewRoute | undefined) => {
+    this.viewRoute = route;
+  };
+
   private get projectMembers() {
     return this.rootIssueStore.rootStore.memberRoot.project;
   }
 
   fetchSavedFilters = async (workspaceSlug: string, projectId: string): Promise<IIssueFilters> =>
-    this.setSavedFilters(
-      workspaceSlug,
-      projectId,
-      await this.projectMembers.fetchProjectUserProperties(workspaceSlug, projectId)
-    );
+    this.setSavedFilters(projectId, await this.projectMembers.fetchProjectUserProperties(workspaceSlug, projectId));
 
   loadSavedFilters = async (workspaceSlug: string, projectId: string): Promise<IIssueFilters> => {
     const saved = this.savedFilters[projectId];
@@ -182,49 +196,86 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
       this.projectMembers.getProjectUserProperties(projectId) ??
       (await this.projectMembers.fetchProjectUserProperties(workspaceSlug, projectId));
     // another caller may have loaded and changed them meanwhile
-    return this.savedFilters[projectId] ?? this.setSavedFilters(workspaceSlug, projectId, properties);
+    return this.savedFilters[projectId] ?? this.setSavedFilters(projectId, properties);
   };
 
-  /** Undefined if they cannot be loaded; a change is then shown but not saved. */
-  private loadSavedForUpdate = async (workspaceSlug: string, projectId: string) => {
+  private setSavedFilters = (projectId: string, properties: IProjectUserPropertiesResponse): IIssueFilters => {
+    const saved: IIssueFilters = {
+      richFilters: properties?.rich_filters ?? {},
+      displayFilters: this.computedDisplayFilters(properties?.display_filters),
+      displayProperties: this.computedDisplayProperties(properties?.display_properties),
+      kanbanFilters: undefined,
+    };
+    this.savedFilters[projectId] = saved;
+    return saved;
+  };
+
+  /**
+   * Merges a change into the saved preferences and returns what to send. Undefined if they cannot be
+   * loaded; the change is then shown but not saved.
+   */
+  private saveIntent = async (
+    workspaceSlug: string,
+    projectId: string,
+    intent: TViewIntent
+  ): Promise<Partial<IProjectUserPropertiesResponse> | undefined> => {
+    let saved: IIssueFilters;
     try {
-      return await this.loadSavedFilters(workspaceSlug, projectId);
+      saved = await this.loadSavedFilters(workspaceSlug, projectId);
     } catch (error) {
       console.error(error);
       return undefined;
     }
+    switch (intent.type) {
+      case "displayFilters":
+        saved.displayFilters = normalizeDisplayFilters(mergeDisplayFilters(saved.displayFilters ?? {}, intent.changes));
+        return { display_filters: saved.displayFilters };
+      case "displayProperties":
+        saved.displayProperties = { ...saved.displayProperties, ...intent.changes };
+        return { display_properties: saved.displayProperties };
+      case "richFilters":
+        saved.richFilters = intent.expression;
+        return { rich_filters: intent.expression };
+    }
   };
 
-  private setSavedFilters = (
-    workspaceSlug: string,
-    projectId: string,
-    _filters: IProjectUserPropertiesResponse
-  ): IIssueFilters => {
-    // fetching the kanban toggle helpers in the local storage
-    const kanbanFilters: TIssueKanbanFilters = {
-      group_by: [],
-      sub_group_by: [],
-    };
-    const currentUserId = this.rootIssueStore.currentUserId;
-    if (currentUserId) {
-      const _kanbanFilters = this.handleIssuesLocalFilters.get(
-        EIssuesStoreType.PROJECT,
-        workspaceSlug,
-        projectId,
-        currentUserId
-      );
-      kanbanFilters.group_by = _kanbanFilters?.kanban_filters?.group_by || [];
-      kanbanFilters.sub_group_by = _kanbanFilters?.kanban_filters?.sub_group_by || [];
-    }
+  /** Shows a change in place, for a project no route shows from the URL. */
+  private showIntent = (workspaceSlug: string, projectId: string, intent: TViewIntent) => {
+    const current = this.filters[projectId];
+    if (!current) return;
+    const { projectIssues } = this.rootIssueStore;
+    applyViewState(this, projectId, applyViewIntent(toViewState(current), intent, PROJECT_PAGE), {
+      clear: () => projectIssues.clear(true),
+      refetch: () => {
+        projectIssues
+          .fetchIssuesWithExistingPagination(workspaceSlug, projectId, "mutation")
+          .catch((error: unknown) => {
+            console.error(error);
+          });
+      },
+      setRichFilters: () => {},
+    });
+  };
 
-    const saved: IIssueFilters = {
-      richFilters: _filters?.rich_filters ?? {},
-      displayFilters: this.computedDisplayFilters(_filters?.display_filters),
-      displayProperties: this.computedDisplayProperties(_filters?.display_properties),
-      kanbanFilters,
-    };
-    this.savedFilters[projectId] = saved;
-    return saved;
+  /**
+   * Saves only the changed key onto the saved preferences, so a view opened from a link does not become
+   * the preference. The saved preferences change first, as the route reads the fields the URL leaves out
+   * from them.
+   */
+  private changeView = async (workspaceSlug: string, projectId: string, intent: TViewIntent) => {
+    const patch = await this.saveIntent(workspaceSlug, projectId, intent);
+    const route = this.viewRoute?.entityId === projectId ? this.viewRoute : undefined;
+    const shown = route ? route.onIntent(intent) : this.showIntent(workspaceSlug, projectId, intent);
+    if (patch) {
+      try {
+        await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, patch);
+      } catch (error) {
+        // the shown filters stay as they are; only the saved preferences are reloaded
+        this.fetchSavedFilters(workspaceSlug, projectId).catch((reloadError: unknown) => console.error(reloadError));
+        throw error;
+      }
+    }
+    await shown;
   };
 
   /**
@@ -232,140 +283,39 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
    * Only use this method directly when initializing filter instances.
    * For regular filter updates, use this method as a fallback function for the work item filter store methods instead.
    */
-  updateFilterExpression: IProjectIssuesFilter["updateFilterExpression"] = async (
-    workspaceSlug,
-    projectId,
-    filters
-  ) => {
-    try {
-      runInAction(() => {
-        set(this.filters, [projectId, "richFilters"], filters);
-      });
-
-      this.rootIssueStore.projectIssues.fetchIssuesWithExistingPagination(workspaceSlug, projectId, "mutation");
-      const saved = this.savedFilters[projectId];
-      if (saved) saved.richFilters = filters;
-      // only rich_filters is sent, so this needs no snapshot of the other keys
-      await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, {
-        rich_filters: filters,
-      });
-    } catch (error) {
-      console.log("error while updating rich filters", error);
-      throw error;
-    }
-  };
+  updateFilterExpression: IProjectIssuesFilter["updateFilterExpression"] = (workspaceSlug, projectId, filters) =>
+    this.changeView(workspaceSlug, projectId, { type: "richFilters", expression: filters });
 
   updateFilters: IProjectIssuesFilter["updateFilters"] = async (workspaceSlug, projectId, type, filters) => {
-    try {
-      if (isEmpty(this.filters) || isEmpty(this.filters[projectId])) return;
-
-      const _filters = {
-        richFilters: this.filters[projectId].richFilters,
-        displayFilters: this.filters[projectId].displayFilters as IIssueDisplayFilterOptions,
-        displayProperties: this.filters[projectId].displayProperties as IIssueDisplayProperties,
-        kanbanFilters: this.filters[projectId].kanbanFilters as TIssueKanbanFilters,
-      };
-
-      switch (type) {
-        case EIssueFilterType.DISPLAY_FILTERS: {
-          const changes = filters as IIssueDisplayFilterOptions;
-          const shownCalendar = _filters.displayFilters.calendar;
-          const changedCalendar = changes.calendar && changedCalendarOptions(shownCalendar, changes.calendar);
-          const updatedDisplayFilters: IIssueDisplayFilterOptions = {
-            ...changes,
-            ...(changes.calendar && { calendar: { ...shownCalendar, ...changes.calendar } }),
-          };
-          _filters.displayFilters = { ..._filters.displayFilters, ...updatedDisplayFilters };
-
-          const corrections = getDisplayFilterCorrections(_filters.displayFilters);
-          Object.assign(_filters.displayFilters, corrections);
-          Object.assign(updatedDisplayFilters, corrections);
-
-          runInAction(() => {
-            Object.keys(updatedDisplayFilters).forEach((_key) => {
-              set(
-                this.filters,
-                [projectId, "displayFilters", _key],
-                updatedDisplayFilters[_key as keyof IIssueDisplayFilterOptions]
-              );
-            });
+    if (isEmpty(this.filters[projectId])) return;
+    switch (type) {
+      case EIssueFilterType.DISPLAY_FILTERS:
+        return this.changeView(workspaceSlug, projectId, {
+          type: "displayFilters",
+          changes: filters as IIssueDisplayFilterOptions,
+        });
+      case EIssueFilterType.DISPLAY_PROPERTIES:
+        return this.changeView(workspaceSlug, projectId, {
+          type: "displayProperties",
+          changes: filters as IIssueDisplayProperties,
+        });
+      case EIssueFilterType.KANBAN_FILTERS: {
+        const kanbanFilters = {
+          ...this.getIssueFilters(projectId)?.kanbanFilters,
+          ...(filters as TIssueKanbanFilters),
+        };
+        const currentUserId = this.rootIssueStore.currentUserId;
+        if (currentUserId)
+          this.handleIssuesLocalFilters.set(EIssuesStoreType.PROJECT, type, workspaceSlug, projectId, currentUserId, {
+            kanban_filters: kanbanFilters,
           });
-
-          if (this.getShouldClearIssues(updatedDisplayFilters)) {
-            this.rootIssueStore.projectIssues.clear(true); // clear issues for local store when some filters like layout changes
-          }
-
-          if (this.getShouldReFetchIssues(updatedDisplayFilters)) {
-            this.rootIssueStore.projectIssues.fetchIssuesWithExistingPagination(workspaceSlug, projectId, "mutation");
-          }
-
-          // only the changed keys are saved, so a view opened from a link does not become the preference
-          const saved = await this.loadSavedForUpdate(workspaceSlug, projectId);
-          if (!saved) break;
-          const savedDisplayFilters = normalizeDisplayFilters({
-            ...saved.displayFilters,
-            ...changes,
-            ...(changedCalendar && { calendar: { ...saved.displayFilters?.calendar, ...changedCalendar } }),
-          });
-          saved.displayFilters = savedDisplayFilters;
-          await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, {
-            display_filters: savedDisplayFilters,
-          });
-
-          break;
-        }
-        case EIssueFilterType.DISPLAY_PROPERTIES: {
-          const updatedDisplayProperties = filters as IIssueDisplayProperties;
-
-          runInAction(() => {
-            Object.keys(updatedDisplayProperties).forEach((_key) => {
-              set(
-                this.filters,
-                [projectId, "displayProperties", _key],
-                updatedDisplayProperties[_key as keyof IIssueDisplayProperties]
-              );
-            });
-          });
-
-          const saved = await this.loadSavedForUpdate(workspaceSlug, projectId);
-          if (!saved) break;
-          const savedDisplayProperties = { ...saved.displayProperties, ...updatedDisplayProperties };
-          saved.displayProperties = savedDisplayProperties;
-          await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, {
-            display_properties: savedDisplayProperties,
-          });
-          break;
-        }
-
-        case EIssueFilterType.KANBAN_FILTERS: {
-          const updatedKanbanFilters = filters as TIssueKanbanFilters;
-          _filters.kanbanFilters = { ..._filters.kanbanFilters, ...updatedKanbanFilters };
-
-          const currentUserId = this.rootIssueStore.currentUserId;
-          if (currentUserId)
-            this.handleIssuesLocalFilters.set(EIssuesStoreType.PROJECT, type, workspaceSlug, projectId, currentUserId, {
-              kanban_filters: _filters.kanbanFilters,
-            });
-
-          runInAction(() => {
-            Object.keys(updatedKanbanFilters).forEach((_key) => {
-              set(
-                this.filters,
-                [projectId, "kanbanFilters", _key],
-                updatedKanbanFilters[_key as keyof TIssueKanbanFilters]
-              );
-            });
-          });
-
-          break;
-        }
-        default:
-          break;
+        runInAction(() => {
+          set(this.filters, [projectId, "kanbanFilters"], kanbanFilters);
+        });
+        return;
       }
-    } catch (error) {
-      // the shown filters stay as the URL has them; only the saved preferences are reloaded
-      this.fetchSavedFilters(workspaceSlug, projectId).catch((reloadError: unknown) => console.error(reloadError));
-      throw error;
+      default:
+        return;
     }
   };
 }

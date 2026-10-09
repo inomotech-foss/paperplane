@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { EIssueLayoutTypes, EIssuesStoreType, EStartOfTheWeek } from "@plane/types";
 import { getPageBaseline, getWorkItemPage } from "./pages";
-import { buildViewSearch, isViewUrlWrite, shouldRevalidateView, VIEW_URL_WRITE } from "./route";
+import { buildViewSearch, shouldRevalidateView } from "./route";
 
 const page = getWorkItemPage(EIssuesStoreType.PROJECT);
 const baseline = getPageBaseline(page);
@@ -25,6 +25,10 @@ describe("shouldRevalidateView", () => {
     expect(revalidate("/p1/issues?l=list", "/p1/issues?l=kanban")).toBe(true);
     expect(revalidate("/p1/issues?l=list", "/p2/issues?l=list", { projectId: "p2" })).toBe(true);
   });
+
+  it("reruns on a navigation to the same URL", () => {
+    expect(revalidate("/p1/issues?l=list&other=1", "/p1/issues?l=list&other=1")).toBe(true);
+  });
 });
 
 describe("buildViewSearch", () => {
@@ -40,13 +44,5 @@ describe("buildViewSearch", () => {
 
   it("drops an invalid peek", () => {
     expect(buildViewSearch(baseline, page, baseline, clock, new URLSearchParams("peek=nope"))).toBe("l=list");
-  });
-});
-
-describe("isViewUrlWrite", () => {
-  it("recognizes the marker only", () => {
-    expect(isViewUrlWrite(VIEW_URL_WRITE)).toBe(true);
-    expect(isViewUrlWrite({ other: true })).toBe(false);
-    expect(isViewUrlWrite(null)).toBe(false);
   });
 });

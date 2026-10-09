@@ -18,7 +18,7 @@ import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { IssuesStoreContext } from "@/hooks/use-issue-layout-store";
-import { useWorkItemViewUrl } from "@/lib/work-item-view-url/provider";
+import { usePqlDraft } from "@/lib/work-item-view-url/pql-draft";
 // local imports
 import { IssuePeekOverview } from "../../peek-overview";
 import { CalendarLayout } from "../calendar/roots/project-root";
@@ -51,8 +51,8 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
   const projectId = routerProjectId ? routerProjectId.toString() : undefined;
   // hooks
   const { issues, issuesFilter } = useIssues(EIssuesStoreType.PROJECT);
-  // the route loads the filters and applies the URL to them
-  const viewUrl = useWorkItemViewUrl();
+  // a query from the URL that did not validate
+  const pqlDraft = usePqlDraft();
   // derived values
   const workItemFilters = projectId ? issuesFilter?.getIssueFilters(projectId) : undefined;
   const activeLayout = workItemFilters?.displayFilters?.layout;
@@ -74,8 +74,8 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
           <div className="relative flex h-full w-full flex-col overflow-hidden">
             {projectWorkItemsFilter && <WorkItemFiltersRow filter={projectWorkItemsFilter} hideViewActions />}
             <WorkItemQueryBar
-              key={viewUrl?.queryBarId}
-              draft={viewUrl?.pqlDraft}
+              key={projectId}
+              draft={pqlDraft}
               actions={
                 projectWorkItemsFilter &&
                 (projectWorkItemsFilter.canSaveView || projectWorkItemsFilter.canUpdateView) ? (
