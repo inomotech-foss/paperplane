@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+# Third party imports
+from rest_framework import serializers
+
 # Module imports
 from plane.db.models import IssueEmailMessage, IssueEmailThread, ServiceDeskConfig
 
@@ -9,6 +12,8 @@ from .base import BaseSerializer
 
 
 class ServiceDeskConfigSerializer(BaseSerializer):
+    issue_type_id = serializers.UUIDField(read_only=True, allow_null=True)
+
     class Meta:
         model = ServiceDeskConfig
         fields = [
@@ -17,6 +22,7 @@ class ServiceDeskConfigSerializer(BaseSerializer):
             "project",
             "mailbox_email",
             "is_enabled",
+            "issue_type_id",
             "notify_mode",
             "notify_user_ids",
             "last_synced_at",

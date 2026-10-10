@@ -15,18 +15,23 @@ class Migration(migrations.Migration):
             model_name="issue",
             name="type",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.PROTECT,
+                on_delete=django.db.models.deletion.RESTRICT,
                 related_name="issue_type",
                 to="db.issuetype",
             ),
         ),
-        migrations.AlterField(
-            model_name="intake",
-            name="issue_type",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.PROTECT,
-                related_name="intakes",
-                to="db.issuetype",
+        migrations.AddConstraint(
+            model_name="deployboard",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("intake__isnull", True), ("intake_issue_type__isnull", False), _connector="OR"),
+                name="deploy_board_intake_has_issue_type",
+            ),
+        ),
+        migrations.AddConstraint(
+            model_name="servicedeskconfig",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("is_enabled", False), ("issue_type__isnull", False), _connector="OR"),
+                name="service_desk_config_enabled_has_issue_type",
             ),
         ),
         migrations.RemoveField(

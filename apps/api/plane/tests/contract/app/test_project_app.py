@@ -8,8 +8,6 @@ import uuid
 from django.utils import timezone
 
 from plane.db.models import (
-    Intake,
-    IssueType,
     Project,
     ProjectMember,
     ProjectUserProperty,
@@ -205,7 +203,6 @@ class TestProjectAPIPost(TestProjectBase):
     def test_create_project_with_all_optional_fields(self, session_client, workspace, create_user):
         """Test creating project with all optional fields"""
         url = self.get_project_url(workspace.slug)
-        ticket = IssueType.objects.create(workspace=workspace, name="Ticket")
         project_data = {
             "name": "Full Project",
             "identifier": "FP",
@@ -217,7 +214,6 @@ class TestProjectAPIPost(TestProjectBase):
             "page_view": False,
             "issue_view": False,
             "inbox_view": True,
-            "intake_issue_type_id": str(ticket.id),
             "guest_view_all_features": True,
             "logo_props": {
                 "in_use": "emoji",
@@ -232,7 +228,6 @@ class TestProjectAPIPost(TestProjectBase):
         response_data = response.json()
         assert response_data["description"] == project_data["description"]
         assert response_data["network"] == project_data["network"]
-        assert Intake.objects.get(project_id=response_data["id"]).issue_type_id == ticket.id
 
 
 @pytest.mark.contract

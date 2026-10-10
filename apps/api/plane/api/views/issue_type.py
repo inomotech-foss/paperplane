@@ -211,8 +211,8 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
 
         Unlinks the work item type from this project. The `IssueType` row
         itself is only deleted once no project links or uses it. Rejected
-        with 409 while work items, drafts, the intake or automations of the
-        project use the type: move them with the migrate endpoint, which can
+        with 409 while work items, drafts, the intake form, the service desk or
+        automations of the project use the type: move them with the migrate endpoint, which can
         unlink in the same request. Rejected with 400 for the Epic type or the
         project's only remaining active type.
         """

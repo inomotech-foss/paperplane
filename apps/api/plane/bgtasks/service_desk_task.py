@@ -25,8 +25,8 @@ from django.utils.html import strip_tags
 # Module imports
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.db.models import (
-    Intake,
     FileAsset,
+    Intake,
     IntakeIssue,
     Issue,
     IssueComment,
@@ -137,6 +137,15 @@ def _merge_recipients(existing, incoming):
     return merged
 
 
+def _get_or_create_default_intake(project):
+    intake = Intake.objects.filter(project=project, is_default=True).first()
+    if intake is None:
+        intake = Intake.objects.filter(project=project).first()
+    if intake is None:
+        intake = Intake.objects.create(name=f"{project.name} Intake", project=project, is_default=True)
+    return intake
+
+
 def _get_or_create_triage_state(project):
     triage_state = State.triage_objects.filter(project_id=project.id).first()
     if triage_state is None:
@@ -171,10 +180,7 @@ def _create_ticket(config, bot, mailbox, message, sender, sender_name, to_emails
     subject = (message.get("subject") or "").strip()
     body_text = _message_body_text(message)
 
-    intake = Intake.objects.filter(project=project).order_by("-is_default").first()
-    if intake is None:
-        # The message stays unread and is picked up once the intake is turned on.
-        raise ValueError(f"Project {project.id} has no intake to file service desk tickets in")
+    intake = _get_or_create_default_intake(project)
     triage_state = _get_or_create_triage_state(project)
 
     issue = Issue.objects.create(
@@ -182,7 +188,7 @@ def _create_ticket(config, bot, mailbox, message, sender, sender_name, to_emails
         description_html=convert_text_to_html(body_text),
         project_id=project.id,
         state_id=triage_state.id,
-        type_id=intake.issue_type_id,
+        type_id=config.issue_type_id,
     )
     intake_issue = IntakeIssue.objects.create(
         intake_id=intake.id,

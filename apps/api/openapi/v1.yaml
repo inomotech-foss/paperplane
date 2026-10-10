@@ -3447,6 +3447,7 @@ paths:
                     name: New Issue
                     description: New issue description
                     priority: medium
+                    type_id: 550e8400-e29b-41d4-a716-446655440000
                 description: Example request for creating an intake issue
           application/x-www-form-urlencoded:
             schema:
@@ -3458,6 +3459,7 @@ paths:
                     name: New Issue
                     description: New issue description
                     priority: medium
+                    type_id: 550e8400-e29b-41d4-a716-446655440000
                 description: Example request for creating an intake issue
           multipart/form-data:
             schema:
@@ -3469,6 +3471,7 @@ paths:
                     name: New Issue
                     description: New issue description
                     priority: medium
+                    type_id: 550e8400-e29b-41d4-a716-446655440000
                 description: Example request for creating an intake issue
         required: true
       security:
@@ -16310,7 +16313,7 @@ components:
       properties:
         issue:
           allOf:
-          - $ref: '#/components/schemas/IssueForIntakeRequest'
+          - $ref: '#/components/schemas/IssueForIntakeCreateRequest'
           description: Issue data for the intake issue
       required:
       - issue
@@ -16972,6 +16975,31 @@ components:
       required:
       - name
       - type
+    IssueForIntakeCreateRequest:
+      type: object
+      description: Work item data of a new intake submission, which names its type.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Issue Name
+          maxLength: 255
+        description:
+          nullable: true
+        description_json: {}
+        description_html:
+          type: string
+        priority:
+          allOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          title: Issue Priority
+        type_id:
+          type: string
+          format: uuid
+          description: The work item type. Must be enabled for the project.
+      required:
+      - name
+      - type_id
     IssueForIntakeRequest:
       type: object
       description: |-
@@ -17836,7 +17864,9 @@ components:
           type: integer
         drafts:
           type: integer
-        intakes:
+        intake_forms:
+          type: integer
+        service_desks:
           type: integer
         automation_actions:
           type: integer
@@ -17844,7 +17874,8 @@ components:
       - automation_actions
       - deleted_work_items
       - drafts
-      - intakes
+      - intake_forms
+      - service_desks
       - work_items
     Label:
       type: object

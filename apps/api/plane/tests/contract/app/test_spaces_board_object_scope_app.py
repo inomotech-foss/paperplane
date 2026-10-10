@@ -118,9 +118,7 @@ def board(db, workspace, create_user):
         created_by=create_user,
         actor=create_user,
     )
-    intake = Intake.objects.create(
-        name="Board Intake", project=project, workspace=workspace, issue_type=link_starter_type(project)
-    )
+    intake = Intake.objects.create(name="Board Intake", project=project, workspace=workspace)
     deploy_board = DeployBoard.objects.create(
         entity_name="project",
         entity_identifier=project.id,
@@ -130,6 +128,7 @@ def board(db, workspace, create_user):
         is_reactions_enabled=True,
         is_votes_enabled=True,
         intake=intake,
+        intake_issue_type=link_starter_type(project),
     )
     return {
         "project": project,
@@ -164,9 +163,7 @@ def victim(db, workspace, create_user):
         created_by=create_user,
         actor=create_user,
     )
-    intake = Intake.objects.create(
-        name="Victim Intake", project=project, workspace=workspace, issue_type=link_starter_type(project)
-    )
+    intake = Intake.objects.create(name="Victim Intake", project=project, workspace=workspace)
     return {"project": project, "issue": issue, "comment": comment, "intake": intake}
 
 

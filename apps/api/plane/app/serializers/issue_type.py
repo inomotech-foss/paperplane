@@ -52,7 +52,8 @@ class IssueTypeUsageSerializer(serializers.Serializer):
     work_items = serializers.IntegerField()
     deleted_work_items = serializers.IntegerField()
     drafts = serializers.IntegerField()
-    intakes = serializers.IntegerField()
+    intake_forms = serializers.IntegerField()
+    service_desks = serializers.IntegerField()
     automation_actions = serializers.IntegerField()
 
 

@@ -5476,36 +5476,6 @@ paths:
       responses:
         '200':
           description: No response body
-  /api/workspaces/{slug}/issue-types/:
-    get:
-      operationId: workspaces_issue_types_list
-      description: The work item types of the workspace, e.g. to pick the intake type
-        of a new project.
-      parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/IssueType'
-          description: ''
   /api/workspaces/{slug}/issues/:
     get:
       operationId: workspaces_issues_retrieve
@@ -18850,6 +18820,10 @@ components:
           type: string
           format: uuid
           nullable: true
+        intake_issue_type:
+          type: string
+          format: uuid
+          nullable: true
       required:
       - id
       - project_details
@@ -18871,6 +18845,7 @@ components:
       - workspace
       - project
       - intake
+      - intake_issue_type
     DeployBoardRequest:
       type: object
       properties:
@@ -18907,6 +18882,10 @@ components:
           nullable: true
           title: Last Modified By
         intake:
+          type: string
+          format: uuid
+          nullable: true
+        intake_issue_type:
           type: string
           format: uuid
           nullable: true
@@ -19164,9 +19143,6 @@ components:
           type: string
           format: uuid
           readOnly: true
-        issue_type:
-          type: string
-          format: uuid
       required:
       - id
       - project_detail
@@ -19182,7 +19158,6 @@ components:
       - updated_by
       - project
       - workspace
-      - issue_type
     IntakeIssue:
       type: object
       properties:
@@ -19274,11 +19249,7 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-        issue_type:
-          type: string
-          format: uuid
       required:
-      - issue_type
       - name
     IntakeState:
       type: object
@@ -21361,7 +21332,9 @@ components:
           type: integer
         drafts:
           type: integer
-        intakes:
+        intake_forms:
+          type: integer
+        service_desks:
           type: integer
         automation_actions:
           type: integer
@@ -21369,7 +21342,8 @@ components:
       - work_items
       - deleted_work_items
       - drafts
-      - intakes
+      - intake_forms
+      - service_desks
       - automation_actions
     IssueView:
       type: object
@@ -23191,6 +23165,10 @@ components:
           type: string
           format: uuid
           nullable: true
+        intake_issue_type:
+          type: string
+          format: uuid
+          nullable: true
     PatchedEstimateRequest:
       type: object
       properties:
@@ -23269,9 +23247,6 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-        issue_type:
-          type: string
-          format: uuid
     PatchedIssueAttachmentRequest:
       type: object
       properties:

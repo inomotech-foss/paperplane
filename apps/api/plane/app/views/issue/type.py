@@ -11,7 +11,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 # Module imports
-from .. import BaseAPIView, BaseViewSet
+from .. import BaseViewSet
 from plane.app.permissions import ROLE, allow_permission, ProjectEntityPermission
 from plane.app.serializers import (
     IssueTypeMigrationPreviewSerializer,
@@ -134,13 +134,3 @@ class IssueTypeViewSet(BaseViewSet):
         except MigrationError as error:
             return Response(error.payload, status=error.status)
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class WorkspaceIssueTypeEndpoint(BaseAPIView):
-    """The work item types of the workspace, e.g. to pick the intake type of a new project."""
-
-    @extend_schema(responses=IssueTypeSerializer(many=True))
-    @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
-    def get(self, request, slug):
-        issue_types = IssueType.objects.filter(workspace__slug=slug).order_by("level", "name")
-        return Response(IssueTypeSerializer(issue_types, many=True).data, status=status.HTTP_200_OK)

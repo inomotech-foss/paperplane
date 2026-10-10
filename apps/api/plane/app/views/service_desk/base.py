@@ -48,7 +48,7 @@ from plane.db.models import (
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection, ServiceDeskNotifyMode
 from plane.utils.content_validator import validate_html_content
 from plane.utils.host import base_host
-from plane.utils.issue_type import intake_enable_error, turn_on_intake
+from plane.utils.issue_type import work_item_type_error
 
 
 def _clean_email_list(emails, exclude=()):
@@ -95,15 +95,14 @@ class ServiceDeskConfigEndpoint(BaseAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Tickets land in the intake, so turning it on here needs the type of its work items.
-        project = Project.objects.get(pk=project_id, workspace__slug=slug)
-        enabling_intake = is_enabled and not project.intake_view
-        intake_type_id = request.data.get("intake_issue_type_id")
-        if enabling_intake and (error := intake_enable_error(project, intake_type_id)):
-            return Response({"intake_issue_type_id": error}, status=status.HTTP_400_BAD_REQUEST)
-
         config = ServiceDeskConfig.objects.filter(workspace__slug=slug, project_id=project_id).first()
         created = config is None
+
+        # Tickets become work items of this type. Omitting it keeps the stored one.
+        issue_type_id = request.data.get("issue_type_id", None if created else config.issue_type_id)
+        if is_enabled or issue_type_id:
+            if error := work_item_type_error(project_id, issue_type_id):
+                return Response({"issue_type_id": error}, status=status.HTTP_400_BAD_REQUEST)
 
         # Notification settings are optional in the payload; omitting them keeps
         # the stored values instead of resetting them.
@@ -138,18 +137,21 @@ class ServiceDeskConfigEndpoint(BaseAPIView):
                 project_id=project_id,
                 mailbox_email=mailbox_email,
                 is_enabled=is_enabled,
+                issue_type_id=issue_type_id,
                 notify_mode=notify_mode,
                 notify_user_ids=notify_user_ids,
             )
         else:
             config.mailbox_email = mailbox_email
             config.is_enabled = is_enabled
+            config.issue_type_id = issue_type_id
             config.notify_mode = notify_mode
             config.notify_user_ids = notify_user_ids
             config.save(
                 update_fields=[
                     "mailbox_email",
                     "is_enabled",
+                    "issue_type",
                     "notify_mode",
                     "notify_user_ids",
                     "updated_at",
@@ -157,9 +159,9 @@ class ServiceDeskConfigEndpoint(BaseAPIView):
                 ]
             )
 
-        if enabling_intake:
-            turn_on_intake(project, intake_type_id)
-            Project.objects.filter(pk=project_id).update(intake_view=True)
+        # Tickets land in the intake queue, so make sure agents can see it.
+        if is_enabled:
+            Project.objects.filter(pk=project_id, intake_view=False).update(intake_view=True)
 
         # Create/renew/drop the Graph push subscription to match the new state.
         service_desk_maintain_subscriptions.delay()

@@ -10,6 +10,7 @@ from rest_framework import status
 from plane.db.models import (
     Automation,
     AutomationAction,
+    DeployBoard,
     DraftIssue,
     Intake,
     Issue,
@@ -20,6 +21,7 @@ from plane.db.models import (
     Project,
     ProjectIssueType,
     ProjectMember,
+    ServiceDeskConfig,
     WorkspaceMember,
 )
 
@@ -85,7 +87,16 @@ def make_rows(workspace, project, issue_type):
             name="deleted", workspace=workspace, project=project, type=issue_type, deleted_at=timezone.now()
         ),
         "draft": DraftIssue.objects.create(name="draft", workspace=workspace, project=project, type=issue_type),
-        "intake": Intake.objects.create(name="Intake", workspace=workspace, project=project, issue_type=issue_type),
+        "intake_form": DeployBoard.objects.create(
+            entity_name="project",
+            entity_identifier=project.id,
+            project=project,
+            intake=Intake.objects.create(name="Intake", workspace=workspace, project=project),
+            intake_issue_type=issue_type,
+        ),
+        "service_desk": ServiceDeskConfig.objects.create(
+            project=project, mailbox_email="desk@example.com", is_enabled=True, issue_type=issue_type
+        ),
     }
     automation = Automation.objects.create(workspace=workspace, project=project, name="Rule")
     rows["action"] = AutomationAction.objects.create(
@@ -99,7 +110,9 @@ def make_rows(workspace, project, issue_type):
 
 def type_of(row):
     current = type(row).all_objects.get(pk=row.pk)
-    if isinstance(current, Intake):
+    if isinstance(current, DeployBoard):
+        return str(current.intake_issue_type_id)
+    if isinstance(current, ServiceDeskConfig):
         return str(current.issue_type_id)
     if isinstance(current, AutomationAction):
         return current.config["type_id"]
@@ -213,7 +226,8 @@ class TestUsage:
             "work_items": 3,
             "deleted_work_items": 1,
             "drafts": 1,
-            "intakes": 1,
+            "intake_forms": 1,
+            "service_desks": 1,
             "automation_actions": 1,
         }
         properties = {entry["name"]: entry for entry in response.data["properties"]}
@@ -242,7 +256,8 @@ class TestScopes:
 
         assert response.status_code == status.HTTP_200_OK, response.data
         assert type_of(rows["live"]) == type_of(rows["deleted"]) == str(types["Bug"].id)
-        assert {type_of(rows[key]) for key in ("archived", "draft", "intake", "action")} == {str(types["Story"].id)}
+        untouched = ("archived", "draft", "intake_form", "service_desk", "action")
+        assert {type_of(rows[key]) for key in untouched} == {str(types["Story"].id)}
         assert type_of(other) == str(types["Story"].id)
 
     def test_project_scope_moves_every_row_of_the_project(self, session_client, workspace, sales, ops, types):

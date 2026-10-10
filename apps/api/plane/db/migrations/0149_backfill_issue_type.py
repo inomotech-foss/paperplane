@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-"""Give every work item, intake and "create work item" automation a type.
+"""Give every work item, service desk, published intake form and "create work item" automation a type.
 
 The type is the workspace's default type, else its "Task" type, else a new
 "Task" type. It is linked to every project that needs it first.
@@ -41,7 +41,8 @@ FROM projects p
 JOIN starter_types s ON s.workspace_id = p.workspace_id
 WHERE (
     EXISTS (SELECT 1 FROM issues i WHERE i.project_id = p.id AND i.type_id IS NULL)
-    OR EXISTS (SELECT 1 FROM intakes n WHERE n.project_id = p.id)
+    OR EXISTS (SELECT 1 FROM service_desk_configs c WHERE c.project_id = p.id)
+    OR EXISTS (SELECT 1 FROM deploy_boards d WHERE d.project_id = p.id AND d.intake_id IS NOT NULL)
     OR NOT EXISTS (
         SELECT 1 FROM project_issue_types l
         JOIN issue_types t ON t.id = l.issue_type_id AND t.deleted_at IS NULL
@@ -60,10 +61,16 @@ FROM starter_types s
 WHERE i.workspace_id = s.workspace_id AND i.type_id IS NULL
 """
 
-TYPE_INTAKES = """
-UPDATE intakes n SET issue_type_id = s.issue_type_id
+TYPE_SERVICE_DESKS = """
+UPDATE service_desk_configs c SET issue_type_id = s.issue_type_id
 FROM starter_types s
-WHERE n.workspace_id = s.workspace_id AND n.issue_type_id IS NULL
+WHERE c.workspace_id = s.workspace_id AND c.issue_type_id IS NULL
+"""
+
+TYPE_INTAKE_FORMS = """
+UPDATE deploy_boards d SET intake_issue_type_id = s.issue_type_id
+FROM starter_types s
+WHERE d.workspace_id = s.workspace_id AND d.intake_id IS NOT NULL AND d.intake_issue_type_id IS NULL
 """
 
 TYPE_CREATE_ACTIONS = """
@@ -78,7 +85,7 @@ WHERE a.workspace_id = s.workspace_id
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("db", "0148_intake_issue_type"),
+        ("db", "0148_issue_type_references"),
     ]
 
     operations = [
@@ -88,7 +95,8 @@ class Migration(migrations.Migration):
                 STARTER_TYPES,
                 LINK_STARTER_TYPES,
                 TYPE_ISSUES,
-                TYPE_INTAKES,
+                TYPE_SERVICE_DESKS,
+                TYPE_INTAKE_FORMS,
                 TYPE_CREATE_ACTIONS,
             ],
             reverse_sql=migrations.RunSQL.noop,

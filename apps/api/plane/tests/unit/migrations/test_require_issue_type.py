@@ -16,11 +16,13 @@ from django.utils import timezone
 from plane.db.models import (
     Automation,
     AutomationAction,
+    DeployBoard,
     Intake,
     Issue,
     IssueType,
     Project,
     ProjectIssueType,
+    ServiceDeskConfig,
     User,
     Workspace,
 )
@@ -29,7 +31,8 @@ backfill = importlib.import_module("plane.db.migrations.0149_backfill_issue_type
 
 PRE_0150_SCHEMA = [
     "ALTER TABLE issues ALTER COLUMN type_id DROP NOT NULL",
-    "ALTER TABLE intakes ALTER COLUMN issue_type_id DROP NOT NULL",
+    "ALTER TABLE deploy_boards DROP CONSTRAINT deploy_board_intake_has_issue_type",
+    "ALTER TABLE service_desk_configs DROP CONSTRAINT service_desk_config_enabled_has_issue_type",
     "ALTER TABLE issue_types ADD COLUMN is_default boolean NOT NULL DEFAULT false",
     "ALTER TABLE project_issue_types ADD COLUMN is_default boolean NOT NULL DEFAULT false",
 ]
@@ -63,7 +66,7 @@ def type_of(issue):
 
 @pytest.mark.unit
 @pytest.mark.django_db
-def test_every_work_item_intake_and_create_action_gets_a_type():
+def test_every_work_item_intake_setting_and_create_action_gets_a_type():
     execute(*PRE_0150_SCHEMA)
 
     inomo = make_workspace("inomo")
@@ -78,7 +81,17 @@ def test_every_work_item_intake_and_create_action_gets_a_type():
     deleted = make_issue(linked, "deleted", type=None, deleted_at=timezone.now())
     archived = make_issue(linked, "archived", type=None, archived_at=timezone.now().date())
     elsewhere = make_issue(unlinked, "elsewhere", type=None)
-    intake = Intake.objects.create(name="Intake", project=unlinked, workspace=inomo, issue_type=None)
+    desk_project = make_project(inomo, "DSK", [bug])
+    desk = ServiceDeskConfig.objects.create(project=desk_project, mailbox_email="desk@example.com", is_enabled=True)
+    form_project = make_project(inomo, "FRM", [bug])
+    form = DeployBoard.objects.create(
+        entity_name="project",
+        entity_identifier=form_project.id,
+        project=form_project,
+        intake=Intake.objects.create(name="Intake", project=form_project, workspace=inomo),
+    )
+    board_project = make_project(inomo, "BRD", [bug])
+    board = DeployBoard.objects.create(entity_name="project", entity_identifier=board_project.id, project=board_project)
     automation = Automation.objects.create(workspace=inomo, project=linked, name="Rule")
     create = AutomationAction.objects.create(
         workspace=inomo, automation=automation, action_type="create_work_item", config={"name": "x"}
@@ -108,7 +121,12 @@ def test_every_work_item_intake_and_create_action_gets_a_type():
     for project in (unlinked, empty):
         assert ProjectIssueType.objects.filter(project=project, issue_type=task).exists()
     assert ProjectIssueType.objects.filter(project=linked, issue_type=task).count() == 1
-    assert Intake.objects.get(pk=intake.pk).issue_type_id == task.id
+    assert ServiceDeskConfig.objects.get(pk=desk.pk).issue_type_id == task.id
+    assert DeployBoard.objects.get(pk=form.pk).intake_issue_type_id == task.id
+    for project in (desk_project, form_project):
+        assert ProjectIssueType.objects.filter(project=project, issue_type=task).exists()
+    assert DeployBoard.objects.get(pk=board.pk).intake_issue_type_id is None
+    assert not ProjectIssueType.objects.filter(project=board_project, issue_type=task).exists()
 
     def config_of(action):
         return AutomationAction.objects.get(pk=action.pk).config
@@ -128,5 +146,8 @@ def test_every_work_item_intake_and_create_action_gets_a_type():
     execute(
         "SET CONSTRAINTS ALL IMMEDIATE",
         "ALTER TABLE issues ALTER COLUMN type_id SET NOT NULL",
-        "ALTER TABLE intakes ALTER COLUMN issue_type_id SET NOT NULL",
+        "ALTER TABLE deploy_boards ADD CONSTRAINT deploy_board_intake_has_issue_type "
+        "CHECK (intake_id IS NULL OR intake_issue_type_id IS NOT NULL)",
+        "ALTER TABLE service_desk_configs ADD CONSTRAINT service_desk_config_enabled_has_issue_type "
+        "CHECK (NOT is_enabled OR issue_type_id IS NOT NULL)",
     )

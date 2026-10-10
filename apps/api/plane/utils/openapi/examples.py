@@ -363,6 +363,7 @@ INTAKE_ISSUE_CREATE_EXAMPLE = OpenApiExample(
             "name": "New Issue",
             "description": "New issue description",
             "priority": "medium",
+            "type_id": "550e8400-e29b-41d4-a716-446655440000",
         }
     },
     description="Example request for creating an intake issue",
