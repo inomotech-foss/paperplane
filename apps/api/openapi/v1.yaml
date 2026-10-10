@@ -10982,13 +10982,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
         required: true
       security:
       - ApiKeyAuthentication: []
@@ -15365,13 +15365,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
         required: true
       security:
       - ApiKeyAuthentication: []
@@ -17753,7 +17753,7 @@ components:
       - property_type
       - relation_type
       - work_items
-    IssueTypeMigrationRequestRequest:
+    IssueTypeMigrationRequest:
       type: object
       properties:
         scope:

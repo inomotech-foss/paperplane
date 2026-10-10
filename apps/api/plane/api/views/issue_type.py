@@ -16,7 +16,7 @@ from plane.app.permissions import ProjectEntityPermission, WorkspaceEntityPermis
 from plane.db.models import IssueType, Project, ProjectIssueType, Workspace
 from plane.app.serializers.issue_type import (
     IssueTypeMigrationPreviewSerializer,
-    IssueTypeMigrationRequestSerializer,
+    IssueTypeMigrationSerializer,
 )
 from plane.utils.issue_type_migration import MigrationError, migrate_type, remove_unused_type
 from plane.utils.openapi import (
@@ -477,7 +477,7 @@ class IssueTypeMigrateAPIEndpoint(BaseAPIView):
         operation_id="migrate_work_item_type",
         summary="Migrate work item type",
         description="Move work items of the type in this project to another type, with their custom property values.",
-        request=OpenApiRequest(request=IssueTypeMigrationRequestSerializer),
+        request=OpenApiRequest(request=IssueTypeMigrationSerializer),
         responses={200: IssueTypeMigrationPreviewSerializer, 400: INVALID_REQUEST_RESPONSE},
     )
     def post(self, request, slug, project_id, issue_type_id):
@@ -509,7 +509,7 @@ class WorkspaceIssueTypeMigrateAPIEndpoint(BaseAPIView):
         summary="Migrate workspace work item type",
         description="Move work items of the type to another type, with their custom property values.",
         parameters=[],
-        request=OpenApiRequest(request=IssueTypeMigrationRequestSerializer),
+        request=OpenApiRequest(request=IssueTypeMigrationSerializer),
         responses={200: IssueTypeMigrationPreviewSerializer, 400: INVALID_REQUEST_RESPONSE},
     )
     def post(self, request, slug, issue_type_id):

@@ -11,11 +11,11 @@ from rest_framework import status
 from rest_framework.response import Response
 
 # Module imports
-from .. import BaseViewSet
+from .. import BaseAPIView, BaseViewSet
 from plane.app.permissions import ROLE, allow_permission, ProjectEntityPermission
 from plane.app.serializers import (
     IssueTypeMigrationPreviewSerializer,
-    IssueTypeMigrationRequestSerializer,
+    IssueTypeMigrationSerializer,
     IssueTypeSerializer,
 )
 from plane.db.models import IssueType, Project, ProjectIssueType, ProjectMember, WorkspaceMember
@@ -105,7 +105,7 @@ class IssueTypeViewSet(BaseViewSet):
         preview = TypeReferences(issue_type, Scope(PROJECT, project_id=str(project_id))).preview()
         return Response(IssueTypeMigrationPreviewSerializer(preview).data, status=status.HTTP_200_OK)
 
-    @extend_schema(request=IssueTypeMigrationRequestSerializer, responses=IssueTypeMigrationPreviewSerializer)
+    @extend_schema(request=IssueTypeMigrationSerializer, responses=IssueTypeMigrationPreviewSerializer)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def migrate(self, request, slug, project_id, pk):
         """Move work items of the type to another type, see `migrate_type`.
@@ -134,3 +134,13 @@ class IssueTypeViewSet(BaseViewSet):
         except MigrationError as error:
             return Response(error.payload, status=error.status)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class WorkspaceIssueTypeEndpoint(BaseAPIView):
+    """The work item types of the workspace, e.g. to pick the intake type of a new project."""
+
+    @extend_schema(responses=IssueTypeSerializer(many=True))
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
+    def get(self, request, slug):
+        issue_types = IssueType.objects.filter(workspace__slug=slug).order_by("level", "name")
+        return Response(IssueTypeSerializer(issue_types, many=True).data, status=status.HTTP_200_OK)

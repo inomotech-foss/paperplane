@@ -222,6 +222,17 @@ class TestProjectTypes:
         assert set(linked.values_list("name", flat=True)) == {"Task", "Ticket"}
 
 
+@pytest.mark.contract
+@pytest.mark.django_db
+def test_the_workspace_types_are_listed(session_client, workspace, project, ticket):
+    unlinked = IssueType.objects.create(workspace=workspace, name="Unlinked")
+
+    response = session_client.get(f"/api/workspaces/{workspace.slug}/issue-types/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert {str(entry["id"]) for entry in response.data} >= {str(ticket.id), str(unlinked.id)}
+
+
 def project_create(request, api, workspace):
     if api == "app":
         return request.getfixturevalue("session_client"), f"/api/workspaces/{workspace.slug}/projects/"
