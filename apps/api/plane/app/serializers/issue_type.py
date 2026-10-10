@@ -90,7 +90,7 @@ class IssueTypeMigrationScopeSerializer(serializers.Serializer):
     workspace = serializers.BooleanField(required=False)
 
 
-class IssueTypeMigrationRequestSerializer(serializers.Serializer):
+class IssueTypeMigrationSerializer(serializers.Serializer):
     scope = IssueTypeMigrationScopeSerializer()
     replacement_type_id = serializers.UUIDField(
         required=False, help_text="Required while anything in scope uses the type."

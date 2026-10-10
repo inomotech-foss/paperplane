@@ -5476,6 +5476,36 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/workspaces/{slug}/issue-types/:
+    get:
+      operationId: workspaces_issue_types_list
+      description: The work item types of the workspace, e.g. to pick the intake type
+        of a new project.
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IssueType'
+          description: ''
   /api/workspaces/{slug}/issues/:
     get:
       operationId: workspaces_issues_retrieve
@@ -10378,13 +10408,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
         required: true
       security:
       - sessionAuth: []
@@ -21248,7 +21278,7 @@ components:
       - relation_type
       - work_items
       - options
-    IssueTypeMigrationRequestRequest:
+    IssueTypeMigrationRequest:
       type: object
       properties:
         scope:

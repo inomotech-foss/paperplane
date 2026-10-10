@@ -2637,6 +2637,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{slug}/issue-types/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The work item types of the workspace, e.g. to pick the intake type of a new project. */
+        get: operations["workspaces_issue_types_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{slug}/issues/": {
         parameters: {
             query?: never;
@@ -8910,7 +8927,7 @@ export interface components {
             work_items: number;
             options: components["schemas"]["IssueTypeMigrationOption"][];
         };
-        IssueTypeMigrationRequestRequest: {
+        IssueTypeMigrationRequest: {
             scope: components["schemas"]["IssueTypeMigrationScopeRequest"];
             /**
              * Format: uuid
@@ -16746,6 +16763,30 @@ export interface operations {
             };
         };
     };
+    workspaces_issue_types_list: {
+        parameters: {
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueType"][];
+                };
+            };
+        };
+    };
     workspaces_issues_retrieve: {
         parameters: {
             query?: never;
@@ -20208,9 +20249,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["IssueTypeMigrationRequestRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequestRequest"];
-                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequestRequest"];
+                "application/json": components["schemas"]["IssueTypeMigrationRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequest"];
+                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequest"];
             };
         };
         responses: {

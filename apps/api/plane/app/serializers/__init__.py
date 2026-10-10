@@ -100,7 +100,7 @@ from .issue_type import (
     IssueTypeSerializer,
     IssueTypeUsageSerializer,
     IssueTypeMigrationPreviewSerializer,
-    IssueTypeMigrationRequestSerializer,
+    IssueTypeMigrationSerializer,
 )
 
 from .module import (

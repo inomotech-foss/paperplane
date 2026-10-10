@@ -4,9 +4,14 @@
 
 from django.urls import path
 
-from plane.app.views import IssueTypeViewSet
+from plane.app.views import IssueTypeViewSet, WorkspaceIssueTypeEndpoint
 
 urlpatterns = [
+    path(
+        "workspaces/<str:slug>/issue-types/",
+        WorkspaceIssueTypeEndpoint.as_view(),
+        name="workspace-issue-types",
+    ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/issue-types/",
         IssueTypeViewSet.as_view({"get": "list", "post": "create"}),

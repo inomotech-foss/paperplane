@@ -3316,7 +3316,7 @@ export interface components {
             work_items: number;
             options: components["schemas"]["IssueTypeMigrationOption"][];
         };
-        IssueTypeMigrationRequestRequest: {
+        IssueTypeMigrationRequest: {
             scope: components["schemas"]["IssueTypeMigrationScopeRequest"];
             /**
              * Format: uuid
@@ -12325,9 +12325,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["IssueTypeMigrationRequestRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequestRequest"];
-                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequestRequest"];
+                "application/json": components["schemas"]["IssueTypeMigrationRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequest"];
+                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequest"];
             };
         };
         responses: {
@@ -15161,9 +15161,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["IssueTypeMigrationRequestRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequestRequest"];
-                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequestRequest"];
+                "application/json": components["schemas"]["IssueTypeMigrationRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequest"];
+                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequest"];
             };
         };
         responses: {
