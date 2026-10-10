@@ -17,6 +17,7 @@ import { cn } from "@plane/utils";
 // services
 import { WorkItemQueryService } from "@/services/issue";
 // local imports
+import { checkWorkItemQuery } from "./check";
 import { editorBoxClass } from "./editor-classes";
 import { WorkItemQueryHelp } from "./query-help";
 import { useValuesFor } from "./values";
@@ -28,6 +29,9 @@ const QueryEditor = lazy(() => import("./editor"));
 
 type TQueryDraft = { query: string; error?: string };
 
+const sameDraft = (a: TQueryDraft | undefined, b: TQueryDraft | undefined) =>
+  a?.query === b?.query && a?.error === b?.error;
+
 /**
  * `edits` is what the person typed since the last apply, null when the editor shows the applied query.
  * A new draft replaces it, and so does another applied query, e.g. after going back.
@@ -36,9 +40,9 @@ const useDraftState = (value: string, draft: TQueryDraft | undefined, invalid: s
   const [edits, setEdits] = useState<string | null>(draft ? draft.query : null);
   const [runError, setRunError] = useState<string | null>(draft ? (draft.error ?? invalid) : null);
   const [source, setSource] = useState({ value, draft });
-  if (source.value !== value || source.draft !== draft) {
+  if (source.value !== value || !sameDraft(source.draft, draft)) {
     setSource({ value, draft });
-    if (draft && draft !== source.draft) {
+    if (draft && !sameDraft(draft, source.draft)) {
       setEdits(draft.query);
       setRunError(draft.error ?? invalid);
     } else if (source.value !== value) {
@@ -123,7 +127,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
     setIsRunning(true);
     try {
       if (pql) {
-        const result: TWorkItemQueryValidation = await workItemQueryService.validate(workspaceSlug, pql, projectId);
+        const result: TWorkItemQueryValidation = await checkWorkItemQuery(workspaceSlug, pql, projectId, true);
         if (!result.valid) {
           setRunError(result.error ?? t("work_item_query.invalid"));
           return;
@@ -142,7 +146,8 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
   const clear = async () => {
     setEdits(null);
     setRunError(null);
-    if (isApplied) await onApply("");
+    // a draft from a link is part of the address, so clearing it is a change too
+    if (isApplied || linkDraft) await onApply("");
   };
 
   const revert = () => {
