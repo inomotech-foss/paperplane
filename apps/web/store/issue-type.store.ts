@@ -17,12 +17,16 @@ import { IssueTypeMigrationService } from "@/services/issue/issue-type-migration
 import type { TTypeMigrationPreview, TTypeMigrationRequest } from "@/services/issue/issue-type-migration.service";
 // store
 import type { IIssueCustomPropertyStore } from "./issue-custom-property.store";
+import type { IIssueActivityStore } from "./issue/issue-details/activity.store";
 import type { IIssueStore } from "./issue/issue.store";
 import type { IProjectMemberStore } from "./member/project/base-project-member.store";
 
 /** The part of the root store the work item types depend on. */
 type TIssueTypeRootStore = {
-  issue: { issues: Pick<IIssueStore, "issuesMap" | "updateIssue"> };
+  issue: {
+    issues: Pick<IIssueStore, "issuesMap" | "updateIssue">;
+    issueDetail: { activity: Pick<IIssueActivityStore, "getActivitiesByIssueId" | "fetchActivities"> };
+  };
   issueCustomProperty: Pick<IIssueCustomPropertyStore, "fetchBulkValues">;
   memberRoot: {
     project: Pick<
@@ -209,6 +213,7 @@ export class IssueTypeStore implements IIssueTypeStore {
   ) => {
     const response = await this.migrationService.migrate(workspaceSlug, projectId, issueTypeId, body);
     if (body.dry_run) return response;
+    const moved: string[] = [];
     runInAction(() => {
       if (body.remove_type === "unlink") delete this.typeMap[issueTypeId];
       const replacementTypeId = body.replacement_type_id;
@@ -217,9 +222,15 @@ export class IssueTypeStore implements IIssueTypeStore {
       const { issues } = this.rootStore.issue;
       for (const issue of Object.values(issues.issuesMap)) {
         const inScope = workItemIds ? workItemIds.has(issue.id) : issue.project_id === projectId;
-        if (inScope && issue.type_id === issueTypeId) issues.updateIssue(issue.id, { type_id: replacementTypeId });
+        if (!inScope || issue.type_id !== issueTypeId) continue;
+        issues.updateIssue(issue.id, { type_id: replacementTypeId });
+        moved.push(issue.id);
       }
     });
+    // the moved work items record the change in their activity
+    const { activity } = this.rootStore.issue.issueDetail;
+    for (const issueId of moved.filter((id) => activity.getActivitiesByIssueId(id)))
+      activity.fetchActivities(workspaceSlug, projectId, issueId).catch(() => undefined);
     // mapped or dropped property values
     await this.rootStore.issueCustomProperty.fetchBulkValues(workspaceSlug, projectId).catch(() => undefined);
     return response;

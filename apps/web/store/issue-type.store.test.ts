@@ -79,7 +79,16 @@ const makeStore = (properties: IProjectUserPropertiesResponse | null) => {
     }),
   };
   const issueCustomProperty = { fetchBulkValues: vi.fn(() => Promise.resolve()) };
-  const store = new IssueTypeStore({ issue: { issues }, issueCustomProperty, memberRoot: { project } });
+  // only "mine" has its activity loaded, e.g. open in the detail view
+  const activity = {
+    getActivitiesByIssueId: vi.fn((issueId: string) => (issueId === "mine" ? [] : undefined)),
+    fetchActivities: vi.fn(() => Promise.resolve([])),
+  };
+  const store = new IssueTypeStore({
+    issue: { issues, issueDetail: { activity } },
+    issueCustomProperty,
+    memberRoot: { project },
+  });
   store.migrationService.remove = vi.fn(() => Promise.resolve(undefined));
   store.migrationService.migrate = vi.fn(() =>
     Promise.resolve({
@@ -96,7 +105,7 @@ const makeStore = (properties: IProjectUserPropertiesResponse | null) => {
   );
   store.typeMap = { task: makeType("task", 0), bug: makeType("bug", 1), old: makeType("old", 2, false) };
   store.fetchedMap = { p1: true };
-  return { store, project, issuesMap };
+  return { store, project, issuesMap, activity };
 };
 
 describe("IssueTypeStore.getPreselectedIssueTypeId", () => {
@@ -173,6 +182,16 @@ describe("IssueTypeStore.migrateIssueType", () => {
     expect(issuesMap.mine.type_id).toBe("bug");
     expect(issuesMap.second.type_id).toBe("old");
     expect(store.getIssueTypeById("old")).not.toBeNull();
+  });
+
+  it("refreshes the activity of the moved work items that show it", async () => {
+    const { store, issuesMap, activity } = makeStore(makeProperties());
+    issuesMap.second = makeIssue("second", "p1", "old");
+
+    await store.migrateIssueType("ws", "p1", "old", { scope: { project: "p1" }, replacement_type_id: "bug" });
+
+    expect(activity.fetchActivities).toHaveBeenCalledTimes(1);
+    expect(activity.fetchActivities).toHaveBeenCalledWith("ws", "p1", "mine");
   });
 
   it("changes nothing on a dry run", async () => {
