@@ -28,6 +28,7 @@ from django.utils import timezone
 # Module imports
 from plane.automation.conditions import NODE_CONDITION, NODE_GROUP, LOGICAL_AND
 from plane.automation.registry import Operator
+from plane.utils.issue_type import type_in_q
 
 
 def _valid_uuids(values) -> list[str]:
@@ -68,7 +69,10 @@ def _node_to_q(node: dict, today: datetime.date, now: datetime.datetime):
         if property_key == "priority":
             priorities = [str(item) for item in _as_list(value)]
             return Q(priority__in=priorities) if priorities else None
-        if property_key in ("state_id", "type_id", "created_by_id"):
+        if property_key == "type_id":
+            ids = _valid_uuids(value)
+            return type_in_q(ids) if ids else None
+        if property_key in ("state_id", "created_by_id"):
             ids = _valid_uuids(value)
             return Q(**{f"{property_key}__in": ids}) if ids else None
         return None

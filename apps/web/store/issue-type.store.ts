@@ -8,7 +8,9 @@ import { set, sortBy } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { TIssueType } from "@plane/types";
+import type { TIssue, TIssueType } from "@plane/types";
+// helpers
+import { getEffectiveTypeId } from "@/lib/work-item-type";
 // services
 import { IssueTypeService } from "@/services/issue";
 // store
@@ -24,6 +26,7 @@ export interface IIssueTypeStore {
   getActiveProjectIssueTypes: (projectId: string | undefined | null) => TIssueType[] | undefined;
   getIssueTypeById: (issueTypeId: string | undefined | null) => TIssueType | null;
   getProjectDefaultIssueType: (projectId: string | undefined | null) => TIssueType | null;
+  getEffectiveIssueTypeId: (workItem: Pick<TIssue, "type_id" | "project_id">) => string | null;
   // fetch actions
   fetchProjectIssueTypes: (workspaceSlug: string, projectId: string) => Promise<TIssueType[]>;
   // crud actions
@@ -90,6 +93,9 @@ export class IssueTypeStore implements IIssueTypeStore {
     (projectId: string | undefined | null): TIssueType | null =>
       this.getProjectIssueTypes(projectId)?.find((type) => type.is_default) || null
   );
+
+  getEffectiveIssueTypeId = (workItem: Pick<TIssue, "type_id" | "project_id">) =>
+    getEffectiveTypeId(workItem.type_id, this.getProjectDefaultIssueType(workItem.project_id)?.id);
 
   /**
    * Fetches all work item types of a project.

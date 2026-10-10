@@ -17,6 +17,9 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 # Django imports
 from django.utils import timezone
 
+# Module imports
+from plane.utils.issue_type import project_default_type_id
+
 #: Activity `field` values mapped onto the condition property they change.
 ACTIVITY_FIELD_TO_PROPERTY = {
     "state": "state_id",
@@ -97,7 +100,6 @@ class AutomationContext:
         simple_fields = {
             "state_id": "state_id",
             "priority": "priority",
-            "type_id": "type_id",
             "created_by_id": "created_by_id",
             "parent_id": "parent_id",
             "estimate_point_id": "estimate_point_id",
@@ -108,6 +110,8 @@ class AutomationContext:
             "updated_at": "updated_at",
             "sequence_id": "sequence_id",
         }
+        if property_key == "type_id":
+            return work_item.type_id or project_default_type_id(work_item.project_id)
         if property_key in simple_fields:
             return getattr(work_item, simple_fields[property_key], None)
 

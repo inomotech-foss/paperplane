@@ -42,6 +42,7 @@ from plane.db.models import (
     PropertyTypeChoices,
 )
 from plane.utils.issue_hierarchy import IssueTree
+from plane.utils.issue_type import effective_type_id, project_default_type_id
 
 logger = logging.getLogger("plane.api")
 
@@ -303,7 +304,9 @@ def _lookup(tree, config, source_value):
     result = {}
     for issue_id in tree.ids():
         chain = ([issue_id] if include_self else []) + tree.ancestors(issue_id)
-        ancestor_id = next((node_id for node_id in chain if tree.node(node_id)["type_id"] == issue_type_id), None)
+        ancestor_id = next(
+            (node_id for node_id in chain if tree.node(node_id)["effective_type_id"] == issue_type_id), None
+        )
         if ancestor_id is None:
             continue
         value = (
@@ -354,7 +357,7 @@ def _rollup(tree, config, source_value, source_properties):
         if include_self:
             members.insert(0, issue_id)
         if issue_type_id is not None:
-            members = [member for member in members if tree.node(member)["type_id"] == issue_type_id]
+            members = [member for member in members if tree.node(member)["effective_type_id"] == issue_type_id]
         values = [value for value in (extract(member) for member in members) if value is not None]
 
         if function == "count":
@@ -434,7 +437,11 @@ def refresh_derived_values(project_id):
     if not properties:
         return {"created": 0, "deleted": deleted}
 
-    tree = IssueTree.for_project(project_id, fields=("type_id", "start_date", "target_date"))
+    tree = IssueTree.for_project(
+        project_id,
+        fields=("effective_type_id", "start_date", "target_date"),
+        queryset=Issue.issue_objects.filter(project_id=project_id).annotate(effective_type_id=effective_type_id()),
+    )
     issue_ids = set(tree.ids())
 
     source_ids = {prop.id for prop in properties if prop.derivation == PropertyDerivationChoices.INHERIT}
@@ -602,7 +609,12 @@ def derived_value_sources(issue, properties):
     parent_id = issue.parent_id
     while parent_id and parent_id not in seen and len(chain) < 50:
         seen.add(parent_id)
-        node = Issue.issue_objects.filter(pk=parent_id).values("id", "parent_id", "type_id").first()
+        node = (
+            Issue.issue_objects.filter(pk=parent_id)
+            .annotate(effective_type_id=effective_type_id())
+            .values("id", "parent_id", "effective_type_id")
+            .first()
+        )
         if node is None:
             break
         chain.append(node)
@@ -624,8 +636,10 @@ def derived_value_sources(issue, properties):
         elif prop.derivation == PropertyDerivationChoices.LOOKUP and config.get("issue_type"):
             wanted = uuid.UUID(config["issue_type"])
             candidates = (
-                [{"id": issue.id, "type_id": issue.type_id}] if config.get("include_self", True) else []
+                [{"id": issue.id, "effective_type_id": issue.type_id or project_default_type_id(issue.project_id)}]
+                if config.get("include_self", True)
+                else []
             ) + chain
-            source_issue_id = next((node["id"] for node in candidates if node["type_id"] == wanted), None)
+            source_issue_id = next((node["id"] for node in candidates if node["effective_type_id"] == wanted), None)
         sources[str(prop.id)] = {"source_issue_id": str(source_issue_id) if source_issue_id else None}
     return sources

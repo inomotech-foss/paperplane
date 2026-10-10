@@ -55,6 +55,7 @@ from plane.db.models import (
     CycleIssue,
 )
 from plane.utils.issue_property import number_to_json, relation_column
+from plane.utils.issue_type import effective_type_id
 from plane.utils.pql import PQLSyntaxError, WorkItemFilterError, compile_pql, parse_pql
 
 CHART_TYPES = ("number", "bar", "line", "area", "pie", "donut", "table")
@@ -62,13 +63,15 @@ METRIC_FUNCTIONS = ("count", "sum", "avg", "min", "max")
 DATE_BUCKETS = ("day", "week", "month", "quarter", "year")
 DEFAULT_BUCKET = "month"
 
+EFFECTIVE_TYPE_KEY = "effective_type_id"
+
 # Dimensions backed by a column or an annotation of the work item row.
 # name -> (row key, multi valued)
 NATIVE_DIMENSIONS = {
     "state": ("state_id", False),
     "state_group": ("state__group", False),
     "priority": ("priority", False),
-    "type": ("type_id", False),
+    "type": (EFFECTIVE_TYPE_KEY, False),
     "project": ("project_id", False),
     "assignee": ("assignee_ids", True),
     "label": ("label_ids", True),
@@ -425,10 +428,12 @@ class _Accumulator:
 
 
 def _columns(dimensions, metric):
-    columns = {"id", "parent_id", "type_id"}
+    columns = {"id", "parent_id"}
     for dimension in dimensions:
         if dimension.row_key:
             columns.add(dimension.row_key)
+        if dimension.kind == "ancestor":
+            columns.add(EFFECTIVE_TYPE_KEY)
         if dimension.kind == "ancestor" or dimension.field == "parent":
             columns.update({"name", "sequence_id", "project__identifier"})
     if metric.row_key:
@@ -438,6 +443,8 @@ def _columns(dimensions, metric):
 
 def _annotated(queryset, dimensions, metric):
     needed = {dimension.row_key for dimension in dimensions if dimension.row_key}
+    if EFFECTIVE_TYPE_KEY in needed or any(dimension.kind == "ancestor" for dimension in dimensions):
+        queryset = queryset.annotate(**{EFFECTIVE_TYPE_KEY: effective_type_id()})
     if "assignee_ids" in needed:
         queryset = queryset.annotate(
             assignee_ids=_id_array(
@@ -500,16 +507,21 @@ def _property_annotation(property_obj):
 def _nearest_ancestors(rows, type_id, slug):
     """Map each row id to the id of its nearest ancestor of `type_id`."""
     known = {
-        str(row["id"]): (str(row["parent_id"]) if row["parent_id"] else None, str(row["type_id"] or "")) for row in rows
+        str(row["id"]): (str(row["parent_id"]) if row["parent_id"] else None, str(row[EFFECTIVE_TYPE_KEY] or ""))
+        for row in rows
     }
     frontier = {parent for parent, _ in known.values() if parent and parent not in known}
     depth = 0
     while frontier and depth < MAX_ANCESTOR_DEPTH:
-        fetched = Issue.objects.filter(id__in=frontier, workspace__slug=slug).values("id", "parent_id", "type_id")
+        fetched = (
+            Issue.objects.filter(id__in=frontier, workspace__slug=slug)
+            .annotate(**{EFFECTIVE_TYPE_KEY: effective_type_id()})
+            .values("id", "parent_id", EFFECTIVE_TYPE_KEY)
+        )
         frontier = set()
         for item in fetched:
             parent = str(item["parent_id"]) if item["parent_id"] else None
-            known[str(item["id"])] = (parent, str(item["type_id"] or ""))
+            known[str(item["id"])] = (parent, str(item[EFFECTIVE_TYPE_KEY] or ""))
             if parent and parent not in known:
                 frontier.add(parent)
         depth += 1

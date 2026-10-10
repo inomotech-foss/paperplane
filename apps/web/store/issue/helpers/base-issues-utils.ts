@@ -257,6 +257,10 @@ export const getFilteredWorkItems = (workItems: TIssue[], filters: IIssueFilterO
       if (filterKey === "start_date" || filterKey === "target_date") {
         return checkIssueDateFilter(workItem, filterKey, filterValues as string[]);
       }
+      if (filterKey === "issue_type") {
+        const typeId = store.issueType.getEffectiveIssueTypeId(workItem);
+        return typeId !== null && Array.isArray(filterValues) && filterValues.includes(typeId);
+      }
       // Handle regular filters
       const issueKey = FILTER_TO_ISSUE_MAP[filterKey as keyof IIssueFilterOptions];
       if (!issueKey) return true; // Skip if no mapping exists

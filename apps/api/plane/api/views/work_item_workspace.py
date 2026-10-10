@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from plane.api.serializers import IssueSerializer
 from plane.app.permissions import WorkspaceEntityPermission
 from plane.db.models import Issue
+from plane.utils.issue_type import effective_type_id
 from plane.utils.openapi import (
     CURSOR_PARAMETER,
     EXPAND_PARAMETER,
@@ -163,17 +164,25 @@ class WorkspaceWorkItemCountAPIEndpoint(WorkItemFilterMixin, BaseAPIView):
         return Response(payload, status=status.HTTP_200_OK)
 
 
+# Group columns computed per work item instead of read from it.
+GROUP_ANNOTATIONS = {"type_id": ("effective_type_id", effective_type_id)}
+
+
+def _group_column(field):
+    return GROUP_ANNOTATIONS[field.path][0] if field.path in GROUP_ANNOTATIONS else field.path
+
+
 def _grouped_counts(queryset, group, sub_group):
     if group is None:
         return {}
-    group_path = group[1].path
+    group_path = _group_column(group[1])
     grouped = {
         _group_key(row[group_path]): {"count": row["count"]} for row in _count_rows(queryset, [group], group_path)
     }
     if sub_group is None:
         return grouped
 
-    sub_path = sub_group[1].path
+    sub_path = _group_column(sub_group[1])
     for row in _count_rows(queryset, [group, sub_group], group_path, sub_path):
         entry = grouped.setdefault(_group_key(row[group_path]), {"count": 0})
         entry.setdefault("sub_grouped_counts", {})[_group_key(row[sub_path])] = {"count": row["count"]}
@@ -187,6 +196,9 @@ def _count_rows(queryset, fields, *paths):
     for _, field in fields:
         for guard_key, guard_value in field.join_guard:
             queryset = queryset.filter(**{guard_key: guard_value})
+        if field.path in GROUP_ANNOTATIONS:
+            column, expression = GROUP_ANNOTATIONS[field.path]
+            queryset = queryset.annotate(**{column: expression()})
     return queryset.values(*paths).annotate(count=Count("id", distinct=True)).order_by()
 
 

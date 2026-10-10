@@ -42,6 +42,7 @@ from typing import Any
 from django.db.models import Q
 from django.db.models.expressions import RawSQL
 
+from plane.utils.issue_type import default_type_projects_q, type_in_q
 from plane.utils.pql.fields import (
     ANCESTOR_FIELD,
     CUSTOM_PROPERTY_PREFIX,
@@ -79,15 +80,6 @@ DESCENDANTS_SQL = (
     " WHERE child.deleted_at IS NULL"
     ") SELECT id FROM descendants"
 )
-
-# Projects with an enabled default work item type, and those whose default is
-# one of the given types.
-DEFAULT_TYPE_PROJECTS_SQL = (
-    "SELECT pit.project_id FROM project_issue_types pit"
-    " JOIN issue_types it ON it.id = pit.issue_type_id"
-    " WHERE it.is_default AND it.deleted_at IS NULL AND pit.deleted_at IS NULL"
-)
-DEFAULT_TYPE_IN_SQL = DEFAULT_TYPE_PROJECTS_SQL + " AND pit.issue_type_id = ANY(%s::uuid[])"
 
 
 # Marks an error that is not about one particular value.
@@ -150,11 +142,9 @@ def descendants_q(parent_ids):
 def type_q(lookup, value):
     """A `Q` for a `type_id` leaf that reads a missing type as the project's default."""
     if lookup == ISNULL:
-        has_default = Q(project_id__in=RawSQL(DEFAULT_TYPE_PROJECTS_SQL, ()))
+        has_default = default_type_projects_q()
         return Q(type_id__isnull=True) & ~has_default if value else Q(type_id__isnull=False) | has_default
-    ids = value if lookup == IN else [value]
-    has_default = Q(project_id__in=RawSQL(DEFAULT_TYPE_IN_SQL, ([str(type_id) for type_id in ids],)))
-    return Q(type_id__in=ids) | (Q(type_id__isnull=True) & has_default)
+    return type_in_q(value if lookup == IN else [value])
 
 
 def _compile_node(node, depth, conjunctive, compiled, resolver):

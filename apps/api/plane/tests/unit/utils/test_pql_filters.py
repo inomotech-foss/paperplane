@@ -16,10 +16,9 @@ from django.db.models import Q
 from django.db.models.expressions import RawSQL
 
 from plane.utils.pql import FILTER_FIELDS, FilterCompileError, compile_filters
+from plane.utils.issue_type import DEFAULT_TYPE_IN_SQL, DEFAULT_TYPE_PROJECTS_SQL
 from plane.utils.pql.fields import EXACT, IN
 from plane.utils.pql.filters import (
-    DEFAULT_TYPE_IN_SQL,
-    DEFAULT_TYPE_PROJECTS_SQL,
     DESCENDANTS_SQL,
     MAX_FILTER_DEPTH,
     CustomPropertyFilter,

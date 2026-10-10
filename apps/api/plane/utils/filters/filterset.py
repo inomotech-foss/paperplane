@@ -9,6 +9,7 @@ from django.db.models import Q
 from django_filters import FilterSet, filters
 
 from plane.db.models import Issue
+from plane.utils.issue_type import type_in_q
 
 
 class UUIDInFilter(filters.BaseInFilter, filters.UUIDFilter):
@@ -167,8 +168,8 @@ class IssueFilterSet(BaseFilterSet):
 
     # Work item type (`Issue.type`); `issue_type_id` keeps the frontend filter
     # key distinct from the legacy `type` state-type query param.
-    issue_type_id = filters.UUIDFilter(field_name="type_id")
-    issue_type_id__in = UUIDInFilter(field_name="type_id", lookup_expr="in")
+    issue_type_id = filters.UUIDFilter(method="filter_issue_type_id")
+    issue_type_id__in = UUIDInFilter(method="filter_issue_type_id", lookup_expr="in")
 
     subscriber_id = filters.UUIDFilter(method="filter_subscriber_id")
     subscriber_id__in = UUIDInFilter(method="filter_subscriber_id_in", lookup_expr="in")
@@ -249,6 +250,9 @@ class IssueFilterSet(BaseFilterSet):
         from plane.utils.pql.filters import descendants_q
 
         return descendants_q(value if isinstance(value, (list, tuple)) else [value])
+
+    def filter_issue_type_id(self, queryset, name, value):
+        return type_in_q(value if isinstance(value, (list, tuple)) else [value])
 
     # Filter methods with soft delete exclusion for relations
 

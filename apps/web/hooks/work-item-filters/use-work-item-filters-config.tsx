@@ -78,6 +78,7 @@ import { useMember } from "@/hooks/store/use-member";
 import { useModule } from "@/hooks/store/use-module";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
+import { getWorkItemsOfType } from "@/lib/work-item-type";
 // plane web imports
 import { useFiltersOperatorConfigs } from "@/hooks/rich-filters/use-filters-operator-configs";
 // services
@@ -122,7 +123,7 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
   const { getUserDetails } = useMember();
   const { getActiveProjectProperties, getPropertyById } = useIssueCustomProperties();
   const { issueMap } = useIssues();
-  const { getActiveProjectIssueTypes } = useIssueTypes();
+  const { getActiveProjectIssueTypes, getProjectDefaultIssueType } = useIssueTypes();
   // derived values
   const operatorConfigs = useFiltersOperatorConfigs({ workspaceSlug });
   const filtersToShow = useMemo(() => new Set(allowedFilters), [allowedFilters]);
@@ -474,20 +475,19 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
 
   // the loaded work items of a type, as filter options of a work item reference (e.g. the customers)
   const projectIdentifier = projectId ? getProjectById(projectId)?.identifier : undefined;
-  const getWorkItemsOfType = useCallback(
+  const projectDefaultTypeId = getProjectDefaultIssueType(projectId)?.id;
+  const getWorkItemOptionsOfType = useCallback(
     (issueTypeId: string | undefined) =>
       !issueTypeId || !projectId
         ? []
         : sortBy(
-            Object.values(issueMap)
-              .filter((issue) => issue.project_id === projectId && issue.type_id === issueTypeId && !issue.archived_at)
-              .map((issue) => ({
-                id: issue.id,
-                label: `${projectIdentifier ?? ""}-${issue.sequence_id} ${issue.name}`,
-              })),
+            getWorkItemsOfType(Object.values(issueMap), projectId, issueTypeId, projectDefaultTypeId).map((issue) => ({
+              id: issue.id,
+              label: `${projectIdentifier ?? ""}-${issue.sequence_id} ${issue.name}`,
+            })),
             "label"
           ),
-    [issueMap, projectId, projectIdentifier]
+    [issueMap, projectId, projectIdentifier, projectDefaultTypeId]
   );
 
   // custom property filter configs (typed custom fields of the project)
@@ -499,7 +499,7 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
         property: { ...property, options: getOptionsProperty(property, getPropertyById).options },
         // a work item reference (e.g. "Customer") filters by the loaded work items of that type
         workItems: isWorkItemReferenceProperty(property)
-          ? getWorkItemsOfType(getLookupConfig(property)?.issue_type)
+          ? getWorkItemOptionsOfType(getLookupConfig(property)?.issue_type)
           : undefined,
         isEnabled: true,
         filterIcon: (iconProps) => (
@@ -521,7 +521,7 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
         ...operatorConfigs,
       })
     );
-  }, [projectId, getActiveProjectProperties, getPropertyById, getWorkItemsOfType, members, operatorConfigs]);
+  }, [projectId, getActiveProjectProperties, getPropertyById, getWorkItemOptionsOfType, members, operatorConfigs]);
 
   return {
     areAllConfigsInitialized,
