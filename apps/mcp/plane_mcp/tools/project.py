@@ -95,8 +95,8 @@ ACTIONS = (
             "workflows",
             "intake_type_id",
         ),
-        note="toggles project features on or off. Turning intakes on needs intake_type_id, the type of the "
-        "work items that arrive through it -- see `workitem_type list`",
+        note="toggles project features on or off. Turning intakes on the first time needs intake_type_id, "
+        "the type of the work items that arrive through it -- see `workitem_type list`",
     ),
 )
 
