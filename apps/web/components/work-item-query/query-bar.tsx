@@ -17,6 +17,7 @@ import { cn } from "@plane/utils";
 // services
 import { WorkItemQueryService } from "@/services/issue";
 // local imports
+import { checkWorkItemQuery } from "./check";
 import { editorBoxClass } from "./editor-classes";
 import { WorkItemQueryHelp } from "./query-help";
 import { useValuesFor } from "./values";
@@ -26,12 +27,36 @@ const workItemQueryService = new WorkItemQueryService();
 
 const QueryEditor = lazy(() => import("./editor"));
 
+type TQueryDraft = { query: string; error?: string };
+
+const sameDraft = (a: TQueryDraft | undefined, b: TQueryDraft | undefined) =>
+  a?.query === b?.query && a?.error === b?.error;
+
+/**
+ * `edits` is what the person typed, null when the editor shows the reference: the draft from the URL while
+ * there is one, else the applied query. A new draft or another applied query resets it, e.g. after going back.
+ */
+const useDraftState = (value: string, draft: TQueryDraft | undefined, invalid: string) => {
+  const draftError = draft ? (draft.error ?? invalid) : null;
+  const [edits, setEdits] = useState<string | null>(null);
+  const [runError, setRunError] = useState<string | null>(draftError);
+  const [source, setSource] = useState({ value, draft });
+  if (source.value !== value || !sameDraft(source.draft, draft)) {
+    setSource({ value, draft });
+    setEdits(null);
+    setRunError(draftError);
+  }
+  return { reference: draft ? draft.query : value, draftError, edits, setEdits, runError, setRunError };
+};
+
 type Props = {
   workspaceSlug: string;
   /** Scopes name resolution (states, types, properties) to one project. */
   projectId?: string;
   /** The query currently applied to the list, empty for none. */
   value: string;
+  /** A query shown unapplied with its error, e.g. an invalid one from a link. */
+  draft?: TQueryDraft;
   onApply: (pql: string) => Promise<void> | void;
   className?: string;
   /** Shown at the end of the line, e.g. "Save view" for the whole view. */
@@ -46,24 +71,26 @@ type Props = {
  * of as a failed fetch.
  */
 export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props) {
-  const { workspaceSlug, projectId, value, onApply, className, actions } = props;
+  const { workspaceSlug, projectId, value, draft: linkDraft, onApply, className, actions } = props;
   // i18n
   const { t } = useTranslation();
-  // states: `edits` is what the person typed since the last apply, null when
-  // the editor shows the applied query, so an applied query never goes stale.
-  const [edits, setEdits] = useState<string | null>(null);
+  // states: the shown reference never goes stale, as `edits` is null while it is shown
+  const { reference, draftError, edits, setEdits, runError, setRunError } = useDraftState(
+    value,
+    linkDraft,
+    t("work_item_query.invalid")
+  );
   const [isRunning, setIsRunning] = useState(false);
-  const [runError, setRunError] = useState<string | null>(null);
   const [inlineErrors, setInlineErrors] = useState<string[]>([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   // Set when the fallback is focused, so the editor takes focus as soon as it mounts.
   const focusOnMount = useRef(false);
   // derived values
-  const draft = edits ?? value;
-  const isDirty = draft.trim() !== value.trim();
+  const draft = edits ?? reference;
+  // with a draft from the URL, applying the same text is no change, and an empty one clears it
+  const isDirty = draft.trim() !== reference.trim();
   const isApplied = value.trim().length > 0;
-  const errors = inlineErrors.length > 0 ? inlineErrors : runError ? [runError] : [];
-  const hasError = errors.length > 0;
+  const hasError = inlineErrors.length > 0 || !!runError;
 
   const { data: fields } = useSWR(
     `WORK_ITEM_QUERY_FIELDS_${workspaceSlug}`,
@@ -101,7 +128,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
     setIsRunning(true);
     try {
       if (pql) {
-        const result: TWorkItemQueryValidation = await workItemQueryService.validate(workspaceSlug, pql, projectId);
+        const result: TWorkItemQueryValidation = await checkWorkItemQuery(workspaceSlug, pql, projectId, true);
         if (!result.valid) {
           setRunError(result.error ?? t("work_item_query.invalid"));
           return;
@@ -120,12 +147,13 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
   const clear = async () => {
     setEdits(null);
     setRunError(null);
-    if (isApplied) await onApply("");
+    // a draft from a link is part of the address, so clearing it is a change too
+    if (isApplied || linkDraft) await onApply("");
   };
 
   const revert = () => {
     setEdits(null);
-    setRunError(null);
+    setRunError(draftError);
   };
 
   return (
@@ -173,17 +201,16 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
               focusOnMount={focusOnMount}
             />
           </Suspense>
-          {/* Floats below the box, so an error never shifts the page; an open completion list hides it. */}
-          {hasError && (
+          {/* Typing errors float below the box, so typing never shifts the page; an open completion list hides them. */}
+          {inlineErrors.length > 0 && !runError && (
             <div
               role="alert"
               className={cn(
-                "absolute top-full left-0 z-30 mt-1 w-max max-w-full flex-col gap-0.5 rounded-md border border-subtle bg-layer-1 px-2 py-1 text-11 text-danger-primary shadow-overlay-100",
-                runError ? "flex" : "hidden group-focus-within/query:flex",
-                "group-has-[.cm-tooltip-autocomplete]/query:hidden!"
+                "absolute top-full left-0 z-30 mt-1 hidden w-max max-w-full flex-col gap-0.5 rounded-md border border-subtle bg-layer-1 px-2 py-1 text-11 text-danger-primary shadow-overlay-100",
+                "group-focus-within/query:flex group-has-[.cm-tooltip-autocomplete]/query:hidden!"
               )}
             >
-              {errors.map((message) => (
+              {inlineErrors.map((message) => (
                 <span key={message}>{message}</span>
               ))}
             </div>
@@ -199,7 +226,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
           stretch="auto"
           label={t("work_item_query.run")}
         />
-        {(isApplied || draft) && (
+        {(isApplied || draft || linkDraft) && (
           <Button
             variant="tertiary"
             size="sm"
@@ -222,6 +249,11 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
         </button>
         {actions && <div className="flex shrink-0 items-center gap-2 border-l border-subtle pl-2">{actions}</div>}
       </div>
+      {runError && (
+        <p role="alert" className="text-11 text-danger-primary">
+          {runError}
+        </p>
+      )}
       {isHelpOpen && <WorkItemQueryHelp fields={fields} onClose={() => setIsHelpOpen(false)} />}
     </div>
   );

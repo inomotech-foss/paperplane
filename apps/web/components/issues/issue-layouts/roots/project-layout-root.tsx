@@ -6,7 +6,6 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
 // plane constants
 import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@plane/constants";
 import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
@@ -15,10 +14,11 @@ import { Spinner } from "@plane/blocks/spinner";
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
 import { FilterViewActions } from "@/components/rich-filters/view-actions";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
-import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
+import { WorkItemQueryBar, appliedQuery, useClearQueryOptions } from "@/components/work-item-query";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { IssuesStoreContext } from "@/hooks/use-issue-layout-store";
+import { usePqlDraft } from "@/lib/work-item-view-url/pql-draft";
 // local imports
 import { IssuePeekOverview } from "../../peek-overview";
 import { CalendarLayout } from "../calendar/roots/project-root";
@@ -51,19 +51,12 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
   const projectId = routerProjectId ? routerProjectId.toString() : undefined;
   // hooks
   const { issues, issuesFilter } = useIssues(EIssuesStoreType.PROJECT);
+  // a query from the URL that did not validate
+  const pqlDraft = usePqlDraft();
+  const clearFilterOptions = useClearQueryOptions(EIssuesStoreType.PROJECT, projectId);
   // derived values
   const workItemFilters = projectId ? issuesFilter?.getIssueFilters(projectId) : undefined;
   const activeLayout = workItemFilters?.displayFilters?.layout;
-
-  useSWR(
-    workspaceSlug && projectId ? `PROJECT_ISSUES_${workspaceSlug}_${projectId}` : null,
-    async () => {
-      if (workspaceSlug && projectId) {
-        await issuesFilter?.fetchFilters(workspaceSlug, projectId);
-      }
-    },
-    { revalidateIfStale: false, revalidateOnFocus: false }
-  );
 
   if (!workspaceSlug || !projectId || !workItemFilters) return <></>;
   return (
@@ -72,6 +65,7 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
         enableSaveView
         entityType={EIssuesStoreType.PROJECT}
         entityId={projectId}
+        clearFilterOptions={clearFilterOptions}
         filtersToShowByLayout={ISSUE_DISPLAY_FILTERS_BY_PAGE.issues.filters}
         initialWorkItemFilters={workItemFilters}
         updateFilters={issuesFilter?.updateFilterExpression.bind(issuesFilter, workspaceSlug, projectId)}
@@ -82,6 +76,8 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
           <div className="relative flex h-full w-full flex-col overflow-hidden">
             {projectWorkItemsFilter && <WorkItemFiltersRow filter={projectWorkItemsFilter} hideViewActions />}
             <WorkItemQueryBar
+              key={projectId}
+              draft={pqlDraft}
               actions={
                 projectWorkItemsFilter &&
                 (projectWorkItemsFilter.canSaveView || projectWorkItemsFilter.canUpdateView) ? (

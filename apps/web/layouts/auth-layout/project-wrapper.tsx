@@ -64,7 +64,7 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   const { initGantt } = useTimeLineChart(GANTT_TIMELINE_TYPE.MODULE);
   const { fetchViews } = useProjectView();
   const {
-    project: { fetchProjectMembers, fetchProjectUserProperties },
+    project: { fetchProjectMembers, fetchProjectUserProperties, getProjectUserProperties },
   } = useMember();
   const { fetchProjectStates, fetchProjectIntakeState } = useProjectState();
   const { data: currentUserData } = useUser();
@@ -82,6 +82,9 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   const currentProjectRole = getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId);
   const isWorkspaceAdmin = allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.WORKSPACE, workspaceSlug);
   const isIntakeEnabled = isProjectFeatureEnabled(getProjectById(projectId), "inbox_view");
+  // Wait for the role so the keys do not change and refetch when it resolves.
+  const roleKey = (key: (projectId: string, role: EUserPermissions | undefined) => string) =>
+    currentProjectRole === undefined ? null : key(projectId, currentProjectRole);
   // Initialize module timeline chart
   useEffect(() => {
     initGantt();
@@ -97,73 +100,68 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   useSWR(PROJECT_ME_INFORMATION(workspaceSlug, projectId), () => fetchUserProjectInfo(workspaceSlug, projectId));
   // fetching project member preferences
   useSWR(
-    currentUserData?.id ? PROJECT_MEMBER_PREFERENCES(projectId, currentProjectRole) : null,
-    currentUserData?.id ? () => fetchProjectUserProperties(workspaceSlug, projectId) : null,
+    currentUserData?.id ? roleKey(PROJECT_MEMBER_PREFERENCES) : null,
+    // the work items route may have loaded them already
+    currentUserData?.id
+      ? () => getProjectUserProperties(projectId) ?? fetchProjectUserProperties(workspaceSlug, projectId)
+      : null,
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
   // fetching project labels
-  useSWR(PROJECT_LABELS(projectId, currentProjectRole), () => fetchProjectLabels(workspaceSlug, projectId), {
+  useSWR(roleKey(PROJECT_LABELS), () => fetchProjectLabels(workspaceSlug, projectId), {
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
   // fetching project custom properties and their values on all work items
-  useSWR(
-    PROJECT_CUSTOM_PROPERTIES(projectId, currentProjectRole),
-    () => fetchProjectProperties(workspaceSlug, projectId),
-    {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-    }
-  );
-  useSWR(
-    PROJECT_CUSTOM_PROPERTY_VALUES(projectId, currentProjectRole),
-    () => fetchBulkValues(workspaceSlug, projectId),
-    {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-    }
-  );
+  useSWR(roleKey(PROJECT_CUSTOM_PROPERTIES), () => fetchProjectProperties(workspaceSlug, projectId), {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+  });
+  useSWR(roleKey(PROJECT_CUSTOM_PROPERTY_VALUES), () => fetchBulkValues(workspaceSlug, projectId), {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+  });
   // fetching project work item types
-  useSWR(PROJECT_ISSUE_TYPES(projectId, currentProjectRole), () => fetchProjectIssueTypes(workspaceSlug, projectId), {
+  useSWR(roleKey(PROJECT_ISSUE_TYPES), () => fetchProjectIssueTypes(workspaceSlug, projectId), {
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
   // fetching project members
-  useSWR(PROJECT_MEMBERS(projectId, currentProjectRole), () => fetchProjectMembers(workspaceSlug, projectId), {
+  useSWR(roleKey(PROJECT_MEMBERS), () => fetchProjectMembers(workspaceSlug, projectId), {
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
   // fetching project states
-  useSWR(PROJECT_STATES(projectId, currentProjectRole), () => fetchProjectStates(workspaceSlug, projectId), {
+  useSWR(roleKey(PROJECT_STATES), () => fetchProjectStates(workspaceSlug, projectId), {
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
   // fetching project intake state
   useSWR(
-    isIntakeEnabled ? PROJECT_INTAKE_STATE(projectId, currentProjectRole) : null,
+    isIntakeEnabled ? roleKey(PROJECT_INTAKE_STATE) : null,
     () => fetchProjectIntakeState(workspaceSlug, projectId),
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
   // fetching project estimates
-  useSWR(PROJECT_ESTIMATES(projectId, currentProjectRole), () => getProjectEstimates(workspaceSlug, projectId), {
+  useSWR(roleKey(PROJECT_ESTIMATES), () => getProjectEstimates(workspaceSlug, projectId), {
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
   // fetching project cycles
-  useSWR(PROJECT_ALL_CYCLES(projectId, currentProjectRole), () => fetchAllCycles(workspaceSlug, projectId), {
+  useSWR(roleKey(PROJECT_ALL_CYCLES), () => fetchAllCycles(workspaceSlug, projectId), {
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
   // fetching project modules
   useSWR(
-    PROJECT_MODULES(projectId, currentProjectRole),
+    roleKey(PROJECT_MODULES),
     async () => {
       await Promise.all([fetchModulesSlim(workspaceSlug, projectId), fetchModules(workspaceSlug, projectId)]);
     },
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
   // fetching project views
-  useSWR(PROJECT_VIEWS(projectId, currentProjectRole), () => fetchViews(workspaceSlug, projectId), {
+  useSWR(roleKey(PROJECT_VIEWS), () => fetchViews(workspaceSlug, projectId), {
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
