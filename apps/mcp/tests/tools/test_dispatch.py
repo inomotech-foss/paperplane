@@ -197,7 +197,10 @@ def test_action_literal_covers_every_declared_action(mod, action, registered):
 @pytest.mark.parametrize(
     ("args", "named"),
     [
-        ({"action": "create", "project_id": "p", "name": "x", "priority": "sooner-than-urgent"}, "priority"),
+        (
+            {"action": "create", "project_id": "p", "name": "x", "type_id": "t", "priority": "sooner-than-urgent"},
+            "priority",
+        ),
         ({"action": "count", "group_by": "state"}, "group_by"),
         ({"action": "count", "sub_group_by": "nope"}, "sub_group_by"),
     ],
@@ -212,7 +215,7 @@ def test_an_unrecognised_workitem_value_is_refused_not_dropped(args, named, regi
 
 
 def test_a_valid_priority_still_reaches_the_sdk(registered, spy):
-    registered["workitem"].fn(action="create", project_id="p", name="x", priority="urgent")
+    registered["workitem"].fn(action="create", project_id="p", name="x", type_id="t", priority="urgent")
 
     assert spy.recorder.only().kwargs["data"].priority == "urgent"
 
