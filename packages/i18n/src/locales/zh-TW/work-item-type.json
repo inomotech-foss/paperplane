@@ -395,6 +395,7 @@
       "change_title": "變更工作項目類型",
       "change_description": "這些自訂屬性值只屬於目前的類型。請為每個值選擇在新類型中的去處。",
       "values_count": "有值的工作項目：{count}",
+      "single_value": "值：{value}",
       "drop_values": "捨棄這些值",
       "choose_target": "選擇屬性",
       "option_values": "值為 {name}",

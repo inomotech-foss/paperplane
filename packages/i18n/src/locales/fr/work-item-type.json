@@ -395,6 +395,7 @@
       "change_title": "Changer le type de l'élément de travail",
       "change_description": "Ces valeurs de propriétés personnalisées n'appartiennent qu'au type actuel. Choisissez où chacune va sur le nouveau type.",
       "values_count": "Éléments de travail avec une valeur : {count}",
+      "single_value": "Valeur : {value}",
       "drop_values": "Supprimer les valeurs",
       "choose_target": "Choisissez une propriété",
       "option_values": "Valeurs avec {name}",

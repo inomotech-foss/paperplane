@@ -395,6 +395,7 @@
       "change_title": "作業項目のタイプを変更",
       "change_description": "これらのカスタムプロパティーの値は現在のタイプにのみ属します。新しいタイプでの移動先をそれぞれ選択してください。",
       "values_count": "値がある作業項目：{count}件",
+      "single_value": "値：{value}",
       "drop_values": "値を破棄",
       "choose_target": "プロパティーを選択",
       "option_values": "{name} の値",

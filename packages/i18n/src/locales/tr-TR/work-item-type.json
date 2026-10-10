@@ -395,6 +395,7 @@
       "change_title": "İş öğesi türünü değiştir",
       "change_description": "Bu özel özellik değerleri yalnızca mevcut türe aittir. Her birinin yeni türde nereye gideceğini seçin.",
       "values_count": "Değeri olan iş öğeleri: {count}",
+      "single_value": "Değer: {value}",
       "drop_values": "Değerleri at",
       "choose_target": "Bir özellik seçin",
       "option_values": "{name} içeren değerler",

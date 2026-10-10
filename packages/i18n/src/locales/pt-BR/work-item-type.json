@@ -395,6 +395,7 @@
       "change_title": "Alterar o tipo do item de trabalho",
       "change_description": "Esses valores de propriedades personalizadas pertencem apenas ao tipo atual. Escolha para onde cada um vai no novo tipo.",
       "values_count": "Itens de trabalho com um valor: {count}",
+      "single_value": "Valor: {value}",
       "drop_values": "Descartar valores",
       "choose_target": "Escolha uma propriedade",
       "option_values": "Valores com {name}",

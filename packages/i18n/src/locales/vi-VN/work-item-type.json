@@ -395,6 +395,7 @@
       "change_title": "Đổi loại mục công việc",
       "change_description": "Các giá trị thuộc tính tùy chỉnh này chỉ thuộc về loại hiện tại. Hãy chọn nơi chuyển từng giá trị trên loại mới.",
       "values_count": "Số mục công việc có giá trị: {count}",
+      "single_value": "Giá trị: {value}",
       "drop_values": "Bỏ các giá trị",
       "choose_target": "Chọn một thuộc tính",
       "option_values": "Giá trị có {name}",

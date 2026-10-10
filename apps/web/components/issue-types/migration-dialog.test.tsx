@@ -14,7 +14,10 @@ const migrateIssueType = vi.hoisted(() => vi.fn());
 
 vi.mock("@plane/i18n", () => ({
   useTranslation: () => ({
-    t: (key: string, params?: { count?: number }) => (params?.count === undefined ? key : `${key}:${params.count}`),
+    t: (key: string, params?: { count?: number; value?: string }) => {
+      const param = params?.count ?? params?.value;
+      return param === undefined ? key : `${key}:${param}`;
+    },
   }),
 }));
 
@@ -51,7 +54,15 @@ vi.mock("@/hooks/store/use-issue-types", () => ({
 }));
 
 vi.mock("@/hooks/store/use-issue-custom-properties", () => ({
-  useIssueCustomProperties: () => ({ getActiveProjectProperties: () => [], getPropertyById: () => null }),
+  useIssueCustomProperties: () => ({
+    getActiveProjectProperties: () => [],
+    getPropertyById: () => null,
+    getIssueValue: () => "XL",
+  }),
+}));
+
+vi.mock("@/hooks/store/use-member", () => ({
+  useMember: () => ({ getUserDetails: () => undefined }),
 }));
 
 const makePreview = (
@@ -147,8 +158,16 @@ describe("IssueTypeMigrationDialog", () => {
     renderDialog({ scope: { work_items: ["item"] }, replacementTypeId: "bug" });
 
     await waitFor(() => expect(screen.queryByText("Size")).not.toBeNull());
-    expect(screen.getByText("work_item_types.migration.values_count:2")).not.toBeNull();
+    expect(screen.getByText("work_item_types.migration.single_value:XL")).not.toBeNull();
     expect(replacementPicker()).toBeNull();
     expect(isDisabled(confirmButton("work_item_types.migration.confirm"))).toBe(true);
+  });
+
+  it("counts the work items with a value when several move", async () => {
+    preview.current = makePreview({ work_items: 2 }, [SIZE]);
+    renderDialog({ scope: { work_items: ["item", "other"] }, replacementTypeId: "bug" });
+
+    await waitFor(() => expect(screen.queryByText("Size")).not.toBeNull());
+    expect(screen.getByText("work_item_types.migration.values_count:2")).not.toBeNull();
   });
 });

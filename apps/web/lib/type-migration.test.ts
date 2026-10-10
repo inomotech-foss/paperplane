@@ -4,7 +4,13 @@
 import { describe, expect, it } from "vitest";
 import type { TIssueCustomProperty } from "@plane/types";
 import type { TTypeMigrationProperty } from "@/services/issue/issue-type-migration.service";
-import { getCompatibleTargets, getUnmatchedOptions, isMappingComplete, toPropertyMapping } from "./type-migration";
+import {
+  describeSingleValue,
+  getCompatibleTargets,
+  getUnmatchedOptions,
+  isMappingComplete,
+  toPropertyMapping,
+} from "./type-migration";
 
 const makeProperty = (id: string, fields: Partial<TIssueCustomProperty>): TIssueCustomProperty => ({
   id,
@@ -100,5 +106,26 @@ describe("toPropertyMapping", () => {
         undecided: undefined,
       })
     ).toEqual({ level: { target: "severity", options: { low: "s-medium" } }, size: { drop: true } });
+  });
+});
+
+const userName = (userId: string) => (userId === "u1" ? "Ada" : undefined);
+
+describe("describeSingleValue", () => {
+  const text = { ...level, property_type: "TEXT", options: [] };
+
+  it("shows what one work item holds", () => {
+    expect(describeSingleValue(text, "XL", userName)).toBe("XL");
+    expect(describeSingleValue(level, undefined, userName)).toBe("High, Low");
+    expect(describeSingleValue({ ...text, property_type: "RELATION", relation_type: "USER" }, "u1", userName)).toBe(
+      "Ada"
+    );
+  });
+
+  it("has nothing to show for a value it cannot read", () => {
+    expect(describeSingleValue(text, undefined, userName)).toBeUndefined();
+    expect(describeSingleValue({ ...text, property_type: "RELATION", relation_type: "ISSUE" }, "i1", userName)).toBe(
+      undefined
+    );
   });
 });

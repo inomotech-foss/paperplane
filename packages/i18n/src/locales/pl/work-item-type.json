@@ -395,6 +395,7 @@
       "change_title": "Zmień typ elementu pracy",
       "change_description": "Te wartości właściwości niestandardowych należą tylko do bieżącego typu. Wybierz, dokąd trafi każda z nich w nowym typie.",
       "values_count": "Elementy pracy z wartością: {count}",
+      "single_value": "Wartość: {value}",
       "drop_values": "Odrzuć wartości",
       "choose_target": "Wybierz właściwość",
       "option_values": "Wartości z {name}",

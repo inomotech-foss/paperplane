@@ -395,6 +395,7 @@
       "change_title": "작업 항목 타입 변경",
       "change_description": "이 사용자 지정 속성 값은 현재 타입에만 속합니다. 새 타입에서 각 값이 옮겨질 곳을 선택하십시오.",
       "values_count": "값이 있는 작업 항목: {count}개",
+      "single_value": "값: {value}",
       "drop_values": "값 버리기",
       "choose_target": "속성 선택",
       "option_values": "{name} 값",

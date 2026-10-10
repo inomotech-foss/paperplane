@@ -395,6 +395,7 @@
       "change_title": "Schimbați tipul elementului de lucru",
       "change_description": "Aceste valori ale proprietăților personalizate aparțin doar tipului actual. Alegeți unde merge fiecare în noul tip.",
       "values_count": "Elemente de lucru cu o valoare: {count}",
+      "single_value": "Valoare: {value}",
       "drop_values": "Renunțați la valori",
       "choose_target": "Alegeți o proprietate",
       "option_values": "Valori cu {name}",

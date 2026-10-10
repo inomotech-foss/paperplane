@@ -395,6 +395,7 @@
       "change_title": "Zmeniť typ pracovnej položky",
       "change_description": "Tieto hodnoty vlastných vlastností patria len k aktuálnemu typu. Vyberte, kam každá prejde na novom type.",
       "values_count": "Pracovné položky s hodnotou: {count}",
+      "single_value": "Hodnota: {value}",
       "drop_values": "Zahodiť hodnoty",
       "choose_target": "Vyberte vlastnosť",
       "option_values": "Hodnoty s {name}",

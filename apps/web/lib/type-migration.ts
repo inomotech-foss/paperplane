@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import type { TIssueCustomProperty } from "@plane/types";
+import type { TIssueCustomProperty, TIssueCustomPropertyValue } from "@plane/types";
+import { renderFormattedDate } from "@plane/utils";
 import type { TTypeMigrationProperty } from "@/services/issue/issue-type-migration.service";
 
 /** What happens to the values of one property of the old type. Options map old ids to new ids, `null` drops. */
@@ -58,4 +59,20 @@ export const toPropertyMapping = (decisions: Record<string, TPropertyDecision | 
     else if (decision) mapping[propertyId] = { target: decision.targetId, options: decision.options };
   }
   return mapping;
+};
+
+/**
+ * The value one work item holds in `source` as text, undefined when it cannot be shown.
+ * The preview lists exactly the options in use, so for one work item those are its values.
+ */
+export const describeSingleValue = (
+  source: TTypeMigrationProperty,
+  value: TIssueCustomPropertyValue | undefined,
+  userName: (userId: string) => string | undefined
+): string | undefined => {
+  if (source.property_type === "OPTION") return source.options.map((option) => option.name).join(", ") || undefined;
+  if (value === null || value === undefined || value === "" || Array.isArray(value)) return undefined;
+  if (source.property_type === "RELATION") return source.relation_type === "USER" ? userName(String(value)) : undefined;
+  if (source.property_type === "DATETIME") return renderFormattedDate(String(value)) ?? undefined;
+  return String(value);
 };

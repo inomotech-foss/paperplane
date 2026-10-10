@@ -28,8 +28,15 @@ import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
 // hooks
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
+import { useMember } from "@/hooks/store/use-member";
 // helpers
-import { getCompatibleTargets, getUnmatchedOptions, isMappingComplete, toPropertyMapping } from "@/lib/type-migration";
+import {
+  describeSingleValue,
+  getCompatibleTargets,
+  getUnmatchedOptions,
+  isMappingComplete,
+  toPropertyMapping,
+} from "@/lib/type-migration";
 import type { TPropertyDecision } from "@/lib/type-migration";
 // services
 import { countTypeReferences, IssueTypeMigrationService } from "@/services/issue/issue-type-migration.service";
@@ -70,6 +77,24 @@ function ChoiceSelect(props: {
   );
 }
 
+/** The value of the one work item that moves, else how many work items have a value. */
+const ValuesLabel = observer(function ValuesLabel(props: { source: TTypeMigrationProperty; workItemId?: string }) {
+  const { source, workItemId } = props;
+  const { t } = useTranslation();
+  const { getIssueValue } = useIssueCustomProperties();
+  const { getUserDetails } = useMember();
+  const value = workItemId
+    ? describeSingleValue(
+        source,
+        getIssueValue(workItemId, source.id),
+        (userId) => getUserDetails(userId)?.display_name
+      )
+    : undefined;
+  return value === undefined
+    ? t("work_item_types.migration.values_count", { count: source.work_items })
+    : t("work_item_types.migration.single_value", { value });
+});
+
 /** Where the values of one property of the old type go: a compatible property of the new type, or nowhere. */
 const PropertyMappingRow = observer(function PropertyMappingRow(props: {
   projectId: string;
@@ -77,8 +102,10 @@ const PropertyMappingRow = observer(function PropertyMappingRow(props: {
   replacementTypeId: string;
   decision: TPropertyDecision | undefined;
   onDecide: (propertyId: string, decision: TPropertyDecision) => void;
+  /** The work item when only one moves, so the row can show its value. */
+  workItemId?: string;
 }) {
-  const { projectId, source, replacementTypeId, decision, onDecide } = props;
+  const { projectId, source, replacementTypeId, decision, onDecide, workItemId } = props;
   const onChange = (next: TPropertyDecision) => onDecide(source.id, next);
   const { t } = useTranslation();
   const { getActiveProjectProperties, getPropertyById } = useIssueCustomProperties();
@@ -96,7 +123,7 @@ const PropertyMappingRow = observer(function PropertyMappingRow(props: {
       <div className="flex items-center justify-between gap-2">
         <span className="truncate text-13 font-medium text-primary">{source.name}</span>
         <span className="shrink-0 text-11 text-tertiary">
-          {t("work_item_types.migration.values_count", { count: source.work_items })}
+          <ValuesLabel source={source} workItemId={workItemId} />
         </span>
       </div>
       <ChoiceSelect
@@ -251,7 +278,8 @@ const useTypeMigration = (props: TIssueTypeMigrationDialogProps) => {
 export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDialog(
   props: TIssueTypeMigrationDialogProps
 ) {
-  const { isOpen, projectId, fromType, unlink = false } = props;
+  const { isOpen, projectId, fromType, scope, unlink = false } = props;
+  const singleWorkItemId = scope.work_items?.length === 1 ? scope.work_items[0] : undefined;
   const { t } = useTranslation();
   const migration = useTypeMigration(props);
   const message = useUsageMessage(migration.preview, unlink);
@@ -299,6 +327,7 @@ export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDial
                   replacementTypeId={replacementTypeId}
                   decision={migration.decisions[source.id]}
                   onDecide={migration.decide}
+                  workItemId={singleWorkItemId}
                 />
               ))}
             </div>

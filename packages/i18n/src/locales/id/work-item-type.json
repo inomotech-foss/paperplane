@@ -395,6 +395,7 @@
       "change_title": "Ubah tipe item kerja",
       "change_description": "Nilai properti kustom ini hanya milik tipe saat ini. Pilih ke mana masing-masing dipindahkan pada tipe baru.",
       "values_count": "Item kerja dengan nilai: {count}",
+      "single_value": "Nilai: {value}",
       "drop_values": "Buang nilai",
       "choose_target": "Pilih properti",
       "option_values": "Nilai dengan {name}",
