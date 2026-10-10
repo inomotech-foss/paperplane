@@ -35,7 +35,7 @@ from plane.db.models import (
 )
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection
 from plane.tests.factories import ProjectFactory
-from plane.utils.issue_type import link_starter_type
+from plane.utils.issue_type import enable_intake, link_starter_type
 
 MAILBOX = "support@example.com"
 
@@ -64,7 +64,8 @@ def _graph_message(
 
 @pytest.fixture
 def service_desk_config(db):
-    project = ProjectFactory()
+    project = ProjectFactory(intake_view=True)
+    enable_intake(project, link_starter_type(project))
     return ServiceDeskConfig.objects.create(project=project, mailbox_email=MAILBOX, is_enabled=True)
 
 
@@ -149,20 +150,22 @@ class TestServiceDeskPoll:
         link_starter_type(project)
         ticket = IssueType.objects.create(workspace=project.workspace, name="Ticket")
         ProjectIssueType.objects.create(project=project, issue_type=ticket, workspace=project.workspace)
-        Intake.objects.create(name="Intake", project=project, workspace=project.workspace, issue_type=ticket)
+        Intake.objects.filter(project=project).update(issue_type=ticket)
 
         _run_poll([_graph_message()])
 
         assert Issue.objects.get(project=project).type_id == ticket.id
 
     @pytest.mark.django_db
-    def test_a_project_without_an_intake_gets_one_with_its_first_type(self, service_desk_config):
-        _run_poll([_graph_message()])
-
+    def test_mail_for_a_project_without_an_intake_stays_unread(self, service_desk_config):
         project = service_desk_config.project
-        intake = Intake.objects.get(project=project)
-        assert intake.issue_type.name == "Task"
-        assert Issue.objects.get(project=project).type_id == intake.issue_type_id
+        Intake.objects.filter(project=project).delete(soft=False)
+
+        fake_client, _ = _run_poll([_graph_message()])
+
+        assert not Issue.objects.filter(project=project).exists()
+        assert not Intake.objects.filter(project=project).exists()
+        fake_client.mark_message_read.assert_not_called()
 
     @pytest.mark.django_db
     def test_threads_reply_into_existing_ticket(self, service_desk_config):

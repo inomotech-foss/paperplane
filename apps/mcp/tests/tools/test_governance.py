@@ -176,7 +176,8 @@ def test_every_declared_feature_toggle_is_a_real_sdk_field():
 
     from plane_mcp.tools.project import ACTIONS
 
-    declared = next(a for a in ACTIONS if a.name == "update_features").optional
+    # intake_type_id is no toggle; it rides along when intakes are turned on.
+    declared = [n for n in next(a for a in ACTIONS if a.name == "update_features").optional if n != "intake_type_id"]
     # The tool spells this one `workitem_types`; the SDK field kept `work_item_types`.
     fields = set(ProjectFeature.model_fields)
     unknown = [name for name in declared if name.replace("workitem", "work_item") not in fields]
@@ -260,3 +261,10 @@ def test_sequence_and_default_reach_a_project_state(registered, spy):
     )
 
     assert spy.recorder.only().kwargs["data"].default is True
+
+
+def test_turning_intakes_on_sends_the_intake_type(registered, spy):
+    registered["project"].fn(action="update_features", project_id=PROJECT, intakes=True, intake_type_id=TYPE_ID)
+
+    data = spy.recorder.only().kwargs["data"].model_dump(exclude_none=True)
+    assert data == {"intakes": True, "intake_issue_type_id": TYPE_ID}

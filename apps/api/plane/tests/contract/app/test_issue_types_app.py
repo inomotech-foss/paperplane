@@ -6,7 +6,6 @@ import pytest
 from rest_framework import status
 
 from plane.db.models import (
-    Intake,
     Issue,
     IssueType,
     Project,
@@ -118,34 +117,6 @@ class TestIssueTypeAppCrud(IssueTypeAppUrls):
         response = session_client.delete(url)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    def test_delete_type_used_by_work_items_rejected(self, session_client, workspace, project, story_type):
-        for name in ("One", "Two"):
-            Issue.objects.create(name=name, workspace=workspace, project=project, type=story_type)
-
-        response = session_client.delete(self.types_url(workspace.slug, project.id, story_type.id))
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data["error"] == "2 work items use the type Story. Change their type first."
-        assert ProjectIssueType.objects.filter(project=project, issue_type=story_type).exists()
-
-    def test_delete_type_used_by_archived_work_item_rejected(self, session_client, workspace, project, story_type):
-        Issue.objects.create(
-            name="Old", workspace=workspace, project=project, type=story_type, archived_at="2026-01-01"
-        )
-
-        response = session_client.delete(self.types_url(workspace.slug, project.id, story_type.id))
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data["error"].startswith("1 work item uses")
-
-    def test_delete_type_of_the_intake_rejected(self, session_client, workspace, project, story_type):
-        Intake.objects.create(name="Intake", project=project, workspace=workspace, issue_type=story_type)
-
-        response = session_client.delete(self.types_url(workspace.slug, project.id, story_type.id))
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "intake" in response.data["error"]
 
     def test_work_items_of_other_projects_do_not_block_the_unlink(
         self, session_client, workspace, project, story_type, create_user

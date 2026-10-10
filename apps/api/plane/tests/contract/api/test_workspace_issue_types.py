@@ -5,8 +5,6 @@ import pytest
 from rest_framework import status
 
 from plane.db.models import (
-    Intake,
-    Issue,
     IssueType,
     Project,
     ProjectIssueType,
@@ -150,32 +148,6 @@ class TestWorkspaceIssueTypes:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not IssueType.objects.filter(pk=loose_type.id).exists()
         assert not ProjectIssueType.objects.filter(issue_type_id=loose_type.id).exists()
-
-    @pytest.mark.django_db
-    def test_delete_is_rejected_while_work_items_use_it(
-        self, api_key_client, workspace, project, other_project, task_type, loose_type
-    ):
-        ProjectIssueType.objects.create(project=other_project, issue_type=task_type, workspace=workspace)
-        for linked in (project, other_project):
-            ProjectIssueType.objects.create(project=linked, issue_type=loose_type, workspace=workspace)
-            Issue.objects.create(name="Item", workspace=workspace, project=linked, type=loose_type)
-
-        response = api_key_client.delete(workspace_url(workspace.slug, loose_type.id))
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data["error"] == "2 work items use the type Spike. Change their type first."
-        assert IssueType.objects.filter(pk=loose_type.id).exists()
-
-    @pytest.mark.django_db
-    def test_delete_is_rejected_while_an_intake_uses_it(self, api_key_client, workspace, project, task_type):
-        other = IssueType.objects.create(workspace=workspace, name="Ticket")
-        ProjectIssueType.objects.create(project=project, issue_type=other, workspace=workspace)
-        Intake.objects.create(name="Intake", project=project, workspace=workspace, issue_type=other)
-
-        response = api_key_client.delete(workspace_url(workspace.slug, other.id))
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "intake" in response.data["error"]
 
     @pytest.mark.django_db
     def test_delete_is_rejected_when_it_would_strand_a_project(self, api_key_client, workspace, project, loose_type):

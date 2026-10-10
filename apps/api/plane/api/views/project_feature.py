@@ -1,12 +1,14 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from django.db import transaction
 from drf_spectacular.utils import OpenApiRequest, OpenApiResponse
 from rest_framework import status
 from rest_framework.response import Response
 
 from plane.app.permissions import ProjectEntityPermission
-from plane.db.models import Project
+from plane.db.models import IssueType, Project
+from plane.utils.issue_type import enable_intake, intake_type_error
 from plane.utils.openapi import INVALID_REQUEST_RESPONSE, project_docs
 
 from .base import BaseAPIView
@@ -23,6 +25,9 @@ FEATURE_FIELDS = {
     "intakes": "intake_view",
     "work_item_types": "is_issue_type_enabled",
 }
+
+# Turning intakes on needs the type of the work items that arrive through it.
+INTAKE_TYPE_KEY = "intake_issue_type_id"
 
 
 class ProjectFeatureAPIEndpoint(BaseAPIView):
@@ -59,15 +64,18 @@ class ProjectFeatureAPIEndpoint(BaseAPIView):
         """Update project features
 
         Body is `{"cycles": true, ...}`. Features we do not have are refused
-        rather than silently ignored.
+        rather than silently ignored. Turning `intakes` on also needs
+        `intake_issue_type_id`, the type of the work items that arrive through it.
         """
-        unknown = [name for name in request.data if name not in FEATURE_FIELDS]
+        intake_type_id = request.data.get(INTAKE_TYPE_KEY)
+        features = {name: value for name, value in request.data.items() if name != INTAKE_TYPE_KEY}
+        unknown = [name for name in features if name not in FEATURE_FIELDS]
         if unknown:
             return Response(
                 {"error": f"Unknown feature(s): {', '.join(sorted(unknown))}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        not_boolean = [name for name, value in request.data.items() if not isinstance(value, bool)]
+        not_boolean = [name for name, value in features.items() if not isinstance(value, bool)]
         if not_boolean:
             return Response(
                 {"error": f"Feature(s) must be true or false: {', '.join(sorted(not_boolean))}"},
@@ -75,7 +83,14 @@ class ProjectFeatureAPIEndpoint(BaseAPIView):
             )
 
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
-        for name, value in request.data.items():
-            setattr(project, FEATURE_FIELDS[name], value)
-        project.save(update_fields=[FEATURE_FIELDS[name] for name in request.data])
+        enabling_intake = features.get("intakes") is True and not project.intake_view
+        if enabling_intake and (error := intake_type_error(project, intake_type_id)):
+            return Response({INTAKE_TYPE_KEY: error}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            for name, value in features.items():
+                setattr(project, FEATURE_FIELDS[name], value)
+            project.save(update_fields=[FEATURE_FIELDS[name] for name in features])
+            if enabling_intake:
+                enable_intake(project, IssueType.objects.get(pk=intake_type_id))
         return Response(self.features(project), status=status.HTTP_200_OK)

@@ -10912,6 +10912,12 @@ paths:
             value: 550e8400-e29b-41d4-a716-446655440000
             summary: Example project ID
             description: A typical project UUID
+      - in: query
+        name: replacement_type_id
+        schema:
+          type: string
+        description: The type that work items, intakes and automations still using
+          this type move to. Required only while such rows exist, ignored otherwise.
       - in: path
         name: slug
         schema:
@@ -15226,6 +15232,12 @@ paths:
             value: 550e8400-e29b-41d4-a716-446655440000
             summary: Example project ID
             description: A typical project UUID
+      - in: query
+        name: replacement_type_id
+        schema:
+          type: string
+        description: The type that work items, intakes and automations still using
+          this type move to. Required only while such rows exist, ignored otherwise.
       - in: path
         name: slug
         schema:

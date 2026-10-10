@@ -43,7 +43,7 @@ from plane.db.models import (
     User,
     BotTypeEnum,
 )
-from plane.utils.issue_type import first_linked_type, link_starter_type
+from plane.utils.issue_type import link_starter_type
 
 logger = logging.getLogger("plane.worker")
 
@@ -289,7 +289,7 @@ def create_project_issues(
             **issue_seed,
             state_id=states_map[state_id],
             project_id=project_map[project_id],
-            type=first_linked_type(project_map[project_id]),
+            type=link_starter_type(Project.objects.get(pk=project_map[project_id])),
             workspace=workspace,
             created_by_id=bot_user.id,
         )

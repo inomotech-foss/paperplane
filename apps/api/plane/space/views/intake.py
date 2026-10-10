@@ -27,6 +27,7 @@ from plane.utils.content_validator import validate_html_content
 from plane.utils.issue_filters import issue_filters
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.db.models.intake import SourceType
+from plane.utils.issue_type import intake_type_mismatch
 
 
 class IntakeIssuePublicViewSet(BaseViewSet):
@@ -122,6 +123,10 @@ class IntakeIssuePublicViewSet(BaseViewSet):
         if not request.data.get("issue", {}).get("name", False):
             return Response({"error": "Name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
+        intake = project_deploy_board.intake
+        if error := intake_type_mismatch(intake, request.data.get("issue", {}).get("type_id")):
+            return Response({"type_id": error}, status=status.HTTP_400_BAD_REQUEST)
+
         # Check for valid priority
         if request.data.get("issue", {}).get("priority", "none") not in [
             "low",
@@ -161,7 +166,7 @@ class IntakeIssuePublicViewSet(BaseViewSet):
             priority=request.data.get("issue", {}).get("priority", "low"),
             project_id=project_deploy_board.project_id,
             state_id=triage_state.id,
-            type_id=project_deploy_board.intake.issue_type_id,
+            type_id=intake.issue_type_id,
         )
 
         # Create an Issue Activity

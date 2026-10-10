@@ -6,15 +6,25 @@
 from django.db import transaction
 
 # Third Party imports
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
 # Module imports
 from .. import BaseViewSet
 from plane.app.permissions import ROLE, allow_permission, ProjectEntityPermission
-from plane.app.serializers import IssueTypeSerializer
+from plane.app.serializers import IssueTypeSerializer, IssueTypeUsageSerializer
 from plane.db.models import IssueType, Project, ProjectIssueType
-from plane.utils.issue_type import type_in_use_error
+from plane.utils.issue_type import TypeReferences, remove_issue_type
+
+REPLACEMENT_PARAMETER = OpenApiParameter(
+    name="replacement_type_id",
+    type=str,
+    location=OpenApiParameter.QUERY,
+    required=False,
+    description="The type that work items, intakes and automations still using this type move to. "
+    "Required only while such rows exist, ignored otherwise.",
+)
 
 
 class IssueTypeViewSet(BaseViewSet):
@@ -75,6 +85,14 @@ class IssueTypeViewSet(BaseViewSet):
             return Response(IssueTypeSerializer(issue_type).data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses=IssueTypeUsageSerializer)
+    @allow_permission([ROLE.ADMIN])
+    def usage(self, request, slug, project_id, pk):
+        issue_type = self.get_queryset().get(pk=pk)
+        counts = TypeReferences(issue_type, project_id).counts()
+        return Response(IssueTypeUsageSerializer(counts).data, status=status.HTTP_200_OK)
+
+    @extend_schema(parameters=[REPLACEMENT_PARAMETER])
     @allow_permission([ROLE.ADMIN])
     def destroy(self, request, slug, project_id, pk):
         issue_type = IssueType.objects.get(workspace__slug=slug, project_issue_types__project_id=project_id, pk=pk)
@@ -83,9 +101,6 @@ class IssueTypeViewSet(BaseViewSet):
                 {"error": "Epic type cannot be removed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        in_use = type_in_use_error(issue_type, project_id)
-        if in_use:
-            return Response({"error": in_use}, status=status.HTTP_400_BAD_REQUEST)
         remaining = (
             ProjectIssueType.objects.filter(
                 project_id=project_id,
@@ -101,8 +116,7 @@ class IssueTypeViewSet(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        with transaction.atomic():
-            ProjectIssueType.objects.filter(project_id=project_id, issue_type_id=issue_type.id).delete()
-            if not ProjectIssueType.objects.filter(issue_type_id=issue_type.id).exists():
-                issue_type.delete()
+        error = remove_issue_type(issue_type, request.query_params.get("replacement_type_id"), project_id)
+        if error:
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -41,6 +41,7 @@ from plane.db.models import (
     IssueComment,
     IssueEmailMessage,
     IssueEmailThread,
+    IssueType,
     Project,
     ProjectMember,
     ServiceDeskConfig,
@@ -48,6 +49,7 @@ from plane.db.models import (
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection, ServiceDeskNotifyMode
 from plane.utils.content_validator import validate_html_content
 from plane.utils.host import base_host
+from plane.utils.issue_type import enable_intake, intake_type_error
 
 
 def _clean_email_list(emails, exclude=()):
@@ -93,6 +95,13 @@ class ServiceDeskConfigEndpoint(BaseAPIView):
                 {"error": "A mailbox email is required to enable the service desk"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # Tickets land in the intake, so turning it on here needs the type of its work items.
+        project = Project.objects.get(pk=project_id, workspace__slug=slug)
+        enabling_intake = is_enabled and not project.intake_view
+        intake_type_id = request.data.get("intake_issue_type_id")
+        if enabling_intake and (error := intake_type_error(project, intake_type_id)):
+            return Response({"intake_issue_type_id": error}, status=status.HTTP_400_BAD_REQUEST)
 
         config = ServiceDeskConfig.objects.filter(workspace__slug=slug, project_id=project_id).first()
         created = config is None
@@ -149,9 +158,9 @@ class ServiceDeskConfigEndpoint(BaseAPIView):
                 ]
             )
 
-        # Tickets land in the intake queue, so make sure agents can see it.
-        if is_enabled:
-            Project.objects.filter(pk=project_id, intake_view=False).update(intake_view=True)
+        if enabling_intake:
+            enable_intake(project, IssueType.objects.get(pk=intake_type_id))
+            Project.objects.filter(pk=project_id).update(intake_view=True)
 
         # Create/renew/drop the Graph push subscription to match the new state.
         service_desk_maintain_subscriptions.delay()

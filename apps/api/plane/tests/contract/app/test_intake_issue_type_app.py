@@ -61,43 +61,56 @@ def intake_url(workspace, project, intake=None):
     return f"{base}{intake.id}/" if intake else base
 
 
-@pytest.mark.contract
-@pytest.mark.django_db
-class TestIntakeCreatesItsType:
-    def test_app_intake_item(self, session_client, workspace, project, intake, ticket):
-        task = link_starter_type(project)
-        response = session_client.post(
-            f"/api/workspaces/{workspace.slug}/projects/{project.id}/intake-issues/",
-            {"issue": {"name": "Printer", "type_id": str(task.id)}},
-            format="json",
+def post_intake_item(request, kind, workspace, project, intake, issue):
+    """Send `issue` to the intake the way `kind` does. Returns the response and the success status."""
+    if kind == "app":
+        client, url, created = (
+            request.getfixturevalue("session_client"),
+            "/api/workspaces/{}/projects/{}/intake-issues/",
+            200,
         )
-
-        assert response.status_code == status.HTTP_200_OK, response.data
-        assert Issue.objects.get(name="Printer").type_id == ticket.id
-
-    def test_public_api_intake_item(self, api_key_client, workspace, project, intake, ticket):
-        response = api_key_client.post(
-            f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/intake-issues/",
-            {"issue": {"name": "Printer"}},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_201_CREATED, response.data
-        assert Issue.objects.get(name="Printer").type_id == ticket.id
-
-    def test_published_board_intake_item(self, session_client, workspace, project, intake, ticket):
+        url = url.format(workspace.slug, project.id)
+    elif kind == "v1":
+        client, created = request.getfixturevalue("api_key_client"), 201
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/intake-issues/"
+    else:
+        client, created = request.getfixturevalue("session_client"), 200
         board = DeployBoard.objects.create(
             entity_name="project", entity_identifier=project.id, project=project, workspace=workspace, intake=intake
         )
+        url = f"/api/public/anchor/{board.anchor}/intakes/{intake.id}/intake-issues/"
+    return client.post(url, {"issue": issue}, format="json"), created
 
-        response = session_client.post(
-            f"/api/public/anchor/{board.anchor}/intakes/{intake.id}/intake-issues/",
-            {"issue": {"name": "Printer"}},
-            format="json",
-        )
 
-        assert response.status_code == status.HTTP_200_OK, response.data
+INTAKE_PATHS = ["app", "v1", "public_board"]
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestIntakeCreatesItsType:
+    @pytest.mark.parametrize("kind", INTAKE_PATHS)
+    def test_an_omitted_type_is_the_intake_type(self, request, kind, workspace, project, intake, ticket):
+        response, created = post_intake_item(request, kind, workspace, project, intake, {"name": "Printer"})
+
+        assert response.status_code == created, response.data
         assert Issue.objects.get(name="Printer").type_id == ticket.id
+
+    @pytest.mark.parametrize("kind", INTAKE_PATHS)
+    def test_the_intake_type_is_accepted(self, request, kind, workspace, project, intake, ticket):
+        issue = {"name": "Printer", "type_id": str(ticket.id)}
+        response, created = post_intake_item(request, kind, workspace, project, intake, issue)
+
+        assert response.status_code == created, response.data
+        assert Issue.objects.get(name="Printer").type_id == ticket.id
+
+    @pytest.mark.parametrize("kind", INTAKE_PATHS)
+    def test_another_type_is_rejected(self, request, kind, workspace, project, intake, ticket):
+        issue = {"name": "Printer", "type_id": str(link_starter_type(project).id)}
+        response, _ = post_intake_item(request, kind, workspace, project, intake, issue)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["type_id"] == "Work items of this intake get the type Ticket."
+        assert not Issue.objects.filter(name="Printer").exists()
 
 
 @pytest.mark.contract
@@ -160,16 +173,72 @@ class TestProjectTypes:
         assert response.status_code == status.HTTP_201_CREATED
         assert IssueType.objects.filter(workspace=workspace, name="Task").count() == 1
 
-    def test_enabling_intake_creates_one_with_the_first_type(self, session_client, workspace, create_user):
-        project = Project.objects.create(name="Ops", identifier="OPS", workspace=workspace, created_by=create_user)
-        ProjectMember.objects.create(project=project, member=create_user, role=20, is_active=True)
-        for name, level in (("Zebra", 0), ("Alpha", 1)):
-            issue_type = IssueType.objects.create(workspace=workspace, name=name, level=level)
-            ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
+    def test_a_new_project_cannot_start_with_intake_on(self, session_client, api_key_client, workspace):
+        for client, url in (
+            (session_client, f"/api/workspaces/{workspace.slug}/projects/"),
+            (api_key_client, f"/api/v1/workspaces/{workspace.slug}/projects/"),
+        ):
+            response = client.post(url, {"name": "New", "identifier": "NEW", "intake_view": True}, format="json")
 
-        response = session_client.patch(
-            f"/api/workspaces/{workspace.slug}/projects/{project.id}/", {"inbox_view": True}, format="json"
-        )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert "intake_view" in response.data
+        assert not Project.objects.filter(identifier="NEW").exists()
+
+
+def enable_with(request, kind, workspace, project, data):
+    """Turn intake on the way `kind` does."""
+    if kind == "app":
+        url = f"/api/workspaces/{workspace.slug}/projects/{project.id}/"
+        return request.getfixturevalue("session_client").patch(url, {"inbox_view": True, **data}, format="json")
+    if kind == "v1":
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/"
+        return request.getfixturevalue("api_key_client").patch(url, {"intake_view": True, **data}, format="json")
+    url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/features/"
+    return request.getfixturevalue("api_key_client").patch(url, {"intakes": True, **data}, format="json")
+
+
+@pytest.fixture
+def ops(db, workspace, create_user):
+    project = Project.objects.create(name="Ops", identifier="OPS", workspace=workspace, created_by=create_user)
+    ProjectMember.objects.create(project=project, member=create_user, role=20, is_active=True)
+    link_starter_type(project)
+    return project
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestEnablingIntake:
+    @pytest.mark.parametrize("kind", ["app", "v1", "features"])
+    def test_turning_intake_on_needs_its_type(self, request, kind, workspace, ops):
+        response = enable_with(request, kind, workspace, ops, {})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "intake_issue_type_id" in response.data
+        assert Project.objects.get(pk=ops.id).intake_view is False
+        assert not Intake.objects.filter(project=ops).exists()
+
+    @pytest.mark.parametrize("kind", ["app", "v1", "features"])
+    def test_an_unlinked_intake_type_is_rejected(self, request, kind, workspace, ops):
+        other = IssueType.objects.create(workspace=workspace, name="Elsewhere")
+
+        response = enable_with(request, kind, workspace, ops, {"intake_issue_type_id": str(other.id)})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert Project.objects.get(pk=ops.id).intake_view is False
+
+    @pytest.mark.parametrize("kind", ["app", "v1", "features"])
+    def test_turning_intake_on_uses_the_chosen_type(self, request, kind, workspace, ops):
+        bug = IssueType.objects.create(workspace=workspace, name="Bug")
+        ProjectIssueType.objects.create(project=ops, issue_type=bug, workspace=workspace)
+
+        response = enable_with(request, kind, workspace, ops, {"intake_issue_type_id": str(bug.id)})
 
         assert response.status_code == status.HTTP_200_OK, response.data
-        assert Intake.objects.get(project=project).issue_type.name == "Zebra"
+        assert Project.objects.get(pk=ops.id).intake_view is True
+        assert Intake.objects.get(project=ops).issue_type_id == bug.id
+
+    def test_an_intake_that_is_on_needs_no_type_again(self, request, workspace, project, intake, ticket):
+        response = enable_with(request, "app", workspace, project, {"name": "Support desk"})
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        assert Intake.objects.get(project=project).issue_type_id == ticket.id

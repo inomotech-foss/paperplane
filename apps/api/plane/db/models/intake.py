@@ -16,7 +16,7 @@ class Intake(ProjectBaseModel):
     view_props = models.JSONField(default=dict)
     logo_props = models.JSONField(default=dict)
     # The type of the work items that arrive through this intake.
-    issue_type = models.ForeignKey("db.IssueType", on_delete=models.PROTECT, related_name="intakes")
+    issue_type = models.ForeignKey("db.IssueType", on_delete=models.RESTRICT, related_name="intakes")
 
     def __str__(self):
         """Return name of the intake"""
