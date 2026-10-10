@@ -484,11 +484,16 @@ export class BaseProjectMemberStore implements IBaseProjectMemberStore {
   ): Promise<IProjectUserPropertiesResponse> => {
     const previousProperties = this.projectUserPropertiesMap[projectId];
     try {
-      // Optimistically update the store
+      // Optimistically update the store; the change carries only some of the keys
       runInAction(() => {
-        set(this.projectUserPropertiesMap, [projectId], data);
+        if (previousProperties) set(this.projectUserPropertiesMap, [projectId], { ...previousProperties, ...data });
       });
       const response = await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, data);
+      if (!previousProperties) {
+        runInAction(() => {
+          set(this.projectUserPropertiesMap, [projectId], response);
+        });
+      }
       return response;
     } catch (error) {
       // Revert on error
