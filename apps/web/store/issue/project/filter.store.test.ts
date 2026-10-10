@@ -6,7 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { EIssueFilterType } from "@plane/constants";
 import type { IProjectUserPropertiesResponse } from "@plane/types";
 import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
-import { applyViewState, resolveViewState, toViewState } from "@/lib/work-item-view-url/apply";
+import { applyViewState } from "@/lib/work-item-view-url/apply";
+import { resolveViewState, toViewState } from "@/lib/work-item-view-url/state";
 import type { TViewIntent } from "@/lib/work-item-view-url/intent";
 import { getPageBaseline, getWorkItemPage } from "@/lib/work-item-view-url/pages";
 import { registerViewRoute } from "@/lib/work-item-view-url/registry";
@@ -60,12 +61,7 @@ const createStore = (members?: Pick<IProjectMemberStore, "fetchProjectUserProper
 
 /** Shows the state a link asks for, the way the route's loader does. */
 const showLink = (store: ProjectIssuesFilter, search: string, saved = getPageBaseline(page)) => {
-  const { state } = resolveViewState(
-    parseSearch(new URLSearchParams(search), page),
-    page,
-    getPageBaseline(page),
-    saved
-  );
+  const state = resolveViewState(parseSearch(new URLSearchParams(search), page), page, getPageBaseline(page), saved);
   applyViewState(store, "p1", state);
 };
 
@@ -252,6 +248,18 @@ describe("ProjectIssuesFilter with the member store", () => {
     expect(properties?.preferences.navigation.default_tab).toBe("pages");
   });
 
+  it("shares one request between callers on the same page", async () => {
+    const { members, get } = createMembers();
+    await Promise.all([members.fetchProjectUserProperties("ws", "p1"), members.fetchProjectUserProperties("ws", "p1")]);
+    expect(get).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the answer of a change when nothing was loaded before", async () => {
+    const { members } = createMembers();
+    await members.updateProjectUserProperties("ws", "p1", { preferences: preferences("pages") });
+    expect(members.getProjectUserProperties("p1")?.display_filters).toEqual(userProperties.display_filters);
+  });
+
   it("loads the saved preferences from the server, not the member store", async () => {
     const { members, get } = createMembers();
     await members.fetchProjectUserProperties("ws", "p1");
@@ -279,9 +287,28 @@ describe("ProjectIssuesFilter unchanged values", () => {
     const { store, update, intents } = await openLink("l=list&o=-created_at");
     await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { order_by: "-priority" });
     await store.updateFilterExpression("ws", "p1", { state_id__in: "s1" });
+    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_PROPERTIES, { labels: false });
 
     expect(update).not.toHaveBeenCalled();
     // the screen still follows the change
-    expect(intents).toHaveLength(2);
+    expect(intents).toHaveLength(3);
+  });
+});
+
+describe("ProjectIssuesFilter loading the saved preferences", () => {
+  it("keeps saved preferences another caller set while the request ran", async () => {
+    const { store, fetchProjectUserProperties } = createStore();
+    let release: (() => void) | undefined;
+    fetchProjectUserProperties.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release = () => resolve(userProperties);
+        })
+    );
+    const load = store.loadSavedFilters("ws", "p1");
+    const newer = await store.fetchSavedFilters("ws", "p1");
+    release?.();
+    expect(await load).toBe(newer);
+    expect(store.savedFilters.p1).toBe(newer);
   });
 });

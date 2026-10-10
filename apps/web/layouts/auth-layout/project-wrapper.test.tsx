@@ -17,6 +17,8 @@ const fetchProjectDetails = vi.fn(() => Promise.resolve(project));
 const fetchUserProjectInfo = vi.fn(() => Promise.resolve({}));
 const fetchProjectIntakeState = vi.fn(() => Promise.resolve({ id: "triage" }));
 const resolved = () => Promise.resolve([]);
+const fetchProjectUserProperties = vi.fn(() => Promise.resolve({}));
+const userProperties: { current: { sort_order: number } | null } = { current: null };
 
 vi.mock("@/hooks/store/use-project", () => ({
   useProject: () => ({ fetchProjectDetails, getProjectById: () => project }),
@@ -41,7 +43,13 @@ vi.mock("@/hooks/store/use-issue-custom-properties", () => ({
 vi.mock("@/hooks/store/use-issue-types", () => ({ useIssueTypes: () => ({ fetchProjectIssueTypes: resolved }) }));
 vi.mock("@/hooks/store/use-label", () => ({ useLabel: () => ({ fetchProjectLabels: resolved }) }));
 vi.mock("@/hooks/store/use-member", () => ({
-  useMember: () => ({ project: { fetchProjectMembers: resolved, fetchProjectUserProperties: resolved } }),
+  useMember: () => ({
+    project: {
+      fetchProjectMembers: resolved,
+      fetchProjectUserProperties,
+      getProjectUserProperties: () => userProperties.current,
+    },
+  }),
 }));
 vi.mock("@/hooks/store/use-module", () => ({
   useModule: () => ({ fetchModulesSlim: resolved, fetchModules: resolved }),
@@ -63,6 +71,7 @@ const renderWrapper = () =>
 
 afterEach(() => {
   vi.clearAllMocks();
+  userProperties.current = null;
   runInAction(() => {
     project.inbox_view = false;
   });
@@ -96,5 +105,19 @@ describe("ProjectAuthWrapper", () => {
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(fetchProjectDetails).toHaveBeenCalledTimes(1);
     expect(fetchUserProjectInfo).toHaveBeenCalledTimes(1);
+  });
+
+  it("fetches the project user properties once", async () => {
+    renderWrapper();
+    await waitFor(() => expect(fetchProjectUserProperties).toHaveBeenCalledOnce());
+    expect(fetchProjectUserProperties).toHaveBeenCalledWith(WORKSPACE, PROJECT);
+  });
+
+  it("reuses the project user properties the work items route loaded", async () => {
+    userProperties.current = { sort_order: 0 };
+    renderWrapper();
+    await waitFor(() => expect(fetchUserProjectInfo).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(fetchProjectUserProperties).not.toHaveBeenCalled();
   });
 });
