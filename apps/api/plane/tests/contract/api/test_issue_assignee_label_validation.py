@@ -7,6 +7,7 @@ from rest_framework import status
 
 from plane.celery import app as celery_app
 from plane.db.models import Issue, Label, Project, ProjectMember, State, User
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture(autouse=True)
@@ -44,7 +45,13 @@ def project(db, workspace, create_user):
 
 @pytest.fixture
 def create_issue(db, project, workspace, create_user):
-    return Issue.objects.create(name="Existing Issue", project=project, workspace=workspace, created_by=create_user)
+    return Issue.objects.create(
+        name="Existing Issue",
+        project=project,
+        workspace=workspace,
+        created_by=create_user,
+        type=link_starter_type(project),
+    )
 
 
 @pytest.fixture
@@ -123,7 +130,11 @@ class TestIssueAssigneeLabelValidationContract:
         """Regression guard: a genuinely valid project member must still be assignable."""
         url = self.get_list_url(workspace.slug, project.id)
 
-        response = api_key_client.post(url, {"name": "New Issue", "assignees": [str(create_user.id)]}, format="json")
+        response = api_key_client.post(
+            url,
+            {"name": "New Issue", "type_id": str(link_starter_type(project).id), "assignees": [str(create_user.id)]},
+            format="json",
+        )
 
         assert response.status_code == status.HTTP_201_CREATED
         issue = Issue.objects.get(name="New Issue")

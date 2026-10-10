@@ -19,6 +19,7 @@ from plane.db.models import (
     State,
     WorkspaceMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -61,6 +62,7 @@ def issue(db, project, state, create_user):
         workspace=project.workspace,
         state=state,
         created_by=create_user,
+        type=link_starter_type(project),
     )
 
 
@@ -73,6 +75,7 @@ def second_issue(db, project, state, create_user):
         workspace=project.workspace,
         state=state,
         created_by=create_user,
+        type=link_starter_type(project),
     )
 
 

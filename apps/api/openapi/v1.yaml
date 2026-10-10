@@ -10626,9 +10626,7 @@ paths:
   /api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/:
     get:
       operationId: list_work_item_types
-      description: Retrieve all work item types enabled for a project. Lazily provisions
-        the workspace's default 'Task' type (and enables it for the project) the first
-        time this is called for a project that predates work item types.
+      description: Retrieve all work item types enabled for a project.
       summary: List work item types
       parameters:
       - in: query
@@ -10938,6 +10936,8 @@ paths:
           description: The requested resource was not found.
         '204':
           description: Resource deleted successfully
+        '400':
+          description: Invalid request data provided
   /api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/{issue_type_id}/work-item-properties/:
     get:
       operationId: list_work_item_properties_2
@@ -16206,7 +16206,8 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
+          description: The work item type. Required on create and must be enabled
+            for the project.
         created_at:
           type: string
           format: date-time
@@ -16307,9 +16308,10 @@ components:
         type:
           type: string
           format: uuid
-          nullable: true
+          readOnly: true
       required:
       - name
+      - type_id
     IssueActivity:
       type: object
       description: |-
@@ -16829,9 +16831,9 @@ components:
         type:
           type: string
           format: uuid
-          nullable: true
       required:
       - name
+      - type
     IssueForIntakeRequest:
       type: object
       description: |-
@@ -17380,7 +17382,8 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
+          description: The work item type. Required on create and must be enabled
+            for the project.
         deleted_at:
           type: string
           format: date-time
@@ -17442,12 +17445,9 @@ components:
           type: string
           format: uuid
           nullable: true
-        type:
-          type: string
-          format: uuid
-          nullable: true
       required:
       - name
+      - type_id
     IssueSearch:
       type: object
       description: |-
@@ -17520,8 +17520,6 @@ components:
         is_epic:
           type: boolean
           readOnly: true
-        is_default:
-          type: boolean
         is_active:
           type: boolean
         level:
@@ -17568,8 +17566,6 @@ components:
         description:
           type: string
         logo_props: {}
-        is_default:
-          type: boolean
         is_active:
           type: boolean
         level:
@@ -19770,7 +19766,8 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
+          description: The work item type. Required on create and must be enabled
+            for the project.
         deleted_at:
           type: string
           format: date-time
@@ -19832,10 +19829,6 @@ components:
           type: string
           format: uuid
           nullable: true
-        type:
-          type: string
-          format: uuid
-          nullable: true
     PatchedIssueTypeRequest:
       type: object
       description: |-
@@ -19852,8 +19845,6 @@ components:
         description:
           type: string
         logo_props: {}
-        is_default:
-          type: boolean
         is_active:
           type: boolean
         level:

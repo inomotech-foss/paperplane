@@ -20,6 +20,7 @@ from plane.db.models import (
 )
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection
 from plane.tests.factories import ProjectFactory, ProjectMemberFactory, UserFactory, WorkspaceMemberFactory
+from plane.utils.issue_type import link_starter_type
 
 MAILBOX = "support@example.com"
 
@@ -52,7 +53,9 @@ def email_issue(db, project):
         color="#4E5355",
         sequence=65000,
     )
-    issue = Issue.objects.create(project_id=project.id, name="Printer is broken", state_id=state.id)
+    issue = Issue.objects.create(
+        project_id=project.id, type=link_starter_type(project), name="Printer is broken", state_id=state.id
+    )
     thread = IssueEmailThread.objects.create(
         project_id=project.id,
         issue=issue,
@@ -156,7 +159,9 @@ class TestIssueEmailThreadEndpoint:
             color="#000000",
             sequence=10000,
         )
-        issue = Issue.objects.create(project_id=project.id, name="Plain issue", state_id=state.id)
+        issue = Issue.objects.create(
+            project_id=project.id, type=link_starter_type(project), name="Plain issue", state_id=state.id
+        )
         response = session_client.get(thread_url(workspace, project, issue))
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -219,7 +224,9 @@ class TestIssueEmailReplyEndpoint:
             color="#000000",
             sequence=10000,
         )
-        issue = Issue.objects.create(project_id=project.id, name="Plain issue", state_id=state.id)
+        issue = Issue.objects.create(
+            project_id=project.id, type=link_starter_type(project), name="Plain issue", state_id=state.id
+        )
         response = session_client.post(
             reply_url(workspace, project, issue),
             {"comment_html": "<p>hello</p>"},

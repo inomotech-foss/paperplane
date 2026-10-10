@@ -139,6 +139,10 @@ def _create_work_item_error(config: dict) -> str | None:
         return "The new work item needs a name."
     if config.get("project_id") and not _is_uuid(config["project_id"]):
         return "The chosen project isn't a valid id."
+    if not config.get("type_id"):
+        return "Choose a type for the new work item."
+    if not _is_uuid(config["type_id"]):
+        return "The chosen type isn't a valid id."
     if config.get("state_id") and not _is_uuid(config["state_id"]):
         return "The chosen state isn't a valid id."
     if not all(_is_uuid(member_id) for member_id in config.get("assignee_ids") or []):

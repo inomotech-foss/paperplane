@@ -5,6 +5,7 @@
 import pytest
 
 from plane.db.models import IssueComment, Description, Project, Issue, Workspace, State
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -48,6 +49,7 @@ def issue(workspace, project, state, create_user):
         project=project,
         state=state,
         created_by=create_user,
+        type=link_starter_type(project),
     )
 
 

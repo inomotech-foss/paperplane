@@ -14,7 +14,7 @@ from drf_spectacular.utils import OpenApiResponse, OpenApiRequest
 from plane.api.serializers import IssueTypeSerializer
 from plane.app.permissions import ProjectEntityPermission, WorkspaceEntityPermission
 from plane.db.models import IssueType, Project, ProjectIssueType, Workspace
-from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.utils.issue_type import type_in_use_error
 from plane.utils.openapi import (
     issue_type_docs,
     FIELDS_PARAMETER,
@@ -81,24 +81,17 @@ class IssueTypeListCreateAPIEndpoint(BaseAPIView):
         """Create work item type
 
         Create a work item type in the workspace and enable it for this
-        project. `is_epic` is always forced to `False` through the API. If
-        `is_default` is `True`, any other default type in the workspace is
-        unset (a workspace has at most one default type).
+        project. `is_epic` is always forced to `False` through the API.
         """
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
         serializer = IssueTypeSerializer(data=request.data)
         if serializer.is_valid():
             with transaction.atomic():
-                if serializer.validated_data.get("is_default"):
-                    IssueType.objects.filter(workspace_id=project.workspace_id, is_default=True).update(
-                        is_default=False
-                    )
                 issue_type = serializer.save(workspace_id=project.workspace_id, is_epic=False)
                 ProjectIssueType.objects.create(
                     project_id=project_id,
                     issue_type=issue_type,
                     workspace_id=project.workspace_id,
-                    is_default=issue_type.is_default,
                 )
 
             issue_type = self.get_queryset().get(pk=issue_type.id)
@@ -111,7 +104,7 @@ class IssueTypeListCreateAPIEndpoint(BaseAPIView):
     @issue_type_docs(
         operation_id="list_work_item_types",
         summary="List work item types",
-        description="Retrieve all work item types enabled for a project. Lazily provisions the workspace's default 'Task' type (and enables it for the project) the first time this is called for a project that predates work item types.",  # noqa: E501
+        description="Retrieve all work item types enabled for a project.",
         parameters=[FIELDS_PARAMETER, EXPAND_PARAMETER],
         responses={
             200: OpenApiResponse(
@@ -126,8 +119,6 @@ class IssueTypeListCreateAPIEndpoint(BaseAPIView):
         Retrieve all work item types enabled for a project. A project has a
         handful of types, so the whole list is returned at once.
         """
-        project = Project.objects.get(pk=project_id, workspace__slug=slug)
-        get_or_create_default_issue_type(project)
         serializer = IssueTypeSerializer(
             self.get_queryset(),
             many=True,
@@ -188,9 +179,7 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
         """Update work item type
 
         Partially update a work item type (name, description, logo,
-        activation, ...). `is_epic` cannot be changed once created. If
-        `is_default` is being set to `True`, any other default type in the
-        workspace is unset.
+        activation, ...). `is_epic` cannot be changed once created.
         """
         issue_type = IssueType.objects.get(
             workspace__slug=slug,
@@ -199,12 +188,7 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
         )
         serializer = IssueTypeSerializer(issue_type, data=request.data, partial=True)
         if serializer.is_valid():
-            with transaction.atomic():
-                if serializer.validated_data.get("is_default"):
-                    IssueType.objects.filter(workspace_id=issue_type.workspace_id, is_default=True).exclude(
-                        pk=issue_type.pk
-                    ).update(is_default=False)
-                serializer.save()
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -212,16 +196,16 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
         operation_id="delete_work_item_type",
         summary="Delete work item type",
         description="Remove a work item type from a project.",
-        responses={204: DELETED_RESPONSE},
+        responses={204: DELETED_RESPONSE, 400: INVALID_REQUEST_RESPONSE},
     )
     def delete(self, request, slug, project_id, issue_type_id):
         """Delete work item type
 
         Unlinks the work item type from this project. The `IssueType` row
         itself is only deleted once it is unlinked from every project.
-        Rejected with 400 when the type is the Epic type, is the project's
-        current default type, or is the project's only remaining active
-        type.
+        Rejected with 400 when the type is the Epic type, when work items or
+        the intake of the project use it, or when it is the project's only
+        remaining active type.
         """
         issue_type = IssueType.objects.get(
             workspace__slug=slug,
@@ -233,11 +217,9 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
                 {"error": "Epic type cannot be removed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if issue_type.is_default:
-            return Response(
-                {"error": "Cannot delete the default type; set another type as default first"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        in_use = type_in_use_error(issue_type, project_id)
+        if in_use:
+            return Response({"error": in_use}, status=status.HTTP_400_BAD_REQUEST)
         remaining = (
             ProjectIssueType.objects.filter(
                 project_id=project_id,
@@ -331,8 +313,6 @@ class WorkspaceIssueTypeListCreateAPIEndpoint(BaseAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
-            if serializer.validated_data.get("is_default"):
-                IssueType.objects.filter(workspace_id=workspace.id, is_default=True).update(is_default=False)
             issue_type = serializer.save(workspace_id=workspace.id, is_epic=False)
             ProjectIssueType.objects.bulk_create(
                 [
@@ -340,7 +320,6 @@ class WorkspaceIssueTypeListCreateAPIEndpoint(BaseAPIView):
                         project_id=project.id,
                         issue_type=issue_type,
                         workspace_id=workspace.id,
-                        is_default=issue_type.is_default,
                     )
                     for project in projects
                 ]
@@ -407,12 +386,7 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        with transaction.atomic():
-            if serializer.validated_data.get("is_default"):
-                IssueType.objects.filter(workspace_id=issue_type.workspace_id, is_default=True).exclude(
-                    pk=issue_type.pk
-                ).update(is_default=False)
-            serializer.save()
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @issue_type_docs(
@@ -425,8 +399,8 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
         """Delete workspace work item type
 
         Removes the type from every project that has it enabled. Rejected when
-        the type is the Epic type, the workspace default, or the last active
-        type of any project still using it.
+        the type is the Epic type, when work items or an intake use it, or
+        when it is the last active type of any project still using it.
         """
         issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
         if issue_type.is_epic:
@@ -434,11 +408,9 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
                 {"error": "Epic type cannot be removed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if issue_type.is_default:
-            return Response(
-                {"error": "Cannot delete the default type; set another type as default first"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        in_use = type_in_use_error(issue_type)
+        if in_use:
+            return Response({"error": in_use}, status=status.HTTP_400_BAD_REQUEST)
 
         stranded = [
             str(link.project_id)

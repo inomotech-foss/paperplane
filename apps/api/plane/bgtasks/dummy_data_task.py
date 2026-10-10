@@ -35,10 +35,10 @@ from plane.db.models import (
     Page,
     ProjectPage,
     PageLabel,
-    Intake,
     IntakeIssue,
 )
 from plane.db.models.intake import SourceType
+from plane.utils.issue_type import first_linked_type, get_or_create_intake, link_starter_type
 
 
 def create_project(workspace, user_id):
@@ -56,6 +56,7 @@ def create_project(workspace, user_id):
 
     # Add current member as project member
     _ = ProjectMember.objects.create(project=project, member_id=user_id, role=20)
+    link_starter_type(project)
 
     return project
 
@@ -275,6 +276,7 @@ def create_issues(workspace, project, user_id, issue_count):
     )
     creators = ProjectMember.objects.filter(workspace=workspace, project=project).values_list("member_id", flat=True)
 
+    issue_type = first_linked_type(project.id) or link_starter_type(project)
     issues = []
 
     # Get the maximum sequence_id
@@ -315,6 +317,7 @@ def create_issues(workspace, project, user_id, issue_count):
                 target_date=end_date,
                 priority=["urgent", "high", "medium", "low", "none"][random.randint(0, 4)],
                 created_by_id=creators[random.randint(0, len(creators) - 1)],
+                type=issue_type,
             )
         )
 
@@ -357,7 +360,7 @@ def create_issues(workspace, project, user_id, issue_count):
 
 def create_intake_issues(workspace, project, user_id, intake_issue_count):
     issues = create_issues(workspace, project, user_id, intake_issue_count)
-    intake, create = Intake.objects.get_or_create(name="Intake", project=project, is_default=True)
+    intake = get_or_create_intake(project)
     IntakeIssue.objects.bulk_create(
         [
             IntakeIssue(

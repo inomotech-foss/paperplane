@@ -13,6 +13,7 @@ from plane.db.models import (
     ProjectMember,
     State,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -33,7 +34,9 @@ def open_state(db, workspace, project):
 
 
 def make_issue(project, workspace, state, name):
-    return Issue.objects.create(name=name, project=project, workspace=workspace, state=state)
+    return Issue.objects.create(
+        name=name, project=project, workspace=workspace, state=state, type=link_starter_type(project)
+    )
 
 
 def archive_url(slug, project_id, issue_id):

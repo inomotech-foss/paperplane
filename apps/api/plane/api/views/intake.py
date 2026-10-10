@@ -154,7 +154,7 @@ class IntakeIssueListCreateAPIEndpoint(BaseAPIView):
         project = Project.objects.get(workspace__slug=slug, pk=project_id)
 
         # Intake view
-        if intake is None and not project.intake_view:
+        if intake is None:
             return Response(
                 {"error": "Intake is not enabled for this project enable it through the project's api"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -199,6 +199,7 @@ class IntakeIssueListCreateAPIEndpoint(BaseAPIView):
             priority=issue_data.get("priority", "none"),
             project_id=project_id,
             state_id=triage_state.id,
+            type_id=intake.issue_type_id,
         )
 
         # create an intake issue

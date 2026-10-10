@@ -7981,6 +7981,8 @@ export interface components {
             readonly project: string;
             /** Format: uuid */
             readonly workspace: string;
+            /** Format: uuid */
+            issue_type: string;
         };
         IntakeIssue: {
             /** Format: uuid */
@@ -8021,6 +8023,8 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
+            /** Format: uuid */
+            issue_type: string;
         };
         /** @description Schema only: the intake state is the project's triage state. */
         IntakeState: {
@@ -8078,7 +8082,7 @@ export interface components {
             /** Format: uuid */
             readonly parent_id: string | null;
             /** Format: uuid */
-            readonly type_id: string | null;
+            readonly type_id: string;
             readonly cycle_id?: string;
             module_ids?: string[];
             label_ids?: string[];
@@ -8263,7 +8267,7 @@ export interface components {
             /** Format: uuid */
             parent_id: string | null;
             /** Format: uuid */
-            type_id: string | null;
+            type_id: string;
             /** Format: uuid */
             readonly project_id: string;
             /** Format: uuid */
@@ -8320,7 +8324,7 @@ export interface components {
             /** Format: uuid */
             estimate_point: string | null;
             /** Format: uuid */
-            type: string | null;
+            readonly type: string;
             readonly assignees: string[];
             readonly labels: string[];
         };
@@ -8330,7 +8334,7 @@ export interface components {
             /** Format: uuid */
             parent_id?: string | null;
             /** Format: uuid */
-            type_id?: string | null;
+            type_id: string;
             label_ids?: string[];
             assignee_ids?: string[];
             /** Format: date-time */
@@ -8362,8 +8366,6 @@ export interface components {
             state?: string | null;
             /** Format: uuid */
             estimate_point?: string | null;
-            /** Format: uuid */
-            type?: string | null;
         };
         IssueFlat: {
             /** Format: uuid */
@@ -8720,7 +8722,7 @@ export interface components {
             /** Format: uuid */
             estimate_point: string | null;
             /** Format: uuid */
-            type: string | null;
+            type: string;
             readonly assignees: string[];
             readonly labels: string[];
         };
@@ -8768,7 +8770,7 @@ export interface components {
             /** Format: uuid */
             estimate_point?: string | null;
             /** Format: uuid */
-            type?: string | null;
+            type: string;
         };
         IssueSubscriber: {
             /** Format: uuid */
@@ -8834,7 +8836,6 @@ export interface components {
             description: string;
             logo_props: unknown;
             readonly is_epic: boolean;
-            is_default: boolean;
             is_active: boolean;
             /** Format: double */
             level: number;
@@ -8861,7 +8862,6 @@ export interface components {
             name: string;
             description?: string;
             logo_props?: unknown;
-            is_default?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;
@@ -9716,6 +9716,8 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
+            /** Format: uuid */
+            issue_type?: string;
         };
         PatchedIssueAttachmentRequest: {
             /** Format: date-time */
@@ -9770,7 +9772,7 @@ export interface components {
             /** Format: uuid */
             parent_id?: string | null;
             /** Format: uuid */
-            type_id?: string | null;
+            type_id?: string;
             label_ids?: string[];
             assignee_ids?: string[];
             /** Format: date-time */
@@ -9802,8 +9804,6 @@ export interface components {
             state?: string | null;
             /** Format: uuid */
             estimate_point?: string | null;
-            /** Format: uuid */
-            type?: string | null;
         };
         PatchedIssueLinkRequest: {
             /** Format: date-time */
@@ -9865,7 +9865,6 @@ export interface components {
             name?: string;
             description?: string;
             logo_props?: unknown;
-            is_default?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;

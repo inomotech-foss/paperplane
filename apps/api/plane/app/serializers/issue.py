@@ -48,6 +48,7 @@ from plane.utils.content_validator import (
     validate_html_content,
     validate_binary_data,
 )
+from plane.utils.issue_type import is_type_linked
 
 
 class IssueFlatSerializer(BaseSerializer):
@@ -88,9 +89,7 @@ class IssueCreateSerializer(BaseSerializer):
     parent_id = serializers.PrimaryKeyRelatedField(
         source="parent", queryset=Issue.objects.all(), required=False, allow_null=True
     )
-    type_id = serializers.PrimaryKeyRelatedField(
-        source="type", queryset=IssueType.objects.all(), required=False, allow_null=True
-    )
+    type_id = serializers.PrimaryKeyRelatedField(source="type", queryset=IssueType.objects.all())
     label_ids = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(queryset=Label.objects.all()),
         write_only=True,
@@ -110,6 +109,7 @@ class IssueCreateSerializer(BaseSerializer):
         read_only_fields = [
             "workspace",
             "project",
+            "type",
             "created_by",
             "updated_by",
             "created_at",
@@ -198,17 +198,8 @@ class IssueCreateSerializer(BaseSerializer):
         ):
             raise serializers.ValidationError("Estimate point is not valid please pass a valid estimate_point_id")
 
-        # Check work item type is enabled for the project (types are
-        # workspace-scoped but must be linked to the project via
-        # ProjectIssueType to be assignable to a work item in it)
-        if (
-            attrs.get("type")
-            and not IssueType.objects.filter(
-                pk=attrs.get("type").id,
-                project_issue_types__project_id=self.context.get("project_id"),
-            ).exists()
-        ):
-            raise serializers.ValidationError("Work item type is not valid for this project")
+        if attrs.get("type") and not is_type_linked(attrs["type"].id, self.context.get("project_id")):
+            raise serializers.ValidationError({"type_id": "This work item type is not enabled for the project."})
 
         return attrs
 

@@ -23,7 +23,6 @@ from drf_spectacular.types import OpenApiTypes
 # Module imports
 from plane.db.models import (
     Cycle,
-    Intake,
     Module,
     Project,
     DeployBoard,
@@ -42,7 +41,7 @@ from plane.bgtasks.webhook_task import model_activity, webhook_activity
 from plane.utils.exception_logger import log_exception
 from .base import BaseAPIView
 from plane.utils.host import base_host
-from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.utils.issue_type import get_or_create_intake, link_starter_type
 from plane.utils.order_queryset import PROJECT_ORDER_BY_ALLOWLIST, sanitize_order_by
 from plane.api.serializers import (
     ProjectSerializer,
@@ -271,9 +270,7 @@ class ProjectListCreateAPIEndpoint(BaseAPIView):
                         ]
                     )
 
-                    # Provision (or reuse) the workspace's default "Task"
-                    # work item type and enable it for the new project.
-                    get_or_create_default_issue_type(serializer.instance)
+                    link_starter_type(serializer.instance)
 
                     project = self.get_queryset().filter(pk=serializer.instance.id).first()
 
@@ -577,13 +574,7 @@ class ProjectDetailAPIEndpoint(BaseAPIView):
             if serializer.is_valid():
                 serializer.save()
                 if serializer.data["intake_view"]:
-                    intake = Intake.objects.filter(project=project, is_default=True).first()
-                    if not intake:
-                        Intake.objects.create(
-                            name=f"{project.name} Intake",
-                            project=project,
-                            is_default=True,
-                        )
+                    get_or_create_intake(project)
 
                 project = self.get_queryset().filter(pk=serializer.instance.id).first()
 

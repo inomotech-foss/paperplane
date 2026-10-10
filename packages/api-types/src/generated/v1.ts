@@ -1568,7 +1568,7 @@ export interface paths {
         };
         /**
          * List work item types
-         * @description Retrieve all work item types enabled for a project. Lazily provisions the workspace's default 'Task' type (and enables it for the project) the first time this is called for a project that predates work item types.
+         * @description Retrieve all work item types enabled for a project.
          */
         get: operations["list_work_item_types"];
         put?: never;
@@ -2517,8 +2517,11 @@ export interface components {
         Issue: {
             /** Format: uuid */
             readonly id?: string;
-            /** Format: uuid */
-            type_id?: string | null;
+            /**
+             * Format: uuid
+             * @description The work item type. Required on create and must be enabled for the project.
+             */
+            type_id: string;
             /** Format: date-time */
             readonly created_at?: string;
             /**
@@ -2569,7 +2572,7 @@ export interface components {
             /** Format: uuid */
             estimate_point?: string | null;
             /** Format: uuid */
-            type?: string | null;
+            readonly type?: string;
         };
         /**
          * @description Serializer for work item activity and change history.
@@ -2842,7 +2845,7 @@ export interface components {
             /** Format: uuid */
             estimate_point?: string | null;
             /** Format: uuid */
-            type?: string | null;
+            type: string;
         };
         /**
          * @description Serializer for work item data within intake submissions.
@@ -3155,8 +3158,11 @@ export interface components {
         IssueRequest: {
             assignees?: string[];
             labels?: string[];
-            /** Format: uuid */
-            type_id?: string | null;
+            /**
+             * Format: uuid
+             * @description The work item type. Required on create and must be enabled for the project.
+             */
+            type_id: string;
             /** Format: date-time */
             deleted_at?: string | null;
             point?: number | null;
@@ -3184,8 +3190,6 @@ export interface components {
             state?: string | null;
             /** Format: uuid */
             estimate_point?: string | null;
-            /** Format: uuid */
-            type?: string | null;
         };
         /**
          * @description Serializer for work item search result data formatting.
@@ -3231,7 +3235,6 @@ export interface components {
             description?: string;
             logo_props?: unknown;
             readonly is_epic?: boolean;
-            is_default?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;
@@ -3258,7 +3261,6 @@ export interface components {
             name: string;
             description?: string;
             logo_props?: unknown;
-            is_default?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;
@@ -4217,8 +4219,11 @@ export interface components {
         PatchedIssueRequest: {
             assignees?: string[];
             labels?: string[];
-            /** Format: uuid */
-            type_id?: string | null;
+            /**
+             * Format: uuid
+             * @description The work item type. Required on create and must be enabled for the project.
+             */
+            type_id?: string;
             /** Format: date-time */
             deleted_at?: string | null;
             point?: number | null;
@@ -4246,8 +4251,6 @@ export interface components {
             state?: string | null;
             /** Format: uuid */
             estimate_point?: string | null;
-            /** Format: uuid */
-            type?: string | null;
         };
         /**
          * @description Serializer for work item types.
@@ -4260,7 +4263,6 @@ export interface components {
             name?: string;
             description?: string;
             logo_props?: unknown;
-            is_default?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;
@@ -12098,6 +12100,13 @@ export interface operations {
         responses: {
             /** @description Resource deleted successfully */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid request data provided */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

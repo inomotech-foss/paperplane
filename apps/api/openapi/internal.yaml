@@ -19059,6 +19059,9 @@ components:
           type: string
           format: uuid
           readOnly: true
+        issue_type:
+          type: string
+          format: uuid
       required:
       - id
       - project_detail
@@ -19074,6 +19077,7 @@ components:
       - updated_by
       - project
       - workspace
+      - issue_type
     IntakeIssue:
       type: object
       properties:
@@ -19165,7 +19169,11 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
+        issue_type:
+          type: string
+          format: uuid
       required:
+      - issue_type
       - name
     IntakeState:
       type: object
@@ -19290,7 +19298,6 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
           readOnly: true
         cycle_id:
           type: string
@@ -19760,7 +19767,6 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
         project_id:
           type: string
           format: uuid
@@ -19875,7 +19881,7 @@ components:
         type:
           type: string
           format: uuid
-          nullable: true
+          readOnly: true
         assignees:
           type: array
           items:
@@ -19938,7 +19944,6 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
         label_ids:
           type: array
           items:
@@ -20017,12 +20022,9 @@ components:
           type: string
           format: uuid
           nullable: true
-        type:
-          type: string
-          format: uuid
-          nullable: true
       required:
       - name
+      - type_id
     IssueFlat:
       type: object
       properties:
@@ -20807,7 +20809,6 @@ components:
         type:
           type: string
           format: uuid
-          nullable: true
         assignees:
           type: array
           items:
@@ -20946,10 +20947,10 @@ components:
         type:
           type: string
           format: uuid
-          nullable: true
       required:
       - name
       - project
+      - type
       - workspace
     IssueSubscriber:
       type: object
@@ -21063,8 +21064,6 @@ components:
         is_epic:
           type: boolean
           readOnly: true
-        is_default:
-          type: boolean
         is_active:
           type: boolean
         level:
@@ -21102,7 +21101,6 @@ components:
       - description
       - logo_props
       - is_epic
-      - is_default
       - is_active
       - level
       - external_source
@@ -21126,8 +21124,6 @@ components:
         description:
           type: string
         logo_props: {}
-        is_default:
-          type: boolean
         is_active:
           type: boolean
         level:
@@ -23041,6 +23037,9 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
+        issue_type:
+          type: string
+          format: uuid
     PatchedIssueAttachmentRequest:
       type: object
       properties:
@@ -23160,7 +23159,6 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
         label_ids:
           type: array
           items:
@@ -23236,10 +23234,6 @@ components:
           format: uuid
           nullable: true
         estimate_point:
-          type: string
-          format: uuid
-          nullable: true
-        type:
           type: string
           format: uuid
           nullable: true
@@ -23351,8 +23345,6 @@ components:
         description:
           type: string
         logo_props: {}
-        is_default:
-          type: boolean
         is_active:
           type: boolean
         level:

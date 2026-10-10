@@ -4,6 +4,7 @@
 
 import pytest
 from plane.db.models import Project, ProjectMember, Issue, FileAsset
+from plane.utils.issue_type import link_starter_type
 from unittest.mock import patch, MagicMock
 from plane.bgtasks.copy_s3_object import (
     copy_s3_objects_of_description_and_assets,
@@ -29,6 +30,7 @@ class TestCopyS3Objects:
             name="Test Issue",
             workspace=workspace,
             project_id=project.id,
+            type=link_starter_type(project),
             description_html='<div><image-component src="35e8b958-6ee5-43ce-ae56-fb0e776f421e"></image-component><image-component src="97988198-274f-4dfe-aa7a-4c0ffc684214"></image-component></div>',  # noqa: E501
         )
 

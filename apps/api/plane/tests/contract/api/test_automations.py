@@ -277,7 +277,10 @@ class TestScheduleValidation:
         ).json()["id"]
         session_client.post(
             f"{base_url}{automation_id}/actions/",
-            {"action_type": "create_work_item", "config": {"name": "Daily standup notes"}},
+            {
+                "action_type": "create_work_item",
+                "config": {"name": "Daily standup notes", "type_id": "11111111-1111-4111-8111-111111111111"},
+            },
             format="json",
         )
 

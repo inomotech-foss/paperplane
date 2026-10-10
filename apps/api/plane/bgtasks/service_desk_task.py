@@ -26,7 +26,6 @@ from django.utils.html import strip_tags
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.db.models import (
     FileAsset,
-    Intake,
     IntakeIssue,
     Issue,
     IssueComment,
@@ -45,6 +44,7 @@ from plane.license.utils.instance_value import get_configuration_value
 from plane.settings.redis import redis_instance
 from plane.settings.storage import S3Storage
 from plane.utils.exception_logger import log_exception
+from plane.utils.issue_type import get_or_create_intake
 from plane.utils.ms365_graph import MSGraphError, MSGraphMailClient
 
 SERVICE_DESK_BOT_EMAIL = "service-desk-bot@plane.internal"
@@ -137,15 +137,6 @@ def _merge_recipients(existing, incoming):
     return merged
 
 
-def _get_or_create_default_intake(project):
-    intake = Intake.objects.filter(project=project, is_default=True).first()
-    if intake is None:
-        intake = Intake.objects.filter(project=project).first()
-    if intake is None:
-        intake = Intake.objects.create(name=f"{project.name} Intake", project=project, is_default=True)
-    return intake
-
-
 def _get_or_create_triage_state(project):
     triage_state = State.triage_objects.filter(project_id=project.id).first()
     if triage_state is None:
@@ -180,7 +171,7 @@ def _create_ticket(config, bot, mailbox, message, sender, sender_name, to_emails
     subject = (message.get("subject") or "").strip()
     body_text = _message_body_text(message)
 
-    intake = _get_or_create_default_intake(project)
+    intake = get_or_create_intake(project)
     triage_state = _get_or_create_triage_state(project)
 
     issue = Issue.objects.create(
@@ -188,6 +179,7 @@ def _create_ticket(config, bot, mailbox, message, sender, sender_name, to_emails
         description_html=convert_text_to_html(body_text),
         project_id=project.id,
         state_id=triage_state.id,
+        type_id=intake.issue_type_id,
     )
     intake_issue = IntakeIssue.objects.create(
         intake_id=intake.id,

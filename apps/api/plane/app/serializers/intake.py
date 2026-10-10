@@ -12,6 +12,7 @@ from .project import ProjectLiteSerializer
 from .state import StateLiteSerializer
 from .user import UserLiteSerializer
 from plane.db.models import Intake, IntakeIssue, Issue, StateGroup, State
+from plane.utils.issue_type import is_type_linked
 
 
 class IntakeSerializer(BaseSerializer):
@@ -22,6 +23,12 @@ class IntakeSerializer(BaseSerializer):
         model = Intake
         fields = "__all__"
         read_only_fields = ["project", "workspace"]
+
+    def validate_issue_type(self, issue_type):
+        project_id = self.instance.project_id if self.instance else self.context.get("project_id")
+        if not is_type_linked(issue_type.id, project_id):
+            raise serializers.ValidationError("This work item type is not enabled for the project.")
+        return issue_type
 
 
 class IntakeIssueSerializer(BaseSerializer):

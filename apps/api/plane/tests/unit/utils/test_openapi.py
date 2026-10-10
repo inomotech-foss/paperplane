@@ -27,6 +27,7 @@ from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated
 from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, _source_presence
 from plane.utils.openapi.surfaces import SURFACES
 from plane.utils.paginator import BasePaginator, GroupedOffsetPaginator, SubGroupedOffsetPaginator
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.mark.unit
@@ -126,7 +127,13 @@ class TestPaginatedResponse:
         project = ProjectFactory(workspace=WorkspaceFactory())
         State.objects.create(name="Todo", group="unstarted", default=True, project=project, workspace=project.workspace)
         for name, priority in [("a", "high"), ("b", "high"), ("c", "low")]:
-            Issue.objects.create(name=name, priority=priority, project=project, workspace=project.workspace)
+            Issue.objects.create(
+                name=name,
+                priority=priority,
+                project=project,
+                workspace=project.workspace,
+                type=link_starter_type(project),
+            )
         return Issue.issue_objects.filter(project=project)
 
     def test_flat(self, issues):

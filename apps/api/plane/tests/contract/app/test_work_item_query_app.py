@@ -20,6 +20,7 @@ from plane.db.models import (
     ProjectMember,
     State,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -48,9 +49,16 @@ def open_state(db, workspace, project):
 
 @pytest.fixture
 def items(db, workspace, project, invoice_type, paid, open_state):
-    customer = Issue.objects.create(name="Acme", workspace=workspace, project=project, state=open_state)
+    customer = Issue.objects.create(
+        name="Acme", workspace=workspace, project=project, state=open_state, type=link_starter_type(project)
+    )
     story = Issue.objects.create(
-        name="Acme story", workspace=workspace, project=project, state=open_state, parent=customer
+        name="Acme story",
+        workspace=workspace,
+        project=project,
+        state=open_state,
+        parent=customer,
+        type=link_starter_type(project),
     )
     paid_invoice = Issue.objects.create(
         name="Acme invoice paid", workspace=workspace, project=project, state=paid, parent=story, type=invoice_type
@@ -115,6 +123,24 @@ class TestProjectListPql:
             {"pql": 'type = "Invoice"', "filters": f'{{"state_id": "{paid.id}"}}'},
         )
         assert names(response) == {"Acme invoice paid"}
+
+
+@pytest.mark.contract
+class TestTypePql:
+    @pytest.mark.django_db
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ('type = "Task"', {"Acme", "Acme story"}),
+            ('type != "Task"', {"Acme invoice paid", "Acme invoice open"}),
+            ('type in ("Task", "Invoice")', {"Acme", "Acme story", "Acme invoice paid", "Acme invoice open"}),
+            ("type is null", set()),
+            ("type is not null", {"Acme", "Acme story", "Acme invoice paid", "Acme invoice open"}),
+        ],
+    )
+    def test_type_is_a_plain_column(self, session_client, workspace, items, query, expected):
+        response = session_client.get(f"/api/workspaces/{workspace.slug}/issues/", {"pql": query})
+        assert names(response) == expected
 
 
 @pytest.mark.contract

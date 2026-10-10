@@ -10,6 +10,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from plane.db.models import Issue, Project, ProjectMember, State, User, WorkspaceMember
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -29,6 +30,7 @@ def item(project, name, parent=None, start=None, end=None, **fields):
         start_date=start,
         target_date=end,
         **fields,
+        type=link_starter_type(project),
     )
 
 

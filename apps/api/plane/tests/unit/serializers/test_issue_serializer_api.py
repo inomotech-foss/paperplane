@@ -6,6 +6,7 @@ import pytest
 
 from plane.api.serializers.issue import IssueSerializer
 from plane.db.models import Project, ProjectMember, Label, User
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.mark.unit
@@ -23,7 +24,7 @@ class TestIssueSerializerAssigneeAndLabelValidation:
         # Not a member of the project at all
 
         serializer = IssueSerializer(
-            data={"name": "Test Issue", "assignees": [str(outsider.id)]},
+            data={"name": "Test Issue", "type_id": link_starter_type(project).id, "assignees": [str(outsider.id)]},
             context={"project_id": project.id, "workspace_id": workspace.id},
         )
 
@@ -39,7 +40,7 @@ class TestIssueSerializerAssigneeAndLabelValidation:
         foreign_label = Label.objects.create(name="Foreign Label", project=other_project)
 
         serializer = IssueSerializer(
-            data={"name": "Test Issue", "labels": [str(foreign_label.id)]},
+            data={"name": "Test Issue", "type_id": link_starter_type(project).id, "labels": [str(foreign_label.id)]},
             context={"project_id": project.id, "workspace_id": workspace.id},
         )
 
@@ -53,7 +54,7 @@ class TestIssueSerializerAssigneeAndLabelValidation:
         ProjectMember.objects.create(project=project, member=create_user, role=15, is_active=True)
 
         serializer = IssueSerializer(
-            data={"name": "Test Issue", "assignees": [str(create_user.id)]},
+            data={"name": "Test Issue", "type_id": link_starter_type(project).id, "assignees": [str(create_user.id)]},
             context={"project_id": project.id, "workspace_id": workspace.id},
         )
 

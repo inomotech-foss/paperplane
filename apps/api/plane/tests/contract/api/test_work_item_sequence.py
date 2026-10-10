@@ -8,6 +8,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from plane.db.models import Issue, IssueSequence, Project, ProjectMember, State, User, WorkspaceMember
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -28,7 +29,9 @@ def as_project_member(workspace, project, create_user):
 
 
 def create_issue(project, name):
-    return Issue.objects.create(workspace=project.workspace, project=project, name=name)
+    return Issue.objects.create(
+        workspace=project.workspace, project=project, name=name, type=link_starter_type(project)
+    )
 
 
 def sequence_url(workspace, project):

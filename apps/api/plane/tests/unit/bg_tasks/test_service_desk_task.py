@@ -20,6 +20,7 @@ from plane.bgtasks.service_desk_task import (
 )
 from plane.utils.ms365_graph import MSGraphError
 from plane.db.models import (
+    Intake,
     IntakeIssue,
     Issue,
     IssueComment,
@@ -27,11 +28,14 @@ from plane.db.models import (
     IssueEmailThread,
     IssueSubscriber,
     Project,
+    IssueType,
+    ProjectIssueType,
     ServiceDeskConfig,
     User,
 )
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection
 from plane.tests.factories import ProjectFactory
+from plane.utils.issue_type import link_starter_type
 
 MAILBOX = "support@example.com"
 
@@ -138,6 +142,27 @@ class TestServiceDeskPoll:
         activity_kwargs = mock_activity.delay.call_args.kwargs
         assert activity_kwargs["type"] == "issue.activity.created"
         assert activity_kwargs["intake"] == str(intake_issue.id)
+
+    @pytest.mark.django_db
+    def test_a_ticket_gets_the_type_of_the_intake(self, service_desk_config):
+        project = service_desk_config.project
+        link_starter_type(project)
+        ticket = IssueType.objects.create(workspace=project.workspace, name="Ticket")
+        ProjectIssueType.objects.create(project=project, issue_type=ticket, workspace=project.workspace)
+        Intake.objects.create(name="Intake", project=project, workspace=project.workspace, issue_type=ticket)
+
+        _run_poll([_graph_message()])
+
+        assert Issue.objects.get(project=project).type_id == ticket.id
+
+    @pytest.mark.django_db
+    def test_a_project_without_an_intake_gets_one_with_its_first_type(self, service_desk_config):
+        _run_poll([_graph_message()])
+
+        project = service_desk_config.project
+        intake = Intake.objects.get(project=project)
+        assert intake.issue_type.name == "Task"
+        assert Issue.objects.get(project=project).type_id == intake.issue_type_id
 
     @pytest.mark.django_db
     def test_threads_reply_into_existing_ticket(self, service_desk_config):

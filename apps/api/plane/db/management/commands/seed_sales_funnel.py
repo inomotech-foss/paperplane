@@ -41,7 +41,7 @@ from plane.db.models import (
     Workspace,
 )
 from plane.utils.derived_properties import deferred_derived_refresh, schedule_derived_refresh, validate_derivation
-from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.utils.issue_type import link_starter_type
 
 SEED_SOURCE = "seed_sales_funnel"
 
@@ -297,7 +297,7 @@ class Command(BaseCommand):
         return workspace.owner
 
     def _types(self, workspace, project):
-        get_or_create_default_issue_type(project)
+        link_starter_type(project)
         if not project.is_issue_type_enabled:
             project.is_issue_type_enabled = True
             project.save(update_fields=["is_issue_type_enabled"])

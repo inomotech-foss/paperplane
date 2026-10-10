@@ -29,6 +29,7 @@ from plane.db.models import (
     User,
     WorkspaceMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -76,6 +77,7 @@ def parent_item(db, workspace, project, state, create_user):
         project=project,
         state=state,
         created_by=create_user,
+        type=link_starter_type(project),
     )
     IssueAssignee.objects.create(issue=issue, assignee=create_user, project=project, workspace=workspace)
     return issue
@@ -91,6 +93,7 @@ def child_item(db, workspace, project, state, create_user, parent_item):
         project=project,
         state=state,
         created_by=create_user,
+        type=link_starter_type(project),
     )
 
 
@@ -103,6 +106,7 @@ def teammate_item(db, workspace, project, done_state, create_user, teammate):
         project=project,
         state=done_state,
         created_by=create_user,
+        type=link_starter_type(project),
     )
     IssueAssignee.objects.create(issue=issue, assignee=teammate, project=project, workspace=workspace)
     return issue
@@ -142,6 +146,7 @@ def hidden_item(db, workspace, outsider):
         project=hidden_project,
         state=hidden_state,
         created_by=outsider,
+        type=link_starter_type(hidden_project),
     )
 
 

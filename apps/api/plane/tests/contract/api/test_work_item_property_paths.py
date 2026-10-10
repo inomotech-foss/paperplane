@@ -19,6 +19,7 @@ from plane.db.models import (
     PropertyTypeChoices,
     State,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -39,7 +40,12 @@ def bug_type(db, workspace, project):
 def issue(db, workspace, project, create_user):
     state = State.objects.create(name="Todo", project=project, workspace=workspace)
     return Issue.objects.create(
-        name="Work item", project=project, workspace=workspace, state=state, created_by=create_user
+        name="Work item",
+        project=project,
+        workspace=workspace,
+        state=state,
+        created_by=create_user,
+        type=link_starter_type(project),
     )
 
 

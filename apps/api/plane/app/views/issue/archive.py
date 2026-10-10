@@ -97,7 +97,7 @@ class IssueArchiveViewSet(BaseViewSet):
 
     def get_queryset(self):
         return (
-            Issue.objects.filter(Q(type__isnull=True) | Q(type__is_epic=False))
+            Issue.objects.filter(type__is_epic=False)
             .filter(archived_at__isnull=False)
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(workspace__slug=self.kwargs.get("slug"))

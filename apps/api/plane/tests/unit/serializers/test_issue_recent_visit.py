@@ -15,6 +15,7 @@ from plane.db.models import (
 )
 from plane.app.serializers.workspace import IssueRecentVisitSerializer
 from django.utils import timezone
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.mark.unit
@@ -45,6 +46,7 @@ class TestIssueRecentVisitSerializer:
             name="Test Issue",
             workspace=workspace,
             project=project,
+            type=link_starter_type(project),
         )
 
         IssueAssignee.objects.create(issue=issue, assignee=test_user_1, project=project)

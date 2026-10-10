@@ -8,6 +8,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 
 from plane.db.models import Issue, IssueSequence, Project, State
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -18,7 +19,9 @@ def project(workspace):
 
 
 def create_issue(project, name):
-    return Issue.objects.create(workspace=project.workspace, project=project, name=name)
+    return Issue.objects.create(
+        workspace=project.workspace, project=project, name=name, type=link_starter_type(project)
+    )
 
 
 @pytest.mark.contract

@@ -14,7 +14,7 @@ from .. import BaseViewSet
 from plane.app.permissions import ROLE, allow_permission, ProjectEntityPermission
 from plane.app.serializers import IssueTypeSerializer
 from plane.db.models import IssueType, Project, ProjectIssueType
-from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.utils.issue_type import type_in_use_error
 
 
 class IssueTypeViewSet(BaseViewSet):
@@ -46,8 +46,6 @@ class IssueTypeViewSet(BaseViewSet):
         )
 
     def list(self, request, slug, project_id):
-        project = Project.objects.get(pk=project_id, workspace__slug=slug)
-        get_or_create_default_issue_type(project)
         serializer = IssueTypeSerializer(self.get_queryset(), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -57,16 +55,11 @@ class IssueTypeViewSet(BaseViewSet):
         serializer = IssueTypeSerializer(data=request.data)
         if serializer.is_valid():
             with transaction.atomic():
-                if serializer.validated_data.get("is_default"):
-                    IssueType.objects.filter(workspace_id=project.workspace_id, is_default=True).update(
-                        is_default=False
-                    )
                 issue_type = serializer.save(workspace_id=project.workspace_id, is_epic=False)
                 ProjectIssueType.objects.create(
                     project_id=project_id,
                     issue_type=issue_type,
                     workspace_id=project.workspace_id,
-                    is_default=issue_type.is_default,
                 )
             issue_type = self.get_queryset().get(pk=issue_type.id)
             return Response(IssueTypeSerializer(issue_type).data, status=status.HTTP_201_CREATED)
@@ -77,12 +70,7 @@ class IssueTypeViewSet(BaseViewSet):
         issue_type = IssueType.objects.get(workspace__slug=slug, project_issue_types__project_id=project_id, pk=pk)
         serializer = IssueTypeSerializer(issue_type, data=request.data, partial=True)
         if serializer.is_valid():
-            with transaction.atomic():
-                if serializer.validated_data.get("is_default"):
-                    IssueType.objects.filter(workspace_id=issue_type.workspace_id, is_default=True).exclude(
-                        pk=issue_type.pk
-                    ).update(is_default=False)
-                serializer.save()
+            serializer.save()
             issue_type = self.get_queryset().get(pk=pk)
             return Response(IssueTypeSerializer(issue_type).data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -95,11 +83,9 @@ class IssueTypeViewSet(BaseViewSet):
                 {"error": "Epic type cannot be removed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if issue_type.is_default:
-            return Response(
-                {"error": "Cannot delete the default type; set another type as default first"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        in_use = type_in_use_error(issue_type, project_id)
+        if in_use:
+            return Response({"error": in_use}, status=status.HTTP_400_BAD_REQUEST)
         remaining = (
             ProjectIssueType.objects.filter(
                 project_id=project_id,

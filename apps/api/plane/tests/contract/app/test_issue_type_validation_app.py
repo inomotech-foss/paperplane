@@ -55,7 +55,7 @@ class TestWorkItemTypeCrossProjectValidationApp:
     def test_create_work_item_with_foreign_project_type_rejected(self, session_client, workspace, project_b, type_a):
         response = session_client.post(
             issues_url(workspace.slug, project_b.id),
-            {"name": "Cross project issue", "type": str(type_a.id)},
+            {"name": "Cross project issue", "type_id": str(type_a.id)},
             format="json",
         )
 
@@ -65,7 +65,7 @@ class TestWorkItemTypeCrossProjectValidationApp:
         State.objects.create(name="Todo", group="backlog", project=project_a, workspace=workspace, default=True)
         response = session_client.post(
             issues_url(workspace.slug, project_a.id),
-            {"name": "Same project issue", "type": str(type_a.id)},
+            {"name": "Same project issue", "type_id": str(type_a.id)},
             format="json",
         )
 

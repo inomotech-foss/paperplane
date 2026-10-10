@@ -29,6 +29,7 @@ from plane.db.models import (
     ProjectMember,
     State,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -79,6 +80,7 @@ def assigned_issue(db, project, user_with_avatar_asset):
         workspace=project.workspace,
         state=state,
         created_by=user_with_avatar_asset,
+        type=link_starter_type(project),
     )
     IssueAssignee.objects.create(
         issue=issue,

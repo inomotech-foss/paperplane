@@ -7,6 +7,7 @@ from rest_framework import status
 
 from plane.celery import app as celery_app
 from plane.db.models import Intake, IntakeIssue, Issue, Label, Project, ProjectMember, State
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture(autouse=True)
@@ -41,8 +42,16 @@ def project(db, workspace, create_user):
 
 @pytest.fixture
 def intake_issue(db, project, workspace, create_user):
-    intake = Intake.objects.create(name="Intake", project=project, workspace=workspace, is_default=True)
-    issue = Issue.objects.create(name="Intake Issue", project=project, workspace=workspace, created_by=create_user)
+    intake = Intake.objects.create(
+        name="Intake", project=project, workspace=workspace, is_default=True, issue_type=link_starter_type(project)
+    )
+    issue = Issue.objects.create(
+        name="Intake Issue",
+        project=project,
+        workspace=workspace,
+        created_by=create_user,
+        type=link_starter_type(project),
+    )
     IntakeIssue.objects.create(intake=intake, issue=issue, project=project, workspace=workspace)
     return issue
 

@@ -26,6 +26,7 @@ from plane.db.models import (
     IssueAssignee,
     IssueComment,
     IssueLabel,
+    IssueType,
     Label,
     Notification,
     Project,
@@ -34,6 +35,7 @@ from plane.db.models import (
     User,
     WorkspaceMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 pytestmark = pytest.mark.unit
 
@@ -84,6 +86,7 @@ def work_item(db, project, states, create_user):
         state=states["todo"],
         priority="none",
         created_by=create_user,
+        type=link_starter_type(project),
     )
 
 
@@ -512,6 +515,7 @@ class TestCreateWorkItem:
             ActionType.CREATE_WORK_ITEM,
             {
                 "name": "Weekly report for {{project.name}}",
+                "type_id": str(link_starter_type(project).id),
                 "priority": "high",
                 "state_id": str(states["todo"].id),
             },
@@ -521,6 +525,7 @@ class TestCreateWorkItem:
         run = engine.execute(automation, context, trigger_source=AutomationRunTriggerSource.SCHEDULE)
 
         created = Issue.objects.get(name="Weekly report for Automation Project")
+        assert created.type.name == "Task"
         assert created.priority == "high"
         assert created.state_id == states["todo"].id
         assert run.status == AutomationRunStatus.SUCCESS
@@ -530,7 +535,7 @@ class TestCreateWorkItem:
         add_action(
             automation,
             ActionType.CREATE_WORK_ITEM,
-            {"name": "Follow up", "link_to_trigger_work_item": True},
+            {"name": "Follow up", "type_id": str(work_item.type_id), "link_to_trigger_work_item": True},
         )
 
         engine.execute(automation, context_for(work_item, project, automation))
@@ -542,7 +547,11 @@ class TestCreateWorkItem:
         add_action(
             automation,
             ActionType.CREATE_WORK_ITEM,
-            {"name": "Due soon", "target_date": {"mode": "relative", "days": 5}},
+            {
+                "name": "Due soon",
+                "type_id": str(link_starter_type(project).id),
+                "target_date": {"mode": "relative", "days": 5},
+            },
         )
 
         context = AutomationContext(project=project, automation=automation, trigger_type=TriggerType.SCHEDULE)
@@ -570,6 +579,20 @@ class TestCreateWorkItem:
 
         assert run.status == AutomationRunStatus.FAILED
         assert "different workspace" in run.steps[0]["error"]
+
+    @pytest.mark.parametrize("config", [{}, {"type_id": "linked elsewhere"}], ids=["missing", "unlinked"])
+    def test_a_type_not_linked_to_the_target_project_fails(self, project, create_user, work_item, config):
+        if config:
+            other = IssueType.objects.create(workspace=project.workspace, name="Elsewhere")
+            config = {"type_id": str(other.id)}
+        automation = make_automation(project, create_user)
+        add_action(automation, ActionType.CREATE_WORK_ITEM, {"name": "Typed", **config})
+
+        run = engine.execute(automation, context_for(work_item, project, automation))
+
+        assert run.status == AutomationRunStatus.FAILED
+        assert "type" in run.steps[0]["error"]
+        assert not Issue.objects.filter(name="Typed").exists()
 
     def test_blank_name_fails(self, project, create_user, work_item):
         automation = make_automation(project, create_user)

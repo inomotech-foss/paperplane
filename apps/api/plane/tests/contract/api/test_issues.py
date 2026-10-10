@@ -6,6 +6,7 @@ import pytest
 from rest_framework import status
 
 from plane.db.models import Issue, Project, ProjectMember, State
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -45,6 +46,7 @@ def issue(db, workspace, project, state, create_user):
         project=project,
         state=state,
         created_by=create_user,
+        type=link_starter_type(project),
     )
 
 

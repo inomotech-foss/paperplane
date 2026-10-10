@@ -8,6 +8,7 @@ import pytest
 from rest_framework import status
 
 from plane.db.models import Issue, Project, ProjectMember, State, User
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -46,6 +47,7 @@ def create_issue(db, project, workspace, create_user):
         project=project,
         workspace=workspace,
         created_by=create_user,
+        type=link_starter_type(project),
     )
 
 
@@ -86,7 +88,9 @@ class TestIssueNotificationContract:
         url = self.get_list_url(workspace.slug, project.id)
 
         with patch("plane.api.views.issue.issue_activity") as mock_issue_activity:
-            response = api_key_client.post(url, {"name": "New Issue"}, format="json")
+            response = api_key_client.post(
+                url, {"name": "New Issue", "type_id": str(link_starter_type(project).id)}, format="json"
+            )
 
         assert response.status_code == status.HTTP_201_CREATED
         assert Issue.objects.filter(name="New Issue").exists()

@@ -28,7 +28,6 @@ from plane.bgtasks.webhook_task import model_activity, webhook_activity
 from plane.db.models import (
     UserFavorite,
     DeployBoard,
-    Intake,
     Project,
     ProjectIdentifier,
     ProjectMember,
@@ -47,7 +46,7 @@ from plane.utils.issue_sequence import (
     issue_sequence_start_error,
     set_next_issue_sequence,
 )
-from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.utils.issue_type import get_or_create_intake, link_starter_type
 from plane.utils.order_queryset import PROJECT_ORDER_BY_ALLOWLIST, sanitize_order_by
 
 
@@ -302,9 +301,7 @@ class ProjectViewSet(BaseViewSet):
                 ]
             )
 
-            # Provision (or reuse) the workspace's default "Task" work item
-            # type and enable it for the new project.
-            get_or_create_default_issue_type(serializer.instance)
+            link_starter_type(serializer.instance)
 
             project = self.get_queryset().filter(pk=serializer.data["id"]).first()
 
@@ -368,13 +365,7 @@ class ProjectViewSet(BaseViewSet):
         if serializer.is_valid():
             serializer.save()
             if intake_view:
-                intake = Intake.objects.filter(project=project, is_default=True).first()
-                if not intake:
-                    Intake.objects.create(
-                        name=f"{project.name} Intake",
-                        project=project,
-                        is_default=True,
-                    )
+                get_or_create_intake(project)
 
             project = self.get_queryset().filter(pk=serializer.data["id"]).first()
 

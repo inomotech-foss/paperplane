@@ -44,7 +44,8 @@ def soft_delete_related_objects(app_label, model_name, instance_pk, using=None):
         # Get the on_delete behavior name
         on_delete_name = relation.on_delete.__name__ if hasattr(relation.on_delete, "__name__") else ""
 
-        if on_delete_name == "DO_NOTHING":
+        # A protected relation blocks the delete, it never cascades it.
+        if on_delete_name in ("DO_NOTHING", "PROTECT"):
             continue
 
         elif on_delete_name == "SET_NULL":
