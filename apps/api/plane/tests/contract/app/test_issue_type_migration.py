@@ -270,7 +270,7 @@ class TestScopes:
             workspace,
             sales,
             types["Story"],
-            {"scope": {"project": str(sales.id)}, "replacement_type_id": str(types["Bug"].id), "then": "unlink"},
+            {"scope": {"project": str(sales.id)}, "replacement_type_id": str(types["Bug"].id), "remove_type": "unlink"},
         )
 
         assert response.status_code == status.HTTP_200_OK, response.data
@@ -290,7 +290,7 @@ class TestScopes:
             api_key_client,
             workspace,
             types["Story"],
-            {"scope": {"workspace": True}, "replacement_type_id": str(types["Task"].id), "then": "delete"},
+            {"scope": {"workspace": True}, "replacement_type_id": str(types["Task"].id), "remove_type": "delete"},
         )
 
         assert response.status_code == status.HTTP_200_OK, response.data
@@ -316,7 +316,7 @@ class TestScopes:
             api_key_client,
             workspace,
             types["Story"],
-            {"scope": {"workspace": True}, "replacement_type_id": str(types["Bug"].id), "then": "delete"},
+            {"scope": {"workspace": True}, "replacement_type_id": str(types["Bug"].id), "remove_type": "delete"},
         )
 
         assert response.status_code == status.HTTP_200_OK, response.data
@@ -337,7 +337,11 @@ class TestScopes:
 
     def test_a_scope_without_rows_needs_no_replacement(self, session_client, workspace, sales, types):
         response = migrate(
-            session_client, workspace, sales, types["Story"], {"scope": {"project": str(sales.id)}, "then": "unlink"}
+            session_client,
+            workspace,
+            sales,
+            types["Story"],
+            {"scope": {"project": str(sales.id)}, "remove_type": "unlink"},
         )
 
         assert response.status_code == status.HTTP_200_OK, response.data
@@ -354,8 +358,8 @@ class TestValidation:
             ({"scope": {"project": "11111111-1111-4111-8111-111111111111"}}, "scope"),
             ({"scope": {"work_items": []}}, "scope"),
             ({"scope": {}}, "scope"),
-            ({"then": "delete"}, "then"),
-            ({"then": "archive"}, "then"),
+            ({"remove_type": "delete"}, "remove_type"),
+            ({"remove_type": "archive"}, "remove_type"),
         ],
     )
     def test_invalid_requests_are_rejected(self, session_client, workspace, sales, types, body, field):
@@ -369,11 +373,11 @@ class TestValidation:
 
     def test_unlink_needs_the_project_scope(self, api_key_client, workspace, sales, types):
         response = migrate_workspace(
-            api_key_client, workspace, types["Story"], {"scope": {"workspace": True}, "then": "unlink"}
+            api_key_client, workspace, types["Story"], {"scope": {"workspace": True}, "remove_type": "unlink"}
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "then" in response.data
+        assert "remove_type" in response.data
 
     def test_work_items_of_another_type_are_rejected(self, session_client, workspace, sales, types):
         task = Issue.objects.create(name="task", workspace=workspace, project=sales, type=types["Task"])
