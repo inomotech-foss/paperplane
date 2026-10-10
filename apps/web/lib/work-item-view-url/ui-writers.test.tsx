@@ -22,10 +22,11 @@ import { CalendarOptionsDropdown } from "@/components/issues/issue-layouts/calen
 import { FilterDisplayProperties } from "@/components/issues/issue-layouts/filters/header/display-filters/display-properties";
 import { HeaderColumn } from "@/components/issues/issue-layouts/spreadsheet/columns/header-column";
 import { WorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/base";
-import { useAppliedFilters } from "@/components/work-item-query/use-applied-filters";
+import { useAppliedFilters, useClearQueryOptions } from "@/components/work-item-query/use-applied-filters";
 import { WorkItemQueryService } from "@/services/issue";
 import { ProjectIssuesFilter } from "@/store/issue/project/filter.store";
 import { PROJECT_WORK_ITEMS_PAGE, getProjectWorkItemsBinding } from "./bindings";
+import { PqlDraftProvider, usePqlDraft } from "./pql-draft";
 import { loadViewRoute, shouldRevalidateView } from "./route";
 import { useWorkItemViewRoute } from "./use-view-route";
 
@@ -58,6 +59,9 @@ vi.mock("@/hooks/store/use-issue-custom-properties", () => ({
   useIssueCustomProperties: () => ({ getActiveProjectProperties: () => [], getPropertyById: () => undefined }),
 }));
 
+const INVALID = "nope = 1";
+const PROFILE = { id: "u1", start_of_the_week: EStartOfTheWeek.MONDAY };
+
 const loader = ({ request }: LoaderFunctionArgs) => loadViewRoute(request, getProjectWorkItemsBinding("ws", "p1"));
 
 const SAVED: IProjectUserPropertiesResponse = {
@@ -73,14 +77,21 @@ const SAVED: IProjectUserPropertiesResponse = {
   preferences: { pages: { block_display: false }, navigation: { default_tab: "", hide_in_more_menu: [] } },
 };
 
-const setup = (link: string) => {
+/** Saved preferences with a filter and a query, so clearing them is a change to save. */
+const SAVED_FILTERED: IProjectUserPropertiesResponse = {
+  ...SAVED,
+  rich_filters: { state_id__in: "s1" },
+  display_filters: { ...SAVED.display_filters, pql: "priority = low" },
+};
+
+const setup = (link: string, saved: IProjectUserPropertiesResponse = SAVED) => {
   const store = new ProjectIssuesFilter({
     projectId: "p1",
     workspaceSlug: "ws",
     currentUserId: "u1",
     projectIssues: mocks.issues,
     rootStore: {
-      memberRoot: { project: { fetchProjectUserProperties: async () => SAVED } },
+      memberRoot: { project: { fetchProjectUserProperties: async () => saved } },
       user: { data: { id: "u1" } },
     },
   });
@@ -91,10 +102,12 @@ const setup = (link: string) => {
   mocks.root = {
     issue: { projectIssuesFilter: store, projectIssues: mocks.issues },
     workItemFilters: filterStore,
-    user: { userProfile: { data: { id: "u1", start_of_the_week: EStartOfTheWeek.MONDAY } } },
+    user: { userProfile: { data: PROFILE, loadUserProfile: async () => PROFILE } },
     projectRoot: { project: { getPartialProjectById: () => undefined } },
   };
-  vi.spyOn(WorkItemQueryService.prototype, "validate").mockResolvedValue({ valid: true });
+  vi.spyOn(WorkItemQueryService.prototype, "validate").mockImplementation(async (_, pql) =>
+    pql === INVALID ? { valid: false, error: "Unknown field" } : { valid: true }
+  );
   // the bindings of useIssuesActions
   const updateFilters = (projectId: string, type: TSupportedFilterTypeForUpdate, filters: TSupportedFilterForUpdate) =>
     store.updateFilters("ws", projectId, type, filters);
@@ -103,6 +116,7 @@ const setup = (link: string) => {
   const Writers = observer(function Writers({ filter }: { filter: IWorkItemFilterInstance }) {
     const shown = store.getIssueFilters("p1");
     const { clearAll } = useAppliedFilters(EIssuesStoreType.PROJECT, "p1", filter);
+    const draft = usePqlDraft();
     if (!shown?.displayFilters || !shown.displayProperties) return null;
     return (
       <>
@@ -121,6 +135,13 @@ const setup = (link: string) => {
         <button type="button" onClick={() => void clearAll()}>
           clear all
         </button>
+        {/* the filter bar's Clear all */}
+        {filter.canClearFilters && (
+          <button type="button" onClick={() => void filter.clearFilters()}>
+            filter bar clear all
+          </button>
+        )}
+        {draft && <output data-testid="draft">{draft.query}</output>}
       </>
     );
   });
@@ -128,9 +149,11 @@ const setup = (link: string) => {
   // the filter bar of ProjectLayoutRoot, with its instance created in a layout effect
   const Page = observer(function Page() {
     const shown = store.getIssueFilters("p1");
+    const clearFilterOptions = useClearQueryOptions(EIssuesStoreType.PROJECT, "p1");
     if (!shown) return null;
     return (
       <WorkItemFiltersHOC
+        clearFilterOptions={clearFilterOptions}
         entityType={EIssuesStoreType.PROJECT}
         entityId="p1"
         filtersToShowByLayout={[]}
@@ -147,8 +170,12 @@ const setup = (link: string) => {
   });
 
   function Layout() {
-    useWorkItemViewRoute(useLoaderData<typeof loader>(), PROJECT_WORK_ITEMS_PAGE, "p1");
-    return <Page />;
+    const draft = useWorkItemViewRoute(useLoaderData<typeof loader>(), PROJECT_WORK_ITEMS_PAGE, "p1");
+    return (
+      <PqlDraftProvider value={draft}>
+        <Page />
+      </PqlDraftProvider>
+    );
   }
 
   const router = createMemoryRouter(
@@ -237,14 +264,59 @@ describe("UI changes after opening a link", () => {
   });
 
   it("clears the link's filters and query without saving its other keys", async () => {
-    const { update, search } = setup("l=list&f=priority:in:urgent&q=priority+%3D+high");
+    const { update, search } = setup("l=list&f=priority:in:urgent&q=priority+%3D+high", SAVED_FILTERED);
     fireEvent.click(await screen.findByRole("button", { name: "clear all" }));
 
     await waitFor(() => expect(search()).toBe("?l=list"));
     expect(update).toHaveBeenCalledTimes(2);
     expect(update).toHaveBeenCalledWith("ws", "p1", { rich_filters: {} });
     const displayFilters = update.mock.calls.find(([, , data]) => data.display_filters)?.[2].display_filters;
-    expect(displayFilters).toMatchObject({ ...SAVED.display_filters, pql: "" });
+    expect(displayFilters).toMatchObject({ ...SAVED_FILTERED.display_filters, pql: "" });
+  });
+
+  it("clears a draft query from the URL with Clear all and saves only the query", async () => {
+    const { update, search } = setup("l=list&q=nope+%3D+1", SAVED_FILTERED);
+    expect((await screen.findByTestId("draft")).textContent).toBe(INVALID);
+    fireEvent.click(screen.getByRole("button", { name: "clear all" }));
+
+    await waitFor(() => expect(search()).toBe("?l=list"));
+    expect(screen.queryByTestId("draft")).toBeNull();
+    expect(update).toHaveBeenCalledOnce();
+    expect(Object.keys(update.mock.calls[0][2])).toEqual(["display_filters"]);
+    expect(update.mock.calls[0][2].display_filters).toMatchObject({ ...SAVED_FILTERED.display_filters, pql: "" });
+  });
+
+  it("clears rich filters and a draft query with Clear all, one save each", async () => {
+    const { update, search } = setup("l=list&f=priority:in:urgent&q=nope+%3D+1", SAVED_FILTERED);
+    await screen.findByTestId("draft");
+    fireEvent.click(screen.getByRole("button", { name: "clear all" }));
+
+    await waitFor(() => expect(search()).toBe("?l=list"));
+    expect(screen.queryByTestId("draft")).toBeNull();
+    expect(update).toHaveBeenCalledTimes(2);
+    expect(update).toHaveBeenCalledWith("ws", "p1", { rich_filters: {} });
+  });
+
+  it("saves nothing when Clear all leaves the saved preferences as they are", async () => {
+    const { update, search } = setup("l=list&f=priority:in:urgent&q=nope+%3D+1");
+    await screen.findByTestId("draft");
+    fireEvent.click(screen.getByRole("button", { name: "clear all" }));
+
+    await waitFor(() => expect(search()).toBe("?l=list"));
+    expect(screen.queryByTestId("draft")).toBeNull();
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it.each(["priority+%3D+high", "nope+%3D+1"])("clears the query %s with the filter bar's Clear all", async (q) => {
+    const { update, search } = setup(`l=list&f=priority:in:urgent&q=${q}`, SAVED_FILTERED);
+    fireEvent.click(await screen.findByRole("button", { name: "filter bar clear all" }));
+
+    await waitFor(() => expect(search()).toBe("?l=list"));
+    expect(screen.queryByTestId("draft")).toBeNull();
+    expect(update).toHaveBeenCalledTimes(2);
+    expect(update).toHaveBeenCalledWith("ws", "p1", { rich_filters: {} });
+    const displayFilters = update.mock.calls.find(([, , data]) => data.display_filters)?.[2].display_filters;
+    expect(displayFilters).toMatchObject({ ...SAVED_FILTERED.display_filters, pql: "" });
   });
 
   it("adds a rich filter condition through the filter bar", async () => {

@@ -5,7 +5,7 @@
  */
 
 // plane imports
-import type { TSaveViewOptions, TUpdateViewOptions } from "@plane/constants";
+import type { TClearFilterOptions, TSaveViewOptions, TUpdateViewOptions } from "@plane/constants";
 import type { IWorkItemFilterInstance } from "@plane/shared-state";
 import type { EIssuesStoreType, IIssueFilters, TWorkItemFilterExpression, TWorkItemFilterProperty } from "@plane/types";
 
@@ -15,6 +15,8 @@ export type TSharedWorkItemFiltersProps = {
   updateFilters: (updatedFilters: TWorkItemFilterExpression) => void;
   isTemporary?: boolean;
   showOnMount?: boolean;
+  /** Runs when the filter bar's Clear all clears the rich filters, e.g. to clear a query too. */
+  clearFilterOptions?: TClearFilterOptions;
 } & ({ isTemporary: true; entityId?: string } | { isTemporary?: false; entityId: string }); // entity id (project_id, cycle_id, workspace_id, etc)
 
 export type TSharedWorkItemFiltersHOCProps = TSharedWorkItemFiltersProps & {

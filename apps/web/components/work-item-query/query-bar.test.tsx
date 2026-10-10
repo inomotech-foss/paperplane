@@ -50,4 +50,14 @@ describe("WorkItemQueryBar", () => {
     );
     expect(screen.getByRole<HTMLInputElement>("textbox", { name: "query" }).value).toBe("priority = high");
   });
+
+  it("drops a draft that left the URL, e.g. after Clear all", async () => {
+    const draft = { query: "nope = 1", error: "Unknown field" };
+    const { view, onApply } = setup("", draft);
+    await screen.findByText("Unknown field");
+
+    view.rerender(<WorkItemQueryBar workspaceSlug="ws" projectId="p1" value="" onApply={onApply} />);
+    expect(screen.getByRole<HTMLInputElement>("textbox", { name: "query" }).value).toBe("");
+    expect(screen.queryByText("Unknown field")).toBeNull();
+  });
 });

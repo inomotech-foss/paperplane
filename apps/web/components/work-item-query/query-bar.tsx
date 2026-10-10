@@ -34,7 +34,7 @@ const sameDraft = (a: TQueryDraft | undefined, b: TQueryDraft | undefined) =>
 
 /**
  * `edits` is what the person typed since the last apply, null when the editor shows the applied query.
- * A new draft replaces it, and so does another applied query, e.g. after going back.
+ * A new draft replaces it, and so does another applied query, e.g. after going back, or a draft that left the URL.
  */
 const useDraftState = (value: string, draft: TQueryDraft | undefined, invalid: string) => {
   const [edits, setEdits] = useState<string | null>(draft ? draft.query : null);
@@ -45,7 +45,7 @@ const useDraftState = (value: string, draft: TQueryDraft | undefined, invalid: s
     if (draft && !sameDraft(draft, source.draft)) {
       setEdits(draft.query);
       setRunError(draft.error ?? invalid);
-    } else if (source.value !== value) {
+    } else if (source.value !== value || source.draft) {
       setEdits(null);
       setRunError(null);
     }

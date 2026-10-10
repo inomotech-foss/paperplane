@@ -14,7 +14,7 @@ import { Spinner } from "@plane/blocks/spinner";
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
 import { FilterViewActions } from "@/components/rich-filters/view-actions";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
-import { WorkItemQueryBar, appliedQuery } from "@/components/work-item-query";
+import { WorkItemQueryBar, appliedQuery, useClearQueryOptions } from "@/components/work-item-query";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { IssuesStoreContext } from "@/hooks/use-issue-layout-store";
@@ -53,6 +53,7 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
   const { issues, issuesFilter } = useIssues(EIssuesStoreType.PROJECT);
   // a query from the URL that did not validate
   const pqlDraft = usePqlDraft();
+  const clearFilterOptions = useClearQueryOptions(EIssuesStoreType.PROJECT, projectId);
   // derived values
   const workItemFilters = projectId ? issuesFilter?.getIssueFilters(projectId) : undefined;
   const activeLayout = workItemFilters?.displayFilters?.layout;
@@ -64,6 +65,7 @@ export const ProjectLayoutRoot = observer(function ProjectLayoutRoot() {
         enableSaveView
         entityType={EIssuesStoreType.PROJECT}
         entityId={projectId}
+        clearFilterOptions={clearFilterOptions}
         filtersToShowByLayout={ISSUE_DISPLAY_FILTERS_BY_PAGE.issues.filters}
         initialWorkItemFilters={workItemFilters}
         updateFilters={issuesFilter?.updateFilterExpression.bind(issuesFilter, workspaceSlug, projectId)}
