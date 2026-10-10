@@ -12,6 +12,8 @@ export type TServiceDeskConfig = {
   project: string;
   mailbox_email: string;
   is_enabled: boolean;
+  /** The type of the work items created from mail. Required while enabled. */
+  issue_type_id: string | null;
   notify_mode: TServiceDeskNotifyMode;
   notify_user_ids: string[];
   last_synced_at: string | null;

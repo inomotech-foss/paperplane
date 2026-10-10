@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
+import useSWR from "swr";
 
 // types
 import { SPACE_BASE_PATH, SPACE_BASE_URL } from "@plane/constants";
@@ -33,8 +34,16 @@ import {
 import { Loader } from "@plane/blocks/skeleton";
 // helpers
 import { copyTextToClipboard } from "@plane/utils";
+// components
+import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
 // hooks
+import { useProject } from "@/hooks/store/use-project";
 import { useProjectPublish } from "@/hooks/store/use-project-publish";
+import { useProjectIssueTypes } from "@/hooks/use-preselected-issue-type";
+// services
+import { ProjectIntakeService } from "@/services/inbox/project-intake.service";
+
+const projectIntakeService = new ProjectIntakeService();
 
 type Props = {
   isOpen: boolean;
@@ -47,6 +56,8 @@ const defaultValues: Partial<TProjectPublishSettings> = {
   is_reactions_enabled: false,
   is_votes_enabled: false,
   inbox: null,
+  intake: null,
+  intake_issue_type: null,
   view_props: {
     list: true,
     kanban: true,
@@ -62,6 +73,18 @@ const VIEW_OPTIONS: TViewOption[] = [
   { key: "list", label: "List" },
   { key: "kanban", label: "Kanban" },
 ];
+
+/** The project's intake once it is on, so the published board can take submissions. */
+const useProjectIntakeId = (workspaceSlug: string | undefined, projectId: string, isOpen: boolean) => {
+  const isIntakeOn = !!useProject().getProjectById(projectId)?.inbox_view;
+  useProjectIssueTypes(workspaceSlug, isIntakeOn ? projectId : undefined);
+  const { data } = useSWR(
+    workspaceSlug && isOpen && isIntakeOn ? `PROJECT_INTAKE_${projectId}` : null,
+    workspaceSlug ? () => projectIntakeService.getIntake(workspaceSlug, projectId) : null,
+    { revalidateOnFocus: false }
+  );
+  return data?.id;
+};
 
 export const PublishProjectModal = observer(function PublishProjectModal(props: Props) {
   const { isOpen, onClose, projectId } = props;
@@ -81,6 +104,7 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
   // derived values
   const projectPublishSettings = getPublishSettingsByProjectID(projectId);
   const isProjectPublished = !!projectPublishSettings?.anchor;
+  const intakeId = useProjectIntakeId(workspaceSlug?.toString(), projectId, isOpen);
   // form info
   const {
     control,
@@ -164,6 +188,8 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
       is_reactions_enabled: formData.is_reactions_enabled,
       is_votes_enabled: formData.is_votes_enabled,
       view_props: formData.view_props,
+      intake: formData.intake ?? null,
+      intake_issue_type: formData.intake ? formData.intake_issue_type : null,
     };
 
     if (formData.id && isProjectPublished) await handleUpdatePublishSettings(payload);
@@ -179,6 +205,8 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
       ...projectPublishSettings,
     });
   }, [projectPublishSettings, reset]);
+
+  const needsIntakeType = !!watch("intake") && !watch("intake_issue_type");
 
   const SPACE_APP_URL =
     (SPACE_BASE_URL.trim() === "" && typeof window !== "undefined" ? window.location.origin : SPACE_BASE_URL) +
@@ -342,6 +370,44 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
                         )}
                       />
                     </div>
+                    {(intakeId || watch("intake")) && (
+                      <div className="relative flex items-center justify-between gap-2">
+                        <div className="text-13">Take intake submissions</div>
+                        <Controller
+                          control={control}
+                          name="intake"
+                          render={({ field: { onChange, value } }) => (
+                            <Switch
+                              size="sm"
+                              checked={!!value}
+                              onCheckedChange={(checked) => onChange(checked ? intakeId : null)}
+                              disabled={!value && !intakeId}
+                              aria-label="Take intake submissions"
+                            />
+                          )}
+                        />
+                      </div>
+                    )}
+                    {watch("intake") && (
+                      <div className="relative flex items-center justify-between gap-2">
+                        <div className="text-13">Type of submitted work items</div>
+                        <Controller
+                          control={control}
+                          name="intake_issue_type"
+                          render={({ field: { onChange, value } }) => (
+                            <span className="flex shrink-0">
+                              <IssueTypeDropdown
+                                projectId={projectId}
+                                value={value}
+                                onChange={onChange}
+                                placeholder="Choose a type"
+                                variant="select-ghost-md"
+                              />
+                            </span>
+                          )}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -368,6 +434,7 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
                       type="submit"
                       label={isSubmitting ? "Updating" : "Update settings"}
                       loading={isSubmitting}
+                      disabled={needsIntakeType}
                     />
                   )
                 ) : (
@@ -378,6 +445,7 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
                     type="submit"
                     label={isSubmitting ? "Publishing" : "Publish"}
                     loading={isSubmitting}
+                    disabled={needsIntakeType}
                   />
                 )}
               </div>

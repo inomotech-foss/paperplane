@@ -50,4 +50,9 @@ export class IssueTypeMigrationService {
 
 /** Every row that still uses a type, shown or not. */
 export const countTypeReferences = (usage: TTypeMigrationPreview["references"]) =>
-  usage.work_items + usage.deleted_work_items + usage.drafts + usage.intakes + usage.automation_actions;
+  usage.work_items +
+  usage.deleted_work_items +
+  usage.drafts +
+  usage.intake_forms +
+  usage.service_desks +
+  usage.automation_actions;

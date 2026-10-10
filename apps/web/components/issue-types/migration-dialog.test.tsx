@@ -58,7 +58,15 @@ const makePreview = (
   references: Partial<TTypeMigrationPreview["references"]>,
   properties: TTypeMigrationPreview["properties"] = []
 ): TTypeMigrationPreview => ({
-  references: { work_items: 0, deleted_work_items: 0, drafts: 0, intakes: 0, automation_actions: 0, ...references },
+  references: {
+    work_items: 0,
+    deleted_work_items: 0,
+    drafts: 0,
+    intake_forms: 0,
+    service_desks: 0,
+    automation_actions: 0,
+    ...references,
+  },
   properties,
 });
 

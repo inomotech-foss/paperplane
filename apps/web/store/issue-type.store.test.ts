@@ -83,7 +83,14 @@ const makeStore = (properties: IProjectUserPropertiesResponse | null) => {
   store.migrationService.remove = vi.fn(() => Promise.resolve(undefined));
   store.migrationService.migrate = vi.fn(() =>
     Promise.resolve({
-      references: { work_items: 1, deleted_work_items: 0, drafts: 0, intakes: 0, automation_actions: 0 },
+      references: {
+        work_items: 1,
+        deleted_work_items: 0,
+        drafts: 0,
+        intake_forms: 0,
+        service_desks: 0,
+        automation_actions: 0,
+      },
       properties: [],
     })
   );
