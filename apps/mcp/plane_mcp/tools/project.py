@@ -93,8 +93,10 @@ ACTIONS = (
             "parallel_cycles",
             "project_updates",
             "workflows",
+            "intake_type_id",
         ),
-        note="toggles project features on or off",
+        note="toggles project features on or off. Turning intakes on needs intake_type_id, the type of the "
+        "work items that arrive through it -- see `workitem_type list`",
     ),
 )
 
@@ -167,6 +169,7 @@ def register(mcp: FastMCP) -> None:
         project_updates: bool | None = None,
         workflows: bool | None = None,
         is_time_tracking_enabled: bool | None = None,
+        intake_type_id: str = "",
         cursor: str = "",
         per_page: int = 0,
         order_by: str = "",
@@ -284,5 +287,6 @@ def register(mcp: FastMCP) -> None:
                 parallel_cycles=parallel_cycles,
                 project_updates=project_updates,
                 workflows=workflows,
+                intake_issue_type_id=opt(intake_type_id),
             ),
         )
