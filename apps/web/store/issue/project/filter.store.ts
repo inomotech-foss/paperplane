@@ -23,7 +23,8 @@ import type {
 } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
 import { handleIssueQueryParamsByLayout, normalizeDisplayFilters } from "@plane/utils";
-import { applyViewState, toViewState } from "@/lib/work-item-view-url/apply";
+import { applyViewState } from "@/lib/work-item-view-url/apply";
+import { toViewState } from "@/lib/work-item-view-url/state";
 import { applyViewIntent, isPersonalIntent, mergeDisplayFilters } from "@/lib/work-item-view-url/intent";
 import type { TViewIntent } from "@/lib/work-item-view-url/intent";
 import { getWorkItemPage } from "@/lib/work-item-view-url/pages";

@@ -20,11 +20,12 @@ import { EIssueFilterType } from "@plane/constants";
 import type { IProjectUserPropertiesResponse } from "@plane/types";
 import { EIssueLayoutTypes, EIssuesStoreType, EStartOfTheWeek } from "@plane/types";
 import { ProjectIssuesFilter } from "@/store/issue/project/filter.store";
-import { getWorkItemPage } from "./pages";
+import { getPageBaseline, getWorkItemPage } from "./pages";
 import { PqlDraftProvider, usePqlDraft } from "./pql-draft";
 import { getViewRoute } from "./registry";
 import { loadViewRoute, shouldRevalidateView } from "./route";
 import type { TViewBinding } from "./route";
+import type { TWorkItemViewState } from "./types";
 import { useWorkItemViewRoute } from "./use-view-route";
 
 const page = getWorkItemPage(EIssuesStoreType.PROJECT);
@@ -59,13 +60,14 @@ type TOptions = {
   featureOff?: boolean;
   /** The feature guard redirects once the project has loaded. */
   guardRedirects?: boolean;
+  /** What missing params mean, like a saved view's config. */
+  baseline?: TWorkItemViewState;
 };
 
 /** Browser history, so a reload or back/forward shows the URL before the loader runs, as in a browser. */
 const setup = (initialEntries: string[], options: TOptions = {}) => {
-  const [first, ...rest] = initialEntries;
-  window.history.replaceState(null, "", first);
-  rest.forEach((entry) => window.history.pushState(null, "", entry));
+  // pushed, not replaced: an earlier test may have left the history at an older entry
+  initialEntries.forEach((entry) => window.history.pushState(null, "", entry));
   const historyLength = window.history.length;
   const fetchProjectUserProperties = vi.fn(async (_: string, projectId: string) => SAVED[projectId]);
   const store = new ProjectIssuesFilter({
@@ -92,7 +94,12 @@ const setup = (initialEntries: string[], options: TOptions = {}) => {
   const binding = (projectId: string): TViewBinding => ({
     page,
     entityId: projectId,
-    deps: { loadSaved: () => store.loadSavedFilters("ws", projectId), validatePql, clock: async () => CLOCK },
+    deps: {
+      loadSaved: () => store.loadSavedFilters("ws", projectId),
+      validatePql,
+      clock: () => CLOCK,
+      loadBaseline: options.baseline && (async () => options.baseline ?? getPageBaseline(page)),
+    },
     store,
     effects: effects[projectId] ?? makeEffects(),
     redirect: () => (options.featureOff ? "/other" : undefined),
@@ -128,10 +135,10 @@ const setup = (initialEntries: string[], options: TOptions = {}) => {
     const data = useLoaderData<typeof loader>();
     const { projectId = "" } = useParams();
     rendered.push(useLocation().search);
-    const draft = useWorkItemViewRoute(data, page, projectId);
+    useWorkItemViewRoute(data, page, projectId);
     if (options.guardRedirects) return <Navigate to="/other" replace />;
     return (
-      <PqlDraftProvider value={draft}>
+      <PqlDraftProvider value={data.draft}>
         <List />
       </PqlDraftProvider>
     );
@@ -155,6 +162,7 @@ const setup = (initialEntries: string[], options: TOptions = {}) => {
     },
     { path: "/other", Component: () => <output data-testid="other" /> },
   ]);
+  routers.push(router);
   const view = render(
     <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
       <RouterProvider router={router} />
@@ -187,7 +195,11 @@ const setup = (initialEntries: string[], options: TOptions = {}) => {
 
 const idle = () => act(() => new Promise((resolve) => setTimeout(resolve, 50)));
 
+/** Browser routers listen to the shared window history until disposed. */
+const routers: { dispose: () => void }[] = [];
+
 afterEach(() => {
+  routers.splice(0).forEach((router) => router.dispose());
   vi.restoreAllMocks();
 });
 
@@ -232,6 +244,25 @@ describe("work item view route", () => {
     await act(() => router.navigate(-1));
     await waitFor(() => expect(layout()).toBe("p1/kanban"));
     expect(search()).toBe("?l=kanban&g=priority");
+  });
+
+  it("replaces the entry when a plain link leads to the view already shown", async () => {
+    const { router, search, historyLength } = setup(["/p1/issues?l=kanban&g=priority"]);
+    await waitFor(() => expect(layout()).toBe("p1/kanban"));
+    await act(() => router.navigate("/p1/issues"));
+    await waitFor(() => expect(search()).toBe("?l=kanban&g=priority"));
+    expect(window.history.length).toBe(historyLength);
+  });
+
+  it("adds an entry when a plain link leads to another view of the page", async () => {
+    const { router, search, historyLength } = setup(["/p1/issues?l=list"]);
+    await waitFor(() => expect(layout()).toBe("p1/list"));
+    await act(() => router.navigate("/p1/issues"));
+    await waitFor(() => expect(search()).toBe("?l=kanban&g=priority"));
+    await waitFor(() => expect(search()).toBe("?l=kanban&g=priority"));
+    expect(window.history.length).toBe(historyLength + 1);
+    await act(() => router.navigate(-1));
+    await waitFor(() => expect(layout()).toBe("p1/list"));
   });
 
   it("keeps a plain URL when the saved preferences fail to load", async () => {
@@ -339,6 +370,21 @@ describe("work item view route", () => {
     expect(store.savedFilters.p1.displayFilters?.order_by).toBe("priority");
   });
 
+  it("builds a change on the baseline the loader returned", async () => {
+    const pageBaseline = getPageBaseline(page);
+    const baseline: TWorkItemViewState = {
+      ...pageBaseline,
+      displayFilters: { ...pageBaseline.displayFilters, order_by: "-priority" },
+    };
+    const { search, loader, change } = setup(["/p1/issues?l=list"], { baseline });
+    await waitFor(() => expect(layout()).toBe("p1/list"));
+
+    // the page baseline already orders by this, so only the loader's baseline needs the param
+    await change({ order_by: pageBaseline.displayFilters.order_by });
+    await waitFor(() => expect(search()).toBe(`?l=list&o=${pageBaseline.displayFilters.order_by}`));
+    expect(loader).toHaveBeenCalledTimes(2);
+  });
+
   it("reruns only the view loader on a view change, not the project route", async () => {
     const { store, search, fetches, projectFetches, projectMounts, change } = setup(["/p1/issues?l=list"]);
     await waitFor(() => expect(layout()).toBe("p1/list"));
@@ -394,6 +440,33 @@ describe("work item view route", () => {
     expect(update).toHaveBeenCalledOnce();
     expect(Object.keys(update.mock.calls[0][2])).toEqual(["display_filters"]);
     expect(update.mock.calls[0][2].display_filters?.pql).not.toBe("priority = high");
+  });
+
+  it("lets a navigation to another page finish when a change comes in meanwhile, and saves the change", async () => {
+    const { router, store, update, release } = setup(["/p1/issues?l=list"], { holdValidation: true });
+    await waitFor(() => expect(layout()).toBe("p1/list"));
+
+    act(() => {
+      void router.navigate("/p2/issues?l=table&q=priority+%3D+high");
+    });
+    await waitFor(() => expect(router.state.navigation.state).toBe("loading"));
+    await act(() =>
+      store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { layout: EIssueLayoutTypes.CALENDAR })
+    );
+    await release();
+
+    await waitFor(() => expect(layout()).toBe("p2/spreadsheet"));
+    expect(router.state.location.pathname).toBe("/p2/issues");
+    expect(update).toHaveBeenCalledWith("ws", "p1", {
+      display_filters: expect.objectContaining({ layout: EIssueLayoutTypes.CALENDAR }),
+    });
+  });
+
+  it("shows display properties a URL changes", async () => {
+    const { router, store } = setup(["/p1/issues?l=list"]);
+    await waitFor(() => expect(layout()).toBe("p1/list"));
+    await act(() => router.navigate("/p1/issues?l=list&p=-labels"));
+    await waitFor(() => expect(store.getIssueFilters("p1")?.displayProperties?.labels).toBe(false));
   });
 
   it("drops a navigation another one replaced", async () => {

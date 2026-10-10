@@ -22,7 +22,7 @@ const SAVED: IIssueFilters = {
 const deps = (overrides: Partial<TViewDeps> = {}): TViewDeps => ({
   loadSaved: async () => SAVED,
   validatePql: async (pql) => (pql === INVALID ? { valid: false, error: "Unknown field" } : { valid: true }),
-  clock: async () => CLOCK,
+  clock: () => CLOCK,
   ...overrides,
 });
 

@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { describe, expect, it } from "vitest";
+import { observable } from "mobx";
+import { describe, expect, it, vi } from "vitest";
+import type { IIssueFilters } from "@plane/types";
 import { EIssueLayoutTypes, EIssuesStoreType, EStartOfTheWeek } from "@plane/types";
+import { IssueFilterHelperStore } from "@/store/issue/helpers/issue-filter-helper.store";
 import { getPageBaseline, getWorkItemPage } from "./pages";
 import { buildViewSearch } from "./resolve";
-import { shouldRevalidateView } from "./route";
+import { loadViewRoute, shouldRevalidateView } from "./route";
 import type { TWorkItemViewState } from "./types";
 
 const page = getWorkItemPage(EIssuesStoreType.PROJECT);
@@ -77,4 +80,37 @@ describe("buildViewSearch", () => {
       expect(new URL(search, "http://localhost").search).toBe(search);
     }
   );
+});
+
+describe("loadViewRoute", () => {
+  it("leaves the store untouched when the load was aborted", async () => {
+    const helper = new IssueFilterHelperStore();
+    const store = {
+      filters: observable<Record<string, IIssueFilters>>({}),
+      getShouldClearIssues: helper.getShouldClearIssues,
+      getShouldReFetchIssues: helper.getShouldReFetchIssues,
+    };
+    let release: (() => void) | undefined;
+    const saved = new Promise<IIssueFilters>((resolve) => {
+      release = () =>
+        resolve({
+          richFilters: {},
+          displayFilters: baseline.displayFilters,
+          displayProperties: baseline.displayProperties,
+          kanbanFilters: undefined,
+        });
+    });
+    const controller = new AbortController();
+    const load = loadViewRoute(new Request("http://localhost/p1/issues?l=list", { signal: controller.signal }), {
+      page,
+      entityId: "p1",
+      deps: { loadSaved: () => saved, clock: () => clock },
+      store,
+      effects: { clear: vi.fn(), refetch: vi.fn(), setRichFilters: vi.fn() },
+    });
+    controller.abort();
+    release?.();
+    await expect(load).rejects.toThrow();
+    expect(store.filters.p1).toBeUndefined();
+  });
 });

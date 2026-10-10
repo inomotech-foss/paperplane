@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import { observer } from "mobx-react";
 import { Outlet } from "react-router";
 // components
 import { AppHeader } from "@/components/core/app-header";
@@ -23,11 +22,11 @@ export const clientLoader = ({ request, params }: Route.ClientLoaderArgs) =>
 
 export const shouldRevalidate = shouldRevalidateView;
 
-function ProjectIssuesLayout({ params, loaderData }: Route.ComponentProps) {
-  const pqlDraft = useWorkItemViewRoute(loaderData, PROJECT_WORK_ITEMS_PAGE, params.projectId);
+export default function ProjectIssuesLayout({ params, loaderData }: Route.ComponentProps) {
+  useWorkItemViewRoute(loaderData, PROJECT_WORK_ITEMS_PAGE, params.projectId);
   return (
     <ProjectFeatureGuard feature="work_items" workspaceSlug={params.workspaceSlug} projectId={params.projectId}>
-      <PqlDraftProvider value={pqlDraft}>
+      <PqlDraftProvider value={loaderData.draft}>
         <AppHeader header={<ProjectIssuesHeader />} mobileHeader={<ProjectIssuesMobileHeader />} />
         <ContentWrapper>
           <Outlet />
@@ -36,5 +35,3 @@ function ProjectIssuesLayout({ params, loaderData }: Route.ComponentProps) {
     </ProjectFeatureGuard>
   );
 }
-
-export default observer(ProjectIssuesLayout);

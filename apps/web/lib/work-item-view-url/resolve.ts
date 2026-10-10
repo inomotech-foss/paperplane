@@ -2,10 +2,11 @@
 // See the LICENSE file for details.
 
 import type { IIssueFilters } from "@plane/types";
-import { resolveViewState, toViewState, trimmedPql, withPql } from "./apply";
+import { resolveViewState, toViewState, withPql } from "./state";
 import { peekCodec } from "./codecs";
 import { getPageBaseline } from "./pages";
-import { mergeSearch, parseSearch, toSearch } from "./serialize";
+import { parseSearch, toSearch } from "./serialize";
+import type { TParsedSearch } from "./serialize";
 import { normalizeSearch, stringifySearch } from "./stringify";
 import type { TCalendarClock, TWorkItemPage, TWorkItemViewState } from "./types";
 
@@ -19,7 +20,9 @@ export type TViewDeps = {
   /** The saved preferences. */
   loadSaved: () => Promise<IIssueFilters>;
   validatePql?: (pql: string) => Promise<TPqlCheck>;
-  clock: () => Promise<TCalendarClock>;
+  clock: () => TCalendarClock;
+  /** What a missing param means, e.g. a saved view's config. Defaults to the page baseline. */
+  loadBaseline?: () => Promise<TWorkItemViewState>;
 };
 
 /** The view a URL asks for, as plain data. */
@@ -30,16 +33,23 @@ export type TViewRouteData = {
   /** Set when the URL is not canonical: the search to replace it with. */
   canonical?: string;
   clock: TCalendarClock;
+  /** What a missing param means. */
+  baseline: TWorkItemViewState;
   /** The saved preferences the state was resolved against, the baseline if they failed to load. */
   saved: TWorkItemViewState;
 };
 
-export const getViewBaseline = (page: TWorkItemPage, clock: TCalendarClock): TWorkItemViewState => ({
-  ...getPageBaseline(page),
-  calendarAnchor: clock.today,
-});
+const getViewBaseline = (
+  page: TWorkItemPage,
+  clock: TCalendarClock,
+  base: TWorkItemViewState = getPageBaseline(page)
+): TWorkItemViewState => ({ ...base, calendarAnchor: clock.today });
 
-/** The search string for a view state; keeps the peek and params the view does not own from `current`. */
+/** The query the URL asks for. It applies on every layout of a page with PQL. */
+const urlPql = (parsed: TParsedSearch, page: TWorkItemPage) =>
+  parsed.explicit && page.pql ? (parsed.params.find(({ param }) => param === "q")?.raw.trim() ?? "") : "";
+
+/** The search string for a view state. Keeps the peek and the params the view does not own from `current`. */
 export const buildViewSearch = (
   state: TWorkItemViewState,
   page: TWorkItemPage,
@@ -66,7 +76,7 @@ const checkPql = async (deps: TViewDeps, pql: string): Promise<TPqlCheck> => {
   try {
     return await deps.validatePql(pql);
   } catch (error) {
-    // a failed check is no reason to drop the query; the list reports a broken one
+    // a failed check is no reason to drop the query. The list reports a broken one.
     console.error(error);
     return { valid: true };
   }
@@ -78,11 +88,18 @@ const checkPql = async (deps: TViewDeps, pql: string): Promise<TPqlCheck> => {
  */
 export const resolveViewRoute = async (url: URL, page: TWorkItemPage, deps: TViewDeps): Promise<TViewRouteData> => {
   const parsed = parseSearch(url.searchParams, page);
-  const pql = parsed.explicit ? trimmedPql(mergeSearch(parsed, getPageBaseline(page), page).state) : "";
-  const [saved, check, clock] = await Promise.all([loadSaved(deps), checkPql(deps, pql), deps.clock()]);
+  const pql = urlPql(parsed, page);
+  const clock = deps.clock();
+  const [saved, check, base] = await Promise.all([loadSaved(deps), checkPql(deps, pql), deps.loadBaseline?.()]);
 
-  const baseline = getViewBaseline(page, clock);
-  const { state } = resolveViewState(parsed, page, baseline, saved ?? baseline);
+  const baseline = getViewBaseline(page, clock, base);
+  const savedState = saved ?? baseline;
+  let state = resolveViewState(parsed, page, baseline, savedState);
+  if (!parsed.explicit) {
+    // what the canonical URL of the saved preferences shows, so one redirect reaches it
+    const search = buildViewSearch(state, page, baseline, clock, url.searchParams);
+    state = resolveViewState(parseSearch(new URLSearchParams(search), page), page, baseline, savedState);
+  }
   const draft = check.valid ? undefined : { query: pql, error: check.error };
   const search = `?${buildViewSearch(state, page, baseline, clock, url.searchParams)}`;
   // a plain URL stays plain while the saved preferences are unknown
@@ -92,6 +109,7 @@ export const resolveViewRoute = async (url: URL, page: TWorkItemPage, deps: TVie
     draft,
     canonical: keep ? undefined : search,
     clock,
-    saved: saved ?? baseline,
+    baseline,
+    saved: savedState,
   };
 };

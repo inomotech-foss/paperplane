@@ -102,7 +102,7 @@ const setup = (link: string, saved: IProjectUserPropertiesResponse = SAVED) => {
   mocks.root = {
     issue: { projectIssuesFilter: store, projectIssues: mocks.issues },
     workItemFilters: filterStore,
-    user: { userProfile: { data: PROFILE, loadUserProfile: async () => PROFILE } },
+    user: { userProfile: { data: PROFILE } },
     projectRoot: { project: { getPartialProjectById: () => undefined } },
   };
   vi.spyOn(WorkItemQueryService.prototype, "validate").mockImplementation(async (_, pql) =>
@@ -170,9 +170,10 @@ const setup = (link: string, saved: IProjectUserPropertiesResponse = SAVED) => {
   });
 
   function Layout() {
-    const draft = useWorkItemViewRoute(useLoaderData<typeof loader>(), PROJECT_WORK_ITEMS_PAGE, "p1");
+    const data = useLoaderData<typeof loader>();
+    useWorkItemViewRoute(data, PROJECT_WORK_ITEMS_PAGE, "p1");
     return (
-      <PqlDraftProvider value={draft}>
+      <PqlDraftProvider value={data.draft}>
         <Page />
       </PqlDraftProvider>
     );

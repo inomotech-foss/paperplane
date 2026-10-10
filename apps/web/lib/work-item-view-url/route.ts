@@ -3,12 +3,13 @@
 
 import { redirect, replace } from "react-router";
 import type { ShouldRevalidateFunctionArgs } from "react-router";
-import { DEFERRED_PARAMS, applyViewState } from "./apply";
+import { applyViewState } from "./apply";
 import type { TViewStateEffects, TViewStateStore } from "./apply";
 import { getViewRoute } from "./registry";
 import { resolveViewRoute } from "./resolve";
 import type { TViewDeps, TViewRouteData } from "./resolve";
 import { VIEW_PARAM_NAMES } from "./schema";
+import { DEFERRED_PARAMS } from "./state";
 import { normalizeSearch, stringifySearch } from "./stringify";
 import type { TWorkItemPage } from "./types";
 
@@ -30,10 +31,12 @@ const isShownByBrowser = (url: URL) => {
 };
 
 /**
- * Sends a load elsewhere without an extra history entry. A reload or back/forward already shows the URL, so
- * its entry is replaced. A link has not added its entry yet, so the redirect takes the link's own action.
+ * Sends a load elsewhere without an extra history entry. A reload or back/forward already shows the URL, and
+ * a link to a plain URL may lead to the view already shown, so those replace the entry. Any other link has not
+ * added its entry yet, so the redirect takes the link's own action.
  */
-const redirectFrom = (url: URL, target: string) => (isShownByBrowser(url) ? replace(target) : redirect(target));
+const redirectFrom = (url: URL, target: string) =>
+  isShownByBrowser(url) || isShownByBrowser(new URL(target, url)) ? replace(target) : redirect(target);
 
 /**
  * For a clientLoader: resolves the URL, replaces a non-canonical one, and applies the view to the store

@@ -16,17 +16,11 @@ export const PROJECT_WORK_ITEMS_PAGE = getWorkItemPage(EIssuesStoreType.PROJECT)
 const toDay = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
-/** The profile holds the week start. A cold load runs the loaders before the app shell fetched it. */
-const loadClock = async (): Promise<TCalendarClock> => {
-  const { userProfile } = store.user;
-  let profile = userProfile.data;
-  try {
-    profile = (await userProfile.loadUserProfile()) ?? profile;
-  } catch (error) {
-    console.error(error);
-  }
-  return { today: toDay(new Date()), weekStart: profile.start_of_the_week };
-};
+// week start only matters once `d` is applied (PR 7), which must then ensure the profile is loaded
+const getClock = (): TCalendarClock => ({
+  today: toDay(new Date()),
+  weekStart: store.user.userProfile.data.start_of_the_week,
+});
 
 /** Client only: wires the root store and services into the project work items route. */
 export const getProjectWorkItemsBinding = (workspaceSlug: string, projectId: string): TViewBinding => {
@@ -37,7 +31,7 @@ export const getProjectWorkItemsBinding = (workspaceSlug: string, projectId: str
     deps: {
       loadSaved: () => filters.loadSavedFilters(workspaceSlug, projectId),
       validatePql: (pql) => checkWorkItemQuery(workspaceSlug, pql, projectId),
-      clock: loadClock,
+      clock: getClock,
     },
     store: filters,
     effects: {
