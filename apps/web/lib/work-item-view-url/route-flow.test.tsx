@@ -481,7 +481,7 @@ describe("work item view route", () => {
 
     await waitFor(() => expect(search()).toBe("?l=table"));
     expect(layout()).toBe("p1/spreadsheet");
-    expect(screen.getByTestId("pql").textContent).toBe("");
+    await waitFor(() => expect(screen.getByTestId("pql").textContent).toBe(""));
   });
 
   it("shows each history entry again without saving", async () => {
@@ -508,7 +508,7 @@ describe("work item view route", () => {
     await act(() => router.navigate("/p2/issues"));
     await waitFor(() => expect(search()).toBe("?l=table&o=-priority"));
     expect(layout()).toBe("p2/spreadsheet");
-    expect(screen.queryByTestId("draft")).toBeNull();
+    await waitFor(() => expect(screen.queryByTestId("draft")).toBeNull());
     expect(fetchProjectUserProperties).toHaveBeenCalledTimes(2);
   });
 

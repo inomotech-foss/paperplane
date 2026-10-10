@@ -281,7 +281,7 @@ describe("UI changes after opening a link", () => {
     fireEvent.click(screen.getByRole("button", { name: "clear all" }));
 
     await waitFor(() => expect(search()).toBe("?l=list"));
-    expect(screen.queryByTestId("draft")).toBeNull();
+    await waitFor(() => expect(screen.queryByTestId("draft")).toBeNull());
     expect(update).toHaveBeenCalledOnce();
     expect(Object.keys(update.mock.calls[0][2])).toEqual(["display_filters"]);
     expect(update.mock.calls[0][2].display_filters).toMatchObject({ ...SAVED_FILTERED.display_filters, pql: "" });
@@ -293,7 +293,7 @@ describe("UI changes after opening a link", () => {
     fireEvent.click(screen.getByRole("button", { name: "clear all" }));
 
     await waitFor(() => expect(search()).toBe("?l=list"));
-    expect(screen.queryByTestId("draft")).toBeNull();
+    await waitFor(() => expect(screen.queryByTestId("draft")).toBeNull());
     expect(update).toHaveBeenCalledTimes(2);
     expect(update).toHaveBeenCalledWith("ws", "p1", { rich_filters: {} });
   });
@@ -304,7 +304,7 @@ describe("UI changes after opening a link", () => {
     fireEvent.click(screen.getByRole("button", { name: "clear all" }));
 
     await waitFor(() => expect(search()).toBe("?l=list"));
-    expect(screen.queryByTestId("draft")).toBeNull();
+    await waitFor(() => expect(screen.queryByTestId("draft")).toBeNull());
     expect(update).not.toHaveBeenCalled();
   });
 
@@ -313,7 +313,7 @@ describe("UI changes after opening a link", () => {
     fireEvent.click(await screen.findByRole("button", { name: "filter bar clear all" }));
 
     await waitFor(() => expect(search()).toBe("?l=list"));
-    expect(screen.queryByTestId("draft")).toBeNull();
+    await waitFor(() => expect(screen.queryByTestId("draft")).toBeNull());
     expect(update).toHaveBeenCalledTimes(2);
     expect(update).toHaveBeenCalledWith("ws", "p1", { rich_filters: {} });
     const displayFilters = update.mock.calls.find(([, , data]) => data.display_filters)?.[2].display_filters;
