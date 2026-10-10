@@ -33,24 +33,20 @@ const sameDraft = (a: TQueryDraft | undefined, b: TQueryDraft | undefined) =>
   a?.query === b?.query && a?.error === b?.error;
 
 /**
- * `edits` is what the person typed since the last apply, null when the editor shows the applied query.
- * A new draft replaces it, and so does another applied query, e.g. after going back, or a draft that left the URL.
+ * `edits` is what the person typed, null when the editor shows the reference: the draft from the URL while
+ * there is one, else the applied query. A new draft or another applied query resets it, e.g. after going back.
  */
 const useDraftState = (value: string, draft: TQueryDraft | undefined, invalid: string) => {
-  const [edits, setEdits] = useState<string | null>(draft ? draft.query : null);
-  const [runError, setRunError] = useState<string | null>(draft ? (draft.error ?? invalid) : null);
+  const draftError = draft ? (draft.error ?? invalid) : null;
+  const [edits, setEdits] = useState<string | null>(null);
+  const [runError, setRunError] = useState<string | null>(draftError);
   const [source, setSource] = useState({ value, draft });
   if (source.value !== value || !sameDraft(source.draft, draft)) {
     setSource({ value, draft });
-    if (draft && !sameDraft(draft, source.draft)) {
-      setEdits(draft.query);
-      setRunError(draft.error ?? invalid);
-    } else if (source.value !== value || source.draft) {
-      setEdits(null);
-      setRunError(null);
-    }
+    setEdits(null);
+    setRunError(draftError);
   }
-  return { edits, setEdits, runError, setRunError };
+  return { reference: draft ? draft.query : value, draftError, edits, setEdits, runError, setRunError };
 };
 
 type Props = {
@@ -78,16 +74,21 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
   const { workspaceSlug, projectId, value, draft: linkDraft, onApply, className, actions } = props;
   // i18n
   const { t } = useTranslation();
-  // states: an applied query never goes stale, as `edits` is null while it is shown
-  const { edits, setEdits, runError, setRunError } = useDraftState(value, linkDraft, t("work_item_query.invalid"));
+  // states: the shown reference never goes stale, as `edits` is null while it is shown
+  const { reference, draftError, edits, setEdits, runError, setRunError } = useDraftState(
+    value,
+    linkDraft,
+    t("work_item_query.invalid")
+  );
   const [isRunning, setIsRunning] = useState(false);
   const [inlineErrors, setInlineErrors] = useState<string[]>([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   // Set when the fallback is focused, so the editor takes focus as soon as it mounts.
   const focusOnMount = useRef(false);
   // derived values
-  const draft = edits ?? value;
-  const isDirty = draft.trim() !== value.trim();
+  const draft = edits ?? reference;
+  // with a draft from the URL, applying the same text is no change, and an empty one clears it
+  const isDirty = draft.trim() !== reference.trim();
   const isApplied = value.trim().length > 0;
   const hasError = inlineErrors.length > 0 || !!runError;
 
@@ -152,7 +153,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
 
   const revert = () => {
     setEdits(null);
-    setRunError(null);
+    setRunError(draftError);
   };
 
   return (
@@ -225,7 +226,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
           stretch="auto"
           label={t("work_item_query.run")}
         />
-        {(isApplied || draft) && (
+        {(isApplied || draft || linkDraft) && (
           <Button
             variant="tertiary"
             size="sm"

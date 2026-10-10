@@ -29,7 +29,6 @@ export interface IUserProfileStore {
   data: TUserProfile;
   // actions
   fetchUserProfile: () => Promise<TUserProfile | undefined>;
-  loadUserProfile: () => Promise<TUserProfile | undefined>;
   updateUserProfile: (data: Partial<TUserProfile>) => Promise<TUserProfile | undefined>;
   finishUserOnboarding: () => Promise<void>;
   updateTourCompleted: () => Promise<TUserProfile | undefined>;
@@ -71,8 +70,6 @@ export class ProfileStore implements IUserProfileStore {
 
   // services
   userService: UserService;
-  /** A load no fetchUserProfile call has used yet. */
-  private preload: Promise<TUserProfile | undefined> | undefined;
 
   constructor(public store: CoreRootStore) {
     makeObservable(this, {
@@ -104,11 +101,6 @@ export class ProfileStore implements IUserProfileStore {
    * @returns {Promise<TUserProfile | undefined>}
    */
   fetchUserProfile = async (): Promise<TUserProfile | undefined> => {
-    const { preload } = this;
-    if (preload) {
-      this.preload = undefined;
-      return preload;
-    }
     try {
       runInAction(() => {
         this.isLoading = true;
@@ -133,19 +125,6 @@ export class ProfileStore implements IUserProfileStore {
       });
       throw error;
     }
-  };
-
-  /**
-   * For callers that run before the app shell, such as route loaders: the loaded profile, else one shared
-   * request. The next fetchUserProfile call uses that request instead of sending another.
-   */
-  loadUserProfile = async (): Promise<TUserProfile | undefined> => {
-    if (this.data.id) return this.data;
-    this.preload ??= this.fetchUserProfile().catch((error: unknown) => {
-      this.preload = undefined;
-      throw error;
-    });
-    return this.preload;
   };
 
   /**
