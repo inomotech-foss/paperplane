@@ -41,6 +41,15 @@ describe("DragHandle", () => {
     expect(screen.getByRole("button", { name: "Reorder widget" })).toBeDefined();
   });
 
+  it("forwards trigger props to its button so it can be a tooltip trigger", async () => {
+    const onPointerEnter = vi.fn();
+    render(<DragHandle aria-describedby="hint" onPointerEnter={onPointerEnter} />);
+    const button = screen.getByRole("button", { name: "Drag to rearrange" });
+    expect(button.getAttribute("aria-describedby")).toBe("hint");
+    await userEvent.hover(button);
+    expect(onPointerEnter).toHaveBeenCalled();
+  });
+
   it("renders no button when disabled", () => {
     render(<DragHandle disabled />);
     expect(screen.queryByRole("button")).toBeNull();
