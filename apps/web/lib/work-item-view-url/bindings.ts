@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import type { TUserProfile } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
 import { getProjectUrl } from "@/components/project/features/features";
 import { isWorkItemsEnabled } from "@/components/settings/project/work-items-dependency";
@@ -17,22 +16,12 @@ export const PROJECT_WORK_ITEMS_PAGE = getWorkItemPage(EIssuesStoreType.PROJECT)
 const toDay = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
-let profileRequest: Promise<TUserProfile | undefined> | undefined;
-
-/** The profile holds the week start. A cold load runs the loaders before anything fetched it. */
-const loadProfile = async (): Promise<TUserProfile> => {
-  const profile = store.user.userProfile;
-  if (profile.data.id) return profile.data;
-  profileRequest ??= profile.fetchUserProfile().finally(() => {
-    profileRequest = undefined;
-  });
-  return (await profileRequest) ?? profile.data;
-};
-
+/** The profile holds the week start. A cold load runs the loaders before the app shell fetched it. */
 const loadClock = async (): Promise<TCalendarClock> => {
-  let profile = store.user.userProfile.data;
+  const { userProfile } = store.user;
+  let profile = userProfile.data;
   try {
-    profile = await loadProfile();
+    profile = (await userProfile.loadUserProfile()) ?? profile;
   } catch (error) {
     console.error(error);
   }
