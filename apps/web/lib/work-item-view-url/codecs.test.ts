@@ -240,7 +240,28 @@ describe("rich filters", () => {
   it.each(fallback)("falls back to JSON for %s", (_, expression) => {
     const encoded = formatRichFilters(expression);
     expect(encoded).toMatch(/^j\.[A-Za-z0-9_-]+$/);
-    expect(parseRichFilters(encoded)).toEqual({ value: expression });
+    expect(parseRichFilters(encoded ?? "")).toEqual({ value: expression });
+  });
+
+  it.each<[string, TWorkItemFilterExpression]>([
+    ["the legacy None value", { assignee_id__in: "None" }],
+    ["a label id that is not a uuid", { and: [{ label_id__in: "bug" }, { priority__in: "high" }] }],
+    ["a NOT group", { not: { and: [{ state_id__in: S1 }, { priority__in: "high" }] } }],
+  ])("writes nothing it cannot read back for %s", (_, expression) => {
+    expect(formatRichFilters(expression)).toBeUndefined();
+  });
+
+  it.each<TWorkItemFilterExpression>([
+    ...compact.map(([, expression]) => expression),
+    ...fallback.map(([, expression]) => expression),
+    { [`customproperty_${CP.toUpperCase()}__exact`]: "yes" },
+    { and: [{ state_id__in: S1 }] },
+    { priority__in: "high, low," },
+  ])("reads back what it writes for %j", (expression) => {
+    const encoded = formatRichFilters(expression);
+    expect(encoded).toBeDefined();
+    const parsed = parseRichFilters(encoded ?? "");
+    expect(parsed && richFiltersEqual(parsed.value, expression)).toBe(true);
   });
 
   it.each([{}, null, undefined])("writes none for %j", (expression) => {

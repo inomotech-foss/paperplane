@@ -62,10 +62,7 @@ export const CalendarOptionsDropdown = observer(function CalendarOptionsDropdown
     if (!updateFilters) return;
 
     void updateFilters(projectId?.toString(), EIssueFilterType.DISPLAY_FILTERS, {
-      calendar: {
-        ...issuesFilterStore.issueFilters?.displayFilters?.calendar,
-        layout,
-      },
+      calendar: { layout },
     });
 
     issueCalendarView.updateCalendarPayload(
@@ -79,10 +76,7 @@ export const CalendarOptionsDropdown = observer(function CalendarOptionsDropdown
     if (!updateFilters) return;
 
     void updateFilters(projectId?.toString(), EIssueFilterType.DISPLAY_FILTERS, {
-      calendar: {
-        ...issuesFilterStore.issueFilters?.displayFilters?.calendar,
-        show_weekends: !showWeekends,
-      },
+      calendar: { show_weekends: !showWeekends },
     });
   };
 

@@ -135,7 +135,7 @@ export class WorkItemFilterStore implements IWorkItemFilterStore {
 
       // Update the filter expression using the filter instance if it exists, otherwise use the fallback function
       if (filter) {
-        filter.resetExpression(newFilterExpression, false);
+        filter.resetExpression(newFilterExpression, { resetInitial: false });
       } else {
         await fallbackFn(newFilterExpression);
       }

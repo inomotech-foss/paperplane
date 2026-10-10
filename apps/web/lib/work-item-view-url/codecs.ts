@@ -441,12 +441,12 @@ const isEmptyExpression = (
 
 const toCompactProperty = (property: TWorkItemFilterProperty) =>
   property.startsWith(CUSTOM_FILTER_PROPERTY_PREFIX)
-    ? `${CUSTOM_PROPERTY_NAME_PREFIX}${property.slice(CUSTOM_FILTER_PROPERTY_PREFIX.length).toLowerCase()}`
+    ? `${CUSTOM_PROPERTY_NAME_PREFIX}${property.slice(CUSTOM_FILTER_PROPERTY_PREFIX.length)}`
     : property;
 
 const fromCompactProperty = (token: string) =>
   token.startsWith(CUSTOM_PROPERTY_NAME_PREFIX)
-    ? `${CUSTOM_FILTER_PROPERTY_PREFIX}${token.slice(CUSTOM_PROPERTY_NAME_PREFIX.length).toLowerCase()}`
+    ? `${CUSTOM_FILTER_PROPERTY_PREFIX}${token.slice(CUSTOM_PROPERTY_NAME_PREFIX.length)}`
     : token;
 
 const isCompactValue = (value: string, operator: TSupportedOperators) =>
@@ -490,11 +490,14 @@ const fromBase64Url = (encoded: string): string | undefined => {
 const topLevelItems = (expression: TWorkItemFilterExpressionData): TWorkItemFilterExpressionData[] =>
   LOGICAL_OPERATOR.AND in expression ? expression[LOGICAL_OPERATOR.AND] : [expression];
 
-/** Writes `none` for no filters, the compact grammar where it fits, and `j.<base64url(JSON)>` otherwise. */
-export const formatRichFilters = (expression: TWorkItemFilterExpression | null | undefined): string => {
+/**
+ * Writes `none` for no filters, the compact grammar where it fits, and `j.<base64url(JSON)>` otherwise.
+ * Undefined for an expression parseRichFilters would reject, e.g. a legacy `None` value.
+ */
+export const formatRichFilters = (expression: TWorkItemFilterExpression | null | undefined): string | undefined => {
   if (isEmptyExpression(expression)) return RICH_FILTERS_NONE;
   const canonical = canonicalExpression(expression);
-  if (!canonical) return `${RICH_FILTERS_JSON_PREFIX}${toBase64Url(JSON.stringify(expression))}`;
+  if (!canonical) return undefined;
   const items = topLevelItems(canonical).map(toCompactItem);
   if (items.every((item): item is string => item !== undefined)) return items.join(";");
   return `${RICH_FILTERS_JSON_PREFIX}${toBase64Url(JSON.stringify(canonical))}`;

@@ -55,7 +55,8 @@ const canonical = (
   return { ...result, query: plain(toSearch(result.state, baseline, page, { clock: CLOCK, current: params })) };
 };
 
-const JSON_FILTERS = formatRichFilters({ and: [{ name__icontains: "fix: a; b, c" }, { not: { state_id__in: S1 } }] });
+const JSON_FILTERS =
+  formatRichFilters({ and: [{ name__icontains: "fix: a; b, c" }, { not: { state_id__in: S1 } }] }) ?? "";
 
 describe("explicit marker", () => {
   it("treats no params as plain navigation", () => {

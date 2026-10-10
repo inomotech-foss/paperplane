@@ -64,7 +64,7 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   const { initGantt } = useTimeLineChart(GANTT_TIMELINE_TYPE.MODULE);
   const { fetchViews } = useProjectView();
   const {
-    project: { fetchProjectMembers, fetchProjectUserProperties },
+    project: { fetchProjectMembers, fetchProjectUserProperties, getProjectUserProperties },
   } = useMember();
   const { fetchProjectStates, fetchProjectIntakeState } = useProjectState();
   const { data: currentUserData } = useUser();
@@ -98,7 +98,10 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   // fetching project member preferences
   useSWR(
     currentUserData?.id ? PROJECT_MEMBER_PREFERENCES(projectId, currentProjectRole) : null,
-    currentUserData?.id ? () => fetchProjectUserProperties(workspaceSlug, projectId) : null,
+    // the work items route may have loaded them already
+    currentUserData?.id
+      ? () => getProjectUserProperties(projectId) ?? fetchProjectUserProperties(workspaceSlug, projectId)
+      : null,
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
   // fetching project labels

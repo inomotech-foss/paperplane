@@ -49,6 +49,7 @@ type TWorkItemFilterProps = TSharedWorkItemFiltersProps &
 const WorkItemFilterRoot = observer(function WorkItemFilterRoot(props: TWorkItemFilterProps) {
   const {
     children,
+    clearFilterOptions,
     entityType,
     entityId,
     filtersToShowByLayout,
@@ -82,10 +83,11 @@ const WorkItemFilterRoot = observer(function WorkItemFilterRoot(props: TWorkItem
       entityId: workItemEntityID,
       initialExpression: initialWorkItemFilters.richFilters,
       onExpressionChange: updateFilters,
-      expressionOptions: { saveViewOptions, updateViewOptions },
+      expressionOptions: { clearFilterOptions, saveViewOptions, updateViewOptions },
       showOnMount,
     });
   }, [
+    clearFilterOptions,
     entityType,
     getOrCreateFilter,
     initialWorkItemFilters.richFilters,
