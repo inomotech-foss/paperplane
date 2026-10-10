@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { observer } from "mobx-react";
 import {
@@ -109,7 +109,7 @@ const setup = (initialEntries: string[], options: TOptions = {}) => {
   );
 
   function LayoutView({ name }: { name: string }) {
-    useEffect(() => {
+    useLayoutEffect(() => {
       fetches.push(name);
     }, [name]);
     return <output data-testid="layout">{name}</output>;
@@ -150,7 +150,7 @@ const setup = (initialEntries: string[], options: TOptions = {}) => {
   function Project() {
     const { projectId = "" } = useParams();
     useSWR(`PROJECT_DETAILS_${projectId}`, projectFetches);
-    useEffect(() => projectMounts(), []);
+    useLayoutEffect(() => projectMounts(), []);
     return <Outlet />;
   }
 
@@ -243,7 +243,7 @@ describe("work item view route", () => {
     await screen.findByTestId("other");
     await act(() => router.navigate(-1));
     await waitFor(() => expect(layout()).toBe("p1/kanban"));
-    expect(search()).toBe("?l=kanban&g=priority");
+    await waitFor(() => expect(search()).toBe("?l=kanban&g=priority"));
   });
 
   it("replaces the entry when a plain link leads to the view already shown", async () => {
@@ -271,7 +271,7 @@ describe("work item view route", () => {
     fetchProjectUserProperties.mockRejectedValueOnce(new Error("forbidden"));
     await act(() => router.navigate("/p1/issues"));
     await waitFor(() => expect(layout()).toBe("p1/list"));
-    expect(search()).toBe("");
+    await waitFor(() => expect(search()).toBe(""));
 
     await act(() => router.navigate("/p1/issues"));
     await waitFor(() => expect(search()).toBe("?l=kanban&g=priority"));
@@ -280,7 +280,7 @@ describe("work item view route", () => {
   it("shows a link without saving it", async () => {
     const { search, update, fetches, effects } = setup(["/p1/issues?l=calendar&cal=week"]);
     await waitFor(() => expect(layout()).toBe("p1/calendar"));
-    expect(search()).toBe("?l=calendar&cal=week");
+    await waitFor(() => expect(search()).toBe("?l=calendar&cal=week"));
     expect(fetches).toEqual(["p1/calendar"]);
     expect(effects.p1.refetch).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
@@ -299,13 +299,13 @@ describe("work item view route", () => {
     await waitFor(() => expect(screen.getByTestId("pql").textContent).toBe("priority = 'high'"));
     await idle();
     expect(loader).toHaveBeenCalledOnce();
-    expect(search()).toBe("?l=list&q=priority+%3D+%27high%27");
+    await waitFor(() => expect(search()).toBe("?l=list&q=priority+%3D+%27high%27"));
   });
 
   it("keeps an invalid query in the URL as a draft, through changes and reloads", async () => {
     const first = setup([INVALID_LINK]);
     await waitFor(() => expect(draftText()).toBe(`${INVALID}|Unknown field`));
-    expect(first.search()).toBe("?l=list&q=nope+%3D+1");
+    await waitFor(() => expect(first.search()).toBe("?l=list&q=nope+%3D+1"));
     expect(screen.getByTestId("pql").textContent).toBe("");
 
     await first.change({ order_by: "priority" });
@@ -316,7 +316,7 @@ describe("work item view route", () => {
 
     const reloaded = setup([`/p1/issues${first.search()}`]);
     await waitFor(() => expect(draftText()).toBe(`${INVALID}|Unknown field`));
-    expect(reloaded.search()).toBe("?l=list&o=priority&q=nope+%3D+1");
+    await waitFor(() => expect(reloaded.search()).toBe("?l=list&o=priority&q=nope+%3D+1"));
   });
 
   it("drops a cleared draft from the URL, so a reload does not bring it back", async () => {
@@ -355,7 +355,7 @@ describe("work item view route", () => {
 
     await change({ layout: EIssueLayoutTypes.SPREADSHEET });
     await waitFor(() => expect(layout()).toBe("p1/spreadsheet"));
-    expect(search()).toBe("?l=table&o=-priority");
+    await waitFor(() => expect(search()).toBe("?l=table&o=-priority"));
     expect(router.state.historyAction).toBe("REPLACE");
     expect(update).toHaveBeenCalledOnce();
     expect(update.mock.calls[0][2].display_filters?.layout).toBe(EIssueLayoutTypes.SPREADSHEET);
@@ -406,7 +406,7 @@ describe("work item view route", () => {
 
     await change({ calendar: { show_weekends: true } });
     await waitFor(() => expect(screen.getByTestId("weekends").textContent).toBe("true"));
-    expect(search()).toBe("?l=calendar&cal=week");
+    await waitFor(() => expect(search()).toBe("?l=calendar&cal=week"));
     expect(loader).toHaveBeenCalledOnce();
     expect(update.mock.calls[0][2].display_filters?.calendar).toEqual({ layout: "month", show_weekends: true });
   });
@@ -417,7 +417,7 @@ describe("work item view route", () => {
     await change({ order_by: "priority" });
     await idle();
     expect(loader).toHaveBeenCalledOnce();
-    expect(search()).toBe("?l=list&o=priority");
+    await waitFor(() => expect(search()).toBe("?l=list&o=priority"));
   });
 
   it("builds a change during a navigation on the URL being loaded", async () => {
@@ -436,7 +436,7 @@ describe("work item view route", () => {
 
     await waitFor(() => expect(layout()).toBe("p1/spreadsheet"));
     expect(screen.getByTestId("pql").textContent).toBe("priority = high");
-    expect(search()).toBe("?l=table&q=priority+%3D+high");
+    await waitFor(() => expect(search()).toBe("?l=table&q=priority+%3D+high"));
     expect(update).toHaveBeenCalledOnce();
     expect(Object.keys(update.mock.calls[0][2])).toEqual(["display_filters"]);
     expect(update.mock.calls[0][2].display_filters?.pql).not.toBe("priority = high");
@@ -494,7 +494,7 @@ describe("work item view route", () => {
     await waitFor(() => expect(layout()).toBe("p1/list"));
     await act(() => router.navigate(1));
     await waitFor(() => expect(layout()).toBe("p1/calendar"));
-    expect(search()).toBe("?l=calendar&cal=week");
+    await waitFor(() => expect(search()).toBe("?l=calendar&cal=week"));
     expect(update).not.toHaveBeenCalled();
 
     await change({ calendar: { layout: "month" } });

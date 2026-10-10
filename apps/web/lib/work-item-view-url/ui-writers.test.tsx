@@ -229,7 +229,7 @@ describe("UI changes after opening a link", () => {
     expect(update.mock.calls[0][2].display_filters?.calendar).toEqual({ layout: "month", show_weekends: true });
     expect(update.mock.calls[0][2].display_filters?.layout).toBe(EIssueLayoutTypes.KANBAN);
     expect(store.getIssueFilters("p1")?.displayFilters?.calendar?.layout).toBe("week");
-    expect(search()).toBe("?l=calendar&cal=week");
+    await waitFor(() => expect(search()).toBe("?l=calendar&cal=week"));
   });
 
   it("saves only the picked calendar layout", async () => {
