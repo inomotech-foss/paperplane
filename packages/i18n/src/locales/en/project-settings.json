@@ -387,6 +387,8 @@
         "toggle_description": "Let project members create in app intake requests.",
         "toggle_tooltip_on": "Ask your Project Admin to turn this on.",
         "toggle_tooltip_off": "Ask your Project Admin to turn this off.",
+        "type_title": "Type of new work items",
+        "type_description": "Work items that arrive through Intake get this type.",
         "notify_assignee": {
           "title": "Notify assignees",
           "description": "For a new request to intake, default assignees will be alerted via notifications"

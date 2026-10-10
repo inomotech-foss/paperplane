@@ -169,6 +169,7 @@ export type TCreateWorkItemConfig = {
   name: string;
   description_html?: string;
   project_id?: string;
+  type_id?: string;
   state_id?: string;
   priority?: string;
   assignee_ids?: string[];

@@ -109,6 +109,8 @@
           "name_placeholder": "Bu otomasyonun oluşturduğu iş öğesine bir ad verin",
           "description_label": "Açıklama",
           "description_placeholder": "İş öğesini açıklayın",
+          "type_label": "Tür",
+          "type_hint": "Türü seçmek için bir proje seçin.",
           "state_label": "Durum",
           "priority_label": "Öncelik",
           "assignees_label": "Atananlar",

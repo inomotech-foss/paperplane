@@ -9,10 +9,22 @@ import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
 import type { TIssueType } from "@plane/types";
+// helpers
+import { pickIssueTypeId } from "@/lib/work-item-type";
 // services
 import { IssueTypeService } from "@/services/issue";
 // store
-import type { CoreRootStore } from "./root.store";
+import type { IProjectMemberStore } from "./member/project/base-project-member.store";
+
+/** The part of the root store the work item types depend on. */
+type TIssueTypeRootStore = {
+  memberRoot: {
+    project: Pick<
+      IProjectMemberStore,
+      "getProjectUserProperties" | "fetchProjectUserProperties" | "updateProjectUserProperties"
+    >;
+  };
+};
 
 export interface IIssueTypeStore {
   // loaders
@@ -23,7 +35,7 @@ export interface IIssueTypeStore {
   getProjectIssueTypes: (projectId: string | undefined | null) => TIssueType[] | undefined;
   getActiveProjectIssueTypes: (projectId: string | undefined | null) => TIssueType[] | undefined;
   getIssueTypeById: (issueTypeId: string | undefined | null) => TIssueType | null;
-  getProjectDefaultIssueType: (projectId: string | undefined | null) => TIssueType | null;
+  getPreselectedIssueTypeId: (projectId: string | undefined | null) => string | undefined;
   // fetch actions
   fetchProjectIssueTypes: (workspaceSlug: string, projectId: string) => Promise<TIssueType[]>;
   // crud actions
@@ -35,6 +47,7 @@ export interface IIssueTypeStore {
     data: Partial<TIssueType>
   ) => Promise<TIssueType>;
   deleteIssueType: (workspaceSlug: string, projectId: string, issueTypeId: string) => Promise<void>;
+  rememberIssueType: (workspaceSlug: string, projectId: string, issueTypeId: string) => Promise<void>;
 }
 
 export class IssueTypeStore implements IIssueTypeStore {
@@ -47,7 +60,7 @@ export class IssueTypeStore implements IIssueTypeStore {
   // services
   issueTypeService;
 
-  constructor(_rootStore: CoreRootStore) {
+  constructor(_rootStore: TIssueTypeRootStore) {
     makeObservable(this, {
       typeMap: observable,
       fetchedMap: observable,
@@ -84,12 +97,17 @@ export class IssueTypeStore implements IIssueTypeStore {
   );
 
   /**
-   * Returns the default work item type of a project (the `is_default` one).
+   * Returns the type a new work item of the project starts with: the one the user last created a work item
+   * with in the project, else the first active type.
    */
-  getProjectDefaultIssueType = computedFn(
-    (projectId: string | undefined | null): TIssueType | null =>
-      this.getProjectIssueTypes(projectId)?.find((type) => type.is_default) || null
-  );
+  getPreselectedIssueTypeId = computedFn((projectId: string | undefined | null) => {
+    if (!projectId) return undefined;
+    const properties = this.rootStore.memberRoot.project.getProjectUserProperties(projectId);
+    return pickIssueTypeId(
+      this.getActiveProjectIssueTypes(projectId),
+      properties?.preferences?.work_items?.last_type_id
+    );
+  });
 
   /**
    * Fetches all work item types of a project.
@@ -118,8 +136,6 @@ export class IssueTypeStore implements IIssueTypeStore {
   createIssueType = async (workspaceSlug: string, projectId: string, data: Partial<TIssueType>) =>
     await this.issueTypeService.createIssueType(workspaceSlug, projectId, data).then((response) => {
       runInAction(() => {
-        // If the new type is the default, reflect exclusivity locally
-        if (response.is_default) this.unsetOtherDefaults(projectId, response.id);
         set(this.typeMap, [response.id], { ...response, project: projectId });
       });
       return response;
@@ -138,13 +154,10 @@ export class IssueTypeStore implements IIssueTypeStore {
     }
     try {
       runInAction(() => {
-        // Reflect the default exclusivity locally
-        if (data.is_default) this.unsetOtherDefaults(projectId, issueTypeId);
         set(this.typeMap, [issueTypeId], { ...originalType, ...data });
       });
       const response = await this.issueTypeService.updateIssueType(workspaceSlug, projectId, issueTypeId, data);
       runInAction(() => {
-        if (response.is_default) this.unsetOtherDefaults(projectId, issueTypeId);
         set(this.typeMap, [issueTypeId], { ...response, project: projectId });
       });
       return response;
@@ -168,12 +181,16 @@ export class IssueTypeStore implements IIssueTypeStore {
   };
 
   /**
-   * Unsets `is_default` on all types of the project except the given one.
+   * Saves the type the user created a work item with as the one to preselect next time in the project.
    */
-  private unsetOtherDefaults = (projectId: string, keepDefaultId: string) => {
-    Object.values(this.typeMap).forEach((type) => {
-      if (type.project === projectId && type.id !== keepDefaultId && type.is_default)
-        set(this.typeMap, [type.id, "is_default"], false);
+  rememberIssueType = async (workspaceSlug: string, projectId: string, issueTypeId: string) => {
+    const memberStore = this.rootStore.memberRoot.project;
+    const properties =
+      memberStore.getProjectUserProperties(projectId) ??
+      (await memberStore.fetchProjectUserProperties(workspaceSlug, projectId));
+    if (properties.preferences?.work_items?.last_type_id === issueTypeId) return;
+    await memberStore.updateProjectUserProperties(workspaceSlug, projectId, {
+      preferences: { ...properties.preferences, work_items: { last_type_id: issueTypeId } },
     });
   };
 }

@@ -387,6 +387,8 @@
         "toggle_description": "Pozwól członkom projektu tworzyć żądania odbioru w aplikacji.",
         "toggle_tooltip_on": "Poproś administratora projektu o włączenie.",
         "toggle_tooltip_off": "Poproś administratora projektu o wyłączenie.",
+        "type_title": "Typ nowych elementów pracy",
+        "type_description": "Elementy pracy przychodzące przez Intake otrzymują ten typ.",
         "notify_assignee": {
           "title": "Powiadom przypisanych",
           "description": "Dla nowego żądania przyjęcia domyślni przypisani zostaną powiadomieni poprzez powiadomienia"

@@ -109,6 +109,8 @@
           "name_placeholder": "Asigne un nombre al elemento de trabajo que crea esta automatización",
           "description_label": "Descripción",
           "description_placeholder": "Describa el elemento de trabajo",
+          "type_label": "Tipo",
+          "type_hint": "Elija un proyecto para elegir el tipo.",
           "state_label": "Estado",
           "priority_label": "Prioridad",
           "assignees_label": "Asignados",

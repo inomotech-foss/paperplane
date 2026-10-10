@@ -387,6 +387,8 @@
         "toggle_description": "Permettre aux membres du projet de créer des demandes de réception dans l'application.",
         "toggle_tooltip_on": "Demandez à l'administrateur du projet de l'activer.",
         "toggle_tooltip_off": "Demandez à l'administrateur du projet de le désactiver.",
+        "type_title": "Type des nouveaux éléments de travail",
+        "type_description": "Les éléments de travail reçus via Intake ont ce type.",
         "notify_assignee": {
           "title": "Notifier les responsables",
           "description": "Pour une nouvelle demande d'ingestion, les responsables par défaut seront alertés via des notifications"

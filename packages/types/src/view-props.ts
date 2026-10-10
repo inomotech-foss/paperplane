@@ -239,6 +239,9 @@ export interface IProjectUserPropertiesResponse extends IIssueFiltersResponse {
       block_display: boolean;
     };
     navigation: IProjectMemberNavigationPreferences;
+    work_items?: {
+      last_type_id?: string;
+    };
   };
 }
 

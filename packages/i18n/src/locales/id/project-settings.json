@@ -387,6 +387,8 @@
         "toggle_description": "Izinkan anggota proyek membuat permintaan penerimaan dalam aplikasi.",
         "toggle_tooltip_on": "Minta Admin Proyek untuk mengaktifkan ini.",
         "toggle_tooltip_off": "Minta Admin Proyek untuk menonaktifkan ini.",
+        "type_title": "Tipe item kerja baru",
+        "type_description": "Item kerja yang masuk melalui Intake mendapat tipe ini.",
         "notify_assignee": {
           "title": "Beritahu yang ditugaskan",
           "description": "Untuk permintaan penerimaan baru, yang ditugaskan secara default akan diberi peringatan melalui notifikasi"

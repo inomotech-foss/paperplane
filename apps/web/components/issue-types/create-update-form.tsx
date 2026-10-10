@@ -10,9 +10,7 @@ import { observer } from "mobx-react";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
-import { Switch } from "@makeplane/propel/components/switch";
 import { TextArea, TextAreaGroup } from "@makeplane/propel/components/text-area";
-import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { EmojiPicker, Logo } from "@plane/blocks/emoji-icon-picker";
 import { setToast } from "@plane/blocks/toast";
 import type { TIssueType, TLogoProps } from "@plane/types";
@@ -43,7 +41,6 @@ export const CreateUpdateIssueTypeForm = observer(function CreateUpdateIssueType
   const [name, setName] = useState(issueTypeToUpdate?.name ?? "");
   const [description, setDescription] = useState(issueTypeToUpdate?.description ?? "");
   const [logoProps, setLogoProps] = useState<TLogoProps>(issueTypeToUpdate?.logo_props ?? DEFAULT_LOGO_PROPS);
-  const [isDefault, setIsDefault] = useState(issueTypeToUpdate?.is_default ?? false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLogoPickerOpen, setIsLogoPickerOpen] = useState(false);
 
@@ -51,7 +48,6 @@ export const CreateUpdateIssueTypeForm = observer(function CreateUpdateIssueType
     setName(issueTypeToUpdate?.name ?? "");
     setDescription(issueTypeToUpdate?.description ?? "");
     setLogoProps(issueTypeToUpdate?.logo_props ?? DEFAULT_LOGO_PROPS);
-    setIsDefault(issueTypeToUpdate?.is_default ?? false);
   }, [issueTypeToUpdate]);
 
   const isUpdating = !!issueTypeToUpdate;
@@ -65,7 +61,6 @@ export const CreateUpdateIssueTypeForm = observer(function CreateUpdateIssueType
         name: trimmedName,
         description: description.trim(),
         logo_props: logoProps,
-        is_default: isDefault,
       };
       if (isUpdating) await operationsCallbacks.updateIssueType(issueTypeToUpdate.id, payload);
       else await operationsCallbacks.createIssueType(payload);
@@ -141,18 +136,7 @@ export const CreateUpdateIssueTypeForm = observer(function CreateUpdateIssueType
           </TextAreaGroup>
         </div>
       </div>
-      <div className="flex items-center justify-between">
-        <Tooltip label={t("work_item_types.settings.set_as_default")}>
-          <div className="flex items-center gap-2">
-            <Switch
-              size="sm"
-              checked={isDefault}
-              onCheckedChange={setIsDefault}
-              aria-label={t("work_item_types.settings.set_as_default")}
-            />
-            <span className="text-13 text-secondary">{t("work_item_types.settings.set_as_default")}</span>
-          </div>
-        </Tooltip>
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-2">
           <Button variant="secondary" onClick={onClose} size="xs" stretch="auto" label={t("common.cancel")} />
           <Button

@@ -539,6 +539,10 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
 
     // add Issue to Store
     this.addIssue(response, shouldUpdateList);
+    // the next work item of the project starts with the same type
+    this.rootIssueStore.rootStore.issueType
+      .rememberIssueType(workspaceSlug, projectId, response.type_id)
+      .catch(() => undefined);
 
     // If shouldUpdateList is true, call fetchParentStats
     // oxlint-disable-next-line no-unused-expressions

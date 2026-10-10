@@ -387,6 +387,8 @@
         "toggle_description": "Povolit členům projektu vytvářet žádosti o příjem v aplikaci.",
         "toggle_tooltip_on": "Požádejte správce projektu, aby to zapnul.",
         "toggle_tooltip_off": "Požádejte správce projektu, aby to vypnul.",
+        "type_title": "Typ nových pracovních položek",
+        "type_description": "Pracovní položky přijaté přes Intake dostanou tento typ.",
         "notify_assignee": {
           "title": "Upozornit přiřazené",
           "description": "Pro novou žádost o příjem budou výchozí přiřazení upozorněni prostřednictvím oznámení"

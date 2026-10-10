@@ -4,9 +4,7 @@
     "label_lowercase": "tipi di elementi di lavoro",
     "settings": {
       "description": "Personalizza e aggiungi le tue proprietà per adattarle alle esigenze del tuo team.",
-      "cant_delete_default_message": "Il tipo di elemento di lavoro non può essere eliminato perché è impostato come tipo predefinito per questo progetto.",
-      "set_as_default": "Imposta come predefinito",
-      "cant_set_default_inactive_message": "Attiva questo tipo prima di impostarlo come predefinito",
+      "cant_delete_epic_message": "Il tipo Epic non può essere eliminato.",
       "set_default_confirmation": {
         "title": "Imposta come tipo di elemento di lavoro predefinito",
         "description": "Impostando {name} come predefinito, verrà importato in tutti i progetti di questo spazio di lavoro. Tutti i nuovi elementi di lavoro utilizzeranno questo tipo per impostazione predefinita.",

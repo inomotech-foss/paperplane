@@ -14,6 +14,7 @@ import { PageHead } from "@/components/core/page-title";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
 import { ProjectSettingsFeatureControlItem } from "@/components/settings/project/content/feature-control-item";
+import { IntakeTypeControlItem } from "@/components/settings/project/content/intake-type-control-item";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -46,7 +47,7 @@ function FeaturesIntakeSettingsPage({ params }: Route.ComponentProps) {
           title={t("project_settings.features.intake.title")}
           description={t("project_settings.features.intake.description")}
         />
-        <div className="mt-7">
+        <div className="mt-7 flex flex-col gap-3">
           <ProjectSettingsFeatureControlItem
             title={t("project_settings.features.intake.toggle_title")}
             description={t("project_settings.features.intake.toggle_description")}
@@ -55,6 +56,9 @@ function FeaturesIntakeSettingsPage({ params }: Route.ComponentProps) {
             value={!!currentProjectDetails?.inbox_view}
             workspaceSlug={workspaceSlug}
           />
+          {currentProjectDetails?.inbox_view && (
+            <IntakeTypeControlItem workspaceSlug={workspaceSlug} projectId={projectId} />
+          )}
         </div>
       </section>
     </SettingsContentWrapper>

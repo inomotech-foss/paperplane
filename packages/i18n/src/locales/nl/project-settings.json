@@ -387,6 +387,8 @@
         "toggle_description": "Laat projectleden in-app intakeverzoeken aanmaken.",
         "toggle_tooltip_on": "Vraag je projectbeheerder om dit aan te zetten.",
         "toggle_tooltip_off": "Vraag je projectbeheerder om dit uit te zetten.",
+        "type_title": "Type van nieuwe werkitems",
+        "type_description": "Werkitems die via Intake binnenkomen krijgen dit type.",
         "notify_assignee": {
           "title": "Toegewezenen op de hoogte stellen",
           "description": "Bij een nieuw intakeverzoek worden de standaard toegewezenen via meldingen gewaarschuwd"

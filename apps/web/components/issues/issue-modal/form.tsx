@@ -48,10 +48,12 @@ import { IssueTypeSelect } from "@/components/issues/issue-modal/issue-type-sele
 // hooks
 import { useIssueModal } from "@/hooks/context/use-issue-modal";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
+import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useWorkspaceDraftIssues } from "@/hooks/store/workspace-draft";
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { usePreselectedIssueTypeId } from "@/hooks/use-preselected-issue-type";
 import { useProjectIssueProperties } from "@/hooks/use-project-issue-properties";
 
 export interface IssueFormProps {
@@ -118,13 +120,13 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
 
   // store hooks
   const { getProjectById } = useProject();
+  const { getActiveProjectIssueTypes } = useIssueTypes();
   const {
     workItemTemplateId,
     isApplyingTemplate,
     selectedParentIssue,
     setWorkItemTemplateId,
     setSelectedParentIssue,
-    getIssueTypeIdOnProjectChange,
     handlePropertyValuesValidation,
     handleCreateUpdatePropertyValues,
     handleTemplateChange,
@@ -155,6 +157,7 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
   } = methods;
 
   const projectId = watch("project_id");
+  const preselectedTypeId = usePreselectedIssueTypeId(workspaceSlug?.toString(), projectId);
 
   const isDisabled = isSubmitting || isApplyingTemplate;
 
@@ -185,19 +188,13 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...dataResetProperties]);
 
-  // Update the issue type id when the project id changes
+  // A new work item starts with the type last used in its project, unless it has a type of that project
   useEffect(() => {
-    const issueTypeId = watch("type_id");
-
-    // if issue type id is present or project not available, return
-    if (issueTypeId || !projectId) return;
-
-    // get issue type id on project change
-    const issueTypeIdOnProjectChange = getIssueTypeIdOnProjectChange(projectId);
-    if (issueTypeIdOnProjectChange) setValue("type_id", issueTypeIdOnProjectChange, { shouldValidate: true });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, projectId]);
+    if (data?.id || !projectId || !preselectedTypeId) return;
+    const issueTypeId = getValues("type_id");
+    if (issueTypeId && getActiveProjectIssueTypes(projectId)?.some((type) => type.id === issueTypeId)) return;
+    setValue("type_id", preselectedTypeId, { shouldValidate: true });
+  }, [data?.id, projectId, preselectedTypeId, getValues, setValue, getActiveProjectIssueTypes]);
 
   useEffect(() => {
     if (workItemTemplateId && editorRef.current) {

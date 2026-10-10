@@ -4,9 +4,7 @@
     "label_lowercase": "werkitemtypes",
     "settings": {
       "description": "Pas eigenschappen aan en voeg je eigen eigenschappen toe zodat ze aansluiten op de behoeften van je team.",
-      "cant_delete_default_message": "Dit werkitemtype kan niet worden verwijderd omdat het is ingesteld als standaard voor dit project",
-      "set_as_default": "Instellen als standaard",
-      "cant_set_default_inactive_message": "Activeer dit type voordat je het als standaard instelt",
+      "cant_delete_epic_message": "Het Epic-type kan niet worden verwijderd.",
       "set_default_confirmation": {
         "title": "Instellen als standaard werkitemtype",
         "description": "Als je {name} als standaard instelt, wordt het geïmporteerd naar alle projecten in deze werkruimte. Alle nieuwe werkitems gebruiken dan standaard dit type.",

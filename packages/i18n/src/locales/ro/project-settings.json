@@ -387,6 +387,8 @@
         "toggle_description": "Permiteți membrilor proiectului să creeze solicitări de recepție în aplicație.",
         "toggle_tooltip_on": "Solicitați administratorului proiectului să activeze.",
         "toggle_tooltip_off": "Solicitați administratorului proiectului să dezactiveze.",
+        "type_title": "Tipul elementelor de lucru noi",
+        "type_description": "Elementele de lucru primite prin Intake primesc acest tip.",
         "notify_assignee": {
           "title": "Notifică persoanele desemnate",
           "description": "Pentru o nouă cerere de primire, persoanele desemnate implicit vor fi alertate prin notificări"

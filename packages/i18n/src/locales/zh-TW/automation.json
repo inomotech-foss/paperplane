@@ -109,6 +109,8 @@
           "name_placeholder": "為此自動化建立的工作項目命名",
           "description_label": "描述",
           "description_placeholder": "描述該工作項目",
+          "type_label": "類型",
+          "type_hint": "請先選擇專案，再選擇類型。",
           "state_label": "狀態",
           "priority_label": "優先順序",
           "assignees_label": "負責人",

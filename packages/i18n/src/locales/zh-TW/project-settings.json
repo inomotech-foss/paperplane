@@ -387,6 +387,8 @@
         "toggle_description": "允許專案成員在應用程式中建立接收請求。",
         "toggle_tooltip_on": "請專案管理員代為開啟。",
         "toggle_tooltip_off": "請專案管理員代為關閉。",
+        "type_title": "新工作項目的類型",
+        "type_description": "透過 Intake 收到的工作項目使用此類型。",
         "notify_assignee": {
           "title": "通知負責人",
           "description": "對於新的接收請求，預設負責人將透過通知收到提醒"

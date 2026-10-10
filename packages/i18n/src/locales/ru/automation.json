@@ -109,6 +109,8 @@
           "name_placeholder": "Укажите название рабочего элемента, который создаёт эта автоматизация",
           "description_label": "Описание",
           "description_placeholder": "Опишите рабочий элемент",
+          "type_label": "Тип",
+          "type_hint": "Выберите проект, чтобы выбрать тип.",
           "state_label": "Статус",
           "priority_label": "Приоритет",
           "assignees_label": "Назначенные",

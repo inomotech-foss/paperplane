@@ -68,7 +68,6 @@ export type TIssueModalContext = {
   setIssuePropertyValues: React.Dispatch<React.SetStateAction<TIssuePropertyValues>>;
   issuePropertyValueErrors: TIssuePropertyValueErrors;
   setIssuePropertyValueErrors: React.Dispatch<React.SetStateAction<TIssuePropertyValueErrors>>;
-  getIssueTypeIdOnProjectChange: (projectId: string) => string | null;
   getActiveAdditionalPropertiesLength: (props: TActiveAdditionalPropertiesProps) => number;
   handlePropertyValuesValidation: (props: TPropertyValuesValidationProps) => boolean;
   handleCreateUpdatePropertyValues: (props: TCreateUpdatePropertyValuesProps) => Promise<void>;

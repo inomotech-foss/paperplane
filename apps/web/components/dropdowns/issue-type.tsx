@@ -43,10 +43,10 @@ export const IssueTypeDropdown = observer(function IssueTypeDropdown(props: Prop
   } = props;
   const { t } = useTranslation();
   // store hooks
-  const { getActiveProjectIssueTypes, getIssueTypeById, getProjectDefaultIssueType } = useIssueTypes();
+  const { getActiveProjectIssueTypes, getIssueTypeById } = useIssueTypes();
   // derived values
   const issueTypes = getActiveProjectIssueTypes(projectId) ?? [];
-  const selectedType = getIssueTypeById(value) ?? getProjectDefaultIssueType(projectId) ?? null;
+  const selectedType = getIssueTypeById(value);
   const resolvedPlaceholder = placeholder ?? t("work_item_types.label");
 
   const resolvedTooltip = useMemo<SelectTooltipOverride | undefined>(() => {

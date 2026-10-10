@@ -387,6 +387,8 @@
         "toggle_description": "Cho phép thành viên dự án tạo yêu cầu tiếp nhận trong ứng dụng.",
         "toggle_tooltip_on": "Yêu cầu Quản trị viên Dự án bật tính năng này.",
         "toggle_tooltip_off": "Yêu cầu Quản trị viên Dự án tắt tính năng này.",
+        "type_title": "Loại của mục công việc mới",
+        "type_description": "Các mục công việc đến qua Intake sẽ có loại này.",
         "notify_assignee": {
           "title": "Thông báo người được chỉ định",
           "description": "Đối với yêu cầu tiếp nhận mới, người được chỉ định mặc định sẽ được cảnh báo qua thông báo"

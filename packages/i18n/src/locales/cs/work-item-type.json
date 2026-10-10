@@ -4,9 +4,7 @@
     "label_lowercase": "typy pracovních položek",
     "settings": {
       "description": "Přizpůsobte si a přidejte vlastní vlastnosti, abyste to upravili podle potřeb vašeho týmu.",
-      "cant_delete_default_message": "Tento typ pracovního položky nelze odstranit, protože je nastaven jako výchozí pro tento projekt.",
-      "set_as_default": "Nastavit jako výchozí",
-      "cant_set_default_inactive_message": "Před nastavením jako výchozí tento typ aktivujte",
+      "cant_delete_epic_message": "Typ Epik nelze odstranit.",
       "set_default_confirmation": {
         "title": "Nastavit jako výchozí typ pracovní položky",
         "description": "Nastavením {name} jako výchozího se tento typ importuje do všech projektů v tomto pracovním prostoru. Všechny nové pracovní položky budou tento typ používat ve výchozím nastavení.",

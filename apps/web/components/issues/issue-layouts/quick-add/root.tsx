@@ -16,6 +16,10 @@ import { AddOutline } from "@makeplane/propel/icons";
 import { setPromiseToast } from "@plane/blocks/toast";
 import type { IProject, TIssue, EIssueLayoutTypes } from "@plane/types";
 import { cn, createIssuePayload } from "@plane/utils";
+// components
+import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
+// hooks
+import { usePreselectedIssueTypeId } from "@/hooks/use-preselected-issue-type";
 // local imports
 import { QuickAddIssueFormRoot } from "./form/root";
 import { useCreateIssueToastActions } from "../../create-issue-toast-action-items";
@@ -28,6 +32,7 @@ export type TQuickAddIssueForm = {
   register: UseFormRegister<TIssue>;
   onSubmit: () => void;
   isEpic: boolean;
+  typeSelect: React.ReactNode;
 };
 
 export type TQuickAddIssueButton = {
@@ -51,6 +56,13 @@ const defaultValues: Partial<TIssue> = {
   name: "",
 };
 
+/** The type the user picked, else the group's, else the one last used in the project. */
+const useQuickAddType = (workspaceSlug: string | undefined, projectId: string | undefined, groupTypeId?: string) => {
+  const [chosenTypeId, setChosenTypeId] = useState<string>();
+  const preselectedTypeId = usePreselectedIssueTypeId(workspaceSlug, projectId);
+  return { typeId: chosenTypeId ?? groupTypeId ?? preselectedTypeId, setChosenTypeId };
+};
+
 export const QuickAddIssueRoot = observer(function QuickAddIssueRoot(props: TQuickAddIssueRoot) {
   const {
     isQuickAddOpen,
@@ -71,6 +83,11 @@ export const QuickAddIssueRoot = observer(function QuickAddIssueRoot(props: TQui
   const buildCreateIssueToastActions = useCreateIssueToastActions();
   // states
   const [isOpen, setIsOpen] = useState(isQuickAddOpen ?? false);
+  const { typeId, setChosenTypeId } = useQuickAddType(
+    workspaceSlug?.toString(),
+    projectId?.toString(),
+    prePopulatedData?.type_id
+  );
   // form info
   const {
     reset,
@@ -108,6 +125,7 @@ export const QuickAddIssueRoot = observer(function QuickAddIssueRoot(props: TQui
       // oxlint-disable-next-line unicorn/no-useless-fallback-in-spread
       ...(prePopulatedData ?? {}),
       ...formData,
+      type_id: typeId,
     });
 
     if (quickAddCallback) {
@@ -150,8 +168,24 @@ export const QuickAddIssueRoot = observer(function QuickAddIssueRoot(props: TQui
           setFocus={setFocus}
           register={register}
           onSubmit={handleSubmit(onSubmitHandler)}
-          onClose={() => handleIsOpen(false)}
+          onClose={() => {
+            setChosenTypeId(undefined);
+            handleIsOpen(false);
+          }}
           isEpic={isEpic}
+          typeSelect={
+            <>
+              <IssueTypeDropdown
+                projectId={projectId.toString()}
+                value={typeId}
+                onChange={setChosenTypeId}
+                variant="pill-sm"
+                className="shrink-0"
+              />
+              {/* The picker adds a hidden field, so Enter needs a submit button to submit the form */}
+              <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true" />
+            </>
+          }
         />
       ) : (
         <>
