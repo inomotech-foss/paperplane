@@ -421,3 +421,16 @@ def test_no_description_warns_about_a_failure_the_caller_cannot_avoid(resource_m
         if phrase in registered[mod.NAME].description.lower()
     ]
     assert not offenders, f"descriptions predicting a refusal instead of letting the API report it: {offenders}"
+
+
+def test_an_intake_item_carries_its_type(registered, spy):
+    registered["intake"].fn(action="create", project_id="p", name="x", type_id="t")
+
+    assert spy.recorder.only().kwargs["data"].model_dump(exclude_none=True) == {"issue": {"name": "x", "type_id": "t"}}
+
+
+def test_an_intake_item_needs_a_type(registered, spy):
+    result = registered["intake"].fn(action="create", project_id="p", name="x")
+
+    assert "type_id" in result
+    assert spy.recorder.calls == []

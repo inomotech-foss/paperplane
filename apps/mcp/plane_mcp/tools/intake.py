@@ -21,10 +21,26 @@ TITLE = "Intake queue"
 
 PRIORITIES = ("urgent", "high", "medium", "low", "none")
 
+
+class TypedIntakeWorkItem(WorkItemForIntakeRequest):
+    """The SDK model drops `type_id`, which the intake needs."""
+
+    type_id: str
+
+
+class CreateTypedIntakeWorkItem(CreateIntakeWorkItem):
+    issue: TypedIntakeWorkItem
+
+
 ACTIONS = (
     Action("list", ("project_id",), ("cursor", "per_page"), read=True),
     Action("retrieve", ("project_id", "workitem_id"), read=True),
-    Action("create", ("project_id", "name"), ("description_html", "priority")),
+    Action(
+        "create",
+        ("project_id", "name", "type_id"),
+        ("description_html", "priority"),
+        note="type_id must be one of the project's types, see `workitem_type list`",
+    ),
     Action(
         "update",
         ("project_id", "workitem_id"),
@@ -61,6 +77,7 @@ def register(mcp: FastMCP) -> None:
         project_id: str = "",
         workitem_id: str = "",
         name: str = "",
+        type_id: str = "",
         description_html: str = "",
         priority: str = "",
         # -2 is a real status, so status uses an explicit unset rather than 0.
@@ -88,15 +105,18 @@ def register(mcp: FastMCP) -> None:
         if action == "create":
             if not name:
                 return missing(action, "name")
+            if not type_id:
+                return missing(action, "type_id")
             if error := one_of("priority", priority, PRIORITIES):
                 return error
             return client.intake.create(
                 workspace_slug=workspace_slug,
                 project_id=project_id,
                 # The SDK requires the work item nested under `issue`; a flat payload is rejected.
-                data=CreateIntakeWorkItem(
-                    issue=WorkItemForIntakeRequest(
+                data=CreateTypedIntakeWorkItem(
+                    issue=TypedIntakeWorkItem(
                         name=name,
+                        type_id=type_id,
                         description_html=opt(description_html),
                         priority=opt(priority),
                     )
