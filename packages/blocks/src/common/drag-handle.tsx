@@ -9,18 +9,18 @@ import { useTranslation } from "@plane/i18n";
 // helpers
 import { cn } from "@plane/utils";
 
-interface IDragHandle {
-  /** Accessible name for the icon-only handle; defaults to the translated "Drag to rearrange". */
+type DragHandleProps = Omit<React.ComponentPropsWithoutRef<"button">, "children" | "type"> & {
+  /** Accessible name for the icon-only handle. Defaults to the translated "Drag to rearrange". */
   "aria-label"?: string;
-  className?: string;
+  /** Renders a placeholder instead of the button. */
   disabled?: boolean;
-}
+};
 
 export const DragHandle = forwardRef(function DragHandle(
-  props: IDragHandle,
+  props: DragHandleProps,
   ref: React.ForwardedRef<HTMLButtonElement | null>
 ) {
-  const { "aria-label": ariaLabel, className, disabled = false } = props;
+  const { "aria-label": ariaLabel, className, disabled = false, onContextMenu, ...rest } = props;
   const { t } = useTranslation();
 
   if (disabled) {
@@ -29,11 +29,13 @@ export const DragHandle = forwardRef(function DragHandle(
 
   return (
     <button
+      {...rest}
       type="button"
       className={cn("flex flex-shrink-0 cursor-grab rounded-sm bg-surface-2 p-0.5 text-secondary", className)}
       onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
+        onContextMenu?.(e);
       }}
       ref={ref}
       aria-label={ariaLabel ?? t("drag_to_rearrange")}
