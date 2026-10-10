@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { observer } from "mobx-react";
 import {
@@ -109,7 +109,7 @@ const setup = (initialEntries: string[], options: TOptions = {}) => {
   );
 
   function LayoutView({ name }: { name: string }) {
-    useEffect(() => {
+    useLayoutEffect(() => {
       fetches.push(name);
     }, [name]);
     return <output data-testid="layout">{name}</output>;
@@ -150,7 +150,7 @@ const setup = (initialEntries: string[], options: TOptions = {}) => {
   function Project() {
     const { projectId = "" } = useParams();
     useSWR(`PROJECT_DETAILS_${projectId}`, projectFetches);
-    useEffect(() => projectMounts(), []);
+    useLayoutEffect(() => projectMounts(), []);
     return <Outlet />;
   }
 
