@@ -27,7 +27,7 @@ function ProjectLandingPage({ params }: Route.ComponentProps) {
   const role = getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId);
   // Same key as ProjectAuthWrapper, so this joins its request.
   const { isLoading: isPreferencesLoading } = useSWR(
-    PROJECT_MEMBER_PREFERENCES(projectId, role),
+    role === undefined ? null : PROJECT_MEMBER_PREFERENCES(projectId, role),
     () => fetchProjectUserProperties(workspaceSlug, projectId),
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
