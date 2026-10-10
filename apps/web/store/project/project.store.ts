@@ -8,13 +8,7 @@ import { sortBy, cloneDeep, update, set } from "lodash-es";
 import { observable, action, computed, makeObservable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // plane imports
-import type {
-  TFetchStatus,
-  TLoader,
-  TProjectAnalyticsCount,
-  TProjectAnalyticsCountParams,
-  TProjectCreatePayload,
-} from "@plane/types";
+import type { TFetchStatus, TLoader, TProjectAnalyticsCount, TProjectAnalyticsCountParams } from "@plane/types";
 // helpers
 import { orderProjects, shouldFilterProject } from "@plane/utils";
 // services
@@ -76,9 +70,8 @@ export interface IProjectStore {
   // project-view action
   updateProjectView: (workspaceSlug: string, projectId: string, viewProps: any) => Promise<any>;
   // CRUD actions
-  createProject: (workspaceSlug: string, data: TProjectCreatePayload) => Promise<TProject>;
+  createProject: (workspaceSlug: string, data: Partial<TProject>) => Promise<TProject>;
   updateProject: (workspaceSlug: string, projectId: string, data: Partial<TProject>) => Promise<TProject>;
-  enableIntake: (workspaceSlug: string, projectId: string, issueTypeId: string) => Promise<TProject>;
   deleteProject: (workspaceSlug: string, projectId: string) => Promise<void>;
   // archive actions
   archiveProject: (workspaceSlug: string, projectId: string) => Promise<void>;
@@ -140,7 +133,6 @@ export class ProjectStore implements IProjectStore {
       // CRUD actions
       createProject: action,
       updateProject: action,
-      enableIntake: action,
       // collapsible actions
       setOpenCollapsibleSection: action,
       setLastCollapsibleAction: action,
@@ -549,7 +541,7 @@ export class ProjectStore implements IProjectStore {
    * @param data
    * @returns Promise<TProject>
    */
-  createProject = async (workspaceSlug: string, data: TProjectCreatePayload) => {
+  createProject = async (workspaceSlug: string, data: Partial<TProject>) => {
     try {
       const response = await this.projectService.createProject(workspaceSlug, data);
       this.processProjectAfterCreation(workspaceSlug, response);
@@ -587,17 +579,6 @@ export class ProjectStore implements IProjectStore {
       });
       throw error;
     }
-  };
-
-  /**
-   * Turns the project's intake on with the type its new work items get
-   */
-  enableIntake = async (workspaceSlug: string, projectId: string, issueTypeId: string) => {
-    const response = await this.projectService.enableIntake(workspaceSlug, projectId, issueTypeId);
-    runInAction(() => {
-      set(this.projectMap, [projectId, "inbox_view"], true);
-    });
-    return response;
   };
 
   /**

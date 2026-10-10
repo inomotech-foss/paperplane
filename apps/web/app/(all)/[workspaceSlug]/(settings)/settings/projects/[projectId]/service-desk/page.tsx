@@ -21,7 +21,6 @@ import { getFileURL, renderFormattedDate, renderFormattedTime } from "@plane/uti
 // components
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { PageHead } from "@/components/core/page-title";
-import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
 import { MemberSelect } from "@/components/dropdowns/member/member-select";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
@@ -29,7 +28,6 @@ import { SettingsHeading } from "@/components/settings/heading";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
-import { useProjectIssueTypes } from "@/hooks/use-preselected-issue-type";
 // services
 import { ServiceDeskService } from "@/services/service-desk.service";
 // local imports
@@ -121,45 +119,18 @@ type TServiceDeskConfigFormProps = {
   workspaceSlug: string;
   projectId: string;
   config: TServiceDeskConfig | undefined;
-  isIntakeOn: boolean;
   onSaved: (config: TServiceDeskConfig) => Promise<unknown>;
 };
 
-function IntakeTypeField(props: {
-  workspaceSlug: string;
-  projectId: string;
-  value: string | undefined;
-  onChange: (value: string) => void;
-}) {
-  const { workspaceSlug, projectId, value, onChange } = props;
-  useProjectIssueTypes(workspaceSlug, projectId);
-  return (
-    <div className="flex flex-col gap-1.5">
-      <h4 className="text-13 font-medium text-primary">Type of new intake work items</h4>
-      <IssueTypeDropdown
-        projectId={projectId}
-        value={value}
-        onChange={onChange}
-        variant="select-md"
-        className="w-full"
-      />
-      <p className="text-body-xs-regular text-tertiary">The intake is off, so saving turns it on with this type.</p>
-    </div>
-  );
-}
-
 /** Holds the editable copy of the config; remounted (see `key`) whenever a new config is fetched. */
 function ServiceDeskConfigForm(props: TServiceDeskConfigFormProps) {
-  const { workspaceSlug, projectId, config, isIntakeOn, onSaved } = props;
+  const { workspaceSlug, projectId, config, onSaved } = props;
   // states
   const [mailboxEmail, setMailboxEmail] = useState(config?.mailbox_email ?? "");
   const [isEnabled, setIsEnabled] = useState(!!config?.is_enabled);
   const [notifyMode, setNotifyMode] = useState<TServiceDeskNotifyMode>(config?.notify_mode ?? "NONE");
   const [notifyUserIds, setNotifyUserIds] = useState<string[]>(config?.notify_user_ids ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [intakeTypeId, setIntakeTypeId] = useState<string>();
-  // tickets land in the intake, so turning it on here needs the type of its work items
-  const needsIntakeType = isEnabled && !isIntakeOn;
 
   const handleSave = async () => {
     setIsSubmitting(true);
@@ -169,7 +140,6 @@ function ServiceDeskConfigForm(props: TServiceDeskConfigFormProps) {
         is_enabled: isEnabled,
         notify_mode: notifyMode,
         notify_user_ids: notifyMode === "CUSTOM" ? notifyUserIds : [],
-        ...(needsIntakeType ? { intake_issue_type_id: intakeTypeId } : {}),
       });
       await onSaved(response);
       setToast({
@@ -220,14 +190,6 @@ function ServiceDeskConfigForm(props: TServiceDeskConfigFormProps) {
           aria-label="Poll this mailbox and create intake work items"
         />
       </div>
-      {needsIntakeType && (
-        <IntakeTypeField
-          workspaceSlug={workspaceSlug}
-          projectId={projectId}
-          value={intakeTypeId}
-          onChange={setIntakeTypeId}
-        />
-      )}
       <div className="flex flex-col gap-4 border-t border-subtle pt-6">
         <h4 className="text-h6-medium text-primary">Notifications</h4>
         <NotifyModeSelect value={notifyMode} onChange={setNotifyMode} />
@@ -249,7 +211,7 @@ function ServiceDeskConfigForm(props: TServiceDeskConfigFormProps) {
           size="md"
           onClick={() => void handleSave()}
           loading={isSubmitting}
-          disabled={isSubmitting || (needsIntakeType && !intakeTypeId)}
+          disabled={isSubmitting}
           stretch="auto"
           label={isSubmitting ? "Saving..." : "Save changes"}
         />
@@ -263,7 +225,7 @@ function ServiceDeskSettingsPage({ params }: Route.ComponentProps) {
   const { workspaceSlug, projectId } = params;
   // store hooks
   const { workspaceUserInfo, allowPermissions } = useUserPermissions();
-  const { currentProjectDetails, fetchProjectDetails } = useProject();
+  const { currentProjectDetails } = useProject();
   // derived values
   const canPerformProjectAdminActions = allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.PROJECT);
   const pageTitle = currentProjectDetails?.name ? `${currentProjectDetails?.name} - Service Desk` : undefined;
@@ -307,12 +269,7 @@ function ServiceDeskSettingsPage({ params }: Route.ComponentProps) {
             workspaceSlug={workspaceSlug}
             projectId={projectId}
             config={config}
-            isIntakeOn={!!currentProjectDetails?.inbox_view}
-            onSaved={async (response) => {
-              await mutate(response, { revalidate: false });
-              // saving may have turned the intake on
-              if (response.is_enabled) await fetchProjectDetails(workspaceSlug, projectId);
-            }}
+            onSaved={(response) => mutate(response, { revalidate: false })}
           />
         )}
       </section>

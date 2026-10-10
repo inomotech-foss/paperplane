@@ -387,12 +387,6 @@
         "toggle_description": "Permitir a los miembros del proyecto crear solicitudes de recepción en la aplicación.",
         "toggle_tooltip_on": "Pide a tu administrador del proyecto que active esto.",
         "toggle_tooltip_off": "Pide a tu administrador del proyecto que desactive esto.",
-        "type_title": "Tipo de los nuevos elementos de trabajo",
-        "type_description": "Los elementos de trabajo que llegan por Intake reciben este tipo.",
-        "type_placeholder": "Tipo de los nuevos elementos de trabajo",
-        "enable_description": "Elija el tipo de los elementos de trabajo que llegan por Intake y luego actívelo.",
-        "create_off": "Sin Intake",
-        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Notificar asignados",
           "description": "Para una nueva solicitud de ingreso, los asignados predeterminados serán alertados mediante notificaciones"

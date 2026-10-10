@@ -181,6 +181,3 @@ export interface ISearchIssueResponse {
 export type TPartialProject = IPartialProject;
 
 export type TProject = TPartialProject & IProject;
-
-/** A new project. Starting with intake on needs the type of the work items that arrive through it. */
-export type TProjectCreatePayload = Partial<TProject> & { intake_issue_type_id?: string };

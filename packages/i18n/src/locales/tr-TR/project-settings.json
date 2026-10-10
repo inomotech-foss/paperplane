@@ -387,12 +387,6 @@
         "toggle_description": "Proje üyelerinin uygulama içinde alım talepleri oluşturmasına izin verin.",
         "toggle_tooltip_on": "Proje Yöneticinizden bunu açmasını isteyin.",
         "toggle_tooltip_off": "Proje Yöneticinizden bunu kapatmasını isteyin.",
-        "type_title": "Yeni iş öğelerinin türü",
-        "type_description": "Intake üzerinden gelen iş öğeleri bu türü alır.",
-        "type_placeholder": "Yeni iş öğelerinin türü",
-        "enable_description": "Intake üzerinden gelen iş öğelerinin türünü seçin, ardından açın.",
-        "create_off": "Intake yok",
-        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Atanan kişileri bildir",
           "description": "Yeni bir alım talebi için varsayılan atanan kişiler bildirimler aracılığıyla uyarılacaktır"

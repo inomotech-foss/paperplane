@@ -387,12 +387,6 @@
         "toggle_description": "Povoliť členom projektu vytvárať žiadosti o príjem v aplikácii.",
         "toggle_tooltip_on": "Požiadajte správcu projektu, aby toto zapol.",
         "toggle_tooltip_off": "Požiadajte správcu projektu, aby toto vypol.",
-        "type_title": "Typ nových pracovných položiek",
-        "type_description": "Pracovné položky prijaté cez Intake dostanú tento typ.",
-        "type_placeholder": "Typ nových pracovných položiek",
-        "enable_description": "Vyberte typ pracovných položiek prijatých cez Intake a potom ho zapnite.",
-        "create_off": "Bez Intake",
-        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Upozorniť priradených",
           "description": "Pre novú žiadosť o príjem budú predvolení priradení upozornení prostredníctvom oznámení"

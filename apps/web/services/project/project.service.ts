@@ -15,7 +15,7 @@ import type {
 } from "@plane/types";
 // helpers
 // plane web types
-import type { TProject, TProjectCreatePayload, TPartialProject } from "@plane/types";
+import type { TProject, TPartialProject } from "@plane/types";
 // services
 import { APIService } from "@/services/api.service";
 
@@ -31,7 +31,7 @@ export class ProjectService extends APIService {
     super(API_BASE_URL);
   }
 
-  async createProject(workspaceSlug: string, data: TProjectCreatePayload): Promise<TProject> {
+  async createProject(workspaceSlug: string, data: Partial<TProject>): Promise<TProject> {
     return this.post(`/api/workspaces/${workspaceSlug}/projects/`, data)
       .then((response) => response?.data)
       .catch((error) => {
@@ -90,18 +90,6 @@ export class ProjectService extends APIService {
 
   async updateProject(workspaceSlug: string, projectId: string, data: Partial<TProject>): Promise<TProject> {
     return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  /** Turns the intake on. Its new work items get `issueTypeId`. */
-  async enableIntake(workspaceSlug: string, projectId: string, issueTypeId: string): Promise<TProject> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/`, {
-      inbox_view: true,
-      intake_issue_type_id: issueTypeId,
-    })
       .then((response) => response?.data)
       .catch((error) => {
         throw error?.response?.data;

@@ -387,12 +387,6 @@
         "toggle_description": "Permitir que membros do projeto criem solicitações de recepção no aplicativo.",
         "toggle_tooltip_on": "Peça ao administrador do projeto para ativar.",
         "toggle_tooltip_off": "Peça ao administrador do projeto para desativar.",
-        "type_title": "Tipo dos novos itens de trabalho",
-        "type_description": "Os itens de trabalho que chegam pelo Intake recebem este tipo.",
-        "type_placeholder": "Tipo dos novos itens de trabalho",
-        "enable_description": "Escolha o tipo dos itens de trabalho que chegam pelo Intake e depois ative-o.",
-        "create_off": "Sem Intake",
-        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Notificar responsáveis",
           "description": "Para uma nova solicitação de recebimento, os responsáveis padrão serão alertados via notificações"

@@ -20,7 +20,6 @@ import {
 } from "@makeplane/propel/icons";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
-import { IntakeEnableControl } from "@/components/settings/project/content/intake-enable-control";
 import { SettingsHeading } from "@/components/settings/heading";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
@@ -142,18 +141,14 @@ export const ProjectFeaturesList = observer(function ProjectFeaturesList(props: 
                 }
                 description={t(`${featureItem.key}_description`)}
                 control={
-                  featureItem.property === "inbox_view" ? (
-                    <IntakeEnableControl workspaceSlug={workspaceSlug} projectId={projectId} disabled={!isAdmin} />
-                  ) : (
-                    <ProjectFeatureToggle
-                      workspaceSlug={workspaceSlug}
-                      projectId={projectId}
-                      featureItem={featureItem}
-                      value={Boolean(currentProjectDetails?.[featureItem.property as keyof IProject])}
-                      handleSubmit={handleSubmit}
-                      disabled={!isAdmin}
-                    />
-                  )
+                  <ProjectFeatureToggle
+                    workspaceSlug={workspaceSlug}
+                    projectId={projectId}
+                    featureItem={featureItem}
+                    value={Boolean(currentProjectDetails?.[featureItem.property as keyof IProject])}
+                    handleSubmit={handleSubmit}
+                    disabled={!isAdmin}
+                  />
                 }
               />
               {/* {currentProjectDetails?.[featureItem.property as keyof IProject] && (

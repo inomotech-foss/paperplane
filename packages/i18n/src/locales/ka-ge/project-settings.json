@@ -387,12 +387,6 @@
         "toggle_description": "Let project members create in app intake requests.",
         "toggle_tooltip_on": "Ask your Project Admin to turn this on.",
         "toggle_tooltip_off": "Ask your Project Admin to turn this off.",
-        "type_title": "ახალი სამუშაო ელემენტების ტიპი",
-        "type_description": "Intake-ით შემოსულ სამუშაო ელემენტებს ეს ტიპი მიენიჭება.",
-        "type_placeholder": "ახალი სამუშაო ელემენტების ტიპი",
-        "enable_description": "აირჩიეთ Intake-ით შემოსული სამუშაო ელემენტების ტიპი და შემდეგ ჩართეთ.",
-        "create_off": "Intake-ის გარეშე",
-        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Notify assignees",
           "description": "For a new request to intake, default assignees will be alerted via notifications"

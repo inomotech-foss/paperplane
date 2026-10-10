@@ -26,10 +26,7 @@ export class ServiceDeskService extends APIService {
   async updateConfig(
     workspaceSlug: string,
     projectId: string,
-    payload: Partial<Pick<TServiceDeskConfig, "mailbox_email" | "is_enabled" | "notify_mode" | "notify_user_ids">> & {
-      /** Needed when enabling turns the project's intake on: the type of its new work items. */
-      intake_issue_type_id?: string;
-    }
+    payload: Partial<Pick<TServiceDeskConfig, "mailbox_email" | "is_enabled" | "notify_mode" | "notify_user_ids">>
   ): Promise<TServiceDeskConfig> {
     return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/service-desk/`, payload)
       .then((res) => res?.data)

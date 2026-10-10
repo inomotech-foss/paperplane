@@ -387,12 +387,6 @@
         "toggle_description": "Projektmitgliedern erlauben, In-App-Aufnahmeanfragen zu erstellen.",
         "toggle_tooltip_on": "Bitten Sie Ihren Projekt-Admin, dies zu aktivieren.",
         "toggle_tooltip_off": "Bitten Sie Ihren Projekt-Admin, dies zu deaktivieren.",
-        "type_title": "Typ neuer Arbeitselemente",
-        "type_description": "Arbeitselemente, die über Intake eingehen, erhalten diesen Typ.",
-        "type_placeholder": "Typ neuer Arbeitselemente",
-        "enable_description": "Typ der über Intake eingehenden Arbeitselemente auswählen und Intake dann einschalten.",
-        "create_off": "Kein Intake",
-        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Zuständige benachrichtigen",
           "description": "Für eine neue Intake-Anfrage werden die Standard-Zuständigen über Benachrichtigungen informiert"
