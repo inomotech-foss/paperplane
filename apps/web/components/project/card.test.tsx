@@ -20,7 +20,7 @@ vi.mock("@/hooks/use-app-router", () => ({ useAppRouter: () => ({ push: vi.fn() 
 vi.mock("./delete-project-modal", () => ({ DeleteProjectModal: () => null }));
 vi.mock("./archive-restore-modal", () => ({ ArchiveRestoreProjectModal: () => null }));
 vi.mock("./join-project-modal", () => ({
-  JoinProjectModal: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div role="dialog">join</div> : null),
+  JoinProjectModal: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <dialog open>join</dialog> : null),
 }));
 
 const baseProject: IProject = {
