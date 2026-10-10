@@ -211,7 +211,7 @@ export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDial
           scope,
           replacement_type_id: replacementTypeId,
           property_mapping: toPropertyMapping(decisions),
-          then: unlink ? "unlink" : undefined,
+          remove_type: unlink ? "unlink" : undefined,
         });
       setChosenTypeId(undefined);
       setDecisions({});

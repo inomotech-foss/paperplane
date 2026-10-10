@@ -210,7 +210,7 @@ export class IssueTypeStore implements IIssueTypeStore {
     const response = await this.migrationService.migrate(workspaceSlug, projectId, issueTypeId, body);
     if (body.dry_run) return response;
     runInAction(() => {
-      if (body.then === "unlink") delete this.typeMap[issueTypeId];
+      if (body.remove_type === "unlink") delete this.typeMap[issueTypeId];
       const replacementTypeId = body.replacement_type_id;
       if (!replacementTypeId) return;
       const workItemIds = body.scope.work_items ? new Set(body.scope.work_items) : undefined;

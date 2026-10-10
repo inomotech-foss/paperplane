@@ -146,7 +146,7 @@ describe("IssueTypeStore.rememberIssueType", () => {
 describe("IssueTypeStore.migrateIssueType", () => {
   it("moves the loaded work items of the project and unlinks the type", async () => {
     const { store, issuesMap } = makeStore(makeProperties());
-    const body = { scope: { project: "p1" }, replacement_type_id: "bug", then: "unlink" as const };
+    const body = { scope: { project: "p1" }, replacement_type_id: "bug", remove_type: "unlink" as const };
 
     await store.migrateIssueType("ws", "p1", "old", body);
 
