@@ -92,7 +92,7 @@ export const IssueActivityItem = observer(function IssueActivityItem(props: TIss
     case "inbox":
       return <IssueInboxActivity {...componentDefaultProps} />;
     case "type":
-      return <IssueTypeActivity {...componentDefaultProps} />;
+      return <IssueTypeActivity {...componentDefaultProps} showIssue={false} />;
     case "property":
       return <IssuePropertyActivity {...componentDefaultProps} />;
     default:
