@@ -1611,6 +1611,26 @@ export interface paths {
         patch: operations["update_work_item_type"];
         trace?: never;
     };
+    "/api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/{issue_type_id}/migrate/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Migrate work item type
+         * @description Move work items of the type in this project to another type, with their custom property values.
+         */
+        post: operations["migrate_work_item_type"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/{issue_type_id}/work-item-properties/": {
         parameters: {
             query?: never;
@@ -2119,6 +2139,26 @@ export interface paths {
          * @description Partially update a work item type. `is_epic` cannot be changed once created.
          */
         patch: operations["update_workspace_work_item_type"];
+        trace?: never;
+    };
+    "/api/v1/workspaces/{slug}/work-item-types/{issue_type_id}/migrate/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Migrate workspace work item type
+         * @description Move work items of the type to another type, with their custom property values.
+         */
+        post: operations["migrate_workspace_work_item_type"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/workspaces/{slug}/work-items/": {
@@ -3250,6 +3290,60 @@ export interface components {
             /** Format: uuid */
             readonly workspace?: string;
         };
+        IssueTypeMigrationOption: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description Work items in scope with this option. */
+            work_items: number;
+        };
+        /** @description What a type migration reaches: the rows in scope and the property values that need a decision. */
+        IssueTypeMigrationPreview: {
+            references: components["schemas"]["IssueTypeUsage"];
+            properties: components["schemas"]["IssueTypeMigrationProperty"][];
+        };
+        /** @description A property of the old type alone that work items in scope have values in. */
+        IssueTypeMigrationProperty: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            property_type: string;
+            is_multi: boolean;
+            relation_type: string | null;
+            /** @description Work items in scope with a value. */
+            work_items: number;
+            options: components["schemas"]["IssueTypeMigrationOption"][];
+        };
+        IssueTypeMigrationRequestRequest: {
+            scope: components["schemas"]["IssueTypeMigrationScopeRequest"];
+            /**
+             * Format: uuid
+             * @description Required while anything in scope uses the type.
+             */
+            replacement_type_id?: string;
+            /** @description Per property of the old type with values: {"target": <property id>, "options": {<old option id>: <new option id or null>}} or {"drop": true}. */
+            property_mapping?: {
+                [key: string]: unknown;
+            };
+            /**
+             * @description "unlink" with a project scope unlinks the type, "delete" with the workspace scope deletes it.
+             *
+             *     * `unlink` - unlink
+             *     * `delete` - delete
+             */
+            then?: components["schemas"]["ThenEnum"];
+            /** @description Only return what the migration would reach. */
+            dry_run?: boolean;
+        };
+        /** @description Exactly one of the fields. */
+        IssueTypeMigrationScopeRequest: {
+            work_items?: string[];
+            /** Format: uuid */
+            project?: string;
+            workspace?: boolean;
+        };
         /**
          * @description Serializer for work item types.
          *
@@ -3266,6 +3360,14 @@ export interface components {
             level?: number;
             external_source?: string | null;
             external_id?: string | null;
+        };
+        /** @description How many rows of a project use a work item type. */
+        IssueTypeUsage: {
+            work_items: number;
+            deleted_work_items: number;
+            drafts: number;
+            intakes: number;
+            automation_actions: number;
         };
         /**
          * @description Full serializer for work item labels with complete metadata.
@@ -4750,6 +4852,12 @@ export interface components {
              */
             updated_by?: string | null;
         };
+        /**
+         * @description * `unlink` - unlink
+         *     * `delete` - delete
+         * @enum {string}
+         */
+        ThenEnum: "unlink" | "delete";
         /**
          * @description * `Africa/Abidjan` - Africa/Abidjan
          *     * `Africa/Accra` - Africa/Accra
@@ -12085,10 +12193,7 @@ export interface operations {
     };
     delete_work_item_type: {
         parameters: {
-            query?: {
-                /** @description The type that work items, intakes and automations still using this type move to. Required only while such rows exist, ignored otherwise. */
-                replacement_type_id?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 issue_type_id: string;
@@ -12136,6 +12241,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Work items or settings still use the type; migrate them first */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     update_work_item_type: {
@@ -12166,6 +12278,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IssueType"];
+                };
+            };
+            /** @description Invalid request data provided */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    migrate_work_item_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_type_id: string;
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueTypeMigrationRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequestRequest"];
+                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueTypeMigrationPreview"];
                 };
             };
             /** @description Invalid request data provided */
@@ -14858,10 +15029,7 @@ export interface operations {
     };
     delete_workspace_work_item_type: {
         parameters: {
-            query?: {
-                /** @description The type that work items, intakes and automations still using this type move to. Required only while such rows exist, ignored otherwise. */
-                replacement_type_id?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 issue_type_id: string;
@@ -14909,6 +15077,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Work items or settings still use the type; migrate them first */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     update_workspace_work_item_type: {
@@ -14939,6 +15114,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IssueType"];
+                };
+            };
+            /** @description Invalid request data provided */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    migrate_workspace_work_item_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_type_id: string;
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueTypeMigrationRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequestRequest"];
+                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueTypeMigrationPreview"];
                 };
             };
             /** @description Invalid request data provided */

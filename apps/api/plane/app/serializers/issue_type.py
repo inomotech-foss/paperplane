@@ -54,3 +54,56 @@ class IssueTypeUsageSerializer(serializers.Serializer):
     drafts = serializers.IntegerField()
     intakes = serializers.IntegerField()
     automation_actions = serializers.IntegerField()
+
+
+class IssueTypeMigrationOptionSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    work_items = serializers.IntegerField(help_text="Work items in scope with this option.")
+
+
+class IssueTypeMigrationPropertySerializer(serializers.Serializer):
+    """A property of the old type alone that work items in scope have values in."""
+
+    id = serializers.UUIDField()
+    project_id = serializers.UUIDField()
+    name = serializers.CharField()
+    property_type = serializers.CharField()
+    is_multi = serializers.BooleanField()
+    relation_type = serializers.CharField(allow_null=True)
+    work_items = serializers.IntegerField(help_text="Work items in scope with a value.")
+    options = IssueTypeMigrationOptionSerializer(many=True)
+
+
+class IssueTypeMigrationPreviewSerializer(serializers.Serializer):
+    """What a type migration reaches: the rows in scope and the property values that need a decision."""
+
+    references = IssueTypeUsageSerializer()
+    properties = IssueTypeMigrationPropertySerializer(many=True)
+
+
+class IssueTypeMigrationScopeSerializer(serializers.Serializer):
+    """Exactly one of the fields."""
+
+    work_items = serializers.ListField(child=serializers.UUIDField(), required=False)
+    project = serializers.UUIDField(required=False)
+    workspace = serializers.BooleanField(required=False)
+
+
+class IssueTypeMigrationRequestSerializer(serializers.Serializer):
+    scope = IssueTypeMigrationScopeSerializer()
+    replacement_type_id = serializers.UUIDField(
+        required=False, help_text="Required while anything in scope uses the type."
+    )
+    property_mapping = serializers.DictField(
+        child=serializers.JSONField(),
+        required=False,
+        help_text="Per property of the old type with values: "
+        '{"target": <property id>, "options": {<old option id>: <new option id or null>}} or {"drop": true}.',
+    )
+    then = serializers.ChoiceField(
+        choices=["unlink", "delete"],
+        required=False,
+        help_text='"unlink" with a project scope unlinks the type, "delete" with the workspace scope deletes it.',
+    )
+    dry_run = serializers.BooleanField(required=False, help_text="Only return what the migration would reach.")

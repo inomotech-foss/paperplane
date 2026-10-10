@@ -22,7 +22,6 @@ from drf_spectacular.types import OpenApiTypes
 
 # Module imports
 from plane.db.models import (
-    IssueType,
     Cycle,
     Module,
     Project,
@@ -42,7 +41,13 @@ from plane.bgtasks.webhook_task import model_activity, webhook_activity
 from plane.utils.exception_logger import log_exception
 from .base import BaseAPIView
 from plane.utils.host import base_host
-from plane.utils.issue_type import enable_intake, intake_type_error, link_starter_type
+from plane.utils.issue_type import (
+    intake_enable_error,
+    link_starter_type,
+    new_project_intake_type,
+    set_up_new_project_intake,
+    turn_on_intake,
+)
 from plane.utils.order_queryset import PROJECT_ORDER_BY_ALLOWLIST, sanitize_order_by
 from plane.api.serializers import (
     ProjectSerializer,
@@ -228,13 +233,14 @@ class ProjectListCreateAPIEndpoint(BaseAPIView):
         Create a new project in the workspace with default states and member assignments.
         Automatically adds the creator as admin and sets up default workflow states.
         """
-        if request.data.get("intake_view"):
-            return Response(
-                {"intake_view": "Turn on intake once the project exists, together with the type of its work items."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         try:
             workspace = Workspace.objects.get(slug=slug)
+            # A project created with intake on needs the type of the work items that arrive through it.
+            intake_type = None
+            if request.data.get("intake_view"):
+                intake_type = new_project_intake_type(workspace.id, request.data.get("intake_issue_type_id"))
+                if isinstance(intake_type, str):
+                    return Response({"intake_issue_type_id": intake_type}, status=status.HTTP_400_BAD_REQUEST)
 
             serializer = ProjectCreateSerializer(data={**request.data}, context={"workspace_id": workspace.id})
 
@@ -277,6 +283,8 @@ class ProjectListCreateAPIEndpoint(BaseAPIView):
                     )
 
                     link_starter_type(serializer.instance)
+                    if intake_type is not None:
+                        set_up_new_project_intake(serializer.instance, intake_type)
 
                     project = self.get_queryset().filter(pk=serializer.instance.id).first()
 
@@ -566,7 +574,7 @@ class ProjectDetailAPIEndpoint(BaseAPIView):
             # Turning intake on needs the type of the work items that arrive through it.
             enabling_intake = bool(intake_view) and not project.intake_view
             intake_type_id = request.data.get("intake_issue_type_id")
-            if enabling_intake and (error := intake_type_error(project, intake_type_id)):
+            if enabling_intake and (error := intake_enable_error(project, intake_type_id)):
                 return Response({"intake_issue_type_id": error}, status=status.HTTP_400_BAD_REQUEST)
 
             if project.archived_at:
@@ -585,7 +593,7 @@ class ProjectDetailAPIEndpoint(BaseAPIView):
             if serializer.is_valid():
                 serializer.save()
                 if enabling_intake:
-                    enable_intake(project, IssueType.objects.get(pk=intake_type_id))
+                    turn_on_intake(project, intake_type_id)
 
                 project = self.get_queryset().filter(pk=serializer.instance.id).first()
 
