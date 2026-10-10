@@ -8,28 +8,33 @@ such property with values must be mapped to a compatible property of the new typ
 dropped explicitly. Properties both types share keep their values untouched.
 """
 
+from collections import defaultdict
 from dataclasses import dataclass
 
 # Django imports
 from django.db import transaction
 from django.db.models import Count
+from django.utils import timezone
 
 # Module imports
 from plane.db.models import (
     AutomationAction,
+    DeployBoard,
     DraftIssue,
-    Intake,
     Issue,
+    IssueActivity,
     IssueProperty,
     IssuePropertyOption,
     IssuePropertyValue,
     IssueType,
     Project,
     ProjectIssueType,
+    ServiceDeskConfig,
 )
 from plane.db.models.issue_property import PropertyDerivationChoices, PropertyTypeChoices
 from plane.utils.derived_properties import schedule_derived_refresh
 from plane.utils.uuid import is_valid_uuid
+from plane.utils.work_item_activity import VALUE_RELATIONS, property_activity, shown_value, type_activity
 
 CREATE_WORK_ITEM_ACTION = "create_work_item"
 COMPUTED = (PropertyDerivationChoices.LOOKUP, PropertyDerivationChoices.ROLLUP)
@@ -107,8 +112,8 @@ class TypeReferences:
     """Every row in `scope` that points at `issue_type`.
 
     Soft-deleted rows count too: they are kept until the nightly purge and must stay valid.
-    Drafts, intakes and automations belong to a project, so only project and workspace
-    scopes reach them.
+    Drafts, published intake forms, service desks and automations belong to a project, so
+    only project and workspace scopes reach them.
     """
 
     def __init__(self, issue_type, scope):
@@ -116,7 +121,8 @@ class TypeReferences:
         self.scope = scope
         self.issues = Issue.all_objects.filter(type_id=issue_type.id, workspace_id=issue_type.workspace_id)
         self.drafts = DraftIssue.all_objects.filter(type_id=issue_type.id, workspace_id=issue_type.workspace_id)
-        self.intakes = Intake.all_objects.filter(issue_type_id=issue_type.id)
+        self.intake_forms = DeployBoard.all_objects.filter(intake_issue_type_id=issue_type.id)
+        self.service_desks = ServiceDeskConfig.all_objects.filter(issue_type_id=issue_type.id)
         actions = AutomationAction.all_objects.filter(
             workspace_id=issue_type.workspace_id,
             action_type=CREATE_WORK_ITEM_ACTION,
@@ -125,12 +131,14 @@ class TypeReferences:
         if scope.kind == WORK_ITEMS:
             self.issues = self.issues.filter(pk__in=scope.work_item_ids)
             self.drafts = self.drafts.none()
-            self.intakes = self.intakes.none()
+            self.intake_forms = self.intake_forms.none()
+            self.service_desks = self.service_desks.none()
             self.actions = []
         elif scope.kind == PROJECT:
             self.issues = self.issues.filter(project_id=scope.project_id)
             self.drafts = self.drafts.filter(project_id=scope.project_id)
-            self.intakes = self.intakes.filter(project_id=scope.project_id)
+            self.intake_forms = self.intake_forms.filter(project_id=scope.project_id)
+            self.service_desks = self.service_desks.filter(project_id=scope.project_id)
             self.actions = [action for action in actions if _action_project_id(action) == scope.project_id]
         else:
             self.actions = list(actions)
@@ -140,17 +148,25 @@ class TypeReferences:
             "work_items": self.issues.filter(deleted_at__isnull=True).count(),
             "deleted_work_items": self.issues.filter(deleted_at__isnull=False).count(),
             "drafts": self.drafts.count(),
-            "intakes": self.intakes.count(),
+            "intake_forms": self.intake_forms.count(),
+            "service_desks": self.service_desks.count(),
             "automation_actions": len(self.actions),
         }
 
     def exist(self):
-        return bool(self.actions or self.issues.exists() or self.drafts.exists() or self.intakes.exists())
+        return bool(
+            self.actions
+            or self.issues.exists()
+            or self.drafts.exists()
+            or self.intake_forms.exists()
+            or self.service_desks.exists()
+        )
 
     def project_ids(self):
         ids = set(self.issues.values_list("project_id", flat=True).distinct())
         ids |= set(self.drafts.exclude(project_id__isnull=True).values_list("project_id", flat=True).distinct())
-        ids |= set(self.intakes.values_list("project_id", flat=True).distinct())
+        ids |= set(self.intake_forms.exclude(project_id__isnull=True).values_list("project_id", flat=True).distinct())
+        ids |= set(self.service_desks.values_list("project_id", flat=True).distinct())
         ids |= {action_project for action in self.actions if (action_project := _action_project_id(action))}
         return {str(project_id) for project_id in ids}
 
@@ -295,39 +311,84 @@ class TypeReferences:
             return f"Choose an option or drop the values for: {', '.join(missing)}."
         return result
 
-    def apply_properties(self, plan):
+    def type_activities(self, replacement, actor_id, epoch):
+        return [
+            type_activity(issue_id, project_id, workspace_id, actor_id, epoch, self.issue_type, replacement)
+            for issue_id, project_id, workspace_id in self.issues.values_list("id", "project_id", "workspace_id")
+        ]
+
+    def apply_properties(self, plan, actor_id, epoch):
+        """Map or drop the values in `plan`. Returns the activities that record it on each work item."""
+        activities = []
         for prop, decision in plan:
-            values = IssuePropertyValue.all_objects.filter(property=prop, issue__in=self.issues)
-            if decision[0] == "drop":
-                values.delete()
-                continue
-            _, target, options = decision
-            # Values the work items already have on the target stay, the moved ones do not overwrite them.
-            kept = set(
-                IssuePropertyValue.objects.filter(property=target, issue__in=self.issues, is_derived=False).values_list(
-                    "issue_id", flat=True
+            rows = list(
+                IssuePropertyValue.all_objects.filter(property=prop, issue__in=self.issues).select_related(
+                    *VALUE_RELATIONS
                 )
             )
-            is_option = prop.property_type == PropertyTypeChoices.OPTION
-            seen = set()
-            for row in values:
-                option_id = options.get(row.value_option_id) if is_option else None
-                key = (row.issue_id, str(option_id))
-                dropped = is_option and option_id is None
-                if row.is_derived or row.deleted_at or row.issue_id in kept or dropped or key in seen:
-                    row.delete(soft=False)
-                    continue
-                seen.add(key)
-                row.property_id = target.id
-                if is_option:
-                    row.value_option_id = option_id
-                row.save(update_fields=["property", "value_option", "updated_at"])
+            # What users see on each work item, the activity records that.
+            shown = defaultdict(list)
+            for row in rows:
+                if not row.is_derived and row.deleted_at is None:
+                    shown[row.issue_id].append(row)
+            before = {issue_id: (issue_rows[0], shown_value(issue_rows)) for issue_id, issue_rows in shown.items()}
+            if decision[0] == "drop":
+                IssuePropertyValue.all_objects.filter(pk__in=[row.pk for row in rows]).delete()
+                moved, target = {}, None
+            else:
+                _, target, options = decision
+                moved = self._move_values(rows, target, options)
+            for issue_id, (row, old) in before.items():
+                if new := moved.get(issue_id):
+                    activities.append(property_activity(row, actor_id, epoch, prop, old, target, shown_value(new)))
+                else:
+                    activities.append(property_activity(row, actor_id, epoch, prop, old))
+        return activities
+
+    def _move_values(self, rows, target, options):
+        """Point `rows` at `target`, deleting those it cannot take. Returns the moved rows by work item."""
+        # Values the work items already have on the target stay, the moved ones do not overwrite them.
+        kept = set(
+            IssuePropertyValue.objects.filter(property=target, issue__in=self.issues, is_derived=False).values_list(
+                "issue_id", flat=True
+            )
+        )
+        is_option = target.property_type == PropertyTypeChoices.OPTION
+        target_options = {str(option.id): option for option in IssuePropertyOption.objects.filter(property=target)}
+        now = timezone.now()
+        seen, removed, moved = set(), [], defaultdict(list)
+        for row in rows:
+            option = target_options.get(str(options.get(row.value_option_id))) if is_option else None
+            key = (row.issue_id, option.id if option else None)
+            if (
+                row.is_derived
+                or row.deleted_at
+                or row.issue_id in kept
+                or (is_option and option is None)
+                or key in seen
+            ):
+                removed.append(row.pk)
+                continue
+            seen.add(key)
+            row.property = target
+            if is_option:
+                row.value_option = option
+            row.updated_at = now
+            moved[row.issue_id].append(row)
+        IssuePropertyValue.all_objects.filter(pk__in=removed).delete()
+        IssuePropertyValue.all_objects.bulk_update(
+            [row for issue_rows in moved.values() for row in issue_rows],
+            ["property", "value_option", "updated_at"],
+            batch_size=1000,
+        )
+        return moved
 
     def move_to(self, replacement):
         """Point every row at `replacement`."""
         self.issues.update(type_id=replacement.id)
         self.drafts.update(type_id=replacement.id)
-        self.intakes.update(issue_type_id=replacement.id)
+        self.intake_forms.update(intake_issue_type_id=replacement.id)
+        self.service_desks.update(issue_type_id=replacement.id)
         for action in self.actions:
             action.config = {**action.config, "type_id": str(replacement.id)}
             action.save(update_fields=["config"])
@@ -388,11 +449,12 @@ def remove_unused_type(issue_type, project_id=None):
         _remove(issue_type, project_id)
 
 
-def migrate_type(issue_type, data, project_id=None):
+def migrate_type(issue_type, data, actor_id, project_id=None):
     """Run or preview a type migration described by a request body. Returns the preview of the scope.
 
     Moves the rows in scope to `replacement_type_id`, maps or drops the old type's property
     values, then unlinks or deletes the type when `remove_type` asks for it, all in one transaction.
+    Each moved work item records the type change and every mapped or dropped value as done by `actor_id`.
     """
     if not isinstance(data, dict):
         raise MigrationError("The body must be an object.")
@@ -427,10 +489,13 @@ def migrate_type(issue_type, data, project_id=None):
         plan = references.plan_properties(replacement, data.get("property_mapping"))
 
     project_ids = references.project_ids()
+    epoch = timezone.now().timestamp()
     with transaction.atomic():
         if has_rows:
-            references.apply_properties(plan)
+            activities = references.type_activities(replacement, actor_id, epoch)
+            activities += references.apply_properties(plan, actor_id, epoch)
             references.move_to(replacement)
+            IssueActivity.objects.bulk_create(activities, batch_size=1000)
         if remove:
             _remove(issue_type, scope.project_id if remove == UNLINK else None)
         for affected in project_ids:

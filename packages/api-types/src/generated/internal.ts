@@ -2637,23 +2637,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/workspaces/{slug}/issue-types/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description The work item types of the workspace, e.g. to pick the intake type of a new project. */
-        get: operations["workspaces_issue_types_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/workspaces/{slug}/issues/": {
         parameters: {
             query?: never;
@@ -7879,6 +7862,8 @@ export interface components {
             readonly project: string | null;
             /** Format: uuid */
             intake: string | null;
+            /** Format: uuid */
+            intake_issue_type: string | null;
         };
         DeployBoardRequest: {
             /** Format: date-time */
@@ -7901,6 +7886,8 @@ export interface components {
             updated_by?: string | null;
             /** Format: uuid */
             intake?: string | null;
+            /** Format: uuid */
+            intake_issue_type?: string | null;
         };
         /**
          * @description * `NONE` - Manual
@@ -8031,8 +8018,6 @@ export interface components {
             readonly project: string;
             /** Format: uuid */
             readonly workspace: string;
-            /** Format: uuid */
-            issue_type: string;
         };
         IntakeIssue: {
             /** Format: uuid */
@@ -8073,8 +8058,6 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
-            /** Format: uuid */
-            issue_type: string;
         };
         /** @description Schema only: the intake state is the project's triage state. */
         IntakeState: {
@@ -8977,7 +8960,8 @@ export interface components {
             work_items: number;
             deleted_work_items: number;
             drafts: number;
-            intakes: number;
+            intake_forms: number;
+            service_desks: number;
             automation_actions: number;
         };
         IssueView: {
@@ -9785,6 +9769,8 @@ export interface components {
             updated_by?: string | null;
             /** Format: uuid */
             intake?: string | null;
+            /** Format: uuid */
+            intake_issue_type?: string | null;
         };
         PatchedEstimateRequest: {
             /** Format: date-time */
@@ -9828,8 +9814,6 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
-            /** Format: uuid */
-            issue_type?: string;
         };
         PatchedIssueAttachmentRequest: {
             /** Format: date-time */
@@ -16760,30 +16744,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    workspaces_issue_types_list: {
-        parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IssueType"][];
-                };
             };
         };
     };

@@ -167,7 +167,7 @@ from .issue.property import (
     BulkIssuePropertyValueEndpoint,
 )
 
-from .issue.type import IssueTypeViewSet, WorkspaceIssueTypeEndpoint
+from .issue.type import IssueTypeViewSet
 
 from .issue.link import IssueLinkViewSet
 

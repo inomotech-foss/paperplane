@@ -10,8 +10,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from plane.db.models import (
-    Intake,
     Issue,
+    IssueType,
     IssueComment,
     IssueEmailMessage,
     IssueEmailThread,
@@ -21,7 +21,7 @@ from plane.db.models import (
 )
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection
 from plane.tests.factories import ProjectFactory, ProjectMemberFactory, UserFactory, WorkspaceMemberFactory
-from plane.utils.issue_type import enable_intake, link_starter_type
+from plane.utils.issue_type import link_starter_type
 
 MAILBOX = "support@example.com"
 
@@ -34,12 +34,8 @@ def project(db, workspace, create_user):
 
 
 @pytest.fixture
-def intake_project(project):
-    """A project whose intake is on, so the service desk can file tickets in it."""
-    enable_intake(project, link_starter_type(project))
-    Project.objects.filter(pk=project.id).update(intake_view=True)
-    project.refresh_from_db()
-    return project
+def task(project):
+    return link_starter_type(project)
 
 
 @pytest.fixture
@@ -101,15 +97,16 @@ class TestServiceDeskConfigEndpoint:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.django_db
-    def test_admin_can_create_and_read_config(self, session_client, workspace, project, intake_project):
+    def test_admin_can_create_and_read_config(self, session_client, workspace, project, task):
         response = session_client.post(
             config_url(workspace, project),
-            {"mailbox_email": "Support@Example.com", "is_enabled": True},
+            {"mailbox_email": "Support@Example.com", "is_enabled": True, "issue_type_id": str(task.id)},
             format="json",
         )
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["mailbox_email"] == MAILBOX
         assert response.data["is_enabled"] is True
+        assert str(response.data["issue_type_id"]) == str(task.id)
 
         # Enabling the service desk switches the project's intake on.
         assert Project.objects.get(pk=project.id).intake_view is True
@@ -128,29 +125,48 @@ class TestServiceDeskConfigEndpoint:
         assert ServiceDeskConfig.objects.filter(project=project).count() == 1
 
     @pytest.mark.django_db
-    def test_enabling_with_the_intake_off_needs_the_intake_type(self, session_client, workspace, project):
+    def test_enabling_needs_the_type_of_the_tickets(self, session_client, workspace, project, task):
         response = session_client.post(
             config_url(workspace, project), {"mailbox_email": MAILBOX, "is_enabled": True}, format="json"
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "intake_issue_type_id" in response.data
+        assert "issue_type_id" in response.data
         assert not ServiceDeskConfig.objects.filter(project=project).exists()
-        assert Project.objects.get(pk=project.id).intake_view is False
 
     @pytest.mark.django_db
-    def test_enabling_with_the_intake_off_turns_it_on_with_the_chosen_type(self, session_client, workspace, project):
-        task = link_starter_type(project)
+    def test_a_type_not_enabled_for_the_project_is_rejected(self, session_client, workspace, project, task):
+        elsewhere = IssueType.objects.create(workspace=workspace, name="Elsewhere")
 
         response = session_client.post(
             config_url(workspace, project),
-            {"mailbox_email": MAILBOX, "is_enabled": True, "intake_issue_type_id": str(task.id)},
+            {"mailbox_email": MAILBOX, "is_enabled": True, "issue_type_id": str(elsewhere.id)},
             format="json",
         )
 
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "issue_type_id" in response.data
+
+    @pytest.mark.django_db
+    def test_a_disabled_config_needs_no_type(self, session_client, workspace, project):
+        response = session_client.post(
+            config_url(workspace, project), {"mailbox_email": MAILBOX, "is_enabled": False}, format="json"
+        )
+
         assert response.status_code == status.HTTP_201_CREATED, response.data
-        assert Project.objects.get(pk=project.id).intake_view is True
-        assert Intake.objects.get(project=project).issue_type_id == task.id
+        assert response.data["issue_type_id"] is None
+
+    @pytest.mark.django_db
+    def test_omitting_the_type_keeps_the_stored_one(self, session_client, workspace, project, task):
+        ServiceDeskConfig.objects.create(project_id=project.id, mailbox_email=MAILBOX, issue_type=task)
+
+        with patch("plane.app.views.service_desk.base.service_desk_maintain_subscriptions"):
+            response = session_client.post(
+                config_url(workspace, project), {"mailbox_email": MAILBOX, "is_enabled": True}, format="json"
+            )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        assert ServiceDeskConfig.objects.get(project=project).issue_type_id == task.id
 
     @pytest.mark.django_db
     def test_invalid_mailbox_email_rejected(self, session_client, workspace, project):
@@ -177,7 +193,9 @@ class TestServiceDeskConfigEndpoint:
 
     @pytest.mark.django_db
     def test_member_can_read_config(self, member_client, workspace, project):
-        ServiceDeskConfig.objects.create(project_id=project.id, mailbox_email=MAILBOX, is_enabled=True)
+        ServiceDeskConfig.objects.create(
+            project_id=project.id, mailbox_email=MAILBOX, is_enabled=True, issue_type=link_starter_type(project)
+        )
         response = member_client.get(config_url(workspace, project))
         assert response.status_code == status.HTTP_200_OK
 
@@ -329,6 +347,7 @@ class TestServiceDeskWebhookEndpoint:
             project_id=project.id,
             mailbox_email=MAILBOX,
             is_enabled=True,
+            issue_type=link_starter_type(project),
             graph_subscription_id="sub-1",
             webhook_client_state="topsecret",
         )
@@ -347,6 +366,7 @@ class TestServiceDeskWebhookEndpoint:
             project_id=project.id,
             mailbox_email=MAILBOX,
             is_enabled=True,
+            issue_type=link_starter_type(project),
             graph_subscription_id="sub-1",
             webhook_client_state="topsecret",
         )
@@ -375,11 +395,11 @@ class TestServiceDeskWebhookEndpoint:
 @pytest.mark.contract
 class TestServiceDeskConfigSubscriptionTrigger:
     @pytest.mark.django_db
-    def test_config_save_triggers_subscription_maintenance(self, session_client, workspace, project, intake_project):
+    def test_config_save_triggers_subscription_maintenance(self, session_client, workspace, project, task):
         with patch("plane.app.views.service_desk.base.service_desk_maintain_subscriptions") as mock_maintain:
             response = session_client.post(
                 config_url(workspace, project),
-                {"mailbox_email": MAILBOX, "is_enabled": True},
+                {"mailbox_email": MAILBOX, "is_enabled": True, "issue_type_id": str(task.id)},
                 format="json",
             )
         assert response.status_code == status.HTTP_201_CREATED
@@ -389,12 +409,13 @@ class TestServiceDeskConfigSubscriptionTrigger:
 @pytest.mark.contract
 class TestServiceDeskNotifySettings:
     @pytest.mark.django_db
-    def test_notify_settings_persist(self, session_client, workspace, project, intake_project, create_user):
+    def test_notify_settings_persist(self, session_client, workspace, project, task, create_user):
         response = session_client.post(
             config_url(workspace, project),
             {
                 "mailbox_email": MAILBOX,
                 "is_enabled": True,
+                "issue_type_id": str(task.id),
                 "notify_mode": "CUSTOM",
                 "notify_user_ids": [str(create_user.id), "not-a-uuid", str(uuid4())],
             },
@@ -415,13 +436,12 @@ class TestServiceDeskNotifySettings:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     @pytest.mark.django_db
-    def test_omitting_notify_fields_keeps_stored_values(
-        self, session_client, workspace, project, intake_project, create_user
-    ):
+    def test_omitting_notify_fields_keeps_stored_values(self, session_client, workspace, project, task, create_user):
         ServiceDeskConfig.objects.create(
             project_id=project.id,
             mailbox_email=MAILBOX,
             is_enabled=True,
+            issue_type=task,
             notify_mode="CUSTOM",
             notify_user_ids=[str(create_user.id)],
         )

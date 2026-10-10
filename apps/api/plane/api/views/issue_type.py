@@ -211,8 +211,8 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
 
         Unlinks the work item type from this project. The `IssueType` row
         itself is only deleted once no project links or uses it. Rejected
-        with 409 while work items, drafts, the intake or automations of the
-        project use the type: move them with the migrate endpoint, which can
+        with 409 while work items, drafts, the intake form, the service desk or
+        automations of the project use the type: move them with the migrate endpoint, which can
         unlink in the same request. Rejected with 400 for the Epic type or the
         project's only remaining active type.
         """
@@ -492,7 +492,7 @@ class IssueTypeMigrateAPIEndpoint(BaseAPIView):
         """
         issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
         try:
-            preview = migrate_type(issue_type, request.data, project_id=str(project_id))
+            preview = migrate_type(issue_type, request.data, request.user.id, project_id=str(project_id))
         except MigrationError as error:
             return Response(error.payload, status=error.status)
         return Response(IssueTypeMigrationPreviewSerializer(preview).data, status=status.HTTP_200_OK)
@@ -525,7 +525,7 @@ class WorkspaceIssueTypeMigrateAPIEndpoint(BaseAPIView):
         """
         issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
         try:
-            preview = migrate_type(issue_type, request.data)
+            preview = migrate_type(issue_type, request.data, request.user.id)
         except MigrationError as error:
             return Response(error.payload, status=error.status)
         return Response(IssueTypeMigrationPreviewSerializer(preview).data, status=status.HTTP_200_OK)

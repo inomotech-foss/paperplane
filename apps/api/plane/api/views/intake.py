@@ -32,7 +32,7 @@ from plane.utils.host import base_host
 from plane.utils.content_validator import validate_html_content
 from .base import BaseAPIView
 from plane.db.models.intake import SourceType
-from plane.utils.issue_type import intake_type_mismatch
+from plane.utils.issue_type import work_item_type_error
 from plane.utils.openapi import (
     intake_docs,
     WORKSPACE_SLUG_PARAMETER,
@@ -155,7 +155,7 @@ class IntakeIssueListCreateAPIEndpoint(BaseAPIView):
         project = Project.objects.get(workspace__slug=slug, pk=project_id)
 
         # Intake view
-        if intake is None:
+        if intake is None and not project.intake_view:
             return Response(
                 {"error": "Intake is not enabled for this project enable it through the project's api"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -187,7 +187,7 @@ class IntakeIssueListCreateAPIEndpoint(BaseAPIView):
 
         # create an issue
         issue_data = request.data.get("issue", {})
-        if error := intake_type_mismatch(intake, issue_data.get("type_id")):
+        if error := work_item_type_error(project_id, issue_data.get("type_id")):
             return Response({"type_id": error}, status=status.HTTP_400_BAD_REQUEST)
         # Accept both "description" and "description_json" keys for the description_json field
         description_json = issue_data.get("description") or issue_data.get("description_json") or {}
@@ -202,7 +202,7 @@ class IntakeIssueListCreateAPIEndpoint(BaseAPIView):
             priority=issue_data.get("priority", "none"),
             project_id=project_id,
             state_id=triage_state.id,
-            type_id=intake.issue_type_id,
+            type_id=issue_data["type_id"],
         )
 
         # create an intake issue

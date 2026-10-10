@@ -42,9 +42,7 @@ def project(db, workspace, create_user):
 
 @pytest.fixture
 def intake_issue(db, project, workspace, create_user):
-    intake = Intake.objects.create(
-        name="Intake", project=project, workspace=workspace, is_default=True, issue_type=link_starter_type(project)
-    )
+    intake = Intake.objects.create(name="Intake", project=project, workspace=workspace, is_default=True)
     issue = Issue.objects.create(
         name="Intake Issue",
         project=project,

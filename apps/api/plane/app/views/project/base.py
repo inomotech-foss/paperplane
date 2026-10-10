@@ -22,12 +22,14 @@ from plane.app.serializers import (
     ProjectListSerializer,
     ProjectSerializer,
 )
+from plane.app.serializers.project import intake_form_error
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.bgtasks.recent_visited_task import recent_visited_task
 from plane.bgtasks.webhook_task import model_activity, webhook_activity
 from plane.db.models import (
     UserFavorite,
     DeployBoard,
+    Intake,
     Project,
     ProjectIdentifier,
     ProjectMember,
@@ -46,13 +48,7 @@ from plane.utils.issue_sequence import (
     issue_sequence_start_error,
     set_next_issue_sequence,
 )
-from plane.utils.issue_type import (
-    intake_enable_error,
-    link_starter_type,
-    new_project_intake_type,
-    set_up_new_project_intake,
-    turn_on_intake,
-)
+from plane.utils.issue_type import link_starter_type
 from plane.utils.order_queryset import PROJECT_ORDER_BY_ALLOWLIST, sanitize_order_by
 
 
@@ -270,16 +266,8 @@ class ProjectViewSet(BaseViewSet):
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def create(self, request, slug):
         workspace = Workspace.objects.get(slug=slug)
-        # A project created with intake on needs the type of the work items that arrive through it.
-        intake_type = None
-        if request.data.get("intake_view") or request.data.get("inbox_view"):
-            intake_type = new_project_intake_type(workspace.id, request.data.get("intake_issue_type_id"))
-            if isinstance(intake_type, str):
-                return Response({"intake_issue_type_id": intake_type}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = ProjectSerializer(
-            data={**request.data, "intake_view": intake_type is not None}, context={"workspace_id": workspace.id}
-        )
+        serializer = ProjectSerializer(data={**request.data}, context={"workspace_id": workspace.id})
         if serializer.is_valid():
             serializer.save()
 
@@ -316,8 +304,6 @@ class ProjectViewSet(BaseViewSet):
             )
 
             link_starter_type(serializer.instance)
-            if intake_type is not None:
-                set_up_new_project_intake(serializer.instance, intake_type)
 
             project = self.get_queryset().filter(pk=serializer.data["id"]).first()
 
@@ -364,11 +350,6 @@ class ProjectViewSet(BaseViewSet):
 
         project = Project.objects.get(pk=pk, workspace__slug=slug)
         intake_view = request.data.get("inbox_view", project.intake_view)
-        # Turning intake on needs the type of the work items that arrive through it.
-        enabling_intake = bool(intake_view) and not project.intake_view
-        intake_type_id = request.data.get("intake_issue_type_id")
-        if enabling_intake and (error := intake_enable_error(project, intake_type_id)):
-            return Response({"intake_issue_type_id": error}, status=status.HTTP_400_BAD_REQUEST)
         current_instance = json.dumps(ProjectSerializer(project).data, cls=DjangoJSONEncoder)
         if project.archived_at:
             return Response(
@@ -385,8 +366,14 @@ class ProjectViewSet(BaseViewSet):
 
         if serializer.is_valid():
             serializer.save()
-            if enabling_intake:
-                turn_on_intake(project, intake_type_id)
+            if intake_view:
+                intake = Intake.objects.filter(project=project, is_default=True).first()
+                if not intake:
+                    Intake.objects.create(
+                        name=f"{project.name} Intake",
+                        project=project,
+                        is_default=True,
+                    )
 
             project = self.get_queryset().filter(pk=serializer.data["id"]).first()
 
@@ -598,6 +585,9 @@ class DeployBoardViewSet(BaseViewSet):
         comments = request.data.get("is_comments_enabled", False)
         reactions = request.data.get("is_reactions_enabled", False)
         intake = request.data.get("intake", None)
+        intake_issue_type = request.data.get("intake_issue_type", None) if intake else None
+        if intake and (error := intake_form_error(project_id, intake, intake_issue_type)):
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
         votes = request.data.get("is_votes_enabled", False)
         views = request.data.get(
             "views",
@@ -613,7 +603,8 @@ class DeployBoardViewSet(BaseViewSet):
         project_deploy_board, _ = DeployBoard.objects.get_or_create(
             entity_name="project", entity_identifier=project_id, project_id=project_id
         )
-        project_deploy_board.intake = intake
+        project_deploy_board.intake_id = intake
+        project_deploy_board.intake_issue_type_id = intake_issue_type
         project_deploy_board.view_props = views
         project_deploy_board.is_votes_enabled = votes
         project_deploy_board.is_comments_enabled = comments

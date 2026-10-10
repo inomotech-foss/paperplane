@@ -52,7 +52,6 @@ from plane.utils.timezone_converter import user_timezone_converter
 from plane.utils.global_paginator import paginate
 from plane.utils.host import base_host
 from plane.db.models.intake import SourceType
-from plane.utils.issue_type import intake_type_mismatch
 
 
 class IntakeViewSet(BaseViewSet):
@@ -79,18 +78,6 @@ class IntakeViewSet(BaseViewSet):
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def perform_create(self, serializer):
         serializer.save(project_id=self.kwargs.get("project_id"))
-
-    def get_serializer_context(self):
-        return {**super().get_serializer_context(), "project_id": self.kwargs.get("project_id")}
-
-    @allow_permission([ROLE.ADMIN])
-    def partial_update(self, request, slug, project_id, pk):
-        intake = self.get_queryset().get(pk=pk)
-        serializer = IntakeSerializer(intake, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def destroy(self, request, slug, project_id, pk):
@@ -267,13 +254,6 @@ class IntakeIssueViewSet(BaseViewSet):
             )
         request.data["issue"]["state_id"] = triage_state.id
 
-        intake = Intake.objects.filter(workspace__slug=slug, project_id=project_id).first()
-        if intake is None:
-            return Response({"error": "Intake is not enabled for this project"}, status=status.HTTP_400_BAD_REQUEST)
-        if error := intake_type_mismatch(intake, request.data["issue"].get("type_id")):
-            return Response({"type_id": error}, status=status.HTTP_400_BAD_REQUEST)
-        request.data["issue"]["type_id"] = intake.issue_type_id
-
         # create an issue
         serializer = IssueCreateSerializer(
             data=request.data.get("issue"),
@@ -286,9 +266,10 @@ class IntakeIssueViewSet(BaseViewSet):
         )
         if serializer.is_valid():
             serializer.save()
+            intake_id = Intake.objects.filter(workspace__slug=slug, project_id=project_id).first()
             # create an intake issue
             intake_issue = IntakeIssue.objects.create(
-                intake_id=intake.id,
+                intake_id=intake_id.id,
                 project_id=project_id,
                 issue_id=serializer.data["id"],
                 source=SourceType.IN_APP,
@@ -338,7 +319,7 @@ class IntakeIssueViewSet(BaseViewSet):
                     ),
                 )
                 .get(
-                    intake_id=intake.id,
+                    intake_id=intake_id.id,
                     issue_id=serializer.data["id"],
                     project_id=project_id,
                 )

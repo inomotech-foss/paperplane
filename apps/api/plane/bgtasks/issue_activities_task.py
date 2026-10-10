@@ -27,6 +27,7 @@ from plane.db.models import (
     IssueComment,
     IssueReaction,
     IssueSubscriber,
+    IssueType,
     Label,
     Module,
     Project,
@@ -38,6 +39,7 @@ from plane.settings.redis import redis_instance
 from plane.utils.exception_logger import log_exception
 from plane.utils.issue_relation_mapper import get_inverse_relation
 from plane.utils.uuid import is_valid_uuid
+from plane.utils.work_item_activity import type_activity
 
 
 def extract_ids(data: dict | None, primary_key: str, fallback_key: str) -> set[str]:
@@ -157,6 +159,24 @@ def track_parent(
                 epoch=epoch,
             )
         )
+
+
+def track_type(
+    requested_data,
+    current_instance,
+    issue_id,
+    project_id,
+    workspace_id,
+    actor_id,
+    issue_activities,
+    epoch,
+):
+    old_id, new_id = current_instance.get("type_id"), requested_data.get("type_id")
+    if not new_id or str(old_id) == str(new_id) or not is_valid_uuid(str(new_id)):
+        return
+    old_type = IssueType.objects.filter(pk=old_id).first() if old_id and is_valid_uuid(str(old_id)) else None
+    new_type = IssueType.objects.filter(pk=new_id).first()
+    issue_activities.append(type_activity(issue_id, project_id, workspace_id, actor_id, epoch, old_type, new_type))
 
 
 # Track changes in priority
@@ -606,6 +626,7 @@ def update_issue_activity(
     ISSUE_ACTIVITY_MAPPER = {
         "name": track_name,
         "parent_id": track_parent,
+        "type_id": track_type,
         "priority": track_priority,
         "state_id": track_state,
         "description_html": track_description,

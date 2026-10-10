@@ -38,6 +38,7 @@ from plane.utils.issue_property import (
     validate_value_payload,
     value_to_json,
 )
+from plane.utils.work_item_activity import record_value_changes, value_rows
 from plane.utils.openapi import (
     issue_property_docs,
     FIELDS_PARAMETER,
@@ -606,10 +607,12 @@ class IssuePropertyValueAPIEndpoint(BaseAPIView):
         if error is not None:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
+        before = value_rows(issue, properties.keys())
         with transaction.atomic():
             # Replace semantics: drop existing values of the listed properties
             IssuePropertyValue.objects.filter(issue=issue, property_id__in=properties.keys()).delete(soft=False)
             IssuePropertyValue.objects.bulk_create(new_rows)
+            record_value_changes(issue, properties, before, request.user.id)
 
         # values inherited from this one, or rolled up from it, change too
         refresh_derived_values_now(project_id)
@@ -678,9 +681,11 @@ class IssuePropertySingleValueAPIEndpoint(BaseAPIView):
             row.external_id = request.data.get("external_id")
             row.external_source = request.data.get("external_source")
 
+        before = value_rows(issue, [issue_property.id])
         with transaction.atomic():
             IssuePropertyValue.objects.filter(issue=issue, property_id=property_id).delete(soft=False)
             IssuePropertyValue.objects.bulk_create(new_rows)
+            record_value_changes(issue, {issue_property.id: issue_property}, before, request.user.id)
         refresh_derived_values_now(project_id)
         return issue_property, None
 

@@ -2536,7 +2536,7 @@ export interface components {
          */
         IntakeIssueCreateRequest: {
             /** @description Issue data for the intake issue */
-            issue: components["schemas"]["IssueForIntakeRequest"];
+            issue: components["schemas"]["IssueForIntakeCreateRequest"];
         };
         /**
          * @description * `-2` - Pending
@@ -2886,6 +2886,21 @@ export interface components {
             estimate_point?: string | null;
             /** Format: uuid */
             type: string;
+        };
+        /** @description Work item data of a new intake submission, which names its type. */
+        IssueForIntakeCreateRequest: {
+            /** Issue Name */
+            name: string;
+            description?: unknown;
+            description_json?: unknown;
+            description_html?: string;
+            /** Issue Priority */
+            priority?: components["schemas"]["PriorityEnum"];
+            /**
+             * Format: uuid
+             * @description The work item type. Must be enabled for the project.
+             */
+            type_id: string;
         };
         /**
          * @description Serializer for work item data within intake submissions.
@@ -3366,7 +3381,8 @@ export interface components {
             work_items: number;
             deleted_work_items: number;
             drafts: number;
-            intakes: number;
+            intake_forms: number;
+            service_desks: number;
             automation_actions: number;
         };
         /**
