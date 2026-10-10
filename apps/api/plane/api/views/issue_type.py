@@ -492,7 +492,7 @@ class IssueTypeMigrateAPIEndpoint(BaseAPIView):
         """
         issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
         try:
-            preview = migrate_type(issue_type, request.data, project_id=str(project_id))
+            preview = migrate_type(issue_type, request.data, request.user.id, project_id=str(project_id))
         except MigrationError as error:
             return Response(error.payload, status=error.status)
         return Response(IssueTypeMigrationPreviewSerializer(preview).data, status=status.HTTP_200_OK)
@@ -525,7 +525,7 @@ class WorkspaceIssueTypeMigrateAPIEndpoint(BaseAPIView):
         """
         issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
         try:
-            preview = migrate_type(issue_type, request.data)
+            preview = migrate_type(issue_type, request.data, request.user.id)
         except MigrationError as error:
             return Response(error.payload, status=error.status)
         return Response(IssueTypeMigrationPreviewSerializer(preview).data, status=status.HTTP_200_OK)

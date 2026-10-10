@@ -3,10 +3,13 @@
 
 """Moving work items to another type, with the custom property values they carry."""
 
+import json
+
 import pytest
 from django.utils import timezone
 from rest_framework import status
 
+from plane.bgtasks.issue_activities_task import update_issue_activity
 from plane.db.models import (
     Automation,
     AutomationAction,
@@ -14,6 +17,7 @@ from plane.db.models import (
     DraftIssue,
     Intake,
     Issue,
+    IssueActivity,
     IssueProperty,
     IssuePropertyOption,
     IssuePropertyValue,
@@ -566,6 +570,98 @@ class TestPropertyMapping:
         assert values_of(story) == {("bug size", "S"), ("notes", "kept")}
 
 
+def activities(item, field):
+    return {
+        (row.old_value, row.new_value, row.old_identifier, row.new_identifier, row.actor_id)
+        for row in IssueActivity.objects.filter(issue=item, field=field)
+    }
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestActivity:
+    body = TestPropertyMapping.body
+
+    def test_the_type_change_and_every_moved_value_are_recorded(
+        self, session_client, workspace, sales, types, story, story_properties, create_user
+    ):
+        p = story_properties
+        mapping = {
+            str(p["size"].id): {"target": str(p["bug_size"].id)},
+            str(p["level"].id): {
+                "target": str(p["severity"].id),
+                "options": {str(p["level_options"]["Low"].id): str(p["severity_options"]["Medium"].id)},
+            },
+        }
+
+        response = migrate(session_client, workspace, sales, types["Story"], self.body(story, types, mapping))
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        assert activities(story, "type") == {("Story", "Bug", types["Story"].id, types["Bug"].id, create_user.id)}
+        assert activities(story, "property") == {
+            ("XL", "XL", p["size"].id, p["bug_size"].id, create_user.id),
+            ("Low", "Medium", p["level"].id, p["severity"].id, create_user.id),
+        }
+
+    def test_dropped_values_are_recorded_as_removed(
+        self, session_client, workspace, sales, types, story, story_properties, create_user
+    ):
+        p = story_properties
+        set_value(story, p["bug_size"], value_text="S")
+        mapping = {
+            str(p["size"].id): {"target": str(p["bug_size"].id)},
+            str(p["level"].id): {"drop": True},
+        }
+
+        response = migrate(session_client, workspace, sales, types["Story"], self.body(story, types, mapping))
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        # Size gave way to the value Bug size already had, so it is gone as well.
+        assert activities(story, "property") == {
+            ("XL", None, p["size"].id, None, create_user.id),
+            ("Low", None, p["level"].id, None, create_user.id),
+        }
+
+    def test_every_moved_item_records_its_type_change(self, session_client, workspace, sales, types):
+        rows = make_rows(workspace, sales, types["Story"])
+
+        response = migrate(
+            session_client,
+            workspace,
+            sales,
+            types["Story"],
+            {"scope": {"project": str(sales.id)}, "replacement_type_id": str(types["Bug"].id)},
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        recorded = IssueActivity.objects.filter(field="type", new_identifier=types["Bug"].id)
+        assert set(recorded.values_list("issue_id", flat=True)) == {
+            rows[key].id for key in ("live", "archived", "deleted")
+        }
+
+    @pytest.mark.parametrize("api", ["app", "v1"])
+    def test_a_manual_value_change_is_recorded(
+        self, request, api, workspace, sales, story, story_properties, create_user
+    ):
+        size = story_properties["size"]
+        if api == "app":
+            client = request.getfixturevalue("session_client")
+            url = f"/api/workspaces/{workspace.slug}/projects/{sales.id}/issues/{story.id}/property-values/"
+        else:
+            client = request.getfixturevalue("api_key_client")
+            url = f"/api/v1/workspaces/{workspace.slug}/projects/{sales.id}/work-items/{story.id}/property-values/"
+
+        changed = client.put(url, {str(size.id): "L"}, format="json")
+        unchanged = client.put(url, {str(size.id): "L"}, format="json")
+        cleared = client.put(url, {str(size.id): None}, format="json")
+
+        assert [r.status_code for r in (changed, unchanged, cleared)] == [status.HTTP_200_OK] * 3
+        assert activities(story, "property") == {
+            ("XL", "L", size.id, size.id, create_user.id),
+            ("L", None, size.id, size.id, create_user.id),
+        }
+
+
 @pytest.mark.contract
 @pytest.mark.django_db
 class TestTypeChangeOnUpdate:
@@ -600,3 +696,22 @@ class TestTypeChangeOnUpdate:
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert type_of(item) == str(types["Bug"].id)
+
+    def test_a_type_change_is_recorded(self, workspace, sales, types, create_user):
+        item = Issue.objects.create(name="Plain", workspace=workspace, project=sales, type=types["Story"])
+        recorded = []
+
+        update_issue_activity(
+            requested_data=json.dumps({"type_id": str(types["Bug"].id)}),
+            current_instance=json.dumps({"type_id": str(types["Story"].id)}),
+            issue_id=item.id,
+            project_id=sales.id,
+            workspace_id=workspace.id,
+            actor_id=create_user.id,
+            issue_activities=recorded,
+            epoch=1,
+        )
+
+        assert [(row.field, row.old_value, row.new_value, row.new_identifier) for row in recorded] == [
+            ("type", "Story", "Bug", types["Bug"].id)
+        ]

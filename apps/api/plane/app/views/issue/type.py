@@ -120,7 +120,7 @@ class IssueTypeViewSet(BaseViewSet):
                 {"error": "Only project admins can migrate the whole project."}, status=status.HTTP_403_FORBIDDEN
             )
         try:
-            preview = migrate_type(issue_type, request.data, project_id=str(project_id))
+            preview = migrate_type(issue_type, request.data, request.user.id, project_id=str(project_id))
         except MigrationError as error:
             return Response(error.payload, status=error.status)
         return Response(IssueTypeMigrationPreviewSerializer(preview).data, status=status.HTTP_200_OK)
