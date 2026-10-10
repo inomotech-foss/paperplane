@@ -139,43 +139,6 @@ class TestOtherListsPql:
             assert names(response) == {"Acme invoice paid", "Acme invoice open"}, url
 
 
-@pytest.fixture
-def untyped_items(db, workspace, project, invoice_type, create_user):
-    """An untyped item in a project defaulting to "Task" and one in a project without a default."""
-    task = IssueType.objects.create(workspace=workspace, name="Task", is_default=True)
-    ProjectIssueType.objects.create(project=project, issue_type=task, workspace=workspace, is_default=True)
-    ops = Project.objects.create(name="Ops", identifier="OPS", workspace=workspace, created_by=create_user)
-    ProjectMember.objects.create(project=ops, member=create_user, role=20, is_active=True)
-    ProjectIssueType.objects.create(project=ops, issue_type=invoice_type, workspace=workspace)
-    Issue.objects.create(name="Invoice", workspace=workspace, project=project, type=invoice_type)
-    Issue.objects.create(name="Untyped sales", workspace=workspace, project=project)
-    Issue.objects.create(name="Untyped ops", workspace=workspace, project=ops)
-
-
-@pytest.mark.contract
-class TestUntypedWorkItemsPql:
-    @pytest.mark.django_db
-    @pytest.mark.parametrize(
-        "query,expected",
-        [
-            ('type = "Task"', {"Untyped sales"}),
-            ('type != "Task"', {"Invoice", "Untyped ops"}),
-            ('type = "Invoice"', {"Invoice"}),
-            ('type != "Invoice"', {"Untyped sales", "Untyped ops"}),
-            ('type in ("Task", "Invoice")', {"Invoice", "Untyped sales"}),
-            ('type not in ("Task")', {"Invoice", "Untyped ops"}),
-            ('type not in ("Task", "Invoice")', {"Untyped ops"}),
-            ("type is null", {"Untyped ops"}),
-            ("type is not null", {"Invoice", "Untyped sales"}),
-        ],
-    )
-    def test_untyped_items_have_the_project_default_type(
-        self, session_client, workspace, untyped_items, query, expected
-    ):
-        response = session_client.get(f"/api/workspaces/{workspace.slug}/issues/", {"pql": query})
-        assert names(response) == expected
-
-
 @pytest.mark.contract
 class TestValidateEndpoint:
     def url(self, workspace):

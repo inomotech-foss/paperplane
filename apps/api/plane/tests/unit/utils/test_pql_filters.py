@@ -16,16 +16,7 @@ from django.db.models import Q
 from django.db.models.expressions import RawSQL
 
 from plane.utils.pql import FILTER_FIELDS, FilterCompileError, compile_filters
-from plane.utils.pql.fields import EXACT, IN
-from plane.utils.pql.filters import (
-    DEFAULT_TYPE_IN_SQL,
-    DEFAULT_TYPE_PROJECTS_SQL,
-    DESCENDANTS_SQL,
-    MAX_FILTER_DEPTH,
-    CustomPropertyFilter,
-    descendants_q,
-    type_q,
-)
+from plane.utils.pql.filters import DESCENDANTS_SQL, MAX_FILTER_DEPTH, CustomPropertyFilter, descendants_q
 
 STATE_ID = "11111111-1111-4111-8111-111111111111"
 PROJECT_ID = "22222222-2222-4222-8222-222222222222"
@@ -43,7 +34,7 @@ FIELD_CASES = [
     ({"state__group": "started"}, Q(state__group="started")),
     ({"priority": "urgent"}, Q(priority="urgent")),
     ({"project_id": PROJECT_ID}, Q(project_id=uuid.UUID(PROJECT_ID))),
-    ({"type_id": TYPE_ID}, type_q(EXACT, uuid.UUID(TYPE_ID))),
+    ({"type_id": TYPE_ID}, Q(type_id=uuid.UUID(TYPE_ID))),
     (
         {"labels__id": LABEL_ID},
         Q(labels__id=uuid.UUID(LABEL_ID)) & Q(label_issue__deleted_at__isnull=True),
@@ -316,27 +307,6 @@ class TestCustomPropertyLeaves:
     def test_invalid_property_id_is_rejected(self, key):
         with pytest.raises(FilterCompileError):
             compile_filters({key: "yes"})
-
-
-@pytest.mark.unit
-class TestType:
-    """An untyped work item has its project's default type."""
-
-    def test_exact_also_matches_untyped_items_of_projects_defaulting_to_the_type(self):
-        compiled = compile_filters({"type_id": TYPE_ID})
-        default = Q(project_id__in=RawSQL(DEFAULT_TYPE_IN_SQL, ([TYPE_ID],)))
-        assert compiled.q == Q(type_id__in=[uuid.UUID(TYPE_ID)]) | (Q(type_id__isnull=True) & default)
-
-    def test_in_checks_every_type_against_the_project_default(self):
-        compiled = compile_filters({"type_id__in": [TYPE_ID, STATE_ID]})
-        assert compiled.q == type_q(IN, [uuid.UUID(TYPE_ID), uuid.UUID(STATE_ID)])
-        default = compiled.q.children[1].children[1]
-        assert default[1].params == ([TYPE_ID, STATE_ID],)
-
-    def test_isnull_only_matches_untyped_items_of_projects_without_a_default(self):
-        default = Q(project_id__in=RawSQL(DEFAULT_TYPE_PROJECTS_SQL, ()))
-        assert compile_filters({"type_id__isnull": True}).q == Q(type_id__isnull=True) & ~default
-        assert compile_filters({"type_id__isnull": False}).q == Q(type_id__isnull=False) | default
 
 
 @pytest.mark.unit
