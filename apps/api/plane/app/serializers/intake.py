@@ -3,6 +3,7 @@
 # See the LICENSE file for details.
 
 # Third party frameworks
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 # Module imports
@@ -15,6 +16,8 @@ from plane.db.models import Intake, IntakeIssue, Issue, StateGroup, State
 from plane.utils.issue_type import is_type_linked
 
 
+# The intake list endpoint returns the project's one intake.
+@extend_schema_serializer(many=False)
 class IntakeSerializer(BaseSerializer):
     project_detail = ProjectLiteSerializer(source="project", read_only=True)
     pending_issue_count = serializers.IntegerField(read_only=True)

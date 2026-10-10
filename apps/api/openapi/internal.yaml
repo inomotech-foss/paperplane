@@ -8659,9 +8659,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Intake'
+                $ref: '#/components/schemas/Intake'
           description: ''
     post:
       operationId: workspaces_projects_inboxes_create
@@ -9129,9 +9127,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Intake'
+                $ref: '#/components/schemas/Intake'
           description: ''
     post:
       operationId: workspaces_projects_intakes_create
