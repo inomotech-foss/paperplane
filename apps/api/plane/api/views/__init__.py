@@ -114,6 +114,8 @@ from .issue_property import (
 
 from .issue_type import (
     IssueTypeImportAPIEndpoint,
+    IssueTypeMigrateAPIEndpoint,
+    WorkspaceIssueTypeMigrateAPIEndpoint,
     IssueTypeListCreateAPIEndpoint,
     IssueTypeDetailAPIEndpoint,
     WorkspaceIssueTypeListCreateAPIEndpoint,

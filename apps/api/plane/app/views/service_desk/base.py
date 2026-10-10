@@ -41,7 +41,6 @@ from plane.db.models import (
     IssueComment,
     IssueEmailMessage,
     IssueEmailThread,
-    IssueType,
     Project,
     ProjectMember,
     ServiceDeskConfig,
@@ -49,7 +48,7 @@ from plane.db.models import (
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection, ServiceDeskNotifyMode
 from plane.utils.content_validator import validate_html_content
 from plane.utils.host import base_host
-from plane.utils.issue_type import enable_intake, intake_type_error
+from plane.utils.issue_type import intake_enable_error, turn_on_intake
 
 
 def _clean_email_list(emails, exclude=()):
@@ -100,7 +99,7 @@ class ServiceDeskConfigEndpoint(BaseAPIView):
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
         enabling_intake = is_enabled and not project.intake_view
         intake_type_id = request.data.get("intake_issue_type_id")
-        if enabling_intake and (error := intake_type_error(project, intake_type_id)):
+        if enabling_intake and (error := intake_enable_error(project, intake_type_id)):
             return Response({"intake_issue_type_id": error}, status=status.HTTP_400_BAD_REQUEST)
 
         config = ServiceDeskConfig.objects.filter(workspace__slug=slug, project_id=project_id).first()
@@ -159,7 +158,7 @@ class ServiceDeskConfigEndpoint(BaseAPIView):
             )
 
         if enabling_intake:
-            enable_intake(project, IssueType.objects.get(pk=intake_type_id))
+            turn_on_intake(project, intake_type_id)
             Project.objects.filter(pk=project_id).update(intake_view=True)
 
         # Create/renew/drop the Graph push subscription to match the new state.

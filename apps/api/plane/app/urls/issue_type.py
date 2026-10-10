@@ -22,4 +22,9 @@ urlpatterns = [
         IssueTypeViewSet.as_view({"get": "usage"}),
         name="project-issue-type-usage",
     ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/issue-types/<uuid:pk>/migrate/",
+        IssueTypeViewSet.as_view({"post": "migrate"}),
+        name="project-issue-type-migrate",
+    ),
 ]

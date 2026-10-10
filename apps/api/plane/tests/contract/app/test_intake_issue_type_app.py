@@ -16,6 +16,7 @@ from plane.db.models import (
     Project,
     ProjectIssueType,
     ProjectMember,
+    Workspace,
     WorkspaceMember,
 )
 from plane.utils.issue_type import link_starter_type
@@ -173,16 +174,58 @@ class TestProjectTypes:
         assert response.status_code == status.HTTP_201_CREATED
         assert IssueType.objects.filter(workspace=workspace, name="Task").count() == 1
 
-    def test_a_new_project_cannot_start_with_intake_on(self, session_client, api_key_client, workspace):
-        for client, url in (
-            (session_client, f"/api/workspaces/{workspace.slug}/projects/"),
-            (api_key_client, f"/api/v1/workspaces/{workspace.slug}/projects/"),
-        ):
-            response = client.post(url, {"name": "New", "identifier": "NEW", "intake_view": True}, format="json")
+    @pytest.mark.parametrize("api", ["app", "v1"])
+    def test_a_new_project_with_intake_on_needs_its_type(self, request, api, workspace):
+        client, url = project_create(request, api, workspace)
 
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert "intake_view" in response.data
+        response = client.post(url, {"name": "New", "identifier": "NEW", "intake_view": True}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "intake_issue_type_id" in response.data
         assert not Project.objects.filter(identifier="NEW").exists()
+
+    @pytest.mark.parametrize("api", ["app", "v1"])
+    @pytest.mark.parametrize("kind", ["epic", "foreign"])
+    def test_the_intake_type_must_be_a_workspace_type(self, request, api, kind, workspace, create_user):
+        if kind == "epic":
+            issue_type = IssueType.objects.create(workspace=workspace, name="Epic", is_epic=True)
+        else:
+            other = Workspace.objects.create(name="Other", slug="other", owner=create_user)
+            issue_type = IssueType.objects.create(workspace=other, name="Ticket")
+        client, url = project_create(request, api, workspace)
+
+        response = client.post(
+            url,
+            {"name": "New", "identifier": "NEW", "intake_view": True, "intake_issue_type_id": str(issue_type.id)},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not Project.objects.filter(identifier="NEW").exists()
+
+    @pytest.mark.parametrize("api", ["app", "v1"])
+    def test_a_new_project_starts_with_its_intake_type(self, request, api, workspace):
+        ticket = IssueType.objects.create(workspace=workspace, name="Ticket")
+        client, url = project_create(request, api, workspace)
+
+        response = client.post(
+            url,
+            {"name": "New", "identifier": "NEW", "intake_view": True, "intake_issue_type_id": str(ticket.id)},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        project = Project.objects.get(identifier="NEW")
+        assert project.intake_view is True
+        assert Intake.objects.get(project=project).issue_type_id == ticket.id
+        linked = IssueType.objects.filter(project_issue_types__project=project, project_issue_types__deleted_at=None)
+        assert set(linked.values_list("name", flat=True)) == {"Task", "Ticket"}
+
+
+def project_create(request, api, workspace):
+    if api == "app":
+        return request.getfixturevalue("session_client"), f"/api/workspaces/{workspace.slug}/projects/"
+    return request.getfixturevalue("api_key_client"), f"/api/v1/workspaces/{workspace.slug}/projects/"
 
 
 def enable_with(request, kind, workspace, project, data):
@@ -242,3 +285,28 @@ class TestEnablingIntake:
 
         assert response.status_code == status.HTTP_200_OK, response.data
         assert Intake.objects.get(project=project).issue_type_id == ticket.id
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestReenablingIntake:
+    @pytest.fixture
+    def turned_off(self, workspace, project, intake, ticket):
+        Project.objects.filter(pk=project.id).update(intake_view=False)
+        return project
+
+    @pytest.mark.parametrize("kind", ["app", "v1", "features"])
+    def test_the_intake_keeps_its_type(self, request, kind, workspace, turned_off, ticket):
+        response = enable_with(request, kind, workspace, turned_off, {})
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        assert Project.objects.get(pk=turned_off.id).intake_view is True
+        assert Intake.objects.get(project=turned_off).issue_type_id == ticket.id
+
+    def test_a_given_type_replaces_it(self, request, workspace, turned_off):
+        task = link_starter_type(turned_off)
+
+        response = enable_with(request, "app", workspace, turned_off, {"intake_issue_type_id": str(task.id)})
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        assert Intake.objects.get(project=turned_off).issue_type_id == task.id

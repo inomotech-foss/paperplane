@@ -7,8 +7,8 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from plane.app.permissions import ProjectEntityPermission
-from plane.db.models import IssueType, Project
-from plane.utils.issue_type import enable_intake, intake_type_error
+from plane.db.models import Project
+from plane.utils.issue_type import intake_enable_error, turn_on_intake
 from plane.utils.openapi import INVALID_REQUEST_RESPONSE, project_docs
 
 from .base import BaseAPIView
@@ -84,7 +84,7 @@ class ProjectFeatureAPIEndpoint(BaseAPIView):
 
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
         enabling_intake = features.get("intakes") is True and not project.intake_view
-        if enabling_intake and (error := intake_type_error(project, intake_type_id)):
+        if enabling_intake and (error := intake_enable_error(project, intake_type_id)):
             return Response({INTAKE_TYPE_KEY: error}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
@@ -92,5 +92,5 @@ class ProjectFeatureAPIEndpoint(BaseAPIView):
                 setattr(project, FEATURE_FIELDS[name], value)
             project.save(update_fields=[FEATURE_FIELDS[name] for name in features])
             if enabling_intake:
-                enable_intake(project, IssueType.objects.get(pk=intake_type_id))
+                turn_on_intake(project, intake_type_id)
         return Response(self.features(project), status=status.HTTP_200_OK)

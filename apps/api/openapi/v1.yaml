@@ -10912,12 +10912,6 @@ paths:
             value: 550e8400-e29b-41d4-a716-446655440000
             summary: Example project ID
             description: A typical project UUID
-      - in: query
-        name: replacement_type_id
-        schema:
-          type: string
-        description: The type that work items, intakes and automations still using
-          this type move to. Required only while such rows exist, ignored otherwise.
       - in: path
         name: slug
         schema:
@@ -10942,6 +10936,75 @@ paths:
           description: The requested resource was not found.
         '204':
           description: Resource deleted successfully
+        '400':
+          description: Invalid request data provided
+        '409':
+          description: Work items or settings still use the type; migrate them first
+  /api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/{issue_type_id}/migrate/:
+    post:
+      operationId: migrate_work_item_type
+      description: Move work items of the type in this project to another type, with
+        their custom property values.
+      summary: Migrate work item type
+      parameters:
+      - in: path
+        name: issue_type_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        description: Project ID
+        required: true
+        examples:
+          ExampleProjectID:
+            value: 550e8400-e29b-41d4-a716-446655440000
+            summary: Example project ID
+            description: A typical project UUID
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: Workspace slug
+        required: true
+        examples:
+          ExampleWorkspace:
+            value: my-workspace
+            summary: Example workspace
+            description: A typical workspace slug
+      tags:
+      - Work Item Types
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+        required: true
+      security:
+      - ApiKeyAuthentication: []
+      responses:
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+        '403':
+          description: Permission denied. User lacks required permissions.
+        '404':
+          description: The requested resource was not found.
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueTypeMigrationPreview'
+          description: ''
         '400':
           description: Invalid request data provided
   /api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/{issue_type_id}/work-item-properties/:
@@ -15232,12 +15295,6 @@ paths:
             value: 550e8400-e29b-41d4-a716-446655440000
             summary: Example project ID
             description: A typical project UUID
-      - in: query
-        name: replacement_type_id
-        schema:
-          type: string
-        description: The type that work items, intakes and automations still using
-          this type move to. Required only while such rows exist, ignored otherwise.
       - in: path
         name: slug
         schema:
@@ -15262,6 +15319,75 @@ paths:
           description: The requested resource was not found.
         '204':
           description: Resource deleted successfully
+        '400':
+          description: Invalid request data provided
+        '409':
+          description: Work items or settings still use the type; migrate them first
+  /api/v1/workspaces/{slug}/work-item-types/{issue_type_id}/migrate/:
+    post:
+      operationId: migrate_workspace_work_item_type
+      description: Move work items of the type to another type, with their custom
+        property values.
+      summary: Migrate workspace work item type
+      parameters:
+      - in: path
+        name: issue_type_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        description: Project ID
+        required: true
+        examples:
+          ExampleProjectID:
+            value: 550e8400-e29b-41d4-a716-446655440000
+            summary: Example project ID
+            description: A typical project UUID
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: Workspace slug
+        required: true
+        examples:
+          ExampleWorkspace:
+            value: my-workspace
+            summary: Example workspace
+            description: A typical workspace slug
+      tags:
+      - Work Item Types
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IssueTypeMigrationRequestRequest'
+        required: true
+      security:
+      - ApiKeyAuthentication: []
+      responses:
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+        '403':
+          description: Permission denied. User lacks required permissions.
+        '404':
+          description: The requested resource was not found.
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueTypeMigrationPreview'
+          description: ''
         '400':
           description: Invalid request data provided
   /api/v1/workspaces/{slug}/work-items/:
@@ -17562,6 +17688,113 @@ components:
           readOnly: true
       required:
       - name
+    IssueTypeMigrationOption:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        work_items:
+          type: integer
+          description: Work items in scope with this option.
+      required:
+      - id
+      - name
+      - work_items
+    IssueTypeMigrationPreview:
+      type: object
+      description: 'What a type migration reaches: the rows in scope and the property
+        values that need a decision.'
+      properties:
+        references:
+          $ref: '#/components/schemas/IssueTypeUsage'
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueTypeMigrationProperty'
+      required:
+      - properties
+      - references
+    IssueTypeMigrationProperty:
+      type: object
+      description: A property of the old type alone that work items in scope have
+        values in.
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        property_type:
+          type: string
+        is_multi:
+          type: boolean
+        relation_type:
+          type: string
+          nullable: true
+        work_items:
+          type: integer
+          description: Work items in scope with a value.
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueTypeMigrationOption'
+      required:
+      - id
+      - is_multi
+      - name
+      - options
+      - project_id
+      - property_type
+      - relation_type
+      - work_items
+    IssueTypeMigrationRequestRequest:
+      type: object
+      properties:
+        scope:
+          $ref: '#/components/schemas/IssueTypeMigrationScopeRequest'
+        replacement_type_id:
+          type: string
+          format: uuid
+          description: Required while anything in scope uses the type.
+        property_mapping:
+          type: object
+          additionalProperties: {}
+          description: 'Per property of the old type with values: {"target": <property
+            id>, "options": {<old option id>: <new option id or null>}} or {"drop":
+            true}.'
+        then:
+          allOf:
+          - $ref: '#/components/schemas/ThenEnum'
+          description: |-
+            "unlink" with a project scope unlinks the type, "delete" with the workspace scope deletes it.
+
+            * `unlink` - unlink
+            * `delete` - delete
+        dry_run:
+          type: boolean
+          description: Only return what the migration would reach.
+      required:
+      - scope
+    IssueTypeMigrationScopeRequest:
+      type: object
+      description: Exactly one of the fields.
+      properties:
+        work_items:
+          type: array
+          items:
+            type: string
+            format: uuid
+        project:
+          type: string
+          format: uuid
+        workspace:
+          type: boolean
     IssueTypeRequest:
       type: object
       description: |-
@@ -17593,6 +17826,26 @@ components:
           maxLength: 255
       required:
       - name
+    IssueTypeUsage:
+      type: object
+      description: How many rows of a project use a work item type.
+      properties:
+        work_items:
+          type: integer
+        deleted_work_items:
+          type: integer
+        drafts:
+          type: integer
+        intakes:
+          type: integer
+        automation_actions:
+          type: integer
+      required:
+      - automation_actions
+      - deleted_work_items
+      - drafts
+      - intakes
+      - work_items
     Label:
       type: object
       description: |-
@@ -20821,6 +21074,14 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
+    ThenEnum:
+      enum:
+      - unlink
+      - delete
+      type: string
+      description: |-
+        * `unlink` - unlink
+        * `delete` - delete
     TimezoneEnum:
       enum:
       - Africa/Abidjan

@@ -4462,12 +4462,7 @@ export interface paths {
         get: operations["workspaces_projects_issue_types_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description CRUD for work item types enabled on a project.
-         *
-         *     Only admins can create, update, or delete work item types; any active
-         *     project member can list and retrieve them.
-         */
+        /** @description Unlink the type from the project. 409 while anything in the project uses it. */
         delete: operations["workspaces_projects_issue_types_destroy"];
         options?: never;
         head?: never;
@@ -4480,6 +4475,27 @@ export interface paths {
         patch: operations["workspaces_projects_issue_types_partial_update"];
         trace?: never;
     };
+    "/api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/migrate/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Move work items of the type to another type, see `migrate_type`.
+         *
+         *     Members can migrate work items; the whole project needs an admin.
+         */
+        post: operations["workspaces_projects_issue_types_migrate_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/usage/": {
         parameters: {
             query?: never;
@@ -4487,12 +4503,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description CRUD for work item types enabled on a project.
-         *
-         *     Only admins can create, update, or delete work item types; any active
-         *     project member can list and retrieve them.
-         */
+        /** @description What in the project uses the type, and which of its property values would need a decision. */
         get: operations["workspaces_projects_issue_types_usage_retrieve"];
         put?: never;
         post?: never;
@@ -8873,6 +8884,60 @@ export interface components {
             /** Format: uuid */
             readonly workspace: string;
         };
+        IssueTypeMigrationOption: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description Work items in scope with this option. */
+            work_items: number;
+        };
+        /** @description What a type migration reaches: the rows in scope and the property values that need a decision. */
+        IssueTypeMigrationPreview: {
+            references: components["schemas"]["IssueTypeUsage"];
+            properties: components["schemas"]["IssueTypeMigrationProperty"][];
+        };
+        /** @description A property of the old type alone that work items in scope have values in. */
+        IssueTypeMigrationProperty: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            property_type: string;
+            is_multi: boolean;
+            relation_type: string | null;
+            /** @description Work items in scope with a value. */
+            work_items: number;
+            options: components["schemas"]["IssueTypeMigrationOption"][];
+        };
+        IssueTypeMigrationRequestRequest: {
+            scope: components["schemas"]["IssueTypeMigrationScopeRequest"];
+            /**
+             * Format: uuid
+             * @description Required while anything in scope uses the type.
+             */
+            replacement_type_id?: string;
+            /** @description Per property of the old type with values: {"target": <property id>, "options": {<old option id>: <new option id or null>}} or {"drop": true}. */
+            property_mapping?: {
+                [key: string]: unknown;
+            };
+            /**
+             * @description "unlink" with a project scope unlinks the type, "delete" with the workspace scope deletes it.
+             *
+             *     * `unlink` - unlink
+             *     * `delete` - delete
+             */
+            then?: components["schemas"]["ThenEnum"];
+            /** @description Only return what the migration would reach. */
+            dry_run?: boolean;
+        };
+        /** @description Exactly one of the fields. */
+        IssueTypeMigrationScopeRequest: {
+            work_items?: string[];
+            /** Format: uuid */
+            project?: string;
+            workspace?: boolean;
+        };
         /**
          * @description Serializer for work item types.
          *
@@ -10701,6 +10766,12 @@ export interface components {
              */
             updated_by?: string | null;
         };
+        /**
+         * @description * `unlink` - unlink
+         *     * `delete` - delete
+         * @enum {string}
+         */
+        ThenEnum: "unlink" | "delete";
         /**
          * @description * `Africa/Abidjan` - Africa/Abidjan
          *     * `Africa/Accra` - Africa/Accra
@@ -20075,10 +20146,7 @@ export interface operations {
     };
     workspaces_projects_issue_types_destroy: {
         parameters: {
-            query?: {
-                /** @description The type that work items, intakes and automations still using this type move to. Required only while such rows exist, ignored otherwise. */
-                replacement_type_id?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 pk: string;
@@ -20127,6 +20195,35 @@ export interface operations {
             };
         };
     };
+    workspaces_projects_issue_types_migrate_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pk: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueTypeMigrationRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequestRequest"];
+                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueTypeMigrationPreview"];
+                };
+            };
+        };
+    };
     workspaces_projects_issue_types_usage_retrieve: {
         parameters: {
             query?: never;
@@ -20145,7 +20242,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueTypeUsage"];
+                    "application/json": components["schemas"]["IssueTypeMigrationPreview"];
                 };
             };
         };

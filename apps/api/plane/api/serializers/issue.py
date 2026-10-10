@@ -32,6 +32,7 @@ from plane.utils.content_validator import (
     validate_binary_data,
 )
 from plane.utils.issue_type import is_type_linked
+from plane.utils.issue_type_migration import type_change_error
 
 from .base import BaseSerializer
 from .cycle import CycleLiteSerializer, CycleSerializer
@@ -176,6 +177,9 @@ class IssueSerializer(BaseSerializer):
 
         if data.get("type") and not is_type_linked(data["type"].id, self.context.get("project_id")):
             raise serializers.ValidationError({"type_id": "This work item type is not enabled for the project."})
+        if self.instance is not None and data.get("type"):
+            if error := type_change_error(self.instance, data["type"].id):
+                raise serializers.ValidationError({"type_id": error})
 
         return data
 
