@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Diesen Typ löschen",
         "description": "Das Löschen von Typen kann zum Verlust vorhandener Daten führen.",
+        "in_use": "Arbeitselemente mit diesem Typ: {count}. Typ auswählen, zu dem sie verschoben werden.",
+        "deleted_too": "Gelöschte Arbeitselemente mit diesem Typ werden ebenfalls verschoben.",
+        "only_hidden": "Gelöschte Arbeitselemente oder Einstellungen verwenden diesen Typ noch. Typ auswählen, zu dem sie verschoben werden.",
+        "replacement_label": "Verschieben nach",
         "can_disable_warning": "Möchten Sie stattdessen den Typ deaktivieren?",
         "primary_button": "Ja, löschen",
         "toast": {

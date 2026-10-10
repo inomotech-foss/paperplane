@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "프로젝트 관리자에게 비활성화를 요청하세요.",
         "type_title": "새 작업 항목의 타입",
         "type_description": "Intake로 들어온 작업 항목에 이 타입이 지정됩니다.",
+        "type_placeholder": "새 작업 항목의 타입",
+        "enable_description": "Intake로 들어오는 작업 항목의 타입을 선택한 다음 켜십시오.",
         "notify_assignee": {
           "title": "담당자에게 알림",
           "description": "새로운 인테이크 요청의 경우 기본 담당자가 알림을 통해 알림을 받습니다"

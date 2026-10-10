@@ -10,7 +10,7 @@ import { setToast } from "@plane/blocks/toast";
 import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 // hooks
-import { usePreselectedIssueTypeId } from "@/hooks/use-preselected-issue-type";
+import { useProjectIssueTypes } from "@/hooks/use-preselected-issue-type";
 // services
 import { IntakeSettingsService } from "@/services/inbox/intake-settings.service";
 
@@ -25,8 +25,7 @@ type Props = {
 export const IntakeTypeControlItem = observer(function IntakeTypeControlItem(props: Props) {
   const { workspaceSlug, projectId } = props;
   const { t } = useTranslation();
-  // loads the project's types for the picker
-  usePreselectedIssueTypeId(workspaceSlug, projectId);
+  useProjectIssueTypes(workspaceSlug, projectId);
   const { data: intake, mutate } = useSWR(
     `PROJECT_INTAKE_${projectId}`,
     // The intake is created when the feature is turned on, so retry until it exists.

@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "Ask your Project Admin to turn this off.",
         "type_title": "Type of new work items",
         "type_description": "Work items that arrive through Intake get this type.",
+        "type_placeholder": "Type of new work items",
+        "enable_description": "Choose the type of the work items that arrive through Intake, then turn it on.",
         "notify_assignee": {
           "title": "Notify assignees",
           "description": "For a new request to intake, default assignees will be alerted via notifications"

@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "このタイプを削除",
         "description": "タイプの削除は既存データの損失につながる可能性があります。",
+        "in_use": "このタイプを使用している作業項目：{count}件。移動先のタイプを選択してください。",
+        "deleted_too": "このタイプの削除済み作業項目も移動されます。",
+        "only_hidden": "削除済みの作業項目または設定がまだこのタイプを使用しています。移動先のタイプを選択してください。",
+        "replacement_label": "移動先",
         "can_disable_warning": "代わりにタイプを無効にしますか？",
         "primary_button": "はい、削除します",
         "toast": {

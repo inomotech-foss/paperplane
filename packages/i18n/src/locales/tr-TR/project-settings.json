@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "Proje Yöneticinizden bunu kapatmasını isteyin.",
         "type_title": "Yeni iş öğelerinin türü",
         "type_description": "Intake üzerinden gelen iş öğeleri bu türü alır.",
+        "type_placeholder": "Yeni iş öğelerinin türü",
+        "enable_description": "Intake üzerinden gelen iş öğelerinin türünü seçin, ardından açın.",
         "notify_assignee": {
           "title": "Atanan kişileri bildir",
           "description": "Yeni bir alım talebi için varsayılan atanan kişiler bildirimler aracılığıyla uyarılacaktır"

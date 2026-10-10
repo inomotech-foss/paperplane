@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Usuń ten typ",
         "description": "Usunięcie typów może prowadzić do utraty istniejących danych.",
+        "in_use": "Elementy pracy z tym typem: {count}. Wybierz typ, do którego je przenieść.",
+        "deleted_too": "Usunięte elementy pracy z tym typem również zostaną przeniesione.",
+        "only_hidden": "Usunięte elementy pracy lub ustawienia nadal używają tego typu. Wybierz typ, do którego je przenieść.",
+        "replacement_label": "Przenieś do",
         "can_disable_warning": "Czy chcesz zamiast tego wyłączyć ten typ?",
         "primary_button": "Tak, usuń to",
         "toast": {

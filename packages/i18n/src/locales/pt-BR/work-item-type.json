@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Excluir este tipo",
         "description": "A exclusão de tipos pode levar à perda de dados existentes.",
+        "in_use": "Itens de trabalho com este tipo: {count}. Escolha um tipo para onde movê-los.",
+        "deleted_too": "Os itens de trabalho excluídos com este tipo também serão movidos.",
+        "only_hidden": "Itens de trabalho excluídos ou configurações ainda usam este tipo. Escolha um tipo para onde movê-los.",
+        "replacement_label": "Mover para",
         "can_disable_warning": "Deseja desativar o tipo em vez disso?",
         "primary_button": "Sim, excluir",
         "toast": {

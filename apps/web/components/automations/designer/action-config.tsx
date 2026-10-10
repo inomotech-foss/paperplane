@@ -27,7 +27,7 @@ import { Switch } from "@makeplane/propel/components/switch";
 // components
 import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
 // hooks
-import { usePreselectedIssueTypeId } from "@/hooks/use-preselected-issue-type";
+import { useProjectIssueTypes } from "@/hooks/use-preselected-issue-type";
 // local imports
 import { AutomationOptionSelect } from "../helpers/option-select";
 import { changeTypeLabelKey, findMutableProperty, usableMutableProperties } from "../helpers/metadata";
@@ -458,8 +458,7 @@ const CreateWorkItemTypeField = observer(function CreateWorkItemTypeField(
   const { typed, onChange, disabled, targetProjectId } = props;
   const { workspaceSlug } = useParams();
   const { t } = useTranslation();
-  // loads the project's types for the picker
-  usePreselectedIssueTypeId(workspaceSlug?.toString(), targetProjectId);
+  useProjectIssueTypes(workspaceSlug?.toString(), targetProjectId);
   return (
     <div className="max-w-md">
       <FieldLabel>{t("automations.action.configuration.create_work_item.type_label")}</FieldLabel>

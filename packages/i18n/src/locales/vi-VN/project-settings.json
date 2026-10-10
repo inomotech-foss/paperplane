@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "Yêu cầu Quản trị viên Dự án tắt tính năng này.",
         "type_title": "Loại của mục công việc mới",
         "type_description": "Các mục công việc đến qua Intake sẽ có loại này.",
+        "type_placeholder": "Loại của mục công việc mới",
+        "enable_description": "Chọn loại cho các mục công việc đến qua Intake, rồi bật tính năng này.",
         "notify_assignee": {
           "title": "Thông báo người được chỉ định",
           "description": "Đối với yêu cầu tiếp nhận mới, người được chỉ định mặc định sẽ được cảnh báo qua thông báo"

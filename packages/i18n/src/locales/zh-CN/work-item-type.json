@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "删除此类型",
         "description": "删除类型可能会导致现有数据丢失。",
+        "in_use": "使用此类型的工作项：{count}。请选择要将它们移至的类型。",
+        "deleted_too": "使用此类型的已删除工作项也会一并移动。",
+        "only_hidden": "已删除的工作项或设置仍在使用此类型。请选择要将它们移至的类型。",
+        "replacement_label": "移至",
         "can_disable_warning": "您想改为禁用该类型吗？",
         "primary_button": "是的，删除它",
         "toast": {

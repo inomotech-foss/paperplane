@@ -96,6 +96,18 @@ export class ProjectService extends APIService {
       });
   }
 
+  /** Turns the intake on. Its new work items get `issueTypeId`. */
+  async enableIntake(workspaceSlug: string, projectId: string, issueTypeId: string): Promise<TProject> {
+    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/`, {
+      inbox_view: true,
+      intake_issue_type_id: issueTypeId,
+    })
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
   async deleteProject(workspaceSlug: string, projectId: string): Promise<any> {
     return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/`)
       .then((response) => response?.data)

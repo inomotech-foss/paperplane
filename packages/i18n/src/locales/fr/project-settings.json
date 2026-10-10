@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "Demandez à l'administrateur du projet de le désactiver.",
         "type_title": "Type des nouveaux éléments de travail",
         "type_description": "Les éléments de travail reçus via Intake ont ce type.",
+        "type_placeholder": "Type des nouveaux éléments de travail",
+        "enable_description": "Choisissez le type des éléments de travail reçus via Intake, puis activez-le.",
         "notify_assignee": {
           "title": "Notifier les responsables",
           "description": "Pour une nouvelle demande d'ingestion, les responsables par défaut seront alertés via des notifications"

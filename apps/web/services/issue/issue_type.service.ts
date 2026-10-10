@@ -42,12 +42,4 @@ export class IssueTypeService extends APIService {
         throw error?.response?.data;
       });
   }
-
-  async deleteIssueType(workspaceSlug: string, projectId: string, issueTypeId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-types/${issueTypeId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
 }

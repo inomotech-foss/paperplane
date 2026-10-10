@@ -2,7 +2,7 @@
 // See the LICENSE file for details.
 
 import { describe, expect, it, vi } from "vitest";
-import type { IProjectUserPropertiesResponse, TIssueType } from "@plane/types";
+import type { IProjectUserPropertiesResponse, TIssue, TIssueType } from "@plane/types";
 import { IssueTypeStore } from "./issue-type.store";
 
 const makeType = (id: string, level: number, isActive = true): TIssueType => ({
@@ -29,6 +29,35 @@ const makeProperties = (lastTypeId?: string): IProjectUserPropertiesResponse => 
   },
 });
 
+const makeIssue = (id: string, projectId: string, typeId: string): TIssue => ({
+  id,
+  sequence_id: 1,
+  name: id,
+  sort_order: 0,
+  state_id: null,
+  priority: null,
+  label_ids: [],
+  assignee_ids: [],
+  estimate_point: null,
+  sub_issues_count: 0,
+  attachment_count: 0,
+  link_count: 0,
+  project_id: projectId,
+  parent_id: null,
+  cycle_id: null,
+  module_ids: null,
+  type_id: typeId,
+  created_at: "",
+  updated_at: "",
+  start_date: null,
+  target_date: null,
+  completed_at: null,
+  archived_at: null,
+  created_by: "",
+  updated_by: "",
+  is_draft: false,
+});
+
 const makeStore = (properties: IProjectUserPropertiesResponse | null) => {
   const project = {
     getProjectUserProperties: vi.fn(() => properties),
@@ -38,10 +67,22 @@ const makeStore = (properties: IProjectUserPropertiesResponse | null) => {
         Promise.resolve({ ...makeProperties(), ...data })
     ),
   };
-  const store = new IssueTypeStore({ memberRoot: { project } });
+  const issuesMap: Record<string, TIssue> = {
+    mine: makeIssue("mine", "p1", "old"),
+    other: makeIssue("other", "p1", "task"),
+    elsewhere: makeIssue("elsewhere", "p2", "old"),
+  };
+  const issues = {
+    issuesMap,
+    updateIssue: vi.fn((issueId: string, data: Partial<TIssue>) => {
+      issuesMap[issueId] = { ...issuesMap[issueId], ...data };
+    }),
+  };
+  const store = new IssueTypeStore({ issue: { issues }, memberRoot: { project } });
+  store.removalService.remove = vi.fn(() => Promise.resolve(undefined));
   store.typeMap = { task: makeType("task", 0), bug: makeType("bug", 1), old: makeType("old", 2, false) };
   store.fetchedMap = { p1: true };
-  return { store, project };
+  return { store, project, issuesMap };
 };
 
 describe("IssueTypeStore.getPreselectedIssueTypeId", () => {
@@ -92,5 +133,28 @@ describe("IssueTypeStore.rememberIssueType", () => {
     expect(project.updateProjectUserProperties).toHaveBeenCalledWith("ws", "p1", {
       preferences: { ...makeProperties().preferences, work_items: { last_type_id: "bug" } },
     });
+  });
+});
+
+describe("IssueTypeStore.deleteIssueType", () => {
+  it("moves the loaded work items of the project to the replacement", async () => {
+    const { store, issuesMap } = makeStore(makeProperties());
+
+    await store.deleteIssueType("ws", "p1", "old", "bug");
+
+    expect(store.removalService.remove).toHaveBeenCalledWith("ws", "p1", "old", "bug");
+    expect(store.getIssueTypeById("old")).toBeNull();
+    expect(issuesMap.mine.type_id).toBe("bug");
+    expect(issuesMap.other.type_id).toBe("task");
+    expect(issuesMap.elsewhere.type_id).toBe("old");
+  });
+
+  it("removes an unused type without a replacement", async () => {
+    const { store, issuesMap } = makeStore(makeProperties());
+
+    await store.deleteIssueType("ws", "p1", "old");
+
+    expect(store.removalService.remove).toHaveBeenCalledWith("ws", "p1", "old", undefined);
+    expect(issuesMap.mine.type_id).toBe("old");
   });
 });

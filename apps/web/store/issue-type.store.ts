@@ -13,11 +13,14 @@ import type { TIssueType } from "@plane/types";
 import { pickIssueTypeId } from "@/lib/work-item-type";
 // services
 import { IssueTypeService } from "@/services/issue";
+import { IssueTypeRemovalService } from "@/services/issue/issue-type-removal.service";
 // store
+import type { IIssueStore } from "./issue/issue.store";
 import type { IProjectMemberStore } from "./member/project/base-project-member.store";
 
 /** The part of the root store the work item types depend on. */
 type TIssueTypeRootStore = {
+  issue: { issues: Pick<IIssueStore, "issuesMap" | "updateIssue"> };
   memberRoot: {
     project: Pick<
       IProjectMemberStore,
@@ -46,7 +49,12 @@ export interface IIssueTypeStore {
     issueTypeId: string,
     data: Partial<TIssueType>
   ) => Promise<TIssueType>;
-  deleteIssueType: (workspaceSlug: string, projectId: string, issueTypeId: string) => Promise<void>;
+  deleteIssueType: (
+    workspaceSlug: string,
+    projectId: string,
+    issueTypeId: string,
+    replacementTypeId?: string
+  ) => Promise<void>;
   rememberIssueType: (workspaceSlug: string, projectId: string, issueTypeId: string) => Promise<void>;
 }
 
@@ -59,6 +67,7 @@ export class IssueTypeStore implements IIssueTypeStore {
   rootStore;
   // services
   issueTypeService;
+  removalService;
 
   constructor(_rootStore: TIssueTypeRootStore) {
     makeObservable(this, {
@@ -72,6 +81,7 @@ export class IssueTypeStore implements IIssueTypeStore {
 
     this.rootStore = _rootStore;
     this.issueTypeService = new IssueTypeService();
+    this.removalService = new IssueTypeRemovalService();
   }
 
   /**
@@ -171,12 +181,26 @@ export class IssueTypeStore implements IIssueTypeStore {
     }
   };
 
-  deleteIssueType = async (workspaceSlug: string, projectId: string, issueTypeId: string) => {
+  /**
+   * Removes a type from the project. Work items that use it move to `replacementTypeId`, which the API
+   * requires while any exist.
+   */
+  deleteIssueType = async (
+    workspaceSlug: string,
+    projectId: string,
+    issueTypeId: string,
+    replacementTypeId?: string
+  ) => {
     if (!this.typeMap[issueTypeId]) return;
-    await this.issueTypeService.deleteIssueType(workspaceSlug, projectId, issueTypeId).then(() => {
-      runInAction(() => {
-        delete this.typeMap[issueTypeId];
-      });
+    await this.removalService.remove(workspaceSlug, projectId, issueTypeId, replacementTypeId);
+    runInAction(() => {
+      delete this.typeMap[issueTypeId];
+      if (!replacementTypeId) return;
+      const { issues } = this.rootStore.issue;
+      for (const issue of Object.values(issues.issuesMap)) {
+        if (issue.project_id === projectId && issue.type_id === issueTypeId)
+          issues.updateIssue(issue.id, { type_id: replacementTypeId });
+      }
     });
   };
 

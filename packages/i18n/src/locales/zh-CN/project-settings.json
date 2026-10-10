@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "请项目管理员代为关闭。",
         "type_title": "新工作项的类型",
         "type_description": "通过 Intake 收到的工作项使用此类型。",
+        "type_placeholder": "新工作项的类型",
+        "enable_description": "请选择通过 Intake 收到的工作项的类型，然后将其开启。",
         "notify_assignee": {
           "title": "通知负责人",
           "description": "对于新的接收请求，默认负责人将通过通知收到提醒"

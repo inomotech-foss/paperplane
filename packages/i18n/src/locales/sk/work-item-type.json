@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Odstrániť tento typ",
         "description": "Odstránenie typov môže viesť k strate existujúcich údajov.",
+        "in_use": "Pracovné položky s týmto typom: {count}. Vyberte typ, na ktorý ich presunúť.",
+        "deleted_too": "Presunú sa aj odstránené pracovné položky s týmto typom.",
+        "only_hidden": "Tento typ stále používajú odstránené pracovné položky alebo nastavenia. Vyberte typ, na ktorý ich presunúť.",
+        "replacement_label": "Presunúť na",
         "can_disable_warning": "Chcete namiesto toho zakázať tento typ?",
         "primary_button": "Áno, odstrániť",
         "toast": {

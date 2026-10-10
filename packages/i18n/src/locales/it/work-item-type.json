@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Elimina questo tipo",
         "description": "L'eliminazione dei tipi può comportare la perdita di dati esistenti.",
+        "in_use": "Elementi di lavoro con questo tipo: {count}. Scelga un tipo a cui spostarli.",
+        "deleted_too": "Anche gli elementi di lavoro eliminati con questo tipo verranno spostati.",
+        "only_hidden": "Elementi di lavoro eliminati o impostazioni usano ancora questo tipo. Scelga un tipo a cui spostarli.",
+        "replacement_label": "Spostarli in",
         "can_disable_warning": "Vuoi disabilitare il tipo invece?",
         "primary_button": "Sì, eliminalo",
         "toast": {

@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Supprimer ce type",
         "description": "La suppression de types peut entraîner la perte de données existantes.",
+        "in_use": "Éléments de travail de ce type : {count}. Choisissez un type vers lequel les déplacer.",
+        "deleted_too": "Les éléments de travail supprimés de ce type seront aussi déplacés.",
+        "only_hidden": "Des éléments de travail supprimés ou des paramètres utilisent encore ce type. Choisissez un type vers lequel les déplacer.",
+        "replacement_label": "Les déplacer vers",
         "can_disable_warning": "Voulez-vous désactiver le type à la place ?",
         "primary_button": "Oui, supprime-le",
         "toast": {

@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "Chiedi all'admin del progetto di disattivarlo.",
         "type_title": "Tipo dei nuovi elementi di lavoro",
         "type_description": "Gli elementi di lavoro che arrivano tramite Intake ricevono questo tipo.",
+        "type_placeholder": "Tipo dei nuovi elementi di lavoro",
+        "enable_description": "Scelga il tipo degli elementi di lavoro che arrivano tramite Intake, poi lo attivi.",
         "notify_assignee": {
           "title": "Notifica assegnatari",
           "description": "Per una nuova richiesta di accettazione, gli assegnatari predefiniti saranno avvisati tramite notifiche"

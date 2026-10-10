@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "刪除此類型",
         "description": "刪除類型可能會導致現有資料遺失。",
+        "in_use": "使用此類型的工作項目：{count}。請選擇要將它們移至的類型。",
+        "deleted_too": "使用此類型的已刪除工作項目也會一併移動。",
+        "only_hidden": "已刪除的工作項目或設定仍在使用此類型。請選擇要將它們移至的類型。",
+        "replacement_label": "移至",
         "can_disable_warning": "您想改為停用此類型嗎？",
         "primary_button": "是的，刪除它",
         "toast": {

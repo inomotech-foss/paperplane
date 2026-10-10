@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Hapus jenis ini",
         "description": "Penghapusan tipe dapat menyebabkan hilangnya data yang ada.",
+        "in_use": "Item kerja dengan tipe ini: {count}. Pilih tipe tujuan untuk memindahkannya.",
+        "deleted_too": "Item kerja yang dihapus dengan tipe ini juga ikut dipindahkan.",
+        "only_hidden": "Item kerja yang dihapus atau pengaturan masih memakai tipe ini. Pilih tipe tujuan untuk memindahkannya.",
+        "replacement_label": "Pindahkan ke",
         "can_disable_warning": "Apakah Anda ingin menonaktifkan jenisnya saja?",
         "primary_button": "Ya, hapus",
         "toast": {

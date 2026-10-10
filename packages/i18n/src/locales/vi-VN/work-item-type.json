@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Xóa loại này",
         "description": "Việc xóa các loại có thể dẫn đến mất dữ liệu hiện có.",
+        "in_use": "Số mục công việc dùng loại này: {count}. Chọn loại để chuyển chúng sang.",
+        "deleted_too": "Các mục công việc đã xóa thuộc loại này cũng được chuyển theo.",
+        "only_hidden": "Các mục công việc đã xóa hoặc cài đặt vẫn dùng loại này. Chọn loại để chuyển chúng sang.",
+        "replacement_label": "Chuyển sang",
         "can_disable_warning": "Bạn có muốn tắt loại này thay thế không?",
         "primary_button": "Vâng, xóa nó",
         "toast": {

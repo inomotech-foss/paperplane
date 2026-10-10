@@ -72,6 +72,7 @@ export interface IProjectStore {
   // CRUD actions
   createProject: (workspaceSlug: string, data: Partial<TProject>) => Promise<TProject>;
   updateProject: (workspaceSlug: string, projectId: string, data: Partial<TProject>) => Promise<TProject>;
+  enableIntake: (workspaceSlug: string, projectId: string, issueTypeId: string) => Promise<TProject>;
   deleteProject: (workspaceSlug: string, projectId: string) => Promise<void>;
   // archive actions
   archiveProject: (workspaceSlug: string, projectId: string) => Promise<void>;
@@ -133,6 +134,7 @@ export class ProjectStore implements IProjectStore {
       // CRUD actions
       createProject: action,
       updateProject: action,
+      enableIntake: action,
       // collapsible actions
       setOpenCollapsibleSection: action,
       setLastCollapsibleAction: action,
@@ -579,6 +581,17 @@ export class ProjectStore implements IProjectStore {
       });
       throw error;
     }
+  };
+
+  /**
+   * Turns the project's intake on with the type its new work items get
+   */
+  enableIntake = async (workspaceSlug: string, projectId: string, issueTypeId: string) => {
+    const response = await this.projectService.enableIntake(workspaceSlug, projectId, issueTypeId);
+    runInAction(() => {
+      set(this.projectMap, [projectId, "inbox_view"], true);
+    });
+    return response;
   };
 
   /**

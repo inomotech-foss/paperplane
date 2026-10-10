@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "Vraag je projectbeheerder om dit uit te zetten.",
         "type_title": "Type van nieuwe werkitems",
         "type_description": "Werkitems die via Intake binnenkomen krijgen dit type.",
+        "type_placeholder": "Type van nieuwe werkitems",
+        "enable_description": "Kies het type van de werkitems die via Intake binnenkomen en zet het dan aan.",
         "notify_assignee": {
           "title": "Toegewezenen op de hoogte stellen",
           "description": "Bij een nieuw intakeverzoek worden de standaard toegewezenen via meldingen gewaarschuwd"

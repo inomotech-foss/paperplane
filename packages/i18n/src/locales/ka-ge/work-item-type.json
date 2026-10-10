@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Delete this type",
         "description": "Deletion of types may lead to loss of existing data.",
+        "in_use": "ამ ტიპის სამუშაო ელემენტები: {count}. აირჩიეთ ტიპი, რომელზეც გადავიტანოთ.",
+        "deleted_too": "ამ ტიპის წაშლილი სამუშაო ელემენტებიც გადავა.",
+        "only_hidden": "ამ ტიპს ჯერ კიდევ იყენებს წაშლილი სამუშაო ელემენტები ან პარამეტრები. აირჩიეთ ტიპი, რომელზეც გადავიტანოთ.",
+        "replacement_label": "გადატანა ტიპზე",
         "can_disable_warning": "Do you want to disable the type instead?",
         "primary_button": "Yes, delete it",
         "toast": {

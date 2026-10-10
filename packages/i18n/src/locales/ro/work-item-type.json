@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Șterge acest tip",
         "description": "Ștergerea tipurilor poate duce la pierderea datelor existente.",
+        "in_use": "Elemente de lucru cu acest tip: {count}. Alegeți un tip în care să le mutați.",
+        "deleted_too": "Elementele de lucru șterse cu acest tip vor fi mutate și ele.",
+        "only_hidden": "Elemente de lucru șterse sau setări încă folosesc acest tip. Alegeți un tip în care să le mutați.",
+        "replacement_label": "Mutați în",
         "can_disable_warning": "Doriți să dezactivați tipul în schimb?",
         "primary_button": "Da, șterge-l",
         "toast": {

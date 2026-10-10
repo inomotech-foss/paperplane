@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Dit type verwijderen",
         "description": "Het verwijderen van types kan leiden tot verlies van bestaande gegevens.",
+        "in_use": "Werkitems met dit type: {count}. Kies een type om ze naar te verplaatsen.",
+        "deleted_too": "Verwijderde werkitems met dit type worden ook verplaatst.",
+        "only_hidden": "Verwijderde werkitems of instellingen gebruiken dit type nog. Kies een type om ze naar te verplaatsen.",
+        "replacement_label": "Verplaatsen naar",
         "can_disable_warning": "Wil je het type in plaats daarvan uitschakelen?",
         "primary_button": "Ja, verwijderen",
         "toast": {

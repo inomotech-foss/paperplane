@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "Ask your Project Admin to turn this off.",
         "type_title": "ახალი სამუშაო ელემენტების ტიპი",
         "type_description": "Intake-ით შემოსულ სამუშაო ელემენტებს ეს ტიპი მიენიჭება.",
+        "type_placeholder": "ახალი სამუშაო ელემენტების ტიპი",
+        "enable_description": "აირჩიეთ Intake-ით შემოსული სამუშაო ელემენტების ტიპი და შემდეგ ჩართეთ.",
         "notify_assignee": {
           "title": "Notify assignees",
           "description": "For a new request to intake, default assignees will be alerted via notifications"

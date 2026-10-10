@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "Pide a tu administrador del proyecto que desactive esto.",
         "type_title": "Tipo de los nuevos elementos de trabajo",
         "type_description": "Los elementos de trabajo que llegan por Intake reciben este tipo.",
+        "type_placeholder": "Tipo de los nuevos elementos de trabajo",
+        "enable_description": "Elija el tipo de los elementos de trabajo que llegan por Intake y luego actívelo.",
         "notify_assignee": {
           "title": "Notificar asignados",
           "description": "Para una nueva solicitud de ingreso, los asignados predeterminados serán alertados mediante notificaciones"

@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Smazat tento typ",
         "description": "Odstranění typů může vést ke ztrátě stávajících dat.",
+        "in_use": "Pracovní položky s tímto typem: {count}. Vyberte typ, na který je přesunout.",
+        "deleted_too": "Přesunou se i smazané pracovní položky s tímto typem.",
+        "only_hidden": "Tento typ stále používají smazané pracovní položky nebo nastavení. Vyberte typ, na který je přesunout.",
+        "replacement_label": "Přesunout na",
         "can_disable_warning": "Chcete místo toho zakázat tento typ?",
         "primary_button": "Ano, smazat",
         "toast": {

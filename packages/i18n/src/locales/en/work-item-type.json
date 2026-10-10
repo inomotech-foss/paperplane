@@ -272,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Delete this type",
         "description": "Deletion of types may lead to loss of existing data.",
+        "in_use": "Work items that use this type: {count}. Choose a type to move them to.",
+        "deleted_too": "Deleted work items that use it move as well.",
+        "only_hidden": "Deleted work items or settings still use this type. Choose a type to move them to.",
+        "replacement_label": "Move them to",
         "can_disable_warning": "Do you want to disable the type instead?",
         "primary_button": "Yes, delete it",
         "toast": {

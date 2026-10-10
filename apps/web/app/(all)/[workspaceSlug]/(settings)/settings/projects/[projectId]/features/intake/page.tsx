@@ -13,7 +13,8 @@ import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view
 import { PageHead } from "@/components/core/page-title";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
-import { ProjectSettingsFeatureControlItem } from "@/components/settings/project/content/feature-control-item";
+import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
+import { IntakeEnableControl } from "@/components/settings/project/content/intake-enable-control";
 import { IntakeTypeControlItem } from "@/components/settings/project/content/intake-type-control-item";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
@@ -48,13 +49,14 @@ function FeaturesIntakeSettingsPage({ params }: Route.ComponentProps) {
           description={t("project_settings.features.intake.description")}
         />
         <div className="mt-7 flex flex-col gap-3">
-          <ProjectSettingsFeatureControlItem
+          <SettingsBoxedControlItem
             title={t("project_settings.features.intake.toggle_title")}
-            description={t("project_settings.features.intake.toggle_description")}
-            featureProperty="inbox_view"
-            projectId={projectId}
-            value={!!currentProjectDetails?.inbox_view}
-            workspaceSlug={workspaceSlug}
+            description={
+              currentProjectDetails?.inbox_view
+                ? t("project_settings.features.intake.toggle_description")
+                : t("project_settings.features.intake.enable_description")
+            }
+            control={<IntakeEnableControl workspaceSlug={workspaceSlug} projectId={projectId} />}
           />
           {currentProjectDetails?.inbox_view && (
             <IntakeTypeControlItem workspaceSlug={workspaceSlug} projectId={projectId} />

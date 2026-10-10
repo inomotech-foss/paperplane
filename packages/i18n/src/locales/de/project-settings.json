@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "Bitten Sie Ihren Projekt-Admin, dies zu deaktivieren.",
         "type_title": "Typ neuer Arbeitselemente",
         "type_description": "Arbeitselemente, die über Intake eingehen, erhalten diesen Typ.",
+        "type_placeholder": "Typ neuer Arbeitselemente",
+        "enable_description": "Typ der über Intake eingehenden Arbeitselemente auswählen und Intake dann einschalten.",
         "notify_assignee": {
           "title": "Zuständige benachrichtigen",
           "description": "Für eine neue Intake-Anfrage werden die Standard-Zuständigen über Benachrichtigungen informiert"

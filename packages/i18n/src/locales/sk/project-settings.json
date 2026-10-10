@@ -389,6 +389,8 @@
         "toggle_tooltip_off": "Požiadajte správcu projektu, aby toto vypol.",
         "type_title": "Typ nových pracovných položiek",
         "type_description": "Pracovné položky prijaté cez Intake dostanú tento typ.",
+        "type_placeholder": "Typ nových pracovných položiek",
+        "enable_description": "Vyberte typ pracovných položiek prijatých cez Intake a potom ho zapnite.",
         "notify_assignee": {
           "title": "Upozorniť priradených",
           "description": "Pre novú žiadosť o príjem budú predvolení priradení upozornení prostredníctvom oznámení"
