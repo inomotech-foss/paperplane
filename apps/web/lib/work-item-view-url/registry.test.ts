@@ -31,4 +31,16 @@ describe("view route registry", () => {
     cleanupSecond();
     expect(getViewRoute(project, "p1")).toBeUndefined();
   });
+
+  it("makes the earlier registration active again when the later one leaves", () => {
+    const first = route();
+    const second = route();
+    const cleanupFirst = registerViewRoute(project, "p1", first);
+    const cleanupSecond = registerViewRoute(project, "p1", second);
+    expect(getViewRoute(project, "p1")).toBe(second);
+    cleanupSecond();
+    expect(getViewRoute(project, "p1")).toBe(first);
+    cleanupFirst();
+    expect(getViewRoute(project, "p1")).toBeUndefined();
+  });
 });

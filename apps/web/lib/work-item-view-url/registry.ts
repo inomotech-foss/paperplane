@@ -10,19 +10,22 @@ export type TViewRoute = {
   onIntent: (intent: TViewIntent) => Promise<void>;
 };
 
-const routes = new Map<string, TViewRoute>();
+// a stack per key: while two mounts overlap, the later one is active, and the earlier one again once it leaves
+const routes = new Map<string, TViewRoute[]>();
 
 const keyOf = (page: TWorkItemPage, entityId: string) => `${page.storeType}/${entityId}`;
 
 /** Returns the cleanup, which removes only this registration. */
 export const registerViewRoute = (page: TWorkItemPage, entityId: string, route: TViewRoute): (() => void) => {
   const key = keyOf(page, entityId);
-  routes.set(key, route);
+  routes.set(key, [...(routes.get(key) ?? []), route]);
   return () => {
-    if (routes.get(key) === route) routes.delete(key);
+    const rest = (routes.get(key) ?? []).filter((entry) => entry !== route);
+    if (rest.length > 0) routes.set(key, rest);
+    else routes.delete(key);
   };
 };
 
 /** The route showing this entity's list, if any. */
 export const getViewRoute = (page: TWorkItemPage, entityId: string): TViewRoute | undefined =>
-  routes.get(keyOf(page, entityId));
+  routes.get(keyOf(page, entityId))?.at(-1);
