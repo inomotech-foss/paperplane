@@ -94,11 +94,11 @@ describe("ProjectIssuesFilter saved preferences", () => {
   it("hands a change to the route and saves only the changed key", async () => {
     const { store, update, saved, intents } = await openLink("l=list&o=-created_at");
     const shown = toJS(store.filters.p1);
-    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { sub_issue: false });
+    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { show_empty_groups: true });
 
-    expect(intents).toEqual([{ type: "displayFilters", changes: { sub_issue: false } }]);
+    expect(intents).toEqual([{ type: "displayFilters", changes: { show_empty_groups: true } }]);
     const persisted = update.mock.calls[0][2].display_filters;
-    expect(persisted).toEqual({ ...saved.displayFilters, sub_issue: false });
+    expect(persisted).toEqual({ ...saved.displayFilters, show_empty_groups: true });
     expect(persisted?.layout).toBe(EIssueLayoutTypes.KANBAN);
     // only the route changes the screen
     expect(store.filters.p1).toEqual(shown);
@@ -137,11 +137,12 @@ describe("ProjectIssuesFilter saved preferences", () => {
 
   it("normalizes the saved preferences, not the shown ones", async () => {
     const { store, update } = await openLink("l=list&g=labels");
-    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { layout: EIssueLayoutTypes.KANBAN });
+    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { order_by: "priority" });
 
     const persisted = update.mock.calls[0][2].display_filters;
     expect(persisted?.layout).toBe(EIssueLayoutTypes.KANBAN);
     expect(persisted?.group_by).toBe("priority");
+    expect(persisted?.order_by).toBe("priority");
   });
 
   it("saves only the changed display property", async () => {
@@ -167,12 +168,12 @@ describe("ProjectIssuesFilter saved preferences", () => {
     const { store, update, fetchProjectUserProperties } = createStore();
     showLink(store, "l=list&o=-created_at");
     showRoute("p1", { onIntent: async () => {} });
-    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { sub_issue: false });
+    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { show_empty_groups: true });
 
     expect(fetchProjectUserProperties).toHaveBeenCalledTimes(1);
     const persisted = update.mock.calls[0][2].display_filters;
     expect(persisted?.order_by).toBe("-priority");
-    expect(persisted?.sub_issue).toBe(false);
+    expect(persisted?.show_empty_groups).toBe(true);
   });
 
   it("shows but does not save a change when the saved preferences cannot be loaded", async () => {
@@ -266,9 +267,21 @@ describe("ProjectIssuesFilter with the member store", () => {
 
     showLink(store, "l=list");
     showRoute("p1", { onIntent: async () => {} });
-    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { show_empty_groups: false });
+    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { show_empty_groups: true });
     expect(update.mock.calls[0][2].display_filters).toEqual(
-      expect.objectContaining({ layout: EIssueLayoutTypes.KANBAN, group_by: "priority", show_empty_groups: false })
+      expect.objectContaining({ layout: EIssueLayoutTypes.KANBAN, group_by: "priority", show_empty_groups: true })
     );
+  });
+});
+
+describe("ProjectIssuesFilter unchanged values", () => {
+  it("does not save a change the saved preferences already hold", async () => {
+    const { store, update, intents } = await openLink("l=list&o=-created_at");
+    await store.updateFilters("ws", "p1", EIssueFilterType.DISPLAY_FILTERS, { order_by: "-priority" });
+    await store.updateFilterExpression("ws", "p1", { state_id__in: "s1" });
+
+    expect(update).not.toHaveBeenCalled();
+    // the screen still follows the change
+    expect(intents).toHaveLength(2);
   });
 });

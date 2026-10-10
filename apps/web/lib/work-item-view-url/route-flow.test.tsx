@@ -365,6 +365,15 @@ describe("work item view route", () => {
     expect(update.mock.calls[0][2].display_filters?.calendar).toEqual({ layout: "month", show_weekends: true });
   });
 
+  it("does not navigate for a change the URL already shows", async () => {
+    const { search, loader, change } = setup(["/p1/issues?l=list&o=priority"]);
+    await waitFor(() => expect(layout()).toBe("p1/list"));
+    await change({ order_by: "priority" });
+    await idle();
+    expect(loader).toHaveBeenCalledOnce();
+    expect(search()).toBe("?l=list&o=priority");
+  });
+
   it("builds a change during a navigation on the URL being loaded", async () => {
     const { router, store, search, update, release } = setup(["/p1/issues?l=list"], { holdValidation: true });
     await release();

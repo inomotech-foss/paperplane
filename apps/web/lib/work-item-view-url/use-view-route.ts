@@ -10,6 +10,7 @@ import { registerViewRoute } from "./registry";
 import { buildViewSearch, getViewBaseline } from "./resolve";
 import type { TPqlDraft, TViewRouteData } from "./resolve";
 import { parseSearch } from "./serialize";
+import { normalizeSearch } from "./stringify";
 import type { TWorkItemPage } from "./types";
 
 /**
@@ -42,6 +43,7 @@ export const useWorkItemViewRoute = (
           const baseline = getViewBaseline(page, clock);
           const { state } = resolveViewState(parseSearch(current, page), page, baseline, saved);
           const next = `?${buildViewSearch(applyViewIntent(state, intent, page), page, baseline, clock, current)}`;
+          if (normalizeSearch(next) === normalizeSearch(search)) return;
           // set before React renders the navigation, so a change right after builds on this one
           latest.current = { pathname, search: next, hash };
           await navigate({ pathname, search: next, hash }, { replace: true, preventScrollReset: true });

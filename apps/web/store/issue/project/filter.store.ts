@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { isEmpty, set } from "lodash-es";
+import { isEmpty, isEqual, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 // base class
 import { computedFn } from "mobx-utils";
@@ -203,8 +203,8 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
   };
 
   /**
-   * Merges a change into the saved preferences and returns what to send. Undefined if they cannot be
-   * loaded; the change is then shown but not saved.
+   * Merges a change into the saved preferences and returns what to send. Undefined if nothing changed or
+   * they cannot be loaded. The change is then shown but not saved.
    */
   private saveIntent = async (
     workspaceSlug: string,
@@ -219,13 +219,20 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
       return undefined;
     }
     switch (intent.type) {
-      case "displayFilters":
-        saved.displayFilters = normalizeDisplayFilters(mergeDisplayFilters(saved.displayFilters ?? {}, intent.changes));
-        return { display_filters: saved.displayFilters };
-      case "displayProperties":
-        saved.displayProperties = { ...saved.displayProperties, ...intent.changes };
-        return { display_properties: saved.displayProperties };
+      case "displayFilters": {
+        const displayFilters = normalizeDisplayFilters(mergeDisplayFilters(saved.displayFilters ?? {}, intent.changes));
+        if (isEqual(displayFilters, saved.displayFilters)) return undefined;
+        saved.displayFilters = displayFilters;
+        return { display_filters: displayFilters };
+      }
+      case "displayProperties": {
+        const displayProperties = { ...saved.displayProperties, ...intent.changes };
+        if (isEqual(displayProperties, saved.displayProperties)) return undefined;
+        saved.displayProperties = displayProperties;
+        return { display_properties: displayProperties };
+      }
       case "richFilters":
+        if (isEqual(intent.expression, saved.richFilters)) return undefined;
         saved.richFilters = intent.expression;
         return { rich_filters: intent.expression };
     }
