@@ -44,8 +44,8 @@ def soft_delete_related_objects(app_label, model_name, instance_pk, using=None):
         # Get the on_delete behavior name
         on_delete_name = relation.on_delete.__name__ if hasattr(relation.on_delete, "__name__") else ""
 
-        # A protected relation blocks the delete, it never cascades it.
-        if on_delete_name in ("DO_NOTHING", "PROTECT"):
+        # A restricted relation blocks a delete, it never cascades one.
+        if on_delete_name in ("DO_NOTHING", "RESTRICT"):
             continue
 
         elif on_delete_name == "SET_NULL":
@@ -186,8 +186,8 @@ def hard_delete():
 
     # Iterate through all models
     for model in all_models:
-        # Check if the model has a 'deleted_at' field
-        if hasattr(model, "deleted_at"):
+        # Soft-deletable models only. User has a deleted_at of its own for merged accounts.
+        if hasattr(model, "all_objects"):
             # Get all instances where 'deleted_at' is greater than 30 days ago
             _ = model.all_objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days)).delete()
 
