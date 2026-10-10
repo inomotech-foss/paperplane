@@ -392,7 +392,7 @@ def migrate_type(issue_type, data, project_id=None):
     """Run or preview a type migration described by a request body. Returns the preview of the scope.
 
     Moves the rows in scope to `replacement_type_id`, maps or drops the old type's property
-    values, then unlinks or deletes the type when `then` asks for it, all in one transaction.
+    values, then unlinks or deletes the type when `remove_type` asks for it, all in one transaction.
     """
     if not isinstance(data, dict):
         raise MigrationError("The body must be an object.")
@@ -402,14 +402,14 @@ def migrate_type(issue_type, data, project_id=None):
     if data.get("dry_run"):
         return preview
 
-    then = data.get("then")
-    if then not in (None, UNLINK, DELETE):
-        raise MigrationError({"then": 'then must be "unlink" or "delete".'})
-    if then == UNLINK and scope.kind != PROJECT:
-        raise MigrationError({"then": "Only a project scope can unlink the type."})
-    if then == DELETE and scope.kind != WORKSPACE:
-        raise MigrationError({"then": "Only the workspace scope can delete the type."})
-    if then and (error := removal_error(issue_type, scope.project_id if then == UNLINK else None)):
+    remove = data.get("remove_type")
+    if remove not in (None, UNLINK, DELETE):
+        raise MigrationError({"remove_type": 'remove_type must be "unlink" or "delete".'})
+    if remove == UNLINK and scope.kind != PROJECT:
+        raise MigrationError({"remove_type": "Only a project scope can unlink the type."})
+    if remove == DELETE and scope.kind != WORKSPACE:
+        raise MigrationError({"remove_type": "Only the workspace scope can delete the type."})
+    if remove and (error := removal_error(issue_type, scope.project_id if remove == UNLINK else None)):
         raise MigrationError(error)
 
     replacement_id = data.get("replacement_type_id")
@@ -431,8 +431,8 @@ def migrate_type(issue_type, data, project_id=None):
         if has_rows:
             references.apply_properties(plan)
             references.move_to(replacement)
-        if then:
-            _remove(issue_type, scope.project_id if then == UNLINK else None)
+        if remove:
+            _remove(issue_type, scope.project_id if remove == UNLINK else None)
         for affected in project_ids:
             schedule_derived_refresh(affected)
     return preview

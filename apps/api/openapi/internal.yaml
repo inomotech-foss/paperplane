@@ -21293,9 +21293,9 @@ components:
           description: 'Per property of the old type with values: {"target": <property
             id>, "options": {<old option id>: <new option id or null>}} or {"drop":
             true}.'
-        then:
+        remove_type:
           allOf:
-          - $ref: '#/components/schemas/ThenEnum'
+          - $ref: '#/components/schemas/RemoveTypeEnum'
           description: |-
             "unlink" with a project scope unlinks the type, "delete" with the workspace scope deletes it.
 
@@ -25095,6 +25095,14 @@ components:
       description: |-
         * `USER` - User
         * `ISSUE` - Work item
+    RemoveTypeEnum:
+      enum:
+      - unlink
+      - delete
+      type: string
+      description: |-
+        * `unlink` - unlink
+        * `delete` - delete
     RoleEnum:
       enum:
       - 20
@@ -25273,14 +25281,6 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-    ThenEnum:
-      enum:
-      - unlink
-      - delete
-      type: string
-      description: |-
-        * `unlink` - unlink
-        * `delete` - delete
     TimezoneEnum:
       enum:
       - Africa/Abidjan

@@ -487,7 +487,7 @@ class IssueTypeMigrateAPIEndpoint(BaseAPIView):
         `replacement_type_id`, a `property_mapping` for every property of the old
         type alone that work items in scope have values in (`{"target": id,
         "options": {old: new or null}}` or `{"drop": true}`) and an optional
-        `then` ("unlink" with the project scope). `dry_run` only returns what the
+        `remove_type` ("unlink" with the project scope). `dry_run` only returns what the
         migration reaches. Everything runs in one transaction.
         """
         issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
@@ -519,7 +519,7 @@ class WorkspaceIssueTypeMigrateAPIEndpoint(BaseAPIView):
         `{"workspace": true}`), the `replacement_type_id`, a `property_mapping`
         for every property of the old type alone that work items in scope have
         values in (`{"target": id, "options": {old: new or null}}` or
-        `{"drop": true}`) and an optional `then` ("unlink" with a project scope,
+        `{"drop": true}`) and an optional `remove_type` ("unlink" with a project scope,
         "delete" with the workspace scope). `dry_run` only returns what the
         migration reaches. Everything runs in one transaction.
         """

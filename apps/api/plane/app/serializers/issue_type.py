@@ -101,7 +101,7 @@ class IssueTypeMigrationSerializer(serializers.Serializer):
         help_text="Per property of the old type with values: "
         '{"target": <property id>, "options": {<old option id>: <new option id or null>}} or {"drop": true}.',
     )
-    then = serializers.ChoiceField(
+    remove_type = serializers.ChoiceField(
         choices=["unlink", "delete"],
         required=False,
         help_text='"unlink" with a project scope unlinks the type, "delete" with the workspace scope deletes it.',

@@ -8944,7 +8944,7 @@ export interface components {
              *     * `unlink` - unlink
              *     * `delete` - delete
              */
-            then?: components["schemas"]["ThenEnum"];
+            remove_type?: components["schemas"]["RemoveTypeEnum"];
             /** @description Only return what the migration would reach. */
             dry_run?: boolean;
         };
@@ -10701,6 +10701,12 @@ export interface components {
          */
         RelationTypeEnum: "USER" | "ISSUE";
         /**
+         * @description * `unlink` - unlink
+         *     * `delete` - delete
+         * @enum {string}
+         */
+        RemoveTypeEnum: "unlink" | "delete";
+        /**
          * @description * `20` - Admin
          *     * `15` - Member
          *     * `5` - Guest
@@ -10783,12 +10789,6 @@ export interface components {
              */
             updated_by?: string | null;
         };
-        /**
-         * @description * `unlink` - unlink
-         *     * `delete` - delete
-         * @enum {string}
-         */
-        ThenEnum: "unlink" | "delete";
         /**
          * @description * `Africa/Abidjan` - Africa/Abidjan
          *     * `Africa/Accra` - Africa/Accra
