@@ -52,6 +52,7 @@ from plane.utils.timezone_converter import user_timezone_converter
 from plane.utils.global_paginator import paginate
 from plane.utils.host import base_host
 from plane.db.models.intake import SourceType
+from plane.utils.issue_type import intake_type_mismatch
 
 
 class IntakeViewSet(BaseViewSet):
@@ -269,6 +270,8 @@ class IntakeIssueViewSet(BaseViewSet):
         intake = Intake.objects.filter(workspace__slug=slug, project_id=project_id).first()
         if intake is None:
             return Response({"error": "Intake is not enabled for this project"}, status=status.HTTP_400_BAD_REQUEST)
+        if error := intake_type_mismatch(intake, request.data["issue"].get("type_id")):
+            return Response({"type_id": error}, status=status.HTTP_400_BAD_REQUEST)
         request.data["issue"]["type_id"] = intake.issue_type_id
 
         # create an issue

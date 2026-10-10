@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from plane.db.models import (
+    Intake,
     Issue,
     IssueComment,
     IssueEmailMessage,
@@ -20,7 +21,7 @@ from plane.db.models import (
 )
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection
 from plane.tests.factories import ProjectFactory, ProjectMemberFactory, UserFactory, WorkspaceMemberFactory
-from plane.utils.issue_type import link_starter_type
+from plane.utils.issue_type import enable_intake, link_starter_type
 
 MAILBOX = "support@example.com"
 
@@ -29,6 +30,15 @@ MAILBOX = "support@example.com"
 def project(db, workspace, create_user):
     project = ProjectFactory(workspace=workspace)
     ProjectMemberFactory(project=project, member=create_user, role=20)
+    return project
+
+
+@pytest.fixture
+def intake_project(project):
+    """A project whose intake is on, so the service desk can file tickets in it."""
+    enable_intake(project, link_starter_type(project))
+    Project.objects.filter(pk=project.id).update(intake_view=True)
+    project.refresh_from_db()
     return project
 
 
@@ -91,7 +101,7 @@ class TestServiceDeskConfigEndpoint:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.django_db
-    def test_admin_can_create_and_read_config(self, session_client, workspace, project):
+    def test_admin_can_create_and_read_config(self, session_client, workspace, project, intake_project):
         response = session_client.post(
             config_url(workspace, project),
             {"mailbox_email": "Support@Example.com", "is_enabled": True},
@@ -116,6 +126,31 @@ class TestServiceDeskConfigEndpoint:
         )
         assert response.status_code == status.HTTP_200_OK
         assert ServiceDeskConfig.objects.filter(project=project).count() == 1
+
+    @pytest.mark.django_db
+    def test_enabling_with_the_intake_off_needs_the_intake_type(self, session_client, workspace, project):
+        response = session_client.post(
+            config_url(workspace, project), {"mailbox_email": MAILBOX, "is_enabled": True}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "intake_issue_type_id" in response.data
+        assert not ServiceDeskConfig.objects.filter(project=project).exists()
+        assert Project.objects.get(pk=project.id).intake_view is False
+
+    @pytest.mark.django_db
+    def test_enabling_with_the_intake_off_turns_it_on_with_the_chosen_type(self, session_client, workspace, project):
+        task = link_starter_type(project)
+
+        response = session_client.post(
+            config_url(workspace, project),
+            {"mailbox_email": MAILBOX, "is_enabled": True, "intake_issue_type_id": str(task.id)},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert Project.objects.get(pk=project.id).intake_view is True
+        assert Intake.objects.get(project=project).issue_type_id == task.id
 
     @pytest.mark.django_db
     def test_invalid_mailbox_email_rejected(self, session_client, workspace, project):
@@ -340,7 +375,7 @@ class TestServiceDeskWebhookEndpoint:
 @pytest.mark.contract
 class TestServiceDeskConfigSubscriptionTrigger:
     @pytest.mark.django_db
-    def test_config_save_triggers_subscription_maintenance(self, session_client, workspace, project):
+    def test_config_save_triggers_subscription_maintenance(self, session_client, workspace, project, intake_project):
         with patch("plane.app.views.service_desk.base.service_desk_maintain_subscriptions") as mock_maintain:
             response = session_client.post(
                 config_url(workspace, project),
@@ -354,7 +389,7 @@ class TestServiceDeskConfigSubscriptionTrigger:
 @pytest.mark.contract
 class TestServiceDeskNotifySettings:
     @pytest.mark.django_db
-    def test_notify_settings_persist(self, session_client, workspace, project, create_user):
+    def test_notify_settings_persist(self, session_client, workspace, project, intake_project, create_user):
         response = session_client.post(
             config_url(workspace, project),
             {
@@ -380,7 +415,9 @@ class TestServiceDeskNotifySettings:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     @pytest.mark.django_db
-    def test_omitting_notify_fields_keeps_stored_values(self, session_client, workspace, project, create_user):
+    def test_omitting_notify_fields_keeps_stored_values(
+        self, session_client, workspace, project, intake_project, create_user
+    ):
         ServiceDeskConfig.objects.create(
             project_id=project.id,
             mailbox_email=MAILBOX,

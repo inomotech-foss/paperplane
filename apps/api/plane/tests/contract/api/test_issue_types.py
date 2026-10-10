@@ -6,7 +6,6 @@ import pytest
 from rest_framework import status
 
 from plane.db.models import (
-    Issue,
     IssueType,
     Project,
     ProjectIssueType,
@@ -160,18 +159,6 @@ class TestIssueTypeCRUD:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert ProjectIssueType.objects.filter(project=project, issue_type=epic).exists()
-
-    @pytest.mark.django_db
-    def test_delete_type_used_by_work_items_rejected(self, api_key_client, workspace, project, task_type):
-        other = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
-        ProjectIssueType.objects.create(project=project, issue_type=other, workspace=workspace)
-        Issue.objects.create(name="Story one", workspace=workspace, project=project, type=other)
-
-        response = api_key_client.delete(type_url(workspace.slug, project.id, other.id))
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data["error"] == "1 work item uses the type Story. Change their type first."
-        assert ProjectIssueType.objects.filter(project=project, issue_type=other).exists()
 
     @pytest.mark.django_db
     def test_delete_last_remaining_type_rejected(self, api_key_client, workspace, project):

@@ -4480,6 +4480,28 @@ export interface paths {
         patch: operations["workspaces_projects_issue_types_partial_update"];
         trace?: never;
     };
+    "/api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/usage/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description CRUD for work item types enabled on a project.
+         *
+         *     Only admins can create, update, or delete work item types; any active
+         *     project member can list and retrieve them.
+         */
+        get: operations["workspaces_projects_issue_types_usage_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{slug}/projects/{project_id}/issues/": {
         parameters: {
             query?: never;
@@ -8867,6 +8889,14 @@ export interface components {
             level?: number;
             external_source?: string | null;
             external_id?: string | null;
+        };
+        /** @description How many rows of a project use a work item type. */
+        IssueTypeUsage: {
+            work_items: number;
+            deleted_work_items: number;
+            drafts: number;
+            intakes: number;
+            automation_actions: number;
         };
         IssueView: {
             /** Format: uuid */
@@ -20045,7 +20075,10 @@ export interface operations {
     };
     workspaces_projects_issue_types_destroy: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The type that work items, intakes and automations still using this type move to. Required only while such rows exist, ignored otherwise. */
+                replacement_type_id?: string;
+            };
             header?: never;
             path: {
                 pk: string;
@@ -20090,6 +20123,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IssueType"];
+                };
+            };
+        };
+    };
+    workspaces_projects_issue_types_usage_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pk: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueTypeUsage"];
                 };
             };
         };

@@ -8,13 +8,13 @@ from django.db import transaction
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
-from drf_spectacular.utils import OpenApiResponse, OpenApiRequest
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiRequest
 
 # Module imports
 from plane.api.serializers import IssueTypeSerializer
 from plane.app.permissions import ProjectEntityPermission, WorkspaceEntityPermission
 from plane.db.models import IssueType, Project, ProjectIssueType, Workspace
-from plane.utils.issue_type import type_in_use_error
+from plane.utils.issue_type import remove_issue_type
 from plane.utils.openapi import (
     issue_type_docs,
     FIELDS_PARAMETER,
@@ -23,6 +23,15 @@ from plane.utils.openapi import (
     DELETED_RESPONSE,
 )
 from .base import BaseAPIView
+
+REPLACEMENT_PARAMETER = OpenApiParameter(
+    name="replacement_type_id",
+    type=str,
+    location=OpenApiParameter.QUERY,
+    required=False,
+    description="The type that work items, intakes and automations still using this type move to. "
+    "Required only while such rows exist, ignored otherwise.",
+)
 
 
 def project_issue_types(slug, project_id, user):
@@ -196,16 +205,19 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
         operation_id="delete_work_item_type",
         summary="Delete work item type",
         description="Remove a work item type from a project.",
+        parameters=[REPLACEMENT_PARAMETER],
         responses={204: DELETED_RESPONSE, 400: INVALID_REQUEST_RESPONSE},
     )
     def delete(self, request, slug, project_id, issue_type_id):
         """Delete work item type
 
         Unlinks the work item type from this project. The `IssueType` row
-        itself is only deleted once it is unlinked from every project.
-        Rejected with 400 when the type is the Epic type, when work items or
-        the intake of the project use it, or when it is the project's only
-        remaining active type.
+        itself is only deleted once no project links or uses it. Work items,
+        drafts, the intake and automations of the project that use the type
+        move to `replacement_type_id`, which is required while they exist.
+        Rejected with 400 when the type is the Epic type, when the replacement
+        is missing or invalid, or when it is the project's only remaining
+        active type.
         """
         issue_type = IssueType.objects.get(
             workspace__slug=slug,
@@ -217,9 +229,6 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
                 {"error": "Epic type cannot be removed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        in_use = type_in_use_error(issue_type, project_id)
-        if in_use:
-            return Response({"error": in_use}, status=status.HTTP_400_BAD_REQUEST)
         remaining = (
             ProjectIssueType.objects.filter(
                 project_id=project_id,
@@ -235,10 +244,9 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        with transaction.atomic():
-            ProjectIssueType.objects.filter(project_id=project_id, issue_type_id=issue_type.id).delete()
-            if not ProjectIssueType.objects.filter(issue_type_id=issue_type.id).exists():
-                issue_type.delete()
+        error = remove_issue_type(issue_type, request.query_params.get("replacement_type_id"), project_id)
+        if error:
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -393,14 +401,18 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
         operation_id="delete_workspace_work_item_type",
         summary="Delete workspace work item type",
         description="Delete a work item type and unlink it from every project.",
+        parameters=[REPLACEMENT_PARAMETER],
         responses={204: DELETED_RESPONSE, 400: INVALID_REQUEST_RESPONSE},
     )
     def delete(self, request, slug, issue_type_id):
         """Delete workspace work item type
 
-        Removes the type from every project that has it enabled. Rejected when
-        the type is the Epic type, when work items or an intake use it, or
-        when it is the last active type of any project still using it.
+        Removes the type from every project that has it enabled. Work items,
+        drafts, intakes and automations that use the type, in any project,
+        move to `replacement_type_id`, which is required while they exist and
+        must be enabled in each of their projects. Rejected when the type is
+        the Epic type, when the replacement is missing or invalid, or when it
+        is the last active type of any project still using it.
         """
         issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
         if issue_type.is_epic:
@@ -408,10 +420,6 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
                 {"error": "Epic type cannot be removed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        in_use = type_in_use_error(issue_type)
-        if in_use:
-            return Response({"error": in_use}, status=status.HTTP_400_BAD_REQUEST)
-
         stranded = [
             str(link.project_id)
             for link in ProjectIssueType.objects.filter(issue_type_id=issue_type.id, deleted_at__isnull=True)
@@ -429,9 +437,9 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        with transaction.atomic():
-            ProjectIssueType.objects.filter(issue_type_id=issue_type.id).delete()
-            issue_type.delete()
+        error = remove_issue_type(issue_type, request.query_params.get("replacement_type_id"))
+        if error:
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

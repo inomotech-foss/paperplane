@@ -12085,7 +12085,10 @@ export interface operations {
     };
     delete_work_item_type: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The type that work items, intakes and automations still using this type move to. Required only while such rows exist, ignored otherwise. */
+                replacement_type_id?: string;
+            };
             header?: never;
             path: {
                 issue_type_id: string;
@@ -14855,7 +14858,10 @@ export interface operations {
     };
     delete_workspace_work_item_type: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The type that work items, intakes and automations still using this type move to. Required only while such rows exist, ignored otherwise. */
+                replacement_type_id?: string;
+            };
             header?: never;
             path: {
                 issue_type_id: string;

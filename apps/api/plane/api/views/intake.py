@@ -32,6 +32,7 @@ from plane.utils.host import base_host
 from plane.utils.content_validator import validate_html_content
 from .base import BaseAPIView
 from plane.db.models.intake import SourceType
+from plane.utils.issue_type import intake_type_mismatch
 from plane.utils.openapi import (
     intake_docs,
     WORKSPACE_SLUG_PARAMETER,
@@ -186,6 +187,8 @@ class IntakeIssueListCreateAPIEndpoint(BaseAPIView):
 
         # create an issue
         issue_data = request.data.get("issue", {})
+        if error := intake_type_mismatch(intake, issue_data.get("type_id")):
+            return Response({"type_id": error}, status=status.HTTP_400_BAD_REQUEST)
         # Accept both "description" and "description_json" keys for the description_json field
         description_json = issue_data.get("description") or issue_data.get("description_json") or {}
         # Sanitize description_html before saving to prevent stored XSS (GHSA-hh2r-3hwp-mvq3)

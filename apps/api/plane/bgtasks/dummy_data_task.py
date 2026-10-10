@@ -38,7 +38,7 @@ from plane.db.models import (
     IntakeIssue,
 )
 from plane.db.models.intake import SourceType
-from plane.utils.issue_type import first_linked_type, get_or_create_intake, link_starter_type
+from plane.utils.issue_type import enable_intake, link_starter_type
 
 
 def create_project(workspace, user_id):
@@ -276,7 +276,7 @@ def create_issues(workspace, project, user_id, issue_count):
     )
     creators = ProjectMember.objects.filter(workspace=workspace, project=project).values_list("member_id", flat=True)
 
-    issue_type = first_linked_type(project.id) or link_starter_type(project)
+    issue_type = link_starter_type(project)
     issues = []
 
     # Get the maximum sequence_id
@@ -360,7 +360,7 @@ def create_issues(workspace, project, user_id, issue_count):
 
 def create_intake_issues(workspace, project, user_id, intake_issue_count):
     issues = create_issues(workspace, project, user_id, intake_issue_count)
-    intake = get_or_create_intake(project)
+    intake = enable_intake(project, link_starter_type(project))
     IntakeIssue.objects.bulk_create(
         [
             IntakeIssue(

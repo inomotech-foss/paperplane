@@ -44,3 +44,13 @@ class IssueTypeSerializer(BaseSerializer):
             "updated_at",
             "deleted_at",
         ]
+
+
+class IssueTypeUsageSerializer(serializers.Serializer):
+    """How many rows of a project use a work item type."""
+
+    work_items = serializers.IntegerField()
+    deleted_work_items = serializers.IntegerField()
+    drafts = serializers.IntegerField()
+    intakes = serializers.IntegerField()
+    automation_actions = serializers.IntegerField()

@@ -10338,6 +10338,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: replacement_type_id
+        schema:
+          type: string
+        description: The type that work items, intakes and automations still using
+          this type move to. Required only while such rows exist, ignored otherwise.
       - in: path
         name: slug
         schema:
@@ -10350,6 +10356,43 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/usage/:
+    get:
+      operationId: workspaces_projects_issue_types_usage_retrieve
+      description: |-
+        CRUD for work item types enabled on a project.
+
+        Only admins can create, update, or delete work item types; any active
+        project member can list and retrieve them.
+      parameters:
+      - in: path
+        name: pk
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueTypeUsage'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/issues/:
     get:
       operationId: workspaces_projects_issues_list
@@ -21135,6 +21178,26 @@ components:
           maxLength: 255
       required:
       - name
+    IssueTypeUsage:
+      type: object
+      description: How many rows of a project use a work item type.
+      properties:
+        work_items:
+          type: integer
+        deleted_work_items:
+          type: integer
+        drafts:
+          type: integer
+        intakes:
+          type: integer
+        automation_actions:
+          type: integer
+      required:
+      - work_items
+      - deleted_work_items
+      - drafts
+      - intakes
+      - automation_actions
     IssueView:
       type: object
       properties:
