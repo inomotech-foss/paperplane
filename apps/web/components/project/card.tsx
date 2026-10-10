@@ -213,32 +213,32 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
           archive={false}
         />
       )}
-      <Link
+      <div
         ref={projectCardRef}
-        href={projectLink}
-        onClick={(e) => {
-          if (!isMemberOfProject || isArchived) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!isArchived) setJoinProjectModal(true);
-          }
-        }}
-        data-prevent-progress={!isMemberOfProject || isArchived}
-        className={cn(
-          "group/project-card flex w-full flex-col justify-between overflow-hidden rounded-lg border border-subtle bg-layer-2 transition-all duration-300 hover:border-strong hover:shadow-raised-200"
-        )}
+        className="group/project-card relative isolate flex w-full flex-col justify-between overflow-hidden rounded-lg border border-subtle bg-layer-2 transition-all duration-300 hover:border-strong hover:shadow-raised-200"
       >
         <ContextMenu parentRef={projectCardRef} items={MENU_ITEMS} />
+        <Link
+          href={projectLink}
+          aria-label={project.name}
+          onClick={(e) => {
+            if (!isMemberOfProject || isArchived) {
+              e.preventDefault();
+              if (!isArchived) setJoinProjectModal(true);
+            }
+          }}
+          data-prevent-progress={!isMemberOfProject || isArchived}
+          className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-strong"
+        />
         <div className="relative h-[118px] w-full rounded-t">
-          <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/60 to-transparent" />
-
           <CoverImage
             src={project.cover_image_url}
             alt={project.name}
             className="absolute top-0 left-0 h-full w-full rounded-t"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
-          <div className="absolute bottom-4 z-[1] flex h-10 w-full items-center justify-between gap-3 px-4">
+          <div className="absolute bottom-4 flex h-10 w-full items-center justify-between gap-3 px-4">
             <div className="flex flex-grow items-center gap-2.5 truncate">
               <div className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-sm bg-white/10">
                 <Logo logo={project.logo_props} size={18} />
@@ -254,16 +254,12 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
             </div>
 
             {!isArchived && (
-              <div data-prevent-progress className="flex h-full flex-shrink-0 items-center gap-2">
+              <div className="relative z-[2] flex h-full flex-shrink-0 items-center gap-2">
                 <button
                   type="button"
                   aria-label="Copy link"
                   className="flex h-6 w-6 items-center justify-center rounded-sm bg-white/10"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    void handleCopyText();
-                  }}
+                  onClick={() => void handleCopyText()}
                 >
                   <LinkOutline className="h-3 w-3 text-on-color" />
                 </button>
@@ -273,9 +269,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                     iconClassName={cn("h-3 w-3", {
                       "text-on-color": !project.is_favorite,
                     })}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
+                    onClick={() => {
                       if (project.is_favorite) handleRemoveFromFavorites();
                       else handleAddToFavorites();
                     }}
@@ -305,7 +299,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                 disabled={isMobile}
               >
                 {projectMembers.length > 0 ? (
-                  <div className="flex cursor-pointer items-center gap-2 text-secondary">
+                  <div className="relative z-[2] flex cursor-pointer items-center gap-2 text-secondary">
                     <AvatarGroup size="xs" max={2}>
                       {projectMembers.map((member) => (
                         <Avatar
@@ -325,29 +319,21 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
             </div>
             {isArchived ? (
               hasAdminRole && (
-                <div className="flex items-center justify-center gap-2">
+                <div className="relative z-[2] flex items-center justify-center gap-2">
                   <Button
                     variant="ghost"
                     size="xs"
                     stretch="auto"
                     label="Restore"
                     icon={<Icon icon={RestoreOutline} />}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setRestoreProject(true);
-                    }}
+                    onClick={() => setRestoreProject(true)}
                   />
                   <IconButton
                     variant="ghost"
                     size="xs"
                     aria-label="Delete"
                     icon={<Icon icon={DeleteOutline} />}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setDeleteProjectModal(true);
-                    }}
+                    onClick={() => setDeleteProjectModal(true)}
                   />
                 </div>
               )
@@ -356,10 +342,8 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                 {isMemberOfProject &&
                   (hasAdminRole || hasMemberRole ? (
                     <Link
-                      className="flex items-center justify-center rounded-sm p-1 text-placeholder hover:bg-layer-1 hover:text-secondary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
+                      className="relative z-[2] flex items-center justify-center rounded-sm p-1 text-placeholder hover:bg-layer-1 hover:text-secondary"
+                      aria-label="Settings"
                       href={`/${workspaceSlug}/settings/projects/${project.id}`}
                     >
                       <SettingsOutline className="h-3.5 w-3.5" />
@@ -371,17 +355,13 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                     </span>
                   ))}
                 {!isMemberOfProject && (
-                  <div className="flex items-center">
+                  <div className="relative z-[2] flex items-center">
                     <Button
                       variant="ghost"
                       size="sm"
                       stretch="auto"
                       label="Join"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setJoinProjectModal(true);
-                      }}
+                      onClick={() => setJoinProjectModal(true)}
                     />
                   </div>
                 )}
@@ -389,7 +369,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
             )}
           </div>
         </div>
-      </Link>
+      </div>
     </>
   );
 });
