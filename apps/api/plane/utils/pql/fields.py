@@ -52,6 +52,8 @@ CUSTOM_PROPERTY_PREFIX = "property__"
 # it into a recursive subquery on `parent_id`.
 ANCESTOR_FIELD = "ancestor_id"
 
+TYPE_FIELD = "type_id"
+
 
 @dataclass(frozen=True)
 class FilterField:
@@ -84,7 +86,7 @@ FILTER_FIELDS = {
         choices=PRIORITY_CHOICES,
     ),
     "project_id": FilterField(path="project_id", value_type=UUID_TYPE, lookups=UUID_LOOKUPS),
-    "type_id": FilterField(path="type_id", value_type=UUID_TYPE, lookups=UUID_LOOKUPS),
+    TYPE_FIELD: FilterField(path="type_id", value_type=UUID_TYPE, lookups=UUID_LOOKUPS),
     "labels__id": FilterField(
         path="labels__id",
         value_type=UUID_TYPE,
