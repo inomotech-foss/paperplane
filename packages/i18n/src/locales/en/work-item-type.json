@@ -390,6 +390,16 @@
           "text": "Upgrade"
         }
       }
+    },
+    "migration": {
+      "change_title": "Change work item type",
+      "change_description": "These custom property values belong to the current type only. Choose where each goes on the new type.",
+      "values_count": "Work items with a value: {count}",
+      "drop_values": "Drop values",
+      "choose_target": "Choose a property",
+      "option_values": "Values with {name}",
+      "choose_type": "Choose a type",
+      "confirm": "Change type"
     }
   },
   "work_item_type_hierarchy": {

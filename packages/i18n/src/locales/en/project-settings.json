@@ -391,6 +391,8 @@
         "type_description": "Work items that arrive through Intake get this type.",
         "type_placeholder": "Type of new work items",
         "enable_description": "Choose the type of the work items that arrive through Intake, then turn it on.",
+        "create_off": "No intake",
+        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Notify assignees",
           "description": "For a new request to intake, default assignees will be alerted via notifications"

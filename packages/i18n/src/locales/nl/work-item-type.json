@@ -390,6 +390,16 @@
           "text": "Upgraden"
         }
       }
+    },
+    "migration": {
+      "change_title": "Type van werkitem wijzigen",
+      "change_description": "Deze waarden van aangepaste eigenschappen horen alleen bij het huidige type. Kies voor elke waarde waar die op het nieuwe type terechtkomt.",
+      "values_count": "Werkitems met een waarde: {count}",
+      "drop_values": "Waarden verwijderen",
+      "choose_target": "Kies een eigenschap",
+      "option_values": "Waarden met {name}",
+      "choose_type": "Kies een type",
+      "confirm": "Type wijzigen"
     }
   },
   "work_item_type_hierarchy": {

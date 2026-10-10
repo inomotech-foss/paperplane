@@ -391,6 +391,8 @@
         "type_description": "Item kerja yang masuk melalui Intake mendapat tipe ini.",
         "type_placeholder": "Tipe item kerja baru",
         "enable_description": "Pilih tipe item kerja yang masuk melalui Intake, lalu aktifkan.",
+        "create_off": "Tanpa Intake",
+        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Beritahu yang ditugaskan",
           "description": "Untuk permintaan penerimaan baru, yang ditugaskan secara default akan diberi peringatan melalui notifikasi"

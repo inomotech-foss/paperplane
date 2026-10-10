@@ -5,13 +5,12 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { SWRConfig } from "swr";
 import type { TIssueType } from "@plane/types";
-import type { TIssueTypeUsage } from "@/services/issue/issue-type-removal.service";
-import { DeleteIssueTypeModal } from "./delete-modal";
+import type { TTypeMigrationPreview, TTypeMigrationScope } from "@/services/issue/issue-type-migration.service";
+import { IssueTypeMigrationDialog } from "./migration-dialog";
 
-const usage = vi.hoisted(() => ({ current: undefined as TIssueTypeUsage | undefined }));
+const preview = vi.hoisted(() => ({ current: undefined as TTypeMigrationPreview | undefined }));
 const deleteIssueType = vi.hoisted(() => vi.fn());
-
-vi.mock("next/navigation", () => ({ useParams: () => ({ workspaceSlug: "dev", projectId: "p1" }) }));
+const migrateIssueType = vi.hoisted(() => vi.fn());
 
 vi.mock("@plane/i18n", () => ({
   useTranslation: () => ({
@@ -19,12 +18,13 @@ vi.mock("@plane/i18n", () => ({
   }),
 }));
 
-vi.mock("@/services/issue/issue-type-removal.service", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@/services/issue/issue-type-removal.service")>();
+vi.mock("@/services/issue/issue-type-migration.service", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/services/issue/issue-type-migration.service")>();
   return {
     ...original,
-    IssueTypeRemovalService: class {
-      getUsage = () => Promise.resolve(usage.current);
+    IssueTypeMigrationService: class {
+      getUsage = () => Promise.resolve(preview.current);
+      migrate = () => Promise.resolve(preview.current);
     },
   };
 });
@@ -44,69 +44,103 @@ const makeType = (id: string): TIssueType => ({
 vi.mock("@/hooks/store/use-issue-types", () => ({
   useIssueTypes: () => ({
     deleteIssueType,
+    migrateIssueType,
     getActiveProjectIssueTypes: () => [makeType("story"), makeType("bug")],
     getIssueTypeById: () => null,
   }),
 }));
 
-const makeUsage = (fields: Partial<TIssueTypeUsage>): TIssueTypeUsage => ({
-  work_items: 0,
-  deleted_work_items: 0,
-  drafts: 0,
-  intakes: 0,
-  automation_actions: 0,
-  ...fields,
+vi.mock("@/hooks/store/use-issue-custom-properties", () => ({
+  useIssueCustomProperties: () => ({ getActiveProjectProperties: () => [], getPropertyById: () => null }),
+}));
+
+const makePreview = (
+  references: Partial<TTypeMigrationPreview["references"]>,
+  properties: TTypeMigrationPreview["properties"] = []
+): TTypeMigrationPreview => ({
+  references: { work_items: 0, deleted_work_items: 0, drafts: 0, intakes: 0, automation_actions: 0, ...references },
+  properties,
 });
 
-const renderDialog = () =>
+const SIZE = {
+  id: "size",
+  project_id: "p1",
+  name: "Size",
+  property_type: "TEXT",
+  is_multi: false,
+  relation_type: null,
+  work_items: 2,
+  options: [],
+};
+
+const renderDialog = (props: { scope: TTypeMigrationScope; unlink?: boolean; replacementTypeId?: string }) =>
   render(
     <SWRConfig value={{ provider: () => new Map() }}>
-      <DeleteIssueTypeModal isOpen issueType={makeType("story")} onClose={vi.fn()} />
+      <IssueTypeMigrationDialog
+        isOpen
+        workspaceSlug="dev"
+        projectId="p1"
+        fromType={makeType("story")}
+        onClose={vi.fn()}
+        {...props}
+      />
     </SWRConfig>
   );
 
-const deleteButton = () => screen.getByRole("button", { name: "delete" });
+const confirmButton = (name: string) => screen.getByRole("button", { name });
 const isDisabled = (element: HTMLElement) =>
   element.hasAttribute("disabled") || element.getAttribute("aria-disabled") === "true";
-const picker = () => screen.queryByText("work_item_types.settings.item_delete_confirmation.replacement_label");
+const replacementPicker = () =>
+  screen.queryByText("work_item_types.settings.item_delete_confirmation.replacement_label");
 
-describe("DeleteIssueTypeModal", () => {
+describe("IssueTypeMigrationDialog", () => {
   beforeEach(() => {
     deleteIssueType.mockReset();
+    migrateIssueType.mockReset();
   });
 
   it("asks a plain confirmation when nothing uses the type", async () => {
-    usage.current = makeUsage({});
-    renderDialog();
+    preview.current = makePreview({});
+    renderDialog({ scope: { project: "p1" }, unlink: true });
 
-    await waitFor(() => expect(isDisabled(deleteButton())).toBe(false));
+    await waitFor(() => expect(isDisabled(confirmButton("delete"))).toBe(false));
     expect(screen.getByText("work_item_types.settings.item_delete_confirmation.description")).not.toBeNull();
-    expect(picker()).toBeNull();
+    expect(replacementPicker()).toBeNull();
 
-    deleteButton().click();
-    await waitFor(() => expect(deleteIssueType).toHaveBeenCalledWith("dev", "p1", "story", undefined));
+    confirmButton("delete").click();
+    await waitFor(() => expect(deleteIssueType).toHaveBeenCalledWith("dev", "p1", "story"));
+    expect(migrateIssueType).not.toHaveBeenCalled();
   });
 
   it("asks for a replacement when work items use the type", async () => {
-    usage.current = makeUsage({ work_items: 3, deleted_work_items: 1 });
-    renderDialog();
+    preview.current = makePreview({ work_items: 3, deleted_work_items: 1 });
+    renderDialog({ scope: { project: "p1" }, unlink: true });
 
-    await waitFor(() => expect(picker()).not.toBeNull());
+    await waitFor(() => expect(replacementPicker()).not.toBeNull());
     expect(
       screen.getByText(
         "work_item_types.settings.item_delete_confirmation.in_use:3 work_item_types.settings.item_delete_confirmation.deleted_too"
       )
     ).not.toBeNull();
-    expect(isDisabled(deleteButton())).toBe(true);
+    expect(isDisabled(confirmButton("delete"))).toBe(true);
   });
 
   it("explains why when only deleted work items use the type", async () => {
-    usage.current = makeUsage({ deleted_work_items: 2 });
-    renderDialog();
+    preview.current = makePreview({ deleted_work_items: 2 });
+    renderDialog({ scope: { project: "p1" }, unlink: true });
 
-    await waitFor(() => expect(picker()).not.toBeNull());
+    await waitFor(() => expect(replacementPicker()).not.toBeNull());
     expect(screen.getByText("work_item_types.settings.item_delete_confirmation.only_hidden")).not.toBeNull();
     expect(screen.queryByText(/in_use/)).toBeNull();
-    expect(isDisabled(deleteButton())).toBe(true);
+  });
+
+  it("asks only where the values go when the new type is already chosen", async () => {
+    preview.current = makePreview({ work_items: 1 }, [SIZE]);
+    renderDialog({ scope: { work_items: ["item"] }, replacementTypeId: "bug" });
+
+    await waitFor(() => expect(screen.queryByText("Size")).not.toBeNull());
+    expect(screen.getByText("work_item_types.migration.values_count:2")).not.toBeNull();
+    expect(replacementPicker()).toBeNull();
+    expect(isDisabled(confirmButton("work_item_types.migration.confirm"))).toBe(true);
   });
 });

@@ -7,7 +7,7 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // components
-import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
+import { WorkItemTypeSelect } from "@/components/issues/work-item-type-select";
 // store hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
@@ -41,14 +41,5 @@ export const IssueTypeSwitcher = observer(function IssueTypeSwitcher(props: TIss
     await updateIssue(workspaceSlug.toString(), issue.project_id, issueId, { type_id: typeId });
   };
 
-  return (
-    <IssueTypeDropdown
-      projectId={issue.project_id}
-      value={issue.type_id}
-      onChange={handleChange}
-      disabled={disabled}
-      variant="pill-sm"
-      tooltip
-    />
-  );
+  return <WorkItemTypeSelect workItem={issue} onChange={handleChange} disabled={disabled} variant="pill-sm" tooltip />;
 });

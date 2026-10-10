@@ -78,8 +78,15 @@ const makeStore = (properties: IProjectUserPropertiesResponse | null) => {
       issuesMap[issueId] = { ...issuesMap[issueId], ...data };
     }),
   };
-  const store = new IssueTypeStore({ issue: { issues }, memberRoot: { project } });
-  store.removalService.remove = vi.fn(() => Promise.resolve(undefined));
+  const issueCustomProperty = { fetchBulkValues: vi.fn(() => Promise.resolve()) };
+  const store = new IssueTypeStore({ issue: { issues }, issueCustomProperty, memberRoot: { project } });
+  store.migrationService.remove = vi.fn(() => Promise.resolve(undefined));
+  store.migrationService.migrate = vi.fn(() =>
+    Promise.resolve({
+      references: { work_items: 1, deleted_work_items: 0, drafts: 0, intakes: 0, automation_actions: 0 },
+      properties: [],
+    })
+  );
   store.typeMap = { task: makeType("task", 0), bug: makeType("bug", 1), old: makeType("old", 2, false) };
   store.fetchedMap = { p1: true };
   return { store, project, issuesMap };
@@ -136,25 +143,51 @@ describe("IssueTypeStore.rememberIssueType", () => {
   });
 });
 
-describe("IssueTypeStore.deleteIssueType", () => {
-  it("moves the loaded work items of the project to the replacement", async () => {
+describe("IssueTypeStore.migrateIssueType", () => {
+  it("moves the loaded work items of the project and unlinks the type", async () => {
     const { store, issuesMap } = makeStore(makeProperties());
+    const body = { scope: { project: "p1" }, replacement_type_id: "bug", then: "unlink" as const };
 
-    await store.deleteIssueType("ws", "p1", "old", "bug");
+    await store.migrateIssueType("ws", "p1", "old", body);
 
-    expect(store.removalService.remove).toHaveBeenCalledWith("ws", "p1", "old", "bug");
+    expect(store.migrationService.migrate).toHaveBeenCalledWith("ws", "p1", "old", body);
     expect(store.getIssueTypeById("old")).toBeNull();
     expect(issuesMap.mine.type_id).toBe("bug");
     expect(issuesMap.other.type_id).toBe("task");
     expect(issuesMap.elsewhere.type_id).toBe("old");
   });
 
-  it("removes an unused type without a replacement", async () => {
+  it("moves only the work items in scope", async () => {
     const { store, issuesMap } = makeStore(makeProperties());
+    issuesMap.second = makeIssue("second", "p1", "old");
+
+    await store.migrateIssueType("ws", "p1", "old", { scope: { work_items: ["mine"] }, replacement_type_id: "bug" });
+
+    expect(issuesMap.mine.type_id).toBe("bug");
+    expect(issuesMap.second.type_id).toBe("old");
+    expect(store.getIssueTypeById("old")).not.toBeNull();
+  });
+
+  it("changes nothing on a dry run", async () => {
+    const { store, issuesMap } = makeStore(makeProperties());
+
+    await store.migrateIssueType("ws", "p1", "old", {
+      scope: { work_items: ["mine"] },
+      replacement_type_id: "bug",
+      dry_run: true,
+    });
+
+    expect(issuesMap.mine.type_id).toBe("old");
+  });
+});
+
+describe("IssueTypeStore.deleteIssueType", () => {
+  it("removes an unused type", async () => {
+    const { store } = makeStore(makeProperties());
 
     await store.deleteIssueType("ws", "p1", "old");
 
-    expect(store.removalService.remove).toHaveBeenCalledWith("ws", "p1", "old", undefined);
-    expect(issuesMap.mine.type_id).toBe("old");
+    expect(store.migrationService.remove).toHaveBeenCalledWith("ws", "p1", "old");
+    expect(store.getIssueTypeById("old")).toBeNull();
   });
 });

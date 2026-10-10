@@ -391,6 +391,8 @@
         "type_description": "透過 Intake 收到的工作項目使用此類型。",
         "type_placeholder": "新工作項目的類型",
         "enable_description": "請選擇透過 Intake 收到的工作項目的類型，然後將其開啟。",
+        "create_off": "不使用 Intake",
+        "create_with_type": "Intake：{name}",
         "notify_assignee": {
           "title": "通知負責人",
           "description": "對於新的接收請求，預設負責人將透過通知收到提醒"

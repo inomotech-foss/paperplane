@@ -390,6 +390,16 @@
           "text": "Upgrade"
         }
       }
+    },
+    "migration": {
+      "change_title": "Typ des Arbeitselements ändern",
+      "change_description": "Diese Werte benutzerdefinierter Eigenschaften gehören nur zum aktuellen Typ. Für jeden Wert festlegen, wohin er beim neuen Typ kommt.",
+      "values_count": "Arbeitselemente mit einem Wert: {count}",
+      "drop_values": "Werte verwerfen",
+      "choose_target": "Eigenschaft auswählen",
+      "option_values": "Werte mit {name}",
+      "choose_type": "Typ auswählen",
+      "confirm": "Typ ändern"
     }
   },
   "work_item_type_hierarchy": {

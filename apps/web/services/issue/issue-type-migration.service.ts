@@ -5,14 +5,17 @@ import type { ApiSchema } from "@plane/api-types";
 import { unwrap } from "@plane/services";
 import { apiClient } from "@/services/api-client";
 
-export type TIssueTypeUsage = ApiSchema<"IssueTypeUsage">;
+export type TTypeMigrationPreview = ApiSchema<"IssueTypeMigrationPreview">;
+export type TTypeMigrationProperty = ApiSchema<"IssueTypeMigrationProperty">;
+export type TTypeMigrationRequest = ApiSchema<"IssueTypeMigrationRequest">;
+export type TTypeMigrationScope = TTypeMigrationRequest["scope"];
 
 const typePath = (slug: string, project_id: string, pk: string) => ({ slug, project_id, pk });
 
-/** Removing a work item type from a project. Errors are thrown as `ApiError` from `@plane/services`. */
-export class IssueTypeRemovalService {
-  /** How many rows of the project still use the type. */
-  async getUsage(workspaceSlug: string, projectId: string, issueTypeId: string): Promise<TIssueTypeUsage> {
+/** Moving work items between types. Errors are thrown as `ApiError` from `@plane/services`. */
+export class IssueTypeMigrationService {
+  /** What in the project uses the type, and which of its property values would need a decision. */
+  async getUsage(workspaceSlug: string, projectId: string, issueTypeId: string): Promise<TTypeMigrationPreview> {
     return unwrap(
       apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/usage/", {
         params: { path: typePath(workspaceSlug, projectId, issueTypeId) },
@@ -20,19 +23,31 @@ export class IssueTypeRemovalService {
     );
   }
 
-  /** Removes the type from the project, moving the rows that use it to `replacementTypeId`. */
-  async remove(workspaceSlug: string, projectId: string, issueTypeId: string, replacementTypeId?: string) {
+  /** Moves the work items in scope to another type, or previews that with `dry_run`. */
+  async migrate(
+    workspaceSlug: string,
+    projectId: string,
+    issueTypeId: string,
+    body: TTypeMigrationRequest
+  ): Promise<TTypeMigrationPreview> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/migrate/", {
+        params: { path: typePath(workspaceSlug, projectId, issueTypeId) },
+        body,
+      })
+    );
+  }
+
+  /** Unlinks a type nothing in the project uses. */
+  async remove(workspaceSlug: string, projectId: string, issueTypeId: string) {
     return unwrap(
       apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/", {
-        params: {
-          path: typePath(workspaceSlug, projectId, issueTypeId),
-          query: replacementTypeId ? { replacement_type_id: replacementTypeId } : undefined,
-        },
+        params: { path: typePath(workspaceSlug, projectId, issueTypeId) },
       })
     );
   }
 }
 
 /** Every row that still uses a type, shown or not. */
-export const countTypeReferences = (usage: TIssueTypeUsage) =>
+export const countTypeReferences = (usage: TTypeMigrationPreview["references"]) =>
   usage.work_items + usage.deleted_work_items + usage.drafts + usage.intakes + usage.automation_actions;

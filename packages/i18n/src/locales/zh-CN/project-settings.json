@@ -391,6 +391,8 @@
         "type_description": "通过 Intake 收到的工作项使用此类型。",
         "type_placeholder": "新工作项的类型",
         "enable_description": "请选择通过 Intake 收到的工作项的类型，然后将其开启。",
+        "create_off": "不使用 Intake",
+        "create_with_type": "Intake：{name}",
         "notify_assignee": {
           "title": "通知负责人",
           "description": "对于新的接收请求，默认负责人将通过通知收到提醒"

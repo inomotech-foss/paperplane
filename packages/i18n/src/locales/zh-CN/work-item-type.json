@@ -390,6 +390,16 @@
           "text": "升级"
         }
       }
+    },
+    "migration": {
+      "change_title": "更改工作项类型",
+      "change_description": "这些自定义属性值只属于当前类型。请为每个值选择在新类型中的去处。",
+      "values_count": "有值的工作项：{count}",
+      "drop_values": "丢弃这些值",
+      "choose_target": "选择属性",
+      "option_values": "值为 {name}",
+      "choose_type": "选择类型",
+      "confirm": "更改类型"
     }
   },
   "work_item_type_hierarchy": {

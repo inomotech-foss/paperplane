@@ -391,6 +391,8 @@
         "type_description": "Elementy pracy przychodzące przez Intake otrzymują ten typ.",
         "type_placeholder": "Typ nowych elementów pracy",
         "enable_description": "Wybierz typ elementów pracy przychodzących przez Intake, a następnie go włącz.",
+        "create_off": "Bez Intake",
+        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Powiadom przypisanych",
           "description": "Dla nowego żądania przyjęcia domyślni przypisani zostaną powiadomieni poprzez powiadomienia"

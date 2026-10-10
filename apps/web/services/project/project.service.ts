@@ -15,7 +15,7 @@ import type {
 } from "@plane/types";
 // helpers
 // plane web types
-import type { TProject, TPartialProject } from "@plane/types";
+import type { TProject, TProjectCreatePayload, TPartialProject } from "@plane/types";
 // services
 import { APIService } from "@/services/api.service";
 
@@ -31,7 +31,7 @@ export class ProjectService extends APIService {
     super(API_BASE_URL);
   }
 
-  async createProject(workspaceSlug: string, data: Partial<TProject>): Promise<TProject> {
+  async createProject(workspaceSlug: string, data: TProjectCreatePayload): Promise<TProject> {
     return this.post(`/api/workspaces/${workspaceSlug}/projects/`, data)
       .then((response) => response?.data)
       .catch((error) => {

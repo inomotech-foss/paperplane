@@ -390,6 +390,16 @@
           "text": "Upgradovat"
         }
       }
+    },
+    "migration": {
+      "change_title": "Změnit typ pracovní položky",
+      "change_description": "Tyto hodnoty vlastních vlastností patří jen k aktuálnímu typu. Vyberte, kam každá na novém typu přejde.",
+      "values_count": "Pracovní položky s hodnotou: {count}",
+      "drop_values": "Zahodit hodnoty",
+      "choose_target": "Vyberte vlastnost",
+      "option_values": "Hodnoty s {name}",
+      "choose_type": "Vyberte typ",
+      "confirm": "Změnit typ"
     }
   },
   "work_item_type_hierarchy": {

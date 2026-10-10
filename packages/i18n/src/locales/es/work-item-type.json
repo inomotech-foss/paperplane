@@ -390,6 +390,16 @@
           "text": "Actualizar"
         }
       }
+    },
+    "migration": {
+      "change_title": "Cambiar el tipo del elemento de trabajo",
+      "change_description": "Estos valores de propiedades personalizadas solo pertenecen al tipo actual. Elija adónde va cada uno en el nuevo tipo.",
+      "values_count": "Elementos de trabajo con un valor: {count}",
+      "drop_values": "Descartar valores",
+      "choose_target": "Elija una propiedad",
+      "option_values": "Valores con {name}",
+      "choose_type": "Elija un tipo",
+      "confirm": "Cambiar tipo"
     }
   },
   "work_item_type_hierarchy": {

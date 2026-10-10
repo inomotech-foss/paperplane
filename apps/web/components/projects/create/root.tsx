@@ -22,6 +22,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 // plane web types
 import type { TProject } from "@plane/types";
 import { ProjectAttributes } from "./attributes";
+import { IntakeTypeSelect } from "./intake-type-select";
 import { getProjectFormValues } from "./utils";
 
 export type TCreateProjectFormProps = {
@@ -41,6 +42,8 @@ export const CreateProjectForm = observer(function CreateProjectForm(props: TCre
   const { addProjectToFavorites, createProject, updateProject } = useProject();
   // states
   const [shouldAutoSyncIdentifier, setShouldAutoSyncIdentifier] = useState(true);
+  // choosing the type of intake work items starts the project with intake on
+  const [intakeTypeId, setIntakeTypeId] = useState<string>();
   // form info
   const methods = useForm<TProject>({
     defaultValues: { ...getProjectFormValues(), ...data },
@@ -92,7 +95,8 @@ export const CreateProjectForm = observer(function CreateProjectForm(props: TCre
       }
     }
 
-    return createProject(workspaceSlug.toString(), formData)
+    const intake = intakeTypeId ? { inbox_view: true, intake_issue_type_id: intakeTypeId } : {};
+    return createProject(workspaceSlug.toString(), { ...formData, ...intake })
       .then(async (res) => {
         if (uploadedAssetUrl) {
           await updateCoverImageStatus(res.id, uploadedAssetUrl);
@@ -167,6 +171,7 @@ export const CreateProjectForm = observer(function CreateProjectForm(props: TCre
   const handleClose = () => {
     onClose();
     setShouldAutoSyncIdentifier(true);
+    setIntakeTypeId(undefined);
     setTimeout(() => {
       reset();
     }, 300);
@@ -184,7 +189,10 @@ export const CreateProjectForm = observer(function CreateProjectForm(props: TCre
             shouldAutoSyncIdentifier={shouldAutoSyncIdentifier}
             setShouldAutoSyncIdentifier={setShouldAutoSyncIdentifier}
           />
-          <ProjectAttributes isMobile={isMobile} />
+          <div className="flex flex-wrap items-center gap-2">
+            <ProjectAttributes isMobile={isMobile} />
+            <IntakeTypeSelect workspaceSlug={workspaceSlug} value={intakeTypeId} onChange={setIntakeTypeId} />
+          </div>
         </div>
         <ProjectCreateButtons handleClose={handleClose} />
       </form>

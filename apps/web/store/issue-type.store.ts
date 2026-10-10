@@ -13,14 +13,17 @@ import type { TIssueType } from "@plane/types";
 import { pickIssueTypeId } from "@/lib/work-item-type";
 // services
 import { IssueTypeService } from "@/services/issue";
-import { IssueTypeRemovalService } from "@/services/issue/issue-type-removal.service";
+import { IssueTypeMigrationService } from "@/services/issue/issue-type-migration.service";
+import type { TTypeMigrationPreview, TTypeMigrationRequest } from "@/services/issue/issue-type-migration.service";
 // store
+import type { IIssueCustomPropertyStore } from "./issue-custom-property.store";
 import type { IIssueStore } from "./issue/issue.store";
 import type { IProjectMemberStore } from "./member/project/base-project-member.store";
 
 /** The part of the root store the work item types depend on. */
 type TIssueTypeRootStore = {
   issue: { issues: Pick<IIssueStore, "issuesMap" | "updateIssue"> };
+  issueCustomProperty: Pick<IIssueCustomPropertyStore, "fetchBulkValues">;
   memberRoot: {
     project: Pick<
       IProjectMemberStore,
@@ -49,12 +52,13 @@ export interface IIssueTypeStore {
     issueTypeId: string,
     data: Partial<TIssueType>
   ) => Promise<TIssueType>;
-  deleteIssueType: (
+  deleteIssueType: (workspaceSlug: string, projectId: string, issueTypeId: string) => Promise<void>;
+  migrateIssueType: (
     workspaceSlug: string,
     projectId: string,
     issueTypeId: string,
-    replacementTypeId?: string
-  ) => Promise<void>;
+    body: TTypeMigrationRequest
+  ) => Promise<TTypeMigrationPreview>;
   rememberIssueType: (workspaceSlug: string, projectId: string, issueTypeId: string) => Promise<void>;
 }
 
@@ -67,7 +71,7 @@ export class IssueTypeStore implements IIssueTypeStore {
   rootStore;
   // services
   issueTypeService;
-  removalService;
+  migrationService;
 
   constructor(_rootStore: TIssueTypeRootStore) {
     makeObservable(this, {
@@ -77,11 +81,12 @@ export class IssueTypeStore implements IIssueTypeStore {
       createIssueType: action,
       updateIssueType: action,
       deleteIssueType: action,
+      migrateIssueType: action,
     });
 
     this.rootStore = _rootStore;
     this.issueTypeService = new IssueTypeService();
-    this.removalService = new IssueTypeRemovalService();
+    this.migrationService = new IssueTypeMigrationService();
   }
 
   /**
@@ -182,26 +187,42 @@ export class IssueTypeStore implements IIssueTypeStore {
   };
 
   /**
-   * Removes a type from the project. Work items that use it move to `replacementTypeId`, which the API
-   * requires while any exist.
+   * Unlinks a type nothing in the project uses. Work items that use it move with `migrateIssueType`.
    */
-  deleteIssueType = async (
+  deleteIssueType = async (workspaceSlug: string, projectId: string, issueTypeId: string) => {
+    if (!this.typeMap[issueTypeId]) return;
+    await this.migrationService.remove(workspaceSlug, projectId, issueTypeId);
+    runInAction(() => {
+      delete this.typeMap[issueTypeId];
+    });
+  };
+
+  /**
+   * Moves work items of a type to another type, with their custom property values, and unlinks the type
+   * when the request asks for it. The loaded work items follow.
+   */
+  migrateIssueType = async (
     workspaceSlug: string,
     projectId: string,
     issueTypeId: string,
-    replacementTypeId?: string
+    body: TTypeMigrationRequest
   ) => {
-    if (!this.typeMap[issueTypeId]) return;
-    await this.removalService.remove(workspaceSlug, projectId, issueTypeId, replacementTypeId);
+    const response = await this.migrationService.migrate(workspaceSlug, projectId, issueTypeId, body);
+    if (body.dry_run) return response;
     runInAction(() => {
-      delete this.typeMap[issueTypeId];
+      if (body.then === "unlink") delete this.typeMap[issueTypeId];
+      const replacementTypeId = body.replacement_type_id;
       if (!replacementTypeId) return;
+      const workItemIds = body.scope.work_items ? new Set(body.scope.work_items) : undefined;
       const { issues } = this.rootStore.issue;
       for (const issue of Object.values(issues.issuesMap)) {
-        if (issue.project_id === projectId && issue.type_id === issueTypeId)
-          issues.updateIssue(issue.id, { type_id: replacementTypeId });
+        const inScope = workItemIds ? workItemIds.has(issue.id) : issue.project_id === projectId;
+        if (inScope && issue.type_id === issueTypeId) issues.updateIssue(issue.id, { type_id: replacementTypeId });
       }
     });
+    // mapped or dropped property values
+    await this.rootStore.issueCustomProperty.fetchBulkValues(workspaceSlug, projectId).catch(() => undefined);
+    return response;
   };
 
   /**

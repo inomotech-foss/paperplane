@@ -391,6 +391,8 @@
         "type_description": "Gli elementi di lavoro che arrivano tramite Intake ricevono questo tipo.",
         "type_placeholder": "Tipo dei nuovi elementi di lavoro",
         "enable_description": "Scelga il tipo degli elementi di lavoro che arrivano tramite Intake, poi lo attivi.",
+        "create_off": "Nessun Intake",
+        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Notifica assegnatari",
           "description": "Per una nuova richiesta di accettazione, gli assegnatari predefiniti saranno avvisati tramite notifiche"

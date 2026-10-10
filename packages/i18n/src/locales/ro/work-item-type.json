@@ -390,6 +390,16 @@
           "text": "Actualizează"
         }
       }
+    },
+    "migration": {
+      "change_title": "Schimbați tipul elementului de lucru",
+      "change_description": "Aceste valori ale proprietăților personalizate aparțin doar tipului actual. Alegeți unde merge fiecare în noul tip.",
+      "values_count": "Elemente de lucru cu o valoare: {count}",
+      "drop_values": "Renunțați la valori",
+      "choose_target": "Alegeți o proprietate",
+      "option_values": "Valori cu {name}",
+      "choose_type": "Alegeți un tip",
+      "confirm": "Schimbați tipul"
     }
   },
   "work_item_type_hierarchy": {

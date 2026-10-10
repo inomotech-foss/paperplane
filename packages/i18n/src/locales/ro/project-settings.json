@@ -391,6 +391,8 @@
         "type_description": "Elementele de lucru primite prin Intake primesc acest tip.",
         "type_placeholder": "Tipul elementelor de lucru noi",
         "enable_description": "Alegeți tipul elementelor de lucru primite prin Intake, apoi activați-l.",
+        "create_off": "Fără Intake",
+        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Notifică persoanele desemnate",
           "description": "Pentru o nouă cerere de primire, persoanele desemnate implicit vor fi alertate prin notificări"

@@ -390,6 +390,16 @@
           "text": "Tingkatkan"
         }
       }
+    },
+    "migration": {
+      "change_title": "Ubah tipe item kerja",
+      "change_description": "Nilai properti kustom ini hanya milik tipe saat ini. Pilih ke mana masing-masing dipindahkan pada tipe baru.",
+      "values_count": "Item kerja dengan nilai: {count}",
+      "drop_values": "Buang nilai",
+      "choose_target": "Pilih properti",
+      "option_values": "Nilai dengan {name}",
+      "choose_type": "Pilih tipe",
+      "confirm": "Ubah tipe"
     }
   },
   "work_item_type_hierarchy": {

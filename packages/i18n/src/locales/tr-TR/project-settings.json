@@ -391,6 +391,8 @@
         "type_description": "Intake üzerinden gelen iş öğeleri bu türü alır.",
         "type_placeholder": "Yeni iş öğelerinin türü",
         "enable_description": "Intake üzerinden gelen iş öğelerinin türünü seçin, ardından açın.",
+        "create_off": "Intake yok",
+        "create_with_type": "Intake: {name}",
         "notify_assignee": {
           "title": "Atanan kişileri bildir",
           "description": "Yeni bir alım talebi için varsayılan atanan kişiler bildirimler aracılığıyla uyarılacaktır"
