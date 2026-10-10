@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 // plane imports
@@ -76,9 +76,10 @@ const PropertyMappingRow = observer(function PropertyMappingRow(props: {
   source: TTypeMigrationProperty;
   replacementTypeId: string;
   decision: TPropertyDecision | undefined;
-  onChange: (decision: TPropertyDecision) => void;
+  onDecide: (propertyId: string, decision: TPropertyDecision) => void;
 }) {
-  const { projectId, source, replacementTypeId, decision, onChange } = props;
+  const { projectId, source, replacementTypeId, decision, onDecide } = props;
+  const onChange = (next: TPropertyDecision) => onDecide(source.id, next);
   const { t } = useTranslation();
   const { getActiveProjectProperties, getPropertyById } = useIssueCustomProperties();
   const targets = getCompatibleTargets(source, getActiveProjectProperties(projectId) ?? [], replacementTypeId);
@@ -158,20 +159,15 @@ type TIssueTypeMigrationDialogProps = {
   onClose: () => void;
 };
 
-/**
- * Moves work items to another type. Asks only for what the move needs: the new type while something uses
- * the old one, and a decision for each property value that has no place on the new type.
- */
-export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDialog(
-  props: TIssueTypeMigrationDialogProps
-) {
+/** The state of a migration: what it reaches, the choices made so far and whether it can run. */
+const useTypeMigration = (props: TIssueTypeMigrationDialogProps) => {
   const { isOpen, workspaceSlug, projectId, fromType, scope, unlink = false, onClose } = props;
   const { t } = useTranslation();
   const { deleteIssueType, migrateIssueType } = useIssueTypes();
+  const { getPropertyById } = useIssueCustomProperties();
   const [chosenTypeId, setChosenTypeId] = useState<string>();
   const [decisions, setDecisions] = useState<Record<string, TPropertyDecision | undefined>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { getPropertyById } = useIssueCustomProperties();
   // what the migration reaches, fetched each time the dialog opens
   const { data: preview } = useSWR(
     isOpen ? `ISSUE_TYPE_MIGRATION_${fromType.id}_${JSON.stringify(scope)}` : null,
@@ -181,28 +177,35 @@ export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDial
         : migrationService.migrate(workspaceSlug, projectId, fromType.id, { scope, dry_run: true }),
     { revalidateOnFocus: false }
   );
-  const message = useUsageMessage(preview, unlink);
   const replacementTypeId = props.replacementTypeId ?? chosenTypeId;
   const needsReplacement = !!preview && countTypeReferences(preview.references) > 0;
   const properties = needsReplacement && replacementTypeId ? (preview?.properties ?? []) : [];
-  const isReady =
-    !!preview &&
-    (!needsReplacement || (!!replacementTypeId && isMappingComplete(properties, decisions, getPropertyById)));
+  const isMapped = !!replacementTypeId && isMappingComplete(properties, decisions, getPropertyById);
 
-  const handleClose = () => {
-    if (isSubmitting) return;
+  const reset = () => {
     setChosenTypeId(undefined);
     setDecisions({});
-    onClose();
   };
 
-  const handleChangeReplacement = (typeId: string) => {
+  const decide = useCallback(
+    (propertyId: string, decision: TPropertyDecision) =>
+      setDecisions((previous) => ({ ...previous, [propertyId]: decision })),
+    []
+  );
+
+  const chooseReplacement = (typeId: string) => {
     setChosenTypeId(typeId);
     // targets depend on the new type
     setDecisions({});
   };
 
-  const handleSubmit = async () => {
+  const close = () => {
+    if (isSubmitting) return;
+    reset();
+    onClose();
+  };
+
+  const submit = async () => {
     setIsSubmitting(true);
     try {
       if (unlink && !needsReplacement) await deleteIssueType(workspaceSlug, projectId, fromType.id);
@@ -213,8 +216,7 @@ export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDial
           property_mapping: toPropertyMapping(decisions),
           remove_type: unlink ? "unlink" : undefined,
         });
-      setChosenTypeId(undefined);
-      setDecisions({});
+      reset();
       onClose();
     } catch (error) {
       setToast({
@@ -227,10 +229,37 @@ export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDial
     }
   };
 
-  const confirmLabel = unlink ? t("delete") : t("work_item_types.migration.confirm");
+  return {
+    preview,
+    replacementTypeId,
+    needsReplacement,
+    properties,
+    decisions,
+    isReady: !!preview && (!needsReplacement || isMapped),
+    isSubmitting,
+    decide,
+    chooseReplacement,
+    close,
+    submit,
+  };
+};
+
+/**
+ * Moves work items to another type. Asks only for what the move needs: the new type while something uses
+ * the old one, and a decision for each property value that has no place on the new type.
+ */
+export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDialog(
+  props: TIssueTypeMigrationDialogProps
+) {
+  const { isOpen, projectId, fromType, unlink = false } = props;
+  const { t } = useTranslation();
+  const migration = useTypeMigration(props);
+  const message = useUsageMessage(migration.preview, unlink);
+  const askReplacement = migration.needsReplacement && !props.replacementTypeId;
+  const replacementTypeId = migration.replacementTypeId;
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && migration.close()}>
       <AlertDialogContent data-prevent-outside-click>
         <AlertDialogBody>
           <AlertDialogHeader>
@@ -244,15 +273,15 @@ export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDial
               <AlertDialogDescription>{message}</AlertDialogDescription>
             </AlertDialogIntro>
           </AlertDialogHeader>
-          {needsReplacement && !props.replacementTypeId && (
+          {askReplacement && (
             <div className="mt-4 flex flex-col gap-1.5">
               <span className="text-13 font-medium text-secondary">
                 {t("work_item_types.settings.item_delete_confirmation.replacement_label")}
               </span>
               <IssueTypeDropdown
                 projectId={projectId}
-                value={chosenTypeId}
-                onChange={handleChangeReplacement}
+                value={replacementTypeId}
+                onChange={migration.chooseReplacement}
                 filterTypes={(type) => type.id !== fromType.id && type.is_epic === fromType.is_epic}
                 placeholder={t("work_item_types.migration.choose_type")}
                 variant="select-md"
@@ -260,16 +289,16 @@ export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDial
               />
             </div>
           )}
-          {replacementTypeId && properties.length > 0 && (
+          {replacementTypeId && migration.properties.length > 0 && (
             <div className="mt-4 flex max-h-80 flex-col gap-2 overflow-y-auto">
-              {properties.map((source) => (
+              {migration.properties.map((source) => (
                 <PropertyMappingRow
                   key={source.id}
                   projectId={projectId}
                   source={source}
                   replacementTypeId={replacementTypeId}
-                  decision={decisions[source.id]}
-                  onChange={(decision) => setDecisions((previous) => ({ ...previous, [source.id]: decision }))}
+                  decision={migration.decisions[source.id]}
+                  onDecide={migration.decide}
                 />
               ))}
             </div>
@@ -281,17 +310,17 @@ export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDial
             size="sm"
             stretch="auto"
             label={t("cancel")}
-            disabled={isSubmitting}
+            disabled={migration.isSubmitting}
             render={<AlertDialogClose />}
           />
           <Button
             variant={unlink ? "danger" : "primary"}
             size="sm"
             stretch="auto"
-            onClick={() => void handleSubmit()}
-            disabled={!isReady}
-            loading={isSubmitting}
-            label={confirmLabel}
+            onClick={() => void migration.submit()}
+            disabled={!migration.isReady}
+            loading={migration.isSubmitting}
+            label={unlink ? t("delete") : t("work_item_types.migration.confirm")}
           />
         </AlertDialogActions>
       </AlertDialogContent>
