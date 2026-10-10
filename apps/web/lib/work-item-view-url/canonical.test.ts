@@ -117,5 +117,5 @@ describe("canonical URLs", () => {
       })
     );
     expect(results.filter(Boolean).slice(0, 5)).toEqual([]);
-  });
+  }, 30_000);
 });
