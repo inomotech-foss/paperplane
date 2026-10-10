@@ -24,9 +24,10 @@ import type {
 import { EIssuesStoreType } from "@plane/types";
 import { handleIssueQueryParamsByLayout, normalizeDisplayFilters } from "@plane/utils";
 import { applyViewState, toViewState } from "@/lib/work-item-view-url/apply";
-import { applyViewIntent, mergeDisplayFilters } from "@/lib/work-item-view-url/intent";
-import type { TViewIntent, TViewRoute } from "@/lib/work-item-view-url/intent";
+import { applyViewIntent, isPersonalIntent, mergeDisplayFilters } from "@/lib/work-item-view-url/intent";
+import type { TViewIntent } from "@/lib/work-item-view-url/intent";
 import { getWorkItemPage } from "@/lib/work-item-view-url/pages";
+import { getViewRoute } from "@/lib/work-item-view-url/registry";
 import type { IBaseIssueFilterStore } from "../helpers/issue-filter-helper.store";
 import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
 // helpers
@@ -52,13 +53,10 @@ export interface IProjectIssuesFilter extends IBaseIssueFilterStore {
   getShouldReFetchIssues: (displayFilters: IIssueDisplayFilterOptions) => boolean;
   /** Saved preferences per project. The shown filters may come from a link instead. */
   savedFilters: Record<string, IIssueFilters>;
-  /** The route showing a project from the URL. UI changes for that project go to it, not into `filters`. */
-  viewRoute: TViewRoute | undefined;
-  setViewRoute: (route: TViewRoute | undefined) => void;
   // action
   /** Fetches the saved preferences into savedFilters; does not change the shown filters. */
   fetchSavedFilters: (workspaceSlug: string, projectId: string) => Promise<IIssueFilters>;
-  /** The saved preferences, fetched only if neither this store nor the member store has them. */
+  /** The saved preferences, fetched unless this store has them. */
   loadSavedFilters: (workspaceSlug: string, projectId: string) => Promise<IIssueFilters>;
   updateFilterExpression: (
     workspaceSlug: string,
@@ -77,7 +75,7 @@ export interface IProjectIssuesFilter extends IBaseIssueFilterStore {
 export type TProjectIssuesFilterRoot = Pick<IIssueRootStore, "projectId" | "currentUserId" | "workspaceSlug"> & {
   projectIssues: Pick<IProjectIssues, "clear" | "fetchIssuesWithExistingPagination">;
   rootStore: {
-    memberRoot: { project: Pick<IProjectMemberStore, "getProjectUserProperties" | "fetchProjectUserProperties"> };
+    memberRoot: { project: Pick<IProjectMemberStore, "fetchProjectUserProperties"> };
     user: { data?: { id: string } };
   };
 };
@@ -88,7 +86,6 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
   // observables
   filters: { [projectId: string]: IIssueFilters } = {};
   savedFilters: Record<string, IIssueFilters> = {};
-  viewRoute: TViewRoute | undefined = undefined;
   // root store
   rootIssueStore: TProjectIssuesFilterRoot;
   // services
@@ -178,10 +175,6 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
     }
   );
 
-  setViewRoute = (route: TViewRoute | undefined) => {
-    this.viewRoute = route;
-  };
-
   private get projectMembers() {
     return this.rootIssueStore.rootStore.memberRoot.project;
   }
@@ -192,9 +185,8 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
   loadSavedFilters = async (workspaceSlug: string, projectId: string): Promise<IIssueFilters> => {
     const saved = this.savedFilters[projectId];
     if (saved) return saved;
-    const properties =
-      this.projectMembers.getProjectUserProperties(projectId) ??
-      (await this.projectMembers.fetchProjectUserProperties(workspaceSlug, projectId));
+    // not from the member store: other writers keep only part of the response there
+    const properties = await this.projectMembers.fetchProjectUserProperties(workspaceSlug, projectId);
     // another caller may have loaded and changed them meanwhile
     return this.savedFilters[projectId] ?? this.setSavedFilters(projectId, properties);
   };
@@ -239,7 +231,7 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
     }
   };
 
-  /** Shows a change in place, for a project no route shows from the URL. */
+  /** Shows a change in place: for a project no route shows, or a setting the URL does not hold. */
   private showIntent = (workspaceSlug: string, projectId: string, intent: TViewIntent) => {
     const current = this.filters[projectId];
     if (!current) return;
@@ -264,7 +256,7 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
    */
   private changeView = async (workspaceSlug: string, projectId: string, intent: TViewIntent) => {
     const patch = await this.saveIntent(workspaceSlug, projectId, intent);
-    const route = this.viewRoute?.entityId === projectId ? this.viewRoute : undefined;
+    const route = isPersonalIntent(intent, PROJECT_PAGE) ? undefined : getViewRoute(PROJECT_PAGE, projectId);
     const shown = route ? route.onIntent(intent) : this.showIntent(workspaceSlug, projectId, intent);
     if (patch) {
       try {

@@ -11,11 +11,13 @@ import type { TSupportedFilterTypeForUpdate } from "@plane/constants";
 import { WorkItemFilterStore } from "@plane/shared-state";
 import type { IWorkItemFilterInstance } from "@plane/shared-state";
 import type { IProjectUserPropertiesResponse, TSupportedFilterForUpdate } from "@plane/types";
-import { COLLECTION_OPERATOR, EIssueLayoutTypes, EIssuesStoreType, LOGICAL_OPERATOR } from "@plane/types";
 import {
-  loadProjectWorkItemsView,
-  useProjectWorkItemsViewRoute,
-} from "@/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/issues/(list)/view-url";
+  COLLECTION_OPERATOR,
+  EIssueLayoutTypes,
+  EIssuesStoreType,
+  EStartOfTheWeek,
+  LOGICAL_OPERATOR,
+} from "@plane/types";
 import { CalendarOptionsDropdown } from "@/components/issues/issue-layouts/calendar/dropdowns/options-dropdown";
 import { FilterDisplayProperties } from "@/components/issues/issue-layouts/filters/header/display-filters/display-properties";
 import { HeaderColumn } from "@/components/issues/issue-layouts/spreadsheet/columns/header-column";
@@ -23,7 +25,9 @@ import { WorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/b
 import { useAppliedFilters } from "@/components/work-item-query/use-applied-filters";
 import { WorkItemQueryService } from "@/services/issue";
 import { ProjectIssuesFilter } from "@/store/issue/project/filter.store";
-import { shouldRevalidateView } from "./route";
+import { PROJECT_WORK_ITEMS_PAGE, getProjectWorkItemsBinding } from "./bindings";
+import { loadViewRoute, shouldRevalidateView } from "./route";
+import { useWorkItemViewRoute } from "./use-view-route";
 
 const mocks = vi.hoisted(() => ({
   root: {},
@@ -54,7 +58,7 @@ vi.mock("@/hooks/store/use-issue-custom-properties", () => ({
   useIssueCustomProperties: () => ({ getActiveProjectProperties: () => [], getPropertyById: () => undefined }),
 }));
 
-const loader = ({ request }: LoaderFunctionArgs) => loadProjectWorkItemsView(request, "ws", "p1");
+const loader = ({ request }: LoaderFunctionArgs) => loadViewRoute(request, getProjectWorkItemsBinding("ws", "p1"));
 
 const SAVED: IProjectUserPropertiesResponse = {
   rich_filters: {},
@@ -76,7 +80,7 @@ const setup = (link: string) => {
     currentUserId: "u1",
     projectIssues: mocks.issues,
     rootStore: {
-      memberRoot: { project: { getProjectUserProperties: () => null, fetchProjectUserProperties: async () => SAVED } },
+      memberRoot: { project: { fetchProjectUserProperties: async () => SAVED } },
       user: { data: { id: "u1" } },
     },
   });
@@ -87,7 +91,8 @@ const setup = (link: string) => {
   mocks.root = {
     issue: { projectIssuesFilter: store, projectIssues: mocks.issues },
     workItemFilters: filterStore,
-    user: { userProfile: { data: undefined } },
+    user: { userProfile: { data: { id: "u1", start_of_the_week: EStartOfTheWeek.MONDAY } } },
+    projectRoot: { project: { getPartialProjectById: () => undefined } },
   };
   vi.spyOn(WorkItemQueryService.prototype, "validate").mockResolvedValue({ valid: true });
   // the bindings of useIssuesActions
@@ -142,7 +147,7 @@ const setup = (link: string) => {
   });
 
   function Layout() {
-    useProjectWorkItemsViewRoute(useLoaderData<typeof loader>(), "p1");
+    useWorkItemViewRoute(useLoaderData<typeof loader>(), PROJECT_WORK_ITEMS_PAGE, "p1");
     return <Page />;
   }
 

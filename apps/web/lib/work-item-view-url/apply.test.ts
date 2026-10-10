@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { IIssueFilters } from "@plane/types";
 import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
 import { IssueFilterHelperStore } from "@/store/issue/helpers/issue-filter-helper.store";
-import { applyViewState, diffViewState, getUnverifiedPql, resolveViewState, toViewState } from "./apply";
+import { applyViewState, diffViewState, resolveViewState, toViewState } from "./apply";
 import type { TViewStateStore } from "./apply";
 import { getPageBaseline, getWorkItemPage } from "./pages";
 import { parseSearch } from "./serialize";
@@ -80,15 +80,6 @@ describe("resolveViewState", () => {
   });
 });
 
-describe("getUnverifiedPql", () => {
-  it("only asks for queries not applied before", () => {
-    const state = (pql: string) => ({ ...saved, displayFilters: { ...saved.displayFilters, pql } });
-    expect(getUnverifiedPql(state(" new "), [saved])).toBe("new");
-    expect(getUnverifiedPql(state('state = "Done" '), [saved])).toBeUndefined();
-    expect(getUnverifiedPql(state(""), [saved])).toBeUndefined();
-  });
-});
-
 describe("diffViewState", () => {
   it("lists changed keys only", () => {
     const next = {
@@ -157,5 +148,22 @@ describe("applyViewState", () => {
     expect(effects.refetch).not.toHaveBeenCalled();
     expect(effects.clear).not.toHaveBeenCalled();
     expect(effects.setRichFilters).not.toHaveBeenCalled();
+  });
+
+  it("keeps the display objects when only the rich filters change", () => {
+    const store = makeStore({ p1: shown() });
+    const { displayFilters, displayProperties } = store.filters.p1;
+    applyViewState(store, "p1", { ...saved, richFilters: { priority__in: "high" } }, makeEffects());
+    expect(store.filters.p1.displayFilters).toBe(displayFilters);
+    expect(store.filters.p1.displayProperties).toBe(displayProperties);
+  });
+
+  it("writes only the changed display filter", () => {
+    const store = makeStore({ p1: shown() });
+    const { displayFilters, displayProperties } = store.filters.p1;
+    applyViewState(store, "p1", { ...saved, displayFilters: { ...saved.displayFilters, order_by: "priority" } });
+    expect(store.filters.p1.displayFilters).toBe(displayFilters);
+    expect(store.filters.p1.displayFilters?.order_by).toBe("priority");
+    expect(store.filters.p1.displayProperties).toBe(displayProperties);
   });
 });

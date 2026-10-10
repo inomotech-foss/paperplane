@@ -7,12 +7,16 @@ import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, IIssueFilters
 import { isCustomDisplayPropertyKey, richFiltersEqual } from "./codecs";
 import { getPageLayout } from "./pages";
 import { getApplicablePaths } from "./schema";
+import type { TViewParam } from "./schema";
 import { mergeSearch, normalizeViewState } from "./serialize";
 import type { TInvalidParam, TParsedSearch } from "./serialize";
 import type { TStatePath, TWorkItemPage, TWorkItemViewState } from "./types";
 
 /** Owned by later work (calendar date, timeline zoom, peek); neither applied nor read from the store yet. */
 const DEFERRED_PATHS: ReadonlySet<TStatePath> = new Set(["calendarAnchor", "timelineZoom", "peek"]);
+
+/** The params of the deferred fields. */
+export const DEFERRED_PARAMS: ReadonlySet<string> = new Set<TViewParam>(["d", "z", "peek"]);
 
 const DISPLAY_FILTERS = "displayFilters.";
 const DISPLAY_PROPERTIES = "displayProperties.";
@@ -89,16 +93,6 @@ export const resolveViewState = (
 
 export const trimmedPql = (state: TWorkItemViewState | undefined) => state?.displayFilters.pql?.trim() ?? "";
 
-/** The query that needs validation before it is applied: one the person has not already seen applied. */
-export const getUnverifiedPql = (
-  state: TWorkItemViewState,
-  trusted: readonly (TWorkItemViewState | undefined)[]
-): string | undefined => {
-  const pql = trimmedPql(state);
-  if (!pql || trusted.some((other) => trimmedPql(other) === pql)) return undefined;
-  return pql;
-};
-
 export const withPql = (state: TWorkItemViewState, pql: string | undefined): TWorkItemViewState => ({
   ...state,
   displayFilters: { ...state.displayFilters, pql },
@@ -153,9 +147,13 @@ export type TViewStateEffects = {
   setRichFilters: (richFilters: TWorkItemViewState["richFilters"]) => void;
 };
 
+const assignChanged = <T extends object>(target: T, changes: T) => {
+  for (const key of Object.keys(changes)) if (isKeyOf(key, changes)) copyKey(target, changes, key);
+};
+
 /**
- * Sets a view state as the shown filters without saving it. Without effects the list is not shown,
- * so the state replaces the filters and the list fetches when it mounts.
+ * Sets a view state as the shown filters without saving it. Writes only what changed, so observers of
+ * unchanged keys do not rerun. Without effects the list is not shown and fetches when it mounts.
  */
 export const applyViewState = (
   store: TViewStateStore,
@@ -164,13 +162,13 @@ export const applyViewState = (
   effects?: TViewStateEffects
 ) => {
   const current = store.filters[entityId];
-  if (!current || !effects) {
+  if (!current) {
     runInAction(() => {
       store.filters[entityId] = {
         richFilters: next.richFilters ?? {},
         displayFilters: next.displayFilters,
         displayProperties: next.displayProperties,
-        kanbanFilters: current?.kanbanFilters,
+        kanbanFilters: undefined,
       };
     });
     return;
@@ -179,9 +177,16 @@ export const applyViewState = (
   if (isEmptyDiff(diff)) return;
   runInAction(() => {
     if (diff.richFilters) current.richFilters = next.richFilters ?? {};
-    current.displayFilters = { ...current.displayFilters, ...diff.displayFilters };
-    current.displayProperties = { ...current.displayProperties, ...diff.displayProperties };
+    if (Object.keys(diff.displayFilters).length > 0) {
+      if (current.displayFilters) assignChanged(current.displayFilters, diff.displayFilters);
+      else current.displayFilters = next.displayFilters;
+    }
+    if (Object.keys(diff.displayProperties).length > 0) {
+      if (current.displayProperties) assignChanged(current.displayProperties, diff.displayProperties);
+      else current.displayProperties = next.displayProperties;
+    }
   });
+  if (!effects) return;
   if (diff.richFilters) effects.setRichFilters(next.richFilters);
   // a new layout mounts and fetches on its own
   if (store.getShouldClearIssues(diff.displayFilters)) effects.clear();

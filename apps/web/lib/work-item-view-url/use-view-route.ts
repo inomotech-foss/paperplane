@@ -1,47 +1,27 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation, useNavigate, useNavigation } from "react-router";
 import type { Path } from "react-router";
-import type { EStartOfTheWeek, IIssueFilters } from "@plane/types";
-import { resolveViewState, toViewState } from "./apply";
+import { resolveViewState } from "./apply";
 import { applyViewIntent } from "./intent";
-import type { TViewRoute } from "./intent";
-import { buildViewSearch, getViewContext } from "./route";
-import type { TPqlDraft, TViewLoaderData } from "./route";
+import { registerViewRoute } from "./registry";
+import { buildViewSearch, getViewBaseline } from "./resolve";
+import type { TPqlDraft, TViewRouteData } from "./resolve";
 import { parseSearch } from "./serialize";
 import type { TWorkItemPage } from "./types";
 
-type TDraftState = { pqlDraft: TPqlDraft };
-
-const getDraft = (state: unknown): TPqlDraft | undefined => {
-  if (typeof state !== "object" || state === null || !("pqlDraft" in state)) return undefined;
-  const draft: unknown = state.pqlDraft;
-  if (typeof draft !== "object" || draft === null || !("query" in draft) || typeof draft.query !== "string") {
-    return undefined;
-  }
-  const error = "error" in draft && typeof draft.error === "string" ? draft.error : undefined;
-  return { query: draft.query, error };
-};
-
-type TOptions = {
-  page: TWorkItemPage;
-  entityId: string;
-  /** Registers the route on the filter store, or removes it with undefined. Keep it stable. */
-  setRoute: (route: TViewRoute | undefined) => void;
-  /** Keep it stable. */
-  getSaved: () => IIssueFilters | undefined;
-  weekStart: EStartOfTheWeek;
-};
-
 /**
- * Connects a route that owns the view params to its filter store. Replaces a URL the loader found not
- * canonical, and turns UI changes into replace navigations from the latest URL; the loader shows them.
- * Returns the query draft to show.
+ * Connects a route that owns the view params to the filter stores: UI changes for this entity become
+ * replace navigations from the latest URL, and the loader shows them. Returns the query draft to show.
  */
-export const useWorkItemViewRoute = (data: TViewLoaderData, options: TOptions) => {
-  const { page, entityId, setRoute, getSaved, weekStart } = options;
+export const useWorkItemViewRoute = (
+  data: TViewRouteData,
+  page: TWorkItemPage,
+  entityId: string
+): TPqlDraft | undefined => {
+  const { saved, clock, draft } = data;
   const navigate = useNavigate();
   const location = useLocation();
   const navigation = useNavigation();
@@ -53,43 +33,22 @@ export const useWorkItemViewRoute = (data: TViewLoaderData, options: TOptions) =
     latest.current = pending ?? location;
   }, [pending, location]);
 
-  const replaceSearch = useCallback(
-    async (search: string, state?: TDraftState) => {
-      const { pathname, hash } = latest.current;
-      // set before React renders the navigation, so a change right after builds on this one
-      latest.current = { pathname, search, hash };
-      await navigate({ pathname, search, hash }, { replace: true, preventScrollReset: true, state });
-    },
-    [navigate]
+  useEffect(
+    () =>
+      registerViewRoute(page, entityId, {
+        onIntent: async (intent) => {
+          const { pathname, search, hash } = latest.current;
+          const current = new URLSearchParams(search);
+          const baseline = getViewBaseline(page, clock);
+          const { state } = resolveViewState(parseSearch(current, page), page, baseline, saved);
+          const next = `?${buildViewSearch(applyViewIntent(state, intent, page), page, baseline, clock, current)}`;
+          // set before React renders the navigation, so a change right after builds on this one
+          latest.current = { pathname, search: next, hash };
+          await navigate({ pathname, search: next, hash }, { replace: true, preventScrollReset: true });
+        },
+      }),
+    [page, entityId, saved, clock, navigate]
   );
 
-  useEffect(() => {
-    if (data.canonicalSearch === undefined) return;
-    // the canonical URL has no query, so its history entry keeps the draft
-    const state = data.pqlDraft && { pqlDraft: data.pqlDraft };
-    replaceSearch(data.canonicalSearch, state).catch((error: unknown) => console.error(error));
-  }, [data, replaceSearch]);
-
-  useEffect(() => {
-    setRoute({
-      entityId,
-      onIntent: async (intent) => {
-        const current = new URLSearchParams(latest.current.search);
-        const { baseline, clock } = getViewContext(page, weekStart);
-        const saved = getSaved();
-        const shown = resolveViewState(
-          parseSearch(current, page),
-          page,
-          baseline,
-          saved ? toViewState(saved) : baseline
-        );
-        const next = applyViewIntent(shown.state, intent, page);
-        await replaceSearch(`?${buildViewSearch(next, page, baseline, clock, current)}`);
-      },
-    });
-    return () => setRoute(undefined);
-  }, [entityId, setRoute, getSaved, page, weekStart, replaceSearch]);
-
-  const keptDraft = useMemo(() => getDraft(location.state), [location.state]);
-  return { pqlDraft: data.pqlDraft ?? keptDraft };
+  return draft;
 };

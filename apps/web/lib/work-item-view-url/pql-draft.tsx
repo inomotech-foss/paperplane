@@ -2,7 +2,7 @@
 // See the LICENSE file for details.
 
 import { createContext, useContext } from "react";
-import type { TPqlDraft } from "./route";
+import type { TPqlDraft } from "./resolve";
 
 const PqlDraftContext = createContext<TPqlDraft | undefined>(undefined);
 
