@@ -19,6 +19,7 @@ from plane.db.models import (
     PropertyTypeChoices,
     State,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -61,6 +62,7 @@ def issue(db, project, state, create_user):
         workspace=project.workspace,
         state=state,
         created_by=create_user,
+        type=link_starter_type(project),
     )
 
 
@@ -570,6 +572,7 @@ class TestWorkItemPropertyFiltering:
                 workspace=project.workspace,
                 state=state,
                 created_by=create_user,
+                type=link_starter_type(project),
             )
             IssuePropertyValue.objects.create(
                 issue=work_item,
@@ -633,6 +636,7 @@ class TestWorkItemPropertyFiltering:
             workspace=project.workspace,
             state=state,
             created_by=create_user,
+            type=link_starter_type(project),
         )
         IssuePropertyValue.objects.create(
             issue=issue,

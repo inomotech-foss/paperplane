@@ -37,9 +37,9 @@ def other_project(db, workspace, create_user):
 
 
 @pytest.fixture
-def default_type(db, workspace, project):
-    issue_type = IssueType.objects.create(workspace=workspace, name="Task", is_default=True)
-    ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace, is_default=True)
+def task_type(db, workspace, project):
+    issue_type = IssueType.objects.create(workspace=workspace, name="Task")
+    ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
     return issue_type
 
 
@@ -61,7 +61,7 @@ def import_url(slug, project_id):
 @pytest.mark.contract
 class TestWorkspaceIssueTypes:
     @pytest.mark.django_db
-    def test_list_returns_a_bare_array(self, api_key_client, workspace, default_type):
+    def test_list_returns_a_bare_array(self, api_key_client, workspace, task_type):
         response = api_key_client.get(workspace_url(workspace.slug))
 
         assert response.status_code == status.HTTP_200_OK
@@ -69,14 +69,14 @@ class TestWorkspaceIssueTypes:
         assert [t["name"] for t in response.data] == ["Task"]
 
     @pytest.mark.django_db
-    def test_list_includes_types_no_project_uses(self, api_key_client, workspace, default_type, loose_type):
+    def test_list_includes_types_no_project_uses(self, api_key_client, workspace, task_type, loose_type):
         response = api_key_client.get(workspace_url(workspace.slug))
 
         assert {t["name"] for t in response.data} == {"Task", "Spike"}
 
     @pytest.mark.django_db
     def test_each_type_reports_the_projects_it_is_enabled_for(
-        self, api_key_client, workspace, project, default_type, loose_type
+        self, api_key_client, workspace, project, task_type, loose_type
     ):
         by_name = {t["name"]: t for t in api_key_client.get(workspace_url(workspace.slug)).data}
 
@@ -140,15 +140,7 @@ class TestWorkspaceIssueTypes:
         assert loose_type.name == "Research"
 
     @pytest.mark.django_db
-    def test_patch_to_default_unsets_the_previous_default(self, api_key_client, workspace, default_type, loose_type):
-        api_key_client.patch(workspace_url(workspace.slug, loose_type.id), {"is_default": True}, format="json")
-
-        default_type.refresh_from_db()
-        assert default_type.is_default is False
-        assert IssueType.objects.filter(workspace=workspace, is_default=True).count() == 1
-
-    @pytest.mark.django_db
-    def test_delete_removes_the_type_and_its_links(self, api_key_client, workspace, project, default_type, loose_type):
+    def test_delete_removes_the_type_and_its_links(self, api_key_client, workspace, project, task_type, loose_type):
         ProjectIssueType.objects.create(project=project, issue_type=loose_type, workspace=workspace)
 
         response = api_key_client.delete(workspace_url(workspace.slug, loose_type.id))
@@ -156,13 +148,6 @@ class TestWorkspaceIssueTypes:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not IssueType.objects.filter(pk=loose_type.id).exists()
         assert not ProjectIssueType.objects.filter(issue_type_id=loose_type.id).exists()
-
-    @pytest.mark.django_db
-    def test_delete_the_default_is_rejected(self, api_key_client, workspace, default_type):
-        response = api_key_client.delete(workspace_url(workspace.slug, default_type.id))
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert IssueType.objects.filter(pk=default_type.id).exists()
 
     @pytest.mark.django_db
     def test_delete_is_rejected_when_it_would_strand_a_project(self, api_key_client, workspace, project, loose_type):
@@ -185,7 +170,7 @@ class TestWorkspaceIssueTypes:
 class TestIssueTypeImport:
     @pytest.mark.django_db
     def test_import_enables_a_workspace_type_for_the_project(
-        self, api_key_client, workspace, project, default_type, loose_type
+        self, api_key_client, workspace, project, task_type, loose_type
     ):
         response = api_key_client.post(
             import_url(workspace.slug, project.id),
@@ -198,7 +183,7 @@ class TestIssueTypeImport:
         assert ProjectIssueType.objects.filter(project=project, issue_type=loose_type).exists()
 
     @pytest.mark.django_db
-    def test_importing_twice_does_not_duplicate(self, api_key_client, workspace, project, default_type, loose_type):
+    def test_importing_twice_does_not_duplicate(self, api_key_client, workspace, project, task_type, loose_type):
         body = {"work_item_types": [str(loose_type.id)]}
         api_key_client.post(import_url(workspace.slug, project.id), body, format="json")
         api_key_client.post(import_url(workspace.slug, project.id), body, format="json")
@@ -222,7 +207,7 @@ class TestIssueTypeImport:
         assert not ProjectIssueType.objects.filter(issue_type=foreign).exists()
 
     @pytest.mark.django_db
-    def test_a_non_list_body_is_refused(self, api_key_client, workspace, project, default_type):
+    def test_a_non_list_body_is_refused(self, api_key_client, workspace, project, task_type):
         response = api_key_client.post(
             import_url(workspace.slug, project.id),
             {"work_item_types": "not-a-list"},

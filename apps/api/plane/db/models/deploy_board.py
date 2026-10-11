@@ -33,6 +33,10 @@ class DeployBoard(WorkspaceBaseModel):
     is_comments_enabled = models.BooleanField(default=False)
     is_reactions_enabled = models.BooleanField(default=False)
     intake = models.ForeignKey("db.Intake", related_name="publish_intake", on_delete=models.SET_NULL, null=True)
+    # The type of the work items submitted through the published intake form.
+    intake_issue_type = models.ForeignKey(
+        "db.IssueType", related_name="intake_deploy_boards", on_delete=models.RESTRICT, null=True
+    )
     is_votes_enabled = models.BooleanField(default=False)
     view_props = models.JSONField(default=dict)
     is_activity_enabled = models.BooleanField(default=True)
@@ -49,7 +53,11 @@ class DeployBoard(WorkspaceBaseModel):
                 fields=["entity_name", "entity_identifier"],
                 condition=models.Q(deleted_at__isnull=True),
                 name="deploy_board_unique_entity_name_entity_identifier_when_deleted_at_null",
-            )
+            ),
+            models.CheckConstraint(
+                condition=models.Q(intake__isnull=True) | models.Q(intake_issue_type__isnull=False),
+                name="deploy_board_intake_has_issue_type",
+            ),
         ]
         verbose_name = "Deploy Board"
         verbose_name_plural = "Deploy Boards"

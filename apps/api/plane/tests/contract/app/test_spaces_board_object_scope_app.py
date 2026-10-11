@@ -39,6 +39,7 @@ from plane.db.models import (
     Workspace,
     WorkspaceMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 # --------------------------------------------------------------------------- #
@@ -101,7 +102,12 @@ def board(db, workspace, create_user):
     ProjectMember.objects.create(project=project, member=create_user, workspace=workspace, role=20, is_active=True)
     state = State.objects.create(name="Todo", project=project, workspace=workspace, group="backlog", default=True)
     issue = Issue.objects.create(
-        name="Board Issue", workspace=workspace, project=project, state=state, created_by=create_user
+        name="Board Issue",
+        workspace=workspace,
+        project=project,
+        state=state,
+        created_by=create_user,
+        type=link_starter_type(project),
     )
     comment = IssueComment.objects.create(
         issue=issue,
@@ -122,6 +128,7 @@ def board(db, workspace, create_user):
         is_reactions_enabled=True,
         is_votes_enabled=True,
         intake=intake,
+        intake_issue_type=link_starter_type(project),
     )
     return {
         "project": project,
@@ -140,7 +147,12 @@ def victim(db, workspace, create_user):
     )
     state = State.objects.create(name="Todo", project=project, workspace=workspace, group="backlog", default=True)
     issue = Issue.objects.create(
-        name="Victim Issue", workspace=workspace, project=project, state=state, created_by=create_user
+        name="Victim Issue",
+        workspace=workspace,
+        project=project,
+        state=state,
+        created_by=create_user,
+        type=link_starter_type(project),
     )
     comment = IssueComment.objects.create(
         issue=issue,
@@ -168,7 +180,12 @@ def victim_other_ws(db, create_user):
     project = Project.objects.create(name="Other WS Project", identifier="OWP", workspace=other_ws, created_by=owner)
     state = State.objects.create(name="Todo", project=project, workspace=other_ws, group="backlog", default=True)
     issue = Issue.objects.create(
-        name="Other WS Issue", workspace=other_ws, project=project, state=state, created_by=owner
+        name="Other WS Issue",
+        workspace=other_ws,
+        project=project,
+        state=state,
+        created_by=owner,
+        type=link_starter_type(project),
     )
     return {"workspace": other_ws, "project": project, "issue": issue}
 
@@ -182,7 +199,12 @@ def board_votes_disabled(db, workspace, create_user):
     ProjectMember.objects.create(project=project, member=create_user, workspace=workspace, role=20, is_active=True)
     state = State.objects.create(name="Todo", project=project, workspace=workspace, group="backlog", default=True)
     issue = Issue.objects.create(
-        name="No-Vote Issue", workspace=workspace, project=project, state=state, created_by=create_user
+        name="No-Vote Issue",
+        workspace=workspace,
+        project=project,
+        state=state,
+        created_by=create_user,
+        type=link_starter_type(project),
     )
     deploy_board = DeployBoard.objects.create(
         entity_name="project",

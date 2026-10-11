@@ -4462,12 +4462,7 @@ export interface paths {
         get: operations["workspaces_projects_issue_types_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description CRUD for work item types enabled on a project.
-         *
-         *     Only admins can create, update, or delete work item types; any active
-         *     project member can list and retrieve them.
-         */
+        /** @description Unlink the type from the project. 409 while anything in the project uses it. */
         delete: operations["workspaces_projects_issue_types_destroy"];
         options?: never;
         head?: never;
@@ -4478,6 +4473,44 @@ export interface paths {
          *     project member can list and retrieve them.
          */
         patch: operations["workspaces_projects_issue_types_partial_update"];
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/migrate/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Move work items of the type to another type, see `migrate_type`.
+         *
+         *     Members can migrate work items; the whole project needs an admin.
+         */
+        post: operations["workspaces_projects_issue_types_migrate_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/usage/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description What in the project uses the type, and which of its property values would need a decision. */
+        get: operations["workspaces_projects_issue_types_usage_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/workspaces/{slug}/projects/{project_id}/issues/": {
@@ -7829,6 +7862,8 @@ export interface components {
             readonly project: string | null;
             /** Format: uuid */
             intake: string | null;
+            /** Format: uuid */
+            intake_issue_type: string | null;
         };
         DeployBoardRequest: {
             /** Format: date-time */
@@ -7851,6 +7886,8 @@ export interface components {
             updated_by?: string | null;
             /** Format: uuid */
             intake?: string | null;
+            /** Format: uuid */
+            intake_issue_type?: string | null;
         };
         /**
          * @description * `NONE` - Manual
@@ -8078,7 +8115,7 @@ export interface components {
             /** Format: uuid */
             readonly parent_id: string | null;
             /** Format: uuid */
-            readonly type_id: string | null;
+            readonly type_id: string;
             readonly cycle_id?: string;
             module_ids?: string[];
             label_ids?: string[];
@@ -8263,7 +8300,7 @@ export interface components {
             /** Format: uuid */
             parent_id: string | null;
             /** Format: uuid */
-            type_id: string | null;
+            type_id: string;
             /** Format: uuid */
             readonly project_id: string;
             /** Format: uuid */
@@ -8320,7 +8357,7 @@ export interface components {
             /** Format: uuid */
             estimate_point: string | null;
             /** Format: uuid */
-            type: string | null;
+            readonly type: string;
             readonly assignees: string[];
             readonly labels: string[];
         };
@@ -8330,7 +8367,7 @@ export interface components {
             /** Format: uuid */
             parent_id?: string | null;
             /** Format: uuid */
-            type_id?: string | null;
+            type_id: string;
             label_ids?: string[];
             assignee_ids?: string[];
             /** Format: date-time */
@@ -8362,8 +8399,6 @@ export interface components {
             state?: string | null;
             /** Format: uuid */
             estimate_point?: string | null;
-            /** Format: uuid */
-            type?: string | null;
         };
         IssueFlat: {
             /** Format: uuid */
@@ -8720,7 +8755,7 @@ export interface components {
             /** Format: uuid */
             estimate_point: string | null;
             /** Format: uuid */
-            type: string | null;
+            type: string;
             readonly assignees: string[];
             readonly labels: string[];
         };
@@ -8768,7 +8803,7 @@ export interface components {
             /** Format: uuid */
             estimate_point?: string | null;
             /** Format: uuid */
-            type?: string | null;
+            type: string;
         };
         IssueSubscriber: {
             /** Format: uuid */
@@ -8834,7 +8869,6 @@ export interface components {
             description: string;
             logo_props: unknown;
             readonly is_epic: boolean;
-            is_default: boolean;
             is_active: boolean;
             /** Format: double */
             level: number;
@@ -8850,6 +8884,60 @@ export interface components {
             /** Format: uuid */
             readonly workspace: string;
         };
+        IssueTypeMigrationOption: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description Work items in scope with this option. */
+            work_items: number;
+        };
+        /** @description What a type migration reaches: the rows in scope and the property values that need a decision. */
+        IssueTypeMigrationPreview: {
+            references: components["schemas"]["IssueTypeUsage"];
+            properties: components["schemas"]["IssueTypeMigrationProperty"][];
+        };
+        /** @description A property of the old type alone that work items in scope have values in. */
+        IssueTypeMigrationProperty: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            property_type: string;
+            is_multi: boolean;
+            relation_type: string | null;
+            /** @description Work items in scope with a value. */
+            work_items: number;
+            options: components["schemas"]["IssueTypeMigrationOption"][];
+        };
+        IssueTypeMigrationRequest: {
+            scope: components["schemas"]["IssueTypeMigrationScopeRequest"];
+            /**
+             * Format: uuid
+             * @description Required while anything in scope uses the type.
+             */
+            replacement_type_id?: string;
+            /** @description Per property of the old type with values: {"target": <property id>, "options": {<old option id>: <new option id or null>}} or {"drop": true}. */
+            property_mapping?: {
+                [key: string]: unknown;
+            };
+            /**
+             * @description "unlink" with a project scope unlinks the type, "delete" with the workspace scope deletes it.
+             *
+             *     * `unlink` - unlink
+             *     * `delete` - delete
+             */
+            remove_type?: components["schemas"]["RemoveTypeEnum"];
+            /** @description Only return what the migration would reach. */
+            dry_run?: boolean;
+        };
+        /** @description Exactly one of the fields. */
+        IssueTypeMigrationScopeRequest: {
+            work_items?: string[];
+            /** Format: uuid */
+            project?: string;
+            workspace?: boolean;
+        };
         /**
          * @description Serializer for work item types.
          *
@@ -8861,12 +8949,20 @@ export interface components {
             name: string;
             description?: string;
             logo_props?: unknown;
-            is_default?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;
             external_source?: string | null;
             external_id?: string | null;
+        };
+        /** @description How many rows of a project use a work item type. */
+        IssueTypeUsage: {
+            work_items: number;
+            deleted_work_items: number;
+            drafts: number;
+            intake_forms: number;
+            service_desks: number;
+            automation_actions: number;
         };
         IssueView: {
             /** Format: uuid */
@@ -9673,6 +9769,8 @@ export interface components {
             updated_by?: string | null;
             /** Format: uuid */
             intake?: string | null;
+            /** Format: uuid */
+            intake_issue_type?: string | null;
         };
         PatchedEstimateRequest: {
             /** Format: date-time */
@@ -9770,7 +9868,7 @@ export interface components {
             /** Format: uuid */
             parent_id?: string | null;
             /** Format: uuid */
-            type_id?: string | null;
+            type_id?: string;
             label_ids?: string[];
             assignee_ids?: string[];
             /** Format: date-time */
@@ -9802,8 +9900,6 @@ export interface components {
             state?: string | null;
             /** Format: uuid */
             estimate_point?: string | null;
-            /** Format: uuid */
-            type?: string | null;
         };
         PatchedIssueLinkRequest: {
             /** Format: date-time */
@@ -9865,7 +9961,6 @@ export interface components {
             name?: string;
             description?: string;
             logo_props?: unknown;
-            is_default?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;
@@ -10589,6 +10684,12 @@ export interface components {
          * @enum {string}
          */
         RelationTypeEnum: "USER" | "ISSUE";
+        /**
+         * @description * `unlink` - unlink
+         *     * `delete` - delete
+         * @enum {string}
+         */
+        RemoveTypeEnum: "unlink" | "delete";
         /**
          * @description * `20` - Admin
          *     * `15` - Member
@@ -18943,7 +19044,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Intake"][];
+                    "application/json": components["schemas"]["Intake"];
                 };
             };
         };
@@ -19264,7 +19365,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Intake"][];
+                    "application/json": components["schemas"]["Intake"];
                 };
             };
         };
@@ -20091,6 +20192,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IssueType"];
+                };
+            };
+        };
+    };
+    workspaces_projects_issue_types_migrate_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pk: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueTypeMigrationRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequest"];
+                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueTypeMigrationPreview"];
+                };
+            };
+        };
+    };
+    workspaces_projects_issue_types_usage_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pk: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueTypeMigrationPreview"];
                 };
             };
         };

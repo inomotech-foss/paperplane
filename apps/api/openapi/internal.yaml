@@ -8659,9 +8659,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Intake'
+                $ref: '#/components/schemas/Intake'
           description: ''
     post:
       operationId: workspaces_projects_inboxes_create
@@ -9129,9 +9127,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Intake'
+                $ref: '#/components/schemas/Intake'
           description: ''
     post:
       operationId: workspaces_projects_intakes_create
@@ -10324,11 +10320,8 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_issue_types_destroy
-      description: |-
-        CRUD for work item types enabled on a project.
-
-        Only admins can create, update, or delete work item types; any active
-        project member can list and retrieve them.
+      description: Unlink the type from the project. 409 while anything in the project
+        uses it.
       parameters:
       - in: path
         name: pk
@@ -10354,6 +10347,88 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/migrate/:
+    post:
+      operationId: workspaces_projects_issue_types_migrate_create
+      description: |-
+        Move work items of the type to another type, see `migrate_type`.
+
+        Members can migrate work items; the whole project needs an admin.
+      parameters:
+      - in: path
+        name: pk
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IssueTypeMigrationRequest'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueTypeMigrationPreview'
+          description: ''
+  /api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/usage/:
+    get:
+      operationId: workspaces_projects_issue_types_usage_retrieve
+      description: What in the project uses the type, and which of its property values
+        would need a decision.
+      parameters:
+      - in: path
+        name: pk
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueTypeMigrationPreview'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/issues/:
     get:
       operationId: workspaces_projects_issues_list
@@ -18745,6 +18820,10 @@ components:
           type: string
           format: uuid
           nullable: true
+        intake_issue_type:
+          type: string
+          format: uuid
+          nullable: true
       required:
       - id
       - project_details
@@ -18766,6 +18845,7 @@ components:
       - workspace
       - project
       - intake
+      - intake_issue_type
     DeployBoardRequest:
       type: object
       properties:
@@ -18802,6 +18882,10 @@ components:
           nullable: true
           title: Last Modified By
         intake:
+          type: string
+          format: uuid
+          nullable: true
+        intake_issue_type:
           type: string
           format: uuid
           nullable: true
@@ -19290,7 +19374,6 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
           readOnly: true
         cycle_id:
           type: string
@@ -19760,7 +19843,6 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
         project_id:
           type: string
           format: uuid
@@ -19875,7 +19957,7 @@ components:
         type:
           type: string
           format: uuid
-          nullable: true
+          readOnly: true
         assignees:
           type: array
           items:
@@ -19938,7 +20020,6 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
         label_ids:
           type: array
           items:
@@ -20017,12 +20098,9 @@ components:
           type: string
           format: uuid
           nullable: true
-        type:
-          type: string
-          format: uuid
-          nullable: true
       required:
       - name
+      - type_id
     IssueFlat:
       type: object
       properties:
@@ -20807,7 +20885,6 @@ components:
         type:
           type: string
           format: uuid
-          nullable: true
         assignees:
           type: array
           items:
@@ -20946,10 +21023,10 @@ components:
         type:
           type: string
           format: uuid
-          nullable: true
       required:
       - name
       - project
+      - type
       - workspace
     IssueSubscriber:
       type: object
@@ -21063,8 +21140,6 @@ components:
         is_epic:
           type: boolean
           readOnly: true
-        is_default:
-          type: boolean
         is_active:
           type: boolean
         level:
@@ -21102,7 +21177,6 @@ components:
       - description
       - logo_props
       - is_epic
-      - is_default
       - is_active
       - level
       - external_source
@@ -21110,6 +21184,113 @@ components:
       - created_by
       - updated_by
       - workspace
+    IssueTypeMigrationOption:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        work_items:
+          type: integer
+          description: Work items in scope with this option.
+      required:
+      - id
+      - name
+      - work_items
+    IssueTypeMigrationPreview:
+      type: object
+      description: 'What a type migration reaches: the rows in scope and the property
+        values that need a decision.'
+      properties:
+        references:
+          $ref: '#/components/schemas/IssueTypeUsage'
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueTypeMigrationProperty'
+      required:
+      - references
+      - properties
+    IssueTypeMigrationProperty:
+      type: object
+      description: A property of the old type alone that work items in scope have
+        values in.
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        property_type:
+          type: string
+        is_multi:
+          type: boolean
+        relation_type:
+          type: string
+          nullable: true
+        work_items:
+          type: integer
+          description: Work items in scope with a value.
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueTypeMigrationOption'
+      required:
+      - id
+      - project_id
+      - name
+      - property_type
+      - is_multi
+      - relation_type
+      - work_items
+      - options
+    IssueTypeMigrationRequest:
+      type: object
+      properties:
+        scope:
+          $ref: '#/components/schemas/IssueTypeMigrationScopeRequest'
+        replacement_type_id:
+          type: string
+          format: uuid
+          description: Required while anything in scope uses the type.
+        property_mapping:
+          type: object
+          additionalProperties: {}
+          description: 'Per property of the old type with values: {"target": <property
+            id>, "options": {<old option id>: <new option id or null>}} or {"drop":
+            true}.'
+        remove_type:
+          allOf:
+          - $ref: '#/components/schemas/RemoveTypeEnum'
+          description: |-
+            "unlink" with a project scope unlinks the type, "delete" with the workspace scope deletes it.
+
+            * `unlink` - unlink
+            * `delete` - delete
+        dry_run:
+          type: boolean
+          description: Only return what the migration would reach.
+      required:
+      - scope
+    IssueTypeMigrationScopeRequest:
+      type: object
+      description: Exactly one of the fields.
+      properties:
+        work_items:
+          type: array
+          items:
+            type: string
+            format: uuid
+        project:
+          type: string
+          format: uuid
+        workspace:
+          type: boolean
     IssueTypeRequest:
       type: object
       description: |-
@@ -21126,8 +21307,6 @@ components:
         description:
           type: string
         logo_props: {}
-        is_default:
-          type: boolean
         is_active:
           type: boolean
         level:
@@ -21143,6 +21322,29 @@ components:
           maxLength: 255
       required:
       - name
+    IssueTypeUsage:
+      type: object
+      description: How many rows of a project use a work item type.
+      properties:
+        work_items:
+          type: integer
+        deleted_work_items:
+          type: integer
+        drafts:
+          type: integer
+        intake_forms:
+          type: integer
+        service_desks:
+          type: integer
+        automation_actions:
+          type: integer
+      required:
+      - work_items
+      - deleted_work_items
+      - drafts
+      - intake_forms
+      - service_desks
+      - automation_actions
     IssueView:
       type: object
       properties:
@@ -22963,6 +23165,10 @@ components:
           type: string
           format: uuid
           nullable: true
+        intake_issue_type:
+          type: string
+          format: uuid
+          nullable: true
     PatchedEstimateRequest:
       type: object
       properties:
@@ -23160,7 +23366,6 @@ components:
         type_id:
           type: string
           format: uuid
-          nullable: true
         label_ids:
           type: array
           items:
@@ -23236,10 +23441,6 @@ components:
           format: uuid
           nullable: true
         estimate_point:
-          type: string
-          format: uuid
-          nullable: true
-        type:
           type: string
           format: uuid
           nullable: true
@@ -23351,8 +23552,6 @@ components:
         description:
           type: string
         logo_props: {}
-        is_default:
-          type: boolean
         is_active:
           type: boolean
         level:
@@ -24871,6 +25070,14 @@ components:
       description: |-
         * `USER` - User
         * `ISSUE` - Work item
+    RemoveTypeEnum:
+      enum:
+      - unlink
+      - delete
+      type: string
+      description: |-
+        * `unlink` - unlink
+        * `delete` - delete
     RoleEnum:
       enum:
       - 20

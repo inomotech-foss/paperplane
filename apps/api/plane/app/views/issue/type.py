@@ -6,15 +6,37 @@
 from django.db import transaction
 
 # Third Party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
 # Module imports
 from .. import BaseViewSet
 from plane.app.permissions import ROLE, allow_permission, ProjectEntityPermission
-from plane.app.serializers import IssueTypeSerializer
-from plane.db.models import IssueType, Project, ProjectIssueType
-from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.app.serializers import (
+    IssueTypeMigrationPreviewSerializer,
+    IssueTypeMigrationSerializer,
+    IssueTypeSerializer,
+)
+from plane.db.models import IssueType, Project, ProjectIssueType, ProjectMember, WorkspaceMember
+from plane.utils.issue_type_migration import (
+    PROJECT,
+    WORK_ITEMS,
+    MigrationError,
+    Scope,
+    TypeReferences,
+    migrate_type,
+    remove_unused_type,
+)
+
+
+def _is_admin(user, slug, project_id):
+    return (
+        ProjectMember.objects.filter(member=user, project_id=project_id, role=ROLE.ADMIN.value, is_active=True).exists()
+        or WorkspaceMember.objects.filter(
+            member=user, workspace__slug=slug, role=ROLE.ADMIN.value, is_active=True
+        ).exists()
+    )
 
 
 class IssueTypeViewSet(BaseViewSet):
@@ -46,8 +68,6 @@ class IssueTypeViewSet(BaseViewSet):
         )
 
     def list(self, request, slug, project_id):
-        project = Project.objects.get(pk=project_id, workspace__slug=slug)
-        get_or_create_default_issue_type(project)
         serializer = IssueTypeSerializer(self.get_queryset(), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -57,16 +77,11 @@ class IssueTypeViewSet(BaseViewSet):
         serializer = IssueTypeSerializer(data=request.data)
         if serializer.is_valid():
             with transaction.atomic():
-                if serializer.validated_data.get("is_default"):
-                    IssueType.objects.filter(workspace_id=project.workspace_id, is_default=True).update(
-                        is_default=False
-                    )
                 issue_type = serializer.save(workspace_id=project.workspace_id, is_epic=False)
                 ProjectIssueType.objects.create(
                     project_id=project_id,
                     issue_type=issue_type,
                     workspace_id=project.workspace_id,
-                    is_default=issue_type.is_default,
                 )
             issue_type = self.get_queryset().get(pk=issue_type.id)
             return Response(IssueTypeSerializer(issue_type).data, status=status.HTTP_201_CREATED)
@@ -77,46 +92,45 @@ class IssueTypeViewSet(BaseViewSet):
         issue_type = IssueType.objects.get(workspace__slug=slug, project_issue_types__project_id=project_id, pk=pk)
         serializer = IssueTypeSerializer(issue_type, data=request.data, partial=True)
         if serializer.is_valid():
-            with transaction.atomic():
-                if serializer.validated_data.get("is_default"):
-                    IssueType.objects.filter(workspace_id=issue_type.workspace_id, is_default=True).exclude(
-                        pk=issue_type.pk
-                    ).update(is_default=False)
-                serializer.save()
+            serializer.save()
             issue_type = self.get_queryset().get(pk=pk)
             return Response(IssueTypeSerializer(issue_type).data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses=IssueTypeMigrationPreviewSerializer)
+    @allow_permission([ROLE.ADMIN])
+    def usage(self, request, slug, project_id, pk):
+        """What in the project uses the type, and which of its property values would need a decision."""
+        issue_type = self.get_queryset().get(pk=pk)
+        preview = TypeReferences(issue_type, Scope(PROJECT, project_id=str(project_id))).preview()
+        return Response(IssueTypeMigrationPreviewSerializer(preview).data, status=status.HTTP_200_OK)
+
+    @extend_schema(request=IssueTypeMigrationSerializer, responses=IssueTypeMigrationPreviewSerializer)
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
+    def migrate(self, request, slug, project_id, pk):
+        """Move work items of the type to another type, see `migrate_type`.
+
+        Members can migrate work items; the whole project needs an admin.
+        """
+        issue_type = IssueType.objects.get(workspace__slug=slug, pk=pk)
+        scope = request.data.get("scope") if isinstance(request.data, dict) else None
+        items_only = isinstance(scope, dict) and set(scope) == {WORK_ITEMS}
+        if not items_only and not _is_admin(request.user, slug, project_id):
+            return Response(
+                {"error": "Only project admins can migrate the whole project."}, status=status.HTTP_403_FORBIDDEN
+            )
+        try:
+            preview = migrate_type(issue_type, request.data, request.user.id, project_id=str(project_id))
+        except MigrationError as error:
+            return Response(error.payload, status=error.status)
+        return Response(IssueTypeMigrationPreviewSerializer(preview).data, status=status.HTTP_200_OK)
+
     @allow_permission([ROLE.ADMIN])
     def destroy(self, request, slug, project_id, pk):
+        """Unlink the type from the project. 409 while anything in the project uses it."""
         issue_type = IssueType.objects.get(workspace__slug=slug, project_issue_types__project_id=project_id, pk=pk)
-        if issue_type.is_epic:
-            return Response(
-                {"error": "Epic type cannot be removed"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if issue_type.is_default:
-            return Response(
-                {"error": "Cannot delete the default type; set another type as default first"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        remaining = (
-            ProjectIssueType.objects.filter(
-                project_id=project_id,
-                deleted_at__isnull=True,
-                issue_type__is_active=True,
-            )
-            .exclude(issue_type_id=issue_type.id)
-            .count()
-        )
-        if remaining == 0:
-            return Response(
-                {"error": "A project must have at least one work item type"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        with transaction.atomic():
-            ProjectIssueType.objects.filter(project_id=project_id, issue_type_id=issue_type.id).delete()
-            if not ProjectIssueType.objects.filter(issue_type_id=issue_type.id).exists():
-                issue_type.delete()
+        try:
+            remove_unused_type(issue_type, project_id)
+        except MigrationError as error:
+            return Response(error.payload, status=error.status)
         return Response(status=status.HTTP_204_NO_CONTENT)

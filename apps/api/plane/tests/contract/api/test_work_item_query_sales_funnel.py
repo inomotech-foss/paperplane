@@ -31,6 +31,7 @@ from plane.db.models import (
     User,
     WorkspaceMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -45,7 +46,7 @@ def types(db, workspace, project):
     """Customer -> Sales story -> Quote -> Invoice."""
     result = {}
     for name in ("Customer", "Sales story", "Quote", "Invoice"):
-        issue_type = IssueType.objects.create(workspace=workspace, name=name, is_default=name == "Customer")
+        issue_type = IssueType.objects.create(workspace=workspace, name=name)
         ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
         result[name] = issue_type
     return result
@@ -249,7 +250,12 @@ class TestNameResolution:
         ProjectMember.objects.create(project=other, member=create_user, role=20, is_active=True)
         paid = State.objects.create(name="Paid", group="completed", project=other, workspace=workspace)
         Issue.objects.create(
-            name="Support invoice", workspace=workspace, project=other, state=paid, created_by=create_user
+            name="Support invoice",
+            workspace=workspace,
+            project=other,
+            state=paid,
+            created_by=create_user,
+            type=link_starter_type(other),
         )
 
         response = api_key_client.get(workspace_url(workspace), {"pql": 'state = "Paid"'})

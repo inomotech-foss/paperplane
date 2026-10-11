@@ -13,6 +13,8 @@ from plane.automation import conditions
 from plane.automation.context import changes_from_activities
 from plane.automation.validators import action_error, condition_error, trigger_error
 
+TYPE_ID = "11111111-1111-4111-8111-111111111111"
+
 pytestmark = pytest.mark.unit
 
 TODAY = datetime.date(2026, 7, 24)
@@ -333,5 +335,12 @@ class TestActionValidation:
         assert action_error("create_work_item", {"name": "  "}) == "The new work item needs a name."
 
     def test_create_work_item_rejects_a_malformed_id(self):
-        message = action_error("create_work_item", {"name": "Follow up", "state_id": "not-a-uuid"})
+        message = action_error("create_work_item", {"name": "Follow up", "type_id": TYPE_ID, "state_id": "not-a-uuid"})
         assert message == "The chosen state isn't a valid id."
+
+    def test_create_work_item_requires_a_type(self):
+        assert action_error("create_work_item", {"name": "Follow up"}) == "Choose a type for the new work item."
+        assert action_error("create_work_item", {"name": "Follow up", "type_id": "x"}) == (
+            "The chosen type isn't a valid id."
+        )
+        assert action_error("create_work_item", {"name": "Follow up", "type_id": TYPE_ID}) is None

@@ -11,6 +11,7 @@ from django.db.models import Max
 from plane.app.serializers.workspace import WorkspaceLiteSerializer
 from plane.app.serializers.user import UserLiteSerializer, UserAdminLiteSerializer
 from plane.db.models import (
+    Intake,
     Project,
     ProjectMember,
     ProjectMemberInvite,
@@ -22,6 +23,8 @@ from plane.db.models import (
 from plane.utils.content_validator import (
     validate_html_content,
 )
+from plane.utils.issue_type import work_item_type_error
+from plane.utils.uuid import is_valid_uuid
 
 
 class ProjectSerializer(BaseSerializer):
@@ -241,6 +244,15 @@ class ProjectMemberLiteSerializer(BaseSerializer):
         read_only_fields = fields
 
 
+def intake_form_error(project_id, intake_id, issue_type_id):
+    """Why a published board of `project_id` cannot take intake submissions this way, or None."""
+    if not is_valid_uuid(str(intake_id)) or not Intake.objects.filter(pk=intake_id, project_id=project_id).exists():
+        return {"intake": "The intake does not belong to this project."}
+    if error := work_item_type_error(project_id, issue_type_id):
+        return {"intake_issue_type": error}
+    return None
+
+
 class DeployBoardSerializer(BaseSerializer):
     project_details = ProjectLiteSerializer(read_only=True, source="project")
     workspace_detail = WorkspaceLiteSerializer(read_only=True, source="workspace")
@@ -249,6 +261,18 @@ class DeployBoardSerializer(BaseSerializer):
         model = DeployBoard
         fields = "__all__"
         read_only_fields = ["workspace", "project", "anchor"]
+
+    def validate(self, data):
+        def current(field):
+            return data[field] if field in data else getattr(self.instance, field, None)
+
+        intake, issue_type = current("intake"), current("intake_issue_type")
+        if intake is None:
+            # Submissions are off, so there is no type to keep.
+            data["intake_issue_type"] = None
+        elif error := intake_form_error(self.instance.project_id, intake.id, issue_type and issue_type.id):
+            raise serializers.ValidationError(error)
+        return data
 
 
 class ProjectPublicMemberSerializer(BaseSerializer):

@@ -25,6 +25,7 @@ from plane.db.models import (
 from plane.license.models import Instance, InstanceAdmin
 from plane.license.utils.user_lifecycle import deleted_email, soft_delete_user
 from plane.license.utils.user_merge import MergeError, merge_users
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -59,7 +60,9 @@ def project(workspace, owner):
 @pytest.fixture
 def issue(project, workspace, owner):
     state = State.objects.create(name="Todo", project=project, group="backlog", default=True)
-    return Issue.objects.create(name="I", workspace=workspace, project=project, state=state, created_by=owner)
+    return Issue.objects.create(
+        name="I", workspace=workspace, project=project, state=state, created_by=owner, type=link_starter_type(project)
+    )
 
 
 def account(user, provider, account_id):
@@ -94,7 +97,9 @@ class TestMergeUsers:
 
     @pytest.mark.django_db
     def test_assignee_through_rows_are_repointed_without_duplicates(self, survivor, source, issue, project, workspace):
-        other = Issue.objects.create(name="J", workspace=workspace, project=project, state=issue.state)
+        other = Issue.objects.create(
+            name="J", workspace=workspace, project=project, state=issue.state, type=link_starter_type(project)
+        )
         IssueAssignee.objects.create(issue=issue, assignee=source, project=project, workspace=workspace)
         IssueAssignee.objects.create(issue=issue, assignee=survivor, project=project, workspace=workspace)
         IssueAssignee.objects.create(issue=other, assignee=source, project=project, workspace=workspace)

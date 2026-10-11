@@ -22,6 +22,7 @@ import pytest
 
 from plane.db.models import Issue, Project, ProjectMember
 from plane.utils.filters.filterset import IssueFilterSet
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -38,7 +39,9 @@ def project(db, workspace, create_user):
 
 def _issue_at(project, create_user, name, created, updated):
     """Create an issue then force created_at/updated_at (both are auto-managed)."""
-    issue = Issue.objects.create(name=name, project=project, workspace=project.workspace, created_by=create_user)
+    issue = Issue.objects.create(
+        name=name, project=project, workspace=project.workspace, created_by=create_user, type=link_starter_type(project)
+    )
     Issue.objects.filter(pk=issue.pk).update(created_at=created, updated_at=updated)
     issue.refresh_from_db()
     return issue

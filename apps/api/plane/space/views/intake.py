@@ -161,6 +161,7 @@ class IntakeIssuePublicViewSet(BaseViewSet):
             priority=request.data.get("issue", {}).get("priority", "low"),
             project_id=project_deploy_board.project_id,
             state_id=triage_state.id,
+            type_id=project_deploy_board.intake_issue_type_id,
         )
 
         # Create an Issue Activity

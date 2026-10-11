@@ -18,6 +18,7 @@ from plane.db.models import (
     User,
     WorkspaceMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 pytestmark = pytest.mark.unit
 
@@ -51,7 +52,9 @@ def issue(project, create_user):
     state = State.objects.create(
         name="Todo", group="unstarted", color="#000", project=project, workspace=project.workspace
     )
-    return Issue.objects.create(name="Mention target", project=project, state=state, created_by=create_user)
+    return Issue.objects.create(
+        name="Mention target", project=project, state=state, created_by=create_user, type=link_starter_type(project)
+    )
 
 
 def mention_html(user_id):

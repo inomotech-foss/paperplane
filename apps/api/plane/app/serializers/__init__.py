@@ -96,7 +96,12 @@ from .issue_property import (
     IssuePropertySerializer,
 )
 
-from .issue_type import IssueTypeSerializer
+from .issue_type import (
+    IssueTypeSerializer,
+    IssueTypeUsageSerializer,
+    IssueTypeMigrationPreviewSerializer,
+    IssueTypeMigrationSerializer,
+)
 
 from .module import (
     ModuleDetailSerializer,

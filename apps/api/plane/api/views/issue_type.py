@@ -14,7 +14,11 @@ from drf_spectacular.utils import OpenApiResponse, OpenApiRequest
 from plane.api.serializers import IssueTypeSerializer
 from plane.app.permissions import ProjectEntityPermission, WorkspaceEntityPermission
 from plane.db.models import IssueType, Project, ProjectIssueType, Workspace
-from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.app.serializers.issue_type import (
+    IssueTypeMigrationPreviewSerializer,
+    IssueTypeMigrationSerializer,
+)
+from plane.utils.issue_type_migration import MigrationError, migrate_type, remove_unused_type
 from plane.utils.openapi import (
     issue_type_docs,
     FIELDS_PARAMETER,
@@ -81,24 +85,17 @@ class IssueTypeListCreateAPIEndpoint(BaseAPIView):
         """Create work item type
 
         Create a work item type in the workspace and enable it for this
-        project. `is_epic` is always forced to `False` through the API. If
-        `is_default` is `True`, any other default type in the workspace is
-        unset (a workspace has at most one default type).
+        project. `is_epic` is always forced to `False` through the API.
         """
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
         serializer = IssueTypeSerializer(data=request.data)
         if serializer.is_valid():
             with transaction.atomic():
-                if serializer.validated_data.get("is_default"):
-                    IssueType.objects.filter(workspace_id=project.workspace_id, is_default=True).update(
-                        is_default=False
-                    )
                 issue_type = serializer.save(workspace_id=project.workspace_id, is_epic=False)
                 ProjectIssueType.objects.create(
                     project_id=project_id,
                     issue_type=issue_type,
                     workspace_id=project.workspace_id,
-                    is_default=issue_type.is_default,
                 )
 
             issue_type = self.get_queryset().get(pk=issue_type.id)
@@ -111,7 +108,7 @@ class IssueTypeListCreateAPIEndpoint(BaseAPIView):
     @issue_type_docs(
         operation_id="list_work_item_types",
         summary="List work item types",
-        description="Retrieve all work item types enabled for a project. Lazily provisions the workspace's default 'Task' type (and enables it for the project) the first time this is called for a project that predates work item types.",  # noqa: E501
+        description="Retrieve all work item types enabled for a project.",
         parameters=[FIELDS_PARAMETER, EXPAND_PARAMETER],
         responses={
             200: OpenApiResponse(
@@ -126,8 +123,6 @@ class IssueTypeListCreateAPIEndpoint(BaseAPIView):
         Retrieve all work item types enabled for a project. A project has a
         handful of types, so the whole list is returned at once.
         """
-        project = Project.objects.get(pk=project_id, workspace__slug=slug)
-        get_or_create_default_issue_type(project)
         serializer = IssueTypeSerializer(
             self.get_queryset(),
             many=True,
@@ -188,9 +183,7 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
         """Update work item type
 
         Partially update a work item type (name, description, logo,
-        activation, ...). `is_epic` cannot be changed once created. If
-        `is_default` is being set to `True`, any other default type in the
-        workspace is unset.
+        activation, ...). `is_epic` cannot be changed once created.
         """
         issue_type = IssueType.objects.get(
             workspace__slug=slug,
@@ -199,12 +192,7 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
         )
         serializer = IssueTypeSerializer(issue_type, data=request.data, partial=True)
         if serializer.is_valid():
-            with transaction.atomic():
-                if serializer.validated_data.get("is_default"):
-                    IssueType.objects.filter(workspace_id=issue_type.workspace_id, is_default=True).exclude(
-                        pk=issue_type.pk
-                    ).update(is_default=False)
-                serializer.save()
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -212,51 +200,31 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
         operation_id="delete_work_item_type",
         summary="Delete work item type",
         description="Remove a work item type from a project.",
-        responses={204: DELETED_RESPONSE},
+        responses={
+            204: DELETED_RESPONSE,
+            400: INVALID_REQUEST_RESPONSE,
+            409: OpenApiResponse(description="Work items or settings still use the type; migrate them first"),
+        },
     )
     def delete(self, request, slug, project_id, issue_type_id):
         """Delete work item type
 
         Unlinks the work item type from this project. The `IssueType` row
-        itself is only deleted once it is unlinked from every project.
-        Rejected with 400 when the type is the Epic type, is the project's
-        current default type, or is the project's only remaining active
-        type.
+        itself is only deleted once no project links or uses it. Rejected
+        with 409 while work items, drafts, the intake form, the service desk or
+        automations of the project use the type: move them with the migrate endpoint, which can
+        unlink in the same request. Rejected with 400 for the Epic type or the
+        project's only remaining active type.
         """
         issue_type = IssueType.objects.get(
             workspace__slug=slug,
             project_issue_types__project_id=project_id,
             pk=issue_type_id,
         )
-        if issue_type.is_epic:
-            return Response(
-                {"error": "Epic type cannot be removed"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if issue_type.is_default:
-            return Response(
-                {"error": "Cannot delete the default type; set another type as default first"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        remaining = (
-            ProjectIssueType.objects.filter(
-                project_id=project_id,
-                deleted_at__isnull=True,
-                issue_type__is_active=True,
-            )
-            .exclude(issue_type_id=issue_type.id)
-            .count()
-        )
-        if remaining == 0:
-            return Response(
-                {"error": "A project must have at least one work item type"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        with transaction.atomic():
-            ProjectIssueType.objects.filter(project_id=project_id, issue_type_id=issue_type.id).delete()
-            if not ProjectIssueType.objects.filter(issue_type_id=issue_type.id).exists():
-                issue_type.delete()
+        try:
+            remove_unused_type(issue_type, project_id)
+        except MigrationError as error:
+            return Response(error.payload, status=error.status)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -331,8 +299,6 @@ class WorkspaceIssueTypeListCreateAPIEndpoint(BaseAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
-            if serializer.validated_data.get("is_default"):
-                IssueType.objects.filter(workspace_id=workspace.id, is_default=True).update(is_default=False)
             issue_type = serializer.save(workspace_id=workspace.id, is_epic=False)
             ProjectIssueType.objects.bulk_create(
                 [
@@ -340,7 +306,6 @@ class WorkspaceIssueTypeListCreateAPIEndpoint(BaseAPIView):
                         project_id=project.id,
                         issue_type=issue_type,
                         workspace_id=workspace.id,
-                        is_default=issue_type.is_default,
                     )
                     for project in projects
                 ]
@@ -407,59 +372,32 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        with transaction.atomic():
-            if serializer.validated_data.get("is_default"):
-                IssueType.objects.filter(workspace_id=issue_type.workspace_id, is_default=True).exclude(
-                    pk=issue_type.pk
-                ).update(is_default=False)
-            serializer.save()
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @issue_type_docs(
         operation_id="delete_workspace_work_item_type",
         summary="Delete workspace work item type",
         description="Delete a work item type and unlink it from every project.",
-        responses={204: DELETED_RESPONSE, 400: INVALID_REQUEST_RESPONSE},
+        responses={
+            204: DELETED_RESPONSE,
+            400: INVALID_REQUEST_RESPONSE,
+            409: OpenApiResponse(description="Work items or settings still use the type; migrate them first"),
+        },
     )
     def delete(self, request, slug, issue_type_id):
         """Delete workspace work item type
 
-        Removes the type from every project that has it enabled. Rejected when
-        the type is the Epic type, the workspace default, or the last active
-        type of any project still using it.
+        Removes the type from every project that has it enabled. Rejected
+        with 409 while anything uses it: move those rows with the migrate
+        endpoint, which can delete the type in the same request. Rejected with
+        400 for the Epic type or the last active type of any project.
         """
         issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
-        if issue_type.is_epic:
-            return Response(
-                {"error": "Epic type cannot be removed"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if issue_type.is_default:
-            return Response(
-                {"error": "Cannot delete the default type; set another type as default first"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        stranded = [
-            str(link.project_id)
-            for link in ProjectIssueType.objects.filter(issue_type_id=issue_type.id, deleted_at__isnull=True)
-            if not ProjectIssueType.objects.filter(
-                project_id=link.project_id,
-                deleted_at__isnull=True,
-                issue_type__is_active=True,
-            )
-            .exclude(issue_type_id=issue_type.id)
-            .exists()
-        ]
-        if stranded:
-            return Response(
-                {"error": f"This is the only work item type of project(s) {', '.join(stranded)}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        with transaction.atomic():
-            ProjectIssueType.objects.filter(issue_type_id=issue_type.id).delete()
-            issue_type.delete()
+        try:
+            remove_unused_type(issue_type)
+        except MigrationError as error:
+            return Response(error.payload, status=error.status)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -527,3 +465,67 @@ class IssueTypeImportAPIEndpoint(BaseAPIView):
             many=True,
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class IssueTypeMigrateAPIEndpoint(BaseAPIView):
+    """Move the work items of a type in a project to another type."""
+
+    model = IssueType
+    permission_classes = [ProjectEntityPermission]
+
+    @issue_type_docs(
+        operation_id="migrate_work_item_type",
+        summary="Migrate work item type",
+        description="Move work items of the type in this project to another type, with their custom property values.",
+        request=OpenApiRequest(request=IssueTypeMigrationSerializer),
+        responses={200: IssueTypeMigrationPreviewSerializer, 400: INVALID_REQUEST_RESPONSE},
+    )
+    def post(self, request, slug, project_id, issue_type_id):
+        """Move work items of a type to another type
+
+        Body: `scope` (`{"work_items": [ids]}` or `{"project": id}`), the
+        `replacement_type_id`, a `property_mapping` for every property of the old
+        type alone that work items in scope have values in (`{"target": id,
+        "options": {old: new or null}}` or `{"drop": true}`) and an optional
+        `remove_type` ("unlink" with the project scope). `dry_run` only returns what the
+        migration reaches. Everything runs in one transaction.
+        """
+        issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
+        try:
+            preview = migrate_type(issue_type, request.data, request.user.id, project_id=str(project_id))
+        except MigrationError as error:
+            return Response(error.payload, status=error.status)
+        return Response(IssueTypeMigrationPreviewSerializer(preview).data, status=status.HTTP_200_OK)
+
+
+class WorkspaceIssueTypeMigrateAPIEndpoint(BaseAPIView):
+    """Move the work items of a type anywhere in the workspace to another type."""
+
+    model = IssueType
+    permission_classes = [WorkspaceEntityPermission]
+
+    @issue_type_docs(
+        operation_id="migrate_workspace_work_item_type",
+        summary="Migrate workspace work item type",
+        description="Move work items of the type to another type, with their custom property values.",
+        parameters=[],
+        request=OpenApiRequest(request=IssueTypeMigrationSerializer),
+        responses={200: IssueTypeMigrationPreviewSerializer, 400: INVALID_REQUEST_RESPONSE},
+    )
+    def post(self, request, slug, issue_type_id):
+        """Move work items of a type to another type
+
+        Body: `scope` (`{"work_items": [ids]}`, `{"project": id}` or
+        `{"workspace": true}`), the `replacement_type_id`, a `property_mapping`
+        for every property of the old type alone that work items in scope have
+        values in (`{"target": id, "options": {old: new or null}}` or
+        `{"drop": true}`) and an optional `remove_type` ("unlink" with a project scope,
+        "delete" with the workspace scope). `dry_run` only returns what the
+        migration reaches. Everything runs in one transaction.
+        """
+        issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
+        try:
+            preview = migrate_type(issue_type, request.data, request.user.id)
+        except MigrationError as error:
+            return Response(error.payload, status=error.status)
+        return Response(IssueTypeMigrationPreviewSerializer(preview).data, status=status.HTTP_200_OK)

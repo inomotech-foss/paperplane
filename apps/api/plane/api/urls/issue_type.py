@@ -6,6 +6,8 @@ from django.urls import path
 
 from plane.api.views import (
     IssueTypeImportAPIEndpoint,
+    IssueTypeMigrateAPIEndpoint,
+    WorkspaceIssueTypeMigrateAPIEndpoint,
     IssueTypeListCreateAPIEndpoint,
     IssueTypeDetailAPIEndpoint,
     WorkspaceIssueTypeListCreateAPIEndpoint,
@@ -37,5 +39,15 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/import-work-item-types/",
         IssueTypeImportAPIEndpoint.as_view(http_method_names=["post"]),
         name="work-item-type-import",
+    ),
+    path(
+        "workspaces/<str:slug>/work-item-types/<uuid:issue_type_id>/migrate/",
+        WorkspaceIssueTypeMigrateAPIEndpoint.as_view(http_method_names=["post"]),
+        name="workspace-work-item-type-migrate",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-item-types/<uuid:issue_type_id>/migrate/",
+        IssueTypeMigrateAPIEndpoint.as_view(http_method_names=["post"]),
+        name="work-item-type-migrate",
     ),
 ]

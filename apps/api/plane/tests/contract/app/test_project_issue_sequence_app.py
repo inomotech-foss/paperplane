@@ -5,6 +5,7 @@ import pytest
 from rest_framework import status
 
 from plane.db.models import Issue, IssueSequence, Project, ProjectMember, State, WorkspaceMember
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -15,7 +16,9 @@ def project(workspace):
 
 
 def create_issue(project, name):
-    return Issue.objects.create(workspace=project.workspace, project=project, name=name)
+    return Issue.objects.create(
+        workspace=project.workspace, project=project, name=name, type=link_starter_type(project)
+    )
 
 
 def demote_from_workspace_admin(workspace, user):

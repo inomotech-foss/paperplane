@@ -24,6 +24,7 @@ from plane.db.models import (
     UserNotificationPreference,
     WorkspaceMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 def mention_html(user_id, label="@Mem"):
@@ -57,7 +58,13 @@ def project(db, workspace, create_user):
 
 @pytest.fixture
 def issue(db, workspace, project, create_user):
-    return Issue.objects.create(name="Existing Issue", project=project, workspace=workspace, created_by=create_user)
+    return Issue.objects.create(
+        name="Existing Issue",
+        project=project,
+        workspace=workspace,
+        created_by=create_user,
+        type=link_starter_type(project),
+    )
 
 
 @pytest.fixture

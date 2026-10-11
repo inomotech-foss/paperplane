@@ -31,6 +31,8 @@ from plane.utils.content_validator import (
     validate_html_content,
     validate_binary_data,
 )
+from plane.utils.issue_type import is_type_linked
+from plane.utils.issue_type_migration import type_change_error
 
 from .base import BaseSerializer
 from .cycle import CycleLiteSerializer, CycleSerializer
@@ -64,14 +66,25 @@ class IssueSerializer(BaseSerializer):
         required=False,
     )
     type_id = serializers.PrimaryKeyRelatedField(
-        source="type", queryset=IssueType.objects.all(), required=False, allow_null=True
+        source="type",
+        queryset=IssueType.objects.all(),
+        help_text="The work item type. Required on create and must be enabled for the project.",
     )
 
     class Meta:
         model = Issue
         # sequence_id is allocated on creation and changed only through the renumber endpoint,
         # which keeps the per-project counter in step.
-        read_only_fields = ["id", "workspace", "project", "sequence_id", "updated_by", "updated_at", "completed_at"]
+        read_only_fields = [
+            "id",
+            "workspace",
+            "project",
+            "type",
+            "sequence_id",
+            "updated_by",
+            "updated_at",
+            "completed_at",
+        ]
         exclude = ["description_json", "description_stripped"]
 
     def validate(self, data):
@@ -162,17 +175,11 @@ class IssueSerializer(BaseSerializer):
         ):
             raise serializers.ValidationError("Estimate point is not valid please pass a valid estimate_point_id")
 
-        # Check work item type is enabled for the project (types are
-        # workspace-scoped but must be linked to the project via
-        # ProjectIssueType to be assignable to a work item in it)
-        if (
-            data.get("type")
-            and not IssueType.objects.filter(
-                pk=data.get("type").id,
-                project_issue_types__project_id=self.context.get("project_id"),
-            ).exists()
-        ):
-            raise serializers.ValidationError("Work item type is not valid for this project")
+        if data.get("type") and not is_type_linked(data["type"].id, self.context.get("project_id")):
+            raise serializers.ValidationError({"type_id": "This work item type is not enabled for the project."})
+        if self.instance is not None and data.get("type"):
+            if error := type_change_error(self.instance, data["type"].id):
+                raise serializers.ValidationError({"type_id": error})
 
         return data
 
@@ -184,14 +191,7 @@ class IssueSerializer(BaseSerializer):
         workspace_id = self.context["workspace_id"]
         default_assignee_id = self.context["default_assignee_id"]
 
-        issue_type = validated_data.pop("type", None)
-
-        if not issue_type:
-            # Get default issue type
-            issue_type = IssueType.objects.filter(project_issue_types__project_id=project_id, is_default=True).first()
-            issue_type = issue_type
-
-        issue = Issue.objects.create(**validated_data, project_id=project_id, type=issue_type)
+        issue = Issue.objects.create(**validated_data, project_id=project_id)
 
         # Issue Audit Users
         created_by_id = issue.created_by_id

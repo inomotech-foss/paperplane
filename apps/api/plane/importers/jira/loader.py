@@ -31,7 +31,7 @@ from plane.db.models import (
     Workspace,
 )
 from plane.utils.content_validator import validate_html_content
-from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.utils.issue_type import link_starter_type
 from plane.utils.derived_properties import deferred_derived_refresh
 
 from ..confluence.naming import project_name
@@ -173,7 +173,7 @@ class JiraLoader:
             summary.project_name = project.name
 
             states = self._upsert_states(project, statuses, summary)
-            types, default_type = self._upsert_issue_types(project, type_names, summary)
+            types, starter_type = self._upsert_issue_types(project, type_names, summary)
 
             # S3 writes are outside the transaction, so a dry run must not make
             # any or it would leave objects behind with no rows pointing at them.
@@ -186,7 +186,7 @@ class JiraLoader:
 
             index = Index()
             for issue in self.backup.issues():
-                self._load_issue(project, issue, states, types, default_type, users, uploader, index, summary)
+                self._load_issue(project, issue, states, types, starter_type, users, uploader, index, summary)
 
             self._resolve_parents(index, summary)
             self._link_relations(index, summary)
@@ -319,7 +319,7 @@ class JiraLoader:
         Types are workspace-wide in Plane, so a name shared across Jira
         projects becomes one type rather than a copy per project.
         """
-        default = get_or_create_default_issue_type(project)
+        starter = link_starter_type(project)
         types = {}
 
         for name in names:
@@ -335,15 +335,13 @@ class JiraLoader:
                 )
                 summary.issue_types += 1
             ProjectIssueType.objects.get_or_create(
-                project=project,
-                issue_type=issue_type,
-                defaults={"workspace": self.workspace, "is_default": issue_type.id == default.id},
+                project=project, issue_type=issue_type, defaults={"workspace": self.workspace}
             )
             types[name] = issue_type
 
-        return types, default
+        return types, starter
 
-    def _load_issue(self, project, jira_issue, states, types, default_type, users, uploader, index, summary):
+    def _load_issue(self, project, jira_issue, states, types, starter_type, users, uploader, index, summary):
         existing = Issue.objects.filter(
             project=project, external_source=self.EXTERNAL_SOURCE, external_id=jira_issue.key
         ).first()
@@ -356,7 +354,7 @@ class JiraLoader:
 
         author = self._author(jira_issue, users, summary)
         name, _ = state_for(jira_issue)
-        issue_type = types.get(jira_issue.issue_type, default_type)
+        issue_type = types.get(jira_issue.issue_type, starter_type)
         record = self._upsert_issue(project, jira_issue, states[name], issue_type, author, summary)
 
         self._assign(record, jira_issue, users, summary)

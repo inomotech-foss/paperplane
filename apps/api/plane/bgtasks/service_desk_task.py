@@ -188,6 +188,7 @@ def _create_ticket(config, bot, mailbox, message, sender, sender_name, to_emails
         description_html=convert_text_to_html(body_text),
         project_id=project.id,
         state_id=triage_state.id,
+        type_id=config.issue_type_id,
     )
     intake_issue = IntakeIssue.objects.create(
         intake_id=intake.id,

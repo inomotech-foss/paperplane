@@ -6,6 +6,7 @@ import pytest
 from rest_framework import status
 
 from plane.db.models import (
+    Issue,
     IssueType,
     Project,
     ProjectIssueType,
@@ -33,20 +34,16 @@ def project(db, workspace, create_user):
 
 
 @pytest.fixture
-def default_type(db, workspace, project, create_user):
-    issue_type = IssueType.objects.create(
-        workspace=workspace,
-        name="Task",
-        is_epic=False,
-        is_default=True,
-        is_active=True,
-    )
-    ProjectIssueType.objects.create(
-        project=project,
-        issue_type=issue_type,
-        workspace=workspace,
-        is_default=True,
-    )
+def task_type(db, workspace, project, create_user):
+    issue_type = IssueType.objects.create(workspace=workspace, name="Task", is_epic=False, is_active=True)
+    ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
+    return issue_type
+
+
+@pytest.fixture
+def story_type(db, workspace, project, task_type):
+    issue_type = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
+    ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
     return issue_type
 
 
@@ -76,43 +73,33 @@ class TestIssueTypeAppCrud(IssueTypeAppUrls):
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["is_epic"] is False
 
-    def test_create_default_type_unsets_previous_default(self, session_client, workspace, project, default_type):
-        url = self.types_url(workspace.slug, project.id)
-        response = session_client.post(url, {"name": "Story", "is_default": True}, format="json")
+    def test_list_returns_the_linked_types_and_creates_none(self, session_client, workspace, project, task_type):
+        IssueType.objects.create(workspace=workspace, name="Unlinked")
 
-        assert response.status_code == status.HTTP_201_CREATED
-        default_type.refresh_from_db()
-        assert default_type.is_default is False
-        assert IssueType.objects.filter(workspace=workspace, is_default=True).count() == 1
-
-    def test_list_types_lazily_provisions_default(self, session_client, workspace, project):
-        assert not IssueType.objects.filter(workspace=workspace).exists()
-
-        url = self.types_url(workspace.slug, project.id)
-        response = session_client.get(url)
+        response = session_client.get(self.types_url(workspace.slug, project.id))
 
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]["name"] == "Task"
-        assert IssueType.objects.filter(workspace=workspace, is_default=True).count() == 1
+        assert [issue_type["name"] for issue_type in response.data] == ["Task"]
+        assert "is_default" not in response.data[0]
+        assert IssueType.objects.filter(workspace=workspace).count() == 2
 
-    def test_update_type(self, session_client, workspace, project, default_type):
-        url = self.types_url(workspace.slug, project.id, default_type.id)
+    def test_update_type(self, session_client, workspace, project, task_type):
+        url = self.types_url(workspace.slug, project.id, task_type.id)
         response = session_client.patch(url, {"name": "Renamed"}, format="json")
 
         assert response.status_code == status.HTTP_200_OK
-        default_type.refresh_from_db()
-        assert default_type.name == "Renamed"
+        task_type.refresh_from_db()
+        assert task_type.name == "Renamed"
 
-    def test_is_epic_is_immutable(self, session_client, workspace, project, default_type):
-        url = self.types_url(workspace.slug, project.id, default_type.id)
+    def test_is_epic_is_immutable(self, session_client, workspace, project, task_type):
+        url = self.types_url(workspace.slug, project.id, task_type.id)
         response = session_client.patch(url, {"is_epic": True}, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        default_type.refresh_from_db()
-        assert default_type.is_epic is False
+        task_type.refresh_from_db()
+        assert task_type.is_epic is False
 
-    def test_delete_type(self, session_client, workspace, project, default_type):
+    def test_delete_type(self, session_client, workspace, project, task_type):
         other = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
         ProjectIssueType.objects.create(project=project, issue_type=other, workspace=workspace)
 
@@ -122,7 +109,7 @@ class TestIssueTypeAppCrud(IssueTypeAppUrls):
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not ProjectIssueType.objects.filter(project=project, issue_type=other).exists()
 
-    def test_delete_epic_type_rejected(self, session_client, workspace, project, default_type):
+    def test_delete_epic_type_rejected(self, session_client, workspace, project, task_type):
         epic = IssueType.objects.create(workspace=workspace, name="Epic", is_epic=True)
         ProjectIssueType.objects.create(project=project, issue_type=epic, workspace=workspace)
 
@@ -131,14 +118,18 @@ class TestIssueTypeAppCrud(IssueTypeAppUrls):
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_delete_default_type_rejected(self, session_client, workspace, project, default_type):
-        other = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
-        ProjectIssueType.objects.create(project=project, issue_type=other, workspace=workspace)
+    def test_work_items_of_other_projects_do_not_block_the_unlink(
+        self, session_client, workspace, project, story_type, create_user
+    ):
+        other = Project.objects.create(name="Other", identifier="OT", workspace=workspace, created_by=create_user)
+        ProjectIssueType.objects.create(project=other, issue_type=story_type, workspace=workspace)
+        Issue.objects.create(name="Elsewhere", workspace=workspace, project=other, type=story_type)
 
-        url = self.types_url(workspace.slug, project.id, default_type.id)
-        response = session_client.delete(url)
+        response = session_client.delete(self.types_url(workspace.slug, project.id, story_type.id))
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not ProjectIssueType.objects.filter(project=project, issue_type=story_type).exists()
+        assert IssueType.objects.filter(pk=story_type.pk).exists()
 
     def test_delete_last_remaining_type_rejected(self, session_client, workspace, project):
         only_type = IssueType.objects.create(workspace=workspace, name="Task", is_epic=False)

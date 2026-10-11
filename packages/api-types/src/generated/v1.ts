@@ -1568,7 +1568,7 @@ export interface paths {
         };
         /**
          * List work item types
-         * @description Retrieve all work item types enabled for a project. Lazily provisions the workspace's default 'Task' type (and enables it for the project) the first time this is called for a project that predates work item types.
+         * @description Retrieve all work item types enabled for a project.
          */
         get: operations["list_work_item_types"];
         put?: never;
@@ -1609,6 +1609,26 @@ export interface paths {
          * @description Partially update a work item type. `is_epic` cannot be changed once created.
          */
         patch: operations["update_work_item_type"];
+        trace?: never;
+    };
+    "/api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/{issue_type_id}/migrate/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Migrate work item type
+         * @description Move work items of the type in this project to another type, with their custom property values.
+         */
+        post: operations["migrate_work_item_type"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/{issue_type_id}/work-item-properties/": {
@@ -2121,6 +2141,26 @@ export interface paths {
         patch: operations["update_workspace_work_item_type"];
         trace?: never;
     };
+    "/api/v1/workspaces/{slug}/work-item-types/{issue_type_id}/migrate/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Migrate workspace work item type
+         * @description Move work items of the type to another type, with their custom property values.
+         */
+        post: operations["migrate_workspace_work_item_type"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{slug}/work-items/": {
         parameters: {
             query?: never;
@@ -2496,7 +2536,7 @@ export interface components {
          */
         IntakeIssueCreateRequest: {
             /** @description Issue data for the intake issue */
-            issue: components["schemas"]["IssueForIntakeRequest"];
+            issue: components["schemas"]["IssueForIntakeCreateRequest"];
         };
         /**
          * @description * `-2` - Pending
@@ -2517,8 +2557,11 @@ export interface components {
         Issue: {
             /** Format: uuid */
             readonly id?: string;
-            /** Format: uuid */
-            type_id?: string | null;
+            /**
+             * Format: uuid
+             * @description The work item type. Required on create and must be enabled for the project.
+             */
+            type_id: string;
             /** Format: date-time */
             readonly created_at?: string;
             /**
@@ -2569,7 +2612,7 @@ export interface components {
             /** Format: uuid */
             estimate_point?: string | null;
             /** Format: uuid */
-            type?: string | null;
+            readonly type?: string;
         };
         /**
          * @description Serializer for work item activity and change history.
@@ -2842,7 +2885,22 @@ export interface components {
             /** Format: uuid */
             estimate_point?: string | null;
             /** Format: uuid */
-            type?: string | null;
+            type: string;
+        };
+        /** @description Work item data of a new intake submission, which names its type. */
+        IssueForIntakeCreateRequest: {
+            /** Issue Name */
+            name: string;
+            description?: unknown;
+            description_json?: unknown;
+            description_html?: string;
+            /** Issue Priority */
+            priority?: components["schemas"]["PriorityEnum"];
+            /**
+             * Format: uuid
+             * @description The work item type. Must be enabled for the project.
+             */
+            type_id: string;
         };
         /**
          * @description Serializer for work item data within intake submissions.
@@ -3155,8 +3213,11 @@ export interface components {
         IssueRequest: {
             assignees?: string[];
             labels?: string[];
-            /** Format: uuid */
-            type_id?: string | null;
+            /**
+             * Format: uuid
+             * @description The work item type. Required on create and must be enabled for the project.
+             */
+            type_id: string;
             /** Format: date-time */
             deleted_at?: string | null;
             point?: number | null;
@@ -3184,8 +3245,6 @@ export interface components {
             state?: string | null;
             /** Format: uuid */
             estimate_point?: string | null;
-            /** Format: uuid */
-            type?: string | null;
         };
         /**
          * @description Serializer for work item search result data formatting.
@@ -3231,7 +3290,6 @@ export interface components {
             description?: string;
             logo_props?: unknown;
             readonly is_epic?: boolean;
-            is_default?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;
@@ -3247,6 +3305,60 @@ export interface components {
             /** Format: uuid */
             readonly workspace?: string;
         };
+        IssueTypeMigrationOption: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description Work items in scope with this option. */
+            work_items: number;
+        };
+        /** @description What a type migration reaches: the rows in scope and the property values that need a decision. */
+        IssueTypeMigrationPreview: {
+            references: components["schemas"]["IssueTypeUsage"];
+            properties: components["schemas"]["IssueTypeMigrationProperty"][];
+        };
+        /** @description A property of the old type alone that work items in scope have values in. */
+        IssueTypeMigrationProperty: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            property_type: string;
+            is_multi: boolean;
+            relation_type: string | null;
+            /** @description Work items in scope with a value. */
+            work_items: number;
+            options: components["schemas"]["IssueTypeMigrationOption"][];
+        };
+        IssueTypeMigrationRequest: {
+            scope: components["schemas"]["IssueTypeMigrationScopeRequest"];
+            /**
+             * Format: uuid
+             * @description Required while anything in scope uses the type.
+             */
+            replacement_type_id?: string;
+            /** @description Per property of the old type with values: {"target": <property id>, "options": {<old option id>: <new option id or null>}} or {"drop": true}. */
+            property_mapping?: {
+                [key: string]: unknown;
+            };
+            /**
+             * @description "unlink" with a project scope unlinks the type, "delete" with the workspace scope deletes it.
+             *
+             *     * `unlink` - unlink
+             *     * `delete` - delete
+             */
+            remove_type?: components["schemas"]["RemoveTypeEnum"];
+            /** @description Only return what the migration would reach. */
+            dry_run?: boolean;
+        };
+        /** @description Exactly one of the fields. */
+        IssueTypeMigrationScopeRequest: {
+            work_items?: string[];
+            /** Format: uuid */
+            project?: string;
+            workspace?: boolean;
+        };
         /**
          * @description Serializer for work item types.
          *
@@ -3258,12 +3370,20 @@ export interface components {
             name: string;
             description?: string;
             logo_props?: unknown;
-            is_default?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;
             external_source?: string | null;
             external_id?: string | null;
+        };
+        /** @description How many rows of a project use a work item type. */
+        IssueTypeUsage: {
+            work_items: number;
+            deleted_work_items: number;
+            drafts: number;
+            intake_forms: number;
+            service_desks: number;
+            automation_actions: number;
         };
         /**
          * @description Full serializer for work item labels with complete metadata.
@@ -4217,8 +4337,11 @@ export interface components {
         PatchedIssueRequest: {
             assignees?: string[];
             labels?: string[];
-            /** Format: uuid */
-            type_id?: string | null;
+            /**
+             * Format: uuid
+             * @description The work item type. Required on create and must be enabled for the project.
+             */
+            type_id?: string;
             /** Format: date-time */
             deleted_at?: string | null;
             point?: number | null;
@@ -4246,8 +4369,6 @@ export interface components {
             state?: string | null;
             /** Format: uuid */
             estimate_point?: string | null;
-            /** Format: uuid */
-            type?: string | null;
         };
         /**
          * @description Serializer for work item types.
@@ -4260,7 +4381,6 @@ export interface components {
             name?: string;
             description?: string;
             logo_props?: unknown;
-            is_default?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;
@@ -4621,6 +4741,12 @@ export interface components {
          * @enum {string}
          */
         PropertyTypeEnum: "TEXT" | "DECIMAL" | "OPTION" | "DATETIME" | "BOOLEAN" | "RELATION";
+        /**
+         * @description * `unlink` - unlink
+         *     * `delete` - delete
+         * @enum {string}
+         */
+        RemoveTypeEnum: "unlink" | "delete";
         /**
          * @description * `20` - Admin
          *     * `15` - Member
@@ -12103,6 +12229,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Invalid request data provided */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Authentication credentials were not provided or are invalid. */
             401: {
                 headers: {
@@ -12119,6 +12252,13 @@ export interface operations {
             };
             /** @description The requested resource was not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Work items or settings still use the type; migrate them first */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12154,6 +12294,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IssueType"];
+                };
+            };
+            /** @description Invalid request data provided */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    migrate_work_item_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_type_id: string;
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueTypeMigrationRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequest"];
+                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueTypeMigrationPreview"];
                 };
             };
             /** @description Invalid request data provided */
@@ -14894,6 +15093,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Work items or settings still use the type; migrate them first */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     update_workspace_work_item_type: {
@@ -14924,6 +15130,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IssueType"];
+                };
+            };
+            /** @description Invalid request data provided */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    migrate_workspace_work_item_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_type_id: string;
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueTypeMigrationRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueTypeMigrationRequest"];
+                "multipart/form-data": components["schemas"]["IssueTypeMigrationRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueTypeMigrationPreview"];
                 };
             };
             /** @description Invalid request data provided */

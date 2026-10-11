@@ -28,7 +28,7 @@ from plane.db.models import (
 )
 from plane.db.models.state import DEFAULT_STATES
 from plane.utils.content_validator import validate_html_content
-from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.utils.issue_type import link_starter_type
 
 from ..users import UserMatcher
 from .assets import AttachmentUploader
@@ -315,7 +315,7 @@ class ConfluenceLoader:
                 for state in DEFAULT_STATES
             ]
         )
-        get_or_create_default_issue_type(project)
+        link_starter_type(project)
         return project
 
     def _upsert_labels(self, pages):

@@ -12,6 +12,7 @@ from django.utils import timezone as django_timezone
 from rest_framework import status
 
 from plane.db.models import Issue, IssueProperty, IssuePropertyValue, Project, ProjectMember, State
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -23,7 +24,14 @@ def project(workspace, create_user):
 
 
 def item(project, name, parent=None, **fields):
-    return Issue.objects.create(workspace=project.workspace, project=project, name=name, parent=parent, **fields)
+    return Issue.objects.create(
+        workspace=project.workspace,
+        project=project,
+        name=name,
+        parent=parent,
+        **fields,
+        type=link_starter_type(project),
+    )
 
 
 @pytest.fixture

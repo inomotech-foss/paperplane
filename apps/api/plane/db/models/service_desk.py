@@ -26,6 +26,10 @@ class ServiceDeskConfig(ProjectBaseModel):
 
     mailbox_email = models.CharField(max_length=255)
     is_enabled = models.BooleanField(default=False)
+    # The type of the work items created from incoming mail.
+    issue_type = models.ForeignKey(
+        "db.IssueType", related_name="service_desk_configs", on_delete=models.RESTRICT, null=True
+    )
     last_synced_at = models.DateTimeField(null=True, blank=True)
     # Who gets notified (and auto-subscribed) when a new ticket arrives.
     notify_mode = models.CharField(
@@ -47,7 +51,11 @@ class ServiceDeskConfig(ProjectBaseModel):
                 fields=["project"],
                 condition=models.Q(deleted_at__isnull=True),
                 name="service_desk_config_unique_project_when_deleted_at_null",
-            )
+            ),
+            models.CheckConstraint(
+                condition=models.Q(is_enabled=False) | models.Q(issue_type__isnull=False),
+                name="service_desk_config_enabled_has_issue_type",
+            ),
         ]
         verbose_name = "Service Desk Config"
         verbose_name_plural = "Service Desk Configs"

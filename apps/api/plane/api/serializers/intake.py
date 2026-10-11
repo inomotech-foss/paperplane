@@ -39,6 +39,15 @@ class IssueForIntakeSerializer(BaseSerializer):
         ]
 
 
+class IssueForIntakeCreateSerializer(IssueForIntakeSerializer):
+    """Work item data of a new intake submission, which names its type."""
+
+    type_id = serializers.UUIDField(help_text="The work item type. Must be enabled for the project.")
+
+    class Meta(IssueForIntakeSerializer.Meta):
+        fields = [*IssueForIntakeSerializer.Meta.fields, "type_id"]
+
+
 class IntakeIssueCreateSerializer(BaseSerializer):
     """
     Serializer for creating intake work items with embedded issue data.
@@ -47,7 +56,7 @@ class IntakeIssueCreateSerializer(BaseSerializer):
     status assignment, and source tracking for issue queue management.
     """
 
-    issue = IssueForIntakeSerializer(help_text="Issue data for the intake issue")
+    issue = IssueForIntakeCreateSerializer(help_text="Issue data for the intake issue")
 
     class Meta:
         model = IntakeIssue

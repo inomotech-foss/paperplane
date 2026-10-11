@@ -22,6 +22,7 @@ from plane.app.serializers import (
     ProjectListSerializer,
     ProjectSerializer,
 )
+from plane.app.serializers.project import intake_form_error
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.bgtasks.recent_visited_task import recent_visited_task
 from plane.bgtasks.webhook_task import model_activity, webhook_activity
@@ -47,7 +48,7 @@ from plane.utils.issue_sequence import (
     issue_sequence_start_error,
     set_next_issue_sequence,
 )
-from plane.utils.issue_type import get_or_create_default_issue_type
+from plane.utils.issue_type import link_starter_type
 from plane.utils.order_queryset import PROJECT_ORDER_BY_ALLOWLIST, sanitize_order_by
 
 
@@ -302,9 +303,7 @@ class ProjectViewSet(BaseViewSet):
                 ]
             )
 
-            # Provision (or reuse) the workspace's default "Task" work item
-            # type and enable it for the new project.
-            get_or_create_default_issue_type(serializer.instance)
+            link_starter_type(serializer.instance)
 
             project = self.get_queryset().filter(pk=serializer.data["id"]).first()
 
@@ -586,6 +585,9 @@ class DeployBoardViewSet(BaseViewSet):
         comments = request.data.get("is_comments_enabled", False)
         reactions = request.data.get("is_reactions_enabled", False)
         intake = request.data.get("intake", None)
+        intake_issue_type = request.data.get("intake_issue_type", None) if intake else None
+        if intake and (error := intake_form_error(project_id, intake, intake_issue_type)):
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
         votes = request.data.get("is_votes_enabled", False)
         views = request.data.get(
             "views",
@@ -601,7 +603,8 @@ class DeployBoardViewSet(BaseViewSet):
         project_deploy_board, _ = DeployBoard.objects.get_or_create(
             entity_name="project", entity_identifier=project_id, project_id=project_id
         )
-        project_deploy_board.intake = intake
+        project_deploy_board.intake_id = intake
+        project_deploy_board.intake_issue_type_id = intake_issue_type
         project_deploy_board.view_props = views
         project_deploy_board.is_votes_enabled = votes
         project_deploy_board.is_comments_enabled = comments

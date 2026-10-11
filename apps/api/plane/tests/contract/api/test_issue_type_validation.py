@@ -9,7 +9,7 @@ it belongs to (types can otherwise be assigned cross-project since
 import pytest
 from rest_framework import status
 
-from plane.db.models import IssueType, Project, ProjectIssueType, ProjectMember, State
+from plane.db.models import Issue, IssueType, Project, ProjectIssueType, ProjectMember, State
 
 
 @pytest.fixture
@@ -80,3 +80,25 @@ class TestWorkItemTypeCrossProjectValidation:
 
         assert response.status_code == status.HTTP_201_CREATED
         assert str(response.data["type_id"]) == str(type_a.id)
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("payload", [{}, {"type_id": None}], ids=["missing", "null"])
+    def test_create_work_item_without_type_rejected(self, api_key_client, workspace, project_a, type_a, payload):
+        response = api_key_client.post(
+            work_items_url(workspace.slug, project_a.id), {"name": "No type", **payload}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "type_id" in response.data
+        assert not Issue.objects.filter(name="No type").exists()
+
+    @pytest.mark.django_db
+    def test_create_work_item_with_unlinked_type_rejected(self, api_key_client, workspace, project_a, type_a):
+        ProjectIssueType.objects.filter(project=project_a, issue_type=type_a).delete()
+
+        response = api_key_client.post(
+            work_items_url(workspace.slug, project_a.id), {"name": "Unlinked", "type_id": str(type_a.id)}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "type_id" in response.data

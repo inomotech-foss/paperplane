@@ -35,6 +35,7 @@ from plane.db.models import (
     WorkspaceMember,
 )
 from plane.utils.derived_properties import refresh_derived_values
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -422,7 +423,9 @@ class TestWidgetData:
         hidden = Project.objects.create(name="Hidden", identifier="HID", workspace=workspace, created_by=outsider)
         ProjectMember.objects.create(project=hidden, member=outsider, role=20, is_active=True)
         state = State.objects.create(name="Open", group="unstarted", project=hidden, workspace=workspace)
-        Issue.objects.create(name="Secret", workspace=workspace, project=hidden, state=state)
+        Issue.objects.create(
+            name="Secret", workspace=workspace, project=hidden, state=state, type=link_starter_type(hidden)
+        )
 
         payload = self.preview(session_client, workspace, chart_type="bar", dimension={"field": "project"})
         assert rows(payload) == {"Sales": 8}

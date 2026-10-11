@@ -107,6 +107,11 @@ async def run_integration_test():
         project_id = project["id"]
         print(f"Created project: {project_id}")
 
+        # New projects start with the "Task" type
+        task_type = extract_result(
+            await client.call_tool("resolve_work_item_type", {"project_id": project_id, "name": "Task"})
+        )
+
         # 2. Create work item 1
         print("Creating work item 1...")
         work_item_1_result = await client.call_tool(
@@ -114,6 +119,7 @@ async def run_integration_test():
             {
                 "project_id": project_id,
                 "name": f"Parent Work Item {unique_id}",
+                "type_id": task_type["id"],
             },
         )
         work_item_1 = extract_result(work_item_1_result)
@@ -127,6 +133,7 @@ async def run_integration_test():
             {
                 "project_id": project_id,
                 "name": f"Child Work Item {unique_id}",
+                "type_id": task_type["id"],
             },
         )
         work_item_2 = extract_result(work_item_2_result)

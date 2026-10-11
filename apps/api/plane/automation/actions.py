@@ -46,6 +46,7 @@ from plane.db.models import (
     State,
 )
 from plane.db.models.project import ROLE
+from plane.utils.issue_type import is_type_linked
 from plane.utils.url_security import pinned_fetch
 
 #: Guard against a webhook action stalling a worker.
@@ -562,6 +563,10 @@ def handle_create_work_item(action, context, run):
     if context.project is not None and project.workspace_id != context.project.workspace_id:
         raise ActionError("The target project is in a different workspace.")
 
+    type_id = config.get("type_id")
+    if not type_id or not is_type_linked(type_id, project.id):
+        raise ActionError("The selected type is not enabled for the target project.")
+
     state_id = config.get("state_id")
     if state_id and not State.objects.filter(pk=state_id, project_id=project.id).exists():
         raise ActionError("The selected state does not belong to the target project.")
@@ -588,6 +593,7 @@ def handle_create_work_item(action, context, run):
         description_html=description_html,
         priority=priority,
         state_id=state_id or None,
+        type_id=type_id,
         target_date=target_date,
         parent_id=parent_id,
         created_by_id=run.actor_id,

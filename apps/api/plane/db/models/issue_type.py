@@ -17,7 +17,6 @@ class IssueType(BaseModel):
     description = models.TextField(blank=True)
     logo_props = models.JSONField(default=dict)
     is_epic = models.BooleanField(default=False)
-    is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     level = models.FloatField(default=0)
     external_source = models.CharField(max_length=255, null=True, blank=True)
@@ -35,7 +34,6 @@ class IssueType(BaseModel):
 class ProjectIssueType(ProjectBaseModel):
     issue_type = models.ForeignKey("db.IssueType", related_name="project_issue_types", on_delete=models.CASCADE)
     level = models.PositiveIntegerField(default=0)
-    is_default = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ["project", "issue_type", "deleted_at"]

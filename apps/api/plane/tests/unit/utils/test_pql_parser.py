@@ -26,8 +26,7 @@ from plane.utils.pql import (
     compile_filters,
     parse_pql,
 )
-from plane.utils.pql.fields import EXACT
-from plane.utils.pql.filters import CustomPropertyFilter, type_q
+from plane.utils.pql.filters import CustomPropertyFilter
 from plane.utils.pql.generated.PQLLexer import PQLLexer
 from plane.utils.pql.generated.PQLParser import PQLParser
 from plane.utils.pql.parser import MAX_PQL_DEPTH, RESERVED_TOKENS, parse_pql_with_spans
@@ -279,7 +278,7 @@ COMPILE_CASES = [
     ),
     (
         f'type = "{TYPE_ID}" AND priority ~ "urg"',
-        type_q(EXACT, uuid.UUID(TYPE_ID)) & Q(priority__icontains="urg"),
+        Q(type_id=uuid.UUID(TYPE_ID)) & Q(priority__icontains="urg"),
     ),
 ]
 

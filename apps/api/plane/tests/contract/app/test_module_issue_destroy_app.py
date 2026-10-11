@@ -14,6 +14,7 @@ import pytest
 from rest_framework import status
 
 from plane.db.models import Issue, Module, ModuleIssue, Project, ProjectMember, State
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -21,7 +22,14 @@ def setup(db, workspace, create_user):
     project = Project.objects.create(name="P", identifier="P", workspace=workspace, created_by=create_user)
     ProjectMember.objects.create(project=project, member=create_user, workspace=workspace, role=20)
     state = State.objects.create(name="Todo", project=project, group="backlog", default=True)
-    issue = Issue.objects.create(name="I", workspace=workspace, project=project, state=state, created_by=create_user)
+    issue = Issue.objects.create(
+        name="I",
+        workspace=workspace,
+        project=project,
+        state=state,
+        created_by=create_user,
+        type=link_starter_type(project),
+    )
     module = Module.objects.create(name="M", project=project, workspace=workspace)
     return project, issue, module
 

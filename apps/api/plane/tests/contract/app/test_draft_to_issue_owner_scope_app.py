@@ -31,6 +31,7 @@ from plane.db.models import (
     User,
     WorkspaceMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 def draft_to_issue_url(slug, draft_id):
@@ -115,6 +116,19 @@ class TestDraftToIssueOwnerScope:
         assert not Issue.objects.filter(name="Hijacked issue").exists()
 
     @pytest.mark.django_db
+    def test_owner_cannot_convert_a_draft_without_a_type(self, session_client, workspace, owned_draft):
+        draft = owned_draft["draft"]
+
+        response = session_client.post(
+            draft_to_issue_url(workspace.slug, draft.id), {"name": "Converted issue"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "type_id" in response.data
+        assert DraftIssue.objects.filter(pk=draft.id).exists()
+        assert not Issue.objects.filter(name="Converted issue").exists()
+
+    @pytest.mark.django_db
     def test_owner_can_convert_own_draft(self, session_client, workspace, owned_draft):
         """Positive control: the draft's creator can still convert it."""
         draft = owned_draft["draft"]
@@ -122,7 +136,7 @@ class TestDraftToIssueOwnerScope:
 
         response = session_client.post(
             draft_to_issue_url(workspace.slug, draft.id),
-            {"name": "Converted issue"},
+            {"name": "Converted issue", "type_id": str(link_starter_type(draft.project).id)},
             format="json",
         )
 

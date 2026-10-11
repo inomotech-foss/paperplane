@@ -27,11 +27,14 @@ from plane.db.models import (
     IssueEmailThread,
     IssueSubscriber,
     Project,
+    IssueType,
+    ProjectIssueType,
     ServiceDeskConfig,
     User,
 )
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection
 from plane.tests.factories import ProjectFactory
+from plane.utils.issue_type import link_starter_type
 
 MAILBOX = "support@example.com"
 
@@ -61,7 +64,9 @@ def _graph_message(
 @pytest.fixture
 def service_desk_config(db):
     project = ProjectFactory()
-    return ServiceDeskConfig.objects.create(project=project, mailbox_email=MAILBOX, is_enabled=True)
+    return ServiceDeskConfig.objects.create(
+        project=project, mailbox_email=MAILBOX, is_enabled=True, issue_type=link_starter_type(project)
+    )
 
 
 def _run_poll(messages):
@@ -138,6 +143,17 @@ class TestServiceDeskPoll:
         activity_kwargs = mock_activity.delay.call_args.kwargs
         assert activity_kwargs["type"] == "issue.activity.created"
         assert activity_kwargs["intake"] == str(intake_issue.id)
+
+    @pytest.mark.django_db
+    def test_a_ticket_gets_the_type_of_the_service_desk(self, service_desk_config):
+        project = service_desk_config.project
+        ticket = IssueType.objects.create(workspace=project.workspace, name="Ticket")
+        ProjectIssueType.objects.create(project=project, issue_type=ticket, workspace=project.workspace)
+        ServiceDeskConfig.objects.filter(pk=service_desk_config.pk).update(issue_type=ticket)
+
+        _run_poll([_graph_message()])
+
+        assert Issue.objects.get(project=project).type_id == ticket.id
 
     @pytest.mark.django_db
     def test_threads_reply_into_existing_ticket(self, service_desk_config):

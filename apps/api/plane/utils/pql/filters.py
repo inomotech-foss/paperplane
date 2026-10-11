@@ -29,11 +29,6 @@ database to compile, and this module stays pure. Two modes exist:
 `ancestor_id` (the landing field of `descendantOf()`) compiles to a recursive
 subquery over `parent_id`, so a work item matches when the given item is
 anywhere above it.
-
-A work item without a type has its project's default type, as the UI shows
-it. So `type_id` leaves also match untyped work items in projects whose
-default type is among the given ones, and `type_id__isnull` is only true for
-an untyped work item in a project without a default type.
 """
 
 from dataclasses import dataclass, field as dataclass_field
@@ -53,7 +48,6 @@ from plane.utils.pql.fields import (
     ISNULL,
     RANGE,
     TEXT_TYPE,
-    TYPE_FIELD,
     UNSUPPORTED_FIELDS,
     coerce_value,
     is_uuid,
@@ -79,15 +73,6 @@ DESCENDANTS_SQL = (
     " WHERE child.deleted_at IS NULL"
     ") SELECT id FROM descendants"
 )
-
-# Projects with an enabled default work item type, and those whose default is
-# one of the given types.
-DEFAULT_TYPE_PROJECTS_SQL = (
-    "SELECT pit.project_id FROM project_issue_types pit"
-    " JOIN issue_types it ON it.id = pit.issue_type_id"
-    " WHERE it.is_default AND it.deleted_at IS NULL AND pit.deleted_at IS NULL"
-)
-DEFAULT_TYPE_IN_SQL = DEFAULT_TYPE_PROJECTS_SQL + " AND pit.issue_type_id = ANY(%s::uuid[])"
 
 
 # Marks an error that is not about one particular value.
@@ -145,16 +130,6 @@ def descendants_q(parent_ids):
     """A `Q` matching every work item below any of `parent_ids`, at any depth."""
     ids = [str(parent_id) for parent_id in parent_ids]
     return Q(id__in=RawSQL(DESCENDANTS_SQL, (ids,)))
-
-
-def type_q(lookup, value):
-    """A `Q` for a `type_id` leaf that reads a missing type as the project's default."""
-    if lookup == ISNULL:
-        has_default = Q(project_id__in=RawSQL(DEFAULT_TYPE_PROJECTS_SQL, ()))
-        return Q(type_id__isnull=True) & ~has_default if value else Q(type_id__isnull=False) | has_default
-    ids = value if lookup == IN else [value]
-    has_default = Q(project_id__in=RawSQL(DEFAULT_TYPE_IN_SQL, ([str(type_id) for type_id in ids],)))
-    return Q(type_id__in=ids) | (Q(type_id__isnull=True) & has_default)
 
 
 def _compile_node(node, depth, conjunctive, compiled, resolver):
@@ -218,8 +193,6 @@ def _compile_leaf(key, value, conjunctive, compiled, resolver):
     leaf_value = _leaf_value(name, field, lookup, value)
     if name == ANCESTOR_FIELD:
         return descendants_q(leaf_value if lookup == IN else [leaf_value])
-    if name == TYPE_FIELD:
-        return type_q(lookup, leaf_value)
 
     query = Q(**{_orm_key(field.path, lookup): leaf_value})
     for guard_key, guard_value in field.join_guard:

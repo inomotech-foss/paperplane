@@ -100,7 +100,12 @@ ACTIONS = (
         note="counts the whole workspace unless project_id narrows it",
         read=True,
     ),
-    Action("create", ("project_id", "name"), WRITE_FIELDS[1:]),
+    Action(
+        "create",
+        ("project_id", "name", "type_id"),
+        tuple(field for field in WRITE_FIELDS if field not in ("name", "type_id")),
+        note="type_id must be one of the project's types, see `workitem_type list`",
+    ),
     Action("update", ("project_id", "workitem_id"), WRITE_FIELDS, note="only the fields you pass are changed"),
     Action("delete", ("project_id", "workitem_id"), destructive=True),
     Action(
@@ -355,6 +360,8 @@ def register(mcp: FastMCP) -> None:
         if action == "create":
             if not name:
                 return missing(action, "name")
+            if not type_id:
+                return missing(action, "type_id")
             return client.work_items.create(
                 workspace_slug=workspace_slug,
                 project_id=project_id,

@@ -27,6 +27,7 @@ from plane.db.models import (
     Workspace,
     WorkspaceMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 @pytest.fixture
@@ -81,6 +82,7 @@ def victim_tenant(db):
         project=victim_project,
         state=state,
         created_by=victim_user,
+        type=link_starter_type(victim_project),
     )
     victim_cycle = Cycle.objects.create(
         name="Victim Cycle", project=victim_project, workspace=victim_ws, owned_by=victim_user
@@ -150,6 +152,7 @@ class TestCycleIssueCrossTenantBOLA:
             project=attacker_project,
             state=state,
             created_by=create_user,
+            type=link_starter_type(attacker_project),
         )
         old_cycle = Cycle.objects.create(
             name="Old Cycle", project=attacker_project, workspace=workspace, owned_by=create_user

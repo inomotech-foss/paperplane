@@ -29,6 +29,7 @@ from plane.db.models import (
     Project,
     ProjectMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 SUB_ISSUES_URL = "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/sub-issues/"
 
@@ -40,7 +41,7 @@ def _make_issue(name, project, workspace, author, parent=None):
     (None/anonymous under tests), so a ``created_by=`` kwarg to ``create`` is
     overwritten. Passing ``created_by_id`` to ``save`` sets it explicitly.
     """
-    issue = Issue(name=name, project=project, workspace=workspace, parent=parent)
+    issue = Issue(name=name, project=project, workspace=workspace, parent=parent, type=link_starter_type(project))
     issue.save(created_by_id=author.id)
     return issue
 
