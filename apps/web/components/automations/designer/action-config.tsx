@@ -5,6 +5,7 @@
  */
 
 import { observer } from "mobx-react";
+import { useParams } from "next/navigation";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
@@ -23,6 +24,10 @@ import type {
   TSendNotificationConfig,
 } from "@plane/types";
 import { Switch } from "@makeplane/propel/components/switch";
+// components
+import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
+// hooks
+import { useProjectIssueTypes } from "@/hooks/use-preselected-issue-type";
 // local imports
 import { AutomationOptionSelect } from "../helpers/option-select";
 import { changeTypeLabelKey, findMutableProperty, usableMutableProperties } from "../helpers/metadata";
@@ -397,6 +402,7 @@ function CreateWorkItemProjectField(props: TCreateFieldProps) {
           onChange({
             ...typed,
             project_id: (value as string) ?? undefined,
+            type_id: undefined,
             state_id: undefined,
             assignee_ids: [],
             label_ids: [],
@@ -444,6 +450,33 @@ function CreateWorkItemTextFields(props: TCreateFieldProps) {
     </>
   );
 }
+
+/** The type of the new work item, one of the target project's types. */
+const CreateWorkItemTypeField = observer(function CreateWorkItemTypeField(
+  props: TCreateFieldProps & { targetProjectId?: string }
+) {
+  const { typed, onChange, disabled, targetProjectId } = props;
+  const { workspaceSlug } = useParams();
+  const { t } = useTranslation();
+  useProjectIssueTypes(workspaceSlug?.toString(), targetProjectId);
+  return (
+    <div className="max-w-md">
+      <FieldLabel>{t("automations.action.configuration.create_work_item.type_label")}</FieldLabel>
+      {targetProjectId ? (
+        <IssueTypeDropdown
+          projectId={targetProjectId}
+          value={typed.type_id}
+          onChange={(value) => onChange({ ...typed, type_id: value })}
+          disabled={disabled}
+          variant="select-md"
+          className="w-full"
+        />
+      ) : (
+        <p className="text-11 text-tertiary">{t("automations.action.configuration.create_work_item.type_hint")}</p>
+      )}
+    </div>
+  );
+});
 
 /** State, priority, assignee and label pickers. */
 function CreateWorkItemPickers(props: TCreateFieldProps & { targetProjectId?: string }) {
@@ -558,6 +591,7 @@ const CreateWorkItemConfig = observer(function CreateWorkItemConfig(props: Confi
     <div className="flex flex-col gap-3">
       {scope === "workspace" && <CreateWorkItemProjectField {...fieldProps} />}
       <CreateWorkItemTextFields {...fieldProps} />
+      <CreateWorkItemTypeField {...fieldProps} targetProjectId={targetProjectId} />
       <CreateWorkItemPickers {...fieldProps} targetProjectId={targetProjectId} />
       <CreateWorkItemDueField {...fieldProps} />
 

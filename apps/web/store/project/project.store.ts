@@ -541,7 +541,7 @@ export class ProjectStore implements IProjectStore {
    * @param data
    * @returns Promise<TProject>
    */
-  createProject = async (workspaceSlug: string, data: any) => {
+  createProject = async (workspaceSlug: string, data: Partial<TProject>) => {
     try {
       const response = await this.projectService.createProject(workspaceSlug, data);
       this.processProjectAfterCreation(workspaceSlug, response);

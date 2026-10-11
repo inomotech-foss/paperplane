@@ -4,9 +4,7 @@
     "label_lowercase": "作業項目タイプ",
     "settings": {
       "description": "チームのニーズに合わせて独自のプロパティをカスタマイズして追加できます。",
-      "cant_delete_default_message": "この作業項目タイプは削除できません。このプロジェクトのデフォルトの作業項目タイプとして設定されているためです。",
-      "set_as_default": "デフォルトに設定",
-      "cant_set_default_inactive_message": "デフォルトに設定する前にこのタイプを有効にしてください",
+      "cant_delete_epic_message": "エピックタイプは削除できません。",
       "set_default_confirmation": {
         "title": "デフォルトの作業項目タイプに設定",
         "description": "{name}をデフォルトに設定すると、このワークスペース内のすべてのプロジェクトにインポートされます。すべての新しい作業項目はデフォルトでこのタイプを使用します。",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "このタイプを削除",
         "description": "タイプの削除は既存データの損失につながる可能性があります。",
+        "in_use": "このタイプを使用している作業項目：{count}件。移動先のタイプを選択してください。",
+        "deleted_too": "このタイプの削除済み作業項目も移動されます。",
+        "only_hidden": "削除済みの作業項目または設定がまだこのタイプを使用しています。移動先のタイプを選択してください。",
+        "replacement_label": "移動先",
         "can_disable_warning": "代わりにタイプを無効にしますか？",
         "primary_button": "はい、削除します",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "アップグレード"
         }
       }
+    },
+    "migration": {
+      "change_title": "作業項目のタイプを変更",
+      "change_description": "これらのカスタムプロパティーの値は現在のタイプにのみ属します。新しいタイプでの移動先をそれぞれ選択してください。",
+      "values_count": "値がある作業項目：{count}件",
+      "single_value": "値：{value}",
+      "drop_values": "値を破棄",
+      "choose_target": "プロパティーを選択",
+      "option_values": "{name} の値",
+      "choose_type": "タイプを選択",
+      "confirm": "タイプを変更"
     }
   },
   "work_item_type_hierarchy": {

@@ -26,6 +26,8 @@ type Props = {
   className?: string;
   tooltip?: SelectTooltip;
   tabIndex?: number;
+  /** Narrows the offered types, e.g. to the valid replacements of another type. */
+  filterTypes?: (type: TIssueType) => boolean;
 };
 
 export const IssueTypeDropdown = observer(function IssueTypeDropdown(props: Props) {
@@ -40,13 +42,15 @@ export const IssueTypeDropdown = observer(function IssueTypeDropdown(props: Prop
     className,
     tooltip,
     tabIndex,
+    filterTypes,
   } = props;
   const { t } = useTranslation();
   // store hooks
-  const { getActiveProjectIssueTypes, getIssueTypeById, getProjectDefaultIssueType } = useIssueTypes();
+  const { getActiveProjectIssueTypes, getIssueTypeById } = useIssueTypes();
   // derived values
-  const issueTypes = getActiveProjectIssueTypes(projectId) ?? [];
-  const selectedType = getIssueTypeById(value) ?? getProjectDefaultIssueType(projectId) ?? null;
+  const activeTypes = getActiveProjectIssueTypes(projectId) ?? [];
+  const issueTypes = filterTypes ? activeTypes.filter(filterTypes) : activeTypes;
+  const selectedType = getIssueTypeById(value);
   const resolvedPlaceholder = placeholder ?? t("work_item_types.label");
 
   const resolvedTooltip = useMemo<SelectTooltipOverride | undefined>(() => {

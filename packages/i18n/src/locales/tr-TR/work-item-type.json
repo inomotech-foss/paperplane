@@ -4,9 +4,7 @@
     "label_lowercase": "iş öğesi tipleri",
     "settings": {
       "description": "Ekibinizin ihtiyaçlarına göre özelleştirin ve kendi özelliklerinizi ekleyin.",
-      "cant_delete_default_message": "Bu iş öğesi türü mevcut iş öğeleriyle bağlantılı olduğundan silinemez.",
-      "set_as_default": "Varsayılan olarak ayarla",
-      "cant_set_default_inactive_message": "Varsayılan olarak ayarlamadan önce bu türü etkinleştirin",
+      "cant_delete_epic_message": "Epik türü silinemez.",
       "set_default_confirmation": {
         "title": "Varsayılan iş öğesi türü olarak ayarla",
         "description": "{name} türünü varsayılan olarak ayarlamak, bu çalışma alanındaki tüm projelere aktarılmasını sağlar. Tüm yeni iş öğeleri varsayılan olarak bu türü kullanacaktır.",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Bu türü sil",
         "description": "Türlerin silinmesi mevcut verilerin kaybına yol açabilir.",
+        "in_use": "Bu türü kullanan iş öğeleri: {count}. Taşınacakları türü seçin.",
+        "deleted_too": "Bu türdeki silinmiş iş öğeleri de taşınır.",
+        "only_hidden": "Silinmiş iş öğeleri veya ayarlar hâlâ bu türü kullanıyor. Taşınacakları türü seçin.",
+        "replacement_label": "Taşınacak tür",
         "can_disable_warning": "Bunun yerine türü devre dışı bırakmak ister misiniz?",
         "primary_button": "Evet, sil",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "Yükselt"
         }
       }
+    },
+    "migration": {
+      "change_title": "İş öğesi türünü değiştir",
+      "change_description": "Bu özel özellik değerleri yalnızca mevcut türe aittir. Her birinin yeni türde nereye gideceğini seçin.",
+      "values_count": "Değeri olan iş öğeleri: {count}",
+      "single_value": "Değer: {value}",
+      "drop_values": "Değerleri at",
+      "choose_target": "Bir özellik seçin",
+      "option_values": "{name} içeren değerler",
+      "choose_type": "Bir tür seçin",
+      "confirm": "Türü değiştir"
     }
   },
   "work_item_type_hierarchy": {

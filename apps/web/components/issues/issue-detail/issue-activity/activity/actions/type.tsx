@@ -32,13 +32,18 @@ export const IssueTypeActivity = observer(function IssueTypeActivity(props: TIss
       ends={ends}
     >
       <>
-        {activity.new_value ? (
+        {activity.old_value && activity.new_value && (
+          <>
+            changed the work item type from <span className="font-medium text-primary">{activity.old_value}</span> to{" "}
+            <span className="font-medium text-primary">{activity.new_value}</span>
+          </>
+        )}
+        {!activity.old_value && activity.new_value && (
           <>
             set the work item type to <span className="font-medium text-primary">{activity.new_value}</span>
           </>
-        ) : (
-          <>removed the work item type</>
         )}
+        {!activity.new_value && <>removed the work item type</>}
         {showIssue ? ` for ` : ``}
         {showIssue && <IssueLink activityId={activityId} />}.
       </>

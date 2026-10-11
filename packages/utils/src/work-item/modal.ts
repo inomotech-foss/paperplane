@@ -31,7 +31,7 @@ export const convertWorkItemDataToSearchResponse = (
   project__identifier: project?.identifier ?? "",
   project__name: project?.name ?? "",
   sequence_id: workItem.sequence_id,
-  type_id: workItem.type_id ?? "",
+  type_id: workItem.type_id,
   state__color: state?.color ?? "",
   start_date: workItem.start_date,
   state__group: state?.group ?? "backlog",

@@ -4,9 +4,7 @@
     "label_lowercase": "tipe item kerja",
     "settings": {
       "description": "Sesuaikan dan tambahkan properti Anda sendiri untuk menyesuaikannya dengan kebutuhan tim Anda.",
-      "cant_delete_default_message": "Jenis item kerja ini tidak dapat dihapus karena diatur sebagai default untuk proyek ini.",
-      "set_as_default": "Atur sebagai default",
-      "cant_set_default_inactive_message": "Aktifkan tipe ini sebelum mengaturnya sebagai default",
+      "cant_delete_epic_message": "Tipe Epik tidak dapat dihapus.",
       "set_default_confirmation": {
         "title": "Atur sebagai tipe item kerja default",
         "description": "Mengatur {name} sebagai default akan mengimpornya ke semua proyek di ruang kerja ini. Semua item kerja baru akan menggunakan tipe ini secara default.",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Hapus jenis ini",
         "description": "Penghapusan tipe dapat menyebabkan hilangnya data yang ada.",
+        "in_use": "Item kerja dengan tipe ini: {count}. Pilih tipe tujuan untuk memindahkannya.",
+        "deleted_too": "Item kerja yang dihapus dengan tipe ini juga ikut dipindahkan.",
+        "only_hidden": "Item kerja yang dihapus atau pengaturan masih memakai tipe ini. Pilih tipe tujuan untuk memindahkannya.",
+        "replacement_label": "Pindahkan ke",
         "can_disable_warning": "Apakah Anda ingin menonaktifkan jenisnya saja?",
         "primary_button": "Ya, hapus",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "Tingkatkan"
         }
       }
+    },
+    "migration": {
+      "change_title": "Ubah tipe item kerja",
+      "change_description": "Nilai properti kustom ini hanya milik tipe saat ini. Pilih ke mana masing-masing dipindahkan pada tipe baru.",
+      "values_count": "Item kerja dengan nilai: {count}",
+      "single_value": "Nilai: {value}",
+      "drop_values": "Buang nilai",
+      "choose_target": "Pilih properti",
+      "option_values": "Nilai dengan {name}",
+      "choose_type": "Pilih tipe",
+      "confirm": "Ubah tipe"
     }
   },
   "work_item_type_hierarchy": {

@@ -4,9 +4,7 @@
     "label_lowercase": "工作項目類型",
     "settings": {
       "description": "自訂並新增您自己的屬性，以符合您團隊的需求。",
-      "cant_delete_default_message": "無法刪除此工作項目類型，因為它已設置為該專案的預設類型。",
-      "set_as_default": "設為預設",
-      "cant_set_default_inactive_message": "請先啟用此類型再將其設為預設",
+      "cant_delete_epic_message": "無法刪除史詩類型。",
       "set_default_confirmation": {
         "title": "設為預設工作項目類型",
         "description": "將 {name} 設為預設後，它將被匯入到此工作區的所有專案中。所有新工作項目將預設使用此類型。",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "刪除此類型",
         "description": "刪除類型可能會導致現有資料遺失。",
+        "in_use": "使用此類型的工作項目：{count}。請選擇要將它們移至的類型。",
+        "deleted_too": "使用此類型的已刪除工作項目也會一併移動。",
+        "only_hidden": "已刪除的工作項目或設定仍在使用此類型。請選擇要將它們移至的類型。",
+        "replacement_label": "移至",
         "can_disable_warning": "您想改為停用此類型嗎？",
         "primary_button": "是的，刪除它",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "升級"
         }
       }
+    },
+    "migration": {
+      "change_title": "變更工作項目類型",
+      "change_description": "這些自訂屬性值只屬於目前的類型。請為每個值選擇在新類型中的去處。",
+      "values_count": "有值的工作項目：{count}",
+      "single_value": "值：{value}",
+      "drop_values": "捨棄這些值",
+      "choose_target": "選擇屬性",
+      "option_values": "值為 {name}",
+      "choose_type": "選擇類型",
+      "confirm": "變更類型"
     }
   },
   "work_item_type_hierarchy": {

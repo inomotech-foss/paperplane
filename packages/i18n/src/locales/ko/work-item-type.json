@@ -4,9 +4,7 @@
     "label_lowercase": "워크 아이템 타입",
     "settings": {
       "description": "팀의 요구에 맞게 자신만의 프로퍼티를 사용자 정의하고 추가하세요.",
-      "cant_delete_default_message": "이 작업 항목 유형은 삭제할 수 없습니다. 이 프로젝트의 기본 작업 항목 유형으로 설정되어 있기 때문입니다.",
-      "set_as_default": "기본값으로 설정",
-      "cant_set_default_inactive_message": "기본값으로 설정하기 전에 이 유형을 활성화하세요",
+      "cant_delete_epic_message": "에픽 타입은 삭제할 수 없습니다.",
       "set_default_confirmation": {
         "title": "기본 작업 항목 유형으로 설정",
         "description": "{name}을(를) 기본값으로 설정하면 이 워크스페이스의 모든 프로젝트에 가져옵니다. 모든 새 작업 항목은 기본적으로 이 유형을 사용합니다.",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "이 유형 삭제",
         "description": "유형을 삭제하면 기존 데이터가 손실될 수 있습니다.",
+        "in_use": "이 타입을 사용하는 작업 항목: {count}개. 옮길 타입을 선택하십시오.",
+        "deleted_too": "이 타입을 사용하는 삭제된 작업 항목도 함께 옮겨집니다.",
+        "only_hidden": "삭제된 작업 항목이나 설정이 아직 이 타입을 사용합니다. 옮길 타입을 선택하십시오.",
+        "replacement_label": "옮길 타입",
         "can_disable_warning": "대신 유형을 비활성화하시겠습니까?",
         "primary_button": "예, 삭제합니다",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "업그레이드"
         }
       }
+    },
+    "migration": {
+      "change_title": "작업 항목 타입 변경",
+      "change_description": "이 사용자 지정 속성 값은 현재 타입에만 속합니다. 새 타입에서 각 값이 옮겨질 곳을 선택하십시오.",
+      "values_count": "값이 있는 작업 항목: {count}개",
+      "single_value": "값: {value}",
+      "drop_values": "값 버리기",
+      "choose_target": "속성 선택",
+      "option_values": "{name} 값",
+      "choose_type": "타입 선택",
+      "confirm": "타입 변경"
     }
   },
   "work_item_type_hierarchy": {

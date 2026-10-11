@@ -109,6 +109,8 @@
           "name_placeholder": "Name the work item this automation creates",
           "description_label": "Description",
           "description_placeholder": "Describe the work item",
+          "type_label": "Type",
+          "type_hint": "Choose a project to choose the type.",
           "state_label": "State",
           "priority_label": "Priority",
           "assignees_label": "Assignees",

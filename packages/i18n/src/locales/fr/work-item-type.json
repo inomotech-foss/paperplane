@@ -4,9 +4,7 @@
     "label_lowercase": "types d'éléments de travail",
     "settings": {
       "description": "Personnalisez et ajoutez vos propres propriétés pour l’adapter aux besoins de votre équipe.",
-      "cant_delete_default_message": "Ce type d'élément de travail ne peut pas être supprimé car il est défini comme le type par défaut pour ce projet.",
-      "set_as_default": "Définir par défaut",
-      "cant_set_default_inactive_message": "Activez ce type avant de le définir par défaut",
+      "cant_delete_epic_message": "Le type Epic ne peut pas être supprimé.",
       "set_default_confirmation": {
         "title": "Définir comme type d'élément de travail par défaut",
         "description": "Définir {name} par défaut l'importera dans tous les projets de cet espace de travail. Tous les nouveaux éléments de travail utiliseront ce type par défaut.",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Supprimer ce type",
         "description": "La suppression de types peut entraîner la perte de données existantes.",
+        "in_use": "Éléments de travail de ce type : {count}. Choisissez un type vers lequel les déplacer.",
+        "deleted_too": "Les éléments de travail supprimés de ce type seront aussi déplacés.",
+        "only_hidden": "Des éléments de travail supprimés ou des paramètres utilisent encore ce type. Choisissez un type vers lequel les déplacer.",
+        "replacement_label": "Les déplacer vers",
         "can_disable_warning": "Voulez-vous désactiver le type à la place ?",
         "primary_button": "Oui, supprime-le",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "Mettre à niveau"
         }
       }
+    },
+    "migration": {
+      "change_title": "Changer le type de l'élément de travail",
+      "change_description": "Ces valeurs de propriétés personnalisées n'appartiennent qu'au type actuel. Choisissez où chacune va sur le nouveau type.",
+      "values_count": "Éléments de travail avec une valeur : {count}",
+      "single_value": "Valeur : {value}",
+      "drop_values": "Supprimer les valeurs",
+      "choose_target": "Choisissez une propriété",
+      "option_values": "Valeurs avec {name}",
+      "choose_type": "Choisissez un type",
+      "confirm": "Changer le type"
     }
   },
   "work_item_type_hierarchy": {

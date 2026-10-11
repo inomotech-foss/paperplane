@@ -4,9 +4,7 @@
     "label_lowercase": "工作项类型",
     "settings": {
       "description": "自定义并添加您自己的属性以适应团队需求。",
-      "cant_delete_default_message": "无法删除此工作项类型，因为它已设置为该项目的默认类型。",
-      "set_as_default": "设为默认",
-      "cant_set_default_inactive_message": "请先激活此类型再将其设为默认",
+      "cant_delete_epic_message": "无法删除史诗类型。",
       "set_default_confirmation": {
         "title": "设为默认工作项类型",
         "description": "将 {name} 设为默认后，它将被导入到此工作区的所有项目中。所有新工作项将默认使用此类型。",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "删除此类型",
         "description": "删除类型可能会导致现有数据丢失。",
+        "in_use": "使用此类型的工作项：{count}。请选择要将它们移至的类型。",
+        "deleted_too": "使用此类型的已删除工作项也会一并移动。",
+        "only_hidden": "已删除的工作项或设置仍在使用此类型。请选择要将它们移至的类型。",
+        "replacement_label": "移至",
         "can_disable_warning": "您想改为禁用该类型吗？",
         "primary_button": "是的，删除它",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "升级"
         }
       }
+    },
+    "migration": {
+      "change_title": "更改工作项类型",
+      "change_description": "这些自定义属性值只属于当前类型。请为每个值选择在新类型中的去处。",
+      "values_count": "有值的工作项：{count}",
+      "single_value": "值：{value}",
+      "drop_values": "丢弃这些值",
+      "choose_target": "选择属性",
+      "option_values": "值为 {name}",
+      "choose_type": "选择类型",
+      "confirm": "更改类型"
     }
   },
   "work_item_type_hierarchy": {

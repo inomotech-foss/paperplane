@@ -25,6 +25,7 @@ import { IssueModuleActivity } from "./actions/module";
 import { IssueNameActivity } from "./actions/name";
 import { IssueParentActivity } from "./actions/parent";
 import { IssuePriorityActivity } from "./actions/priority";
+import { IssuePropertyActivity } from "./actions/property";
 import { IssueRelationActivity } from "./actions/relation";
 import { IssueStartDateActivity } from "./actions/start_date";
 import { IssueStateActivity } from "./actions/state";
@@ -91,7 +92,9 @@ export const IssueActivityItem = observer(function IssueActivityItem(props: TIss
     case "inbox":
       return <IssueInboxActivity {...componentDefaultProps} />;
     case "type":
-      return <IssueTypeActivity {...componentDefaultProps} />;
+      return <IssueTypeActivity {...componentDefaultProps} showIssue={false} />;
+    case "property":
+      return <IssuePropertyActivity {...componentDefaultProps} />;
     default:
       return null;
   }

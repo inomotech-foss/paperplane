@@ -16,7 +16,6 @@ export type TIssueType = {
   description: string;
   logo_props: TLogoProps;
   is_epic: boolean;
-  is_default: boolean;
   is_active: boolean;
   level: number;
   project?: string | null;

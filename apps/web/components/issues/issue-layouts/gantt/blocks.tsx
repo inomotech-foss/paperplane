@@ -44,14 +44,6 @@ type Props = {
   isEpic?: boolean;
 };
 
-// Resolve the work item type to show for an issue — its explicit type, else
-// the project's default — mirroring IssueTypeDropdown's display behavior.
-// Returns null when the project has no work item types configured.
-const useResolvedIssueType = (issue: ReturnType<ReturnType<typeof useIssueDetail>["issue"]["getIssueById"]>) => {
-  const { getIssueTypeById, getProjectDefaultIssueType } = useIssueTypes();
-  return getIssueTypeById(issue?.type_id) ?? getProjectDefaultIssueType(issue?.project_id);
-};
-
 export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
   const { issueId, isEpic } = props;
   // router
@@ -63,6 +55,7 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
     issue: { getIssueById },
   } = useIssueDetail();
   const { getProjectIdentifierById } = useProject();
+  const { getIssueTypeById } = useIssueTypes();
   const storeType = useIssueStoreType() as GanttStoreType;
   const { issuesFilter } = useIssues(storeType);
   // hooks
@@ -74,7 +67,7 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
 
   // derived values
   const issueDetails = getIssueById(issueId);
-  const issueType = useResolvedIssueType(issueDetails);
+  const issueType = getIssueTypeById(issueDetails?.type_id);
   const block = getBlockById(issueId);
   const isRolledUp = isBlockRolledUp(block);
   const stateDetails =
@@ -229,6 +222,7 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
   const storeType = useIssueStoreType() as GanttStoreType;
   const { issuesFilter } = useIssues(storeType);
   const { getProjectIdentifierById } = useProject();
+  const { getIssueTypeById } = useIssueTypes();
 
   // handlers
   const { handleRedirection } = useIssuePeekOverviewRedirection(isEpic);
@@ -238,7 +232,7 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
 
   // derived values
   const issueDetails = getIssueById(issueId);
-  const issueType = useResolvedIssueType(issueDetails);
+  const issueType = getIssueTypeById(issueDetails?.type_id);
   const projectIdentifier = getProjectIdentifierById(issueDetails?.project_id);
   const rowState = hierarchy?.getRowState(issueId);
 

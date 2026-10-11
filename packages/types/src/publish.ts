@@ -42,4 +42,8 @@ export type TPublishSettings = {
 
 export type TProjectPublishSettings = TPublishSettings & {
   view_props: TProjectPublishViewProps | undefined;
+  /** The intake that takes submissions from the published board, null while off. */
+  intake?: string | null;
+  /** The type of the submitted work items. Required while `intake` is set. */
+  intake_issue_type?: string | null;
 };

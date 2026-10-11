@@ -4,9 +4,7 @@
     "label_lowercase": "loại mục công việc",
     "settings": {
       "description": "Tùy chỉnh và thêm thuộc tính riêng của bạn để điều chỉnh theo nhu cầu của nhóm.",
-      "cant_delete_default_message": "Không thể xóa loại hạng mục công việc này vì nó đang được liên kết với các hạng mục công việc hiện có.",
-      "set_as_default": "Đặt làm mặc định",
-      "cant_set_default_inactive_message": "Kích hoạt loại này trước khi đặt làm mặc định",
+      "cant_delete_epic_message": "Không thể xóa loại Epic.",
       "set_default_confirmation": {
         "title": "Đặt làm loại hạng mục công việc mặc định",
         "description": "Đặt {name} làm mặc định sẽ nhập nó vào tất cả các dự án trong không gian làm việc này. Tất cả hạng mục công việc mới sẽ sử dụng loại này theo mặc định.",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Xóa loại này",
         "description": "Việc xóa các loại có thể dẫn đến mất dữ liệu hiện có.",
+        "in_use": "Số mục công việc dùng loại này: {count}. Chọn loại để chuyển chúng sang.",
+        "deleted_too": "Các mục công việc đã xóa thuộc loại này cũng được chuyển theo.",
+        "only_hidden": "Các mục công việc đã xóa hoặc cài đặt vẫn dùng loại này. Chọn loại để chuyển chúng sang.",
+        "replacement_label": "Chuyển sang",
         "can_disable_warning": "Bạn có muốn tắt loại này thay thế không?",
         "primary_button": "Vâng, xóa nó",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "Nâng cấp"
         }
       }
+    },
+    "migration": {
+      "change_title": "Đổi loại mục công việc",
+      "change_description": "Các giá trị thuộc tính tùy chỉnh này chỉ thuộc về loại hiện tại. Hãy chọn nơi chuyển từng giá trị trên loại mới.",
+      "values_count": "Số mục công việc có giá trị: {count}",
+      "single_value": "Giá trị: {value}",
+      "drop_values": "Bỏ các giá trị",
+      "choose_target": "Chọn một thuộc tính",
+      "option_values": "Giá trị có {name}",
+      "choose_type": "Chọn một loại",
+      "confirm": "Đổi loại"
     }
   },
   "work_item_type_hierarchy": {

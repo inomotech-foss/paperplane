@@ -109,6 +109,8 @@
           "name_placeholder": "이 자동화가 만드는 작업 항목의 이름을 입력합니다",
           "description_label": "설명",
           "description_placeholder": "작업 항목을 설명합니다",
+          "type_label": "타입",
+          "type_hint": "타입을 선택하려면 먼저 프로젝트를 선택하십시오.",
           "state_label": "상태",
           "priority_label": "우선순위",
           "assignees_label": "담당자",

@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 // types
 import type { TIssue } from "@plane/types";
 // components
-import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
+import { WorkItemTypeSelect } from "@/components/issues/work-item-type-select";
 
 type Props = {
   issue: TIssue;
@@ -23,9 +23,8 @@ export const SpreadsheetTypeColumn = observer(function SpreadsheetTypeColumn(pro
 
   return (
     <div className="h-11 border-b-[0.5px] border-subtle">
-      <IssueTypeDropdown
-        projectId={issue.project_id}
-        value={issue.type_id}
+      <WorkItemTypeSelect
+        workItem={issue}
         onChange={(data) => onChange(issue, { type_id: data }, { changed_property: "type_id", change_details: data })}
         disabled={disabled}
         // `.clickable` is what the table's keyboard navigation clicks on Enter / Space in a focused cell.

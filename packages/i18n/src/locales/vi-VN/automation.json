@@ -109,6 +109,8 @@
           "name_placeholder": "Đặt tên cho hạng mục công việc mà tự động hóa này tạo ra",
           "description_label": "Mô tả",
           "description_placeholder": "Mô tả hạng mục công việc",
+          "type_label": "Loại",
+          "type_hint": "Chọn một dự án để chọn loại.",
           "state_label": "Trạng thái",
           "priority_label": "Mức ưu tiên",
           "assignees_label": "Người được giao",

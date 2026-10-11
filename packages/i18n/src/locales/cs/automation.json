@@ -109,6 +109,8 @@
           "name_placeholder": "Pojmenujte pracovní položku, kterou tato automatizace vytvoří",
           "description_label": "Popis",
           "description_placeholder": "Popište pracovní položku",
+          "type_label": "Typ",
+          "type_hint": "Nejprve vyberte projekt, poté můžete vybrat typ.",
           "state_label": "Stav",
           "priority_label": "Priorita",
           "assignees_label": "Přiřazení",

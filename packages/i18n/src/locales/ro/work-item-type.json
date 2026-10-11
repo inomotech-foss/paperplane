@@ -4,9 +4,7 @@
     "label_lowercase": "tipuri de elemente de lucru",
     "settings": {
       "description": "Personalizează și adaugă propriile proprietăți pentru a le adapta nevoilor echipei tale.",
-      "cant_delete_default_message": "Nu se poate șterge acest tip de element de lucru deoarece este setat ca tip implicit pentru acest proiect.",
-      "set_as_default": "Setează ca implicit",
-      "cant_set_default_inactive_message": "Activează acest tip înainte de a-l seta ca implicit",
+      "cant_delete_epic_message": "Tipul Epic nu poate fi șters.",
       "set_default_confirmation": {
         "title": "Setează ca tip implicit de element de lucru",
         "description": "Setarea {name} ca implicit îl va importa în toate proiectele din acest spațiu de lucru. Toate elementele de lucru noi vor folosi acest tip în mod implicit.",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Șterge acest tip",
         "description": "Ștergerea tipurilor poate duce la pierderea datelor existente.",
+        "in_use": "Elemente de lucru cu acest tip: {count}. Alegeți un tip în care să le mutați.",
+        "deleted_too": "Elementele de lucru șterse cu acest tip vor fi mutate și ele.",
+        "only_hidden": "Elemente de lucru șterse sau setări încă folosesc acest tip. Alegeți un tip în care să le mutați.",
+        "replacement_label": "Mutați în",
         "can_disable_warning": "Doriți să dezactivați tipul în schimb?",
         "primary_button": "Da, șterge-l",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "Actualizează"
         }
       }
+    },
+    "migration": {
+      "change_title": "Schimbați tipul elementului de lucru",
+      "change_description": "Aceste valori ale proprietăților personalizate aparțin doar tipului actual. Alegeți unde merge fiecare în noul tip.",
+      "values_count": "Elemente de lucru cu o valoare: {count}",
+      "single_value": "Valoare: {value}",
+      "drop_values": "Renunțați la valori",
+      "choose_target": "Alegeți o proprietate",
+      "option_values": "Valori cu {name}",
+      "choose_type": "Alegeți un tip",
+      "confirm": "Schimbați tipul"
     }
   },
   "work_item_type_hierarchy": {

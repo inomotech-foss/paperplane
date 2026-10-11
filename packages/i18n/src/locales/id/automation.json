@@ -109,6 +109,8 @@
           "name_placeholder": "Beri nama item pekerjaan yang dibuat otomatisasi ini",
           "description_label": "Deskripsi",
           "description_placeholder": "Jelaskan item pekerjaan",
+          "type_label": "Tipe",
+          "type_hint": "Pilih proyek untuk memilih tipe.",
           "state_label": "Status",
           "priority_label": "Prioritas",
           "assignees_label": "Penerima tugas",

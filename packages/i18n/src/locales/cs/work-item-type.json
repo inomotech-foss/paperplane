@@ -4,9 +4,7 @@
     "label_lowercase": "typy pracovních položek",
     "settings": {
       "description": "Přizpůsobte si a přidejte vlastní vlastnosti, abyste to upravili podle potřeb vašeho týmu.",
-      "cant_delete_default_message": "Tento typ pracovního položky nelze odstranit, protože je nastaven jako výchozí pro tento projekt.",
-      "set_as_default": "Nastavit jako výchozí",
-      "cant_set_default_inactive_message": "Před nastavením jako výchozí tento typ aktivujte",
+      "cant_delete_epic_message": "Typ Epik nelze odstranit.",
       "set_default_confirmation": {
         "title": "Nastavit jako výchozí typ pracovní položky",
         "description": "Nastavením {name} jako výchozího se tento typ importuje do všech projektů v tomto pracovním prostoru. Všechny nové pracovní položky budou tento typ používat ve výchozím nastavení.",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Smazat tento typ",
         "description": "Odstranění typů může vést ke ztrátě stávajících dat.",
+        "in_use": "Pracovní položky s tímto typem: {count}. Vyberte typ, na který je přesunout.",
+        "deleted_too": "Přesunou se i smazané pracovní položky s tímto typem.",
+        "only_hidden": "Tento typ stále používají smazané pracovní položky nebo nastavení. Vyberte typ, na který je přesunout.",
+        "replacement_label": "Přesunout na",
         "can_disable_warning": "Chcete místo toho zakázat tento typ?",
         "primary_button": "Ano, smazat",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "Upgradovat"
         }
       }
+    },
+    "migration": {
+      "change_title": "Změnit typ pracovní položky",
+      "change_description": "Tyto hodnoty vlastních vlastností patří jen k aktuálnímu typu. Vyberte, kam každá na novém typu přejde.",
+      "values_count": "Pracovní položky s hodnotou: {count}",
+      "single_value": "Hodnota: {value}",
+      "drop_values": "Zahodit hodnoty",
+      "choose_target": "Vyberte vlastnost",
+      "option_values": "Hodnoty s {name}",
+      "choose_type": "Vyberte typ",
+      "confirm": "Změnit typ"
     }
   },
   "work_item_type_hierarchy": {

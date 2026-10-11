@@ -9,7 +9,7 @@ import { useTranslation } from "@plane/i18n";
 import type { TQuickAddIssueForm } from "../root";
 
 export const ListQuickAddIssueForm = observer(function ListQuickAddIssueForm(props: TQuickAddIssueForm) {
-  const { ref, projectDetail, register, onSubmit, isEpic } = props;
+  const { ref, projectDetail, register, onSubmit, isEpic, typeSelect } = props;
   const { t } = useTranslation();
   return (
     <div className="shadow-raised-200">
@@ -29,6 +29,7 @@ export const ListQuickAddIssueForm = observer(function ListQuickAddIssueForm(pro
             })}
             className="w-full rounded-md bg-transparent px-2 py-3 text-13 leading-5 font-medium text-secondary outline-none"
           />
+          {typeSelect}
         </div>
       </form>
       <div className="px-3 py-2 text-11 text-secondary italic">

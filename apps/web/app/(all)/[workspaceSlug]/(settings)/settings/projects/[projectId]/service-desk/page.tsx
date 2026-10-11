@@ -21,6 +21,7 @@ import { getFileURL, renderFormattedDate, renderFormattedTime } from "@plane/uti
 // components
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { PageHead } from "@/components/core/page-title";
+import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
 import { MemberSelect } from "@/components/dropdowns/member/member-select";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
@@ -28,6 +29,7 @@ import { SettingsHeading } from "@/components/settings/heading";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
+import { useProjectIssueTypes } from "@/hooks/use-preselected-issue-type";
 // services
 import { ServiceDeskService } from "@/services/service-desk.service";
 // local imports
@@ -115,6 +117,32 @@ const NotifyMembersField = observer(function NotifyMembersField(props: {
   );
 });
 
+function TicketTypeField(props: {
+  workspaceSlug: string;
+  projectId: string;
+  value: string | undefined;
+  onChange: (value: string) => void;
+}) {
+  const { workspaceSlug, projectId, value, onChange } = props;
+  useProjectIssueTypes(workspaceSlug, projectId);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <h4 className="text-13 font-medium text-primary">Type of new tickets</h4>
+      <IssueTypeDropdown
+        projectId={projectId}
+        value={value}
+        onChange={onChange}
+        placeholder="Choose a type"
+        variant="select-md"
+        className="w-full"
+      />
+      <p className="text-body-xs-regular text-tertiary">
+        Work items created from mail get this type. Polling the mailbox needs one.
+      </p>
+    </div>
+  );
+}
+
 type TServiceDeskConfigFormProps = {
   workspaceSlug: string;
   projectId: string;
@@ -131,6 +159,7 @@ function ServiceDeskConfigForm(props: TServiceDeskConfigFormProps) {
   const [notifyMode, setNotifyMode] = useState<TServiceDeskNotifyMode>(config?.notify_mode ?? "NONE");
   const [notifyUserIds, setNotifyUserIds] = useState<string[]>(config?.notify_user_ids ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [issueTypeId, setIssueTypeId] = useState(config?.issue_type_id ?? undefined);
 
   const handleSave = async () => {
     setIsSubmitting(true);
@@ -138,6 +167,7 @@ function ServiceDeskConfigForm(props: TServiceDeskConfigFormProps) {
       const response = await serviceDeskService.updateConfig(workspaceSlug, projectId, {
         mailbox_email: mailboxEmail.trim(),
         is_enabled: isEnabled,
+        issue_type_id: issueTypeId ?? null,
         notify_mode: notifyMode,
         notify_user_ids: notifyMode === "CUSTOM" ? notifyUserIds : [],
       });
@@ -190,6 +220,12 @@ function ServiceDeskConfigForm(props: TServiceDeskConfigFormProps) {
           aria-label="Poll this mailbox and create intake work items"
         />
       </div>
+      <TicketTypeField
+        workspaceSlug={workspaceSlug}
+        projectId={projectId}
+        value={issueTypeId}
+        onChange={setIssueTypeId}
+      />
       <div className="flex flex-col gap-4 border-t border-subtle pt-6">
         <h4 className="text-h6-medium text-primary">Notifications</h4>
         <NotifyModeSelect value={notifyMode} onChange={setNotifyMode} />
@@ -211,7 +247,7 @@ function ServiceDeskConfigForm(props: TServiceDeskConfigFormProps) {
           size="md"
           onClick={() => void handleSave()}
           loading={isSubmitting}
-          disabled={isSubmitting}
+          disabled={isSubmitting || (isEnabled && !issueTypeId)}
           stretch="auto"
           label={isSubmitting ? "Saving..." : "Save changes"}
         />

@@ -109,6 +109,8 @@
           "name_placeholder": "დაასახელეთ სამუშაო ელემენტი, რომელსაც ეს ავტომატიზაცია შექმნის",
           "description_label": "აღწერა",
           "description_placeholder": "აღწერეთ სამუშაო ელემენტი",
+          "type_label": "ტიპი",
+          "type_hint": "ტიპის ასარჩევად ჯერ აირჩიეთ პროექტი.",
           "state_label": "მდგომარეობა",
           "priority_label": "პრიორიტეტი",
           "assignees_label": "მინიჭებულები",

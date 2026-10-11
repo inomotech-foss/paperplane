@@ -109,6 +109,8 @@
           "name_placeholder": "Proszę nazwać element pracy tworzony przez tę automatyzację",
           "description_label": "Opis",
           "description_placeholder": "Proszę opisać element pracy",
+          "type_label": "Typ",
+          "type_hint": "Wybierz projekt, aby wybrać typ.",
           "state_label": "Stan",
           "priority_label": "Priorytet",
           "assignees_label": "Osoby przypisane",

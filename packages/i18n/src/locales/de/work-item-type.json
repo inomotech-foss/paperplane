@@ -4,9 +4,7 @@
     "label_lowercase": "arbeitsaufgabentypen",
     "settings": {
       "description": "Passen Sie eigene Eigenschaften an und fügen Sie sie hinzu, um sie an die Bedürfnisse Ihres Teams anzupassen.",
-      "cant_delete_default_message": "Dieser Arbeitselementtyp kann nicht gelöscht werden, da er als Standard für dieses Projekt festgelegt ist.",
-      "set_as_default": "Als Standard festlegen",
-      "cant_set_default_inactive_message": "Aktivieren Sie diesen Typ, bevor Sie ihn als Standard festlegen",
+      "cant_delete_epic_message": "Der Epic-Typ kann nicht gelöscht werden.",
       "set_default_confirmation": {
         "title": "Als Standard-Arbeitselementtyp festlegen",
         "description": "Wenn Sie {name} als Standard festlegen, wird er in alle Projekte in diesem Arbeitsbereich importiert. Alle neuen Arbeitselemente verwenden dann standardmäßig diesen Typ.",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Diesen Typ löschen",
         "description": "Das Löschen von Typen kann zum Verlust vorhandener Daten führen.",
+        "in_use": "Arbeitselemente mit diesem Typ: {count}. Typ auswählen, zu dem sie verschoben werden.",
+        "deleted_too": "Gelöschte Arbeitselemente mit diesem Typ werden ebenfalls verschoben.",
+        "only_hidden": "Gelöschte Arbeitselemente oder Einstellungen verwenden diesen Typ noch. Typ auswählen, zu dem sie verschoben werden.",
+        "replacement_label": "Verschieben nach",
         "can_disable_warning": "Möchten Sie stattdessen den Typ deaktivieren?",
         "primary_button": "Ja, löschen",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "Upgrade"
         }
       }
+    },
+    "migration": {
+      "change_title": "Typ des Arbeitselements ändern",
+      "change_description": "Diese Werte benutzerdefinierter Eigenschaften gehören nur zum aktuellen Typ. Für jeden Wert festlegen, wohin er beim neuen Typ kommt.",
+      "values_count": "Arbeitselemente mit einem Wert: {count}",
+      "single_value": "Wert: {value}",
+      "drop_values": "Werte verwerfen",
+      "choose_target": "Eigenschaft auswählen",
+      "option_values": "Werte mit {name}",
+      "choose_type": "Typ auswählen",
+      "confirm": "Typ ändern"
     }
   },
   "work_item_type_hierarchy": {

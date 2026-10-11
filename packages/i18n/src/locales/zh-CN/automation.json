@@ -109,6 +109,8 @@
           "name_placeholder": "为此自动化创建的工作项命名",
           "description_label": "描述",
           "description_placeholder": "描述该工作项",
+          "type_label": "类型",
+          "type_hint": "请先选择项目，再选择类型。",
           "state_label": "状态",
           "priority_label": "优先级",
           "assignees_label": "负责人",

@@ -33,6 +33,7 @@ import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
 import useKeypress from "@/hooks/use-keypress";
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { usePreselectedIssueTypeId } from "@/hooks/use-preselected-issue-type";
 // services
 import { FileService } from "@/services/file.service";
 // local imports
@@ -83,6 +84,8 @@ export const InboxIssueCreateRoot = observer(function InboxIssueCreateRoot(props
   const [createMore, setCreateMore] = useState<boolean>(false);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<TIssue>>(defaultIssueData);
+  const preselectedTypeId = usePreselectedIssueTypeId(workspaceSlug, projectId);
+  const typeId = formData.type_id ?? preselectedTypeId;
   const handleFormData = useCallback(
     <T extends keyof Partial<TIssue>>(issueKey: T, issueValue: Partial<TIssue>[T]) => {
       setFormData({
@@ -141,6 +144,7 @@ export const InboxIssueCreateRoot = observer(function InboxIssueCreateRoot(props
 
     const payload: Partial<TIssue> = {
       name: formData.name || "",
+      type_id: typeId,
       description_html: formData.description_html || "<p></p>",
       priority: formData.priority || "none",
       state_id: formData.state_id || "",
@@ -219,7 +223,7 @@ export const InboxIssueCreateRoot = observer(function InboxIssueCreateRoot(props
                 <InboxIssueProperties
                   workspaceSlug={workspaceSlug}
                   projectId={projectId}
-                  data={formData}
+                  data={{ ...formData, type_id: typeId }}
                   handleData={handleFormData}
                 />
               </div>
@@ -263,7 +267,7 @@ export const InboxIssueCreateRoot = observer(function InboxIssueCreateRoot(props
               ref={submitBtnRef}
               type="submit"
               loading={formSubmitting}
-              disabled={isTitleLengthMoreThan255Character}
+              disabled={isTitleLengthMoreThan255Character || !typeId}
               tabIndex={getIndex("submit_button")}
               size="md"
               stretch="auto"

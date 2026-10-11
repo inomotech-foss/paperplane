@@ -12,6 +12,7 @@ import type { EPastDurationFilters } from "@plane/constants";
 import type {
   TInboxIssue,
   TInboxIssueCurrentTab,
+  TIssue,
   TInboxIssueFilter,
   TInboxIssueSorting,
   TInboxIssuePaginationInfo,
@@ -77,7 +78,7 @@ export interface IProjectInboxStore {
   createInboxIssue: (
     workspaceSlug: string,
     projectId: string,
-    data: Partial<TInboxIssue>
+    data: Partial<TIssue>
   ) => Promise<TInboxIssue | undefined>;
   deleteInboxIssue: (workspaceSlug: string, projectId: string, inboxIssueId: string) => Promise<void>;
 }
@@ -457,9 +458,12 @@ export class ProjectInboxStore implements IProjectInboxStore {
    * @param projectId
    * @param data
    */
-  createInboxIssue = async (workspaceSlug: string, projectId: string, data: Partial<TInboxIssue>) => {
+  createInboxIssue = async (workspaceSlug: string, projectId: string, data: Partial<TIssue>) => {
     try {
       const inboxIssueResponse = await this.inboxIssueService.create(workspaceSlug, projectId, data);
+      // the next work item of the project starts with the same type
+      if (data.type_id)
+        this.store.issueType.rememberIssueType(workspaceSlug, projectId, data.type_id).catch(() => undefined);
       if (inboxIssueResponse)
         runInAction(() => {
           update(this, ["inboxIssueIds"], (ids) => [...ids, inboxIssueResponse?.issue?.id]);

@@ -109,6 +109,8 @@
           "name_placeholder": "このオートメーションが作成する作業項目の名前を入力してください",
           "description_label": "説明",
           "description_placeholder": "作業項目の内容を記入してください",
+          "type_label": "タイプ",
+          "type_hint": "タイプを選択するには、先にプロジェクトを選択してください。",
           "state_label": "ステータス",
           "priority_label": "優先度",
           "assignees_label": "担当者",

@@ -35,6 +35,8 @@ import { Loader } from "@plane/blocks/skeleton";
 import { copyTextToClipboard } from "@plane/utils";
 // hooks
 import { useProjectPublish } from "@/hooks/store/use-project-publish";
+// local imports
+import { PublishIntakeSettings, toIntakeSettings, useNeedsIntakeType } from "./intake-settings";
 
 type Props = {
   isOpen: boolean;
@@ -47,6 +49,8 @@ const defaultValues: Partial<TProjectPublishSettings> = {
   is_reactions_enabled: false,
   is_votes_enabled: false,
   inbox: null,
+  intake: null,
+  intake_issue_type: null,
   view_props: {
     list: true,
     kanban: true,
@@ -164,6 +168,7 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
       is_reactions_enabled: formData.is_reactions_enabled,
       is_votes_enabled: formData.is_votes_enabled,
       view_props: formData.view_props,
+      ...toIntakeSettings(formData),
     };
 
     if (formData.id && isProjectPublished) await handleUpdatePublishSettings(payload);
@@ -179,6 +184,8 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
       ...projectPublishSettings,
     });
   }, [projectPublishSettings, reset]);
+
+  const needsIntakeType = useNeedsIntakeType(control);
 
   const SPACE_APP_URL =
     (SPACE_BASE_URL.trim() === "" && typeof window !== "undefined" ? window.location.origin : SPACE_BASE_URL) +
@@ -342,6 +349,12 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
                         )}
                       />
                     </div>
+                    <PublishIntakeSettings
+                      control={control}
+                      workspaceSlug={workspaceSlug?.toString()}
+                      projectId={projectId}
+                      isOpen={isOpen}
+                    />
                   </div>
                 </div>
               )}
@@ -368,6 +381,7 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
                       type="submit"
                       label={isSubmitting ? "Updating" : "Update settings"}
                       loading={isSubmitting}
+                      disabled={needsIntakeType}
                     />
                   )
                 ) : (
@@ -378,6 +392,7 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
                     type="submit"
                     label={isSubmitting ? "Publishing" : "Publish"}
                     loading={isSubmitting}
+                    disabled={needsIntakeType}
                   />
                 )}
               </div>

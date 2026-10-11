@@ -16,6 +16,7 @@ import { renderFormattedPayloadDate, getDate, getTabIndex } from "@plane/utils";
 // components
 import { CycleSelect } from "@/components/dropdowns/cycle/cycle-select";
 import { EstimateSelect } from "@/components/dropdowns/estimate/estimate-select";
+import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
 import { IntakeStateSelect } from "@/components/dropdowns/intake-state/intake-state-select";
 import { LabelSelect } from "@/components/dropdowns/label/label-select";
 import { MemberSelect } from "@/components/dropdowns/member/member-select";
@@ -60,6 +61,14 @@ export const InboxIssueProperties = observer(function InboxIssueProperties(props
 
   return (
     <div className="relative flex flex-wrap items-center gap-2">
+      <IssueTypeDropdown
+        projectId={projectId}
+        value={data?.type_id}
+        onChange={(typeId) => handleData("type_id", typeId)}
+        variant="pill-md"
+        tabIndex={getIndex("type_id")}
+      />
+
       {/* intake state */}
       <IntakeStateSelect
         workspaceSlug={workspaceSlug}

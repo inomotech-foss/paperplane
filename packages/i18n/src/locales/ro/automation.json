@@ -109,6 +109,8 @@
           "name_placeholder": "Denumiți elementul de lucru creat de această automatizare",
           "description_label": "Descriere",
           "description_placeholder": "Descrieți elementul de lucru",
+          "type_label": "Tip",
+          "type_hint": "Alegeți un proiect pentru a alege tipul.",
           "state_label": "Stare",
           "priority_label": "Prioritate",
           "assignees_label": "Responsabili",

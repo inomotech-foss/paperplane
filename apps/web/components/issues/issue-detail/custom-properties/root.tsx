@@ -15,7 +15,6 @@ import { SidebarPropertyListItem } from "@/components/common/layout/sidebar/prop
 // hooks
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-import { useIssueTypes } from "@/hooks/store/use-issue-types";
 // local imports
 import { InheritedValueHint } from "./derived-value";
 import { CustomPropertyIcon } from "./property-icon";
@@ -42,13 +41,10 @@ export const IssueCustomProperties = observer(function IssueCustomProperties(pro
   const {
     issue: { getIssueById },
   } = useIssueDetail();
-  const { getProjectDefaultIssueType } = useIssueTypes();
   // i18n
   const { t } = useTranslation();
   // derived values
-  // Resolve the issue's work item type, falling back to the project default so
-  // type-scoped properties still show; unscoped properties always show.
-  const issueTypeId = getIssueById(issueId)?.type_id ?? getProjectDefaultIssueType(projectId)?.id ?? null;
+  const issueTypeId = getIssueById(issueId)?.type_id;
   const properties = getActiveProjectPropertiesForType(projectId, issueTypeId);
   const withDerived = hasDerivedProperties(projectId);
 

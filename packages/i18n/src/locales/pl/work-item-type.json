@@ -4,9 +4,7 @@
     "label_lowercase": "typy elementów pracy",
     "settings": {
       "description": "Dostosuj i dodaj własne właściwości, aby dopasować do potrzeb zespołu.",
-      "cant_delete_default_message": "Nie można usunąć tego typu elementu pracy, ponieważ jest on ustawiony jako domyślny dla tego projektu.",
-      "set_as_default": "Ustaw jako domyślny",
-      "cant_set_default_inactive_message": "Aktywuj ten typ przed ustawieniem go jako domyślny",
+      "cant_delete_epic_message": "Nie można usunąć typu Epik.",
       "set_default_confirmation": {
         "title": "Ustaw jako domyślny typ elementu pracy",
         "description": "Ustawienie {name} jako domyślnego zaimportuje go do wszystkich projektów w tym obszarze roboczym. Wszystkie nowe elementy pracy będą domyślnie używać tego typu.",
@@ -274,6 +272,10 @@
       "item_delete_confirmation": {
         "title": "Usuń ten typ",
         "description": "Usunięcie typów może prowadzić do utraty istniejących danych.",
+        "in_use": "Elementy pracy z tym typem: {count}. Wybierz typ, do którego je przenieść.",
+        "deleted_too": "Usunięte elementy pracy z tym typem również zostaną przeniesione.",
+        "only_hidden": "Usunięte elementy pracy lub ustawienia nadal używają tego typu. Wybierz typ, do którego je przenieść.",
+        "replacement_label": "Przenieś do",
         "can_disable_warning": "Czy chcesz zamiast tego wyłączyć ten typ?",
         "primary_button": "Tak, usuń to",
         "toast": {
@@ -388,6 +390,17 @@
           "text": "Aktualizuj"
         }
       }
+    },
+    "migration": {
+      "change_title": "Zmień typ elementu pracy",
+      "change_description": "Te wartości właściwości niestandardowych należą tylko do bieżącego typu. Wybierz, dokąd trafi każda z nich w nowym typie.",
+      "values_count": "Elementy pracy z wartością: {count}",
+      "single_value": "Wartość: {value}",
+      "drop_values": "Odrzuć wartości",
+      "choose_target": "Wybierz właściwość",
+      "option_values": "Wartości z {name}",
+      "choose_type": "Wybierz typ",
+      "confirm": "Zmień typ"
     }
   },
   "work_item_type_hierarchy": {

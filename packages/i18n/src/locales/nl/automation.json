@@ -109,6 +109,8 @@
           "name_placeholder": "Geef een naam voor het werkitem dat deze automatisering aanmaakt",
           "description_label": "Omschrijving",
           "description_placeholder": "Omschrijf het werkitem",
+          "type_label": "Type",
+          "type_hint": "Kies een project om het type te kiezen.",
           "state_label": "Status",
           "priority_label": "Prioriteit",
           "assignees_label": "Toegewezenen",

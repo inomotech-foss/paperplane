@@ -109,6 +109,8 @@
           "name_placeholder": "Benennen Sie das Arbeitselement, das diese Automatisierung erstellt",
           "description_label": "Beschreibung",
           "description_placeholder": "Beschreiben Sie das Arbeitselement",
+          "type_label": "Typ",
+          "type_hint": "Projekt auswählen, um den Typ auszuwählen.",
           "state_label": "Status",
           "priority_label": "Priorität",
           "assignees_label": "Zugewiesene",
