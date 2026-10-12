@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "查詢，例如 type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "查詢，例如 {query}",
     "run": "執行",
     "clear": "清除",
     "help": "查詢說明",

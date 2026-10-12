@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "მოთხოვნა, მაგ. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "მოთხოვნა, მაგ. {query}",
     "run": "გაშვება",
     "clear": "გასუფთავება",
     "help": "მოთხოვნის დახმარება",

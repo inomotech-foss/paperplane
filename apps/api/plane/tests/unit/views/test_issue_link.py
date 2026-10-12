@@ -42,13 +42,12 @@ class TestIssueLinkPartialUpdate:
         request.user.id = self.user_id
         return request
 
-    @patch("plane.app.views.issue.link.base_host", return_value="https://app.plane.so")
     @patch("plane.app.views.issue.link.issue_activity")
     @patch("plane.app.views.issue.link.crawl_work_item_link_title")
     @patch("plane.app.views.issue.link.IssueLinkSerializer")
     @patch("plane.app.views.issue.link.IssueLink.objects.get")
     def test_partial_update_does_not_recrawl_when_url_unchanged(
-        self, mock_get_link, mock_serializer_cls, mock_crawl, mock_activity, mock_base_host
+        self, mock_get_link, mock_serializer_cls, mock_crawl, mock_activity
     ):
         """Updating link title or metadata without changing url must NOT trigger crawler."""
         initial_url = "https://github.com/makeplane/plane"
@@ -86,13 +85,12 @@ class TestIssueLinkPartialUpdate:
         mock_crawl.delay.assert_not_called()
         mock_activity.delay.assert_called_once()
 
-    @patch("plane.app.views.issue.link.base_host", return_value="https://app.plane.so")
     @patch("plane.app.views.issue.link.issue_activity")
     @patch("plane.app.views.issue.link.crawl_work_item_link_title")
     @patch("plane.app.views.issue.link.IssueLinkSerializer")
     @patch("plane.app.views.issue.link.IssueLink.objects.get")
     def test_partial_update_triggers_crawl_when_url_changed(
-        self, mock_get_link, mock_serializer_cls, mock_crawl, mock_activity, mock_base_host
+        self, mock_get_link, mock_serializer_cls, mock_crawl, mock_activity
     ):
         """Updating url to a new value MUST trigger crawl_work_item_link_title."""
         initial_url = "https://github.com/makeplane/plane"

@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Interogare, de ex. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Interogare, de ex. {query}",
     "run": "Rulează",
     "clear": "Golește",
     "help": "Ajutor pentru interogare",

@@ -69,7 +69,6 @@ from plane.utils.grouper import (
     issue_on_results,
     issue_queryset_grouper,
 )
-from plane.utils.host import base_host
 from plane.utils.issue_filters import issue_filters
 from plane.utils.issue_property import build_issue_property_filters
 from plane.utils.order_queryset import order_issue_queryset
@@ -443,7 +442,6 @@ class IssueViewSet(BaseViewSet):
                 current_instance=None,
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=base_host(request=request, is_app=True),
             )
             queryset = self.get_queryset()
             queryset = self.apply_annotations(queryset)
@@ -494,7 +492,6 @@ class IssueViewSet(BaseViewSet):
                 current_instance=None,
                 actor_id=request.user.id,
                 slug=slug,
-                origin=base_host(request=request, is_app=True),
             )
             # updated issue description version
             issue_description_version_task.delay(
@@ -710,7 +707,6 @@ class IssueViewSet(BaseViewSet):
                     current_instance=current_instance,
                     epoch=int(timezone.now().timestamp()),
                     notification=True,
-                    origin=base_host(request=request, is_app=True),
                 )
                 model_activity.delay(
                     model_name="issue",
@@ -719,7 +715,6 @@ class IssueViewSet(BaseViewSet):
                     current_instance=current_instance,
                     actor_id=request.user.id,
                     slug=slug,
-                    origin=base_host(request=request, is_app=True),
                 )
                 # updated issue description version
                 issue_description_version_task.delay(
@@ -751,7 +746,6 @@ class IssueViewSet(BaseViewSet):
             current_instance={},
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=base_host(request=request, is_app=True),
             subscriber=False,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)

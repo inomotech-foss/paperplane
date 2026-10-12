@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "쿼리, 예: type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "쿼리, 예: {query}",
     "run": "실행",
     "clear": "지우기",
     "help": "쿼리 도움말",

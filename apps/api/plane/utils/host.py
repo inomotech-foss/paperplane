@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+# Python imports
+from urllib.parse import urlsplit
+
 # Django imports
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -20,6 +23,16 @@ def app_base_url() -> str:
     if not base_url:
         raise ImproperlyConfigured("APP_BASE_URL or WEB_URL is not set")
     return base_url.rstrip("/")
+
+
+def absolute_app_url(url: str | None) -> str | None:
+    """Prefix a relative URL with the app base URL. Absolute URLs are returned as is."""
+    if not url:
+        return None
+    parts = urlsplit(url)
+    if parts.scheme or parts.netloc:
+        return url
+    return f"{app_base_url()}/{url.lstrip('/')}"
 
 
 def base_host(

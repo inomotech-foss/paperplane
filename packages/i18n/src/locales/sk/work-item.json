@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Dopyt, napr. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Dopyt, napr. {query}",
     "run": "Spustiť",
     "clear": "Vymazať",
     "help": "Pomocník k dopytu",

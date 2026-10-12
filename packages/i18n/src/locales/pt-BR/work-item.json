@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Consulta, ex.: type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Consulta, ex.: {query}",
     "run": "Executar",
     "clear": "Limpar",
     "help": "Ajuda da consulta",

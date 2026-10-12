@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Abfrage, z. B. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Abfrage, z. B. {query}",
     "run": "Ausführen",
     "clear": "Leeren",
     "help": "Hilfe zur Abfrage",

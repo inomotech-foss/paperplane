@@ -315,7 +315,6 @@ class ProjectViewSet(BaseViewSet):
                 current_instance=None,
                 actor_id=request.user.id,
                 slug=slug,
-                origin=base_host(request=request, is_app=True),
             )
 
             serializer = ProjectListSerializer(project)
@@ -384,7 +383,6 @@ class ProjectViewSet(BaseViewSet):
                 current_instance=current_instance,
                 actor_id=request.user.id,
                 slug=slug,
-                origin=base_host(request=request, is_app=True),
             )
             serializer = ProjectListSerializer(project)
             return Response(serializer.data, status=status.HTTP_200_OK)

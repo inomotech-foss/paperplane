@@ -27,6 +27,8 @@ const workItemQueryService = new WorkItemQueryService();
 
 const QueryEditor = lazy(() => import("./editor"));
 
+const EXAMPLE_QUERY = 'type = "Invoice" AND state = "Paid" AND descendantOf("CUST-1")';
+
 type TQueryDraft = { query: string; error?: string };
 
 const sameDraft = (a: TQueryDraft | undefined, b: TQueryDraft | undefined) =>
@@ -91,6 +93,8 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
   const isDirty = draft.trim() !== reference.trim();
   const isApplied = value.trim().length > 0;
   const hasError = inlineErrors.length > 0 || !!runError;
+  const placeholder = t("work_item_query.placeholder", { query: EXAMPLE_QUERY });
+  const label = t("work_item_query.help_title");
 
   const { data: fields } = useSWR(
     `WORK_ITEM_QUERY_FIELDS_${workspaceSlug}`,
@@ -175,12 +179,15 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
               <div
                 role="textbox"
                 tabIndex={0}
-                aria-label={t("work_item_query.placeholder")}
+                aria-label={label}
+                aria-placeholder={placeholder}
                 aria-readonly
                 onFocus={() => (focusOnMount.current = true)}
                 className={editorBoxClass(hasError, cn({ "text-placeholder": !draft }))}
               >
-                <span className="truncate">{draft || t("work_item_query.placeholder")}</span>
+                <span className="truncate" aria-hidden={!draft}>
+                  {draft || placeholder}
+                </span>
               </div>
             }
           >
@@ -195,8 +202,9 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
               vocabulary={vocabulary}
               validate={validate}
               onDiagnostics={onDiagnostics}
-              placeholder={t("work_item_query.placeholder")}
-              ariaLabel={t("work_item_query.placeholder")}
+              placeholder={placeholder}
+              example={EXAMPLE_QUERY}
+              ariaLabel={label}
               hasError={hasError}
               focusOnMount={focusOnMount}
             />

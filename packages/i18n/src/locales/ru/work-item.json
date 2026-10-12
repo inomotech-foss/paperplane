@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Запрос, например type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Запрос, например {query}",
     "run": "Выполнить",
     "clear": "Очистить",
     "help": "Справка по запросам",

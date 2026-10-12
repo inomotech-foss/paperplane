@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Dotaz, např. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Dotaz, např. {query}",
     "run": "Spustit",
     "clear": "Vymazat",
     "help": "Nápověda k dotazu",

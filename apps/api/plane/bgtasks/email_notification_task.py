@@ -21,7 +21,7 @@ from plane.settings.redis import redis_instance
 from plane.utils.email import generate_plain_text_from_html
 from plane.utils.email.transport import send_email
 from plane.utils.exception_logger import log_exception
-from plane.utils.host import app_base_url
+from plane.utils.host import absolute_app_url, app_base_url
 
 MAX_EMAIL_AGE = timedelta(days=1)
 
@@ -53,7 +53,9 @@ def stack_email_notification():
         processed_at=now
     )
 
-    email_notifications = EmailNotificationLog.objects.filter(processed_at__isnull=True).order_by("receiver").values()
+    email_notifications = (
+        EmailNotificationLog.objects.filter(processed_at__isnull=True).order_by("receiver", "created_at").values()
+    )
 
     # {receiver_id: {entity_id: {"name": entity_name, "ids": [...], "data": {actor_id: [data, ...]}}}}
     grouped = {}
@@ -119,7 +121,7 @@ def create_payload(notification_data):
                         else None
                     )
 
-                if not data.get("actor_id", {}).get("activity_time", False):
+                if "activity_time" not in data.setdefault(actor_id, {}):
                     data[actor_id]["activity_time"] = str(
                         datetime.fromisoformat(issue_activity.get("activity_time").rstrip("Z")).strftime(
                             "%Y-%m-%d %H:%M:%S"
@@ -172,6 +174,7 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
             actors_involved = []
             for actor_id, changes in data.items():
                 actor = User.objects.get(pk=actor_id)
+                avatar_url = absolute_app_url(actor.avatar_url)
                 total_changes = total_changes + len(changes)
                 comment = changes.pop("comment", False)
                 mention = changes.pop("mention", False)
@@ -181,7 +184,7 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
                         {
                             "actor_comments": comment,
                             "actor_detail": {
-                                "avatar_url": f"{base_api}{actor.avatar_url}",
+                                "avatar_url": avatar_url,
                                 "first_name": actor.first_name,
                                 "last_name": actor.last_name,
                             },
@@ -194,7 +197,7 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
                         {
                             "actor_comments": mention,
                             "actor_detail": {
-                                "avatar_url": f"{base_api}{actor.avatar_url}",
+                                "avatar_url": avatar_url,
                                 "first_name": actor.first_name,
                                 "last_name": actor.last_name,
                             },
@@ -208,7 +211,7 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
                     template_data.append(
                         {
                             "actor_detail": {
-                                "avatar_url": f"{base_api}{actor.avatar_url}",
+                                "avatar_url": avatar_url,
                                 "first_name": actor.first_name,
                                 "last_name": actor.last_name,
                             },

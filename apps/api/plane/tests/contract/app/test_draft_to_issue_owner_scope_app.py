@@ -40,11 +40,9 @@ def draft_to_issue_url(slug, draft_id):
 
 @pytest.fixture(autouse=True)
 def _no_activity(db):
-    """Stub the deferred activity task (broker) and base_host (needs APP_BASE_URL
-    / WEB_URL, unset in the test env) so the conversion path runs cleanly."""
+    """Stub the deferred activity task (broker) so the conversion path runs cleanly."""
     with (
         mock.patch("plane.app.views.workspace.draft.issue_activity"),
-        mock.patch("plane.app.views.workspace.draft.base_host", return_value="http://testserver"),
         # draft.delete() cascades via a Celery task (soft-delete); stub the broker.
         mock.patch("plane.db.mixins.soft_delete_related_objects"),
     ):

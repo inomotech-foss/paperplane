@@ -4,10 +4,10 @@
 import { type RefObject, useEffect, useRef, useState } from "react";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { Annotation, Compartment, EditorState } from "@codemirror/state";
-import { EditorView, placeholder as placeholderExtension } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 // plane imports
-import { pql, type PqlOptions, type Vocabulary } from "@plane/pql";
+import { pql, pqlPlaceholder, type PqlOptions, type Vocabulary } from "@plane/pql";
 // local imports
 import { editorBoxClass } from "./editor-classes";
 
@@ -15,6 +15,8 @@ type Props = PqlOptions & {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  /** Part of `placeholder` that is shown highlighted. */
+  example: string;
   ariaLabel: string;
   hasError: boolean;
   className?: string;
@@ -86,8 +88,8 @@ const theme = EditorView.theme({
 // Marks a document replacement that came from the `value` prop rather than typing.
 const fromProps = Annotation.define<boolean>();
 
-const chrome = (placeholder: string, ariaLabel: string, hasError: boolean) => [
-  placeholderExtension(placeholder),
+const chrome = (placeholder: string, example: string, ariaLabel: string, hasError: boolean) => [
+  pqlPlaceholder(placeholder, example),
   EditorView.contentAttributes.of({
     "aria-label": ariaLabel,
     "aria-invalid": String(hasError),
@@ -98,8 +100,18 @@ const chrome = (placeholder: string, ariaLabel: string, hasError: boolean) => [
 
 /** The CodeMirror view behind the query bar; loaded lazily, so it owns every CodeMirror import. */
 export default function QueryEditor(props: Props) {
-  const { value, onChange, placeholder, ariaLabel, hasError, className, vocabulary, focusOnMount, ...callbacks } =
-    props;
+  const {
+    value,
+    onChange,
+    placeholder,
+    example,
+    ariaLabel,
+    hasError,
+    className,
+    vocabulary,
+    focusOnMount,
+    ...callbacks
+  } = props;
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const configured = useRef<Vocabulary | null>(null);
@@ -130,7 +142,7 @@ export default function QueryEditor(props: Props) {
         extensions: [
           theme,
           syntaxHighlighting(highlightStyle),
-          attributes.of(chrome(placeholder, ariaLabel, hasError)),
+          attributes.of(chrome(placeholder, example, ariaLabel, hasError)),
           language.of(extensionsFor(vocabulary)),
           EditorView.updateListener.of((update) => {
             if (!update.docChanged) return;
@@ -173,8 +185,8 @@ export default function QueryEditor(props: Props) {
   }, [vocabulary]);
 
   useEffect(() => {
-    view.current?.dispatch({ effects: attributes.reconfigure(chrome(placeholder, ariaLabel, hasError)) });
-  }, [attributes, placeholder, ariaLabel, hasError]);
+    view.current?.dispatch({ effects: attributes.reconfigure(chrome(placeholder, example, ariaLabel, hasError)) });
+  }, [attributes, placeholder, example, ariaLabel, hasError]);
 
   useEffect(() => {
     const editor = view.current;

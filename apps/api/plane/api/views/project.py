@@ -298,7 +298,6 @@ class ProjectListCreateAPIEndpoint(BaseAPIView):
                             current_instance=None,
                             actor_id=request.user.id,
                             slug=slug,
-                            origin=base_host(request=request, is_app=True),
                         )
 
                     transaction.on_commit(_dispatch_model_activity, robust=True)
@@ -592,7 +591,6 @@ class ProjectDetailAPIEndpoint(BaseAPIView):
                     current_instance=current_instance,
                     actor_id=request.user.id,
                     slug=slug,
-                    origin=base_host(request=request, is_app=True),
                 )
 
                 serializer = ProjectSerializer(project)

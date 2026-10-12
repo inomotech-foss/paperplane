@@ -8,6 +8,7 @@ from django.core import mail
 from django.utils import timezone
 
 from plane.bgtasks.email_notification_task import (
+    create_payload,
     send_email_notification,
     send_page_comment_mention_email,
     stack_email_notification,
@@ -36,13 +37,13 @@ def receiver(db):
     return User.objects.create(email="receiver@plane.so", username="receiver")
 
 
-def log_data(field="priority"):
+def log_data(field="priority", activity_time="2026-10-12T10:00:00Z"):
     return {
         "issue_activity": {
             "field": field,
             "old_value": "none",
             "new_value": "high",
-            "activity_time": "2026-10-12T10:00:00Z",
+            "activity_time": activity_time,
         }
     }
 
@@ -135,3 +136,41 @@ def test_a_page_mention_links_to_the_configured_app_url(project, receiver, creat
     assert len(mail.outbox) == 1
     page_url = f"https://plane.example.com/{project.workspace.slug}/projects/{project.id}/pages/{page.id}"
     assert page_url in mail.outbox[0].alternatives[0][0]
+
+
+def test_payload_keeps_the_first_activity_time_per_actor():
+    payload = create_payload(
+        {
+            "a": [log_data("priority", "2026-10-12T10:00:00Z"), log_data("state", "2026-10-12T11:30:00Z")],
+            "b": [log_data("priority", "2026-10-12T12:00:00Z")],
+        }
+    )
+
+    assert payload["a"]["activity_time"] == "2026-10-12 10:00:00"
+    assert payload["b"]["activity_time"] == "2026-10-12 12:00:00"
+
+
+def send_for(issue, receiver, actor):
+    send_email_notification(
+        issue_id=str(issue.id),
+        notification_data={str(actor.id): [log_data()]},
+        receiver_id=str(receiver.id),
+        email_notification_ids=[],
+    )
+    return mail.outbox[-1].alternatives[0][0]
+
+
+def test_an_absolute_avatar_url_is_used_as_is(project, receiver, create_user, smtp):
+    create_user.avatar = "https://login.example.com/avatar.png"
+    create_user.save(update_fields=["avatar"])
+
+    html = send_for(make_issue(project, "Avatar"), receiver, create_user)
+
+    assert 'src="https://login.example.com/avatar.png"' in html
+
+
+def test_an_actor_without_an_avatar_gets_no_image(project, receiver, create_user, smtp):
+    html = send_for(make_issue(project, "Initials"), receiver, create_user)
+
+    assert "None" not in html
+    assert f"> {create_user.first_name[0]} <" in html

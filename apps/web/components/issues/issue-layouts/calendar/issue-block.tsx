@@ -140,9 +140,12 @@ export const CalendarIssueBlock = observer(
               <PopoverTrigger
                 openOnHover
                 delay={100}
+                nativeButton={false}
                 render={
                   <ControlLink
                     id={`issue-${issue.id}`}
+                    // keep the link role over the trigger's default button role
+                    role="link"
                     href={workItemLink}
                     onClick={() => handleIssuePeekOverview(issue)}
                     className="truncate text-13 font-medium after:absolute after:inset-0 md:text-11 md:font-regular"

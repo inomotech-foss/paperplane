@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Sorgu, örn. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Sorgu, örn. {query}",
     "run": "Çalıştır",
     "clear": "Temizle",
     "help": "Sorgu yardımı",

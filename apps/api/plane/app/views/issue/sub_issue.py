@@ -26,7 +26,6 @@ from plane.db.models import Issue, IssueLink, FileAsset, CycleIssue, IssueLabel,
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.utils.timezone_converter import user_timezone_converter
 from collections import defaultdict
-from plane.utils.host import base_host
 from plane.utils.order_queryset import order_issue_queryset
 from plane.utils.derived_properties import schedule_derived_refresh
 
@@ -255,7 +254,6 @@ class SubIssuesEndpoint(BaseAPIView):
                 current_instance=json.dumps({"parent": sub_issue_id}),
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=base_host(request=request, is_app=True),
             )
             for sub_issue_id in scoped_sub_issue_ids
         ]
