@@ -149,3 +149,28 @@ def test_payload_keeps_the_first_activity_time_per_actor():
     assert payload["a"]["activity_time"] == "2026-10-12 10:00:00"
     assert payload["b"]["activity_time"] == "2026-10-12 12:00:00"
 
+
+def send_for(issue, receiver, actor):
+    send_email_notification(
+        issue_id=str(issue.id),
+        notification_data={str(actor.id): [log_data()]},
+        receiver_id=str(receiver.id),
+        email_notification_ids=[],
+    )
+    return mail.outbox[-1].alternatives[0][0]
+
+
+def test_an_absolute_avatar_url_is_used_as_is(project, receiver, create_user, smtp):
+    create_user.avatar = "https://login.example.com/avatar.png"
+    create_user.save(update_fields=["avatar"])
+
+    html = send_for(make_issue(project, "Avatar"), receiver, create_user)
+
+    assert 'src="https://login.example.com/avatar.png"' in html
+
+
+def test_an_actor_without_an_avatar_gets_no_image(project, receiver, create_user, smtp):
+    html = send_for(make_issue(project, "Initials"), receiver, create_user)
+
+    assert "None" not in html
+    assert f"> {create_user.first_name[0]} <" in html
