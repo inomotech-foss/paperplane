@@ -72,13 +72,13 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
     issue: { getIssueById },
     subIssues: {
       filters: { getSubIssueFilters },
+      subIssueHelpersByIssueId,
+      setSubIssueHelpers,
     },
-  } = useIssueDetail();
-  const {
-    subIssues: { subIssueHelpersByIssueId, setSubIssueHelpers },
+    toggleCreateIssueModal,
+    toggleDeleteIssueModal,
   } = useIssueDetail();
   const { fetchSubIssues } = useSubIssueOperations();
-  const { toggleCreateIssueModal, toggleDeleteIssueModal } = useIssueDetail();
   const project = useProject();
   const { handleRedirection } = useIssuePeekOverviewRedirection();
   const { isMobile } = usePlatformOS();

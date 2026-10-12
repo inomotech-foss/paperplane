@@ -5,10 +5,12 @@
  */
 
 import { observer } from "mobx-react";
+import { useTranslation } from "@plane/i18n";
 import type { TQuickAddIssueForm } from "../root";
 
 export const CalendarQuickAddIssueForm = observer(function CalendarQuickAddIssueForm(props: TQuickAddIssueForm) {
   const { ref, isOpen, projectDetail, register, onSubmit, typeSelect } = props;
+  const { t } = useTranslation();
 
   return (
     <div
@@ -25,7 +27,7 @@ export const CalendarQuickAddIssueForm = observer(function CalendarQuickAddIssue
         <input
           type="text"
           autoComplete="off"
-          placeholder={"Work item Title"}
+          placeholder={t("issue.title.label")}
           {...register("name", {
             required: "Work item title is required.",
           })}
