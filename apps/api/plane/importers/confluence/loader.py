@@ -53,6 +53,14 @@ PLACEHOLDER_HTML = (
     "Rename it and move it where it belongs.</p>"
 )
 
+# A folder (or database) the backup holds becomes an empty page its pages hang
+# under, marked with an icon since Plane has no folder of its own.
+CONTAINER_HTML = "<p></p>"
+CONTAINER_LOGOS = {
+    "folder": {"in_use": "emoji", "emoji": {"value": "128193"}},  # 📁
+    "database": {"in_use": "emoji", "emoji": {"value": "128451"}},  # 🗃
+}
+
 
 @dataclass(frozen=True)
 class Change:
@@ -71,6 +79,9 @@ class ImportSummary:
     updated: int = 0
     roots: int = 0
     containers: int = 0
+    # Folders and databases the backup holds, and the placeholders they replaced.
+    folders: int = 0
+    placeholders_replaced: int = 0
     archived: int = 0
     locally_edited: int = 0
     kept: int = 0
@@ -364,6 +375,10 @@ class ConfluenceLoader:
 
     @staticmethod
     def _locally_edited(record, page):
+        if page.container and record.description_html == PLACEHOLDER_HTML:
+            # A placeholder from a run without the folder: its dates are made
+            # up from its pages, so only a rename by hand counts as an edit.
+            return record.name != page.placeholder_title
         return bool(page.updated_at and record.updated_at and record.updated_at > page.updated_at + _EDIT_SLACK)
 
     def _upsert_pages(self, project, pages, orders, users, summary):
@@ -406,7 +421,9 @@ class ConfluenceLoader:
                 )
                 created.add(page.id)
                 summary.created += 1
-                summary.changes.append(Change("create", page.title, "placeholder" if page.placeholder else ""))
+                summary.changes.append(
+                    Change("create", page.title, "placeholder" if page.placeholder else page.container or "")
+                )
             elif self._locally_edited(record, page):
                 local_updated_at = record.updated_at
                 touched.add(page.id)
@@ -423,6 +440,11 @@ class ConfluenceLoader:
                 summary.attributed += 1
             if page.placeholder:
                 summary.containers += 1
+            if page.container:
+                summary.folders += 1
+                # the folder icon, unless someone picked another one
+                if not record.logo_props:
+                    record.logo_props = CONTAINER_LOGOS.get(page.container, {})
 
             parent = records.get(page.parent_id)
             if parent is None:
@@ -583,6 +605,12 @@ class ConfluenceLoader:
 
         for page in pages:
             record = records.get(page.id)
+            if record is not None and page.container:
+                # Written when created, or over the text of the placeholder it
+                # replaces, even in a structure-only run: neither is anyone's text.
+                if page.id in created or record.description_html == PLACEHOLDER_HTML:
+                    self._write_container_body(record, page, replaced=page.id not in created, summary=summary)
+                continue
             if record is None or (only is not None and page.id not in only):
                 continue
             if page.placeholder:
@@ -634,6 +662,17 @@ class ConfluenceLoader:
 
         if uploader is not None:
             summary.unsupported_attachments |= uploader.unsupported
+
+    def _write_container_body(self, record, page, replaced, summary):
+        Page.objects.filter(pk=record.pk).update(description_html=CONTAINER_HTML, updated_at=page.updated_at)
+        if replaced:
+            summary.placeholders_replaced += 1
+            summary.changes.append(Change("replace", record.name, f"placeholder -> {page.container}"))
+            # the placeholder's version holds only the placeholder text
+            PageVersion.objects.filter(page_id=record.pk, description_html=PLACEHOLDER_HTML).update(
+                description_html=CONTAINER_HTML
+            )
+        self._seed_version(record, page, CONTAINER_HTML)
 
     def _seed_version(self, record, page, description_html):
         """Give an imported page the one version the backup can support.

@@ -8,7 +8,13 @@ from django.utils import timezone
 
 from plane.db.models import Page, PageVersion, Project, ProjectMember, User, WorkspaceMember
 from plane.importers.confluence.backup import SORT_STEP, ConfluenceBackup
-from plane.importers.confluence.loader import PLACEHOLDER_HTML, Change, ConfluenceLoader
+from plane.importers.confluence.loader import (
+    CONTAINER_HTML,
+    CONTAINER_LOGOS,
+    PLACEHOLDER_HTML,
+    Change,
+    ConfluenceLoader,
+)
 from plane.importers.users import UserRules
 
 OWNER = {"accountId": "acc-owner", "displayName": "Space Owner", "emailAddress": "owner@plane.so"}
@@ -290,3 +296,89 @@ class TestPlan:
         assert summary.changes == [Change("move", "First", "root -> Home")]
         assert summary.reordered == 1
         assert by_external_id("12").parent is None
+
+
+def folder_record(folder_id, title, parent=None, parent_type="page", position=0, kind="folder"):
+    """A folders.jsonl line: a v2 folder object, createdAt in epoch milliseconds."""
+    return {
+        "id": folder_id,
+        "type": kind,
+        "title": title,
+        "parentId": parent,
+        "parentType": parent_type if parent else None,
+        "position": position,
+        "status": "current",
+        "authorId": "acc-owner",
+        "createdAt": 1704103200000,
+        "version": {"number": 1, "createdAt": "2024-01-01T10:00:00Z"},
+    }
+
+
+# folder 99 sits in folder 98, which sits under the Home page
+FOLDERS = [
+    folder_record("98", "Operations", parent="10", position=5),
+    folder_record("99", "Onboarding", parent="98", parent_type="folder"),
+]
+
+
+def write_folders(root, folders=FOLDERS, space=SPACE):
+    (root / "confluence" / space["key"] / "folders.jsonl").write_text(
+        "\n".join(json.dumps(folder) for folder in folders) + "\n"
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+class TestFolders:
+    def test_folders_become_pages_with_their_place_in_the_tree(self, loader, tmp_path):
+        write_folders(tmp_path)
+
+        summary = loader.run()
+
+        operations, onboarding = by_external_id("folder-98"), by_external_id("folder-99")
+        assert (operations.name, operations.parent_id) == ("Operations", by_external_id("10").id)
+        assert (onboarding.name, onboarding.parent_id) == ("Onboarding", operations.id)
+        assert by_external_id("13").parent_id == onboarding.id
+        assert onboarding.description_html == CONTAINER_HTML
+        assert onboarding.logo_props == CONTAINER_LOGOS["folder"]
+        assert onboarding.created_at.year == 2024
+        assert (summary.folders, summary.containers) == (2, 0)
+
+    def test_a_structure_run_turns_an_earlier_placeholder_into_the_folder(self, loader, tmp_path):
+        loader.run()
+        placeholder = by_external_id("folder-99")
+        assert placeholder.description_html == PLACEHOLDER_HTML
+        write_folders(tmp_path)
+
+        summary = loader.run(structure_only=True)
+
+        folder = by_external_id("folder-99")
+        assert folder.pk == placeholder.pk
+        assert (folder.name, folder.parent_id) == ("Onboarding", by_external_id("folder-98").id)
+        assert folder.description_html == CONTAINER_HTML
+        assert folder.logo_props == CONTAINER_LOGOS["folder"]
+        assert not PageVersion.objects.filter(page_id=folder.pk, description_html=PLACEHOLDER_HTML).exists()
+        assert by_external_id("13").parent_id == folder.pk
+        assert summary.placeholders_replaced == 1
+
+    def test_a_placeholder_renamed_by_hand_keeps_its_name(self, loader, tmp_path):
+        loader.run()
+        Page.objects.filter(external_id="folder-99").update(name="Onboarding (renamed)", updated_at=timezone.now())
+        write_folders(tmp_path)
+
+        loader.run(structure_only=True)
+
+        folder = by_external_id("folder-99")
+        assert folder.name == "Onboarding (renamed)"
+        assert folder.parent_id == by_external_id("folder-98").id
+        assert folder.description_html == CONTAINER_HTML
+
+    def test_an_icon_picked_in_plane_is_kept(self, loader, tmp_path):
+        write_folders(tmp_path)
+        loader.run()
+        rocket = {"in_use": "emoji", "emoji": {"value": "128640"}}
+        Page.objects.filter(external_id="folder-98").update(logo_props=rocket)
+
+        loader.run(structure_only=True)
+
+        assert by_external_id("folder-98").logo_props == rocket

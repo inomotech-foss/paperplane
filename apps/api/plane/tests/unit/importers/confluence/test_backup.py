@@ -247,6 +247,61 @@ class TestContainerPlaceholders:
 
 
 @pytest.mark.unit
+class TestBackedUpFolders:
+    def _backup(self, tmp_path, pages, folders):
+        space_dir = tmp_path / "confluence" / "OPS"
+        space_dir.mkdir(parents=True)
+        (space_dir / "space.json").write_text(json.dumps({"id": "1", "key": "OPS"}))
+        (space_dir / "pages.jsonl").write_text("\n".join(json.dumps(item) for item in pages) + "\n")
+        if folders is not None:
+            (space_dir / "folders.jsonl").write_text("\n".join(json.dumps(item) for item in folders) + "\n")
+        return ConfluenceBackup(tmp_path, "OPS")
+
+    def _folder(self, folder_id, title, parent=None, parent_type=None, kind="folder"):
+        return {
+            "id": folder_id,
+            "type": kind,
+            "title": title,
+            "parentId": parent,
+            "parentType": parent_type,
+            "createdAt": 1727536222989,
+            "version": {"number": 1, "createdAt": "2024-10-01T18:23:57.755Z"},
+        }
+
+    def test_folders_hold_their_pages_and_each_other(self, tmp_path):
+        backup = self._backup(
+            tmp_path,
+            pages=[
+                {"id": "1", "title": "Home"},
+                {"id": "2", "title": "Guide", "parentId": "51", "parentType": "folder"},
+                {"id": "3", "title": "Row", "parentId": "7", "parentType": "database"},
+            ],
+            folders=[
+                self._folder("50", "Back office", parent="1", parent_type="page"),
+                self._folder("51", "Onboarding", parent="50", parent_type="folder"),
+                self._folder("7", "Customers", kind="database"),
+            ],
+        )
+
+        pages = {item.title: item for item in backup.pages()}
+
+        assert not any(item.placeholder for item in pages.values())
+        assert (pages["Back office"].id, pages["Back office"].parent_id) == ("folder-50", "1")
+        assert (pages["Onboarding"].parent_id, pages["Onboarding"].parent_type) == ("folder-50", "page")
+        assert pages["Guide"].parent_id == "folder-51"
+        assert (pages["Row"].parent_id, pages["Customers"].container) == ("database-7", "database")
+        assert pages["Onboarding"].created_at.year == 2024
+        assert pages["Onboarding"].placeholder_title == "Folder 51"
+
+    def test_a_backup_without_folders_still_gets_placeholders(self, tmp_path):
+        backup = self._backup(
+            tmp_path, pages=[{"id": "2", "title": "Guide", "parentId": "51", "parentType": "folder"}], folders=None
+        )
+
+        assert [(item.title, item.placeholder) for item in backup.pages()] == [("Guide", False), ("Folder 51", True)]
+
+
+@pytest.mark.unit
 class TestSiblingSortOrders:
     def test_siblings_follow_position(self):
         pages = [

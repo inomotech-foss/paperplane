@@ -81,6 +81,11 @@ class Command(BaseCommand):
         total = summary.created + summary.updated
         self.stdout.write(f"project     {summary.project_name} ({summary.project_id})")
         self.stdout.write(f"pages       {summary.created} created, {summary.updated} updated, {summary.roots} roots")
+        if summary.folders:
+            replaced = ""
+            if summary.placeholders_replaced:
+                replaced = f", {summary.placeholders_replaced} replacing placeholders"
+            self.stdout.write(f"folders     {summary.folders} folders and databases{replaced}")
         if summary.containers:
             self.stdout.write(f"folders     {summary.containers} placeholder pages for folders and databases")
         if summary.archived:

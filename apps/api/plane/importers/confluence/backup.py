@@ -9,7 +9,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Content types a page can hang off that the backup tool never fetched.
+# Content types a page can hang off besides a page. Backups from before
+# folders.jsonl hold none of them, so those are stood in for by placeholders.
 CONTAINER_TYPES = ("folder", "database")
 
 SORT_STEP = 10000
@@ -38,6 +39,11 @@ class ConfluencePage:
     archived: bool = False
     # Stands in for a container the backup does not hold.
     placeholder: bool = False
+    # "folder" or "database" for a container the backup does hold (folders.jsonl).
+    container: str = None
+    # The title a placeholder for this container got, so a run can tell an
+    # untouched placeholder from one a person renamed.
+    placeholder_title: str = None
     author_id: str = None
     created_at: datetime = None
     updated_at: datetime = None
@@ -48,6 +54,9 @@ class ConfluencePage:
 def parse_timestamp(value):
     if not value:
         return None
+    # Folders carry createdAt as epoch milliseconds, pages as ISO 8601.
+    if isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value / 1000, tz=timezone.utc)
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
@@ -86,6 +95,37 @@ def _page_from_record(record):
         version=int(version.get("number") or 1),
         labels=[name for name in map(_label_name, record.get("labels") or []) if name],
     )
+
+
+def _container_id(kind, raw_id):
+    # The id a container's page row is stored under, shared with its placeholder.
+    return f"{kind}-{raw_id}"
+
+
+def _container_from_record(record):
+    """A folder (or database) from folders.jsonl, as an empty page."""
+    kind = record.get("type") or "folder"
+    page = _page_from_record({**record, "body": None, "labels": None})
+    page.id = _container_id(kind, record["id"])
+    page.container = kind
+    return page
+
+
+def attach_containers(pages, containers):
+    """Hang pages and containers off the containers the backup holds.
+
+    A page in a folder records the folder's own id and type as its parent;
+    the folder's page row is stored under the placeholder id instead, so the
+    parent reference is rewritten to it.
+    """
+    known = {page.id for page in containers}
+    for page in pages + containers:
+        if page.parent_type in CONTAINER_TYPES and page.parent_id:
+            container_id = _container_id(page.parent_type, page.parent_id)
+            if container_id in known:
+                page.parent_id = container_id
+                page.parent_type = "page"
+    return pages + containers
 
 
 _TEMPLATE_CONTAINER = "_root"
@@ -242,11 +282,28 @@ class ConfluenceBackup:
         except (OSError, ValueError):
             return ""
 
+    def containers(self):
+        """The folders and databases of the space (folders.jsonl); empty for
+        a backup taken before the backup tool fetched them."""
+        path = self.space_dir / "folders.jsonl"
+        if not path.exists():
+            return []
+        with path.open() as handle:
+            return [_container_from_record(json.loads(line)) for line in handle if line.strip()]
+
     def pages(self):
         path = self.space_dir / "pages.jsonl"
         with path.open() as handle:
             pages = [_page_from_record(json.loads(line)) for line in handle if line.strip()]
-        return add_container_placeholders(drop_template_scaffolding(pages))
+        containers = self.containers()
+        if containers:
+            # What a placeholder for each would have been called: a run on an
+            # earlier import replaces only placeholders nobody renamed.
+            names = _container_names(pages)
+            for container in containers:
+                kind, raw_id = container.container, container.id.split("-", 1)[1]
+                container.placeholder_title = names.get((kind, raw_id)) or f"{kind.capitalize()} {raw_id}"
+        return add_container_placeholders(drop_template_scaffolding(attach_containers(pages, containers)))
 
     def users(self):
         """accountId -> ConfluenceUser, shared across spaces."""
