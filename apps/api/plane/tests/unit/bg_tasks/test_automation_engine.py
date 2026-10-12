@@ -48,6 +48,7 @@ def no_celery(mocker):
     """
     mocker.patch("plane.bgtasks.issue_activities_task.issue_activity.delay")
     mocker.patch("plane.bgtasks.deletion_task.soft_delete_related_objects.delay")
+    mocker.patch("plane.bgtasks.webhook_task.model_activity.delay")
 
 
 @pytest.fixture
@@ -377,6 +378,7 @@ class TestChangeProperty:
         work_item.save(update_fields=["estimate_point"])
 
         spy = mocker.patch("plane.bgtasks.issue_activities_task.issue_activity.delay")
+        webhook = mocker.patch("plane.bgtasks.webhook_task.model_activity.delay")
         automation = make_automation(project, create_user)
         add_action(automation, ActionType.CHANGE_PROPERTY, {"property": "estimate_point_id", "change_type": "clear"})
 
@@ -387,6 +389,8 @@ class TestChangeProperty:
         assert run.status == AutomationRunStatus.SUCCESS
         # The upstream tracker would raise on a cleared estimate, so nothing is queued.
         spy.assert_not_called()
+        assert webhook.call_args.kwargs["requested_data"] == {"estimate_point": None}
+        assert json.loads(webhook.call_args.kwargs["current_instance"]) == {"estimate_point": str(point.id)}
 
 
 class TestAddComment:
@@ -622,6 +626,104 @@ class TestArchiveWorkItem:
         run = engine.execute(automation, context_for(work_item, project, automation))
 
         assert run.steps[0]["status"] == "skipped"
+
+
+class TestWebhooks:
+    @pytest.fixture
+    def webhook(self, mocker):
+        return mocker.patch("plane.bgtasks.webhook_task.model_activity.delay")
+
+    def test_a_property_change_fires_the_issue_webhook(self, project, create_user, work_item, states, webhook):
+        automation = make_automation(project, create_user)
+        add_action(
+            automation,
+            ActionType.CHANGE_PROPERTY,
+            {"property": "state_id", "change_type": "set", "value": str(states["doing"].id)},
+        )
+
+        engine.execute(automation, context_for(work_item, project, automation))
+
+        webhook.assert_called_once()
+        kwargs = webhook.call_args.kwargs
+        assert (kwargs["model_name"], kwargs["model_id"], kwargs["slug"]) == (
+            "issue",
+            str(work_item.id),
+            project.workspace.slug,
+        )
+        assert kwargs["requested_data"] == {"state_id": str(states["doing"].id)}
+        assert json.loads(kwargs["current_instance"]) == {"state_id": str(states["todo"].id)}
+        assert kwargs["actor_id"] == str(create_user.id)
+        assert kwargs["source"] == "automation"
+
+    def test_a_missing_app_url_does_not_fail_the_change(
+        self, project, create_user, work_item, states, webhook, settings
+    ):
+        settings.APP_BASE_URL = None
+        settings.WEB_URL = None
+        automation = make_automation(project, create_user)
+        add_action(
+            automation,
+            ActionType.CHANGE_PROPERTY,
+            {"property": "state_id", "change_type": "set", "value": str(states["doing"].id)},
+        )
+
+        run = engine.execute(automation, context_for(work_item, project, automation))
+
+        assert run.status == AutomationRunStatus.SUCCESS
+        webhook.assert_called_once()
+
+    def test_a_comment_fires_the_comment_webhook(self, project, create_user, work_item, webhook):
+        automation = make_automation(project, create_user)
+        add_action(automation, ActionType.ADD_COMMENT, {"comment_html": "<p>Done</p>"})
+
+        engine.execute(automation, context_for(work_item, project, automation))
+
+        comment = IssueComment.objects.get(issue=work_item)
+        webhook.assert_called_once()
+        assert webhook.call_args.kwargs["model_name"] == "issue_comment"
+        assert webhook.call_args.kwargs["model_id"] == str(comment.id)
+        assert webhook.call_args.kwargs["current_instance"] is None
+
+    def test_a_created_work_item_fires_the_issue_webhook(self, project, create_user, work_item, webhook):
+        automation = make_automation(project, create_user)
+        add_action(automation, ActionType.CREATE_WORK_ITEM, {"name": "Follow up", "type_id": str(work_item.type_id)})
+
+        engine.execute(automation, context_for(work_item, project, automation))
+
+        created = Issue.objects.get(name="Follow up")
+        webhook.assert_called_once()
+        assert webhook.call_args.kwargs["model_name"] == "issue"
+        assert webhook.call_args.kwargs["model_id"] == str(created.id)
+        assert webhook.call_args.kwargs["current_instance"] is None
+
+    def test_archiving_fires_no_webhook_like_the_archive_endpoint(self, project, create_user, work_item, webhook):
+        automation = make_automation(project, create_user)
+        add_action(automation, ActionType.ARCHIVE_WORK_ITEM, {})
+
+        engine.execute(automation, context_for(work_item, project, automation))
+
+        webhook.assert_not_called()
+
+
+class TestCreatedWorkItemAssignees:
+    def test_assignees_reach_the_activity_log(self, project, create_user, work_item, second_member, mocker):
+        activity = mocker.patch("plane.bgtasks.issue_activities_task.issue_activity.delay")
+        outsider = User.objects.create(email="outsider@plane.so", username="outsider")
+        automation = make_automation(project, create_user)
+        add_action(
+            automation,
+            ActionType.CREATE_WORK_ITEM,
+            {
+                "name": "Follow up",
+                "type_id": str(work_item.type_id),
+                "assignee_ids": [str(second_member.id), str(outsider.id)],
+            },
+        )
+
+        engine.execute(automation, context_for(work_item, project, automation))
+
+        requested = json.loads(activity.call_args.kwargs["requested_data"])
+        assert requested["assignee_ids"] == [str(second_member.id)]
 
 
 class TestConditions:

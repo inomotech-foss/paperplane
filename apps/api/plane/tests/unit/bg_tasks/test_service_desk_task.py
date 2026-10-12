@@ -69,6 +69,12 @@ def service_desk_config(db):
     )
 
 
+@pytest.fixture(autouse=True)
+def mock_webhook():
+    with patch("plane.bgtasks.service_desk_task.model_activity") as mock:
+        yield mock
+
+
 def _run_poll(messages):
     """Run service_desk_poll with a mocked Graph client returning the given messages."""
     fake_client = MagicMock()
@@ -183,6 +189,21 @@ class TestServiceDeskPoll:
         activity_kwargs = mock_activity.delay.call_args.kwargs
         assert activity_kwargs["type"] == "comment.activity.created"
         assert activity_kwargs["notification"] is True
+
+    @pytest.mark.django_db
+    def test_a_reply_fires_the_comment_webhook(self, service_desk_config, mock_webhook):
+        _run_poll([_graph_message()])
+        mock_webhook.delay.assert_not_called()
+
+        _run_poll([_graph_message(msg_id="msg-2", subject="RE: Printer is broken", body="Any news?")])
+
+        comment = IssueComment.objects.get(issue__project=service_desk_config.project)
+        webhook_kwargs = mock_webhook.delay.call_args.kwargs
+        assert webhook_kwargs["model_name"] == "issue_comment"
+        assert webhook_kwargs["model_id"] == str(comment.id)
+        assert webhook_kwargs["current_instance"] is None
+        assert webhook_kwargs["slug"] == service_desk_config.project.workspace.slug
+        assert webhook_kwargs["source"] == "service_desk"
 
     @pytest.mark.django_db
     def test_skips_duplicates_and_own_messages(self, service_desk_config):

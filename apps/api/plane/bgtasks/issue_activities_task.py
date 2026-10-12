@@ -35,7 +35,6 @@ from plane.db.models import (
     User,
     EstimatePoint,
 )
-from plane.settings.redis import redis_instance
 from plane.utils.exception_logger import log_exception
 from plane.utils.issue_relation_mapper import get_inverse_relation
 from plane.utils.uuid import is_valid_uuid
@@ -1534,7 +1533,7 @@ def issue_activity(
     epoch,
     subscriber=True,
     notification=False,
-    origin=None,
+    origin=None,  # unused, emails use the configured app URL
     intake=None,
     automation_context=None,
 ):
@@ -1549,10 +1548,6 @@ def issue_activity(
         workspace_id = project.workspace_id
 
         if issue_id is not None:
-            if origin:
-                ri = redis_instance()
-                # set the request origin in redis
-                ri.set(str(issue_id), origin, ex=600)
             issue = Issue.objects.filter(pk=issue_id).first()
             if issue:
                 try:

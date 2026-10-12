@@ -24,6 +24,7 @@ from django.utils.html import strip_tags
 
 # Module imports
 from plane.bgtasks.issue_activities_task import issue_activity
+from plane.bgtasks.webhook_task import model_activity
 from plane.db.models import (
     FileAsset,
     Intake,
@@ -280,6 +281,15 @@ def _append_customer_reply(thread, bot, message, sender, sender_name, to_emails,
         epoch=int(timezone.now().timestamp()),
         subscriber=False,  # don't subscribe the bot actor
         notification=True,
+    )
+    model_activity.delay(
+        model_name="issue_comment",
+        model_id=str(comment.id),
+        requested_data={"comment_html": comment.comment_html},
+        current_instance=None,
+        actor_id=str(bot.id),
+        slug=comment.workspace.slug,
+        source="service_desk",
     )
     return thread.issue, comment_message
 

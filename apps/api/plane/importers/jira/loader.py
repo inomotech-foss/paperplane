@@ -463,6 +463,14 @@ class JiraLoader:
         IssueAssignee.objects.get_or_create(
             issue=record, assignee=assignee, defaults={"project": record.project, "workspace": self.workspace}
         )
+        summary.subscribers += self._subscribe(record, assignee)
+
+    def _subscribe(self, record, user):
+        """Subscribe unless a row exists, including a soft-deleted one left by an unsubscribe."""
+        if IssueSubscriber.all_objects.filter(issue=record, subscriber=user).exists():
+            return 0
+        IssueSubscriber.objects.create(issue=record, subscriber=user, project=record.project, workspace=self.workspace)
+        return 1
 
     def _resolvers(self, users, attachments):
         return Resolvers(
@@ -607,10 +615,7 @@ class JiraLoader:
             if user is None:
                 summary.unmapped_accounts.add(account_id)
                 continue
-            _, created = IssueSubscriber.objects.get_or_create(
-                issue=record, subscriber=user, defaults={"project": record.project, "workspace": self.workspace}
-            )
-            summary.subscribers += int(created)
+            summary.subscribers += self._subscribe(record, user)
 
         for account_id in jira_issue.voter_ids:
             user = users.get(account_id)

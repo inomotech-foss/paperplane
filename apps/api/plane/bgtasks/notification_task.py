@@ -20,11 +20,12 @@ from plane.db.models import (
     Notification,
     IssueComment,
     IssueActivity,
-    UserNotificationPreference,
     ProjectMember,
 )
+from plane.utils.exception_logger import log_exception
 from plane.utils.mentions import mentionable_user_ids
-from django.db.models import Subquery
+from plane.utils.notification_preference import notification_preference
+from django.db.models import Q, Subquery
 
 # Third Party imports
 from celery import shared_task
@@ -187,6 +188,20 @@ def create_mention_notification(project, notification_comment, issue, actor_id, 
     )
 
 
+def wants_email(preference, activity, project_id):
+    field = activity.get("field")
+    if field == "state":
+        return preference.state_change or (
+            preference.issue_completed
+            and State.objects.filter(
+                project_id=project_id, pk=activity.get("new_identifier"), group="completed"
+            ).exists()
+        )
+    if field == "comment":
+        return preference.comment
+    return preference.property_change
+
+
 @shared_task
 def notifications(
     type,
@@ -278,12 +293,17 @@ def notifications(
             """
 
             # ---------------------------------------------------------------------------------------------------------
+            # Assignees keep hearing about their own items after leaving the project.
+            eligible_assignees = IssueAssignee.objects.filter(
+                issue_id=issue_id,
+                assignee__is_active=True,
+                assignee__member_workspace__workspace_id=project.workspace_id,
+                assignee__member_workspace__is_active=True,
+                assignee__member_workspace__deleted_at__isnull=True,
+            ).values("assignee_id")
             issue_subscribers = list(
-                IssueSubscriber.objects.filter(
-                    project_id=project_id,
-                    issue_id=issue_id,
-                    subscriber__in=Subquery(project_members),
-                )
+                IssueSubscriber.objects.filter(project_id=project_id, issue_id=issue_id)
+                .filter(Q(subscriber__in=Subquery(project_members)) | Q(subscriber__in=Subquery(eligible_assignees)))
                 .exclude(subscriber_id__in=list(new_mentions + comment_mentions + [actor_id]))
                 .values_list("subscriber", flat=True)
             )
@@ -299,11 +319,9 @@ def notifications(
                 except Exception:
                     pass
 
-            issue_assignees = IssueAssignee.objects.filter(
-                issue_id=issue_id,
-                project_id=project_id,
-                assignee__in=Subquery(project_members),
-            ).values_list("assignee", flat=True)
+            issue_assignees = IssueAssignee.objects.filter(issue_id=issue_id, project_id=project_id).values_list(
+                "assignee", flat=True
+            )
 
             issue_subscribers = list(set(issue_subscribers) - {uuid.UUID(actor_id)})
 
@@ -315,7 +333,7 @@ def notifications(
                 else:
                     sender = "in_app:issue_activities:subscribed"
 
-                preference = UserNotificationPreference.objects.get(user_id=subscriber)
+                preference = notification_preference(subscriber)
 
                 for issue_activity in issue_activities_created:
                     # If activity done in blocking then blocked by email should not go
@@ -326,26 +344,7 @@ def notifications(
                     if issue_activity.get("field") == "description":
                         continue
 
-                    # Check if the value should be sent or not
-                    send_email = False
-                    if issue_activity.get("field") == "state" and preference.state_change:
-                        send_email = True
-                    elif (
-                        issue_activity.get("field") == "state"
-                        and preference.issue_completed
-                        and State.objects.filter(
-                            project_id=project_id,
-                            pk=issue_activity.get("new_identifier"),
-                            group="completed",
-                        ).exists()
-                    ):
-                        send_email = True
-                    elif issue_activity.get("field") == "comment" and preference.comment:
-                        send_email = True
-                    elif preference.property_change:
-                        send_email = True
-                    else:
-                        send_email = False
+                    send_email = wants_email(preference, issue_activity, project_id)
 
                     # If activity is of issue comment fetch the comment
                     issue_comment = (
@@ -463,7 +462,7 @@ def notifications(
 
             for mention_id in comment_mentions:
                 if mention_id != actor_id:
-                    preference = UserNotificationPreference.objects.get(user_id=mention_id)
+                    preference = notification_preference(mention_id)
                     for issue_activity in issue_activities_created:
                         notification = create_mention_notification(
                             project=project,
@@ -520,7 +519,7 @@ def notifications(
 
             for mention_id in new_mentions:
                 if mention_id != actor_id:
-                    preference = UserNotificationPreference.objects.get(user_id=mention_id)
+                    preference = notification_preference(mention_id)
                     if (
                         last_activity is not None
                         and last_activity.field == "description"
@@ -665,5 +664,5 @@ def notifications(
             EmailNotificationLog.objects.bulk_create(bulk_email_logs, batch_size=100, ignore_conflicts=True)
         return
     except Exception as e:
-        print(e)
+        log_exception(e)
         return
