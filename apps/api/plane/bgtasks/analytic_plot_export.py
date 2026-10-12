@@ -11,7 +11,6 @@ import logging
 from celery import shared_task
 
 # Django imports
-from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 from django.db.models import Q, Case, Value, When
 from django.db import models
@@ -19,9 +18,9 @@ from django.db.models.functions import Cast, Concat
 
 # Module imports
 from plane.db.models import Issue
-from plane.license.utils.instance_value import get_email_configuration
 from plane.utils.analytics_plot import build_graph_plot
 from plane.utils.email import generate_plain_text_from_html
+from plane.utils.email.transport import send_email
 from plane.utils.exception_logger import log_exception
 from plane.utils.issue_filters import issue_filters
 from plane.utils.csv_utils import sanitize_csv_row
@@ -57,35 +56,12 @@ def send_export_email(email, slug, csv_buffer, rows):
 
     csv_buffer.seek(0)
 
-    (
-        EMAIL_HOST,
-        EMAIL_HOST_USER,
-        EMAIL_HOST_PASSWORD,
-        EMAIL_PORT,
-        EMAIL_USE_TLS,
-        EMAIL_USE_SSL,
-        EMAIL_FROM,
-    ) = get_email_configuration()
-
-    connection = get_connection(
-        host=EMAIL_HOST,
-        port=int(EMAIL_PORT),
-        username=EMAIL_HOST_USER,
-        password=EMAIL_HOST_PASSWORD,
-        use_tls=EMAIL_USE_TLS == "1",
-        use_ssl=EMAIL_USE_SSL == "1",
-    )
-
-    msg = EmailMultiAlternatives(
+    return send_email(
         subject=subject,
-        body=text_content,
-        from_email=EMAIL_FROM,
         to=[email],
-        connection=connection,
+        text_content=text_content,
+        attachments=[(f"{slug}-analytics.csv", csv_buffer.getvalue())],
     )
-    msg.attach(f"{slug}-analytics.csv", csv_buffer.getvalue())
-    msg.send(fail_silently=False)
-    return
 
 
 def get_assignee_details(slug, filters):
@@ -398,8 +374,8 @@ def analytic_export_task(email, data, slug):
             )
 
         csv_buffer = generate_csv_from_rows(rows)
-        send_export_email(email, slug, csv_buffer, rows)
-        logging.getLogger("plane.worker").info("Email sent successfully.")
+        if send_export_email(email, slug, csv_buffer, rows):
+            logging.getLogger("plane.worker").info("Email sent successfully.")
         return
     except Exception as e:
         log_exception(e)

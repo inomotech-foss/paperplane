@@ -9,6 +9,7 @@ import type {
   TInstanceAIConfigurationKeys,
   TInstanceEmailConfigurationKeys,
   TInstanceImageConfigurationKeys,
+  TInstanceMs365ConfigurationKeys,
   TInstanceAuthenticationKeys,
   TInstanceRateLimitConfigurationKeys,
   TInstanceServiceDeskConfigurationKeys,
@@ -90,6 +91,7 @@ export type TInstanceConfigurationKeys =
   | TInstanceAIConfigurationKeys
   | TInstanceEmailConfigurationKeys
   | TInstanceImageConfigurationKeys
+  | TInstanceMs365ConfigurationKeys
   | TInstanceAuthenticationKeys
   | TInstanceRateLimitConfigurationKeys
   | TInstanceServiceDeskConfigurationKeys

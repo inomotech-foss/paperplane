@@ -12,4 +12,6 @@ export type TInstanceEmailConfigurationKeys =
   | "EMAIL_USE_TLS"
   | "EMAIL_USE_SSL"
   | "EMAIL_FROM"
-  | "ENABLE_SMTP";
+  | "EMAIL_TRANSPORT";
+
+export type TInstanceEmailTransport = "smtp" | "ms365";

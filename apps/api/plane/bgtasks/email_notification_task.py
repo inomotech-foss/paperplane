@@ -11,7 +11,6 @@ from bs4 import BeautifulSoup
 # Third party imports
 from celery import shared_task
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 
 # Django imports
@@ -19,9 +18,9 @@ from django.utils import timezone
 
 # Module imports
 from plane.db.models import EmailNotificationLog, Issue, Page, User
-from plane.license.utils.instance_value import get_email_configuration
 from plane.settings.redis import redis_instance
 from plane.utils.email import generate_plain_text_from_html
+from plane.utils.email.transport import send_email
 from plane.utils.exception_logger import log_exception
 
 
@@ -181,17 +180,6 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
 
             data = create_payload(notification_data=notification_data)
 
-            # Get email configurations
-            (
-                EMAIL_HOST,
-                EMAIL_HOST_USER,
-                EMAIL_HOST_PASSWORD,
-                EMAIL_PORT,
-                EMAIL_USE_TLS,
-                EMAIL_USE_SSL,
-                EMAIL_FROM,
-            ) = get_email_configuration()
-
             receiver = User.objects.get(pk=receiver_id)
             issue = Issue.objects.get(pk=issue_id)
             template_data = []
@@ -275,28 +263,14 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
             text_content = generate_plain_text_from_html(html_content)
 
             try:
-                connection = get_connection(
-                    host=EMAIL_HOST,
-                    port=int(EMAIL_PORT),
-                    username=EMAIL_HOST_USER,
-                    password=EMAIL_HOST_PASSWORD,
-                    use_tls=EMAIL_USE_TLS == "1",
-                    use_ssl=EMAIL_USE_SSL == "1",
-                )
-
-                msg = EmailMultiAlternatives(
+                if send_email(
                     subject=subject,
-                    body=text_content,
-                    from_email=EMAIL_FROM,
                     to=[receiver.email],
-                    connection=connection,
-                )
-                msg.attach_alternative(html_content, "text/html")
-                msg.send()
-                logging.getLogger("plane.worker").info("Email Sent Successfully")
-
-                # Update the logs
-                EmailNotificationLog.objects.filter(pk__in=email_notification_ids).update(sent_at=timezone.now())
+                    text_content=text_content,
+                    html_content=html_content,
+                ):
+                    logging.getLogger("plane.worker").info("Email Sent Successfully")
+                    EmailNotificationLog.objects.filter(pk__in=email_notification_ids).update(sent_at=timezone.now())
 
                 # release the lock
                 release_lock(lock_id=lock_id)
@@ -335,16 +309,6 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
             logging.getLogger("plane.worker").info("Duplicate email received skipping")
             return
 
-        (
-            EMAIL_HOST,
-            EMAIL_HOST_USER,
-            EMAIL_HOST_PASSWORD,
-            EMAIL_PORT,
-            EMAIL_USE_TLS,
-            EMAIL_USE_SSL,
-            EMAIL_FROM,
-        ) = get_email_configuration()
-
         receiver = User.objects.get(pk=receiver_id)
         page = Page.objects.get(pk=page_id)
 
@@ -380,25 +344,14 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
         text_content = generate_plain_text_from_html(html_content)
 
         try:
-            connection = get_connection(
-                host=EMAIL_HOST,
-                port=int(EMAIL_PORT),
-                username=EMAIL_HOST_USER,
-                password=EMAIL_HOST_PASSWORD,
-                use_tls=EMAIL_USE_TLS == "1",
-                use_ssl=EMAIL_USE_SSL == "1",
-            )
-            msg = EmailMultiAlternatives(
+            if send_email(
                 subject=f"You were mentioned in a comment on {remove_unwanted_characters(page_name)}",
-                body=text_content,
-                from_email=EMAIL_FROM,
                 to=[receiver.email],
-                connection=connection,
-            )
-            msg.attach_alternative(html_content, "text/html")
-            msg.send()
-            logging.getLogger("plane.worker").info("Email Sent Successfully")
-            EmailNotificationLog.objects.filter(pk__in=email_notification_ids).update(sent_at=timezone.now())
+                text_content=text_content,
+                html_content=html_content,
+            ):
+                logging.getLogger("plane.worker").info("Email Sent Successfully")
+                EmailNotificationLog.objects.filter(pk__in=email_notification_ids).update(sent_at=timezone.now())
             release_lock(lock_id=lock_id)
             return
         except Exception as e:

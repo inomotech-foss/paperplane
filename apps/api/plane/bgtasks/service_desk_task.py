@@ -41,7 +41,7 @@ from plane.db.models import (
 )
 from plane.db.models.intake import SourceType
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection, ServiceDeskNotifyMode
-from plane.license.utils.instance_value import get_configuration_value
+from plane.license.utils.instance_value import get_configuration_value, get_ms365_configuration
 from plane.settings.redis import redis_instance
 from plane.settings.storage import S3Storage
 from plane.utils.exception_logger import log_exception
@@ -56,16 +56,7 @@ SUBSCRIPTION_RENEW_THRESHOLD_MINUTES = 720
 
 
 def get_service_desk_configuration():
-    return get_configuration_value(
-        [
-            {"key": "SERVICE_DESK_MS365_TENANT_ID", "default": os.environ.get("SERVICE_DESK_MS365_TENANT_ID")},
-            {"key": "SERVICE_DESK_MS365_CLIENT_ID", "default": os.environ.get("SERVICE_DESK_MS365_CLIENT_ID")},
-            {
-                "key": "SERVICE_DESK_MS365_CLIENT_SECRET",
-                "default": os.environ.get("SERVICE_DESK_MS365_CLIENT_SECRET"),
-            },
-        ]
-    )
+    return get_ms365_configuration()
 
 
 def get_service_desk_notification_url():
@@ -622,7 +613,7 @@ def service_desk_send_reply(email_message_id):
     try:
         tenant_id, client_id, client_secret = get_service_desk_configuration()
         if not (tenant_id and client_id and client_secret):
-            raise MSGraphError("Service desk MS365 credentials are not configured")
+            raise MSGraphError("MS365 credentials are not configured")
         if not thread.last_inbound_graph_message_id:
             raise MSGraphError("Email thread has no inbound message to reply to")
 

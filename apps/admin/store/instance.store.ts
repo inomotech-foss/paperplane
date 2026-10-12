@@ -215,16 +215,8 @@ export class InstanceStore implements IInstanceStore {
     try {
       runInAction(() => {
         this.instanceConfigurations = this.instanceConfigurations?.map((config) => {
-          if (
-            [
-              "EMAIL_HOST",
-              "EMAIL_PORT",
-              "EMAIL_HOST_USER",
-              "EMAIL_HOST_PASSWORD",
-              "EMAIL_FROM",
-              "ENABLE_SMTP",
-            ].includes(config.key)
-          )
+          if (config.key === "EMAIL_TRANSPORT") return { ...config, value: "smtp" };
+          if (["EMAIL_HOST", "EMAIL_PORT", "EMAIL_HOST_USER", "EMAIL_HOST_PASSWORD", "EMAIL_FROM"].includes(config.key))
             return { ...config, value: "" };
           return config;
         });

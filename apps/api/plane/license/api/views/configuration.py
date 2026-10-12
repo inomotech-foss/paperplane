@@ -12,10 +12,11 @@ from smtplib import (
 )
 
 # Django imports
-from django.core.mail import BadHeaderError, EmailMultiAlternatives, get_connection
+from django.core.mail import BadHeaderError
 from django.db.models import Q, Case, When, Value
 
 # Third party imports
+import requests
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -27,7 +28,9 @@ from plane.license.api.serializers import InstanceConfigurationSerializer
 from plane.license.utils.encryption import encrypt_data
 from plane.utils.cache import cache_response, invalidate_cache
 from plane.utils.rate_limit import invalidate_throttle_rates
-from plane.license.utils.instance_value import get_email_configuration, get_managed_configuration_keys
+from plane.license.utils.instance_value import get_managed_configuration_keys
+from plane.utils.email.transport import SMTP, send_email
+from plane.utils.ms365_graph import MSGraphError
 
 
 class InstanceConfigurationEndpoint(BaseAPIView):
@@ -72,18 +75,19 @@ class DisableEmailFeatureEndpoint(BaseAPIView):
     @invalidate_cache(path="/api/instances/", user=False)
     def delete(self, request):
         try:
+            # The MS365 credentials stay because the service desk shares them.
             InstanceConfiguration.objects.filter(
                 Q(
                     key__in=[
+                        "EMAIL_TRANSPORT",
                         "EMAIL_HOST",
                         "EMAIL_HOST_USER",
                         "EMAIL_HOST_PASSWORD",
-                        "ENABLE_SMTP",
                         "EMAIL_PORT",
                         "EMAIL_FROM",
                     ]
                 )
-            ).update(value=Case(When(key="ENABLE_SMTP", then=Value("0")), default=Value("")))
+            ).update(value=Case(When(key="EMAIL_TRANSPORT", then=Value(SMTP)), default=Value("")))
             return Response(status=status.HTTP_200_OK)
         except Exception:
             return Response(
@@ -101,39 +105,20 @@ class EmailCredentialCheckEndpoint(BaseAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        (
-            EMAIL_HOST,
-            EMAIL_HOST_USER,
-            EMAIL_HOST_PASSWORD,
-            EMAIL_PORT,
-            EMAIL_USE_TLS,
-            EMAIL_USE_SSL,
-            EMAIL_FROM,
-        ) = get_email_configuration()
-
-        # Configure all the connections
-        connection = get_connection(
-            host=EMAIL_HOST,
-            port=int(EMAIL_PORT),
-            username=EMAIL_HOST_USER,
-            password=EMAIL_HOST_PASSWORD,
-            use_tls=EMAIL_USE_TLS == "1",
-            use_ssl=EMAIL_USE_SSL == "1",
-        )
-        # Prepare email details
         subject = "Email Notification from Plane"
         message = "This is a sample email notification sent from Plane application."
-        # Send the email
         try:
-            msg = EmailMultiAlternatives(
-                subject=subject,
-                body=message,
-                from_email=EMAIL_FROM,
-                to=[receiver_email],
-                connection=connection,
+            sent = send_email(subject=subject, to=[receiver_email], text_content=message)
+        except MSGraphError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-            msg.send(fail_silently=False)
-            return Response({"message": "Email successfully sent."}, status=status.HTTP_200_OK)
+        except requests.RequestException:
+            return Response(
+                {"error": "Could not reach Microsoft Graph."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except BadHeaderError:
             return Response({"error": "Invalid email header."}, status=status.HTTP_400_BAD_REQUEST)
         except SMTPAuthenticationError:
@@ -176,3 +161,9 @@ class EmailCredentialCheckEndpoint(BaseAPIView):
                 {"error": "Could not send email. Please check your configuration"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        if not sent:
+            return Response(
+                {"error": "Email is not configured."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response({"message": "Email successfully sent."}, status=status.HTTP_200_OK)

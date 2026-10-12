@@ -291,7 +291,7 @@ function ServiceDeskSettingsPage({ params }: Route.ComponentProps) {
       <section className="w-full">
         <SettingsHeading
           title="Service Desk — Create tickets from a Microsoft 365 mailbox"
-          description="Unread emails in this mailbox create work items in the project's Intake. The Microsoft 365 app credentials are configured at the instance level (SERVICE_DESK_MS365_TENANT_ID / _CLIENT_ID / _CLIENT_SECRET)."
+          description="Unread emails in this mailbox create work items in the project's Intake. The Microsoft 365 app credentials are configured at the instance level (MS365_TENANT_ID / _CLIENT_ID / _CLIENT_SECRET)."
         />
         {showLoader ? (
           <Loader className="mt-6 space-y-4">

@@ -20,6 +20,7 @@ from plane.license.api.permissions import InstanceAdminPermission
 from plane.license.api.serializers import InstanceSerializer
 from plane.license.models import Instance
 from plane.license.utils.instance_value import get_configuration_value
+from plane.utils.email.transport import is_email_configured
 from plane.utils.cache import cache_response, invalidate_cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control
@@ -57,7 +58,6 @@ class InstanceEndpoint(BaseAPIView):
             IS_GITEA_ENABLED,
             IS_OIDC_ENABLED,
             OIDC_PROVIDER_NAME,
-            EMAIL_HOST,
             ENABLE_MAGIC_LINK_LOGIN,
             ENABLE_EMAIL_PASSWORD,
             SLACK_CLIENT_ID,
@@ -101,7 +101,6 @@ class InstanceEndpoint(BaseAPIView):
                     "key": "OIDC_PROVIDER_NAME",
                     "default": os.environ.get("OIDC_PROVIDER_NAME", "SSO"),
                 },
-                {"key": "EMAIL_HOST", "default": os.environ.get("EMAIL_HOST", "")},
                 {
                     "key": "ENABLE_MAGIC_LINK_LOGIN",
                     "default": os.environ.get("ENABLE_MAGIC_LINK_LOGIN", "1"),
@@ -154,7 +153,7 @@ class InstanceEndpoint(BaseAPIView):
         data["file_size_limit"] = float(os.environ.get("FILE_SIZE_LIMIT", 5242880))
 
         # is smtp configured
-        data["is_smtp_configured"] = bool(EMAIL_HOST)
+        data["is_smtp_configured"] = is_email_configured()
 
         # Base URL
         data["admin_base_url"] = settings.ADMIN_BASE_URL

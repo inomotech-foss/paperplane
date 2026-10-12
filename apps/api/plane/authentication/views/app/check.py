@@ -24,6 +24,7 @@ from plane.authentication.adapter.error import (
 )
 from plane.authentication.rate_limit import AuthenticationThrottle
 from plane.license.utils.instance_value import get_configuration_value
+from plane.utils.email.transport import is_email_configured
 
 
 class EmailCheckEndpoint(APIView):
@@ -41,9 +42,8 @@ class EmailCheckEndpoint(APIView):
             )
             return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
 
-        (EMAIL_HOST, ENABLE_MAGIC_LINK_LOGIN, ENABLE_EMAIL_PASSWORD) = get_configuration_value(
+        (ENABLE_MAGIC_LINK_LOGIN, ENABLE_EMAIL_PASSWORD) = get_configuration_value(
             [
-                {"key": "EMAIL_HOST", "default": os.environ.get("EMAIL_HOST", "")},
                 {
                     "key": "ENABLE_MAGIC_LINK_LOGIN",
                     "default": os.environ.get("ENABLE_MAGIC_LINK_LOGIN", "1"),
@@ -55,7 +55,7 @@ class EmailCheckEndpoint(APIView):
             ]
         )
 
-        smtp_configured = bool(EMAIL_HOST)
+        smtp_configured = is_email_configured()
         is_magic_login_enabled = ENABLE_MAGIC_LINK_LOGIN == "1"
         is_email_password_enabled = ENABLE_EMAIL_PASSWORD == "1"
         # Magic code is the only email step when password auth is off.

@@ -4,6 +4,8 @@
 
 # Python imports
 import base64
+import threading
+import time
 
 # Third party imports
 import requests
@@ -15,6 +17,15 @@ LOGIN_BASE_URL = "https://login.microsoftonline.com"
 # through an upload session in chunks that must be multiples of 320 KiB.
 DIRECT_ATTACHMENT_LIMIT = 2_500_000
 UPLOAD_SESSION_CHUNK_SIZE = 327_680 * 10
+
+# Graph rejects request bodies over 4 MB.
+MAX_REQUEST_SIZE = 4 * 1024 * 1024
+
+# Refresh tokens this many seconds before they expire.
+TOKEN_EXPIRY_MARGIN = 300
+
+_token_cache = {}
+_token_cache_lock = threading.Lock()
 
 MESSAGE_SELECT_FIELDS = ",".join(
     [
@@ -54,11 +65,16 @@ class MSGraphMailClient:
         self.client_id = client_id
         self.client_secret = client_secret
         self.timeout = timeout
-        self._access_token = None
+
+    @property
+    def _cache_key(self):
+        return (self.tenant_id, self.client_id, self.client_secret)
 
     def _get_access_token(self):
-        if self._access_token:
-            return self._access_token
+        with _token_cache_lock:
+            cached = _token_cache.get(self._cache_key)
+        if cached and cached[1] > time.monotonic():
+            return cached[0]
         response = requests.post(
             f"{LOGIN_BASE_URL}/{self.tenant_id}/oauth2/v2.0/token",
             data={
@@ -75,12 +91,16 @@ class MSGraphMailClient:
                 response.status_code,
                 response.text[:500],
             )
-        self._access_token = response.json().get("access_token")
-        if not self._access_token:
+        payload = response.json()
+        access_token = payload.get("access_token")
+        if not access_token:
             raise MSGraphError("MS Graph token response did not contain an access token")
-        return self._access_token
+        expires_in = int(payload.get("expires_in", 3600))
+        with _token_cache_lock:
+            _token_cache[self._cache_key] = (access_token, time.monotonic() + expires_in - TOKEN_EXPIRY_MARGIN)
+        return access_token
 
-    def _request(self, method, path, params=None, json_body=None, headers=None):
+    def _request(self, method, path, params=None, json_body=None, headers=None, data=None):
         request_headers = {"Authorization": f"Bearer {self._get_access_token()}"}
         if headers:
             request_headers.update(headers)
@@ -89,9 +109,13 @@ class MSGraphMailClient:
             f"{GRAPH_BASE_URL}{path}",
             params=params,
             json=json_body,
+            data=data,
             headers=request_headers,
             timeout=self.timeout,
         )
+        if response.status_code == 401:
+            with _token_cache_lock:
+                _token_cache.pop(self._cache_key, None)
         if not response.ok:
             raise MSGraphError(
                 f"MS Graph request {method} {path} failed",
@@ -197,6 +221,20 @@ class MSGraphMailClient:
                     chunk_response.status_code,
                     chunk_response.text[:500],
                 )
+
+    def send_mime(self, mailbox, mime_bytes):
+        """Send a complete RFC 822 message. Graph always saves MIME sends to Sent Items."""
+        payload = base64.b64encode(mime_bytes)
+        if len(payload) > MAX_REQUEST_SIZE:
+            raise MSGraphError(
+                f"Message is {len(payload)} bytes after base64 encoding, over the {MAX_REQUEST_SIZE} byte Graph limit"
+            )
+        self._request(
+            "POST",
+            f"/users/{mailbox}/sendMail",
+            data=payload,
+            headers={"Content-Type": "text/plain"},
+        )
 
     def send_draft(self, mailbox, message_id):
         self._request("POST", f"/users/{mailbox}/messages/{message_id}/send")
