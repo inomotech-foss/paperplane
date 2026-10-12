@@ -26,11 +26,10 @@ class TestIntersectionObserver implements IntersectionObserver {
   readonly root: Element | Document | null;
   readonly rootMargin: string;
   readonly thresholds: readonly number[];
+  private readonly callback: IntersectionObserverCallback;
 
-  constructor(
-    private readonly callback: IntersectionObserverCallback,
-    options: IntersectionObserverInit = {}
-  ) {
+  constructor(callback: IntersectionObserverCallback, options: IntersectionObserverInit = {}) {
+    this.callback = callback;
     this.root = options.root ?? null;
     this.rootMargin = options.rootMargin ?? "0px 0px 0px 0px";
     this.thresholds = Array.isArray(options.threshold) ? options.threshold : [options.threshold ?? 0];
