@@ -23158,7 +23158,7 @@ export interface operations {
                     "application/json": components["schemas"]["PagePositionResponse"];
                 };
             };
-            /** @description Invalid parent or anchor, or the page is locked or archived */
+            /** @description Invalid parent or anchor, or the page is archived */
             400: {
                 headers: {
                     [name: string]: unknown;

@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "Rozbaliť podstránky",
     "collapse_button": "Zbaliť podstránky",
-    "move_to_top_level": "Presunúť na najvyššiu úroveň"
+    "move_to_top_level": "Presunúť na najvyššiu úroveň",
+    "drag_blocked": {
+      "archived": "Archivované stránky nie je možné presúvať",
+      "no_permission": "Nemáte oprávnenie presunúť túto stránku",
+      "filtered": "Na presúvanie stránok zrušte vyhľadávanie a filtre"
+    }
+  },
+  "page_status": {
+    "locked": "Zamknuté"
   },
   "page_diagram": {
     "editor_title": "Editor diagramov",

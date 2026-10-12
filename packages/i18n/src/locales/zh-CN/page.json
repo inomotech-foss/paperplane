@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "展开子页面",
     "collapse_button": "折叠子页面",
-    "move_to_top_level": "移至顶层"
+    "move_to_top_level": "移至顶层",
+    "drag_blocked": {
+      "archived": "已归档的页面无法移动",
+      "no_permission": "您没有移动此页面的权限",
+      "filtered": "清除搜索和筛选后才能移动页面"
+    }
+  },
+  "page_status": {
+    "locked": "已锁定"
   },
   "page_diagram": {
     "editor_title": "图表编辑器",

@@ -3,7 +3,7 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { draggable, dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
@@ -18,6 +18,9 @@ import { usePageStore } from "@/hooks/store";
 // store
 import { getReorderPlacement } from "@/store/pages/page-order";
 import type { TPagePlacement } from "@/store/pages/page-order";
+// local imports
+import { getPageDragBlock } from "./page-drag-block";
+import type { TPageDragBlock } from "./page-drag-block";
 
 type TPageDragData = {
   id: string;
@@ -45,25 +48,25 @@ type TUsePageTreeDnd = {
   indentPerLevel: number;
   hasChildPages: boolean;
   isExpanded: boolean;
-  isDraggable: boolean;
   isEnabled?: boolean;
 };
 
+export type TBlockedPageDrag = {
+  reason: TPageDragBlock;
+  x: number;
+  y: number;
+};
+
+const BLOCKED_DRAG_HINT_MS = 2000;
+
 export const usePageTreeDnd = (props: TUsePageTreeDnd) => {
-  const {
-    elementRef,
-    pageId,
-    storeType,
-    depth,
-    indentPerLevel,
-    hasChildPages,
-    isExpanded,
-    isDraggable,
-    isEnabled = true,
-  } = props;
+  const { elementRef, pageId, storeType, depth, indentPerLevel, hasChildPages, isExpanded, isEnabled = true } = props;
   // states
   const [isDragging, setIsDragging] = useState(false);
   const [dropInstruction, setDropInstruction] = useState<InstructionType | undefined>(undefined);
+  const [blockedDrag, setBlockedDrag] = useState<TBlockedPageDrag | undefined>(undefined);
+  // refs
+  const blockedDragTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // store hooks
   const { filters, getPageById, getPageAncestorIds, getPageTreeStructureByTab, expandPages, positionPage } =
     usePageStore(storeType);
@@ -94,6 +97,12 @@ export const usePageTreeDnd = (props: TUsePageTreeDnd) => {
       });
     };
 
+    const showBlockedDrag = (drag: TBlockedPageDrag) => {
+      clearTimeout(blockedDragTimerRef.current);
+      setBlockedDrag(drag);
+      blockedDragTimerRef.current = setTimeout(() => setBlockedDrag(undefined), BLOCKED_DRAG_HINT_MS);
+    };
+
     const handleDrop = async (sourceId: string, instruction: InstructionType | undefined) => {
       if (!instruction) return;
       const placement = getPlacement(sourceId, instruction);
@@ -112,7 +121,11 @@ export const usePageTreeDnd = (props: TUsePageTreeDnd) => {
     return combine(
       draggable({
         element,
-        canDrag: () => isDraggable && !isFiltered(),
+        canDrag: ({ input }) => {
+          const reason = getPageDragBlock(getPageById(pageId), isFiltered());
+          if (reason) showBlockedDrag({ reason, x: input.clientX, y: input.clientY });
+          return !reason;
+        },
         getInitialData: (): TPageDragData => ({ id: pageId, type: "PAGE" }),
         onDragStart: () => setIsDragging(true),
         onDrop: () => setIsDragging(false),
@@ -159,12 +172,13 @@ export const usePageTreeDnd = (props: TUsePageTreeDnd) => {
     getPageTreeStructureByTab,
     hasChildPages,
     indentPerLevel,
-    isDraggable,
     isEnabled,
     isExpanded,
     pageId,
     positionPage,
   ]);
 
-  return { isDragging, dropInstruction };
+  useEffect(() => () => clearTimeout(blockedDragTimerRef.current), []);
+
+  return { isDragging, dropInstruction, blockedDrag };
 };

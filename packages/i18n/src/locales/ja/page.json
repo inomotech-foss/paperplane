@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "サブページを展開",
     "collapse_button": "サブページを折りたたむ",
-    "move_to_top_level": "最上位に移動"
+    "move_to_top_level": "最上位に移動",
+    "drag_blocked": {
+      "archived": "アーカイブされたページは移動できません",
+      "no_permission": "このページを移動する権限がありません",
+      "filtered": "ページを移動するには検索とフィルターをクリアしてください"
+    }
+  },
+  "page_status": {
+    "locked": "ロック済み"
   },
   "page_diagram": {
     "editor_title": "ダイアグラムエディター",

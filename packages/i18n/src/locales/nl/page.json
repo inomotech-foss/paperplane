@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "Subpagina's uitklappen",
     "collapse_button": "Subpagina's inklappen",
-    "move_to_top_level": "Naar het hoogste niveau verplaatsen"
+    "move_to_top_level": "Naar het hoogste niveau verplaatsen",
+    "drag_blocked": {
+      "archived": "Gearchiveerde pagina's kunnen niet worden verplaatst",
+      "no_permission": "Je hebt geen toestemming om deze pagina te verplaatsen",
+      "filtered": "Wis de zoekopdracht en filters om pagina's te verplaatsen"
+    }
+  },
+  "page_status": {
+    "locked": "Vergrendeld"
   },
   "page_diagram": {
     "editor_title": "Diagrameditor",

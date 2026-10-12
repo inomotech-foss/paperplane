@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "Rozwiń podstrony",
     "collapse_button": "Zwiń podstrony",
-    "move_to_top_level": "Przenieś na najwyższy poziom"
+    "move_to_top_level": "Przenieś na najwyższy poziom",
+    "drag_blocked": {
+      "archived": "Zarchiwizowanych stron nie można przenosić",
+      "no_permission": "Nie masz uprawnień do przeniesienia tej strony",
+      "filtered": "Wyczyść wyszukiwanie i filtry, aby przenosić strony"
+    }
+  },
+  "page_status": {
+    "locked": "Zablokowana"
   },
   "page_diagram": {
     "editor_title": "Edytor diagramów",

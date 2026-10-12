@@ -14852,7 +14852,7 @@ paths:
                 $ref: '#/components/schemas/PagePositionResponse'
           description: ''
         '400':
-          description: Invalid parent or anchor, or the page is locked or archived
+          description: Invalid parent or anchor, or the page is archived
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/versions/:
     get:
       operationId: workspaces_projects_pages_versions_retrieve

@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "Unterseiten ausklappen",
     "collapse_button": "Unterseiten einklappen",
-    "move_to_top_level": "Auf die oberste Ebene verschieben"
+    "move_to_top_level": "Auf die oberste Ebene verschieben",
+    "drag_blocked": {
+      "archived": "Archivierte Seiten können nicht verschoben werden",
+      "no_permission": "Sie haben keine Berechtigung, diese Seite zu verschieben",
+      "filtered": "Leeren Sie die Suche und die Filter, um Seiten zu verschieben"
+    }
+  },
+  "page_status": {
+    "locked": "Gesperrt"
   },
   "page_diagram": {
     "editor_title": "Diagrammeditor",

@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "展開子頁面",
     "collapse_button": "摺疊子頁面",
-    "move_to_top_level": "移至頂層"
+    "move_to_top_level": "移至頂層",
+    "drag_blocked": {
+      "archived": "已封存的頁面無法移動",
+      "no_permission": "您沒有移動此頁面的權限",
+      "filtered": "清除搜尋和篩選後才能移動頁面"
+    }
+  },
+  "page_status": {
+    "locked": "已鎖定"
   },
   "page_diagram": {
     "editor_title": "圖表編輯器",

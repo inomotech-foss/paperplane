@@ -285,6 +285,39 @@ class TestPageDetailAPIEndpoint:
         assert create_page.name == "Existing Page"
 
     @pytest.mark.django_db
+    def test_move_locked_page(self, api_key_client, workspace, project, create_user, create_page):
+        """Test that a lock does not stop a move"""
+        parent = Page.objects.create(name="Parent Page", workspace=workspace, owned_by=create_user)
+        ProjectPage.objects.create(workspace=workspace, project=project, page=parent)
+        create_page.is_locked = True
+        create_page.save()
+
+        url = self.get_page_detail_url(workspace.slug, project.id, create_page.id)
+
+        response = api_key_client.patch(url, {"parent": str(parent.id)}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        create_page.refresh_from_db()
+        assert create_page.parent_id == parent.id
+
+    @pytest.mark.django_db
+    def test_move_locked_page_with_content_change(self, api_key_client, workspace, project, create_user, create_page):
+        """Test that a move does not let content changes through a lock"""
+        parent = Page.objects.create(name="Parent Page", workspace=workspace, owned_by=create_user)
+        ProjectPage.objects.create(workspace=workspace, project=project, page=parent)
+        create_page.is_locked = True
+        create_page.save()
+
+        url = self.get_page_detail_url(workspace.slug, project.id, create_page.id)
+
+        response = api_key_client.patch(url, {"parent": str(parent.id), "name": "New Name"}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        create_page.refresh_from_db()
+        assert create_page.parent_id is None
+        assert create_page.name == "Existing Page"
+
+    @pytest.mark.django_db
     def test_update_locked_page(self, api_key_client, workspace, project, create_page):
         """Test that locked pages cannot be updated"""
         create_page.is_locked = True

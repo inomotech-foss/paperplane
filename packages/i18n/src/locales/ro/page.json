@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "Extinde subpaginile",
     "collapse_button": "Restrânge subpaginile",
-    "move_to_top_level": "Mută la nivelul superior"
+    "move_to_top_level": "Mută la nivelul superior",
+    "drag_blocked": {
+      "archived": "Paginile arhivate nu pot fi mutate",
+      "no_permission": "Nu ai permisiunea de a muta această pagină",
+      "filtered": "Șterge căutarea și filtrele pentru a muta pagini"
+    }
+  },
+  "page_status": {
+    "locked": "Blocată"
   },
   "page_diagram": {
     "editor_title": "Editor de diagrame",

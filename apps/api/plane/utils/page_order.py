@@ -14,7 +14,6 @@ SORT_ORDER_STEP = 10000
 
 class PlacementFailure(Enum):
     BOTH_ANCHORS = "Pass either before or after, not both"
-    LOCKED = "Page is locked"
     ARCHIVED = "Archived pages cannot be moved"
     PARENT_NOT_FOUND = "Parent page does not exist in the project"
     PARENT_ARCHIVED = "Pages cannot be moved under an archived page"
@@ -91,8 +90,6 @@ def move_page(page_id, project_id, user, parent_id, before_id=None, after_id=Non
     page = _project_pages(project_id).select_for_update(of=("self",)).filter(pk=page_id).first()
     if page is None:
         raise Page.DoesNotExist
-    if page.is_locked:
-        raise PagePlacementError(PlacementFailure.LOCKED)
     if page.archived_at:
         raise PagePlacementError(PlacementFailure.ARCHIVED)
     if parent_id:

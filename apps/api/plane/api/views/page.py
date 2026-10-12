@@ -229,7 +229,8 @@ class PageDetailAPIEndpoint(BaseAPIView):
         """
         page = self.get_queryset().get(pk=page_id)
 
-        if page.is_locked:
+        # a lock freezes the content, not the position in the tree
+        if page.is_locked and set(request.data) - {"parent"}:
             return Response({"error": "Page is locked"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Only update access if the page owner is the requesting user

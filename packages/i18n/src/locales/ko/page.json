@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "하위 페이지 펼치기",
     "collapse_button": "하위 페이지 접기",
-    "move_to_top_level": "최상위로 이동"
+    "move_to_top_level": "최상위로 이동",
+    "drag_blocked": {
+      "archived": "보관된 페이지는 이동할 수 없습니다",
+      "no_permission": "이 페이지를 이동할 권한이 없습니다",
+      "filtered": "페이지를 이동하려면 검색과 필터를 지우세요"
+    }
+  },
+  "page_status": {
+    "locked": "잠김"
   },
   "page_diagram": {
     "editor_title": "다이어그램 편집기",

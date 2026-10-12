@@ -14,7 +14,7 @@ import {
   ExportOutline,
   GlobeOutline,
   LinkOutline,
-  LockOutline,
+  HideOutline,
   LockedOutline,
   MoreHorizontalOutline,
   NewTabOutline,
@@ -131,7 +131,7 @@ export const PageActions = observer(function PageActions(props: Props) {
           },
           title: "Move",
           icon: ExportOutline,
-          shouldRender: canCurrentUserMovePage && !archived_at && !is_locked,
+          shouldRender: canCurrentUserMovePage && !archived_at,
         },
         {
           key: "toggle-lock",
@@ -148,7 +148,7 @@ export const PageActions = observer(function PageActions(props: Props) {
             pageOperations.toggleAccess();
           },
           title: access === EPageAccess.PUBLIC ? "Make private" : "Make public",
-          icon: access === EPageAccess.PUBLIC ? LockOutline : GlobeOutline,
+          icon: access === EPageAccess.PUBLIC ? HideOutline : GlobeOutline,
           shouldRender: canCurrentUserChangeAccess && !archived_at,
         },
         {

@@ -23,7 +23,7 @@ import {
 } from "@makeplane/propel/components/dialog";
 import { InputField } from "@makeplane/propel/components/input-field";
 import { EmojiPicker, Logo } from "@plane/blocks/emoji-icon-picker";
-import { GlobeOutline, LockOutline, PagesOutline } from "@makeplane/propel/icons";
+import { GlobeOutline, HideOutline, PagesOutline } from "@makeplane/propel/icons";
 import type { ISvgIcons } from "@plane/blocks/icons";
 import type { TPage } from "@plane/types";
 
@@ -46,7 +46,7 @@ const PAGE_ACCESS_SPECIFIERS: {
   icon: LucideIcon | React.FC<ISvgIcons>;
 }[] = [
   { key: EPageAccess.PUBLIC, i18n_label: "common.access.public", icon: GlobeOutline },
-  { key: EPageAccess.PRIVATE, i18n_label: "common.access.private", icon: LockOutline },
+  { key: EPageAccess.PRIVATE, i18n_label: "common.access.private", icon: HideOutline },
 ];
 
 export function PageForm(props: Props) {

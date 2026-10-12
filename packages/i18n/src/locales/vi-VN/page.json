@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "Mở rộng trang con",
     "collapse_button": "Thu gọn trang con",
-    "move_to_top_level": "Di chuyển lên cấp cao nhất"
+    "move_to_top_level": "Di chuyển lên cấp cao nhất",
+    "drag_blocked": {
+      "archived": "Không thể di chuyển trang đã lưu trữ",
+      "no_permission": "Bạn không có quyền di chuyển trang này",
+      "filtered": "Xóa tìm kiếm và bộ lọc để di chuyển trang"
+    }
+  },
+  "page_status": {
+    "locked": "Đã khóa"
   },
   "page_diagram": {
     "editor_title": "Trình chỉnh sửa sơ đồ",

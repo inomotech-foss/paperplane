@@ -5,11 +5,13 @@
  */
 
 import { observer } from "mobx-react";
-import { GlobeOutline, InfoOutline, LockOutline, MinusOutline } from "@makeplane/propel/icons";
+import { GlobeOutline, HideOutline, InfoOutline, LockedOutline, MinusOutline } from "@makeplane/propel/icons";
 // plane imports
 import { Avatar } from "@makeplane/propel/components/avatar";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { FavoriteStar } from "@plane/blocks/common";
+import { EPageAccess } from "@plane/constants";
+import { useTranslation } from "@plane/i18n";
 import { renderFormattedDate, getFileURL } from "@plane/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
@@ -29,6 +31,8 @@ type Props = {
 
 export const BlockItemAction = observer(function BlockItemAction(props: Props) {
   const { page, parentRef, storeType } = props;
+  // plane hooks
+  const { t } = useTranslation();
   // store hooks
   const { getUserDetails } = useMember();
   // page operations
@@ -36,7 +40,8 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
     page,
   });
   // derived values
-  const { access, created_at, is_favorite, owned_by, canCurrentUserFavoritePage } = page;
+  const { access, created_at, is_favorite, is_locked, owned_by, canCurrentUserFavoritePage } = page;
+  const isPublic = access === EPageAccess.PUBLIC;
   const ownerDetails = owned_by ? getUserDetails(owned_by) : undefined;
 
   return (
@@ -52,9 +57,16 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
           />
         </Tooltip>
       </div>
+      {is_locked && (
+        <div className="cursor-default text-tertiary">
+          <Tooltip label={t("page_status.locked")}>
+            <LockedOutline className="h-4 w-4" />
+          </Tooltip>
+        </div>
+      )}
       <div className="cursor-default text-tertiary">
-        <Tooltip label={access === 0 ? "Public" : "Private"}>
-          {access === 0 ? <GlobeOutline className="h-4 w-4" /> : <LockOutline className="h-4 w-4" />}
+        <Tooltip label={t(isPublic ? "common.access.public" : "common.access.private")}>
+          {isPublic ? <GlobeOutline className="h-4 w-4" /> : <HideOutline className="h-4 w-4" />}
         </Tooltip>
       </div>
       {/* vertical divider */}

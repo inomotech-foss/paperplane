@@ -11,7 +11,7 @@ import {
   ArchiveOutline,
   GlobeOutline,
   LinkOutline,
-  LockOutline,
+  HideOutline,
   LockedOutline,
   RestoreOutline,
   StarOutline,
@@ -116,7 +116,7 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
         access === EPageAccess.PUBLIC
           ? "power_k.contextual_actions.page.make_private"
           : "power_k.contextual_actions.page.make_public",
-      icon: access === EPageAccess.PUBLIC ? LockOutline : GlobeOutline,
+      icon: access === EPageAccess.PUBLIC ? HideOutline : GlobeOutline,
       group: "contextual",
       contextType: "page",
       type: "action",

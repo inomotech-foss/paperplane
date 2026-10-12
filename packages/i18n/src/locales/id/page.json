@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "Perluas subhalaman",
     "collapse_button": "Ciutkan subhalaman",
-    "move_to_top_level": "Pindahkan ke tingkat teratas"
+    "move_to_top_level": "Pindahkan ke tingkat teratas",
+    "drag_blocked": {
+      "archived": "Halaman yang diarsipkan tidak dapat dipindahkan",
+      "no_permission": "Anda tidak memiliki izin untuk memindahkan halaman ini",
+      "filtered": "Hapus pencarian dan filter untuk memindahkan halaman"
+    }
+  },
+  "page_status": {
+    "locked": "Terkunci"
   },
   "page_diagram": {
     "editor_title": "Editor diagram",

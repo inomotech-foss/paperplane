@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "Alt sayfaları genişlet",
     "collapse_button": "Alt sayfaları daralt",
-    "move_to_top_level": "En üst düzeye taşı"
+    "move_to_top_level": "En üst düzeye taşı",
+    "drag_blocked": {
+      "archived": "Arşivlenmiş sayfalar taşınamaz",
+      "no_permission": "Bu sayfayı taşıma izniniz yok",
+      "filtered": "Sayfaları taşımak için aramayı ve filtreleri temizleyin"
+    }
+  },
+  "page_status": {
+    "locked": "Kilitli"
   },
   "page_diagram": {
     "editor_title": "Diyagram düzenleyici",

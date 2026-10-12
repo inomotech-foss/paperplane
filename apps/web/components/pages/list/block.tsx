@@ -16,6 +16,7 @@ import { cn, getPageName } from "@plane/utils";
 // components
 import { ListItem } from "@/components/core/list";
 import { BlockItemAction } from "@/components/pages/list/block-item-action";
+import { PageDragBlockedHint } from "@/components/pages/page-drag-blocked-hint";
 import { usePageTreeDnd } from "@/components/pages/use-page-tree-dnd";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
@@ -49,9 +50,8 @@ export const PageListBlock = observer(function PageListBlock(props: TPageListBlo
   const { isMobile } = usePlatformOS();
   // derived values
   const isTreeView = depth !== undefined;
-  const isDraggable = isTreeView && !!page && !!page.canCurrentUserMovePage && !page.archived_at && !page.is_locked;
 
-  const { isDragging, dropInstruction } = usePageTreeDnd({
+  const { isDragging, dropInstruction, blockedDrag } = usePageTreeDnd({
     elementRef: dndRef,
     pageId,
     storeType,
@@ -59,7 +59,6 @@ export const PageListBlock = observer(function PageListBlock(props: TPageListBlo
     indentPerLevel: TREE_INDENT_WIDTH,
     hasChildPages,
     isExpanded,
-    isDraggable,
     isEnabled: isTreeView && !!page,
   });
 
@@ -69,7 +68,11 @@ export const PageListBlock = observer(function PageListBlock(props: TPageListBlo
   const { name, logo_props, getRedirectionLink } = page;
 
   return (
-    <div ref={dndRef} className={cn({ "opacity-50": isDragging })}>
+    <div
+      ref={dndRef}
+      className={cn({ "opacity-50": isDragging, "cursor-not-allowed **:cursor-not-allowed": !!blockedDrag })}
+    >
+      {blockedDrag && <PageDragBlockedHint blockedDrag={blockedDrag} />}
       <DropIndicator isVisible={dropInstruction === "reorder-above"} />
       <ListItem
         prependTitleElement={

@@ -19,6 +19,7 @@ import { Logo } from "@plane/blocks/emoji-icon-picker";
 import type { TPageNavigationTabs } from "@plane/types";
 import { cn, getPageName } from "@plane/utils";
 // components
+import { PageDragBlockedHint } from "@/components/pages/page-drag-blocked-hint";
 import { PageTreeRootDropZone } from "@/components/pages/page-tree-root-drop-zone";
 import { usePageTreeDnd } from "@/components/pages/use-page-tree-dnd";
 // hooks
@@ -56,8 +57,7 @@ const PageTreeRow = observer(function PageTreeRow(props: TTreeRowProps) {
   // derived values
   const page = getPageById(pageId);
   const isExpanded = isPageExpanded(pageId);
-  const isDraggable = !!page && !!page.canCurrentUserMovePage && !page.archived_at && !page.is_locked;
-  const { isDragging, dropInstruction } = usePageTreeDnd({
+  const { isDragging, dropInstruction, blockedDrag } = usePageTreeDnd({
     elementRef: rowRef,
     pageId,
     storeType,
@@ -65,7 +65,6 @@ const PageTreeRow = observer(function PageTreeRow(props: TTreeRowProps) {
     indentPerLevel: TREE_INDENT_PER_LEVEL,
     hasChildPages: hasChildren,
     isExpanded,
-    isDraggable,
     isEnabled: !!page,
   });
 
@@ -84,9 +83,11 @@ const PageTreeRow = observer(function PageTreeRow(props: TTreeRowProps) {
         {
           "opacity-50": isDragging,
           "ring-accent-primary ring-1 ring-inset": dropInstruction === "make-child",
+          "cursor-not-allowed **:cursor-not-allowed": !!blockedDrag,
         }
       )}
     >
+      {blockedDrag && <PageDragBlockedHint blockedDrag={blockedDrag} />}
       {dropInstruction === "reorder-above" && (
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10">
           <DropIndicator isVisible />

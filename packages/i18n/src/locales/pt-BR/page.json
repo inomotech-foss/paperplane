@@ -149,7 +149,15 @@
   "page_list_tree": {
     "expand_button": "Expandir subpáginas",
     "collapse_button": "Recolher subpáginas",
-    "move_to_top_level": "Mover para o nível superior"
+    "move_to_top_level": "Mover para o nível superior",
+    "drag_blocked": {
+      "archived": "Páginas arquivadas não podem ser movidas",
+      "no_permission": "Você não tem permissão para mover esta página",
+      "filtered": "Limpe a pesquisa e os filtros para mover páginas"
+    }
+  },
+  "page_status": {
+    "locked": "Bloqueada"
   },
   "page_diagram": {
     "editor_title": "Editor de diagramas",

@@ -192,13 +192,24 @@ class TestPagePosition:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     @pytest.mark.django_db
-    @pytest.mark.parametrize("fields", [{"is_locked": True}, {"archived_at": timezone.now().date()}])
-    def test_rejects_locked_and_archived_pages(self, session_client, project, other_user, fields):
-        page = make_page(project, other_user, "Page", **fields)
+    def test_rejects_archived_pages(self, session_client, project, other_user):
+        page = make_page(project, other_user, "Page", archived_at=timezone.now().date())
 
         response = session_client.post(position_url(project, page), {"parent": None}, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    @pytest.mark.django_db
+    def test_member_moves_locked_page(self, session_client, project, other_user):
+        parent = make_page(project, other_user, "Parent")
+        page = make_page(project, other_user, "Locked", is_locked=True)
+
+        response = session_client.post(position_url(project, page), {"parent": parent.id}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        page.refresh_from_db()
+        assert page.parent_id == parent.id
+        assert page.is_locked
 
     @pytest.mark.django_db
     def test_private_page_of_another_user_is_denied(self, session_client, project, other_user):

@@ -222,7 +222,7 @@ class PageViewSet(BaseViewSet):
         request=PagePositionSerializer,
         responses={
             200: PagePositionResponseSerializer,
-            400: OpenApiResponse(description="Invalid parent or anchor, or the page is locked or archived"),
+            400: OpenApiResponse(description="Invalid parent or anchor, or the page is archived"),
         },
     )
     def position(self, request, slug, project_id, page_id):
