@@ -109,6 +109,26 @@ describe("ResizableSidebar", () => {
     expect(persisted()).toBe(300);
   });
 
+  it("re-renders its width during and after a drag whose pointer capture throws", () => {
+    localStorage.setItem(KEY, "336");
+    // what Chrome does for a pointer id it does not know, like a synthetic one
+    Object.defineProperty(HTMLElement.prototype, "setPointerCapture", {
+      configurable: true,
+      value: () => {
+        throw new DOMException("No active pointer with the given id", "NotFoundError");
+      },
+    });
+    const { sidebar, handle } = renderSidebar();
+    fireEvent.pointerDown(handle!, { clientX: 340, pointerId: 7 });
+    fireEvent.pointerMove(handle!, { clientX: 300, pointerId: 7 });
+    expect(sidebar?.style.width).toBe("296px");
+    expect(handle?.getAttribute("aria-valuenow")).toBe("296");
+    fireEvent.pointerUp(handle!, { clientX: 300, pointerId: 7 });
+    expect(sidebar?.style.width).toBe("296px");
+    expect(persisted()).toBe(296);
+    Reflect.deleteProperty(HTMLElement.prototype, "setPointerCapture");
+  });
+
   it("starts a new drag after one that lost its end events", () => {
     localStorage.setItem(KEY, "300");
     const { handle } = renderSidebar();

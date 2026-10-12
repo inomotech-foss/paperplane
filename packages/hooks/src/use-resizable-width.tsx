@@ -30,7 +30,10 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
   const { storageKey, defaultWidth, minWidth, maxWidth, keyStep = 16, cssProperty, getRenderedWidth } = options;
   const cssPropertyName = cssProperty?.name;
   const getCssTarget = cssProperty?.getTarget;
-  const clamp = useCallback((value: number) => Math.min(maxWidth, Math.max(minWidth, value)), [minWidth, maxWidth]);
+  const clamp = useCallback(
+    (value: number) => Math.round(Math.min(maxWidth, Math.max(minWidth, value))),
+    [minWidth, maxWidth]
+  );
   const { storedValue, setValue } = useLocalStorage<number>(storageKey, defaultWidth);
   const [dragWidth, setDragWidth] = useState<number | null>(null);
   const [isResizing, setIsResizing] = useState(false);
@@ -89,15 +92,19 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
         if (e.currentTarget.hasPointerCapture?.(activeDrag.pointerId)) return;
         endDrag(false);
       }
-      // keeps text selection from starting, which also skips the focus a click would give
-      e.preventDefault();
-      e.currentTarget.focus({ preventScroll: true });
-      e.currentTarget.setPointerCapture?.(e.pointerId);
       const startWidth = getCurrentWidth();
       dragRef.current = { pointerId: e.pointerId, startX: e.clientX, startWidth, width: startWidth, moved: false };
       // before any render, as a native drag of whatever moves under the pointer would cancel it
       window.addEventListener("dragstart", preventNativeDrag, true);
       setIsResizing(true);
+      // keeps text selection from starting, which also skips the focus a click would give
+      e.preventDefault();
+      e.currentTarget.focus({ preventScroll: true });
+      try {
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+      } catch {
+        // best effort, the drag still follows moves over the handle
+      }
     },
     [endDrag, getCurrentWidth]
   );

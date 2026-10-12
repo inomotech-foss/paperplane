@@ -146,6 +146,32 @@ describe("useResizableWidth", () => {
     expect(isResizing()).toBe("true");
   });
 
+  it("still drags when pointer capture throws", () => {
+    store(300);
+    // what Chrome does for a pointer id it does not know, like a synthetic one
+    Object.defineProperty(HTMLElement.prototype, "setPointerCapture", {
+      configurable: true,
+      value: () => {
+        throw new DOMException("No active pointer with the given id", "NotFoundError");
+      },
+    });
+    render(<Harness />);
+    fireEvent.pointerDown(handle(), { clientX: 300, pointerId: 7 });
+    fireEvent.pointerMove(handle(), { clientX: 260, pointerId: 7 });
+    expect(boxWidth()).toBe("260px");
+    fireEvent.pointerUp(handle(), { clientX: 260, pointerId: 7 });
+    expect(persisted()).toBe(260);
+    Reflect.deleteProperty(HTMLElement.prototype, "setPointerCapture");
+  });
+
+  it("rounds fractional pointer positions to whole pixels", () => {
+    store(300);
+    render(<Harness />);
+    drag(300, 358.953125);
+    expect(persisted()).toBe(359);
+    expect(handle().getAttribute("aria-valuenow")).toBe("359");
+  });
+
   it("recovers from a drag that lost its end events", () => {
     store(300);
     render(<Harness />);
