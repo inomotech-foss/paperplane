@@ -5865,6 +5865,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/position/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Move a page under a parent, before or after a sibling or at the end.
+         *
+         *     Siblings are renumbered when needed. That needs no permission on them.
+         */
+        post: operations["workspaces_projects_pages_position_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/versions/": {
         parameters: {
             query?: never;
@@ -9679,6 +9700,32 @@ export interface components {
             comment_json?: unknown;
             external_id?: string | null;
             external_source?: string | null;
+        };
+        PageOrder: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly parent: string | null;
+            /** Format: double */
+            readonly sort_order: number;
+        };
+        PagePositionRequest: {
+            /** Format: uuid */
+            parent: string | null;
+            /**
+             * Format: uuid
+             * @description Place the page before this sibling
+             */
+            before?: string | null;
+            /**
+             * Format: uuid
+             * @description Place the page after this sibling
+             */
+            after?: string | null;
+        };
+        PagePositionResponse: {
+            /** @description Every page whose parent or sort order changed */
+            pages: components["schemas"]["PageOrder"][];
         };
         PageRequest: {
             name?: string;
@@ -23077,6 +23124,42 @@ export interface operations {
         responses: {
             /** @description No response body */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    workspaces_projects_pages_position_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PagePositionRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PagePositionRequest"];
+                "multipart/form-data": components["schemas"]["PagePositionRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagePositionResponse"];
+                };
+            };
+            /** @description Invalid parent or anchor, or the page is locked or archived */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

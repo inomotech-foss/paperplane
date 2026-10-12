@@ -5,12 +5,18 @@
  */
 
 // types
+import type { ApiSchema } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type { TDocumentPayload, TPage } from "@plane/types";
 // helpers
 // services
+import { apiClient } from "@/services/api-client";
 import { APIService } from "@/services/api.service";
 import { FileUploadService } from "@/services/file-upload.service";
+
+export type TPagePosition = ApiSchema<"PagePositionRequest">;
+export type TPageOrder = ApiSchema<"PageOrder">;
 
 export class ProjectPageService extends APIService {
   private fileUploadService: FileUploadService;
@@ -55,6 +61,17 @@ export class ProjectPageService extends APIService {
       .catch((error) => {
         throw error?.response?.data;
       });
+  }
+
+  /** Returns every page whose parent or sort order changed. */
+  async position(workspaceSlug: string, projectId: string, pageId: string, data: TPagePosition): Promise<TPageOrder[]> {
+    const response = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/position/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, page_id: pageId } },
+        body: data,
+      })
+    );
+    return response.pages;
   }
 
   async updateAccess(

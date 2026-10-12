@@ -14803,6 +14803,56 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/position/:
+    post:
+      operationId: workspaces_projects_pages_position_create
+      description: |-
+        Move a page under a parent, before or after a sibling or at the end.
+
+        Siblings are renumbered when needed. That needs no permission on them.
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PagePositionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PagePositionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PagePositionRequest'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagePositionResponse'
+          description: ''
+        '400':
+          description: Invalid parent or anchor, or the page is locked or archived
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/versions/:
     get:
       operationId: workspaces_projects_pages_versions_retrieve
@@ -22998,6 +23048,55 @@ components:
           type: string
           nullable: true
           maxLength: 255
+    PageOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        parent:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        sort_order:
+          type: number
+          format: double
+          readOnly: true
+      required:
+      - id
+      - parent
+      - sort_order
+    PagePositionRequest:
+      type: object
+      properties:
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        before:
+          type: string
+          format: uuid
+          nullable: true
+          description: Place the page before this sibling
+        after:
+          type: string
+          format: uuid
+          nullable: true
+          description: Place the page after this sibling
+      required:
+      - parent
+    PagePositionResponse:
+      type: object
+      properties:
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageOrder'
+          description: Every page whose parent or sort order changed
+      required:
+      - pages
     PageRequest:
       type: object
       properties:

@@ -148,7 +148,8 @@
   },
   "page_list_tree": {
     "expand_button": "Развернуть подстраницы",
-    "collapse_button": "Свернуть подстраницы"
+    "collapse_button": "Свернуть подстраницы",
+    "move_to_top_level": "Переместить на верхний уровень"
   },
   "page_diagram": {
     "editor_title": "Редактор диаграмм",

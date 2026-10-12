@@ -270,6 +270,21 @@ class TestPageDetailAPIEndpoint:
         assert create_page.parent_id == parent.id
 
     @pytest.mark.django_db
+    def test_update_page_parent_rejects_a_cycle(self, api_key_client, workspace, project, create_user, create_page):
+        """Test that a page cannot be nested under its own child via patch"""
+        child = Page.objects.create(name="Child", workspace=workspace, owned_by=create_user, parent=create_page)
+        ProjectPage.objects.create(workspace=workspace, project=project, page=child)
+
+        url = self.get_page_detail_url(workspace.slug, project.id, create_page.id)
+
+        response = api_key_client.patch(url, {"parent": str(child.id), "name": "Renamed"}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        create_page.refresh_from_db()
+        assert create_page.parent_id is None
+        assert create_page.name == "Existing Page"
+
+    @pytest.mark.django_db
     def test_update_locked_page(self, api_key_client, workspace, project, create_page):
         """Test that locked pages cannot be updated"""
         create_page.is_locked = True

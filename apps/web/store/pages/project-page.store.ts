@@ -19,7 +19,7 @@ import { filterPagesByPageType, getPageName, orderPages, shouldFilterPage } from
 import { ProjectPageService } from "@/services/page";
 // store
 import type { CoreRootStore } from "../root.store";
-import { renumberedSortOrder } from "./page-order";
+import type { TPagePlacement } from "./page-order";
 import { flattenVisibleTree } from "./page-tree";
 import type { TProjectPage } from "./project-page";
 import { ProjectPage } from "./project-page";
@@ -80,7 +80,7 @@ export interface IProjectPageStore {
   isPageExpanded: (pageId: string) => boolean;
   togglePageExpanded: (pageId: string) => void;
   expandPages: (pageIds: string[]) => void;
-  renumberSiblings: (parentId: string | null, orderedIds: string[]) => Promise<void>;
+  positionPage: (pageId: string, placement: TPagePlacement) => Promise<void>;
   updateFilters: <T extends keyof TPageFilters>(filterKey: T, filterValue: TPageFilters[T]) => void;
   clearAllFilters: () => void;
   // actions
@@ -130,7 +130,7 @@ export class ProjectPageStore implements IProjectPageStore {
       // helper actions
       togglePageExpanded: action,
       expandPages: action,
-      renumberSiblings: action,
+      positionPage: action,
       updateFilters: action,
       clearAllFilters: action,
       // actions
@@ -380,20 +380,22 @@ export class ProjectPageStore implements IProjectPageStore {
     });
   };
 
-  renumberSiblings = async (parentId: string | null, orderedIds: string[]) => {
-    const pages = orderedIds.map((id) => this.getPageById(id));
-    if (pages.some((page) => page && (page.is_locked || !page.canCurrentUserMovePage))) {
-      throw new Error("Sibling pages cannot be reordered");
-    }
-    const updates: Promise<void>[] = [];
-    pages.forEach((page, index) => {
-      const sortOrder = renumberedSortOrder(index);
-      if (!page || (page.sort_order === sortOrder && (page.parent ?? null) === parentId)) return;
-      updates.push(page.move({ parentId, sortOrder }));
+  /**
+   * @description move a page under a parent next to a sibling. The server renumbers siblings when needed.
+   */
+  positionPage = async (pageId: string, placement: TPagePlacement) => {
+    const { workspaceSlug, projectId } = this.store.router;
+    if (!workspaceSlug || !projectId) throw new Error("Missing required fields.");
+    const changes = await this.service.position(workspaceSlug, projectId, pageId, {
+      parent: placement.parentId,
+      before: placement.before,
+      after: placement.after,
     });
-    const results = await Promise.allSettled(updates);
-    const failed = results.find((result): result is PromiseRejectedResult => result.status === "rejected");
-    if (failed) throw failed.reason;
+    runInAction(() => {
+      for (const change of changes) {
+        this.getPageById(change.id)?.mutateProperties({ parent: change.parent, sort_order: change.sort_order }, false);
+      }
+    });
   };
 
   updateFilters = <T extends keyof TPageFilters>(filterKey: T, filterValue: TPageFilters[T]) => {

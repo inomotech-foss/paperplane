@@ -148,7 +148,8 @@
   },
   "page_list_tree": {
     "expand_button": "Rozwiń podstrony",
-    "collapse_button": "Zwiń podstrony"
+    "collapse_button": "Zwiń podstrony",
+    "move_to_top_level": "Przenieś na najwyższy poziom"
   },
   "page_diagram": {
     "editor_title": "Edytor diagramów",

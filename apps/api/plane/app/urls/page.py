@@ -51,6 +51,11 @@ urlpatterns = [
         PageViewSet.as_view({"post": "archive", "delete": "unarchive"}),
         name="project-page-archive-unarchive",
     ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/position/",
+        PageViewSet.as_view({"post": "position"}),
+        name="project-page-position",
+    ),
     # lock and unlock
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/lock/",

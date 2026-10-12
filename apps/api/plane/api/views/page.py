@@ -3,6 +3,7 @@
 # See the LICENSE file for details.
 
 # Django imports
+from django.db import transaction
 from django.db.models import Q
 
 # Third party imports
@@ -14,6 +15,7 @@ from drf_spectacular.utils import OpenApiResponse, OpenApiRequest
 from plane.api.serializers import PageSerializer
 from plane.app.permissions import ProjectEntityPermission
 from plane.db.models import Page, Project, ProjectPage
+from plane.utils.page_order import PagePlacementError, move_page, next_sort_order, placement_error_response
 from .base import BaseAPIView
 from plane.utils.openapi import (
     page_docs,
@@ -111,6 +113,7 @@ class PageListCreateAPIEndpoint(BaseAPIView):
             page = serializer.save(
                 workspace_id=project.workspace_id,
                 owned_by_id=request.user.id,
+                sort_order=next_sort_order(project_id, parent.id if parent else None),
             )
             # Link the page to the project
             ProjectPage.objects.create(
@@ -256,13 +259,16 @@ class PageDetailAPIEndpoint(BaseAPIView):
                     status=status.HTTP_409_CONFLICT,
                 )
 
-            parent = serializer.validated_data.get("parent")
-            if parent and not Page.objects.filter(pk=parent.id, workspace__slug=slug, projects__id=project_id).exists():
-                return Response(
-                    {"error": "Parent page does not exist in the project"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            serializer.save()
+            try:
+                with transaction.atomic():
+                    if "parent" in serializer.validated_data:
+                        parent = serializer.validated_data.pop("parent")
+                        parent_id = parent.id if parent else None
+                        if parent_id != page.parent_id:
+                            # a new parent puts the page at the end of its new siblings
+                            serializer.instance, _ = move_page(page.id, project_id, request.user, parent_id)
+                    serializer.save()
+            except PagePlacementError as error:
+                return Response(placement_error_response(error), status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

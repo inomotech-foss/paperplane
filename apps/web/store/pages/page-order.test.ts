@@ -4,60 +4,103 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { getInsertSortOrder, RENUMBER_SIBLINGS, renumberedSortOrder } from "./page-order";
+import { getReorderPlacement } from "./page-order";
 
-describe("getInsertSortOrder", () => {
-  it("returns the default for an empty list", () => {
-    expect(getInsertSortOrder([], 0)).toBe(65535);
+const parents: Record<string, string | null> = {
+  a: null,
+  b: null,
+  c: null,
+  orphan: "hidden",
+  child: "a",
+};
+const getParentId = (id: string) => parents[id] ?? null;
+
+describe("getReorderPlacement", () => {
+  it("anchors after the row above the drop", () => {
+    expect(
+      getReorderPlacement({
+        sourceId: "c",
+        targetId: "b",
+        position: "above",
+        parentId: null,
+        visibleSiblingIds: ["a", "b", "c"],
+        getParentId,
+      })
+    ).toEqual({ parentId: null, after: "a" });
   });
 
-  it("uses the midpoint between neighbours", () => {
-    expect(getInsertSortOrder([10000, 20000, 40000], 2)).toBe(30000);
+  it("anchors before the first row when dropping at the top", () => {
+    expect(
+      getReorderPlacement({
+        sourceId: "c",
+        targetId: "a",
+        position: "above",
+        parentId: null,
+        visibleSiblingIds: ["a", "b", "c"],
+        getParentId,
+      })
+    ).toEqual({ parentId: null, before: "a" });
   });
 
-  it("goes before the first", () => {
-    expect(getInsertSortOrder([20000, 30000], 0)).toBe(10000);
+  it("anchors after the target when dropping below it", () => {
+    expect(
+      getReorderPlacement({
+        sourceId: "a",
+        targetId: "c",
+        position: "below",
+        parentId: null,
+        visibleSiblingIds: ["a", "b", "c"],
+        getParentId,
+      })
+    ).toEqual({ parentId: null, after: "c" });
   });
 
-  it("goes after the last", () => {
-    expect(getInsertSortOrder([20000, 30000], 2)).toBe(40000);
+  it("skips top-level rows whose parent is in another tab", () => {
+    expect(
+      getReorderPlacement({
+        sourceId: "c",
+        targetId: "orphan",
+        position: "below",
+        parentId: null,
+        visibleSiblingIds: ["orphan", "a", "c"],
+        getParentId,
+      })
+    ).toEqual({ parentId: null, before: "a" });
+    expect(
+      getReorderPlacement({
+        sourceId: "c",
+        targetId: "orphan",
+        position: "above",
+        parentId: null,
+        visibleSiblingIds: ["a", "orphan", "c"],
+        getParentId,
+      })
+    ).toEqual({ parentId: null, after: "a" });
   });
 
-  it("signals renumbering for equal neighbours", () => {
-    expect(getInsertSortOrder([65535, 65535, 65535], 1)).toBe(RENUMBER_SIBLINGS);
+  it("moves a child to the top level next to a root row", () => {
+    expect(
+      getReorderPlacement({
+        sourceId: "child",
+        targetId: "b",
+        position: "below",
+        parentId: null,
+        visibleSiblingIds: ["a", "b"],
+        getParentId,
+      })
+    ).toEqual({ parentId: null, after: "b" });
   });
 
-  it("signals renumbering when no float fits between neighbours", () => {
-    expect(getInsertSortOrder([1, 1 + Number.EPSILON], 1)).toBe(RENUMBER_SIBLINGS);
-  });
-
-  it("handles negative values", () => {
-    expect(getInsertSortOrder([-30000, -10000], 0)).toBe(-40000);
-    expect(getInsertSortOrder([-30000, -10000], 1)).toBe(-20000);
-  });
-
-  it("signals renumbering after repeated halving runs out of room", () => {
-    let after = 20000;
-    let result = getInsertSortOrder([10000, after], 1);
-    for (let i = 0; i < 100 && result !== RENUMBER_SIBLINGS; i++) {
-      after = result as number;
-      result = getInsertSortOrder([10000, after], 1);
-    }
-    expect(result).toBe(RENUMBER_SIBLINGS);
-  });
-
-  it("handles float neighbours", () => {
-    expect(getInsertSortOrder([1.5, 2.5], 1)).toBe(2);
-  });
-
-  it("does not need renumbering at the ends of tied siblings", () => {
-    expect(getInsertSortOrder([65535, 65535], 0)).toBe(55535);
-    expect(getInsertSortOrder([65535, 65535], 2)).toBe(75535);
-  });
-});
-
-describe("renumberedSortOrder", () => {
-  it("assigns 10000, 20000, ...", () => {
-    expect([0, 1, 2].map(renumberedSortOrder)).toEqual([10000, 20000, 30000]);
+  it("falls back to the end when no real sibling is visible", () => {
+    expect(
+      getReorderPlacement({
+        sourceId: "c",
+        targetId: "orphan",
+        position: "above",
+        parentId: null,
+        visibleSiblingIds: ["orphan", "c"],
+        getParentId,
+      })
+    ).toEqual({ parentId: null });
   });
 });
