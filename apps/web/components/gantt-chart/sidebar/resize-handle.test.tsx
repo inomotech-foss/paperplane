@@ -117,6 +117,16 @@ describe("TimelineSidebarResizeHandle", () => {
     expect(stored()).toBeNull();
   });
 
+  it("focuses the handle on pointerdown so the arrow keys work after a click", () => {
+    localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, "400");
+    renderHandle();
+    fireEvent.pointerDown(handle(), { clientX: 0 });
+    fireEvent.pointerUp(handle(), { clientX: 0 });
+    expect(document.activeElement).toBe(handle());
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "ArrowRight" });
+    expect(stored()).toBe("416");
+  });
+
   it("blocks native drags only while resizing", () => {
     const container = renderHandle();
     const dragStart = () => container.dispatchEvent(new Event("dragstart", { bubbles: true, cancelable: true }));

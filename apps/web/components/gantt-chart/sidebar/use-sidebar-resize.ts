@@ -88,7 +88,9 @@ export const useSidebarResize = () => {
     (e: ReactPointerEvent<HTMLElement>) => {
       const container = getElements()?.container;
       if (e.button !== 0 || !container) return;
+      // preventDefault also stops the browser from focusing the handle
       e.preventDefault();
+      e.currentTarget.focus({ preventScroll: true });
       e.currentTarget.setPointerCapture?.(e.pointerId);
       dragRef.current = {
         startX: e.clientX,
