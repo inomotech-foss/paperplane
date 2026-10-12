@@ -42,6 +42,10 @@
       "open": "開啟色彩選擇器",
       "swatches": "預設色彩",
       "hex_input": "十六進位色彩"
+    },
+    "resize": {
+      "timeline_sidebar": "調整時間軸側邊欄大小",
+      "page_tree": "調整頁面樹大小"
     }
   }
 }

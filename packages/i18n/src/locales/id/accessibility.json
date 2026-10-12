@@ -42,6 +42,10 @@
       "open": "Buka pemilih warna",
       "swatches": "Warna preset",
       "hex_input": "Warna heksadesimal"
+    },
+    "resize": {
+      "timeline_sidebar": "Ubah ukuran bilah sisi linimasa",
+      "page_tree": "Ubah ukuran pohon halaman"
     }
   }
 }

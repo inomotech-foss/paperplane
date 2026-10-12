@@ -42,6 +42,10 @@
       "open": "Deschide selectorul de culoare",
       "swatches": "Culori predefinite",
       "hex_input": "Culoare hexazecimală"
+    },
+    "resize": {
+      "timeline_sidebar": "Redimensionați bara laterală a cronologiei",
+      "page_tree": "Redimensionați arborele de pagini"
     }
   }
 }

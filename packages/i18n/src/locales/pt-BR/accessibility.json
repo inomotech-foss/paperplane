@@ -42,6 +42,10 @@
       "open": "Abrir seletor de cor",
       "swatches": "Cores predefinidas",
       "hex_input": "Cor hexadecimal"
+    },
+    "resize": {
+      "timeline_sidebar": "Redimensionar a barra lateral da linha do tempo",
+      "page_tree": "Redimensionar a árvore de páginas"
     }
   }
 }

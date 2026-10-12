@@ -42,6 +42,10 @@
       "open": "Open color picker",
       "swatches": "Preset colors",
       "hex_input": "Hex color"
+    },
+    "resize": {
+      "timeline_sidebar": "Resize timeline sidebar",
+      "page_tree": "Resize page tree"
     }
   }
 }

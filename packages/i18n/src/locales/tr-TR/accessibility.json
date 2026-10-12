@@ -42,6 +42,10 @@
       "open": "Renk seçiciyi aç",
       "swatches": "Hazır renkler",
       "hex_input": "Hex renk"
+    },
+    "resize": {
+      "timeline_sidebar": "Zaman çizelgesi kenar çubuğunu yeniden boyutlandır",
+      "page_tree": "Sayfa ağacını yeniden boyutlandır"
     }
   }
 }

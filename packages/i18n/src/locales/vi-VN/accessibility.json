@@ -42,6 +42,10 @@
       "open": "Mở bộ chọn màu",
       "swatches": "Màu có sẵn",
       "hex_input": "Màu hệ hex"
+    },
+    "resize": {
+      "timeline_sidebar": "Thay đổi kích thước thanh bên dòng thời gian",
+      "page_tree": "Thay đổi kích thước cây trang"
     }
   }
 }

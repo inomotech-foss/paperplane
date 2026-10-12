@@ -42,6 +42,10 @@
       "open": "Otwórz próbnik kolorów",
       "swatches": "Kolory predefiniowane",
       "hex_input": "Kolor szesnastkowy"
+    },
+    "resize": {
+      "timeline_sidebar": "Zmień rozmiar paska bocznego osi czasu",
+      "page_tree": "Zmień rozmiar drzewa stron"
     }
   }
 }

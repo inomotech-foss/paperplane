@@ -42,6 +42,10 @@
       "open": "Abrir selector de color",
       "swatches": "Colores predefinidos",
       "hex_input": "Color hexadecimal"
+    },
+    "resize": {
+      "timeline_sidebar": "Cambiar el tamaño de la barra lateral del cronograma",
+      "page_tree": "Cambiar el tamaño del árbol de páginas"
     }
   }
 }

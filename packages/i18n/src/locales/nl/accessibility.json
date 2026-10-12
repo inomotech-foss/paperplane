@@ -42,6 +42,10 @@
       "open": "Kleurkiezer openen",
       "swatches": "Vooraf ingestelde kleuren",
       "hex_input": "Hexkleur"
+    },
+    "resize": {
+      "timeline_sidebar": "Formaat van de tijdlijnzijbalk wijzigen",
+      "page_tree": "Formaat van de paginastructuur wijzigen"
     }
   }
 }

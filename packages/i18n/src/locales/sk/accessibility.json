@@ -42,6 +42,10 @@
       "open": "Otvoriť výber farby",
       "swatches": "Prednastavené farby",
       "hex_input": "Hexadecimálna farba"
+    },
+    "resize": {
+      "timeline_sidebar": "Zmeniť veľkosť bočného panela časovej osi",
+      "page_tree": "Zmeniť veľkosť stromu stránok"
     }
   }
 }

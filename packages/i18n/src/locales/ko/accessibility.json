@@ -42,6 +42,10 @@
       "open": "색상 선택기 열기",
       "swatches": "기본 색상",
       "hex_input": "16진수 색상"
+    },
+    "resize": {
+      "timeline_sidebar": "타임라인 사이드바 크기 조정",
+      "page_tree": "페이지 트리 크기 조정"
     }
   }
 }
