@@ -101,6 +101,7 @@ export const SpreadsheetIssueRow = observer(function SpreadsheetIssueRow(props: 
       {/* first column/ issue name and key column */}
       <RenderIfVisible
         as="tr"
+        dataAttributes={{ "data-issue-row": issueId }}
         root={containerRef}
         placeholderChildren={
           <td

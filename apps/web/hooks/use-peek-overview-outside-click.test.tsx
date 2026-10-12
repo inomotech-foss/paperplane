@@ -20,6 +20,16 @@ function Harness({ onOutside }: { onOutside: () => void }) {
       <div data-issue-row="i2">
         <button type="button">Other priority</button>
       </div>
+      <table>
+        <tbody>
+          <tr data-issue-row="i1">
+            <td id="issue-i1">Title</td>
+            <td>
+              <button type="button">State</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </>
   );
 }
@@ -29,6 +39,7 @@ describe("usePeekOverviewOutsideClickDetector", () => {
     const onOutside = vi.fn();
     render(<Harness onOutside={onOutside} />);
     fireEvent.mouseDown(screen.getByRole("button", { name: "Priority" }));
+    fireEvent.mouseDown(screen.getByRole("button", { name: "State" }));
     expect(onOutside).not.toHaveBeenCalled();
     fireEvent.mouseDown(screen.getByRole("button", { name: "Other priority" }));
     expect(onOutside).toHaveBeenCalledTimes(1);

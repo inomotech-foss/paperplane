@@ -18,6 +18,7 @@ type Props = {
   // @types/react 19 removed the global JSX namespace; it now lives under React.
   as?: keyof React.JSX.IntrinsicElements;
   classNames?: string;
+  dataAttributes?: Record<`data-${string}`, string>;
   placeholderChildren?: ReactNode;
   defaultValue?: boolean;
   shouldRecordHeights?: boolean;
@@ -34,6 +35,7 @@ function RenderIfVisible(props: Props) {
     as = "div",
     children,
     classNames = "",
+    dataAttributes,
     shouldRecordHeights = true,
     //placeholder children
     placeholderChildren = null, //placeholder children
@@ -97,7 +99,7 @@ function RenderIfVisible(props: Props) {
   const style = isVisible || !shouldRecordHeights ? {} : { height: placeholderHeight.current, width: "100%" };
   const className = isVisible || placeholderChildren ? classNames : cn(classNames, "bg-layer-1");
 
-  return React.createElement(as, { ref: intersectionRef, style, className }, child);
+  return React.createElement(as, { ...dataAttributes, ref: intersectionRef, style, className }, child);
 }
 
 export default RenderIfVisible;
