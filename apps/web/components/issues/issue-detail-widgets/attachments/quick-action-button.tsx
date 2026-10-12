@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import React, { useCallback, useState } from "react";
+import React, { cloneElement, useCallback, useState } from "react";
 import { observer } from "mobx-react";
 import type { FileRejection } from "react-dropzone";
 import { useDropzone } from "react-dropzone";
@@ -23,7 +23,8 @@ type Props = {
   workspaceSlug: string;
   projectId: string;
   issueId: string;
-  customButton?: React.ReactNode;
+  /** Rendered as the upload button itself, so it must accept button props. */
+  customButton?: React.ReactElement<React.ComponentPropsWithRef<"button">>;
   disabled?: boolean;
   issueServiceType: TIssueServiceType;
 };
@@ -101,9 +102,13 @@ export const IssueAttachmentActionButton = observer(function IssueAttachmentActi
         e.stopPropagation();
       }}
     >
-      <button {...getRootProps()} type="button" disabled={disabled}>
-        {customButton ? customButton : <AddOutline className="h-4 w-4" />}
-      </button>
+      {customButton ? (
+        cloneElement(customButton, { ...getRootProps(), disabled })
+      ) : (
+        <button {...getRootProps()} type="button" disabled={disabled}>
+          <AddOutline className="h-4 w-4" />
+        </button>
+      )}
       <input {...getInputProps()} />
     </div>
   );

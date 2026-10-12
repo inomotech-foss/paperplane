@@ -31,7 +31,8 @@ type Props = {
   onError?: (error: any) => void;
   placement?: TPopoverMenuPlacement;
   prompt?: string;
-  button: React.ReactNode;
+  /** Becomes the popover trigger, so it must be a button that toggles `isOpen` itself. */
+  button: React.ReactElement;
   className?: string;
   workspaceId: string;
   workspaceSlug: string;
@@ -198,17 +199,8 @@ export function GptAssistantPopover(props: Props) {
           if (!nextOpen) onClose();
         }}
       >
-        {/* The trigger only anchors the panel: the `button` node the caller hands us already toggles
-            `isOpen`, so a second toggle here would cancel it out. It stays out of the tab order,
-            as the `<button tabIndex={-1}>` it replaces did. */}
-        <PopoverTrigger
-          nativeButton={false}
-          openOnClick={false}
-          tabIndex={-1}
-          render={<span className="flex items-center" />}
-        >
-          {button}
-        </PopoverTrigger>
+        {/* The caller's button already toggles `isOpen`, so the trigger must not toggle it again. */}
+        <PopoverTrigger openOnClick={false} render={button} />
         {/* The popover owns the portal, positioning, enter/leave and the panel surface, so
             the old popper positioning, enter/leave transition and hand-rolled chrome all go. */}
         <PopoverContent variant="rich" side={side} align={align}>

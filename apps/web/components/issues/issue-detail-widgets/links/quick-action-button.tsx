@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import React from "react";
+import React, { cloneElement } from "react";
 import { observer } from "mobx-react";
 import { AddOutline } from "@makeplane/propel/icons";
 // plane imports
@@ -13,7 +13,8 @@ import type { TIssueServiceType } from "@plane/types";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 
 type Props = {
-  customButton?: React.ReactNode;
+  /** Rendered as the add button itself, so it must accept button props. */
+  customButton?: React.ReactElement<React.ComponentPropsWithRef<"button">>;
   disabled?: boolean;
   issueServiceType: TIssueServiceType;
 };
@@ -30,9 +31,11 @@ export const IssueLinksActionButton = observer(function IssueLinksActionButton(p
     toggleIssueLinkModal(true);
   };
 
+  if (customButton) return cloneElement(customButton, { onClick: handleOnClick, disabled });
+
   return (
     <button type="button" onClick={handleOnClick} disabled={disabled}>
-      {customButton ? customButton : <AddOutline className="h-4 w-4" />}
+      <AddOutline className="h-4 w-4" />
     </button>
   );
 });
