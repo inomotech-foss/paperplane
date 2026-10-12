@@ -26,8 +26,10 @@ export const useSidebarSizeObserver = (handleRef: RefObject<HTMLElement | null>)
 
     const observer = new ResizeObserver(() => {
       const width = Math.round(sidebar.getBoundingClientRect().width);
+      // Chrome resolves cqw here without subtracting the scrollbar, so measure the border box
+      const maxWidth = Math.max(width, getSidebarMaxWidth(container.getBoundingClientRect().width));
       handle.setAttribute("aria-valuenow", `${width}`);
-      handle.setAttribute("aria-valuemax", `${getSidebarMaxWidth(container.clientWidth)}`);
+      handle.setAttribute("aria-valuemax", `${maxWidth}`);
       const previousWidth = lastWidth;
       lastWidth = width;
       // the first observation is the mounted width, which rows already measured

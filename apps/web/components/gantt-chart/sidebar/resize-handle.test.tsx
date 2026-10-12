@@ -23,6 +23,7 @@ let observers: TestResizeObserver[] = [];
 
 // jsdom has no layout, so mimic the CSS clamp of the sidebar size
 function layoutRect(this: HTMLElement) {
+  if (this.id === "gantt-container") return DOMRect.fromRect({ width: containerWidth });
   if (this.id !== "gantt-sidebar") return DOMRect.fromRect();
   const chosen = Number.parseFloat(
     this.parentElement?.style.getPropertyValue(SIDEBAR_WIDTH_PROPERTY) || `${SIDEBAR_WIDTH}`
@@ -92,7 +93,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.stubGlobal("ResizeObserver", TestResizeObserver);
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(layoutRect);
-  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockImplementation(() => containerWidth);
+  // a vertical scrollbar, which cqw does not subtract
+  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockImplementation(() => containerWidth - 16);
 });
 
 afterEach(() => {
@@ -225,6 +227,15 @@ describe("TimelineSidebarResizeHandle size observer", () => {
     layoutChanged();
     expect(handle().getAttribute("aria-valuenow")).toBe(`${700 - SIDEBAR_MIN_CHART_WIDTH}`);
     expect(handle().getAttribute("aria-valuemax")).toBe(`${700 - SIDEBAR_MIN_CHART_WIDTH}`);
+  });
+
+  it("never reports a value above the maximum", () => {
+    store("600");
+    containerWidth = 646;
+    renderHandle();
+    layoutChanged();
+    expect(handle().getAttribute("aria-valuenow")).toBe("406");
+    expect(handle().getAttribute("aria-valuemax")).toBe("406");
   });
 
   it("announces a settled change once, but not the mounted width", () => {
