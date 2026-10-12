@@ -14,6 +14,14 @@ from rest_framework.request import Request
 from plane.utils.ip_address import get_client_ip
 
 
+def app_base_url() -> str:
+    """The configured web app URL, for links built outside a request."""
+    base_url = settings.APP_BASE_URL or settings.WEB_URL
+    if not base_url:
+        raise ImproperlyConfigured("APP_BASE_URL or WEB_URL is not set")
+    return base_url.rstrip("/")
+
+
 def base_host(
     request: Request | HttpRequest,
     is_admin: bool = False,

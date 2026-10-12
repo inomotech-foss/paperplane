@@ -304,6 +304,7 @@ class TestIssueEmailReplyEndpoint:
 
         with (
             patch("plane.app.views.service_desk.base.issue_activity") as mock_activity,
+            patch("plane.app.views.service_desk.base.model_activity") as mock_webhook,
             patch("plane.app.views.service_desk.base.service_desk_send_reply") as mock_send,
         ):
             response = session_client.post(
@@ -328,6 +329,8 @@ class TestIssueEmailReplyEndpoint:
 
         mock_send.delay.assert_called_once_with(str(email_message.id))
         assert mock_activity.delay.call_args.kwargs["notification"] is True
+        assert mock_webhook.delay.call_args.kwargs["model_name"] == "issue_comment"
+        assert mock_webhook.delay.call_args.kwargs["model_id"] == str(comment.id)
 
 
 @pytest.mark.contract
@@ -488,6 +491,7 @@ class TestReplyAttachments:
 
         with (
             patch("plane.app.views.service_desk.base.issue_activity"),
+            patch("plane.app.views.service_desk.base.model_activity"),
             patch("plane.app.views.service_desk.base.service_desk_send_reply") as mock_send,
         ):
             response = session_client.post(
@@ -522,6 +526,7 @@ class TestReplyAttachments:
         )
         with (
             patch("plane.app.views.service_desk.base.issue_activity"),
+            patch("plane.app.views.service_desk.base.model_activity"),
             patch("plane.app.views.service_desk.base.service_desk_send_reply"),
         ):
             response = session_client.post(

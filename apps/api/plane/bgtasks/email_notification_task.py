@@ -4,14 +4,12 @@
 
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from bs4 import BeautifulSoup
 
 # Third party imports
 from celery import shared_task
-from django.conf import settings
-from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 
 # Django imports
@@ -19,10 +17,13 @@ from django.utils import timezone
 
 # Module imports
 from plane.db.models import EmailNotificationLog, Issue, Page, User
-from plane.license.utils.instance_value import get_email_configuration
 from plane.settings.redis import redis_instance
 from plane.utils.email import generate_plain_text_from_html
+from plane.utils.email.transport import send_email
 from plane.utils.exception_logger import log_exception
+from plane.utils.host import app_base_url
+
+MAX_EMAIL_AGE = timedelta(days=1)
 
 
 def remove_unwanted_characters(input_text):
@@ -46,54 +47,43 @@ def release_lock(lock_id):
 
 @shared_task
 def stack_email_notification():
-    # get all email notifications
+    now = timezone.now()
+    # Changes this old are no longer worth an email, so drop them instead of sending a backlog.
+    EmailNotificationLog.objects.filter(processed_at__isnull=True, created_at__lt=now - MAX_EMAIL_AGE).update(
+        processed_at=now
+    )
+
     email_notifications = EmailNotificationLog.objects.filter(processed_at__isnull=True).order_by("receiver").values()
 
-    # Create the below format for each of the issues
-    # {"issue_id" : { "actor_id1": [ { data }, { data } ], "actor_id2": [ { data }, { data } ] }}
+    # {receiver_id: {entity_id: {"name": entity_name, "ids": [...], "data": {actor_id: [data, ...]}}}}
+    grouped = {}
+    for notification in email_notifications:
+        entity = grouped.setdefault(str(notification.get("receiver_id")), {}).setdefault(
+            notification.get("entity_identifier"), {"name": notification.get("entity_name"), "ids": [], "data": {}}
+        )
+        entity["ids"].append(notification.get("id"))
+        entity["data"].setdefault(str(notification.get("triggered_by_id")), []).append(notification.get("data"))
 
-    # Convert to unique receivers list
-    receivers = list(set([str(notification.get("receiver_id")) for notification in email_notifications]))
-    processed_notifications = []
-    # Loop through all the issues to create the emails
-    for receiver_id in receivers:
-        # Notification triggered for the receiver
-        receiver_notifications = [
-            notification for notification in email_notifications if str(notification.get("receiver_id")) == receiver_id
-        ]
-        # create payload per entity, tracking each entity's type for dispatch
-        payload = {}
-        entity_names = {}
-        email_notification_ids = []
-        for receiver_notification in receiver_notifications:
-            entity_identifier = receiver_notification.get("entity_identifier")
-            payload.setdefault(entity_identifier, {}).setdefault(
-                str(receiver_notification.get("triggered_by_id")), []
-            ).append(receiver_notification.get("data"))
-            entity_names[entity_identifier] = receiver_notification.get("entity_name")
-            # append processed notifications
-            processed_notifications.append(receiver_notification.get("id"))
-            email_notification_ids.append(receiver_notification.get("id"))
-
-        # Dispatch to the sender for each entity type
-        for entity_identifier, notification_data in payload.items():
-            if entity_names.get(entity_identifier) == "page":
+    for receiver_id, entities in grouped.items():
+        for entity_identifier, entity in entities.items():
+            if entity["name"] == "page":
                 send_page_comment_mention_email.delay(
                     page_id=entity_identifier,
-                    notification_data=notification_data,
+                    notification_data=entity["data"],
                     receiver_id=receiver_id,
-                    email_notification_ids=email_notification_ids,
+                    email_notification_ids=entity["ids"],
                 )
             else:
                 send_email_notification.delay(
                     issue_id=entity_identifier,
-                    notification_data=notification_data,
+                    notification_data=entity["data"],
                     receiver_id=receiver_id,
-                    email_notification_ids=email_notification_ids,
+                    email_notification_ids=entity["ids"],
                 )
 
-    # Update the email notification log
-    EmailNotificationLog.objects.filter(pk__in=processed_notifications).update(processed_at=timezone.now())
+    EmailNotificationLog.objects.filter(pk__in=[notification.get("id") for notification in email_notifications]).update(
+        processed_at=now
+    )
 
 
 def create_payload(notification_data):
@@ -171,26 +161,8 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
     # acquire the lock for sending emails
     try:
         if acquire_lock(lock_id=lock_id):
-            # get the redis instance
-            ri = redis_instance()
-            base_api = ri.get(str(issue_id)).decode() if ri.get(str(issue_id)) else None
-
-            # Skip if base api is not present
-            if not base_api:
-                return
-
+            base_api = app_base_url()
             data = create_payload(notification_data=notification_data)
-
-            # Get email configurations
-            (
-                EMAIL_HOST,
-                EMAIL_HOST_USER,
-                EMAIL_HOST_PASSWORD,
-                EMAIL_PORT,
-                EMAIL_USE_TLS,
-                EMAIL_USE_SSL,
-                EMAIL_FROM,
-            ) = get_email_configuration()
 
             receiver = User.objects.get(pk=receiver_id)
             issue = Issue.objects.get(pk=issue_id)
@@ -275,28 +247,14 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
             text_content = generate_plain_text_from_html(html_content)
 
             try:
-                connection = get_connection(
-                    host=EMAIL_HOST,
-                    port=int(EMAIL_PORT),
-                    username=EMAIL_HOST_USER,
-                    password=EMAIL_HOST_PASSWORD,
-                    use_tls=EMAIL_USE_TLS == "1",
-                    use_ssl=EMAIL_USE_SSL == "1",
-                )
-
-                msg = EmailMultiAlternatives(
+                if send_email(
                     subject=subject,
-                    body=text_content,
-                    from_email=EMAIL_FROM,
                     to=[receiver.email],
-                    connection=connection,
-                )
-                msg.attach_alternative(html_content, "text/html")
-                msg.send()
-                logging.getLogger("plane.worker").info("Email Sent Successfully")
-
-                # Update the logs
-                EmailNotificationLog.objects.filter(pk__in=email_notification_ids).update(sent_at=timezone.now())
+                    text_content=text_content,
+                    html_content=html_content,
+                ):
+                    logging.getLogger("plane.worker").info("Email Sent Successfully")
+                    EmailNotificationLog.objects.filter(pk__in=email_notification_ids).update(sent_at=timezone.now())
 
                 # release the lock
                 release_lock(lock_id=lock_id)
@@ -335,19 +293,10 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
             logging.getLogger("plane.worker").info("Duplicate email received skipping")
             return
 
-        (
-            EMAIL_HOST,
-            EMAIL_HOST_USER,
-            EMAIL_HOST_PASSWORD,
-            EMAIL_PORT,
-            EMAIL_USE_TLS,
-            EMAIL_USE_SSL,
-            EMAIL_FROM,
-        ) = get_email_configuration()
-
         receiver = User.objects.get(pk=receiver_id)
         page = Page.objects.get(pk=page_id)
 
+        base_url = app_base_url()
         mentions = []
         page_name = page.name
         page_url = None
@@ -357,7 +306,10 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
                 page_payload = change.get("page", {})
                 comment_payload = change.get("comment", {})
                 page_name = page_payload.get("name") or page_name
-                page_url = page_payload.get("url") or page_url
+                if page_payload.get("project_id"):
+                    page_url = f"{base_url}/{page.workspace.slug}/projects/{page_payload['project_id']}/pages/{page.id}"
+                else:
+                    page_url = page_payload.get("url") or page_url
                 mentions.append(
                     {
                         "actor_detail": {
@@ -369,7 +321,6 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
                     }
                 )
 
-        base_url = (settings.WEB_URL or "").rstrip("/")
         context = {
             "receiver": {"email": receiver.email},
             "page": {"name": page_name, "url": page_url},
@@ -380,25 +331,14 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
         text_content = generate_plain_text_from_html(html_content)
 
         try:
-            connection = get_connection(
-                host=EMAIL_HOST,
-                port=int(EMAIL_PORT),
-                username=EMAIL_HOST_USER,
-                password=EMAIL_HOST_PASSWORD,
-                use_tls=EMAIL_USE_TLS == "1",
-                use_ssl=EMAIL_USE_SSL == "1",
-            )
-            msg = EmailMultiAlternatives(
+            if send_email(
                 subject=f"You were mentioned in a comment on {remove_unwanted_characters(page_name)}",
-                body=text_content,
-                from_email=EMAIL_FROM,
                 to=[receiver.email],
-                connection=connection,
-            )
-            msg.attach_alternative(html_content, "text/html")
-            msg.send()
-            logging.getLogger("plane.worker").info("Email Sent Successfully")
-            EmailNotificationLog.objects.filter(pk__in=email_notification_ids).update(sent_at=timezone.now())
+                text_content=text_content,
+                html_content=html_content,
+            ):
+                logging.getLogger("plane.worker").info("Email Sent Successfully")
+                EmailNotificationLog.objects.filter(pk__in=email_notification_ids).update(sent_at=timezone.now())
             release_lock(lock_id=lock_id)
             return
         except Exception as e:

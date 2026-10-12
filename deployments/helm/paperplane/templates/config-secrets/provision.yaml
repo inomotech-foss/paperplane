@@ -80,8 +80,37 @@ data:
   PROVISION_WORKSPACE_ROLE: {{ $workspace.autoJoinRole | default "15" | quote }}
   {{- $managed = concat $managed (list "PROVISION_WORKSPACE_SLUG" "PROVISION_WORKSPACE_NAME" "PROVISION_WORKSPACE_ROLE") }}
   {{- end }}
+  {{- $email := .Values.provision.email | default dict }}
+  {{- $emailFiles := $email.files | default dict }}
+  {{- $ms365 := $email.ms365 | default dict }}
+  {{- with $email.transport }}
+  {{- if not (has . (list "smtp" "ms365")) }}
+  {{- fail "provision.email.transport: use smtp or ms365" }}
+  {{- end }}
+  EMAIL_TRANSPORT: {{ . | quote }}
+  {{- $managed = append $managed "EMAIL_TRANSPORT" }}
+  {{- end }}
+  {{- $emailVars := list
+      (dict "key" "EMAIL_FROM" "value" $email.from)
+      (dict "key" "MS365_TENANT_ID" "value" $ms365.tenantId)
+      (dict "key" "MS365_CLIENT_ID" "value" $ms365.clientId)
+      (dict "key" "MS365_CLIENT_SECRET" "value" $ms365.clientSecret "secret" true)
+  }}
+  {{- range $emailVars }}
+  {{- if or .value (get $emailFiles .key) }}
+  {{- include "plane.provision.var" (dict "key" .key "value" .value "default" "" "files" $emailFiles "secret" .secret) | nindent 2 }}
+  {{- $managed = append $managed .key }}
+  {{- end }}
+  {{- end }}
   PROVISION_MANAGED_KEYS: {{ join "," $managed | quote }}
+{{- $secrets := dict }}
 {{- if and $oidc.enabled $oidc.clientSecret (not (get $files "OIDC_CLIENT_SECRET")) }}
+{{- $_ := set $secrets "OIDC_CLIENT_SECRET" $oidc.clientSecret }}
+{{- end }}
+{{- if and $ms365.clientSecret (not (get $emailFiles "MS365_CLIENT_SECRET")) }}
+{{- $_ := set $secrets "MS365_CLIENT_SECRET" $ms365.clientSecret }}
+{{- end }}
+{{- if $secrets }}
 ---
 apiVersion: v1
 kind: Secret
@@ -92,6 +121,8 @@ metadata:
   labels:
     {{- include "plane.commonLabels" $ | nindent 4 }}
 stringData:
-  OIDC_CLIENT_SECRET: {{ $oidc.clientSecret | quote }}
+  {{- range $key, $value := $secrets }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
 {{- end }}
 {{- end }}

@@ -17,7 +17,6 @@ from celery import shared_task
 # Django imports
 from django.conf import settings
 from django.db.models import Prefetch
-from django.core.mail import EmailMultiAlternatives, get_connection
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import render_to_string
 from django.core.exceptions import ObjectDoesNotExist
@@ -49,9 +48,10 @@ from plane.db.models import (
     IssueLabel,
     IssueAssignee,
 )
-from plane.license.utils.instance_value import get_email_configuration
 from plane.utils.email import generate_plain_text_from_html
+from plane.utils.email.transport import send_email
 from plane.utils.exception_logger import log_exception
+from plane.utils.host import app_base_url
 from plane.utils.url_security import pinned_fetch
 
 
@@ -180,16 +180,6 @@ def send_webhook_deactivation_email(webhook_id: str, receiver_id: str, current_s
         reason (str): Reason for webhook deactivation
     """
     try:
-        (
-            EMAIL_HOST,
-            EMAIL_HOST_USER,
-            EMAIL_HOST_PASSWORD,
-            EMAIL_PORT,
-            EMAIL_USE_TLS,
-            EMAIL_USE_SSL,
-            EMAIL_FROM,
-        ) = get_email_configuration()
-
         receiver = User.objects.get(pk=receiver_id)
         webhook = Webhook.objects.get(pk=webhook_id)
 
@@ -198,35 +188,22 @@ def send_webhook_deactivation_email(webhook_id: str, receiver_id: str, current_s
         message = f"Webhook {webhook.url} has been deactivated due to failed requests."
 
         # Send the mail
+        site = current_site or app_base_url()
         context = {
             "email": receiver.email,
             "message": message,
-            "webhook_url": f"{current_site}/{str(webhook.workspace.slug)}/settings/webhooks/{str(webhook.id)}",
+            "webhook_url": f"{site}/{str(webhook.workspace.slug)}/settings/webhooks/{str(webhook.id)}",
         }
         html_content = render_to_string("emails/notifications/webhook-deactivate.html", context)
         text_content = generate_plain_text_from_html(html_content)
 
-        # Set the email connection
-        connection = get_connection(
-            host=EMAIL_HOST,
-            port=int(EMAIL_PORT),
-            username=EMAIL_HOST_USER,
-            password=EMAIL_HOST_PASSWORD,
-            use_tls=EMAIL_USE_TLS == "1",
-            use_ssl=EMAIL_USE_SSL == "1",
-        )
-
-        # Create the email message
-        msg = EmailMultiAlternatives(
+        if send_email(
             subject=subject,
-            body=text_content,
-            from_email=EMAIL_FROM,
             to=[receiver.email],
-            connection=connection,
-        )
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
-        logger.info("Email sent successfully.")
+            text_content=text_content,
+            html_content=html_content,
+        ):
+            logger.info("Email sent successfully.")
     except Exception as e:
         log_exception(e, warning=True)
         logger.error(f"Failed to send email: {e}")
@@ -402,6 +379,7 @@ def webhook_activity(
     event_id: str | uuid.UUID,
     old_identifier: Optional[str],
     new_identifier: Optional[str],
+    source: str = "user",
 ) -> None:
     """
     Process and send webhook notifications for various activities in the system.
@@ -421,6 +399,7 @@ def webhook_activity(
         event_id (str | uuid.UUID): ID of the event object
         old_identifier (Optional[str]): Previous identifier if any
         new_identifier (Optional[str]): New identifier if any
+        source (str): What made the change: "user", "automation" or "service_desk"
 
     Returns:
         None
@@ -462,6 +441,7 @@ def webhook_activity(
                     "actor": get_model_data(event="user", event_id=actor_id),
                     "old_identifier": old_identifier,
                     "new_identifier": new_identifier,
+                    "source": source,
                 },
             )
         return
@@ -476,7 +456,7 @@ def webhook_activity(
 
 
 @shared_task
-def model_activity(model_name, model_id, requested_data, current_instance, actor_id, slug, origin=None):
+def model_activity(model_name, model_id, requested_data, current_instance, actor_id, slug, origin=None, source="user"):
     """Function takes in two json and computes differences between keys of both the json"""
     if current_instance is None:
         webhook_activity.delay(
@@ -491,6 +471,7 @@ def model_activity(model_name, model_id, requested_data, current_instance, actor
             event_id=model_id,
             old_identifier=None,
             new_identifier=None,
+            source=source,
         )
         return
 
@@ -516,6 +497,7 @@ def model_activity(model_name, model_id, requested_data, current_instance, actor
                     event_id=model_id,
                     old_identifier=None,
                     new_identifier=None,
+                    source=source,
                 )
 
     return

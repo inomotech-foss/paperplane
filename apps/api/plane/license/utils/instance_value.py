@@ -21,8 +21,9 @@ def get_managed_configuration_keys():
     return {key.strip() for key in raw.split(",") if key.strip()}
 
 
-# Helper function to return value from the passed key
-def get_configuration_value(keys):
+# Helper function to return value from the passed key. With decrypt=False,
+# encrypted values come back as ciphertext, which is enough for presence checks.
+def get_configuration_value(keys, decrypt=True):
     environment_list = []
     if settings.SKIP_ENV_VAR:
         # Get the configurations
@@ -31,7 +32,7 @@ def get_configuration_value(keys):
         for key in keys:
             for item in instance_configuration:
                 if key.get("key") == item.get("key"):
-                    if item.get("is_encrypted", False):
+                    if decrypt and item.get("is_encrypted", False):
                         environment_list.append(decrypt_data(item.get("value")))
                     else:
                         environment_list.append(item.get("value"))
@@ -47,21 +48,13 @@ def get_configuration_value(keys):
     return tuple(environment_list)
 
 
-def get_email_configuration():
+def get_ms365_configuration(decrypt=True):
+    """Tenant ID, client ID and client secret of the Microsoft 365 app registration."""
     return get_configuration_value(
         [
-            {"key": "EMAIL_HOST", "default": os.environ.get("EMAIL_HOST")},
-            {"key": "EMAIL_HOST_USER", "default": os.environ.get("EMAIL_HOST_USER")},
-            {
-                "key": "EMAIL_HOST_PASSWORD",
-                "default": os.environ.get("EMAIL_HOST_PASSWORD"),
-            },
-            {"key": "EMAIL_PORT", "default": os.environ.get("EMAIL_PORT", 587)},
-            {"key": "EMAIL_USE_TLS", "default": os.environ.get("EMAIL_USE_TLS", "1")},
-            {"key": "EMAIL_USE_SSL", "default": os.environ.get("EMAIL_USE_SSL", "0")},
-            {
-                "key": "EMAIL_FROM",
-                "default": os.environ.get("EMAIL_FROM", "Team Plane <team@mailer.plane.so>"),
-            },
-        ]
+            {"key": "MS365_TENANT_ID", "default": os.environ.get("MS365_TENANT_ID")},
+            {"key": "MS365_CLIENT_ID", "default": os.environ.get("MS365_CLIENT_ID")},
+            {"key": "MS365_CLIENT_SECRET", "default": os.environ.get("MS365_CLIENT_SECRET")},
+        ],
+        decrypt=decrypt,
     )

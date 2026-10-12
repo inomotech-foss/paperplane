@@ -114,7 +114,7 @@ export function SendTestEmailModal(props: Props) {
                 <p>
                   We have sent the test email to {receiverEmail}. Please check your spam folder if you cannot find it.
                 </p>
-                <p>If you still cannot find it, recheck your SMTP configuration and trigger a new test email.</p>
+                <p>If you still cannot find it, recheck your email configuration and trigger a new test email.</p>
               </div>
             )}
             {sendEmailStep === ESendEmailSteps.FAILED && <div className="text-13">{error}</div>}

@@ -4,10 +4,11 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { Switch } from "@makeplane/propel/components/switch";
+import type { IFormattedInstanceConfiguration } from "@plane/types";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 import { Skeleton } from "@/components/common/skeleton";
@@ -19,21 +20,28 @@ import type { Route } from "./+types/page";
 // local
 import { InstanceEmailForm } from "./email-config-form";
 
+const isEmailConfigured = (config: IFormattedInstanceConfiguration) =>
+  config.EMAIL_TRANSPORT === "ms365"
+    ? Boolean(config.EMAIL_FROM && config.MS365_TENANT_ID && config.MS365_CLIENT_ID && config.MS365_CLIENT_SECRET)
+    : Boolean(config.EMAIL_HOST);
+
 const InstanceEmailPage = observer(function InstanceEmailPage(_props: Route.ComponentProps) {
   // store
-  const { fetchInstanceConfigurations, formattedConfig, disableEmail } = useInstance();
+  const { fetchInstanceConfigurations, formattedConfig, disableEmail, managedConfigurationKeys } = useInstance();
 
   const { isLoading } = useSWR("INSTANCE_CONFIGURATIONS", () => fetchInstanceConfigurations());
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSMTPEnabled, setIsSMTPEnabled] = useState(false);
+  // The form stays open after switching on, before anything is saved.
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const isEmailEnabled = isFormOpen || (formattedConfig ? isEmailConfigured(formattedConfig) : false);
 
   const handleToggle = async () => {
-    if (isSMTPEnabled) {
+    if (isEmailEnabled) {
       setIsSubmitting(true);
       try {
         await disableEmail();
-        setIsSMTPEnabled(false);
+        setIsFormOpen(false);
         setToast({
           title: "Email feature disabled",
           message: "Email feature has been disabled",
@@ -50,13 +58,8 @@ const InstanceEmailPage = observer(function InstanceEmailPage(_props: Route.Comp
       }
       return;
     }
-    setIsSMTPEnabled(true);
+    setIsFormOpen(true);
   };
-  useEffect(() => {
-    if (formattedConfig) {
-      setIsSMTPEnabled(formattedConfig.ENABLE_SMTP === "1");
-    }
-  }, [formattedConfig]);
 
   return (
     <PageWrapper
@@ -64,7 +67,7 @@ const InstanceEmailPage = observer(function InstanceEmailPage(_props: Route.Comp
         title: "Secure emails from your own instance",
         description: (
           <>
-            Plane can send useful emails to you and your users from your own instance without talking to the Internet.
+            Plane can send useful emails to you and your users through your own SMTP server or Microsoft 365.
             <div className="text-13 font-regular text-tertiary">
               Set it up below and please test your settings before you save them.&nbsp;
               <span className="text-danger-primary">Misconfigs can lead to email bounces and errors.</span>
@@ -77,16 +80,16 @@ const InstanceEmailPage = observer(function InstanceEmailPage(_props: Route.Comp
           </Skeleton>
         ) : (
           <Switch
-            aria-label="Enable SMTP email"
-            checked={isSMTPEnabled}
+            aria-label="Enable email"
+            checked={isEmailEnabled}
             onCheckedChange={handleToggle}
             size="sm"
-            disabled={isSubmitting}
+            disabled={isSubmitting || managedConfigurationKeys.has("EMAIL_TRANSPORT")}
           />
         ),
       }}
     >
-      {isSMTPEnabled && !isLoading && (
+      {isEmailEnabled && !isLoading && (
         <>
           {formattedConfig ? (
             <InstanceEmailForm config={formattedConfig} />

@@ -8,10 +8,15 @@ import { useForm } from "react-hook-form";
 import { Lightbulb } from "lucide-react";
 import { Button } from "@makeplane/propel/components/button";
 import { setToast } from "@plane/blocks/toast";
-import type { IFormattedInstanceConfiguration, TInstanceServiceDeskConfigurationKeys } from "@plane/types";
+import type {
+  IFormattedInstanceConfiguration,
+  TInstanceMs365ConfigurationKeys,
+  TInstanceServiceDeskConfigurationKeys,
+} from "@plane/types";
 // components
 import type { TControllerInputFormField } from "@/components/common/controller-input";
 import { ControllerInput } from "@/components/common/controller-input";
+import { getMs365CredentialFields } from "@/components/common/ms365-credential-fields";
 // hooks
 import { useInstance } from "@/hooks/store";
 
@@ -19,12 +24,12 @@ type IInstanceServiceDeskForm = {
   config: IFormattedInstanceConfiguration;
 };
 
-type ServiceDeskFormValues = Record<TInstanceServiceDeskConfigurationKeys, string>;
+type ServiceDeskFormValues = Record<TInstanceServiceDeskConfigurationKeys | TInstanceMs365ConfigurationKeys, string>;
 
 export function InstanceServiceDeskForm(props: IInstanceServiceDeskForm) {
   const { config } = props;
   // store
-  const { updateInstanceConfigurations } = useInstance();
+  const { updateInstanceConfigurations, managedConfigurationKeys } = useInstance();
   // form data
   const {
     handleSubmit,
@@ -32,41 +37,15 @@ export function InstanceServiceDeskForm(props: IInstanceServiceDeskForm) {
     formState: { errors, isSubmitting },
   } = useForm<ServiceDeskFormValues>({
     defaultValues: {
-      SERVICE_DESK_MS365_TENANT_ID: config["SERVICE_DESK_MS365_TENANT_ID"],
-      SERVICE_DESK_MS365_CLIENT_ID: config["SERVICE_DESK_MS365_CLIENT_ID"],
-      SERVICE_DESK_MS365_CLIENT_SECRET: config["SERVICE_DESK_MS365_CLIENT_SECRET"],
+      MS365_TENANT_ID: config["MS365_TENANT_ID"],
+      MS365_CLIENT_ID: config["MS365_CLIENT_ID"],
+      MS365_CLIENT_SECRET: config["MS365_CLIENT_SECRET"],
       SERVICE_DESK_WEBHOOK_URL: config["SERVICE_DESK_WEBHOOK_URL"],
     },
   });
 
   const serviceDeskFormFields: TControllerInputFormField<ServiceDeskFormValues>[] = [
-    {
-      key: "SERVICE_DESK_MS365_TENANT_ID",
-      type: "text",
-      label: "Tenant ID",
-      description: "The directory (tenant) ID of your Microsoft Entra ID (Azure AD) tenant.",
-      placeholder: "00000000-0000-0000-0000-000000000000",
-      error: Boolean(errors.SERVICE_DESK_MS365_TENANT_ID),
-      required: false,
-    },
-    {
-      key: "SERVICE_DESK_MS365_CLIENT_ID",
-      type: "text",
-      label: "Client ID",
-      description: "The application (client) ID of your Microsoft 365 app registration.",
-      placeholder: "00000000-0000-0000-0000-000000000000",
-      error: Boolean(errors.SERVICE_DESK_MS365_CLIENT_ID),
-      required: false,
-    },
-    {
-      key: "SERVICE_DESK_MS365_CLIENT_SECRET",
-      type: "password",
-      label: "Client secret",
-      description: "A client secret created for the app registration.",
-      placeholder: "Client secret",
-      error: Boolean(errors.SERVICE_DESK_MS365_CLIENT_SECRET),
-      required: false,
-    },
+    ...getMs365CredentialFields(errors, false),
     {
       key: "SERVICE_DESK_WEBHOOK_URL",
       type: "text",
@@ -99,7 +78,8 @@ export function InstanceServiceDeskForm(props: IInstanceServiceDeskForm) {
         <div>
           <div className="pb-1 text-18 font-medium text-primary">Microsoft 365</div>
           <div className="text-13 font-regular text-tertiary">
-            Credentials of the app registration Plane uses to read the service desk mailboxes.
+            Credentials of the app registration Plane uses to read the service desk mailboxes. Outgoing email through
+            Microsoft 365 uses the same credentials.
           </div>
         </div>
         <div className="grid-col grid w-full max-w-4xl grid-cols-1 items-start justify-between gap-x-12 gap-y-8 lg:grid-cols-2">
@@ -114,6 +94,7 @@ export function InstanceServiceDeskForm(props: IInstanceServiceDeskForm) {
               placeholder={field.placeholder}
               error={field.error}
               required={field.required}
+              disabled={managedConfigurationKeys.has(field.key)}
             />
           ))}
         </div>

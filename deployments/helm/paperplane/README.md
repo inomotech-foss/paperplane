@@ -747,6 +747,30 @@ user at startup and the owner field grants no permissions of its own. Do not
 delete that bot account: the owner foreign key cascades, so removing it would
 delete the workspace with it.
 
+### Outgoing email through Microsoft 365
+
+Set `provision.email.transport: ms365` to send all email through Microsoft
+Graph instead of SMTP. The mailbox in `from` sends the mail. The Entra app
+registration needs the `Mail.Send` application permission. The service desk
+uses the same app registration. Limit its mailbox access to the sender and the
+service desk mailboxes with Exchange Online RBAC for Applications.
+
+```yaml
+provision:
+  enabled: true
+  email:
+    transport: ms365
+    from: "Plane <plane@acme.com>"
+    ms365:
+      tenantId: "<tenant-id>"
+      clientId: "<client-id>"
+    files:
+      MS365_CLIENT_SECRET: /mnt/secrets-store/ms365-client-secret
+```
+
+Graph saves each sent message in the Sent Items folder of the sender mailbox.
+Add a retention policy to that mailbox if you do not want to keep them.
+
 ## Custom Ingress Routes
 
 If you are planning to use 3rd party ingress providers, here is the available route configuration

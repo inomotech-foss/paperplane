@@ -306,8 +306,9 @@ oidc_config_variables = [
 
 smtp_config_variables = [
     {
-        "key": "ENABLE_SMTP",
-        "value": os.environ.get("ENABLE_SMTP", "0"),
+        # "smtp" or "ms365" (Microsoft Graph with the MS365_* app credentials)
+        "key": "EMAIL_TRANSPORT",
+        "value": os.environ.get("EMAIL_TRANSPORT", "smtp"),
         "category": "SMTP",
         "is_encrypted": False,
     },

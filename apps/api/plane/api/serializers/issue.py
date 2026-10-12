@@ -16,6 +16,7 @@ from plane.db.models import (
     IssueType,
     IssueActivity,
     IssueAssignee,
+    IssueSubscriber,
     FileAsset,
     IssueComment,
     IssueLabel,
@@ -229,6 +230,14 @@ class IssueSerializer(BaseSerializer):
                 ):
                     IssueAssignee.objects.create(
                         assignee_id=default_assignee_id,
+                        issue=issue,
+                        project_id=project_id,
+                        workspace_id=workspace_id,
+                        created_by_id=created_by_id,
+                        updated_by_id=updated_by_id,
+                    )
+                    IssueSubscriber.objects.create(
+                        subscriber_id=default_assignee_id,
                         issue=issue,
                         project_id=project_id,
                         workspace_id=workspace_id,

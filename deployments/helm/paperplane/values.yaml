@@ -380,6 +380,22 @@ provision:
       #     OIDC_CLIENT_ID: /mnt/secrets-store/client-id
       files: {}
 
+  # Outgoing email. Each key is managed only when set. SMTP server settings
+  # stay in the admin UI.
+  email:
+    # "smtp" or "ms365" (Microsoft Graph).
+    transport: ""
+    # Sender address. With ms365 this mailbox sends the mail.
+    from: ""
+    # Microsoft Entra app registration, shared with the service desk. Email
+    # needs the Mail.Send application permission.
+    ms365:
+      tenantId: ""
+      clientId: ""
+      clientSecret: ""
+    # Same as auth.oidc.files, for EMAIL_FROM and the MS365_* keys.
+    files: {}
+
 env:
 
   # NEXT_PUBLIC_DEPLOY_URL:  ""

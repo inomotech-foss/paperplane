@@ -3,7 +3,6 @@
 # See the LICENSE file for details.
 
 # Django imports
-from django.conf import settings
 from django.db import IntegrityError
 from django.utils import timezone
 
@@ -25,9 +24,9 @@ from plane.db.models import (
     ProjectMember,
     Notification,
     EmailNotificationLog,
-    UserNotificationPreference,
 )
 from plane.utils.mentions import mentionable_user_ids
+from plane.utils.notification_preference import notification_preferences
 
 
 def _extract_mentioned_user_ids(html):
@@ -126,15 +125,11 @@ class PageCommentViewSet(BaseViewSet):
 
     def _queue_mention_emails(self, comment, request, slug, project_id, page, recipients):
         """Log mention emails for recipients who allow them; a periodic task sends them."""
-        email_recipients = set(
-            UserNotificationPreference.objects.filter(user_id__in=recipients, mention=True).values_list(
-                "user_id", flat=True
-            )
-        )
+        email_recipients = [
+            user_id for user_id, preference in notification_preferences(recipients).items() if preference.mention
+        ]
         if not email_recipients:
             return
-        base_url = (settings.WEB_URL or "").rstrip("/")
-        page_url = f"{base_url}/{slug}/projects/{project_id}/pages/{comment.page_id}"
         snippet = (comment.comment_stripped or "")[:300]
         EmailNotificationLog.objects.bulk_create(
             [
@@ -144,7 +139,7 @@ class PageCommentViewSet(BaseViewSet):
                     entity_identifier=comment.page_id,
                     entity_name="page",
                     data={
-                        "page": {"id": str(comment.page_id), "name": page.name, "url": page_url},
+                        "page": {"id": str(comment.page_id), "name": page.name, "project_id": str(project_id)},
                         "comment": {"id": str(comment.id), "snippet": snippet},
                     },
                 )

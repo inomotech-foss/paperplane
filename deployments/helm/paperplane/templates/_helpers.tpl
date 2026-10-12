@@ -80,7 +80,7 @@ file for the same key is rejected.
 {{- define "plane.provision.var" -}}
 {{- $file := get .files .key -}}
 {{- if and $file .value -}}
-{{- fail (printf "provision.auth.oidc: %s cannot be set both inline and via files" .key) -}}
+{{- fail (printf "provision: %s cannot be set both inline and via files" .key) -}}
 {{- end -}}
 {{- if $file -}}
 {{ .key }}_FILE: {{ $file | quote }}

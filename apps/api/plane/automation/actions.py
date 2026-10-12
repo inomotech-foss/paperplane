@@ -116,7 +116,24 @@ def _resolve_date(value, context):
         raise ActionError(f"'{value}' is not a valid date.") from exception
 
 
-def _log_issue_activity(context, run, requested_data, current_instance, activity_type="issue.activity.updated"):
+def _send_webhook(model_name, model_id, project, actor_id, requested_data, current_instance=None):
+    """Fire the webhooks the equivalent REST change fires."""
+    from plane.bgtasks.webhook_task import model_activity
+
+    model_activity.delay(
+        model_name=model_name,
+        model_id=str(model_id),
+        requested_data=requested_data,
+        current_instance=None if current_instance is None else json.dumps(current_instance, cls=DjangoJSONEncoder),
+        actor_id=str(actor_id) if actor_id else None,
+        slug=project.workspace.slug,
+        source="automation",
+    )
+
+
+def _log_issue_activity(
+    context, run, requested_data, current_instance, activity_type="issue.activity.updated", webhook=True
+):
     """Queue an activity entry tagged with the automation lineage."""
     # Imported lazily: issue_activities_task imports models at module scope and
     # a top-level import here creates a cycle through plane.db.
@@ -136,6 +153,15 @@ def _log_issue_activity(context, run, requested_data, current_instance, activity
             "automation_ids": [*run.ancestor_automation_ids, str(run.automation.id)],
         },
     )
+    if webhook:
+        _send_webhook(
+            "issue",
+            context.work_item.id,
+            context.project,
+            run.actor_id,
+            json.loads(json.dumps(requested_data, cls=DjangoJSONEncoder)),
+            current_instance,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -381,8 +407,12 @@ def handle_change_property(action, context, run):
     activity_key = ACTIVITY_KEY_FOR_PROPERTY.get(property_key, property_key)
     # `track_estimate_points` dereferences the new estimate unconditionally, so
     # clearing one would raise inside the activity task. Skip the feed entry
-    # rather than queue a call that is guaranteed to fail.
-    if not (activity_key == "estimate_point" and after is None):
+    # rather than queue a call that is guaranteed to fail, but still fire the webhook.
+    if activity_key == "estimate_point" and after is None:
+        _send_webhook(
+            "issue", work_item.id, context.project, run.actor_id, {activity_key: None}, {activity_key: before}
+        )
+    else:
         _log_issue_activity(context, run, {activity_key: after}, {activity_key: before})
     context.invalidate(property_key, "state_group")
     return _step(action, "success", f"{property_key} updated.")
@@ -428,6 +458,7 @@ def handle_add_comment(action, context, run):
             "automation_ids": [*run.ancestor_automation_ids, str(run.automation.id)],
         },
     )
+    _send_webhook("issue_comment", comment.id, work_item.project, run.actor_id, {"comment_html": comment_html})
     return _step(action, "success", "Comment added.")
 
 
@@ -600,10 +631,14 @@ def handle_create_work_item(action, context, run):
     )
 
     assignee_ids = _uuid_list(config.get("assignee_ids"))
+    allowed_assignees = []
     if assignee_ids:
-        allowed = ProjectMember.objects.filter(
-            project_id=project.id, member_id__in=assignee_ids, is_active=True
-        ).values_list("member_id", flat=True)
+        allowed_assignees = [
+            str(member_id)
+            for member_id in ProjectMember.objects.filter(
+                project_id=project.id, member_id__in=assignee_ids, is_active=True
+            ).values_list("member_id", flat=True)
+        ]
         IssueAssignee.objects.bulk_create(
             [
                 IssueAssignee(
@@ -613,7 +648,7 @@ def handle_create_work_item(action, context, run):
                     workspace_id=project.workspace_id,
                     created_by_id=run.actor_id,
                 )
-                for member_id in allowed
+                for member_id in allowed_assignees
             ],
             batch_size=100,
             ignore_conflicts=True,
@@ -641,7 +676,10 @@ def handle_create_work_item(action, context, run):
 
     issue_activity.delay(
         type="issue.activity.created",
-        requested_data=json.dumps({"name": name, "id": str(work_item.id)}, cls=DjangoJSONEncoder),
+        requested_data=json.dumps(
+            {"name": name, "id": str(work_item.id), "assignee_ids": allowed_assignees},
+            cls=DjangoJSONEncoder,
+        ),
         actor_id=str(run.actor_id) if run.actor_id else None,
         issue_id=str(work_item.id),
         project_id=str(project.id),
@@ -653,6 +691,7 @@ def handle_create_work_item(action, context, run):
             "automation_ids": [*run.ancestor_automation_ids, str(run.automation.id)],
         },
     )
+    _send_webhook("issue", work_item.id, project, run.actor_id, {"name": name})
     return _step(
         action,
         "success",
@@ -681,6 +720,7 @@ def handle_archive_work_item(action, context, run):
         run,
         {"archived_at": str(archived_at), "automation": True},
         {"archived_at": None},
+        webhook=False,
     )
     context.invalidate("is_archived")
     return _step(action, "success", "Work item archived.")
