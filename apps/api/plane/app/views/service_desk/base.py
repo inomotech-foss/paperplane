@@ -31,6 +31,7 @@ from plane.app.serializers import (
 )
 from plane.app.views.base import BaseAPIView
 from plane.bgtasks.issue_activities_task import issue_activity
+from plane.bgtasks.webhook_task import model_activity
 from plane.bgtasks.service_desk_task import (
     service_desk_maintain_subscriptions,
     service_desk_send_reply,
@@ -317,6 +318,15 @@ class IssueEmailReplyEndpoint(BaseAPIView):
             current_instance=None,
             epoch=int(timezone.now().timestamp()),
             notification=True,
+            origin=base_host(request=request, is_app=True),
+        )
+        model_activity.delay(
+            model_name="issue_comment",
+            model_id=str(comment.id),
+            requested_data={"comment_html": comment.comment_html},
+            current_instance=None,
+            actor_id=str(request.user.id),
+            slug=slug,
             origin=base_host(request=request, is_app=True),
         )
 

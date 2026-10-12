@@ -24,6 +24,7 @@ from django.utils.html import strip_tags
 
 # Module imports
 from plane.bgtasks.issue_activities_task import issue_activity
+from plane.bgtasks.webhook_task import model_activity
 from plane.db.models import (
     FileAsset,
     Intake,
@@ -45,6 +46,7 @@ from plane.license.utils.instance_value import get_configuration_value
 from plane.settings.redis import redis_instance
 from plane.settings.storage import S3Storage
 from plane.utils.exception_logger import log_exception
+from plane.utils.host import app_base_url
 from plane.utils.ms365_graph import MSGraphError, MSGraphMailClient
 
 SERVICE_DESK_BOT_EMAIL = "service-desk-bot@plane.internal"
@@ -289,6 +291,15 @@ def _append_customer_reply(thread, bot, message, sender, sender_name, to_emails,
         epoch=int(timezone.now().timestamp()),
         subscriber=False,  # don't subscribe the bot actor
         notification=True,
+    )
+    model_activity.delay(
+        model_name="issue_comment",
+        model_id=str(comment.id),
+        requested_data={"comment_html": comment.comment_html},
+        current_instance=None,
+        actor_id=str(bot.id),
+        slug=comment.workspace.slug,
+        origin=app_base_url(),
     )
     return thread.issue, comment_message
 
