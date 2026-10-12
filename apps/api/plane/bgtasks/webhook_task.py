@@ -52,6 +52,7 @@ from plane.db.models import (
 from plane.license.utils.instance_value import get_email_configuration
 from plane.utils.email import generate_plain_text_from_html
 from plane.utils.exception_logger import log_exception
+from plane.utils.host import app_base_url
 from plane.utils.url_security import pinned_fetch
 
 
@@ -198,10 +199,11 @@ def send_webhook_deactivation_email(webhook_id: str, receiver_id: str, current_s
         message = f"Webhook {webhook.url} has been deactivated due to failed requests."
 
         # Send the mail
+        site = current_site or app_base_url()
         context = {
             "email": receiver.email,
             "message": message,
-            "webhook_url": f"{current_site}/{str(webhook.workspace.slug)}/settings/webhooks/{str(webhook.id)}",
+            "webhook_url": f"{site}/{str(webhook.workspace.slug)}/settings/webhooks/{str(webhook.id)}",
         }
         html_content = render_to_string("emails/notifications/webhook-deactivate.html", context)
         text_content = generate_plain_text_from_html(html_content)
@@ -402,6 +404,7 @@ def webhook_activity(
     event_id: str | uuid.UUID,
     old_identifier: Optional[str],
     new_identifier: Optional[str],
+    source: str = "user",
 ) -> None:
     """
     Process and send webhook notifications for various activities in the system.
@@ -421,6 +424,7 @@ def webhook_activity(
         event_id (str | uuid.UUID): ID of the event object
         old_identifier (Optional[str]): Previous identifier if any
         new_identifier (Optional[str]): New identifier if any
+        source (str): What made the change: "user", "automation" or "service_desk"
 
     Returns:
         None
@@ -462,6 +466,7 @@ def webhook_activity(
                     "actor": get_model_data(event="user", event_id=actor_id),
                     "old_identifier": old_identifier,
                     "new_identifier": new_identifier,
+                    "source": source,
                 },
             )
         return
@@ -476,7 +481,7 @@ def webhook_activity(
 
 
 @shared_task
-def model_activity(model_name, model_id, requested_data, current_instance, actor_id, slug, origin=None):
+def model_activity(model_name, model_id, requested_data, current_instance, actor_id, slug, origin=None, source="user"):
     """Function takes in two json and computes differences between keys of both the json"""
     if current_instance is None:
         webhook_activity.delay(
@@ -491,6 +496,7 @@ def model_activity(model_name, model_id, requested_data, current_instance, actor
             event_id=model_id,
             old_identifier=None,
             new_identifier=None,
+            source=source,
         )
         return
 
@@ -516,6 +522,7 @@ def model_activity(model_name, model_id, requested_data, current_instance, actor
                     event_id=model_id,
                     old_identifier=None,
                     new_identifier=None,
+                    source=source,
                 )
 
     return

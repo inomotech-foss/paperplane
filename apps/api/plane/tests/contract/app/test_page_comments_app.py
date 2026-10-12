@@ -319,6 +319,18 @@ class TestPageCommentsAppEndpoint:
         assert logs.first().data["page"]["name"] == page.name
 
     @pytest.mark.django_db
+    def test_mention_queues_email_without_a_preference_row(
+        self, session_client, workspace, project, page, member_client
+    ):
+        _client, member = member_client
+        UserNotificationPreference.objects.filter(user=member).delete()
+        url = base_url(workspace.slug, project.id, page.id)
+        response = session_client.post(url, {"comment_html": mention_html(member.id), "anchor_id": "t1"}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        log = EmailNotificationLog.objects.get(receiver=member, entity_name="page")
+        assert log.data["page"]["project_id"] == str(project.id)
+
+    @pytest.mark.django_db
     def test_mention_no_email_when_disabled(self, session_client, workspace, project, page, member_client):
         _client, member = member_client
         UserNotificationPreference.objects.filter(user=member).update(mention=False)

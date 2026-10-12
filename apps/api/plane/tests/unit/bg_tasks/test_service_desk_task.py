@@ -203,6 +203,7 @@ class TestServiceDeskPoll:
         assert webhook_kwargs["model_id"] == str(comment.id)
         assert webhook_kwargs["current_instance"] is None
         assert webhook_kwargs["slug"] == service_desk_config.project.workspace.slug
+        assert webhook_kwargs["source"] == "service_desk"
 
     @pytest.mark.django_db
     def test_skips_duplicates_and_own_messages(self, service_desk_config):

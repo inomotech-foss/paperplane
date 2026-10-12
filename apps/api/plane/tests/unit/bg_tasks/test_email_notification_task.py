@@ -7,8 +7,12 @@ import pytest
 from django.core import mail
 from django.utils import timezone
 
-from plane.bgtasks.email_notification_task import send_email_notification, stack_email_notification
-from plane.db.models import EmailNotificationLog, Issue, Project, State, User
+from plane.bgtasks.email_notification_task import (
+    send_email_notification,
+    send_page_comment_mention_email,
+    stack_email_notification,
+)
+from plane.db.models import EmailNotificationLog, Issue, Page, Project, State, User
 from plane.utils.issue_type import link_starter_type
 
 pytestmark = pytest.mark.unit
@@ -108,3 +112,22 @@ def test_sends_without_a_request_origin_and_marks_only_its_logs(project, receive
     other_log.refresh_from_db()
     assert sent_log.sent_at is not None
     assert other_log.sent_at is None
+
+
+def test_a_page_mention_links_to_the_configured_app_url(project, receiver, create_user, smtp):
+    page = Page.objects.create(name="Runbook", workspace=project.workspace, owned_by=create_user)
+    data = {
+        "page": {"id": str(page.id), "name": page.name, "project_id": str(project.id)},
+        "comment": {"snippet": "hi"},
+    }
+
+    send_page_comment_mention_email(
+        page_id=str(page.id),
+        notification_data={str(create_user.id): [data]},
+        receiver_id=str(receiver.id),
+        email_notification_ids=[],
+    )
+
+    assert len(mail.outbox) == 1
+    page_url = f"https://plane.example.com/{project.workspace.slug}/projects/{project.id}/pages/{page.id}"
+    assert page_url in mail.outbox[0].alternatives[0][0]

@@ -46,7 +46,6 @@ from plane.db.models import (
     State,
 )
 from plane.db.models.project import ROLE
-from plane.utils.host import app_base_url
 from plane.utils.issue_type import is_type_linked
 from plane.utils.url_security import pinned_fetch
 
@@ -128,7 +127,7 @@ def _send_webhook(model_name, model_id, project, actor_id, requested_data, curre
         current_instance=None if current_instance is None else json.dumps(current_instance, cls=DjangoJSONEncoder),
         actor_id=str(actor_id) if actor_id else None,
         slug=project.workspace.slug,
-        origin=app_base_url(),
+        source="automation",
     )
 
 
@@ -408,8 +407,12 @@ def handle_change_property(action, context, run):
     activity_key = ACTIVITY_KEY_FOR_PROPERTY.get(property_key, property_key)
     # `track_estimate_points` dereferences the new estimate unconditionally, so
     # clearing one would raise inside the activity task. Skip the feed entry
-    # rather than queue a call that is guaranteed to fail.
-    if not (activity_key == "estimate_point" and after is None):
+    # rather than queue a call that is guaranteed to fail, but still fire the webhook.
+    if activity_key == "estimate_point" and after is None:
+        _send_webhook(
+            "issue", work_item.id, context.project, run.actor_id, {activity_key: None}, {activity_key: before}
+        )
+    else:
         _log_issue_activity(context, run, {activity_key: after}, {activity_key: before})
     context.invalidate(property_key, "state_group")
     return _step(action, "success", f"{property_key} updated.")

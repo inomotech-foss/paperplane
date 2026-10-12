@@ -332,6 +332,7 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
         receiver = User.objects.get(pk=receiver_id)
         page = Page.objects.get(pk=page_id)
 
+        base_url = app_base_url()
         mentions = []
         page_name = page.name
         page_url = None
@@ -341,7 +342,10 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
                 page_payload = change.get("page", {})
                 comment_payload = change.get("comment", {})
                 page_name = page_payload.get("name") or page_name
-                page_url = page_payload.get("url") or page_url
+                if page_payload.get("project_id"):
+                    page_url = f"{base_url}/{page.workspace.slug}/projects/{page_payload['project_id']}/pages/{page.id}"
+                else:
+                    page_url = page_payload.get("url") or page_url
                 mentions.append(
                     {
                         "actor_detail": {
@@ -353,7 +357,6 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
                     }
                 )
 
-        base_url = app_base_url()
         context = {
             "receiver": {"email": receiver.email},
             "page": {"name": page_name, "url": page_url},

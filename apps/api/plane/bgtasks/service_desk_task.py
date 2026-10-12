@@ -46,7 +46,6 @@ from plane.license.utils.instance_value import get_configuration_value
 from plane.settings.redis import redis_instance
 from plane.settings.storage import S3Storage
 from plane.utils.exception_logger import log_exception
-from plane.utils.host import app_base_url
 from plane.utils.ms365_graph import MSGraphError, MSGraphMailClient
 
 SERVICE_DESK_BOT_EMAIL = "service-desk-bot@plane.internal"
@@ -299,7 +298,7 @@ def _append_customer_reply(thread, bot, message, sender, sender_name, to_emails,
         current_instance=None,
         actor_id=str(bot.id),
         slug=comment.workspace.slug,
-        origin=app_base_url(),
+        source="service_desk",
     )
     return thread.issue, comment_message
 

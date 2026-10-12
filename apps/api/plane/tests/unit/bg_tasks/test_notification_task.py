@@ -22,6 +22,7 @@ from plane.db.models import (
     WorkspaceMember,
 )
 from plane.utils.issue_type import link_starter_type
+from plane.utils.notification_preference import notification_preference
 
 pytestmark = pytest.mark.unit
 
@@ -254,3 +255,22 @@ def test_other_users_outside_the_project_are_not_notified(issue, create_user, op
 
     assert not Notification.objects.filter(receiver=outsider).exists()
     assert not EmailNotificationLog.objects.filter(receiver=outsider).exists()
+
+
+def test_a_bot_without_a_preference_row_gets_no_email(issue, create_user):
+    bot = add_member(issue.project, "bot@plane.so")
+    User.objects.filter(pk=bot.pk).update(is_bot=True)
+    UserNotificationPreference.objects.filter(user=bot).delete()
+    IssueSubscriber.objects.create(project=issue.project, workspace=issue.workspace, issue=issue, subscriber=bot)
+
+    run_change(issue, create_user, [activity(issue, create_user, "priority")])
+
+    assert not EmailNotificationLog.objects.filter(receiver=bot).exists()
+
+
+def test_a_bot_with_a_preference_row_follows_it(create_user):
+    bot = User.objects.create(email="bot@plane.so", username="bot", is_bot=True)
+    UserNotificationPreference.objects.create(user=bot, mention=True, comment=False)
+
+    preference = notification_preference(bot.id)
+    assert (preference.mention, preference.comment) == (True, False)
