@@ -12,6 +12,14 @@ export const GANTT_BREADCRUMBS_HEIGHT = 40;
 
 export const SIDEBAR_WIDTH = 360;
 
+export const SIDEBAR_MIN_WIDTH = 240;
+
+export const SIDEBAR_MAX_WIDTH = 720;
+
+export const SIDEBAR_MIN_CHART_WIDTH = 240;
+
+export const SIDEBAR_WIDTH_STORAGE_KEY = "timeline_sidebar_width";
+
 export const DEFAULT_BLOCK_WIDTH = 60;
 
 export const GANTT_SELECT_GROUP = "gantt-issues";

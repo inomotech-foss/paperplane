@@ -10,11 +10,13 @@ import { cn } from "@plane/utils";
 // hooks
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //
-import { HEADER_HEIGHT, SIDEBAR_WIDTH } from "../../constants";
+import { HEADER_HEIGHT } from "../../constants";
+import { useTimelineSidebarWidth } from "../../contexts/sidebar-width";
 import type { IWeekBlock } from "../../views";
 
 export const WeekChartView = observer(function WeekChartView(_props: any) {
   const { currentViewData, renderView } = useTimeLineChartStore();
+  const sidebarWidth = useTimelineSidebarWidth();
   const weekBlocks: IWeekBlock[] = renderView;
 
   return (
@@ -37,7 +39,7 @@ export const WeekChartView = observer(function WeekChartView(_props: any) {
                 <div
                   className="sticky z-[1] m-1 flex items-center bg-surface-1 px-3 py-1 text-13 font-regular whitespace-nowrap text-secondary capitalize"
                   style={{
-                    left: `${SIDEBAR_WIDTH}px`,
+                    left: `${sidebarWidth}px`,
                   }}
                 >
                   {block?.title}

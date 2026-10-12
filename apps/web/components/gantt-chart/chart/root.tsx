@@ -17,7 +17,7 @@ import { GanttChartHeader, GanttChartMainContent } from "@/components/gantt-char
 import { useUserProfile } from "@/hooks/store/user";
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //
-import { SIDEBAR_WIDTH } from "../constants";
+import { TimelineSidebarContext, useTimelineSidebarResizeState } from "../contexts/sidebar-width";
 import { currentViewDataWithView } from "../data";
 import type { IMonthBlock, IMonthView, IWeekBlock } from "../views";
 import { getNumberOfDaysBetweenTwoDates, monthView, quarterView, weekView } from "../views";
@@ -96,6 +96,7 @@ export const ChartViewRoot = observer(function ChartViewRoot(props: ChartViewRoo
   } = useTimeLineChartStore();
   const { data } = useUserProfile();
   const startOfWeek = data?.start_of_the_week;
+  const { value: sidebarResize, containerRef } = useTimelineSidebarResizeState();
 
   const updateCurrentViewRenderPayload = (side: null | "left" | "right", view: TGanttViews, targetDate?: Date) => {
     const selectedCurrentView: TGanttViews = view;
@@ -174,7 +175,7 @@ export const ChartViewRoot = observer(function ChartViewRoot(props: ChartViewRoo
     scrollWidth =
       Math.abs(daysDifference) * currentState.data.dayWidth -
       (clientVisibleWidth / 2 - currentState.data.dayWidth) +
-      SIDEBAR_WIDTH / 2;
+      sidebarResize.width / 2;
 
     scrollContainer.scrollLeft = scrollWidth;
   };
@@ -183,6 +184,7 @@ export const ChartViewRoot = observer(function ChartViewRoot(props: ChartViewRoo
 
   const content = (
     <div
+      ref={containerRef}
       className={cn("shadow relative flex h-full flex-col rounded-xs bg-surface-1 select-none", {
         "inset-0 z-[25] bg-surface-1": fullScreenMode,
         "border-[0.5px] border-subtle": border,
@@ -224,5 +226,9 @@ export const ChartViewRoot = observer(function ChartViewRoot(props: ChartViewRoo
     </div>
   );
 
-  return fullScreenMode && portalContainer ? createPortal(content, portalContainer) : content;
+  return (
+    <TimelineSidebarContext.Provider value={sidebarResize}>
+      {fullScreenMode && portalContainer ? createPortal(content, portalContainer) : content}
+    </TimelineSidebarContext.Provider>
+  );
 });

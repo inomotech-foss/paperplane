@@ -15,7 +15,8 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //
-import { BLOCK_HEIGHT, SIDEBAR_WIDTH } from "../constants";
+import { BLOCK_HEIGHT } from "../constants";
+import { useTimelineSidebarWidth } from "../contexts/sidebar-width";
 import { ChartAddBlock } from "../helpers";
 import { isBlockOnChart } from "../views/helpers";
 
@@ -37,6 +38,7 @@ export const BlockRow = observer(function BlockRow(props: Props) {
   // store hooks
   const { getBlockById, updateActiveBlockId, isBlockActive } = useTimeLineChartStore();
   const { getIsIssuePeeked } = useIssueDetail();
+  const sidebarWidth = useTimelineSidebarWidth();
 
   const block = getBlockById(blockId);
 
@@ -61,16 +63,16 @@ export const BlockRow = observer(function BlockRow(props: Props) {
       },
       {
         root: intersectionRoot,
-        rootMargin: `0px 0px 0px -${SIDEBAR_WIDTH}px`,
+        rootMargin: `0px 0px 0px -${sidebarWidth}px`,
       }
     );
 
     observer.observe(timelineBlock);
 
     return () => {
-      observer.unobserve(timelineBlock);
+      observer.disconnect();
     };
-  }, [block]);
+  }, [block, sidebarWidth]);
 
   // hide the block if it doesn't have start and target dates and showAllBlocks is false
   if (!block || !block.data || (!showAllBlocks && !(block.start_date && block.target_date))) return null;
@@ -104,7 +106,7 @@ export const BlockRow = observer(function BlockRow(props: Props) {
                 type="button"
                 className="sticky z-[5] grid h-8 w-8 translate-y-1.5 cursor-pointer place-items-center rounded-sm border border-strong bg-layer-1 text-secondary hover:text-primary"
                 style={{
-                  left: `${SIDEBAR_WIDTH + 4}px`,
+                  left: `${sidebarWidth + 4}px`,
                 }}
                 onClick={() => handleScrollToBlock(block)}
               >
