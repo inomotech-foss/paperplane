@@ -7,19 +7,20 @@
 import React, { useMemo, useCallback, useState } from "react";
 import { EmojiRoot } from "../emoji-icon-picker/emoji/emoji";
 import { emojiToString } from "../emoji-icon-picker/helper";
-import { Popover, PopoverBody, PopoverContent, PopoverTrigger } from "@makeplane/propel/components/popover";
+import { Popover, PopoverBody, PopoverContent } from "@makeplane/propel/components/popover";
 import { useTranslation } from "@plane/i18n";
 import { cn } from "@plane/utils";
 import { convertPlacementToSideAndAlign } from "../utils/placement";
 import type { Placement, Side, Align } from "../utils/placement";
+import { EmojiReactionPickerContext } from "./picker-context";
 
 export type EmojiReactionPickerProps = {
   isOpen: boolean;
   handleToggle: (value: boolean) => void;
-  buttonClassName?: string;
   closeOnSelect?: boolean;
   disabled?: boolean;
   dropdownClassName?: string;
+  /** Content shown next to the picker. An `EmojiReactionButton` inside it opens the picker. */
   label: React.ReactNode;
   onChange: (emoji: string) => void;
   placement?: Placement;
@@ -33,7 +34,6 @@ export function EmojiReactionPicker(props: EmojiReactionPickerProps) {
   const {
     isOpen,
     handleToggle,
-    buttonClassName,
     closeOnSelect = true,
     disabled = false,
     dropdownClassName,
@@ -62,6 +62,8 @@ export function EmojiReactionPicker(props: EmojiReactionPickerProps) {
     [handleToggle]
   );
 
+  const pickerContext = useMemo(() => ({ disabled }), [disabled]);
+
   // side and align calculations
   const { finalSide, finalAlign } = useMemo(() => {
     if (placement) {
@@ -82,12 +84,7 @@ export function EmojiReactionPicker(props: EmojiReactionPickerProps) {
 
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
-      <PopoverTrigger
-        disabled={disabled}
-        render={<button type="button" className={cn("outline-none", buttonClassName)} disabled={disabled} />}
-      >
-        {label}
-      </PopoverTrigger>
+      <EmojiReactionPickerContext.Provider value={pickerContext}>{label}</EmojiReactionPickerContext.Provider>
       <PopoverContent
         variant="rich"
         side={finalSide}

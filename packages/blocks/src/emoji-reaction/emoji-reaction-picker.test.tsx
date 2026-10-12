@@ -8,11 +8,14 @@ import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { EmojiReactionButton, EmojiReactionGroup } from "./emoji-reaction";
 import { EmojiReactionPicker } from "./emoji-reaction-picker";
 
 vi.mock("../emoji-icon-picker/emoji/emoji", () => ({
   EmojiRoot: () => <div data-testid="emoji-grid">emoji grid</div>,
 }));
+
+const onReactionClick = vi.fn();
 
 function ControlledPicker() {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,7 +24,7 @@ function ControlledPicker() {
       isOpen={isOpen}
       handleToggle={setIsOpen}
       onChange={vi.fn()}
-      label={<span>Add reaction</span>}
+      label={<EmojiReactionGroup reactions={[{ emoji: "thumbs", count: 1 }]} onReactionClick={onReactionClick} />}
     />
   );
 }
@@ -36,10 +39,19 @@ describe("EmojiReactionPicker popover", () => {
     expect(document.querySelector("[data-prevent-outside-click]")).not.toBeNull();
   });
 
+  it("makes the add button the trigger instead of wrapping the reactions in a button", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<ControlledPicker />);
+    expect(container.querySelectorAll("button button")).toHaveLength(0);
+    await user.click(screen.getByRole("button", { name: /thumbs/ }));
+    expect(onReactionClick).toHaveBeenCalledWith("thumbs");
+    expect(screen.queryByTestId("emoji-grid")).toBeNull();
+  });
+
   it("keeps the prevent-outside panel while open and drops it when closed", () => {
     const handleToggle = vi.fn();
     const { rerender } = render(
-      <EmojiReactionPicker isOpen handleToggle={handleToggle} onChange={vi.fn()} label={<span>Add reaction</span>} />
+      <EmojiReactionPicker isOpen handleToggle={handleToggle} onChange={vi.fn()} label={<EmojiReactionButton />} />
     );
     expect(document.querySelector("[data-prevent-outside-click]")).not.toBeNull();
     rerender(
@@ -47,7 +59,7 @@ describe("EmojiReactionPicker popover", () => {
         isOpen={false}
         handleToggle={handleToggle}
         onChange={vi.fn()}
-        label={<span>Add reaction</span>}
+        label={<EmojiReactionButton />}
       />
     );
     const panel = document.querySelector("[data-prevent-outside-click]");

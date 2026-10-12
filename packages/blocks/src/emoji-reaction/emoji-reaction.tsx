@@ -13,6 +13,8 @@ import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { useTranslation } from "@plane/i18n";
 import { cn } from "@plane/utils";
 import { IconButton } from "@makeplane/propel/components/icon-button";
+import { PopoverTrigger } from "@makeplane/propel/components/popover";
+import { EmojiReactionPickerContext } from "./picker-context";
 
 export type EmojiReactionType = {
   emoji: string;
@@ -110,21 +112,26 @@ const EmojiReactionButton = React.forwardRef(function EmojiReactionButton(
 ) {
   // plane hooks
   const { t } = useTranslation();
+  const picker = React.useContext(EmojiReactionPickerContext);
+
+  // propel: `IconButton` takes an icon ELEMENT, a required `aria-label` and no className. The
+  // caller's class rides a wrapper.
+  const button = (
+    <IconButton
+      ref={ref}
+      icon={<PropelIcon icon={<ReactionOutline className="size-3.5" />} />}
+      variant="ghost"
+      size="xs"
+      aria-label={t("common.actions.add_reaction")}
+      onClick={picker ? undefined : onAddReaction}
+      {...props}
+    />
+  );
 
   return (
-    // propel: `IconButton` takes an icon ELEMENT, a required `aria-label` and no className —
-    // the caller's class rides a wrapper.
     <Tooltip label={t("common.actions.add_reaction")}>
       <span className={className}>
-        <IconButton
-          ref={ref}
-          icon={<PropelIcon icon={<ReactionOutline className="size-3.5" />} />}
-          variant="ghost"
-          size="xs"
-          aria-label={t("common.actions.add_reaction")}
-          onClick={onAddReaction}
-          {...props}
-        />
+        {picker ? <PopoverTrigger disabled={picker.disabled} render={button} /> : button}
       </span>
     </Tooltip>
   );
