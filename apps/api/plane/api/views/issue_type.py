@@ -213,8 +213,8 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
         itself is only deleted once no project links or uses it. Rejected
         with 409 while work items, drafts, the intake form, the service desk or
         automations of the project use the type: move them with the migrate endpoint, which can
-        unlink in the same request. Rejected with 400 for the Epic type or the
-        project's only remaining active type.
+        unlink in the same request. Rejected with 400 for the project's only
+        remaining active type.
         """
         issue_type = IssueType.objects.get(
             workspace__slug=slug,
@@ -391,7 +391,7 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
         Removes the type from every project that has it enabled. Rejected
         with 409 while anything uses it: move those rows with the migrate
         endpoint, which can delete the type in the same request. Rejected with
-        400 for the Epic type or the last active type of any project.
+        400 for the last active type of any project.
         """
         issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
         try:
