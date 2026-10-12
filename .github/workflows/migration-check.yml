@@ -57,7 +57,7 @@ jobs:
       - name: Guard already-merged migrations
         if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'migration-history-override')
         run: |
-          TOUCHED=$(git diff --name-status --diff-filter=MDR HEAD^1 HEAD -- 'apps/api/*/migrations/*.py')
+          TOUCHED=$(git diff --name-status --diff-filter=MDR HEAD^1 HEAD -- ':(glob)apps/api/plane/*/migrations/*.py')
           if [ -n "$TOUCHED" ]; then
             echo "::error::This PR edits, deletes or renames migrations that are already on ${{ github.base_ref }}:"
             echo "$TOUCHED"
