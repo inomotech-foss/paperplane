@@ -15,6 +15,7 @@ from plane.db.models import (
     IssueAssignee,
     IssueComment,
     IssueSequence,
+    IssueSubscriber,
     IssueType,
     Project,
     ProjectIssueType,
@@ -227,6 +228,22 @@ class TestJiraImport:
         record = Issue.objects.get(external_id="DEMO-6")
         assert list(IssueAssignee.objects.filter(issue=record).values_list("assignee_id", flat=True)) == [ada.id]
         assert IssueAssignee.objects.count() == 1
+
+    def test_the_assignee_is_subscribed(self, loader, ada):
+        loader.run()
+
+        record = Issue.objects.get(external_id="DEMO-6")
+        assert IssueSubscriber.objects.filter(issue=record, subscriber=ada).exists()
+
+    def test_a_rerun_keeps_an_assignee_who_unsubscribed_unsubscribed(self, loader, ada):
+        loader.run()
+        record = Issue.objects.get(external_id="DEMO-6")
+        IssueSubscriber.objects.filter(issue=record, subscriber=ada).update(deleted_at=datetime.now(timezone.utc))
+
+        loader.run()
+
+        assert not IssueSubscriber.objects.filter(issue=record, subscriber=ada).exists()
+        assert IssueSubscriber.all_objects.filter(issue=record, subscriber=ada).count() == 1
 
     def test_states_cover_every_status_category(self, loader, ada):
         summary = loader.run()
