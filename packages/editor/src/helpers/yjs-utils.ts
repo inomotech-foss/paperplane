@@ -45,6 +45,14 @@ export const applyUpdates = (document: Uint8Array, updates?: Uint8Array): Uint8A
 };
 
 /**
+ * @description returns true when a document editor Y.Doc has neither content nor title
+ * @param {Y.Doc} yDoc
+ * @returns {boolean}
+ */
+export const isDocumentEditorYDocEmpty = (yDoc: Y.Doc): boolean =>
+  yDoc.getXmlFragment("default").length === 0 && yDoc.getXmlFragment("title").length === 0;
+
+/**
  * @description this function encodes binary data to base64 string
  * @param {Uint8Array} document
  * @returns {string}

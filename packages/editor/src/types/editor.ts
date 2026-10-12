@@ -149,6 +149,7 @@ export type CoreEditorRefApi = {
   isAnyDropbarOpen: () => boolean;
   isEditorReadyToDiscard: () => boolean;
   isMenuItemActive: <T extends TEditorCommands>(props: TCommandWithPropsWithItemKey<T>) => boolean;
+  isProviderDocumentEmpty: () => boolean;
   listenToRealTimeUpdate: () => TDocumentEventEmitter | undefined;
   onDocumentInfoChange: (callback: (documentInfo: TDocumentInfo) => void) => () => void;
   onHeadingChange: (callback: (headings: IMarking[]) => void) => () => void;

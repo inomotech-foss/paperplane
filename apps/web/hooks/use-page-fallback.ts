@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isAxiosError } from "axios";
 import type { EditorRefApi, CollaborationState } from "@plane/editor";
 // plane editor
 import { convertBinaryDataToBase64String, getBinaryDataFromDocumentEditorHTMLString } from "@plane/editor";
@@ -14,73 +15,103 @@ import type { TDocumentPayload } from "@plane/types";
 import useAutoSave from "@/hooks/use-auto-save";
 import type { TPageInstance } from "@/store/pages/base-page";
 
+const RETRY_BASE_DELAY_MS = 30_000;
+const RETRY_MAX_DELAY_MS = 5 * 60_000;
+
 type TArgs = {
-  editorRef: React.RefObject<EditorRefApi | null>;
+  editorRef: React.RefObject<Pick<
+    EditorRefApi,
+    "getDocument" | "isProviderDocumentEmpty" | "setProviderDocument"
+  > | null>;
   fetchPageDescription: () => Promise<ArrayBuffer>;
   collaborationState: CollaborationState | null;
   updatePageDescription: (data: TDocumentPayload) => Promise<void>;
-  page: TPageInstance;
+  page: Pick<TPageInstance, "description_html" | "isContentEditable" | "name">;
+};
+
+// Retrying cannot fix a 4xx such as a locked page or a missing permission.
+const isPermanentFailure = (error: unknown): boolean => {
+  if (!isAxiosError(error) || !error.response) return false;
+  const { status } = error.response;
+  return status >= 400 && status < 500 && status !== 408 && status !== 429;
 };
 
 export const usePageFallback = (args: TArgs) => {
-  const { editorRef, fetchPageDescription, collaborationState, updatePageDescription, page } = args;
-  const hasShownFallbackToast = useRef(false);
+  const hasConnectionFailed = args.collaborationState?.stage.kind === "disconnected";
 
   const [isFetchingFallbackBinary, setIsFetchingFallbackBinary] = useState(false);
 
-  // Derive connection failure from collaboration state
-  const hasConnectionFailed = collaborationState?.stage.kind === "disconnected";
+  // Runs read the latest args through a ref so that new identities do not trigger a run.
+  const argsRef = useRef(args);
+  useEffect(() => {
+    argsRef.current = args;
+  });
+
+  const hasConnectionFailedRef = useRef(false);
+  const generationRef = useRef(0);
+  const isRunningRef = useRef(false);
+  const isBlockedRef = useRef(false);
+  const failureCountRef = useRef(0);
+  const nextAttemptAtRef = useRef(0);
 
   const handleUpdateDescription = useCallback(async () => {
-    if (!hasConnectionFailed) return;
+    if (!hasConnectionFailedRef.current || isRunningRef.current || isBlockedRef.current) return;
+    if (Date.now() < nextAttemptAtRef.current) return;
+    const { editorRef, fetchPageDescription, updatePageDescription } = argsRef.current;
     const editor = editorRef.current;
     if (!editor) return;
 
-    // Show toast notification when fallback mechanism kicks in (only once)
-    if (!hasShownFallbackToast.current) {
-      console.warn("Websocket Connection lost, your changes are being saved using backup mechanism.");
-      hasShownFallbackToast.current = true;
-    }
-
+    const generation = generationRef.current;
+    isRunningRef.current = true;
+    setIsFetchingFallbackBinary(true);
     try {
-      setIsFetchingFallbackBinary(true);
-
       const latestEncodedDescription = await fetchPageDescription();
-      let latestDecodedDescription: Uint8Array;
       if (latestEncodedDescription && latestEncodedDescription.byteLength > 0) {
-        latestDecodedDescription = new Uint8Array(latestEncodedDescription);
-      } else {
-        const pageDescriptionHtml = page.description_html;
-        latestDecodedDescription = getBinaryDataFromDocumentEditorHTMLString(
-          pageDescriptionHtml ?? "<p></p>",
-          page.name
+        editor.setProviderDocument(new Uint8Array(latestEncodedDescription));
+      } else if (editor.isProviderDocumentEmpty()) {
+        // A seed has its own client ID, so applying it to a non-empty doc would duplicate the content.
+        const { page } = argsRef.current;
+        editor.setProviderDocument(
+          getBinaryDataFromDocumentEditorHTMLString(page.description_html ?? "<p></p>", page.name)
         );
       }
 
-      editor.setProviderDocument(latestDecodedDescription);
+      if (!argsRef.current.page.isContentEditable) return;
+
       const { binary, html, json } = editor.getDocument();
       if (!binary || !json) return;
-      const encodedBinary = convertBinaryDataToBase64String(binary);
-
       await updatePageDescription({
-        description_binary: encodedBinary,
+        description_binary: convertBinaryDataToBase64String(binary),
         description_html: html,
         description_json: json,
       });
-    } catch (error: any) {
+      failureCountRef.current = 0;
+      nextAttemptAtRef.current = 0;
+    } catch (error) {
       console.error(error);
+      if (generation !== generationRef.current) return;
+      if (isPermanentFailure(error)) {
+        isBlockedRef.current = true;
+      } else {
+        failureCountRef.current += 1;
+        nextAttemptAtRef.current =
+          Date.now() + Math.min(RETRY_BASE_DELAY_MS * 2 ** failureCountRef.current, RETRY_MAX_DELAY_MS);
+      }
     } finally {
+      isRunningRef.current = false;
       setIsFetchingFallbackBinary(false);
     }
-  }, [editorRef, fetchPageDescription, hasConnectionFailed, updatePageDescription, page.description_html, page.name]);
+  }, []);
 
   useEffect(() => {
-    if (hasConnectionFailed) {
-      handleUpdateDescription();
-    } else {
-      // Reset toast flag when connection is restored
-      hasShownFallbackToast.current = false;
-    }
+    hasConnectionFailedRef.current = hasConnectionFailed;
+    generationRef.current += 1;
+    isBlockedRef.current = false;
+    failureCountRef.current = 0;
+    nextAttemptAtRef.current = 0;
+    if (!hasConnectionFailed) return;
+    console.warn("Websocket Connection lost, your changes are being saved using backup mechanism.");
+    void handleUpdateDescription();
   }, [handleUpdateDescription, hasConnectionFailed]);
 
   useAutoSave(handleUpdateDescription);

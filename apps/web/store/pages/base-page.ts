@@ -350,16 +350,21 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
    */
   updateDescription = async (document: TDocumentPayload) => {
     const currentDescription = this.description_html;
-    runInAction(() => {
-      this.description_html = document.description_html;
-    });
+    const isChanged = document.description_html !== currentDescription;
+    if (isChanged) {
+      runInAction(() => {
+        this.description_html = document.description_html;
+      });
+    }
 
     try {
       await this.services.updateDescription(document);
     } catch (error) {
-      runInAction(() => {
-        this.description_html = currentDescription;
-      });
+      if (isChanged) {
+        runInAction(() => {
+          this.description_html = currentDescription;
+        });
+      }
       throw error;
     }
   };

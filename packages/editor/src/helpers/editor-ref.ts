@@ -19,6 +19,7 @@ import { CORE_EDITOR_META } from "@/constants/meta";
 import type { EditorRefApi, IEditorProps, TEditorCommands } from "@/types";
 // local imports
 import { getParagraphCount } from "./common";
+import { isDocumentEditorYDocEmpty } from "./yjs-utils";
 import { insertContentAtSavedSelection } from "./insert-content-at-cursor-position";
 import { scrollSummary, scrollToNodeViaDOMCoordinates } from "./scroll-to-node";
 
@@ -201,6 +202,7 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
 
       return item.isActive(props);
     },
+    isProviderDocumentEmpty: () => !provider?.document || isDocumentEditorYDocEmpty(provider.document),
     listenToRealTimeUpdate: () => provider && { on: provider.on.bind(provider), off: provider.off.bind(provider) },
     onDocumentInfoChange: (callback) => {
       const handleDocumentInfoChange = () => {
