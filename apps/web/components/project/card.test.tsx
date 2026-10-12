@@ -17,6 +17,8 @@ vi.mock("@/hooks/store/use-project", () => ({
 }));
 vi.mock("@/hooks/store/user", () => ({ useUserPermissions: () => ({ allowPermissions: () => true }) }));
 vi.mock("@/hooks/use-app-router", () => ({ useAppRouter: () => ({ push: vi.fn() }) }));
+// Logo polls for a font on a timer that outlives the jsdom environment
+vi.mock("@plane/blocks/emoji-icon-picker", () => ({ Logo: () => null }));
 vi.mock("./delete-project-modal", () => ({ DeleteProjectModal: () => null }));
 vi.mock("./archive-restore-modal", () => ({ ArchiveRestoreProjectModal: () => null }));
 vi.mock("./join-project-modal", () => ({
