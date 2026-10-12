@@ -34,7 +34,6 @@ type GanttChartRootProps = {
   bottomSpacing?: boolean;
   showAllBlocks?: boolean;
   showToday?: boolean;
-  isEpic?: boolean;
   headerActions?: React.ReactNode;
 };
 
@@ -61,7 +60,6 @@ export const GanttChartRoot = observer(function GanttChartRoot(props: GanttChart
     showToday = true,
     quickAdd,
     updateBlockDates,
-    isEpic = false,
     headerActions,
   } = props;
 
@@ -95,7 +93,6 @@ export const GanttChartRoot = observer(function GanttChartRoot(props: GanttChart
       quickAdd={quickAdd}
       showToday={showToday}
       updateBlockDates={updateBlockDates}
-      isEpic={isEpic}
       headerActions={headerActions}
     />
   );

@@ -8,8 +8,7 @@ import { useMemo } from "react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { TIssue, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import type { TIssue } from "@plane/types";
 import { copyUrlToClipboard } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -20,13 +19,10 @@ export type TRelationIssueOperations = {
   remove: (workspaceSlug: string, projectId: string, issueId: string) => Promise<void>;
 };
 
-export const useRelationOperations = (
-  issueServiceType: TIssueServiceType = EIssueServiceType.ISSUES
-): TRelationIssueOperations => {
-  const { updateIssue, removeIssue } = useIssueDetail(issueServiceType);
+export const useRelationOperations = (): TRelationIssueOperations => {
+  const { updateIssue, removeIssue } = useIssueDetail();
   const { t } = useTranslation();
-  // derived values
-  const entityName = issueServiceType === EIssueServiceType.ISSUES ? "Work item" : "Epic";
+  const entityName = "Work item";
 
   const issueOperations: TRelationIssueOperations = useMemo(
     () => ({

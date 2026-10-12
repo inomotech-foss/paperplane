@@ -31,7 +31,6 @@ type Props = {
   readOnly?: boolean;
   isMobileView?: boolean;
   canEditProperties: (projectId: string | undefined) => boolean;
-  isEpic?: boolean;
 };
 
 export const CalendarIssueBlocks = observer(function CalendarIssueBlocks(props: Props) {
@@ -48,7 +47,6 @@ export const CalendarIssueBlocks = observer(function CalendarIssueBlocks(props: 
     readOnly,
     isMobileView = false,
     canEditProperties,
-    isEpic = false,
   } = props;
   const formattedDatePayload = renderFormattedPayloadDate(date);
   const { t } = useTranslation();
@@ -77,7 +75,6 @@ export const CalendarIssueBlocks = observer(function CalendarIssueBlocks(props: 
             quickActions={quickActions}
             isDragDisabled={isDragDisabled || isMobileView}
             canEditProperties={canEditProperties}
-            isEpic={isEpic}
           />
         </div>
       ))}
@@ -96,7 +93,6 @@ export const CalendarIssueBlocks = observer(function CalendarIssueBlocks(props: 
             }}
             quickAddCallback={quickAddCallback}
             addIssuesToView={addIssuesToView}
-            isEpic={isEpic}
           />
         </div>
       )}

@@ -8,23 +8,21 @@ import React from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
-import type { TIssueServiceType } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 
 type Props = {
   issueId: string;
-  issueServiceType: TIssueServiceType;
 };
 
 export const IssueLinksCollapsibleTitle = observer(function IssueLinksCollapsibleTitle(props: Props) {
-  const { issueId, issueServiceType } = props;
+  const { issueId } = props;
   // translation
   const { t } = useTranslation();
   // store hooks
   const {
     issue: { getIssueById },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
 
   // derived values
   const issue = getIssueById(issueId);

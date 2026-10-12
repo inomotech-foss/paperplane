@@ -6,7 +6,7 @@
 
 import React from "react";
 // plane imports
-import type { TIssueServiceType, TWorkItemWidgets } from "@plane/types";
+import type { TWorkItemWidgets } from "@plane/types";
 // local imports
 import { IssueDetailWidgetActionButtons } from "./action-buttons";
 import { IssueDetailWidgetCollapsibles } from "./issue-detail-widget-collapsibles";
@@ -18,20 +18,11 @@ type Props = {
   issueId: string;
   disabled: boolean;
   renderWidgetModals?: boolean;
-  issueServiceType: TIssueServiceType;
   hideWidgets?: TWorkItemWidgets[];
 };
 
 export function IssueDetailWidgets(props: Props) {
-  const {
-    workspaceSlug,
-    projectId,
-    issueId,
-    disabled,
-    renderWidgetModals = true,
-    issueServiceType,
-    hideWidgets,
-  } = props;
+  const { workspaceSlug, projectId, issueId, disabled, renderWidgetModals = true, hideWidgets } = props;
 
   return (
     <>
@@ -41,7 +32,6 @@ export function IssueDetailWidgets(props: Props) {
           projectId={projectId}
           issueId={issueId}
           disabled={disabled}
-          issueServiceType={issueServiceType}
           hideWidgets={hideWidgets}
         />
         <IssueDetailWidgetCollapsibles
@@ -49,7 +39,6 @@ export function IssueDetailWidgets(props: Props) {
           projectId={projectId}
           issueId={issueId}
           disabled={disabled}
-          issueServiceType={issueServiceType}
           hideWidgets={hideWidgets}
         />
       </div>
@@ -58,7 +47,6 @@ export function IssueDetailWidgets(props: Props) {
           workspaceSlug={workspaceSlug}
           projectId={projectId}
           issueId={issueId}
-          issueServiceType={issueServiceType}
           hideWidgets={hideWidgets}
         />
       )}

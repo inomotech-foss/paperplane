@@ -12,13 +12,7 @@ import {
   ISSUE_DISPLAY_FILTERS_BY_PAGE,
   SUB_WORK_ITEM_AVAILABLE_FILTERS_FOR_WORK_ITEM_PAGE,
 } from "@plane/constants";
-import type {
-  IIssueDisplayFilterOptions,
-  IIssueDisplayProperties,
-  IIssueFilterOptions,
-  TIssueServiceType,
-} from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, IIssueFilterOptions } from "@plane/types";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";
 import { useProjectState } from "@/hooks/store/use-project-state";
@@ -28,20 +22,19 @@ import { SubIssuesActionButton } from "./quick-action-button";
 
 type TSubWorkItemTitleActionsProps = {
   disabled: boolean;
-  issueServiceType?: TIssueServiceType;
   parentId: string;
   projectId: string;
 };
 
 export const SubWorkItemTitleActions = observer(function SubWorkItemTitleActions(props: TSubWorkItemTitleActionsProps) {
-  const { disabled, issueServiceType = EIssueServiceType.ISSUES, parentId, projectId } = props;
+  const { disabled, parentId, projectId } = props;
 
   // store hooks
   const {
     subIssues: {
       filters: { getSubIssueFilters, updateSubWorkItemFilters },
     },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
   const { getProjectStates } = useProjectState();
   const {
     project: { getProjectMemberIds },
@@ -96,7 +89,6 @@ export const SubWorkItemTitleActions = observer(function SubWorkItemTitleActions
       }}
     >
       <SubIssueDisplayFilters
-        isEpic={issueServiceType === EIssueServiceType.EPICS}
         layoutDisplayFiltersOptions={layoutDisplayFiltersOptions}
         displayProperties={subIssueFilters?.displayProperties ?? {}}
         displayFilters={subIssueFilters?.displayFilters ?? {}}
@@ -110,9 +102,7 @@ export const SubWorkItemTitleActions = observer(function SubWorkItemTitleActions
         states={projectStates}
         availableFilters={SUB_WORK_ITEM_AVAILABLE_FILTERS_FOR_WORK_ITEM_PAGE}
       />
-      {!disabled && (
-        <SubIssuesActionButton issueId={parentId} disabled={disabled} issueServiceType={issueServiceType} />
-      )}
+      {!disabled && <SubIssuesActionButton issueId={parentId} disabled={disabled} />}
     </div>
   );
 });

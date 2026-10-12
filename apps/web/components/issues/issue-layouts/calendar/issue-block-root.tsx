@@ -21,12 +21,11 @@ type Props = {
   issueId: string;
   quickActions: TRenderQuickActions;
   isDragDisabled: boolean;
-  isEpic?: boolean;
   canEditProperties: (projectId: string | undefined) => boolean;
 };
 
 export const CalendarIssueBlockRoot = observer(function CalendarIssueBlockRoot(props: Props) {
-  const { issueId, quickActions, isDragDisabled, isEpic = false, canEditProperties } = props;
+  const { issueId, quickActions, isDragDisabled, canEditProperties } = props;
 
   const issueRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -65,13 +64,5 @@ export const CalendarIssueBlockRoot = observer(function CalendarIssueBlockRoot(p
 
   if (!issue) return null;
 
-  return (
-    <CalendarIssueBlock
-      isDragging={isDragging}
-      issue={issue}
-      quickActions={quickActions}
-      ref={issueRef}
-      isEpic={isEpic}
-    />
-  );
+  return <CalendarIssueBlock isDragging={isDragging} issue={issue} quickActions={quickActions} ref={issueRef} />;
 });

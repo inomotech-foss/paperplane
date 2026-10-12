@@ -5,7 +5,6 @@
  */
 
 export enum EGanttBlockType {
-  EPIC = "epic",
   PROJECT = "project",
   ISSUE = "issue",
 }

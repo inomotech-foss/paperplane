@@ -55,11 +55,10 @@ export interface IIssueProperties {
   isReadOnly: boolean;
   className: string;
   activeLayout: string;
-  isEpic?: boolean;
 }
 
 export const IssueProperties = observer(function IssueProperties(props: IIssueProperties) {
-  const { issue, updateIssue, displayProperties, isReadOnly, className, isEpic = false } = props;
+  const { issue, updateIssue, displayProperties, isReadOnly, className } = props;
   // i18n
   const { t } = useTranslation();
   // store hooks
@@ -182,7 +181,6 @@ export const IssueProperties = observer(function IssueProperties(props: IIssuePr
     projectIdentifier: projectDetails?.identifier,
     sequenceId: issue?.sequence_id,
     isArchived: !!issue?.archived_at,
-    isEpic,
   });
 
   const redirectToIssueDetail = () => router.push(`${workItemLink}#sub-issues`);
@@ -352,46 +350,40 @@ export const IssueProperties = observer(function IssueProperties(props: IIssuePr
         </div>
       </WithDisplayPropertiesHOC>
 
-      <>
-        {!isEpic && (
-          <>
-            {/* modules */}
-            {projectDetails?.module_view && (
-              <WithDisplayPropertiesHOC displayProperties={displayProperties} displayPropertyKey="modules">
-                {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
-                <div className="h-5" onFocus={handleEventPropagation} onClick={handleEventPropagation}>
-                  <ModuleSelect
-                    multiple
-                    projectId={issue?.project_id ?? undefined}
-                    value={issue?.module_ids ?? []}
-                    onChange={handleModule}
-                    disabled={isReadOnly}
-                    variant="pill-sm"
-                    tooltip
-                  />
-                </div>
-              </WithDisplayPropertiesHOC>
-            )}
+      {/* modules */}
+      {projectDetails?.module_view && (
+        <WithDisplayPropertiesHOC displayProperties={displayProperties} displayPropertyKey="modules">
+          {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
+          <div className="h-5" onFocus={handleEventPropagation} onClick={handleEventPropagation}>
+            <ModuleSelect
+              multiple
+              projectId={issue?.project_id ?? undefined}
+              value={issue?.module_ids ?? []}
+              onChange={handleModule}
+              disabled={isReadOnly}
+              variant="pill-sm"
+              tooltip
+            />
+          </div>
+        </WithDisplayPropertiesHOC>
+      )}
 
-            {/* cycles */}
-            {projectDetails?.cycle_view && (
-              <WithDisplayPropertiesHOC displayProperties={displayProperties} displayPropertyKey="cycle">
-                {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
-                <div className="h-5" onFocus={handleEventPropagation} onClick={handleEventPropagation}>
-                  <CycleSelect
-                    projectId={issue?.project_id ?? undefined}
-                    value={issue?.cycle_id}
-                    onChange={handleCycle}
-                    disabled={isReadOnly}
-                    variant="pill-sm"
-                    tooltip
-                  />
-                </div>
-              </WithDisplayPropertiesHOC>
-            )}
-          </>
-        )}
-      </>
+      {/* cycles */}
+      {projectDetails?.cycle_view && (
+        <WithDisplayPropertiesHOC displayProperties={displayProperties} displayPropertyKey="cycle">
+          {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
+          <div className="h-5" onFocus={handleEventPropagation} onClick={handleEventPropagation}>
+            <CycleSelect
+              projectId={issue?.project_id ?? undefined}
+              value={issue?.cycle_id}
+              onChange={handleCycle}
+              disabled={isReadOnly}
+              variant="pill-sm"
+              tooltip
+            />
+          </div>
+        </WithDisplayPropertiesHOC>
+      )}
 
       {/* estimates */}
       {projectId && areEstimateEnabledByProjectId(projectId?.toString()) && (
@@ -412,34 +404,32 @@ export const IssueProperties = observer(function IssueProperties(props: IIssuePr
 
       {/* extra render properties */}
       {/* sub-issues */}
-      {!isEpic && (
-        <WithDisplayPropertiesHOC
-          displayProperties={displayProperties}
-          displayPropertyKey="sub_issue_count"
-          shouldRenderProperty={(properties) => !!properties.sub_issue_count && !!subIssueCount}
-        >
-          <Tooltip label={`${t("common.sub_work_items")}: ${subIssueCount}`} disabled={isMobile}>
-            {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
-            <div
-              onFocus={handleEventPropagation}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (subIssueCount) redirectToIssueDetail();
-              }}
-              className={cn(
-                "flex h-5 flex-shrink-0 items-center justify-center gap-2 overflow-hidden rounded-sm border-[0.5px] border-strong px-2.5 py-1",
-                {
-                  "cursor-pointer hover:bg-layer-1": subIssueCount,
-                }
-              )}
-            >
-              <ViewsOutline className="h-3 w-3 flex-shrink-0" />
-              <div className="text-caption-sm-regular">{subIssueCount}</div>
-            </div>
-          </Tooltip>
-        </WithDisplayPropertiesHOC>
-      )}
+      <WithDisplayPropertiesHOC
+        displayProperties={displayProperties}
+        displayPropertyKey="sub_issue_count"
+        shouldRenderProperty={(properties) => !!properties.sub_issue_count && !!subIssueCount}
+      >
+        <Tooltip label={`${t("common.sub_work_items")}: ${subIssueCount}`} disabled={isMobile}>
+          {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
+          <div
+            onFocus={handleEventPropagation}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              if (subIssueCount) redirectToIssueDetail();
+            }}
+            className={cn(
+              "flex h-5 flex-shrink-0 items-center justify-center gap-2 overflow-hidden rounded-sm border-[0.5px] border-strong px-2.5 py-1",
+              {
+                "cursor-pointer hover:bg-layer-1": subIssueCount,
+              }
+            )}
+          >
+            <ViewsOutline className="h-3 w-3 flex-shrink-0" />
+            <div className="text-caption-sm-regular">{subIssueCount}</div>
+          </div>
+        </Tooltip>
+      </WithDisplayPropertiesHOC>
 
       {/* attachments */}
       <WithDisplayPropertiesHOC

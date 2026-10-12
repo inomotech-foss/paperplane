@@ -19,22 +19,21 @@ import { useLayoutMenuItems } from "@/components/common/quick-actions-helper";
 type Props = {
   workspaceSlug: string;
   projectId: string;
-  storeType: "PROJECT" | "EPIC";
 };
 
 export const LayoutQuickActions = observer(function LayoutQuickActions(props: Props) {
-  const { workspaceSlug, projectId, storeType } = props;
+  const { workspaceSlug, projectId } = props;
   // plane hooks
   const { t } = useTranslation();
 
-  const layoutLink = `${workspaceSlug}/projects/${projectId}/${storeType === "EPIC" ? "epics" : "issues"}`;
+  const layoutLink = `${workspaceSlug}/projects/${projectId}/issues`;
 
   const handleCopyLink = async () => {
     await copyUrlToClipboard(layoutLink);
     setToast({
       type: "success",
       title: "Link copied",
-      message: `${storeType === "EPIC" ? "Epics" : "Work items"} link copied to clipboard.`,
+      message: "Work items link copied to clipboard.",
     });
   };
 
@@ -43,7 +42,6 @@ export const LayoutQuickActions = observer(function LayoutQuickActions(props: Pr
   const menuResult = useLayoutMenuItems({
     workspaceSlug,
     projectId,
-    storeType,
     handleCopyLink,
     handleOpenInNewTab,
   });

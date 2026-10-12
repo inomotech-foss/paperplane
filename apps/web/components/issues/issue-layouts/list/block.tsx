@@ -15,7 +15,6 @@ import { ChevronRightOutline } from "@makeplane/propel/icons";
 import { setToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { TIssue, IIssueDisplayProperties, TIssueMap } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // ui
 import { ControlLink, Row } from "@plane/blocks/layout";
 import { Spinner } from "@plane/blocks/spinner";
@@ -49,7 +48,6 @@ interface IssueBlockProps {
   isCurrentBlockDragging: boolean;
   setIsCurrentBlockDragging: React.Dispatch<React.SetStateAction<boolean>>;
   canDrag: boolean;
-  isEpic?: boolean;
 }
 
 export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
@@ -69,7 +67,6 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
     isCurrentBlockDragging,
     setIsCurrentBlockDragging,
     canDrag,
-    isEpic = false,
   } = props;
   // ref
   const issueRef = useRef<HTMLDivElement | null>(null);
@@ -80,12 +77,7 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
   // hooks
   const { sidebarCollapsed: isSidebarCollapsed } = useAppTheme();
   const { getProjectIdentifierById, currentProjectNextSequenceId } = useProject();
-  const {
-    getIsIssuePeeked,
-    peekIssue,
-    setPeekIssue,
-    subIssues: subIssuesStore,
-  } = useIssueDetail(isEpic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES);
+  const { getIsIssuePeeked, peekIssue, setPeekIssue, subIssues: subIssuesStore } = useIssueDetail();
 
   const handleIssuePeekOverview = (issue: TIssue) =>
     workspaceSlug &&
@@ -166,7 +158,6 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
     issueId,
     projectIdentifier,
     sequenceId: issue?.sequence_id,
-    isEpic,
     isArchived: !!issue?.archived_at,
   });
   return (
@@ -201,7 +192,7 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
         <div className="flex flex-grow items-center gap-0.5 truncate">
           <div className="flex items-center gap-1" style={isSubIssue ? { marginLeft } : {}}>
             {/* select checkbox */}
-            {projectId && canSelectIssues && !isEpic && (
+            {projectId && canSelectIssues && (
               <Tooltip
                 label="Only work items within the current project can be selected."
                 layout="stacked"
@@ -239,7 +230,7 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
 
             {/* sub-issues chevron */}
             <div className="grid size-4 flex-shrink-0 place-items-center">
-              {subIssuesCount > 0 && !isEpic && (
+              {subIssuesCount > 0 && (
                 <button
                   type="button"
                   className="relative z-[1] grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
@@ -295,7 +286,6 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
               updateIssue={updateIssue}
               displayProperties={displayProperties}
               activeLayout="List"
-              isEpic={isEpic}
             />
             <div
               className={cn("relative z-[1] hidden", {

@@ -14,7 +14,6 @@ import { observer } from "mobx-react";
 import { useOutsideClickDetector } from "@plane/hooks";
 // types
 import type { IIssueDisplayProperties, TIssue, TIssueMap } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // components
 import { DropIndicator } from "@plane/blocks/common";
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
@@ -45,7 +44,6 @@ type Props = {
   isParentIssueBeingDragged?: boolean;
   isLastChild?: boolean;
   shouldRenderByDefault?: boolean;
-  isEpic?: boolean;
 };
 
 export const IssueBlockRoot = observer(function IssueBlockRoot(props: Props) {
@@ -66,7 +64,6 @@ export const IssueBlockRoot = observer(function IssueBlockRoot(props: Props) {
     isLastChild = false,
     selectionHelpers,
     shouldRenderByDefault,
-    isEpic = false,
   } = props;
   // states
   const [isExpanded, setExpanded] = useState<boolean>(false);
@@ -77,7 +74,7 @@ export const IssueBlockRoot = observer(function IssueBlockRoot(props: Props) {
   // hooks
   const { isMobile } = usePlatformOS();
   // store hooks
-  const { subIssues: subIssuesStore } = useIssueDetail(isEpic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES);
+  const { subIssues: subIssuesStore } = useIssueDetail();
 
   const isSubIssue = nestingLevel !== 0;
 
@@ -158,12 +155,10 @@ export const IssueBlockRoot = observer(function IssueBlockRoot(props: Props) {
           canDrag={!isSubIssue && isDragAllowed}
           isCurrentBlockDragging={isParentIssueBeingDragged || isCurrentBlockDragging}
           setIsCurrentBlockDragging={setIsCurrentBlockDragging}
-          isEpic={isEpic}
         />
       </RenderIfVisible>
 
       {isExpanded &&
-        !isEpic &&
         subIssues?.map((subIssueId) => (
           <IssueBlockRoot
             key={`${subIssueId}`}

@@ -71,7 +71,6 @@ interface Props {
   selectionHelpers: TSelectionHelper;
   handleCollapsedGroups: (value: string) => void;
   collapsedGroups: TIssueKanbanFilters;
-  isEpic?: boolean;
 }
 
 export const ListGroup = observer(function ListGroup(props: Props) {
@@ -98,7 +97,6 @@ export const ListGroup = observer(function ListGroup(props: Props) {
     selectionHelpers,
     handleCollapsedGroups,
     collapsedGroups,
-    isEpic = false,
   } = props;
 
   const [isDraggingOverColumn, setIsDraggingOverColumn] = useState(false);
@@ -288,7 +286,6 @@ export const ListGroup = observer(function ListGroup(props: Props) {
           addIssuesToView={addIssuesToView}
           selectionHelpers={selectionHelpers}
           handleCollapsedGroups={handleCollapsedGroups}
-          isEpic={isEpic}
         />
       </Row>
       {shouldExpand && (
@@ -301,7 +298,6 @@ export const ListGroup = observer(function ListGroup(props: Props) {
             dropErrorMessage={group.dropErrorMessage}
             orderBy={orderBy}
             isDraggingOverColumn={isDraggingOverColumn}
-            isEpic={isEpic}
           />
           {groupIssueIds && (
             <IssueBlocksList
@@ -316,7 +312,6 @@ export const ListGroup = observer(function ListGroup(props: Props) {
               isDragAllowed={isDragAllowed}
               canDropOverIssue={!canOverlayBeVisible}
               selectionHelpers={selectionHelpers}
-              isEpic={isEpic}
             />
           )}
 
@@ -345,7 +340,6 @@ export const ListGroup = observer(function ListGroup(props: Props) {
                   prePopulatedData={prePopulateQuickAddData(group_by, group.id)}
                   containerClassName="border-b border-t border-subtle bg-surface-1 "
                   quickAddCallback={quickAddCallback}
-                  isEpic={isEpic}
                 />
               </div>
             )}

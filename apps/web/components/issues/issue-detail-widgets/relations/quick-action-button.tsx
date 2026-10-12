@@ -11,7 +11,6 @@ import { useTranslation } from "@plane/i18n";
 import { AddOutline } from "@makeplane/propel/icons";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/components/menu";
 // plane imports
-import type { TIssueServiceType } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
@@ -25,14 +24,13 @@ type Props = {
   /** Rendered as the trigger itself (not nested inside one); must forward ref and props to a `<button>`. */
   customButton?: React.ReactElement;
   disabled?: boolean;
-  issueServiceType: TIssueServiceType;
 };
 
 export const RelationActionButton = observer(function RelationActionButton(props: Props) {
-  const { customButton, issueId, disabled = false, issueServiceType } = props;
+  const { customButton, issueId, disabled = false } = props;
   const { t } = useTranslation();
   // store hooks
-  const { toggleRelationModal, setRelationKey } = useIssueDetail(issueServiceType);
+  const { toggleRelationModal, setRelationKey } = useIssueDetail();
 
   const ISSUE_RELATION_OPTIONS = useTimeLineRelationOptions();
 

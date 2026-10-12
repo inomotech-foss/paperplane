@@ -12,7 +12,6 @@ import { CycleEmptyState } from "./cycle";
 import { GlobalViewEmptyState } from "./global-view";
 import { ModuleEmptyState } from "./module";
 import { ProfileViewEmptyState } from "./profile-view";
-import { ProjectEpicsEmptyState } from "./project-epic";
 import { ProjectEmptyState } from "./project-issues";
 import { ProjectViewEmptyState } from "./project-view";
 
@@ -36,8 +35,6 @@ export function IssueLayoutEmptyState(props: Props) {
       return <GlobalViewEmptyState />;
     case EIssuesStoreType.PROFILE:
       return <ProfileViewEmptyState />;
-    case EIssuesStoreType.EPIC:
-      return <ProjectEpicsEmptyState />;
     default:
       return null;
   }

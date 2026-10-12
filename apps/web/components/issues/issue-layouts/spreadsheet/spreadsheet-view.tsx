@@ -40,7 +40,6 @@ type Props = {
   enableQuickCreateIssue?: boolean;
   disableIssueCreation?: boolean;
   isWorkspaceLevel?: boolean;
-  isEpic?: boolean;
 };
 
 export const SpreadsheetView = observer(function SpreadsheetView(props: Props) {
@@ -58,7 +57,6 @@ export const SpreadsheetView = observer(function SpreadsheetView(props: Props) {
     canLoadMoreIssues,
     loadMoreIssues,
     isWorkspaceLevel = false,
-    isEpic = false,
   } = props;
   // refs
   const containerRef = useRef<HTMLTableElement | null>(null);
@@ -94,7 +92,7 @@ export const SpreadsheetView = observer(function SpreadsheetView(props: Props) {
         entities={{
           [SPREADSHEET_SELECT_GROUP]: issueIds,
         }}
-        disabled={!isBulkOperationsEnabled || isEpic}
+        disabled={!isBulkOperationsEnabled}
       >
         {(helpers) => (
           <>
@@ -114,7 +112,6 @@ export const SpreadsheetView = observer(function SpreadsheetView(props: Props) {
                 loadMoreIssues={loadMoreIssues}
                 spreadsheetColumnsList={spreadsheetColumnsList}
                 selectionHelpers={helpers}
-                isEpic={isEpic}
               />
             </div>
             <div className="border-t border-subtle">
@@ -124,7 +121,6 @@ export const SpreadsheetView = observer(function SpreadsheetView(props: Props) {
                     layout={EIssueLayoutTypes.SPREADSHEET}
                     QuickAddButton={SpreadsheetAddIssueButton}
                     quickAddCallback={quickAddCallback}
-                    isEpic={isEpic}
                   />
                 )}
               </div>

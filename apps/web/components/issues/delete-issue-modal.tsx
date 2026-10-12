@@ -26,11 +26,10 @@ type Props = {
   data?: TIssue | TDeDupeIssue;
   isSubIssue?: boolean;
   onSubmit?: () => Promise<void>;
-  isEpic?: boolean;
 };
 
 export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props) {
-  const { dataId, data, isOpen, handleClose, isSubIssue = false, onSubmit, isEpic = false } = props;
+  const { dataId, data, isOpen, handleClose, isSubIssue = false, onSubmit } = props;
   // states
   const [isDeleting, setIsDeleting] = useState(false);
   // store hooks
@@ -87,14 +86,14 @@ export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props)
         type: "success",
         title: t("common.success"),
         message: t("entity.delete.success", {
-          entity: isSubIssue ? t("common.sub_work_item") : isEpic ? t("common.epic") : t("common.work_item"),
+          entity: isSubIssue ? t("common.sub_work_item") : t("common.work_item"),
         }),
       });
       onClose();
     } catch (errors) {
       const isPermissionError =
         (errors as { error?: string } | undefined)?.error ===
-        `Only admin or creator can delete the ${isSubIssue ? "sub-work item" : isEpic ? "epic" : "work item"}`;
+        `Only admin or creator can delete the ${isSubIssue ? "sub-work item" : "work item"}`;
       const currentError = isPermissionError
         ? PROJECT_ERROR_MESSAGES.permissionError
         : PROJECT_ERROR_MESSAGES.issueDeleteError;
@@ -114,15 +113,15 @@ export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props)
       handleSubmit={handleIssueDelete}
       isSubmitting={isDeleting}
       isOpen={isOpen}
-      title={t("entity.delete.label", { entity: isEpic ? t("common.epic") : t("common.work_item") })}
+      title={t("entity.delete.label", { entity: t("common.work_item") })}
       content={
         <>
           {/* TODO: Translate here */}
-          {`Are you sure you want to delete ${isEpic ? "epic" : "work item"} `}
+          {`Are you sure you want to delete work item `}
           <span className="font-medium break-words text-primary">
             {projectDetails?.identifier}-{issue?.sequence_id}
           </span>
-          {` ? All of the data related to the ${isEpic ? "epic" : "work item"} will be permanently removed. This action cannot be undone.`}
+          {` ? All of the data related to the work item will be permanently removed. This action cannot be undone.`}
         </>
       }
     />

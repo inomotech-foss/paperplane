@@ -50,7 +50,6 @@ type Props = {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
   canEditProperties: (projectId: string | undefined) => boolean;
-  isEpic?: boolean;
 };
 
 export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
@@ -72,7 +71,6 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
     handleDragAndDrop,
     setSelectedDate,
     canEditProperties,
-    isEpic = false,
   } = props;
 
   const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -191,7 +189,6 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
               quickAddCallback={quickAddCallback}
               readOnly={readOnly}
               canEditProperties={canEditProperties}
-              isEpic={isEpic}
             />
           </div>
         </div>

@@ -18,7 +18,6 @@ export interface IBaseAnalyticsStore {
   selectedCycle: string;
   selectedModule: string;
   isPeekView?: boolean;
-  isEpic?: boolean;
   //computed
   selectedDurationLabel: DurationType | null;
 
@@ -28,7 +27,6 @@ export interface IBaseAnalyticsStore {
   updateSelectedCycle: (cycle: string) => void;
   updateSelectedModule: (module: string) => void;
   updateIsPeekView: (isPeekView: boolean) => void;
-  updateIsEpic: (isEpic: boolean) => void;
 }
 
 export class BaseAnalyticsStore implements IBaseAnalyticsStore {
@@ -39,7 +37,6 @@ export class BaseAnalyticsStore implements IBaseAnalyticsStore {
   selectedCycle: string = "";
   selectedModule: string = "";
   isPeekView: boolean = false;
-  isEpic: boolean = false;
   constructor() {
     makeObservable(this, {
       // observables
@@ -49,7 +46,6 @@ export class BaseAnalyticsStore implements IBaseAnalyticsStore {
       selectedCycle: observable.ref,
       selectedModule: observable.ref,
       isPeekView: observable.ref,
-      isEpic: observable.ref,
       // computed
       selectedDurationLabel: computed,
       // actions
@@ -58,7 +54,6 @@ export class BaseAnalyticsStore implements IBaseAnalyticsStore {
       updateSelectedCycle: action,
       updateSelectedModule: action,
       updateIsPeekView: action,
-      updateIsEpic: action,
     });
   }
 
@@ -103,12 +98,6 @@ export class BaseAnalyticsStore implements IBaseAnalyticsStore {
   updateIsPeekView = (isPeekView: boolean) => {
     runInAction(() => {
       this.isPeekView = isPeekView;
-    });
-  };
-
-  updateIsEpic = (isEpic: boolean) => {
-    runInAction(() => {
-      this.isEpic = isEpic;
     });
   };
 }

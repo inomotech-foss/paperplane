@@ -59,16 +59,13 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
   const isActive = useCallback(
     (item: TNavigationItem) => {
       // work item condition
-      const workItemCondition = workItemId && workItem && !workItem?.is_epic && workItem?.project_id === projectId;
-      // epic condition
-      const epicCondition = workItemId && workItem && workItem?.is_epic && workItem?.project_id === projectId;
+      const workItemCondition = workItemId && workItem && workItem?.project_id === projectId;
       // is active
       const isWorkItemActive = item.key === "work_items" && workItemCondition;
-      const isEpicActive = item.key === "epics" && epicCondition;
       // pathname condition
       const isPathnameActive = pathname.includes(item.href);
       // return
-      return isWorkItemActive || isEpicActive || isPathnameActive;
+      return isWorkItemActive || isPathnameActive;
     },
     [pathname, workItem, workItemId, projectId]
   );

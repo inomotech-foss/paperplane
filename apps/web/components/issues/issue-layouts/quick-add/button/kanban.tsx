@@ -11,7 +11,7 @@ import { AddOutline } from "@makeplane/propel/icons";
 import type { TQuickAddIssueButton } from "../root";
 
 export const KanbanQuickAddIssueButton = observer(function KanbanQuickAddIssueButton(props: TQuickAddIssueButton) {
-  const { onClick, isEpic = false } = props;
+  const { onClick } = props;
   const { t } = useTranslation();
   return (
     <div
@@ -19,7 +19,7 @@ export const KanbanQuickAddIssueButton = observer(function KanbanQuickAddIssueBu
       onClick={onClick}
     >
       <AddOutline className="h-3.5 w-3.5" />
-      <span className="text-13 font-medium">{isEpic ? t("epic.new") : t("issue.new")}</span>
+      <span className="text-13 font-medium">{t("issue.new")}</span>
     </div>
   );
 });

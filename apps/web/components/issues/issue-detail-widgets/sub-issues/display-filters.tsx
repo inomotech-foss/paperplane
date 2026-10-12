@@ -25,12 +25,10 @@ type TSubIssueDisplayFiltersProps = {
   handleDisplayFiltersUpdate: (updatedDisplayFilter: Partial<IIssueDisplayFilterOptions>) => void;
   handleDisplayPropertiesUpdate: (updatedDisplayProperties: Partial<IIssueDisplayProperties>) => void;
   layoutDisplayFiltersOptions: ILayoutDisplayFiltersOptions | undefined;
-  isEpic?: boolean;
 };
 
 export const SubIssueDisplayFilters = observer(function SubIssueDisplayFilters(props: TSubIssueDisplayFiltersProps) {
   const {
-    isEpic = false,
     displayProperties,
     layoutDisplayFiltersOptions,
     handleDisplayPropertiesUpdate,
@@ -67,7 +65,6 @@ export const SubIssueDisplayFilters = observer(function SubIssueDisplayFilters(p
                 displayProperties={displayProperties}
                 displayPropertiesToRender={layoutDisplayFiltersOptions.display_properties}
                 handleUpdate={handleDisplayPropertiesUpdate}
-                isEpic={isEpic}
               />
             </div>
 

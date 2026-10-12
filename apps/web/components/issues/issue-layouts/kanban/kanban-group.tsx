@@ -70,7 +70,6 @@ interface IKanbanGroup {
   scrollableContainerRef?: MutableRefObject<HTMLDivElement | null>;
   handleOnDrop: (source: GroupDropLocation, destination: GroupDropLocation) => Promise<void>;
   orderBy: TIssueOrderByOptions | undefined;
-  isEpic?: boolean;
 }
 
 export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
@@ -94,7 +93,6 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
     quickAddCallback,
     scrollableContainerRef,
     handleOnDrop,
-    isEpic = false,
   } = props;
   // i18n
   const { t } = useTranslation();
@@ -297,7 +295,6 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
         dropErrorMessage={dropErrorMessage}
         orderBy={orderBy}
         isDraggingOverColumn={isDraggingOverColumn}
-        isEpic={isEpic}
       />
       <KanbanIssueBlocksList
         sub_group_id={sub_group_id}
@@ -311,7 +308,6 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
         scrollableContainerRef={scrollableContainerRef}
         canDropOverIssue={!canOverlayBeVisible}
         canDragIssuesInCurrentGrouping={canDragIssuesInCurrentGrouping}
-        isEpic={isEpic}
       />
 
       {shouldLoadMore &&
@@ -338,7 +334,6 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
                 ...(group_by && prePopulateQuickAddData(group_by, sub_group_by, groupId, sub_group_id)),
               }}
               quickAddCallback={quickAddCallback}
-              isEpic={isEpic}
             />
           </div>
         )}

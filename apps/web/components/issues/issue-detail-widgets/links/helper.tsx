@@ -8,19 +8,14 @@ import { useMemo } from "react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { TIssueLink, TIssueServiceType } from "@plane/types";
+import type { TIssueLink } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
 import type { TLinkOperations } from "../../issue-detail/links";
 
-export const useLinkOperations = (
-  workspaceSlug: string,
-  projectId: string,
-  issueId: string,
-  issueServiceType: TIssueServiceType
-): TLinkOperations => {
-  const { createLink, updateLink, removeLink } = useIssueDetail(issueServiceType);
+export const useLinkOperations = (workspaceSlug: string, projectId: string, issueId: string): TLinkOperations => {
+  const { createLink, updateLink, removeLink } = useIssueDetail();
   // i18n
   const { t } = useTranslation();
 

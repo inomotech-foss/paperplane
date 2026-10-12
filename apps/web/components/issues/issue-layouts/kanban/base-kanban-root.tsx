@@ -12,7 +12,7 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { EIssueFilterType, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import type { EIssuesStoreType } from "@plane/types";
-import { EIssueServiceType, EIssueLayoutTypes } from "@plane/types";
+import { EIssueLayoutTypes } from "@plane/types";
 //hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssues } from "@/hooks/store/use-issues";
@@ -38,8 +38,7 @@ export type KanbanStoreType =
   | EIssuesStoreType.PROJECT_VIEW
   | EIssuesStoreType.PROFILE
   | EIssuesStoreType.TEAM
-  | EIssuesStoreType.TEAM_VIEW
-  | EIssuesStoreType.EPIC;
+  | EIssuesStoreType.TEAM_VIEW;
 
 export interface IBaseKanBanLayout {
   QuickActions: FC<IQuickActionProps>;
@@ -47,21 +46,13 @@ export interface IBaseKanBanLayout {
   canEditPropertiesBasedOnProject?: (projectId: string) => boolean;
   isCompletedCycle?: boolean;
   viewId?: string | undefined;
-  isEpic?: boolean;
 }
 
 // Stable identity so an empty kanban-filter value doesn't churn the per-column cache's sharedDeps.
 const EMPTY_KANBAN_FILTERS = { group_by: [], sub_group_by: [] };
 
 export const BaseKanBanRoot = observer(function BaseKanBanRoot(props: IBaseKanBanLayout) {
-  const {
-    QuickActions,
-    addIssuesToView,
-    canEditPropertiesBasedOnProject,
-    isCompletedCycle = false,
-    viewId,
-    isEpic = false,
-  } = props;
+  const { QuickActions, addIssuesToView, canEditPropertiesBasedOnProject, isCompletedCycle = false, viewId } = props;
   // router
   const { workspaceSlug, projectId } = useParams();
   // store hooks
@@ -70,7 +61,7 @@ export const BaseKanBanRoot = observer(function BaseKanBanRoot(props: IBaseKanBa
   const { issueMap, issuesFilter, issues } = useIssues(storeType);
   const {
     issue: { getIssueById },
-  } = useIssueDetail(isEpic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES);
+  } = useIssueDetail();
   const {
     fetchIssues,
     fetchNextIssues,
@@ -214,7 +205,6 @@ export const BaseKanBanRoot = observer(function BaseKanBanRoot(props: IBaseKanBa
         isOpen={deleteIssueModal}
         handleClose={() => setDeleteIssueModal(false)}
         onSubmit={handleDeleteIssue}
-        isEpic={isEpic}
       />
       <KanbanDeleteDropZone onRequestDelete={handleRequestDelete} />
       <IssueLayoutHOC layout={EIssueLayoutTypes.KANBAN}>
@@ -245,7 +235,6 @@ export const BaseKanBanRoot = observer(function BaseKanBanRoot(props: IBaseKanBa
                 scrollableContainerRef={scrollableContainerRef}
                 handleOnDrop={handleOnDrop}
                 loadMoreIssues={fetchMoreIssues}
-                isEpic={isEpic}
               />
             </div>
           </div>

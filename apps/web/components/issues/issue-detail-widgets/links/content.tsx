@@ -5,7 +5,6 @@
  */
 
 import React from "react";
-import type { TIssueServiceType } from "@plane/types";
 // components
 import { LinkList } from "../../issue-detail/links";
 // helper
@@ -16,21 +15,13 @@ type Props = {
   projectId: string;
   issueId: string;
   disabled: boolean;
-  issueServiceType: TIssueServiceType;
 };
 
 export function IssueLinksCollapsibleContent(props: Props) {
-  const { workspaceSlug, projectId, issueId, disabled, issueServiceType } = props;
+  const { workspaceSlug, projectId, issueId, disabled } = props;
 
   // helper
-  const handleLinkOperations = useLinkOperations(workspaceSlug, projectId, issueId, issueServiceType);
+  const handleLinkOperations = useLinkOperations(workspaceSlug, projectId, issueId);
 
-  return (
-    <LinkList
-      issueId={issueId}
-      linkOperations={handleLinkOperations}
-      disabled={disabled}
-      issueServiceType={issueServiceType}
-    />
-  );
+  return <LinkList issueId={issueId} linkOperations={handleLinkOperations} disabled={disabled} />;
 }

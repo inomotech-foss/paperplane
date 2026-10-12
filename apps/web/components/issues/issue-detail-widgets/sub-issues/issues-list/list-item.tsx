@@ -19,8 +19,8 @@ import { Icon } from "@makeplane/propel/components/icon";
 import { IconButton } from "@makeplane/propel/components/icon-button";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/components/menu";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
-import type { TIssue, TIssueServiceType, TSubIssueOperations } from "@plane/types";
-import { EIssueServiceType, EIssuesStoreType } from "@plane/types";
+import type { TIssue, TSubIssueOperations } from "@plane/types";
+import { EIssuesStoreType } from "@plane/types";
 import { ControlLink } from "@plane/blocks/layout";
 import { cn, generateWorkItemLink } from "@plane/utils";
 // helpers
@@ -51,7 +51,6 @@ type Props = {
   ) => void;
   subIssueOperations: TSubIssueOperations;
   issueId: string;
-  issueServiceType?: TIssueServiceType;
   storeType?: EIssuesStoreType;
 };
 
@@ -66,7 +65,6 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
     canEdit,
     handleIssueCrudState,
     subIssueOperations,
-    issueServiceType = EIssueServiceType.ISSUES,
     storeType = EIssuesStoreType.PROJECT,
   } = props;
   const { t } = useTranslation();
@@ -75,12 +73,12 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
     subIssues: {
       filters: { getSubIssueFilters },
     },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
   const {
     subIssues: { subIssueHelpersByIssueId, setSubIssueHelpers },
   } = useIssueDetail();
-  const { fetchSubIssues } = useSubIssueOperations(EIssueServiceType.ISSUES);
-  const { toggleCreateIssueModal, toggleDeleteIssueModal } = useIssueDetail(issueServiceType);
+  const { fetchSubIssues } = useSubIssueOperations();
+  const { toggleCreateIssueModal, toggleDeleteIssueModal } = useIssueDetail();
   const project = useProject();
   const { handleRedirection } = useIssuePeekOverviewRedirection();
   const { isMobile } = usePlatformOS();
@@ -224,11 +222,7 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
                 {canEdit && (
                   <MenuItem
                     icon={<Icon icon={CloseOutline} />}
-                    label={
-                      issueServiceType === EIssueServiceType.ISSUES
-                        ? t("issue.remove.parent.label")
-                        : t("issue.remove.label")
-                    }
+                    label={t("issue.remove.parent.label")}
                     onClick={() => {
                       if (issue.project_id)
                         subIssueOperations.removeSubIssue(workspaceSlug, issue.project_id, parentIssueId, issue.id);

@@ -8,7 +8,6 @@ import React, { cloneElement } from "react";
 import { observer } from "mobx-react";
 import { AddOutline } from "@makeplane/propel/icons";
 // plane imports
-import type { TIssueServiceType } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 
@@ -16,13 +15,12 @@ type Props = {
   /** Rendered as the add button itself, so it must accept button props. */
   customButton?: React.ReactElement<React.ComponentPropsWithRef<"button">>;
   disabled?: boolean;
-  issueServiceType: TIssueServiceType;
 };
 
 export const IssueLinksActionButton = observer(function IssueLinksActionButton(props: Props) {
-  const { customButton, disabled = false, issueServiceType } = props;
+  const { customButton, disabled = false } = props;
   // store hooks
-  const { toggleIssueLinkModal } = useIssueDetail(issueServiceType);
+  const { toggleIssueLinkModal } = useIssueDetail();
 
   // handlers
   const handleOnClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {

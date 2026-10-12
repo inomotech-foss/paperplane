@@ -7,7 +7,7 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { setToast } from "@plane/blocks/toast";
-import type { ISearchIssueResponse, TIssue, TIssueServiceType, TWorkItemWidgets } from "@plane/types";
+import type { ISearchIssueResponse, TIssue, TWorkItemWidgets } from "@plane/types";
 // components
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 // hooks
@@ -23,12 +23,11 @@ type Props = {
   workspaceSlug: string;
   projectId: string;
   issueId: string;
-  issueServiceType: TIssueServiceType;
   hideWidgets?: TWorkItemWidgets[];
 };
 
 export const IssueDetailWidgetModals = observer(function IssueDetailWidgetModals(props: Props) {
-  const { workspaceSlug, projectId, issueId, issueServiceType, hideWidgets } = props;
+  const { workspaceSlug, projectId, issueId, hideWidgets } = props;
   // store hooks
   const {
     isIssueLinkModalOpen,
@@ -46,11 +45,11 @@ export const IssueDetailWidgetModals = observer(function IssueDetailWidgetModals
     createRelation,
     issueCrudOperationState,
     setIssueCrudOperationState,
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
 
   // helper hooks
-  const subIssueOperations = useSubIssueOperations(issueServiceType);
-  const handleLinkOperations = useLinkOperations(workspaceSlug, projectId, issueId, issueServiceType);
+  const subIssueOperations = useSubIssueOperations();
+  const handleLinkOperations = useLinkOperations(workspaceSlug, projectId, issueId);
 
   // handlers
   const handleIssueCrudState = (
@@ -159,7 +158,6 @@ export const IssueDetailWidgetModals = observer(function IssueDetailWidgetModals
           isModalOpen={isIssueLinkModalOpen}
           handleOnClose={handleIssueLinkModalOnClose}
           linkOperations={handleLinkOperations}
-          issueServiceType={issueServiceType}
         />
       )}
 

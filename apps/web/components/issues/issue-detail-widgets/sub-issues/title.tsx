@@ -8,24 +8,21 @@ import { observer } from "mobx-react";
 // plane imports
 import { CircularProgress } from "@makeplane/propel/components/circular-progress";
 import { useTranslation } from "@plane/i18n";
-import type { TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 
 type Props = {
   parentIssueId: string;
-  issueServiceType?: TIssueServiceType;
 };
 
 export const SubIssuesCollapsibleTitle = observer(function SubIssuesCollapsibleTitle(props: Props) {
-  const { parentIssueId, issueServiceType = EIssueServiceType.ISSUES } = props;
+  const { parentIssueId } = props;
   // translation
   const { t } = useTranslation();
   // store hooks
   const {
     subIssues: { subIssuesByIssueId, stateDistributionByIssueId },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
   // derived values
   const subIssuesDistribution = stateDistributionByIssueId(parentIssueId);
   const subIssues = subIssuesByIssueId(parentIssueId);
@@ -39,7 +36,7 @@ export const SubIssuesCollapsibleTitle = observer(function SubIssuesCollapsibleT
 
   return (
     <span className="inline-flex items-center gap-2">
-      {issueServiceType === EIssueServiceType.EPICS ? t("issue.label", { count: 1 }) : t("common.sub_work_items")}
+      {t("common.sub_work_items")}
       <span className="flex items-center gap-1.5 text-13 text-tertiary">
         <CircularProgress
           value={percentage}

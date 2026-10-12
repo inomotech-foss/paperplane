@@ -24,11 +24,10 @@ type Props = {
   enableSelection: boolean;
   isDragging: boolean;
   selectionHelpers?: TSelectionHelper;
-  isEpic?: boolean;
 };
 
 export const IssuesSidebarBlock = observer(function IssuesSidebarBlock(props: Props) {
-  const { block, enableSelection, isDragging, selectionHelpers, isEpic = false } = props;
+  const { block, enableSelection, isDragging, selectionHelpers } = props;
   // store hooks
   const { updateActiveBlockId, isBlockActive, getNumberOfDaysFromPosition } = useTimeLineChartStore();
   const { getIsIssuePeeked } = useIssueDetail();
@@ -82,7 +81,7 @@ export const IssuesSidebarBlock = observer(function IssuesSidebarBlock(props: Pr
         )}
         <div className="flex h-full flex-grow items-center justify-between gap-2 truncate">
           <div className="flex-grow truncate">
-            <IssueGanttSidebarBlock issueId={block.data.id} isEpic={isEpic} />
+            <IssueGanttSidebarBlock issueId={block.data.id} />
           </div>
           {duration && (
             <div className="flex-shrink-0 text-13 text-secondary">

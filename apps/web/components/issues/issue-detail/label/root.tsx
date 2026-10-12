@@ -8,8 +8,7 @@ import { useMemo } from "react";
 import { observer } from "mobx-react";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { TIssue, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import type { TIssue } from "@plane/types";
 // components
 import { LabelSelect } from "@/components/dropdowns/label/label-select";
 // hooks
@@ -26,7 +25,6 @@ export type TIssueLabel = {
   disabled: boolean;
   isInboxIssue?: boolean;
   onLabelUpdate?: (labelIds: string[]) => void;
-  issueServiceType?: TIssueServiceType;
 };
 
 type TLabelOperations = {
@@ -34,21 +32,13 @@ type TLabelOperations = {
 };
 
 export const IssueLabel = observer(function IssueLabel(props: TIssueLabel) {
-  const {
-    workspaceSlug,
-    projectId,
-    issueId,
-    disabled = false,
-    isInboxIssue = false,
-    onLabelUpdate,
-    issueServiceType = EIssueServiceType.ISSUES,
-  } = props;
+  const { workspaceSlug, projectId, issueId, disabled = false, isInboxIssue = false, onLabelUpdate } = props;
   const { t } = useTranslation();
   // hooks
   const {
     updateIssue,
     issue: { getIssueById },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
   const { getIssueInboxByIssueId } = useProjectInbox();
 
   const issue = isInboxIssue ? getIssueInboxByIssueId(issueId)?.issue : getIssueById(issueId);

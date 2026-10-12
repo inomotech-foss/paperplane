@@ -7,20 +7,17 @@
 import { useRouter } from "next/navigation";
 // types
 import type { TIssue } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // helpers
 import { generateWorkItemLink } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "./store/use-issue-detail";
 import { useProject } from "./store/use-project";
 
-const useIssuePeekOverviewRedirection = (isEpic: boolean = false) => {
+const useIssuePeekOverviewRedirection = () => {
   // router
   const router = useRouter();
   //   store hooks
-  const { getIsIssuePeeked, setPeekIssue } = useIssueDetail(
-    isEpic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES
-  );
+  const { getIsIssuePeeked, setPeekIssue } = useIssueDetail();
   const { getProjectIdentifierById } = useProject();
 
   const handleRedirection = (
@@ -39,7 +36,6 @@ const useIssuePeekOverviewRedirection = (isEpic: boolean = false) => {
       issueId: id,
       projectIdentifier,
       sequenceId: issue?.sequence_id,
-      isEpic,
       isArchived: !!archived_at,
     });
     if (workspaceSlug && project_id && id && !getIsIssuePeeked(id) && !tempId) {

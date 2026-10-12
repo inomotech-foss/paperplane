@@ -21,7 +21,6 @@ type Props = {
   dropErrorMessage?: string;
   orderBy: TIssueOrderByOptions | undefined;
   isDraggingOverColumn: boolean;
-  isEpic?: boolean;
 };
 
 export function GroupDragOverlay(props: Props) {
@@ -33,7 +32,6 @@ export function GroupDragOverlay(props: Props) {
     dropErrorMessage,
     orderBy,
     isDraggingOverColumn,
-    isEpic = false,
   } = props;
   // hooks
   const { t } = useTranslation();
@@ -76,7 +74,7 @@ export function GroupDragOverlay(props: Props) {
                   {t("issue.layouts.ordered_by_label")} <span className="font-semibold">{t(readableOrderBy)}</span>.
                 </span>
               )}
-              <span>{t("entity.drop_here_to_move", { entity: isEpic ? "epic" : "work item" })}</span>
+              <span>{t("entity.drop_here_to_move", { entity: "work item" })}</span>
             </>
           )}
         </div>

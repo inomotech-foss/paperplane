@@ -5,7 +5,6 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { EIssueServiceType } from "@plane/types";
 import { findNestedInteractive } from "@/lib/testing/nested-interactive";
 import { IssueDetailWidgetActionButtons } from "./action-buttons";
 
@@ -32,13 +31,7 @@ vi.mock("./attachments/helper", () => ({ useAttachmentOperations: () => ({ opera
 describe("IssueDetailWidgetActionButtons", () => {
   it("renders each widget button as its own trigger", () => {
     const { container } = render(
-      <IssueDetailWidgetActionButtons
-        workspaceSlug="ws"
-        projectId="p1"
-        issueId="i1"
-        disabled={false}
-        issueServiceType={EIssueServiceType.ISSUES}
-      />
+      <IssueDetailWidgetActionButtons workspaceSlug="ws" projectId="p1" issueId="i1" disabled={false} />
     );
     expect(findNestedInteractive(container)).toEqual([]);
     expect(container.querySelectorAll("button")).toHaveLength(4);

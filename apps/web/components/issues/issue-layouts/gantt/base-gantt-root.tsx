@@ -41,7 +41,6 @@ import { GanttHierarchyControls } from "./hierarchy-controls";
 interface IBaseGanttRoot {
   viewId?: string | undefined;
   isCompletedCycle?: boolean;
-  isEpic?: boolean;
 }
 
 // A cheap fingerprint of what the rolled-up dates depend on, so they are only
@@ -60,8 +59,7 @@ export type GanttStoreType =
   | EIssuesStoreType.PROJECT
   | EIssuesStoreType.MODULE
   | EIssuesStoreType.CYCLE
-  | EIssuesStoreType.PROJECT_VIEW
-  | EIssuesStoreType.EPIC;
+  | EIssuesStoreType.PROJECT_VIEW;
 
 type TRowStateSources = {
   hasChildren: (issueId: string) => boolean;
@@ -88,7 +86,7 @@ const getRowStates = (rows: ReturnType<typeof buildGanttRows>["rows"], sources: 
 };
 
 export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRoot) {
-  const { viewId, isCompletedCycle = false, isEpic = false } = props;
+  const { viewId, isCompletedCycle = false } = props;
   const { t } = useTranslation();
   // router
   const { workspaceSlug, projectId } = useParams();
@@ -165,7 +163,7 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
       }
       setExpansion({ ...expansion, overrides: { ...expansion.overrides, [issueId]: true } });
       // the view does not list this row's children (e.g. sub-work items are hidden): fetch them
-      if (row.childIds.length > 0 || !issue.sub_issues_count || isEpic || !workspaceSlug || !issue.project_id) return;
+      if (row.childIds.length > 0 || !issue.sub_issues_count || !workspaceSlug || !issue.project_id) return;
       const issueProjectId = issue.project_id;
       setFetchedParentIds((previous) => new Set(previous).add(issueId));
       if (subIssuesStore.subIssuesByIssueId(issueId)) return;
@@ -182,7 +180,7 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
         });
       }
     },
-    [rows, expansion, setExpansion, getIssueById, isEpic, workspaceSlug, subIssuesStore, t]
+    [rows, expansion, setExpansion, getIssueById, workspaceSlug, subIssuesStore, t]
   );
 
   // the row states as plain data, so the context value only changes when one of them does
@@ -254,7 +252,6 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
           target_date: renderFormattedPayloadDate(targetDate),
         }}
         quickAddCallback={quickAddIssue}
-        isEpic={isEpic}
       />
     ) : undefined;
 
@@ -265,12 +262,12 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
           <div className="h-full w-full">
             <GanttChartRoot
               border={false}
-              title={isEpic ? t("epic.label", { count: 2 }) : t("issue.label", { count: 2 })}
-              loaderTitle={isEpic ? t("epic.label", { count: 2 }) : t("issue.label", { count: 2 })}
+              title={t("issue.label", { count: 2 })}
+              loaderTitle={t("issue.label", { count: 2 })}
               blockIds={visibleIds}
               blockUpdateHandler={updateIssueBlockStructure}
-              blockToRender={(data: TIssue) => <IssueGanttBlock issueId={data.id} isEpic={isEpic} />}
-              sidebarToRender={(props) => <IssueGanttSidebar {...props} showAllBlocks isEpic={isEpic} />}
+              blockToRender={(data: TIssue) => <IssueGanttBlock issueId={data.id} />}
+              sidebarToRender={(props) => <IssueGanttSidebar {...props} showAllBlocks />}
               enableBlockLeftResize={isAllowed}
               enableBlockRightResize={isAllowed}
               enableBlockMove={isAllowed}
@@ -283,7 +280,6 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
               updateBlockDates={updateBlockDates}
               showAllBlocks
               enableDependency
-              isEpic={isEpic}
               headerActions={
                 parentIds.length > 0 ? (
                   <GanttHierarchyControls

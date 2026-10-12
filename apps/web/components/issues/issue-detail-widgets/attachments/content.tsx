@@ -6,8 +6,6 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import type { TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // local imports
 import { IssueAttachmentItemList } from "../../attachment/attachment-item-list";
 import { useAttachmentOperations } from "./helper";
@@ -17,13 +15,12 @@ type Props = {
   projectId: string;
   issueId: string;
   disabled: boolean;
-  issueServiceType?: TIssueServiceType;
 };
 
 export const IssueAttachmentsCollapsibleContent = observer(function IssueAttachmentsCollapsibleContent(props: Props) {
-  const { workspaceSlug, projectId, issueId, disabled, issueServiceType = EIssueServiceType.ISSUES } = props;
+  const { workspaceSlug, projectId, issueId, disabled } = props;
   // helper
-  const attachmentHelpers = useAttachmentOperations(workspaceSlug, projectId, issueId, issueServiceType);
+  const attachmentHelpers = useAttachmentOperations(workspaceSlug, projectId, issueId);
   return (
     <IssueAttachmentItemList
       workspaceSlug={workspaceSlug}
@@ -31,7 +28,6 @@ export const IssueAttachmentsCollapsibleContent = observer(function IssueAttachm
       issueId={issueId}
       disabled={disabled}
       attachmentHelpers={attachmentHelpers}
-      issueServiceType={issueServiceType}
     />
   );
 });

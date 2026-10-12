@@ -27,7 +27,6 @@ export interface IRouterStore {
   issueId: string | undefined;
   inboxId: string | undefined;
   webhookId: string | undefined;
-  epicId: string | undefined;
 }
 
 export class RouterStore implements IRouterStore {
@@ -54,7 +53,6 @@ export class RouterStore implements IRouterStore {
       issueId: computed,
       inboxId: computed,
       webhookId: computed,
-      epicId: computed,
     });
   }
 
@@ -170,13 +168,5 @@ export class RouterStore implements IRouterStore {
    */
   get webhookId() {
     return this.query?.webhookId?.toString();
-  }
-
-  /**
-   * Returns the epic id from the query
-   * @returns string|undefined
-   */
-  get epicId() {
-    return this.query?.epicId?.toString();
   }
 }

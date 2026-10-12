@@ -25,7 +25,6 @@ interface Props {
   isDragAllowed: boolean;
   canDropOverIssue: boolean;
   selectionHelpers: TSelectionHelper;
-  isEpic?: boolean;
 }
 
 export function IssueBlocksList(props: Props) {
@@ -41,7 +40,6 @@ export function IssueBlocksList(props: Props) {
     selectionHelpers,
     isDragAllowed,
     canDropOverIssue,
-    isEpic = false,
   } = props;
 
   return (
@@ -65,7 +63,6 @@ export function IssueBlocksList(props: Props) {
             isLastChild={index === issueIds.length - 1}
             isDragAllowed={isDragAllowed}
             canDropOverIssue={canDropOverIssue}
-            isEpic={isEpic}
           />
         ))}
     </div>

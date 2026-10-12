@@ -7,8 +7,7 @@
 import React from "react";
 import { observer } from "mobx-react";
 // plane imports
-import type { TIssue, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import type { TIssue } from "@plane/types";
 import type { TIssueRelationTypes } from "@plane/types";
 // local imports
 import { RelationIssueListItem } from "./issue-list-item";
@@ -26,19 +25,10 @@ type Props = {
     relationIssueId?: string | null
   ) => void;
   disabled?: boolean;
-  issueServiceType?: TIssueServiceType;
 };
 
 export const RelationIssueList = observer(function RelationIssueList(props: Props) {
-  const {
-    workspaceSlug,
-    issueId,
-    issueIds,
-    relationKey,
-    disabled = false,
-    handleIssueCrudState,
-    issueServiceType = EIssueServiceType.ISSUES,
-  } = props;
+  const { workspaceSlug, issueId, issueIds, relationKey, disabled = false, handleIssueCrudState } = props;
 
   return (
     <div className="relative">
@@ -53,7 +43,6 @@ export const RelationIssueList = observer(function RelationIssueList(props: Prop
             relationIssueId={relationIssueId}
             disabled={disabled}
             handleIssueCrudState={handleIssueCrudState}
-            issueServiceType={issueServiceType}
           />
         ))}
     </div>

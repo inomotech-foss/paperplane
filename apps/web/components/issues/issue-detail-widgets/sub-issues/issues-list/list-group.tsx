@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 import { CircleDashed } from "lucide-react";
 import { Collapsible } from "@makeplane/propel/components/collapsible";
 import { ALL_ISSUES } from "@plane/constants";
-import type { IGroupByColumn, TIssue, TIssueServiceType, TSubIssueOperations } from "@plane/types";
+import type { IGroupByColumn, TIssue, TSubIssueOperations } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
 import { SubIssuesListItem } from "./list-item";
 
@@ -18,7 +18,6 @@ interface TSubIssuesListGroupProps {
   projectId: string;
   workspaceSlug: string;
   group: IGroupByColumn;
-  serviceType: TIssueServiceType;
   canEdit: boolean;
   parentIssueId: string;
   rootIssueId: string;
@@ -35,7 +34,6 @@ interface TSubIssuesListGroupProps {
 export const SubIssuesListGroup = observer(function SubIssuesListGroup(props: TSubIssuesListGroupProps) {
   const {
     group,
-    serviceType,
     canEdit,
     parentIssueId,
     rootIssueId,
@@ -66,7 +64,6 @@ export const SubIssuesListGroup = observer(function SubIssuesListGroup(props: TS
       canEdit={canEdit}
       handleIssueCrudState={handleIssueCrudState}
       subIssueOperations={subIssueOperations}
-      issueServiceType={serviceType}
       spacingLeft={spacingLeft}
       storeType={storeType}
     />

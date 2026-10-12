@@ -56,7 +56,6 @@ interface UseViewMenuItemsProps {
 interface UseLayoutMenuItemsProps {
   workspaceSlug: string;
   projectId: string;
-  storeType: "PROJECT" | "EPIC";
   handleCopyLink: () => void;
   handleOpenInNewTab: () => void;
 }

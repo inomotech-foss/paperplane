@@ -52,11 +52,7 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
   } = props;
   const issueStoreType = useIssueStoreType();
 
-  let storeType = issueStoreFromProps ?? issueStoreType;
-  // Fallback to project store if epic store is used in issue modal.
-  if (storeType === EIssuesStoreType.EPIC) {
-    storeType = EIssuesStoreType.PROJECT;
-  }
+  const storeType = issueStoreFromProps ?? issueStoreType;
   // ref
   const issueTitleRef = useRef<HTMLInputElement>(null);
   // states

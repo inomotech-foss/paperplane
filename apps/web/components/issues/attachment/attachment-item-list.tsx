@@ -11,8 +11,6 @@ import { useDropzone } from "react-dropzone";
 import { UploadOutline } from "@makeplane/propel/icons";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // plane web hooks
@@ -31,18 +29,10 @@ type TIssueAttachmentItemList = {
   issueId: string;
   attachmentHelpers: TAttachmentHelpers;
   disabled?: boolean;
-  issueServiceType?: TIssueServiceType;
 };
 
 export const IssueAttachmentItemList = observer(function IssueAttachmentItemList(props: TIssueAttachmentItemList) {
-  const {
-    workspaceSlug,
-    projectId,
-    issueId,
-    attachmentHelpers,
-    disabled,
-    issueServiceType = EIssueServiceType.ISSUES,
-  } = props;
+  const { workspaceSlug, projectId, issueId, attachmentHelpers, disabled } = props;
   const { t } = useTranslation();
   // states
   const [isUploading, setIsUploading] = useState(false);
@@ -52,7 +42,7 @@ export const IssueAttachmentItemList = observer(function IssueAttachmentItemList
     attachmentDeleteModalId,
     toggleDeleteAttachmentModal,
     fetchActivities,
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
   const { operations: attachmentOperations, snapshot: attachmentSnapshot } = attachmentHelpers;
   const { create: createAttachment } = attachmentOperations;
   const { uploadStatus } = attachmentSnapshot;
@@ -126,7 +116,6 @@ export const IssueAttachmentItemList = observer(function IssueAttachmentItemList
               onClose={() => toggleDeleteAttachmentModal(null)}
               attachmentOperations={attachmentOperations}
               attachmentId={attachmentDeleteModalId}
-              issueServiceType={issueServiceType}
             />
           )}
           <div
@@ -145,12 +134,7 @@ export const IssueAttachmentItemList = observer(function IssueAttachmentItemList
               </div>
             )}
             {issueAttachments?.map((attachmentId) => (
-              <IssueAttachmentsListItem
-                key={attachmentId}
-                attachmentId={attachmentId}
-                disabled={disabled}
-                issueServiceType={issueServiceType}
-              />
+              <IssueAttachmentsListItem key={attachmentId} attachmentId={attachmentId} disabled={disabled} />
             ))}
           </div>
         </>

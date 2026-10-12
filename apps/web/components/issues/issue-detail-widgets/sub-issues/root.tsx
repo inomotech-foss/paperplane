@@ -8,7 +8,6 @@ import React from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { Collapsible } from "@makeplane/propel/components/collapsible";
-import type { TIssueServiceType } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
@@ -21,13 +20,12 @@ type Props = {
   projectId: string;
   issueId: string;
   disabled?: boolean;
-  issueServiceType: TIssueServiceType;
 };
 
 export const SubIssuesCollapsible = observer(function SubIssuesCollapsible(props: Props) {
-  const { workspaceSlug, projectId, issueId, disabled = false, issueServiceType } = props;
+  const { workspaceSlug, projectId, issueId, disabled = false } = props;
   // store hooks
-  const { openWidgets, toggleOpenWidget } = useIssueDetail(issueServiceType);
+  const { openWidgets, toggleOpenWidget } = useIssueDetail();
   // derived values
   const isCollapsibleOpen = openWidgets.includes("sub-work-items");
 
@@ -35,15 +33,10 @@ export const SubIssuesCollapsible = observer(function SubIssuesCollapsible(props
     <Collapsible
       open={isCollapsibleOpen}
       onOpenChange={() => toggleOpenWidget("sub-work-items")}
-      trigger={<SubIssuesCollapsibleTitle parentIssueId={issueId} issueServiceType={issueServiceType} />}
+      trigger={<SubIssuesCollapsibleTitle parentIssueId={issueId} />}
       trailing={
         isCollapsibleOpen ? (
-          <SubWorkItemTitleActions
-            projectId={projectId}
-            parentId={issueId}
-            disabled={disabled}
-            issueServiceType={issueServiceType}
-          />
+          <SubWorkItemTitleActions projectId={projectId} parentId={issueId} disabled={disabled} />
         ) : undefined
       }
     >
@@ -52,7 +45,6 @@ export const SubIssuesCollapsible = observer(function SubIssuesCollapsible(props
         projectId={projectId}
         parentIssueId={issueId}
         disabled={disabled}
-        issueServiceType={issueServiceType}
       />
     </Collapsible>
   );

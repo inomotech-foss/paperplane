@@ -40,11 +40,10 @@ import { useGanttHierarchy } from "./hierarchy-context";
 
 type Props = {
   issueId: string;
-  isEpic?: boolean;
 };
 
 export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
-  const { issueId, isEpic } = props;
+  const { issueId } = props;
   // router
   const { workspaceSlug: routerWorkspaceSlug } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
@@ -60,7 +59,7 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
   // hooks
   const { isMobile } = usePlatformOS();
   const chartPalette = useChartPalette();
-  const { handleRedirection } = useIssuePeekOverviewRedirection(isEpic);
+  const { handleRedirection } = useIssuePeekOverviewRedirection();
   const { getBlockById } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
   const { t } = useTranslation();
 
@@ -207,7 +206,7 @@ const GanttRowToggle = observer(function GanttRowToggle(props: TGanttRowTogglePr
 
 // rendering issues on gantt sidebar
 export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(props: Props) {
-  const { issueId, isEpic = false } = props;
+  const { issueId } = props;
   // router
   const { workspaceSlug: routerWorkspaceSlug } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
@@ -222,7 +221,7 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
   const { getIssueTypeById } = useIssueTypes();
 
   // handlers
-  const { handleRedirection } = useIssuePeekOverviewRedirection(isEpic);
+  const { handleRedirection } = useIssuePeekOverviewRedirection();
 
   const hierarchy = useGanttHierarchy();
   const { t } = useTranslation();
@@ -247,7 +246,6 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
     issueId,
     projectIdentifier,
     sequenceId: issueDetails?.sequence_id,
-    isEpic,
   });
 
   return (

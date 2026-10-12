@@ -16,7 +16,6 @@ import {
   EstimateOutline,
   GitBranchOutline,
   GlobeOutline,
-  GridOutline,
   HashOutline,
   HierarchyOutline,
   InboxOutline,
@@ -65,7 +64,6 @@ export const iconsMap: ActivityIconMap = {
   identifier: HashOutline,
   timezone: ClockOutline,
   is_project_updates_enabled: SubscribeOutline,
-  is_epic_enabled: GridOutline,
   is_workflow_enabled: GitBranchOutline,
   is_time_tracking_enabled: TimeTrackingOutline,
   is_issue_type_enabled: ToDoOutline,
@@ -268,10 +266,6 @@ export const messages = (activity: TProjectActivity): { message: string | ReactN
     case "is_project_updates_enabled":
       return {
         message: <>{getBooleanActionText(newValue)} project updates</>,
-      };
-    case "is_epic_enabled":
-      return {
-        message: <>{getBooleanActionText(newValue)} epics</>,
       };
     case "is_workflow_enabled":
       return {

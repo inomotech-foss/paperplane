@@ -44,7 +44,6 @@ type ChartViewRootProps = {
   canLoadMoreBlocks?: boolean;
   quickAdd?: React.ReactNode | undefined;
   showToday: boolean;
-  isEpic?: boolean;
   /** Extra controls shown in the chart header, e.g. expand / collapse of the hierarchy. */
   headerActions?: React.ReactNode;
 };
@@ -78,7 +77,6 @@ export const ChartViewRoot = observer(function ChartViewRoot(props: ChartViewRoo
     quickAdd,
     showToday,
     updateBlockDates,
-    isEpic = false,
     headerActions,
   } = props;
   // states
@@ -220,7 +218,6 @@ export const ChartViewRoot = observer(function ChartViewRoot(props: ChartViewRoo
         updateCurrentViewRenderPayload={updateCurrentViewRenderPayload}
         quickAdd={quickAdd}
         updateBlockDates={updateBlockDates}
-        isEpic={isEpic}
       />
     </div>
   );

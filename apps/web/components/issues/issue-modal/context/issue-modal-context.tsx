@@ -53,7 +53,6 @@ export type THandleParentWorkItemDetailsProps = {
   workspaceSlug: string;
   parentId: string | undefined;
   parentProjectId: string | undefined;
-  isParentEpic: boolean;
 };
 
 export type TIssueModalContext = {

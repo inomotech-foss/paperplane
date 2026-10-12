@@ -22,7 +22,6 @@ export enum EIssueLayoutTypes {
 
 export enum EIssueServiceType {
   ISSUES = "issues",
-  EPICS = "epics",
   WORK_ITEMS = "work-items",
 }
 
@@ -38,7 +37,6 @@ export enum EIssuesStoreType {
   ARCHIVED = "ARCHIVED",
   DEFAULT = "DEFAULT",
   WORKSPACE_DRAFT = "WORKSPACE_DRAFT",
-  EPIC = "EPIC",
   TEAM_PROJECT_WORK_ITEMS = "TEAM_PROJECT_WORK_ITEMS",
 }
 
@@ -75,7 +73,6 @@ export type TBaseIssue = {
   updated_by: string;
 
   is_draft: boolean;
-  is_epic?: boolean;
   is_intake?: boolean;
 };
 
@@ -157,7 +154,7 @@ export type TBulkOperationsPayload = {
 
 export type TWorkItemWidgets = "sub-work-items" | "relations" | "links" | "attachments";
 
-export type TIssueServiceType = EIssueServiceType.ISSUES | EIssueServiceType.EPICS | EIssueServiceType.WORK_ITEMS;
+export type TIssueServiceType = EIssueServiceType.ISSUES | EIssueServiceType.WORK_ITEMS;
 
 export interface IPublicIssue extends Pick<
   TIssue,

@@ -16,7 +16,7 @@ import { useTranslation } from "@plane/i18n";
 import type { TContextMenuItem } from "@plane/blocks/context-menu";
 
 /**
- * Unified factory for creating menu items across all entities (cycles, modules, views, epics)
+ * Unified factory for creating menu items across all entities (cycles, modules, views)
  */
 export const useQuickActionsFactory = () => {
   const { t } = useTranslation();

@@ -8,13 +8,12 @@ import { useMemo } from "react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { TIssueServiceType, TSubIssueOperations } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import type { TSubIssueOperations } from "@plane/types";
 import { copyUrlToClipboard } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 
-export const useSubIssueOperations = (issueServiceType: TIssueServiceType): TSubIssueOperations => {
+export const useSubIssueOperations = (): TSubIssueOperations => {
   // translation
   const { t } = useTranslation();
   // store hooks
@@ -25,7 +24,7 @@ export const useSubIssueOperations = (issueServiceType: TIssueServiceType): TSub
     updateSubIssue,
     deleteSubIssue,
     removeSubIssue,
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
 
   const subIssueOperations: TSubIssueOperations = useMemo(
     () => ({
@@ -35,10 +34,7 @@ export const useSubIssueOperations = (issueServiceType: TIssueServiceType): TSub
           type: "success",
           title: t("common.link_copied"),
           message: t("entity.link_copied_to_clipboard", {
-            entity:
-              issueServiceType === EIssueServiceType.ISSUES
-                ? t("common.sub_work_items", { count: 1 })
-                : t("issue.label", { count: 1 }),
+            entity: t("common.sub_work_items", { count: 1 }),
           }),
         });
       },
@@ -50,10 +46,7 @@ export const useSubIssueOperations = (issueServiceType: TIssueServiceType): TSub
             type: "error",
             title: t("toast.error"),
             message: t("entity.fetch.failed", {
-              entity:
-                issueServiceType === EIssueServiceType.ISSUES
-                  ? t("common.sub_work_items", { count: 2 })
-                  : t("issue.label", { count: 2 }),
+              entity: t("common.sub_work_items", { count: 2 }),
             }),
           });
         }
@@ -65,10 +58,7 @@ export const useSubIssueOperations = (issueServiceType: TIssueServiceType): TSub
             type: "success",
             title: t("toast.success"),
             message: t("entity.add.success", {
-              entity:
-                issueServiceType === EIssueServiceType.ISSUES
-                  ? t("common.sub_work_items")
-                  : t("issue.label", { count: issueIds.length }),
+              entity: t("common.sub_work_items"),
             }),
           });
         } catch {
@@ -76,10 +66,7 @@ export const useSubIssueOperations = (issueServiceType: TIssueServiceType): TSub
             type: "error",
             title: t("toast.error"),
             message: t("entity.add.failed", {
-              entity:
-                issueServiceType === EIssueServiceType.ISSUES
-                  ? t("common.sub_work_items")
-                  : t("issue.label", { count: issueIds.length }),
+              entity: t("common.sub_work_items"),
             }),
           });
         }
@@ -118,10 +105,7 @@ export const useSubIssueOperations = (issueServiceType: TIssueServiceType): TSub
             type: "success",
             title: t("toast.success"),
             message: t("entity.remove.success", {
-              entity:
-                issueServiceType === EIssueServiceType.ISSUES
-                  ? t("common.sub_work_items")
-                  : t("issue.label", { count: 1 }),
+              entity: t("common.sub_work_items"),
             }),
           });
           setSubIssueHelpers(parentIssueId, "issue_loader", issueId);
@@ -130,10 +114,7 @@ export const useSubIssueOperations = (issueServiceType: TIssueServiceType): TSub
             type: "error",
             title: t("toast.error"),
             message: t("entity.remove.failed", {
-              entity:
-                issueServiceType === EIssueServiceType.ISSUES
-                  ? t("common.sub_work_items")
-                  : t("issue.label", { count: 1 }),
+              entity: t("common.sub_work_items"),
             }),
           });
         }
@@ -148,25 +129,13 @@ export const useSubIssueOperations = (issueServiceType: TIssueServiceType): TSub
             type: "error",
             title: t("toast.error"),
             message: t("entity.delete.failed", {
-              entity:
-                issueServiceType === EIssueServiceType.ISSUES
-                  ? t("common.sub_work_items")
-                  : t("issue.label", { count: 1 }),
+              entity: t("common.sub_work_items"),
             }),
           });
         }
       },
     }),
-    [
-      createSubIssues,
-      deleteSubIssue,
-      fetchSubIssues,
-      issueServiceType,
-      removeSubIssue,
-      setSubIssueHelpers,
-      t,
-      updateSubIssue,
-    ]
+    [createSubIssues, deleteSubIssue, fetchSubIssues, removeSubIssue, setSubIssueHelpers, t, updateSubIssue]
   );
 
   return subIssueOperations;

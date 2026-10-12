@@ -69,10 +69,6 @@ export type TStoreIssues = {
     issues: IProjectIssues;
     issuesFilter: IProjectIssuesFilter;
   };
-  [EIssuesStoreType.EPIC]: defaultIssueStore & {
-    issues: IProjectIssues;
-    issuesFilter: IProjectIssuesFilter;
-  };
   [EIssuesStoreType.TEAM_PROJECT_WORK_ITEMS]: defaultIssueStore & {
     issues: IProjectIssues;
     issuesFilter: IProjectIssuesFilter;
@@ -137,11 +133,6 @@ export const useIssues = <T extends EIssuesStoreType>(storeType?: T): TStoreIssu
       return merge(defaultStore, {
         issues: context.issue.archivedIssues,
         issuesFilter: context.issue.archivedIssuesFilter,
-      }) as TStoreIssues[T];
-    case EIssuesStoreType.EPIC:
-      return merge(defaultStore, {
-        issues: context.issue.projectEpics,
-        issuesFilter: context.issue.projectEpicsFilter,
       }) as TStoreIssues[T];
     case EIssuesStoreType.TEAM_PROJECT_WORK_ITEMS:
       return merge(defaultStore, {

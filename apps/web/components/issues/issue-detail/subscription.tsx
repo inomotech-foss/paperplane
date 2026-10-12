@@ -15,7 +15,6 @@ import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/elements/button";
 import { Icon } from "@makeplane/propel/components/icon";
 import { setToast } from "@plane/blocks/toast";
-import { EIssueServiceType } from "@plane/types";
 import { Loader } from "@plane/blocks/skeleton";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -25,18 +24,17 @@ export type TIssueSubscription = {
   workspaceSlug: string;
   projectId: string;
   issueId: string;
-  serviceType?: EIssueServiceType;
 };
 
 export const IssueSubscription = observer(function IssueSubscription(props: TIssueSubscription) {
-  const { workspaceSlug, projectId, issueId, serviceType = EIssueServiceType.ISSUES } = props;
+  const { workspaceSlug, projectId, issueId } = props;
   const { t } = useTranslation();
   // hooks
   const {
     subscription: { getSubscriptionByIssueId },
     createSubscription,
     removeSubscription,
-  } = useIssueDetail(serviceType);
+  } = useIssueDetail();
   // state
   const [loading, setLoading] = useState(false);
   // hooks

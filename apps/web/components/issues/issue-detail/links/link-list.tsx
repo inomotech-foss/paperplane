@@ -6,7 +6,6 @@
 
 import { observer } from "mobx-react";
 // plane imports
-import type { TIssueServiceType } from "@plane/types";
 // computed
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
@@ -19,16 +18,15 @@ type TLinkList = {
   issueId: string;
   linkOperations: TLinkOperationsModal;
   disabled?: boolean;
-  issueServiceType: TIssueServiceType;
 };
 
 export const LinkList = observer(function LinkList(props: TLinkList) {
   // props
-  const { issueId, linkOperations, disabled = false, issueServiceType } = props;
+  const { issueId, linkOperations, disabled = false } = props;
   // hooks
   const {
     link: { getLinksByIssueId },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
 
   const issueLinks = getLinksByIssueId(issueId);
 
@@ -37,13 +35,7 @@ export const LinkList = observer(function LinkList(props: TLinkList) {
   return (
     <div className="flex flex-col gap-2">
       {issueLinks.map((linkId) => (
-        <IssueLinkItem
-          key={linkId}
-          linkId={linkId}
-          linkOperations={linkOperations}
-          isNotAllowed={disabled}
-          issueServiceType={issueServiceType}
-        />
+        <IssueLinkItem key={linkId} linkId={linkId} linkOperations={linkOperations} isNotAllowed={disabled} />
       ))}
     </div>
   );

@@ -17,19 +17,13 @@ import AnalyticsSectionWrapper from "../analytics-section-wrapper";
 import { AnalyticsSelectParams } from "../select/analytics-params";
 import PriorityChart from "./priority-chart";
 
-const CustomizedInsights = observer(function CustomizedInsights({
-  peekView,
-  isEpic,
-}: {
-  peekView?: boolean;
-  isEpic?: boolean;
-}) {
+const CustomizedInsights = observer(function CustomizedInsights({ peekView }: { peekView?: boolean }) {
   const { t } = useTranslation();
   const { workspaceSlug } = useParams();
   const { control, watch, setValue } = useForm<IAnalyticsParams>({
     defaultValues: {
       x_axis: ChartXAxisProperty.PRIORITY,
-      y_axis: isEpic ? ChartYAxisMetric.EPIC_WORK_ITEM_COUNT : ChartYAxisMetric.WORK_ITEM_COUNT,
+      y_axis: ChartYAxisMetric.WORK_ITEM_COUNT,
     },
   });
 
@@ -50,7 +44,6 @@ const CustomizedInsights = observer(function CustomizedInsights({
           setValue={setValue}
           params={params}
           workspaceSlug={workspaceSlug.toString()}
-          isEpic={isEpic}
         />
       }
     >

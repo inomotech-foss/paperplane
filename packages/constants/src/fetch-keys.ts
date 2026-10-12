@@ -206,9 +206,6 @@ export const PROJECT_MEMBER_PREFERENCES = (projectId: string, projectRole: EUser
 export const PROJECT_WORKFLOWS = (projectId: string, projectRole: EUserPermissions | undefined) =>
   `PROJECT_WORKFLOWS_${projectId.toString().toUpperCase()}_${projectRole}`;
 
-export const EPICS_PROPERTIES_AND_OPTIONS = (projectId: string, projectRole: EUserPermissions | undefined) =>
-  `EPICS_PROPERTIES_AND_OPTIONS_${projectId.toString().toUpperCase()}_${projectRole}`;
-
 export const WORK_ITEM_TYPES_PROPERTIES_AND_OPTIONS = (projectId: string, projectRole: EUserPermissions | undefined) =>
   `WORK_ITEM_TYPES_PROPERTIES_AND_OPTIONS_${projectId.toString().toUpperCase()}_${projectRole}`;
 

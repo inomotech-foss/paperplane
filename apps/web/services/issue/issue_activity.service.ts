@@ -31,7 +31,7 @@ export class IssueActivityService extends APIService {
   ): Promise<TIssueActivity[]> {
     return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/history/`, {
       params: {
-        activity_type: `${this.serviceType === EIssueServiceType.EPICS ? "epic-property" : "issue-property"}`,
+        activity_type: "issue-property",
         ...params,
       },
     })

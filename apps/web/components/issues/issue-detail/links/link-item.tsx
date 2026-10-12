@@ -10,8 +10,6 @@ import { useTranslation } from "@plane/i18n";
 import { CopyOutline, DeleteOutline, EditOutline, LinkOutline, MoreHorizontalOutline } from "@makeplane/propel/icons";
 import { setToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
-import type { TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // ui
 import { Icon } from "@makeplane/propel/components/icon";
 import { IconButton } from "@makeplane/propel/components/icon-button";
@@ -27,19 +25,18 @@ type TIssueLinkItem = {
   linkId: string;
   linkOperations: TLinkOperationsModal;
   isNotAllowed: boolean;
-  issueServiceType?: TIssueServiceType;
 };
 
 export const IssueLinkItem = observer(function IssueLinkItem(props: TIssueLinkItem) {
   // props
-  const { linkId, linkOperations, isNotAllowed, issueServiceType = EIssueServiceType.ISSUES } = props;
+  const { linkId, linkOperations, isNotAllowed } = props;
   // hooks
   const { t } = useTranslation();
   const {
     toggleIssueLinkModal: toggleIssueLinkModalStore,
     setIssueLinkData,
     link: { getLinkById },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
   const { isMobile } = usePlatformOS();
   const linkDetail = getLinkById(linkId);
   if (!linkDetail) return <></>;

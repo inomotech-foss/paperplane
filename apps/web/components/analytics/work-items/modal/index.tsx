@@ -4,12 +4,11 @@
  * See the LICENSE file for details.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { observer } from "mobx-react";
 // plane package imports
 import { ModalPortal } from "@plane/blocks/portal";
 import type { ICycle, IModule, IProject } from "@plane/types";
-import { useAnalytics } from "@/hooks/store/use-analytics";
 // plane web components
 import { WorkItemsModalMainContent } from "./content";
 import { WorkItemsModalHeader } from "./header";
@@ -20,22 +19,16 @@ type Props = {
   projectDetails?: IProject | undefined;
   cycleDetails?: ICycle | undefined;
   moduleDetails?: IModule | undefined;
-  isEpic?: boolean;
 };
 
 export const WorkItemsModal = observer(function WorkItemsModal(props: Props) {
-  const { isOpen, onClose, projectDetails, moduleDetails, cycleDetails, isEpic } = props;
-  const { updateIsEpic, isPeekView } = useAnalytics();
+  const { isOpen, onClose, projectDetails, moduleDetails, cycleDetails } = props;
   const [fullScreen, setFullScreen] = useState(false);
 
   const handleClose = () => {
     setFullScreen(false);
     onClose();
   };
-
-  useEffect(() => {
-    updateIsEpic(isPeekView ? (isEpic ?? false) : false);
-  }, [isEpic, updateIsEpic, isPeekView]);
 
   return (
     <ModalPortal
@@ -65,7 +58,6 @@ export const WorkItemsModal = observer(function WorkItemsModal(props: Props) {
           projectDetails={projectDetails}
           cycleDetails={cycleDetails}
           moduleDetails={moduleDetails}
-          isEpic={isEpic}
         />
       </div>
     </ModalPortal>

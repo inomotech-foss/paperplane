@@ -35,7 +35,7 @@ export class IssueCommentService extends APIService {
   ): Promise<TIssueComment[]> {
     return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/history/`, {
       params: {
-        activity_type: `${this.serviceType === EIssueServiceType.EPICS ? "epic-comment" : "issue-comment"}`,
+        activity_type: "issue-comment",
         ...params,
       },
     })

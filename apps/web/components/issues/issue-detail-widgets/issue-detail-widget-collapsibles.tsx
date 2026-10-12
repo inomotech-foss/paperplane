@@ -7,7 +7,7 @@
 import React from "react";
 import { observer } from "mobx-react";
 // plane imports
-import type { TIssueServiceType, TWorkItemWidgets } from "@plane/types";
+import type { TWorkItemWidgets } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useTimeLineRelationOptions } from "@/components/relations";
@@ -22,19 +22,18 @@ type Props = {
   projectId: string;
   issueId: string;
   disabled: boolean;
-  issueServiceType: TIssueServiceType;
   hideWidgets?: TWorkItemWidgets[];
 };
 
 export const IssueDetailWidgetCollapsibles = observer(function IssueDetailWidgetCollapsibles(props: Props) {
-  const { workspaceSlug, projectId, issueId, disabled, issueServiceType, hideWidgets } = props;
+  const { workspaceSlug, projectId, issueId, disabled, hideWidgets } = props;
   // store hooks
   const {
     issue: { getIssueById },
     subIssues: { subIssuesByIssueId },
     attachment: { getAttachmentsCountByIssueId, getAttachmentsUploadStatusByIssueId },
     relation: { getRelationCountByIssueId },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
   // derived values
   const issue = getIssueById(issueId);
   const subIssues = subIssuesByIssueId(issueId);
@@ -58,25 +57,13 @@ export const IssueDetailWidgetCollapsibles = observer(function IssueDetailWidget
           projectId={projectId}
           issueId={issueId}
           disabled={disabled}
-          issueServiceType={issueServiceType}
         />
       )}
       {shouldRenderRelations && (
-        <RelationsCollapsible
-          workspaceSlug={workspaceSlug}
-          issueId={issueId}
-          disabled={disabled}
-          issueServiceType={issueServiceType}
-        />
+        <RelationsCollapsible workspaceSlug={workspaceSlug} issueId={issueId} disabled={disabled} />
       )}
       {shouldRenderLinks && (
-        <LinksCollapsible
-          workspaceSlug={workspaceSlug}
-          projectId={projectId}
-          issueId={issueId}
-          disabled={disabled}
-          issueServiceType={issueServiceType}
-        />
+        <LinksCollapsible workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} disabled={disabled} />
       )}
       {shouldRenderAttachments && (
         <AttachmentsCollapsible
@@ -84,7 +71,6 @@ export const IssueDetailWidgetCollapsibles = observer(function IssueDetailWidget
           projectId={projectId}
           issueId={issueId}
           disabled={disabled}
-          issueServiceType={issueServiceType}
         />
       )}
     </div>

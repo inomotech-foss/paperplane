@@ -15,7 +15,6 @@ import { useOutsideClickDetector } from "@plane/hooks";
 // types
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { IIssueDisplayProperties, TIssue } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // ui
 import { ControlLink, Row } from "@plane/blocks/layout";
 import { cn, generateWorkItemLink } from "@plane/utils";
@@ -51,7 +50,6 @@ interface Props {
   spacingLeft?: number;
   selectionHelpers: TSelectionHelper;
   shouldRenderByDefault?: boolean;
-  isEpic?: boolean;
   /** Loaded children per parent, set only in hierarchy mode. */
   hierarchyChildIds?: Map<string, string[]>;
 }
@@ -72,7 +70,6 @@ export const SpreadsheetIssueRow = observer(function SpreadsheetIssueRow(props: 
     spacingLeft = 6,
     selectionHelpers,
     shouldRenderByDefault,
-    isEpic = false,
     hierarchyChildIds,
   } = props;
   // derived values
@@ -80,7 +77,7 @@ export const SpreadsheetIssueRow = observer(function SpreadsheetIssueRow(props: 
   // states: a hierarchy row starts open, so the tree is visible at once
   const [isExpanded, setExpanded] = useState<boolean>(loadedChildIds.length > 0);
   // store hooks
-  const { subIssues: subIssuesStore } = useIssueDetail(isEpic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES);
+  const { subIssues: subIssuesStore } = useIssueDetail();
   const { issueMap } = useIssues();
 
   // derived values
@@ -133,13 +130,11 @@ export const SpreadsheetIssueRow = observer(function SpreadsheetIssueRow(props: 
           setExpanded={setExpanded}
           spreadsheetColumnsList={spreadsheetColumnsList}
           selectionHelpers={selectionHelpers}
-          isEpic={isEpic}
           loadedChildCount={loadedChildIds.length}
         />
       </RenderIfVisible>
 
       {isExpanded &&
-        !isEpic &&
         subIssues?.map((subIssueId: string) => (
           <SpreadsheetIssueRow
             key={subIssueId}
@@ -179,7 +174,6 @@ interface IssueRowDetailsProps {
   spreadsheetColumnsList: (keyof IIssueDisplayProperties)[];
   spacingLeft?: number;
   selectionHelpers: TSelectionHelper;
-  isEpic?: boolean;
   /** Children already loaded in hierarchy mode; the rest is fetched on expand. */
   loadedChildCount?: number;
 }
@@ -200,7 +194,6 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
     spreadsheetColumnsList,
     spacingLeft = 6,
     selectionHelpers,
-    isEpic = false,
     loadedChildCount = 0,
   } = props;
   // states
@@ -212,8 +205,8 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
   const { workspaceSlug, projectId } = useParams();
   // hooks
   const { getProjectIdentifierById } = useProject();
-  const { getIsIssuePeeked, peekIssue } = useIssueDetail(isEpic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES);
-  const { handleRedirection } = useIssuePeekOverviewRedirection(isEpic);
+  const { getIsIssuePeeked, peekIssue } = useIssueDetail();
+  const { handleRedirection } = useIssuePeekOverviewRedirection();
   const { isMobile } = usePlatformOS();
 
   // handlers
@@ -264,7 +257,6 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
     issueId,
     projectIdentifier,
     sequenceId: issueDetail?.sequence_id,
-    isEpic,
   });
 
   return (
@@ -340,7 +332,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
 
             {/* sub-issues chevron */}
             <div className="grid size-4 place-items-center">
-              {hasChildren && !isEpic && (
+              {hasChildren && (
                 <button
                   type="button"
                   className="relative z-[1] grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"

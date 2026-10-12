@@ -24,7 +24,6 @@ interface IssueBlocksListProps {
   canDropOverIssue: boolean;
   canDragIssuesInCurrentGrouping: boolean;
   scrollableContainerRef?: MutableRefObject<HTMLDivElement | null>;
-  isEpic?: boolean;
 }
 
 export const KanbanIssueBlocksList = observer(function KanbanIssueBlocksList(props: IssueBlocksListProps) {
@@ -40,7 +39,6 @@ export const KanbanIssueBlocksList = observer(function KanbanIssueBlocksList(pro
     quickActions,
     canEditProperties,
     scrollableContainerRef,
-    isEpic = false,
   } = props;
 
   return (
@@ -70,7 +68,6 @@ export const KanbanIssueBlocksList = observer(function KanbanIssueBlocksList(pro
                 canDragIssuesInCurrentGrouping={canDragIssuesInCurrentGrouping}
                 canEditProperties={canEditProperties}
                 scrollableContainerRef={scrollableContainerRef}
-                isEpic={isEpic}
               />
             );
           })}

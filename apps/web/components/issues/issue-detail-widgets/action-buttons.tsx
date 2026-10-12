@@ -8,7 +8,7 @@ import React from "react";
 import { AttachOutline, LinkOutline, RelationsOutline, ViewsOutline } from "@makeplane/propel/icons";
 import { useTranslation } from "@plane/i18n";
 // plane imports
-import type { TIssueServiceType, TWorkItemWidgets } from "@plane/types";
+import type { TWorkItemWidgets } from "@plane/types";
 // local imports
 import { IssueAttachmentActionButton } from "./attachments/quick-action-button";
 import { IssueLinksActionButton } from "./links/quick-action-button";
@@ -21,12 +21,11 @@ type Props = {
   projectId: string;
   issueId: string;
   disabled: boolean;
-  issueServiceType: TIssueServiceType;
   hideWidgets?: TWorkItemWidgets[];
 };
 
 export function IssueDetailWidgetActionButtons(props: Props) {
-  const { workspaceSlug, projectId, issueId, disabled, issueServiceType, hideWidgets } = props;
+  const { workspaceSlug, projectId, issueId, disabled, hideWidgets } = props;
   // translation
   const { t } = useTranslation();
 
@@ -43,7 +42,6 @@ export function IssueDetailWidgetActionButtons(props: Props) {
             />
           }
           disabled={disabled}
-          issueServiceType={issueServiceType}
         />
       )}
       {!hideWidgets?.includes("relations") && (
@@ -57,7 +55,6 @@ export function IssueDetailWidgetActionButtons(props: Props) {
             />
           }
           disabled={disabled}
-          issueServiceType={issueServiceType}
         />
       )}
       {!hideWidgets?.includes("links") && (
@@ -70,7 +67,6 @@ export function IssueDetailWidgetActionButtons(props: Props) {
             />
           }
           disabled={disabled}
-          issueServiceType={issueServiceType}
         />
       )}
       {!hideWidgets?.includes("attachments") && (
@@ -86,7 +82,6 @@ export function IssueDetailWidgetActionButtons(props: Props) {
             />
           }
           disabled={disabled}
-          issueServiceType={issueServiceType}
         />
       )}
     </div>

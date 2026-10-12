@@ -9,8 +9,6 @@ import { observer } from "mobx-react";
 // plane-i18n
 import { useTranslation } from "@plane/i18n";
 // types
-import type { TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // ui
 import { ConfirmDialog } from "@plane/blocks/dialog";
 // helper
@@ -27,19 +25,18 @@ type Props = {
   onClose: () => void;
   attachmentId: string;
   attachmentOperations: TAttachmentOperationsRemoveModal;
-  issueServiceType?: TIssueServiceType;
 };
 
 export const IssueAttachmentDeleteModal = observer(function IssueAttachmentDeleteModal(props: Props) {
   const { t } = useTranslation();
-  const { isOpen, onClose, attachmentId, attachmentOperations, issueServiceType = EIssueServiceType.ISSUES } = props;
+  const { isOpen, onClose, attachmentId, attachmentOperations } = props;
   // states
   const [loader, setLoader] = useState(false);
 
   // store hooks
   const {
     attachment: { getAttachmentById },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
 
   // derived values
   const attachment = attachmentId ? getAttachmentById(attachmentId) : undefined;

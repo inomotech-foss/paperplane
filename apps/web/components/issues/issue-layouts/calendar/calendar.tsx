@@ -69,7 +69,6 @@ type Props = {
     filters: TSupportedFilterForUpdate
   ) => Promise<void>;
   canEditProperties: (projectId: string | undefined) => boolean;
-  isEpic?: boolean;
 };
 
 export const CalendarChart = observer(function CalendarChart(props: Props) {
@@ -90,7 +89,6 @@ export const CalendarChart = observer(function CalendarChart(props: Props) {
     updateFilters,
     canEditProperties,
     readOnly = false,
-    isEpic = false,
   } = props;
   // states
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -174,7 +172,6 @@ export const CalendarChart = observer(function CalendarChart(props: Props) {
                         addIssuesToView={addIssuesToView}
                         readOnly={readOnly}
                         canEditProperties={canEditProperties}
-                        isEpic={isEpic}
                       />
                     ))}
                 </div>
@@ -198,7 +195,6 @@ export const CalendarChart = observer(function CalendarChart(props: Props) {
                   addIssuesToView={addIssuesToView}
                   readOnly={readOnly}
                   canEditProperties={canEditProperties}
-                  isEpic={isEpic}
                 />
               )}
             </div>
@@ -225,7 +221,6 @@ export const CalendarChart = observer(function CalendarChart(props: Props) {
                 canEditProperties={canEditProperties}
                 isDragDisabled
                 isMobileView
-                isEpic={isEpic}
               />
             </div>
           </div>
@@ -253,7 +248,6 @@ export const CalendarChart = observer(function CalendarChart(props: Props) {
             canEditProperties={canEditProperties}
             isDragDisabled
             isMobileView
-            isEpic={isEpic}
           />
         </div>
       </div>

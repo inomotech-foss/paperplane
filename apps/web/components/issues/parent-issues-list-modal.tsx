@@ -34,21 +34,12 @@ type Props = {
   onChange: (issue: ISearchIssueResponse) => void;
   projectId: string | undefined;
   issueId?: string;
-  searchEpic?: boolean;
 };
 
 // services
 const projectService = new ProjectService();
 
-export function ParentIssuesListModal({
-  isOpen,
-  handleClose: onClose,
-  value,
-  onChange,
-  projectId,
-  issueId,
-  searchEpic = false,
-}: Props) {
+export function ParentIssuesListModal({ isOpen, handleClose: onClose, value, onChange, projectId, issueId }: Props) {
   // i18n
   const { t } = useTranslation();
 
@@ -79,17 +70,16 @@ export function ParentIssuesListModal({
     projectService
       .projectIssuesSearch(workspaceSlug, projectId, {
         search: debouncedSearchTerm,
-        parent: searchEpic ? undefined : true,
+        parent: true,
         issue_id: issueId,
         workspace_search: false,
-        epic: searchEpic ? true : undefined,
       })
       .then((res) => setIssues(res))
       .finally(() => {
         setIsSearching(false);
         setIsLoading(false);
       });
-  }, [debouncedSearchTerm, isOpen, issueId, projectId, searchEpic, workspaceSlug]);
+  }, [debouncedSearchTerm, isOpen, issueId, projectId, workspaceSlug]);
 
   return (
     <Dialog

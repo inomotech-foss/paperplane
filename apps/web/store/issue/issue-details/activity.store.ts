@@ -88,8 +88,7 @@ export class IssueActivityStore implements IIssueActivityStore {
 
     const activityComments: TIssueActivityComment[] = [];
 
-    const currentStore =
-      this.serviceType === EIssueServiceType.EPICS ? this.store.issue.epicDetail : this.store.issue.issueDetail;
+    const currentStore = this.store.issue.issueDetail;
 
     const activities = this.getActivitiesByIssueId(issueId);
     const comments = currentStore.comment.getCommentsByIssueId(issueId);

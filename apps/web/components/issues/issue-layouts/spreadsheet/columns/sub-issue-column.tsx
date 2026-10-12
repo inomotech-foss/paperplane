@@ -26,12 +26,11 @@ export const SpreadsheetSubIssueColumn = observer(function SpreadsheetSubIssueCo
   // hooks
   const { workspaceSlug } = useParams();
   // derived values
-  const isEpic = issue?.is_epic;
   const subIssueCount = issue?.sub_issues_count ?? 0;
 
   const redirectToIssueDetail = () => {
     router.push(
-      `/${workspaceSlug?.toString()}/projects/${issue.project_id}/${issue.archived_at ? "archives/" : ""}${isEpic ? "epics" : "issues"}/${issue.id}#sub-issues`
+      `/${workspaceSlug?.toString()}/projects/${issue.project_id}/${issue.archived_at ? "archives/" : ""}issues/${issue.id}#sub-issues`
     );
   };
 
@@ -47,7 +46,7 @@ export const SpreadsheetSubIssueColumn = observer(function SpreadsheetSubIssueCo
         }
       )}
     >
-      {isEpic ? null : label}
+      {label}
     </Row>
   );
 });

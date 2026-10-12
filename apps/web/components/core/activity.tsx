@@ -17,7 +17,6 @@ import {
   ChatOutline,
   CyclesOutline,
   DuplicateOfOutline,
-  EpicOutline,
   GridOutline,
   IntakeOutline,
   LabelsOutline,
@@ -278,12 +277,6 @@ const activityDetails: {
             created <IssueLink activity={activity} />
           </>
         );
-      else if (activity.verb === "converted")
-        return (
-          <>
-            converted <IssueLink activity={activity} /> to an epic
-          </>
-        );
       else
         return (
           <>
@@ -292,29 +285,6 @@ const activityDetails: {
         );
     },
     icon: <WorkItemsOutline width={12} height={12} className="text-secondary" aria-hidden="true" />,
-  },
-  epic: {
-    message: (activity) => {
-      if (activity.verb === "created")
-        return (
-          <>
-            created <IssueLink activity={activity} />
-          </>
-        );
-      else if (activity.verb === "converted")
-        return (
-          <>
-            converted <IssueLink activity={activity} /> to a work item
-          </>
-        );
-      else
-        return (
-          <>
-            deleted <IssueLink activity={activity} />
-          </>
-        );
-    },
-    icon: <EpicOutline width={12} height={12} className="text-secondary" aria-hidden="true" />,
   },
   labels: {
     message: (activity, showIssue, workspaceSlug) => {

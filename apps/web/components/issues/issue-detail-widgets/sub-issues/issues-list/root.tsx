@@ -10,8 +10,8 @@ import { observer } from "mobx-react";
 import { FilterOutline } from "@makeplane/propel/icons";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
-import type { GroupByColumnTypes, TIssue, TIssueServiceType, TSubIssueOperations } from "@plane/types";
-import { EIssueServiceType, EIssuesStoreType } from "@plane/types";
+import type { GroupByColumnTypes, TIssue, TSubIssueOperations } from "@plane/types";
+import { EIssuesStoreType } from "@plane/types";
 // hooks
 import { SectionEmptyState } from "@/components/empty-state/section-empty-state-root";
 import { getGroupByColumns, isWorkspaceLevel } from "@/components/issues/issue-layouts/utils";
@@ -31,7 +31,6 @@ type Props = {
     issue?: TIssue | null
   ) => void;
   subIssueOperations: TSubIssueOperations;
-  issueServiceType?: TIssueServiceType;
   storeType: EIssuesStoreType;
 };
 
@@ -44,7 +43,6 @@ export const SubIssuesListRoot = observer(function SubIssuesListRoot(props: Prop
     canEdit,
     handleIssueCrudState,
     subIssueOperations,
-    issueServiceType = EIssueServiceType.ISSUES,
     storeType = EIssuesStoreType.PROJECT,
     spacingLeft = 0,
   } = props;
@@ -55,7 +53,7 @@ export const SubIssuesListRoot = observer(function SubIssuesListRoot(props: Prop
       subIssuesByIssueId,
       filters: { getSubIssueFilters, getGroupedSubWorkItems, getFilteredSubWorkItems, resetFilters },
     },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
 
   // derived values
   const filters = getSubIssueFilters(rootIssueId);
@@ -67,7 +65,6 @@ export const SubIssuesListRoot = observer(function SubIssuesListRoot(props: Prop
     groupBy: group_by as GroupByColumnTypes,
     includeNone: true,
     isWorkspaceLevel: isWorkspaceLevel(storeType),
-    isEpic: issueServiceType === EIssueServiceType.EPICS,
     projectId,
   });
 
@@ -83,24 +80,14 @@ export const SubIssuesListRoot = observer(function SubIssuesListRoot(props: Prop
     [isRootLevel, subIssuesByIssueId, rootIssueId, getGroupedSubWorkItems, parentIssueId]
   );
 
-  const isSubWorkItems = issueServiceType === EIssueServiceType.ISSUES;
-
   return (
     <div className="relative">
       {isRootLevel && filteredSubWorkItemsCount === 0 ? (
         <SectionEmptyState
-          title={
-            !isSubWorkItems
-              ? t("sub_work_item.empty_state.list_filters.title")
-              : t("sub_work_item.empty_state.sub_list_filters.title")
-          }
-          description={
-            !isSubWorkItems
-              ? t("sub_work_item.empty_state.list_filters.description")
-              : t("sub_work_item.empty_state.sub_list_filters.description")
-          }
+          title={t("sub_work_item.empty_state.sub_list_filters.title")}
+          description={t("sub_work_item.empty_state.sub_list_filters.description")}
           icon={<FilterOutline />}
-          customClassName={storeType !== EIssuesStoreType.EPIC ? "border-none" : ""}
+          customClassName="border-none"
           actionElement={
             <Button
               variant="secondary"
@@ -119,7 +106,6 @@ export const SubIssuesListRoot = observer(function SubIssuesListRoot(props: Prop
             projectId={projectId}
             workspaceSlug={workspaceSlug}
             group={group}
-            serviceType={issueServiceType}
             canEdit={canEdit}
             parentIssueId={parentIssueId}
             rootIssueId={rootIssueId}

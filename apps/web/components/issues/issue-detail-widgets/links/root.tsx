@@ -8,7 +8,6 @@ import React from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { Collapsible } from "@makeplane/propel/components/collapsible";
-import type { TIssueServiceType } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
@@ -21,13 +20,12 @@ type Props = {
   projectId: string;
   issueId: string;
   disabled?: boolean;
-  issueServiceType: TIssueServiceType;
 };
 
 export const LinksCollapsible = observer(function LinksCollapsible(props: Props) {
-  const { workspaceSlug, projectId, issueId, disabled = false, issueServiceType } = props;
+  const { workspaceSlug, projectId, issueId, disabled = false } = props;
   // store hooks
-  const { openWidgets, toggleOpenWidget } = useIssueDetail(issueServiceType);
+  const { openWidgets, toggleOpenWidget } = useIssueDetail();
   // derived values
   const isCollapsibleOpen = openWidgets.includes("links");
 
@@ -35,19 +33,14 @@ export const LinksCollapsible = observer(function LinksCollapsible(props: Props)
     <Collapsible
       open={isCollapsibleOpen}
       onOpenChange={() => toggleOpenWidget("links")}
-      trigger={<IssueLinksCollapsibleTitle issueId={issueId} issueServiceType={issueServiceType} />}
-      trailing={
-        isCollapsibleOpen && !disabled ? (
-          <IssueLinksActionButton issueServiceType={issueServiceType} disabled={disabled} />
-        ) : undefined
-      }
+      trigger={<IssueLinksCollapsibleTitle issueId={issueId} />}
+      trailing={isCollapsibleOpen && !disabled ? <IssueLinksActionButton disabled={disabled} /> : undefined}
     >
       <IssueLinksCollapsibleContent
         workspaceSlug={workspaceSlug}
         projectId={projectId}
         issueId={issueId}
         disabled={disabled}
-        issueServiceType={issueServiceType}
       />
     </Collapsible>
   );

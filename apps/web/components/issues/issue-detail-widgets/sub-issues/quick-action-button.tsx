@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { AddOutline, WorkItemsOutline } from "@makeplane/propel/icons";
-import type { TIssue, TIssueServiceType } from "@plane/types";
+import type { TIssue } from "@plane/types";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/components/menu";
 // components
 import { handleTriggerClick, handleTriggerKeyDown } from "@/components/common/trigger-guard";
@@ -21,11 +21,10 @@ type Props = {
   /** Rendered as the trigger itself (not nested inside one); must forward ref and props to a `<button>`. */
   customButton?: React.ReactElement;
   disabled?: boolean;
-  issueServiceType: TIssueServiceType;
 };
 
 export const SubIssuesActionButton = observer(function SubIssuesActionButton(props: Props) {
-  const { issueId, customButton, disabled = false, issueServiceType } = props;
+  const { issueId, customButton, disabled = false } = props;
   // translation
   const { t } = useTranslation();
   // store hooks
@@ -35,7 +34,7 @@ export const SubIssuesActionButton = observer(function SubIssuesActionButton(pro
     toggleSubIssuesModal,
     setIssueCrudOperationState,
     issueCrudOperationState,
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
 
   // derived values
   const issue = getIssueById(issueId);

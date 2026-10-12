@@ -24,7 +24,6 @@ type Props = {
   handleUpdate: (updatedDisplayProperties: Partial<IIssueDisplayProperties>) => void;
   cycleViewDisabled?: boolean;
   moduleViewDisabled?: boolean;
-  isEpic?: boolean;
 };
 
 export const FilterDisplayProperties = observer(function FilterDisplayProperties(props: Props) {
@@ -34,7 +33,6 @@ export const FilterDisplayProperties = observer(function FilterDisplayProperties
     handleUpdate,
     cycleViewDisabled = false,
     moduleViewDisabled = false,
-    isEpic = false,
   } = props;
   // hooks
   const { t } = useTranslation();
@@ -59,11 +57,6 @@ export const FilterDisplayProperties = observer(function FilterDisplayProperties
       default:
         return true;
     }
-  }).map((property) => {
-    if (isEpic && property.key === "sub_issue_count") {
-      return { ...property, titleTranslationKey: "issue.display.properties.work_item_count" };
-    }
-    return property;
   });
 
   return (

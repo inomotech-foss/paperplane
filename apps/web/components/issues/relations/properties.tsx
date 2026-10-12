@@ -8,8 +8,7 @@ import React from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
-import type { TIssuePriorities, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import type { TIssuePriorities } from "@plane/types";
 // components
 import { MemberSelect } from "@/components/dropdowns/member/member-select";
 import { PrioritySelect } from "@/components/dropdowns/priority/priority-select";
@@ -24,16 +23,15 @@ type Props = {
   issueId: string;
   disabled: boolean;
   issueOperations: TRelationIssueOperations;
-  issueServiceType?: TIssueServiceType;
 };
 
 export const RelationIssueProperty = observer(function RelationIssueProperty(props: Props) {
-  const { workspaceSlug, issueId, disabled, issueOperations, issueServiceType = EIssueServiceType.ISSUES } = props;
+  const { workspaceSlug, issueId, disabled, issueOperations } = props;
   // hooks
   const { t } = useTranslation();
   const {
     issue: { getIssueById },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
 
   // derived value
   const issue = getIssueById(issueId);

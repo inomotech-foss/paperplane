@@ -19,10 +19,9 @@ interface Props {
   isEstimateEnabled: boolean;
   displayFilters: IIssueDisplayFilterOptions;
   handleDisplayFilterUpdate: (data: Partial<IIssueDisplayFilterOptions>) => void;
-  isEpic?: boolean;
 }
 export const SpreadsheetHeaderColumn = observer(function SpreadsheetHeaderColumn(props: Props) {
-  const { displayProperties, displayFilters, property, handleDisplayFilterUpdate, isEpic = false } = props;
+  const { displayProperties, displayFilters, property, handleDisplayFilterUpdate } = props;
 
   //hooks
   const tableHeaderCellRef = useRef<HTMLTableCellElement | null>(null);
@@ -47,7 +46,6 @@ export const SpreadsheetHeaderColumn = observer(function SpreadsheetHeaderColumn
           onClose={() => {
             tableHeaderCellRef?.current?.focus();
           }}
-          isEpic={isEpic}
         />
       </th>
     </WithDisplayPropertiesHOC>

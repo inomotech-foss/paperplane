@@ -12,7 +12,7 @@ import { Row } from "@plane/blocks/layout";
 import type { TQuickAddIssueButton } from "../root";
 
 export const ListQuickAddIssueButton = observer(function ListQuickAddIssueButton(props: TQuickAddIssueButton) {
-  const { onClick, isEpic = false } = props;
+  const { onClick } = props;
   const { t } = useTranslation();
   return (
     <Row
@@ -20,7 +20,7 @@ export const ListQuickAddIssueButton = observer(function ListQuickAddIssueButton
       onClick={onClick}
     >
       <AddOutline className="h-3.5 w-3.5" />
-      <span className="text-13 font-medium">{isEpic ? t("epic.new") : t("issue.new")}</span>
+      <span className="text-13 font-medium">{t("issue.new")}</span>
     </Row>
   );
 });

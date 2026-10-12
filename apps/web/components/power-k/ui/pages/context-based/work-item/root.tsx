@@ -7,7 +7,6 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane imports
-import { EIssueServiceType } from "@plane/types";
 // components
 import type { TPowerKPageType } from "@/components/power-k/core/types";
 // hooks
@@ -34,7 +33,7 @@ export const PowerKWorkItemContextBasedPages = observer(function PowerKWorkItemC
   // store hooks
   const {
     issue: { getIssueById, getIssueIdByIdentifier },
-  } = useIssueDetail(EIssueServiceType.ISSUES);
+  } = useIssueDetail();
   const {
     project: { getProjectMemberIds },
   } = useMember();

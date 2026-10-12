@@ -10,7 +10,6 @@ import { AddOutline } from "@makeplane/propel/icons";
 // plane imports
 import { setToast } from "@plane/blocks/toast";
 import type { TIssueLink } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
@@ -117,7 +116,6 @@ export function IssueLinkRoot(props: TIssueLinkRoot) {
         isModalOpen={isIssueLinkModal}
         handleOnClose={handleOnClose}
         linkOperations={handleLinkOperations}
-        issueServiceType={EIssueServiceType.ISSUES}
       />
 
       <div className="py-1 text-11">

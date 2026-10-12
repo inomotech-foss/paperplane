@@ -41,7 +41,6 @@ type Props = {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
   canEditProperties: (projectId: string | undefined) => boolean;
-  isEpic?: boolean;
 };
 
 export const CalendarWeekDays = observer(function CalendarWeekDays(props: Props) {
@@ -63,7 +62,6 @@ export const CalendarWeekDays = observer(function CalendarWeekDays(props: Props)
     selectedDate,
     setSelectedDate,
     canEditProperties,
-    isEpic = false,
   } = props;
   // hooks
   const { data } = useUserProfile();
@@ -113,7 +111,6 @@ export const CalendarWeekDays = observer(function CalendarWeekDays(props: Props)
             readOnly={readOnly}
             handleDragAndDrop={handleDragAndDrop}
             canEditProperties={canEditProperties}
-            isEpic={isEpic}
           />
         );
       })}

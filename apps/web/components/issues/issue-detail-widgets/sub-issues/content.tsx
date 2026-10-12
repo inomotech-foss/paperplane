@@ -6,8 +6,8 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { observer } from "mobx-react";
-import type { TIssue, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType, EIssuesStoreType } from "@plane/types";
+import type { TIssue } from "@plane/types";
+import { EIssuesStoreType } from "@plane/types";
 // components
 import { DeleteIssueModal } from "@/components/issues/delete-issue-modal";
 // hooks
@@ -22,13 +22,12 @@ type Props = {
   projectId: string;
   parentIssueId: string;
   disabled: boolean;
-  issueServiceType?: TIssueServiceType;
 };
 
 type TIssueCrudState = { toggle: boolean; parentIssueId: string | undefined; issue: TIssue | undefined };
 
 export const SubIssuesCollapsibleContent = observer(function SubIssuesCollapsibleContent(props: Props) {
-  const { workspaceSlug, projectId, parentIssueId, disabled, issueServiceType = EIssueServiceType.ISSUES } = props;
+  const { workspaceSlug, projectId, parentIssueId, disabled } = props;
   // state
   const [issueCrudState, setIssueCrudState] = useState<{
     create: TIssueCrudState;
@@ -62,10 +61,10 @@ export const SubIssuesCollapsibleContent = observer(function SubIssuesCollapsibl
     toggleCreateIssueModal,
     toggleDeleteIssueModal,
     subIssues: { subIssueHelpersByIssueId, setSubIssueHelpers },
-  } = useIssueDetail(issueServiceType);
+  } = useIssueDetail();
 
   // helpers
-  const subIssueOperations = useSubIssueOperations(issueServiceType);
+  const subIssueOperations = useSubIssueOperations();
   const subIssueHelpers = subIssueHelpersByIssueId(`${parentIssueId}_root`);
 
   // handler
@@ -137,7 +136,6 @@ export const SubIssuesCollapsibleContent = observer(function SubIssuesCollapsibl
           canEdit={!disabled}
           handleIssueCrudState={handleIssueCrudState}
           subIssueOperations={subIssueOperations}
-          issueServiceType={issueServiceType}
         />
       )}
 

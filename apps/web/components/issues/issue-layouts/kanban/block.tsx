@@ -17,7 +17,6 @@ import { useOutsideClickDetector } from "@plane/hooks";
 import { setToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { TIssue, IIssueDisplayProperties, IIssueMap } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // ui
 import { ControlLink } from "@plane/blocks/layout";
 import { DropIndicator } from "@plane/blocks/common";
@@ -50,7 +49,6 @@ interface IssueBlockProps {
   canEditProperties: (projectId: string | undefined) => boolean;
   scrollableContainerRef?: MutableRefObject<HTMLDivElement | null>;
   shouldRenderByDefault?: boolean;
-  isEpic?: boolean;
 }
 
 interface IssueDetailsBlockProps {
@@ -62,21 +60,10 @@ interface IssueDetailsBlockProps {
   updateIssue: ((projectId: string | null, issueId: string, data: Partial<TIssue>) => Promise<void>) | undefined;
   quickActions: TRenderQuickActions;
   isReadOnly: boolean;
-  isEpic?: boolean;
 }
 
 const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props: IssueDetailsBlockProps) {
-  const {
-    cardRef,
-    issue,
-    workItemLink,
-    onLinkClick,
-    updateIssue,
-    quickActions,
-    isReadOnly,
-    displayProperties,
-    isEpic = false,
-  } = props;
+  const { cardRef, issue, workItemLink, onLinkClick, updateIssue, quickActions, isReadOnly, displayProperties } = props;
   // refs
   const menuActionRef = useRef<HTMLButtonElement | null>(null);
   // states
@@ -145,7 +132,6 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
         activeLayout="Kanban"
         updateIssue={updateIssue}
         isReadOnly={isReadOnly}
-        isEpic={isEpic}
       />
     </>
   );
@@ -165,7 +151,6 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
     canEditProperties,
     scrollableContainerRef,
     shouldRenderByDefault,
-    isEpic = false,
   } = props;
 
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -174,8 +159,8 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
   const workspaceSlug = routerWorkspaceSlug?.toString();
   // hooks
   const { getProjectIdentifierById } = useProject();
-  const { getIsIssuePeeked } = useIssueDetail(isEpic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES);
-  const { handleRedirection } = useIssuePeekOverviewRedirection(isEpic);
+  const { getIsIssuePeeked } = useIssueDetail();
+  const { handleRedirection } = useIssuePeekOverviewRedirection();
   const { isMobile } = usePlatformOS();
 
   // handlers
@@ -199,7 +184,6 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
     issueId,
     projectIdentifier,
     sequenceId: issue?.sequence_id,
-    isEpic,
     isArchived: !!issue?.archived_at,
   });
 
@@ -297,7 +281,6 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
               updateIssue={updateIssue}
               quickActions={quickActions}
               isReadOnly={!canEditIssueProperties}
-              isEpic={isEpic}
             />
           </RenderIfVisible>
         </div>

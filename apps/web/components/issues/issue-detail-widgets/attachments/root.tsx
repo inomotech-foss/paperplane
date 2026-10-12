@@ -8,7 +8,6 @@ import React from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { Collapsible } from "@makeplane/propel/components/collapsible";
-import type { TIssueServiceType } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
@@ -21,13 +20,12 @@ type Props = {
   projectId: string;
   issueId: string;
   disabled?: boolean;
-  issueServiceType: TIssueServiceType;
 };
 
 export const AttachmentsCollapsible = observer(function AttachmentsCollapsible(props: Props) {
-  const { workspaceSlug, projectId, issueId, disabled = false, issueServiceType } = props;
+  const { workspaceSlug, projectId, issueId, disabled = false } = props;
   // store hooks
-  const { openWidgets, toggleOpenWidget } = useIssueDetail(issueServiceType);
+  const { openWidgets, toggleOpenWidget } = useIssueDetail();
 
   // derived values
   const isCollapsibleOpen = openWidgets.includes("attachments");
@@ -36,7 +34,7 @@ export const AttachmentsCollapsible = observer(function AttachmentsCollapsible(p
     <Collapsible
       open={isCollapsibleOpen}
       onOpenChange={() => toggleOpenWidget("attachments")}
-      trigger={<IssueAttachmentsCollapsibleTitle issueId={issueId} issueServiceType={issueServiceType} />}
+      trigger={<IssueAttachmentsCollapsibleTitle issueId={issueId} />}
       trailing={
         isCollapsibleOpen && !disabled ? (
           <IssueAttachmentActionButton
@@ -44,7 +42,6 @@ export const AttachmentsCollapsible = observer(function AttachmentsCollapsible(p
             projectId={projectId}
             issueId={issueId}
             disabled={disabled}
-            issueServiceType={issueServiceType}
           />
         ) : undefined
       }
@@ -54,7 +51,6 @@ export const AttachmentsCollapsible = observer(function AttachmentsCollapsible(p
         projectId={projectId}
         issueId={issueId}
         disabled={disabled}
-        issueServiceType={issueServiceType}
       />
     </Collapsible>
   );

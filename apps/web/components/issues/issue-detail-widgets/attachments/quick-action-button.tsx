@@ -11,7 +11,6 @@ import { useDropzone } from "react-dropzone";
 import { AddOutline } from "@makeplane/propel/icons";
 // plane imports
 import { setToast } from "@plane/blocks/toast";
-import type { TIssueServiceType } from "@plane/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // plane web hooks
@@ -26,24 +25,18 @@ type Props = {
   /** Rendered as the upload button itself, so it must accept button props. */
   customButton?: React.ReactElement<React.ComponentPropsWithRef<"button">>;
   disabled?: boolean;
-  issueServiceType: TIssueServiceType;
 };
 
 export const IssueAttachmentActionButton = observer(function IssueAttachmentActionButton(props: Props) {
-  const { workspaceSlug, projectId, issueId, customButton, disabled = false, issueServiceType } = props;
+  const { workspaceSlug, projectId, issueId, customButton, disabled = false } = props;
   // state
   const [isLoading, setIsLoading] = useState(false);
   // store hooks
-  const { setLastWidgetAction, fetchActivities } = useIssueDetail(issueServiceType);
+  const { setLastWidgetAction, fetchActivities } = useIssueDetail();
   // file size
   const { maxFileSize } = useFileSize();
   // operations
-  const { operations: attachmentOperations } = useAttachmentOperations(
-    workspaceSlug,
-    projectId,
-    issueId,
-    issueServiceType
-  );
+  const { operations: attachmentOperations } = useAttachmentOperations(workspaceSlug, projectId, issueId);
   // handlers
   const handleFetchPropertyActivities = useCallback(() => {
     fetchActivities(workspaceSlug, projectId, issueId);

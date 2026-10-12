@@ -8,7 +8,6 @@ import { makeObservable, observable } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
 import type { TIssue, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
 // services
 import { IssueArchiveService, WorkspaceDraftService, IssueService } from "@/services/issue";
 // types
@@ -48,7 +47,6 @@ export class IssueStore implements IIssueStore {
   // services
   serviceType;
   issueService;
-  epicService;
   issueArchiveService;
   draftWorkItemService;
 
@@ -61,7 +59,6 @@ export class IssueStore implements IIssueStore {
     // services
     this.serviceType = serviceType;
     this.issueService = new IssueService(serviceType);
-    this.epicService = new IssueService(EIssueServiceType.EPICS);
     this.issueArchiveService = new IssueArchiveService(serviceType);
     this.draftWorkItemService = new WorkspaceDraftService();
   }
@@ -169,7 +166,6 @@ export class IssueStore implements IIssueStore {
       updated_by: issue?.updated_by,
       is_draft: issue?.is_draft,
       is_subscribed: issue?.is_subscribed,
-      is_epic: issue?.is_epic,
     };
 
     this.rootIssueDetailStore.rootIssueStore.issues.addIssue([issuePayload]);
@@ -179,10 +175,7 @@ export class IssueStore implements IIssueStore {
   };
 
   updateIssue = async (workspaceSlug: string, projectId: string, issueId: string, data: Partial<TIssue>) => {
-    const currentStore =
-      this.serviceType === EIssueServiceType.EPICS
-        ? this.rootIssueDetailStore.rootIssueStore.projectEpics
-        : this.rootIssueDetailStore.rootIssueStore.projectIssues;
+    const currentStore = this.rootIssueDetailStore.rootIssueStore.projectIssues;
 
     await Promise.all([
       currentStore.updateIssue(workspaceSlug, projectId, issueId, data),
@@ -191,18 +184,12 @@ export class IssueStore implements IIssueStore {
   };
 
   removeIssue = async (workspaceSlug: string, projectId: string, issueId: string) => {
-    const currentStore =
-      this.serviceType === EIssueServiceType.EPICS
-        ? this.rootIssueDetailStore.rootIssueStore.projectEpics
-        : this.rootIssueDetailStore.rootIssueStore.projectIssues;
+    const currentStore = this.rootIssueDetailStore.rootIssueStore.projectIssues;
     currentStore.removeIssue(workspaceSlug, projectId, issueId);
   };
 
   archiveIssue = async (workspaceSlug: string, projectId: string, issueId: string) => {
-    const currentStore =
-      this.serviceType === EIssueServiceType.EPICS
-        ? this.rootIssueDetailStore.rootIssueStore.projectEpics
-        : this.rootIssueDetailStore.rootIssueStore.projectIssues;
+    const currentStore = this.rootIssueDetailStore.rootIssueStore.projectIssues;
     currentStore.archiveIssue(workspaceSlug, projectId, issueId);
   };
 
@@ -275,9 +262,7 @@ export class IssueStore implements IIssueStore {
     const issueIdentifier = `${project_identifier}-${sequence_id}`;
     const issueId = issue?.id;
     const projectId = issue?.project_id;
-    const rootWorkItemDetailStore = issue?.is_epic
-      ? this.rootIssueDetailStore.rootIssueStore.epicDetail
-      : this.rootIssueDetailStore.rootIssueStore.issueDetail;
+    const rootWorkItemDetailStore = this.rootIssueDetailStore.rootIssueStore.issueDetail;
 
     if (!issue || !projectId || !issueId) throw new Error("Issue not found");
 
