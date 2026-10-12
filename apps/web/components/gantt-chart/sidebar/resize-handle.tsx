@@ -54,12 +54,7 @@ export function TimelineSidebarResizeHandle() {
         "after:absolute after:inset-y-0 after:-right-1.5 after:-left-1.5 after:content-['']",
         resize.isResizing && "w-1.5 bg-layer-1"
       )}
-      onPointerDown={resize.onPointerDown}
-      onPointerMove={resize.onPointerMove}
-      onPointerUp={resize.onPointerUp}
-      onPointerCancel={resize.onPointerCancel}
-      onLostPointerCapture={resize.onLostPointerCapture}
-      onKeyDown={resize.onKeyDown}
+      {...resize.handleProps}
       onDoubleClick={resize.reset}
     />
   );

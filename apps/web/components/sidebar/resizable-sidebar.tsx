@@ -110,12 +110,7 @@ export function ResizableSidebar({
 
   const handleProps = {
     onDoubleClick: () => toggleCollapsed(),
-    onPointerDown: resize.onPointerDown,
-    onPointerMove: resize.onPointerMove,
-    onPointerUp: resize.onPointerUp,
-    onPointerCancel: resize.onPointerCancel,
-    onLostPointerCapture: resize.onLostPointerCapture,
-    onKeyDown: resize.onKeyDown,
+    ...resize.handleProps,
     role: "separator",
     "aria-orientation": "vertical" as const,
     "aria-valuenow": width,

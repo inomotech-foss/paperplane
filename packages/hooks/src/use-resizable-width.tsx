@@ -53,14 +53,13 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
     if (!isResizing) return;
     document.body.style.cursor = "ew-resize";
     document.body.style.userSelect = "none";
-    // a native drag of whatever moves under the pointer would cancel the pointer
-    window.addEventListener("dragstart", preventNativeDrag, true);
     return () => {
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
-      window.removeEventListener("dragstart", preventNativeDrag, true);
     };
   }, [isResizing]);
+
+  useEffect(() => () => window.removeEventListener("dragstart", preventNativeDrag, true), []);
 
   const getCurrentWidth = useCallback(
     () => clamp(getRenderedWidth?.() ?? chosenWidth),
@@ -72,6 +71,7 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
       const drag = dragRef.current;
       if (!drag) return;
       dragRef.current = null;
+      window.removeEventListener("dragstart", preventNativeDrag, true);
       setIsResizing(false);
       setDragWidth(null);
       if (commit && drag.moved) setValue(drag.width);
@@ -82,16 +82,24 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
 
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
-      if (e.button !== 0 || dragRef.current) return;
+      if (e.button !== 0) return;
+      const activeDrag = dragRef.current;
+      if (activeDrag) {
+        // a live drag holds pointer capture, so one without it lost its end events
+        if (e.currentTarget.hasPointerCapture?.(activeDrag.pointerId)) return;
+        endDrag(false);
+      }
       // keeps text selection from starting, which also skips the focus a click would give
       e.preventDefault();
       e.currentTarget.focus({ preventScroll: true });
       e.currentTarget.setPointerCapture?.(e.pointerId);
       const startWidth = getCurrentWidth();
       dragRef.current = { pointerId: e.pointerId, startX: e.clientX, startWidth, width: startWidth, moved: false };
+      // before any render, as a native drag of whatever moves under the pointer would cancel it
+      window.addEventListener("dragstart", preventNativeDrag, true);
       setIsResizing(true);
     },
-    [getCurrentWidth]
+    [endDrag, getCurrentWidth]
   );
 
   const onPointerMove = useCallback(
@@ -146,22 +154,23 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
   );
 
   const reset = useCallback(() => {
-    dragRef.current = null;
-    setIsResizing(false);
-    setDragWidth(null);
+    endDrag(false);
     setValue(defaultWidth);
-  }, [defaultWidth, setValue]);
+  }, [defaultWidth, endDrag, setValue]);
 
   return {
     /** The live width in state mode. In live CSS mode, the chosen width, which a drag does not change. */
     width,
     isResizing,
-    onPointerDown,
-    onPointerMove,
-    onPointerUp,
-    onPointerCancel,
-    onLostPointerCapture: onPointerCancel,
-    onKeyDown,
     reset,
+    /** Spread these onto the handle. */
+    handleProps: {
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel,
+      onLostPointerCapture: onPointerCancel,
+      onKeyDown,
+    },
   };
 };

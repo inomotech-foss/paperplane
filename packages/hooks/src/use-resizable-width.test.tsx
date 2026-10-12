@@ -33,12 +33,7 @@ function Harness({ live = false, renderedWidth }: { live?: boolean; renderedWidt
         aria-valuenow={r.width}
         aria-label="Resize"
         data-testid="handle"
-        onPointerDown={r.onPointerDown}
-        onPointerMove={r.onPointerMove}
-        onPointerUp={r.onPointerUp}
-        onPointerCancel={r.onPointerCancel}
-        onLostPointerCapture={r.onLostPointerCapture}
-        onKeyDown={r.onKeyDown}
+        {...r.handleProps}
         tabIndex={0}
         onDoubleClick={r.reset}
       />
@@ -149,6 +144,15 @@ describe("useResizableWidth", () => {
     fireEvent.pointerUp(handle(), { clientX: 400, pointerId: 2 });
     expect(boxWidth()).toBe("300px");
     expect(isResizing()).toBe("true");
+  });
+
+  it("recovers from a drag that lost its end events", () => {
+    store(300);
+    render(<Harness />);
+    fireEvent.pointerDown(handle(), { clientX: 300 });
+    drag(300, 340);
+    expect(persisted()).toBe(340);
+    expect(isResizing()).toBe("false");
   });
 
   it("ignores pointermove without pointerdown", () => {

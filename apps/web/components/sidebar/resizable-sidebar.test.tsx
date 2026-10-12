@@ -26,7 +26,7 @@ function renderSidebar() {
       minWidth={236}
       maxWidth={350}
     >
-      <div />
+      <a href="#projects">Projects</a>
     </ResizableSidebar>
   );
   return {
@@ -37,10 +37,21 @@ function renderSidebar() {
 
 const persisted = () => JSON.parse(localStorage.getItem(KEY) ?? "null");
 
-// jsdom has no PointerEvent, so clientX would be dropped
+// jsdom has no PointerEvent, so clientX and pointerId would be dropped
+class TestPointerEvent extends MouseEvent {
+  readonly pointerId: number;
+  constructor(type: string, init: PointerEventInit = {}) {
+    super(type, init);
+    this.pointerId = init.pointerId ?? 1;
+  }
+}
+
 beforeAll(() => {
-  window.PointerEvent ??= class extends MouseEvent {} as unknown as typeof PointerEvent;
+  if (!("PointerEvent" in window)) Object.defineProperty(window, "PointerEvent", { value: TestPointerEvent });
 });
+
+const dragLink = (sidebar: HTMLElement | null) =>
+  sidebar?.querySelector("a")?.dispatchEvent(new Event("dragstart", { bubbles: true, cancelable: true }));
 
 describe("ResizableSidebar", () => {
   beforeEach(() => {
@@ -74,6 +85,38 @@ describe("ResizableSidebar", () => {
     fireEvent.pointerDown(handle!, { clientX: 330 });
     fireEvent.pointerUp(handle!, { clientX: 900 });
     expect(persisted()).toBe(350);
+  });
+
+  it("takes the pointer from the links under the handle", () => {
+    localStorage.setItem(KEY, "300");
+    const { sidebar, handle } = renderSidebar();
+    expect(fireEvent.pointerDown(handle!, { clientX: 300 })).toBe(false);
+    expect(document.activeElement).toBe(handle);
+    fireEvent.pointerMove(handle!, { clientX: 308 });
+    expect(dragLink(sidebar)).toBe(false);
+    fireEvent.pointerUp(handle!, { clientX: 308 });
+    expect(persisted()).toBe(308);
+    expect(dragLink(sidebar)).toBe(true);
+  });
+
+  it("keeps the width when the drag is cancelled", () => {
+    localStorage.setItem(KEY, "300");
+    const { sidebar, handle } = renderSidebar();
+    fireEvent.pointerDown(handle!, { clientX: 300 });
+    fireEvent.pointerMove(handle!, { clientX: 320 });
+    fireEvent.pointerCancel(handle!, { clientX: 0 });
+    expect(sidebar?.style.width).toBe("300px");
+    expect(persisted()).toBe(300);
+  });
+
+  it("starts a new drag after one that lost its end events", () => {
+    localStorage.setItem(KEY, "300");
+    const { handle } = renderSidebar();
+    fireEvent.pointerDown(handle!, { clientX: 300 });
+    fireEvent.pointerDown(handle!, { clientX: 300 });
+    fireEvent.pointerMove(handle!, { clientX: 320 });
+    fireEvent.pointerUp(handle!, { clientX: 320 });
+    expect(persisted()).toBe(320);
   });
 
   it("resizes with the keyboard", () => {
