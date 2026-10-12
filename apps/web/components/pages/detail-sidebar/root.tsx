@@ -19,6 +19,7 @@ import { Logo } from "@plane/blocks/emoji-icon-picker";
 import type { TPageNavigationTabs } from "@plane/types";
 import { cn, getPageName } from "@plane/utils";
 // components
+import { PageTreeRootDropZone } from "@/components/pages/page-tree-root-drop-zone";
 import { usePageTreeDnd } from "@/components/pages/use-page-tree-dnd";
 // hooks
 import { EPageStoreType, usePageStore } from "@/hooks/store";
@@ -233,6 +234,7 @@ export const PageDetailsTreeSidebar = observer(function PageDetailsTreeSidebar()
             );
           })}
         </div>
+        <PageTreeRootDropZone storeType={storeType} className="mt-1" />
       </div>
       <div
         role="separator"

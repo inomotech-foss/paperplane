@@ -148,7 +148,8 @@
   },
   "page_list_tree": {
     "expand_button": "ქვე-გვერდების გაშლა",
-    "collapse_button": "ქვე-გვერდების ჩაკეცვა"
+    "collapse_button": "ქვე-გვერდების ჩაკეცვა",
+    "move_to_top_level": "ზედა დონეზე გადატანა"
   },
   "page_diagram": {
     "editor_title": "დიაგრამის რედაქტორი",

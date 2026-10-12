@@ -16,12 +16,26 @@ import { calculateTotalFilters } from "@plane/utils";
 import type { EPageStoreType } from "@/hooks/store";
 import { usePageStore } from "@/hooks/store";
 // store
-import { getInsertSortOrder, RENUMBER_SIBLINGS } from "@/store/pages/page-order";
+import { getReorderPlacement } from "@/store/pages/page-order";
+import type { TPagePlacement } from "@/store/pages/page-order";
 
 type TPageDragData = {
   id: string;
   type: "PAGE";
 };
+
+export const getPageDragId = (data: Record<string | symbol, unknown>): string | undefined =>
+  data.type === "PAGE" && typeof data.id === "string" ? data.id : undefined;
+
+export const showPageMoveError = () =>
+  setToast({
+    type: "error",
+    title: "Error!",
+    message: "Page order could not be changed. Please try again later.",
+  });
+
+const getPageTab = (page: { archived_at?: string | null; access?: EPageAccess }): TPageNavigationTabs =>
+  page.archived_at ? "archived" : page.access === EPageAccess.PRIVATE ? "private" : "public";
 
 type TUsePageTreeDnd = {
   elementRef: RefObject<HTMLElement | null>;
@@ -51,15 +65,8 @@ export const usePageTreeDnd = (props: TUsePageTreeDnd) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dropInstruction, setDropInstruction] = useState<InstructionType | undefined>(undefined);
   // store hooks
-  const {
-    filters,
-    getPageById,
-    getPageAncestorIds,
-    getChildPageIds,
-    getPageTreeStructureByTab,
-    expandPages,
-    renumberSiblings,
-  } = usePageStore(storeType);
+  const { filters, getPageById, getPageAncestorIds, getPageTreeStructureByTab, expandPages, positionPage } =
+    usePageStore(storeType);
 
   useEffect(() => {
     const element = elementRef.current;
@@ -67,59 +74,38 @@ export const usePageTreeDnd = (props: TUsePageTreeDnd) => {
 
     const isFiltered = () =>
       filters.searchQuery.trim().length > 0 || calculateTotalFilters(filters.filters ?? {}) !== 0;
+    const isManualOrder = () => filters.sortKey === "sort_order" && filters.sortBy === "asc";
 
-    const getSiblingIds = (parentId: string | null, page: { archived_at?: string | null; access?: EPageAccess }) => {
-      if (parentId) return getChildPageIds(parentId);
-      const tab: TPageNavigationTabs = page.archived_at
-        ? "archived"
-        : page.access === EPageAccess.PRIVATE
-          ? "private"
-          : "public";
-      return getPageTreeStructureByTab(tab).rootPageIds;
+    const getPlacement = (sourceId: string, instruction: InstructionType): TPagePlacement | undefined => {
+      const page = getPageById(pageId);
+      if (!page) return undefined;
+      if (instruction === "make-child") return { parentId: pageId };
+      if (instruction !== "reorder-above" && instruction !== "reorder-below") return undefined;
+      // top-level rows can have a parent in another tab, but the drop means the top level
+      const parentId = depth === 0 ? null : (page.parent ?? null);
+      const tree = getPageTreeStructureByTab(getPageTab(page));
+      return getReorderPlacement({
+        sourceId,
+        targetId: pageId,
+        position: instruction === "reorder-above" ? "above" : "below",
+        parentId,
+        visibleSiblingIds: parentId ? (tree.childPageIdsByParentId.get(parentId) ?? []) : tree.rootPageIds,
+        getParentId: (id) => getPageById(id)?.parent ?? null,
+      });
     };
 
-    const handleDrop = async (source: TPageDragData, instruction: InstructionType | undefined) => {
-      const sourcePage = getPageById(source.id);
-      const page = getPageById(pageId);
-      if (!sourcePage || !page || !instruction || instruction === "instruction-blocked") return;
-      const newParentId = instruction === "make-child" ? pageId : (page.parent ?? null);
+    const handleDrop = async (sourceId: string, instruction: InstructionType | undefined) => {
+      if (!instruction) return;
+      const placement = getPlacement(sourceId, instruction);
+      if (!placement) return;
+      const { parentId } = placement;
       // a page cannot become a child of itself or of one of its descendants
-      if (newParentId === source.id) return;
-      if (newParentId && getPageAncestorIds(newParentId).includes(source.id)) return;
-      const isManualOrder = filters.sortKey === "sort_order" && filters.sortBy === "asc";
-      const siblingIds = getSiblingIds(newParentId, page).filter((id) => id !== source.id);
-      const targetIndex = siblingIds.indexOf(pageId);
-      if (isManualOrder && instruction !== "make-child" && targetIndex < 0) return;
-      const insertIndex =
-        instruction === "make-child"
-          ? siblingIds.length
-          : instruction === "reorder-above"
-            ? targetIndex
-            : targetIndex + 1;
+      if (parentId === sourceId || (parentId && getPageAncestorIds(parentId).includes(sourceId))) return;
       try {
-        if (!isManualOrder) {
-          await sourcePage.changeParent(newParentId);
-          if (newParentId) expandPages([newParentId]);
-          return;
-        }
-        const sortOrder = getInsertSortOrder(
-          siblingIds.map((id) => getPageById(id)?.sort_order ?? 0),
-          insertIndex
-        );
-        if (sortOrder === RENUMBER_SIBLINGS) {
-          const orderedIds = [...siblingIds];
-          orderedIds.splice(insertIndex, 0, source.id);
-          await renumberSiblings(newParentId, orderedIds);
-        } else {
-          await sourcePage.move({ parentId: newParentId, sortOrder });
-        }
-        if (newParentId) expandPages([newParentId]);
+        await positionPage(sourceId, placement);
+        if (parentId) expandPages([parentId]);
       } catch (_error) {
-        setToast({
-          type: "error",
-          title: "Error!",
-          message: "Page order could not be changed. Please try again later.",
-        });
+        showPageMoveError();
       }
     };
 
@@ -134,10 +120,10 @@ export const usePageTreeDnd = (props: TUsePageTreeDnd) => {
       dropTargetForElements({
         element,
         canDrop: ({ source }) => {
-          const sourceData = source.data as Partial<TPageDragData>;
-          if (isFiltered() || sourceData.type !== "PAGE" || !sourceData.id || sourceData.id === pageId) return false;
+          const sourceId = getPageDragId(source.data);
+          if (isFiltered() || !sourceId || sourceId === pageId) return false;
           // dropping a page onto its own descendant would create a cycle
-          return !getPageAncestorIds(pageId).includes(sourceData.id);
+          return !getPageAncestorIds(pageId).includes(sourceId);
         },
         getData: ({ input, element: targetElement }) =>
           attachInstruction(
@@ -150,14 +136,16 @@ export const usePageTreeDnd = (props: TUsePageTreeDnd) => {
               // dropping right below an expanded row reads as dropping into its
               // children, so only offer reorder-above/make-child there
               mode: hasChildPages && isExpanded ? "expanded" : "standard",
+              // other sorts ignore sort_order, so only reparenting means anything there
+              block: isManualOrder() ? [] : ["reorder-above", "reorder-below"],
             }
           ),
         onDrag: ({ self }) => setDropInstruction(extractInstruction(self.data)?.type),
         onDragLeave: () => setDropInstruction(undefined),
         onDrop: ({ self, source }) => {
           setDropInstruction(undefined);
-          const instruction = extractInstruction(self.data)?.type;
-          handleDrop(source.data as TPageDragData, instruction);
+          const sourceId = getPageDragId(source.data);
+          if (sourceId) void handleDrop(sourceId, extractInstruction(self.data)?.type);
         },
       })
     );
@@ -166,7 +154,6 @@ export const usePageTreeDnd = (props: TUsePageTreeDnd) => {
     elementRef,
     expandPages,
     filters,
-    getChildPageIds,
     getPageAncestorIds,
     getPageById,
     getPageTreeStructureByTab,
@@ -176,7 +163,7 @@ export const usePageTreeDnd = (props: TUsePageTreeDnd) => {
     isEnabled,
     isExpanded,
     pageId,
-    renumberSiblings,
+    positionPage,
   ]);
 
   return { isDragging, dropInstruction };

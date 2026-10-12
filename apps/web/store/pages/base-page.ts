@@ -29,8 +29,6 @@ export type TBasePage = TPage & {
   cleanup: () => void;
   // actions
   update: (pageData: Partial<TPage>) => Promise<Partial<TPage> | undefined>;
-  changeParent: (parentId: string | null) => Promise<void>;
-  move: (params: { parentId: string | null; sortOrder: number }) => Promise<void>;
   updateTitle: (title: string) => void;
   updateDescription: (document: TDocumentPayload) => Promise<void>;
   makePublic: (params: { shouldSync?: boolean }) => Promise<void>;
@@ -182,8 +180,6 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       isCurrentUserOwner: computed,
       // actions
       update: action,
-      changeParent: action,
-      move: action,
       updateTitle: action,
       updateDescription: action,
       makePublic: action,
@@ -299,37 +295,6 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
           const currentPageKey = key as keyof TPage;
           set(this, key, currentPage?.[currentPageKey] || undefined);
         });
-      });
-      throw error;
-    }
-  };
-
-  /**
-   * @description move the page under a new parent (or to the root when null)
-   * @param {string | null} parentId
-   */
-  changeParent = async (parentId: string | null) => {
-    if (parentId === (this.parent ?? null)) return;
-    await this.move({ parentId, sortOrder: this.sort_order });
-  };
-
-  /**
-   * @description move the page under a parent (or to the root when null) at a sort order
-   * @param {{ parentId: string | null; sortOrder: number }} params
-   */
-  move = async ({ parentId, sortOrder }: { parentId: string | null; sortOrder: number }) => {
-    const previousParentId = this.parent ?? null;
-    const previousSortOrder = this.sort_order;
-    runInAction(() => {
-      this.parent = parentId;
-      this.sort_order = sortOrder;
-    });
-    try {
-      await this.services.update({ parent: parentId, sort_order: sortOrder });
-    } catch (error) {
-      runInAction(() => {
-        this.parent = previousParentId;
-        this.sort_order = previousSortOrder;
       });
       throw error;
     }

@@ -8,7 +8,7 @@ from datetime import datetime
 from django.core.serializers.json import DjangoJSONEncoder
 
 # Django imports
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import (
     Exists,
     OuterRef,
@@ -27,6 +27,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db.models.functions import Coalesce
 
 # Third party imports
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -36,6 +37,9 @@ from plane.app.serializers import (
     PageSerializer,
     PageDetailSerializer,
     PageBinaryUpdateSerializer,
+    PagePositionSerializer,
+    PagePositionResponseSerializer,
+    PageUpdateSerializer,
 )
 from plane.db.models import (
     Page,
@@ -48,6 +52,7 @@ from plane.db.models import (
     UserRecentVisit,
 )
 from plane.utils.error_codes import ERROR_CODES
+from plane.utils.page_order import PagePlacementError, move_page, next_sort_order, placement_error_response
 from plane.utils.order_queryset import PAGE_ORDER_BY_ALLOWLIST, sanitize_order_by
 
 # Local imports
@@ -64,7 +69,7 @@ def unarchive_archive_page_and_descendants(page_id, archived_at):
     sql = """
     WITH RECURSIVE descendants AS (
         SELECT id FROM pages WHERE id = %s
-        UNION ALL
+        UNION
         SELECT pages.id FROM pages, descendants WHERE pages.parent_id = descendants.id
     )
     UPDATE pages SET archived_at = %s WHERE id IN (SELECT id FROM descendants);
@@ -186,15 +191,6 @@ class PageViewSet(BaseViewSet):
             if page.is_locked:
                 return Response({"error": "Page is locked"}, status=status.HTTP_400_BAD_REQUEST)
 
-            parent = request.data.get("parent", None)
-            if parent:
-                _ = Page.objects.get(
-                    pk=parent,
-                    workspace__slug=slug,
-                    projects__id=project_id,
-                    project_pages__deleted_at__isnull=True,
-                )
-
             # Only update access if the page owner is the requesting  user
             if page.access != request.data.get("access", page.access) and page.owned_by_id != request.user.id:
                 return Response(
@@ -202,7 +198,7 @@ class PageViewSet(BaseViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            serializer = PageDetailSerializer(page, data=request.data, partial=True)
+            serializer = PageUpdateSerializer(page, data=request.data, partial=True)
             page_description = page.description_html
             if serializer.is_valid():
                 serializer.save()
@@ -221,6 +217,41 @@ class PageViewSet(BaseViewSet):
                 {"error": "Access cannot be updated since this page is owned by someone else"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    @extend_schema(
+        request=PagePositionSerializer,
+        responses={
+            200: PagePositionResponseSerializer,
+            400: OpenApiResponse(description="Invalid parent or anchor, or the page is locked or archived"),
+        },
+    )
+    def position(self, request, slug, project_id, page_id):
+        """Move a page under a parent, before or after a sibling or at the end.
+
+        Siblings are renumbered when needed. That needs no permission on them.
+        """
+        serializer = PagePositionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            with transaction.atomic():
+                _, changed = move_page(
+                    page_id,
+                    project_id,
+                    request.user,
+                    serializer.validated_data["parent"],
+                    before_id=serializer.validated_data.get("before"),
+                    after_id=serializer.validated_data.get("after"),
+                )
+        except Page.DoesNotExist:
+            return Response({"error": "Page not found"}, status=status.HTTP_404_NOT_FOUND)
+        except PagePlacementError as error:
+            return Response(placement_error_response(error), status=status.HTTP_400_BAD_REQUEST)
+        visible = [
+            page
+            for page in changed
+            if not page.archived_at and (page.access == Page.PUBLIC_ACCESS or page.owned_by_id == request.user.id)
+        ]
+        return Response(PagePositionResponseSerializer({"pages": visible}).data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, slug, project_id, page_id=None):
         page = self.get_queryset().filter(pk=page_id).first()
@@ -633,6 +664,7 @@ class PageDuplicateEndpoint(BaseAPIView):
         page.owned_by = request.user
         page.created_by = request.user
         page.updated_by = request.user
+        page.sort_order = next_sort_order(project_id, page.parent_id)
         page.save()
 
         for project_id in project_ids:

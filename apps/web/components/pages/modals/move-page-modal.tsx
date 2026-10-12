@@ -64,7 +64,7 @@ export const MovePageModal = observer(function MovePageModal(props: Props) {
   const { t } = useTranslation();
   const { contains } = useFilter();
   // store hooks
-  const { getCurrentProjectPageIds, getPageById, getChildPageIds, expandPages } = usePageStore(storeType);
+  const { getCurrentProjectPageIds, getPageById, getChildPageIds, expandPages, positionPage } = usePageStore(storeType);
   // derived values
   const projectId = page.project_ids?.[0];
   // the page itself and all of its descendants cannot become its parent
@@ -111,7 +111,9 @@ export const MovePageModal = observer(function MovePageModal(props: Props) {
   const handleMove = async () => {
     setIsMoving(true);
     try {
-      await page.changeParent(selectedParentId);
+      if (page.id && selectedParentId !== (page.parent ?? null)) {
+        await positionPage(page.id, { parentId: selectedParentId });
+      }
       if (selectedParentId) expandPages([selectedParentId]);
       setToast({
         type: "success",

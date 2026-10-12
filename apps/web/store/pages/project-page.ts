@@ -161,11 +161,17 @@ export class ProjectPage extends BasePage implements TProjectPage {
   }
 
   /**
-   * @description returns true if the current logged in user can move the page
+   * @description returns true if the current logged in user can move or reorder the page
    */
   get canCurrentUserMovePage() {
-    const highestRole = this.getHighestRoleAcrossProjects();
-    return this.isCurrentUserOwner || highestRole === EUserPermissions.ADMIN;
+    // moves are sent to the project in the URL, so its role decides, as on the server
+    const { workspaceSlug, projectId } = this.rootStore.router;
+    const projectRole =
+      workspaceSlug && projectId
+        ? this.rootStore.user.permission.getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId)
+        : undefined;
+    const isPagePublic = this.access === EPageAccess.PUBLIC;
+    return this.isCurrentUserOwner || (isPagePublic && !!projectRole && projectRole >= EUserPermissions.MEMBER);
   }
 
   /**

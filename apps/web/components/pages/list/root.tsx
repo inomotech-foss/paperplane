@@ -11,6 +11,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import type { TPageNavigationTabs } from "@plane/types";
 // components
 import { ListLayout } from "@/components/core/list";
+import { PageTreeRootDropZone } from "@/components/pages/page-tree-root-drop-zone";
 // plane web hooks
 import type { EPageStoreType } from "@/hooks/store";
 import { usePageStore } from "@/hooks/store";
@@ -85,6 +86,7 @@ export const PagesListRoot = observer(function PagesListRoot(props: TPagesListRo
           );
         })}
       </div>
+      {!isSearchActive && <PageTreeRootDropZone storeType={storeType} className="m-3 shrink-0" />}
     </ListLayout>
   );
 });

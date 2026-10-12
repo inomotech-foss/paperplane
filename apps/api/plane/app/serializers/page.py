@@ -9,6 +9,7 @@ import base64
 # Module imports
 from .base import BaseSerializer
 from .user import UserLiteSerializer
+from plane.utils.page_order import next_sort_order
 from plane.utils.content_validator import (
     validate_binary_data,
     validate_html_content,
@@ -73,6 +74,9 @@ class PageSerializer(BaseSerializer):
 
         # Get the workspace id from the project
         project = Project.objects.get(pk=project_id)
+        if "sort_order" not in validated_data:
+            parent = validated_data.get("parent")
+            validated_data["sort_order"] = next_sort_order(project_id, parent.id if parent else None)
 
         # Create the page
         page = Page.objects.create(
@@ -136,6 +140,35 @@ class PageDetailSerializer(PageSerializer):
 
     class Meta(PageSerializer.Meta):
         fields = PageSerializer.Meta.fields + ["description_html"]
+
+
+class PageUpdateSerializer(PageDetailSerializer):
+    """Moves go through the position endpoint, which checks for cycles and renumbers siblings."""
+
+    class Meta(PageDetailSerializer.Meta):
+        read_only_fields = PageDetailSerializer.Meta.read_only_fields + ["parent", "sort_order"]
+
+
+class PagePositionSerializer(serializers.Serializer):
+    parent = serializers.UUIDField(allow_null=True)
+    before = serializers.UUIDField(required=False, allow_null=True, help_text="Place the page before this sibling")
+    after = serializers.UUIDField(required=False, allow_null=True, help_text="Place the page after this sibling")
+
+    def validate(self, attrs):
+        if attrs.get("before") and attrs.get("after"):
+            raise serializers.ValidationError("Pass either before or after, not both")
+        return attrs
+
+
+class PageOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Page
+        fields = ["id", "parent", "sort_order"]
+        read_only_fields = fields
+
+
+class PagePositionResponseSerializer(serializers.Serializer):
+    pages = PageOrderSerializer(many=True, help_text="Every page whose parent or sort order changed")
 
 
 class PageQuerySerializer(BaseSerializer):
