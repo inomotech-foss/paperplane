@@ -20,11 +20,11 @@ from plane.db.models import (
     Notification,
     IssueComment,
     IssueActivity,
-    UserNotificationPreference,
     ProjectMember,
 )
 from plane.utils.exception_logger import log_exception
 from plane.utils.mentions import mentionable_user_ids
+from plane.utils.notification_preference import notification_preference
 from django.db.models import Q, Subquery
 
 # Third Party imports
@@ -185,13 +185,6 @@ def create_mention_notification(project, notification_comment, issue, actor_id, 
                 "new_identifier": (str(activity.get("new_identifier")) if activity.get("new_identifier") else None),
             },
         },
-    )
-
-
-def notification_preference(user_id):
-    """The user's preference, or the all-on defaults when the row is missing."""
-    return UserNotificationPreference.objects.filter(user_id=user_id).first() or UserNotificationPreference(
-        user_id=user_id
     )
 
 
