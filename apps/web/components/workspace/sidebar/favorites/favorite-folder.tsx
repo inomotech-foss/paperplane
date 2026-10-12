@@ -193,6 +193,7 @@ export function FavoriteFolder(props: Props) {
                   "cursor-grabbing": isDragging,
                 }
               )}
+              tabIndex={-1}
             />
           </Tooltip>
           <>

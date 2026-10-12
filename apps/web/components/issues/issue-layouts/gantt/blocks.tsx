@@ -189,7 +189,7 @@ const GanttRowToggle = observer(function GanttRowToggle(props: TGanttRowTogglePr
     content = (
       <button
         type="button"
-        className="grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
+        className="relative z-[1] grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
         onClick={handleClick}
         aria-expanded={rowState.isExpanded}
         aria-label={t(rowState.isExpanded ? "timeline_hierarchy.collapse" : "timeline_hierarchy.expand")}
@@ -201,7 +201,7 @@ const GanttRowToggle = observer(function GanttRowToggle(props: TGanttRowTogglePr
       </button>
     );
 
-  return <span className="relative z-[1] grid size-4 flex-shrink-0 place-items-center">{content}</span>;
+  return <span className="grid size-4 flex-shrink-0 place-items-center">{content}</span>;
 });
 
 // rendering issues on gantt sidebar
@@ -250,7 +250,10 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
   });
 
   return (
-    <div className="relative flex h-full w-full cursor-pointer items-center gap-2 text-13 text-primary">
+    <div
+      data-issue-row={issueId}
+      className="relative flex h-full w-full cursor-pointer items-center gap-2 text-13 text-primary"
+    >
       {nestingDepth > 0 && <span aria-hidden className="flex-shrink-0" style={{ width: `${nestingDepth * 16}px` }} />}
       {hierarchy && <GanttRowToggle rowState={rowState} onToggle={() => hierarchy.toggleRow(issueId)} />}
       {issueDetails?.project_id && (

@@ -277,7 +277,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
       >
         <Row
           className={cn(
-            "group clickable z-10 flex h-11 w-full cursor-pointer items-center border-r-[0.5px] border-subtle-1 bg-transparent text-13 group-[.selected-issue-row]:bg-accent-primary/5 after:absolute group-[.selected-issue-row]:hover:bg-accent-primary/10",
+            "group z-10 flex h-11 w-full cursor-pointer items-center border-r-[0.5px] border-subtle-1 bg-transparent text-13 group-[.selected-issue-row]:bg-accent-primary/5 after:absolute group-[.selected-issue-row]:hover:bg-accent-primary/10",
             {
               "border-b-[0.5px]": !getIsIssuePeeked(issueDetail.id),
               "border border-accent-strong hover:border-accent-strong":
@@ -359,7 +359,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
                 <ControlLink
                   href={workItemLink}
                   onClick={() => handleIssuePeekOverview(issueDetail)}
-                  className="block w-full overflow-hidden outline-none after:absolute after:inset-0"
+                  className="clickable block w-full overflow-hidden outline-none after:absolute after:inset-0"
                   disabled={!!issueDetail?.tempId}
                 >
                   <Tooltip label={issueDetail.name} layout="stacked" disabled={isMobile}>

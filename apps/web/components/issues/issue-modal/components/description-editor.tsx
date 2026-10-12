@@ -266,8 +266,9 @@ export const IssueDescriptionEditor = observer(function IssueDescriptionEditor(p
             {config?.has_llm_configured && projectId && (
               <GptAssistantPopover
                 isOpen={gptAssistantModal}
+                handleOpen={() => setGptAssistantModal(true)}
                 handleClose={() => {
-                  setGptAssistantModal((prevData) => !prevData);
+                  setGptAssistantModal(false);
                   // this is done so that the title do not reset after gpt popover closed
                   handleGptAssistantClose();
                 }}
@@ -279,7 +280,6 @@ export const IssueDescriptionEditor = observer(function IssueDescriptionEditor(p
                   <button
                     type="button"
                     className="flex items-center gap-1 rounded-sm bg-surface-2 px-1.5 py-1 text-caption-sm-regular hover:bg-layer-1"
-                    onClick={() => setGptAssistantModal((prevData) => !prevData)}
                     tabIndex={-1}
                   >
                     <AiStar1Outline className="h-4 w-4" />

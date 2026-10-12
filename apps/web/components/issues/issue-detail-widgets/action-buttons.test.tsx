@@ -42,6 +42,7 @@ describe("IssueDetailWidgetActionButtons", () => {
     );
     expect(findNestedInteractive(container)).toEqual([]);
     expect(container.querySelectorAll("button")).toHaveLength(4);
+    expect(screen.getByRole("button", { name: /attach/i })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /link/i }));
     expect(toggleIssueLinkModal).toHaveBeenCalledWith(true);
   });

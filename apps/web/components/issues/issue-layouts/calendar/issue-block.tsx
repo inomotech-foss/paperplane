@@ -101,6 +101,8 @@ export const CalendarIssueBlock = observer(
     return (
       <Popover>
         <div
+          id={`calendar-issue-${issue.id}`}
+          data-issue-row={issue.id}
           ref={ref}
           className="relative block w-full rounded-sm border-b border-subtle text-13 text-primary hover:border-subtle-1 md:border-[1px]"
         >

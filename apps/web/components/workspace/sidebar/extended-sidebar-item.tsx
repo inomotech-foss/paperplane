@@ -182,6 +182,7 @@ export const ExtendedSidebarItem = observer(function ExtendedSidebarItem(props: 
                 }
               )}
               ref={dragHandleRef}
+              tabIndex={-1}
             />
           </Tooltip>
         )}

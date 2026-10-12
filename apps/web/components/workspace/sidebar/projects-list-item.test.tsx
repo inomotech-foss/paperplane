@@ -63,6 +63,14 @@ describe("SidebarProjectsListItem", () => {
     expect(toggleProjectListOpen).toHaveBeenCalledWith("p1", true);
   });
 
+  it("toggles the project with Space in accordion mode", () => {
+    navigation.mode = "ACCORDION";
+    toggleProjectListOpen.mockClear();
+    renderItem();
+    fireEvent.keyDown(screen.getByRole("link", { name: "Demo" }), { key: " " });
+    expect(toggleProjectListOpen).toHaveBeenCalledWith("p1", true);
+  });
+
   it("navigates in tabbed mode", () => {
     navigation.mode = "TABBED";
     renderItem();

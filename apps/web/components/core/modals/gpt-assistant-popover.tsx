@@ -26,12 +26,13 @@ const aiService = new AIService();
 
 type Props = {
   isOpen: boolean;
+  handleOpen: () => void;
   handleClose: () => void;
   onResponse: (response: any) => void;
   onError?: (error: any) => void;
   placement?: TPopoverMenuPlacement;
   prompt?: string;
-  /** Becomes the popover trigger, so it must be a button that toggles `isOpen` itself. */
+  /** Becomes the popover trigger, so it must be a button without its own toggle. */
   button: React.ReactElement;
   className?: string;
   workspaceId: string;
@@ -47,6 +48,7 @@ type FormData = {
 export function GptAssistantPopover(props: Props) {
   const {
     isOpen,
+    handleOpen,
     handleClose,
     onResponse,
     onError,
@@ -194,13 +196,11 @@ export function GptAssistantPopover(props: Props) {
       <Popover
         open={isOpen}
         onOpenChange={(nextOpen) => {
-          // The caller's own button owns opening (`openOnClick={false}` below), so the only
-          // transitions Base UI drives here are dismissals: Escape and outside press.
-          if (!nextOpen) onClose();
+          if (nextOpen) handleOpen();
+          else onClose();
         }}
       >
-        {/* The caller's button already toggles `isOpen`, so the trigger must not toggle it again. */}
-        <PopoverTrigger openOnClick={false} render={button} />
+        <PopoverTrigger render={button} />
         {/* The popover owns the portal, positioning, enter/leave and the panel surface, so
             the old popper positioning, enter/leave transition and hand-rolled chrome all go. */}
         <PopoverContent variant="rich" side={side} align={align}>

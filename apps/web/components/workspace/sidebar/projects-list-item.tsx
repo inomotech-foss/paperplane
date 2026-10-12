@@ -307,6 +307,7 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
                     }
                   )}
                   ref={dragHandleRef}
+                  tabIndex={-1}
                 />
               </Tooltip>
             )}
@@ -316,6 +317,13 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
                 className="flex flex-grow truncate"
                 onClick={handleItemClick}
                 aria-expanded={isAccordionMode ? isProjectListOpen : undefined}
+                onKeyDown={(e) => {
+                  // a disclosure also toggles on Space, which a link ignores
+                  if (isAccordionMode && e.key === " ") {
+                    e.preventDefault();
+                    handleItemClick();
+                  }
+                }}
               >
                 <div className="flex w-full flex-grow items-center gap-1.5 text-left select-none">
                   <div className="grid size-4 flex-shrink-0 place-items-center">

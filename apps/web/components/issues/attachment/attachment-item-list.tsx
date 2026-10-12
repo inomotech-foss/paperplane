@@ -108,6 +108,9 @@ export const IssueAttachmentItemList = observer(function IssueAttachmentItemList
     maxSize: maxFileSize,
     multiple: false,
     disabled: isUploading || disabled,
+    // the list is only a drop target, the rows and the attach button handle clicks
+    noClick: true,
+    noKeyboard: true,
   });
 
   return (
@@ -128,7 +131,7 @@ export const IssueAttachmentItemList = observer(function IssueAttachmentItemList
           )}
           <div
             {...getRootProps()}
-            className={`relative flex flex-col ${isDragActive && issueAttachments.length < 3 ? "min-h-[200px]" : ""} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
+            className={`relative flex flex-col ${isDragActive && issueAttachments.length < 3 ? "min-h-[200px]" : ""} ${disabled ? "cursor-not-allowed" : ""}`}
           >
             <input {...getInputProps()} />
             {isDragActive && (

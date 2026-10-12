@@ -47,8 +47,8 @@ const usePeekOverviewOutsideClickDetector = (
         if (path.some((el) => el.hasAttribute("data-base-ui-portal"))) {
           return;
         }
-        // check if the click target is the current issue element or its children
-        if (path.some((el) => el.id === `issue-${issueId}`)) {
+        // check if the click target is the current issue element, its row, or their children
+        if (path.some((el) => el.id === `issue-${issueId}` || el.getAttribute("data-issue-row") === issueId)) {
           return;
         }
         const shouldDelayOutsideClick = path.some((el) => el.hasAttribute("data-delay-outside-click"));

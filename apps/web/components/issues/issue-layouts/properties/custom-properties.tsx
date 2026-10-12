@@ -112,7 +112,7 @@ export const IssueCustomPropertyChips = observer(function IssueCustomPropertyChi
         if (formattedValue === undefined) return null;
         return (
           <Tooltip key={property.id} label={`${property.display_name}: ${formattedValue}`}>
-            <div className="flex h-5 max-w-40 flex-shrink-0 items-center justify-center gap-1 overflow-hidden rounded-sm border-[0.5px] border-strong px-2.5 py-1">
+            <div className="pointer-events-none flex h-5 max-w-40 flex-shrink-0 items-center justify-center gap-1 overflow-hidden rounded-sm border-[0.5px] border-strong px-2.5 py-1">
               <CustomPropertyIcon
                 propertyType={property.property_type}
                 relationType={property.relation_type}

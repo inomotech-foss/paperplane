@@ -116,20 +116,21 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
     <div key={issueId}>
       {issue && (
         <div
+          data-issue-row={issue.id}
           className="group relative flex h-full min-h-11 w-full items-center py-1 pr-2 transition-all hover:bg-surface-2"
           style={{ paddingLeft: `${spacingLeft}px` }}
         >
-          <div className="relative z-[1] flex size-5 flex-shrink-0 items-center justify-center">
+          <div className="flex size-5 flex-shrink-0 items-center justify-center">
             {/* disable the chevron when current issue is also the root issue*/}
             {subIssueCount > 0 && !isCurrentIssueRoot && (
               <>
                 {subIssueHelpers.preview_loader.includes(issue.id) ? (
-                  <div className="flex h-full w-full cursor-not-allowed items-center justify-center rounded-xs bg-layer-1 transition-all">
+                  <div className="relative z-[1] flex h-full w-full cursor-not-allowed items-center justify-center rounded-xs bg-layer-1 transition-all">
                     <LinkOutline width={14} height={14} className="animate-spin" />
                   </div>
                 ) : (
                   <div
-                    className="flex h-full w-full cursor-pointer items-center justify-center text-placeholder hover:text-tertiary"
+                    className="relative z-[1] flex h-full w-full cursor-pointer items-center justify-center text-placeholder hover:text-tertiary"
                     onClick={async (e) => {
                       e.preventDefault();
                       e.stopPropagation();

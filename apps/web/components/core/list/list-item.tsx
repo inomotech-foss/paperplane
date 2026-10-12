@@ -77,7 +77,9 @@ export function ListItem(props: IListItemProps) {
         <div className={cn("relative flex w-full items-center justify-between gap-3 truncate", itemClassName)}>
           <div className="relative flex w-full items-center gap-3 overflow-hidden">
             <div className={cn("flex items-center gap-4 truncate", leftElementClassName)}>
-              {prependTitleElement && <span className="flex flex-shrink-0 items-center">{prependTitleElement}</span>}
+              {prependTitleElement && (
+                <span className="relative z-[1] flex flex-shrink-0 items-center">{prependTitleElement}</span>
+              )}
               <ControlLink
                 id={id}
                 className={cn("truncate", { "after:absolute after:inset-0": !disableLink })}
@@ -93,7 +95,9 @@ export function ListItem(props: IListItemProps) {
               </ControlLink>
             </div>
             {appendTitleElement && (
-              <span className={cn("flex flex-shrink-0 items-center", rightElementClassName)}>{appendTitleElement}</span>
+              <span className={cn("relative z-[1] flex flex-shrink-0 items-center", rightElementClassName)}>
+                {appendTitleElement}
+              </span>
             )}
           </div>
           {quickActionElement}

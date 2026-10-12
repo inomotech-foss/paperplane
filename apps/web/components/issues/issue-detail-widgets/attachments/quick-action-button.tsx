@@ -103,9 +103,9 @@ export const IssueAttachmentActionButton = observer(function IssueAttachmentActi
       }}
     >
       {customButton ? (
-        cloneElement(customButton, { ...getRootProps(), disabled })
+        cloneElement(customButton, { ...getRootProps({ role: "button" }), disabled })
       ) : (
-        <button {...getRootProps()} type="button" disabled={disabled}>
+        <button {...getRootProps({ role: "button" })} type="button" disabled={disabled}>
           <AddOutline className="h-4 w-4" />
         </button>
       )}

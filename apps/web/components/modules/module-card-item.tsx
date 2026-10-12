@@ -206,7 +206,7 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
               </span>
             ) : (
               <Tooltip label="No lead">
-                <UserAltOutline className="mx-1 h-4 w-4 text-tertiary" />
+                <UserAltOutline className="relative z-[1] mx-1 h-4 w-4 text-tertiary" />
               </Tooltip>
             )}
           </div>
