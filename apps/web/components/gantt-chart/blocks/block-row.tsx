@@ -15,8 +15,8 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //
-import { BLOCK_HEIGHT } from "../constants";
-import { useTimelineSidebarWidth } from "../contexts/sidebar-width";
+import { BLOCK_HEIGHT, SIDEBAR_RESIZE_EVENT, SIDEBAR_WIDTH_VAR } from "../constants";
+import { getChartOffset } from "../helpers/chart-area";
 import { ChartAddBlock } from "../helpers";
 import { isBlockOnChart } from "../views/helpers";
 
@@ -38,7 +38,6 @@ export const BlockRow = observer(function BlockRow(props: Props) {
   // store hooks
   const { getBlockById, updateActiveBlockId, isBlockActive } = useTimeLineChartStore();
   const { getIsIssuePeeked } = useIssueDetail();
-  const sidebarWidth = useTimelineSidebarWidth();
 
   const block = getBlockById(blockId);
 
@@ -53,26 +52,33 @@ export const BlockRow = observer(function BlockRow(props: Props) {
         intersectionRoot.scrollLeft > block.position.marginLeft + block.position.width
     );
 
-    // Observe if the block is visible on the chart
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          setIsHidden(!entry.isIntersecting);
-          setIsBlockHiddenOnLeft(entry.boundingClientRect.right < (entry.rootBounds?.left ?? 0));
-        });
-      },
-      {
-        root: intersectionRoot,
-        rootMargin: `0px 0px 0px -${sidebarWidth}px`,
-      }
-    );
+    // Observe if the block is visible on the chart, rebuilt when the sidebar width changes
+    let intersectionObserver: IntersectionObserver | undefined;
+    const observe = () => {
+      intersectionObserver?.disconnect();
+      intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            setIsHidden(!entry.isIntersecting);
+            setIsBlockHiddenOnLeft(entry.boundingClientRect.right < (entry.rootBounds?.left ?? 0));
+          });
+        },
+        {
+          root: intersectionRoot,
+          rootMargin: `0px 0px 0px -${getChartOffset(intersectionRoot)}px`,
+        }
+      );
+      intersectionObserver.observe(timelineBlock);
+    };
 
-    observer.observe(timelineBlock);
+    observe();
+    intersectionRoot.addEventListener(SIDEBAR_RESIZE_EVENT, observe);
 
     return () => {
-      observer.disconnect();
+      intersectionRoot.removeEventListener(SIDEBAR_RESIZE_EVENT, observe);
+      intersectionObserver?.disconnect();
     };
-  }, [block, sidebarWidth]);
+  }, [block]);
 
   // hide the block if it doesn't have start and target dates and showAllBlocks is false
   if (!block || !block.data || (!showAllBlocks && !(block.start_date && block.target_date))) return null;
@@ -106,7 +112,7 @@ export const BlockRow = observer(function BlockRow(props: Props) {
                 type="button"
                 className="sticky z-[5] grid h-8 w-8 translate-y-1.5 cursor-pointer place-items-center rounded-sm border border-strong bg-layer-1 text-secondary hover:text-primary"
                 style={{
-                  left: `${sidebarWidth + 4}px`,
+                  left: `calc(${SIDEBAR_WIDTH_VAR} + 4px)`,
                 }}
                 onClick={() => handleScrollToBlock(block)}
               >

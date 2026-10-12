@@ -3,35 +3,25 @@
  * See the LICENSE file for details.
  */
 
-import { cn } from "@plane/utils";
-import { useTimelineSidebarResize } from "../contexts/sidebar-width";
+import { SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "../constants";
+import { useSidebarResize } from "./use-sidebar-resize";
 
 export function TimelineSidebarResizeHandle() {
-  const resize = useTimelineSidebarResize();
-  if (!resize) return null;
+  const { handleRef, ...handlers } = useSidebarResize();
 
   return (
     <div
+      ref={handleRef}
       // A focusable separator is a widget, which an hr cannot be.
       // oxlint-disable-next-line jsx_a11y/prefer-tag-over-role
       role="separator"
       aria-orientation="vertical"
-      aria-valuenow={resize.width}
-      aria-valuemin={resize.minWidth}
-      aria-valuemax={resize.maxWidth}
+      aria-valuemin={SIDEBAR_MIN_WIDTH}
+      aria-valuemax={SIDEBAR_MAX_WIDTH}
       tabIndex={0}
       aria-label="Resize timeline sidebar"
-      className={cn(
-        "absolute top-0 right-0 z-[20] h-full w-1 translate-x-1/2 cursor-ew-resize touch-none transition-colors duration-200",
-        resize.isResizing ? "w-1.5 bg-layer-1" : "hover:bg-surface-2"
-      )}
-      onPointerDown={resize.onPointerDown}
-      onPointerMove={resize.onPointerMove}
-      onPointerUp={resize.onPointerUp}
-      onPointerCancel={resize.onPointerCancel}
-      onLostPointerCapture={resize.onLostPointerCapture}
-      onKeyDown={resize.onKeyDown}
-      onDoubleClick={resize.reset}
+      className="absolute top-0 right-0 z-[20] h-full w-1 translate-x-1/2 cursor-ew-resize touch-none transition-colors duration-200 outline-none hover:bg-surface-2 focus-visible:w-1.5 focus-visible:bg-accent-primary data-[resizing]:w-1.5 data-[resizing]:bg-layer-1"
+      {...handlers}
     />
   );
 }

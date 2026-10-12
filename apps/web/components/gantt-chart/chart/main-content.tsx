@@ -173,7 +173,7 @@ export const GanttChartMainContent = observer(function GanttChartMainContent(pro
               // DO NOT REMOVE THE ID
               id="gantt-container"
               className={cn(
-                "vertical-scrollbar horizontal-scrollbar scrollbar-lg flex h-full w-full overflow-auto border-t-[0.5px] border-subtle",
+                "vertical-scrollbar horizontal-scrollbar @container scrollbar-lg flex h-full w-full overflow-auto border-t-[0.5px] border-subtle",
                 {
                   "mb-8": bottomSpacing,
                 }
@@ -195,7 +195,7 @@ export const GanttChartMainContent = observer(function GanttChartMainContent(pro
                 showAllBlocks={showAllBlocks}
                 isEpic={isEpic}
               />
-              <div className="relative h-max min-h-full flex-shrink-0 flex-grow">
+              <div data-gantt-chart-area className="relative h-max min-h-full flex-shrink-0 flex-grow">
                 <ActiveChartView />
                 {currentViewData && (
                   <div

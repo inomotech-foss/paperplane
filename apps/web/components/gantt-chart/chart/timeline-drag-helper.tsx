@@ -11,7 +11,7 @@ import { useAutoScroller } from "@/hooks/use-auto-scroller";
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //
 import { HEADER_HEIGHT } from "../constants";
-import { useTimelineSidebarWidth } from "../contexts/sidebar-width";
+import { getChartOffset } from "../helpers/chart-area";
 
 type Props = {
   ganttContainerRef: RefObject<HTMLDivElement | null>;
@@ -19,8 +19,7 @@ type Props = {
 export const TimelineDragHelper = observer(function TimelineDragHelper(props: Props) {
   const { ganttContainerRef } = props;
   const { isDragging } = useTimeLineChartStore();
-  const sidebarWidth = useTimelineSidebarWidth();
 
-  useAutoScroller(ganttContainerRef, isDragging, sidebarWidth, HEADER_HEIGHT);
+  useAutoScroller(ganttContainerRef, isDragging, getChartOffset, HEADER_HEIGHT);
   return <></>;
 });

@@ -17,7 +17,7 @@ import { useTranslation } from "@plane/i18n";
 import { GANTT_TIMELINE_TYPE } from "@plane/types";
 import { cn, generateWorkItemLink, renderFormattedDate } from "@plane/utils";
 // components
-import { useTimelineSidebarWidth } from "@/components/gantt-chart/contexts/sidebar-width";
+import { SIDEBAR_WIDTH_VAR } from "@/components/gantt-chart/constants";
 import { isBlockRolledUp } from "@/components/gantt-chart/views/helpers";
 import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 // hooks
@@ -63,7 +63,6 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
   const chartPalette = useChartPalette();
   const { handleRedirection } = useIssuePeekOverviewRedirection(isEpic);
   const { getBlockById } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
-  const sidebarWidth = useTimelineSidebarWidth();
   const { t } = useTranslation();
 
   // derived values
@@ -113,7 +112,7 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
             )}
             <div
               className="sticky flex w-auto flex-1 items-center gap-1.5 overflow-hidden px-2.5 py-1 text-13 text-primary"
-              style={{ left: `${sidebarWidth}px` }}
+              style={{ left: SIDEBAR_WIDTH_VAR }}
             >
               {issueType && (
                 <span className="flex flex-shrink-0 items-center">

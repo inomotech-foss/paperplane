@@ -16,8 +16,7 @@ import { MultipleSelectGroupAction } from "@/components/core/multiple-select";
 // hooks
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 // constants
-import { GANTT_SELECT_GROUP, HEADER_HEIGHT } from "../constants";
-import { useTimelineSidebarWidth } from "../contexts/sidebar-width";
+import { GANTT_SELECT_GROUP, HEADER_HEIGHT, SIDEBAR_WIDTH_VAR } from "../constants";
 import { TimelineSidebarResizeHandle } from "./resize-handle";
 
 type Props = {
@@ -52,7 +51,6 @@ export const GanttChartSidebar = observer(function GanttChartSidebar(props: Prop
     isEpic = false,
   } = props;
 
-  const sidebarWidth = useTimelineSidebarWidth();
   const isGroupSelectionEmpty = selectionHelpers.isGroupSelected(GANTT_SELECT_GROUP) === "empty";
 
   return (
@@ -61,7 +59,7 @@ export const GanttChartSidebar = observer(function GanttChartSidebar(props: Prop
       id="gantt-sidebar"
       className="sticky left-0 z-10 h-max min-h-full flex-shrink-0 border-r-[0.5px] border-subtle-1 bg-surface-1"
       style={{
-        width: `${sidebarWidth}px`,
+        width: SIDEBAR_WIDTH_VAR,
       }}
       variant={ERowVariant.HUGGING}
     >

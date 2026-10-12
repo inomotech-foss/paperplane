@@ -4,12 +4,9 @@
  */
 
 import { useRef } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { IGanttBlock } from "@plane/types";
-import { SIDEBAR_WIDTH } from "../../constants";
-import type { TTimelineSidebarResize } from "../../contexts/sidebar-width";
-import { TimelineSidebarContext } from "../../contexts/sidebar-width";
 import { useGanttResizable } from "./use-gantt-resizable";
 
 const DAY_WIDTH = 10;
@@ -39,23 +36,12 @@ const block: IGanttBlock = {
   target_date: "2026-01-10",
 };
 
-const noop = () => {};
+let sidebarWidth = 0;
 
-const WIDE_SIDEBAR = 500;
-
-const wideSidebar: TTimelineSidebarResize = {
-  width: WIDE_SIDEBAR,
-  isResizing: false,
-  onPointerDown: noop,
-  onPointerMove: noop,
-  onPointerUp: noop,
-  onPointerCancel: noop,
-  onLostPointerCapture: noop,
-  onKeyDown: noop,
-  reset: noop,
-  minWidth: 240,
-  maxWidth: 720,
-};
+// jsdom has no layout, so place the chart area after a sidebar of sidebarWidth
+function chartAreaRect(this: HTMLElement) {
+  return DOMRect.fromRect({ x: this.hasAttribute("data-gantt-chart-area") ? sidebarWidth : 0 });
+}
 
 function Harness() {
   const resizableRef = useRef<HTMLDivElement>(null);
@@ -63,7 +49,9 @@ function Harness() {
   const { handleBlockDrag } = useGanttResizable(block, resizableRef, containerRef);
   return (
     <div ref={containerRef}>
-      <div ref={resizableRef} />
+      <div data-gantt-chart-area>
+        <div ref={resizableRef} />
+      </div>
       <button type="button" onMouseDown={(e) => handleBlockDrag(e, "right")}>
         right handle
       </button>
@@ -78,21 +66,17 @@ const dragRightEdgeTo = (clientX: number) => {
 };
 
 describe("useGanttResizable", () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  it("maps the pointer to chart days after the provided sidebar width", () => {
-    render(
-      <TimelineSidebarContext.Provider value={wideSidebar}>
-        <Harness />
-      </TimelineSidebarContext.Provider>
-    );
-    dragRightEdgeTo(WIDE_SIDEBAR + 200);
-    expect(store.updateBlockPosition).toHaveBeenCalledWith(block.id, 0, 100);
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(chartAreaRect);
   });
 
-  it("uses the default sidebar width without a provider", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it.each([360, 500])("maps the pointer to chart days after a %ipx sidebar", (width) => {
+    sidebarWidth = width;
     render(<Harness />);
-    dragRightEdgeTo(SIDEBAR_WIDTH + 200);
+    dragRightEdgeTo(width + 200);
     expect(store.updateBlockPosition).toHaveBeenCalledWith(block.id, 0, 100);
   });
 });

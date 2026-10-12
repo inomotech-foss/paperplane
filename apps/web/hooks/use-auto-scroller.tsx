@@ -15,9 +15,10 @@ const MAX_SPEED_THRESHOLD = 5;
 export const useAutoScroller = (
   containerRef: RefObject<HTMLDivElement | null>,
   shouldScroll = false,
-  leftOffset = 0,
+  leftOffset: number | ((container: HTMLDivElement) => number) = 0,
   topOffset = 0
 ) => {
+  const resolvedLeftOffset = useRef(0);
   const containerDimensions = useRef<DOMRect | undefined>(undefined);
   const intervalId = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const mousePosition = useRef<{ clientX: number; clientY: number } | undefined>(undefined);
@@ -45,10 +46,10 @@ export const useAutoScroller = (
     mousePosition.current = { clientX: e.clientX, clientY: e.clientY };
     const { left, top, width, height } = rect;
 
-    const mouseX = e.clientX - left - leftOffset;
+    const mouseX = e.clientX - left - resolvedLeftOffset.current;
     const mouseY = e.clientY - top - topOffset;
 
-    const currWidth = width - leftOffset;
+    const currWidth = width - resolvedLeftOffset.current;
     const currHeight = height - topOffset;
 
     // Get Threshold in percentages
@@ -125,5 +126,7 @@ export const useAutoScroller = (
     }
 
     containerDimensions.current = containerElement?.getBoundingClientRect();
+    resolvedLeftOffset.current =
+      typeof leftOffset === "function" ? (containerElement ? leftOffset(containerElement) : 0) : leftOffset;
   }, [shouldScroll]);
 };

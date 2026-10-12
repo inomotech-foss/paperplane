@@ -12,7 +12,7 @@ import type { IBlockUpdateDependencyData, IGanttBlock } from "@plane/types";
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //
 import { DEFAULT_BLOCK_WIDTH } from "../../constants";
-import { useTimelineSidebarWidth } from "../../contexts/sidebar-width";
+import { getChartOffset } from "../chart-area";
 
 export const useGanttResizable = (
   block: IGanttBlock,
@@ -30,7 +30,6 @@ export const useGanttResizable = (
   const currMouseEvent = useRef<MouseEvent | undefined>(undefined);
   // states
   const { currentViewData, updateBlockPosition, setIsDragging, getUpdatedPositionAfterDrag } = useTimeLineChartStore();
-  const sidebarWidth = useTimelineSidebarWidth();
   const [isMoving, setIsMoving] = useState<"left" | "right" | "move" | undefined>();
 
   // handle block resize from the left end
@@ -43,9 +42,10 @@ export const useGanttResizable = (
     const resizableDiv = resizableRef.current;
 
     ganttContainerDimensions.current = ganttContainerElement.getBoundingClientRect();
+    const chartOffset = getChartOffset(ganttContainerElement);
 
     const dayWidth = currentViewData.data.dayWidth;
-    const mouseX = e.clientX - ganttContainerDimensions.current.left - sidebarWidth + ganttContainerElement.scrollLeft;
+    const mouseX = e.clientX - ganttContainerDimensions.current.left - chartOffset + ganttContainerElement.scrollLeft;
 
     // record position on drag start
     initialPositionRef.current = {
@@ -67,7 +67,7 @@ export const useGanttResizable = (
 
       const { left: containerLeft } = ganttContainerDimensions.current;
 
-      const mouseX = e.clientX - containerLeft - sidebarWidth + ganttContainerElement.scrollLeft;
+      const mouseX = e.clientX - containerLeft - chartOffset + ganttContainerElement.scrollLeft;
 
       let width = initialPositionRef.current.width;
       let marginLeft = initialPositionRef.current.marginLeft;
