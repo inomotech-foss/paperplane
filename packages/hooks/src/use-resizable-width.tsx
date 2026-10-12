@@ -3,7 +3,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useLocalStorage } from "./use-local-storage";
 
@@ -13,67 +13,126 @@ export type TResizableWidthOptions = {
   minWidth: number;
   maxWidth: number;
   keyStep?: number;
+  /**
+   * Live mode: during a drag the width goes to this custom property on the target instead of
+   * React state, so a large tree does not render on every pointer move.
+   */
+  cssProperty?: { name: string; getTarget: () => HTMLElement | null };
+  /** The width the user sees, when CSS can render it narrower than the chosen width. */
+  getRenderedWidth?: () => number | undefined;
 };
 
+type TDrag = { pointerId: number; startX: number; startWidth: number; width: number; moved: boolean };
+
+const preventNativeDrag = (e: DragEvent) => e.preventDefault();
+
 export const useResizableWidth = (options: TResizableWidthOptions) => {
-  const { storageKey, defaultWidth, minWidth, maxWidth, keyStep = 16 } = options;
+  const { storageKey, defaultWidth, minWidth, maxWidth, keyStep = 16, cssProperty, getRenderedWidth } = options;
+  const cssPropertyName = cssProperty?.name;
+  const getCssTarget = cssProperty?.getTarget;
   const clamp = useCallback((value: number) => Math.min(maxWidth, Math.max(minWidth, value)), [minWidth, maxWidth]);
   const { storedValue, setValue } = useLocalStorage<number>(storageKey, defaultWidth);
   const [dragWidth, setDragWidth] = useState<number | null>(null);
-  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
-  const storedWidth = typeof storedValue === "number" ? clamp(storedValue) : defaultWidth;
-  const width = dragWidth ?? storedWidth;
-  const isResizing = dragWidth !== null;
+  const [isResizing, setIsResizing] = useState(false);
+  const dragRef = useRef<TDrag | null>(null);
+  const chosenWidth =
+    typeof storedValue === "number" && Number.isFinite(storedValue) ? clamp(storedValue) : defaultWidth;
+  const width = dragWidth ?? chosenWidth;
+
+  const writeCssWidth = useCallback(
+    (value: number) => {
+      if (cssPropertyName) getCssTarget?.()?.style.setProperty(cssPropertyName, `${value}px`);
+    },
+    [cssPropertyName, getCssTarget]
+  );
+
+  // before the first paint, so the stored width does not jump in
+  useLayoutEffect(() => writeCssWidth(chosenWidth), [chosenWidth, writeCssWidth]);
 
   useEffect(() => {
     if (!isResizing) return;
     document.body.style.cursor = "ew-resize";
     document.body.style.userSelect = "none";
+    // a native drag of whatever moves under the pointer would cancel the pointer
+    window.addEventListener("dragstart", preventNativeDrag, true);
     return () => {
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
+      window.removeEventListener("dragstart", preventNativeDrag, true);
     };
   }, [isResizing]);
 
+  const getCurrentWidth = useCallback(
+    () => clamp(getRenderedWidth?.() ?? chosenWidth),
+    [chosenWidth, clamp, getRenderedWidth]
+  );
+
+  const endDrag = useCallback(
+    (commit: boolean) => {
+      const drag = dragRef.current;
+      if (!drag) return;
+      dragRef.current = null;
+      setIsResizing(false);
+      setDragWidth(null);
+      if (commit && drag.moved) setValue(drag.width);
+      else writeCssWidth(chosenWidth);
+    },
+    [chosenWidth, setValue, writeCssWidth]
+  );
+
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || dragRef.current) return;
+      // keeps text selection from starting, which also skips the focus a click would give
+      e.preventDefault();
+      e.currentTarget.focus({ preventScroll: true });
       e.currentTarget.setPointerCapture?.(e.pointerId);
-      dragRef.current = { startX: e.clientX, startWidth: width };
-      setDragWidth(width);
+      const startWidth = getCurrentWidth();
+      dragRef.current = { pointerId: e.pointerId, startX: e.clientX, startWidth, width: startWidth, moved: false };
+      setIsResizing(true);
     },
-    [width]
+    [getCurrentWidth]
   );
 
   const onPointerMove = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
       const drag = dragRef.current;
-      if (!drag) return;
+      if (!drag || e.pointerId !== drag.pointerId) return;
       const next = clamp(drag.startWidth + e.clientX - drag.startX);
-      setDragWidth(next);
-      setValue(next);
+      if (next === drag.width) return;
+      drag.width = next;
+      drag.moved = true;
+      if (cssPropertyName) writeCssWidth(next);
+      else setDragWidth(next);
     },
-    [clamp, setValue]
+    [clamp, cssPropertyName, writeCssWidth]
   );
 
   const onPointerUp = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
-      const drag = dragRef.current;
-      if (!drag) return;
-      dragRef.current = null;
-      setValue(clamp(drag.startWidth + e.clientX - drag.startX));
-      setDragWidth(null);
+      if (dragRef.current?.pointerId !== e.pointerId) return;
+      onPointerMove(e);
+      endDrag(true);
     },
-    [clamp, setValue]
+    [endDrag, onPointerMove]
+  );
+
+  // a cancel carries no usable position, so the width from before the drag stays
+  const onPointerCancel = useCallback(
+    (e: ReactPointerEvent<HTMLElement>) => {
+      if (dragRef.current?.pointerId === e.pointerId) endDrag(false);
+    },
+    [endDrag]
   );
 
   const onKeyDown = useCallback(
     (e: ReactKeyboardEvent<HTMLElement>) => {
+      const current = getCurrentWidth();
       const next =
         e.key === "ArrowLeft"
-          ? width - keyStep
+          ? current - keyStep
           : e.key === "ArrowRight"
-            ? width + keyStep
+            ? current + keyStep
             : e.key === "Home"
               ? minWidth
               : e.key === "End"
@@ -83,23 +142,25 @@ export const useResizableWidth = (options: TResizableWidthOptions) => {
       e.preventDefault();
       setValue(clamp(next));
     },
-    [width, keyStep, minWidth, maxWidth, clamp, setValue]
+    [getCurrentWidth, keyStep, minWidth, maxWidth, clamp, setValue]
   );
 
   const reset = useCallback(() => {
     dragRef.current = null;
+    setIsResizing(false);
     setDragWidth(null);
     setValue(defaultWidth);
   }, [defaultWidth, setValue]);
 
   return {
+    /** The live width in state mode. In live CSS mode, the chosen width, which a drag does not change. */
     width,
     isResizing,
     onPointerDown,
     onPointerMove,
     onPointerUp,
-    onPointerCancel: onPointerUp,
-    onLostPointerCapture: onPointerUp,
+    onPointerCancel,
+    onLostPointerCapture: onPointerCancel,
     onKeyDown,
     reset,
   };

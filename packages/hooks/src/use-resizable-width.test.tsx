@@ -3,7 +3,8 @@
  * See the LICENSE file for details.
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { Profiler, useCallback, useRef } from "react";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useResizableWidth } from "./use-resizable-width";
 
@@ -11,14 +12,26 @@ const KEY = "width";
 const DEFAULT = 260;
 const MIN = 200;
 const MAX = 480;
+const PROPERTY = "--test-width";
 
-function Harness() {
-  const r = useResizableWidth({ storageKey: KEY, defaultWidth: DEFAULT, minWidth: MIN, maxWidth: MAX });
+function Harness({ live = false, renderedWidth }: { live?: boolean; renderedWidth?: number }) {
+  const targetRef = useRef<HTMLDivElement>(null);
+  const getTarget = useCallback(() => targetRef.current, []);
+  const getRenderedWidth = useCallback(() => renderedWidth, [renderedWidth]);
+  const r = useResizableWidth({
+    storageKey: KEY,
+    defaultWidth: DEFAULT,
+    minWidth: MIN,
+    maxWidth: MAX,
+    getRenderedWidth,
+    ...(live ? { cssProperty: { name: PROPERTY, getTarget } } : {}),
+  });
   return (
-    <div data-testid="box" data-resizing={r.isResizing} style={{ width: `${r.width}px` }}>
+    <div ref={targetRef} data-testid="box" data-resizing={r.isResizing} style={{ width: `${r.width}px` }}>
       <div
         role="separator"
         aria-valuenow={r.width}
+        aria-label="Resize"
         data-testid="handle"
         onPointerDown={r.onPointerDown}
         onPointerMove={r.onPointerMove}
@@ -33,24 +46,38 @@ function Harness() {
   );
 }
 
-// jsdom has no PointerEvent, so clientX would be dropped
+// jsdom has no PointerEvent, so clientX and pointerId would be dropped
+class TestPointerEvent extends MouseEvent {
+  readonly pointerId: number;
+  constructor(type: string, init: PointerEventInit = {}) {
+    super(type, init);
+    this.pointerId = init.pointerId ?? 1;
+  }
+}
+
 beforeAll(() => {
-  window.PointerEvent ??= class extends MouseEvent {} as unknown as typeof PointerEvent;
+  if (!("PointerEvent" in window)) Object.defineProperty(window, "PointerEvent", { value: TestPointerEvent });
 });
 
 beforeEach(() => localStorage.clear());
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
-const store = (value: number) => localStorage.setItem(KEY, JSON.stringify(value));
+const store = (value: unknown) => localStorage.setItem(KEY, JSON.stringify(value));
 const persisted = () => JSON.parse(localStorage.getItem(KEY) ?? "null");
+const handle = () => screen.getByTestId("handle");
 const boxWidth = () => screen.getByTestId("box").style.width;
+const cssWidth = () => screen.getByTestId("box").style.getPropertyValue(PROPERTY);
 const isResizing = () => screen.getByTestId("box").dataset.resizing;
 
+const dragStart = () => document.body.dispatchEvent(new Event("dragstart", { bubbles: true, cancelable: true }));
+
 const drag = (from: number, to: number) => {
-  const handle = screen.getByTestId("handle");
-  fireEvent.pointerDown(handle, { clientX: from });
-  fireEvent.pointerMove(handle, { clientX: to });
-  fireEvent.pointerUp(handle, { clientX: to });
+  fireEvent.pointerDown(handle(), { clientX: from });
+  fireEvent.pointerMove(handle(), { clientX: to });
+  fireEvent.pointerUp(handle(), { clientX: to });
 };
 
 describe("useResizableWidth", () => {
@@ -60,17 +87,29 @@ describe("useResizableWidth", () => {
     expect(boxWidth()).toBe("320px");
   });
 
-  it("falls back to the default width", () => {
+  it.each([["text"], [null], [{}]])("falls back to the default width for an invalid stored value %j", (value) => {
+    store(value);
     render(<Harness />);
     expect(boxWidth()).toBe(`${DEFAULT}px`);
   });
 
-  it("resizes by dragging and persists the result", () => {
+  it("clamps an out of range stored width", () => {
+    store(5000);
+    render(<Harness />);
+    expect(boxWidth()).toBe(`${MAX}px`);
+  });
+
+  it("resizes by dragging and persists the result on release only", () => {
     store(300);
     render(<Harness />);
-    drag(300, 350);
-    expect(boxWidth()).toBe("350px");
-    expect(persisted()).toBe(350);
+    fireEvent.pointerDown(handle(), { clientX: 300 });
+    expect(isResizing()).toBe("true");
+    fireEvent.pointerMove(handle(), { clientX: 340 });
+    expect(boxWidth()).toBe("340px");
+    expect(persisted()).toBe(300);
+    fireEvent.pointerUp(handle(), { clientX: 340 });
+    expect(persisted()).toBe(340);
+    expect(isResizing()).toBe("false");
   });
 
   it("clamps to the minimum and maximum", () => {
@@ -82,79 +121,157 @@ describe("useResizableWidth", () => {
     expect(persisted()).toBe(MAX);
   });
 
-  it("resets to the default on double click", () => {
-    store(400);
+  it("does not commit a click without movement", () => {
     render(<Harness />);
-    fireEvent.doubleClick(screen.getByTestId("handle"));
-    expect(persisted()).toBe(DEFAULT);
-    expect(boxWidth()).toBe(`${DEFAULT}px`);
+    drag(300, 300);
+    expect(localStorage.getItem(KEY)).toBeNull();
   });
 
-  it("updates the width and resizing flag during the drag", () => {
+  it.each(["pointerCancel", "lostPointerCapture"] as const)(
+    "restores the width from before the drag on %s",
+    (event) => {
+      store(300);
+      render(<Harness />);
+      fireEvent.pointerDown(handle(), { clientX: 300 });
+      fireEvent.pointerMove(handle(), { clientX: 360 });
+      fireEvent[event](handle(), { clientX: 0 });
+      expect(boxWidth()).toBe("300px");
+      expect(persisted()).toBe(300);
+      expect(isResizing()).toBe("false");
+    }
+  );
+
+  it("ignores events from another pointer", () => {
     store(300);
     render(<Harness />);
-    const handle = screen.getByTestId("handle");
-    fireEvent.pointerDown(handle, { clientX: 300 });
+    fireEvent.pointerDown(handle(), { clientX: 300, pointerId: 1 });
+    fireEvent.pointerMove(handle(), { clientX: 400, pointerId: 2 });
+    fireEvent.pointerUp(handle(), { clientX: 400, pointerId: 2 });
+    expect(boxWidth()).toBe("300px");
     expect(isResizing()).toBe("true");
-    fireEvent.pointerMove(handle, { clientX: 340 });
-    expect(boxWidth()).toBe("340px");
-    expect(persisted()).toBe(340);
-    fireEvent.pointerUp(handle, { clientX: 340 });
-    expect(isResizing()).toBe("false");
-  });
-
-  it("sets the body cursor while resizing and restores it on release or unmount", () => {
-    store(300);
-    const { unmount } = render(<Harness />);
-    const handle = screen.getByTestId("handle");
-    fireEvent.pointerDown(handle, { clientX: 300 });
-    expect(document.body.style.cursor).toBe("ew-resize");
-    expect(document.body.style.userSelect).toBe("none");
-    fireEvent.pointerUp(handle, { clientX: 300 });
-    expect(document.body.style.cursor).toBe("");
-    fireEvent.pointerDown(handle, { clientX: 300 });
-    unmount();
-    expect(document.body.style.cursor).toBe("");
-    expect(document.body.style.userSelect).toBe("");
   });
 
   it("ignores pointermove without pointerdown", () => {
     store(300);
     render(<Harness />);
-    fireEvent.pointerMove(screen.getByTestId("handle"), { clientX: 400 });
+    fireEvent.pointerMove(handle(), { clientX: 400 });
     expect(boxWidth()).toBe("300px");
-    expect(isResizing()).toBe("false");
   });
 
   it("ignores non-primary buttons", () => {
-    store(300);
     render(<Harness />);
-    fireEvent.pointerDown(screen.getByTestId("handle"), { clientX: 300, button: 2 });
+    fireEvent.pointerDown(handle(), { clientX: 300, button: 2 });
     expect(isResizing()).toBe("false");
+    expect(document.activeElement).not.toBe(handle());
   });
 
-  it.each(["pointerCancel", "lostPointerCapture"] as const)("commits the drag on %s", (event) => {
-    store(300);
+  it("focuses the handle and prevents text selection on pointerdown", () => {
     render(<Harness />);
-    const handle = screen.getByTestId("handle");
-    fireEvent.pointerDown(handle, { clientX: 300 });
-    fireEvent.pointerMove(handle, { clientX: 330 });
-    fireEvent[event](handle, { clientX: 330 });
-    expect(persisted()).toBe(330);
-    expect(isResizing()).toBe("false");
+    expect(fireEvent.pointerDown(handle(), { clientX: 300 })).toBe(false);
+    expect(document.activeElement).toBe(handle());
+  });
+
+  it("blocks native drags and sets the body cursor only while resizing", () => {
+    store(300);
+    const { unmount } = render(<Harness />);
+    fireEvent.pointerDown(handle(), { clientX: 300 });
+    expect(dragStart()).toBe(false);
+    expect(document.body.style.cursor).toBe("ew-resize");
+    expect(document.body.style.userSelect).toBe("none");
+    fireEvent.pointerUp(handle(), { clientX: 300 });
+    expect(dragStart()).toBe(true);
+    expect(document.body.style.cursor).toBe("");
+    fireEvent.pointerDown(handle(), { clientX: 300 });
+    unmount();
+    expect(dragStart()).toBe(true);
+    expect(document.body.style.cursor).toBe("");
+    expect(document.body.style.userSelect).toBe("");
+  });
+
+  it("resets to the default on double click", () => {
+    store(400);
+    render(<Harness />);
+    fireEvent.doubleClick(handle());
+    expect(persisted()).toBe(DEFAULT);
+    expect(boxWidth()).toBe(`${DEFAULT}px`);
   });
 
   it("resizes with the keyboard within the clamp", () => {
     store(300);
     render(<Harness />);
-    const handle = screen.getByTestId("handle");
-    fireEvent.keyDown(handle, { key: "ArrowRight" });
+    fireEvent.keyDown(handle(), { key: "ArrowRight" });
     expect(persisted()).toBe(316);
-    fireEvent.keyDown(handle, { key: "ArrowLeft" });
+    fireEvent.keyDown(handle(), { key: "ArrowLeft" });
     expect(persisted()).toBe(300);
-    fireEvent.keyDown(handle, { key: "Home" });
+    fireEvent.keyDown(handle(), { key: "Home" });
     expect(persisted()).toBe(MIN);
-    fireEvent.keyDown(handle, { key: "End" });
+    fireEvent.keyDown(handle(), { key: "End" });
     expect(persisted()).toBe(MAX);
+  });
+
+  it("starts from the rendered width when it is narrower than the chosen one", () => {
+    store(400);
+    render(<Harness renderedWidth={250} />);
+    fireEvent.keyDown(handle(), { key: "ArrowRight" });
+    expect(persisted()).toBe(266);
+    drag(0, 10);
+    expect(persisted()).toBe(260);
+  });
+
+  it("keeps the value in memory when storage fails", () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("quota");
+    });
+    render(<Harness />);
+    fireEvent.keyDown(handle(), { key: "ArrowRight" });
+    expect(boxWidth()).toBe(`${DEFAULT + 16}px`);
+  });
+});
+
+describe("useResizableWidth in live CSS mode", () => {
+  it("writes the stored width to the custom property on mount", () => {
+    store(320);
+    render(<Harness live />);
+    expect(cssWidth()).toBe("320px");
+  });
+
+  it("drags through the custom property without rendering and commits on release", () => {
+    store(300);
+    const onRender = vi.fn();
+    render(
+      <Profiler id="live" onRender={onRender}>
+        <Harness live />
+      </Profiler>
+    );
+    fireEvent.pointerDown(handle(), { clientX: 300 });
+    onRender.mockClear();
+    fireEvent.pointerMove(handle(), { clientX: 340 });
+    fireEvent.pointerMove(handle(), { clientX: 360 });
+    expect(onRender).not.toHaveBeenCalled();
+    expect(cssWidth()).toBe("360px");
+    expect(boxWidth()).toBe("300px");
+    expect(persisted()).toBe(300);
+    fireEvent.pointerUp(handle(), { clientX: 360 });
+    expect(persisted()).toBe(360);
+    expect(cssWidth()).toBe("360px");
+  });
+
+  it("restores the custom property on pointercancel", () => {
+    store(300);
+    render(<Harness live />);
+    fireEvent.pointerDown(handle(), { clientX: 300 });
+    fireEvent.pointerMove(handle(), { clientX: 400 });
+    fireEvent.pointerCancel(handle(), { clientX: 0 });
+    expect(cssWidth()).toBe("300px");
+    expect(persisted()).toBe(300);
+  });
+
+  it("updates the custom property on keyboard and reset", () => {
+    store(300);
+    render(<Harness live />);
+    fireEvent.keyDown(handle(), { key: "ArrowLeft" });
+    expect(cssWidth()).toBe("284px");
+    fireEvent.doubleClick(handle());
+    expect(cssWidth()).toBe(`${DEFAULT}px`);
   });
 });

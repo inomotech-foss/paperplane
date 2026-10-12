@@ -12,6 +12,7 @@ import { ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 // plane imports
 import { EPageAccess } from "@plane/constants";
 import { useResizableWidth } from "@plane/hooks";
+import { useTranslation } from "@plane/i18n";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { PagesOutline } from "@makeplane/propel/icons";
 import { DropIndicator } from "@plane/blocks/common";
@@ -130,6 +131,7 @@ const PageTreeRow = observer(function PageTreeRow(props: TTreeRowProps) {
 });
 
 export const PageDetailsTreeSidebar = observer(function PageDetailsTreeSidebar() {
+  const { t } = useTranslation();
   // router
   const { workspaceSlug, projectId, pageId } = useParams();
   const currentPageId = pageId?.toString() ?? "";
@@ -241,7 +243,7 @@ export const PageDetailsTreeSidebar = observer(function PageDetailsTreeSidebar()
         aria-valuemin={MIN_SIDEBAR_WIDTH}
         aria-valuemax={MAX_SIDEBAR_WIDTH}
         tabIndex={0}
-        aria-label="Resize page tree"
+        aria-label={t("aria_labels.resize.page_tree")}
         className={cn(
           "absolute top-0 right-0 z-[20] h-full w-1 translate-x-1/2 cursor-ew-resize touch-none transition-colors duration-200",
           resize.isResizing ? "w-1.5 bg-layer-1" : "hover:bg-surface-2"

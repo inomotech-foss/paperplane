@@ -12,7 +12,11 @@ export const getValueFromLocalStorage = (key: string, defaultValue: any) => {
     const item = window.localStorage.getItem(key);
     return item ? JSON.parse(item) : defaultValue;
   } catch (_error) {
-    window.localStorage.removeItem(key);
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // storage is unavailable
+    }
     return defaultValue;
   }
 };
@@ -32,9 +36,9 @@ export const useLocalStorage = <T,>(key: string, initialValue: T) => {
 
   const setValue = useCallback(
     (value: T) => {
-      window.localStorage.setItem(key, JSON.stringify(value));
       setStoredValue(value);
-      window.dispatchEvent(new Event(`local-storage:${key}`));
+      // without storage the value still applies here, other instances just do not follow
+      if (setValueIntoLocalStorage(key, value)) window.dispatchEvent(new Event(`local-storage:${key}`));
     },
     [key]
   );
