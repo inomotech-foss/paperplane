@@ -10,12 +10,13 @@ from django.core.mail import EmailMultiAlternatives
 
 from plane.utils import ms365_graph
 from plane.utils.email.graph_backend import GraphEmailBackend
-from plane.utils.ms365_graph import MAX_REQUEST_SIZE, MSGraphError
+from plane.utils.ms365_graph import MAX_REQUEST_SIZE, MSGraphError, MSGraphMessageTooLarge
 
 
-def _response(status_code=200, json_data=None, text=""):
+def _response(status_code=200, json_data=None, text="", headers=None):
     response = MagicMock()
     response.status_code = status_code
+    response.headers = headers or {}
     response.ok = 200 <= status_code < 300
     response.json.return_value = json_data or {}
     response.text = text
@@ -27,6 +28,12 @@ def clear_token_cache():
     ms365_graph._token_cache.clear()
     yield
     ms365_graph._token_cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def sleep():
+    with patch("plane.utils.ms365_graph.time.sleep") as mock_sleep:
+        yield mock_sleep
 
 
 @pytest.fixture
@@ -170,6 +177,67 @@ class TestGraphEmailBackend:
         msg = _message()
         msg.attach("big.bin", b"\0" * (MAX_REQUEST_SIZE // 4 * 3), "application/octet-stream")
 
-        with pytest.raises(MSGraphError, match="byte Graph limit"):
+        with pytest.raises(MSGraphMessageTooLarge):
             _backend().send_messages([msg])
         graph_request.assert_not_called()
+
+    def test_url_encodes_the_mailbox(self, graph):
+        _, graph_request = graph
+        backend = GraphEmailBackend(tenant_id="t", client_id="c", client_secret="s", sender="team+plane@example.com")
+
+        backend.send_messages([_message()])
+
+        assert graph_request.call_args.args[1].endswith("/users/team%2Bplane@example.com/sendMail")
+
+    def test_drops_token_after_forbidden(self, graph):
+        token_post, graph_request = graph
+        graph_request.return_value = _response(status_code=403, text="denied")
+
+        with pytest.raises(MSGraphError):
+            _backend().send_messages([_message()])
+        graph_request.return_value = _response(status_code=202)
+        _backend().send_messages([_message()])
+
+        assert token_post.call_count == 2
+
+    def test_retries_throttling_with_retry_after(self, graph, sleep):
+        _, graph_request = graph
+        graph_request.side_effect = [
+            _response(status_code=429, headers={"Retry-After": "7"}),
+            _response(status_code=503),
+            _response(status_code=202),
+        ]
+
+        assert _backend().send_messages([_message()]) == 1
+
+        assert graph_request.call_count == 3
+        assert [call.args[0] for call in sleep.call_args_list] == [7.0, 2.0]
+
+    def test_gives_up_after_max_attempts(self, graph, sleep):
+        _, graph_request = graph
+        graph_request.return_value = _response(status_code=504, text="timeout")
+
+        with pytest.raises(MSGraphError, match="504"):
+            _backend().send_messages([_message()])
+
+        assert graph_request.call_count == ms365_graph.MAX_ATTEMPTS
+        assert sleep.call_count == ms365_graph.MAX_ATTEMPTS - 1
+
+    def test_does_not_wait_past_the_total_limit(self, graph, sleep):
+        _, graph_request = graph
+        graph_request.return_value = _response(status_code=429, headers={"Retry-After": "120"}, text="slow down")
+
+        with pytest.raises(MSGraphError, match="429"):
+            _backend().send_messages([_message()])
+
+        assert graph_request.call_count == 1
+        sleep.assert_not_called()
+
+    def test_does_not_retry_client_errors(self, graph, sleep):
+        _, graph_request = graph
+        graph_request.return_value = _response(status_code=400, text="bad")
+
+        with pytest.raises(MSGraphError):
+            _backend().send_messages([_message()])
+
+        assert graph_request.call_count == 1

@@ -30,7 +30,8 @@ from plane.utils.cache import cache_response, invalidate_cache
 from plane.utils.rate_limit import invalidate_throttle_rates
 from plane.license.utils.instance_value import get_managed_configuration_keys
 from plane.utils.email.transport import SMTP, send_email
-from plane.utils.ms365_graph import MSGraphError
+from plane.utils.exception_logger import log_exception
+from plane.utils.ms365_graph import MSGraphAuthError, MSGraphError, MSGraphMessageTooLarge
 
 
 class InstanceConfigurationEndpoint(BaseAPIView):
@@ -72,6 +73,7 @@ class InstanceConfigurationEndpoint(BaseAPIView):
 class DisableEmailFeatureEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
+    @invalidate_cache(path="/api/instances/configurations/", user=False)
     @invalidate_cache(path="/api/instances/", user=False)
     def delete(self, request):
         try:
@@ -87,13 +89,30 @@ class DisableEmailFeatureEndpoint(BaseAPIView):
                         "EMAIL_FROM",
                     ]
                 )
-            ).update(value=Case(When(key="EMAIL_TRANSPORT", then=Value(SMTP)), default=Value("")))
+            ).exclude(key__in=get_managed_configuration_keys()).update(
+                value=Case(When(key="EMAIL_TRANSPORT", then=Value(SMTP)), default=Value(""))
+            )
             return Response(status=status.HTTP_200_OK)
         except Exception:
             return Response(
                 {"error": "Failed to disable email configuration"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+def graph_error_message(error):
+    """A fixed message for the admin. The full Graph error goes to the server log."""
+    if isinstance(error, MSGraphAuthError):
+        return "Could not sign in to Microsoft 365. Check the tenant ID, client ID and client secret."
+    if isinstance(error, MSGraphMessageTooLarge):
+        return "The email is larger than the 4 MB Microsoft Graph limit."
+    if error.status_code == 403:
+        return "Microsoft Graph denied access. Check the Mail.Send permission and the mailbox access scope."
+    if error.status_code == 404:
+        return "Microsoft Graph did not find the sender mailbox. Check the sender's email address."
+    if error.status_code in (429, 503, 504):
+        return "Microsoft Graph is busy. Try again later."
+    return "Microsoft Graph rejected the email. Check the server log for details."
 
 
 class EmailCredentialCheckEndpoint(BaseAPIView):
@@ -110,10 +129,8 @@ class EmailCredentialCheckEndpoint(BaseAPIView):
         try:
             sent = send_email(subject=subject, to=[receiver_email], text_content=message)
         except MSGraphError as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            log_exception(e)
+            return Response({"error": graph_error_message(e)}, status=status.HTTP_400_BAD_REQUEST)
         except requests.RequestException:
             return Response(
                 {"error": "Could not reach Microsoft Graph."},

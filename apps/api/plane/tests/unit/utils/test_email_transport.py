@@ -13,7 +13,7 @@ from plane.license.utils.encryption import encrypt_data
 from plane.utils.email import transport
 from plane.utils.email.graph_backend import GraphEmailBackend
 from plane.utils.email.transport import get_email_transport, is_email_configured, send_email
-from plane.utils.ms365_graph import MSGraphError
+from plane.utils.ms365_graph import MSGraphAuthError, MSGraphError
 
 
 def configure(**values):
@@ -52,9 +52,9 @@ MS365_SETTINGS = {
 
 @pytest.fixture(autouse=True)
 def reset_logged_reason():
-    transport._last_logged_reason = None
+    transport._disabled_log.enabled()
     yield
-    transport._last_logged_reason = None
+    transport._disabled_log.enabled()
 
 
 @pytest.mark.unit
@@ -104,6 +104,34 @@ class TestEmailTransport:
 
         assert get_email_transport() is None
         assert is_email_configured() is False
+
+    @pytest.mark.parametrize(
+        "overrides",
+        [{"EMAIL_PORT": "smtp"}, {"EMAIL_USE_TLS": "1", "EMAIL_USE_SSL": "1"}],
+    )
+    def test_invalid_smtp_settings_are_not_configured(self, overrides, caplog):
+        configure(**{**SMTP_SETTINGS, **overrides})
+
+        with caplog.at_level(logging.WARNING, logger="plane.worker"):
+            assert is_email_configured() is False
+            assert get_email_transport() is None
+            assert send_email(subject="s", to=["a@example.com"], text_content="t") is False
+
+        assert "Outgoing email is disabled" in caplog.text
+
+    def test_ms365_needs_a_valid_sender(self):
+        configure(**{**MS365_SETTINGS, "EMAIL_FROM": "Plane"})
+
+        assert is_email_configured() is False
+
+    @pytest.mark.parametrize("settings", [SMTP_SETTINGS, MS365_SETTINGS])
+    def test_configured_check_does_not_decrypt(self, settings):
+        configure(**settings)
+
+        with patch("plane.license.utils.instance_value.decrypt_data") as decrypt_data:
+            assert is_email_configured() is True
+
+        decrypt_data.assert_not_called()
 
     def test_unknown_transport_is_not_configured(self):
         configure(**{**SMTP_SETTINGS, "EMAIL_TRANSPORT": "carrier-pigeon"})
@@ -203,7 +231,21 @@ class TestEmailEndpoints:
             )
 
         assert response.status_code == 400
-        assert "403" in response.data["error"]
+        assert "Mail.Send" in response.data["error"]
+        assert "nope" not in response.data["error"]
+
+    def test_test_email_reports_bad_credentials(self, instance_admin_client):
+        configure(**MS365_SETTINGS)
+
+        error = MSGraphAuthError("Failed to acquire MS Graph access token", 401, "AADSTS7000215 invalid secret")
+        with patch.object(GraphEmailBackend, "send_messages", side_effect=error):
+            response = instance_admin_client.post(
+                reverse("email-credential-check"), {"receiver_email": "admin@example.com"}, format="json"
+            )
+
+        assert response.status_code == 400
+        assert "client secret" in response.data["error"]
+        assert "AADSTS" not in response.data["error"]
 
     def test_test_email_when_not_configured(self, instance_admin_client):
         configure(**{**SMTP_SETTINGS, "EMAIL_HOST": ""})
@@ -226,6 +268,30 @@ class TestEmailEndpoints:
         assert values["EMAIL_FROM"] == ""
         assert values["MS365_TENANT_ID"] == "tenant"
         assert is_email_configured() is False
+
+    def test_disable_keeps_managed_keys(self, instance_admin_client, monkeypatch):
+        monkeypatch.setenv("PROVISION_MANAGED_KEYS", "EMAIL_TRANSPORT,EMAIL_FROM")
+        configure(**MS365_SETTINGS)
+
+        response = instance_admin_client.delete(reverse("disable-email-configuration"))
+
+        assert response.status_code == 200
+        values = dict(InstanceConfiguration.objects.values_list("key", "value"))
+        assert values["EMAIL_TRANSPORT"] == "ms365"
+        assert values["EMAIL_FROM"] == "Plane <noreply@example.com>"
+
+    def test_invalid_settings_do_not_break_auth_endpoints(self, api_client, instance_admin_client):
+        configure(**{**SMTP_SETTINGS, "EMAIL_PORT": "not-a-port"})
+
+        instance = api_client.get(reverse("instance"))
+        test_email = instance_admin_client.post(
+            reverse("email-credential-check"), {"receiver_email": "admin@example.com"}, format="json"
+        )
+
+        assert instance.status_code == 200
+        assert instance.data["config"]["is_smtp_configured"] is False
+        assert test_email.status_code == 400
+        assert test_email.data["error"] == "Email is not configured."
 
     def test_instance_reports_ms365_as_configured(self, api_client, instance_admin_client):
         configure(**MS365_SETTINGS)

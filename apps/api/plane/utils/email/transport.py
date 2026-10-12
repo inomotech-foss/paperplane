@@ -21,7 +21,23 @@ TIMEOUT = 30
 
 logger = logging.getLogger("plane.worker")
 
-_last_logged_reason = None
+
+class _DisabledLog:
+    """Logs why email is disabled once per reason, not once per email."""
+
+    def __init__(self):
+        self.reason = None
+
+    def disabled(self, reason):
+        if reason != self.reason:
+            logger.warning("Outgoing email is disabled: %s", reason)
+        self.reason = reason
+
+    def enabled(self):
+        self.reason = None
+
+
+_disabled_log = _DisabledLog()
 
 
 @dataclass(frozen=True)
@@ -30,7 +46,8 @@ class EmailTransport:
     from_email: str
 
 
-def _read_settings():
+def _read_settings(decrypt=True):
+    """Email settings. With decrypt=False, secrets stay encrypted and only show presence."""
     (
         transport,
         host,
@@ -50,74 +67,81 @@ def _read_settings():
             {"key": "EMAIL_USE_TLS", "default": os.environ.get("EMAIL_USE_TLS", "1")},
             {"key": "EMAIL_USE_SSL", "default": os.environ.get("EMAIL_USE_SSL", "0")},
             {"key": "EMAIL_FROM", "default": os.environ.get("EMAIL_FROM", "Team Plane <team@mailer.plane.so>")},
-        ]
+        ],
+        decrypt=decrypt,
     )
-    return {
+    settings = {
         "transport": (transport or SMTP).strip().lower(),
         "host": host,
         "user": user,
         "password": password,
-        "port": port,
-        "use_tls": use_tls,
-        "use_ssl": use_ssl,
-        "from_email": from_email,
+        "port": (port or "587").strip(),
+        "use_tls": use_tls == "1",
+        "use_ssl": use_ssl == "1",
+        "from_email": from_email or "",
     }
+    if settings["transport"] == MS365:
+        settings["tenant_id"], settings["client_id"], settings["client_secret"] = get_ms365_configuration(
+            decrypt=decrypt
+        )
+    return settings
 
 
-def _build_transport(settings, fail_silently):
-    """Return the transport, or the reason it cannot be built."""
+def _invalid_reason(settings):
+    """Why the settings cannot send email, or None if they can. Builds nothing."""
     if settings["transport"] == SMTP:
         if not settings["host"]:
-            return None, "EMAIL_HOST is not set"
-        connection = get_connection(
-            host=settings["host"],
-            port=int(settings["port"] or 587),
-            username=settings["user"],
-            password=settings["password"],
-            use_tls=settings["use_tls"] == "1",
-            use_ssl=settings["use_ssl"] == "1",
-            timeout=TIMEOUT,
-            fail_silently=fail_silently,
-        )
-        return EmailTransport(connection, settings["from_email"]), None
-
+            return "EMAIL_HOST is not set"
+        if not settings["port"].isdigit():
+            return "EMAIL_PORT is not a number"
+        if settings["use_tls"] and settings["use_ssl"]:
+            return "EMAIL_USE_TLS and EMAIL_USE_SSL are both on"
+        return None
     if settings["transport"] == MS365:
-        tenant_id, client_id, client_secret = get_ms365_configuration()
-        if not (tenant_id and client_id and client_secret):
-            return None, "MS365_TENANT_ID, MS365_CLIENT_ID or MS365_CLIENT_SECRET is not set"
-        sender = parseaddr(settings["from_email"] or "")[1]
-        if not sender:
-            return None, "EMAIL_FROM is not set"
-        connection = get_connection(
+        if not (settings["tenant_id"] and settings["client_id"] and settings["client_secret"]):
+            return "MS365_TENANT_ID, MS365_CLIENT_ID or MS365_CLIENT_SECRET is not set"
+        if "@" not in parseaddr(settings["from_email"])[1]:
+            return "EMAIL_FROM is not a valid address"
+        return None
+    return "EMAIL_TRANSPORT is not smtp or ms365"
+
+
+def _connect(settings, fail_silently):
+    if settings["transport"] == MS365:
+        return get_connection(
             GRAPH_BACKEND,
-            tenant_id=tenant_id,
-            client_id=client_id,
-            client_secret=client_secret,
-            sender=sender,
+            tenant_id=settings["tenant_id"],
+            client_id=settings["client_id"],
+            client_secret=settings["client_secret"],
+            sender=parseaddr(settings["from_email"])[1],
             timeout=TIMEOUT,
             fail_silently=fail_silently,
         )
-        return EmailTransport(connection, settings["from_email"]), None
-
-    return None, f"EMAIL_TRANSPORT {settings['transport']!r} is not supported"
+    return get_connection(
+        host=settings["host"],
+        port=int(settings["port"]),
+        username=settings["user"],
+        password=settings["password"],
+        use_tls=settings["use_tls"],
+        use_ssl=settings["use_ssl"],
+        timeout=TIMEOUT,
+        fail_silently=fail_silently,
+    )
 
 
 def get_email_transport(fail_silently=False):
     """Connection and from address for outgoing email, or None if email is not configured."""
-    global _last_logged_reason
-    transport, reason = _build_transport(_read_settings(), fail_silently)
-    if transport is None:
-        if reason != _last_logged_reason:
-            logger.warning("Outgoing email is disabled: %s", reason)
-        _last_logged_reason = reason
-    else:
-        _last_logged_reason = None
-    return transport
+    settings = _read_settings()
+    reason = _invalid_reason(settings)
+    if reason is not None:
+        _disabled_log.disabled(reason)
+        return None
+    _disabled_log.enabled()
+    return EmailTransport(_connect(settings, fail_silently), settings["from_email"])
 
 
 def is_email_configured():
-    transport, _ = _build_transport(_read_settings(), fail_silently=True)
-    return transport is not None
+    return _invalid_reason(_read_settings(decrypt=False)) is None
 
 
 def send_email(subject, to, text_content, html_content=None, attachments=()):

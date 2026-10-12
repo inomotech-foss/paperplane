@@ -27,7 +27,7 @@ const isEmailConfigured = (config: IFormattedInstanceConfiguration) =>
 
 const InstanceEmailPage = observer(function InstanceEmailPage(_props: Route.ComponentProps) {
   // store
-  const { fetchInstanceConfigurations, formattedConfig, disableEmail } = useInstance();
+  const { fetchInstanceConfigurations, formattedConfig, disableEmail, managedConfigurationKeys } = useInstance();
 
   const { isLoading } = useSWR("INSTANCE_CONFIGURATIONS", () => fetchInstanceConfigurations());
 
@@ -84,7 +84,7 @@ const InstanceEmailPage = observer(function InstanceEmailPage(_props: Route.Comp
             checked={isEmailEnabled}
             onCheckedChange={handleToggle}
             size="sm"
-            disabled={isSubmitting}
+            disabled={isSubmitting || managedConfigurationKeys.has("EMAIL_TRANSPORT")}
           />
         ),
       }}

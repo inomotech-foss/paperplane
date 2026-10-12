@@ -22,6 +22,7 @@ from plane.utils.analytics_plot import build_graph_plot
 from plane.utils.email import generate_plain_text_from_html
 from plane.utils.email.transport import send_email
 from plane.utils.exception_logger import log_exception
+from plane.utils.ms365_graph import MSGraphMessageTooLarge
 from plane.utils.issue_filters import issue_filters
 from plane.utils.csv_utils import sanitize_csv_row
 
@@ -48,6 +49,12 @@ CYCLE_ID = "issue_cycle__cycle_id"
 MODULE_ID = "issue_module__module_id"
 
 
+EXPORT_TOO_LARGE_TEXT = (
+    "Your analytics export is too large to send as an email attachment. "
+    "Narrow the filters or the date range and export again."
+)
+
+
 def send_export_email(email, slug, csv_buffer, rows):
     """Helper function to send export email."""
     subject = "Your Export is ready"
@@ -56,12 +63,20 @@ def send_export_email(email, slug, csv_buffer, rows):
 
     csv_buffer.seek(0)
 
-    return send_email(
-        subject=subject,
-        to=[email],
-        text_content=text_content,
-        attachments=[(f"{slug}-analytics.csv", csv_buffer.getvalue())],
-    )
+    try:
+        return send_email(
+            subject=subject,
+            to=[email],
+            text_content=text_content,
+            attachments=[(f"{slug}-analytics.csv", csv_buffer.getvalue())],
+        )
+    except MSGraphMessageTooLarge:
+        logging.getLogger("plane.worker").warning("Analytics export for %s is too large to email", slug)
+        return send_email(
+            subject="Your export is too large to email",
+            to=[email],
+            text_content=EXPORT_TOO_LARGE_TEXT,
+        )
 
 
 def get_assignee_details(slug, filters):
