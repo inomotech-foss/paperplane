@@ -94,6 +94,38 @@ describe("TimelineSidebarResizeHandle", () => {
     expect(onRender).not.toHaveBeenCalled();
   });
 
+  it("restores the width from before the drag on pointercancel", () => {
+    localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, "500");
+    renderHandle();
+    fireEvent.pointerDown(handle(), { clientX: 800 });
+    fireEvent.pointerMove(handle(), { clientX: 850 });
+    expect(widthVar()).toBe("550px");
+    fireEvent.pointerCancel(handle(), { clientX: 0 });
+    fireEvent.lostPointerCapture(handle(), { clientX: 0 });
+    expect(widthVar()).toBe("500px");
+    expect(valueNow()).toBe("500");
+    expect(stored()).toBe("500");
+    expect(onResize).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the default width when a drag from it is cancelled", () => {
+    renderHandle();
+    fireEvent.pointerDown(handle(), { clientX: 800 });
+    fireEvent.pointerMove(handle(), { clientX: 850 });
+    fireEvent.pointerCancel(handle(), { clientX: 0 });
+    expect(widthVar()).toBe("");
+    expect(stored()).toBeNull();
+  });
+
+  it("blocks native drags only while resizing", () => {
+    const container = renderHandle();
+    const dragStart = () => container.dispatchEvent(new Event("dragstart", { bubbles: true, cancelable: true }));
+    expect(fireEvent.pointerDown(handle(), { clientX: 0 })).toBe(false);
+    expect(dragStart()).toBe(false);
+    fireEvent.pointerUp(handle(), { clientX: 0 });
+    expect(dragStart()).toBe(true);
+  });
+
   it("commits the width the CSS clamp allows", () => {
     containerWidth = 700;
     renderHandle();

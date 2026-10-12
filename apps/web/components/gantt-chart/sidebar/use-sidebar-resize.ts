@@ -17,6 +17,9 @@ const KEY_STEP = 16;
 
 const clamp = (width: number) => Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width));
 
+// A native drag starting under the moving sidebar would cancel the pointer.
+const preventNativeDrag = (e: DragEvent) => e.preventDefault();
+
 const readStoredWidth = () => {
   const width = Number.parseFloat(localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY) ?? "");
   return Number.isFinite(width) ? clamp(width) : null;
@@ -28,7 +31,7 @@ const readStoredWidth = () => {
  */
 export const useSidebarResize = () => {
   const handleRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  const dragRef = useRef<{ startX: number; startWidth: number; previousWidth: string } | null>(null);
 
   const getElements = useCallback(() => {
     const handle = handleRef.current;
@@ -65,6 +68,7 @@ export const useSidebarResize = () => {
 
   const endDrag = useCallback(() => {
     dragRef.current = null;
+    window.removeEventListener("dragstart", preventNativeDrag, true);
     delete handleRef.current?.dataset.resizing;
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
@@ -82,14 +86,21 @@ export const useSidebarResize = () => {
 
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
-      if (e.button !== 0) return;
+      const container = getElements()?.container;
+      if (e.button !== 0 || !container) return;
+      e.preventDefault();
       e.currentTarget.setPointerCapture?.(e.pointerId);
-      dragRef.current = { startX: e.clientX, startWidth: getRenderedWidth() };
+      dragRef.current = {
+        startX: e.clientX,
+        startWidth: getRenderedWidth(),
+        previousWidth: container.style.getPropertyValue(SIDEBAR_WIDTH_CSS_VAR),
+      };
+      window.addEventListener("dragstart", preventNativeDrag, true);
       e.currentTarget.dataset.resizing = "true";
       document.body.style.cursor = "ew-resize";
       document.body.style.userSelect = "none";
     },
-    [getRenderedWidth]
+    [getElements, getRenderedWidth]
   );
 
   const onPointerMove = useCallback(
@@ -110,6 +121,17 @@ export const useSidebarResize = () => {
     },
     [apply, commit, endDrag]
   );
+
+  // a cancel carries no usable position, so restore the width from before the drag
+  const onPointerCancel = useCallback(() => {
+    const drag = dragRef.current;
+    const container = getElements()?.container;
+    if (!drag || !container) return;
+    if (drag.previousWidth) container.style.setProperty(SIDEBAR_WIDTH_CSS_VAR, drag.previousWidth);
+    else container.style.removeProperty(SIDEBAR_WIDTH_CSS_VAR);
+    endDrag();
+    syncValueNow();
+  }, [endDrag, getElements, syncValueNow]);
 
   const onKeyDown = useCallback(
     (e: ReactKeyboardEvent<HTMLElement>) => {
@@ -147,8 +169,8 @@ export const useSidebarResize = () => {
     onPointerDown,
     onPointerMove,
     onPointerUp,
-    onPointerCancel: onPointerUp,
-    onLostPointerCapture: onPointerUp,
+    onPointerCancel,
+    onLostPointerCapture: onPointerCancel,
     onKeyDown,
     onDoubleClick: reset,
   };
