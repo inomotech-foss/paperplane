@@ -25,7 +25,7 @@ from plane.db.models import (
 )
 from plane.utils.exception_logger import log_exception
 from plane.utils.mentions import mentionable_user_ids
-from django.db.models import Subquery
+from django.db.models import Q, Subquery
 
 # Third Party imports
 from celery import shared_task
@@ -300,12 +300,17 @@ def notifications(
             """
 
             # ---------------------------------------------------------------------------------------------------------
+            # Assignees keep hearing about their own items after leaving the project.
+            eligible_assignees = IssueAssignee.objects.filter(
+                issue_id=issue_id,
+                assignee__is_active=True,
+                assignee__member_workspace__workspace_id=project.workspace_id,
+                assignee__member_workspace__is_active=True,
+                assignee__member_workspace__deleted_at__isnull=True,
+            ).values("assignee_id")
             issue_subscribers = list(
-                IssueSubscriber.objects.filter(
-                    project_id=project_id,
-                    issue_id=issue_id,
-                    subscriber__in=Subquery(project_members),
-                )
+                IssueSubscriber.objects.filter(project_id=project_id, issue_id=issue_id)
+                .filter(Q(subscriber__in=Subquery(project_members)) | Q(subscriber__in=Subquery(eligible_assignees)))
                 .exclude(subscriber_id__in=list(new_mentions + comment_mentions + [actor_id]))
                 .values_list("subscriber", flat=True)
             )
@@ -321,11 +326,9 @@ def notifications(
                 except Exception:
                     pass
 
-            issue_assignees = IssueAssignee.objects.filter(
-                issue_id=issue_id,
-                project_id=project_id,
-                assignee__in=Subquery(project_members),
-            ).values_list("assignee", flat=True)
+            issue_assignees = IssueAssignee.objects.filter(issue_id=issue_id, project_id=project_id).values_list(
+                "assignee", flat=True
+            )
 
             issue_subscribers = list(set(issue_subscribers) - {uuid.UUID(actor_id)})
 

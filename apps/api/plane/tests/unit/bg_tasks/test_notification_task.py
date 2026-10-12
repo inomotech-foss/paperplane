@@ -11,6 +11,7 @@ from plane.db.models import (
     EmailNotificationLog,
     Issue,
     IssueActivity,
+    IssueAssignee,
     IssueSubscriber,
     Notification,
     Project,
@@ -221,3 +222,35 @@ def test_a_failure_is_logged(issue, create_user, watcher, mocker):
     run_change(issue, create_user, [{"field": "priority"}])
 
     log.assert_called_once()
+
+
+def add_outsider(issue, email, assigned=True, workspace_active=True, user_active=True):
+    user = User.objects.create(email=email, username=email.split("@")[0], is_active=user_active)
+    WorkspaceMember.objects.create(workspace=issue.workspace, member=user, role=15, is_active=workspace_active)
+    IssueSubscriber.objects.create(project=issue.project, workspace=issue.workspace, issue=issue, subscriber=user)
+    if assigned:
+        IssueAssignee.objects.create(project=issue.project, workspace=issue.workspace, issue=issue, assignee=user)
+    return user
+
+
+def test_an_assignee_outside_the_project_is_still_notified(issue, create_user):
+    assignee = add_outsider(issue, "former@plane.so")
+
+    run_change(issue, create_user, [activity(issue, create_user, "priority")])
+
+    assert Notification.objects.filter(receiver=assignee, sender="in_app:issue_activities:assigned").exists()
+    assert EmailNotificationLog.objects.filter(receiver=assignee).exists()
+
+
+@pytest.mark.parametrize(
+    "options",
+    [{"assigned": False}, {"workspace_active": False}, {"user_active": False}],
+    ids=["only-subscribed", "left-the-workspace", "deactivated"],
+)
+def test_other_users_outside_the_project_are_not_notified(issue, create_user, options):
+    outsider = add_outsider(issue, "outsider@plane.so", **options)
+
+    run_change(issue, create_user, [activity(issue, create_user, "priority")])
+
+    assert not Notification.objects.filter(receiver=outsider).exists()
+    assert not EmailNotificationLog.objects.filter(receiver=outsider).exists()
