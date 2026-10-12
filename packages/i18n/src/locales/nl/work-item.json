@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Query, bijv. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Query, bijv. {query}",
     "run": "Uitvoeren",
     "clear": "Wissen",
     "help": "Hulp bij query",

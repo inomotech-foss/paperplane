@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Запит, наприклад type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Запит, наприклад {query}",
     "run": "Виконати",
     "clear": "Очистити",
     "help": "Довідка щодо запитів",

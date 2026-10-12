@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Truy vấn, ví dụ type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Truy vấn, ví dụ {query}",
     "run": "Chạy",
     "clear": "Xóa",
     "help": "Trợ giúp truy vấn",

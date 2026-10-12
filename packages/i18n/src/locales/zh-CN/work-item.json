@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "查询，例如 type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "查询，例如 {query}",
     "run": "运行",
     "clear": "清除",
     "help": "查询帮助",

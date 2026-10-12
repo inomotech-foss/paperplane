@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "クエリ（例：type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")）",
+    "placeholder": "クエリ（例：{query}）",
     "run": "実行",
     "clear": "クリア",
     "help": "クエリのヘルプ",

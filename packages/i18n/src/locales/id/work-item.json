@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Kueri, mis. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Kueri, mis. {query}",
     "run": "Jalankan",
     "clear": "Bersihkan",
     "help": "Bantuan kueri",

@@ -525,7 +525,7 @@
     }
   },
   "work_item_query": {
-    "placeholder": "Query, ad es. type = \"Invoice\" AND state = \"Paid\" AND descendantOf(\"CUST-1\")",
+    "placeholder": "Query, ad es. {query}",
     "run": "Esegui",
     "clear": "Cancella",
     "help": "Guida alla query",
