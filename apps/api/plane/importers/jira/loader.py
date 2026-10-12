@@ -46,8 +46,6 @@ from .states import GROUP_COLOURS, in_workflow_order, state_for
 # Jira's five default priorities onto Plane's five, which are the same ladder.
 PRIORITIES = {"highest": "urgent", "high": "high", "medium": "medium", "low": "low", "lowest": "none"}
 
-EPIC_TYPE = "epic"
-
 # Jira's field names onto the ones Plane's activity feed knows how to render.
 # Anything absent keeps the Jira name and still records who changed what.
 ACTIVITY_FIELDS = {
@@ -328,7 +326,6 @@ class JiraLoader:
                 issue_type = IssueType.objects.create(
                     workspace=self.workspace,
                     name=name,
-                    is_epic=name.strip().casefold() == EPIC_TYPE,
                     is_active=True,
                     external_source=self.EXTERNAL_SOURCE,
                     external_id=name,

@@ -672,7 +672,6 @@ class RelatedIssueSerializer(BaseSerializer):
     name = serializers.CharField(source="issue.name", read_only=True)
     type_id = serializers.UUIDField(source="issue.type.id", read_only=True)
     relation_type = serializers.CharField(read_only=True)
-    is_epic = serializers.BooleanField(source="issue.type.is_epic", read_only=True)
     state_id = serializers.UUIDField(source="issue.state.id", read_only=True)
     priority = serializers.CharField(source="issue.priority", read_only=True)
 
@@ -685,7 +684,6 @@ class RelatedIssueSerializer(BaseSerializer):
             "relation_type",
             "name",
             "type_id",
-            "is_epic",
             "state_id",
             "priority",
             "created_by",

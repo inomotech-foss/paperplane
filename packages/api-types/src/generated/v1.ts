@@ -1574,7 +1574,7 @@ export interface paths {
         put?: never;
         /**
          * Create work item type
-         * @description Create a work item type for a project. `is_epic` cannot be set through the API and is always created as `False`.
+         * @description Create a work item type for a project.
          */
         post: operations["create_work_item_type"];
         delete?: never;
@@ -1606,7 +1606,7 @@ export interface paths {
         head?: never;
         /**
          * Update work item type
-         * @description Partially update a work item type. `is_epic` cannot be changed once created.
+         * @description Partially update a work item type.
          */
         patch: operations["update_work_item_type"];
         trace?: never;
@@ -2136,7 +2136,7 @@ export interface paths {
         head?: never;
         /**
          * Update workspace work item type
-         * @description Partially update a work item type. `is_epic` cannot be changed once created.
+         * @description Partially update a work item type.
          */
         patch: operations["update_workspace_work_item_type"];
         trace?: never;
@@ -3266,13 +3266,7 @@ export interface components {
             /** @description Workspace slug */
             workspace__slug: string;
         };
-        /**
-         * @description Serializer for work item types.
-         *
-         *     `is_epic` is always read-only through the API: it can never be set on
-         *     create (the view forces it to `False`) and can never be changed on
-         *     update (rejected with a 400).
-         */
+        /** @description Serializer for work item types. */
         IssueType: {
             /** Format: uuid */
             readonly id?: string;
@@ -3289,7 +3283,6 @@ export interface components {
             name: string;
             description?: string;
             logo_props?: unknown;
-            readonly is_epic?: boolean;
             is_active?: boolean;
             /** Format: double */
             level?: number;
@@ -3359,13 +3352,7 @@ export interface components {
             project?: string;
             workspace?: boolean;
         };
-        /**
-         * @description Serializer for work item types.
-         *
-         *     `is_epic` is always read-only through the API: it can never be set on
-         *     create (the view forces it to `False`) and can never be changed on
-         *     update (rejected with a 400).
-         */
+        /** @description Serializer for work item types. */
         IssueTypeRequest: {
             name: string;
             description?: string;
@@ -4370,13 +4357,7 @@ export interface components {
             /** Format: uuid */
             estimate_point?: string | null;
         };
-        /**
-         * @description Serializer for work item types.
-         *
-         *     `is_epic` is always read-only through the API: it can never be set on
-         *     create (the view forces it to `False`) and can never be changed on
-         *     update (rejected with a 400).
-         */
+        /** @description Serializer for work item types. */
         PatchedIssueTypeRequest: {
             name?: string;
             description?: string;

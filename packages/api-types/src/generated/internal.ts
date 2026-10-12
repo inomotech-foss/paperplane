@@ -8867,13 +8867,7 @@ export interface components {
             /** Format: uuid */
             subscriber: string;
         };
-        /**
-         * @description Serializer for work item types.
-         *
-         *     `is_epic` is always read-only through the API: it can never be set on
-         *     create (the view forces it to `False`) and can never be changed on
-         *     update (rejected with a 400).
-         */
+        /** @description Serializer for work item types. */
         IssueType: {
             /** Format: uuid */
             readonly id: string;
@@ -8889,7 +8883,6 @@ export interface components {
             name: string;
             description: string;
             logo_props: unknown;
-            readonly is_epic: boolean;
             is_active: boolean;
             /** Format: double */
             level: number;
@@ -8959,13 +8952,7 @@ export interface components {
             project?: string;
             workspace?: boolean;
         };
-        /**
-         * @description Serializer for work item types.
-         *
-         *     `is_epic` is always read-only through the API: it can never be set on
-         *     create (the view forces it to `False`) and can never be changed on
-         *     update (rejected with a 400).
-         */
+        /** @description Serializer for work item types. */
         IssueTypeRequest: {
             name: string;
             description?: string;
@@ -9997,13 +9984,7 @@ export interface components {
              */
             issue_type?: string | null;
         };
-        /**
-         * @description Serializer for work item types.
-         *
-         *     `is_epic` is always read-only through the API: it can never be set on
-         *     create (the view forces it to `False`) and can never be changed on
-         *     update (rejected with a 400).
-         */
+        /** @description Serializer for work item types. */
         PatchedIssueTypeRequest: {
             name?: string;
             description?: string;

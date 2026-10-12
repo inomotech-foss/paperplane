@@ -77,7 +77,7 @@ class IssueTypeViewSet(BaseViewSet):
         serializer = IssueTypeSerializer(data=request.data)
         if serializer.is_valid():
             with transaction.atomic():
-                issue_type = serializer.save(workspace_id=project.workspace_id, is_epic=False)
+                issue_type = serializer.save(workspace_id=project.workspace_id)
                 ProjectIssueType.objects.create(
                     project_id=project_id,
                     issue_type=issue_type,

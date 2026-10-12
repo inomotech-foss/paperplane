@@ -44,7 +44,7 @@ def state_b(db, workspace, project_b):
 @pytest.fixture
 def type_a(db, workspace, project_a):
     """A work item type enabled only for project A."""
-    issue_type = IssueType.objects.create(workspace=workspace, name="Bug", is_epic=False)
+    issue_type = IssueType.objects.create(workspace=workspace, name="Bug")
     ProjectIssueType.objects.create(project=project_a, issue_type=issue_type, workspace=workspace)
     return issue_type
 

@@ -310,7 +310,7 @@ export const IssueTypeMigrationDialog = observer(function IssueTypeMigrationDial
                 projectId={projectId}
                 value={replacementTypeId}
                 onChange={migration.chooseReplacement}
-                filterTypes={(type) => type.id !== fromType.id && type.is_epic === fromType.is_epic}
+                filterTypes={(type) => type.id !== fromType.id}
                 placeholder={t("work_item_types.migration.choose_type")}
                 variant="select-md"
                 className="w-full"

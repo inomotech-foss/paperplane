@@ -21156,12 +21156,7 @@ components:
       - subscriber
     IssueType:
       type: object
-      description: |-
-        Serializer for work item types.
-
-        `is_epic` is always read-only through the API: it can never be set on
-        create (the view forces it to `False`) and can never be changed on
-        update (rejected with a 400).
+      description: Serializer for work item types.
       properties:
         id:
           type: string
@@ -21187,9 +21182,6 @@ components:
         description:
           type: string
         logo_props: {}
-        is_epic:
-          type: boolean
-          readOnly: true
         is_active:
           type: boolean
         level:
@@ -21226,7 +21218,6 @@ components:
       - name
       - description
       - logo_props
-      - is_epic
       - is_active
       - level
       - external_source
@@ -21343,12 +21334,7 @@ components:
           type: boolean
     IssueTypeRequest:
       type: object
-      description: |-
-        Serializer for work item types.
-
-        `is_epic` is always read-only through the API: it can never be set on
-        create (the view forces it to `False`) and can never be changed on
-        update (rejected with a 400).
+      description: Serializer for work item types.
       properties:
         name:
           type: string
@@ -23637,12 +23623,7 @@ components:
             property applies to every work item type in the project.
     PatchedIssueTypeRequest:
       type: object
-      description: |-
-        Serializer for work item types.
-
-        `is_epic` is always read-only through the API: it can never be set on
-        create (the view forces it to `False`) and can never be changed on
-        update (rejected with a 400).
+      description: Serializer for work item types.
       properties:
         name:
           type: string

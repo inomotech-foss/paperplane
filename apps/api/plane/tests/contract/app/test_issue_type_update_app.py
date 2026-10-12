@@ -42,7 +42,7 @@ def project_b(db, workspace, create_user):
 @pytest.fixture
 def type_a(db, workspace, project_a):
     """A work item type enabled only for project A."""
-    issue_type = IssueType.objects.create(workspace=workspace, name="Bug", is_epic=False)
+    issue_type = IssueType.objects.create(workspace=workspace, name="Bug")
     ProjectIssueType.objects.create(project=project_a, issue_type=issue_type, workspace=workspace)
     return issue_type
 
@@ -50,7 +50,7 @@ def type_a(db, workspace, project_a):
 @pytest.fixture
 def type_b(db, workspace, project_b):
     """A work item type enabled only for project B."""
-    issue_type = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
+    issue_type = IssueType.objects.create(workspace=workspace, name="Story")
     ProjectIssueType.objects.create(project=project_b, issue_type=issue_type, workspace=workspace)
     return issue_type
 

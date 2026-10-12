@@ -234,8 +234,6 @@ class TypeReferences:
             return "Choose a different type to move the work items to."
         if replacement.workspace_id != self.issue_type.workspace_id or not replacement.is_active:
             return "The replacement type must be an active type of this workspace."
-        if replacement.is_epic != self.issue_type.is_epic:
-            return "Epics can only move to an epic type, and other work items only to a type that is not an epic."
         linked = set(ProjectIssueType.objects.filter(issue_type_id=replacement.id).values_list("project_id", flat=True))
         # Rows of deleted projects move too, but those projects cannot link types anymore.
         missing = Project.objects.filter(pk__in=self.project_ids()).exclude(pk__in=linked).order_by("identifier")
@@ -396,8 +394,6 @@ class TypeReferences:
 
 def removal_error(issue_type, project_id=None):
     """Why `issue_type` cannot leave `project_id`, or the workspace when None, whatever uses it."""
-    if issue_type.is_epic:
-        return "Epic type cannot be removed"
     links = ProjectIssueType.objects.filter(issue_type_id=issue_type.id)
     if project_id is not None:
         links = links.filter(project_id=project_id)

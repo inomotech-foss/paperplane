@@ -721,13 +721,13 @@ class TestIssuePropertyTypeScoping:
 
     @pytest.fixture
     def bug_type(self, db, workspace, project, create_user):
-        issue_type = IssueType.objects.create(workspace=workspace, name="Bug", is_epic=False)
+        issue_type = IssueType.objects.create(workspace=workspace, name="Bug")
         ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
         return issue_type
 
     @pytest.fixture
     def story_type(self, db, workspace, project, create_user):
-        issue_type = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
+        issue_type = IssueType.objects.create(workspace=workspace, name="Story")
         ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
         return issue_type
 
@@ -744,7 +744,7 @@ class TestIssuePropertyTypeScoping:
 
     @pytest.mark.django_db
     def test_create_property_scoped_to_foreign_type_rejected(self, api_key_client, workspace, project, create_user):
-        other_workspace_type = IssueType.objects.create(workspace=workspace, name="Unrelated", is_epic=False)
+        other_workspace_type = IssueType.objects.create(workspace=workspace, name="Unrelated")
         # Not linked to `project` via ProjectIssueType, so it's not valid for it
 
         response = api_key_client.post(

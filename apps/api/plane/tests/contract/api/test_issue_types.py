@@ -33,7 +33,7 @@ def project(db, workspace, create_user):
 
 @pytest.fixture
 def task_type(db, workspace, project, create_user):
-    issue_type = IssueType.objects.create(workspace=workspace, name="Task", is_epic=False, is_active=True)
+    issue_type = IssueType.objects.create(workspace=workspace, name="Task", is_active=True)
     ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
     return issue_type
 
@@ -59,22 +59,8 @@ class TestIssueTypeCRUD:
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["name"] == "Bug"
-        assert response.data["is_epic"] is False
         assert IssueType.objects.filter(workspace=workspace, name="Bug").count() == 1
         assert ProjectIssueType.objects.filter(project=project, issue_type_id=response.data["id"]).exists()
-
-    @pytest.mark.django_db
-    def test_create_type_forces_is_epic_false(self, api_key_client, workspace, project):
-        response = api_key_client.post(
-            type_url(workspace.slug, project.id),
-            {"name": "Epic Attempt", "is_epic": True},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.data["is_epic"] is False
-        issue_type = IssueType.objects.get(pk=response.data["id"])
-        assert issue_type.is_epic is False
 
     @pytest.mark.django_db
     def test_list_returns_the_linked_types_and_creates_none(self, api_key_client, workspace, project, task_type):
@@ -108,20 +94,8 @@ class TestIssueTypeCRUD:
         assert task_type.description == "Updated"
 
     @pytest.mark.django_db
-    def test_patch_is_epic_rejected(self, api_key_client, workspace, project, task_type):
-        response = api_key_client.patch(
-            type_url(workspace.slug, project.id, task_type.id),
-            {"is_epic": True},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        task_type.refresh_from_db()
-        assert task_type.is_epic is False
-
-    @pytest.mark.django_db
     def test_delete_type(self, api_key_client, workspace, project, task_type):
-        other = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
+        other = IssueType.objects.create(workspace=workspace, name="Story")
         ProjectIssueType.objects.create(project=project, issue_type=other, workspace=workspace)
 
         response = api_key_client.delete(type_url(workspace.slug, project.id, other.id))
@@ -139,7 +113,7 @@ class TestIssueTypeCRUD:
             workspace=workspace,
             created_by=task_type.created_by,
         )
-        other = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
+        other = IssueType.objects.create(workspace=workspace, name="Story")
         ProjectIssueType.objects.create(project=project, issue_type=other, workspace=workspace)
         ProjectIssueType.objects.create(project=other_project, issue_type=other, workspace=workspace)
 
@@ -151,19 +125,9 @@ class TestIssueTypeCRUD:
         assert IssueType.objects.filter(pk=other.id).exists()
 
     @pytest.mark.django_db
-    def test_delete_epic_type_rejected(self, api_key_client, workspace, project, task_type):
-        epic = IssueType.objects.create(workspace=workspace, name="Epic", is_epic=True)
-        ProjectIssueType.objects.create(project=project, issue_type=epic, workspace=workspace)
-
-        response = api_key_client.delete(type_url(workspace.slug, project.id, epic.id))
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert ProjectIssueType.objects.filter(project=project, issue_type=epic).exists()
-
-    @pytest.mark.django_db
     def test_delete_last_remaining_type_rejected(self, api_key_client, workspace, project):
-        # Only one (non-default, non-epic) active type enabled for the project
-        only_type = IssueType.objects.create(workspace=workspace, name="Task", is_epic=False)
+        # Only one active type enabled for the project
+        only_type = IssueType.objects.create(workspace=workspace, name="Task")
         ProjectIssueType.objects.create(project=project, issue_type=only_type, workspace=workspace)
 
         response = api_key_client.delete(type_url(workspace.slug, project.id, only_type.id))

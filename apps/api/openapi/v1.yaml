@@ -10717,8 +10717,7 @@ paths:
           description: List of work item types
     post:
       operationId: create_work_item_type
-      description: Create a work item type for a project. `is_epic` cannot be set
-        through the API and is always created as `False`.
+      description: Create a work item type for a project.
       summary: Create work item type
       parameters:
       - in: path
@@ -10829,8 +10828,7 @@ paths:
           description: Work item type retrieved
     patch:
       operationId: update_work_item_type
-      description: Partially update a work item type. `is_epic` cannot be changed
-        once created.
+      description: Partially update a work item type.
       summary: Update work item type
       parameters:
       - in: path
@@ -15212,8 +15210,7 @@ paths:
           description: Work item type retrieved
     patch:
       operationId: update_workspace_work_item_type
-      description: Partially update a work item type. `is_epic` cannot be changed
-        once created.
+      description: Partially update a work item type.
       summary: Update workspace work item type
       parameters:
       - in: path
@@ -17649,12 +17646,7 @@ components:
       - workspace__slug
     IssueType:
       type: object
-      description: |-
-        Serializer for work item types.
-
-        `is_epic` is always read-only through the API: it can never be set on
-        create (the view forces it to `False`) and can never be changed on
-        update (rejected with a 400).
+      description: Serializer for work item types.
       properties:
         id:
           type: string
@@ -17683,9 +17675,6 @@ components:
         description:
           type: string
         logo_props: {}
-        is_epic:
-          type: boolean
-          readOnly: true
         is_active:
           type: boolean
         level:
@@ -17825,12 +17814,7 @@ components:
           type: boolean
     IssueTypeRequest:
       type: object
-      description: |-
-        Serializer for work item types.
-
-        `is_epic` is always read-only through the API: it can never be set on
-        create (the view forces it to `False`) and can never be changed on
-        update (rejected with a 400).
+      description: Serializer for work item types.
       properties:
         name:
           type: string
@@ -20127,12 +20111,7 @@ components:
           nullable: true
     PatchedIssueTypeRequest:
       type: object
-      description: |-
-        Serializer for work item types.
-
-        `is_epic` is always read-only through the API: it can never be set on
-        create (the view forces it to `False`) and can never be changed on
-        update (rejected with a 400).
+      description: Serializer for work item types.
       properties:
         name:
           type: string

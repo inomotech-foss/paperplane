@@ -34,6 +34,7 @@ PRE_0150_SCHEMA = [
     "ALTER TABLE deploy_boards DROP CONSTRAINT deploy_board_intake_has_issue_type",
     "ALTER TABLE service_desk_configs DROP CONSTRAINT service_desk_config_enabled_has_issue_type",
     "ALTER TABLE issue_types ADD COLUMN is_default boolean NOT NULL DEFAULT false",
+    "ALTER TABLE issue_types ADD COLUMN is_epic boolean NOT NULL DEFAULT false",
     "ALTER TABLE project_issue_types ADD COLUMN is_default boolean NOT NULL DEFAULT false",
 ]
 
@@ -136,7 +137,7 @@ def test_every_work_item_intake_setting_and_create_action_gets_a_type():
     assert config_of(comment) == {}
 
     created = IssueType.objects.get(workspace=bare)
-    assert (created.name, created.is_epic) == ("Task", False)
+    assert created.name == "Task"
     assert type_of(bare_issue) == created.id
     assert ProjectIssueType.objects.filter(project=bare_project, issue_type=created).exists()
 

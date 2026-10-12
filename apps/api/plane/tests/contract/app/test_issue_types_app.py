@@ -35,14 +35,14 @@ def project(db, workspace, create_user):
 
 @pytest.fixture
 def task_type(db, workspace, project, create_user):
-    issue_type = IssueType.objects.create(workspace=workspace, name="Task", is_epic=False, is_active=True)
+    issue_type = IssueType.objects.create(workspace=workspace, name="Task", is_active=True)
     ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
     return issue_type
 
 
 @pytest.fixture
 def story_type(db, workspace, project, task_type):
-    issue_type = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
+    issue_type = IssueType.objects.create(workspace=workspace, name="Story")
     ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
     return issue_type
 
@@ -62,16 +62,8 @@ class TestIssueTypeAppCrud(IssueTypeAppUrls):
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["name"] == "Bug"
-        assert response.data["is_epic"] is False
         assert IssueType.objects.filter(workspace=workspace, name="Bug").count() == 1
         assert ProjectIssueType.objects.filter(project=project, issue_type_id=response.data["id"]).exists()
-
-    def test_create_type_forces_is_epic_false(self, session_client, workspace, project):
-        url = self.types_url(workspace.slug, project.id)
-        response = session_client.post(url, {"name": "Epic Attempt", "is_epic": True}, format="json")
-
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.data["is_epic"] is False
 
     def test_list_returns_the_linked_types_and_creates_none(self, session_client, workspace, project, task_type):
         IssueType.objects.create(workspace=workspace, name="Unlinked")
@@ -91,16 +83,8 @@ class TestIssueTypeAppCrud(IssueTypeAppUrls):
         task_type.refresh_from_db()
         assert task_type.name == "Renamed"
 
-    def test_is_epic_is_immutable(self, session_client, workspace, project, task_type):
-        url = self.types_url(workspace.slug, project.id, task_type.id)
-        response = session_client.patch(url, {"is_epic": True}, format="json")
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        task_type.refresh_from_db()
-        assert task_type.is_epic is False
-
     def test_delete_type(self, session_client, workspace, project, task_type):
-        other = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
+        other = IssueType.objects.create(workspace=workspace, name="Story")
         ProjectIssueType.objects.create(project=project, issue_type=other, workspace=workspace)
 
         url = self.types_url(workspace.slug, project.id, other.id)
@@ -108,15 +92,6 @@ class TestIssueTypeAppCrud(IssueTypeAppUrls):
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not ProjectIssueType.objects.filter(project=project, issue_type=other).exists()
-
-    def test_delete_epic_type_rejected(self, session_client, workspace, project, task_type):
-        epic = IssueType.objects.create(workspace=workspace, name="Epic", is_epic=True)
-        ProjectIssueType.objects.create(project=project, issue_type=epic, workspace=workspace)
-
-        url = self.types_url(workspace.slug, project.id, epic.id)
-        response = session_client.delete(url)
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_work_items_of_other_projects_do_not_block_the_unlink(
         self, session_client, workspace, project, story_type, create_user
@@ -132,7 +107,7 @@ class TestIssueTypeAppCrud(IssueTypeAppUrls):
         assert IssueType.objects.filter(pk=story_type.pk).exists()
 
     def test_delete_last_remaining_type_rejected(self, session_client, workspace, project):
-        only_type = IssueType.objects.create(workspace=workspace, name="Task", is_epic=False)
+        only_type = IssueType.objects.create(workspace=workspace, name="Task")
         ProjectIssueType.objects.create(project=project, issue_type=only_type, workspace=workspace)
 
         url = self.types_url(workspace.slug, project.id, only_type.id)

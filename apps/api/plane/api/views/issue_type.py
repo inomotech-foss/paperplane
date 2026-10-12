@@ -71,7 +71,7 @@ class IssueTypeListCreateAPIEndpoint(BaseAPIView):
     @issue_type_docs(
         operation_id="create_work_item_type",
         summary="Create work item type",
-        description="Create a work item type for a project. `is_epic` cannot be set through the API and is always created as `False`.",  # noqa: E501
+        description="Create a work item type for a project.",
         request=OpenApiRequest(request=IssueTypeSerializer),
         responses={
             201: OpenApiResponse(
@@ -85,13 +85,13 @@ class IssueTypeListCreateAPIEndpoint(BaseAPIView):
         """Create work item type
 
         Create a work item type in the workspace and enable it for this
-        project. `is_epic` is always forced to `False` through the API.
+        project.
         """
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
         serializer = IssueTypeSerializer(data=request.data)
         if serializer.is_valid():
             with transaction.atomic():
-                issue_type = serializer.save(workspace_id=project.workspace_id, is_epic=False)
+                issue_type = serializer.save(workspace_id=project.workspace_id)
                 ProjectIssueType.objects.create(
                     project_id=project_id,
                     issue_type=issue_type,
@@ -169,7 +169,7 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
     @issue_type_docs(
         operation_id="update_work_item_type",
         summary="Update work item type",
-        description="Partially update a work item type. `is_epic` cannot be changed once created.",
+        description="Partially update a work item type.",
         request=OpenApiRequest(request=IssueTypeSerializer),
         responses={
             200: OpenApiResponse(
@@ -183,7 +183,7 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
         """Update work item type
 
         Partially update a work item type (name, description, logo,
-        activation, ...). `is_epic` cannot be changed once created.
+        activation, ...).
         """
         issue_type = IssueType.objects.get(
             workspace__slug=slug,
@@ -283,7 +283,7 @@ class WorkspaceIssueTypeListCreateAPIEndpoint(BaseAPIView):
 
         Create a work item type in the workspace. `project_ids` enables it for
         those projects straight away; leave it out to create the type without
-        attaching it anywhere. `is_epic` is always forced to `False`.
+        attaching it anywhere.
         """
         workspace = Workspace.objects.get(slug=slug)
         project_ids = request.data.get("project_ids") or []
@@ -299,7 +299,7 @@ class WorkspaceIssueTypeListCreateAPIEndpoint(BaseAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
-            issue_type = serializer.save(workspace_id=workspace.id, is_epic=False)
+            issue_type = serializer.save(workspace_id=workspace.id)
             ProjectIssueType.objects.bulk_create(
                 [
                     ProjectIssueType(
@@ -351,7 +351,7 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
     @issue_type_docs(
         operation_id="update_workspace_work_item_type",
         summary="Update workspace work item type",
-        description="Partially update a work item type. `is_epic` cannot be changed once created.",
+        description="Partially update a work item type.",
         request=OpenApiRequest(request=IssueTypeSerializer),
         responses={
             200: OpenApiResponse(

@@ -16,7 +16,6 @@ class IssueType(BaseModel):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     logo_props = models.JSONField(default=dict)
-    is_epic = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     level = models.FloatField(default=0)
     external_source = models.CharField(max_length=255, null=True, blank=True)

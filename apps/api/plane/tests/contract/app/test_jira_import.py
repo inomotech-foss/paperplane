@@ -261,13 +261,11 @@ class TestJiraImport:
         assert Issue.objects.get(external_id="DEMO-9").state.group == "completed"
         assert Issue.objects.get(external_id="DEMO-10").state.group == "cancelled"
 
-    def test_issue_types_are_created_and_epics_marked(self, loader, ada):
+    def test_issue_types_are_created(self, loader, ada):
         summary = loader.run()
 
         types = {issue_type.name: issue_type for issue_type in IssueType.objects.all()}
         assert {"Bug", "Epic", "Task"} <= set(types)
-        assert types["Epic"].is_epic is True
-        assert types["Bug"].is_epic is False
         assert ProjectIssueType.objects.filter(project_id=summary.project_id).count() == len(types)
 
     def test_comments_carry_their_author_and_date(self, loader, ada):

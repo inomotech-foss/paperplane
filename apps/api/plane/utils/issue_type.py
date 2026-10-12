@@ -22,7 +22,7 @@ def link_starter_type(project):
     items with. Returns the type.
     """
     issue_type = (
-        IssueType.objects.filter(workspace_id=project.workspace_id, name=STARTER_TYPE_NAME, is_epic=False)
+        IssueType.objects.filter(workspace_id=project.workspace_id, name=STARTER_TYPE_NAME)
         .order_by("created_at")
         .first()
     )
@@ -32,7 +32,6 @@ def link_starter_type(project):
             name=STARTER_TYPE_NAME,
             description="",
             logo_props={},
-            is_epic=False,
             is_active=True,
         )
     ProjectIssueType.objects.get_or_create(

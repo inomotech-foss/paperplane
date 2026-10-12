@@ -119,14 +119,6 @@ class TestWorkspaceIssueTypes:
         assert not IssueType.objects.filter(name="Spike").exists()
 
     @pytest.mark.django_db
-    def test_is_epic_cannot_be_set(self, api_key_client, workspace):
-        response = api_key_client.post(
-            workspace_url(workspace.slug), {"name": "Sneaky", "is_epic": True}, format="json"
-        )
-
-        assert IssueType.objects.get(pk=response.data["id"]).is_epic is False
-
-    @pytest.mark.django_db
     def test_retrieve_and_patch(self, api_key_client, workspace, loose_type):
         retrieved = api_key_client.get(workspace_url(workspace.slug, loose_type.id))
         assert retrieved.data["name"] == "Spike"

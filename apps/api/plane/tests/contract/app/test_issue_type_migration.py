@@ -418,7 +418,6 @@ class TestValidation:
             (None, "Work items still use the type Story. Choose a type to move them to."),
             ("Story", "Choose a different type to move the work items to."),
             ("inactive", "The replacement type must be an active type of this workspace."),
-            ("epic", "Epics can only move to an epic type, and other work items only to a type that is not an epic."),
             ("unlinked", "The type Unlinked is not enabled in these projects: Sal (SAL)."),
         ],
     )
@@ -427,11 +426,9 @@ class TestValidation:
         options = {
             "Story": types["Story"],
             "inactive": IssueType.objects.create(workspace=workspace, name="Old", is_active=False),
-            "epic": IssueType.objects.create(workspace=workspace, name="Epic", is_epic=True),
             "unlinked": IssueType.objects.create(workspace=workspace, name="Unlinked"),
         }
-        for name in ("inactive", "epic"):
-            ProjectIssueType.objects.create(project=sales, issue_type=options[name], workspace=workspace)
+        ProjectIssueType.objects.create(project=sales, issue_type=options["inactive"], workspace=workspace)
         body = {"scope": {"project": str(sales.id)}}
         if replacement:
             body["replacement_type_id"] = str(options[replacement].id)

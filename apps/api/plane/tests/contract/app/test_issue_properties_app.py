@@ -565,13 +565,13 @@ class TestIssuePropertyTypeScopingApp(IssuePropertyAppUrls):
 
     @pytest.fixture
     def bug_type(self, db, workspace, project):
-        issue_type = IssueType.objects.create(workspace=workspace, name="Bug", is_epic=False)
+        issue_type = IssueType.objects.create(workspace=workspace, name="Bug")
         ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
         return issue_type
 
     @pytest.fixture
     def story_type(self, db, workspace, project):
-        issue_type = IssueType.objects.create(workspace=workspace, name="Story", is_epic=False)
+        issue_type = IssueType.objects.create(workspace=workspace, name="Story")
         ProjectIssueType.objects.create(project=project, issue_type=issue_type, workspace=workspace)
         return issue_type
 
@@ -587,7 +587,7 @@ class TestIssuePropertyTypeScopingApp(IssuePropertyAppUrls):
         assert str(response.data["issue_type"]) == str(bug_type.id)
 
     def test_create_property_scoped_to_foreign_type_rejected(self, session_client, workspace, project):
-        unrelated_type = IssueType.objects.create(workspace=workspace, name="Unrelated", is_epic=False)
+        unrelated_type = IssueType.objects.create(workspace=workspace, name="Unrelated")
         # Not linked to `project` via ProjectIssueType
 
         url = self.properties_url(workspace.slug, project.id)

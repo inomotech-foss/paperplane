@@ -67,9 +67,6 @@ export const IssueTypeItem = observer(function IssueTypeItem(props: TIssueTypeIt
           <span className={cn("truncate text-13", { "text-placeholder line-through": !issueType.is_active })}>
             {issueType.name}
           </span>
-          {issueType.is_epic && (
-            <span className="shrink-0 rounded-sm bg-layer-1 px-1.5 py-0.5 text-10 text-tertiary uppercase">Epic</span>
-          )}
           {issueType.description && <span className="truncate text-11 text-placeholder">{issueType.description}</span>}
         </div>
         {isEditable && (
@@ -90,14 +87,11 @@ export const IssueTypeItem = observer(function IssueTypeItem(props: TIssueTypeIt
             >
               <Pencil className="size-3.5" />
             </button>
-            <Tooltip
-              label={issueType.is_epic ? t("work_item_types.settings.cant_delete_epic_message") : t("common.delete")}
-            >
+            <Tooltip label={t("common.delete")}>
               <button
                 type="button"
-                className="hover:text-red-500 grid place-items-center rounded-sm p-1 text-tertiary opacity-0 group-hover:opacity-100 hover:bg-layer-transparent-hover disabled:opacity-40"
+                className="hover:text-red-500 grid place-items-center rounded-sm p-1 text-tertiary opacity-0 group-hover:opacity-100 hover:bg-layer-transparent-hover"
                 onClick={onDelete}
-                disabled={issueType.is_epic}
                 aria-label={t("common.delete")}
               >
                 <Trash2 className="size-3.5" />

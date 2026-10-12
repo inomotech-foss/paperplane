@@ -37,7 +37,6 @@ const makeType = (id: string): TIssueType => ({
   name: id,
   description: "",
   logo_props: { in_use: "icon" },
-  is_epic: false,
   is_active: true,
   level: 0,
   project: "p1",
