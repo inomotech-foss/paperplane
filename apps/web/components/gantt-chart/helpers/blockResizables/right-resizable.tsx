@@ -54,7 +54,7 @@ export const RightResizable = observer(function RightResizable(props: RightResiz
       />
       <div
         className={cn(
-          "absolute top-1/2 right-1 z-[5] h-7 w-1 -translate-y-1/2 rounded-xs bg-surface-1 opacity-0 transition-all duration-300 group-hover:opacity-100",
+          "pointer-events-none absolute top-1/2 right-1 z-[7] h-7 w-1 -translate-y-1/2 rounded-xs bg-surface-1 opacity-0 transition-all duration-300 group-hover:opacity-100",
           {
             "-right-1.5 opacity-100": isRightResizing,
           }

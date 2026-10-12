@@ -103,6 +103,7 @@ export const CalendarIssueBlock = observer(
         <PopoverTrigger
           openOnHover
           delay={100}
+          nativeButton={false}
           render={
             <ControlLink
               id={`issue-${issue.id}`}

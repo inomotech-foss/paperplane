@@ -98,6 +98,8 @@ export class ArchivedIssues extends BaseIssuesStore implements IArchivedIssues {
     options: IssuePaginationOptions,
     isExistingPaginationOptions: boolean = false
   ) => {
+    // a newer fetch or a reset of the store aborts this one
+    let signal: AbortSignal | undefined;
     try {
       // set loader and clear store
       runInAction(() => {
@@ -108,14 +110,16 @@ export class ArchivedIssues extends BaseIssuesStore implements IArchivedIssues {
       // get params from pagination options
       const params = this.issueFilterStore?.getFilterParams(options, projectId, undefined, undefined, undefined);
       // call the fetch issues API with the params
+      signal = this.controller.signal;
       const response = await this.issueArchiveService.getArchivedIssues(workspaceSlug, projectId, params, {
-        signal: this.controller.signal,
+        signal,
       });
 
       // after fetching issues, call the base method to process the response further
       this.onfetchIssues(response, options, workspaceSlug, projectId, undefined, !isExistingPaginationOptions);
       return response;
     } catch (error) {
+      if (signal?.aborted) return undefined;
       // set loader to undefined if errored out
       this.setLoader(undefined);
       throw error;

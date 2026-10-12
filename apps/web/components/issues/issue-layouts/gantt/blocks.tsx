@@ -89,6 +89,7 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
       <PopoverTrigger
         openOnHover
         delay={100}
+        nativeButton={false}
         render={
           // oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions
           <div
