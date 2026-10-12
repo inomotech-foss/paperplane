@@ -15,7 +15,7 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //
-import { BLOCK_HEIGHT, SIDEBAR_RESIZE_EVENT, SIDEBAR_WIDTH_VAR } from "../constants";
+import { BLOCK_HEIGHT, SIDEBAR_RESIZE_EVENT } from "../constants";
 import { getChartOffset } from "../helpers/chart-area";
 import { ChartAddBlock } from "../helpers";
 import { isBlockOnChart } from "../views/helpers";
@@ -31,7 +31,15 @@ type Props = {
 };
 
 export const BlockRow = observer(function BlockRow(props: Props) {
-  const { blockId, showAllBlocks, blockUpdateHandler, handleScrollToBlock, enableAddBlock, selectionHelpers } = props;
+  const {
+    blockId,
+    showAllBlocks,
+    blockUpdateHandler,
+    handleScrollToBlock,
+    enableAddBlock,
+    selectionHelpers,
+    ganttContainerRef,
+  } = props;
   // states
   const [isHidden, setIsHidden] = useState(false);
   const [isBlockHiddenOnLeft, setIsBlockHiddenOnLeft] = useState(false);
@@ -42,7 +50,7 @@ export const BlockRow = observer(function BlockRow(props: Props) {
   const block = getBlockById(blockId);
 
   useEffect(() => {
-    const intersectionRoot = document.querySelector("#gantt-container") as HTMLDivElement;
+    const intersectionRoot = ganttContainerRef.current;
     const timelineBlock = document.getElementById(`gantt-block-${block?.id}`);
     if (!timelineBlock || !intersectionRoot) return;
 
@@ -78,7 +86,7 @@ export const BlockRow = observer(function BlockRow(props: Props) {
       intersectionRoot.removeEventListener(SIDEBAR_RESIZE_EVENT, observe);
       intersectionObserver?.disconnect();
     };
-  }, [block]);
+  }, [block, ganttContainerRef]);
 
   // hide the block if it doesn't have start and target dates and showAllBlocks is false
   if (!block || !block.data || (!showAllBlocks && !(block.start_date && block.target_date))) return null;
@@ -110,10 +118,7 @@ export const BlockRow = observer(function BlockRow(props: Props) {
           ? isHidden && (
               <button
                 type="button"
-                className="sticky z-[5] grid h-8 w-8 translate-y-1.5 cursor-pointer place-items-center rounded-sm border border-strong bg-layer-1 text-secondary hover:text-primary"
-                style={{
-                  left: `calc(${SIDEBAR_WIDTH_VAR} + 4px)`,
-                }}
+                className="sticky left-[calc(var(--timeline-sidebar-size)_+_4px)] z-[5] grid h-8 w-8 translate-y-1.5 cursor-pointer place-items-center rounded-sm border border-strong bg-layer-1 text-secondary hover:text-primary"
                 onClick={() => handleScrollToBlock(block)}
               >
                 <ArrowNarrowRightOutline

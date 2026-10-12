@@ -4,34 +4,65 @@
  */
 
 import { Profiler } from "react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
 import {
   SIDEBAR_MAX_WIDTH,
   SIDEBAR_MIN_CHART_WIDTH,
   SIDEBAR_MIN_WIDTH,
   SIDEBAR_RESIZE_EVENT,
   SIDEBAR_WIDTH,
-  SIDEBAR_WIDTH_CSS_VAR,
+  SIDEBAR_WIDTH_PROPERTY,
   SIDEBAR_WIDTH_STORAGE_KEY,
 } from "../constants";
 import { TimelineSidebarResizeHandle } from "./resize-handle";
+import { SIDEBAR_RESIZE_SETTLE_MS } from "./use-sidebar-size-observer";
 
 let containerWidth = 1000;
+let observers: TestResizeObserver[] = [];
 
-// jsdom has no layout, so mimic the CSS clamp of the sidebar width
-function sidebarRect(this: HTMLElement) {
+// jsdom has no layout, so mimic the CSS clamp of the sidebar size
+function layoutRect(this: HTMLElement) {
   if (this.id !== "gantt-sidebar") return DOMRect.fromRect();
-  const chosen = this.parentElement?.style.getPropertyValue(SIDEBAR_WIDTH_CSS_VAR) || `${SIDEBAR_WIDTH}px`;
-  const max = Math.min(SIDEBAR_MAX_WIDTH, containerWidth - SIDEBAR_MIN_CHART_WIDTH);
-  return DOMRect.fromRect({ width: Math.max(SIDEBAR_MIN_WIDTH, Math.min(Number.parseFloat(chosen), max)) });
+  const chosen = Number.parseFloat(
+    this.parentElement?.style.getPropertyValue(SIDEBAR_WIDTH_PROPERTY) || `${SIDEBAR_WIDTH}`
+  );
+  const max = Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, containerWidth - SIDEBAR_MIN_CHART_WIDTH));
+  return DOMRect.fromRect({ width: Math.max(SIDEBAR_MIN_WIDTH, Math.min(chosen, max)) });
+}
+
+class TestResizeObserver {
+  readonly targets: Element[] = [];
+  constructor(private readonly callback: () => void) {
+    observers.push(this);
+  }
+  observe(target: Element) {
+    this.targets.push(target);
+  }
+  unobserve() {}
+  disconnect() {
+    observers = observers.filter((observer) => observer !== this);
+  }
+  /** What the browser does after a layout change. */
+  notify() {
+    act(() => this.callback());
+  }
+}
+
+// jsdom has no PointerEvent, so clientX and pointerId would be dropped
+class TestPointerEvent extends MouseEvent {
+  readonly pointerId: number;
+  constructor(type: string, init: PointerEventInit = {}) {
+    super(type, init);
+    this.pointerId = init.pointerId ?? 1;
+  }
 }
 
 const onRender = vi.fn();
 const onResize = vi.fn();
 
 function renderHandle() {
-  render(
+  const view = render(
     <Profiler id="handle" onRender={onRender}>
       <div id="gantt-container" data-testid="container">
         <div id="gantt-sidebar">
@@ -40,129 +71,188 @@ function renderHandle() {
       </div>
     </Profiler>
   );
-  const container = screen.getByTestId("container");
-  container.addEventListener(SIDEBAR_RESIZE_EVENT, onResize);
-  onRender.mockClear();
-  return container;
+  screen.getByTestId("container").addEventListener(SIDEBAR_RESIZE_EVENT, onResize);
+  return view;
 }
 
-const handle = () => screen.getByRole("separator", { name: "Resize timeline sidebar" });
-const widthVar = () => screen.getByTestId("container").style.getPropertyValue(SIDEBAR_WIDTH_CSS_VAR);
-const valueNow = () => handle().getAttribute("aria-valuenow");
+const handle = () => screen.getByRole("separator");
+const widthProperty = () => screen.getByTestId("container").style.getPropertyValue(SIDEBAR_WIDTH_PROPERTY);
 const stored = () => localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+const store = (value: string) => localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, value);
+const layoutChanged = () => observers.forEach((observer) => observer.notify());
 
-// jsdom has no PointerEvent, so clientX would be dropped
 beforeAll(() => {
-  if (!("PointerEvent" in window)) Object.defineProperty(window, "PointerEvent", { value: MouseEvent });
+  if (!("PointerEvent" in window)) Object.defineProperty(window, "PointerEvent", { value: TestPointerEvent });
 });
 
 beforeEach(() => {
   localStorage.clear();
   containerWidth = 1000;
+  observers = [];
   vi.clearAllMocks();
-  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(sidebarRect);
+  vi.stubGlobal("ResizeObserver", TestResizeObserver);
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(layoutRect);
+  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockImplementation(() => containerWidth);
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 describe("TimelineSidebarResizeHandle", () => {
-  it("uses the default width without a stored one", () => {
+  it("describes the sidebar it resizes", () => {
     renderHandle();
-    expect(widthVar()).toBe("");
-    expect(valueNow()).toBe(`${SIDEBAR_WIDTH}`);
+    expect(handle().getAttribute("aria-controls")).toBe("gantt-sidebar");
+    expect(handle().getAttribute("aria-label")).toBeTruthy();
   });
 
-  it("applies the stored width on mount", () => {
-    localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, "400");
+  it("writes the stored width to #gantt-container on mount", () => {
+    store("400");
     renderHandle();
-    expect(widthVar()).toBe("400px");
-    expect(valueNow()).toBe("400");
+    expect(widthProperty()).toBe("400px");
   });
 
-  it("follows a drag without rendering and commits on release", () => {
+  it.each([
+    ["an invalid", "wide", `${SIDEBAR_WIDTH}px`],
+    ["a too small", "10", `${SIDEBAR_MIN_WIDTH}px`],
+    ["a too large", "5000", `${SIDEBAR_MAX_WIDTH}px`],
+  ])("handles %s stored width", (_, value, expected) => {
+    store(value);
+    renderHandle();
+    expect(widthProperty()).toBe(expected);
+  });
+
+  it("drags without rendering and stores the chosen width on release", () => {
     renderHandle();
     fireEvent.pointerDown(handle(), { clientX: 0 });
+    onRender.mockClear();
     fireEvent.pointerMove(handle(), { clientX: 100 });
-    expect(widthVar()).toBe(`${SIDEBAR_WIDTH + 100}px`);
-    expect(valueNow()).toBe(`${SIDEBAR_WIDTH + 100}`);
-    expect(stored()).toBeNull();
-    expect(onResize).not.toHaveBeenCalled();
-    fireEvent.pointerUp(handle(), { clientX: 120 });
-    expect(widthVar()).toBe(`${SIDEBAR_WIDTH + 120}px`);
-    expect(stored()).toBe(`${SIDEBAR_WIDTH + 120}`);
-    expect(onResize).toHaveBeenCalledOnce();
+    fireEvent.pointerMove(handle(), { clientX: 120 });
     expect(onRender).not.toHaveBeenCalled();
+    expect(widthProperty()).toBe(`${SIDEBAR_WIDTH + 120}px`);
+    expect(stored()).toBeNull();
+    fireEvent.pointerUp(handle(), { clientX: 120 });
+    expect(stored()).toBe(`${SIDEBAR_WIDTH + 120}`);
   });
 
-  it("restores the width from before the drag on pointercancel", () => {
-    localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, "500");
+  it("stores the chosen width even when CSS renders it narrower", () => {
+    containerWidth = 700;
+    renderHandle();
+    fireEvent.pointerDown(handle(), { clientX: 0 });
+    fireEvent.pointerUp(handle(), { clientX: 2000 });
+    expect(stored()).toBe(`${SIDEBAR_MAX_WIDTH}`);
+    expect(widthProperty()).toBe(`${SIDEBAR_MAX_WIDTH}px`);
+  });
+
+  it("starts a drag from the rendered width", () => {
+    store("700");
+    containerWidth = 700;
+    renderHandle();
+    fireEvent.pointerDown(handle(), { clientX: 0 });
+    fireEvent.pointerUp(handle(), { clientX: -100 });
+    expect(stored()).toBe(`${containerWidth - SIDEBAR_MIN_CHART_WIDTH - 100}`);
+  });
+
+  it("keeps the width from before the drag on pointercancel", () => {
+    store("500");
     renderHandle();
     fireEvent.pointerDown(handle(), { clientX: 800 });
     fireEvent.pointerMove(handle(), { clientX: 850 });
-    expect(widthVar()).toBe("550px");
+    expect(widthProperty()).toBe("550px");
     fireEvent.pointerCancel(handle(), { clientX: 0 });
     fireEvent.lostPointerCapture(handle(), { clientX: 0 });
-    expect(widthVar()).toBe("500px");
-    expect(valueNow()).toBe("500");
+    expect(widthProperty()).toBe("500px");
     expect(stored()).toBe("500");
-    expect(onResize).not.toHaveBeenCalled();
   });
 
-  it("falls back to the default width when a drag from it is cancelled", () => {
+  it("does not store a click without movement", () => {
     renderHandle();
-    fireEvent.pointerDown(handle(), { clientX: 800 });
-    fireEvent.pointerMove(handle(), { clientX: 850 });
-    fireEvent.pointerCancel(handle(), { clientX: 0 });
-    expect(widthVar()).toBe("");
+    fireEvent.pointerDown(handle(), { clientX: 300 });
+    fireEvent.pointerUp(handle(), { clientX: 300 });
     expect(stored()).toBeNull();
   });
 
-  it("focuses the handle on pointerdown so the arrow keys work after a click", () => {
-    localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, "400");
+  it("ignores non-primary buttons", () => {
+    renderHandle();
+    fireEvent.pointerDown(handle(), { clientX: 0, button: 2 });
+    fireEvent.pointerMove(handle(), { clientX: 100 });
+    expect(widthProperty()).toBe(`${SIDEBAR_WIDTH}px`);
+  });
+
+  it("focuses on pointerdown so the arrow keys work after a click", () => {
+    store("400");
     renderHandle();
     fireEvent.pointerDown(handle(), { clientX: 0 });
     fireEvent.pointerUp(handle(), { clientX: 0 });
     expect(document.activeElement).toBe(handle());
-    fireEvent.keyDown(document.activeElement ?? document.body, { key: "ArrowRight" });
-    expect(stored()).toBe("416");
-  });
-
-  it("blocks native drags only while resizing", () => {
-    const container = renderHandle();
-    const dragStart = () => container.dispatchEvent(new Event("dragstart", { bubbles: true, cancelable: true }));
-    expect(fireEvent.pointerDown(handle(), { clientX: 0 })).toBe(false);
-    expect(dragStart()).toBe(false);
-    fireEvent.pointerUp(handle(), { clientX: 0 });
-    expect(dragStart()).toBe(true);
-  });
-
-  it("commits the width the CSS clamp allows", () => {
-    containerWidth = 700;
-    renderHandle();
-    fireEvent.pointerDown(handle(), { clientX: 0 });
-    fireEvent.pointerUp(handle(), { clientX: 500 });
-    const max = containerWidth - SIDEBAR_MIN_CHART_WIDTH;
-    expect(widthVar()).toBe(`${max}px`);
-    expect(stored()).toBe(`${max}`);
-  });
-
-  it("resizes with the keyboard", () => {
-    renderHandle();
     fireEvent.keyDown(handle(), { key: "ArrowRight" });
-    expect(stored()).toBe(`${SIDEBAR_WIDTH + 16}`);
-    fireEvent.keyDown(handle(), { key: "Home" });
-    expect(stored()).toBe(`${SIDEBAR_MIN_WIDTH}`);
-    fireEvent.keyDown(handle(), { key: "End" });
-    expect(stored()).toBe(`${SIDEBAR_MAX_WIDTH}`);
-    expect(onResize).toHaveBeenCalledTimes(3);
+    expect(stored()).toBe("416");
+    expect(widthProperty()).toBe("416px");
   });
 
   it("resets to the default on double click", () => {
-    localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, "500");
+    store("500");
     renderHandle();
     fireEvent.doubleClick(handle());
-    expect(widthVar()).toBe("");
-    expect(stored()).toBeNull();
-    expect(valueNow()).toBe(`${SIDEBAR_WIDTH}`);
+    expect(widthProperty()).toBe(`${SIDEBAR_WIDTH}px`);
+    expect(stored()).toBe(`${SIDEBAR_WIDTH}`);
+  });
+
+  it("cleans up a drag that is cut short by unmounting", () => {
+    const { unmount } = renderHandle();
+    fireEvent.pointerDown(handle(), { clientX: 0 });
+    expect(document.body.style.cursor).toBe("ew-resize");
+    unmount();
+    expect(document.body.style.cursor).toBe("");
+    expect(observers).toHaveLength(0);
+  });
+});
+
+describe("TimelineSidebarResizeHandle size observer", () => {
+  it("observes the sidebar and the container", () => {
+    renderHandle();
+    expect(observers[0]?.targets.map((target) => target.id)).toEqual(["gantt-sidebar", "gantt-container"]);
+  });
+
+  it("updates the aria values from the rendered width", () => {
+    store("600");
+    renderHandle();
+    layoutChanged();
+    expect(handle().getAttribute("aria-valuenow")).toBe("600");
+    containerWidth = 700;
+    layoutChanged();
+    expect(handle().getAttribute("aria-valuenow")).toBe(`${700 - SIDEBAR_MIN_CHART_WIDTH}`);
+    expect(handle().getAttribute("aria-valuemax")).toBe(`${700 - SIDEBAR_MIN_CHART_WIDTH}`);
+  });
+
+  it("announces a settled change once, but not the mounted width", () => {
+    vi.useFakeTimers();
+    renderHandle();
+    layoutChanged();
+    vi.advanceTimersByTime(SIDEBAR_RESIZE_SETTLE_MS);
+    expect(onResize).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(handle(), { clientX: 0 });
+    for (const clientX of [20, 40, 60]) {
+      fireEvent.pointerMove(handle(), { clientX });
+      layoutChanged();
+    }
+    fireEvent.pointerUp(handle(), { clientX: 60 });
+    expect(onResize).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(SIDEBAR_RESIZE_SETTLE_MS);
+    expect(onResize).toHaveBeenCalledOnce();
+  });
+
+  it("announces a narrower container that clamps the sidebar", () => {
+    vi.useFakeTimers();
+    store("600");
+    renderHandle();
+    layoutChanged();
+    containerWidth = 700;
+    layoutChanged();
+    vi.advanceTimersByTime(SIDEBAR_RESIZE_SETTLE_MS);
+    expect(onResize).toHaveBeenCalledOnce();
   });
 });

@@ -10,7 +10,7 @@ import { cn } from "@plane/utils";
 // hooks
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //
-import { HEADER_HEIGHT, SIDEBAR_WIDTH_VAR } from "../../constants";
+import { HEADER_HEIGHT } from "../../constants";
 import type { IMonthBlock, IQuarterMonthBlock } from "../../views";
 import { groupMonthsToQuarters } from "../../views";
 
@@ -37,12 +37,7 @@ export const QuarterChartView = observer(function QuarterChartView(_props: any) 
             >
               {/** Main Quarter Title */}
               <div className="inline-flex h-7 w-full justify-between">
-                <div
-                  className="sticky z-[1] my-1 flex items-center bg-surface-1 px-3 py-1 text-14 font-regular whitespace-nowrap text-secondary capitalize"
-                  style={{
-                    left: SIDEBAR_WIDTH_VAR,
-                  }}
-                >
+                <div className="sticky left-(--timeline-sidebar-size) z-[1] my-1 flex items-center bg-surface-1 px-3 py-1 text-14 font-regular whitespace-nowrap text-secondary capitalize">
                   {quarterBlock?.title}
                   {quarterBlock.today && (
                     <span className={cn("ml-2 rounded-sm bg-accent-primary px-1 text-9 font-medium text-on-color")}>

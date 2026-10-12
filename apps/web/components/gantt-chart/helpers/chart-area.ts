@@ -3,7 +3,7 @@
  * See the LICENSE file for details.
  */
 
-export const getChartArea = (container: HTMLElement) => container.querySelector<HTMLElement>("[data-gantt-chart-area]");
+const getChartArea = (container: HTMLElement) => container.querySelector<HTMLElement>("[data-gantt-chart-area]");
 
 /** Where the chart area starts in the scroll content, which is where the sidebar ends. */
 export const getChartOffset = (container: HTMLElement) => {

@@ -27,7 +27,13 @@ import { GanttChartBlocksList } from "@/components/gantt-chart/blocks/blocks-lis
 import { IssueBulkOperationsRoot } from "@/components/issues/bulk-operations";
 import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
 // local imports
-import { DEFAULT_BLOCK_WIDTH, GANTT_SELECT_GROUP, HEADER_HEIGHT } from "../constants";
+import {
+  DEFAULT_BLOCK_WIDTH,
+  GANTT_SELECT_GROUP,
+  HEADER_HEIGHT,
+  SIDEBAR_SIZE_PROPERTY,
+  SIDEBAR_SIZE_VALUE,
+} from "../constants";
 import { getBlockChartDates, getItemPositionWidth } from "../views/helpers";
 import { TimelineDragHelper } from "./timeline-drag-helper";
 
@@ -178,6 +184,7 @@ export const GanttChartMainContent = observer(function GanttChartMainContent(pro
                   "mb-8": bottomSpacing,
                 }
               )}
+              style={{ [SIDEBAR_SIZE_PROPERTY]: SIDEBAR_SIZE_VALUE }}
               ref={ganttContainerRef}
               onScroll={onScroll}
             >

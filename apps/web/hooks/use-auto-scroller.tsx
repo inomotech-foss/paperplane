@@ -15,7 +15,7 @@ const MAX_SPEED_THRESHOLD = 5;
 export const useAutoScroller = (
   containerRef: RefObject<HTMLDivElement | null>,
   shouldScroll = false,
-  leftOffset: number | ((container: HTMLDivElement) => number) = 0,
+  getLeftOffset: (container: HTMLDivElement) => number = () => 0,
   topOffset = 0
 ) => {
   const resolvedLeftOffset = useRef(0);
@@ -126,7 +126,6 @@ export const useAutoScroller = (
     }
 
     containerDimensions.current = containerElement?.getBoundingClientRect();
-    resolvedLeftOffset.current =
-      typeof leftOffset === "function" ? (containerElement ? leftOffset(containerElement) : 0) : leftOffset;
+    resolvedLeftOffset.current = containerElement ? getLeftOffset(containerElement) : 0;
   }, [shouldScroll]);
 };

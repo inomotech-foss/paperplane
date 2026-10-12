@@ -7,7 +7,7 @@
 import { observer } from "mobx-react";
 // components
 import { cn } from "@plane/utils";
-import { HEADER_HEIGHT, SIDEBAR_WIDTH_VAR } from "@/components/gantt-chart/constants";
+import { HEADER_HEIGHT } from "@/components/gantt-chart/constants";
 // helpers
 // hooks
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
@@ -48,12 +48,7 @@ export const MonthChartView = observer(function MonthChartView(_props: any) {
                   className="flex outline-[0.5px] outline-subtle-1"
                   style={{ width: `${monthBlock.days * currentViewData?.data.dayWidth}px` }}
                 >
-                  <div
-                    className="sticky z-[1] m-1 flex items-center bg-surface-1 px-3 py-1 text-14 font-regular whitespace-nowrap text-secondary capitalize"
-                    style={{
-                      left: SIDEBAR_WIDTH_VAR,
-                    }}
-                  >
+                  <div className="sticky left-(--timeline-sidebar-size) z-[1] m-1 flex items-center bg-surface-1 px-3 py-1 text-14 font-regular whitespace-nowrap text-secondary capitalize">
                     {monthBlock?.title}
                     {monthBlock.today && (
                       <span className={cn("ml-2 rounded-sm bg-accent-primary px-1 text-9 font-medium text-on-color")}>

@@ -12,7 +12,6 @@ import { MODULE_STATUS } from "@plane/constants";
 import { ModuleStatusIcon } from "@plane/blocks/icons";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 // components
-import { SIDEBAR_WIDTH_VAR } from "@/components/gantt-chart/constants";
 import { getBlockViewDetails } from "@/components/issues/issue-layouts/utils";
 // constants
 // hooks
@@ -58,10 +57,7 @@ export const ModuleGanttBlock = observer(function ModuleGanttBlock(props: Props)
         }
       >
         <div className="absolute top-0 left-0 h-full w-full bg-surface-1/50" />
-        <div
-          className="sticky w-auto truncate overflow-hidden px-2.5 py-1 text-13 text-primary"
-          style={{ left: SIDEBAR_WIDTH_VAR }}
-        >
+        <div className="sticky left-(--timeline-sidebar-size) w-auto truncate overflow-hidden px-2.5 py-1 text-13 text-primary">
           {moduleDetails?.name}
         </div>
       </div>

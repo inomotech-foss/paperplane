@@ -17,7 +17,6 @@ import { useTranslation } from "@plane/i18n";
 import { GANTT_TIMELINE_TYPE } from "@plane/types";
 import { cn, generateWorkItemLink, renderFormattedDate } from "@plane/utils";
 // components
-import { SIDEBAR_WIDTH_VAR } from "@/components/gantt-chart/constants";
 import { isBlockRolledUp } from "@/components/gantt-chart/views/helpers";
 import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 // hooks
@@ -110,10 +109,7 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
                 }}
               />
             )}
-            <div
-              className="sticky flex w-auto flex-1 items-center gap-1.5 overflow-hidden px-2.5 py-1 text-13 text-primary"
-              style={{ left: SIDEBAR_WIDTH_VAR }}
-            >
+            <div className="sticky left-(--timeline-sidebar-size) flex w-auto flex-1 items-center gap-1.5 overflow-hidden px-2.5 py-1 text-13 text-primary">
               {issueType && (
                 <span className="flex flex-shrink-0 items-center">
                   <Logo logo={issueType.logo_props} size={12} />
