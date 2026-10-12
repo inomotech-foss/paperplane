@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "Новый эпик",
-    "label": "{count, plural, one {Эпик} other {Эпики}}",
-    "adding": "Добавление эпика",
-    "create": {
-      "success": "Эпик успешно создан"
-    },
-    "add": {
-      "label": "Добавить эпик",
-      "press_enter": "Нажмите 'Enter' чтобы добавить ещё эпик"
-    },
-    "title": {
-      "label": "Название эпика",
-      "required": "Название эпика обязательно"
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

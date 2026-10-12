@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "Nowy epik",
-    "label": "{count, plural, one {Epik} few {Epiki} other {Epików}}",
-    "adding": "Dodawanie epiku",
-    "create": {
-      "success": "Epik utworzono pomyślnie"
-    },
-    "add": {
-      "label": "Dodaj epik",
-      "press_enter": "Naciśnij 'Enter', aby dodać kolejny epik"
-    },
-    "title": {
-      "label": "Tytuł epiku",
-      "required": "Tytuł epiku jest wymagany."
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

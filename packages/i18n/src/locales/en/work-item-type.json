@@ -4,7 +4,6 @@
     "label_lowercase": "work item types",
     "settings": {
       "description": "Customize and add your own properties to tailor it to your team's needs.",
-      "cant_delete_epic_message": "The epic type cannot be deleted.",
       "set_default_confirmation": {
         "title": "Set as default work item type",
         "description": "Setting {name} as the default will import it to all projects in this workspace. All new work items will use this type by default.",

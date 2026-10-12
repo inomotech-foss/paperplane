@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Wählen Sie ein Intake-Arbeitselement aus, um seine Details anzuzeigen"
-    },
-    "epics": {
-      "title": "Verwandeln Sie komplexe Projekte in strukturierte Epics.",
-      "description": "Ein Epic hilft Ihnen, große Ziele in kleinere, nachverfolgbare Aufgaben zu organisieren.",
-      "cta_primary": "Epic erstellen",
-      "cta_secondary": "Dokumentation"
-    },
-    "epic_work_items": {
-      "title": "Sie haben diesem Epic noch keine Arbeitselemente hinzugefügt.",
-      "description": "Beginnen Sie, indem Sie einige Arbeitselemente zu diesem Epic hinzufügen und hier verfolgen.",
-      "cta_secondary": "Arbeitselemente hinzufügen"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Noch keine archivierten Epics",
-      "description": "Sie können abgeschlossene oder stornierte Epics archivieren. Finden Sie sie hier, sobald sie archiviert sind."
-    },
     "archive_work_items": {
       "title": "Noch keine archivierten Arbeitselemente",
       "description": "Manuell oder durch Automatisierung können Sie abgeschlossene oder stornierte Arbeitselemente archivieren. Finden Sie sie hier, sobald sie archiviert sind.",

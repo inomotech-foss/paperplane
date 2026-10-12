@@ -8,7 +8,6 @@
 export type HorizontalStackAssetType =
   | "customer"
   | "custom-properties"
-  | "epic"
   | "estimate"
   | "export"
   | "group-syncing"
@@ -49,7 +48,6 @@ export type VerticalStackAssetType =
   | "cycle"
   | "dashboard"
   | "draft"
-  | "epic"
   | "error-404"
   | "inbox"
   | "initiative"

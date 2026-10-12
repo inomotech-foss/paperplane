@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Selecione um item de trabalho de Entrada para ver seus detalhes"
-    },
-    "epics": {
-      "title": "Transforme projetos complexos em épicos estruturados.",
-      "description": "Um épico ajuda você a organizar grandes objetivos em tarefas menores e rastreáveis.",
-      "cta_primary": "Criar um Épico",
-      "cta_secondary": "Documentação"
-    },
-    "epic_work_items": {
-      "title": "Você ainda não adicionou itens de trabalho a este épico.",
-      "description": "Comece adicionando alguns itens de trabalho a este épico e acompanhe-os aqui.",
-      "cta_secondary": "Adicionar itens de trabalho"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Ainda não há épicos arquivados",
-      "description": "Você pode arquivar épicos concluídos ou cancelados. Encontre-os aqui após o arquivamento."
-    },
     "archive_work_items": {
       "title": "Ainda não há itens de trabalho arquivados",
       "description": "Manualmente ou por meio de automação, você pode arquivar itens de trabalho concluídos ou cancelados. Encontre-os aqui uma vez arquivados.",

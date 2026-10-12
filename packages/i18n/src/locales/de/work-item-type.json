@@ -4,7 +4,6 @@
     "label_lowercase": "arbeitsaufgabentypen",
     "settings": {
       "description": "Passen Sie eigene Eigenschaften an und fügen Sie sie hinzu, um sie an die Bedürfnisse Ihres Teams anzupassen.",
-      "cant_delete_epic_message": "Der Epic-Typ kann nicht gelöscht werden.",
       "set_default_confirmation": {
         "title": "Als Standard-Arbeitselementtyp festlegen",
         "description": "Wenn Sie {name} als Standard festlegen, wird er in alle Projekte in diesem Arbeitsbereich importiert. Alle neuen Arbeitselemente verwenden dann standardmäßig diesen Typ.",

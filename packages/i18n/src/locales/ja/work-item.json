@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "新規エピック",
-    "label": "{count, plural, one {エピック} other {エピック}}",
-    "adding": "エピックを追加中",
-    "create": {
-      "success": "エピックを作成しました"
-    },
-    "add": {
-      "label": "エピックを追加",
-      "press_enter": "Enterを押して別のエピックを追加"
-    },
-    "title": {
-      "label": "エピックのタイトル",
-      "required": "エピックのタイトルは必須です。"
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "Nieuwe Epic",
-    "label": "{count, plural, one {Epic} other {Epics}}",
-    "adding": "Epic toevoegen",
-    "create": {
-      "success": "Epic succesvol aangemaakt"
-    },
-    "add": {
-      "label": "Epic toevoegen",
-      "press_enter": "Druk op 'Enter' om nog een epic toe te voegen"
-    },
-    "title": {
-      "label": "Epic-titel",
-      "required": "Epic-titel is verplicht."
-    }
-  },
   "work_item_custom_properties": {
     "title": "Aangepaste velden",
     "select_option": "Optie kiezen",

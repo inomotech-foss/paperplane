@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "새 에픽",
-    "label": "{count, plural, one {에픽} other {에픽}}",
-    "adding": "에픽 추가 중",
-    "create": {
-      "success": "에픽이 성공적으로 생성되었습니다"
-    },
-    "add": {
-      "label": "에픽 추가",
-      "press_enter": "다른 에픽을 추가하려면 'Enter'를 누르세요"
-    },
-    "title": {
-      "label": "에픽 제목",
-      "required": "에픽 제목이 필요합니다."
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

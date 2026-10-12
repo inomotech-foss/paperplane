@@ -4,7 +4,6 @@
     "label_lowercase": "工作项类型",
     "settings": {
       "description": "自定义并添加您自己的属性以适应团队需求。",
-      "cant_delete_epic_message": "无法删除史诗类型。",
       "set_default_confirmation": {
         "title": "设为默认工作项类型",
         "description": "将 {name} 设为默认后，它将被导入到此工作区的所有项目中。所有新工作项将默认使用此类型。",

@@ -4,7 +4,6 @@
     "label_lowercase": "iş öğesi tipleri",
     "settings": {
       "description": "Ekibinizin ihtiyaçlarına göre özelleştirin ve kendi özelliklerinizi ekleyin.",
-      "cant_delete_epic_message": "Epik türü silinemez.",
       "set_default_confirmation": {
         "title": "Varsayılan iş öğesi türü olarak ayarla",
         "description": "{name} türünü varsayılan olarak ayarlamak, bu çalışma alanındaki tüm projelere aktarılmasını sağlar. Tüm yeni iş öğeleri varsayılan olarak bu türü kullanacaktır.",

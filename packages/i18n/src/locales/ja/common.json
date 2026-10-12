@@ -465,8 +465,6 @@
       "message": "エラーが発生しました。もう一度お試しください。"
     },
     "group_by": "グループ化",
-    "epic": "エピック",
-    "epics": "エピック",
     "work_item": "作業項目",
     "work_items": "作業項目",
     "sub_work_item": "サブ作業項目",

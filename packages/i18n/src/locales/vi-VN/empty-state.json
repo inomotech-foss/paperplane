@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Chọn một mục công việc Tiếp nhận để xem chi tiết của nó"
-    },
-    "epics": {
-      "title": "Biến các dự án phức tạp thành các câu chuyện sử thi có cấu trúc.",
-      "description": "Một câu chuyện sử thi giúp bạn tổ chức các mục tiêu lớn thành các nhiệm vụ nhỏ hơn, có thể theo dõi.",
-      "cta_primary": "Tạo Câu chuyện Sử thi",
-      "cta_secondary": "Tài liệu"
-    },
-    "epic_work_items": {
-      "title": "Bạn chưa thêm mục công việc vào câu chuyện sử thi này.",
-      "description": "Bắt đầu bằng cách thêm một số mục công việc vào câu chuyện sử thi này và theo dõi chúng ở đây.",
-      "cta_secondary": "Thêm mục công việc"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Chưa có epic nào được lưu trữ",
-      "description": "Bạn có thể lưu trữ các epic đã hoàn thành hoặc đã hủy. Tìm chúng tại đây sau khi lưu trữ."
-    },
     "archive_work_items": {
       "title": "Chưa có mục công việc được lưu trữ",
       "description": "Thủ công hoặc thông qua tự động hóa, bạn có thể lưu trữ các mục công việc đã hoàn thành hoặc bị hủy. Tìm chúng ở đây sau khi lưu trữ.",

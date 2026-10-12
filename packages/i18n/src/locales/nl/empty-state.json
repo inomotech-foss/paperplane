@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Selecteer een intakewerkitem om de details te bekijken"
-    },
-    "epics": {
-      "title": "Zet complexe projecten om in gestructureerde epics.",
-      "description": "Met een epic organiseer je grote doelen in kleinere, volgbare taken.",
-      "cta_primary": "Een epic aanmaken",
-      "cta_secondary": "Documentatie"
-    },
-    "epic_work_items": {
-      "title": "Je hebt nog geen werkitems aan deze epic toegevoegd.",
-      "description": "Begin met het toevoegen van enkele werkitems aan deze epic en volg ze hier.",
-      "cta_secondary": "Werkitems toevoegen"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Nog geen gearchiveerde epics",
-      "description": "Je kunt epics archiveren die zijn voltooid of geannuleerd. Vind ze hier zodra ze gearchiveerd zijn."
-    },
     "archive_work_items": {
       "title": "Nog geen gearchiveerde werkitems",
       "description": "Handmatig of via automatisering kun je werkitems archiveren die zijn voltooid of geannuleerd. Vind ze hier zodra ze gearchiveerd zijn.",

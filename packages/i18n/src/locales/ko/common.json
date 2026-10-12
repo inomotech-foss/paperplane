@@ -465,8 +465,6 @@
       "message": "오류가 발생했습니다. 다시 시도해주세요."
     },
     "group_by": "그룹화 기준",
-    "epic": "에픽",
-    "epics": "에픽스",
     "work_item": "작업 항목",
     "work_items": "작업 항목",
     "sub_work_item": "하위 작업 항목",

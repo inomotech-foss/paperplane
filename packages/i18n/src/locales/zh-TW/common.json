@@ -465,8 +465,6 @@
       "message": "發生錯誤。請再試一次。"
     },
     "group_by": "分組依據",
-    "epic": "Epic",
-    "epics": "史詩",
     "work_item": "工作事項",
     "work_items": "工作事項",
     "sub_work_item": "子工作事項",

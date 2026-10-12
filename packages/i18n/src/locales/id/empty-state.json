@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Pilih item kerja Masuk untuk melihat detailnya"
-    },
-    "epics": {
-      "title": "Ubah proyek kompleks menjadi epik terstruktur.",
-      "description": "Epik membantu Anda mengorganisir tujuan besar menjadi tugas yang lebih kecil dan dapat dilacak.",
-      "cta_primary": "Buat Epik",
-      "cta_secondary": "Dokumentasi"
-    },
-    "epic_work_items": {
-      "title": "Anda belum menambahkan item kerja ke epik ini.",
-      "description": "Mulai dengan menambahkan beberapa item kerja ke epik ini dan lacak di sini.",
-      "cta_secondary": "Tambahkan item kerja"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Belum ada epik yang diarsipkan",
-      "description": "Anda dapat mengarsipkan epik yang selesai atau dibatalkan. Temukan di sini setelah diarsipkan."
-    },
     "archive_work_items": {
       "title": "Belum ada item kerja yang diarsipkan",
       "description": "Secara manual atau melalui otomasi, Anda dapat mengarsipkan item kerja yang selesai atau dibatalkan. Temukan di sini setelah diarsipkan.",

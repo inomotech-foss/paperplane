@@ -4,7 +4,6 @@
     "label_lowercase": "types d'éléments de travail",
     "settings": {
       "description": "Personnalisez et ajoutez vos propres propriétés pour l’adapter aux besoins de votre équipe.",
-      "cant_delete_epic_message": "Le type Epic ne peut pas être supprimé.",
       "set_default_confirmation": {
         "title": "Définir comme type d'élément de travail par défaut",
         "description": "Définir {name} par défaut l'importera dans tous les projets de cet espace de travail. Tous les nouveaux éléments de travail utiliseront ce type par défaut.",

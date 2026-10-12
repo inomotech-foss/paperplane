@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Selecciona un elemento de trabajo de Entrada para ver sus detalles"
-    },
-    "epics": {
-      "title": "Convierte proyectos complejos en épicas estructuradas.",
-      "description": "Una épica te ayuda a organizar grandes objetivos en tareas más pequeñas y rastreables.",
-      "cta_primary": "Crear una Épica",
-      "cta_secondary": "Documentación"
-    },
-    "epic_work_items": {
-      "title": "Aún no has agregado elementos de trabajo a esta épica.",
-      "description": "Comienza agregando algunos elementos de trabajo a esta épica y rastréalos aquí.",
-      "cta_secondary": "Agregar elementos de trabajo"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Aún no hay épicas archivadas",
-      "description": "Puedes archivar épicas completadas o canceladas. Encuéntralas aquí una vez archivadas."
-    },
     "archive_work_items": {
       "title": "Aún no hay elementos de trabajo archivados",
       "description": "Manualmente o mediante automatización, puedes archivar elementos de trabajo que estén completados o cancelados. Encuéntralos aquí una vez archivados.",

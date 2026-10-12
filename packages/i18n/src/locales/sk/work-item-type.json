@@ -4,7 +4,6 @@
     "label_lowercase": "typy pracovných položiek",
     "settings": {
       "description": "Prispôsobte a pridajte si vlastné vlastnosti, aby zodpovedali potrebám vášho tímu.",
-      "cant_delete_epic_message": "Typ Epik nie je možné odstrániť.",
       "set_default_confirmation": {
         "title": "Nastaviť ako predvolený typ pracovnej položky",
         "description": "Nastavením {name} ako predvoleného sa tento typ importuje do všetkých projektov v tomto pracovnom priestore. Všetky nové pracovné položky budú štandardne používať tento typ.",

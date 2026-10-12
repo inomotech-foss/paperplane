@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "Nový epik",
-    "label": "{count, plural, one {Epik} other {Epiky}}",
-    "adding": "Přidávám epik",
-    "create": {
-      "success": "Epik úspěšně vytvořen"
-    },
-    "add": {
-      "label": "Přidat epik",
-      "press_enter": "Pro přidání dalšího epiku stiskněte 'Enter'"
-    },
-    "title": {
-      "label": "Název epiku",
-      "required": "Název epiku je povinný."
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

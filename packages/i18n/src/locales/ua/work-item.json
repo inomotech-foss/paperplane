@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "Новий епік",
-    "label": "{count, plural, one {Епік} other {Епіки}}",
-    "adding": "Додавання епіку",
-    "create": {
-      "success": "Епік успішно створено"
-    },
-    "add": {
-      "label": "Додати епік",
-      "press_enter": "Натисніть 'Enter', щоб додати ще один епік"
-    },
-    "title": {
-      "label": "Назва епіку",
-      "required": "Назва епіку є обов'язковою."
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

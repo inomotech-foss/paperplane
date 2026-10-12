@@ -45,7 +45,6 @@ const lazyIllustration = (
 // Horizontal Stack Asset Registry
 export const HORIZONTAL_STACK_ASSETS: Record<HorizontalStackAssetType, LazyIllustration> = {
   customer: lazyIllustration(() => import("./horizontal-stack/customer"), "CustomerHorizontalStackIllustration"),
-  epic: lazyIllustration(() => import("./horizontal-stack/epic"), "EpicHorizontalStackIllustration"),
   estimate: lazyIllustration(() => import("./horizontal-stack/estimate"), "EstimateHorizontalStackIllustration"),
   export: lazyIllustration(() => import("./horizontal-stack/export"), "ExportHorizontalStackIllustration"),
   intake: lazyIllustration(() => import("./horizontal-stack/intake"), "IntakeHorizontalStackIllustration"),
@@ -112,7 +111,6 @@ export const VERTICAL_STACK_ASSETS: Record<VerticalStackAssetType, LazyIllustrat
   cycle: lazyIllustration(() => import("./vertical-stack/cycle"), "CycleVerticalStackIllustration"),
   dashboard: lazyIllustration(() => import("./vertical-stack/dashboard"), "DashboardVerticalStackIllustration"),
   draft: lazyIllustration(() => import("./vertical-stack/draft"), "DraftVerticalStackIllustration"),
-  epic: lazyIllustration(() => import("./vertical-stack/epic"), "EpicVerticalStackIllustration"),
   "error-404": lazyIllustration(() => import("./vertical-stack/404-error"), "Error404VerticalStackIllustration"),
   inbox: lazyIllustration(() => import("./vertical-stack/inbox"), "InboxVerticalStackIllustration"),
   initiative: lazyIllustration(() => import("./vertical-stack/initiative"), "InitiativeVerticalStackIllustration"),

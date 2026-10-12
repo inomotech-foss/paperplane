@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Selectați un element de lucru de Admitere pentru a vedea detaliile"
-    },
-    "epics": {
-      "title": "Transformați proiecte complexe în epopei structurate.",
-      "description": "O epopeie vă ajută să organizați obiective mari în sarcini mai mici, urmăribile.",
-      "cta_primary": "Creați o Epopeie",
-      "cta_secondary": "Documentație"
-    },
-    "epic_work_items": {
-      "title": "Nu ați adăugat încă elemente de lucru la această epopeie.",
-      "description": "Începeți prin a adăuga câteva elemente de lucru la această epopeie și urmăriți-le aici.",
-      "cta_secondary": "Adăugați elemente de lucru"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Încă nu există epici arhivate",
-      "description": "Puteți arhiva epici finalizate sau anulate. Găsiți-le aici după arhivare."
-    },
     "archive_work_items": {
       "title": "Încă nu există elemente de lucru arhivate",
       "description": "Manual sau prin automatizare, puteți arhiva elemente de lucru finalizate sau anulate. Găsiți-le aici odată arhivate.",

@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Ayrıntılarını görmek için bir Giriş iş öğesi seçin"
-    },
-    "epics": {
-      "title": "Karmaşık projeleri yapılandırılmış destanlara dönüştürün.",
-      "description": "Bir destan, büyük hedefleri daha küçük, takip edilebilir görevlere organize etmenize yardımcı olur.",
-      "cta_primary": "Destan Oluştur",
-      "cta_secondary": "Belgeler"
-    },
-    "epic_work_items": {
-      "title": "Bu destana henüz iş öğesi eklemediniz.",
-      "description": "Bu destana bazı iş öğeleri ekleyerek başlayın ve burada takip edin.",
-      "cta_secondary": "İş öğeleri ekle"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Henüz arşivlenmiş epik yok",
-      "description": "Tamamlanan veya iptal edilen epikleri arşivleyebilirsiniz. Arşivlendikten sonra burada bulun."
-    },
     "archive_work_items": {
       "title": "Henüz arşivlenmiş iş öğesi yok",
       "description": "Manuel veya otomasyon yoluyla tamamlanmış veya iptal edilmiş iş öğelerini arşivleyebilirsiniz. Arşivlendikten sonra burada bulun.",

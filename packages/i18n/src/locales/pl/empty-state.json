@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Wybierz element roboczy Intake, aby wyświetlić jego szczegóły"
-    },
-    "epics": {
-      "title": "Przekształć złożone projekty w uporządkowane epiki.",
-      "description": "Epik pomaga organizować duże cele w mniejsze, śledzone zadania.",
-      "cta_primary": "Utwórz epik",
-      "cta_secondary": "Dokumentacja"
-    },
-    "epic_work_items": {
-      "title": "Nie dodałeś jeszcze elementów roboczych do tego epiku.",
-      "description": "Zacznij od dodania elementów roboczych do tego epiku i śledź je tutaj.",
-      "cta_secondary": "Dodaj elementy robocze"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Jeszcze brak zarchiwizowanych epik",
-      "description": "Możesz archiwizować ukończone lub anulowane epiki. Znajdziesz je tutaj po zarchiwizowaniu."
-    },
     "archive_work_items": {
       "title": "Jeszcze brak zarchiwizowanych elementów roboczych",
       "description": "Ręcznie lub za pomocą automatyzacji możesz archiwizować ukończone lub anulowane elementy robocze. Znajdź je tutaj po zarchiwizowaniu.",

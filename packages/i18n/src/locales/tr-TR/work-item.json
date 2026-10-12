@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "Yeni Epik",
-    "label": "{count, plural, one {Epik} other {Epikler}}",
-    "adding": "Epik ekleniyor",
-    "create": {
-      "success": "Epik başarıyla oluşturuldu"
-    },
-    "add": {
-      "label": "Epik Ekle",
-      "press_enter": "Başka bir epik eklemek için 'Enter'a basın"
-    },
-    "title": {
-      "label": "Epik Başlığı",
-      "required": "Epik başlığı gereklidir."
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

@@ -4,7 +4,6 @@
     "label_lowercase": "作業項目タイプ",
     "settings": {
       "description": "チームのニーズに合わせて独自のプロパティをカスタマイズして追加できます。",
-      "cant_delete_epic_message": "エピックタイプは削除できません。",
       "set_default_confirmation": {
         "title": "デフォルトの作業項目タイプに設定",
         "description": "{name}をデフォルトに設定すると、このワークスペース内のすべてのプロジェクトにインポートされます。すべての新しい作業項目はデフォルトでこのタイプを使用します。",

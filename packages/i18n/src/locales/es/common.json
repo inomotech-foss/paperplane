@@ -465,8 +465,6 @@
       "message": "Ocurrió un error. Por favor, inténtalo de nuevo."
     },
     "group_by": "Agrupar por",
-    "epic": "Epic",
-    "epics": "Epics",
     "work_item": "Elemento de trabajo",
     "work_items": "Elementos de trabajo",
     "sub_work_item": "Sub-elemento de trabajo",

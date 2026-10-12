@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "新 Epic",
-    "label": "{count, plural, one {Epic} other {Epic}}",
-    "adding": "新增 Epic 中",
-    "create": {
-      "success": "Epic 建立成功"
-    },
-    "add": {
-      "label": "新增 Epic",
-      "press_enter": "按 'Enter' 以新增另一個 Epic"
-    },
-    "title": {
-      "label": "Epic 標題",
-      "required": "Epic 標題為必填。"
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

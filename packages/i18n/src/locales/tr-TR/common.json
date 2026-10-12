@@ -465,8 +465,6 @@
       "message": "Bir hata oluştu. Lütfen tekrar deneyin."
     },
     "group_by": "Gruplandır",
-    "epic": "Epik",
-    "epics": "Epikler",
     "work_item": "İş öğesi",
     "work_items": "İş Öğeleri",
     "sub_work_item": "Alt iş öğesi",

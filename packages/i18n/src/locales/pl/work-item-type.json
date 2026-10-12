@@ -4,7 +4,6 @@
     "label_lowercase": "typy elementów pracy",
     "settings": {
       "description": "Dostosuj i dodaj własne właściwości, aby dopasować do potrzeb zespołu.",
-      "cant_delete_epic_message": "Nie można usunąć typu Epik.",
       "set_default_confirmation": {
         "title": "Ustaw jako domyślny typ elementu pracy",
         "description": "Ustawienie {name} jako domyślnego zaimportuje go do wszystkich projektów w tym obszarze roboczym. Wszystkie nowe elementy pracy będą domyślnie używać tego typu.",

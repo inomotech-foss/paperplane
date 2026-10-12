@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Vyberte příchozí pracovní položku pro zobrazení jejích podrobností"
-    },
-    "epics": {
-      "title": "Přeměňte složité projekty na strukturované epiky.",
-      "description": "Epik vám pomůže organizovat velké cíle do menších, sledovatelných úkolů.",
-      "cta_primary": "Vytvořit epik",
-      "cta_secondary": "Dokumentace"
-    },
-    "epic_work_items": {
-      "title": "K tomuto epiku jste ještě nepřidali pracovní položky.",
-      "description": "Začněte přidáním některých pracovních položek k tomuto epiku a sledujte je zde.",
-      "cta_secondary": "Přidat pracovní položky"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Zatím žádné archivované epiky",
-      "description": "Můžete archivovat dokončené nebo zrušené epiky. Najdete je zde po archivaci."
-    },
     "archive_work_items": {
       "title": "Zatím žádné archivované pracovní položky",
       "description": "Ručně nebo pomocí automatizace můžete archivovat dokončené nebo zrušené pracovní položky. Najdete je zde, jakmile budou archivovány.",

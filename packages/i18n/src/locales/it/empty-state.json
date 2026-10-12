@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Seleziona un elemento di lavoro di Intake per visualizzarne i dettagli"
-    },
-    "epics": {
-      "title": "Trasforma progetti complessi in epiche strutturate.",
-      "description": "Un'epica ti aiuta a organizzare grandi obiettivi in attività più piccole e tracciabili.",
-      "cta_primary": "Crea un'Epica",
-      "cta_secondary": "Documentazione"
-    },
-    "epic_work_items": {
-      "title": "Non hai ancora aggiunto elementi di lavoro a questa epica.",
-      "description": "Inizia aggiungendo alcuni elementi di lavoro a questa epica e tracciandoli qui.",
-      "cta_secondary": "Aggiungi elementi di lavoro"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "Nessuna epica archiviata ancora",
-      "description": "Puoi archiviare le epiche completate o annullate. Trovalle qui una volta archiviate."
-    },
     "archive_work_items": {
       "title": "Nessun elemento di lavoro archiviato ancora",
       "description": "Manualmente o tramite automazione, puoi archiviare elementi di lavoro completati o annullati. Trovali qui una volta archiviati.",

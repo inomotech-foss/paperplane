@@ -4,7 +4,6 @@
     "label_lowercase": "tipos de item de trabalho",
     "settings": {
       "description": "Personalize e adicione suas próprias propriedades para adaptar às necessidades da sua equipe.",
-      "cant_delete_epic_message": "O tipo Epic não pode ser excluído.",
       "set_default_confirmation": {
         "title": "Definir como tipo de item de trabalho padrão",
         "description": "Definir {name} como padrão irá importá-lo para todos os projetos neste espaço de trabalho. Todos os novos itens de trabalho usarão este tipo por padrão.",

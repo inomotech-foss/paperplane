@@ -4,7 +4,6 @@
     "label_lowercase": "tipuri de elemente de lucru",
     "settings": {
       "description": "Personalizează și adaugă propriile proprietăți pentru a le adapta nevoilor echipei tale.",
-      "cant_delete_epic_message": "Tipul Epic nu poate fi șters.",
       "set_default_confirmation": {
         "title": "Setează ca tip implicit de element de lucru",
         "description": "Setarea {name} ca implicit îl va importa în toate proiectele din acest spațiu de lucru. Toate elementele de lucru noi vor folosi acest tip în mod implicit.",

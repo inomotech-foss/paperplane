@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "Select an Intake work item to view its details"
-    },
-    "epics": {
-      "title": "Turn complex projects into structured epics.",
-      "description": "An epic helps you organize big goals into smaller, trackable tasks.",
-      "cta_primary": "Create an Epic",
-      "cta_secondary": "Documentation"
-    },
-    "epic_work_items": {
-      "title": "You haven't added work items to this epic yet.",
-      "description": "Start by adding some work items to this epic and track them here.",
-      "cta_secondary": "Add work items"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "No archived epics yet",
-      "description": "You can archive epics that are completed or cancelled. Find them here once archived."
-    },
     "archive_work_items": {
       "title": "No archived work items yet",
       "description": "Manually or through automation, you can archive work items that are completed or cancelled. Find them here once archived.",

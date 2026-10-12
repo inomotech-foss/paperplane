@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "Epik Baru",
-    "label": "{count, plural, one {Epik} other {Epik}}",
-    "adding": "Menambahkan epik",
-    "create": {
-      "success": "Epik berhasil dibuat"
-    },
-    "add": {
-      "label": "Tambahkan Epik",
-      "press_enter": "Tekan 'Enter' untuk menambahkan epik lain"
-    },
-    "title": {
-      "label": "Judul Epik",
-      "required": "Judul epik wajib diisi."
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

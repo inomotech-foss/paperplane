@@ -465,8 +465,6 @@
       "message": "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
     },
     "group_by": "Gruppieren nach",
-    "epic": "Epic",
-    "epics": "Epics",
     "work_item": "Arbeitselement",
     "work_items": "Arbeitselemente",
     "sub_work_item": "Untergeordnetes Arbeitselement",

@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "Nuevo Epic",
-    "label": "{count, plural, one {Epic} other {Epics}}",
-    "adding": "Agregando epic",
-    "create": {
-      "success": "Epic creado correctamente"
-    },
-    "add": {
-      "label": "Agregar Epic",
-      "press_enter": "Presiona 'Enter' para agregar otro epic"
-    },
-    "title": {
-      "label": "Título del Epic",
-      "required": "El título del epic es obligatorio."
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

@@ -419,22 +419,6 @@
       }
     }
   },
-  "epic": {
-    "new": "Sử thi mới",
-    "label": "{count, plural, one {sử thi} other {sử thi}}",
-    "adding": "Đang thêm sử thi",
-    "create": {
-      "success": "Đã tạo sử thi thành công"
-    },
-    "add": {
-      "label": "Thêm sử thi",
-      "press_enter": "Nhấn 'Enter' để thêm sử thi khác"
-    },
-    "title": {
-      "label": "Tiêu đề sử thi",
-      "required": "Tiêu đề sử thi là bắt buộc"
-    }
-  },
   "work_item_custom_properties": {
     "title": "Custom fields",
     "select_option": "Select option",

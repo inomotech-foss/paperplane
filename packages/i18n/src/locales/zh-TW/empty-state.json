@@ -93,24 +93,9 @@
     },
     "intake_main": {
       "title": "選擇一個接收工作項以查看其詳細資訊"
-    },
-    "epics": {
-      "title": "將複雜專案轉化為結構化史詩。",
-      "description": "史詩幫助您將大目標組織成更小的可追蹤任務。",
-      "cta_primary": "建立史詩",
-      "cta_secondary": "文件"
-    },
-    "epic_work_items": {
-      "title": "您尚未向此史詩新增工作項。",
-      "description": "開始向此史詩新增一些工作項並在此處追蹤它們。",
-      "cta_secondary": "新增工作項"
     }
   },
   "workspace_empty_state": {
-    "archive_epics": {
-      "title": "暫無已封存史詩",
-      "description": "您可以封存已完成或已取消的史詩。封存後在此處尋找它們。"
-    },
     "archive_work_items": {
       "title": "暫無已封存工作項",
       "description": "透過手動或自動化,您可以封存已完成或已取消的工作項。封存後在此處尋找它們。",
