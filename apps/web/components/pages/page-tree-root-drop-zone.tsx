@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
+import { useTranslation } from "@plane/i18n";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { dropTargetForElements, monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { cn } from "@plane/utils";
@@ -26,6 +27,8 @@ export const PageTreeRootDropZone = observer(function PageTreeRootDropZone(props
   // states
   const [isPageDragActive, setIsPageDragActive] = useState(false);
   const [isOver, setIsOver] = useState(false);
+  // plane hooks
+  const { t } = useTranslation();
   // store hooks
   const { positionPage } = usePageStore(storeType);
 
@@ -64,7 +67,7 @@ export const PageTreeRootDropZone = observer(function PageTreeRootDropZone(props
         className
       )}
     >
-      Move to top level
+      {t("page_list_tree.move_to_top_level")}
     </div>
   );
 });

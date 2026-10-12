@@ -142,6 +142,13 @@ class PageDetailSerializer(PageSerializer):
         fields = PageSerializer.Meta.fields + ["description_html"]
 
 
+class PageUpdateSerializer(PageDetailSerializer):
+    """Moves go through the position endpoint, which checks for cycles and renumbers siblings."""
+
+    class Meta(PageDetailSerializer.Meta):
+        read_only_fields = PageDetailSerializer.Meta.read_only_fields + ["parent", "sort_order"]
+
+
 class PagePositionSerializer(serializers.Serializer):
     parent = serializers.UUIDField(allow_null=True)
     before = serializers.UUIDField(required=False, allow_null=True, help_text="Place the page before this sibling")

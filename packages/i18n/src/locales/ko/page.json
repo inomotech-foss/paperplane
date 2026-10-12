@@ -148,7 +148,8 @@
   },
   "page_list_tree": {
     "expand_button": "하위 페이지 펼치기",
-    "collapse_button": "하위 페이지 접기"
+    "collapse_button": "하위 페이지 접기",
+    "move_to_top_level": "최상위로 이동"
   },
   "page_diagram": {
     "editor_title": "다이어그램 편집기",

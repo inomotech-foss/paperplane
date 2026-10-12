@@ -122,6 +122,7 @@ from .page import (
     PageDetailSerializer,
     PagePositionSerializer,
     PagePositionResponseSerializer,
+    PageUpdateSerializer,
     PageQuerySerializer,
     PageVersionSerializer,
     PageBinaryUpdateSerializer,

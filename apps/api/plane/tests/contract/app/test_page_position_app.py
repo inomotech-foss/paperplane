@@ -2,6 +2,8 @@
 # See the LICENSE file for details.
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from rest_framework import status
 
@@ -54,16 +56,19 @@ class TestPagePosition:
     @pytest.mark.django_db
     def test_member_moves_page_of_another_user_between_crowded_siblings(self, session_client, project, other_user):
         a = make_page(project, other_user, "A", is_locked=True)
-        make_page(project, other_user, "B", is_locked=True)
+        b = make_page(project, other_user, "B", is_locked=True)
         c = make_page(project, other_user, "C")
+        make_page(project, other_user, "D secret", access=Page.PRIVATE_ACCESS)
+        make_page(project, other_user, "E archived", archived_at=timezone.now().date())
 
-        response = session_client.post(position_url(project, c), {"parent": None, "after": a.id}, format="json")
+        with CaptureQueriesContext(connection) as queries:
+            response = session_client.post(position_url(project, c), {"parent": None, "after": a.id}, format="json")
 
         assert response.status_code == status.HTTP_200_OK
-        assert ordered_names(project) == ["A", "C", "B"]
-        assert {page["id"] for page in response.data["pages"]} == {
-            str(page.id) for page in Page.objects.filter(projects=project)
-        }
+        assert ordered_names(project) == ["A", "C", "B", "D secret", "E archived"]
+        # hidden siblings are renumbered but not returned
+        assert {page["id"] for page in response.data["pages"]} == {str(a.id), str(b.id), str(c.id)}
+        assert any("pg_advisory_xact_lock" in query["sql"] for query in queries.captured_queries)
 
     @pytest.mark.django_db
     def test_uses_the_gap_without_touching_siblings(self, session_client, project, other_user):
@@ -91,17 +96,67 @@ class TestPagePosition:
         assert child.sort_order == 30000
 
     @pytest.mark.django_db
-    def test_renumbering_keeps_hidden_parents(self, session_client, project, other_user):
+    def test_uses_the_midpoint_between_neighbours(self, session_client, project, other_user):
+        a = make_page(project, other_user, "A", sort_order=10000)
+        make_page(project, other_user, "B", sort_order=20000)
+        c = make_page(project, other_user, "C", sort_order=30000)
+
+        response = session_client.post(position_url(project, c), {"parent": None, "after": a.id}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["pages"] == [{"id": str(c.id), "parent": None, "sort_order": 15000.0}]
+        assert ordered_names(project) == ["A", "C", "B"]
+
+    @pytest.mark.django_db
+    def test_renumbering_leaves_pages_under_other_parents_alone(self, session_client, project, other_user):
         private_parent = make_page(project, other_user, "Private", access=Page.PRIVATE_ACCESS)
         orphan = make_page(project, other_user, "Orphan", parent=private_parent)
         a = make_page(project, other_user, "A")
-        b = make_page(project, other_user, "B")
+        make_page(project, other_user, "B")
+        c = make_page(project, other_user, "C")
 
-        response = session_client.post(position_url(project, b), {"parent": None, "before": a.id}, format="json")
+        response = session_client.post(position_url(project, c), {"parent": None, "after": a.id}, format="json")
 
         assert response.status_code == status.HTTP_200_OK
+        assert ordered_names(project) == ["A", "C", "B", "Private"]
+        a.refresh_from_db()
+        assert a.sort_order == 10000
         orphan.refresh_from_db()
         assert orphan.parent_id == private_parent.id
+        assert orphan.sort_order == 65535
+
+    @pytest.mark.django_db
+    def test_detects_a_cycle_through_a_page_outside_the_project(self, session_client, project, other_user):
+        root = make_page(project, other_user, "Root")
+        elsewhere = Page.objects.create(name="Elsewhere", workspace=project.workspace, owned_by=other_user, parent=root)
+        inner = make_page(project, other_user, "Inner", parent=elsewhere)
+
+        response = session_client.post(position_url(project, root), {"parent": inner.id}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        root.refresh_from_db()
+        assert root.parent_id is None
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("fields", [{"archived_at": timezone.now().date()}, {"access": Page.PRIVATE_ACCESS}])
+    def test_rejects_archived_and_foreign_private_parents(self, session_client, project, other_user, fields):
+        parent = make_page(project, other_user, "Parent", **fields)
+        page = make_page(project, other_user, "Page")
+
+        response = session_client.post(position_url(project, page), {"parent": parent.id}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        page.refresh_from_db()
+        assert page.parent_id is None
+
+    @pytest.mark.django_db
+    def test_accepts_an_own_private_parent(self, session_client, project, create_user):
+        parent = make_page(project, create_user, "Mine", access=Page.PRIVATE_ACCESS)
+        page = make_page(project, create_user, "Page")
+
+        response = session_client.post(position_url(project, page), {"parent": parent.id}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
 
     @pytest.mark.django_db
     def test_rejects_an_anchor_with_another_parent(self, session_client, project, other_user):
@@ -187,12 +242,16 @@ class TestNewPageSortOrder:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["sort_order"] == 30000
 
-    @pytest.mark.django_db
-    def test_archived_page_cannot_be_reparented_with_patch(self, session_client, project, other_user):
-        root = make_page(project, other_user, "Root")
-        page = make_page(project, other_user, "Page", archived_at=timezone.now().date())
-        url = f"/api/workspaces/{project.workspace.slug}/projects/{project.id}/pages/{page.id}/"
 
-        response = session_client.patch(url, {"parent": str(root.id)}, format="json")
+@pytest.mark.unit
+@pytest.mark.django_db
+def test_archiving_a_page_cycle_terminates(project, other_user):
+    from plane.app.views.page.base import unarchive_archive_page_and_descendants
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+    a = make_page(project, other_user, "A")
+    b = make_page(project, other_user, "B", parent=a)
+    Page.objects.filter(pk=a.pk).update(parent=b)
+
+    unarchive_archive_page_and_descendants(a.id, timezone.now().date())
+
+    assert Page.objects.filter(pk__in=[a.id, b.id], archived_at__isnull=False).count() == 2

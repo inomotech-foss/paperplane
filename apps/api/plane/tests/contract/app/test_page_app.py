@@ -97,17 +97,24 @@ class TestProjectPagesAppEndpoint:
 
 @pytest.mark.contract
 class TestPageSortOrderAppEndpoint:
-    """sort_order must be readable and writable through the page API"""
+    """sort_order is readable through the page API, moves go through the position endpoint"""
 
     @pytest.mark.django_db
-    def test_patch_sort_order_is_returned_and_persisted(self, session_client, workspace, project, create_user):
+    def test_patch_ignores_parent_and_sort_order(self, session_client, workspace, project, create_user):
+        parent = make_page(workspace, project, create_user, "Parent")
         page = make_page(workspace, project, create_user, "Ordered Page")
         url = f"/api/workspaces/{workspace.slug}/projects/{project.id}/pages/{page.id}/"
 
-        patch_response = session_client.patch(url, {"sort_order": 123456.5}, format="json")
+        patch_response = session_client.patch(
+            url, {"name": "Renamed", "parent": str(parent.id), "sort_order": 123456.5}, format="json"
+        )
         assert patch_response.status_code == status.HTTP_200_OK
-        assert patch_response.data["sort_order"] == 123456.5
+
+        page.refresh_from_db()
+        assert page.name == "Renamed"
+        assert page.parent_id is None
+        assert page.sort_order == Page.DEFAULT_SORT_ORDER
 
         get_response = session_client.get(url)
         assert get_response.status_code == status.HTTP_200_OK
-        assert get_response.data["sort_order"] == 123456.5
+        assert get_response.data["sort_order"] == Page.DEFAULT_SORT_ORDER

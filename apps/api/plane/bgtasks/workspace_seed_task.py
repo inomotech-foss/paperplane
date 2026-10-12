@@ -44,6 +44,7 @@ from plane.db.models import (
     BotTypeEnum,
 )
 from plane.utils.issue_type import link_starter_type
+from plane.utils.page_order import next_sort_order
 
 logger = logging.getLogger("plane.worker")
 
@@ -375,11 +376,14 @@ def create_pages(workspace: Workspace, project_map: Dict[int, uuid.UUID], bot_us
             updated_by_id=bot_user.id,
             owned_by_id=bot_user.id,
         )
+        is_project_page = page_seed.get("project_id") and page_seed.get("type") == "PROJECT"
+        if is_project_page:
+            page.sort_order = next_sort_order(project_map[page_seed.get("project_id")], None)
 
         page.save(created_by_id=bot_user.id, disable_auto_set_user=True)
 
         logger.info(f"Task: workspace_seed_task -> Page {page_id} created")
-        if page_seed.get("project_id") and page_seed.get("type") == "PROJECT":
+        if is_project_page:
             project_page = ProjectPage(
                 workspace_id=workspace.id,
                 project_id=project_map[page_seed.get("project_id")],

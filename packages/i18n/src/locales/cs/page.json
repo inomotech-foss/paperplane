@@ -148,7 +148,8 @@
   },
   "page_list_tree": {
     "expand_button": "Rozbalit podstránky",
-    "collapse_button": "Sbalit podstránky"
+    "collapse_button": "Sbalit podstránky",
+    "move_to_top_level": "Přesunout na nejvyšší úroveň"
   },
   "page_diagram": {
     "editor_title": "Editor diagramů",
