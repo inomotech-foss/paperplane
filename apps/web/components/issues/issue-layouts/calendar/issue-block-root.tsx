@@ -28,7 +28,7 @@ type Props = {
 export const CalendarIssueBlockRoot = observer(function CalendarIssueBlockRoot(props: Props) {
   const { issueId, quickActions, isDragDisabled, isEpic = false, canEditProperties } = props;
 
-  const issueRef = useRef<HTMLAnchorElement | null>(null);
+  const issueRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const {

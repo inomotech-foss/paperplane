@@ -29,31 +29,23 @@ export function WebhooksListItem(props: IWebhookListItem) {
   };
 
   return (
-    <div className="rounded-lg border border-subtle bg-layer-2 px-4 py-3">
+    <div className="relative flex items-center justify-between gap-4 rounded-lg border border-subtle bg-layer-2 px-4 py-3">
       <Link
         href={`/${workspaceSlug}/settings/webhooks/${webhook?.id}`}
-        className="flex items-center justify-between gap-4"
+        className="truncate after:absolute after:inset-0"
       >
         <h5 className="truncate text-body-sm-medium">{webhook.url}</h5>
-        <div
-          className="shrink-0"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          onKeyDown={(e) => e.stopPropagation()}
-          role="presentation"
-        >
-          <Switch
-            size="sm"
-            checked={webhook.is_active}
-            onCheckedChange={() => {
-              void handleToggle();
-            }}
-            aria-label="Toggle webhook"
-          />
-        </div>
       </Link>
+      <div className="relative z-[1] shrink-0">
+        <Switch
+          size="sm"
+          checked={webhook.is_active}
+          onCheckedChange={() => {
+            void handleToggle();
+          }}
+          aria-label="Toggle webhook"
+        />
+      </div>
     </div>
   );
 }

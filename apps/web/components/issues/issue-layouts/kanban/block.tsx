@@ -56,6 +56,8 @@ interface IssueBlockProps {
 interface IssueDetailsBlockProps {
   cardRef: React.RefObject<HTMLElement | null>;
   issue: TIssue;
+  workItemLink: string;
+  onLinkClick: () => void;
   displayProperties: IIssueDisplayProperties | undefined;
   updateIssue: ((projectId: string | null, issueId: string, data: Partial<TIssue>) => Promise<void>) | undefined;
   quickActions: TRenderQuickActions;
@@ -64,7 +66,17 @@ interface IssueDetailsBlockProps {
 }
 
 const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props: IssueDetailsBlockProps) {
-  const { cardRef, issue, updateIssue, quickActions, isReadOnly, displayProperties, isEpic = false } = props;
+  const {
+    cardRef,
+    issue,
+    workItemLink,
+    onLinkClick,
+    updateIssue,
+    quickActions,
+    isReadOnly,
+    displayProperties,
+    isEpic = false,
+  } = props;
   // refs
   const menuActionRef = useRef<HTMLButtonElement | null>(null);
   // states
@@ -87,12 +99,6 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
     </button>
   );
 
-  // oxlint-disable-next-line unicorn/consistent-function-scoping
-  const handleEventPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
-
   useOutsideClickDetector(menuActionRef, () => setIsMenuActive(false));
 
   return (
@@ -107,13 +113,11 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
             displayProperties={displayProperties}
           />
         )}
-        {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
         <div
-          className={cn("absolute -top-1 right-0", {
+          className={cn("absolute -top-1 right-0 z-[1]", {
             "hidden group-hover/kanban-block:block": !isMobile,
             "!block": isMenuActive,
           })}
-          onClick={handleEventPropagation}
         >
           {quickActions({
             issue,
@@ -123,14 +127,19 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
         </div>
       </div>
 
-      <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
-        <div className="line-clamp-1 w-full text-body-sm-medium text-primary">
-          <span>{issue.name}</span>
-        </div>
-      </Tooltip>
+      <ControlLink
+        href={workItemLink}
+        onClick={onLinkClick}
+        className="line-clamp-1 w-full text-body-sm-medium text-primary after:absolute after:inset-0"
+        disabled={!!issue.tempId}
+      >
+        <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
+          <span className="relative z-[1]">{issue.name}</span>
+        </Tooltip>
+      </ControlLink>
 
       <IssueProperties
-        className="flex flex-wrap items-center gap-2 pt-1.5 whitespace-nowrap text-tertiary"
+        className="pointer-events-none relative z-[1] flex flex-wrap items-center gap-2 pt-1.5 whitespace-nowrap text-tertiary *:pointer-events-auto"
         issue={issue}
         displayProperties={displayProperties}
         activeLayout="Kanban"
@@ -159,7 +168,7 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
     isEpic = false,
   } = props;
 
-  const cardRef = useRef<HTMLAnchorElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
   // router
   const { workspaceSlug: routerWorkspaceSlug } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
@@ -260,18 +269,15 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
           }
         }}
       >
-        <ControlLink
+        <div
           id={getIssueBlockId(issueId, groupId, subGroupId)}
-          href={workItemLink}
           ref={cardRef}
           className={cn(
-            "block w-full rounded-lg border border-subtle bg-layer-2 p-3 text-13 shadow-raised-100 outline-[0.5px] outline-transparent transition-all hover:border-strong hover:shadow-raised-200",
+            "relative block w-full rounded-lg border border-subtle bg-layer-2 p-3 text-13 shadow-raised-100 outline-[0.5px] outline-transparent transition-all hover:border-strong hover:shadow-raised-200",
             { "hover:cursor-pointer": isDragAllowed },
             { "border border-accent-strong hover:border-accent-strong": getIsIssuePeeked(issue.id) },
             { "z-[100] bg-layer-1": isCurrentBlockDragging }
           )}
-          onClick={() => handleIssuePeekOverview(issue)}
-          disabled={!!issue?.tempId}
         >
           <RenderIfVisible
             classNames="space-y-2"
@@ -284,6 +290,8 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
             <KanbanIssueDetailsBlock
               cardRef={cardRef}
               issue={issue}
+              workItemLink={workItemLink}
+              onLinkClick={() => handleIssuePeekOverview(issue)}
               displayProperties={displayProperties}
               updateIssue={updateIssue}
               quickActions={quickActions}
@@ -291,7 +299,7 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
               isEpic={isEpic}
             />
           </RenderIfVisible>
-        </ControlLink>
+        </div>
       </div>
     </>
   );

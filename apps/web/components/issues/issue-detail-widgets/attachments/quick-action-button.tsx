@@ -102,9 +102,9 @@ export const IssueAttachmentActionButton = observer(function IssueAttachmentActi
       }}
     >
       <button {...getRootProps()} type="button" disabled={disabled}>
-        <input {...getInputProps()} />
         {customButton ? customButton : <AddOutline className="h-4 w-4" />}
       </button>
+      <input {...getInputProps()} />
     </div>
   );
 });

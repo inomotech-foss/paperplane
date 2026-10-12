@@ -91,20 +91,23 @@ export const IssueRelationSelect = observer(function IssueRelationSelect(props: 
         workspaceLevelToggle
       />
 
-      <button
-        type="button"
+      <div
         className={cn(
-          "group flex items-center gap-2 rounded-sm px-2 py-0.5 outline-none",
+          "group relative flex items-center gap-2 rounded-sm px-2 py-0.5",
           {
-            "cursor-not-allowed": disabled,
             "hover:bg-layer-1": !disabled,
             "bg-layer-1": isRelationKeyModalActive,
           },
           className
         )}
-        onClick={() => toggleRelationModal(issueId, relationKey)}
-        disabled={disabled}
       >
+        <button
+          type="button"
+          className={cn("absolute inset-0 rounded-sm outline-none", { "cursor-not-allowed": disabled })}
+          aria-label={currRelationOption?.placeholder}
+          onClick={() => toggleRelationModal(issueId, relationKey)}
+          disabled={disabled}
+        />
         <div className="flex w-full items-start justify-between">
           {relationIssueIds.length > 0 ? (
             <div className="flex flex-wrap items-center gap-2 py-0.5">
@@ -117,7 +120,7 @@ export const IssueRelationSelect = observer(function IssueRelationSelect(props: 
                 return (
                   <div
                     key={relationIssueId}
-                    className={`group flex items-center gap-1 rounded-sm px-1.5 pt-1 pb-1 leading-3 hover:bg-surface-2 ${currRelationOption?.className}`}
+                    className={`group relative z-[1] flex items-center gap-1 rounded-sm px-1.5 pt-1 pb-1 leading-3 hover:bg-surface-2 ${currRelationOption?.className}`}
                   >
                     <Tooltip label={`Title: ${currentIssue.name}`} layout="stacked" disabled={isMobile}>
                       <Link
@@ -138,16 +141,15 @@ export const IssueRelationSelect = observer(function IssueRelationSelect(props: 
                     </Tooltip>
                     {!disabled && (
                       <Tooltip label="Remove" side="bottom" disabled={isMobile}>
-                        {/* eslint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
-                        <span
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            removeRelation(workspaceSlug, projectId, issueId, relationKey, relationIssueId);
-                          }}
+                        <button
+                          type="button"
+                          aria-label="Remove"
+                          onClick={() =>
+                            removeRelation(workspaceSlug, projectId, issueId, relationKey, relationIssueId)
+                          }
                         >
                           <CloseOutline className="h-2.5 w-2.5 text-tertiary hover:text-danger-primary" />
-                        </span>
+                        </button>
                       </Tooltip>
                     )}
                   </div>
@@ -167,7 +169,7 @@ export const IssueRelationSelect = observer(function IssueRelationSelect(props: 
             </span>
           )}
         </div>
-      </button>
+      </div>
     </>
   );
 });

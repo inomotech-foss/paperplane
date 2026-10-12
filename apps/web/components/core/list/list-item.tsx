@@ -75,25 +75,27 @@ export function ListItem(props: IListItemProps) {
         )}
       >
         <div className={cn("relative flex w-full items-center justify-between gap-3 truncate", itemClassName)}>
-          <ControlLink
-            id={id}
-            className="relative flex w-full items-center gap-3 overflow-hidden"
-            href={itemLink}
-            target="_self"
-            onClick={handleControlLinkClick}
-            disabled={disableLink}
-            data-prevent-progress={preventDefaultProgress}
-          >
+          <div className="relative flex w-full items-center gap-3 overflow-hidden">
             <div className={cn("flex items-center gap-4 truncate", leftElementClassName)}>
               {prependTitleElement && <span className="flex flex-shrink-0 items-center">{prependTitleElement}</span>}
-              <Tooltip label={title} layout="stacked" disabled={isMobile}>
-                <span className="truncate text-13">{title}</span>
-              </Tooltip>
+              <ControlLink
+                id={id}
+                className={cn("truncate", { "after:absolute after:inset-0": !disableLink })}
+                href={itemLink}
+                target="_self"
+                onClick={handleControlLinkClick}
+                disabled={disableLink}
+                data-prevent-progress={preventDefaultProgress}
+              >
+                <Tooltip label={title} layout="stacked" disabled={isMobile}>
+                  <span className="relative z-[1] truncate text-13">{title}</span>
+                </Tooltip>
+              </ControlLink>
             </div>
             {appendTitleElement && (
               <span className={cn("flex flex-shrink-0 items-center", rightElementClassName)}>{appendTitleElement}</span>
             )}
-          </ControlLink>
+          </div>
           {quickActionElement}
         </div>
         {actionableItems && (

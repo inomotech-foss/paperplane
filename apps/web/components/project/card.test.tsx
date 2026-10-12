@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import { EUserPermissions } from "@plane/constants";
 import type { IProject } from "@plane/types";
+import { findNestedInteractive } from "@/lib/testing/nested-interactive";
 import { ProjectCard } from "./card";
 
 vi.mock("next/navigation", () => ({ useParams: () => ({ workspaceSlug: "ws" }) }));
@@ -53,8 +54,6 @@ const renderCard = (overrides: Partial<IProject>) => {
   );
 };
 
-const NESTED_INTERACTIVE = "a a, a button, button a, button button";
-
 describe("ProjectCard", () => {
   it.each([
     ["admin", { member_role: EUserPermissions.ADMIN }],
@@ -63,7 +62,7 @@ describe("ProjectCard", () => {
     ["archived", { member_role: EUserPermissions.ADMIN, archived_at: "2026-02-01T00:00:00Z" }],
   ])("renders no nested interactive elements for an %s", (_, overrides) => {
     const { container } = renderCard(overrides);
-    expect(container.querySelectorAll(NESTED_INTERACTIVE)).toHaveLength(0);
+    expect(findNestedInteractive(container)).toEqual([]);
   });
 
   it("links the card and the settings action to their own targets", () => {

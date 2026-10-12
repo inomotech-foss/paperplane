@@ -55,80 +55,67 @@ export const IssueAttachmentsListItem = observer(function IssueAttachmentsListIt
 
   return (
     <>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          window.open(fileURL, "_blank");
-        }}
-      >
-        <div className="group flex h-11 items-center justify-between gap-3 px-3 hover:bg-surface-2">
-          <div className="flex items-center gap-3 truncate text-13">
-            <div className="flex items-center gap-3">{fileIcon}</div>
+      <div className="group relative flex h-11 items-center justify-between gap-3 px-3 hover:bg-surface-2">
+        <div className="flex items-center gap-3 truncate text-13">
+          <div className="flex items-center gap-3">{fileIcon}</div>
+          <a
+            href={fileURL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="truncate font-medium text-secondary after:absolute after:inset-0"
+          >
             <Tooltip label={`${fileName}.${fileExtension}`} layout="stacked" disabled={isMobile}>
-              <p className="truncate font-medium text-secondary">{`${fileName}.${fileExtension}`}</p>
+              <span className="relative z-[1]">{`${fileName}.${fileExtension}`}</span>
             </Tooltip>
-            <span className="flex size-1.5 rounded-full bg-layer-1" />
-            <span className="shrink-0 text-placeholder">{convertBytesToSize(attachment.attributes.size)}</span>
-          </div>
+          </a>
+          <span className="flex size-1.5 rounded-full bg-layer-1" />
+          <span className="shrink-0 text-placeholder">{convertBytesToSize(attachment.attributes.size)}</span>
+        </div>
 
-          <div className="flex items-center gap-3">
-            {attachment?.created_by && (
-              <>
-                <Tooltip
-                  label={`${
-                    getUserDetails(attachment?.created_by)?.display_name ?? ""
-                  } uploaded on ${renderFormattedDate(attachment.updated_at)}`}
-                  layout="stacked"
-                  disabled={isMobile}
-                >
-                  <div className="flex items-center justify-center">
-                    <ButtonAvatars showTooltip userIds={attachment?.created_by} />
-                  </div>
-                </Tooltip>
-              </>
-            )}
+        <div className="relative z-[1] flex items-center gap-3">
+          {attachment?.created_by && (
+            <>
+              <Tooltip
+                label={`${
+                  getUserDetails(attachment?.created_by)?.display_name ?? ""
+                } uploaded on ${renderFormattedDate(attachment.updated_at)}`}
+                layout="stacked"
+                disabled={isMobile}
+              >
+                <div className="flex items-center justify-center">
+                  <ButtonAvatars showTooltip userIds={attachment?.created_by} />
+                </div>
+              </Tooltip>
+            </>
+          )}
 
-            {/* The whole row is a button that opens the attachment, so the menu's own
-                activation must not reach it. */}
-            <div
-              role="presentation"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") e.stopPropagation();
-              }}
-            >
-              <Menu>
-                {/* Icon-only trigger, so it needs an explicit accessible name. */}
-                <MenuTrigger
-                  render={
-                    <IconButton
-                      variant="ghost"
-                      size="sm"
-                      disabled={disabled}
-                      aria-label={t("aria_labels.common.more_actions")}
-                      icon={<Icon icon={MoreHorizontalOutline} />}
-                    />
-                  }
-                />
-                <MenuContent side="bottom" align="end">
-                  <MenuItem
-                    icon={<Icon icon={DeleteOutline} />}
-                    label={t("common.actions.delete")}
-                    onClick={() => {
-                      toggleDeleteAttachmentModal(attachmentId);
-                    }}
+          <div>
+            <Menu>
+              {/* Icon-only trigger, so it needs an explicit accessible name. */}
+              <MenuTrigger
+                render={
+                  <IconButton
+                    variant="ghost"
+                    size="sm"
+                    disabled={disabled}
+                    aria-label={t("aria_labels.common.more_actions")}
+                    icon={<Icon icon={MoreHorizontalOutline} />}
                   />
-                </MenuContent>
-              </Menu>
-            </div>
+                }
+              />
+              <MenuContent side="bottom" align="end">
+                <MenuItem
+                  icon={<Icon icon={DeleteOutline} />}
+                  label={t("common.actions.delete")}
+                  onClick={() => {
+                    toggleDeleteAttachmentModal(attachmentId);
+                  }}
+                />
+              </MenuContent>
+            </Menu>
           </div>
         </div>
-      </button>
+      </div>
     </>
   );
 });

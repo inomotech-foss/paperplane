@@ -38,12 +38,12 @@ type Props = {
 };
 
 export const CalendarIssueBlock = observer(
-  forwardRef(function CalendarIssueBlock(props: Props, ref: React.ForwardedRef<HTMLAnchorElement>) {
+  forwardRef(function CalendarIssueBlock(props: Props, ref: React.ForwardedRef<HTMLDivElement>) {
     const { issue, quickActions, isDragging = false, isEpic = false } = props;
     // states
     const [isMenuActive, setIsMenuActive] = useState(false);
     // refs
-    const blockRef = useRef(null);
+    const blockRef = useRef<HTMLDivElement | null>(null);
     const menuActionRef = useRef<HTMLButtonElement | null>(null);
     // hooks
     const { workspaceSlug } = useParams();
@@ -100,78 +100,73 @@ export const CalendarIssueBlock = observer(
 
     return (
       <Popover>
-        <PopoverTrigger
-          openOnHover
-          delay={100}
-          render={
-            <ControlLink
-              id={`issue-${issue.id}`}
-              href={workItemLink}
-              onClick={() => handleIssuePeekOverview(issue)}
-              className="block w-full rounded-sm border-b border-subtle text-13 text-primary hover:border-subtle-1 md:border-[1px]"
-              disabled={!!issue?.tempId || isMobile}
-              ref={ref}
-            >
-              <>
-                {issue?.tempId !== undefined && (
-                  <div className="absolute top-0 left-0 z-[99999] h-full w-full animate-pulse bg-surface-1/20" />
-                )}
+        <div
+          ref={ref}
+          className="relative block w-full rounded-sm border-b border-subtle text-13 text-primary hover:border-subtle-1 md:border-[1px]"
+        >
+          {issue?.tempId !== undefined && (
+            <div className="absolute top-0 left-0 z-[99999] h-full w-full animate-pulse bg-surface-1/20" />
+          )}
 
-                <div
-                  ref={blockRef}
-                  className={cn(
-                    "group/calendar-block flex h-10 w-full items-center justify-between gap-1.5 rounded-sm px-4 py-1.5 md:h-8 md:px-1",
-                    {
-                      "border-accent-strong bg-surface-2 shadow-raised-200": isDragging,
-                      "bg-surface-1 hover:bg-surface-2": !isDragging,
-                      "border border-accent-strong hover:border-accent-strong": getIsIssuePeeked(issue.id),
-                    }
-                  )}
-                >
-                  <div className="flex h-full items-center gap-1.5 truncate">
-                    <span
-                      className="h-full w-0.5 flex-shrink-0 rounded-sm"
-                      style={{
-                        backgroundColor: stateColor,
-                      }}
-                    />
-                    {issue.project_id && (
-                      <IssueIdentifier
-                        issueId={issue.id}
-                        projectId={issue.project_id}
-                        size="xs"
-                        variant="tertiary"
-                        displayProperties={issuesFilter?.issueFilters?.displayProperties}
-                      />
-                    )}
-                    <div className="truncate text-13 font-medium md:text-11 md:font-regular">{issue.name}</div>
-                  </div>
-                  {/* Wrapper exists only to stop clicks reaching the ControlLink; the
-                      quick-action menu inside carries its own interactive semantics. */}
-                  <div
-                    role="presentation"
-                    className={cn("size-5 flex-shrink-0", {
-                      "hidden group-hover/calendar-block:block": !isMobile,
-                      block: isMenuActive,
-                    })}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
+          <div
+            ref={blockRef}
+            className={cn(
+              "group/calendar-block flex h-10 w-full items-center justify-between gap-1.5 rounded-sm px-4 py-1.5 md:h-8 md:px-1",
+              {
+                "border-accent-strong bg-surface-2 shadow-raised-200": isDragging,
+                "bg-surface-1 hover:bg-surface-2": !isDragging,
+                "border border-accent-strong hover:border-accent-strong": getIsIssuePeeked(issue.id),
+              }
+            )}
+          >
+            <div className="flex h-full items-center gap-1.5 truncate">
+              <span
+                className="h-full w-0.5 flex-shrink-0 rounded-sm"
+                style={{
+                  backgroundColor: stateColor,
+                }}
+              />
+              {issue.project_id && (
+                <IssueIdentifier
+                  issueId={issue.id}
+                  projectId={issue.project_id}
+                  size="xs"
+                  variant="tertiary"
+                  displayProperties={issuesFilter?.issueFilters?.displayProperties}
+                />
+              )}
+              <PopoverTrigger
+                openOnHover
+                delay={100}
+                render={
+                  <ControlLink
+                    id={`issue-${issue.id}`}
+                    href={workItemLink}
+                    onClick={() => handleIssuePeekOverview(issue)}
+                    className="truncate text-13 font-medium after:absolute after:inset-0 md:text-11 md:font-regular"
+                    disabled={!!issue?.tempId || isMobile}
                   >
-                    {quickActions({
-                      issue,
-                      parentRef: blockRef,
-                      customActionButton,
-                      placement,
-                    })}
-                  </div>
-                </div>
-              </>
-            </ControlLink>
-          }
-        />
-        <PopoverContent side="bottom" align="start" sideOffset={8}>
+                    {issue.name}
+                  </ControlLink>
+                }
+              />
+            </div>
+            <div
+              className={cn("relative z-[1] size-5 flex-shrink-0", {
+                "hidden group-hover/calendar-block:block": !isMobile,
+                block: isMenuActive,
+              })}
+            >
+              {quickActions({
+                issue,
+                parentRef: blockRef,
+                customActionButton,
+                placement,
+              })}
+            </div>
+          </div>
+        </div>
+        <PopoverContent side="bottom" align="start" sideOffset={8} anchor={blockRef}>
           {issue.project_id && (
             <WorkItemPreviewCard
               projectId={issue.project_id}

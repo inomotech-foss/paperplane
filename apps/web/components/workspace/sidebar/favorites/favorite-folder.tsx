@@ -180,6 +180,21 @@ export function FavoriteFolder(props: Props) {
             <DragDropOutline className="h-3 w-3" />
           </div>
 
+          <Tooltip
+            label={favorite.sort_order === null ? "Join the project to rearrange" : "Drag to rearrange"}
+            align="end"
+            disabled={isDragging || isMobile}
+          >
+            <DragHandle
+              className={cn(
+                "absolute top-1/2 -left-3 hidden -translate-y-1/2 items-center justify-center bg-transparent text-placeholder group-hover/project-item:flex",
+                {
+                  "cursor-not-allowed opacity-60": favorite.sort_order === null,
+                  "cursor-grabbing": isDragging,
+                }
+              )}
+            />
+          </Tooltip>
           <>
             <Tooltip label={`${favorite.name}`} layout="stacked" side="right" sideOffset={40} disabled={isMobile}>
               <div className="flex flex-grow truncate">
@@ -189,25 +204,6 @@ export function FavoriteFolder(props: Props) {
                   aria-expanded={isOpen}
                   onClick={() => setIsOpen(!isOpen)}
                 >
-                  <Tooltip
-                    label={favorite.sort_order === null ? "Join the project to rearrange" : "Drag to rearrange"}
-                    align="end"
-                    disabled={isDragging || isMobile}
-                  >
-                    {/* Visual drag affordance only: the whole row is the draggable, and a <span> keeps it from
-                        nesting a second button inside the folder toggle. Clicks bubble to the toggle as before. */}
-                    <span
-                      className={cn(
-                        "absolute top-1/2 -left-3 hidden -translate-y-1/2 cursor-grab items-center justify-center rounded-sm text-placeholder group-hover/project-item:flex",
-                        {
-                          "cursor-not-allowed opacity-60": favorite.sort_order === null,
-                          "cursor-grabbing": isDragging,
-                        }
-                      )}
-                    >
-                      <DragHandle className="bg-transparent" />
-                    </span>
-                  </Tooltip>
                   <div className="grid size-5 flex-shrink-0 place-items-center">
                     <FavoriteFolderIcon />
                   </div>

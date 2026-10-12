@@ -75,22 +75,25 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
         handleClose={() => toggleParentIssueModal(null)}
         onChange={(issue: any) => handleParentIssue(issue?.id)}
       />
-      <button
-        type="button"
+      <div
         className={cn(
-          "group flex items-center justify-between gap-2 rounded-sm px-2 py-0.5 outline-none",
+          "group relative flex items-center justify-between gap-2 rounded-sm px-2 py-0.5",
           {
-            "cursor-not-allowed": disabled,
             "hover:bg-layer-transparent-hover": !disabled,
             "bg-layer-transparent-selected": isParentIssueModalOpen,
           },
           className
         )}
-        onClick={() => toggleParentIssueModal(issue.id)}
-        disabled={disabled}
       >
+        <button
+          type="button"
+          className={cn("absolute inset-0 rounded-sm outline-none", { "cursor-not-allowed": disabled })}
+          aria-label={issue.parent_id ? t("change_parent_issue") : t("add_parent")}
+          onClick={() => toggleParentIssueModal(issue.id)}
+          disabled={disabled}
+        />
         {issue.parent_id && parentIssue ? (
-          <div className="flex items-center gap-1.5">
+          <div className="relative z-[1] flex items-center gap-1.5">
             <Tooltip label={`Title: ${parentIssue.name}`} layout="stacked" disabled={isMobile}>
               <Link href={workItemLink} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                 {parentIssue?.project_id && parentIssueProjectDetails && (
@@ -108,15 +111,13 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
 
             {!disabled && (
               <Tooltip label={t("common.remove")} side="bottom" disabled={isMobile}>
-                <span
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleRemoveSubIssue(workspaceSlug, projectId, parentIssue.id, issueId);
-                  }}
+                <button
+                  type="button"
+                  aria-label={t("common.remove")}
+                  onClick={() => handleRemoveSubIssue(workspaceSlug, projectId, parentIssue.id, issueId)}
                 >
                   <CloseOutline className="h-2.5 w-2.5 text-tertiary hover:text-danger-primary" />
-                </span>
+                </button>
               </Tooltip>
             )}
           </div>
@@ -132,7 +133,7 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
             <EditOutline className="h-2.5 w-2.5 flex-shrink-0" />
           </span>
         )}
-      </button>
+      </div>
     </>
   );
 });

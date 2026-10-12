@@ -201,7 +201,7 @@ const GanttRowToggle = observer(function GanttRowToggle(props: TGanttRowTogglePr
       </button>
     );
 
-  return <span className="grid size-4 flex-shrink-0 place-items-center">{content}</span>;
+  return <span className="relative z-[1] grid size-4 flex-shrink-0 place-items-center">{content}</span>;
 });
 
 // rendering issues on gantt sidebar
@@ -250,41 +250,41 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
   });
 
   return (
-    <ControlLink
-      id={`issue-${issueId}`}
-      href={workItemLink}
-      onClick={handleIssuePeekOverview}
-      className="line-clamp-1 w-full cursor-pointer text-13 text-primary"
-      disabled={!!issueDetails?.tempId}
-    >
-      <div className="relative flex h-full w-full cursor-pointer items-center gap-2">
-        {nestingDepth > 0 && <span aria-hidden className="flex-shrink-0" style={{ width: `${nestingDepth * 16}px` }} />}
-        {hierarchy && <GanttRowToggle rowState={rowState} onToggle={() => hierarchy.toggleRow(issueId)} />}
-        {issueDetails?.project_id && (
-          <IssueIdentifier
-            issueId={issueDetails.id}
-            projectId={issueDetails.project_id}
-            size="xs"
-            variant="tertiary"
-            displayProperties={issuesFilter?.issueFilters?.displayProperties}
-          />
-        )}
-        {issueType && (
-          <span className="flex flex-shrink-0 items-center">
-            <Logo logo={issueType.logo_props} size={14} />
-          </span>
-        )}
+    <div className="relative flex h-full w-full cursor-pointer items-center gap-2 text-13 text-primary">
+      {nestingDepth > 0 && <span aria-hidden className="flex-shrink-0" style={{ width: `${nestingDepth * 16}px` }} />}
+      {hierarchy && <GanttRowToggle rowState={rowState} onToggle={() => hierarchy.toggleRow(issueId)} />}
+      {issueDetails?.project_id && (
+        <IssueIdentifier
+          issueId={issueDetails.id}
+          projectId={issueDetails.project_id}
+          size="xs"
+          variant="tertiary"
+          displayProperties={issuesFilter?.issueFilters?.displayProperties}
+        />
+      )}
+      {issueType && (
+        <span className="flex flex-shrink-0 items-center">
+          <Logo logo={issueType.logo_props} size={14} />
+        </span>
+      )}
+      <ControlLink
+        id={`issue-${issueId}`}
+        href={workItemLink}
+        onClick={handleIssuePeekOverview}
+        className="flex-grow truncate font-medium after:absolute after:inset-0"
+        disabled={!!issueDetails?.tempId}
+      >
         <Tooltip label={issueDetails?.name ?? ""} layout="stacked" disabled={isMobile}>
-          <span className="flex-grow truncate text-13 font-medium">{issueDetails?.name}</span>
+          <span className="relative z-[1]">{issueDetails?.name}</span>
         </Tooltip>
-        {!!rowState?.hasChildren && !rowState.isExpanded && rowState.hiddenCount > 0 && (
-          <Tooltip label={t("timeline_hierarchy.hidden_children", { count: rowState.hiddenCount })} disabled={isMobile}>
-            <span className="flex-shrink-0 rounded-sm bg-layer-2 px-1 text-11 text-tertiary">
-              {rowState.hiddenCount}
-            </span>
-          </Tooltip>
-        )}
-      </div>
-    </ControlLink>
+      </ControlLink>
+      {!!rowState?.hasChildren && !rowState.isExpanded && rowState.hiddenCount > 0 && (
+        <Tooltip label={t("timeline_hierarchy.hidden_children", { count: rowState.hiddenCount })} disabled={isMobile}>
+          <span className="relative z-[1] flex-shrink-0 rounded-sm bg-layer-2 px-1 text-11 text-tertiary">
+            {rowState.hiddenCount}
+          </span>
+        </Tooltip>
+      )}
+    </div>
   );
 });

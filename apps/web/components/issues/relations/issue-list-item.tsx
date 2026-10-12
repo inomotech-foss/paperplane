@@ -124,112 +124,88 @@ export const RelationIssueListItem = observer(function RelationIssueListItem(pro
 
   return (
     <div key={relationIssueId}>
-      <ControlLink
-        id={`issue-${issue.id}`}
-        href={workItemLink}
-        onClick={() => handleIssuePeekOverview(issue)}
-        className="w-full cursor-pointer"
-      >
-        {issue && (
-          <div className="group relative flex h-full min-h-11 w-full items-center px-1.5 py-1 transition-all hover:bg-surface-2">
-            <span className="size-5 flex-shrink-0" />
-            <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
-              <div className="flex-shrink-0">
-                {projectDetail && (
-                  <IssueIdentifier
-                    projectId={projectDetail.id}
-                    issueTypeId={issue.type_id}
-                    projectIdentifier={projectDetail.identifier}
-                    issueSequenceId={issue.sequence_id}
-                    size="xs"
-                    variant="secondary"
+      {issue && (
+        <div className="group relative flex h-full min-h-11 w-full items-center px-1.5 py-1 transition-all hover:bg-surface-2">
+          <span className="size-5 flex-shrink-0" />
+          <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
+            <div className="flex-shrink-0">
+              {projectDetail && (
+                <IssueIdentifier
+                  projectId={projectDetail.id}
+                  issueTypeId={issue.type_id}
+                  projectIdentifier={projectDetail.identifier}
+                  issueSequenceId={issue.sequence_id}
+                  size="xs"
+                  variant="secondary"
+                />
+              )}
+            </div>
+
+            <ControlLink
+              id={`issue-${issue.id}`}
+              href={workItemLink}
+              onClick={() => handleIssuePeekOverview(issue)}
+              className="w-0 flex-1 truncate text-13 text-primary after:absolute after:inset-0"
+            >
+              <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
+                <span className="relative z-[1]">{issue.name}</span>
+              </Tooltip>
+            </ControlLink>
+          </div>
+          <div className="relative z-[1] flex-shrink-0 text-13">
+            <RelationIssueProperty
+              workspaceSlug={workspaceSlug}
+              issueId={relationIssueId}
+              disabled={disabled}
+              issueOperations={issueOperations}
+              issueServiceType={issueServiceType}
+            />
+          </div>
+          <div className="relative z-[1] flex-shrink-0 pl-2 text-13">
+            <Menu>
+              {/* Icon-only trigger, so it needs an explicit accessible name. */}
+              <MenuTrigger
+                render={
+                  <IconButton
+                    variant="ghost"
+                    size="sm"
+                    aria-label={t("aria_labels.common.more_actions")}
+                    icon={<Icon icon={MoreHorizontalOutline} />}
+                  />
+                }
+              />
+              <MenuContent side="bottom" align="end">
+                {!disabled && (
+                  <MenuItem
+                    icon={<Icon icon={EditOutline} />}
+                    label={t("common.actions.edit")}
+                    onClick={handleEditIssue}
                   />
                 )}
-              </div>
-
-              <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
-                <span className="w-0 flex-1 truncate text-13 text-primary">{issue.name}</span>
-              </Tooltip>
-            </div>
-            {/* The row's ControlLink activates on click and on Enter/Space, so a property picker's
-                own activation must not reach it. */}
-            <div
-              role="presentation"
-              className="flex-shrink-0 text-13"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") e.stopPropagation();
-              }}
-            >
-              <RelationIssueProperty
-                workspaceSlug={workspaceSlug}
-                issueId={relationIssueId}
-                disabled={disabled}
-                issueOperations={issueOperations}
-                issueServiceType={issueServiceType}
-              />
-            </div>
-            {/* The row's ControlLink activates on click and on Enter/Space, so the menu's own
-                activation must not reach it. */}
-            <div
-              role="presentation"
-              className="flex-shrink-0 pl-2 text-13"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") e.stopPropagation();
-              }}
-            >
-              <Menu>
-                {/* Icon-only trigger, so it needs an explicit accessible name. */}
-                <MenuTrigger
-                  render={
-                    <IconButton
-                      variant="ghost"
-                      size="sm"
-                      aria-label={t("aria_labels.common.more_actions")}
-                      icon={<Icon icon={MoreHorizontalOutline} />}
-                    />
-                  }
+                <MenuItem
+                  icon={<Icon icon={LinkOutline} />}
+                  label={t("common.actions.copy_link")}
+                  onClick={handleCopyIssueLink}
                 />
-                <MenuContent side="bottom" align="end">
-                  {!disabled && (
-                    <MenuItem
-                      icon={<Icon icon={EditOutline} />}
-                      label={t("common.actions.edit")}
-                      onClick={handleEditIssue}
-                    />
-                  )}
+                {!disabled && (
                   <MenuItem
-                    icon={<Icon icon={LinkOutline} />}
-                    label={t("common.actions.copy_link")}
-                    onClick={handleCopyIssueLink}
+                    icon={<Icon icon={CloseOutline} />}
+                    label={t("common.actions.remove_relation")}
+                    onClick={handleRemoveRelation}
                   />
-                  {!disabled && (
-                    <MenuItem
-                      icon={<Icon icon={CloseOutline} />}
-                      label={t("common.actions.remove_relation")}
-                      onClick={handleRemoveRelation}
-                    />
-                  )}
-                  {!disabled && (
-                    <MenuItem
-                      icon={<Icon icon={DeleteOutline} />}
-                      label={t("common.actions.delete")}
-                      onClick={handleDeleteIssue}
-                    />
-                  )}
-                </MenuContent>
-              </Menu>
-            </div>
+                )}
+                {!disabled && (
+                  <MenuItem
+                    icon={<Icon icon={DeleteOutline} />}
+                    label={t("common.actions.delete")}
+                    onClick={handleDeleteIssue}
+                  />
+                )}
+              </MenuContent>
+            </Menu>
           </div>
-        )}
-      </ControlLink>
+        </div>
+      )}
     </div>
   );
 });

@@ -99,11 +99,14 @@ export const useExportColumns = () => {
         checkExpiry(rowData.created_at) ? (
           <>
             {rowData.status == "completed" ? (
-              <a target="_blank" href={rowData?.url} rel="noopener noreferrer">
-                <button className="flex w-full items-center gap-1 font-medium text-accent-primary">
-                  <DownloadOutline className="h-4 w-4" />
-                  <div>Download</div>
-                </button>
+              <a
+                target="_blank"
+                href={rowData?.url}
+                rel="noopener noreferrer"
+                className="flex w-full items-center gap-1 font-medium text-accent-primary"
+              >
+                <DownloadOutline className="h-4 w-4" />
+                <span>Download</span>
               </a>
             ) : (
               "-"

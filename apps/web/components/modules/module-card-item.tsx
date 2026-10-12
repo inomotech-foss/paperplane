@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { SyntheticEvent } from "react";
 import React, { useRef } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
@@ -22,7 +21,6 @@ import { FavoriteStar } from "@plane/blocks/common";
 import { DateRangeSelect } from "@plane/blocks/property-select";
 import { getDate, renderFormattedPayloadDate, generateQueryParams } from "@plane/utils";
 // components
-import { handleTriggerKeyDown } from "@/components/common/trigger-guard";
 import { ButtonAvatars } from "@/components/dropdowns/member/avatar";
 import { ModuleQuickActions } from "@/components/modules";
 import { ModuleStatusDropdown } from "@/components/modules/module-status-dropdown";
@@ -111,11 +109,6 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
     });
   };
 
-  const handleEventPropagation = (e: SyntheticEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
-
   const handleModuleDetailsChange = async (payload: Partial<IModule>) => {
     if (!workspaceSlug || !projectId) return;
 
@@ -175,90 +168,80 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
   const progressValue = moduleTotalIssues > 0 ? (moduleCompletedIssues / moduleTotalIssues) * 100 : 0;
 
   return (
-    <div className="relative" data-prevent-progress>
-      <Link ref={parentRef} href={`/${workspaceSlug}/projects/${moduleDetails.project_id}/modules/${moduleDetails.id}`}>
-        <Card>
-          <div>
-            <div className="flex items-center justify-between gap-2">
-              <Tooltip label={moduleDetails.name} layout="stacked" disabled={isMobile}>
-                <span className="truncate text-14 font-medium">{moduleDetails.name}</span>
-              </Tooltip>
-              {/* Ruling 38: guard both halves — the card root is a `Link`. */}
-              <div
-                className="flex items-center gap-2"
-                role="presentation"
-                onClick={handleEventPropagation}
-                onKeyDown={handleTriggerKeyDown}
-              >
-                {moduleStatus && (
-                  <ModuleStatusDropdown
-                    isDisabled={isDisabled}
-                    moduleDetails={moduleDetails}
-                    handleModuleDetailsChange={handleModuleDetailsChange}
-                  />
-                )}
-                <button onClick={openModuleOverview}>
-                  <InfoOutline className="h-4 w-4 text-placeholder" />
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-secondary">
-                <WorkItemsOutline className="h-4 w-4 text-tertiary" />
-                <span className="text-11 text-tertiary">{issueCount ?? "0 Work item"}</span>
-              </div>
-              {moduleLeadDetails ? (
-                <span className="cursor-default">
-                  <ButtonAvatars showTooltip={false} userIds={moduleLeadDetails?.id} />
-                </span>
-              ) : (
-                <Tooltip label="No lead">
-                  <UserAltOutline className="mx-1 h-4 w-4 text-tertiary" />
-                </Tooltip>
-              )}
-            </div>
-            <LinearProgress
-              value={progressValue}
-              size="md"
-              variant="brand"
-              showValue={false}
-              aria-label="Module progress"
-            />
-            {/* Ruling 38: the whole card is a `Link`, so the trigger's click and keyboard
-                activation must not reach it. */}
-            <div
-              className="flex items-center justify-between py-0.5"
-              role="presentation"
-              onClick={handleEventPropagation}
-              onKeyDown={handleTriggerKeyDown}
+    <div ref={parentRef} className="relative" data-prevent-progress>
+      <Card>
+        <div>
+          <div className="flex items-center justify-between gap-2">
+            <Link
+              href={`/${workspaceSlug}/projects/${moduleDetails.project_id}/modules/${moduleDetails.id}`}
+              className="truncate after:absolute after:inset-0"
             >
-              <DateRangeSelect
-                variant="select-ghost-md"
-                className={`h-6 w-full gap-1.5 rounded-sm border-[0.5px] border-strong text-11 text-tertiary ${
-                  isDisabled ? "cursor-not-allowed" : "cursor-pointer"
-                }`}
-                value={{
-                  from: getDate(moduleDetails.start_date) ?? null,
-                  to: getDate(moduleDetails.target_date) ?? null,
-                }}
-                onChange={(range) => {
-                  void handleModuleDetailsChange({
-                    start_date: range.from ? renderFormattedPayloadDate(range.from) : null,
-                    target_date: range.to ? renderFormattedPayloadDate(range.to) : null,
-                  });
-                }}
-                placeholder="Start date - End date"
-                weekStartsOn={userProfile?.start_of_the_week}
-                disabled={isDisabled}
-                icon={renderIcon ? undefined : <CalendarOutline aria-hidden="true" />}
-              />
+              <Tooltip label={moduleDetails.name} layout="stacked" disabled={isMobile}>
+                <span className="relative z-[1] text-14 font-medium">{moduleDetails.name}</span>
+              </Tooltip>
+            </Link>
+            <div className="relative z-[1] flex items-center gap-2">
+              {moduleStatus && (
+                <ModuleStatusDropdown
+                  isDisabled={isDisabled}
+                  moduleDetails={moduleDetails}
+                  handleModuleDetailsChange={handleModuleDetailsChange}
+                />
+              )}
+              <button type="button" aria-label="Module details" onClick={openModuleOverview}>
+                <InfoOutline className="h-4 w-4 text-placeholder" />
+              </button>
             </div>
           </div>
-        </Card>
-      </Link>
-      <div className="absolute right-4 bottom-[18px] flex items-center gap-1.5">
+        </div>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-secondary">
+              <WorkItemsOutline className="h-4 w-4 text-tertiary" />
+              <span className="text-11 text-tertiary">{issueCount ?? "0 Work item"}</span>
+            </div>
+            {moduleLeadDetails ? (
+              <span className="cursor-default">
+                <ButtonAvatars showTooltip={false} userIds={moduleLeadDetails?.id} />
+              </span>
+            ) : (
+              <Tooltip label="No lead">
+                <UserAltOutline className="mx-1 h-4 w-4 text-tertiary" />
+              </Tooltip>
+            )}
+          </div>
+          <LinearProgress
+            value={progressValue}
+            size="md"
+            variant="brand"
+            showValue={false}
+            aria-label="Module progress"
+          />
+          <div className="relative z-[1] flex items-center justify-between py-0.5">
+            <DateRangeSelect
+              variant="select-ghost-md"
+              className={`h-6 w-full gap-1.5 rounded-sm border-[0.5px] border-strong text-11 text-tertiary ${
+                isDisabled ? "cursor-not-allowed" : "cursor-pointer"
+              }`}
+              value={{
+                from: getDate(moduleDetails.start_date) ?? null,
+                to: getDate(moduleDetails.target_date) ?? null,
+              }}
+              onChange={(range) => {
+                void handleModuleDetailsChange({
+                  start_date: range.from ? renderFormattedPayloadDate(range.from) : null,
+                  target_date: range.to ? renderFormattedPayloadDate(range.to) : null,
+                });
+              }}
+              placeholder="Start date - End date"
+              weekStartsOn={userProfile?.start_of_the_week}
+              disabled={isDisabled}
+              icon={renderIcon ? undefined : <CalendarOutline aria-hidden="true" />}
+            />
+          </div>
+        </div>
+      </Card>
+      <div className="absolute right-4 bottom-[18px] z-[1] flex items-center gap-1.5">
         {isEditingAllowed && (
           <FavoriteStar
             onClick={(e) => {

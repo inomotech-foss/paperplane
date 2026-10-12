@@ -83,12 +83,8 @@ export const PageListBlock = observer(function PageListBlock(props: TPageListBlo
                 {hasChildPages ? (
                   <button
                     type="button"
-                    className="grid size-5 flex-shrink-0 place-items-center rounded-sm text-tertiary transition-colors hover:bg-layer-1 hover:text-primary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleToggleExpanded?.();
-                    }}
+                    className="relative z-[1] grid size-5 flex-shrink-0 place-items-center rounded-sm text-tertiary transition-colors hover:bg-layer-1 hover:text-primary"
+                    onClick={() => handleToggleExpanded?.()}
                     aria-expanded={isExpanded}
                     aria-label={t(isExpanded ? "page_list_tree.collapse_button" : "page_list_tree.expand_button")}
                   >
