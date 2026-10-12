@@ -48,7 +48,6 @@ from plane.db.models import (
 )
 from plane.utils.cycle_transfer_issues import transfer_cycle_issues
 from plane.utils.order_queryset import CYCLE_ORDER_BY_ALLOWLIST, ISSUE_ORDER_BY_ALLOWLIST, sanitize_order_by
-from plane.utils.host import base_host
 from .base import BaseAPIView
 from .work_item_filter import WorkItemFilterMixin
 from plane.bgtasks.webhook_task import model_activity
@@ -356,7 +355,6 @@ class CycleListCreateAPIEndpoint(BaseAPIView):
                     current_instance=None,
                     actor_id=request.user.id,
                     slug=slug,
-                    origin=base_host(request=request, is_app=True),
                 )
 
                 cycle = Cycle.objects.get(pk=serializer.instance.id)
@@ -612,7 +610,6 @@ class CycleDetailAPIEndpoint(BaseAPIView):
                 current_instance=current_instance,
                 actor_id=request.user.id,
                 slug=slug,
-                origin=base_host(request=request, is_app=True),
             )
             cycle = Cycle.objects.get(pk=serializer.instance.id)
             serializer = CycleSerializer(cycle)
@@ -1074,7 +1071,6 @@ class CycleIssueListCreateAPIEndpoint(WorkItemFilterMixin, BaseAPIView):
             ),
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=base_host(request=request, is_app=True),
         )
         # Return all Cycle Issues
         return Response(
@@ -1269,7 +1265,6 @@ class TransferCycleIssueAPIEndpoint(BaseAPIView):
             project_id=project_id,
             cycle_id=cycle_id,
             new_cycle_id=new_cycle_id,
-            request=request,
             user_id=self.request.user.id,
         )
 

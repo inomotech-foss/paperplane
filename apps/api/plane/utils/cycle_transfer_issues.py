@@ -29,7 +29,6 @@ from plane.db.models import (
 )
 from plane.utils.analytics_plot import burndown_plot
 from plane.bgtasks.issue_activities_task import issue_activity
-from plane.utils.host import base_host
 
 
 def transfer_cycle_issues(
@@ -37,7 +36,6 @@ def transfer_cycle_issues(
     project_id,
     cycle_id,
     new_cycle_id,
-    request,
     user_id,
 ):
     """
@@ -48,7 +46,6 @@ def transfer_cycle_issues(
         project_id: Project ID
         cycle_id: Source cycle ID
         new_cycle_id: Destination cycle ID
-        request: HTTP request object
         user_id: User ID performing the transfer
 
     Returns:
@@ -472,7 +469,6 @@ def transfer_cycle_issues(
         ),
         epoch=int(timezone.now().timestamp()),
         notification=True,
-        origin=base_host(request=request, is_app=True),
     )
 
     return {"success": True}

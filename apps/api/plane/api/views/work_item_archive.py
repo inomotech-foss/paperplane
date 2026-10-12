@@ -14,7 +14,6 @@ from plane.app.permissions import ProjectEntityPermission
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.db.models import Issue
 from plane.db.models.state import StateGroup
-from plane.utils.host import base_host
 from plane.utils.openapi import (
     CURSOR_PARAMETER,
     EXPAND_PARAMETER,
@@ -114,7 +113,6 @@ class WorkItemArchiveAPIEndpoint(BaseAPIView):
             current_instance=json.dumps(IssueSerializer(issue).data, cls=DjangoJSONEncoder),
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=base_host(request=request, is_app=True),
         )
 
     @work_item_docs(

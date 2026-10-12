@@ -50,7 +50,6 @@ from plane.bgtasks.issue_description_version_task import issue_description_versi
 from plane.app.views.base import BaseAPIView
 from plane.utils.timezone_converter import user_timezone_converter
 from plane.utils.global_paginator import paginate
-from plane.utils.host import base_host
 from plane.db.models.intake import SourceType
 
 
@@ -284,7 +283,6 @@ class IntakeIssueViewSet(BaseViewSet):
                 current_instance=None,
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=base_host(request=request, is_app=True),
                 intake=str(intake_issue.id),
             )
             # updated issue description version
@@ -445,7 +443,6 @@ class IntakeIssueViewSet(BaseViewSet):
                         current_instance=issue_current_instance,
                         epoch=int(timezone.now().timestamp()),
                         notification=True,
-                        origin=base_host(request=request, is_app=True),
                         intake=str(intake_issue.id),
                     )
                     # updated issue description version
@@ -467,7 +464,6 @@ class IntakeIssueViewSet(BaseViewSet):
                 current_instance=intake_current_instance,
                 epoch=int(timezone.now().timestamp()),
                 notification=False,
-                origin=base_host(request=request, is_app=True),
                 intake=str(intake_issue.id),
             )
 

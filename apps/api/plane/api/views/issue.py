@@ -90,7 +90,6 @@ from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
 from .base import BaseAPIView
 from .work_item_filter import WorkItemFilterMixin
 from plane.utils.issue_property import build_issue_property_filters
-from plane.utils.host import base_host
 from plane.utils.issue_relation_mapper import get_actual_relation
 from plane.bgtasks.webhook_task import model_activity
 from plane.app.permissions import ROLE
@@ -535,7 +534,6 @@ class IssueListCreateAPIEndpoint(WorkItemFilterMixin, BaseAPIView):
                 current_instance=None,
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=base_host(request=request, is_app=True),
             )
 
             # Send the model activity
@@ -546,7 +544,6 @@ class IssueListCreateAPIEndpoint(WorkItemFilterMixin, BaseAPIView):
                 current_instance=None,
                 actor_id=request.user.id,
                 slug=slug,
-                origin=base_host(request=request, is_app=True),
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -696,7 +693,6 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                         current_instance=current_instance,
                         epoch=int(timezone.now().timestamp()),
                         notification=True,
-                        origin=base_host(request=request, is_app=True),
                     )
                     # Send the model activity for webhook dispatch
                     model_activity.delay(
@@ -706,7 +702,6 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                         current_instance=current_instance,
                         actor_id=request.user.id,
                         slug=slug,
-                        origin=base_host(request=request, is_app=True),
                     )
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 return Response(
@@ -756,7 +751,6 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                         current_instance=None,
                         epoch=int(timezone.now().timestamp()),
                         notification=True,
-                        origin=base_host(request=request, is_app=True),
                     )
                     # Send the model activity for webhook dispatch
                     model_activity.delay(
@@ -766,7 +760,6 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                         current_instance=None,
                         actor_id=request.user.id,
                         slug=slug,
-                        origin=base_host(request=request, is_app=True),
                     )
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -843,7 +836,6 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                 current_instance=current_instance,
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=base_host(request=request, is_app=True),
             )
             # Send the model activity for webhook dispatch
             model_activity.delay(
@@ -853,7 +845,6 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                 current_instance=current_instance,
                 actor_id=request.user.id,
                 slug=slug,
-                origin=base_host(request=request, is_app=True),
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1538,7 +1529,6 @@ class IssueCommentListCreateAPIEndpoint(BaseAPIView):
                 current_instance=None,
                 actor_id=request.user.id,
                 slug=slug,
-                origin=base_host(request=request, is_app=True),
             )
 
             serializer = IssueCommentSerializer(issue_comment)
@@ -1677,7 +1667,6 @@ class IssueCommentDetailAPIEndpoint(BaseAPIView):
                 current_instance=current_instance,
                 actor_id=request.user.id,
                 slug=slug,
-                origin=base_host(request=request, is_app=True),
             )
 
             issue_comment = IssueComment.objects.get(pk=serializer.instance.id)
@@ -2213,7 +2202,6 @@ class IssueAttachmentDetailAPIEndpoint(BaseAPIView):
             current_instance=None,
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=base_host(request=request, is_app=True),
         )
 
         # Get the storage metadata
@@ -2349,7 +2337,6 @@ class IssueAttachmentDetailAPIEndpoint(BaseAPIView):
                 current_instance=json.dumps(serializer.data, cls=DjangoJSONEncoder),
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=base_host(request=request, is_app=True),
             )
 
             # Update the attachment
@@ -2699,7 +2686,6 @@ class IssueRelationListCreateAPIEndpoint(BaseAPIView):
             current_instance=None,
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=base_host(request=request, is_app=True),
         )
 
         # Re-fetch with select_related to avoid N+1 queries in serializers.
@@ -2794,6 +2780,5 @@ class IssueRelationRemoveAPIEndpoint(BaseAPIView):
             current_instance=current_instance,
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=base_host(request=request, is_app=True),
         )
         return Response(status=status.HTTP_204_NO_CONTENT)

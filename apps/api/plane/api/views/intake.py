@@ -28,7 +28,6 @@ from plane.api.serializers import (
 from plane.app.permissions import ProjectLitePermission
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.db.models import Intake, IntakeIssue, Issue, Project, ProjectMember, State, StateGroup
-from plane.utils.host import base_host
 from plane.utils.content_validator import validate_html_content
 from .base import BaseAPIView
 from plane.db.models.intake import SourceType
@@ -440,7 +439,6 @@ class IntakeIssueDetailAPIEndpoint(BaseAPIView):
                 current_instance=current_instance,
                 epoch=int(timezone.now().timestamp()),
                 notification=False,
-                origin=base_host(request=request, is_app=True),
                 intake=str(intake_issue.id),
             )
             return Response(IntakeIssueSerializer(intake_issue).data, status=status.HTTP_200_OK)

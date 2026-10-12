@@ -456,7 +456,16 @@ def webhook_activity(
 
 
 @shared_task
-def model_activity(model_name, model_id, requested_data, current_instance, actor_id, slug, origin=None, source="user"):
+def model_activity(
+    model_name,
+    model_id,
+    requested_data,
+    current_instance,
+    actor_id,
+    slug,
+    origin=None,  # ignored, accepts tasks queued by the previous release
+    source="user",
+):
     """Function takes in two json and computes differences between keys of both the json"""
     if current_instance is None:
         webhook_activity.delay(
@@ -467,7 +476,7 @@ def model_activity(model_name, model_id, requested_data, current_instance, actor
             new_value=None,
             actor_id=actor_id,
             slug=slug,
-            current_site=origin,
+            current_site=None,
             event_id=model_id,
             old_identifier=None,
             new_identifier=None,
@@ -493,7 +502,7 @@ def model_activity(model_name, model_id, requested_data, current_instance, actor
                     new_value=requested_value,
                     actor_id=actor_id,
                     slug=slug,
-                    current_site=origin,
+                    current_site=None,
                     event_id=model_id,
                     old_identifier=None,
                     new_identifier=None,

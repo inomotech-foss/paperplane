@@ -1533,7 +1533,7 @@ def issue_activity(
     epoch,
     subscriber=True,
     notification=False,
-    origin=None,  # unused, emails use the configured app URL
+    origin=None,  # ignored, accepts tasks queued by the previous release
     intake=None,
     automation_context=None,
 ):

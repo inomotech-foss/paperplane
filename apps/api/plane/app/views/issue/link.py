@@ -20,7 +20,6 @@ from plane.app.permissions import ProjectEntityPermission
 from plane.db.models import IssueLink
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.bgtasks.work_item_link_task import crawl_work_item_link_title
-from plane.utils.host import base_host
 
 
 class IssueLinkViewSet(BaseViewSet):
@@ -59,7 +58,6 @@ class IssueLinkViewSet(BaseViewSet):
                 current_instance=None,
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=base_host(request=request, is_app=True),
             )
 
             issue_link = self.get_queryset().get(id=serializer.data.get("id"))
@@ -91,7 +89,6 @@ class IssueLinkViewSet(BaseViewSet):
                 current_instance=current_instance,
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=base_host(request=request, is_app=True),
             )
             issue_link = self.get_queryset().get(id=serializer.data.get("id"))
             serializer = IssueLinkSerializer(issue_link)
@@ -111,7 +108,6 @@ class IssueLinkViewSet(BaseViewSet):
             current_instance=current_instance,
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=base_host(request=request, is_app=True),
         )
         issue_link.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

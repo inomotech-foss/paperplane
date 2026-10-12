@@ -54,7 +54,6 @@ from plane.db.models import (
 )
 from plane.utils.analytics_plot import burndown_plot
 from plane.bgtasks.recent_visited_task import recent_visited_task
-from plane.utils.host import base_host
 from plane.utils.cycle_transfer_issues import transfer_cycle_issues
 from .. import BaseAPIView, BaseViewSet
 from plane.bgtasks.webhook_task import model_activity
@@ -322,7 +321,6 @@ class CycleViewSet(BaseViewSet):
                     current_instance=None,
                     actor_id=request.user.id,
                     slug=slug,
-                    origin=base_host(request=request, is_app=True),
                 )
                 return Response(cycle, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -401,7 +399,6 @@ class CycleViewSet(BaseViewSet):
                 current_instance=current_instance,
                 actor_id=request.user.id,
                 slug=slug,
-                origin=base_host(request=request, is_app=True),
             )
 
             return Response(cycle, status=status.HTTP_200_OK)
@@ -495,7 +492,6 @@ class CycleViewSet(BaseViewSet):
             current_instance=None,
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=base_host(request=request, is_app=True),
         )
         # TODO: Soft delete the cycle break the onetoone relationship with cycle issue
         cycle.delete()
@@ -608,7 +604,6 @@ class TransferCycleIssueEndpoint(BaseAPIView):
             project_id=project_id,
             cycle_id=cycle_id,
             new_cycle_id=new_cycle_id,
-            request=request,
             user_id=request.user.id,
         )
 

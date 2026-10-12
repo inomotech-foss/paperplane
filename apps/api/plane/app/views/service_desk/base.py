@@ -48,7 +48,6 @@ from plane.db.models import (
 )
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection, ServiceDeskNotifyMode
 from plane.utils.content_validator import validate_html_content
-from plane.utils.host import base_host
 from plane.utils.issue_type import work_item_type_error
 
 
@@ -318,7 +317,6 @@ class IssueEmailReplyEndpoint(BaseAPIView):
             current_instance=None,
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=base_host(request=request, is_app=True),
         )
         model_activity.delay(
             model_name="issue_comment",
@@ -327,7 +325,6 @@ class IssueEmailReplyEndpoint(BaseAPIView):
             current_instance=None,
             actor_id=str(request.user.id),
             slug=slug,
-            origin=base_host(request=request, is_app=True),
         )
 
         email_message = IssueEmailMessage.objects.create(
