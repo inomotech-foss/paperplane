@@ -32,7 +32,7 @@ from plane.utils.issue_type import link_starter_type
 
 from ..users import UserMatcher
 from .assets import AttachmentUploader
-from .backup import ConfluenceBackup, order_parents_first, sibling_sort_orders, space_keys
+from .backup import CONTAINER_TYPES, ConfluenceBackup, order_parents_first, sibling_sort_orders, space_keys
 from .jira import derive_base_urls
 from .naming import project_identifier, project_name
 from .resolvers import ConversionResult, ResolvedJiraIssue, ResolvedPage, ResolvedUser, Resolvers
@@ -57,9 +57,28 @@ PLACEHOLDER_HTML = (
 # under, marked with an icon since Plane has no folder of its own.
 CONTAINER_HTML = "<p></p>"
 CONTAINER_LOGOS = {
-    "folder": {"in_use": "emoji", "emoji": {"value": "128193"}},  # 📁
-    "database": {"in_use": "emoji", "emoji": {"value": "128451"}},  # 🗃
+    "folder": {"in_use": "emoji", "emoji": {"value": "128193"}},
+    "database": {"in_use": "emoji", "emoji": {"value": "128451"}},
 }
+
+# Part of the placeholder text, as it appears in an opened page's binary document.
+_PLACEHOLDER_MARK = b"stands in for a Confluence folder or database"
+
+
+def _is_placeholder(markup):
+    # The editor rewrites markup on save, so only the words identify it.
+    return same_text(markup, PLACEHOLDER_HTML)
+
+
+def _shows_placeholder(markup, binary):
+    """True if a page or version body shows the placeholder text.
+
+    The editor prefers the binary document, so an empty HTML body with a
+    binary that still holds the text counts too.
+    """
+    if _is_placeholder(markup):
+        return True
+    return same_text(markup, CONTAINER_HTML) and binary is not None and _PLACEHOLDER_MARK in bytes(binary)
 
 
 @dataclass(frozen=True)
@@ -79,9 +98,12 @@ class ImportSummary:
     updated: int = 0
     roots: int = 0
     containers: int = 0
-    # Folders and databases the backup holds, and the placeholders they replaced.
+    # Folders and databases the backup holds, and what the run did to them.
     folders: int = 0
+    folders_created: int = 0
     placeholders_replaced: int = 0
+    folders_repaired: int = 0
+    reparented: int = 0
     archived: int = 0
     locally_edited: int = 0
     kept: int = 0
@@ -149,13 +171,15 @@ class ConfluenceLoader:
         self.site = backup.site()
         self.jira_project_keys = backup.jira_project_keys()
 
-    def run(self, dry_run=False, structure_only=False, take=(), diff_dir=None):
+    def run(self, dry_run=False, structure_only=False, folders_only=False, take=(), diff_dir=None):
         """Load the space.
 
         A page whose readable text was changed in Plane keeps its body unless
-        its Confluence id is in ``take``; with ``diff_dir`` the plan writes
+        its Confluence id is in ``take``. With ``diff_dir`` the plan writes
         each such difference to a file. ``structure_only`` repairs parents,
         order, archive flags and placeholders but rewrites no existing body.
+        ``folders_only`` touches folder pages and the pages in placeholders
+        only, see ``_load_folders``.
         """
         summary = ImportSummary()
         space = self.backup.space()
@@ -164,6 +188,19 @@ class ConfluenceLoader:
             return summary
         pages = order_parents_first(self.backup.pages())
         orders = sibling_sort_orders(pages)
+
+        if folders_only:
+            project = self._imported_project(space)
+            if project is None:
+                summary.skipped = "space was never imported"
+                return summary
+            summary.project_id = str(project.id)
+            summary.project_name = project.name
+            with transaction.atomic():
+                self._load_folders(project, pages, orders, summary)
+                if dry_run:
+                    transaction.set_rollback(True)
+            return summary
 
         with transaction.atomic():
             users = self._user_map(pages, summary, extra={self.backup.space_owner_id()})
@@ -272,6 +309,13 @@ class ConfluenceLoader:
             projects.filter(deleted_at__isnull=False).exists() and not projects.filter(deleted_at__isnull=True).exists()
         )
 
+    def _imported_project(self, space):
+        return Project.objects.filter(
+            workspace=self.workspace,
+            external_source=self.EXTERNAL_SOURCE,
+            external_id=str(space.get("id") or space.get("key") or self.backup.space_key),
+        ).first()
+
     def _get_or_create_project(self, space, users=None, summary=None):
         """The project for this space, created on first sight.
 
@@ -280,14 +324,11 @@ class ConfluenceLoader:
         starts archived, and the space owner becomes a project admin so a
         personal space reaches the one person it belongs to.
         """
-        identifier_key = space.get("key") or self.backup.space_key
-        existing = Project.objects.filter(
-            workspace=self.workspace,
-            external_source=self.EXTERNAL_SOURCE,
-            external_id=str(space.get("id") or identifier_key),
-        ).first()
+        existing = self._imported_project(space)
         if existing:
             return existing
+
+        identifier_key = space.get("key") or self.backup.space_key
 
         existing_projects = Project.objects.filter(workspace=self.workspace)
         taken = set(existing_projects.values_list("identifier", flat=True))
@@ -375,23 +416,26 @@ class ConfluenceLoader:
 
     @staticmethod
     def _locally_edited(record, page):
-        if page.container and record.description_html == PLACEHOLDER_HTML:
+        if page.container and _is_placeholder(record.description_html):
             # A placeholder from a run without the folder: its dates are made
             # up from its pages, so only a rename by hand counts as an edit.
             return record.name != page.placeholder_title
         return bool(page.updated_at and record.updated_at and record.updated_at > page.updated_at + _EDIT_SLACK)
 
-    def _upsert_pages(self, project, pages, orders, users, summary):
+    def _upsert_pages(self, project, pages, orders, users, summary, records=None, keeps_place=None):
         """Create or refresh every page row.
 
-        Structure (parent, order, archive flag) always follows the backup.
-        Title, owner and timestamps are left alone on a page someone touched
-        in Plane since the import; whether its body is kept is decided by
-        content in the body pass. A page deleted in Plane stays deleted.
-        Returns the records plus the ids created and touched.
+        Structure (parent, order, archive flag) follows the backup, except for
+        an existing record ``keeps_place`` is true for. Title, owner and
+        timestamps are left alone on a page someone touched in Plane since the
+        import. Whether its body is kept is decided by content in the body
+        pass. A page deleted in Plane stays deleted. ``records`` holds rows a
+        parent can be found among besides the ones upserted here. Returns the
+        records plus the ids created and touched.
         """
         labels = self._upsert_labels(pages)
-        records, created, touched = {}, set(), set()
+        records = {} if records is None else records
+        created, touched = set(), set()
         for page in pages:
             owner = users.get(page.author_id)
             if owner is None and page.author_id and not page.placeholder:
@@ -404,6 +448,7 @@ class ConfluenceLoader:
             )
             record = rows.filter(deleted_at__isnull=True).first()
             local_updated_at = None
+            follows_backup = record is None or keeps_place is None or not keeps_place(record)
 
             if record is None and rows.exists():
                 summary.skipped_deleted += 1
@@ -421,6 +466,8 @@ class ConfluenceLoader:
                 )
                 created.add(page.id)
                 summary.created += 1
+                if page.container:
+                    summary.folders_created += 1
                 summary.changes.append(
                     Change("create", page.title, "placeholder" if page.placeholder else page.container or "")
                 )
@@ -446,22 +493,24 @@ class ConfluenceLoader:
                 if not record.logo_props:
                     record.logo_props = CONTAINER_LOGOS.get(page.container, {})
 
-            parent = records.get(page.parent_id)
-            if parent is None:
-                summary.roots += 1
-
-            sort_order = orders.get(page.id, record.sort_order)
-            if page.id not in created:
-                if record.parent_id != (parent.pk if parent else None):
-                    summary.changes.append(
-                        Change(
-                            "move", page.title, f"{self._parent_name(record.parent_id)} -> {self._parent_name(parent)}"
+            if follows_backup:
+                parent = records.get(page.parent_id)
+                sort_order = orders.get(page.id, record.sort_order)
+                if page.id not in created:
+                    if record.parent_id != (parent.pk if parent else None):
+                        summary.changes.append(
+                            Change(
+                                "move",
+                                page.title,
+                                f"{self._parent_name(record.parent_id)} -> {self._parent_name(parent)}",
+                            )
                         )
-                    )
-                if record.sort_order != sort_order:
-                    summary.reordered += 1
-            record.parent = parent
-            record.sort_order = sort_order
+                    if record.sort_order != sort_order:
+                        summary.reordered += 1
+                record.parent = parent
+                record.sort_order = sort_order
+            if record.parent_id is None:
+                summary.roots += 1
             # Archived in Confluence means archived here; never the reverse,
             # since an admin may have archived or restored a page by hand.
             if page.archived and record.archived_at is None:
@@ -481,6 +530,60 @@ class ConfluenceLoader:
             records[page.id] = record
 
         return records, created, touched
+
+    def _load_folders(self, project, pages, orders, summary):
+        """Create, replace or repair folder pages and leave every other page be.
+
+        A folder page takes its place from the backup when it is new, or when
+        it replaces a placeholder that is still at the root, where the import
+        put it. A page moves to its backup parent only if it sits in a
+        placeholder, where the import put it. Every other page keeps its
+        parent and order.
+        """
+        containers = [page for page in pages if page.container]
+        container_ids = {page.id for page in containers}
+        existing = Page.objects.filter(
+            workspace=self.workspace,
+            external_source=self.EXTERNAL_SOURCE,
+            external_id__in=[page.id for page in pages],
+            project_pages__project=project,
+        ).distinct()
+        records, placeholders = {}, set()
+        for record in existing:
+            if record.external_id.startswith(CONTAINER_TYPES) and _is_placeholder(record.description_html):
+                placeholders.add(record.pk)
+            if record.external_id not in container_ids:
+                records[record.external_id] = record
+        users = self._user_map(containers, summary)
+        records, created, _ = self._upsert_pages(
+            project,
+            containers,
+            orders,
+            users,
+            summary,
+            records=records,
+            keeps_place=lambda record: not (_is_placeholder(record.description_html) and record.parent_id is None),
+        )
+        for page in containers:
+            if page.id in records:
+                self._write_container_body(records[page.id], page, page.id in created, summary)
+        self._reparent(pages, records, orders, placeholders, summary)
+
+    def _reparent(self, pages, records, orders, placeholders, summary):
+        """Move pages that sit in a placeholder to their backup parent."""
+        for page in pages:
+            record = records.get(page.id)
+            if page.container or record is None or record.parent_id not in placeholders:
+                continue
+            parent = records.get(page.parent_id)
+            if record.parent_id == (parent.pk if parent else None):
+                continue
+            summary.reparented += 1
+            summary.changes.append(
+                Change("move", page.title, f"{self._parent_name(record.parent_id)} -> {self._parent_name(parent)}")
+            )
+            # update() leaves updated_at alone, so the move is not taken for an edit
+            Page.objects.filter(pk=record.pk).update(parent=parent, sort_order=orders.get(page.id, record.sort_order))
 
     def _space_keys_by_project(self):
         """Which Confluence space each imported project came from.
@@ -606,10 +709,7 @@ class ConfluenceLoader:
         for page in pages:
             record = records.get(page.id)
             if record is not None and page.container:
-                # Written when created, or over the text of the placeholder it
-                # replaces, even in a structure-only run: neither is anyone's text.
-                if page.id in created or record.description_html == PLACEHOLDER_HTML:
-                    self._write_container_body(record, page, replaced=page.id not in created, summary=summary)
+                self._write_container_body(record, page, page.id in created, summary)
                 continue
             if record is None or (only is not None and page.id not in only):
                 continue
@@ -663,22 +763,50 @@ class ConfluenceLoader:
         if uploader is not None:
             summary.unsupported_attachments |= uploader.unsupported
 
-    def _write_container_body(self, record, page, replaced, summary):
-        Page.objects.filter(pk=record.pk).update(description_html=CONTAINER_HTML, updated_at=page.updated_at)
+    def _write_container_body(self, record, page, created, summary):
+        """Empty a folder page that is new or still shows the placeholder text.
+
+        Runs in every mode, since the placeholder text is nobody's. Text
+        written into a folder page in Plane is kept. A page or version that
+        was converted earlier but still shows the placeholder is repaired.
+        """
+        replaced = _is_placeholder(record.description_html)
+        stale = _shows_placeholder(record.description_html, record.description_binary)
+        if created or stale:
+            Page.objects.filter(pk=record.pk).update(
+                description_html=CONTAINER_HTML, description_binary=None, description_json={}, description_stripped=""
+            )
+        versions = self._clean_placeholder_versions(record)
         if replaced:
             summary.placeholders_replaced += 1
             summary.changes.append(Change("replace", record.name, f"placeholder -> {page.container}"))
-            # the placeholder's version holds only the placeholder text
-            PageVersion.objects.filter(page_id=record.pk, description_html=PLACEHOLDER_HTML).update(
-                description_html=CONTAINER_HTML
-            )
+        elif not created and (stale or versions):
+            summary.folders_repaired += 1
+            detail = ", ".join(part for part, done in (("body", stale), (f"{versions} versions", versions)) if done)
+            summary.changes.append(Change("repair", record.name, detail))
         self._seed_version(record, page, CONTAINER_HTML)
+
+    @staticmethod
+    def _clean_placeholder_versions(record):
+        stale = [
+            version.pk
+            for version in PageVersion.objects.filter(page_id=record.pk).only(
+                "id", "description_html", "description_binary"
+            )
+            if _shows_placeholder(version.description_html, version.description_binary)
+        ]
+        if stale:
+            PageVersion.objects.filter(pk__in=stale).update(
+                description_html=CONTAINER_HTML, description_binary=None, description_json={}, description_stripped=""
+            )
+        return len(stale)
 
     def _seed_version(self, record, page, description_html):
         """Give an imported page the one version the backup can support.
 
         Only for a page with no versions at all: one that has them carries
-        its Confluence history, which is never rewritten.
+        its Confluence history, which is never rewritten. The version holds
+        the HTML only: the record's binary and JSON may be stale.
         """
         if PageVersion.objects.filter(page_id=record.pk).exists():
             return
@@ -689,8 +817,8 @@ class ConfluenceLoader:
             owned_by_id=record.owned_by_id,
             last_saved_at=page.updated_at,
             description_html=description_html,
-            description_json=record.description_json,
-            description_binary=record.description_binary,
+            description_json={},
+            description_binary=None,
             sub_pages_data={},
         )
 

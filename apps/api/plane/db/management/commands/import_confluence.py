@@ -33,7 +33,20 @@ class Command(BaseCommand):
         parser.add_argument(
             "--structure-only",
             action="store_true",
-            help="Repair parents, order, archive flags and folder placeholders without rewriting existing bodies",
+            help=(
+                "Repair parents, order, archive flags and folder placeholders without rewriting existing bodies. "
+                "Resets parent and order of every page to the backup, which undoes pages moved in Plane"
+            ),
+        )
+        parser.add_argument(
+            "--folders-only",
+            action="store_true",
+            help=(
+                "Create folder and database pages from folders.jsonl, replace their placeholders and repair "
+                "folder pages that still show placeholder text. A folder takes its place from the backup when "
+                "it is new or replaces a placeholder still at the root. A page moves to its backup parent only "
+                "if it sits in a placeholder. Every other page keeps its parent and order"
+            ),
         )
         parser.add_argument(
             "--include-personal", action="store_true", help="Allow importing a personal Confluence space"
@@ -62,32 +75,43 @@ class Command(BaseCommand):
         except ValueError as error:
             raise CommandError(str(error))
 
+        if options["folders_only"] and options["structure_only"]:
+            raise CommandError("--folders-only and --structure-only exclude each other")
+        if options["folders_only"] and not backup.containers():
+            raise CommandError(f"No folders.jsonl under {backup.space_dir}")
+
         dry_run = options["dry_run"] or options["plan"]
         take = [item.strip() for item in (options["take"] or "").split(",") if item.strip()]
         if options["diff_dir"]:
             Path(options["diff_dir"]).mkdir(parents=True, exist_ok=True)
         loader = ConfluenceLoader(workspace.slug, actor, backup, user_rules=user_rules)
         summary = loader.run(
-            dry_run=dry_run, structure_only=options["structure_only"], take=take, diff_dir=options["diff_dir"]
+            dry_run=dry_run,
+            structure_only=options["structure_only"],
+            folders_only=options["folders_only"],
+            take=take,
+            diff_dir=options["diff_dir"],
         )
         if summary.skipped:
             self.stdout.write(self.style.WARNING(f"skipped     {summary.skipped}"))
             return
-        self._report(summary, dry_run=dry_run)
+        self._report(summary, dry_run=dry_run, folders_only=options["folders_only"])
         if options["plan"]:
             self._plan(summary)
 
-    def _report(self, summary, dry_run):
+    def _report(self, summary, dry_run, folders_only=False):
         total = summary.created + summary.updated
         self.stdout.write(f"project     {summary.project_name} ({summary.project_id})")
         self.stdout.write(f"pages       {summary.created} created, {summary.updated} updated, {summary.roots} roots")
-        if summary.folders:
-            replaced = ""
-            if summary.placeholders_replaced:
-                replaced = f", {summary.placeholders_replaced} replacing placeholders"
-            self.stdout.write(f"folders     {summary.folders} folders and databases{replaced}")
+        if summary.folders or folders_only:
+            self.stdout.write(
+                f"folders     {summary.folders} folders and databases: {summary.folders_created} created, "
+                f"{summary.placeholders_replaced} placeholders replaced, {summary.folders_repaired} repaired"
+            )
         if summary.containers:
-            self.stdout.write(f"folders     {summary.containers} placeholder pages for folders and databases")
+            self.stdout.write(f"placeholder {summary.containers} pages stand in for folders and databases")
+        if summary.reparented or folders_only:
+            self.stdout.write(f"reparented  {summary.reparented} pages moved out of placeholders")
         if summary.archived:
             self.stdout.write(f"archived    {summary.archived} pages archived as in Confluence")
         if summary.kept:
@@ -142,7 +166,7 @@ class Command(BaseCommand):
         if dry_run:
             self.stdout.write(self.style.WARNING("dry run, rolled back"))
 
-    KINDS = ("create", "move", "rename", "archive", "keep", "skip")
+    KINDS = ("create", "replace", "repair", "move", "rename", "archive", "keep", "skip")
 
     def _plan(self, summary):
         counts = ", ".join(f"{kind} {sum(1 for c in summary.changes if c.kind == kind)}" for kind in self.KINDS)

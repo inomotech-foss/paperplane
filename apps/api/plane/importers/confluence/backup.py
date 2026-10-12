@@ -114,9 +114,9 @@ def _container_from_record(record):
 def attach_containers(pages, containers):
     """Hang pages and containers off the containers the backup holds.
 
-    A page in a folder records the folder's own id and type as its parent;
-    the folder's page row is stored under the placeholder id instead, so the
-    parent reference is rewritten to it.
+    A page in a folder names the folder's own id and type as its parent. The
+    folder's page row is stored under the placeholder id, so the parent
+    reference is rewritten to it.
     """
     known = {page.id for page in containers}
     for page in pages + containers:
@@ -283,8 +283,10 @@ class ConfluenceBackup:
             return ""
 
     def containers(self):
-        """The folders and databases of the space (folders.jsonl); empty for
-        a backup taken before the backup tool fetched them."""
+        """The folders and databases of the space, from folders.jsonl.
+
+        Empty for a backup taken before the backup tool fetched them.
+        """
         path = self.space_dir / "folders.jsonl"
         if not path.exists():
             return []
