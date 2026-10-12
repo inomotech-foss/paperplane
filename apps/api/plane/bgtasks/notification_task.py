@@ -8,6 +8,7 @@ import uuid
 
 
 # Module imports
+from plane.db.models.project import ProjectNetwork
 from plane.db.models import (
     IssueMention,
     IssueSubscriber,
@@ -293,9 +294,11 @@ def notifications(
             """
 
             # ---------------------------------------------------------------------------------------------------------
-            # Assignees keep hearing about their own items after leaving the project.
+            # Assignees outside a public project keep hearing about their own items.
+            # A secret project's membership is its access boundary.
             eligible_assignees = IssueAssignee.objects.filter(
                 issue_id=issue_id,
+                project__network=ProjectNetwork.PUBLIC.value,
                 assignee__is_active=True,
                 assignee__member_workspace__workspace_id=project.workspace_id,
                 assignee__member_workspace__is_active=True,
