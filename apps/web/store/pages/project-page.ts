@@ -161,11 +161,12 @@ export class ProjectPage extends BasePage implements TProjectPage {
   }
 
   /**
-   * @description returns true if the current logged in user can move the page
+   * @description returns true if the current logged in user can move or reorder the page
    */
   get canCurrentUserMovePage() {
     const highestRole = this.getHighestRoleAcrossProjects();
-    return this.isCurrentUserOwner || highestRole === EUserPermissions.ADMIN;
+    const isPagePublic = this.access === EPageAccess.PUBLIC;
+    return this.isCurrentUserOwner || (isPagePublic && !!highestRole && highestRole >= EUserPermissions.MEMBER);
   }
 
   /**

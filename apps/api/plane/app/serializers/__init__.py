@@ -120,6 +120,8 @@ from .page import (
     PageAttachmentSerializer,
     PageSerializer,
     PageDetailSerializer,
+    PagePositionSerializer,
+    PagePositionResponseSerializer,
     PageQuerySerializer,
     PageVersionSerializer,
     PageBinaryUpdateSerializer,

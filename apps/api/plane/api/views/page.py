@@ -14,6 +14,7 @@ from drf_spectacular.utils import OpenApiResponse, OpenApiRequest
 from plane.api.serializers import PageSerializer
 from plane.app.permissions import ProjectEntityPermission
 from plane.db.models import Page, Project, ProjectPage
+from plane.utils.page_order import next_sort_order
 from .base import BaseAPIView
 from plane.utils.openapi import (
     page_docs,
@@ -111,6 +112,7 @@ class PageListCreateAPIEndpoint(BaseAPIView):
             page = serializer.save(
                 workspace_id=project.workspace_id,
                 owned_by_id=request.user.id,
+                sort_order=next_sort_order(project_id, parent.id if parent else None),
             )
             # Link the page to the project
             ProjectPage.objects.create(

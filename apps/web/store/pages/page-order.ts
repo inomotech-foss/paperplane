@@ -3,23 +3,37 @@
  * See the LICENSE file for details.
  */
 
-export const DEFAULT_SORT_ORDER = 65535;
-export const SORT_ORDER_STEP = 10000;
+export type TPagePlacement = {
+  parentId: string | null;
+  before?: string;
+  after?: string;
+};
 
-export const RENUMBER_SIBLINGS = "renumber" as const;
+type TReorderParams = {
+  sourceId: string;
+  targetId: string;
+  position: "above" | "below";
+  parentId: string | null;
+  // the rendered row group of the target, which at the top level can hold pages whose parent is in another tab
+  visibleSiblingIds: string[];
+  getParentId: (pageId: string) => string | null;
+};
 
-export type TSortOrderResult = number | typeof RENUMBER_SIBLINGS;
-
-export const renumberedSortOrder = (index: number): number => (index + 1) * SORT_ORDER_STEP;
-
-// sibling sort orders exclude the dragged page; RENUMBER_SIBLINGS means no room between neighbours
-export const getInsertSortOrder = (siblingSortOrders: number[], index: number): TSortOrderResult => {
-  if (siblingSortOrders.length === 0) return DEFAULT_SORT_ORDER;
-  if (index <= 0) return siblingSortOrders[0] - SORT_ORDER_STEP;
-  if (index >= siblingSortOrders.length) return siblingSortOrders[siblingSortOrders.length - 1] + SORT_ORDER_STEP;
-  const before = siblingSortOrders[index - 1];
-  const after = siblingSortOrders[index];
-  const midpoint = (before + after) / 2;
-  if (before >= after || midpoint <= before || midpoint >= after) return RENUMBER_SIBLINGS;
-  return midpoint;
+/**
+ * Anchors the drop to the nearest real sibling of `parentId`, so rows that only look
+ * like siblings are never used as anchors.
+ */
+export const getReorderPlacement = (params: TReorderParams): TPagePlacement => {
+  const { sourceId, targetId, position, parentId, visibleSiblingIds, getParentId } = params;
+  const rowIds = visibleSiblingIds.filter((id) => id !== sourceId);
+  const targetIndex = rowIds.indexOf(targetId);
+  if (targetIndex < 0) return { parentId };
+  const insertIndex = position === "above" ? targetIndex : targetIndex + 1;
+  const isSibling = (id: string) => getParentId(id) === parentId;
+  for (let index = insertIndex - 1; index >= 0; index--) {
+    if (isSibling(rowIds[index])) return { parentId, after: rowIds[index] };
+  }
+  const before = rowIds.slice(insertIndex).find(isSibling);
+  if (before) return { parentId, before };
+  return { parentId };
 };

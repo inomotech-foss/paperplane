@@ -8,7 +8,7 @@ from datetime import datetime
 from django.core.serializers.json import DjangoJSONEncoder
 
 # Django imports
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import (
     Exists,
     OuterRef,
@@ -27,6 +27,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db.models.functions import Coalesce
 
 # Third party imports
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -36,6 +37,8 @@ from plane.app.serializers import (
     PageSerializer,
     PageDetailSerializer,
     PageBinaryUpdateSerializer,
+    PagePositionSerializer,
+    PagePositionResponseSerializer,
 )
 from plane.db.models import (
     Page,
@@ -48,6 +51,7 @@ from plane.db.models import (
     UserRecentVisit,
 )
 from plane.utils.error_codes import ERROR_CODES
+from plane.utils.page_order import PagePlacementError, next_sort_order, place_page
 from plane.utils.order_queryset import PAGE_ORDER_BY_ALLOWLIST, sanitize_order_by
 
 # Local imports
@@ -186,6 +190,9 @@ class PageViewSet(BaseViewSet):
             if page.is_locked:
                 return Response({"error": "Page is locked"}, status=status.HTTP_400_BAD_REQUEST)
 
+            if page.archived_at and ("parent" in request.data or "sort_order" in request.data):
+                return Response({"error": "Archived pages cannot be moved"}, status=status.HTTP_400_BAD_REQUEST)
+
             parent = request.data.get("parent", None)
             if parent:
                 _ = Page.objects.get(
@@ -221,6 +228,49 @@ class PageViewSet(BaseViewSet):
                 {"error": "Access cannot be updated since this page is owned by someone else"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    @extend_schema(
+        request=PagePositionSerializer,
+        responses={
+            200: PagePositionResponseSerializer,
+            400: OpenApiResponse(description="Invalid parent or anchor, or the page is locked or archived"),
+        },
+    )
+    def position(self, request, slug, project_id, page_id):
+        """Move a page under a parent, before or after a sibling or at the end.
+
+        Siblings are renumbered when needed. That needs no permission on them.
+        """
+        serializer = PagePositionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            page = (
+                Page.objects.select_for_update(of=("self",))
+                .filter(
+                    pk=page_id,
+                    workspace__slug=slug,
+                    project_pages__project_id=project_id,
+                    project_pages__deleted_at__isnull=True,
+                )
+                .first()
+            )
+            if page is None:
+                return Response({"error": "Page not found"}, status=status.HTTP_404_NOT_FOUND)
+            if page.is_locked:
+                return Response({"error": "Page is locked"}, status=status.HTTP_400_BAD_REQUEST)
+            if page.archived_at:
+                return Response({"error": "Archived pages cannot be moved"}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                changed = place_page(
+                    page,
+                    project_id,
+                    serializer.validated_data["parent"],
+                    before_id=serializer.validated_data.get("before"),
+                    after_id=serializer.validated_data.get("after"),
+                )
+            except PagePlacementError as error:
+                return Response({"error": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(PagePositionResponseSerializer({"pages": changed}).data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, slug, project_id, page_id=None):
         page = self.get_queryset().filter(pk=page_id).first()
@@ -633,6 +683,7 @@ class PageDuplicateEndpoint(BaseAPIView):
         page.owned_by = request.user
         page.created_by = request.user
         page.updated_by = request.user
+        page.sort_order = next_sort_order(project_id, page.parent_id)
         page.save()
 
         for project_id in project_ids:
