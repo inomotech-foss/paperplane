@@ -37,7 +37,7 @@ from .jira import derive_base_urls
 from .naming import project_identifier, project_name
 from .resolvers import ConversionResult, ResolvedJiraIssue, ResolvedPage, ResolvedUser, Resolvers
 from .storage import storage_to_html
-from .text import same_text, text_diff
+from .text import page_text, same_text, text_diff
 
 _ACCOUNT_ID = re.compile(r'ri:account-id="([^"]+)"')
 
@@ -79,6 +79,11 @@ def _shows_placeholder(markup, binary):
     if _is_placeholder(markup):
         return True
     return same_text(markup, CONTAINER_HTML) and binary is not None and _PLACEHOLDER_MARK in bytes(binary)
+
+
+def _holds_placeholder(markup):
+    """True if the placeholder text is still there next to text written in Plane."""
+    return any(_PLACEHOLDER_MARK.decode() in line for line in page_text(markup))
 
 
 @dataclass(frozen=True)
@@ -772,6 +777,10 @@ class ConfluenceLoader:
         """
         replaced = _is_placeholder(record.description_html)
         stale = _shows_placeholder(record.description_html, record.description_binary)
+        if not (created or replaced or stale) and _holds_placeholder(record.description_html):
+            summary.kept += 1
+            summary.changes.append(Change("keep", record.name, "placeholder text plus edits"))
+            return
         if created or stale:
             Page.objects.filter(pk=record.pk).update(
                 description_html=CONTAINER_HTML, description_binary=None, description_json={}, description_stripped=""

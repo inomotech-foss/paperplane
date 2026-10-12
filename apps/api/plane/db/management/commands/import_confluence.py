@@ -102,7 +102,10 @@ class Command(BaseCommand):
     def _report(self, summary, dry_run, folders_only=False):
         total = summary.created + summary.updated
         self.stdout.write(f"project     {summary.project_name} ({summary.project_id})")
-        self.stdout.write(f"pages       {summary.created} created, {summary.updated} updated, {summary.roots} roots")
+        if not folders_only:
+            self.stdout.write(
+                f"pages       {summary.created} created, {summary.updated} updated, {summary.roots} roots"
+            )
         if summary.folders or folders_only:
             self.stdout.write(
                 f"folders     {summary.folders} folders and databases: {summary.folders_created} created, "

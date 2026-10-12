@@ -541,6 +541,23 @@ class TestFoldersOnly:
         assert (folder.parent_id, folder.sort_order) == (home.id, 7)
         assert folder.description_html == CONTAINER_HTML
 
+    def test_a_placeholder_written_in_is_kept_and_its_versions_left_alone(self, loader, tmp_path):
+        loader.run()
+        written = PLACEHOLDER_HTML + "<p>my notes</p>"
+        Page.objects.filter(external_id="folder-99").update(description_html=written)
+        page = by_external_id("folder-99")
+        versions = set(PageVersion.objects.filter(page=page).values_list("pk", "description_html"))
+        write_folders(tmp_path)
+
+        summary = loader.run(folders_only=True)
+
+        assert by_external_id("folder-99").description_html == written
+        assert set(PageVersion.objects.filter(page=page).values_list("pk", "description_html")) == versions
+        assert (summary.kept, summary.folders_repaired, summary.placeholders_replaced) == (1, 0, 0)
+        assert [(c.kind, c.detail) for c in summary.changes if c.kind == "keep"] == [
+            ("keep", "placeholder text plus edits")
+        ]
+
     def test_plan_makes_no_writes(self, loader, workspace, create_user, tmp_path):
         loader.run()
         open_page("folder-99")
@@ -564,4 +581,5 @@ class TestFoldersOnly:
         report = out.getvalue()
         assert "folders     2 folders and databases: 1 created, 1 placeholders replaced, 0 repaired" in report
         assert "reparented  0 pages moved out of placeholders" in report
+        assert "pages       " not in report
         assert "  replace Onboarding: placeholder -> folder" in report
