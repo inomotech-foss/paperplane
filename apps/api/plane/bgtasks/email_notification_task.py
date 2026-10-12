@@ -53,7 +53,9 @@ def stack_email_notification():
         processed_at=now
     )
 
-    email_notifications = EmailNotificationLog.objects.filter(processed_at__isnull=True).order_by("receiver").values()
+    email_notifications = (
+        EmailNotificationLog.objects.filter(processed_at__isnull=True).order_by("receiver", "created_at").values()
+    )
 
     # {receiver_id: {entity_id: {"name": entity_name, "ids": [...], "data": {actor_id: [data, ...]}}}}
     grouped = {}
@@ -119,7 +121,7 @@ def create_payload(notification_data):
                         else None
                     )
 
-                if not data.get("actor_id", {}).get("activity_time", False):
+                if "activity_time" not in data.setdefault(actor_id, {}):
                     data[actor_id]["activity_time"] = str(
                         datetime.fromisoformat(issue_activity.get("activity_time").rstrip("Z")).strftime(
                             "%Y-%m-%d %H:%M:%S"
