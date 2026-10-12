@@ -144,7 +144,8 @@ export const CalendarIssueBlock = observer(
                 render={
                   <ControlLink
                     id={`issue-${issue.id}`}
-                    // keep the link role over the trigger's default button role
+                    // the trigger defaults to a button role, the anchor must stay a link
+                    // oxlint-disable-next-line jsx_a11y/prefer-tag-over-role
                     role="link"
                     href={workItemLink}
                     onClick={() => handleIssuePeekOverview(issue)}
