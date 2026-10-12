@@ -274,3 +274,13 @@ def test_a_bot_with_a_preference_row_follows_it(create_user):
 
     preference = notification_preference(bot.id)
     assert (preference.mention, preference.comment) == (True, False)
+
+
+def test_an_assignee_outside_a_secret_project_is_not_notified(issue, create_user):
+    Project.objects.filter(pk=issue.project_id).update(network=0)
+    assignee = add_outsider(issue, "former@plane.so")
+
+    run_change(issue, create_user, [activity(issue, create_user, "priority")])
+
+    assert not Notification.objects.filter(receiver=assignee).exists()
+    assert not EmailNotificationLog.objects.filter(receiver=assignee).exists()
