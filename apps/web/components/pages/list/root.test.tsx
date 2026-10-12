@@ -39,6 +39,10 @@ vi.mock("@/components/core/list", () => ({
   ),
 }));
 
+vi.mock("@/components/pages/page-tree-root-drop-zone", () => ({
+  PageTreeRootDropZone: () => null,
+}));
+
 vi.mock("./block", () => ({
   PageListBlock: ({ pageId }: { pageId: string }) => (
     <div data-testid="page-row" data-page-id={pageId} style={{ height: ROW_HEIGHT }} />
