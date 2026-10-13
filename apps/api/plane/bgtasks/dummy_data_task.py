@@ -35,10 +35,11 @@ from plane.db.models import (
     Page,
     ProjectPage,
     PageLabel,
+    Intake,
     IntakeIssue,
 )
 from plane.db.models.intake import SourceType
-from plane.utils.issue_type import enable_intake, link_starter_type
+from plane.utils.issue_type import link_starter_type
 
 
 def create_project(workspace, user_id):
@@ -360,7 +361,7 @@ def create_issues(workspace, project, user_id, issue_count):
 
 def create_intake_issues(workspace, project, user_id, intake_issue_count):
     issues = create_issues(workspace, project, user_id, intake_issue_count)
-    intake = enable_intake(project, link_starter_type(project))
+    intake, _ = Intake.objects.get_or_create(name="Intake", project=project, is_default=True)
     IntakeIssue.objects.bulk_create(
         [
             IntakeIssue(
