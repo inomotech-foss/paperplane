@@ -10,6 +10,7 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // hooks
 import { CloseOutline, SearchOutline } from "@makeplane/propel/icons";
+import { useTranslation } from "@plane/i18n";
 import { cn } from "@plane/utils";
 // power-k
 import type { TPowerKCommandConfig, TPowerKContext } from "@/components/power-k/core/types";
@@ -36,6 +37,8 @@ export const TopNavPowerK = observer(() => {
   // store hooks
   const { activeContext, setActivePage, activePage, setTopNavInputRef } = usePowerK();
   const { data: currentUser } = useUser();
+  // translation
+  const { t } = useTranslation();
 
   const handleOnClose = useCallback(() => {
     setSearchTerm("");
@@ -103,11 +106,6 @@ export const TopNavPowerK = observer(() => {
     };
   }, [setTopNavInputRef]);
 
-  const handleClear = () => {
-    setSearchTerm("");
-    inputRef.current?.focus();
-  };
-
   // Handle command selection
   const handleCommandSelect = useCallback(
     (command: TPowerKCommandConfig) => {
@@ -119,9 +117,12 @@ export const TopNavPowerK = observer(() => {
         context.setActiveCommand(command);
         setActivePage(command.page);
         setSearchTerm("");
+        // A mouse click on the command moved focus out of the input. Bring it back so typing
+        // filters the new page and Backspace / Escape keep working.
+        inputRef.current?.focus();
       }
     },
-    [context, setActivePage]
+    [context, setActivePage, inputRef]
   );
 
   // Handle selection page item selection
@@ -238,8 +239,17 @@ export const TopNavPowerK = observer(() => {
             placeholder="Search commands..."
             className="placeholder-text-placeholder min-w-0 flex-1 bg-transparent text-13 text-primary outline-none"
           />
-          {searchTerm && (
-            <button type="button" onClick={handleClear} className="ml-2 shrink-0">
+          {(isOpen || searchTerm.length > 0) && (
+            <button
+              type="button"
+              aria-label={t("close")}
+              onClick={(e) => {
+                // The wrapper's click handler would focus the input again right after the close blurred it
+                e.stopPropagation();
+                closePanel();
+              }}
+              className="ml-2 shrink-0"
+            >
               <CloseOutline className="size-3.5 text-placeholder hover:text-primary" />
             </button>
           )}

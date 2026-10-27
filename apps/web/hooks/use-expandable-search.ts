@@ -15,6 +15,7 @@ type UseExpandableSearchOptions = {
  * Custom hook for expandable search input behavior
  * Handles focus management to prevent unwanted opening on programmatic focus restoration
  * Opens on click, typing, or keyboard shortcut (via PowerK Cmd+F)
+ * Closes on Escape (wherever focus is), on an outside click, or through `handleClose`
  */
 export const useExpandableSearch = (options?: UseExpandableSearchOptions) => {
   const { onClose } = options || {};
@@ -44,6 +45,23 @@ export const useExpandableSearch = (options?: UseExpandableSearchOptions) => {
 
   // Outside click detection
   useOutsideClickDetector(containerRef, handleOutsideClick);
+
+  // Escape closes the panel wherever focus is. A click on a command, the footer switch or the
+  // scrollbar moves focus out of the input, whose own key handler then no longer sees the key.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      // The input handles its own Escape (and prevents the default) before this listener runs
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      handleClose();
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, handleClose]);
 
   // Track keyboard shortcuts that trigger focus (Cmd+F / Ctrl+F)
   useEffect(() => {
