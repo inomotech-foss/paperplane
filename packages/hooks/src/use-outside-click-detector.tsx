@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect, useEffectEvent } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 export const useOutsideClickDetector = (
   ref: { readonly current: Element | null },
@@ -13,7 +13,13 @@ export const useOutsideClickDetector = (
   enabled = true
 ) => {
   // Reads the latest callback without re-attaching the document listener on every render.
-  const onOutsideClick = useEffectEvent(callback);
+  // Not `useEffectEvent`: React 19.2 applies its updates only to plain function components, so
+  // inside an `observer`, `memo` or `forwardRef` wrapper the first callback would run forever,
+  // still closing over the state of the initial render.
+  const callbackRef = useRef(callback);
+  useLayoutEffect(() => {
+    callbackRef.current = callback;
+  });
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -41,7 +47,7 @@ export const useOutsideClickDetector = (
         if (path.some((el) => el.hasAttribute("data-base-ui-portal") && !el.contains(node))) {
           return;
         }
-        onOutsideClick();
+        callbackRef.current();
       }
     };
 

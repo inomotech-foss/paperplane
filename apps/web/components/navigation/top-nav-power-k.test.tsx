@@ -111,6 +111,19 @@ describe("TopNavPowerK", () => {
     expect(queryCommand()).toBeNull();
   });
 
+  it("collapses on a mousedown outside the panel", () => {
+    // `observer` wraps the component in `memo`, where React 19.2 never updates a `useEffectEvent`
+    render(
+      <>
+        <TopNavPowerK />
+        <button type="button">Elsewhere</button>
+      </>
+    );
+    openByClick();
+    fireEvent.mouseDown(screen.getByRole("button", { name: "Elsewhere" }));
+    expect(queryCommand()).toBeNull();
+  });
+
   it("collapses on Escape typed into the input and clears the search term", () => {
     render(<TopNavPowerK />);
     const input = openByClick();
