@@ -428,3 +428,9 @@ env:
   default_cluster_domain: cluster.local
 
   api_key_rate_limit: "60/minute"
+
+  # Proxies in front of the API that append to X-Forwarded-For. Throttles take the
+  # client IP from that many entries from the end, so a client cannot fake its own.
+  # 1 covers the ingress or Gateway this chart routes through. Add one for each load
+  # balancer or CDN in front of it that also appends the header.
+  num_proxies: 1

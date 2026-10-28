@@ -54,6 +54,10 @@ data:
   GUNICORN_WORKERS: "1"
   MINIO_ENDPOINT_SSL: {{ .Values.minio.env.minio_endpoint_ssl | default false | ternary "1" "0" | quote }}
   API_KEY_RATE_LIMIT: {{ .Values.env.api_key_rate_limit | default "60/minute" | quote }}
+  {{- if not (regexMatch "^[0-9]{1,3}$" (toString .Values.env.num_proxies)) }}
+  {{- fail "env.num_proxies must be a whole number from 0 to 999" }}
+  {{- end }}
+  NUM_PROXIES: {{ .Values.env.num_proxies | toString | quote }}
 
   {{- if .Values.ingress.appHost }}
   WEB_URL: "{{ .Values.ingress.appProtocol | default "http" }}://{{ .Values.ingress.appHost }}"

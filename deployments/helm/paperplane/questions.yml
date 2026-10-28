@@ -249,6 +249,11 @@ questions:
     label: "API Key Rate Limit"
     type: string
     default: "60/minute"
+  - variable: env.num_proxies
+    label: "Proxies appending X-Forwarded-For"
+    description: "1 for the chart's ingress or Gateway. Add one per load balancer or CDN in front of it that also appends the header."
+    type: int
+    default: 1
 
 - variable: worker.replicas
   label: "Default Replica Count"
