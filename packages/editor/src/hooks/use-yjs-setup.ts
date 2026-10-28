@@ -33,6 +33,19 @@ type UseYjsSetupArgs = {
 
 const DEFAULT_MAX_RETRIES = 3;
 
+// The live server announces a forced close with a stateless message, then sends a
+// CLOSE message that the provider reports as code 1000 on a socket that stays open.
+const readForceCloseCode = (payload: string): number | null => {
+  try {
+    const message: unknown = JSON.parse(payload);
+    if (typeof message !== "object" || message === null) return null;
+    if (!("type" in message) || message.type !== "force_close") return null;
+    return "code" in message && typeof message.code === "number" ? message.code : 4000;
+  } catch {
+    return null;
+  }
+};
+
 export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseYjsSetupArgs) => {
   // Current collaboration stage
   const [stage, setStage] = useState<CollabStage>({ kind: "initial" });
@@ -47,6 +60,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
   // Use refs for values that need to be mutated from callbacks
   const retryCountRef = useRef(0);
   const forcedCloseSignalRef = useRef(false);
+  const forcedCloseCodeRef = useRef<number | null>(null);
   const isDisposedRef = useRef(false);
   const stageRef = useRef<CollabStage>({ kind: "initial" });
   const lastReconnectTimeRef = useRef(0);
@@ -57,6 +71,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
     retryCountRef.current = 0;
     isDisposedRef.current = false;
     forcedCloseSignalRef.current = false;
+    forcedCloseCodeRef.current = null;
     stageRef.current = { kind: "initial" };
 
     const provider = new HocuspocusProvider({
@@ -96,6 +111,12 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
           setStage(newStage);
         }
       },
+      onStateless: ({ payload }) => {
+        const code = readForceCloseCode(payload);
+        if (code === null) return;
+        forcedCloseSignalRef.current = true;
+        forcedCloseCodeRef.current = code;
+      },
       onSynced: () => {
         if (isDisposedRef.current) return;
         retryCountRef.current = 0;
@@ -132,7 +153,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
     const handleClose = (closeEvent: { event?: { code?: number; reason?: string } }) => {
       if (isDisposedRef.current) return;
 
-      const closeCode = closeEvent.event?.code;
+      const closeCode = forcedCloseCodeRef.current ?? closeEvent.event?.code;
       const wsProvider = provider.configuration.websocketProvider;
       const shouldConnect = wsProvider.shouldConnect;
       const isForcedClose = isForcedCloseCode(closeCode) || forcedCloseSignalRef.current || shouldConnect === false;
@@ -152,12 +173,17 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
 
         retryCountRef.current = 0;
         forcedCloseSignalRef.current = false;
+        forcedCloseCodeRef.current = null;
 
         // Only pause if it's a real forced close (not manual disconnect)
         // Manual disconnect leaves it as is (shouldConnect=false already set if manual)
         if (!isManualDisconnect) {
           pauseProvider();
         }
+      } else if (wsProvider.webSocket?.readyState === WebSocket.OPEN) {
+        // The server closed the document but not the socket (e.g. while draining).
+        // Closing the socket lets the provider reconnect, likely to another server.
+        wsProvider.webSocket.close();
       } else {
         // Transient connection loss: attempt reconnection
         retryCountRef.current++;

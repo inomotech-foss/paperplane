@@ -42,3 +42,17 @@ describe("mention author", () => {
     expect(contentHTML).toContain('author="u2"');
   });
 });
+
+const roundTrip = (html: string) =>
+  getAllDocumentFormatsFromDocumentEditorBinaryData(getBinaryDataFromDocumentEditorHTMLString(html), false).contentHTML;
+
+describe("span marks", () => {
+  it("keeps a comment mark", () => {
+    const html = roundTrip('<p><span class="editor-comment-mark" data-comment-thread-id="t1">noted</span></p>');
+    expect(html).toContain('data-comment-thread-id="t1"');
+  });
+
+  it("keeps a text colour", () => {
+    expect(roundTrip('<p><span data-text-color="red">red</span></p>')).toContain('data-text-color="red"');
+  });
+});

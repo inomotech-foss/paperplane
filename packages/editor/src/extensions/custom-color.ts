@@ -113,19 +113,8 @@ export const CustomColorExtension = Mark.create({
     };
   },
 
-  // @ts-expect-error types are incorrect
-  // TODO: check this and update types
   parseHTML() {
-    return [
-      {
-        tag: "span",
-        getAttrs: (node) => node.getAttribute("data-text-color") && null,
-      },
-      {
-        tag: "span",
-        getAttrs: (node) => node.getAttribute("data-background-color") && null,
-      },
-    ];
+    return [{ tag: "span[data-text-color]" }, { tag: "span[data-background-color]" }];
   },
 
   renderHTML({ HTMLAttributes }) {
