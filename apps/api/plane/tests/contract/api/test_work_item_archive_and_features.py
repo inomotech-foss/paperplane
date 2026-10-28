@@ -12,6 +12,7 @@ from plane.db.models import (
     Project,
     ProjectMember,
     State,
+    WorkspaceMember,
 )
 from plane.utils.issue_type import link_starter_type
 
@@ -254,3 +255,14 @@ class TestProjectFeatures:
         response = api_key_client.patch(features_url(workspace.slug, project.id), {"modules": "yes"}, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    @pytest.mark.django_db
+    def test_a_member_cannot_switch_features(self, api_key_client, workspace, project, create_user):
+        ProjectMember.objects.filter(project=project, member=create_user).update(role=15)
+        WorkspaceMember.objects.filter(workspace=workspace, member=create_user).update(role=15)
+
+        response = api_key_client.patch(features_url(workspace.slug, project.id), {"modules": True}, format="json")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        project.refresh_from_db()
+        assert project.module_view is False

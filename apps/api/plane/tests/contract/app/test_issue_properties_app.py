@@ -17,6 +17,7 @@ from plane.db.models import (
     ProjectMember,
     PropertyTypeChoices,
     State,
+    User,
     WorkspaceMember,
 )
 from plane.utils.issue_type import link_starter_type
@@ -349,6 +350,20 @@ class TestIssuePropertyValuesApp(IssuePropertyAppUrls):
         url = self.values_url(workspace.slug, project.id, issue.id)
         response = session_client.put(url, {str(number_property.id): 1}, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_restricted_guest_reads_values_of_own_work_items_only(
+        self, session_client, workspace, project, issue, second_issue, create_user
+    ):
+        ProjectMember.objects.filter(project=project, member=create_user).update(role=5)
+        colleague = User.objects.create(email="colleague@plane.so", username="colleague")
+        Issue.objects.filter(pk=issue.pk).update(created_by=create_user)
+        Issue.objects.filter(pk=second_issue.pk).update(created_by=colleague)
+
+        own = session_client.get(self.values_url(workspace.slug, project.id, issue.id))
+        foreign = session_client.get(self.values_url(workspace.slug, project.id, second_issue.id))
+
+        assert own.status_code == status.HTTP_200_OK
+        assert foreign.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.contract

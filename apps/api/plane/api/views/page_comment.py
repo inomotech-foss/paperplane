@@ -11,9 +11,10 @@ from rest_framework.response import Response
 
 # Module imports
 from plane.api.serializers.page_comment import PageCommentSerializer
-from plane.app.permissions import ProjectEntityPermission
+from plane.app.permissions.page import ProjectPageCommentPermission
 from plane.db.models import Page, PageComment
 from .base import BaseAPIView
+from .issue import is_project_or_workspace_admin
 
 
 class PageCommentListCreateAPIEndpoint(BaseAPIView):
@@ -21,7 +22,7 @@ class PageCommentListCreateAPIEndpoint(BaseAPIView):
 
     serializer_class = PageCommentSerializer
     model = PageComment
-    permission_classes = [ProjectEntityPermission]
+    permission_classes = [ProjectPageCommentPermission]
     use_read_replica = True
 
     def get_queryset(self):
@@ -87,7 +88,7 @@ class PageCommentDetailAPIEndpoint(BaseAPIView):
 
     serializer_class = PageCommentSerializer
     model = PageComment
-    permission_classes = [ProjectEntityPermission]
+    permission_classes = [ProjectPageCommentPermission]
     use_read_replica = True
 
     def get_queryset(self):
@@ -103,12 +104,19 @@ class PageCommentDetailAPIEndpoint(BaseAPIView):
             .distinct()
         )
 
+    def _can_change(self, request, slug, project_id, page_comment):
+        return page_comment.actor_id == request.user.id or is_project_or_workspace_admin(
+            request.user.id, project_id, slug
+        )
+
     def get(self, request, slug, project_id, page_id, pk):
         serializer = PageCommentSerializer(self.get_queryset().get(pk=pk), fields=self.fields, expand=self.expand)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, slug, project_id, page_id, pk):
         page_comment = self.get_queryset().get(pk=pk)
+        if not self._can_change(request, slug, project_id, page_comment):
+            return Response({"error": "You are not allowed to edit this comment"}, status=status.HTTP_403_FORBIDDEN)
         serializer = PageCommentSerializer(page_comment, data=request.data, partial=True)
         if serializer.is_valid():
             if "comment_html" in request.data and request.data["comment_html"] != page_comment.comment_html:
@@ -120,6 +128,8 @@ class PageCommentDetailAPIEndpoint(BaseAPIView):
 
     def delete(self, request, slug, project_id, page_id, pk):
         page_comment = self.get_queryset().get(pk=pk)
+        if not self._can_change(request, slug, project_id, page_comment):
+            return Response({"error": "You are not allowed to delete this comment"}, status=status.HTTP_403_FORBIDDEN)
         page_comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -129,7 +139,7 @@ class PageCommentResolveAPIEndpoint(BaseAPIView):
 
     serializer_class = PageCommentSerializer
     model = PageComment
-    permission_classes = [ProjectEntityPermission]
+    permission_classes = [ProjectPageCommentPermission]
 
     def get_queryset(self):
         return (

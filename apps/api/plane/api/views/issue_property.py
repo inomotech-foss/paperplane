@@ -47,6 +47,7 @@ from plane.utils.openapi import (
     DELETED_RESPONSE,
 )
 from .base import BaseAPIView
+from .issue import guest_cannot_view_issue
 
 
 def project_issue_properties(slug, project_id, user):
@@ -580,6 +581,8 @@ class IssuePropertyValueAPIEndpoint(BaseAPIView):
         """
         # Ensure the work item exists in the project
         issue = Issue.issue_objects.get(pk=work_item_id, project_id=project_id, workspace__slug=slug)
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
         values, display = build_value_maps(self.get_queryset())
         properties = list(
             IssueProperty.objects.filter(project_id=project_id).exclude(derivation=PropertyDerivationChoices.NONE)
@@ -711,6 +714,9 @@ class IssuePropertySingleValueAPIEndpoint(BaseAPIView):
         Returns 404 when the property holds no value.
         """
         issue_property = IssueProperty.objects.get(pk=property_id, project_id=project_id, workspace__slug=slug)
+        issue = Issue.issue_objects.get(pk=work_item_id, project_id=project_id, workspace__slug=slug)
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
         rows = list(self.get_queryset())
         if not rows:
             return Response({"error": "This property has no value on this work item"}, status=status.HTTP_404_NOT_FOUND)
