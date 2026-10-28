@@ -3,9 +3,11 @@
 
 """Shared `pql` / `filters` handling for the work item list endpoints."""
 
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.response import Response
 
+from plane.app.permissions import ROLE
 from plane.db.models import Issue
 from plane.utils.pql import (
     WorkItemFilterError,
@@ -29,16 +31,37 @@ class WorkItemFilterMixin:
             return querysets, Response(exc.payload, status=status.HTTP_400_BAD_REQUEST)
 
 
-def workspace_work_items(user, slug):
-    """Work items of a workspace the user may see.
+def visible_issue_q(user):
+    """Issue filter for work items `user` may view, across projects: every
+    issue in a project where they are an active member above GUEST or a GUEST
+    with `guest_view_all_features`, otherwise only the issues they created."""
+    return (
+        Q(
+            project__project_projectmember__member=user,
+            project__project_projectmember__is_active=True,
+            project__project_projectmember__role__gt=ROLE.GUEST.value,
+        )
+        | Q(
+            project__project_projectmember__member=user,
+            project__project_projectmember__is_active=True,
+            project__project_projectmember__role=ROLE.GUEST.value,
+            project__guest_view_all_features=True,
+        )
+        | Q(
+            project__project_projectmember__member=user,
+            project__project_projectmember__is_active=True,
+            project__project_projectmember__role=ROLE.GUEST.value,
+            project__guest_view_all_features=False,
+            created_by=user,
+        )
+    )
 
-    Membership is enforced the same way the project scoped endpoints enforce
-    it, through the `project_projectmember` join, so a project the caller is
-    not an active member of contributes nothing.
-    """
+
+def workspace_work_items(user, slug):
+    """Work items of a workspace the user may see, with the same membership
+    and guest rules as the project scoped endpoints."""
     return Issue.issue_objects.filter(
+        visible_issue_q(user),
         workspace__slug=slug,
-        project__project_projectmember__member=user,
-        project__project_projectmember__is_active=True,
         project__archived_at__isnull=True,
     )

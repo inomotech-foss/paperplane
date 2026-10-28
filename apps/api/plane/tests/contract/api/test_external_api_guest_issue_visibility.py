@@ -8,9 +8,9 @@ A restricted guest is a project member with the GUEST role on a project where
 ``guest_view_all_features`` is disabled. On the external API such a guest only
 sees the work items they created:
 
-* issue-level reads (list/total_count, external-id lookup, detail, identifier
-  lookup, search, cycle/module issue lists, intake list/detail) only return
-  their own work items;
+* issue-level reads (project and workspace list/total_count, external-id
+  lookup, detail, identifier lookup, search, cycle/module issue lists,
+  intake list/detail) only return their own work items;
 * sub-resource requests (links, comments, activities, attachments, relations)
   on a work item they cannot view return 404;
 * relation lists omit related work items the caller cannot view.
@@ -169,6 +169,28 @@ class TestWorkItemListGuestScope:
         ids = {str(row["id"]) for row in response.data["results"]}
         assert {str(own_issue.id), str(foreign_issue.id)} <= ids
         assert response.data["total_count"] == 2
+
+
+@pytest.mark.contract
+class TestWorkspaceWorkItemListGuestScope:
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("path", ["", "count/"])
+    def test_guest_sees_only_own_issue(self, guest_client, workspace, own_issue, foreign_issue, path):
+        response = guest_client.get(f"/api/v1/workspaces/{workspace.slug}/work-items/{path}")
+        assert response.status_code == status.HTTP_200_OK, response.data
+        assert response.data["total_count"] == 1, response.data
+        if not path:
+            assert [str(row["id"]) for row in response.data["results"]] == [str(own_issue.id)]
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("path", ["", "count/"])
+    def test_guest_with_view_all_sees_everything(
+        self, guest_client, workspace, project, own_issue, foreign_issue, path
+    ):
+        _enable_guest_view_all(project)
+        response = guest_client.get(f"/api/v1/workspaces/{workspace.slug}/work-items/{path}")
+        assert response.status_code == status.HTTP_200_OK, response.data
+        assert response.data["total_count"] == 2, response.data
 
 
 # ---------------------------------------------------------------------------
