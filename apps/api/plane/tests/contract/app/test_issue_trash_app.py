@@ -30,7 +30,7 @@ pytestmark = [pytest.mark.contract, pytest.mark.django_db]
 @pytest.fixture(autouse=True)
 def run_tasks_inline(mocker):
     mocker.patch("plane.db.mixins.soft_delete_related_objects.delay", side_effect=soft_delete_related_objects)
-    for module in ("plane.app.views.issue.trash", "plane.app.views.issue.base"):
+    for module in ("plane.utils.work_item_trash", "plane.app.views.issue.base"):
         mocker.patch(f"{module}.issue_activity.delay", side_effect=lambda **kwargs: issue_activity(**kwargs))
 
 

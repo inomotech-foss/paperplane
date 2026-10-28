@@ -95,6 +95,7 @@ from .work_item_archive import (
     WorkItemArchiveListAPIEndpoint,
     WorkItemUnarchiveAPIEndpoint,
 )
+from .work_item_trash import DeletedWorkItemListAPIEndpoint, DeletedWorkItemRestoreAPIEndpoint
 
 from .work_item_workspace import (
     WorkspaceWorkItemCountAPIEndpoint,

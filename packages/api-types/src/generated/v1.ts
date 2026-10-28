@@ -600,6 +600,46 @@ export interface paths {
         patch: operations["update_cycle"];
         trace?: never;
     };
+    "/api/v1/workspaces/{slug}/projects/{project_id}/deleted-work-items/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List deleted work items
+         * @description Retrieve the deleted work items of a project, newest first. Sub-items deleted along with their parent are not listed, because restoring the parent restores them. Project members and admins only.
+         */
+        get: operations["list_deleted_work_items"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{slug}/projects/{project_id}/deleted-work-items/{issue_id}/restore/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore deleted work item
+         * @description Restore a deleted work item together with everything its deletion removed, such as sub-items, comments and labels. Project members and admins only.
+         */
+        post: operations["restore_deleted_work_item"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{slug}/projects/{project_id}/features/": {
         parameters: {
             query?: never;
@@ -2433,6 +2473,24 @@ export interface components {
             /** Format: uuid */
             owned_by: string;
         };
+        /** @description A deleted work item that can still be restored. */
+        DeletedWorkItem: {
+            /** Format: uuid */
+            readonly id?: string;
+            /** Issue Name */
+            readonly name?: string;
+            /** Issue Sequence ID */
+            readonly sequence_id?: number;
+            readonly project_identifier?: string;
+            /** Format: uuid */
+            readonly type_id?: string;
+            /** Format: date-time */
+            readonly deleted_at?: string | null;
+            /** Format: uuid */
+            readonly deleted_by?: string | null;
+            /** Format: date-time */
+            readonly purge_at?: string;
+        };
         /**
          * @description * `NONE` - Manual
          *     * `INHERIT` - Inherit from parent
@@ -3918,6 +3976,20 @@ export interface components {
             total_results: number;
             extra_stats: string | null;
             results: components["schemas"]["Cycle"][];
+        };
+        PaginatedDeletedWorkItemResponse: {
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: string | null;
+            results: components["schemas"]["DeletedWorkItem"][];
         };
         PaginatedIntakeIssueResponse: {
             grouped_by: string | null;
@@ -7360,6 +7432,109 @@ export interface operations {
             };
             /** @description The requested resource was not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_deleted_work_items: {
+        parameters: {
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
+            header?: never;
+            path: {
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated list of deleted work items */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedDeletedWorkItemResponse"];
+                };
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    restore_deleted_work_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_id: string;
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Work item restored */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Resource conflict - duplicate or constraint violation */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -82,3 +82,4 @@ from .issue_property import (
     IssuePropertyValueRequestSerializer,
 )
 from .issue_type import IssueTypeSerializer
+from .deleted_work_item import DeletedWorkItemSerializer

@@ -5,6 +5,8 @@
 from django.urls import path
 
 from plane.api.views import (
+    DeletedWorkItemListAPIEndpoint,
+    DeletedWorkItemRestoreAPIEndpoint,
     IssueListCreateAPIEndpoint,
     IssueDetailAPIEndpoint,
     IssueLinkListCreateAPIEndpoint,
@@ -187,6 +189,16 @@ new_url_patterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/unarchive/",
         WorkItemUnarchiveAPIEndpoint.as_view(http_method_names=["post"]),
         name="work-item-unarchive",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/deleted-work-items/",
+        DeletedWorkItemListAPIEndpoint.as_view(http_method_names=["get"]),
+        name="deleted-work-item-list",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/deleted-work-items/<uuid:issue_id>/restore/",
+        DeletedWorkItemRestoreAPIEndpoint.as_view(http_method_names=["post"]),
+        name="deleted-work-item-restore",
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/renumber/",
