@@ -35,6 +35,8 @@ from plane.db.models import (
     IssueActivity,
     IssueComment,
     IssueLink,
+    IssueProperty,
+    IssuePropertyValue,
     IssueRelation,
     Module,
     ModuleIssue,
@@ -191,6 +193,36 @@ class TestWorkspaceWorkItemListGuestScope:
         response = guest_client.get(f"/api/v1/workspaces/{workspace.slug}/work-items/{path}")
         assert response.status_code == status.HTTP_200_OK, response.data
         assert response.data["total_count"] == 2, response.data
+
+
+@pytest.mark.contract
+class TestWorkItemPropertyValuesGuestScope:
+    @pytest.fixture
+    def text_property(self, workspace, project):
+        return IssueProperty.objects.create(
+            workspace=workspace, project=project, name="note", display_name="Note", property_type="TEXT"
+        )
+
+    def _url(self, workspace, project, issue, text_property=None):
+        base = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/work-items/{issue.id}"
+        if text_property:
+            return f"{base}/work-item-properties/{text_property.id}/values/"
+        return f"{base}/property-values/"
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("single", [False, True])
+    def test_guest_reads_values_of_own_work_items_only(
+        self, guest_client, workspace, project, own_issue, foreign_issue, text_property, single
+    ):
+        for issue in (own_issue, foreign_issue):
+            IssuePropertyValue.objects.create(
+                workspace=workspace, project=project, issue=issue, property=text_property, value_text="x"
+            )
+        prop = text_property if single else None
+
+        assert guest_client.get(self._url(workspace, project, own_issue, prop)).status_code == status.HTTP_200_OK
+        response = guest_client.get(self._url(workspace, project, foreign_issue, prop))
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 # ---------------------------------------------------------------------------
