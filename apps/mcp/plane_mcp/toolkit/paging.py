@@ -10,6 +10,8 @@ to these endpoints needs the same envelope and the same 400-on-bad-PQL answer.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from types import SimpleNamespace
 from typing import Any
 
 from fastmcp.utilities.logging import get_logger
@@ -62,6 +64,9 @@ def envelope(response: Any, fields: str | None = None) -> dict[str, Any]:
     rather than defaulted to None: a null `next_cursor` reads as "last page",
     which is the same lie by another route.
     """
+    if isinstance(response, Mapping):
+        # The SDK's request helpers hand back the raw JSON for endpoints it has no model for.
+        response = SimpleNamespace(**response)
     absent = [name for name in ENVELOPE_FIELDS if not hasattr(response, name)]
     if absent:
         raise TypeError(

@@ -40,6 +40,7 @@ from plane_mcp.toolkit import (
     missing,
     one_of,
     opt,
+    page_params,
     pql_failure,
     rich_text,
 )
@@ -107,7 +108,24 @@ ACTIONS = (
         note="type_id must be one of the project's types, see `workitem_type list`",
     ),
     Action("update", ("project_id", "workitem_id"), WRITE_FIELDS, note="only the fields you pass are changed"),
-    Action("delete", ("project_id", "workitem_id"), destructive=True),
+    Action(
+        "delete",
+        ("project_id", "workitem_id"),
+        destructive=True,
+        note="the work item can be restored with `restore` until it is removed permanently",
+    ),
+    Action(
+        "list_deleted",
+        ("project_id",),
+        ("per_page", "cursor"),
+        note="sub-items deleted along with their parent are not listed; restoring the parent restores them",
+        read=True,
+    ),
+    Action(
+        "restore",
+        ("project_id", "workitem_id"),
+        note="restores a deleted work item with everything its deletion removed, such as sub-items and comments",
+    ),
     Action(
         "archive",
         ("project_id", "workitem_id"),
@@ -204,6 +222,8 @@ def register(mcp: FastMCP) -> None:
             "create",
             "update",
             "delete",
+            "list_deleted",
+            "restore",
             "archive",
             "manage_assignee",
             "manage_label",
@@ -357,6 +377,14 @@ def register(mcp: FastMCP) -> None:
         if not project_id:
             return missing(action, "project_id")
 
+        # plane-sdk has no trash calls, so list_deleted and restore use its request helpers with the v1 paths.
+        if action == "list_deleted":
+            response = client.work_items._get(
+                f"{workspace_slug}/projects/{project_id}/deleted-work-items",
+                params=page_params(cursor, per_page),
+            )
+            return envelope(response)
+
         if action == "create":
             if not name:
                 return missing(action, "name")
@@ -390,6 +418,10 @@ def register(mcp: FastMCP) -> None:
         if action == "delete":
             client.work_items.delete(workspace_slug=workspace_slug, project_id=project_id, work_item_id=workitem_id)
             return None
+
+        if action == "restore":
+            client.work_items._post(f"{workspace_slug}/projects/{project_id}/deleted-work-items/{workitem_id}/restore")
+            return {"workitem_id": workitem_id, "restored": True}
 
         if action == "archive":
             archiving = archive is not False

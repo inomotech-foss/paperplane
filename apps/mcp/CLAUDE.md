@@ -86,7 +86,7 @@ An OAuth token is installed in every workspace the user ticked on the consent sc
 
 ### Tools (`tools/`)
 
-One action-dispatch tool per Plane resource: **19 tools, 113 actions**. Resources and actions for features this fork does not serve are not vendored; see `tools/README.md` for what is. `tools/__init__.py` re-exports `register_tools`, so `server.py` and `__main__.py` see a single entry point.
+One action-dispatch tool per Plane resource: **19 tools, 115 actions**. Resources and actions for features this fork does not serve are not vendored; see `tools/README.md` for what is. `tools/__init__.py` re-exports `register_tools`, so `server.py` and `__main__.py` see a single entry point.
 
 One module per resource, each exporting `NAME`, `ACTIONS`, `LEGACY` and `register(mcp)`. `ACTIONS` is the single source of truth: the tool description and its `ToolAnnotations` are generated from it, and the conformance suite asserts they agree with the function signature. See `tools/README.md` for the full convention.
 

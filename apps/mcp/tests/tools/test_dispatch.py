@@ -287,6 +287,34 @@ def test_archiving_a_work_item_confirms_what_it_did(archive, registered, spy):
     assert spy.recorder.only().method == f"work_items.{verb}"
 
 
+def test_listing_deleted_work_items_keeps_the_page_envelope(registered, spy):
+    page = {
+        "results": [{"id": "w"}],
+        "total_count": 1,
+        "count": 1,
+        "next_cursor": "next",
+        "prev_cursor": "prev",
+        "next_page_results": False,
+        "prev_page_results": False,
+    }
+    spy.returns["work_items._get"] = page
+
+    result = registered["workitem"].fn(action="list_deleted", project_id="p", cursor="c", per_page=5)
+
+    call = spy.recorder.only()
+    assert call.kwargs == {"endpoint": "acme/projects/p/deleted-work-items", "params": {"cursor": "c", "per_page": 5}}
+    assert result == page
+
+
+def test_restoring_a_work_item_confirms_what_it_did(registered, spy):
+    result = registered["workitem"].fn(action="restore", project_id="p", workitem_id="w")
+
+    assert result == {"workitem_id": "w", "restored": True}
+    call = spy.recorder.only()
+    assert call.method == "work_items._post"
+    assert call.kwargs == {"endpoint": "acme/projects/p/deleted-work-items/w/restore"}
+
+
 @pytest.mark.parametrize(
     ("tool", "arguments", "method"),
     [
