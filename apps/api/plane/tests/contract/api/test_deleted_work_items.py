@@ -89,3 +89,13 @@ def test_guests_cannot_use_the_trash(project, suffix):
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert not Issue.objects.filter(pk=issue.pk).exists()
+
+
+def test_the_list_pages_by_twenty_by_default(project):
+    for number in range(21):
+        make_issue(project, f"Gone {number}", deleted=True)
+
+    response = client_for(project, 15).get(url(project))
+
+    assert len(response.data["results"]) == 20
+    assert response.data["next_page_results"] is True

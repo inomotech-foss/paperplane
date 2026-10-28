@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from plane.api.serializers import DeletedWorkItemSerializer
 from plane.app.permissions import ROLE, ProjectEntityPermission, allow_permission
 from plane.utils.openapi import (
-    CONFLICT_RESPONSE,
     CURSOR_PARAMETER,
     PER_PAGE_PARAMETER,
     create_paginated_response,
@@ -48,6 +47,8 @@ class DeletedWorkItemListAPIEndpoint(BaseAPIView):
             request=request,
             queryset=listed_trashed_issues(slug, project_id),
             on_results=lambda issues: DeletedWorkItemSerializer(issues, many=True).data,
+            default_per_page=20,
+            max_per_page=100,
         )
 
 
@@ -64,7 +65,15 @@ class DeletedWorkItemRestoreAPIEndpoint(BaseAPIView):
             "comments and labels. Project members and admins only."
         ),
         request=None,
-        responses={204: OpenApiResponse(description="Work item restored"), 409: CONFLICT_RESPONSE},
+        responses={
+            204: OpenApiResponse(description="Work item restored"),
+            409: OpenApiResponse(
+                description=(
+                    "The work item cannot be restored: its work item type was deleted, or another work item "
+                    'now has its number. The body is {"error": "<reason>"}.'
+                ),
+            ),
+        },
     )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id, issue_id):

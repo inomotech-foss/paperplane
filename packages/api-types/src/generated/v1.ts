@@ -7533,7 +7533,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Resource conflict - duplicate or constraint violation */
+            /** @description The work item cannot be restored: its work item type was deleted, or another work item now has its number. The body is {"error": "<reason>"}. */
             409: {
                 headers: {
                     [name: string]: unknown;

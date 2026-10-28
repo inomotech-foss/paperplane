@@ -3277,7 +3277,8 @@ paths:
         '204':
           description: Work item restored
         '409':
-          description: Resource conflict - duplicate or constraint violation
+          description: 'The work item cannot be restored: its work item type was deleted,
+            or another work item now has its number. The body is {"error": "<reason>"}.'
   /api/v1/workspaces/{slug}/projects/{project_id}/features/:
     get:
       operationId: retrieve_project_features
