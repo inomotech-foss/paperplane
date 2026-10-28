@@ -5,7 +5,7 @@ from drf_spectacular.utils import OpenApiRequest, OpenApiResponse
 from rest_framework import status
 from rest_framework.response import Response
 
-from plane.app.permissions import ProjectEntityPermission
+from plane.app.permissions import ROLE, ProjectEntityPermission, allow_permission
 from plane.db.models import Project
 from plane.utils.openapi import INVALID_REQUEST_RESPONSE, project_docs
 
@@ -55,6 +55,7 @@ class ProjectFeatureAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
+    @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id):
         """Update project features
 
