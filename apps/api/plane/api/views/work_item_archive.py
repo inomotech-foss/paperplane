@@ -28,7 +28,7 @@ from plane.utils.openapi import (
 )
 
 from .base import BaseAPIView
-from .work_item_filter import WorkItemFilterMixin
+from .work_item_filter import WorkItemFilterMixin, visible_issue_q
 
 # A work item is only archivable once it is out of play.
 ARCHIVABLE_STATE_GROUPS = ["completed", "cancelled"]
@@ -54,8 +54,7 @@ class WorkItemArchiveListAPIEndpoint(WorkItemFilterMixin, BaseAPIView):
             .exclude(state__group=StateGroup.TRIAGE.value)
             .exclude(project__archived_at__isnull=False)
             .exclude(is_draft=True)
-            .filter(project__project_projectmember__member=self.request.user)
-            .filter(project__project_projectmember__is_active=True)
+            .filter(visible_issue_q(self.request.user))
             .select_related("workspace", "project", "state", "parent")
             .prefetch_related("assignees", "labels", "issue_module__module")
             .order_by(self.kwargs.get("order_by", "-created_at"))
