@@ -18,6 +18,7 @@ from plane.authentication.utils.user_auth_workflow import post_user_auth_workflo
 from plane.authentication.utils.workspace_membership import auto_join_workspace
 from plane.license.models import Instance
 from plane.authentication.utils.host import base_host
+from plane.authentication.utils.oauth_state import validate_oauth_state
 from plane.authentication.adapter.error import (
     AuthenticationException,
     AUTHENTICATION_ERROR_CODES,
@@ -64,18 +65,18 @@ class OIDCCallbackEndpoint(View):
     def get(self, request):
         code = request.GET.get("code")
         state = request.GET.get("state")
-        base_host = request.session.get("host")
+        host = base_host(request=request, is_app=True)
         next_path = request.session.get("next_path")
 
-        if state != request.session.get("state", ""):
+        if not validate_oauth_state(request=request, state=state):
             exc = AuthenticationException(
                 error_code=AUTHENTICATION_ERROR_CODES["OIDC_OAUTH_PROVIDER_ERROR"],
                 error_message="OIDC_OAUTH_PROVIDER_ERROR",
             )
             params = exc.get_error_dict()
             if next_path:
-                params["next_path"] = str(next_path)
-            url = urljoin(base_host, "?" + urlencode(params))
+                params["next_path"] = str(validate_next_path(next_path))
+            url = urljoin(host, "?" + urlencode(params))
             return HttpResponseRedirect(url)
 
         if not code:
@@ -86,7 +87,7 @@ class OIDCCallbackEndpoint(View):
             params = exc.get_error_dict()
             if next_path:
                 params["next_path"] = str(validate_next_path(next_path))
-            url = urljoin(base_host, "?" + urlencode(params))
+            url = urljoin(host, "?" + urlencode(params))
             return HttpResponseRedirect(url)
 
         try:
@@ -104,11 +105,11 @@ class OIDCCallbackEndpoint(View):
             else:
                 path = get_redirection_path(user=user)
             # redirect to referer path
-            url = urljoin(base_host, path)
+            url = urljoin(host, path)
             return HttpResponseRedirect(url)
         except AuthenticationException as e:
             params = e.get_error_dict()
             if next_path:
                 params["next_path"] = str(validate_next_path(next_path))
-            url = urljoin(base_host, "?" + urlencode(params))
+            url = urljoin(host, "?" + urlencode(params))
             return HttpResponseRedirect(url)

@@ -15,6 +15,8 @@ CALLBACKS = [
     ("google-callback", "plane.authentication.views.app.google.GoogleOAuthProvider"),
     ("gitea-callback", "plane.authentication.views.app.gitea.GiteaOAuthProvider"),
     ("space-gitea-callback", "plane.authentication.views.space.gitea.GiteaOAuthProvider"),
+    ("oidc-callback", "plane.authentication.views.app.oidc.OIDCOAuthProvider"),
+    ("space-oidc-callback", "plane.authentication.views.space.oidc.OIDCOAuthProvider"),
 ]
 
 
@@ -71,6 +73,7 @@ class TestOAuthCallbackState:
 
         with patch(provider_path) as provider:
             provider.return_value.authenticate.return_value = create_user
+            provider.return_value.instance_admin = None
             response = client.get(reverse(url_name), {"code": "oauth-code", "state": "expected-state"})
 
         assert "error_code" not in response.url
@@ -82,6 +85,7 @@ class TestOAuthCallbackState:
 
         with patch(provider_path) as provider:
             provider.return_value.authenticate.return_value = create_user
+            provider.return_value.instance_admin = None
             response = client.get(reverse(url_name), params)
 
         assert response.status_code == 302
@@ -98,7 +102,7 @@ class TestOAuthCallbackState:
         provider.assert_not_called()
 
 
-APP_CALLBACKS = ["github-callback", "gitlab-callback", "google-callback", "gitea-callback"]
+APP_CALLBACKS = ["github-callback", "gitlab-callback", "google-callback", "gitea-callback", "oidc-callback"]
 
 
 @pytest.mark.contract
