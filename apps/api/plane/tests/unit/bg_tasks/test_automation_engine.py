@@ -584,6 +584,23 @@ class TestCreateWorkItem:
         assert run.status == AutomationRunStatus.FAILED
         assert "different workspace" in run.steps[0]["error"]
 
+    def test_a_project_automation_cannot_target_another_project(self, project, create_user, work_item):
+        other = Project.objects.create(
+            name="Other", identifier="OTH", workspace=project.workspace, created_by=create_user
+        )
+        automation = make_automation(project, create_user)
+        add_action(
+            automation,
+            ActionType.CREATE_WORK_ITEM,
+            {"name": "Elsewhere", "project_id": str(other.id), "type_id": str(link_starter_type(other).id)},
+        )
+
+        run = engine.execute(automation, context_for(work_item, project, automation))
+
+        assert run.status == AutomationRunStatus.FAILED
+        assert "its own project" in run.steps[0]["error"]
+        assert not Issue.objects.filter(name="Elsewhere").exists()
+
     @pytest.mark.parametrize("config", [{}, {"type_id": "linked elsewhere"}], ids=["missing", "unlinked"])
     def test_a_type_not_linked_to_the_target_project_fails(self, project, create_user, work_item, config):
         if config:
