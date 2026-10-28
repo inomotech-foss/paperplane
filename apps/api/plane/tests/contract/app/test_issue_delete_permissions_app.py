@@ -72,7 +72,9 @@ def test_guests_can_delete_their_own_work_items(project, issue):
     guest = join(project, 5)
     Issue.objects.filter(pk=issue.pk).update(created_by=guest)
 
-    assert session(guest).delete(issue_url(issue)).status_code == status.HTTP_204_NO_CONTENT
+    response = session(guest).delete(issue_url(issue))
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 def test_members_can_bulk_delete(project, issue):

@@ -121,7 +121,9 @@ export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props)
           <span className="font-medium break-words text-primary">
             {projectDetails?.identifier}-{issue?.sequence_id}
           </span>
-          {`? You can restore it from the project's archives until it is removed permanently.`}
+          {canDeleteAnyWorkItem
+            ? `? You can restore it from the project's archives until it is removed permanently.`
+            : `? Project members can restore it from the project's archives until it is removed permanently.`}
         </>
       }
     />
