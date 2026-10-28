@@ -115,7 +115,7 @@ export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props)
       isOpen={isOpen}
       title={t("entity.delete.label", { entity: t("common.work_item") })}
       content={t(canDeleteAnyWorkItem ? "issue.trash.delete_confirm" : "issue.trash.delete_confirm_guest", {
-        identifier: `${projectDetails?.identifier}-${issue?.sequence_id}`,
+        identifier: `${projectDetails?.identifier ?? ""}-${issue?.sequence_id ?? ""}`,
       })}
     />
   );
