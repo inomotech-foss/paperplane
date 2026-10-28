@@ -57,6 +57,15 @@ class TestPageCommentsV1Endpoint:
         assert response.data["parent"] == parent.id
 
     @pytest.mark.django_db
+    def test_reply_to_a_comment_of_another_page_is_refused(self, api_key_client, workspace, project, page, create_user):
+        other = Page.objects.create(name="Other", workspace=workspace, owned_by=create_user, access=Page.PUBLIC_ACCESS)
+        foreign = PageComment.objects.create(page=other, comment_html="<p>p</p>", actor=create_user)
+        url = base_url(workspace.slug, project.id, page.id)
+        response = api_key_client.post(url, {"comment_html": "<p>r</p>", "parent": str(foreign.id)}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not PageComment.objects.filter(parent=foreign).exists()
+
+    @pytest.mark.django_db
     def test_update_and_delete(self, api_key_client, workspace, project, page, create_user):
         comment = PageComment.objects.create(page=page, comment_html="<p>p</p>", anchor_id="t1", actor=create_user)
         detail = f"{base_url(workspace.slug, project.id, page.id)}{comment.id}/"

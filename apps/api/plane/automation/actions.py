@@ -32,13 +32,16 @@ from django.utils import timezone
 from plane.automation.registry import ActionType, NOTIFICATION_RECIPIENTS
 from plane.automation.templating import render, render_html
 from plane.db.models import (
+    Cycle,
     CycleIssue,
+    EstimatePoint,
     Issue,
     IssueAssignee,
     IssueComment,
     IssueLabel,
     IssueSubscriber,
     Label,
+    Module,
     ModuleIssue,
     Notification,
     Project,
@@ -195,6 +198,11 @@ def _apply_scalar_change(work_item, property_key, change_type, value, context):
         if state_id and not State.objects.filter(pk=state_id, project_id=work_item.project_id).exists():
             raise ActionError("The selected state does not belong to this project.")
         new_value = state_id
+    elif property_key == "estimate_point_id":
+        point_id = str(value) if value else None
+        if point_id and not EstimatePoint.objects.filter(pk=point_id, project_id=work_item.project_id).exists():
+            raise ActionError("The selected estimate does not belong to this project.")
+        new_value = point_id
     else:
         new_value = str(value) if value else None
 
@@ -304,6 +312,13 @@ def _apply_module_change(work_item, change_type, value, run):
         removed = ModuleIssue.objects.filter(issue=work_item, module_id__in=requested).delete()
         return f"removed from {removed[0]} module(s)"
 
+    requested = [
+        str(pk)
+        for pk in Module.objects.filter(pk__in=requested, project_id=work_item.project_id).values_list("id", flat=True)
+    ]
+    if not requested:
+        raise ActionError("The selected modules do not belong to this project.")
+
     existing = set(
         str(pk)
         for pk in ModuleIssue.objects.filter(issue=work_item, module_id__in=requested).values_list(
@@ -337,6 +352,8 @@ def _apply_cycle_change(work_item, change_type, value, run):
     if not cycle_ids:
         raise ActionError("Pick a cycle.")
     cycle_id = cycle_ids[0]
+    if not Cycle.objects.filter(pk=cycle_id, project_id=work_item.project_id).exists():
+        raise ActionError("The selected cycle does not belong to this project.")
 
     CycleIssue.objects.filter(issue=work_item).exclude(cycle_id=cycle_id).delete()
     CycleIssue.objects.get_or_create(

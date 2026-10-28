@@ -343,6 +343,12 @@ class PageCommentSerializer(BaseSerializer):
             "updated_at",
         ]
 
+    def validate_parent(self, parent):
+        page_id = self.instance.page_id if self.instance else self.context.get("page_id")
+        if parent is not None and str(parent.page_id) != str(page_id):
+            raise serializers.ValidationError("The parent comment belongs to another page.")
+        return parent
+
     def validate(self, attrs):
         if "comment_html" in attrs and attrs["comment_html"]:
             is_valid, error_msg, sanitized_html = validate_html_content(attrs["comment_html"])

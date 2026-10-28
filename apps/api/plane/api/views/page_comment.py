@@ -75,7 +75,7 @@ class PageCommentListCreateAPIEndpoint(BaseAPIView):
                 status=status.HTTP_409_CONFLICT,
             )
 
-        serializer = PageCommentSerializer(data=request.data)
+        serializer = PageCommentSerializer(data=request.data, context={"page_id": page_id})
         if serializer.is_valid():
             serializer.save(page_id=page_id, actor=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

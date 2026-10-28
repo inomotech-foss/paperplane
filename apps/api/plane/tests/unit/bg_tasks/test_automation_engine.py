@@ -195,7 +195,7 @@ class TestChangeProperty:
         run = engine.execute(automation, context_for(work_item, project, automation))
 
         assert run.status == AutomationRunStatus.FAILED
-        assert "does not belong to this project" in run.steps[0]["error"]
+        assert "belong to this project" in run.steps[0]["error"]
 
     def test_adds_assignees_only_for_project_members(self, project, create_user, work_item, second_member):
         outsider = User.objects.create(email="outsider@plane.so", username="outsider")
@@ -292,6 +292,43 @@ class TestChangeProperty:
         engine.execute(automation, context_for(work_item, project, automation))
 
         assert ModuleIssue.objects.filter(issue=work_item, module=module).exists()
+
+    @pytest.mark.parametrize("property_key", ["cycle_id", "module_ids", "estimate_point_id"])
+    def test_ids_from_another_project_are_refused(self, project, create_user, work_item, property_key):
+        from plane.db.models import Cycle, CycleIssue, Estimate, EstimatePoint, Module, ModuleIssue
+
+        other = Project.objects.create(
+            name="Other", identifier="OTH", workspace=project.workspace, created_by=create_user
+        )
+        if property_key == "cycle_id":
+            value = str(
+                Cycle.objects.create(name="S", project=other, workspace=other.workspace, owned_by=create_user).id
+            )
+        elif property_key == "module_ids":
+            value = [str(Module.objects.create(name="M", project=other, workspace=other.workspace).id)]
+        else:
+            estimate = Estimate.objects.create(name="P", project=other, workspace=other.workspace, type="points")
+            value = str(
+                EstimatePoint.objects.create(
+                    estimate=estimate, project=other, workspace=other.workspace, key=1, value="3"
+                ).id
+            )
+        automation = make_automation(project, create_user)
+        change_type = "add" if property_key == "module_ids" else "set"
+        add_action(
+            automation,
+            ActionType.CHANGE_PROPERTY,
+            {"property": property_key, "change_type": change_type, "value": value},
+        )
+
+        run = engine.execute(automation, context_for(work_item, project, automation))
+
+        assert run.status == AutomationRunStatus.FAILED
+        assert "belong to this project" in run.steps[0]["error"]
+        work_item.refresh_from_db()
+        assert work_item.estimate_point_id is None
+        assert not CycleIssue.objects.filter(issue=work_item).exists()
+        assert not ModuleIssue.objects.filter(issue=work_item).exists()
 
     def test_shifts_a_date(self, project, create_user, work_item):
         work_item.target_date = datetime.date(2026, 7, 24)

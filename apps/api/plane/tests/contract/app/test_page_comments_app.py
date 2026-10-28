@@ -413,3 +413,54 @@ class TestPageCommentPublicProjectMentions:
         url = base_url(workspace.slug, project.id, page.id)
         response = session_client.post(url, {"comment_html": mention_html("not-a-uuid")}, format="json")
         assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.fixture
+def foreign_comment(db, workspace):
+    """A comment on a page in a project the caller is not a member of."""
+    owner = User.objects.create(email="foreign@plane.so", username="foreign")
+    project = Project.objects.create(name="Private", identifier="PRV", workspace=workspace, created_by=owner)
+    page = Page.objects.create(name="Private page", workspace=workspace, owned_by=owner, access=Page.PUBLIC_ACCESS)
+    ProjectPage.objects.create(workspace=workspace, project=project, page=page)
+    return PageComment.objects.create(page=page, comment_html="<p>theirs</p>", actor=owner)
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestPageCommentScope:
+    def test_reaction_on_a_comment_of_another_page_is_404(
+        self, session_client, workspace, project, page, foreign_comment
+    ):
+        url = reactions_url(workspace.slug, project.id, page.id, foreign_comment.id)
+
+        response = session_client.post(url, {"reaction": "1f44d"}, format="json")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert not foreign_comment.page_comment_reactions.exists()
+
+    def test_reply_to_a_comment_of_another_page_is_refused(
+        self, session_client, workspace, project, page, foreign_comment
+    ):
+        response = session_client.post(
+            base_url(workspace.slug, project.id, page.id),
+            {"comment_html": "<p>reply</p>", "parent": str(foreign_comment.id)},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not PageComment.objects.filter(parent=foreign_comment).exists()
+
+    def test_moving_a_comment_under_another_page_is_refused(
+        self, session_client, workspace, project, page, create_user, foreign_comment
+    ):
+        comment = PageComment.objects.create(page=page, comment_html="<p>mine</p>", actor=create_user)
+
+        response = session_client.patch(
+            f"{base_url(workspace.slug, project.id, page.id)}{comment.id}/",
+            {"parent": str(foreign_comment.id)},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        comment.refresh_from_db()
+        assert comment.parent_id is None

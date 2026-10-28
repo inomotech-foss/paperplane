@@ -168,7 +168,7 @@ class PageCommentViewSet(BaseViewSet):
                     {"error": "You are not allowed to comment on this page"},
                     status=status.HTTP_403_FORBIDDEN,
                 )
-        serializer = PageCommentSerializer(data=request.data)
+        serializer = PageCommentSerializer(data=request.data, context={"page_id": page_id})
         if serializer.is_valid():
             serializer.save(page_id=page_id, actor=request.user)
             self._notify_mentions(serializer.instance, request, slug, project_id)
@@ -235,13 +235,15 @@ class PageCommentReactionViewSet(BaseViewSet):
             super()
             .get_queryset()
             .filter(workspace__slug=self.kwargs.get("slug"))
-            .filter(comment_id=self.kwargs.get("comment_id"))
+            .filter(comment_id=self.kwargs.get("comment_id"), comment__page_id=self.kwargs.get("page_id"))
             .select_related("actor")
             .order_by("-created_at")
             .distinct()
         )
 
     def create(self, request, slug, project_id, page_id, comment_id):
+        if not PageComment.objects.filter(workspace__slug=slug, page_id=page_id, pk=comment_id).exists():
+            return Response({"error": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
         try:
             serializer = PageCommentReactionSerializer(data=request.data)
             if serializer.is_valid():
@@ -258,6 +260,7 @@ class PageCommentReactionViewSet(BaseViewSet):
         page_comment_reaction = PageCommentReaction.objects.get(
             workspace__slug=slug,
             comment_id=comment_id,
+            comment__page_id=page_id,
             reaction=reaction_code,
             actor=request.user,
         )
