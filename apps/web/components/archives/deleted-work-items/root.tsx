@@ -13,12 +13,9 @@ import { EmptyStateDetailed } from "@plane/blocks/empty-state";
 import { Loader } from "@plane/blocks/skeleton";
 import { setToast } from "@plane/blocks/toast";
 import { useTranslation } from "@plane/i18n";
-// hooks
 import { useUserPermissions } from "@/hooks/store/user";
-// services
 import type { TTrashedIssue, TTrashedIssuePage } from "@/services/issue/issue-trash.service";
 import { IssueTrashService } from "@/services/issue/issue-trash.service";
-// local imports
 import { DeletedWorkItemListItem } from "./list-item";
 
 const issueTrashService = new IssueTrashService();
@@ -32,15 +29,12 @@ type Props = {
 
 export const DeletedWorkItemsRoot = observer(function DeletedWorkItemsRoot(props: Props) {
   const { workspaceSlug, projectId } = props;
-  // states
   const [restoringId, setRestoringId] = useState<string | undefined>(undefined);
   const [purging, setPurging] = useState<TTrashedIssue | undefined>(undefined);
   const [isPurging, setIsPurging] = useState(false);
-  // hooks
   const { allowPermissions } = useUserPermissions();
   const { t } = useTranslation();
-  // data
-  const { data, size, setSize, isValidating, mutate } = useSWRInfinite(
+  const { data, error, size, setSize, isValidating, mutate } = useSWRInfinite(
     (_: number, previous: TTrashedIssuePage | null) =>
       previous && !previous.next_page_results
         ? null
@@ -48,7 +42,6 @@ export const DeletedWorkItemsRoot = observer(function DeletedWorkItemsRoot(props
     ([, slug, project, cursor]: [string, string, string, string | undefined]) =>
       issueTrashService.list(slug, project, cursor)
   );
-  // derived values
   const issues = data?.flatMap((page) => page.results) ?? [];
   const hasMore = Boolean(data?.[data.length - 1]?.next_page_results);
   const canPurge = allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.PROJECT, workspaceSlug, projectId);
@@ -88,6 +81,18 @@ export const DeletedWorkItemsRoot = observer(function DeletedWorkItemsRoot(props
       setIsPurging(false);
     }
   };
+
+  if (error) {
+    return (
+      <div className="h-full place-items-center">
+        <EmptyStateDetailed
+          assetKey="archived-work-item"
+          title={t("something_went_wrong")}
+          description={t("something_went_wrong_please_try_again")}
+        />
+      </div>
+    );
+  }
 
   if (!data) {
     return (

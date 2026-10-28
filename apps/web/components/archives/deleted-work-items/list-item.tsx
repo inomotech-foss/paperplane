@@ -7,9 +7,7 @@ import { observer } from "mobx-react";
 import { Button } from "@makeplane/propel/components/button";
 import { useTranslation } from "@plane/i18n";
 import { renderFormattedDate } from "@plane/utils";
-// hooks
 import { useMember } from "@/hooks/store/use-member";
-// services
 import type { TTrashedIssue } from "@/services/issue/issue-trash.service";
 
 type Props = {
@@ -37,12 +35,13 @@ export const DeletedWorkItemListItem = observer(function DeletedWorkItemListItem
           </span>
           {issue.name}
         </p>
-        <p className="mt-1 text-11 text-placeholder">
-          {deletedBy
-            ? t("issue.trash.deleted_by", { name: deletedBy, date: deletedOn })
-            : t("issue.trash.deleted_on", { date: deletedOn })}
-          {" · "}
-          {t("issue.trash.purge_on", { date: renderFormattedDate(issue.purge_at) ?? "" })}
+        <p className="mt-1 flex flex-wrap gap-x-3 text-11 text-placeholder">
+          <span>
+            {deletedBy
+              ? t("issue.trash.deleted_by", { name: deletedBy, date: deletedOn })
+              : t("issue.trash.deleted_on", { date: deletedOn })}
+          </span>
+          <span>{t("issue.trash.purge_on", { date: renderFormattedDate(issue.purge_at) ?? "" })}</span>
         </p>
       </div>
       <Button
