@@ -150,7 +150,6 @@ from plane.utils.openapi import (
     PROJECT_NOT_FOUND_RESPONSE,
     EXTERNAL_ID_EXISTS_RESPONSE,
     DELETED_RESPONSE,
-    ADMIN_ONLY_RESPONSE,
     LABEL_NOT_FOUND_RESPONSE,
     LABEL_NAME_EXISTS_RESPONSE,
     INVALID_REQUEST_RESPONSE,
@@ -852,34 +851,33 @@ class IssueDetailAPIEndpoint(BaseAPIView):
     @work_item_docs(
         operation_id="delete_work_item",
         summary="Delete work item",
-        description="Permanently delete an existing work item from the project. Only admins or the item creator can perform this action.",  # noqa: E501
+        description=(
+            "Delete an existing work item. Project admins and members, and the work item's creator, can do this. "
+            "Deleted work items can be restored until they are removed permanently."
+        ),
         parameters=[
             PROJECT_ID_PARAMETER,
         ],
         responses={
             204: DELETED_RESPONSE,
-            403: ADMIN_ONLY_RESPONSE,
+            403: FORBIDDEN_RESPONSE,
             404: WORK_ITEM_NOT_FOUND_RESPONSE,
         },
     )
     def delete(self, request, slug, project_id, pk):
-        """Delete work item
-
-        Permanently delete an existing work item from the project.
-        Only admins or the item creator can perform this action.
-        """
+        """Delete work item"""
         issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=pk)
         if issue.created_by_id != request.user.id and (
             not ProjectMember.objects.filter(
                 workspace__slug=slug,
                 member=request.user,
-                role=20,
+                role__gte=ROLE.MEMBER.value,
                 project_id=project_id,
                 is_active=True,
             ).exists()
         ):
             return Response(
-                {"error": "Only admin or creator can delete the work item"},
+                {"error": "Only project members or the creator can delete the work item"},
                 status=status.HTTP_403_FORBIDDEN,
             )
         current_instance = json.dumps(IssueSerializer(issue).data, cls=DjangoJSONEncoder)

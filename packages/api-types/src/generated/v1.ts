@@ -882,7 +882,7 @@ export interface paths {
         post?: never;
         /**
          * Delete work item
-         * @description Permanently delete an existing work item from the project. Only admins or the item creator can perform this action.
+         * @description Delete an existing work item. Project admins and members, and the work item's creator, can do this. Deleted work items can be restored until they are removed permanently.
          */
         delete: operations["delete_work_item"];
         options?: never;
@@ -1973,7 +1973,7 @@ export interface paths {
         post?: never;
         /**
          * Delete work item
-         * @description Permanently delete an existing work item from the project. Only admins or the item creator can perform this action.
+         * @description Delete an existing work item. Project admins and members, and the work item's creator, can do this. Deleted work items can be restored until they are removed permanently.
          */
         delete: operations["delete_work_item_2"];
         options?: never;
@@ -9111,7 +9111,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Only admin or creator can perform this action */
+            /** @description Permission denied. User lacks required permissions. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14305,7 +14305,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Only admin or creator can perform this action */
+            /** @description Permission denied. User lacks required permissions. */
             403: {
                 headers: {
                     [name: string]: unknown;

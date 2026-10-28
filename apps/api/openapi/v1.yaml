@@ -6310,8 +6310,9 @@ paths:
           description: Resource with same external ID already exists
     delete:
       operationId: delete_work_item
-      description: Permanently delete an existing work item from the project. Only
-        admins or the item creator can perform this action.
+      description: Delete an existing work item. Project admins and members, and the
+        work item's creator, can do this. Deleted work items can be restored until
+        they are removed permanently.
       summary: Delete work item
       parameters:
       - in: path
@@ -6351,7 +6352,7 @@ paths:
         '401':
           description: Authentication credentials were not provided or are invalid.
         '403':
-          description: Only admin or creator can perform this action
+          description: Permission denied. User lacks required permissions.
         '404':
           description: Work item not found
         '204':
@@ -14443,8 +14444,9 @@ paths:
           description: Resource with same external ID already exists
     delete:
       operationId: delete_work_item_2
-      description: Permanently delete an existing work item from the project. Only
-        admins or the item creator can perform this action.
+      description: Delete an existing work item. Project admins and members, and the
+        work item's creator, can do this. Deleted work items can be restored until
+        they are removed permanently.
       summary: Delete work item
       parameters:
       - in: path
@@ -14484,7 +14486,7 @@ paths:
         '401':
           description: Authentication credentials were not provided or are invalid.
         '403':
-          description: Only admin or creator can perform this action
+          description: Permission denied. User lacks required permissions.
         '404':
           description: Work item not found
         '204':

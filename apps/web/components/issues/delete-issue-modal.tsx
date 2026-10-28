@@ -52,14 +52,14 @@ export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props)
   const projectDetails = getProjectById(issue?.project_id);
   const isIssueCreator = issue?.created_by === currentUser?.id;
 
-  const canPerformProjectAdminActions = allowPermissions(
-    [EUserPermissions.ADMIN],
+  const canDeleteAnyWorkItem = allowPermissions(
+    [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
     EUserPermissionsLevel.PROJECT,
     workspaceSlug?.toString(),
     projectDetails?.id
   );
 
-  const authorized = isIssueCreator || canPerformProjectAdminActions;
+  const authorized = isIssueCreator || canDeleteAnyWorkItem;
 
   const onClose = () => {
     setIsDeleting(false);
@@ -121,7 +121,7 @@ export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props)
           <span className="font-medium break-words text-primary">
             {projectDetails?.identifier}-{issue?.sequence_id}
           </span>
-          {` ? All of the data related to the work item will be permanently removed. This action cannot be undone.`}
+          {`? You can restore it from the project's archives until it is removed permanently.`}
         </>
       }
     />
