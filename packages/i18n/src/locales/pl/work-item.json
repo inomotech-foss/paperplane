@@ -182,6 +182,23 @@
       "banner_message": "Ten element pracy został zarchiwizowany. Przejdź do sekcji Archiwa, aby go przywrócić.",
       "go_to_archives": "Przejdź do archiwów"
     },
+    "trash": {
+      "page_title": "Usunięte elementy pracy",
+      "deleted_by": "Usunięte przez {name} dnia {date}",
+      "deleted_on": "Usunięte dnia {date}",
+      "purge_on": "Zostanie trwale usunięte dnia {date}",
+      "restore": "Przywróć",
+      "delete_permanently": "Usuń trwale",
+      "restored": "Przywrócono {identifier}.",
+      "restore_failed": "Nie udało się przywrócić elementu pracy. Prosimy spróbować ponownie.",
+      "purged": "Trwale usunięto {identifier}.",
+      "purge_failed": "Nie udało się usunąć elementu pracy. Prosimy spróbować ponownie.",
+      "purge_title": "Trwale usunąć {identifier}?",
+      "purge_description": "Element pracy i wszystko, co zostało usunięte razem z nim, zostaną trwale usunięte. Tej operacji nie można cofnąć.",
+      "empty_title": "Brak usuniętych elementów pracy",
+      "empty_description": "Usunięte elementy pracy pozostają tutaj do czasu ich trwałego usunięcia. Do tego czasu można je przywrócić.",
+      "load_more": "Wczytaj więcej"
+    },
     "restore": {
       "success": {
         "title": "Przywrócenie zakończone",

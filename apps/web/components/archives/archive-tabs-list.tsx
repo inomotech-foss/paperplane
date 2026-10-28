@@ -8,6 +8,7 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 // types
+import { EUserProjectRoles } from "@plane/types";
 import type { IProject } from "@plane/types";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
@@ -31,6 +32,11 @@ const ARCHIVES_TAB_LIST: {
     key: "modules",
     label: "Modules",
     shouldRender: (projectDetails) => projectDetails.module_view,
+  },
+  {
+    key: "deleted",
+    label: "Deleted",
+    shouldRender: (projectDetails) => (projectDetails.member_role ?? 0) >= EUserProjectRoles.MEMBER,
   },
 ];
 

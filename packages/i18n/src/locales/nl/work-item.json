@@ -182,6 +182,23 @@
       "banner_message": "Dit werkitem is gearchiveerd. Ga naar Archieven om het te herstellen.",
       "go_to_archives": "Ga naar archieven"
     },
+    "trash": {
+      "page_title": "Verwijderde werkitems",
+      "deleted_by": "Verwijderd door {name} op {date}",
+      "deleted_on": "Verwijderd op {date}",
+      "purge_on": "Wordt op {date} definitief verwijderd",
+      "restore": "Herstellen",
+      "delete_permanently": "Definitief verwijderen",
+      "restored": "{identifier} is hersteld.",
+      "restore_failed": "Het werkitem kon niet worden hersteld. Probeer het opnieuw.",
+      "purged": "{identifier} is definitief verwijderd.",
+      "purge_failed": "Het werkitem kon niet worden verwijderd. Probeer het opnieuw.",
+      "purge_title": "{identifier} definitief verwijderen?",
+      "purge_description": "Het werkitem en alles wat ermee is verwijderd, worden definitief gewist. Dit kan niet ongedaan worden gemaakt.",
+      "empty_title": "Geen verwijderde werkitems",
+      "empty_description": "Verwijderde werkitems blijven hier tot ze definitief worden gewist. Tot die tijd kunt u ze herstellen.",
+      "load_more": "Meer laden"
+    },
     "restore": {
       "success": {
         "title": "Herstellen geslaagd",

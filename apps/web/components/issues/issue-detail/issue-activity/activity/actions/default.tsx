@@ -44,8 +44,10 @@ export const IssueDefaultActivity = observer(function IssueDefaultActivity(props
           ) : (
             <span> created the work item.</span>
           )
+        ) : activity.verb === "restored" ? (
+          <span> restored the work item.</span>
         ) : (
-          <span> deleted a work item.</span>
+          <span> deleted the work item.</span>
         )}
       </>
     </IssueActivityBlockComponent>

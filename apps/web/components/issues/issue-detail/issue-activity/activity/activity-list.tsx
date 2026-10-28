@@ -53,6 +53,7 @@ export const IssueActivityItem = observer(function IssueActivityItem(props: TIss
   const activityField = getActivityById(activityId)?.field;
   switch (activityField) {
     case null: // default issue creation
+    case "issue":
       return <IssueDefaultActivity {...componentDefaultProps} />;
     case "state":
       return <IssueStateActivity {...componentDefaultProps} showIssue={false} />;

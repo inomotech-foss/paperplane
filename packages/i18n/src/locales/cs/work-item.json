@@ -182,6 +182,23 @@
       "banner_message": "Tato pracovní položka byla archivována. Přejděte do sekce Archivy a obnovte ji.",
       "go_to_archives": "Přejít do archivů"
     },
+    "trash": {
+      "page_title": "Smazané pracovní položky",
+      "deleted_by": "Smazáno uživatelem {name} dne {date}",
+      "deleted_on": "Smazáno dne {date}",
+      "purge_on": "Bude trvale odstraněno dne {date}",
+      "restore": "Obnovit",
+      "delete_permanently": "Trvale smazat",
+      "restored": "Položka {identifier} byla obnovena.",
+      "restore_failed": "Pracovní položku se nepodařilo obnovit. Zkuste to prosím znovu.",
+      "purged": "Položka {identifier} byla trvale smazána.",
+      "purge_failed": "Pracovní položku se nepodařilo smazat. Zkuste to prosím znovu.",
+      "purge_title": "Trvale smazat {identifier}?",
+      "purge_description": "Pracovní položka a vše, co bylo smazáno spolu s ní, budou trvale odstraněny. Tuto akci nelze vrátit zpět.",
+      "empty_title": "Žádné smazané pracovní položky",
+      "empty_description": "Smazané pracovní položky zůstávají zde, dokud nejsou trvale odstraněny. Do té doby je můžete obnovit.",
+      "load_more": "Načíst další"
+    },
     "restore": {
       "success": {
         "title": "Obnovení úspěšné",

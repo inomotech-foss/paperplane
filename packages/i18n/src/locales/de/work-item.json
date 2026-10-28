@@ -182,6 +182,23 @@
       "banner_message": "Dieses Arbeitselement wurde archiviert. Rufen Sie den Bereich „Archive“ auf, um es wiederherzustellen.",
       "go_to_archives": "Zu den Archiven"
     },
+    "trash": {
+      "page_title": "Gelöschte Arbeitselemente",
+      "deleted_by": "Gelöscht von {name} am {date}",
+      "deleted_on": "Gelöscht am {date}",
+      "purge_on": "Wird am {date} endgültig entfernt",
+      "restore": "Wiederherstellen",
+      "delete_permanently": "Endgültig löschen",
+      "restored": "{identifier} wurde wiederhergestellt.",
+      "restore_failed": "Das Arbeitselement konnte nicht wiederhergestellt werden. Bitte versuchen Sie es erneut.",
+      "purged": "{identifier} wurde endgültig gelöscht.",
+      "purge_failed": "Das Arbeitselement konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+      "purge_title": "{identifier} endgültig löschen?",
+      "purge_description": "Das Arbeitselement und alles, was mit ihm gelöscht wurde, wird dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden.",
+      "empty_title": "Keine gelöschten Arbeitselemente",
+      "empty_description": "Gelöschte Arbeitselemente bleiben hier, bis sie endgültig entfernt werden. Bis dahin können Sie sie wiederherstellen.",
+      "load_more": "Mehr laden"
+    },
     "restore": {
       "success": {
         "title": "Wiederherstellung erfolgreich",

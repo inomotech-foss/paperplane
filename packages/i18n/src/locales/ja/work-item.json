@@ -182,6 +182,23 @@
       "banner_message": "この作業項目はアーカイブされました。復元するには、アーカイブセクションをご確認ください。",
       "go_to_archives": "アーカイブに移動"
     },
+    "trash": {
+      "page_title": "削除された作業項目",
+      "deleted_by": "{date}に{name}が削除",
+      "deleted_on": "{date}に削除",
+      "purge_on": "{date}に完全に削除されます",
+      "restore": "復元",
+      "delete_permanently": "完全に削除",
+      "restored": "{identifier}を復元しました。",
+      "restore_failed": "作業項目を復元できませんでした。もう一度お試しください。",
+      "purged": "{identifier}を完全に削除しました。",
+      "purge_failed": "作業項目を削除できませんでした。もう一度お試しください。",
+      "purge_title": "{identifier}を完全に削除しますか？",
+      "purge_description": "作業項目と、一緒に削除されたものはすべて完全に削除されます。この操作は元に戻せません。",
+      "empty_title": "削除された作業項目はありません",
+      "empty_description": "削除された作業項目は、完全に削除されるまでここに残ります。それまでは復元できます。",
+      "load_more": "さらに読み込む"
+    },
     "restore": {
       "success": {
         "title": "復元成功",

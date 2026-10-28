@@ -182,6 +182,23 @@
       "banner_message": "Este item de trabalho foi arquivado. Acesse a seção Arquivos para restaurá-lo.",
       "go_to_archives": "Ir para arquivos"
     },
+    "trash": {
+      "page_title": "Itens de trabalho excluídos",
+      "deleted_by": "Excluído por {name} em {date}",
+      "deleted_on": "Excluído em {date}",
+      "purge_on": "Será removido permanentemente em {date}",
+      "restore": "Restaurar",
+      "delete_permanently": "Excluir permanentemente",
+      "restored": "{identifier} foi restaurado.",
+      "restore_failed": "Não foi possível restaurar o item de trabalho. Tente novamente.",
+      "purged": "{identifier} foi excluído permanentemente.",
+      "purge_failed": "Não foi possível excluir o item de trabalho. Tente novamente.",
+      "purge_title": "Excluir {identifier} permanentemente?",
+      "purge_description": "O item de trabalho e tudo o que foi excluído com ele serão removidos permanentemente. Esta ação não pode ser desfeita.",
+      "empty_title": "Nenhum item de trabalho excluído",
+      "empty_description": "Os itens de trabalho excluídos ficam aqui até serem removidos permanentemente. Até lá, você pode restaurá-los.",
+      "load_more": "Carregar mais"
+    },
     "restore": {
       "success": {
         "title": "Sucesso ao restaurar",

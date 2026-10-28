@@ -182,6 +182,23 @@
       "banner_message": "This work item has been archived. Visit the Archives section to restore it.",
       "go_to_archives": "Go to archives"
     },
+    "trash": {
+      "page_title": "Deleted work items",
+      "deleted_by": "Deleted by {name} on {date}",
+      "deleted_on": "Deleted on {date}",
+      "purge_on": "Will be removed permanently on {date}",
+      "restore": "Restore",
+      "delete_permanently": "Delete permanently",
+      "restored": "{identifier} was restored.",
+      "restore_failed": "The work item could not be restored. Please try again.",
+      "purged": "{identifier} was deleted permanently.",
+      "purge_failed": "The work item could not be deleted. Please try again.",
+      "purge_title": "Delete {identifier} permanently?",
+      "purge_description": "The work item and everything deleted with it are removed for good. This cannot be undone.",
+      "empty_title": "No deleted work items",
+      "empty_description": "Deleted work items stay here until they are removed permanently. You can restore them until then.",
+      "load_more": "Load more"
+    },
     "restore": {
       "success": {
         "title": "Restore success",

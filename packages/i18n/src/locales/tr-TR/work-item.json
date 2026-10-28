@@ -182,6 +182,23 @@
       "banner_message": "Bu iş öğesi arşivlendi. Geri yüklemek için Arşivler bölümüne gidin.",
       "go_to_archives": "Arşivlere git"
     },
+    "trash": {
+      "page_title": "Silinen iş öğeleri",
+      "deleted_by": "{name} tarafından {date} tarihinde silindi",
+      "deleted_on": "{date} tarihinde silindi",
+      "purge_on": "{date} tarihinde kalıcı olarak kaldırılacak",
+      "restore": "Geri yükle",
+      "delete_permanently": "Kalıcı olarak sil",
+      "restored": "{identifier} geri yüklendi.",
+      "restore_failed": "İş öğesi geri yüklenemedi. Lütfen tekrar deneyin.",
+      "purged": "{identifier} kalıcı olarak silindi.",
+      "purge_failed": "İş öğesi silinemedi. Lütfen tekrar deneyin.",
+      "purge_title": "{identifier} kalıcı olarak silinsin mi?",
+      "purge_description": "İş öğesi ve onunla birlikte silinen her şey kalıcı olarak kaldırılacak. Bu işlem geri alınamaz.",
+      "empty_title": "Silinen iş öğesi yok",
+      "empty_description": "Silinen iş öğeleri kalıcı olarak kaldırılana kadar burada kalır. O zamana kadar bunları geri yükleyebilirsiniz.",
+      "load_more": "Daha fazla yükle"
+    },
     "restore": {
       "success": {
         "title": "Geri yükleme başarılı",

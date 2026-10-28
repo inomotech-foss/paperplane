@@ -182,6 +182,23 @@
       "banner_message": "Táto pracovná položka bola archivovaná. Prejdite do sekcie Archívy a obnovte ju.",
       "go_to_archives": "Prejsť do archívov"
     },
+    "trash": {
+      "page_title": "Odstránené pracovné položky",
+      "deleted_by": "Odstránené používateľom {name} dňa {date}",
+      "deleted_on": "Odstránené dňa {date}",
+      "purge_on": "Bude natrvalo odstránené dňa {date}",
+      "restore": "Obnoviť",
+      "delete_permanently": "Natrvalo odstrániť",
+      "restored": "Položka {identifier} bola obnovená.",
+      "restore_failed": "Pracovnú položku sa nepodarilo obnoviť. Skúste to prosím znova.",
+      "purged": "Položka {identifier} bola natrvalo odstránená.",
+      "purge_failed": "Pracovnú položku sa nepodarilo odstrániť. Skúste to prosím znova.",
+      "purge_title": "Natrvalo odstrániť {identifier}?",
+      "purge_description": "Pracovná položka a všetko, čo bolo odstránené spolu s ňou, budú natrvalo vymazané. Túto akciu nie je možné vrátiť späť.",
+      "empty_title": "Žiadne odstránené pracovné položky",
+      "empty_description": "Odstránené pracovné položky zostávajú tu, kým nie sú natrvalo vymazané. Dovtedy ich môžete obnoviť.",
+      "load_more": "Načítať ďalšie"
+    },
     "restore": {
       "success": {
         "title": "Obnovenie úspešné",

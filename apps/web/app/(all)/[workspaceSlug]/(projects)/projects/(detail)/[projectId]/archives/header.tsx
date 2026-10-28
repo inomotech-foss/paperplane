@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { ArchiveOutline, CyclesOutline, ModuleOutline, WorkItemsOutline } from "@makeplane/propel/icons";
+import { ArchiveOutline, CyclesOutline, DeleteOutline, ModuleOutline, WorkItemsOutline } from "@makeplane/propel/icons";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { EIssuesStoreType } from "@plane/types";
 // ui
@@ -23,7 +23,7 @@ import { CommonProjectBreadcrumbs } from "@/components/breadcrumbs/common";
 import { useProjectCrumbProps } from "@/components/breadcrumbs/use-project-crumb-props";
 
 type TProps = {
-  activeTab: "issues" | "cycles" | "modules";
+  activeTab: "issues" | "cycles" | "modules" | "deleted";
 };
 
 const PROJECT_ARCHIVES_BREADCRUMB_LIST: {
@@ -47,6 +47,11 @@ const PROJECT_ARCHIVES_BREADCRUMB_LIST: {
     label: "Modules",
     href: "/modules",
     icon: ModuleOutline,
+  },
+  deleted: {
+    label: "Deleted",
+    href: "/deleted",
+    icon: DeleteOutline,
   },
 };
 

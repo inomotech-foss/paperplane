@@ -182,6 +182,23 @@
       "banner_message": "Mục công việc này đã được lưu trữ. Truy cập mục Lưu trữ để khôi phục.",
       "go_to_archives": "Đi đến lưu trữ"
     },
+    "trash": {
+      "page_title": "Mục công việc đã xóa",
+      "deleted_by": "Đã bị {name} xóa vào {date}",
+      "deleted_on": "Đã xóa vào {date}",
+      "purge_on": "Sẽ bị xóa vĩnh viễn vào {date}",
+      "restore": "Khôi phục",
+      "delete_permanently": "Xóa vĩnh viễn",
+      "restored": "Đã khôi phục {identifier}.",
+      "restore_failed": "Không thể khôi phục mục công việc. Vui lòng thử lại.",
+      "purged": "Đã xóa vĩnh viễn {identifier}.",
+      "purge_failed": "Không thể xóa mục công việc. Vui lòng thử lại.",
+      "purge_title": "Xóa vĩnh viễn {identifier}?",
+      "purge_description": "Mục công việc và mọi thứ bị xóa cùng với nó sẽ bị xóa vĩnh viễn. Không thể hoàn tác thao tác này.",
+      "empty_title": "Không có mục công việc nào đã xóa",
+      "empty_description": "Các mục công việc đã xóa sẽ ở đây cho đến khi bị xóa vĩnh viễn. Trước thời điểm đó, bạn có thể khôi phục chúng.",
+      "load_more": "Tải thêm"
+    },
     "restore": {
       "success": {
         "title": "Khôi phục thành công",

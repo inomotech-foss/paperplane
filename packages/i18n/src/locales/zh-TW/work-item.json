@@ -182,6 +182,23 @@
       "banner_message": "此工作事項已封存。請前往封存區段以還原它。",
       "go_to_archives": "前往封存"
     },
+    "trash": {
+      "page_title": "已刪除的工作事項",
+      "deleted_by": "由 {name} 於 {date} 刪除",
+      "deleted_on": "於 {date} 刪除",
+      "purge_on": "將於 {date} 永久刪除",
+      "restore": "還原",
+      "delete_permanently": "永久刪除",
+      "restored": "已還原 {identifier}。",
+      "restore_failed": "無法還原工作事項。請再試一次。",
+      "purged": "已永久刪除 {identifier}。",
+      "purge_failed": "無法刪除工作事項。請再試一次。",
+      "purge_title": "永久刪除 {identifier}？",
+      "purge_description": "此工作事項及與其一併刪除的所有內容將被永久刪除。此操作無法復原。",
+      "empty_title": "沒有已刪除的工作事項",
+      "empty_description": "已刪除的工作事項會保留在此處，直到被永久刪除。在此之前，您可以還原它們。",
+      "load_more": "載入更多"
+    },
     "restore": {
       "success": {
         "title": "還原成功",

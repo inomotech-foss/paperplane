@@ -182,6 +182,23 @@
       "banner_message": "Item kerja ini telah diarsipkan. Kunjungi bagian Arsip untuk memulihkannya.",
       "go_to_archives": "Buka arsip"
     },
+    "trash": {
+      "page_title": "Item kerja yang dihapus",
+      "deleted_by": "Dihapus oleh {name} pada {date}",
+      "deleted_on": "Dihapus pada {date}",
+      "purge_on": "Akan dihapus permanen pada {date}",
+      "restore": "Pulihkan",
+      "delete_permanently": "Hapus permanen",
+      "restored": "{identifier} telah dipulihkan.",
+      "restore_failed": "Item kerja tidak dapat dipulihkan. Silakan coba lagi.",
+      "purged": "{identifier} telah dihapus permanen.",
+      "purge_failed": "Item kerja tidak dapat dihapus. Silakan coba lagi.",
+      "purge_title": "Hapus {identifier} secara permanen?",
+      "purge_description": "Item kerja dan semua yang dihapus bersamanya akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.",
+      "empty_title": "Tidak ada item kerja yang dihapus",
+      "empty_description": "Item kerja yang dihapus tetap ada di sini hingga dihapus secara permanen. Sampai saat itu, Anda dapat memulihkannya.",
+      "load_more": "Muat lebih banyak"
+    },
     "restore": {
       "success": {
         "title": "Sukses memulihkan",

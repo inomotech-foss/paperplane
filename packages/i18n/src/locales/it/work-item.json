@@ -182,6 +182,23 @@
       "banner_message": "Questo elemento di lavoro è stato archiviato. Vai alla sezione Archivi per ripristinarlo.",
       "go_to_archives": "Vai agli archivi"
     },
+    "trash": {
+      "page_title": "Elementi di lavoro eliminati",
+      "deleted_by": "Eliminato da {name} il {date}",
+      "deleted_on": "Eliminato il {date}",
+      "purge_on": "Verrà eliminato definitivamente il {date}",
+      "restore": "Ripristina",
+      "delete_permanently": "Elimina definitivamente",
+      "restored": "{identifier} è stato ripristinato.",
+      "restore_failed": "Impossibile ripristinare l'elemento di lavoro. Riprovi.",
+      "purged": "{identifier} è stato eliminato definitivamente.",
+      "purge_failed": "Impossibile eliminare l'elemento di lavoro. Riprovi.",
+      "purge_title": "Eliminare definitivamente {identifier}?",
+      "purge_description": "L'elemento di lavoro e tutto ciò che è stato eliminato con esso verranno rimossi in modo permanente. L'operazione non può essere annullata.",
+      "empty_title": "Nessun elemento di lavoro eliminato",
+      "empty_description": "Gli elementi di lavoro eliminati restano qui finché non vengono rimossi definitivamente. Fino ad allora può ripristinarli.",
+      "load_more": "Carica altro"
+    },
     "restore": {
       "success": {
         "title": "Ripristino riuscito",

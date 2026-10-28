@@ -264,6 +264,14 @@ export const coreRoutes: RouteConfigEntry[] = [
             "./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/archives/modules/page.tsx"
           ),
         ]),
+
+        // Project Archives - Deleted work items
+        layout("./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/archives/deleted/layout.tsx", [
+          route(
+            ":workspaceSlug/projects/:projectId/archives/deleted",
+            "./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/archives/deleted/page.tsx"
+          ),
+        ]),
       ]),
 
       // ====================================================================

@@ -182,6 +182,23 @@
       "banner_message": "此工作项已归档。请前往归档部分以恢复它。",
       "go_to_archives": "前往归档"
     },
+    "trash": {
+      "page_title": "已删除的工作项",
+      "deleted_by": "由 {name} 于 {date} 删除",
+      "deleted_on": "于 {date} 删除",
+      "purge_on": "将于 {date} 永久删除",
+      "restore": "恢复",
+      "delete_permanently": "永久删除",
+      "restored": "已恢复 {identifier}。",
+      "restore_failed": "无法恢复工作项。请重试。",
+      "purged": "已永久删除 {identifier}。",
+      "purge_failed": "无法删除工作项。请重试。",
+      "purge_title": "永久删除 {identifier}？",
+      "purge_description": "该工作项及与其一同删除的所有内容将被永久删除。此操作无法撤销。",
+      "empty_title": "没有已删除的工作项",
+      "empty_description": "已删除的工作项会保留在此处，直到被永久删除。在此之前，您可以恢复它们。",
+      "load_more": "加载更多"
+    },
     "restore": {
       "success": {
         "title": "恢复成功",
