@@ -322,8 +322,6 @@ describe("work item view route", () => {
   it("drops a cleared draft from the URL, so a reload does not bring it back", async () => {
     const first = setup([INVALID_LINK]);
     await waitFor(() => expect(draftText()).toBe(`${INVALID}|Unknown field`));
-    // The route registers in a passive effect, and a change sent before that never reaches the URL.
-    await waitFor(() => expect(getViewRoute(page, "p1")).toBeDefined());
     // what the query bar's Clear sends
     await first.change({ pql: "" });
     await waitFor(() => expect(first.search()).toBe("?l=list"));

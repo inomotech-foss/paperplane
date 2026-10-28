@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { useLocation, useNavigate, useNavigation } from "react-router";
 import type { Path } from "react-router";
 import { applyViewIntent } from "./intent";
@@ -25,12 +25,13 @@ export const useWorkItemViewRoute = (data: TViewRouteData, page: TWorkItemPage, 
   /** The URL a change builds on, or undefined while a navigation leaves this page. */
   const latest = useRef<Path | undefined>(location);
 
-  useEffect(() => {
+  // Layout effects, so the route is registered by the time the page it shows is visible.
+  useLayoutEffect(() => {
     // a change during a navigation of this page builds on the URL it is heading to
     latest.current = target && target.pathname !== location.pathname ? undefined : (target ?? location);
   }, [target, location]);
 
-  useEffect(
+  useLayoutEffect(
     () =>
       registerViewRoute(page, entityId, {
         onIntent: async (intent) => {
