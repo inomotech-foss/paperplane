@@ -148,7 +148,7 @@ ATTRIBUTES = {
         "alt",
         "title",
     },
-    "mention-component": {"id", "entity_identifier", "entity_name"},
+    "mention-component": {"id", "entity_identifier", "entity_name", "author"},
     "anchor-component": {"id", "name", "data-anchor"},
     "toc-component": {"min-level", "max-level"},
     "child-pages-component": {"depth"},

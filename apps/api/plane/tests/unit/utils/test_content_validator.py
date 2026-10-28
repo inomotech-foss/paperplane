@@ -33,7 +33,7 @@ EDITOR_DOCUMENT = """
   height="auto" aspectratio="1.5" alignment="center"></image-component>
 <mention-component id="c9b2b1e0-0000-4000-8000-000000000004"
   entity_identifier="c9b2b1e0-0000-4000-8000-000000000005"
-  entity_name="user_mention"></mention-component>
+  entity_name="user_mention" author="c9b2b1e0-0000-4000-8000-00000000000a"></mention-component>
 <issue-embed-component id="c9b2b1e0-0000-4000-8000-000000000006"
   entity_identifier="c9b2b1e0-0000-4000-8000-000000000007"
   project_identifier="c9b2b1e0-0000-4000-8000-000000000008"
