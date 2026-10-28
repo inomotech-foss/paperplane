@@ -6,7 +6,7 @@
 from django.utils import timezone
 from django.apps import apps
 from django.conf import settings
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.db.models.fields.related import OneToOneRel
 
 
@@ -106,9 +106,84 @@ def soft_delete_related_objects(app_label, model_name, instance_pk, using=None):
         instance.save()
 
 
-# @shared_task
-def restore_related_objects(app_label, model_name, instance_pk, using=None):
-    pass
+def purge_issues(issues):
+    """Hard delete soft-deleted issues with their deleted sub-items.
+
+    Activities reference issues without a database cascade, so they go first.
+    Live sub-items of a purged issue are detached instead of deleted.
+    """
+    from plane.db.models import Issue, IssueActivity
+
+    ids = set(issues.filter(deleted_at__isnull=False).values_list("id", flat=True))
+    frontier = ids
+    while frontier:
+        frontier = (
+            set(Issue.all_objects.filter(parent_id__in=frontier, deleted_at__isnull=False).values_list("id", flat=True))
+            - ids
+        )
+        ids |= frontier
+    with transaction.atomic():
+        Issue.objects.filter(parent_id__in=ids).update(parent=None)
+        IssueActivity.all_objects.filter(issue_id__in=ids).delete()
+        Issue.all_objects.filter(id__in=ids).delete()
+
+
+def restore_related_objects(instance, since):
+    """Restore the rows that the soft delete cascade of instance removed.
+
+    The cascade stamps rows at or after ``since``, the instance's own
+    ``deleted_at``. Older rows were deleted on their own and stay deleted. A row
+    only comes back when every soft-deletable row it points to exists.
+    """
+    for relation in _cascading_relations(instance):
+        if not hasattr(relation.related_model, "all_objects"):
+            continue
+        rows = relation.related_model.all_objects.filter(
+            **{relation.remote_field.name: instance.pk, "deleted_at__gte": since}
+        )
+        for row in rows:
+            if not _targets_exist(row):
+                continue
+            if not undelete(row):
+                continue
+            restore_related_objects(row, since)
+
+
+def undelete(row, **changes):
+    """Clear deleted_at on row. False if a live row now takes its unique slot."""
+    changes["deleted_at"] = None
+    if any(field.name == "updated_at" for field in row._meta.concrete_fields):
+        changes["updated_at"] = timezone.now()
+    try:
+        with transaction.atomic():
+            type(row).all_objects.filter(pk=row.pk).update(**changes)
+    except IntegrityError:
+        return False
+    return True
+
+
+def _cascading_relations(instance):
+    return [
+        f
+        for f in instance._meta.get_fields()
+        if (f.one_to_many or f.one_to_one)
+        and f.auto_created
+        and not f.concrete
+        and getattr(f.on_delete, "__name__", "") not in ("DO_NOTHING", "RESTRICT", "SET_NULL")
+    ]
+
+
+def _targets_exist(row):
+    for field in row._meta.concrete_fields:
+        if field.name in ("created_by", "updated_by"):
+            continue
+        target = field.related_model if field.is_relation else None
+        value = getattr(row, field.attname) if target else None
+        if value is None or not hasattr(target, "all_objects"):
+            continue
+        if target.all_objects.filter(pk=value, deleted_at__isnull=False).exists():
+            return False
+    return True
 
 
 @shared_task
@@ -148,7 +223,7 @@ def hard_delete():
     _ = Module.all_objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days)).delete()
 
     # check delete issue
-    _ = Issue.all_objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days)).delete()
+    purge_issues(Issue.all_objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days)))
 
     # check delete page
     _ = Page.all_objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days)).delete()
@@ -164,7 +239,9 @@ def hard_delete():
 
     _ = IssueActivity.all_objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days)).delete()
 
-    _ = IssueComment.all_objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days)).delete()
+    old_comments = IssueComment.all_objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days))
+    IssueActivity.all_objects.filter(issue_comment__in=old_comments).update(issue_comment=None)
+    _ = old_comments.delete()
 
     _ = IssueLink.all_objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days)).delete()
 

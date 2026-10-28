@@ -685,6 +685,30 @@ def delete_issue_activity(
     )
 
 
+def restore_issue_activity(
+    requested_data,
+    current_instance,
+    issue_id,
+    project_id,
+    workspace_id,
+    actor_id,
+    issue_activities,
+    epoch,
+):
+    issue_activities.append(
+        IssueActivity(
+            project_id=project_id,
+            workspace_id=workspace_id,
+            issue_id=issue_id,
+            comment="restored the issue",
+            verb="restored",
+            actor_id=actor_id,
+            field="issue",
+            epoch=epoch,
+        )
+    )
+
+
 def create_comment_activity(
     requested_data,
     current_instance,
@@ -1560,6 +1584,7 @@ def issue_activity(
             "issue.activity.created": create_issue_activity,
             "issue.activity.updated": update_issue_activity,
             "issue.activity.deleted": delete_issue_activity,
+            "issue.activity.restored": restore_issue_activity,
             "comment.activity.created": create_comment_activity,
             "comment.activity.updated": update_comment_activity,
             "comment.activity.deleted": delete_comment_activity,

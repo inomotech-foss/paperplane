@@ -149,6 +149,7 @@ from .dashboard import (
 )
 
 from .issue.archive import IssueArchiveViewSet, BulkArchiveIssuesEndpoint
+from .issue.trash import IssueTrashEndpoint, IssueTrashDetailEndpoint, IssueRestoreEndpoint
 
 from .issue.attachment import (
     IssueAttachmentEndpoint,

@@ -6,7 +6,17 @@ from django.conf import settings
 from django.utils import timezone
 
 from plane.bgtasks.deletion_task import hard_delete, soft_delete_related_objects
-from plane.db.models import DeployBoard, Intake, Issue, IssueType, Project, ServiceDeskConfig, Workspace
+from plane.db.models import (
+    DeployBoard,
+    Intake,
+    Issue,
+    IssueActivity,
+    IssueComment,
+    IssueType,
+    Project,
+    ServiceDeskConfig,
+    Workspace,
+)
 from plane.utils.issue_type import link_starter_type
 
 
@@ -86,3 +96,23 @@ def test_the_nightly_purge_removes_a_deleted_project_and_keeps_its_types(workspa
     assert not ServiceDeskConfig.all_objects.filter(project_id=project.id).exists()
     assert IssueType.objects.filter(pk=task.pk).exists()
     assert Issue.objects.filter(project=kept).count() == 1
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+def test_hard_delete_removes_issues_with_activities_and_detaches_live_sub_items(workspace):
+    project = Project.objects.create(name="Old", identifier="OLD", workspace=workspace)
+    task = link_starter_type(project)
+    issue = Issue.objects.create(name="Gone", workspace=workspace, project=project, type=task)
+    deleted_child = Issue.objects.create(name="Gone too", workspace=workspace, project=project, type=task, parent=issue)
+    live_child = Issue.objects.create(name="Kept", workspace=workspace, project=project, type=task, parent=issue)
+    comment = IssueComment.objects.create(issue=issue, project=project, comment_html="<p>x</p>")
+    for item in (issue, deleted_child):
+        IssueActivity.objects.create(issue=item, project=project, workspace=workspace, issue_comment=comment)
+    Issue.all_objects.filter(pk__in=[issue.pk, deleted_child.pk]).update(deleted_at=long_ago())
+
+    hard_delete()
+
+    assert not Issue.all_objects.filter(pk__in=[issue.pk, deleted_child.pk]).exists()
+    assert Issue.objects.get(pk=live_child.pk).parent_id is None
+    assert not IssueActivity.all_objects.exists()

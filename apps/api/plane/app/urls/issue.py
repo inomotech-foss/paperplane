@@ -23,6 +23,9 @@ from plane.app.views import (
     LabelViewSet,
     BulkArchiveIssuesEndpoint,
     DeletedIssuesListViewSet,
+    IssueTrashEndpoint,
+    IssueTrashDetailEndpoint,
+    IssueRestoreEndpoint,
     IssuePaginatedViewSet,
     IssueDetailEndpoint,
     IssueAttachmentV2Endpoint,
@@ -260,6 +263,21 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/deleted-issues/",
         DeletedIssuesListViewSet.as_view(),
         name="deleted-issues",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/trash/issues/",
+        IssueTrashEndpoint.as_view(),
+        name="project-issue-trash",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/trash/issues/<uuid:pk>/",
+        IssueTrashDetailEndpoint.as_view(),
+        name="project-issue-trash-detail",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/trash/issues/<uuid:pk>/restore/",
+        IssueRestoreEndpoint.as_view(),
+        name="project-issue-restore",
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/issue-dates/",

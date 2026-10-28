@@ -779,18 +779,26 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
         if not len(issue_ids):
             return Response({"error": "Issue IDs are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        issues = Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id, pk__in=issue_ids)
-
+        issues = list(Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id, pk__in=issue_ids))
         total_issues = len(issues)
 
-        # First, delete all related cycle issues
-        CycleIssue.objects.filter(issue__in=issues).delete()
-
-        # Then, delete all related module issues
-        ModuleIssue.objects.filter(issue__in=issues).delete()
-
-        # Finally, delete the issues themselves
-        issues.delete()
+        # One by one so each deletion cascades and can be restored like a single delete.
+        for issue in issues:
+            issue.delete()
+            issue_activity.delay(
+                type="issue.activity.deleted",
+                requested_data=json.dumps({"issue_id": str(issue.id)}),
+                actor_id=str(request.user.id),
+                issue_id=str(issue.id),
+                project_id=str(project_id),
+                current_instance={},
+                epoch=int(timezone.now().timestamp()),
+                notification=True,
+                subscriber=False,
+            )
+        UserRecentVisit.objects.filter(
+            project_id=project_id, workspace__slug=slug, entity_identifier__in=issue_ids, entity_name="issue"
+        ).delete(soft=False)
         schedule_derived_refresh(project_id)
 
         return Response(

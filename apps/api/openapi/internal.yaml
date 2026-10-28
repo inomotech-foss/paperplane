@@ -15535,6 +15535,117 @@ paths:
       responses:
         '204':
           description: Marked as default
+  /api/workspaces/{slug}/projects/{project_id}/trash/issues/:
+    get:
+      operationId: workspaces_projects_trash_issues_retrieve
+      description: |-
+        This enables timezone conversion according
+        to the user set timezone
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Pagination cursor for getting next set of results
+        examples:
+          NextPageCursor:
+            value: '20:1:0'
+            summary: Next page cursor
+            description: 'Cursor format: ''page_size:page_number:offset'''
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: 'Number of results per page (default: 20, max: 100)'
+        examples:
+          Default:
+            value: 20
+          Maximum:
+            value: 100
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTrashedIssueList'
+          description: ''
+  /api/workspaces/{slug}/projects/{project_id}/trash/issues/{pk}/:
+    delete:
+      operationId: workspaces_projects_trash_issues_destroy
+      description: |-
+        This enables timezone conversion according
+        to the user set timezone
+      parameters:
+      - in: path
+        name: pk
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '204':
+          description: Permanently deleted
+  /api/workspaces/{slug}/projects/{project_id}/trash/issues/{pk}/restore/:
+    post:
+      operationId: workspaces_projects_trash_issues_restore_create
+      description: |-
+        This enables timezone conversion according
+        to the user set timezone
+      parameters:
+      - in: path
+        name: pk
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '204':
+          description: Restored
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-cycles/:
     get:
       operationId: workspaces_projects_user_favorite_cycles_retrieve
@@ -23136,6 +23247,50 @@ components:
           items:
             type: string
             format: uuid
+    PaginatedTrashedIssueList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrashedIssue'
+        grouped_by:
+          type: string
+          nullable: true
+        sub_grouped_by:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+        next_cursor:
+          type: string
+        prev_cursor:
+          type: string
+        next_page_results:
+          type: boolean
+        prev_page_results:
+          type: boolean
+        count:
+          type: integer
+        total_pages:
+          type: integer
+        total_results:
+          type: integer
+        extra_stats:
+          nullable: true
+      required:
+      - results
+      - grouped_by
+      - sub_grouped_by
+      - total_count
+      - next_cursor
+      - prev_cursor
+      - next_page_results
+      - prev_page_results
+      - count
+      - total_pages
+      - total_results
+      - extra_stats
     PatchedAnalyticViewRequest:
       type: object
       properties:
@@ -26206,6 +26361,51 @@ components:
         * `US/Mountain` - US/Mountain
         * `US/Pacific` - US/Pacific
         * `UTC` - UTC
+    TrashedIssue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+          title: Issue Name
+        sequence_id:
+          type: integer
+          readOnly: true
+          title: Issue Sequence ID
+        project_identifier:
+          type: string
+          readOnly: true
+        type_id:
+          type: string
+          format: uuid
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        deleted_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        purge_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - name
+      - sequence_id
+      - project_identifier
+      - type_id
+      - deleted_at
+      - deleted_by
+      - purge_at
     TriageStateGroupEnum:
       enum:
       - triage

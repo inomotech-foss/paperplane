@@ -174,3 +174,5 @@ from .draft import (
     DraftIssueSerializer,
     DraftIssueDetailSerializer,
 )
+
+from .trash import TrashedIssueSerializer
