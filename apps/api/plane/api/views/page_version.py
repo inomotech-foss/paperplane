@@ -17,7 +17,7 @@ from plane.api.serializers.page_version import (
     PageVersionDetailSerializer,
     PageVersionCreateSerializer,
 )
-from plane.app.permissions import ProjectEntityPermission
+from plane.app.permissions import ProjectPagePermission
 from plane.db.models import Page, PageVersion
 from plane.utils.html_processor import strip_tags
 from plane.utils.openapi import (
@@ -37,7 +37,7 @@ class PageVersionListCreateAPIEndpoint(BaseAPIView):
 
     serializer_class = PageVersionSerializer
     model = PageVersion
-    permission_classes = [ProjectEntityPermission]
+    permission_classes = [ProjectPagePermission]
     use_read_replica = True
 
     def get_queryset(self):
@@ -108,7 +108,7 @@ class PageVersionListCreateAPIEndpoint(BaseAPIView):
         responses={
             201: OpenApiResponse(description="Versions imported", response=PageVersionSerializer),
             400: INVALID_REQUEST_RESPONSE,
-            404: OpenApiResponse(description="Page not found"),
+            403: OpenApiResponse(description="Page not found or not accessible"),
         },
     )
     def post(self, request, slug, project_id, page_id):
@@ -208,7 +208,7 @@ class PageVersionDetailAPIEndpoint(BaseAPIView):
 
     serializer_class = PageVersionDetailSerializer
     model = PageVersion
-    permission_classes = [ProjectEntityPermission]
+    permission_classes = [ProjectPagePermission]
     use_read_replica = True
 
     def get_queryset(self):

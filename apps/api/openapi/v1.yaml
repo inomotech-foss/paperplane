@@ -9059,9 +9059,9 @@ paths:
         '401':
           description: Authentication credentials were not provided or are invalid.
         '403':
-          description: Permission denied. User lacks required permissions.
+          description: Page not found or not accessible
         '404':
-          description: Page not found
+          description: The requested resource was not found.
         '201':
           content:
             application/json:
