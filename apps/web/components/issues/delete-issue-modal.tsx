@@ -19,9 +19,6 @@ import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 
-// Stands in for the identifier so it can be rendered bold wherever the translation puts it.
-const IDENTIFIER_SLOT = "\u0000";
-
 type Props = {
   isOpen: boolean;
   handleClose: () => void;
@@ -110,11 +107,6 @@ export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props)
     }
   };
 
-  const identifier = `${projectDetails?.identifier}-${issue?.sequence_id}`;
-  const [before, after] = t(canDeleteAnyWorkItem ? "issue.trash.delete_confirm" : "issue.trash.delete_confirm_guest", {
-    identifier: IDENTIFIER_SLOT,
-  }).split(IDENTIFIER_SLOT);
-
   return (
     <ConfirmDialog
       handleClose={onClose}
@@ -122,13 +114,9 @@ export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props)
       isSubmitting={isDeleting}
       isOpen={isOpen}
       title={t("entity.delete.label", { entity: t("common.work_item") })}
-      content={
-        <>
-          {before}
-          <span className="font-medium break-words text-primary">{identifier}</span>
-          {after}
-        </>
-      }
+      content={t(canDeleteAnyWorkItem ? "issue.trash.delete_confirm" : "issue.trash.delete_confirm_guest", {
+        identifier: `${projectDetails?.identifier}-${issue?.sequence_id}`,
+      })}
     />
   );
 });
