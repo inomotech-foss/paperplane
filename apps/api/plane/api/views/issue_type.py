@@ -12,13 +12,13 @@ from drf_spectacular.utils import OpenApiResponse, OpenApiRequest
 
 # Module imports
 from plane.api.serializers import IssueTypeSerializer
-from plane.app.permissions import ProjectEntityPermission, WorkspaceEntityPermission
+from plane.app.permissions import ROLE, ProjectEntityPermission, WorkspaceEntityPermission, allow_permission
 from plane.db.models import IssueType, Project, ProjectIssueType, Workspace
 from plane.app.serializers.issue_type import (
     IssueTypeMigrationPreviewSerializer,
     IssueTypeMigrationSerializer,
 )
-from plane.utils.issue_type_migration import MigrationError, migrate_type, remove_unused_type
+from plane.utils.issue_type_migration import WORK_ITEMS, MigrationError, migrate_type, remove_unused_type
 from plane.utils.openapi import (
     issue_type_docs,
     FIELDS_PARAMETER,
@@ -27,6 +27,7 @@ from plane.utils.openapi import (
     DELETED_RESPONSE,
 )
 from .base import BaseAPIView
+from .issue import is_project_or_workspace_admin
 
 
 def project_issue_types(slug, project_id, user):
@@ -81,6 +82,7 @@ class IssueTypeListCreateAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
+    @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         """Create work item type
 
@@ -179,6 +181,7 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
+    @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, issue_type_id):
         """Update work item type
 
@@ -206,6 +209,7 @@ class IssueTypeDetailAPIEndpoint(BaseAPIView):
             409: OpenApiResponse(description="Work items or settings still use the type; migrate them first"),
         },
     )
+    @allow_permission([ROLE.ADMIN])
     def delete(self, request, slug, project_id, issue_type_id):
         """Delete work item type
 
@@ -278,6 +282,7 @@ class WorkspaceIssueTypeListCreateAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
+    @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug):
         """Create workspace work item type
 
@@ -361,6 +366,7 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
+    @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, issue_type_id):
         """Update workspace work item type
 
@@ -385,6 +391,7 @@ class WorkspaceIssueTypeDetailAPIEndpoint(BaseAPIView):
             409: OpenApiResponse(description="Work items or settings still use the type; migrate them first"),
         },
     )
+    @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def delete(self, request, slug, issue_type_id):
         """Delete workspace work item type
 
@@ -421,6 +428,7 @@ class IssueTypeImportAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
+    @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         """Import work item types into a project
 
@@ -490,6 +498,12 @@ class IssueTypeMigrateAPIEndpoint(BaseAPIView):
         `remove_type` ("unlink" with the project scope). `dry_run` only returns what the
         migration reaches. Everything runs in one transaction.
         """
+        scope = request.data.get("scope") if isinstance(request.data, dict) else None
+        items_only = isinstance(scope, dict) and set(scope) == {WORK_ITEMS}
+        if not items_only and not is_project_or_workspace_admin(request.user.id, project_id, slug):
+            return Response(
+                {"error": "Only project admins can migrate the whole project."}, status=status.HTTP_403_FORBIDDEN
+            )
         issue_type = IssueType.objects.get(workspace__slug=slug, pk=issue_type_id)
         try:
             preview = migrate_type(issue_type, request.data, request.user.id, project_id=str(project_id))
@@ -512,6 +526,7 @@ class WorkspaceIssueTypeMigrateAPIEndpoint(BaseAPIView):
         request=OpenApiRequest(request=IssueTypeMigrationSerializer),
         responses={200: IssueTypeMigrationPreviewSerializer, 400: INVALID_REQUEST_RESPONSE},
     )
+    @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug, issue_type_id):
         """Move work items of a type to another type
 

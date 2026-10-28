@@ -15,7 +15,7 @@ from plane.api.serializers import (
     IssuePropertyOptionSerializer,
     IssuePropertySerializer,
 )
-from plane.app.permissions import ProjectEntityPermission
+from plane.app.permissions import ROLE, ProjectEntityPermission, allow_permission
 from plane.db.models import (
     Issue,
     IssueProperty,
@@ -90,6 +90,7 @@ class IssuePropertyListCreateAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
+    @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id, issue_type_id=None):
         """Create work item property
 
@@ -258,6 +259,7 @@ class IssuePropertyDetailAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
+    @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, property_id, issue_type_id=None):
         """Update work item property
 
@@ -299,6 +301,7 @@ class IssuePropertyDetailAPIEndpoint(BaseAPIView):
         description="Delete a work item property and its options and values.",
         responses={204: DELETED_RESPONSE},
     )
+    @allow_permission([ROLE.ADMIN])
     def delete(self, request, slug, project_id, property_id, issue_type_id=None):
         """Delete work item property
 
@@ -356,6 +359,7 @@ class IssuePropertyOptionListCreateAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
+    @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id, property_id):
         """Create work item property option
 
@@ -478,6 +482,7 @@ class IssuePropertyOptionDetailAPIEndpoint(BaseAPIView):
             400: INVALID_REQUEST_RESPONSE,
         },
     )
+    @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, property_id, option_id):
         """Update work item property option
 
@@ -518,6 +523,7 @@ class IssuePropertyOptionDetailAPIEndpoint(BaseAPIView):
         description="Delete a work item property option.",
         responses={204: DELETED_RESPONSE},
     )
+    @allow_permission([ROLE.ADMIN])
     def delete(self, request, slug, project_id, property_id, option_id):
         """Delete work item property option
 
