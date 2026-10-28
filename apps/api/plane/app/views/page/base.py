@@ -173,6 +173,7 @@ class PageViewSet(BaseViewSet):
                 new_description_html=request.data.get("description_html", "<p></p>"),
                 old_description_html=None,
                 page_id=serializer.data["id"],
+                actor_id=str(request.user.id),
             )
             page = self.get_queryset().get(pk=serializer.data["id"])
             serializer = PageDetailSerializer(page)
@@ -208,6 +209,7 @@ class PageViewSet(BaseViewSet):
                         new_description_html=request.data.get("description_html", "<p></p>"),
                         old_description_html=page_description,
                         page_id=page_id,
+                        actor_id=str(request.user.id),
                     )
 
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -627,6 +629,7 @@ class PagesDescriptionViewSet(BaseViewSet):
                     new_description_html=request.data.get("description_html", "<p></p>"),
                     old_description_html=old_description_html,
                     page_id=page_id,
+                    actor_id=str(request.user.id),
                 )
 
             # Run background tasks

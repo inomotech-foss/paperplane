@@ -69,7 +69,7 @@ def stack_email_notification():
     for receiver_id, entities in grouped.items():
         for entity_identifier, entity in entities.items():
             if entity["name"] == "page":
-                send_page_comment_mention_email.delay(
+                send_page_mention_email.delay(
                     page_id=entity_identifier,
                     notification_data=entity["data"],
                     receiver_id=receiver_id,
@@ -280,16 +280,17 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
 
 
 @shared_task
-def send_page_comment_mention_email(page_id, notification_data, receiver_id, email_notification_ids):
-    """Email a user who was mentioned in a page comment.
+def send_page_mention_email(page_id, notification_data, receiver_id, email_notification_ids):
+    """Email a user who was mentioned on a page or in one of its comments.
 
     ``notification_data`` is ``{actor_id: [log_data, ...]}`` where each
-    ``log_data`` carries the page and comment details captured when the
-    EmailNotificationLog row was created.
+    ``log_data`` carries the page details and either a ``comment`` or a
+    ``mention`` with a snippet, captured when the EmailNotificationLog row was
+    created.
     """
     sorted_ids = sorted(email_notification_ids)
     ids_str = "_".join(str(notification_id) for notification_id in sorted_ids)
-    lock_id = f"send_page_comment_email_{page_id}_{receiver_id}_{ids_str}"
+    lock_id = f"send_page_mention_email_{page_id}_{receiver_id}_{ids_str}"
 
     try:
         if not acquire_lock(lock_id=lock_id):
@@ -303,11 +304,13 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
         mentions = []
         page_name = page.name
         page_url = None
+        in_comment = True
         for actor_id, changes in notification_data.items():
             actor = User.objects.get(pk=actor_id)
             for change in changes:
                 page_payload = change.get("page", {})
-                comment_payload = change.get("comment", {})
+                in_comment = in_comment and "comment" in change
+                mention_payload = change.get("comment") or change.get("mention") or {}
                 page_name = page_payload.get("name") or page_name
                 if page_payload.get("project_id"):
                     page_url = f"{base_url}/{page.workspace.slug}/projects/{page_payload['project_id']}/pages/{page.id}"
@@ -320,22 +323,27 @@ def send_page_comment_mention_email(page_id, notification_data, receiver_id, ema
                             "last_name": actor.last_name,
                             "display_name": actor.display_name,
                         },
-                        "snippet": comment_payload.get("snippet", ""),
+                        "snippet": mention_payload.get("snippet", ""),
                     }
                 )
 
+        subject = (
+            f"You were mentioned {'in a comment ' if in_comment else ''}on {remove_unwanted_characters(page_name)}"
+        )
         context = {
+            "subject": subject,
+            "in_comment": in_comment,
             "receiver": {"email": receiver.email},
             "page": {"name": page_name, "url": page_url},
             "mentions": mentions,
             "user_preference": f"{base_url}/{page.workspace.slug}/settings/account/notifications/",
         }
-        html_content = render_to_string("emails/notifications/page-comment-mention.html", context)
+        html_content = render_to_string("emails/notifications/page-mention.html", context)
         text_content = generate_plain_text_from_html(html_content)
 
         try:
             if send_email(
-                subject=f"You were mentioned in a comment on {remove_unwanted_characters(page_name)}",
+                subject=subject,
                 to=[receiver.email],
                 text_content=text_content,
                 html_content=html_content,

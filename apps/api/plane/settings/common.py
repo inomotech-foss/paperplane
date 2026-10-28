@@ -363,6 +363,7 @@ CELERY_IMPORTS = (
     "plane.bgtasks.exporter_expired_task",
     "plane.bgtasks.file_asset_task",
     "plane.bgtasks.email_notification_task",
+    "plane.bgtasks.page_mention_task",
     "plane.bgtasks.cleanup_task",
     "plane.bgtasks.service_desk_task",
     "plane.license.bgtasks.telemetry_metrics",

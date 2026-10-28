@@ -49,6 +49,10 @@ app.conf.beat_schedule = {
         "task": "plane.bgtasks.email_notification_task.stack_email_notification",
         "schedule": crontab(minute="*/5"),  # Every 5 minutes
     },
+    "check-every-minute-to-notify-page-mentions": {
+        "task": "plane.bgtasks.page_mention_task.notify_page_mentions",
+        "schedule": crontab(minute="*"),
+    },
     "check-every-five-minutes-for-due-automations": {
         "task": "plane.bgtasks.automation_task.run_due_automations",
         "schedule": crontab(minute="*/5"),  # Every 5 minutes

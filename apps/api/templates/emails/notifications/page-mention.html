@@ -3,7 +3,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>You were mentioned in a comment</title>
+    <title>{{ subject }}</title>
     <style type="text/css" emogrify="no"> html { font-family: system-ui; } p, h1, h2, h3, h4, ol, ul { margin: 0; } a:hover { color: #3358d4 !important; } </style>
   </head>
   <body bgcolor="#ffffff" text="#3b3f44" link="#006399" yahoo="fix" style="background-color: #f7f9ff; margin: 20px">
@@ -20,7 +20,7 @@
       </div>
       <!-- Body -->
       <div style="color: #1f2d5c; padding: 30px; border-radius: 4px; background-color: #fcfcfd; max-width: 100%;">
-        <p style="font-size: 1rem; color: #1f2d5c; font-weight: 600"> You were mentioned in a comment </p>
+        <p style="font-size: 1rem; color: #1f2d5c; font-weight: 600"> You were mentioned{% if in_comment %} in a comment{% endif %} </p>
         <p style="font-size: 1rem; font-weight: 500; color: #1f2d5c; line-height: 28px"> on <a style="color: #1f2d5c; text-decoration: none;" target="_blank" href="{{ page.url }}">{{ page.name }}</a> </p>
         <hr style="background-color: #f0f0f3; height: 1px; border: 0; margin-top: 15px; margin-bottom: 15px;" />
         {% for mention in mentions %}

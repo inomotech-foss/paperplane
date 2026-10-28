@@ -82,10 +82,13 @@ def get_entity_details(component: str, mention: dict):
 
 
 @shared_task
-def page_transaction(new_description_html, old_description_html, page_id):
+def page_transaction(new_description_html, old_description_html, page_id, actor_id=None):
     """
     Tracks changes in page content (mentions, embeds, etc.)
     and logs them in PageLog for audit and reference.
+
+    User mentions added by ``actor_id`` stay pending until
+    ``notify_page_mentions`` sends them. Without an actor nothing is notified.
     """
     try:
         page = Page.objects.get(pk=page_id)
@@ -114,6 +117,7 @@ def page_transaction(new_description_html, old_description_html, page_id):
 
                 details = get_entity_details(component, mention)
                 current_time = timezone.now()
+                notify = actor_id and details["entity_name"] == "user_mention" and mention_id not in old_ids
 
                 new_transactions.append(
                     PageLog(
@@ -123,6 +127,8 @@ def page_transaction(new_description_html, old_description_html, page_id):
                         entity_name=details["entity_name"],
                         entity_type=details["entity_type"],
                         workspace_id=page.workspace_id,
+                        triggered_by_id=actor_id,
+                        notified_at=None if notify else current_time,
                         created_at=current_time,
                         updated_at=current_time,
                     )

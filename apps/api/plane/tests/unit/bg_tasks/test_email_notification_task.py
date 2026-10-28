@@ -10,7 +10,7 @@ from django.utils import timezone
 from plane.bgtasks.email_notification_task import (
     create_payload,
     send_email_notification,
-    send_page_comment_mention_email,
+    send_page_mention_email,
     stack_email_notification,
 )
 from plane.db.models import EmailNotificationLog, Issue, Page, Project, State, User
@@ -126,7 +126,7 @@ def test_a_page_mention_links_to_the_configured_app_url(project, receiver, creat
         "comment": {"snippet": "hi"},
     }
 
-    send_page_comment_mention_email(
+    send_page_mention_email(
         page_id=str(page.id),
         notification_data={str(create_user.id): [data]},
         receiver_id=str(receiver.id),
@@ -136,6 +136,27 @@ def test_a_page_mention_links_to_the_configured_app_url(project, receiver, creat
     assert len(mail.outbox) == 1
     page_url = f"https://plane.example.com/{project.workspace.slug}/projects/{project.id}/pages/{page.id}"
     assert page_url in mail.outbox[0].alternatives[0][0]
+    assert mail.outbox[0].subject == "You were mentioned in a comment on Runbook"
+
+
+def test_a_page_body_mention_names_the_page_and_shows_the_snippet(project, receiver, create_user, smtp):
+    page = Page.objects.create(name="Runbook", workspace=project.workspace, owned_by=create_user)
+    data = {
+        "page": {"id": str(page.id), "name": page.name, "project_id": str(project.id)},
+        "mention": {"snippet": "@Victor please review"},
+    }
+
+    send_page_mention_email(
+        page_id=str(page.id),
+        notification_data={str(create_user.id): [data]},
+        receiver_id=str(receiver.id),
+        email_notification_ids=[],
+    )
+
+    assert mail.outbox[0].subject == "You were mentioned on Runbook"
+    html = mail.outbox[0].alternatives[0][0]
+    assert "@Victor please review" in html
+    assert "in a comment" not in html
 
 
 def test_payload_keeps_the_first_activity_time_per_actor():
