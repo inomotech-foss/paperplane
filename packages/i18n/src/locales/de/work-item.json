@@ -197,7 +197,9 @@
       "purge_description": "Das Arbeitselement und alles, was mit ihm gelöscht wurde, wird dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden.",
       "empty_title": "Keine gelöschten Arbeitselemente",
       "empty_description": "Gelöschte Arbeitselemente bleiben hier, bis sie endgültig entfernt werden. Bis dahin können Sie sie wiederherstellen.",
-      "load_more": "Mehr laden"
+      "load_more": "Mehr laden",
+      "delete_confirm": "Möchten Sie das Arbeitselement {identifier} wirklich löschen? Sie können es aus den Projektarchiven wiederherstellen, bis es endgültig entfernt wird.",
+      "delete_confirm_guest": "Möchten Sie das Arbeitselement {identifier} wirklich löschen? Projektmitglieder können es aus den Projektarchiven wiederherstellen, bis es endgültig entfernt wird."
     },
     "restore": {
       "success": {

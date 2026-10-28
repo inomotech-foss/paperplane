@@ -197,7 +197,9 @@
       "purge_description": "Activitatea și tot ce a fost șters odată cu ea vor fi eliminate definitiv. Această acțiune nu poate fi anulată.",
       "empty_title": "Nu există activități șterse",
       "empty_description": "Activitățile șterse rămân aici până când sunt eliminate definitiv. Până atunci, le puteți restaura.",
-      "load_more": "Încarcă mai multe"
+      "load_more": "Încarcă mai multe",
+      "delete_confirm": "Sigur doriți să ștergeți activitatea {identifier}? O puteți restaura din arhivele proiectului până când este eliminată definitiv.",
+      "delete_confirm_guest": "Sigur doriți să ștergeți activitatea {identifier}? Membrii proiectului o pot restaura din arhivele proiectului până când este eliminată definitiv."
     },
     "restore": {
       "success": {

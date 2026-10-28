@@ -197,7 +197,9 @@
       "purge_description": "O item de trabalho e tudo o que foi excluído com ele serão removidos permanentemente. Esta ação não pode ser desfeita.",
       "empty_title": "Nenhum item de trabalho excluído",
       "empty_description": "Os itens de trabalho excluídos ficam aqui até serem removidos permanentemente. Até lá, você pode restaurá-los.",
-      "load_more": "Carregar mais"
+      "load_more": "Carregar mais",
+      "delete_confirm": "Tem certeza de que deseja excluir o item de trabalho {identifier}? Você pode restaurá-lo nos arquivos do projeto até que ele seja removido permanentemente.",
+      "delete_confirm_guest": "Tem certeza de que deseja excluir o item de trabalho {identifier}? Os membros do projeto podem restaurá-lo nos arquivos do projeto até que ele seja removido permanentemente."
     },
     "restore": {
       "success": {

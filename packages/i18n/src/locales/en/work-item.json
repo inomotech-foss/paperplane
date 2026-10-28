@@ -197,7 +197,9 @@
       "purge_description": "The work item and everything deleted with it are removed for good. This cannot be undone.",
       "empty_title": "No deleted work items",
       "empty_description": "Deleted work items stay here until they are removed permanently. You can restore them until then.",
-      "load_more": "Load more"
+      "load_more": "Load more",
+      "delete_confirm": "Are you sure you want to delete work item {identifier}? You can restore it from the project's archives until it is removed permanently.",
+      "delete_confirm_guest": "Are you sure you want to delete work item {identifier}? Project members can restore it from the project's archives until it is removed permanently."
     },
     "restore": {
       "success": {

@@ -197,7 +197,9 @@
       "purge_description": "Het werkitem en alles wat ermee is verwijderd, worden definitief gewist. Dit kan niet ongedaan worden gemaakt.",
       "empty_title": "Geen verwijderde werkitems",
       "empty_description": "Verwijderde werkitems blijven hier tot ze definitief worden gewist. Tot die tijd kunt u ze herstellen.",
-      "load_more": "Meer laden"
+      "load_more": "Meer laden",
+      "delete_confirm": "Weet u zeker dat u werkitem {identifier} wilt verwijderen? U kunt het herstellen vanuit de projectarchieven tot het definitief wordt verwijderd.",
+      "delete_confirm_guest": "Weet u zeker dat u werkitem {identifier} wilt verwijderen? Projectleden kunnen het herstellen vanuit de projectarchieven tot het definitief wordt verwijderd."
     },
     "restore": {
       "success": {

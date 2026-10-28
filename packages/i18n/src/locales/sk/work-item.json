@@ -197,7 +197,9 @@
       "purge_description": "Pracovná položka a všetko, čo bolo odstránené spolu s ňou, budú natrvalo vymazané. Túto akciu nie je možné vrátiť späť.",
       "empty_title": "Žiadne odstránené pracovné položky",
       "empty_description": "Odstránené pracovné položky zostávajú tu, kým nie sú natrvalo vymazané. Dovtedy ich môžete obnoviť.",
-      "load_more": "Načítať ďalšie"
+      "load_more": "Načítať ďalšie",
+      "delete_confirm": "Naozaj chcete odstrániť pracovnú položku {identifier}? Kým nebude natrvalo vymazaná, môžete ju obnoviť z archívov projektu.",
+      "delete_confirm_guest": "Naozaj chcete odstrániť pracovnú položku {identifier}? Kým nebude natrvalo vymazaná, môžu ju členovia projektu obnoviť z archívov projektu."
     },
     "restore": {
       "success": {

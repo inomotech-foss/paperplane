@@ -197,7 +197,9 @@
       "purge_description": "Item kerja dan semua yang dihapus bersamanya akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.",
       "empty_title": "Tidak ada item kerja yang dihapus",
       "empty_description": "Item kerja yang dihapus tetap ada di sini hingga dihapus secara permanen. Sampai saat itu, Anda dapat memulihkannya.",
-      "load_more": "Muat lebih banyak"
+      "load_more": "Muat lebih banyak",
+      "delete_confirm": "Apakah Anda yakin ingin menghapus item kerja {identifier}? Anda dapat memulihkannya dari arsip proyek hingga item tersebut dihapus secara permanen.",
+      "delete_confirm_guest": "Apakah Anda yakin ingin menghapus item kerja {identifier}? Anggota proyek dapat memulihkannya dari arsip proyek hingga item tersebut dihapus secara permanen."
     },
     "restore": {
       "success": {

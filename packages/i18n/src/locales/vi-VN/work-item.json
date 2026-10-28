@@ -197,7 +197,9 @@
       "purge_description": "Mục công việc và mọi thứ bị xóa cùng với nó sẽ bị xóa vĩnh viễn. Không thể hoàn tác thao tác này.",
       "empty_title": "Không có mục công việc nào đã xóa",
       "empty_description": "Các mục công việc đã xóa sẽ ở đây cho đến khi bị xóa vĩnh viễn. Trước thời điểm đó, bạn có thể khôi phục chúng.",
-      "load_more": "Tải thêm"
+      "load_more": "Tải thêm",
+      "delete_confirm": "Bạn có chắc chắn muốn xóa mục công việc {identifier} không? Bạn có thể khôi phục nó từ kho lưu trữ của dự án cho đến khi nó bị xóa vĩnh viễn.",
+      "delete_confirm_guest": "Bạn có chắc chắn muốn xóa mục công việc {identifier} không? Thành viên dự án có thể khôi phục nó từ kho lưu trữ của dự án cho đến khi nó bị xóa vĩnh viễn."
     },
     "restore": {
       "success": {

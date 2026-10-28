@@ -197,7 +197,9 @@
       "purge_description": "此工作事項及與其一併刪除的所有內容將被永久刪除。此操作無法復原。",
       "empty_title": "沒有已刪除的工作事項",
       "empty_description": "已刪除的工作事項會保留在此處，直到被永久刪除。在此之前，您可以還原它們。",
-      "load_more": "載入更多"
+      "load_more": "載入更多",
+      "delete_confirm": "確定要刪除工作事項 {identifier} 嗎？在被永久刪除之前，您可以從專案封存中還原它。",
+      "delete_confirm_guest": "確定要刪除工作事項 {identifier} 嗎？在被永久刪除之前，專案成員可以從專案封存中還原它。"
     },
     "restore": {
       "success": {

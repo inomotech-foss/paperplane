@@ -197,7 +197,9 @@
       "purge_description": "L’élément de travail et tout ce qui a été supprimé avec lui seront définitivement effacés. Cette action est irréversible.",
       "empty_title": "Aucun élément de travail supprimé",
       "empty_description": "Les éléments de travail supprimés restent ici jusqu’à leur suppression définitive. Vous pouvez les restaurer d’ici là.",
-      "load_more": "Charger plus"
+      "load_more": "Charger plus",
+      "delete_confirm": "Voulez-vous vraiment supprimer l’élément de travail {identifier} ? Vous pouvez le restaurer depuis les archives du projet jusqu’à sa suppression définitive.",
+      "delete_confirm_guest": "Voulez-vous vraiment supprimer l’élément de travail {identifier} ? Les membres du projet peuvent le restaurer depuis les archives du projet jusqu’à sa suppression définitive."
     },
     "restore": {
       "success": {

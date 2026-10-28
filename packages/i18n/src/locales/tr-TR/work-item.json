@@ -197,7 +197,9 @@
       "purge_description": "İş öğesi ve onunla birlikte silinen her şey kalıcı olarak kaldırılacak. Bu işlem geri alınamaz.",
       "empty_title": "Silinen iş öğesi yok",
       "empty_description": "Silinen iş öğeleri kalıcı olarak kaldırılana kadar burada kalır. O zamana kadar bunları geri yükleyebilirsiniz.",
-      "load_more": "Daha fazla yükle"
+      "load_more": "Daha fazla yükle",
+      "delete_confirm": "{identifier} iş öğesini silmek istediğinizden emin misiniz? Kalıcı olarak kaldırılana kadar proje arşivlerinden geri yükleyebilirsiniz.",
+      "delete_confirm_guest": "{identifier} iş öğesini silmek istediğinizden emin misiniz? Proje üyeleri, kalıcı olarak kaldırılana kadar onu proje arşivlerinden geri yükleyebilir."
     },
     "restore": {
       "success": {

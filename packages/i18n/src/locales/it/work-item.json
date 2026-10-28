@@ -197,7 +197,9 @@
       "purge_description": "L'elemento di lavoro e tutto ciò che è stato eliminato con esso verranno rimossi in modo permanente. L'operazione non può essere annullata.",
       "empty_title": "Nessun elemento di lavoro eliminato",
       "empty_description": "Gli elementi di lavoro eliminati restano qui finché non vengono rimossi definitivamente. Fino ad allora può ripristinarli.",
-      "load_more": "Carica altro"
+      "load_more": "Carica altro",
+      "delete_confirm": "Eliminare davvero l'elemento di lavoro {identifier}? Può ripristinarlo dagli archivi del progetto finché non viene eliminato definitivamente.",
+      "delete_confirm_guest": "Eliminare davvero l'elemento di lavoro {identifier}? I membri del progetto possono ripristinarlo dagli archivi del progetto finché non viene eliminato definitivamente."
     },
     "restore": {
       "success": {

@@ -197,7 +197,9 @@
       "purge_description": "El elemento de trabajo y todo lo que se eliminó con él se borrarán de forma permanente. Esta acción no se puede deshacer.",
       "empty_title": "No hay elementos de trabajo eliminados",
       "empty_description": "Los elementos de trabajo eliminados permanecen aquí hasta que se borran de forma permanente. Hasta entonces, puede restaurarlos.",
-      "load_more": "Cargar más"
+      "load_more": "Cargar más",
+      "delete_confirm": "¿Está seguro de que desea eliminar el elemento de trabajo {identifier}? Puede restaurarlo desde los archivos del proyecto hasta que se elimine definitivamente.",
+      "delete_confirm_guest": "¿Está seguro de que desea eliminar el elemento de trabajo {identifier}? Los miembros del proyecto pueden restaurarlo desde los archivos del proyecto hasta que se elimine definitivamente."
     },
     "restore": {
       "success": {

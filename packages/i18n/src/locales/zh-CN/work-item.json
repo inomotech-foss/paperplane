@@ -197,7 +197,9 @@
       "purge_description": "该工作项及与其一同删除的所有内容将被永久删除。此操作无法撤销。",
       "empty_title": "没有已删除的工作项",
       "empty_description": "已删除的工作项会保留在此处，直到被永久删除。在此之前，您可以恢复它们。",
-      "load_more": "加载更多"
+      "load_more": "加载更多",
+      "delete_confirm": "确定要删除工作项 {identifier} 吗？在被永久删除之前，您可以从项目归档中恢复它。",
+      "delete_confirm_guest": "确定要删除工作项 {identifier} 吗？在被永久删除之前，项目成员可以从项目归档中恢复它。"
     },
     "restore": {
       "success": {
