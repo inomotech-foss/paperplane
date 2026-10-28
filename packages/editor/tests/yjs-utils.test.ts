@@ -6,7 +6,11 @@
 import { describe, expect, it } from "vitest";
 import * as Y from "yjs";
 
-import { getBinaryDataFromDocumentEditorHTMLString, isDocumentEditorYDocEmpty } from "@/helpers/yjs-utils";
+import {
+  getAllDocumentFormatsFromDocumentEditorBinaryData,
+  getBinaryDataFromDocumentEditorHTMLString,
+  isDocumentEditorYDocEmpty,
+} from "@/helpers/yjs-utils";
 
 describe("isDocumentEditorYDocEmpty", () => {
   it("is true for a new doc", () => {
@@ -24,5 +28,17 @@ describe("isDocumentEditorYDocEmpty", () => {
     Y.applyUpdate(doc, getBinaryDataFromDocumentEditorHTMLString("<p></p>", "Title"));
     doc.getXmlFragment("default").delete(0, doc.getXmlFragment("default").length);
     expect(isDocumentEditorYDocEmpty(doc)).toBe(false);
+  });
+});
+
+describe("mention author", () => {
+  it("survives the round trip through the binary document", () => {
+    const html =
+      '<p><mention-component id="m1" entity_identifier="u1" entity_name="user_mention" author="u2"></mention-component></p>';
+    const { contentHTML } = getAllDocumentFormatsFromDocumentEditorBinaryData(
+      getBinaryDataFromDocumentEditorHTMLString(html),
+      false
+    );
+    expect(contentHTML).toContain('author="u2"');
   });
 });

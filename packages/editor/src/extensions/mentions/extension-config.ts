@@ -32,6 +32,9 @@ export const CustomMentionExtensionConfig = Mention.extend<TMentionExtensionOpti
       [EMentionComponentAttributeNames.ENTITY_NAME]: {
         default: null,
       },
+      [EMentionComponentAttributeNames.AUTHOR]: {
+        default: null,
+      },
     };
   },
 

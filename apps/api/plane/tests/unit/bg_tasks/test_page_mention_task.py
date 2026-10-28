@@ -44,10 +44,11 @@ def member(project):
     return user
 
 
-def mention(user, transaction=None):
+def mention(user, transaction=None, author=None):
+    author_attr = f' author="{author.id}"' if author else ""
     return (
         f'<mention-component id="{transaction or uuid.uuid4()}" entity_identifier="{user.id}" '
-        'entity_name="user_mention"></mention-component>'
+        f'entity_name="user_mention"{author_attr}></mention-component>'
     )
 
 
@@ -224,3 +225,22 @@ def test_archived_projects_are_skipped_for_another_project(page, project, create
     notify_page_mentions()
 
     assert Notification.objects.get(receiver=member).project_id == other.id
+
+
+def test_the_mention_author_is_the_sender_even_if_someone_else_saved(page, create_user, member):
+    edit(page, member, f"<p>{mention(member, author=create_user)}</p>")
+
+    age_logs()
+    notify_page_mentions()
+
+    assert Notification.objects.get(receiver=member).triggered_by == create_user
+
+
+def test_an_author_outside_the_workspace_falls_back_to_the_saver(page, create_user, member):
+    outsider = User.objects.create(email="outsider@plane.so", username="outsider")
+    edit(page, create_user, f"<p>{mention(member, author=outsider)}</p>")
+
+    age_logs()
+    notify_page_mentions()
+
+    assert Notification.objects.get(receiver=member).triggered_by == create_user

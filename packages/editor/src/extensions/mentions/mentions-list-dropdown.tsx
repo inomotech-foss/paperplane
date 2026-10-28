@@ -18,12 +18,12 @@ import { DROPDOWN_NAVIGATION_KEYS, getNextValidIndex } from "@/helpers/tippy";
 import type { TMentionHandler, TMentionSection, TMentionSuggestion } from "@/types";
 
 export type MentionsListDropdownProps = SuggestionProps<TMentionSection, TMentionSuggestion> &
-  Pick<TMentionHandler, "searchCallback"> & {
+  Pick<TMentionHandler, "searchCallback" | "currentUserId"> & {
     onClose: () => void;
   };
 
 export const MentionsListDropdown = forwardRef(function MentionsListDropdown(props: MentionsListDropdownProps, ref) {
-  const { command, query, searchCallback, onClose } = props;
+  const { command, query, searchCallback, currentUserId, onClose } = props;
   // states
   const [sections, setSections] = useState<TMentionSection[]>([]);
   const [selectedIndex, setSelectedIndex] = useState({
@@ -43,13 +43,14 @@ export const MentionsListDropdown = forwardRef(function MentionsListDropdown(pro
           command({
             ...item,
             id: transactionId,
+            author: currentUserId ?? null,
           });
         }
       } catch (error) {
         console.error("Error selecting mention item:", error);
       }
     },
-    [command, sections]
+    [command, currentUserId, sections]
   );
 
   useImperativeHandle(ref, () => ({

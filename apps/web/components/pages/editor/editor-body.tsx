@@ -376,6 +376,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
               // oxlint-disable-next-line no-shadow
               renderComponent: (props) => <EditorMentionsRoot {...props} />,
               getMentionedEntityDetails: (id: string) => ({ display_name: getUserDetails(id)?.display_name ?? "" }),
+              currentUserId: currentUser?.id,
             }}
             updatePageProperties={updatePageProperties}
             realtimeConfig={realtimeConfig}

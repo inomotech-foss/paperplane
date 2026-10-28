@@ -12,6 +12,7 @@ export type TMentionSuggestion = {
   entity_name: TSearchEntities;
   icon: React.ReactNode;
   id: string;
+  author?: string | null;
   subTitle?: string;
   hint?: string;
   title: string;
@@ -29,4 +30,6 @@ export type TMentionHandler = {
   getMentionedEntityDetails?: (entity_identifier: string) => { display_name: string } | undefined;
   renderComponent: (props: TCallbackMentionComponentProps) => React.ReactNode;
   searchCallback?: (query: string) => Promise<TMentionSection[]>;
+  // Stored on new mentions so the server knows who added them.
+  currentUserId?: string;
 };

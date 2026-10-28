@@ -4,6 +4,7 @@
 
 # Python imports
 import logging
+import uuid
 
 # Django imports
 from django.utils import timezone
@@ -13,14 +14,14 @@ from bs4 import BeautifulSoup
 
 # App imports
 from celery import shared_task
-from plane.db.models import Page, PageLog
+from plane.db.models import Page, PageLog, WorkspaceMember
 from plane.utils.exception_logger import log_exception
 
 logger = logging.getLogger("plane.worker")
 
 COMPONENT_MAP = {
     "mention-component": {
-        "attributes": ["id", "entity_identifier", "entity_name", "entity_type"],
+        "attributes": ["id", "entity_identifier", "entity_name", "entity_type", "author"],
         "extract": lambda m: {
             "entity_name": m.get("entity_name"),
             "entity_type": None,
@@ -81,13 +82,24 @@ def get_entity_details(component: str, mention: dict):
     return config["extract"](mention)
 
 
+def mention_author(mention, page, actor_id):
+    """The user who inserted the mention if they belong to the workspace, else the user who saved."""
+    try:
+        author = uuid.UUID(str(mention.get("author")))
+    except ValueError:
+        return actor_id
+    if WorkspaceMember.objects.filter(workspace_id=page.workspace_id, member_id=author, is_active=True).exists():
+        return str(author)
+    return actor_id
+
+
 @shared_task
 def page_transaction(new_description_html, old_description_html, page_id, actor_id=None):
     """
     Tracks changes in page content (mentions, embeds, etc.)
     and logs them in PageLog for audit and reference.
 
-    User mentions added by ``actor_id`` stay pending until
+    User mentions added in a save by ``actor_id`` stay pending until
     ``notify_page_mentions`` sends them. Without an actor nothing is notified.
     """
     try:
@@ -127,7 +139,7 @@ def page_transaction(new_description_html, old_description_html, page_id, actor_
                         entity_name=details["entity_name"],
                         entity_type=details["entity_type"],
                         workspace_id=page.workspace_id,
-                        triggered_by_id=actor_id,
+                        triggered_by_id=mention_author(mention, page, actor_id) if notify else actor_id,
                         notified_at=None if notify else current_time,
                         created_at=current_time,
                         updated_at=current_time,

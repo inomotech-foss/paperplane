@@ -20,9 +20,9 @@ import type { MentionsListDropdownProps } from "./mentions-list-dropdown";
 import { MentionsListDropdown } from "./mentions-list-dropdown";
 
 export const renderMentionsDropdown =
-  (args: Pick<TMentionHandler, "searchCallback">): SuggestionOptions["render"] =>
+  (args: Pick<TMentionHandler, "searchCallback" | "currentUserId">): SuggestionOptions["render"] =>
   () => {
-    const { searchCallback } = args;
+    const { searchCallback, currentUserId } = args;
     let component: ReactRenderer<CommandListInstance, MentionsListDropdownProps> | null = null;
     let cleanup: () => void = () => {};
     let editorRef: Editor | null = null;
@@ -42,6 +42,7 @@ export const renderMentionsDropdown =
           props: {
             ...props,
             searchCallback,
+            currentUserId,
             onClose: () => handleClose(props.editor),
           } satisfies MentionsListDropdownProps,
           editor: props.editor,
