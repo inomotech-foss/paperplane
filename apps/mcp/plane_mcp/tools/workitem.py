@@ -112,7 +112,7 @@ ACTIONS = (
         "delete",
         ("project_id", "workitem_id"),
         destructive=True,
-        note="the work item can be restored with `restore` until it is removed permanently",
+        note="project members can restore it with `restore` until it is removed permanently",
     ),
     Action(
         "list_deleted",
