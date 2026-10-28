@@ -146,9 +146,9 @@ class WorkItemUnarchiveAPIEndpoint(WorkItemArchiveAPIEndpoint):
         operation_id="unarchive_work_item",
         summary="Unarchive work item",
         description="Restore an archived work item.",
-        responses={200: OpenApiResponse(description="Work item unarchived")},
+        responses={204: OpenApiResponse(description="Work item unarchived")},
     )
-    def post(self, request, slug, project_id, issue_id):
+    def delete(self, request, slug, project_id, issue_id):
         """Unarchive work item"""
         issue = Issue.objects.get(
             workspace__slug=slug,
@@ -159,4 +159,16 @@ class WorkItemUnarchiveAPIEndpoint(WorkItemArchiveAPIEndpoint):
         self.record(request, issue, project_id, None)
         issue.archived_at = None
         issue.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @work_item_docs(
+        operation_id="unarchive_work_item_post",
+        summary="Unarchive work item (POST)",
+        description="Same as DELETE, kept for callers of earlier releases.",
+        deprecated=True,
+        responses={200: OpenApiResponse(description="Work item unarchived")},
+    )
+    def post(self, request, slug, project_id, issue_id):
+        """Unarchive work item"""
+        self.delete(request, slug, project_id, issue_id)
         return Response(status=status.HTTP_200_OK)

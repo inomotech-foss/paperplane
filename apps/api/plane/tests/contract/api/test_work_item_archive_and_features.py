@@ -93,6 +93,17 @@ class TestWorkItemArchive:
         assert issue.archived_at is None
 
     @pytest.mark.django_db
+    def test_unarchiving_accepts_delete_as_the_sdk_sends_it(self, api_key_client, workspace, project, done_state):
+        issue = make_issue(project, workspace, done_state, "Finished")
+        api_key_client.post(archive_url(workspace.slug, project.id, issue.id))
+
+        response = api_key_client.delete(unarchive_url(workspace.slug, project.id, issue.id))
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        issue.refresh_from_db()
+        assert issue.archived_at is None
+
+    @pytest.mark.django_db
     def test_the_archived_list_holds_only_archived_work_items(
         self, api_key_client, workspace, project, done_state, open_state
     ):

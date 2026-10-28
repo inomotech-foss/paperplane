@@ -14113,9 +14113,9 @@ paths:
           description: Resource conflict - duplicate or constraint violation
   /api/v1/workspaces/{slug}/projects/{project_id}/work-items/{issue_id}/unarchive/:
     post:
-      operationId: unarchive_work_item
-      description: Restore an archived work item.
-      summary: Unarchive work item
+      operationId: unarchive_work_item_post
+      description: Same as DELETE, kept for callers of earlier releases.
+      summary: Unarchive work item (POST)
       parameters:
       - in: path
         name: issue_id
@@ -14162,6 +14162,7 @@ paths:
         required: true
       security:
       - ApiKeyAuthentication: []
+      deprecated: true
       responses:
         '401':
           description: Authentication credentials were not provided or are invalid.
@@ -14170,6 +14171,53 @@ paths:
         '404':
           description: The requested resource was not found.
         '200':
+          description: Work item unarchived
+    delete:
+      operationId: unarchive_work_item
+      description: Restore an archived work item.
+      summary: Unarchive work item
+      parameters:
+      - in: path
+        name: issue_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        description: Project ID
+        required: true
+        examples:
+          ExampleProjectID:
+            value: 550e8400-e29b-41d4-a716-446655440000
+            summary: Example project ID
+            description: A typical project UUID
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: Workspace slug
+        required: true
+        examples:
+          ExampleWorkspace:
+            value: my-workspace
+            summary: Example workspace
+            description: A typical workspace slug
+      tags:
+      - Work Items
+      security:
+      - ApiKeyAuthentication: []
+      responses:
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+        '403':
+          description: Permission denied. User lacks required permissions.
+        '404':
+          description: The requested resource was not found.
+        '204':
           description: Work item unarchived
   /api/v1/workspaces/{slug}/projects/{project_id}/work-items/{pk}/:
     get:

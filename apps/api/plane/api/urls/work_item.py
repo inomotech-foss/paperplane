@@ -185,7 +185,7 @@ new_url_patterns = [
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/unarchive/",
-        WorkItemUnarchiveAPIEndpoint.as_view(http_method_names=["post"]),
+        WorkItemUnarchiveAPIEndpoint.as_view(http_method_names=["delete", "post"]),
         name="work-item-unarchive",
     ),
     path(

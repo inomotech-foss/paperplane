@@ -1947,11 +1947,16 @@ export interface paths {
         get?: never;
         put?: never;
         /**
+         * Unarchive work item (POST)
+         * @deprecated
+         * @description Same as DELETE, kept for callers of earlier releases.
+         */
+        post: operations["unarchive_work_item_post"];
+        /**
          * Unarchive work item
          * @description Restore an archived work item.
          */
-        post: operations["unarchive_work_item"];
-        delete?: never;
+        delete: operations["unarchive_work_item"];
         options?: never;
         head?: never;
         patch?: never;
@@ -14160,7 +14165,7 @@ export interface operations {
             };
         };
     };
-    unarchive_work_item: {
+    unarchive_work_item_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -14183,6 +14188,51 @@ export interface operations {
         responses: {
             /** @description Work item unarchived */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unarchive_work_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_id: string;
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Work item unarchived */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
