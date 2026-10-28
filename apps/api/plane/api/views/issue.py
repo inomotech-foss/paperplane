@@ -2948,6 +2948,8 @@ class IssueRelationRemoveAPIEndpoint(BaseAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        Issue.issue_objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
+
         relation = IssueRelation.objects.filter(
             Q(issue_id=issue_id, related_issue_id=related_issue) | Q(issue_id=related_issue, related_issue_id=issue_id),
             workspace__slug=slug,
