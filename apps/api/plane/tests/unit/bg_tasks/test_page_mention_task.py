@@ -152,3 +152,75 @@ def test_no_email_when_mention_emails_are_off(page, create_user, member):
 
     assert Notification.objects.filter(receiver=member).exists()
     assert not EmailNotificationLog.objects.exists()
+
+
+def test_private_pages_only_notify_their_owner(page, create_user, member):
+    Page.objects.filter(pk=page.pk).update(access=Page.PRIVATE_ACCESS)
+    edit(page, create_user, f"<p>{mention(member)}</p>")
+
+    age_logs()
+    notify_page_mentions()
+
+    assert not Notification.objects.exists()
+
+
+def test_a_mention_restored_after_removal_still_notifies(page, create_user, member):
+    transaction = uuid.uuid4()
+    edit(page, create_user, f"<p>{mention(member, transaction)}</p>")
+    edit(page, create_user, "<p></p>")
+    edit(page, create_user, f"<p>{mention(member, transaction)}</p>")
+
+    age_logs()
+    notify_page_mentions()
+
+    assert Notification.objects.filter(receiver=member).count() == 1
+
+
+def test_removing_a_mention_leaves_other_pages_alone(page, project, create_user, member):
+    transaction = uuid.uuid4()
+    copy = Page.objects.create(name="Copy", workspace=project.workspace, owned_by=create_user)
+    ProjectPage.objects.create(page=copy, project=project, workspace=project.workspace)
+    edit(page, create_user, f"<p>{mention(member, transaction)}</p>")
+    edit(copy, create_user, f"<p>{mention(member, transaction)}</p>")
+    edit(copy, create_user, "<p></p>")
+
+    age_logs()
+    notify_page_mentions()
+
+    assert list(Notification.objects.values_list("entity_identifier", flat=True)) == [page.id]
+
+
+def test_a_newer_mention_of_the_same_user_restarts_the_delay(page, create_user, member):
+    edit(page, create_user, f"<p>{mention(member)}</p>")
+    age_logs()
+    edit(page, create_user, f"{page.description_html}<p>{mention(member)}</p>")
+
+    notify_page_mentions()
+    assert not Notification.objects.exists()
+
+    age_logs()
+    notify_page_mentions()
+    assert Notification.objects.filter(receiver=member).count() == 1
+
+
+def test_a_mention_no_longer_in_the_page_does_not_notify(page, create_user, member):
+    edit(page, create_user, f"<p>{mention(member)}</p>")
+    Page.objects.filter(pk=page.pk).update(description_html="<p></p>")
+
+    age_logs()
+    notify_page_mentions()
+
+    assert not Notification.objects.exists()
+
+
+def test_archived_projects_are_skipped_for_another_project(page, project, create_user, member):
+    other = Project.objects.create(name="Other", identifier="OTH", workspace=project.workspace, created_by=create_user)
+    ProjectMember.objects.create(project=other, member=member, role=15)
+    ProjectPage.objects.create(page=page, project=other, workspace=project.workspace)
+    Project.objects.filter(pk=project.pk).update(archived_at=timezone.now())
+    edit(page, create_user, f"<p>{mention(member)}</p>")
+
+    age_logs()
+    notify_page_mentions()
+
+    assert Notification.objects.get(receiver=member).project_id == other.id

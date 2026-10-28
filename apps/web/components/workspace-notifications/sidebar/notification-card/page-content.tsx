@@ -10,12 +10,11 @@ export function PageNotificationContent({ notification }: { notification: TNotif
   const { triggered_by_details: triggeredBy } = notification;
   const actorName = triggeredBy?.is_bot ? triggeredBy.first_name : triggeredBy?.display_name;
   const preview = notification.message_stripped;
-  const where = notification.data?.comment ? "in a comment" : `on ${notification.data?.page?.name ?? "a page"}`;
 
   return (
     <>
       <span className="font-medium text-primary">{actorName} </span>
-      <span className="text-tertiary">mentioned you {where}</span>
+      <span className="text-tertiary">mentioned you{notification.data?.comment ? " in a comment" : ""}</span>
       {preview ? <span className="text-tertiary">: {preview}</span> : "."}
     </>
   );

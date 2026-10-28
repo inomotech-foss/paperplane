@@ -90,9 +90,11 @@ class PageCommentViewSet(BaseViewSet):
             return
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
         recipients = mentionable_user_ids(project, mentioned)
+        page = comment.page
+        if page.access == Page.PRIVATE_ACCESS:
+            recipients &= {str(page.owned_by_id)}
         if not recipients:
             return
-        page = comment.page
         actor_name = request.user.display_name or request.user.email
         Notification.objects.bulk_create(
             [

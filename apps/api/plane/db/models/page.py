@@ -116,6 +116,9 @@ class PageLog(BaseModel):
             models.Index(fields=["entity_name"], name="pagelog_entity_name_idx"),
             models.Index(fields=["entity_type", "entity_identifier"], name="pagelog_type_id_idx"),
             models.Index(fields=["entity_name", "entity_identifier"], name="pagelog_name_id_idx"),
+            models.Index(
+                fields=["created_at"], name="pagelog_pending_mention_idx", condition=models.Q(notified_at__isnull=True)
+            ),
         ]
 
     def __str__(self):

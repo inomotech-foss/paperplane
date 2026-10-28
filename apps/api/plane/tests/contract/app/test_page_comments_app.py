@@ -283,6 +283,15 @@ class TestPageCommentsAppEndpoint:
         assert not Notification.objects.filter(receiver=create_user).exists()
 
     @pytest.mark.django_db
+    def test_mention_on_private_page_skips_non_owners(self, session_client, workspace, project, page, member_client):
+        _client, member = member_client
+        Page.objects.filter(pk=page.pk).update(access=Page.PRIVATE_ACCESS)
+        url = base_url(workspace.slug, project.id, page.id)
+        response = session_client.post(url, {"comment_html": mention_html(member.id), "anchor_id": "t1"}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert not Notification.objects.filter(receiver=member).exists()
+
+    @pytest.mark.django_db
     def test_mention_of_non_member_creates_no_notification(
         self, session_client, workspace, project, page, non_member_client
     ):

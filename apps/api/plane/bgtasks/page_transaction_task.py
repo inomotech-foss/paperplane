@@ -139,7 +139,7 @@ def page_transaction(new_description_html, old_description_html, page_id, actor_
             PageLog.objects.bulk_create(new_transactions, batch_size=50, ignore_conflicts=True)
 
         if deleted_transaction_ids:
-            PageLog.objects.filter(transaction__in=deleted_transaction_ids).delete()
+            PageLog.all_objects.filter(page_id=page_id, transaction__in=deleted_transaction_ids).delete()
 
     except Page.DoesNotExist:
         return
