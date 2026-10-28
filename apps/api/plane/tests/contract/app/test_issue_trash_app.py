@@ -14,6 +14,7 @@ from plane.db.models import (
     IssueAssignee,
     IssueComment,
     IssueLabel,
+    IssueType,
     Label,
     Project,
     ProjectMember,
@@ -42,7 +43,10 @@ def project(workspace, create_user):
 
 
 def make_issue(project, name, parent=None):
-    state = State.objects.get(project=project, default=True)
+    return make_issue_in(project, State.objects.get(project=project, default=True), name, parent)
+
+
+def make_issue_in(project, state, name="Item", parent=None):
     return Issue.objects.create(name=name, project=project, state=state, parent=parent, type=link_starter_type(project))
 
 
@@ -134,12 +138,17 @@ def test_members_can_restore_but_not_purge(project):
     issue = make_issue(project, "Item")
     Issue.objects.filter(pk=issue.pk).update(deleted_at=timezone.now())
 
-    assert client.delete(url(project, f"{issue.id}/")).status_code == status.HTTP_403_FORBIDDEN
-    assert client.post(url(project, f"{issue.id}/restore/")).status_code == status.HTTP_204_NO_CONTENT
+    purge = client.delete(url(project, f"{issue.id}/"))
+    restore = client.post(url(project, f"{issue.id}/restore/"))
+
+    assert purge.status_code == status.HTTP_403_FORBIDDEN
+    assert restore.status_code == status.HTTP_204_NO_CONTENT
 
 
 def test_guests_cannot_see_the_trash(project):
-    assert member_client(project, role=5).get(url(project)).status_code == status.HTTP_403_FORBIDDEN
+    response = member_client(project, role=5).get(url(project))
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_admins_can_purge(session_client, project):
@@ -176,3 +185,52 @@ def test_bulk_delete_cascades_and_restores_like_a_single_delete(session_client, 
     assert Issue.all_objects.get(pk=issue.pk).updated_by == create_user
     session_client.post(url(project, f"{issue.id}/restore/"))
     assert Issue.objects.filter(pk__in=[issue.id, child.id]).count() == 2
+
+
+def test_a_cascade_that_runs_after_a_restore_changes_nothing(session_client, project):
+    issue = make_issue(project, "Item")
+    child = make_issue(project, "Child", parent=issue)
+    Issue.objects.filter(pk=issue.pk).update(deleted_at=timezone.now())
+    session_client.post(url(project, f"{issue.id}/restore/"))
+
+    soft_delete_related_objects("db", "issue", issue.pk)
+
+    assert Issue.objects.filter(pk__in=[issue.id, child.id]).count() == 2
+
+
+def test_purge_keeps_sub_items_that_were_deleted_on_their_own(session_client, project):
+    parent = make_issue(project, "Parent")
+    child = make_issue(project, "Child", parent=parent)
+    delete(session_client, child)
+    delete(session_client, parent)
+
+    session_client.delete(url(project, f"{parent.id}/"))
+
+    child = Issue.all_objects.get(pk=child.pk)
+    assert child.deleted_at is not None
+    assert child.parent_id is None
+    assert [item["name"] for item in session_client.get(url(project)).data["results"]] == ["Child"]
+
+
+def test_restore_refuses_an_item_whose_type_was_deleted(session_client, project):
+    issue = make_issue(project, "Item")
+    delete(session_client, issue)
+    IssueType.all_objects.filter(pk=issue.type_id).update(deleted_at=timezone.now())
+
+    response = session_client.post(url(project, f"{issue.id}/restore/"))
+
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert not Issue.objects.filter(pk=issue.pk).exists()
+
+
+def test_restore_moves_an_item_off_a_deleted_state(session_client, project):
+    State.objects.filter(project=project).update(default=False)
+    State.objects.create(name="Triage", group="triage", is_triage=True, project=project, workspace=project.workspace)
+    fallback = State.objects.create(name="Next", group="unstarted", project=project, workspace=project.workspace)
+    issue = make_issue_in(project, State.objects.get(project=project, name="Todo"))
+    delete(session_client, issue)
+    State.all_objects.filter(name="Todo", project=project).update(deleted_at=timezone.now())
+
+    session_client.post(url(project, f"{issue.id}/restore/"))
+
+    assert Issue.objects.get(pk=issue.pk).state == fallback

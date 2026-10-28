@@ -2,7 +2,7 @@
 # See the LICENSE file for details.
 
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
@@ -12,8 +12,9 @@ from plane.app.permissions import ROLE, allow_permission
 from plane.app.serializers import TrashedIssueSerializer
 from plane.bgtasks.deletion_task import purge_issues, restore_related_objects, undelete
 from plane.bgtasks.issue_activities_task import issue_activity
-from plane.db.models import Issue, State
+from plane.db.models import Issue, IssueType, State
 from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.utils.derived_properties import schedule_derived_refresh
 from plane.utils.openapi.pagination import paginated_response
 
 from .. import BaseAPIView
@@ -24,17 +25,24 @@ def trashed_issues(slug, project_id):
 
 
 def restore_issue(issue):
-    """Restore issue with everything its deletion removed, detaching it from a parent that is still deleted."""
+    """Restore issue with everything its deletion removed. Returns an error message if it cannot be restored.
+
+    An issue whose parent is still deleted comes back without a parent.
+    """
+    if IssueType.all_objects.filter(pk=issue.type_id, deleted_at__isnull=False).exists():
+        return "The work item type of this work item was deleted"
     changes = {}
     if issue.parent_id and Issue.all_objects.filter(pk=issue.parent_id, deleted_at__isnull=False).exists():
         changes["parent"] = None
-    if State.all_objects.filter(pk=issue.state_id, deleted_at__isnull=False).exists():
-        changes["state"] = State.objects.filter(project_id=issue.project_id, default=True).first()
+    if not State.objects.filter(pk=issue.state_id).exists():
+        states = State.objects.filter(~Q(is_triage=True), project_id=issue.project_id)
+        changes["state"] = states.filter(default=True).first() or states.first()
     since = issue.deleted_at
     if not undelete(issue, **changes):
-        return False
-    restore_related_objects(issue, since)
-    return True
+        return "Another work item has the same number"
+    restore_related_objects(Issue, [issue.pk], since)
+    schedule_derived_refresh(issue.project_id)
+    return None
 
 
 class IssueTrashEndpoint(BaseAPIView):
@@ -73,8 +81,9 @@ class IssueRestoreEndpoint(BaseAPIView):
     def post(self, request, slug, project_id, pk):
         issue = trashed_issues(slug, project_id).get(pk=pk)
         with transaction.atomic():
-            if not restore_issue(issue):
-                return Response({"error": "A work item with the same identity exists"}, status=status.HTTP_409_CONFLICT)
+            error = restore_issue(issue)
+        if error:
+            return Response({"error": error}, status=status.HTTP_409_CONFLICT)
         issue_activity.delay(
             type="issue.activity.restored",
             requested_data=None,

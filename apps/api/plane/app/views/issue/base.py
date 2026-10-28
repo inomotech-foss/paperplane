@@ -74,7 +74,7 @@ from plane.utils.issue_property import build_issue_property_filters
 from plane.utils.order_queryset import order_issue_queryset
 from plane.utils.paginator import GroupedOffsetPaginator, SubGroupedOffsetPaginator
 from plane.utils.timezone_converter import user_timezone_converter
-from plane.utils.derived_properties import schedule_derived_refresh
+from plane.utils.derived_properties import deferred_derived_refresh, schedule_derived_refresh
 
 from .. import BaseAPIView, BaseViewSet
 
@@ -206,6 +206,24 @@ class IssueListEndpoint(BaseAPIView):
             datetime_fields = ["created_at", "updated_at"]
             issues = user_timezone_converter(issues, datetime_fields, request.user.user_timezone)
         return Response(issues, status=status.HTTP_200_OK)
+
+
+def delete_work_item(issue, actor_id):
+    issue.delete()
+    UserRecentVisit.objects.filter(project_id=issue.project_id, entity_identifier=issue.id, entity_name="issue").delete(
+        soft=False
+    )
+    issue_activity.delay(
+        type="issue.activity.deleted",
+        requested_data=json.dumps({"issue_id": str(issue.id)}),
+        actor_id=str(actor_id),
+        issue_id=str(issue.id),
+        project_id=str(issue.project_id),
+        current_instance={},
+        epoch=int(timezone.now().timestamp()),
+        notification=True,
+        subscriber=False,
+    )
 
 
 class IssueViewSet(BaseViewSet):
@@ -728,26 +746,7 @@ class IssueViewSet(BaseViewSet):
     @allow_permission([ROLE.ADMIN], creator=True, model=Issue)
     def destroy(self, request, slug, project_id, pk=None):
         issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=pk)
-
-        issue.delete()
-        # delete the issue from recent visits
-        UserRecentVisit.objects.filter(
-            project_id=project_id,
-            workspace__slug=slug,
-            entity_identifier=pk,
-            entity_name="issue",
-        ).delete(soft=False)
-        issue_activity.delay(
-            type="issue.activity.deleted",
-            requested_data=json.dumps({"issue_id": str(pk)}),
-            actor_id=str(request.user.id),
-            issue_id=str(pk),
-            project_id=str(project_id),
-            current_instance={},
-            epoch=int(timezone.now().timestamp()),
-            notification=True,
-            subscriber=False,
-        )
+        delete_work_item(issue, request.user.id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -783,23 +782,9 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
         total_issues = len(issues)
 
         # One by one so each deletion cascades and can be restored like a single delete.
-        for issue in issues:
-            issue.delete()
-            issue_activity.delay(
-                type="issue.activity.deleted",
-                requested_data=json.dumps({"issue_id": str(issue.id)}),
-                actor_id=str(request.user.id),
-                issue_id=str(issue.id),
-                project_id=str(project_id),
-                current_instance={},
-                epoch=int(timezone.now().timestamp()),
-                notification=True,
-                subscriber=False,
-            )
-        UserRecentVisit.objects.filter(
-            project_id=project_id, workspace__slug=slug, entity_identifier__in=issue_ids, entity_name="issue"
-        ).delete(soft=False)
-        schedule_derived_refresh(project_id)
+        with deferred_derived_refresh():
+            for issue in issues:
+                delete_work_item(issue, request.user.id)
 
         return Response(
             {"message": f"{total_issues} issues were deleted"},

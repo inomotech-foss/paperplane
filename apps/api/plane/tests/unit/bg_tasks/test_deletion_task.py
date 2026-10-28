@@ -116,3 +116,20 @@ def test_hard_delete_removes_issues_with_activities_and_detaches_live_sub_items(
     assert not Issue.all_objects.filter(pk__in=[issue.pk, deleted_child.pk]).exists()
     assert Issue.objects.get(pk=live_child.pk).parent_id is None
     assert not IssueActivity.all_objects.exists()
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+def test_a_cascade_stamps_rows_with_the_deleted_rows_timestamp(workspace):
+    project = Project.objects.create(name="Stamp", identifier="STMP", workspace=workspace)
+    task = link_starter_type(project)
+    issue = Issue.objects.create(name="Parent", workspace=workspace, project=project, type=task)
+    child = Issue.objects.create(name="Child", workspace=workspace, project=project, type=task, parent=issue)
+    comment = IssueComment.objects.create(issue=child, project=project, comment_html="<p>x</p>")
+    Issue.all_objects.filter(pk=issue.pk).update(deleted_at=long_ago())
+
+    soft_delete_related_objects("db", "issue", issue.pk)
+
+    stamp = Issue.all_objects.get(pk=issue.pk).deleted_at
+    assert Issue.all_objects.get(pk=child.pk).deleted_at == stamp
+    assert IssueComment.all_objects.get(pk=comment.pk).deleted_at == stamp
