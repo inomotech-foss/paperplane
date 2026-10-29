@@ -58,4 +58,17 @@ describe("Server.destroy", () => {
     await expect(serverWith().destroy()).rejects.toThrow("Failed to persist 1 document(s)");
     expect(mocks.redisDisconnect).toHaveBeenCalledOnce();
   });
+
+  it("asks clients to reconnect and terminates the ones left after the drain", async () => {
+    const server = serverWith();
+    const client = { close: vi.fn(), terminate: vi.fn() };
+    Reflect.set(server, "wss", { clients: new Set([client]) });
+    mocks.drain.mockImplementation(() => {
+      expect(client.terminate).not.toHaveBeenCalled();
+      return Promise.resolve();
+    });
+    await server.destroy();
+    expect(client.close).toHaveBeenCalledWith(1012, "Server restarting");
+    expect(client.terminate).toHaveBeenCalledOnce();
+  });
 });

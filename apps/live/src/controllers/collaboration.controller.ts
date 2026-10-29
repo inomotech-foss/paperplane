@@ -11,6 +11,25 @@ import type WebSocket from "ws";
 import { Controller, WebSocket as WSDecorator } from "@plane/decorators";
 import { logger } from "@plane/logger";
 
+const HEARTBEAT_INTERVAL_MS = 30_000;
+
+// Hocuspocus detaches unresponsive clients from their documents but leaves the socket open.
+const terminateWhenUnresponsive = (ws: WebSocket) => {
+  let isAlive = true;
+  ws.on("pong", () => {
+    isAlive = true;
+  });
+  const heartbeat = setInterval(() => {
+    if (!isAlive) {
+      ws.terminate();
+      return;
+    }
+    isAlive = false;
+    ws.ping();
+  }, HEARTBEAT_INTERVAL_MS);
+  ws.once("close", () => clearInterval(heartbeat));
+};
+
 @Controller("/collaboration")
 export class CollaborationController {
   [key: string]: unknown;
@@ -25,6 +44,7 @@ export class CollaborationController {
     try {
       // Initialize the connection with Hocuspocus
       this.hocusPocusServer.handleConnection(ws, req);
+      terminateWhenUnresponsive(ws);
 
       // Set up error handling for the connection
       ws.on("error", (error: Error) => {

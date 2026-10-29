@@ -44,7 +44,7 @@ describe("collaboration shutdown persistence", () => {
     const { server, events, instance } = serverWithDocument();
     await drainCollaborationServer(instance);
     expect(server.debouncer.executeNow).toHaveBeenCalledWith("onStoreDocument-wiki");
-    expect(events).toEqual(["close", "save", "unload", "destroy"]);
+    expect(events).toEqual(["close", "close", "save", "unload", "destroy"]);
   });
 
   it("does not tear down persistence dependencies when a save fails", async () => {

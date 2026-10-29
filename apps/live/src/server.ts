@@ -12,6 +12,7 @@ import type { Express, Request, Response, Router } from "express";
 import express from "express";
 import expressWs from "express-ws";
 import helmet from "helmet";
+import type { WebSocketServer } from "ws";
 // plane imports
 import { registerController } from "@plane/decorators";
 import { logger, loggerMiddleware } from "@plane/logger";
@@ -33,10 +34,11 @@ export class Server {
   private router: Router;
   private hocuspocusServer: Hocuspocus | undefined;
   private httpServer: HttpServer | undefined;
+  private wss: WebSocketServer;
 
   constructor() {
     this.app = express();
-    expressWs(this.app);
+    this.wss = expressWs(this.app).getWss();
     this.setupMiddleware();
     this.router = express.Router();
     this.app.set("port", env.PORT || 3000);
@@ -117,13 +119,15 @@ export class Server {
       : Promise.resolve(undefined);
 
     if (this.hocuspocusServer) this.hocuspocusServer.closeConnections();
+    // Hocuspocus only detaches documents. Close the sockets so clients reconnect to another server.
+    for (const client of this.wss.clients) client.close(1012, "Server restarting");
     try {
       // Redis stays up until pending saves finish: the Redis extension takes a lock for every store.
       await withinShutdownDeadline(async (remainingMs) => {
-        const [httpError] = await Promise.all([
-          httpClosed,
-          this.hocuspocusServer ? drainCollaborationServer(this.hocuspocusServer, remainingMs()) : Promise.resolve(),
-        ]);
+        if (this.hocuspocusServer) await drainCollaborationServer(this.hocuspocusServer, remainingMs());
+        // Clients that never answered the close would keep the HTTP server open until the deadline.
+        for (const client of this.wss.clients) client.terminate();
+        const httpError = await httpClosed;
         if (httpError) logger.error("SERVER: HTTP server close failed during shutdown:", httpError);
       }, SHUTDOWN_TIMEOUT_MS);
     } finally {

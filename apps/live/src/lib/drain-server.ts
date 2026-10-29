@@ -29,6 +29,8 @@ export async function drainCollaborationServer(instance: Hocuspocus, timeoutMs =
   instance.closeConnections();
   while (pendingDocuments().length || instance.loadingDocuments.size || instance.unloadingDocuments.size) {
     if (Date.now() >= deadline) throw new Error(timeoutMessage);
+    // Documents that finished loading after the first call have new connections.
+    instance.closeConnections();
     const documents = pendingDocuments();
     // oxlint-disable-next-line no-await-in-loop -- each pass waits for the previous one's saves
     const results = await Promise.allSettled(

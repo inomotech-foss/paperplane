@@ -80,6 +80,8 @@ describe("useYjsSetup server close", () => {
         payload: JSON.stringify({ type: "force_close", code: 4001, reason: "document_too_large" }),
       });
       closeHandler?.({ event: { code: 1000 } });
+      // the socket close caused by pausing the provider
+      closeHandler?.({ event: { code: 1005 } });
     });
 
     expect(lastStage()).toEqual({

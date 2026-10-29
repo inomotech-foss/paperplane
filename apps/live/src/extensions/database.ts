@@ -69,12 +69,8 @@ const fetchDocument = async ({ context, documentName: pageId, instance }: FetchP
   }
 };
 
-const storeDocument = async ({
-  context,
-  state: pageBinaryData,
-  documentName: pageId,
-  instance,
-}: StorePayloadWithContext) => {
+const storeDocument = async (data: StorePayloadWithContext) => {
+  const { context, state: pageBinaryData, documentName: pageId, instance } = data;
   try {
     const service = getPageService(context.documentType, context);
     // convert binary data to all formats
@@ -129,7 +125,10 @@ const storeDocument = async ({
       return;
     }
 
-    throw appError;
+    // Hocuspocus keeps a rejected save as the running one, which would block every later save of this page.
+    // Schedule another save instead, unless the API rejected the content itself.
+    const isTransient = appError.statusCode === undefined || appError.statusCode >= 500;
+    if (isTransient) void instance.storeDocumentHooks(data.document, data);
   }
 };
 

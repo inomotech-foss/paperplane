@@ -161,6 +161,8 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
       if (isForcedClose) {
         // Determine if this is a manual disconnect or a permanent error
         const isManualDisconnect = shouldConnect === false;
+        // Pausing after a forced close closes the socket again. Keep the server's error.
+        if (isManualDisconnect && stageRef.current.kind === "disconnected") return;
 
         const error: CollaborationError = {
           type: "forced-close",
