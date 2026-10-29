@@ -273,6 +273,17 @@ class IssuePropertyValueEndpoint(BaseAPIView):
     def get(self, request, slug, project_id, issue_id):
         # Ensure the work item exists in the project
         issue = Issue.objects.get(pk=issue_id, project_id=project_id, workspace__slug=slug)
+        if (
+            issue.created_by_id != request.user.id
+            and ProjectMember.objects.filter(
+                project_id=project_id,
+                member=request.user,
+                role=ROLE.GUEST.value,
+                is_active=True,
+                project__guest_view_all_features=False,
+            ).exists()
+        ):
+            raise Issue.DoesNotExist()
         return Response(self.payload(issue), status=status.HTTP_200_OK)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])

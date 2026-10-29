@@ -10916,14 +10916,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Permission denied. User lacks required permissions. */
+            /** @description Page not found or not accessible */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description Page not found */
+            /** @description The requested resource was not found. */
             404: {
                 headers: {
                     [name: string]: unknown;

@@ -160,10 +160,10 @@ class TestPageVersionImportV1Endpoint:
         assert PageVersion.objects.get(page_id=page.id).owned_by_id == author.id
 
     @pytest.mark.django_db
-    def test_unknown_page_is_404(self, api_key_client, workspace, project):
+    def test_unknown_page_is_refused(self, api_key_client, workspace, project):
         url = base_url(workspace.slug, project.id, "00000000-0000-0000-0000-000000000000")
         response = api_key_client.post(url, {"description_html": "<p>Body</p>"}, format="json")
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @pytest.mark.django_db
     def test_imported_history_is_listed_newest_first(self, api_key_client, workspace, project, page):
@@ -229,5 +229,4 @@ class TestPageVersionImportV1Endpoint:
         )
 
         response = api_key_client.get(base_url(workspace.slug, other.id, page.id))
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["results"] == []
+        assert response.status_code == status.HTTP_403_FORBIDDEN

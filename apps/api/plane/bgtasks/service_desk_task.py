@@ -649,10 +649,8 @@ def service_desk_send_reply(email_message_id):
         )
 
         storage = None
-        # Images embedded in the reply body go out as inline attachments.
-        for asset in FileAsset.objects.filter(
-            id__in=inline_asset_ids, workspace_id=email_message.workspace_id, is_uploaded=True
-        ):
+        # Images embedded in the reply body go out as inline attachments, only from this project.
+        for asset in FileAsset.objects.filter(id__in=inline_asset_ids, project_id=thread.project_id, is_uploaded=True):
             storage = storage or S3Storage()
             client.add_attachment(
                 mailbox,
@@ -666,7 +664,7 @@ def service_desk_send_reply(email_message_id):
         # Files the agent explicitly attached to the reply.
         for record in email_message.attachments or []:
             asset = FileAsset.objects.filter(
-                id=record.get("asset_id"), workspace_id=email_message.workspace_id, is_uploaded=True
+                id=record.get("asset_id"), issue_id=thread.issue_id, is_uploaded=True
             ).first()
             if asset is None:
                 continue

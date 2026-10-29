@@ -354,6 +354,45 @@ class TestServiceDeskSendReply:
         fake_client.send_draft.assert_called_once_with(MAILBOX, "draft-1")
 
     @pytest.mark.django_db
+    def test_files_from_other_projects_are_not_sent(self, outbound_message):
+        from plane.db.models import FileAsset, Project
+
+        thread = outbound_message.thread
+        other = Project.objects.create(name="Private", identifier="PRV", workspace_id=thread.workspace_id)
+        foreign = [
+            FileAsset.objects.create(
+                attributes={"name": name, "type": "image/png"},
+                asset=f"{thread.workspace_id}/{name}",
+                workspace_id=thread.workspace_id,
+                project_id=other.id,
+                entity_type=entity_type,
+                is_uploaded=True,
+            )
+            for name, entity_type in [
+                ("secret.png", FileAsset.EntityTypeContext.COMMENT_DESCRIPTION),
+                ("secret.pdf", FileAsset.EntityTypeContext.ISSUE_ATTACHMENT),
+            ]
+        ]
+        outbound_message.body_html = f'<p>see</p><image-component src="{foreign[0].id}"></image-component>'
+        outbound_message.attachments = [{"asset_id": str(foreign[1].id), "name": "secret.pdf"}]
+        outbound_message.save()
+
+        fake_client = MagicMock()
+        fake_client.create_reply_draft.return_value = {"id": "draft-1"}
+        with (
+            patch(
+                "plane.bgtasks.service_desk_task.get_service_desk_configuration",
+                return_value=("tenant", "client", "secret"),
+            ),
+            patch("plane.bgtasks.service_desk_task.MSGraphMailClient", return_value=fake_client),
+            patch("plane.bgtasks.service_desk_task.S3Storage"),
+        ):
+            service_desk_send_reply(str(outbound_message.id))
+
+        fake_client.add_attachment.assert_not_called()
+        fake_client.send_draft.assert_called_once_with(MAILBOX, "draft-1")
+
+    @pytest.mark.django_db
     def test_failure_is_recorded(self, outbound_message):
         fake_client = MagicMock()
         fake_client.create_reply_draft.side_effect = Exception("Graph is down")

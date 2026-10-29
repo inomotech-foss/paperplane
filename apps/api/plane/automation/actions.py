@@ -32,6 +32,7 @@ from django.utils import timezone
 from plane.automation.registry import ActionType, NOTIFICATION_RECIPIENTS
 from plane.automation.templating import render, render_html
 from plane.db.models import (
+    AutomationScope,
     CycleIssue,
     Issue,
     IssueAssignee,
@@ -593,6 +594,9 @@ def handle_create_work_item(action, context, run):
         raise ActionError("The target project no longer exists.")
     if context.project is not None and project.workspace_id != context.project.workspace_id:
         raise ActionError("The target project is in a different workspace.")
+    automation = action.automation
+    if automation.scope == AutomationScope.PROJECT and project.id != automation.project_id:
+        raise ActionError("A project automation can only create work items in its own project.")
 
     type_id = config.get("type_id")
     if not type_id or not is_type_linked(type_id, project.id):
