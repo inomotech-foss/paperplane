@@ -35,6 +35,14 @@ import type { TProject } from "@plane/types";
 import { SidebarProjectsListItem } from "./projects-list-item";
 import { getProjectUrl } from "@/components/project/features/features";
 
+// The sidebar scroll area viewport always has `overflow: scroll`.
+const getScrollContainer = (element: HTMLElement): HTMLElement | null => {
+  for (let node = element.parentElement; node; node = node.parentElement) {
+    if (getComputedStyle(node).overflowY === "scroll") return node;
+  }
+  return null;
+};
+
 export const SidebarProjectsList = observer(function SidebarProjectsList() {
   // states
   const [isAllProjectsListOpen, setIsAllProjectsListOpen] = useState(true);
@@ -131,7 +139,7 @@ export const SidebarProjectsList = observer(function SidebarProjectsList() {
   }, [containerRef]);
 
   useEffect(() => {
-    const element = containerRef.current;
+    const element = containerRef.current && getScrollContainer(containerRef.current);
 
     if (!element) return;
 

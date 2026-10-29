@@ -190,7 +190,9 @@ export class BaseWorkspaceRootStore implements IWorkspaceRootStore {
       });
       return workspaceResponse;
     } finally {
-      this.loader = false;
+      runInAction(() => {
+        this.loader = false;
+      });
     }
   };
 

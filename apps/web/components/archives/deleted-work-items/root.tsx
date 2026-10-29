@@ -13,6 +13,7 @@ import { EmptyStateDetailed } from "@plane/blocks/empty-state";
 import { Loader } from "@plane/blocks/skeleton";
 import { setToast } from "@plane/blocks/toast";
 import { useTranslation } from "@plane/i18n";
+import { isApiError } from "@plane/services";
 import { useUserPermissions } from "@/hooks/store/user";
 import type { TTrashedIssue, TTrashedIssuePage } from "@/services/issue/issue-trash.service";
 import { IssueTrashService } from "@/services/issue/issue-trash.service";
@@ -56,8 +57,12 @@ export const DeletedWorkItemsRoot = observer(function DeletedWorkItemsRoot(props
         title: t("success"),
         message: t("issue.trash.restored", { identifier: identifier(issue) }),
       });
-    } catch {
-      setToast({ type: "error", title: t("error"), message: t("issue.trash.restore_failed") });
+    } catch (restoreError) {
+      setToast({
+        type: "error",
+        title: t("error"),
+        message: (isApiError(restoreError) && restoreError.error) || t("issue.trash.restore_failed"),
+      });
     } finally {
       setRestoringId(undefined);
     }

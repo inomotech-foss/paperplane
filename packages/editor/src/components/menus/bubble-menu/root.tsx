@@ -34,6 +34,8 @@ import { COLORS_LIST } from "@/constants/common";
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // extensions
 import { isCellSelection } from "@/extensions/table/table/utilities/helpers";
+// helpers
+import { observeLayoutShift } from "@/helpers/observe-layout-shift";
 // types
 import type { IEditorPropsExtended, TEditorCommands, TExtensions } from "@/types";
 // local imports
@@ -88,7 +90,17 @@ export function EditorBubbleMenu(props: Props) {
   // read by the plugin's shouldShow, which outlives a render
   const isSelectingRef = useRef(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const isOpenRef = useRef(false);
   useEffect(() => () => clearTimeout(hideTimerRef.current), [editor]);
+  useEffect(
+    () =>
+      observeLayoutShift(editor.view.dom, () => {
+        if (isOpenRef.current && !editor.isDestroyed) {
+          editor.view.dispatch(editor.state.tr.setMeta(bubbleMenuPluginKey, "updatePosition"));
+        }
+      }),
+    [editor]
+  );
 
   const formattingItems = {
     code: CodeItem(editor),
@@ -145,6 +157,7 @@ export function EditorBubbleMenu(props: Props) {
       placement: "top",
       offset: 8,
       onShow: () => {
+        isOpenRef.current = true;
         clearTimeout(hideTimerRef.current);
         if (editor.isDestroyed) return;
         if (editor.storage.link) {
@@ -153,6 +166,7 @@ export function EditorBubbleMenu(props: Props) {
         editor.commands.addActiveDropbarExtension("bubble-menu");
       },
       onHide: () => {
+        isOpenRef.current = false;
         if (editor.isDestroyed) return;
         if (editor.storage.link) {
           editor.storage.link.isBubbleMenuOpen = false;

@@ -9,6 +9,8 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+// helpers
+import { observeLayoutShift } from "@/helpers/observe-layout-shift";
 // plugins
 import { AIHandlePlugin } from "@/plugins/ai-handle";
 import { DragHandlePlugin, nodeDOMAtCoords } from "@/plugins/drag-handle";
@@ -76,6 +78,7 @@ const SideMenu = (options: SideMenuPluginProps) => {
     if (!editorSideMenu?.classList.contains("side-menu-hidden")) editorSideMenu?.classList.add("side-menu-hidden");
   };
   const showSideMenu = () => editorSideMenu?.classList.remove("side-menu-hidden");
+  let stopObservingLayout: (() => void) | undefined;
   // side menu elements
   const { view: dragHandleView, domEvents: dragHandleDOMEvents } = DragHandlePlugin(options);
   const { view: aiHandleView, domEvents: aiHandleDOMEvents } = AIHandlePlugin(options);
@@ -95,7 +98,11 @@ const SideMenu = (options: SideMenuPluginProps) => {
       }
 
       return {
-        destroy: () => hideSideMenu(),
+        destroy: () => {
+          stopObservingLayout?.();
+          stopObservingLayout = undefined;
+          hideSideMenu();
+        },
       };
     },
     props: {
@@ -148,6 +155,8 @@ const SideMenu = (options: SideMenuPluginProps) => {
 
           editorSideMenu.style.left = `${rect.left - rect.width}px`;
           editorSideMenu.style.top = `${rect.top}px`;
+          // The menu is placed in viewport coordinates, so it goes stale when the editor moves.
+          stopObservingLayout ??= observeLayoutShift(view.dom, hideSideMenu);
           showSideMenu();
           if (handlesConfig.dragDrop) {
             dragHandleDOMEvents?.mousemove();

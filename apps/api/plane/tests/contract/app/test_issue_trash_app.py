@@ -86,6 +86,22 @@ def test_trash_lists_deleted_items_but_not_sub_items_deleted_with_them(session_c
     assert results[0]["purge_at"]
 
 
+def test_trash_pages_items_deleted_at_the_same_time_without_gaps(session_client, project):
+    issues = [make_issue(project, f"Item {n}") for n in range(5)]
+    Issue.objects.filter(pk__in=[issue.pk for issue in issues]).update(deleted_at=timezone.now())
+
+    seen = []
+    cursor = None
+    while True:
+        response = session_client.get(url(project), {"per_page": 2, **({"cursor": cursor} if cursor else {})})
+        seen += [str(item["id"]) for item in response.data["results"]]
+        if not response.data["next_page_results"]:
+            break
+        cursor = response.data["next_cursor"]
+
+    assert seen == sorted((str(issue.id) for issue in issues), reverse=True)
+
+
 def test_restore_brings_back_what_the_delete_removed(session_client, project, create_user):
     label = Label.objects.create(name="bug", project=project, workspace=project.workspace)
     issue = make_issue(project, "Item")

@@ -32,7 +32,7 @@ RUN cd "$(find /tmp -maxdepth 1 -name 'buildenv_*' -type d | head -1)" && \
 RUN go version -m /usr/bin/caddy | grep -qE 'google\.golang\.org/grpc[[:space:]]v1\.83\.2[[:space:]]' \
     || { echo "caddy was not built against the pinned grpc -- check the --with pins" >&2; exit 1; }
 
-FROM caddy:2.11.4-alpine
+FROM caddy:2.11.7-alpine
 
 # OS security updates. --available forces reinstall from the current repos;
 # bump APK_SECURITY_PATCH to bust buildx's cached layer (keyed on this command

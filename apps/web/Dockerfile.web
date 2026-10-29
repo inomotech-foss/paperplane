@@ -103,7 +103,7 @@ RUN cd "$(find /tmp -maxdepth 1 -name 'buildenv_*' -type d | head -1)" && \
 RUN go version -m /usr/bin/caddy | grep -qE 'google\.golang\.org/grpc[[:space:]]v1\.83\.2[[:space:]]' \
     || { echo "caddy was not built against the pinned grpc -- check the go get floors" >&2; exit 1; }
 
-FROM caddy:2.11.4-alpine AS production
+FROM caddy:2.11.7-alpine AS production
 
 # curl is required by the HEALTHCHECK below and is not present in the base image.
 # OS security updates too: --available forces reinstall from the current repos;

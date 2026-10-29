@@ -24,7 +24,7 @@ def listed_trashed_issues(slug, project_id):
         trashed_issues(slug, project_id)
         .exclude(parent__deleted_at__lte=F("deleted_at"))
         .select_related("project")
-        .order_by("-deleted_at")
+        .order_by("-deleted_at", "-id")
     )
 
 
