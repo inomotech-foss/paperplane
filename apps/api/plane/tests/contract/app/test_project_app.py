@@ -8,6 +8,9 @@ import uuid
 from django.utils import timezone
 
 from plane.db.models import (
+    Intake,
+    IntakeIssue,
+    Issue,
     Project,
     ProjectMember,
     ProjectUserProperty,
@@ -15,6 +18,7 @@ from plane.db.models import (
     WorkspaceMember,
     User,
 )
+from plane.utils.issue_type import link_starter_type
 
 
 class TestProjectBase:
@@ -523,3 +527,24 @@ class TestProjectAPIPatchDelete(TestProjectBase):
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert Project.objects.filter(id=project.id).exists()
+
+
+@pytest.mark.contract
+class TestProjectIntakeCount(TestProjectBase):
+    @pytest.mark.django_db
+    def test_member_sees_each_pending_intake_item_once_on_a_public_project(self, session_client, workspace):
+        member = User.objects.create_user(email="member@example.com", username="member")
+        WorkspaceMember.objects.create(workspace=workspace, member=member, role=15, is_active=True)
+        project = Project.objects.create(name="Public", identifier="PUB", workspace=workspace, network=2)
+        others = [User.objects.create_user(email=f"m{n}@example.com", username=f"m{n}") for n in range(2)]
+        for user in [member, *others]:
+            ProjectMember.objects.create(project=project, member=user, role=15, is_active=True)
+        intake = Intake.objects.create(name="Intake", project=project)
+        issue = Issue.objects.create(name="Request", project=project, type=link_starter_type(project))
+        IntakeIssue.objects.create(intake=intake, issue=issue, project=project, status=-2)
+
+        session_client.force_authenticate(user=member)
+        response = session_client.get(self.get_project_url(workspace.slug))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [p["intake_count"] for p in response.json()] == [1]

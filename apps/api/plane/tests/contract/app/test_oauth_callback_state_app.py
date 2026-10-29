@@ -15,6 +15,9 @@ CALLBACKS = [
     ("google-callback", "plane.authentication.views.app.google.GoogleOAuthProvider"),
     ("gitea-callback", "plane.authentication.views.app.gitea.GiteaOAuthProvider"),
     ("space-gitea-callback", "plane.authentication.views.space.gitea.GiteaOAuthProvider"),
+    ("space-github-callback", "plane.authentication.views.space.github.GitHubOAuthProvider"),
+    ("space-gitlab-callback", "plane.authentication.views.space.gitlab.GitLabOAuthProvider"),
+    ("space-google-callback", "plane.authentication.views.space.google.GoogleOAuthProvider"),
     ("oidc-callback", "plane.authentication.views.app.oidc.OIDCOAuthProvider"),
     ("space-oidc-callback", "plane.authentication.views.space.oidc.OIDCOAuthProvider"),
 ]

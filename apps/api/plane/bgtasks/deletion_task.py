@@ -107,18 +107,29 @@ def soft_delete_related_objects(app_label, model_name, instance_pk, using=None):
                 continue
 
 
+PURGE_BATCH_SIZE = 500
+
+
 def purge_issues(issues):
     """Hard delete soft-deleted issues with the sub-items deleted along with them.
 
     Activities reference issues without a database cascade, so they go first.
     Sub-items that are live, or were deleted on their own before the parent,
-    are detached instead.
+    are detached instead. Each batch of issues is deleted in its own transaction.
     """
-    from plane.db.models import Issue, IssueActivity
     from plane.utils.derived_properties import schedule_derived_refresh
 
     roots = list(issues.filter(deleted_at__isnull=False).values_list("id", "deleted_at", "project_id"))
-    frontier = {issue_id: deleted_at for issue_id, deleted_at, _ in roots}
+    for start in range(0, len(roots), PURGE_BATCH_SIZE):
+        batch = roots[start : start + PURGE_BATCH_SIZE]
+        _purge_issue_trees({issue_id: deleted_at for issue_id, deleted_at, _ in batch})
+    for project_id in {project_id for _, _, project_id in roots}:
+        schedule_derived_refresh(project_id)
+
+
+def _purge_issue_trees(frontier):
+    from plane.db.models import Issue, IssueActivity
+
     ids = set(frontier)
     while frontier:
         children = (
@@ -132,8 +143,6 @@ def purge_issues(issues):
         Issue.all_objects.filter(parent_id__in=ids).exclude(id__in=ids).update(parent=None)
         IssueActivity.all_objects.filter(issue_id__in=ids).delete()
         Issue.all_objects.filter(id__in=ids).delete()
-    for project_id in {project_id for _, _, project_id in roots}:
-        schedule_derived_refresh(project_id)
 
 
 def restore_related_objects(model, pks, since):

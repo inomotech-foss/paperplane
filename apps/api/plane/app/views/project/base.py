@@ -176,6 +176,7 @@ class ProjectViewSet(BaseViewSet):
                         project_intakeissue__status=IntakeIssueStatus.PENDING.value,
                         project_intakeissue__deleted_at__isnull=True,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(inbox_view=F("intake_view"))

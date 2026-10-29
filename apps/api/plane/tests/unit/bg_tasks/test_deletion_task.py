@@ -120,6 +120,27 @@ def test_hard_delete_removes_issues_with_activities_and_detaches_live_sub_items(
 
 @pytest.mark.unit
 @pytest.mark.django_db
+def test_hard_delete_purges_issue_trees_across_batches(workspace, monkeypatch):
+    monkeypatch.setattr("plane.bgtasks.deletion_task.PURGE_BATCH_SIZE", 1)
+    project = Project.objects.create(name="Batch", identifier="BAT", workspace=workspace)
+    task = link_starter_type(project)
+    parents = [Issue.objects.create(name=f"Parent {n}", workspace=workspace, project=project, type=task) for n in "ab"]
+    children = [
+        Issue.objects.create(name=f"Child of {p.name}", workspace=workspace, project=project, type=task, parent=p)
+        for p in parents
+    ]
+    for item in parents + children:
+        IssueActivity.objects.create(issue=item, project=project, workspace=workspace)
+    Issue.all_objects.filter(project=project).update(deleted_at=long_ago())
+
+    hard_delete()
+
+    assert not Issue.all_objects.filter(project=project).exists()
+    assert not IssueActivity.all_objects.exists()
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
 def test_a_cascade_stamps_rows_with_the_deleted_rows_timestamp(workspace):
     project = Project.objects.create(name="Stamp", identifier="STMP", workspace=workspace)
     task = link_starter_type(project)
