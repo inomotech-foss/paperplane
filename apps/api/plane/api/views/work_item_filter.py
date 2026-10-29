@@ -3,11 +3,10 @@
 
 """Shared `pql` / `filters` handling for the work item list endpoints."""
 
-from django.db.models import Q
 from rest_framework import status
 from rest_framework.response import Response
 
-from plane.app.permissions import ROLE
+from plane.app.permissions import visible_issue_q
 from plane.db.models import Issue
 from plane.utils.pql import (
     WorkItemFilterError,
@@ -29,32 +28,6 @@ class WorkItemFilterMixin:
             return [apply_work_item_filters(queryset, compiled, slug, project_id) for queryset in querysets], None
         except WorkItemFilterError as exc:
             return querysets, Response(exc.payload, status=status.HTTP_400_BAD_REQUEST)
-
-
-def visible_issue_q(user):
-    """Issue filter for work items `user` may view, across projects: every
-    issue in a project where they are an active member above GUEST or a GUEST
-    with `guest_view_all_features`, otherwise only the issues they created."""
-    return (
-        Q(
-            project__project_projectmember__member=user,
-            project__project_projectmember__is_active=True,
-            project__project_projectmember__role__gt=ROLE.GUEST.value,
-        )
-        | Q(
-            project__project_projectmember__member=user,
-            project__project_projectmember__is_active=True,
-            project__project_projectmember__role=ROLE.GUEST.value,
-            project__guest_view_all_features=True,
-        )
-        | Q(
-            project__project_projectmember__member=user,
-            project__project_projectmember__is_active=True,
-            project__project_projectmember__role=ROLE.GUEST.value,
-            project__guest_view_all_features=False,
-            created_by=user,
-        )
-    )
 
 
 def workspace_work_items(user, slug):

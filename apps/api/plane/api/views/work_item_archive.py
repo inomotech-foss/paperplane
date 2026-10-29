@@ -28,7 +28,8 @@ from plane.utils.openapi import (
 )
 
 from .base import BaseAPIView
-from .work_item_filter import WorkItemFilterMixin, visible_issue_q
+from plane.app.permissions import visible_issue_q
+from .work_item_filter import WorkItemFilterMixin
 
 # A work item is only archivable once it is out of play.
 ARCHIVABLE_STATE_GROUPS = ["completed", "cancelled"]

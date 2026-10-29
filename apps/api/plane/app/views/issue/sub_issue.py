@@ -21,7 +21,7 @@ from rest_framework import status
 # Module imports
 from .. import BaseAPIView
 from plane.app.serializers import IssueSerializer
-from plane.app.permissions import ProjectEntityPermission
+from plane.app.permissions import ProjectEntityPermission, issue_hidden_from_guest, visible_issue_q
 from plane.db.models import Issue, IssueLink, FileAsset, CycleIssue, IssueLabel, IssueAssignee, ModuleIssue
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.utils.timezone_converter import user_timezone_converter
@@ -39,8 +39,15 @@ class SubIssuesEndpoint(BaseAPIView):
         # only checks that the caller belongs to `project_id`, not that `issue_id` lives
         # in it, so an unscoped filter leaks sub-issue metadata across projects in the
         # same workspace.
+        if issue_hidden_from_guest(request, slug, project_id, issue_id):
+            return Response(
+                {"error": "You are not allowed to view this issue"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         sub_issues = (
-            Issue.issue_objects.filter(parent_id=issue_id, workspace__slug=slug, project_id=project_id)
+            Issue.issue_objects.filter(
+                visible_issue_q(request.user), parent_id=issue_id, workspace__slug=slug, project_id=project_id
+            )
             .annotate(
                 cycle_id=Subquery(
                     CycleIssue.objects.filter(issue=OuterRef("id"), deleted_at__isnull=True).values("cycle_id")[:1]

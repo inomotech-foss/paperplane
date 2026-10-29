@@ -7,6 +7,9 @@ import ipaddress
 import socket
 from urllib.parse import urlparse
 
+# Third party imports
+from rest_framework.settings import api_settings
+
 
 # Networks that must never be reachable as an outbound request target but which
 # the stdlib ``ipaddress`` flags (is_private/is_loopback/...) do NOT reliably
@@ -186,9 +189,13 @@ def validate_url(url, allowed_ips=None, allowed_hosts=None):
 
 
 def get_client_ip(request):
+    """Pick the client from X-Forwarded-For the same way DRF's throttles do when NUM_PROXIES is set."""
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(",")[0]
-    else:
-        ip = request.META.get("REMOTE_ADDR")
-    return ip
+    remote_addr = request.META.get("REMOTE_ADDR")
+    num_proxies = api_settings.NUM_PROXIES
+    if num_proxies is None:
+        return x_forwarded_for.split(",")[0].strip() if x_forwarded_for else remote_addr
+    if num_proxies == 0 or not x_forwarded_for:
+        return remote_addr
+    addresses = x_forwarded_for.split(",")
+    return addresses[-min(num_proxies, len(addresses))].strip()

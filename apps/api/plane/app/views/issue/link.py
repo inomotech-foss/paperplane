@@ -16,7 +16,7 @@ from rest_framework import status
 # Module imports
 from .. import BaseViewSet
 from plane.app.serializers import IssueLinkSerializer
-from plane.app.permissions import ProjectEntityPermission
+from plane.app.permissions import ProjectEntityPermission, issue_hidden_from_guest
 from plane.db.models import Issue, IssueLink
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.bgtasks.work_item_link_task import crawl_work_item_link_title
@@ -43,6 +43,22 @@ class IssueLinkViewSet(BaseViewSet):
             .order_by("-created_at")
             .distinct()
         )
+
+    def list(self, request, slug, project_id, issue_id):
+        if issue_hidden_from_guest(request, slug, project_id, issue_id):
+            return Response(
+                {"error": "You are not allowed to view this issue"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().list(request, slug, project_id, issue_id)
+
+    def retrieve(self, request, slug, project_id, issue_id, pk):
+        if issue_hidden_from_guest(request, slug, project_id, issue_id):
+            return Response(
+                {"error": "You are not allowed to view this issue"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().retrieve(request, slug, project_id, issue_id, pk)
 
     def create(self, request, slug, project_id, issue_id):
         # The URL issue must belong to the URL workspace + project (404 otherwise).

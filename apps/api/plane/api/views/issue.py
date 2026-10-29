@@ -91,7 +91,8 @@ from plane.utils.order_queryset import (
 )
 from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
 from .base import BaseAPIView
-from .work_item_filter import WorkItemFilterMixin, visible_issue_q
+from plane.app.permissions import visible_issue_q
+from .work_item_filter import WorkItemFilterMixin
 from plane.utils.issue_property import build_issue_property_filters
 from plane.utils.serializers import writable_data
 from plane.utils.issue_relation_mapper import get_actual_relation

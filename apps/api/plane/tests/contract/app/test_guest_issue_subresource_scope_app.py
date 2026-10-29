@@ -8,7 +8,8 @@ On a project with ``guest_view_all_features=False`` a GUEST may only see issues
 they created; issue detail returns 403 for any other issue. The issue
 sub-resource endpoints apply the same rule through ``issue_hidden_from_guest``:
 attachments (v1 and v2), history, comments, comment reactions, issue reactions,
-versions and relations.
+versions, relations, sub-issues and links. Relations and sub-issues of a visible
+issue only list the related issues the caller may view.
 
 Admins, members, unrestricted guests and the guest's own issues (including
 archived ones) are unaffected.
@@ -25,6 +26,8 @@ from plane.db.models import (
     FileAsset,
     Issue,
     IssueComment,
+    IssueLink,
+    IssueRelation,
     Project,
     ProjectMember,
     User,
@@ -42,6 +45,8 @@ REACTION_DETAIL_URL = "/api/workspaces/{slug}/projects/{project_id}/comments/{co
 ISSUE_REACTION_URL = "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/reactions/"
 VERSIONS_URL = "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/versions/"
 RELATION_URL = "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-relation/"
+SUB_ISSUES_URL = "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/sub-issues/"
+LINKS_URL = "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-links/"
 
 
 def _make_issue(name, project, workspace, author):
@@ -242,7 +247,7 @@ class TestGuestIssueSubresourceScope:
             f"Got {response.status_code}: {getattr(response, 'data', None)!r}"
         )
 
-    @pytest.mark.parametrize("url", [ISSUE_REACTION_URL, VERSIONS_URL, RELATION_URL])
+    @pytest.mark.parametrize("url", [ISSUE_REACTION_URL, VERSIONS_URL, RELATION_URL, SUB_ISSUES_URL, LINKS_URL])
     def test_guest_blocked_issue_reads(self, guest_client, workspace, project, foreign_issue, url):
         response = guest_client.get(url.format(slug=workspace.slug, project_id=project.id, issue_id=foreign_issue.id))
         assert response.status_code == status.HTTP_403_FORBIDDEN, (
@@ -261,7 +266,7 @@ class TestGuestIssueSubresourceScope:
 
     # ---- the guest still sees their OWN issue's sub-resources ----------------
 
-    @pytest.mark.parametrize("url", [ISSUE_REACTION_URL, VERSIONS_URL, RELATION_URL])
+    @pytest.mark.parametrize("url", [ISSUE_REACTION_URL, VERSIONS_URL, RELATION_URL, SUB_ISSUES_URL, LINKS_URL])
     def test_guest_allowed_own_issue_reads(self, guest_client, workspace, project, own_issue, url):
         response = guest_client.get(url.format(slug=workspace.slug, project_id=project.id, issue_id=own_issue.id))
         assert response.status_code == status.HTTP_200_OK, (
@@ -331,6 +336,55 @@ class TestGuestIssueSubresourceScope:
             f"Got {response.status_code}: {getattr(response, 'data', None)!r}"
         )
 
+    def test_guest_blocked_foreign_link_retrieve(self, guest_client, workspace, project, foreign_issue):
+        link = IssueLink.objects.create(issue=foreign_issue, project=project, url="https://example.com/secret")
+        response = guest_client.get(
+            f"{LINKS_URL.format(slug=workspace.slug, project_id=project.id, issue_id=foreign_issue.id)}{link.id}/"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    # ---- related issues of a visible issue -----------------------------------
+
+    def test_guest_own_issue_relations_hide_foreign_issues(
+        self, guest_client, workspace, project, guest, own_issue, foreign_issue
+    ):
+        own_related = _make_issue("Guest's related issue", project, workspace, guest)
+        for related in (foreign_issue, own_related):
+            IssueRelation.objects.create(
+                issue=own_issue, related_issue=related, relation_type="relates_to", project=project
+            )
+        response = guest_client.get(
+            RELATION_URL.format(slug=workspace.slug, project_id=project.id, issue_id=own_issue.id)
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert [item["id"] for item in response.data["relates_to"]] == [own_related.id]
+
+    def test_guest_own_issue_sub_issues_hide_foreign_children(
+        self, guest_client, workspace, project, guest, create_user, own_issue
+    ):
+        own_child = _make_issue("Guest's child", project, workspace, guest)
+        foreign_child = _make_issue("Someone else's child", project, workspace, create_user)
+        Issue.objects.filter(pk__in=[own_child.pk, foreign_child.pk]).update(parent=own_issue)
+        response = guest_client.get(
+            SUB_ISSUES_URL.format(slug=workspace.slug, project_id=project.id, issue_id=own_issue.id)
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert [item["id"] for item in response.data["sub_issues"]] == [own_child.id]
+
+    def test_member_relations_hide_issues_of_other_projects(
+        self, session_client, workspace, project, create_user, foreign_issue
+    ):
+        other_project = Project.objects.create(name="Other", identifier="OTH", workspace=workspace)
+        other_issue = _make_issue("Other project's issue", other_project, workspace, create_user)
+        IssueRelation.objects.create(
+            issue=foreign_issue, related_issue=other_issue, relation_type="relates_to", project=project
+        )
+        response = session_client.get(
+            RELATION_URL.format(slug=workspace.slug, project_id=project.id, issue_id=foreign_issue.id)
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert list(response.data["relates_to"]) == []
+
     # ---- positive controls: members and unrestricted guests unaffected -------
 
     def test_member_reads_foreign_issue_comments(
@@ -363,6 +417,18 @@ class TestGuestIssueSubresourceScope:
         )
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
+
+    def test_member_sees_related_issues_of_any_author(
+        self, session_client, workspace, project, guest, own_issue, foreign_issue
+    ):
+        IssueRelation.objects.create(
+            issue=foreign_issue, related_issue=own_issue, relation_type="relates_to", project=project
+        )
+        response = session_client.get(
+            RELATION_URL.format(slug=workspace.slug, project_id=project.id, issue_id=foreign_issue.id)
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert [item["id"] for item in response.data["relates_to"]] == [own_issue.id]
 
     def test_unrestricted_guest_reads_foreign_issue_attachments(self, guest_client, workspace, project, foreign_issue):
         """When guest_view_all_features is enabled, the guest sees all attachments."""
