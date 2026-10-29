@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TDocumentPayload } from "@plane/types";
 import { Database } from "@/extensions/database";
 
+vi.mock("@/redis", () => ({ redisManager: { getClient: () => null } }));
+
 const api = vi.hoisted(() => ({
   saved: [] as string[],
   failures: [] as { response: { status: number } }[],
