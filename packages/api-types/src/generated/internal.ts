@@ -11,7 +11,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description This endpoint is used to get the signed URL for a static asset. */
         get: operations["assets_v2_static_retrieve"];
         put?: never;
         post?: never;
@@ -30,7 +29,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description This endpoint is used to upload user profile images. */
         post: operations["assets_v2_user_assets_create"];
         delete?: never;
         options?: never;
@@ -48,11 +46,9 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** @description This endpoint is used to upload user profile images. */
         delete: operations["assets_v2_user_assets_destroy"];
         options?: never;
         head?: never;
-        /** @description This endpoint is used to upload user profile images. */
         patch: operations["assets_v2_user_assets_partial_update"];
         trace?: never;
     };
@@ -65,7 +61,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
         post: operations["assets_v2_workspaces_create"];
         delete?: never;
         options?: never;
@@ -80,15 +75,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
         get: operations["assets_v2_workspaces_retrieve"];
         put?: never;
         post?: never;
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
         delete: operations["assets_v2_workspaces_destroy"];
         options?: never;
         head?: never;
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
         patch: operations["assets_v2_workspaces_partial_update"];
         trace?: never;
     };
@@ -99,7 +91,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Endpoint to check if an asset exists. */
         get: operations["assets_v2_workspaces_check_retrieve"];
         put?: never;
         post?: never;
@@ -116,7 +107,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Endpoint to generate a download link for an asset with content-disposition=attachment. */
         get: operations["assets_v2_workspaces_download_retrieve"];
         put?: never;
         post?: never;
@@ -135,10 +125,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["assets_v2_workspaces_duplicate_assets_create"];
         delete?: never;
         options?: never;
@@ -155,7 +141,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
         post: operations["assets_v2_workspaces_projects_create"];
         delete?: never;
         options?: never;
@@ -172,10 +157,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["assets_v2_workspaces_projects_bulk_create"];
         delete?: never;
         options?: never;
@@ -190,15 +171,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
         get: operations["assets_v2_workspaces_projects_retrieve"];
         put?: never;
         post?: never;
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
         delete: operations["assets_v2_workspaces_projects_destroy"];
         options?: never;
         head?: never;
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
         patch: operations["assets_v2_workspaces_projects_partial_update"];
         trace?: never;
     };
@@ -209,7 +187,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Endpoint to generate a download link for an asset with content-disposition=attachment. */
         get: operations["assets_v2_workspaces_projects_download_retrieve"];
         put?: never;
         post?: never;
@@ -226,16 +203,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["assets_v2_workspaces_projects_issues_attachments_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["assets_v2_workspaces_projects_issues_attachments_create"];
         delete?: never;
         options?: never;
@@ -250,24 +219,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["assets_v2_workspaces_projects_issues_attachments_retrieve_2"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["assets_v2_workspaces_projects_issues_attachments_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["assets_v2_workspaces_projects_issues_attachments_partial_update"];
         trace?: never;
     };
@@ -278,22 +235,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Files attached to a page, as opposed to images embedded in its body.
-         *
-         *     Same three-step flow as work-item attachments: POST reserves the asset and
-         *     returns a presigned URL, the client PUTs the file straight to storage, then
-         *     PATCH marks it uploaded.
-         */
         get: operations["assets_v2_workspaces_projects_pages_attachments_retrieve"];
         put?: never;
-        /**
-         * @description Files attached to a page, as opposed to images embedded in its body.
-         *
-         *     Same three-step flow as work-item attachments: POST reserves the asset and
-         *     returns a presigned URL, the client PUTs the file straight to storage, then
-         *     PATCH marks it uploaded.
-         */
         post: operations["assets_v2_workspaces_projects_pages_attachments_create"];
         delete?: never;
         options?: never;
@@ -308,33 +251,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Files attached to a page, as opposed to images embedded in its body.
-         *
-         *     Same three-step flow as work-item attachments: POST reserves the asset and
-         *     returns a presigned URL, the client PUTs the file straight to storage, then
-         *     PATCH marks it uploaded.
-         */
         get: operations["assets_v2_workspaces_projects_pages_attachments_retrieve_2"];
         put?: never;
         post?: never;
-        /**
-         * @description Files attached to a page, as opposed to images embedded in its body.
-         *
-         *     Same three-step flow as work-item attachments: POST reserves the asset and
-         *     returns a presigned URL, the client PUTs the file straight to storage, then
-         *     PATCH marks it uploaded.
-         */
         delete: operations["assets_v2_workspaces_projects_pages_attachments_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description Files attached to a page, as opposed to images embedded in its body.
-         *
-         *     Same three-step flow as work-item attachments: POST reserves the asset and
-         *     returns a presigned URL, the client PUTs the file straight to storage, then
-         *     PATCH marks it uploaded.
-         */
         patch: operations["assets_v2_workspaces_projects_pages_attachments_partial_update"];
         trace?: never;
     };
@@ -345,15 +267,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Streams an attachment's bytes from the app's own origin.
-         *
-         *     The download route redirects to a presigned storage URL, which browser code
-         *     cannot read unless the bucket is configured for CORS. Editor blocks that have
-         *     to read the file they render - the diagram block reads the `.drawio` XML it
-         *     hands to the editing iframe - read it here instead, so nothing about the
-         *     deployment's object store has to change.
-         */
         get: operations["assets_v2_workspaces_projects_pages_attachments_content_retrieve"];
         put?: never;
         post?: never;
@@ -372,7 +285,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Endpoint to restore a deleted assets. */
         post: operations["assets_v2_workspaces_restore_create"];
         delete?: never;
         options?: never;
@@ -387,10 +299,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_comments_reactions_list"];
         put?: never;
-        /** @description A project board only serves the project it belongs to. */
         post: operations["public_anchor_comments_reactions_create"];
         delete?: never;
         options?: never;
@@ -408,7 +318,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** @description A project board only serves the project it belongs to. */
         delete: operations["public_anchor_comments_reactions_destroy"];
         options?: never;
         head?: never;
@@ -422,7 +331,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_cycles_retrieve"];
         put?: never;
         post?: never;
@@ -439,10 +347,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_intakes_inbox_issues_list"];
         put?: never;
-        /** @description A project board only serves the project it belongs to. */
         post: operations["public_anchor_intakes_inbox_issues_create"];
         delete?: never;
         options?: never;
@@ -457,10 +363,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_intakes_intake_issues_list"];
         put?: never;
-        /** @description A project board only serves the project it belongs to. */
         post: operations["public_anchor_intakes_intake_issues_create"];
         delete?: never;
         options?: never;
@@ -475,15 +379,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_intakes_intake_issues_retrieve"];
         put?: never;
         post?: never;
-        /** @description A project board only serves the project it belongs to. */
         delete: operations["public_anchor_intakes_intake_issues_destroy"];
         options?: never;
         head?: never;
-        /** @description A project board only serves the project it belongs to. */
         patch: operations["public_anchor_intakes_intake_issues_partial_update"];
         trace?: never;
     };
@@ -494,7 +395,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_issues_retrieve"];
         put?: never;
         post?: never;
@@ -511,7 +411,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_issues_retrieve_2"];
         put?: never;
         post?: never;
@@ -528,10 +427,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_issues_comments_list"];
         put?: never;
-        /** @description A project board only serves the project it belongs to. */
         post: operations["public_anchor_issues_comments_create"];
         delete?: never;
         options?: never;
@@ -546,15 +443,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_issues_comments_retrieve"];
         put?: never;
         post?: never;
-        /** @description A project board only serves the project it belongs to. */
         delete: operations["public_anchor_issues_comments_destroy"];
         options?: never;
         head?: never;
-        /** @description A project board only serves the project it belongs to. */
         patch: operations["public_anchor_issues_comments_partial_update"];
         trace?: never;
     };
@@ -565,10 +459,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_issues_reactions_list"];
         put?: never;
-        /** @description A project board only serves the project it belongs to. */
         post: operations["public_anchor_issues_reactions_create"];
         delete?: never;
         options?: never;
@@ -586,7 +478,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** @description A project board only serves the project it belongs to. */
         delete: operations["public_anchor_issues_reactions_destroy"];
         options?: never;
         head?: never;
@@ -600,12 +491,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_issues_votes_list"];
         put?: never;
-        /** @description A project board only serves the project it belongs to. */
         post: operations["public_anchor_issues_votes_create"];
-        /** @description A project board only serves the project it belongs to. */
         delete: operations["public_anchor_issues_votes_destroy"];
         options?: never;
         head?: never;
@@ -619,7 +507,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_labels_retrieve"];
         put?: never;
         post?: never;
@@ -636,7 +523,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_members_retrieve"];
         put?: never;
         post?: never;
@@ -653,7 +539,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_meta_retrieve"];
         put?: never;
         post?: never;
@@ -670,7 +555,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_modules_retrieve"];
         put?: never;
         post?: never;
@@ -687,7 +571,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_settings_retrieve"];
         put?: never;
         post?: never;
@@ -704,7 +587,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_anchor_states_retrieve"];
         put?: never;
         post?: never;
@@ -723,7 +605,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description A project board only serves the project it belongs to. */
         post: operations["public_assets_v2_anchor_create"];
         delete?: never;
         options?: never;
@@ -740,7 +621,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Endpoint to bulk update assets. */
         post: operations["public_assets_v2_anchor_bulk_create"];
         delete?: never;
         options?: never;
@@ -755,15 +635,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_assets_v2_anchor_retrieve"];
         put?: never;
         post?: never;
-        /** @description A project board only serves the project it belongs to. */
         delete: operations["public_assets_v2_anchor_destroy"];
         options?: never;
         head?: never;
-        /** @description A project board only serves the project it belongs to. */
         patch: operations["public_assets_v2_anchor_partial_update"];
         trace?: never;
     };
@@ -776,7 +653,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Endpoint to restore a deleted assets. */
         post: operations["public_assets_v2_anchor_restore_create"];
         delete?: never;
         options?: never;
@@ -791,7 +667,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
         get: operations["public_workspaces_projects_anchor_retrieve"];
         put?: never;
         post?: never;
@@ -810,14 +685,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description Receiver for Microsoft Graph change notifications.
-         *
-         *     Unauthenticated by design — Graph calls it directly. The subscription
-         *     handshake echoes the validationToken; real notifications are only acted
-         *     on when their clientState matches the per-mailbox secret, and even then
-         *     the payload is never trusted: we just schedule a mailbox sync.
-         */
         post: operations["service_desk_webhook_create"];
         delete?: never;
         options?: never;
@@ -848,10 +715,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["unsplash_retrieve"];
         put?: never;
         post?: never;
@@ -868,16 +731,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_api_tokens_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["users_api_tokens_create"];
         delete?: never;
         options?: never;
@@ -892,24 +747,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_api_tokens_retrieve_2"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["users_api_tokens_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["users_api_tokens_partial_update"];
         trace?: never;
     };
@@ -920,12 +763,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description OAuth applications the signed-in user has granted access to.
-         *
-         *     The consent screen is the only other place a grant can be narrowed, and it
-         *     needs the application to drive it. This is where a user sees the whole list.
-         */
         get: operations["users_connected_apps_list"];
         put?: never;
         post?: never;
@@ -945,12 +782,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description OAuth applications the signed-in user has granted access to.
-         *
-         *     The consent screen is the only other place a grant can be narrowed, and it
-         *     needs the application to drive it. This is where a user sees the whole list.
-         */
         delete: operations["users_connected_apps_destroy"];
         options?: never;
         head?: never;
@@ -966,10 +797,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["users_file_assets_create"];
         delete?: never;
         options?: never;
@@ -984,17 +811,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_file_assets_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["users_file_assets_destroy"];
         options?: never;
         head?: never;
@@ -1008,10 +827,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_last_visited_workspace_retrieve"];
         put?: never;
         post?: never;
@@ -1028,24 +843,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["users_me_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["users_me_partial_update"];
         trace?: never;
     };
@@ -1056,10 +859,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_accounts_retrieve"];
         put?: never;
         post?: never;
@@ -1076,17 +875,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_accounts_retrieve_2"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["users_me_accounts_destroy"];
         options?: never;
         head?: never;
@@ -1100,10 +891,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_activities_retrieve"];
         put?: never;
         post?: never;
@@ -1126,11 +913,6 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description Verify the magic code and update the user's email address.
-         *     This endpoint verifies the code and updates the existing user record
-         *     without creating a new user, ensuring the user ID remains unchanged.
-         */
         patch: operations["users_me_email_partial_update"];
         trace?: never;
     };
@@ -1143,11 +925,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description Generate and send a magic code to the new email address for verification.
-         *     Rate limited to 3 requests per hour per user (enforced by EmailVerificationThrottle).
-         *     Additional per-email cooldown of 60 seconds prevents rapid repeated requests.
-         */
         post: operations["users_me_email_generate_code_create"];
         delete?: never;
         options?: never;
@@ -1162,10 +939,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_instance_admin_retrieve"];
         put?: never;
         post?: never;
@@ -1182,20 +955,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_notification_preferences_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["users_me_notification_preferences_partial_update"];
         trace?: never;
     };
@@ -1212,10 +977,6 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["users_me_onboard_partial_update"];
         trace?: never;
     };
@@ -1226,20 +987,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_profile_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["users_me_profile_partial_update"];
         trace?: never;
     };
@@ -1250,10 +1003,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_settings_retrieve"];
         put?: never;
         post?: never;
@@ -1276,10 +1025,6 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["users_me_tour_completed_partial_update"];
         trace?: never;
     };
@@ -1290,10 +1035,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_workspaces_list"];
         put?: never;
         post?: never;
@@ -1310,10 +1051,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_workspaces_activity_graph_list"];
         put?: never;
         post?: never;
@@ -1330,10 +1067,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_workspaces_dashboard_retrieve"];
         put?: never;
         post?: never;
@@ -1350,10 +1083,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_workspaces_issues_completed_graph_list"];
         put?: never;
         post?: never;
@@ -1370,10 +1099,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_workspaces_project_roles_retrieve"];
         put?: never;
         post?: never;
@@ -1390,16 +1115,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_workspaces_projects_invitations_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["users_me_workspaces_projects_invitations_create"];
         delete?: never;
         options?: never;
@@ -1414,16 +1131,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_me_workspaces_invitations_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["users_me_workspaces_invitations_create"];
         delete?: never;
         options?: never;
@@ -1438,10 +1147,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_session_retrieve"];
         put?: never;
         post?: never;
@@ -1458,10 +1163,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspace_slug_check_retrieve"];
         put?: never;
         post?: never;
@@ -1478,16 +1179,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_create"];
         delete?: never;
         options?: never;
@@ -1502,28 +1195,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_partial_update"];
         trace?: never;
     };
@@ -1534,10 +1211,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_advance_analytics_retrieve"];
         put?: never;
         post?: never;
@@ -1554,10 +1227,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_advance_analytics_charts_retrieve"];
         put?: never;
         post?: never;
@@ -1574,10 +1243,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_advance_analytics_stats_retrieve"];
         put?: never;
         post?: never;
@@ -1596,10 +1261,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_ai_assistant_create"];
         delete?: never;
         options?: never;
@@ -1614,16 +1275,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_analytic_view_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_analytic_view_create"];
         delete?: never;
         options?: never;
@@ -1638,24 +1291,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_analytic_view_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_analytic_view_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_analytic_view_partial_update"];
         trace?: never;
     };
@@ -1666,10 +1307,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_analytics_retrieve"];
         put?: never;
         post?: never;
@@ -1686,11 +1323,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description The trigger, condition and action vocabulary the designer renders from.
-         *
-         *     Static per deployment, so the client can cache it for the session.
-         */
         get: operations["workspaces_automation_metadata_retrieve"];
         put?: never;
         post?: never;
@@ -1707,24 +1339,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         get: operations["workspaces_automations_retrieve"];
         put?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         post: operations["workspaces_automations_create"];
         delete?: never;
         options?: never;
@@ -1739,24 +1355,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         get: operations["workspaces_automations_actions_retrieve"];
         put?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         post: operations["workspaces_automations_actions_create"];
         delete?: never;
         options?: never;
@@ -1774,25 +1374,9 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         delete: operations["workspaces_automations_actions_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         patch: operations["workspaces_automations_actions_partial_update"];
         trace?: never;
     };
@@ -1803,24 +1387,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         get: operations["workspaces_automations_runs_retrieve"];
         put?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         post: operations["workspaces_automations_runs_create"];
         delete?: never;
         options?: never;
@@ -1835,36 +1403,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         get: operations["workspaces_automations_retrieve_2"];
         put?: never;
         post?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         delete: operations["workspaces_automations_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         patch: operations["workspaces_automations_partial_update"];
         trace?: never;
     };
@@ -1875,10 +1419,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_cycles_retrieve"];
         put?: never;
         post?: never;
@@ -1895,16 +1435,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_dashboards_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_dashboards_create"];
         delete?: never;
         options?: never;
@@ -1919,16 +1451,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_dashboards_widgets_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_dashboards_widgets_create"];
         delete?: never;
         options?: never;
@@ -1943,24 +1467,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_dashboards_widgets_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_dashboards_widgets_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_dashboards_widgets_partial_update"];
         trace?: never;
     };
@@ -1971,7 +1483,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description The chart data of a saved widget, evaluated for the caller. */
         get: operations["workspaces_dashboards_widgets_data_retrieve"];
         put?: never;
         post?: never;
@@ -1988,24 +1499,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_dashboards_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_dashboards_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_dashboards_partial_update"];
         trace?: never;
     };
@@ -2016,7 +1515,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description What a widget may measure and split by in this workspace. */
         get: operations["workspaces_dashboards_options_retrieve"];
         put?: never;
         post?: never;
@@ -2035,7 +1533,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Evaluate an unsaved widget definition, for the editor's live preview. */
         post: operations["workspaces_dashboards_preview_create"];
         delete?: never;
         options?: never;
@@ -2050,10 +1547,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_default_analytics_retrieve"];
         put?: never;
         post?: never;
@@ -2070,16 +1563,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_draft_issues_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_draft_issues_create"];
         delete?: never;
         options?: never;
@@ -2094,24 +1579,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_draft_issues_retrieve_2"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_draft_issues_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_draft_issues_partial_update"];
         trace?: never;
     };
@@ -2124,10 +1597,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_draft_to_issue_create"];
         delete?: never;
         options?: never;
@@ -2142,10 +1611,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_entity_search_retrieve"];
         put?: never;
         post?: never;
@@ -2162,10 +1627,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_estimates_retrieve"];
         put?: never;
         post?: never;
@@ -2184,10 +1645,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_export_analytics_create"];
         delete?: never;
         options?: never;
@@ -2202,16 +1659,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_export_issues_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_export_issues_create"];
         delete?: never;
         options?: never;
@@ -2228,10 +1677,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_file_assets_create"];
         delete?: never;
         options?: never;
@@ -2246,10 +1691,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_home_preferences_retrieve"];
         put?: never;
         post?: never;
@@ -2272,10 +1713,6 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_home_preferences_partial_update"];
         trace?: never;
     };
@@ -2286,10 +1723,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Endpoint for creating, listing and  deleting workspaces */
         get: operations["workspaces_invitations_list"];
         put?: never;
-        /** @description Endpoint for creating, listing and  deleting workspaces */
         post: operations["workspaces_invitations_create"];
         delete?: never;
         options?: never;
@@ -2304,15 +1739,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Endpoint for creating, listing and  deleting workspaces */
         get: operations["workspaces_invitations_retrieve"];
         put?: never;
         post?: never;
-        /** @description Endpoint for creating, listing and  deleting workspaces */
         delete: operations["workspaces_invitations_destroy"];
         options?: never;
         head?: never;
-        /** @description Endpoint for creating, listing and  deleting workspaces */
         patch: operations["workspaces_invitations_partial_update"];
         trace?: never;
     };
@@ -2323,16 +1755,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_invitations_join_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_invitations_join_create"];
         delete?: never;
         options?: never;
@@ -2347,10 +1771,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_issues_retrieve"];
         put?: never;
         post?: never;
@@ -2367,10 +1787,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_labels_retrieve"];
         put?: never;
         post?: never;
@@ -2387,10 +1803,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_members_list"];
         put?: never;
         post?: never;
@@ -2407,24 +1819,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_members_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_members_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_members_partial_update"];
         trace?: never;
     };
@@ -2437,10 +1837,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_members_leave_create"];
         delete?: never;
         options?: never;
@@ -2455,10 +1851,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_modules_retrieve"];
         put?: never;
         post?: never;
@@ -2475,14 +1867,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Read-only page queries backing the editor's query block.
-         *
-         *     One endpoint for every kind, because the block is a single node whose
-         *     ``kind`` attribute picks the query. Scoped to the workspace rather than a
-         *     project: the Confluence macros it replaces query across spaces, so a
-         *     project-only endpoint would be wrong for most of their uses.
-         */
         get: operations["workspaces_page_query_retrieve"];
         put?: never;
         post?: never;
@@ -2499,17 +1883,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_project_identifiers_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_project_identifiers_destroy"];
         options?: never;
         head?: never;
@@ -2523,10 +1899,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_project_links_retrieve"];
         put?: never;
         post?: never;
@@ -2543,10 +1915,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_project_members_retrieve"];
         put?: never;
         post?: never;
@@ -2563,10 +1931,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_project_stats_retrieve"];
         put?: never;
         post?: never;
@@ -2583,16 +1947,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_create"];
         delete?: never;
         options?: never;
@@ -2607,28 +1963,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_partial_update"];
         trace?: never;
     };
@@ -2639,10 +1979,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_advance_analytics_retrieve"];
         put?: never;
         post?: never;
@@ -2659,10 +1995,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_advance_analytics_charts_retrieve"];
         put?: never;
         post?: never;
@@ -2679,10 +2011,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_advance_analytics_stats_retrieve"];
         put?: never;
         post?: never;
@@ -2701,10 +2029,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_ai_assistant_create"];
         delete?: never;
         options?: never;
@@ -2721,15 +2045,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_archive_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_archive_destroy"];
         options?: never;
         head?: never;
@@ -2743,10 +2059,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_archived_cycles_retrieve"];
         put?: never;
         post?: never;
@@ -2763,10 +2075,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_archived_cycles_retrieve_2"];
         put?: never;
         post?: never;
@@ -2783,10 +2091,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_archived_issues_list"];
         put?: never;
         post?: never;
@@ -2803,10 +2107,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_archived_modules_retrieve"];
         put?: never;
         post?: never;
@@ -2823,10 +2123,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_archived_modules_retrieve_2"];
         put?: never;
         post?: never;
@@ -2843,24 +2139,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         get: operations["workspaces_projects_automations_retrieve"];
         put?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         post: operations["workspaces_projects_automations_create"];
         delete?: never;
         options?: never;
@@ -2875,24 +2155,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         get: operations["workspaces_projects_automations_actions_retrieve"];
         put?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         post: operations["workspaces_projects_automations_actions_create"];
         delete?: never;
         options?: never;
@@ -2910,25 +2174,9 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         delete: operations["workspaces_projects_automations_actions_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         patch: operations["workspaces_projects_automations_actions_partial_update"];
         trace?: never;
     };
@@ -2939,24 +2187,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         get: operations["workspaces_projects_automations_runs_retrieve"];
         put?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         post: operations["workspaces_projects_automations_runs_create"];
         delete?: never;
         options?: never;
@@ -2971,36 +2203,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         get: operations["workspaces_projects_automations_retrieve_2"];
         put?: never;
         post?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         delete: operations["workspaces_projects_automations_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
         patch: operations["workspaces_projects_automations_partial_update"];
         trace?: never;
     };
@@ -3013,10 +2221,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_bulk_archive_issues_create"];
         delete?: never;
         options?: never;
@@ -3033,10 +2237,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_bulk_create_labels_create"];
         delete?: never;
         options?: never;
@@ -3054,10 +2254,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_bulk_delete_issues_destroy"];
         options?: never;
         head?: never;
@@ -3071,16 +2267,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_comments_reactions_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_comments_reactions_create"];
         delete?: never;
         options?: never;
@@ -3098,10 +2286,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_comments_reactions_destroy"];
         options?: never;
         head?: never;
@@ -3115,16 +2299,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_cycles_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_cycles_create"];
         delete?: never;
         options?: never;
@@ -3139,10 +2315,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_cycles_analytics_retrieve"];
         put?: never;
         post?: never;
@@ -3161,15 +2333,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_cycles_archive_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_cycles_archive_destroy"];
         options?: never;
         head?: never;
@@ -3183,16 +2347,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_cycles_cycle_issues_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_cycles_cycle_issues_create"];
         delete?: never;
         options?: never;
@@ -3207,28 +2363,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_cycles_cycle_issues_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_cycles_cycle_issues_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_cycles_cycle_issues_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_cycles_cycle_issues_partial_update"];
         trace?: never;
     };
@@ -3239,10 +2379,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_cycles_progress_retrieve"];
         put?: never;
         post?: never;
@@ -3261,10 +2397,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_cycles_transfer_issues_create"];
         delete?: never;
         options?: never;
@@ -3279,20 +2411,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_cycles_user_properties_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_cycles_user_properties_partial_update"];
         trace?: never;
     };
@@ -3303,28 +2427,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_cycles_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_cycles_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_cycles_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_cycles_partial_update"];
         trace?: never;
     };
@@ -3337,10 +2445,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_cycles_date_check_create"];
         delete?: never;
         options?: never;
@@ -3355,10 +2459,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_deleted_issues_retrieve"];
         put?: never;
         post?: never;
@@ -3375,16 +2475,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_estimates_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_estimates_create"];
         delete?: never;
         options?: never;
@@ -3399,24 +2491,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_estimates_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_estimates_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_estimates_partial_update"];
         trace?: never;
     };
@@ -3429,10 +2509,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_estimates_estimate_points_create"];
         delete?: never;
         options?: never;
@@ -3450,17 +2526,9 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_estimates_estimate_points_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_estimates_estimate_points_partial_update"];
         trace?: never;
     };
@@ -3473,15 +2541,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_favorite_pages_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_favorite_pages_destroy"];
         options?: never;
         head?: never;
@@ -3495,16 +2555,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_inbox_issues_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_inbox_issues_create"];
         delete?: never;
         options?: never;
@@ -3519,24 +2571,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_inbox_issues_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_inbox_issues_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_inbox_issues_partial_update"];
         trace?: never;
     };
@@ -3547,16 +2587,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_inboxes_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_inboxes_create"];
         delete?: never;
         options?: never;
@@ -3571,24 +2603,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_inboxes_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_inboxes_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_inboxes_partial_update"];
         trace?: never;
     };
@@ -3599,16 +2619,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_intake_issues_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_intake_issues_create"];
         delete?: never;
         options?: never;
@@ -3623,24 +2635,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_intake_issues_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_intake_issues_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_intake_issues_partial_update"];
         trace?: never;
     };
@@ -3651,10 +2651,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_intake_state_retrieve"];
         put?: never;
         post?: never;
@@ -3671,10 +2667,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_intake_work_items_description_versions_retrieve"];
         put?: never;
         post?: never;
@@ -3691,10 +2683,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_intake_work_items_description_versions_retrieve_2"];
         put?: never;
         post?: never;
@@ -3711,16 +2699,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_intakes_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_intakes_create"];
         delete?: never;
         options?: never;
@@ -3735,24 +2715,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_intakes_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_intakes_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_intakes_partial_update"];
         trace?: never;
     };
@@ -3763,16 +2731,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_invitations_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_invitations_create"];
         delete?: never;
         options?: never;
@@ -3787,17 +2747,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_invitations_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_invitations_destroy"];
         options?: never;
         head?: never;
@@ -3811,17 +2763,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description GET `?issue_ids=<comma separated ids>` answers, for each listed work item that has work
-         *     items below it, the earliest start and latest end date among all of them (any depth), plus
-         *     how many children and descendants it has:
-         *
-         *         {"<id>": {"start_date": "2026-01-05", "target_date": "2026-03-31",
-         *                   "children_count": 2, "descendants_count": 7}}
-         *
-         *     Listed work items without children are left out. Archived, deleted and draft work items
-         *     do not count. A guest who only sees their own work items only gets dates from those.
-         */
         get: operations["workspaces_projects_issue_date_rollups_retrieve"];
         put?: never;
         post?: never;
@@ -3840,10 +2781,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issue_dates_create"];
         delete?: never;
         options?: never;
@@ -3858,16 +2795,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issue_labels_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issue_labels_create"];
         delete?: never;
         options?: never;
@@ -3882,28 +2811,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issue_labels_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_issue_labels_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_issue_labels_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_issue_labels_partial_update"];
         trace?: never;
     };
@@ -3914,18 +2827,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description List work item properties
-         *
-         *     When `?issue_type=<uuid>` is passed, returns properties scoped to
-         *     that type plus unscoped (project-wide) properties. `?issue_type=null`
-         *     (or `?unscoped=true`) returns only unscoped properties. Without the
-         *     query param, behavior is unchanged (every property of the project
-         *     is returned).
-         */
         get: operations["workspaces_projects_issue_properties_list"];
         put?: never;
-        /** @description CRUD for work item custom properties of a project. */
         post: operations["workspaces_projects_issue_properties_create"];
         delete?: never;
         options?: never;
@@ -3940,15 +2843,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description CRUD for work item custom properties of a project. */
         get: operations["workspaces_projects_issue_properties_retrieve"];
         put?: never;
         post?: never;
-        /** @description CRUD for work item custom properties of a project. */
         delete: operations["workspaces_projects_issue_properties_destroy"];
         options?: never;
         head?: never;
-        /** @description CRUD for work item custom properties of a project. */
         patch: operations["workspaces_projects_issue_properties_partial_update"];
         trace?: never;
     };
@@ -3959,10 +2859,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description CRUD for the options of an OPTION work item property. */
         get: operations["workspaces_projects_issue_properties_options_list"];
         put?: never;
-        /** @description CRUD for the options of an OPTION work item property. */
         post: operations["workspaces_projects_issue_properties_options_create"];
         delete?: never;
         options?: never;
@@ -3977,15 +2875,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description CRUD for the options of an OPTION work item property. */
         get: operations["workspaces_projects_issue_properties_options_retrieve"];
         put?: never;
         post?: never;
-        /** @description CRUD for the options of an OPTION work item property. */
         delete: operations["workspaces_projects_issue_properties_options_destroy"];
         options?: never;
         head?: never;
-        /** @description CRUD for the options of an OPTION work item property. */
         patch: operations["workspaces_projects_issue_properties_options_partial_update"];
         trace?: never;
     };
@@ -3996,13 +2891,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Property values of all work items of a project in a single call.
-         *
-         *     Returns `{issue_id: {property_id: value(s)}}` so list / kanban /
-         *     spreadsheet views can render custom fields without one request per work
-         *     item. Supports narrowing with `?issue_ids=<comma separated ids>`.
-         */
         get: operations["workspaces_projects_issue_property_values_retrieve"];
         put?: never;
         post?: never;
@@ -4021,7 +2909,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Move the number the next work item created in a project receives. */
         post: operations["workspaces_projects_issue_sequence_create"];
         delete?: never;
         options?: never;
@@ -4036,20 +2923,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description CRUD for work item types enabled on a project.
-         *
-         *     Only admins can create, update, or delete work item types; any active
-         *     project member can list and retrieve them.
-         */
         get: operations["workspaces_projects_issue_types_list"];
         put?: never;
-        /**
-         * @description CRUD for work item types enabled on a project.
-         *
-         *     Only admins can create, update, or delete work item types; any active
-         *     project member can list and retrieve them.
-         */
         post: operations["workspaces_projects_issue_types_create"];
         delete?: never;
         options?: never;
@@ -4064,25 +2939,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description CRUD for work item types enabled on a project.
-         *
-         *     Only admins can create, update, or delete work item types; any active
-         *     project member can list and retrieve them.
-         */
         get: operations["workspaces_projects_issue_types_retrieve"];
         put?: never;
         post?: never;
-        /** @description Unlink the type from the project. 409 while anything in the project uses it. */
         delete: operations["workspaces_projects_issue_types_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description CRUD for work item types enabled on a project.
-         *
-         *     Only admins can create, update, or delete work item types; any active
-         *     project member can list and retrieve them.
-         */
         patch: operations["workspaces_projects_issue_types_partial_update"];
         trace?: never;
     };
@@ -4095,11 +2957,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description Move work items of the type to another type, see `migrate_type`.
-         *
-         *     Members can migrate work items; the whole project needs an admin.
-         */
         post: operations["workspaces_projects_issue_types_migrate_create"];
         delete?: never;
         options?: never;
@@ -4114,7 +2971,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description What in the project uses the type, and which of its property values would need a decision. */
         get: operations["workspaces_projects_issue_types_usage_retrieve"];
         put?: never;
         post?: never;
@@ -4131,16 +2987,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_create"];
         delete?: never;
         options?: never;
@@ -4155,10 +3003,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_detail_retrieve"];
         put?: never;
         post?: never;
@@ -4175,16 +3019,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_comments_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_comments_create"];
         delete?: never;
         options?: never;
@@ -4199,28 +3035,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_comments_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_issues_comments_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_issues_comments_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_issues_comments_partial_update"];
         trace?: never;
     };
@@ -4233,10 +3053,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_email_replies_create"];
         delete?: never;
         options?: never;
@@ -4251,20 +3067,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_email_thread_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_issues_email_thread_partial_update"];
         trace?: never;
     };
@@ -4275,10 +3083,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_history_retrieve"];
         put?: never;
         post?: never;
@@ -4295,16 +3099,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_issue_attachments_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_issue_attachments_create"];
         delete?: never;
         options?: never;
@@ -4322,10 +3118,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_issues_issue_attachments_destroy"];
         options?: never;
         head?: never;
@@ -4339,16 +3131,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_issue_links_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_issue_links_create"];
         delete?: never;
         options?: never;
@@ -4363,28 +3147,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_issue_links_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_issues_issue_links_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_issues_issue_links_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_issues_issue_links_partial_update"];
         trace?: never;
     };
@@ -4395,16 +3163,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_issue_relation_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_issue_relation_create"];
         delete?: never;
         options?: never;
@@ -4419,16 +3179,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_issue_subscribers_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_issue_subscribers_create"];
         delete?: never;
         options?: never;
@@ -4446,10 +3198,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_issues_issue_subscribers_destroy"];
         options?: never;
         head?: never;
@@ -4463,10 +3211,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_meta_retrieve"];
         put?: never;
         post?: never;
@@ -4485,10 +3229,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_modules_create"];
         delete?: never;
         options?: never;
@@ -4503,23 +3243,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Property values of a single work item.
-         *
-         *     GET returns `{"values": {property_id: value(s)}, "display": {...}, "derived": {...}}`,
-         *     where `derived` names, for each value computed from the hierarchy, the work item it
-         *     was taken from (`source_issue_id`, null for roll-ups). PUT bulk-replaces the values
-         *     of the listed properties (same semantics as the public v1 endpoint).
-         */
         get: operations["workspaces_projects_issues_property_values_retrieve"];
-        /**
-         * @description Property values of a single work item.
-         *
-         *     GET returns `{"values": {property_id: value(s)}, "display": {...}, "derived": {...}}`,
-         *     where `derived` names, for each value computed from the hierarchy, the work item it
-         *     was taken from (`source_issue_id`, null for roll-ups). PUT bulk-replaces the values
-         *     of the listed properties (same semantics as the public v1 endpoint).
-         */
         put: operations["workspaces_projects_issues_property_values_update"];
         post?: never;
         delete?: never;
@@ -4535,16 +3259,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_reactions_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_reactions_create"];
         delete?: never;
         options?: never;
@@ -4562,10 +3278,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_issues_reactions_destroy"];
         options?: never;
         head?: never;
@@ -4581,10 +3293,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_remove_relation_create"];
         delete?: never;
         options?: never;
@@ -4599,16 +3307,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_sub_issues_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_sub_issues_create"];
         delete?: never;
         options?: never;
@@ -4623,21 +3323,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_subscribe_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_subscribe_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_issues_subscribe_destroy"];
         options?: never;
         head?: never;
@@ -4651,10 +3339,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_versions_retrieve"];
         put?: never;
         post?: never;
@@ -4671,10 +3355,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_versions_retrieve_2"];
         put?: never;
         post?: never;
@@ -4691,28 +3371,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_issues_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_issues_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_issues_partial_update"];
         trace?: never;
     };
@@ -4723,21 +3387,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_archive_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_issues_archive_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_issues_archive_destroy"];
         options?: never;
         head?: never;
@@ -4751,10 +3403,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_issues_list_retrieve"];
         put?: never;
         post?: never;
@@ -4771,16 +3419,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_join_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_join_create"];
         delete?: never;
         options?: never;
@@ -4795,16 +3435,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_links_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_links_create"];
         delete?: never;
         options?: never;
@@ -4822,17 +3454,9 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_links_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_links_partial_update"];
         trace?: never;
     };
@@ -4845,10 +3469,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_links_reorder_create"];
         delete?: never;
         options?: never;
@@ -4863,16 +3483,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_members_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_members_create"];
         delete?: never;
         options?: never;
@@ -4887,24 +3499,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_members_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_members_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_members_partial_update"];
         trace?: never;
     };
@@ -4917,10 +3517,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_members_leave_create"];
         delete?: never;
         options?: never;
@@ -4935,16 +3531,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_modules_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_modules_create"];
         delete?: never;
         options?: never;
@@ -4961,15 +3549,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_modules_archive_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_modules_archive_destroy"];
         options?: never;
         head?: never;
@@ -4983,16 +3563,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_modules_issues_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_modules_issues_create"];
         delete?: never;
         options?: never;
@@ -5007,28 +3579,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_modules_issues_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_modules_issues_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_modules_issues_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_modules_issues_partial_update"];
         trace?: never;
     };
@@ -5039,16 +3595,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_modules_module_links_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_modules_module_links_create"];
         delete?: never;
         options?: never;
@@ -5063,28 +3611,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_modules_module_links_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_modules_module_links_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_modules_module_links_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_modules_module_links_partial_update"];
         trace?: never;
     };
@@ -5095,20 +3627,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_modules_user_properties_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_modules_user_properties_partial_update"];
         trace?: never;
     };
@@ -5119,28 +3643,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_modules_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_modules_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_modules_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_modules_partial_update"];
         trace?: never;
     };
@@ -5151,16 +3659,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_pages_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_pages_create"];
         delete?: never;
         options?: never;
@@ -5175,10 +3675,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_pages_summary_retrieve"];
         put?: never;
         post?: never;
@@ -5195,24 +3691,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_pages_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_pages_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_pages_partial_update"];
         trace?: never;
     };
@@ -5225,10 +3709,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_pages_access_create"];
         delete?: never;
         options?: never;
@@ -5245,15 +3725,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_pages_archive_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_pages_archive_destroy"];
         options?: never;
         head?: never;
@@ -5267,22 +3739,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Document/inline comment threads (and replies) anchored to a page.
-         *
-         *     A top-level thread has ``parent = None``. Inline threads carry an
-         *     ``anchor_id`` matching the comment mark in the document; a thread with no
-         *     ``anchor_id`` is a document-level (end-of-page) comment.
-         */
         get: operations["workspaces_projects_pages_comments_list"];
         put?: never;
-        /**
-         * @description Document/inline comment threads (and replies) anchored to a page.
-         *
-         *     A top-level thread has ``parent = None``. Inline threads carry an
-         *     ``anchor_id`` matching the comment mark in the document; a thread with no
-         *     ``anchor_id`` is a document-level (end-of-page) comment.
-         */
         post: operations["workspaces_projects_pages_comments_create"];
         delete?: never;
         options?: never;
@@ -5297,10 +3755,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Emoji reactions on a page comment. */
         get: operations["workspaces_projects_pages_comments_reactions_list"];
         put?: never;
-        /** @description Emoji reactions on a page comment. */
         post: operations["workspaces_projects_pages_comments_reactions_create"];
         delete?: never;
         options?: never;
@@ -5318,7 +3774,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** @description Emoji reactions on a page comment. */
         delete: operations["workspaces_projects_pages_comments_reactions_destroy"];
         options?: never;
         head?: never;
@@ -5332,33 +3787,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Document/inline comment threads (and replies) anchored to a page.
-         *
-         *     A top-level thread has ``parent = None``. Inline threads carry an
-         *     ``anchor_id`` matching the comment mark in the document; a thread with no
-         *     ``anchor_id`` is a document-level (end-of-page) comment.
-         */
         get: operations["workspaces_projects_pages_comments_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description Document/inline comment threads (and replies) anchored to a page.
-         *
-         *     A top-level thread has ``parent = None``. Inline threads carry an
-         *     ``anchor_id`` matching the comment mark in the document; a thread with no
-         *     ``anchor_id`` is a document-level (end-of-page) comment.
-         */
         delete: operations["workspaces_projects_pages_comments_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description Document/inline comment threads (and replies) anchored to a page.
-         *
-         *     A top-level thread has ``parent = None``. Inline threads carry an
-         *     ``anchor_id`` matching the comment mark in the document; a thread with no
-         *     ``anchor_id`` is a document-level (end-of-page) comment.
-         */
         patch: operations["workspaces_projects_pages_comments_partial_update"];
         trace?: never;
     };
@@ -5371,21 +3805,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description Document/inline comment threads (and replies) anchored to a page.
-         *
-         *     A top-level thread has ``parent = None``. Inline threads carry an
-         *     ``anchor_id`` matching the comment mark in the document; a thread with no
-         *     ``anchor_id`` is a document-level (end-of-page) comment.
-         */
         post: operations["workspaces_projects_pages_comments_resolve_create"];
-        /**
-         * @description Document/inline comment threads (and replies) anchored to a page.
-         *
-         *     A top-level thread has ``parent = None``. Inline threads carry an
-         *     ``anchor_id`` matching the comment mark in the document; a thread with no
-         *     ``anchor_id`` is a document-level (end-of-page) comment.
-         */
         delete: operations["workspaces_projects_pages_comments_resolve_destroy"];
         options?: never;
         head?: never;
@@ -5399,20 +3819,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_pages_description_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_pages_description_partial_update"];
         trace?: never;
     };
@@ -5425,10 +3837,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_pages_duplicate_create"];
         delete?: never;
         options?: never;
@@ -5445,15 +3853,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_pages_lock_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_pages_lock_destroy"];
         options?: never;
         head?: never;
@@ -5469,11 +3869,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description Move a page under a parent, before or after a sibling or at the end.
-         *
-         *     Siblings are renumbered when needed. That needs no permission on them.
-         */
         post: operations["workspaces_projects_pages_position_create"];
         delete?: never;
         options?: never;
@@ -5488,10 +3883,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_pages_versions_retrieve"];
         put?: never;
         post?: never;
@@ -5508,10 +3899,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_pages_versions_retrieve_2"];
         put?: never;
         post?: never;
@@ -5528,20 +3915,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_preferences_member_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_preferences_member_partial_update"];
         trace?: never;
     };
@@ -5552,16 +3931,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_project_deploy_boards_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_project_deploy_boards_create"];
         delete?: never;
         options?: never;
@@ -5576,24 +3947,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_project_deploy_boards_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_project_deploy_boards_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_project_deploy_boards_partial_update"];
         trace?: never;
     };
@@ -5604,10 +3963,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_project_estimates_retrieve"];
         put?: never;
         post?: never;
@@ -5624,10 +3979,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_project_members_me_retrieve"];
         put?: never;
         post?: never;
@@ -5646,10 +3997,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_project_views_create"];
         delete?: never;
         options?: never;
@@ -5664,10 +4011,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_search_issues_retrieve"];
         put?: never;
         post?: never;
@@ -5684,16 +4027,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_service_desk_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_service_desk_create"];
         delete?: never;
         options?: never;
@@ -5708,16 +4043,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_states_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_states_create"];
         delete?: never;
         options?: never;
@@ -5732,24 +4059,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_states_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_states_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_states_partial_update"];
         trace?: never;
     };
@@ -5762,10 +4077,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_states_mark_default_create"];
         delete?: never;
         options?: never;
@@ -5780,10 +4091,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_trash_issues_retrieve"];
         put?: never;
         post?: never;
@@ -5803,10 +4110,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_trash_issues_destroy"];
         options?: never;
         head?: never;
@@ -5822,10 +4125,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_trash_issues_restore_create"];
         delete?: never;
         options?: never;
@@ -5840,16 +4139,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_user_favorite_cycles_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_user_favorite_cycles_create"];
         delete?: never;
         options?: never;
@@ -5867,10 +4158,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_user_favorite_cycles_destroy"];
         options?: never;
         head?: never;
@@ -5884,16 +4171,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_user_favorite_modules_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_user_favorite_modules_create"];
         delete?: never;
         options?: never;
@@ -5911,10 +4190,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_user_favorite_modules_destroy"];
         options?: never;
         head?: never;
@@ -5928,16 +4203,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_user_favorite_views_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_user_favorite_views_create"];
         delete?: never;
         options?: never;
@@ -5955,10 +4222,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_user_favorite_views_destroy"];
         options?: never;
         head?: never;
@@ -5972,20 +4235,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_user_properties_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_user_properties_partial_update"];
         trace?: never;
     };
@@ -5996,10 +4251,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_v2_issues_retrieve"];
         put?: never;
         post?: never;
@@ -6016,16 +4267,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_views_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_projects_views_create"];
         delete?: never;
         options?: never;
@@ -6040,28 +4283,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_views_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_projects_views_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_projects_views_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_projects_views_partial_update"];
         trace?: never;
     };
@@ -6072,10 +4299,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_work_items_description_versions_retrieve"];
         put?: never;
         post?: never;
@@ -6092,10 +4315,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_work_items_description_versions_retrieve_2"];
         put?: never;
         post?: never;
@@ -6112,10 +4331,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_projects_details_retrieve"];
         put?: never;
         post?: never;
@@ -6132,16 +4347,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_quick_links_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_quick_links_create"];
         delete?: never;
         options?: never;
@@ -6156,24 +4363,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_quick_links_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_quick_links_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_quick_links_partial_update"];
         trace?: never;
     };
@@ -6184,10 +4379,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_recent_visits_list"];
         put?: never;
         post?: never;
@@ -6204,10 +4395,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_saved_analytic_view_retrieve"];
         put?: never;
         post?: never;
@@ -6224,10 +4411,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Endpoint to search across multiple fields in the workspace and
-         *     also show related workspace if found
-         */
         get: operations["workspaces_search_retrieve"];
         put?: never;
         post?: never;
@@ -6244,20 +4427,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_sidebar_preferences_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_sidebar_preferences_partial_update"];
         trace?: never;
     };
@@ -6268,10 +4443,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_states_list"];
         put?: never;
         post?: never;
@@ -6288,16 +4459,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_stickies_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_stickies_create"];
         delete?: never;
         options?: never;
@@ -6312,24 +4475,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_stickies_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_stickies_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_stickies_partial_update"];
         trace?: never;
     };
@@ -6340,10 +4491,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_user_activity_retrieve"];
         put?: never;
         post?: never;
@@ -6362,10 +4509,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_user_activity_export_create"];
         delete?: never;
         options?: never;
@@ -6380,16 +4523,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_user_favorite_projects_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_user_favorite_projects_create"];
         delete?: never;
         options?: never;
@@ -6407,10 +4542,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_user_favorite_projects_destroy"];
         options?: never;
         head?: never;
@@ -6424,16 +4555,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_user_favorites_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_user_favorites_create"];
         delete?: never;
         options?: never;
@@ -6451,17 +4574,9 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_user_favorites_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_user_favorites_partial_update"];
         trace?: never;
     };
@@ -6472,10 +4587,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_user_favorites_group_retrieve"];
         put?: never;
         post?: never;
@@ -6492,10 +4603,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_user_issues_retrieve"];
         put?: never;
         post?: never;
@@ -6512,10 +4619,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_user_profile_retrieve"];
         put?: never;
         post?: never;
@@ -6532,20 +4635,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_user_properties_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_user_properties_partial_update"];
         trace?: never;
     };
@@ -6556,10 +4651,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_user_stats_retrieve"];
         put?: never;
         post?: never;
@@ -6576,10 +4667,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_users_notifications_list"];
         put?: never;
         post?: never;
@@ -6596,24 +4683,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_users_notifications_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_users_notifications_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_users_notifications_partial_update"];
         trace?: never;
     };
@@ -6626,15 +4701,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_users_notifications_archive_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_users_notifications_archive_destroy"];
         options?: never;
         head?: never;
@@ -6650,15 +4717,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_users_notifications_read_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_users_notifications_read_destroy"];
         options?: never;
         head?: never;
@@ -6674,10 +4733,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_users_notifications_mark_all_read_create"];
         delete?: never;
         options?: never;
@@ -6692,10 +4747,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_users_notifications_unread_retrieve"];
         put?: never;
         post?: never;
@@ -6712,16 +4763,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_views_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_views_create"];
         delete?: never;
         options?: never;
@@ -6736,28 +4779,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_views_retrieve"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         put: operations["workspaces_views_update"];
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_views_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_views_partial_update"];
         trace?: never;
     };
@@ -6768,10 +4795,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_webhook_logs_retrieve"];
         put?: never;
         post?: never;
@@ -6788,16 +4811,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_webhooks_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_webhooks_create"];
         delete?: never;
         options?: never;
@@ -6812,24 +4827,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_webhooks_retrieve_2"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_webhooks_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_webhooks_partial_update"];
         trace?: never;
     };
@@ -6842,10 +4845,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_webhooks_regenerate_create"];
         delete?: never;
         options?: never;
@@ -6860,7 +4859,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description The vocabulary of PQL, for the query bar's hints and completion. */
         get: operations["workspaces_work_item_query_fields_retrieve"];
         put?: never;
         post?: never;
@@ -6879,16 +4877,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description Parse and resolve a PQL expression without running it.
-         *
-         *     POST `{"pql": "...", "project_id": "<optional>"}` answers 200 with either
-         *     `{"valid": true, "expression": <filters AST>}` or `{"valid": false, ...}`
-         *     carrying the same payload a list endpoint would reject the query with
-         *     (`error`, and for syntax errors `position`, `line`, `column`, `token`,
-         *     `expected`). Errors about a field or value, such as an unknown name or an
-         *     invalid choice, carry the `position` and `token` of that field or value.
-         */
         post: operations["workspaces_work_item_query_validate_create"];
         delete?: never;
         options?: never;
@@ -6903,10 +4891,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_work_items___retrieve"];
         put?: never;
         post?: never;
@@ -6923,20 +4907,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_workspace_members_me_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_workspace_members_me_partial_update"];
         trace?: never;
     };
@@ -6947,16 +4923,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_workspace_themes_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_workspace_themes_create"];
         delete?: never;
         options?: never;
@@ -6971,24 +4939,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_workspace_themes_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_workspace_themes_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["workspaces_workspace_themes_partial_update"];
         trace?: never;
     };
@@ -7001,10 +4957,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_workspace_views_create"];
         delete?: never;
         options?: never;
@@ -7019,17 +4971,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_file_assets_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_file_assets_destroy"];
         options?: never;
         head?: never;
@@ -7045,10 +4989,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_file_assets_restore_create"];
         delete?: never;
         options?: never;
@@ -7143,7 +5083,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Workspaces the bearer token may act in. */
         get: operations["auth_o_app_installation_retrieve"];
         put?: never;
         post?: never;
@@ -7557,7 +5496,6 @@ export interface components {
             logo_props?: unknown;
             access?: components["schemas"]["AccessEnum"];
         };
-        /** @description A widget; its definition is validated by `validate_widget_definition`. */
         DashboardWidget: {
             /** Format: uuid */
             readonly id: string;
@@ -7592,7 +5530,6 @@ export interface components {
             /** Format: uuid */
             readonly workspace: string;
         };
-        /** @description A widget; its definition is validated by `validate_widget_definition`. */
         DashboardWidgetRequest: {
             title: string;
             description?: string;
@@ -7845,7 +5782,6 @@ export interface components {
              */
             updated_by?: string | null;
         };
-        /** @description Schema only: the intake state is the project's triage state. */
         IntakeState: {
             /** Format: uuid */
             readonly id: string;
@@ -8324,13 +6260,6 @@ export interface components {
             url: string;
             metadata?: unknown;
         };
-        /**
-         * @description Serializer for issue properties (work item custom fields).
-         *
-         *     Includes the nested read-only list of options. On create, options for
-         *     OPTION properties can be supplied inline through the
-         *     `options` field handled by the view.
-         */
         IssueProperty: {
             /** Format: uuid */
             readonly id: string;
@@ -8375,12 +6304,6 @@ export interface components {
              */
             issue_type: string | null;
         };
-        /**
-         * @description Serializer for issue property options.
-         *
-         *     Options are the selectable values for OPTION issue
-         *     properties. Uniqueness of the option name is enforced per property.
-         */
         IssuePropertyOption: {
             /** Format: uuid */
             readonly id: string;
@@ -8413,12 +6336,6 @@ export interface components {
             /** Format: uuid */
             readonly property: string;
         };
-        /**
-         * @description Serializer for issue property options.
-         *
-         *     Options are the selectable values for OPTION issue
-         *     properties. Uniqueness of the option name is enforced per property.
-         */
         IssuePropertyOptionRequest: {
             name: string;
             /** Format: double */
@@ -8427,13 +6344,6 @@ export interface components {
             external_source?: string | null;
             external_id?: string | null;
         };
-        /**
-         * @description Serializer for issue properties (work item custom fields).
-         *
-         *     Includes the nested read-only list of options. On create, options for
-         *     OPTION properties can be supplied inline through the
-         *     `options` field handled by the view.
-         */
         IssuePropertyRequest: {
             name: string;
             display_name?: string;
@@ -8682,7 +6592,6 @@ export interface components {
             /** Format: uuid */
             subscriber: string;
         };
-        /** @description Serializer for work item types. */
         IssueType: {
             /** Format: uuid */
             readonly id: string;
@@ -8720,12 +6629,10 @@ export interface components {
             /** @description Work items in scope with this option. */
             work_items: number;
         };
-        /** @description What a type migration reaches: the rows in scope and the property values that need a decision. */
         IssueTypeMigrationPreview: {
             references: components["schemas"]["IssueTypeUsage"];
             properties: components["schemas"]["IssueTypeMigrationProperty"][];
         };
-        /** @description A property of the old type alone that work items in scope have values in. */
         IssueTypeMigrationProperty: {
             /** Format: uuid */
             id: string;
@@ -8760,14 +6667,12 @@ export interface components {
             /** @description Only return what the migration would reach. */
             dry_run?: boolean;
         };
-        /** @description Exactly one of the fields. */
         IssueTypeMigrationScopeRequest: {
             work_items?: string[];
             /** Format: uuid */
             project?: string;
             workspace?: boolean;
         };
-        /** @description Serializer for work item types. */
         IssueTypeRequest: {
             name: string;
             description?: string;
@@ -8778,7 +6683,6 @@ export interface components {
             external_source?: string | null;
             external_id?: string | null;
         };
-        /** @description How many rows of a project use a work item type. */
         IssueTypeUsage: {
             work_items: number;
             deleted_work_items: number;
@@ -9288,7 +7192,6 @@ export interface components {
         NotificationViewModeEnum: "full" | "compact";
         /** @enum {unknown} */
         NullEnum: null;
-        /** @description Schema only: the list endpoints always set the in-group order. */
         OrderedState: {
             /** Format: uuid */
             readonly id: string;
@@ -9638,7 +7541,6 @@ export interface components {
             logo_props?: unknown;
             access?: components["schemas"]["AccessEnum"];
         };
-        /** @description A widget; its definition is validated by `validate_widget_definition`. */
         PatchedDashboardWidgetRequest: {
             title?: string;
             description?: string;
@@ -9800,12 +7702,6 @@ export interface components {
             url?: string;
             metadata?: unknown;
         };
-        /**
-         * @description Serializer for issue property options.
-         *
-         *     Options are the selectable values for OPTION issue
-         *     properties. Uniqueness of the option name is enforced per property.
-         */
         PatchedIssuePropertyOptionRequest: {
             name?: string;
             /** Format: double */
@@ -9814,13 +7710,6 @@ export interface components {
             external_source?: string | null;
             external_id?: string | null;
         };
-        /**
-         * @description Serializer for issue properties (work item custom fields).
-         *
-         *     Includes the nested read-only list of options. On create, options for
-         *     OPTION properties can be supplied inline through the
-         *     `options` field handled by the view.
-         */
         PatchedIssuePropertyRequest: {
             name?: string;
             display_name?: string;
@@ -9842,7 +7731,6 @@ export interface components {
              */
             issue_type?: string | null;
         };
-        /** @description Serializer for work item types. */
         PatchedIssueTypeRequest: {
             name?: string;
             description?: string;
@@ -10189,7 +8077,6 @@ export interface components {
             explored_features?: unknown;
             pql_dialect?: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
         };
-        /** @description The one field a member may change on their own row. */
         PatchedWorkspaceMemberDialectRequest: {
             pql_dialect?: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
         };
@@ -10566,7 +8453,6 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
-        /** @description Schema only: the project state endpoints never return the triage state. */
         ProjectState: {
             /** Format: uuid */
             readonly id: string;

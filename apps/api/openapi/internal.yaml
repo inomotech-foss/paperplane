@@ -15,7 +15,6 @@ paths:
   /api/assets/v2/static/{asset_id}/:
     get:
       operationId: assets_v2_static_retrieve
-      description: This endpoint is used to get the signed URL for a static asset.
       parameters:
       - in: path
         name: asset_id
@@ -34,7 +33,6 @@ paths:
   /api/assets/v2/user-assets/:
     post:
       operationId: assets_v2_user_assets_create
-      description: This endpoint is used to upload user profile images.
       tags:
       - assets
       security:
@@ -45,7 +43,6 @@ paths:
   /api/assets/v2/user-assets/{asset_id}/:
     patch:
       operationId: assets_v2_user_assets_partial_update
-      description: This endpoint is used to upload user profile images.
       parameters:
       - in: path
         name: asset_id
@@ -62,7 +59,6 @@ paths:
           description: No response body
     delete:
       operationId: assets_v2_user_assets_destroy
-      description: This endpoint is used to upload user profile images.
       parameters:
       - in: path
         name: asset_id
@@ -80,8 +76,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/:
     post:
       operationId: assets_v2_workspaces_create
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
       parameters:
       - in: path
         name: slug
@@ -98,8 +92,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/{asset_id}/:
     get:
       operationId: assets_v2_workspaces_retrieve
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
       parameters:
       - in: path
         name: asset_id
@@ -121,8 +113,6 @@ paths:
           description: No response body
     patch:
       operationId: assets_v2_workspaces_partial_update
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
       parameters:
       - in: path
         name: asset_id
@@ -144,8 +134,6 @@ paths:
           description: No response body
     delete:
       operationId: assets_v2_workspaces_destroy
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
       parameters:
       - in: path
         name: asset_id
@@ -168,7 +156,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/check/{asset_id}/:
     get:
       operationId: assets_v2_workspaces_check_retrieve
-      description: Endpoint to check if an asset exists.
       parameters:
       - in: path
         name: asset_id
@@ -191,7 +178,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/download/{asset_id}/:
     get:
       operationId: assets_v2_workspaces_download_retrieve
-      description: Endpoint to generate a download link for an asset with content-disposition=attachment.
       parameters:
       - in: path
         name: asset_id
@@ -214,9 +200,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/duplicate-assets/{asset_id}/:
     post:
       operationId: assets_v2_workspaces_duplicate_assets_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: asset_id
@@ -239,8 +222,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/:
     post:
       operationId: assets_v2_workspaces_projects_create
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
       parameters:
       - in: path
         name: project_id
@@ -263,9 +244,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/{entity_id}/bulk/:
     post:
       operationId: assets_v2_workspaces_projects_bulk_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: entity_id
@@ -294,8 +272,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/{pk}/:
     get:
       operationId: assets_v2_workspaces_projects_retrieve
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
       parameters:
       - in: path
         name: pk
@@ -323,8 +299,6 @@ paths:
           description: No response body
     patch:
       operationId: assets_v2_workspaces_projects_partial_update
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
       parameters:
       - in: path
         name: pk
@@ -352,8 +326,6 @@ paths:
           description: No response body
     delete:
       operationId: assets_v2_workspaces_projects_destroy
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
       parameters:
       - in: path
         name: pk
@@ -382,7 +354,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/download/{asset_id}/:
     get:
       operationId: assets_v2_workspaces_projects_download_retrieve
-      description: Endpoint to generate a download link for an asset with content-disposition=attachment.
       parameters:
       - in: path
         name: asset_id
@@ -411,9 +382,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/attachments/:
     get:
       operationId: assets_v2_workspaces_projects_issues_attachments_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -445,9 +413,6 @@ paths:
           description: ''
     post:
       operationId: assets_v2_workspaces_projects_issues_attachments_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -492,9 +457,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/attachments/{pk}/:
     get:
       operationId: assets_v2_workspaces_projects_issues_attachments_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -532,9 +494,6 @@ paths:
           description: ''
     patch:
       operationId: assets_v2_workspaces_projects_issues_attachments_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -583,9 +542,6 @@ paths:
           description: ''
     delete:
       operationId: assets_v2_workspaces_projects_issues_attachments_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -620,12 +576,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/:
     get:
       operationId: assets_v2_workspaces_projects_pages_attachments_retrieve
-      description: |-
-        Files attached to a page, as opposed to images embedded in its body.
-
-        Same three-step flow as work-item attachments: POST reserves the asset and
-        returns a presigned URL, the client PUTs the file straight to storage, then
-        PATCH marks it uploaded.
       parameters:
       - in: path
         name: page_id
@@ -657,12 +607,6 @@ paths:
           description: ''
     post:
       operationId: assets_v2_workspaces_projects_pages_attachments_create
-      description: |-
-        Files attached to a page, as opposed to images embedded in its body.
-
-        Same three-step flow as work-item attachments: POST reserves the asset and
-        returns a presigned URL, the client PUTs the file straight to storage, then
-        PATCH marks it uploaded.
       parameters:
       - in: path
         name: page_id
@@ -707,12 +651,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/{pk}/:
     get:
       operationId: assets_v2_workspaces_projects_pages_attachments_retrieve_2
-      description: |-
-        Files attached to a page, as opposed to images embedded in its body.
-
-        Same three-step flow as work-item attachments: POST reserves the asset and
-        returns a presigned URL, the client PUTs the file straight to storage, then
-        PATCH marks it uploaded.
       parameters:
       - in: path
         name: page_id
@@ -750,12 +688,6 @@ paths:
           description: ''
     patch:
       operationId: assets_v2_workspaces_projects_pages_attachments_partial_update
-      description: |-
-        Files attached to a page, as opposed to images embedded in its body.
-
-        Same three-step flow as work-item attachments: POST reserves the asset and
-        returns a presigned URL, the client PUTs the file straight to storage, then
-        PATCH marks it uploaded.
       parameters:
       - in: path
         name: page_id
@@ -804,12 +736,6 @@ paths:
           description: ''
     delete:
       operationId: assets_v2_workspaces_projects_pages_attachments_destroy
-      description: |-
-        Files attached to a page, as opposed to images embedded in its body.
-
-        Same three-step flow as work-item attachments: POST reserves the asset and
-        returns a presigned URL, the client PUTs the file straight to storage, then
-        PATCH marks it uploaded.
       parameters:
       - in: path
         name: page_id
@@ -844,14 +770,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/{pk}/content/:
     get:
       operationId: assets_v2_workspaces_projects_pages_attachments_content_retrieve
-      description: |-
-        Streams an attachment's bytes from the app's own origin.
-
-        The download route redirects to a presigned storage URL, which browser code
-        cannot read unless the bucket is configured for CORS. Editor blocks that have
-        to read the file they render - the diagram block reads the `.drawio` XML it
-        hands to the editing iframe - read it here instead, so nothing about the
-        deployment's object store has to change.
       parameters:
       - in: path
         name: page_id
@@ -886,7 +804,6 @@ paths:
   /api/assets/v2/workspaces/{slug}/restore/{asset_id}/:
     post:
       operationId: assets_v2_workspaces_restore_create
-      description: Endpoint to restore a deleted assets.
       parameters:
       - in: path
         name: asset_id
@@ -909,7 +826,6 @@ paths:
   /api/public/anchor/{anchor}/comments/{comment_id}/reactions/:
     get:
       operationId: public_anchor_comments_reactions_list
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -943,7 +859,6 @@ paths:
           description: ''
     post:
       operationId: public_anchor_comments_reactions_create
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -982,7 +897,6 @@ paths:
   /api/public/anchor/{anchor}/comments/{comment_id}/reactions/{reaction_code}/:
     delete:
       operationId: public_anchor_comments_reactions_destroy
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1010,7 +924,6 @@ paths:
   /api/public/anchor/{anchor}/cycles/:
     get:
       operationId: public_anchor_cycles_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1028,7 +941,6 @@ paths:
   /api/public/anchor/{anchor}/intakes/{intake_id}/inbox-issues/:
     get:
       operationId: public_anchor_intakes_inbox_issues_list
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1062,7 +974,6 @@ paths:
           description: ''
     post:
       operationId: public_anchor_intakes_inbox_issues_create
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1100,7 +1011,6 @@ paths:
   /api/public/anchor/{anchor}/intakes/{intake_id}/intake-issues/:
     get:
       operationId: public_anchor_intakes_intake_issues_list
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1134,7 +1044,6 @@ paths:
           description: ''
     post:
       operationId: public_anchor_intakes_intake_issues_create
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1172,7 +1081,6 @@ paths:
   /api/public/anchor/{anchor}/intakes/{intake_id}/intake-issues/{pk}/:
     get:
       operationId: public_anchor_intakes_intake_issues_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1204,7 +1112,6 @@ paths:
           description: ''
     patch:
       operationId: public_anchor_intakes_intake_issues_partial_update
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1247,7 +1154,6 @@ paths:
           description: ''
     delete:
       operationId: public_anchor_intakes_intake_issues_destroy
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1276,7 +1182,6 @@ paths:
   /api/public/anchor/{anchor}/issues/:
     get:
       operationId: public_anchor_issues_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1294,7 +1199,6 @@ paths:
   /api/public/anchor/{anchor}/issues/{issue_id}/:
     get:
       operationId: public_anchor_issues_retrieve_2
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1318,7 +1222,6 @@ paths:
   /api/public/anchor/{anchor}/issues/{issue_id}/comments/:
     get:
       operationId: public_anchor_issues_comments_list
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1353,7 +1256,6 @@ paths:
           description: ''
     post:
       operationId: public_anchor_issues_comments_create
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1391,7 +1293,6 @@ paths:
   /api/public/anchor/{anchor}/issues/{issue_id}/comments/{pk}/:
     get:
       operationId: public_anchor_issues_comments_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1424,7 +1325,6 @@ paths:
           description: ''
     patch:
       operationId: public_anchor_issues_comments_partial_update
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1467,7 +1367,6 @@ paths:
           description: ''
     delete:
       operationId: public_anchor_issues_comments_destroy
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1496,7 +1395,6 @@ paths:
   /api/public/anchor/{anchor}/issues/{issue_id}/reactions/:
     get:
       operationId: public_anchor_issues_reactions_list
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1530,7 +1428,6 @@ paths:
           description: ''
     post:
       operationId: public_anchor_issues_reactions_create
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1569,7 +1466,6 @@ paths:
   /api/public/anchor/{anchor}/issues/{issue_id}/reactions/{reaction_code}/:
     delete:
       operationId: public_anchor_issues_reactions_destroy
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1597,7 +1493,6 @@ paths:
   /api/public/anchor/{anchor}/issues/{issue_id}/votes/:
     get:
       operationId: public_anchor_issues_votes_list
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1631,7 +1526,6 @@ paths:
           description: ''
     post:
       operationId: public_anchor_issues_votes_create
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1657,7 +1551,6 @@ paths:
           description: ''
     delete:
       operationId: public_anchor_issues_votes_destroy
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1680,7 +1573,6 @@ paths:
   /api/public/anchor/{anchor}/labels/:
     get:
       operationId: public_anchor_labels_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1698,7 +1590,6 @@ paths:
   /api/public/anchor/{anchor}/members/:
     get:
       operationId: public_anchor_members_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1716,7 +1607,6 @@ paths:
   /api/public/anchor/{anchor}/meta/:
     get:
       operationId: public_anchor_meta_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1734,7 +1624,6 @@ paths:
   /api/public/anchor/{anchor}/modules/:
     get:
       operationId: public_anchor_modules_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1752,7 +1641,6 @@ paths:
   /api/public/anchor/{anchor}/settings/:
     get:
       operationId: public_anchor_settings_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1770,7 +1658,6 @@ paths:
   /api/public/anchor/{anchor}/states/:
     get:
       operationId: public_anchor_states_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1788,7 +1675,6 @@ paths:
   /api/public/assets/v2/anchor/{anchor}/:
     post:
       operationId: public_assets_v2_anchor_create
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1805,7 +1691,6 @@ paths:
   /api/public/assets/v2/anchor/{anchor}/{entity_id}/bulk/:
     post:
       operationId: public_assets_v2_anchor_bulk_create
-      description: Endpoint to bulk update assets.
       parameters:
       - in: path
         name: anchor
@@ -1828,7 +1713,6 @@ paths:
   /api/public/assets/v2/anchor/{anchor}/{pk}/:
     get:
       operationId: public_assets_v2_anchor_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1851,7 +1735,6 @@ paths:
           description: No response body
     patch:
       operationId: public_assets_v2_anchor_partial_update
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1873,7 +1756,6 @@ paths:
           description: No response body
     delete:
       operationId: public_assets_v2_anchor_destroy
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: anchor
@@ -1896,7 +1778,6 @@ paths:
   /api/public/assets/v2/anchor/{anchor}/restore/{pk}/:
     post:
       operationId: public_assets_v2_anchor_restore_create
-      description: Endpoint to restore a deleted assets.
       parameters:
       - in: path
         name: anchor
@@ -1919,7 +1800,6 @@ paths:
   /api/public/workspaces/{slug}/projects/{project_id}/anchor/:
     get:
       operationId: public_workspaces_projects_anchor_retrieve
-      description: A project board only serves the project it belongs to.
       parameters:
       - in: path
         name: project_id
@@ -1943,13 +1823,6 @@ paths:
   /api/service-desk/webhook/:
     post:
       operationId: service_desk_webhook_create
-      description: |-
-        Receiver for Microsoft Graph change notifications.
-
-        Unauthenticated by design — Graph calls it directly. The subscription
-        handshake echoes the validationToken; real notifications are only acted
-        on when their clientState matches the per-mailbox secret, and even then
-        the payload is never trusted: we just schedule a mailbox sync.
       tags:
       - service-desk
       security:
@@ -1971,9 +1844,6 @@ paths:
   /api/unsplash/:
     get:
       operationId: unsplash_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - unsplash
       security:
@@ -1984,9 +1854,6 @@ paths:
   /api/users/api-tokens/:
     get:
       operationId: users_api_tokens_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2002,9 +1869,6 @@ paths:
           description: ''
     post:
       operationId: users_api_tokens_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2019,9 +1883,6 @@ paths:
   /api/users/api-tokens/{pk}/:
     get:
       operationId: users_api_tokens_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -2042,9 +1903,6 @@ paths:
           description: ''
     patch:
       operationId: users_api_tokens_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -2065,9 +1923,6 @@ paths:
           description: ''
     delete:
       operationId: users_api_tokens_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -2085,11 +1940,6 @@ paths:
   /api/users/connected-apps/:
     get:
       operationId: users_connected_apps_list
-      description: |-
-        OAuth applications the signed-in user has granted access to.
-
-        The consent screen is the only other place a grant can be narrowed, and it
-        needs the application to drive it. This is where a user sees the whole list.
       parameters:
       - name: search
         required: false
@@ -2113,11 +1963,6 @@ paths:
   /api/users/connected-apps/{pk}/:
     delete:
       operationId: users_connected_apps_destroy
-      description: |-
-        OAuth applications the signed-in user has granted access to.
-
-        The consent screen is the only other place a grant can be narrowed, and it
-        needs the application to drive it. This is where a user sees the whole list.
       parameters:
       - in: path
         name: pk
@@ -2134,9 +1979,6 @@ paths:
   /api/users/file-assets/:
     post:
       operationId: users_file_assets_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2147,9 +1989,6 @@ paths:
   /api/users/file-assets/{asset_key}/:
     get:
       operationId: users_file_assets_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: asset_key
@@ -2165,9 +2004,6 @@ paths:
           description: No response body
     delete:
       operationId: users_file_assets_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: asset_key
@@ -2184,9 +2020,6 @@ paths:
   /api/users/last-visited-workspace/:
     get:
       operationId: users_last_visited_workspace_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2201,9 +2034,6 @@ paths:
   /api/users/me/:
     get:
       operationId: users_me_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2217,9 +2047,6 @@ paths:
           description: ''
     patch:
       operationId: users_me_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       requestBody:
@@ -2244,9 +2071,6 @@ paths:
           description: ''
     delete:
       operationId: users_me_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2257,9 +2081,6 @@ paths:
   /api/users/me/accounts/:
     get:
       operationId: users_me_accounts_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2276,9 +2097,6 @@ paths:
   /api/users/me/accounts/{pk}/:
     get:
       operationId: users_me_accounts_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -2299,9 +2117,6 @@ paths:
           description: ''
     delete:
       operationId: users_me_accounts_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -2319,9 +2134,6 @@ paths:
   /api/users/me/activities/:
     get:
       operationId: users_me_activities_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: query
         name: cursor
@@ -2357,10 +2169,6 @@ paths:
   /api/users/me/email/:
     patch:
       operationId: users_me_email_partial_update
-      description: |-
-        Verify the magic code and update the user's email address.
-        This endpoint verifies the code and updates the existing user record
-        without creating a new user, ensuring the user ID remains unchanged.
       tags:
       - users
       requestBody:
@@ -2386,10 +2194,6 @@ paths:
   /api/users/me/email/generate-code/:
     post:
       operationId: users_me_email_generate_code_create
-      description: |-
-        Generate and send a magic code to the new email address for verification.
-        Rate limited to 3 requests per hour per user (enforced by EmailVerificationThrottle).
-        Additional per-email cooldown of 60 seconds prevents rapid repeated requests.
       tags:
       - users
       requestBody:
@@ -2415,9 +2219,6 @@ paths:
   /api/users/me/instance-admin/:
     get:
       operationId: users_me_instance_admin_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2432,9 +2233,6 @@ paths:
   /api/users/me/notification-preferences/:
     get:
       operationId: users_me_notification_preferences_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2448,9 +2246,6 @@ paths:
           description: ''
     patch:
       operationId: users_me_notification_preferences_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       requestBody:
@@ -2476,9 +2271,6 @@ paths:
   /api/users/me/onboard/:
     patch:
       operationId: users_me_onboard_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2493,9 +2285,6 @@ paths:
   /api/users/me/profile/:
     get:
       operationId: users_me_profile_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2509,9 +2298,6 @@ paths:
           description: ''
     patch:
       operationId: users_me_profile_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2526,9 +2312,6 @@ paths:
   /api/users/me/settings/:
     get:
       operationId: users_me_settings_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2543,9 +2326,6 @@ paths:
   /api/users/me/tour-completed/:
     patch:
       operationId: users_me_tour_completed_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2560,9 +2340,6 @@ paths:
   /api/users/me/workspaces/:
     get:
       operationId: users_me_workspaces_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -2586,9 +2363,6 @@ paths:
   /api/users/me/workspaces/{slug}/activity-graph/:
     get:
       operationId: users_me_workspaces_activity_graph_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -2617,9 +2391,6 @@ paths:
   /api/users/me/workspaces/{slug}/dashboard/:
     get:
       operationId: users_me_workspaces_dashboard_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -2640,9 +2411,6 @@ paths:
   /api/users/me/workspaces/{slug}/issues-completed-graph/:
     get:
       operationId: users_me_workspaces_issues_completed_graph_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -2671,9 +2439,6 @@ paths:
   /api/users/me/workspaces/{slug}/project-roles/:
     get:
       operationId: users_me_workspaces_project_roles_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -2697,9 +2462,6 @@ paths:
   /api/users/me/workspaces/{slug}/projects/invitations/:
     get:
       operationId: users_me_workspaces_projects_invitations_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -2727,9 +2489,6 @@ paths:
           description: ''
     post:
       operationId: users_me_workspaces_projects_invitations_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -2762,9 +2521,6 @@ paths:
   /api/users/me/workspaces/invitations/:
     get:
       operationId: users_me_workspaces_invitations_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -2787,9 +2543,6 @@ paths:
           description: ''
     post:
       operationId: users_me_workspaces_invitations_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       requestBody:
@@ -2815,9 +2568,6 @@ paths:
   /api/users/session/:
     get:
       operationId: users_session_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - users
       security:
@@ -2833,9 +2583,6 @@ paths:
   /api/workspace-slug-check/:
     get:
       operationId: workspace_slug_check_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - workspace-slug-check
       security:
@@ -2850,9 +2597,6 @@ paths:
   /api/workspaces/:
     get:
       operationId: workspaces_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -2875,9 +2619,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - workspaces
       requestBody:
@@ -2904,9 +2645,6 @@ paths:
   /api/workspaces/{slug}/:
     get:
       operationId: workspaces_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -2926,9 +2664,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -2960,9 +2695,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -2993,9 +2725,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -3012,9 +2741,6 @@ paths:
   /api/workspaces/{slug}/advance-analytics/:
     get:
       operationId: workspaces_advance_analytics_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -3031,9 +2757,6 @@ paths:
   /api/workspaces/{slug}/advance-analytics-charts/:
     get:
       operationId: workspaces_advance_analytics_charts_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -3050,9 +2773,6 @@ paths:
   /api/workspaces/{slug}/advance-analytics-stats/:
     get:
       operationId: workspaces_advance_analytics_stats_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -3069,9 +2789,6 @@ paths:
   /api/workspaces/{slug}/ai-assistant/:
     post:
       operationId: workspaces_ai_assistant_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -3088,9 +2805,6 @@ paths:
   /api/workspaces/{slug}/analytic-view/:
     get:
       operationId: workspaces_analytic_view_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -3118,9 +2832,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_analytic_view_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -3153,9 +2864,6 @@ paths:
   /api/workspaces/{slug}/analytic-view/{pk}/:
     get:
       operationId: workspaces_analytic_view_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -3181,9 +2889,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_analytic_view_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -3220,9 +2925,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_analytic_view_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -3245,9 +2947,6 @@ paths:
   /api/workspaces/{slug}/analytics/:
     get:
       operationId: workspaces_analytics_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -3264,10 +2963,6 @@ paths:
   /api/workspaces/{slug}/automation-metadata/:
     get:
       operationId: workspaces_automation_metadata_retrieve
-      description: |-
-        The trigger, condition and action vocabulary the designer renders from.
-
-        Static per deployment, so the client can cache it for the session.
       parameters:
       - in: path
         name: slug
@@ -3284,13 +2979,6 @@ paths:
   /api/workspaces/{slug}/automations/:
     get:
       operationId: workspaces_automations_retrieve
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: slug
@@ -3306,13 +2994,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_automations_create
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: slug
@@ -3329,13 +3010,6 @@ paths:
   /api/workspaces/{slug}/automations/{automation_id}/actions/:
     get:
       operationId: workspaces_automations_actions_retrieve
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -3357,13 +3031,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_automations_actions_create
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -3386,13 +3053,6 @@ paths:
   /api/workspaces/{slug}/automations/{automation_id}/actions/{pk}/:
     patch:
       operationId: workspaces_automations_actions_partial_update
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -3420,13 +3080,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_automations_actions_destroy
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -3455,13 +3108,6 @@ paths:
   /api/workspaces/{slug}/automations/{automation_id}/runs/:
     get:
       operationId: workspaces_automations_runs_retrieve
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -3483,13 +3129,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_automations_runs_create
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -3512,13 +3151,6 @@ paths:
   /api/workspaces/{slug}/automations/{pk}/:
     get:
       operationId: workspaces_automations_retrieve_2
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: pk
@@ -3540,13 +3172,6 @@ paths:
           description: No response body
     patch:
       operationId: workspaces_automations_partial_update
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: pk
@@ -3568,13 +3193,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_automations_destroy
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: pk
@@ -3597,9 +3215,6 @@ paths:
   /api/workspaces/{slug}/cycles/:
     get:
       operationId: workspaces_cycles_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -3616,9 +3231,6 @@ paths:
   /api/workspaces/{slug}/dashboards/:
     get:
       operationId: workspaces_dashboards_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -3646,9 +3258,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_dashboards_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -3681,9 +3290,6 @@ paths:
   /api/workspaces/{slug}/dashboards/{dashboard_id}/widgets/:
     get:
       operationId: workspaces_dashboards_widgets_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: dashboard_id
@@ -3717,9 +3323,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_dashboards_widgets_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: dashboard_id
@@ -3758,9 +3361,6 @@ paths:
   /api/workspaces/{slug}/dashboards/{dashboard_id}/widgets/{pk}/:
     get:
       operationId: workspaces_dashboards_widgets_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: dashboard_id
@@ -3792,9 +3392,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_dashboards_widgets_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: dashboard_id
@@ -3837,9 +3434,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_dashboards_widgets_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: dashboard_id
@@ -3868,7 +3462,6 @@ paths:
   /api/workspaces/{slug}/dashboards/{dashboard_id}/widgets/{pk}/data/:
     get:
       operationId: workspaces_dashboards_widgets_data_retrieve
-      description: The chart data of a saved widget, evaluated for the caller.
       parameters:
       - in: path
         name: dashboard_id
@@ -3897,9 +3490,6 @@ paths:
   /api/workspaces/{slug}/dashboards/{pk}/:
     get:
       operationId: workspaces_dashboards_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -3925,9 +3515,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_dashboards_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -3964,9 +3551,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_dashboards_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -3989,7 +3573,6 @@ paths:
   /api/workspaces/{slug}/dashboards/options/:
     get:
       operationId: workspaces_dashboards_options_retrieve
-      description: What a widget may measure and split by in this workspace.
       parameters:
       - in: path
         name: slug
@@ -4006,7 +3589,6 @@ paths:
   /api/workspaces/{slug}/dashboards/preview/:
     post:
       operationId: workspaces_dashboards_preview_create
-      description: Evaluate an unsaved widget definition, for the editor's live preview.
       parameters:
       - in: path
         name: slug
@@ -4023,9 +3605,6 @@ paths:
   /api/workspaces/{slug}/default-analytics/:
     get:
       operationId: workspaces_default_analytics_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4042,9 +3621,6 @@ paths:
   /api/workspaces/{slug}/draft-issues/:
     get:
       operationId: workspaces_draft_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4060,9 +3636,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_draft_issues_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4079,9 +3652,6 @@ paths:
   /api/workspaces/{slug}/draft-issues/{pk}/:
     get:
       operationId: workspaces_draft_issues_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -4103,9 +3673,6 @@ paths:
           description: No response body
     patch:
       operationId: workspaces_draft_issues_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -4127,9 +3694,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_draft_issues_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -4152,9 +3716,6 @@ paths:
   /api/workspaces/{slug}/draft-to-issue/{draft_id}/:
     post:
       operationId: workspaces_draft_to_issue_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: draft_id
@@ -4177,9 +3738,6 @@ paths:
   /api/workspaces/{slug}/entity-search/:
     get:
       operationId: workspaces_entity_search_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4196,9 +3754,6 @@ paths:
   /api/workspaces/{slug}/estimates/:
     get:
       operationId: workspaces_estimates_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4215,9 +3770,6 @@ paths:
   /api/workspaces/{slug}/export-analytics/:
     post:
       operationId: workspaces_export_analytics_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4234,9 +3786,6 @@ paths:
   /api/workspaces/{slug}/export-issues/:
     get:
       operationId: workspaces_export_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4256,9 +3805,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_export_issues_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4279,9 +3825,6 @@ paths:
   /api/workspaces/{slug}/file-assets/:
     post:
       operationId: workspaces_file_assets_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4298,9 +3841,6 @@ paths:
   /api/workspaces/{slug}/home-preferences/:
     get:
       operationId: workspaces_home_preferences_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4321,9 +3861,6 @@ paths:
   /api/workspaces/{slug}/home-preferences/{key}/:
     patch:
       operationId: workspaces_home_preferences_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: key
@@ -4360,7 +3897,6 @@ paths:
   /api/workspaces/{slug}/invitations/:
     get:
       operationId: workspaces_invitations_list
-      description: Endpoint for creating, listing and  deleting workspaces
       parameters:
       - name: search
         required: false
@@ -4388,7 +3924,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_invitations_create
-      description: Endpoint for creating, listing and  deleting workspaces
       parameters:
       - in: path
         name: slug
@@ -4420,7 +3955,6 @@ paths:
   /api/workspaces/{slug}/invitations/{pk}/:
     get:
       operationId: workspaces_invitations_retrieve
-      description: Endpoint for creating, listing and  deleting workspaces
       parameters:
       - in: path
         name: pk
@@ -4446,7 +3980,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_invitations_partial_update
-      description: Endpoint for creating, listing and  deleting workspaces
       parameters:
       - in: path
         name: pk
@@ -4483,7 +4016,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_invitations_destroy
-      description: Endpoint for creating, listing and  deleting workspaces
       parameters:
       - in: path
         name: pk
@@ -4506,9 +4038,6 @@ paths:
   /api/workspaces/{slug}/invitations/{pk}/join/:
     get:
       operationId: workspaces_invitations_join_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -4531,9 +4060,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_invitations_join_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -4557,9 +4083,6 @@ paths:
   /api/workspaces/{slug}/issues/:
     get:
       operationId: workspaces_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4576,9 +4099,6 @@ paths:
   /api/workspaces/{slug}/labels/:
     get:
       operationId: workspaces_labels_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4595,9 +4115,6 @@ paths:
   /api/workspaces/{slug}/members/:
     get:
       operationId: workspaces_members_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -4626,9 +4143,6 @@ paths:
   /api/workspaces/{slug}/members/{pk}/:
     get:
       operationId: workspaces_members_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -4654,9 +4168,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_members_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -4693,9 +4204,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_members_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -4718,9 +4226,6 @@ paths:
   /api/workspaces/{slug}/members/leave/:
     post:
       operationId: workspaces_members_leave_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4752,9 +4257,6 @@ paths:
   /api/workspaces/{slug}/modules/:
     get:
       operationId: workspaces_modules_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4771,13 +4273,6 @@ paths:
   /api/workspaces/{slug}/page-query/:
     get:
       operationId: workspaces_page_query_retrieve
-      description: |-
-        Read-only page queries backing the editor's query block.
-
-        One endpoint for every kind, because the block is a single node whose
-        ``kind`` attribute picks the query. Scoped to the workspace rather than a
-        project: the Confluence macros it replaces query across spaces, so a
-        project-only endpoint would be wrong for most of their uses.
       parameters:
       - in: path
         name: slug
@@ -4794,9 +4289,6 @@ paths:
   /api/workspaces/{slug}/project-identifiers/:
     get:
       operationId: workspaces_project_identifiers_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4812,9 +4304,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_project_identifiers_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4831,9 +4320,6 @@ paths:
   /api/workspaces/{slug}/project-links/:
     get:
       operationId: workspaces_project_links_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4850,9 +4336,6 @@ paths:
   /api/workspaces/{slug}/project-members/:
     get:
       operationId: workspaces_project_members_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4873,9 +4356,6 @@ paths:
   /api/workspaces/{slug}/project-stats/:
     get:
       operationId: workspaces_project_stats_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4892,9 +4372,6 @@ paths:
   /api/workspaces/{slug}/projects/:
     get:
       operationId: workspaces_projects_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -4922,9 +4399,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -4957,9 +4431,6 @@ paths:
   /api/workspaces/{slug}/projects/{pk}/:
     get:
       operationId: workspaces_projects_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -4985,9 +4456,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -5025,9 +4493,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -5064,9 +4529,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -5089,9 +4551,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/advance-analytics/:
     get:
       operationId: workspaces_projects_advance_analytics_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5114,9 +4573,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/advance-analytics-charts/:
     get:
       operationId: workspaces_projects_advance_analytics_charts_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5139,9 +4595,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/advance-analytics-stats/:
     get:
       operationId: workspaces_projects_advance_analytics_stats_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5164,9 +4617,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/ai-assistant/:
     post:
       operationId: workspaces_projects_ai_assistant_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5189,9 +4639,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/archive/:
     post:
       operationId: workspaces_projects_archive_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5213,9 +4660,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_projects_archive_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5238,9 +4682,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/archived-cycles/:
     get:
       operationId: workspaces_projects_archived_cycles_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5263,9 +4704,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/archived-cycles/{pk}/:
     get:
       operationId: workspaces_projects_archived_cycles_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -5294,9 +4732,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/archived-issues/:
     get:
       operationId: workspaces_projects_archived_issues_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5325,9 +4760,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/archived-modules/:
     get:
       operationId: workspaces_projects_archived_modules_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5350,9 +4782,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/archived-modules/{pk}/:
     get:
       operationId: workspaces_projects_archived_modules_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -5381,13 +4810,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/automations/:
     get:
       operationId: workspaces_projects_automations_retrieve
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: project_id
@@ -5409,13 +4831,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_projects_automations_create
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: project_id
@@ -5438,13 +4853,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/:
     get:
       operationId: workspaces_projects_automations_actions_retrieve
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -5472,13 +4880,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_projects_automations_actions_create
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -5507,13 +4908,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/{pk}/:
     patch:
       operationId: workspaces_projects_automations_actions_partial_update
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -5547,13 +4941,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_projects_automations_actions_destroy
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -5588,13 +4975,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/runs/:
     get:
       operationId: workspaces_projects_automations_runs_retrieve
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -5622,13 +5002,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_projects_automations_runs_create
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: automation_id
@@ -5657,13 +5030,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/automations/{pk}/:
     get:
       operationId: workspaces_projects_automations_retrieve_2
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: pk
@@ -5691,13 +5057,6 @@ paths:
           description: No response body
     patch:
       operationId: workspaces_projects_automations_partial_update
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: pk
@@ -5725,13 +5084,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_projects_automations_destroy
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
       parameters:
       - in: path
         name: pk
@@ -5760,9 +5112,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/bulk-archive-issues/:
     post:
       operationId: workspaces_projects_bulk_archive_issues_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5785,9 +5134,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/bulk-create-labels/:
     post:
       operationId: workspaces_projects_bulk_create_labels_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5810,9 +5156,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/bulk-delete-issues/:
     delete:
       operationId: workspaces_projects_bulk_delete_issues_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5835,9 +5178,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/comments/{comment_id}/reactions/:
     get:
       operationId: workspaces_projects_comments_reactions_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: comment_id
@@ -5877,9 +5217,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_comments_reactions_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: comment_id
@@ -5924,9 +5261,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/comments/{comment_id}/reactions/{reaction_code}/:
     delete:
       operationId: workspaces_projects_comments_reactions_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: comment_id
@@ -5960,9 +5294,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/cycles/:
     get:
       operationId: workspaces_projects_cycles_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -5996,9 +5327,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_cycles_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -6025,9 +5353,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/analytics/:
     get:
       operationId: workspaces_projects_cycles_analytics_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6056,9 +5381,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/archive/:
     post:
       operationId: workspaces_projects_cycles_archive_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6086,9 +5408,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_projects_cycles_archive_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6117,9 +5436,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/:
     get:
       operationId: workspaces_projects_cycles_cycle_issues_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6153,9 +5469,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_cycles_cycle_issues_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6200,9 +5513,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/{issue_id}/:
     get:
       operationId: workspaces_projects_cycles_cycle_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6240,9 +5550,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_cycles_cycle_issues_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6292,9 +5599,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_cycles_cycle_issues_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6343,9 +5647,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_cycles_cycle_issues_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6380,9 +5681,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/progress/:
     get:
       operationId: workspaces_projects_cycles_progress_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6411,9 +5709,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/transfer-issues/:
     post:
       operationId: workspaces_projects_cycles_transfer_issues_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6442,9 +5737,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/user-properties/:
     get:
       operationId: workspaces_projects_cycles_user_properties_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6472,9 +5764,6 @@ paths:
           description: No response body
     patch:
       operationId: workspaces_projects_cycles_user_properties_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -6503,9 +5792,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/cycles/{pk}/:
     get:
       operationId: workspaces_projects_cycles_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -6537,9 +5823,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_cycles_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -6571,9 +5854,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_cycles_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -6605,9 +5885,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_cycles_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -6636,9 +5913,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/cycles/date-check/:
     post:
       operationId: workspaces_projects_cycles_date_check_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -6661,9 +5935,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/deleted-issues/:
     get:
       operationId: workspaces_projects_deleted_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -6686,9 +5957,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/estimates/:
     get:
       operationId: workspaces_projects_estimates_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -6722,9 +5990,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_estimates_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -6763,9 +6028,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/estimates/{estimate_id}/:
     get:
       operationId: workspaces_projects_estimates_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: estimate_id
@@ -6797,9 +6059,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_estimates_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: estimate_id
@@ -6842,9 +6101,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_estimates_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: estimate_id
@@ -6873,9 +6129,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/estimates/{estimate_id}/estimate-points/:
     post:
       operationId: workspaces_projects_estimates_estimate_points_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: estimate_id
@@ -6904,9 +6157,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/estimates/{estimate_id}/estimate-points/{estimate_point_id}/:
     patch:
       operationId: workspaces_projects_estimates_estimate_points_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: estimate_id
@@ -6939,9 +6189,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_projects_estimates_estimate_points_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: estimate_id
@@ -6975,9 +6222,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/favorite-pages/{page_id}/:
     post:
       operationId: workspaces_projects_favorite_pages_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -7005,9 +6249,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_projects_favorite_pages_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -7036,9 +6277,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/inbox-issues/:
     get:
       operationId: workspaces_projects_inbox_issues_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7072,9 +6310,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_inbox_issues_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7112,9 +6347,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/inbox-issues/{pk}/:
     get:
       operationId: workspaces_projects_inbox_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7146,9 +6378,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_inbox_issues_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7191,9 +6420,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_inbox_issues_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7222,9 +6448,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/inboxes/:
     get:
       operationId: workspaces_projects_inboxes_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7256,9 +6479,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_inboxes_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7297,9 +6517,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/inboxes/{pk}/:
     get:
       operationId: workspaces_projects_inboxes_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7331,9 +6548,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_inboxes_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7376,9 +6590,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_inboxes_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7407,9 +6618,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/intake-issues/:
     get:
       operationId: workspaces_projects_intake_issues_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7443,9 +6651,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_intake_issues_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7483,9 +6688,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/intake-issues/{pk}/:
     get:
       operationId: workspaces_projects_intake_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7517,9 +6719,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_intake_issues_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7562,9 +6761,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_intake_issues_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7593,9 +6789,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/intake-state/:
     get:
       operationId: workspaces_projects_intake_state_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7622,9 +6815,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/intake-work-items/{work_item_id}/description-versions/:
     get:
       operationId: workspaces_projects_intake_work_items_description_versions_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7653,9 +6843,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/intake-work-items/{work_item_id}/description-versions/{pk}/:
     get:
       operationId: workspaces_projects_intake_work_items_description_versions_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7690,9 +6877,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/intakes/:
     get:
       operationId: workspaces_projects_intakes_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7724,9 +6908,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_intakes_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7765,9 +6946,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/intakes/{pk}/:
     get:
       operationId: workspaces_projects_intakes_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7799,9 +6977,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_intakes_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7844,9 +7019,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_intakes_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7875,9 +7047,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/invitations/:
     get:
       operationId: workspaces_projects_invitations_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7911,9 +7080,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_invitations_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -7952,9 +7118,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/invitations/{pk}/:
     get:
       operationId: workspaces_projects_invitations_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -7986,9 +7149,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_invitations_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -8017,16 +7177,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-date-rollups/:
     get:
       operationId: workspaces_projects_issue_date_rollups_retrieve
-      description: |-
-        GET `?issue_ids=<comma separated ids>` answers, for each listed work item that has work
-        items below it, the earliest start and latest end date among all of them (any depth), plus
-        how many children and descendants it has:
-
-            {"<id>": {"start_date": "2026-01-05", "target_date": "2026-03-31",
-                      "children_count": 2, "descendants_count": 7}}
-
-        Listed work items without children are left out. Archived, deleted and draft work items
-        do not count. A guest who only sees their own work items only gets dates from those.
       parameters:
       - in: path
         name: project_id
@@ -8049,9 +7199,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-dates/:
     post:
       operationId: workspaces_projects_issue_dates_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -8074,9 +7221,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-labels/:
     get:
       operationId: workspaces_projects_issue_labels_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -8110,9 +7254,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issue_labels_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -8151,9 +7292,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-labels/{pk}/:
     get:
       operationId: workspaces_projects_issue_labels_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -8185,9 +7323,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_issue_labels_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -8231,9 +7366,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_issue_labels_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -8276,9 +7408,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_issue_labels_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -8307,14 +7436,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-properties/:
     get:
       operationId: workspaces_projects_issue_properties_list
-      description: |-
-        List work item properties
-
-        When `?issue_type=<uuid>` is passed, returns properties scoped to
-        that type plus unscoped (project-wide) properties. `?issue_type=null`
-        (or `?unscoped=true`) returns only unscoped properties. Without the
-        query param, behavior is unchanged (every property of the project
-        is returned).
       parameters:
       - in: path
         name: project_id
@@ -8348,7 +7469,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issue_properties_create
-      description: CRUD for work item custom properties of a project.
       parameters:
       - in: path
         name: project_id
@@ -8387,7 +7507,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-properties/{pk}/:
     get:
       operationId: workspaces_projects_issue_properties_retrieve
-      description: CRUD for work item custom properties of a project.
       parameters:
       - in: path
         name: pk
@@ -8419,7 +7538,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_issue_properties_partial_update
-      description: CRUD for work item custom properties of a project.
       parameters:
       - in: path
         name: pk
@@ -8462,7 +7580,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_issue_properties_destroy
-      description: CRUD for work item custom properties of a project.
       parameters:
       - in: path
         name: pk
@@ -8491,7 +7608,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-properties/{property_id}/options/:
     get:
       operationId: workspaces_projects_issue_properties_options_list
-      description: CRUD for the options of an OPTION work item property.
       parameters:
       - in: path
         name: project_id
@@ -8531,7 +7647,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issue_properties_options_create
-      description: CRUD for the options of an OPTION work item property.
       parameters:
       - in: path
         name: project_id
@@ -8576,7 +7691,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-properties/{property_id}/options/{pk}/:
     get:
       operationId: workspaces_projects_issue_properties_options_retrieve
-      description: CRUD for the options of an OPTION work item property.
       parameters:
       - in: path
         name: pk
@@ -8614,7 +7728,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_issue_properties_options_partial_update
-      description: CRUD for the options of an OPTION work item property.
       parameters:
       - in: path
         name: pk
@@ -8663,7 +7776,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_issue_properties_options_destroy
-      description: CRUD for the options of an OPTION work item property.
       parameters:
       - in: path
         name: pk
@@ -8698,12 +7810,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-property-values/:
     get:
       operationId: workspaces_projects_issue_property_values_retrieve
-      description: |-
-        Property values of all work items of a project in a single call.
-
-        Returns `{issue_id: {property_id: value(s)}}` so list / kanban /
-        spreadsheet views can render custom fields without one request per work
-        item. Supports narrowing with `?issue_ids=<comma separated ids>`.
       parameters:
       - in: path
         name: project_id
@@ -8726,7 +7832,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-sequence/:
     post:
       operationId: workspaces_projects_issue_sequence_create
-      description: Move the number the next work item created in a project receives.
       parameters:
       - in: path
         name: project_id
@@ -8749,11 +7854,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-types/:
     get:
       operationId: workspaces_projects_issue_types_list
-      description: |-
-        CRUD for work item types enabled on a project.
-
-        Only admins can create, update, or delete work item types; any active
-        project member can list and retrieve them.
       parameters:
       - in: path
         name: project_id
@@ -8787,11 +7887,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issue_types_create
-      description: |-
-        CRUD for work item types enabled on a project.
-
-        Only admins can create, update, or delete work item types; any active
-        project member can list and retrieve them.
       parameters:
       - in: path
         name: project_id
@@ -8830,11 +7925,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/:
     get:
       operationId: workspaces_projects_issue_types_retrieve
-      description: |-
-        CRUD for work item types enabled on a project.
-
-        Only admins can create, update, or delete work item types; any active
-        project member can list and retrieve them.
       parameters:
       - in: path
         name: pk
@@ -8866,11 +7956,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_issue_types_partial_update
-      description: |-
-        CRUD for work item types enabled on a project.
-
-        Only admins can create, update, or delete work item types; any active
-        project member can list and retrieve them.
       parameters:
       - in: path
         name: pk
@@ -8913,8 +7998,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_issue_types_destroy
-      description: Unlink the type from the project. 409 while anything in the project
-        uses it.
       parameters:
       - in: path
         name: pk
@@ -8943,10 +8026,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/migrate/:
     post:
       operationId: workspaces_projects_issue_types_migrate_create
-      description: |-
-        Move work items of the type to another type, see `migrate_type`.
-
-        Members can migrate work items; the whole project needs an admin.
       parameters:
       - in: path
         name: pk
@@ -8991,8 +8070,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issue-types/{pk}/usage/:
     get:
       operationId: workspaces_projects_issue_types_usage_retrieve
-      description: What in the project uses the type, and which of its property values
-        would need a decision.
       parameters:
       - in: path
         name: pk
@@ -9025,9 +8102,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/:
     get:
       operationId: workspaces_projects_issues_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -9055,9 +8129,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issues_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -9096,9 +8167,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues-detail/:
     get:
       operationId: workspaces_projects_issues_detail_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -9121,9 +8189,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/:
     get:
       operationId: workspaces_projects_issues_comments_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9163,9 +8228,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issues_comments_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9209,9 +8271,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/{pk}/:
     get:
       operationId: workspaces_projects_issues_comments_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9249,9 +8308,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_issues_comments_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9300,9 +8356,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_issues_comments_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9351,9 +8404,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_issues_comments_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9388,9 +8438,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/email-replies/:
     post:
       operationId: workspaces_projects_issues_email_replies_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9419,9 +8466,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/email-thread/:
     get:
       operationId: workspaces_projects_issues_email_thread_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9449,9 +8493,6 @@ paths:
           description: No response body
     patch:
       operationId: workspaces_projects_issues_email_thread_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9480,9 +8521,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/history/:
     get:
       operationId: workspaces_projects_issues_history_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9511,9 +8549,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/:
     get:
       operationId: workspaces_projects_issues_issue_attachments_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9545,9 +8580,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issues_issue_attachments_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9589,9 +8621,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/:
     delete:
       operationId: workspaces_projects_issues_issue_attachments_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9626,9 +8655,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-links/:
     get:
       operationId: workspaces_projects_issues_issue_links_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9668,9 +8694,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issues_issue_links_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9715,9 +8738,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-links/{pk}/:
     get:
       operationId: workspaces_projects_issues_issue_links_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9755,9 +8775,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_issues_issue_links_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9807,9 +8824,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_issues_issue_links_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9858,9 +8872,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_issues_issue_links_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9895,9 +8906,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-relation/:
     get:
       operationId: workspaces_projects_issues_issue_relation_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9937,9 +8945,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issues_issue_relation_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -9983,9 +8988,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-subscribers/:
     get:
       operationId: workspaces_projects_issues_issue_subscribers_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10025,9 +9027,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issues_issue_subscribers_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10072,9 +9071,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-subscribers/{subscriber_id}/:
     delete:
       operationId: workspaces_projects_issues_issue_subscribers_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10109,9 +9105,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/meta/:
     get:
       operationId: workspaces_projects_issues_meta_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10140,9 +9133,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/modules/:
     post:
       operationId: workspaces_projects_issues_modules_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10187,13 +9177,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/property-values/:
     get:
       operationId: workspaces_projects_issues_property_values_retrieve
-      description: |-
-        Property values of a single work item.
-
-        GET returns `{"values": {property_id: value(s)}, "display": {...}, "derived": {...}}`,
-        where `derived` names, for each value computed from the hierarchy, the work item it
-        was taken from (`source_issue_id`, null for roll-ups). PUT bulk-replaces the values
-        of the listed properties (same semantics as the public v1 endpoint).
       parameters:
       - in: path
         name: issue_id
@@ -10221,13 +9204,6 @@ paths:
           description: No response body
     put:
       operationId: workspaces_projects_issues_property_values_update
-      description: |-
-        Property values of a single work item.
-
-        GET returns `{"values": {property_id: value(s)}, "display": {...}, "derived": {...}}`,
-        where `derived` names, for each value computed from the hierarchy, the work item it
-        was taken from (`source_issue_id`, null for roll-ups). PUT bulk-replaces the values
-        of the listed properties (same semantics as the public v1 endpoint).
       parameters:
       - in: path
         name: issue_id
@@ -10256,9 +9232,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/reactions/:
     get:
       operationId: workspaces_projects_issues_reactions_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10298,9 +9271,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issues_reactions_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10345,9 +9315,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/reactions/{reaction_code}/:
     delete:
       operationId: workspaces_projects_issues_reactions_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10381,9 +9348,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/remove-relation/:
     post:
       operationId: workspaces_projects_issues_remove_relation_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10427,9 +9391,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/sub-issues/:
     get:
       operationId: workspaces_projects_issues_sub_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10457,9 +9418,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_projects_issues_sub_issues_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10488,9 +9446,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/subscribe/:
     get:
       operationId: workspaces_projects_issues_subscribe_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10522,9 +9477,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issues_subscribe_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10568,9 +9520,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_issues_subscribe_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10599,9 +9548,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/versions/:
     get:
       operationId: workspaces_projects_issues_versions_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10630,9 +9576,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/versions/{pk}/:
     get:
       operationId: workspaces_projects_issues_versions_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -10667,9 +9610,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{pk}/:
     get:
       operationId: workspaces_projects_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -10701,9 +9641,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_issues_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -10747,9 +9684,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_issues_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -10792,9 +9726,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_issues_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -10823,9 +9754,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/{pk}/archive/:
     get:
       operationId: workspaces_projects_issues_archive_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -10857,9 +9785,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_issues_archive_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -10903,9 +9828,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_issues_archive_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -10934,9 +9856,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/issues/list/:
     get:
       operationId: workspaces_projects_issues_list_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -10959,9 +9878,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/join/{pk}/:
     get:
       operationId: workspaces_projects_join_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -10990,9 +9906,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_projects_join_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -11022,9 +9935,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/links/:
     get:
       operationId: workspaces_projects_links_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -11046,9 +9956,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_projects_links_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -11071,9 +9978,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/links/{pk}/:
     patch:
       operationId: workspaces_projects_links_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -11101,9 +10005,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_projects_links_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -11132,9 +10033,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/links/reorder/:
     post:
       operationId: workspaces_projects_links_reorder_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -11157,9 +10055,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/members/:
     get:
       operationId: workspaces_projects_members_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -11193,9 +10088,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_members_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -11233,9 +10125,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/members/{pk}/:
     get:
       operationId: workspaces_projects_members_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -11267,9 +10156,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_members_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -11312,9 +10198,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_members_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -11343,9 +10226,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/members/leave/:
     post:
       operationId: workspaces_projects_members_leave_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -11383,9 +10263,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/modules/:
     get:
       operationId: workspaces_projects_modules_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -11419,9 +10296,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_modules_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -11460,9 +10334,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/archive/:
     post:
       operationId: workspaces_projects_modules_archive_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -11490,9 +10361,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_projects_modules_archive_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -11521,9 +10389,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/issues/:
     get:
       operationId: workspaces_projects_modules_issues_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -11557,9 +10422,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_modules_issues_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -11604,9 +10466,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/issues/{issue_id}/:
     get:
       operationId: workspaces_projects_modules_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -11644,9 +10503,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_modules_issues_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -11696,9 +10552,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_modules_issues_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -11747,9 +10600,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_modules_issues_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_id
@@ -11784,9 +10634,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-links/:
     get:
       operationId: workspaces_projects_modules_module_links_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -11826,9 +10673,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_modules_module_links_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -11873,9 +10717,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-links/{pk}/:
     get:
       operationId: workspaces_projects_modules_module_links_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -11913,9 +10754,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_modules_module_links_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -11965,9 +10803,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_modules_module_links_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -12016,9 +10851,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_modules_module_links_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -12053,9 +10885,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/user-properties/:
     get:
       operationId: workspaces_projects_modules_user_properties_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -12083,9 +10912,6 @@ paths:
           description: No response body
     patch:
       operationId: workspaces_projects_modules_user_properties_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -12114,9 +10940,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/modules/{pk}/:
     get:
       operationId: workspaces_projects_modules_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -12148,9 +10971,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_modules_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -12194,9 +11014,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_modules_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -12239,9 +11056,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_modules_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -12270,9 +11084,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/:
     get:
       operationId: workspaces_projects_pages_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -12306,9 +11117,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_pages_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -12346,9 +11154,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages-summary/:
     get:
       operationId: workspaces_projects_pages_summary_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -12375,9 +11180,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/:
     get:
       operationId: workspaces_projects_pages_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -12409,9 +11211,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_pages_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -12454,9 +11253,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_pages_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -12485,9 +11281,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/access/:
     post:
       operationId: workspaces_projects_pages_access_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -12531,9 +11324,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/archive/:
     post:
       operationId: workspaces_projects_pages_archive_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -12576,9 +11366,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_pages_archive_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -12607,12 +11394,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/:
     get:
       operationId: workspaces_projects_pages_comments_list
-      description: |-
-        Document/inline comment threads (and replies) anchored to a page.
-
-        A top-level thread has ``parent = None``. Inline threads carry an
-        ``anchor_id`` matching the comment mark in the document; a thread with no
-        ``anchor_id`` is a document-level (end-of-page) comment.
       parameters:
       - in: query
         name: anchor_id
@@ -12665,12 +11446,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_pages_comments_create
-      description: |-
-        Document/inline comment threads (and replies) anchored to a page.
-
-        A top-level thread has ``parent = None``. Inline threads carry an
-        ``anchor_id`` matching the comment mark in the document; a thread with no
-        ``anchor_id`` is a document-level (end-of-page) comment.
       parameters:
       - in: path
         name: page_id
@@ -12714,7 +11489,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/{comment_id}/reactions/:
     get:
       operationId: workspaces_projects_pages_comments_reactions_list
-      description: Emoji reactions on a page comment.
       parameters:
       - in: path
         name: comment_id
@@ -12760,7 +11534,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_pages_comments_reactions_create
-      description: Emoji reactions on a page comment.
       parameters:
       - in: path
         name: comment_id
@@ -12811,7 +11584,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/{comment_id}/reactions/{reaction_code}/:
     delete:
       operationId: workspaces_projects_pages_comments_reactions_destroy
-      description: Emoji reactions on a page comment.
       parameters:
       - in: path
         name: comment_id
@@ -12851,12 +11623,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/{pk}/:
     get:
       operationId: workspaces_projects_pages_comments_retrieve
-      description: |-
-        Document/inline comment threads (and replies) anchored to a page.
-
-        A top-level thread has ``parent = None``. Inline threads carry an
-        ``anchor_id`` matching the comment mark in the document; a thread with no
-        ``anchor_id`` is a document-level (end-of-page) comment.
       parameters:
       - in: path
         name: page_id
@@ -12894,12 +11660,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_pages_comments_partial_update
-      description: |-
-        Document/inline comment threads (and replies) anchored to a page.
-
-        A top-level thread has ``parent = None``. Inline threads carry an
-        ``anchor_id`` matching the comment mark in the document; a thread with no
-        ``anchor_id`` is a document-level (end-of-page) comment.
       parameters:
       - in: path
         name: page_id
@@ -12948,12 +11708,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_pages_comments_destroy
-      description: |-
-        Document/inline comment threads (and replies) anchored to a page.
-
-        A top-level thread has ``parent = None``. Inline threads carry an
-        ``anchor_id`` matching the comment mark in the document; a thread with no
-        ``anchor_id`` is a document-level (end-of-page) comment.
       parameters:
       - in: path
         name: page_id
@@ -12988,12 +11742,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/{pk}/resolve/:
     post:
       operationId: workspaces_projects_pages_comments_resolve_create
-      description: |-
-        Document/inline comment threads (and replies) anchored to a page.
-
-        A top-level thread has ``parent = None``. Inline threads carry an
-        ``anchor_id`` matching the comment mark in the document; a thread with no
-        ``anchor_id`` is a document-level (end-of-page) comment.
       parameters:
       - in: path
         name: page_id
@@ -13042,12 +11790,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_pages_comments_resolve_destroy
-      description: |-
-        Document/inline comment threads (and replies) anchored to a page.
-
-        A top-level thread has ``parent = None``. Inline threads carry an
-        ``anchor_id`` matching the comment mark in the document; a thread with no
-        ``anchor_id`` is a document-level (end-of-page) comment.
       parameters:
       - in: path
         name: page_id
@@ -13082,9 +11824,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/description/:
     get:
       operationId: workspaces_projects_pages_description_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -13112,9 +11851,6 @@ paths:
           description: No response body
     patch:
       operationId: workspaces_projects_pages_description_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -13143,9 +11879,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/duplicate/:
     post:
       operationId: workspaces_projects_pages_duplicate_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -13174,9 +11907,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/lock/:
     post:
       operationId: workspaces_projects_pages_lock_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -13219,9 +11949,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_pages_lock_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -13250,10 +11977,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/position/:
     post:
       operationId: workspaces_projects_pages_position_create
-      description: |-
-        Move a page under a parent, before or after a sibling or at the end.
-
-        Siblings are renumbered when needed. That needs no permission on them.
       parameters:
       - in: path
         name: page_id
@@ -13300,9 +12023,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/versions/:
     get:
       operationId: workspaces_projects_pages_versions_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -13331,9 +12051,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/versions/{pk}/:
     get:
       operationId: workspaces_projects_pages_versions_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: page_id
@@ -13368,9 +12085,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/preferences/member/{member_id}/:
     get:
       operationId: workspaces_projects_preferences_member_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: member_id
@@ -13398,9 +12112,6 @@ paths:
           description: No response body
     patch:
       operationId: workspaces_projects_preferences_member_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: member_id
@@ -13429,9 +12140,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/project-deploy-boards/:
     get:
       operationId: workspaces_projects_project_deploy_boards_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -13465,9 +12173,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_project_deploy_boards_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -13505,9 +12210,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/project-deploy-boards/{pk}/:
     get:
       operationId: workspaces_projects_project_deploy_boards_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -13539,9 +12241,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_project_deploy_boards_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -13584,9 +12283,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_project_deploy_boards_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -13615,9 +12311,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/project-estimates/:
     get:
       operationId: workspaces_projects_project_estimates_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -13640,9 +12333,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/project-members/me/:
     get:
       operationId: workspaces_projects_project_members_me_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -13665,9 +12355,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/project-views/:
     post:
       operationId: workspaces_projects_project_views_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -13690,9 +12377,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/search-issues/:
     get:
       operationId: workspaces_projects_search_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -13715,9 +12399,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/service-desk/:
     get:
       operationId: workspaces_projects_service_desk_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -13739,9 +12420,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_projects_service_desk_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -13764,9 +12442,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/states/:
     get:
       operationId: workspaces_projects_states_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -13800,9 +12475,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_states_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -13841,9 +12513,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/states/{pk}/:
     get:
       operationId: workspaces_projects_states_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -13875,9 +12544,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_states_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -13920,9 +12586,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_states_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -13951,9 +12614,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/states/{pk}/mark-default/:
     post:
       operationId: workspaces_projects_states_mark_default_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -13982,9 +12642,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/trash/issues/:
     get:
       operationId: workspaces_projects_trash_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: query
         name: cursor
@@ -14031,9 +12688,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/trash/issues/{pk}/:
     delete:
       operationId: workspaces_projects_trash_issues_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -14062,9 +12716,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/trash/issues/{pk}/restore/:
     post:
       operationId: workspaces_projects_trash_issues_restore_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -14093,9 +12744,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-cycles/:
     get:
       operationId: workspaces_projects_user_favorite_cycles_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14117,9 +12765,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_projects_user_favorite_cycles_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14142,9 +12787,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-cycles/{cycle_id}/:
     delete:
       operationId: workspaces_projects_user_favorite_cycles_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: cycle_id
@@ -14173,9 +12815,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-modules/:
     get:
       operationId: workspaces_projects_user_favorite_modules_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14197,9 +12836,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_projects_user_favorite_modules_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14222,9 +12858,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-modules/{module_id}/:
     delete:
       operationId: workspaces_projects_user_favorite_modules_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: module_id
@@ -14253,9 +12886,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-views/:
     get:
       operationId: workspaces_projects_user_favorite_views_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14277,9 +12907,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_projects_user_favorite_views_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14302,9 +12929,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-views/{view_id}/:
     delete:
       operationId: workspaces_projects_user_favorite_views_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14333,9 +12957,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/user-properties/:
     get:
       operationId: workspaces_projects_user_properties_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14357,9 +12978,6 @@ paths:
           description: No response body
     patch:
       operationId: workspaces_projects_user_properties_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14382,9 +13000,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/v2/issues/:
     get:
       operationId: workspaces_projects_v2_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14407,9 +13022,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/views/:
     get:
       operationId: workspaces_projects_views_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14443,9 +13055,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_projects_views_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14484,9 +13093,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/views/{pk}/:
     get:
       operationId: workspaces_projects_views_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -14518,9 +13124,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_projects_views_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -14564,9 +13167,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_projects_views_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -14609,9 +13209,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_projects_views_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -14640,9 +13237,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/description-versions/:
     get:
       operationId: workspaces_projects_work_items_description_versions_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -14671,9 +13265,6 @@ paths:
   /api/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/description-versions/{pk}/:
     get:
       operationId: workspaces_projects_work_items_description_versions_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -14708,9 +13299,6 @@ paths:
   /api/workspaces/{slug}/projects/details/:
     get:
       operationId: workspaces_projects_details_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -14731,9 +13319,6 @@ paths:
   /api/workspaces/{slug}/quick-links/:
     get:
       operationId: workspaces_quick_links_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -14761,9 +13346,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_quick_links_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -14796,9 +13378,6 @@ paths:
   /api/workspaces/{slug}/quick-links/{pk}/:
     get:
       operationId: workspaces_quick_links_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -14824,9 +13403,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_quick_links_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -14863,9 +13439,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_quick_links_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -14888,9 +13461,6 @@ paths:
   /api/workspaces/{slug}/recent-visits/:
     get:
       operationId: workspaces_recent_visits_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -14919,9 +13489,6 @@ paths:
   /api/workspaces/{slug}/saved-analytic-view/{analytic_id}/:
     get:
       operationId: workspaces_saved_analytic_view_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: analytic_id
@@ -14944,9 +13511,6 @@ paths:
   /api/workspaces/{slug}/search/:
     get:
       operationId: workspaces_search_retrieve
-      description: |-
-        Endpoint to search across multiple fields in the workspace and
-        also show related workspace if found
       parameters:
       - in: path
         name: slug
@@ -14963,9 +13527,6 @@ paths:
   /api/workspaces/{slug}/sidebar-preferences/:
     get:
       operationId: workspaces_sidebar_preferences_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -14985,9 +13546,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_sidebar_preferences_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15019,9 +13577,6 @@ paths:
   /api/workspaces/{slug}/states/:
     get:
       operationId: workspaces_states_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -15050,9 +13605,6 @@ paths:
   /api/workspaces/{slug}/stickies/:
     get:
       operationId: workspaces_stickies_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -15080,9 +13632,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_stickies_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15114,9 +13663,6 @@ paths:
   /api/workspaces/{slug}/stickies/{pk}/:
     get:
       operationId: workspaces_stickies_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15142,9 +13688,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_stickies_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15181,9 +13724,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_stickies_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15206,9 +13746,6 @@ paths:
   /api/workspaces/{slug}/user-activity/{user_id}/:
     get:
       operationId: workspaces_user_activity_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: query
         name: cursor
@@ -15255,9 +13792,6 @@ paths:
   /api/workspaces/{slug}/user-activity/{user_id}/export/:
     post:
       operationId: workspaces_user_activity_export_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15284,9 +13818,6 @@ paths:
   /api/workspaces/{slug}/user-favorite-projects/:
     get:
       operationId: workspaces_user_favorite_projects_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15302,9 +13833,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_user_favorite_projects_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15321,9 +13849,6 @@ paths:
   /api/workspaces/{slug}/user-favorite-projects/{project_id}/:
     delete:
       operationId: workspaces_user_favorite_projects_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: project_id
@@ -15346,9 +13871,6 @@ paths:
   /api/workspaces/{slug}/user-favorites/:
     get:
       operationId: workspaces_user_favorites_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15364,9 +13886,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_user_favorites_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15383,9 +13902,6 @@ paths:
   /api/workspaces/{slug}/user-favorites/{favorite_id}/:
     patch:
       operationId: workspaces_user_favorites_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: favorite_id
@@ -15407,9 +13923,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_user_favorites_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: favorite_id
@@ -15432,9 +13945,6 @@ paths:
   /api/workspaces/{slug}/user-favorites/{favorite_id}/group/:
     get:
       operationId: workspaces_user_favorites_group_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: favorite_id
@@ -15457,9 +13967,6 @@ paths:
   /api/workspaces/{slug}/user-issues/{user_id}/:
     get:
       operationId: workspaces_user_issues_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15482,9 +13989,6 @@ paths:
   /api/workspaces/{slug}/user-profile/{user_id}/:
     get:
       operationId: workspaces_user_profile_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15511,9 +14015,6 @@ paths:
   /api/workspaces/{slug}/user-properties/:
     get:
       operationId: workspaces_user_properties_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15533,9 +14034,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_user_properties_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15556,9 +14054,6 @@ paths:
   /api/workspaces/{slug}/user-stats/{user_id}/:
     get:
       operationId: workspaces_user_stats_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15585,9 +14080,6 @@ paths:
   /api/workspaces/{slug}/users/notifications/:
     get:
       operationId: workspaces_users_notifications_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -15616,9 +14108,6 @@ paths:
   /api/workspaces/{slug}/users/notifications/{pk}/:
     get:
       operationId: workspaces_users_notifications_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15644,9 +14133,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_users_notifications_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15683,9 +14169,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_users_notifications_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15708,9 +14191,6 @@ paths:
   /api/workspaces/{slug}/users/notifications/{pk}/archive/:
     post:
       operationId: workspaces_users_notifications_archive_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15748,9 +14228,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_users_notifications_archive_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15773,9 +14250,6 @@ paths:
   /api/workspaces/{slug}/users/notifications/{pk}/read/:
     post:
       operationId: workspaces_users_notifications_read_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15813,9 +14287,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_users_notifications_read_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15838,9 +14309,6 @@ paths:
   /api/workspaces/{slug}/users/notifications/mark-all-read/:
     post:
       operationId: workspaces_users_notifications_mark_all_read_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15861,9 +14329,6 @@ paths:
   /api/workspaces/{slug}/users/notifications/unread/:
     get:
       operationId: workspaces_users_notifications_unread_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15884,9 +14349,6 @@ paths:
   /api/workspaces/{slug}/views/:
     get:
       operationId: workspaces_views_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -15914,9 +14376,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_views_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -15949,9 +14408,6 @@ paths:
   /api/workspaces/{slug}/views/{pk}/:
     get:
       operationId: workspaces_views_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -15977,9 +14433,6 @@ paths:
           description: ''
     put:
       operationId: workspaces_views_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -16017,9 +14470,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_views_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -16056,9 +14506,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_views_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -16081,9 +14528,6 @@ paths:
   /api/workspaces/{slug}/webhook-logs/{webhook_id}/:
     get:
       operationId: workspaces_webhook_logs_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -16106,9 +14550,6 @@ paths:
   /api/workspaces/{slug}/webhooks/:
     get:
       operationId: workspaces_webhooks_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -16124,9 +14565,6 @@ paths:
           description: No response body
     post:
       operationId: workspaces_webhooks_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -16143,9 +14581,6 @@ paths:
   /api/workspaces/{slug}/webhooks/{pk}/:
     get:
       operationId: workspaces_webhooks_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -16167,9 +14602,6 @@ paths:
           description: No response body
     patch:
       operationId: workspaces_webhooks_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -16191,9 +14623,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_webhooks_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -16216,9 +14645,6 @@ paths:
   /api/workspaces/{slug}/webhooks/{pk}/regenerate/:
     post:
       operationId: workspaces_webhooks_regenerate_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -16241,7 +14667,6 @@ paths:
   /api/workspaces/{slug}/work-item-query/fields/:
     get:
       operationId: workspaces_work_item_query_fields_retrieve
-      description: The vocabulary of PQL, for the query bar's hints and completion.
       parameters:
       - in: path
         name: slug
@@ -16258,15 +14683,6 @@ paths:
   /api/workspaces/{slug}/work-item-query/validate/:
     post:
       operationId: workspaces_work_item_query_validate_create
-      description: |-
-        Parse and resolve a PQL expression without running it.
-
-        POST `{"pql": "...", "project_id": "<optional>"}` answers 200 with either
-        `{"valid": true, "expression": <filters AST>}` or `{"valid": false, ...}`
-        carrying the same payload a list endpoint would reject the query with
-        (`error`, and for syntax errors `position`, `line`, `column`, `token`,
-        `expected`). Errors about a field or value, such as an unknown name or an
-        invalid choice, carry the `position` and `token` of that field or value.
       parameters:
       - in: path
         name: slug
@@ -16283,9 +14699,6 @@ paths:
   /api/workspaces/{slug}/work-items/{project_identifier}-{issue_identifier}/:
     get:
       operationId: workspaces_work_items___retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: issue_identifier
@@ -16312,9 +14725,6 @@ paths:
   /api/workspaces/{slug}/workspace-members/me/:
     get:
       operationId: workspaces_workspace_members_me_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -16334,9 +14744,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_workspace_members_me_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -16370,9 +14777,6 @@ paths:
   /api/workspaces/{slug}/workspace-themes/:
     get:
       operationId: workspaces_workspace_themes_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -16400,9 +14804,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_workspace_themes_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -16435,9 +14836,6 @@ paths:
   /api/workspaces/{slug}/workspace-themes/{pk}/:
     get:
       operationId: workspaces_workspace_themes_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -16463,9 +14861,6 @@ paths:
           description: ''
     patch:
       operationId: workspaces_workspace_themes_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -16502,9 +14897,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_workspace_themes_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -16527,9 +14919,6 @@ paths:
   /api/workspaces/{slug}/workspace-views/:
     post:
       operationId: workspaces_workspace_views_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: slug
@@ -16546,9 +14935,6 @@ paths:
   /api/workspaces/file-assets/{workspace_id}/{asset_key}/:
     get:
       operationId: workspaces_file_assets_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: asset_key
@@ -16570,9 +14956,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_file_assets_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: asset_key
@@ -16595,9 +14978,6 @@ paths:
   /api/workspaces/file-assets/{workspace_id}/{asset_key}/restore/:
     post:
       operationId: workspaces_file_assets_restore_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: asset_key
@@ -16674,7 +15054,6 @@ paths:
   /auth/o/app-installation/:
     get:
       operationId: auth_o_app_installation_retrieve
-      description: Workspaces the bearer token may act in.
       tags:
       - auth
       security:
@@ -17471,7 +15850,6 @@ components:
       - name
     DashboardWidget:
       type: object
-      description: A widget; its definition is validated by `validate_widget_definition`.
       properties:
         id:
           type: string
@@ -17547,7 +15925,6 @@ components:
       - workspace
     DashboardWidgetRequest:
       type: object
-      description: A widget; its definition is validated by `validate_widget_definition`.
       properties:
         title:
           type: string
@@ -18084,7 +16461,6 @@ components:
       - name
     IntakeState:
       type: object
-      description: 'Schema only: the intake state is the project''s triage state.'
       properties:
         id:
           type: string
@@ -19288,12 +17664,6 @@ components:
       - url
     IssueProperty:
       type: object
-      description: |-
-        Serializer for issue properties (work item custom fields).
-
-        Includes the nested read-only list of options. On create, options for
-        OPTION properties can be supplied inline through the
-        `options` field handled by the view.
       properties:
         id:
           type: string
@@ -19404,11 +17774,6 @@ components:
       - issue_type
     IssuePropertyOption:
       type: object
-      description: |-
-        Serializer for issue property options.
-
-        Options are the selectable values for OPTION issue
-        properties. Uniqueness of the option name is enforced per property.
       properties:
         id:
           type: string
@@ -19484,11 +17849,6 @@ components:
       - property
     IssuePropertyOptionRequest:
       type: object
-      description: |-
-        Serializer for issue property options.
-
-        Options are the selectable values for OPTION issue
-        properties. Uniqueness of the option name is enforced per property.
       properties:
         name:
           type: string
@@ -19511,12 +17871,6 @@ components:
       - name
     IssuePropertyRequest:
       type: object
-      description: |-
-        Serializer for issue properties (work item custom fields).
-
-        Includes the nested read-only list of options. On create, options for
-        OPTION properties can be supplied inline through the
-        `options` field handled by the view.
       properties:
         name:
           type: string
@@ -20083,7 +18437,6 @@ components:
       - subscriber
     IssueType:
       type: object
-      description: Serializer for work item types.
       properties:
         id:
           type: string
@@ -20169,8 +18522,6 @@ components:
       - work_items
     IssueTypeMigrationPreview:
       type: object
-      description: 'What a type migration reaches: the rows in scope and the property
-        values that need a decision.'
       properties:
         references:
           $ref: '#/components/schemas/IssueTypeUsage'
@@ -20183,8 +18534,6 @@ components:
       - properties
     IssueTypeMigrationProperty:
       type: object
-      description: A property of the old type alone that work items in scope have
-        values in.
       properties:
         id:
           type: string
@@ -20247,7 +18596,6 @@ components:
       - scope
     IssueTypeMigrationScopeRequest:
       type: object
-      description: Exactly one of the fields.
       properties:
         work_items:
           type: array
@@ -20261,7 +18609,6 @@ components:
           type: boolean
     IssueTypeRequest:
       type: object
-      description: Serializer for work item types.
       properties:
         name:
           type: string
@@ -20287,7 +18634,6 @@ components:
       - name
     IssueTypeUsage:
       type: object
-      description: How many rows of a project use a work item type.
       properties:
         work_items:
           type: integer
@@ -21454,7 +19800,6 @@ components:
       - null
     OrderedState:
       type: object
-      description: 'Schema only: the list endpoints always set the in-group order.'
       properties:
         id:
           type: string
@@ -22268,7 +20613,6 @@ components:
           maximum: 32767
     PatchedDashboardWidgetRequest:
       type: object
-      description: A widget; its definition is validated by `validate_widget_definition`.
       properties:
         title:
           type: string
@@ -22598,11 +20942,6 @@ components:
         metadata: {}
     PatchedIssuePropertyOptionRequest:
       type: object
-      description: |-
-        Serializer for issue property options.
-
-        Options are the selectable values for OPTION issue
-        properties. Uniqueness of the option name is enforced per property.
       properties:
         name:
           type: string
@@ -22623,12 +20962,6 @@ components:
           maxLength: 255
     PatchedIssuePropertyRequest:
       type: object
-      description: |-
-        Serializer for issue properties (work item custom fields).
-
-        Includes the nested read-only list of options. On create, options for
-        OPTION properties can be supplied inline through the
-        `options` field handled by the view.
       properties:
         name:
           type: string
@@ -22675,7 +21008,6 @@ components:
             property applies to every work item type in the project.
     PatchedIssueTypeRequest:
       type: object
-      description: Serializer for work item types.
       properties:
         name:
           type: string
@@ -23387,7 +21719,6 @@ components:
           - $ref: '#/components/schemas/NullEnum'
     PatchedWorkspaceMemberDialectRequest:
       type: object
-      description: The one field a member may change on their own row.
       properties:
         pql_dialect:
           nullable: true
@@ -24277,8 +22608,6 @@ components:
       - created_at
     ProjectState:
       type: object
-      description: 'Schema only: the project state endpoints never return the triage
-        state.'
       properties:
         id:
           type: string
