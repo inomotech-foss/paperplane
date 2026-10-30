@@ -6,6 +6,7 @@
 
 import type { TLogoProps } from "./common";
 import type { TIssuePriorities } from "./issues";
+import type { TLinkMetadata } from "./issues/issue_link";
 
 export type TRecentActivityFilterKeys = "all item" | "issue" | "page" | "project" | "workspace_page";
 export type THomeWidgetKeys = "quick_links" | "recents" | "my_stickies" | "quick_tutorial" | "new_at_plane";
@@ -59,7 +60,7 @@ export type TLinkEditableFields = {
 export type TLink = TLinkEditableFields & {
   created_by_id: string;
   id: string;
-  metadata: any;
+  metadata: TLinkMetadata;
   workspace_slug: string;
 
   //need

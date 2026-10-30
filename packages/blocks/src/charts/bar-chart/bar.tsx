@@ -8,6 +8,7 @@
 import React from "react";
 // plane imports
 import type { TBarChartShapeVariant, TBarItem, TChartData } from "@plane/types";
+import { toChartNumber } from "../payload";
 import { cn } from "@plane/utils";
 
 // Constants
@@ -45,8 +46,8 @@ const calculatePercentage = <K extends string, T extends string>(
   stackKeys: T[],
   currentKey: T
 ): number => {
-  const total = stackKeys.reduce((sum, key) => sum + data[key], 0);
-  return total === 0 ? 0 : Math.round((data[currentKey] / total) * 100);
+  const total = stackKeys.reduce((sum, key) => sum + toChartNumber(data[key]), 0);
+  return total === 0 ? 0 : Math.round((toChartNumber(data[currentKey]) / total) * 100);
 };
 
 const getBarPath = (x: number, y: number, width: number, height: number, topRadius: number, bottomRadius: number) => `

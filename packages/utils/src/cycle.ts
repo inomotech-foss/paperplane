@@ -7,7 +7,7 @@
 import { startOfToday, format } from "date-fns";
 import { isEmpty, orderBy, sortBy, uniqBy } from "lodash-es";
 // plane imports
-import type { ICycle, TCycleFilters, TProgressSnapshot } from "@plane/types";
+import type { ICycle, TCycleFilters, TCycleProgressSnapshot, TProgressSnapshot } from "@plane/types";
 // local imports
 import { findTotalDaysInRange, generateDateArray, getDate } from "./datetime";
 import { satisfiesDateFilter } from "./filter";
@@ -136,6 +136,12 @@ const formatV1Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, 
  * @param {Date|string} endDate - End date
  * @returns {TProgressChartData} Formatted progress data
  */
+// Days after the last snapshot only carry a date.
+type TProgressRow = Partial<TCycleProgressSnapshot> & { date: string };
+
+// A missing count turns the arithmetic into NaN, as it did for those days before.
+const count = (value: number | undefined) => value ?? NaN;
+
 const formatV2Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, endDate: Date | string) => {
   if (!cycle.progress) return [];
   let today: Date | string = startOfToday();
@@ -147,10 +153,11 @@ const formatV2Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, 
   const scopeToday = scope(todaysData, isTypeIssue);
   const idealToday = ideal(todaysData.date, scopeToday, cycle);
 
-  let progress = [...orderBy(cycle?.progress, "date"), ...extendedArray].map((p) => {
+  const rows: TProgressRow[] = [...orderBy(cycle?.progress, "date"), ...extendedArray];
+  let progress = rows.map((p) => {
     const pending = isTypeIssue
-      ? p.total_issues - p.completed_issues - p.cancelled_issues
-      : p.total_estimate_points - p.completed_estimate_points - p.cancelled_estimate_points;
+      ? count(p.total_issues) - count(p.completed_issues) - count(p.cancelled_issues)
+      : count(p.total_estimate_points) - count(p.completed_estimate_points) - count(p.cancelled_estimate_points);
     const completed = isTypeIssue ? p.completed_issues : p.completed_estimate_points;
     const dataDate = p.progress_date ? format(new Date(p.progress_date), "yyyy-MM-dd") : p.date;
 

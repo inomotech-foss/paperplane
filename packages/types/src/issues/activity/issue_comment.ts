@@ -9,6 +9,7 @@ import type { EIssueCommentAccessSpecifier } from "../../enums";
 import type { TFileSignedURLResponse } from "../../file";
 import type { IUserLite } from "../../users";
 import type { IWorkspaceLite } from "../../workspace";
+import type { TIssueCommentReaction } from "./issue_comment_reaction";
 import type {
   TIssueActivityWorkspaceDetail,
   TIssueActivityProjectDetail,
@@ -37,8 +38,8 @@ export type TIssueComment = {
   updated_at: string;
   created_by: string | undefined;
   updated_by: string | undefined;
-  attachments: any[];
-  comment_reactions: any[];
+  attachments: unknown[];
+  comment_reactions: TIssueCommentReaction[];
   comment_stripped: string;
   comment_html: string;
   comment_json: JSONContent;
@@ -129,7 +130,7 @@ export type TIssuePublicComment = {
   actor_detail: ActorDetail;
   access: string;
   actor: string;
-  attachments: any[];
+  attachments: unknown[];
   comment_html: string;
   comment_reactions: {
     actor_detail: ActorDetail;

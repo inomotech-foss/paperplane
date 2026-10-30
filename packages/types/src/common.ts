@@ -34,7 +34,7 @@ export type TNameDescriptionLoader = "submitting" | "submitted" | "saved";
 export type TFetchStatus = "partial" | "complete" | undefined;
 
 export type ICustomSearchSelectOption = {
-  value: any;
+  value: unknown;
   query: string;
   content: React.ReactNode;
   disabled?: boolean;

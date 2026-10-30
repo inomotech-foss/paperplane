@@ -49,7 +49,7 @@ const CreatedVsResolved = observer(function CreatedVsResolved() {
     return createdVsResolvedData.data.map((datum) => ({
       ...datum,
       [datum.key]: datum.count,
-      name: renderFormattedDate(datum.key) ?? datum.key,
+      name: renderFormattedDate(String(datum.key)) ?? datum.key,
     }));
   }, [createdVsResolvedData]);
 

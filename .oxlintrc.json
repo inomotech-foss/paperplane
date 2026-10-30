@@ -109,7 +109,6 @@
         "packages/blocks/**",
         "packages/editor/**",
         "packages/services/**",
-        "packages/types/**",
         "packages/utils/**"
       ],
       "rules": {

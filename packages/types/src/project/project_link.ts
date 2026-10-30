@@ -4,6 +4,8 @@
  * See the LICENSE file for details.
  */
 
+import type { TLinkMetadata } from "../issues/issue_link";
+
 export type TProjectLinkEditableFields = {
   title: string;
   url: string;
@@ -12,7 +14,7 @@ export type TProjectLinkEditableFields = {
 export type TProjectLink = TProjectLinkEditableFields & {
   created_by_id: string;
   id: string;
-  metadata: any;
+  metadata: TLinkMetadata;
   project_id: string;
 
   //need

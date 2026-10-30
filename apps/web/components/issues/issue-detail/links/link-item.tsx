@@ -42,8 +42,8 @@ export const IssueLinkItem = observer(function IssueLinkItem(props: TIssueLinkIt
   if (!linkDetail) return <></>;
 
   // const Icon = getIconForLink(linkDetail.url);
-  const faviconUrl: string | undefined = linkDetail.metadata?.favicon;
-  const linkTitle: string | undefined = linkDetail.metadata?.title;
+  const faviconUrl: string | undefined = linkDetail.metadata?.favicon ?? undefined;
+  const linkTitle: string | undefined = linkDetail.metadata?.title ?? undefined;
 
   const toggleIssueLinkModal = (modalToggle: boolean) => {
     toggleIssueLinkModalStore(modalToggle);

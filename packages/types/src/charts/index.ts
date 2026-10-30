@@ -22,10 +22,15 @@ export type TChartMargin = {
   left?: number;
 };
 
+export type TChartValue = string | number;
+
 export type TChartData<K extends string, T extends string> = {
   // required key
-  [key in K]: string | number;
-} & Record<T, any>;
+  [key in K]: TChartValue;
+} & Record<T, TChartValue>;
+
+// The datum of the hovered or drawn point.
+export type TChartPayload = TChartData<string, string>;
 
 export type TBaseChartProps<K extends string, T extends string> = {
   data: TChartData<K, T>[];
@@ -33,7 +38,7 @@ export type TBaseChartProps<K extends string, T extends string> = {
   legend?: TChartLegend;
   margin?: TChartMargin;
   showTooltip?: boolean;
-  customTooltipContent?: (props: { active?: boolean; label: string; payload: any }) => React.ReactNode;
+  customTooltipContent?: (props: { active?: boolean; label: string; payload: unknown }) => React.ReactNode;
 };
 
 // Props specific to charts with X and Y axes
@@ -72,12 +77,12 @@ export type TBarChartShapeVariant = "bar" | "lollipop" | "lollipop-dotted";
 export type TBarItem<T extends string> = {
   key: T;
   label: string;
-  fill: string | ((payload: any) => string);
+  fill: string | ((payload: TChartPayload) => string);
   textClassName: string;
   showPercentage?: boolean;
   stackId: string;
-  showTopBorderRadius?: (barKey: string, payload: any) => boolean;
-  showBottomBorderRadius?: (barKey: string, payload: any) => boolean;
+  showTopBorderRadius?: (barKey: string, payload: TChartPayload) => boolean;
+  showBottomBorderRadius?: (barKey: string, payload: TChartPayload) => boolean;
   shapeVariant?: TBarChartShapeVariant;
 };
 
@@ -165,15 +170,15 @@ export type TPieChartProps<K extends string, T extends string> = Pick<
   cornerRadius?: number;
   paddingAngle?: number;
   showLabel: boolean;
-  customLabel?: (value: any) => string;
+  customLabel?: (value: unknown) => string;
   centerLabel?: {
     className?: string;
     fill: string;
     style?: React.CSSProperties;
     text?: string | number;
   };
-  tooltipLabel?: string | ((payload: any) => string);
-  customLegend?: (props: any) => React.ReactNode;
+  tooltipLabel?: string | ((payload: TChartPayload) => string);
+  customLegend?: (props: unknown) => React.ReactNode;
 };
 
 // ============================================================
