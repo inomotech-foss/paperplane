@@ -327,7 +327,7 @@ class DraftIssueCreateSerializer(BaseSerializer):
 
 class DraftIssueSerializer(BaseSerializer):
     # ids
-    cycle_id = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
+    cycle_id = serializers.PrimaryKeyRelatedField(read_only=True)
     module_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
 
     # Many to many
@@ -360,6 +360,7 @@ class DraftIssueSerializer(BaseSerializer):
             "description_html",
         ]
         read_only_fields = fields
+        response_nullable = ("cycle_id",)
 
 
 class DraftIssueDetailSerializer(DraftIssueSerializer):

@@ -315,10 +315,12 @@ class TestResponseHelpers:
         class Annotated(serializers.Serializer):
             always = serializers.IntegerField(read_only=True)
             sometimes = serializers.IntegerField(allow_null=True)
+            annotated = serializers.IntegerField(read_only=True)
 
             class Meta:
                 response_required = ("always",)
                 response_optional = ("sometimes",)
+                response_nullable = ("annotated",)
 
         class View(APIView):
             @extend_schema(responses={200: Annotated})
@@ -328,3 +330,4 @@ class TestResponseHelpers:
         component = _schema(path("items/", View.as_view()))["components"]["schemas"]["Annotated"]
         assert component["required"] == ["always"]
         assert component["properties"]["sometimes"]["nullable"] is True
+        assert component["properties"]["annotated"]["nullable"] is True

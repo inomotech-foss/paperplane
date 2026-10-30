@@ -139,7 +139,9 @@ class TestWorkItemDetail:
         assert documented(session_client.get(sub))["sub_issues"]
         assert documented(session_client.get(sub, {"group_by": "priority"}))["sub_issues"]["none"]
         loose = Issue.objects.create(name="loose", project=project, workspace=project.workspace, type=parent.type)
-        documented(session_client.post(sub, {"sub_issue_ids": [str(loose.id)]}, format="json"))
+        added = documented(session_client.post(sub, {"sub_issue_ids": [str(loose.id)]}, format="json"))
+        # The added sub-issues are not annotated, so DRF leaves these keys out.
+        assert not {"cycle_id", "sub_issues_count", "attachment_count", "link_count"} & set(added["sub_issues"][0])
         rollups = documented(
             session_client.get(url(workspace, project, "issue-date-rollups/"), {"issue_ids": str(parent.id)})
         )

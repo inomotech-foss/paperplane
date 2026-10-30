@@ -5757,7 +5757,7 @@ export interface components {
             readonly project_id: string | null;
             /** Format: uuid */
             readonly parent_id: string | null;
-            readonly cycle_id: string | null;
+            readonly cycle_id?: string | null;
             module_ids?: string[];
             label_ids?: string[];
             assignee_ids?: string[];
@@ -5802,7 +5802,7 @@ export interface components {
             readonly project_id: string | null;
             /** Format: uuid */
             readonly parent_id: string | null;
-            readonly cycle_id: string | null;
+            readonly cycle_id?: string | null;
             module_ids?: string[];
             label_ids?: string[];
             assignee_ids?: string[];
@@ -6137,11 +6137,11 @@ export interface components {
             readonly parent_id: string | null;
             /** Format: uuid */
             readonly type_id: string;
-            readonly cycle_id: string | null;
+            readonly cycle_id?: string | null;
             module_ids?: string[];
             label_ids?: string[];
             assignee_ids?: string[];
-            readonly sub_issues_count: number | null;
+            readonly sub_issues_count?: number | null;
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -6156,8 +6156,8 @@ export interface components {
              * Format: uuid
              */
             readonly updated_by: string | null;
-            readonly attachment_count: number | null;
-            readonly link_count: number | null;
+            readonly attachment_count?: number | null;
+            readonly link_count?: number | null;
             readonly is_draft: boolean;
             /** Format: date */
             readonly archived_at: string | null;
@@ -6526,11 +6526,11 @@ export interface components {
             readonly parent_id: string | null;
             /** Format: uuid */
             readonly type_id: string;
-            readonly cycle_id: string | null;
+            readonly cycle_id?: string | null;
             module_ids?: string[];
             label_ids?: string[];
             assignee_ids?: string[];
-            readonly sub_issues_count: number | null;
+            readonly sub_issues_count?: number | null;
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -6545,8 +6545,8 @@ export interface components {
              * Format: uuid
              */
             readonly updated_by: string | null;
-            readonly attachment_count: number | null;
-            readonly link_count: number | null;
+            readonly attachment_count?: number | null;
+            readonly link_count?: number | null;
             readonly is_draft: boolean;
             /** Format: date */
             readonly archived_at: string | null;

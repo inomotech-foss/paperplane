@@ -17024,7 +17024,6 @@ components:
       - target_date
       - project_id
       - parent_id
-      - cycle_id
       - created_at
       - updated_at
       - created_by
@@ -17145,7 +17144,6 @@ components:
       - target_date
       - project_id
       - parent_id
-      - cycle_id
       - created_at
       - updated_at
       - created_by
@@ -17934,14 +17932,10 @@ components:
       - project_id
       - parent_id
       - type_id
-      - cycle_id
-      - sub_issues_count
       - created_at
       - updated_at
       - created_by
       - updated_by
-      - attachment_count
-      - link_count
       - is_draft
       - archived_at
     IssueActivity:
@@ -18938,14 +18932,10 @@ components:
       - project_id
       - parent_id
       - type_id
-      - cycle_id
-      - sub_issues_count
       - created_at
       - updated_at
       - created_by
       - updated_by
-      - attachment_count
-      - link_count
       - is_draft
       - archived_at
       - description_html

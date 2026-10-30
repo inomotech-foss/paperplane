@@ -59,8 +59,8 @@ def _source_presence(model, source):
 def serialized_presence(serializer, field):
     """(always emitted, may be null) for a field in to_representation().
 
-    Meta.response_required and Meta.response_optional override the guess for fields a view adds or drops,
-    such as queryset annotations.
+    Meta.response_required, Meta.response_optional and Meta.response_nullable override the guess for fields
+    a view adds or drops, such as queryset annotations.
     """
     always, nullable = _guessed_presence(serializer, field)
     meta = getattr(serializer, "Meta", None)
@@ -68,6 +68,8 @@ def serialized_presence(serializer, field):
         always = True
     if field.field_name in getattr(meta, "response_optional", ()):
         always = False
+    if field.field_name in getattr(meta, "response_nullable", ()):
+        nullable = True
     return always, nullable
 
 

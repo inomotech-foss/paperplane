@@ -806,7 +806,7 @@ class IssueIntakeSerializer(DynamicBaseSerializer):
 
 class IssueSerializer(DynamicBaseSerializer):
     # ids
-    cycle_id = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
+    cycle_id = serializers.PrimaryKeyRelatedField(read_only=True)
     module_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
 
     # Many to many
@@ -814,9 +814,9 @@ class IssueSerializer(DynamicBaseSerializer):
     assignee_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
 
     # Count items
-    sub_issues_count = serializers.IntegerField(read_only=True, allow_null=True)
-    attachment_count = serializers.IntegerField(read_only=True, allow_null=True)
-    link_count = serializers.IntegerField(read_only=True, allow_null=True)
+    sub_issues_count = serializers.IntegerField(read_only=True)
+    attachment_count = serializers.IntegerField(read_only=True)
+    link_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Issue
@@ -849,6 +849,8 @@ class IssueSerializer(DynamicBaseSerializer):
             "archived_at",
         ]
         read_only_fields = fields
+        # Queryset annotations: absent when the view does not add them, null when the subquery finds no row.
+        response_nullable = ("cycle_id", "sub_issues_count", "attachment_count", "link_count")
 
     def validate(self, data):
         if (
