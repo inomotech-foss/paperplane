@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { FilterInstance, workItemFiltersAdapter } from "@plane/shared-state";
-import type { SingleOrArray, TFilterValue, TWorkItemFilterExpression, TWorkItemFilterProperty } from "@plane/types";
+import type {
+  IState,
+  SingleOrArray,
+  TFilterValue,
+  TWorkItemFilterExpression,
+  TWorkItemFilterProperty,
+} from "@plane/types";
 import { COLLECTION_OPERATOR, EQUALITY_OPERATOR, LOGICAL_OPERATOR } from "@plane/types";
 import {
   getOperatorForPayload,
@@ -21,10 +27,19 @@ const operatorConfigs = {
   allowNegative: true as const,
 };
 
-const states = [
-  { id: "done", name: "Done", group: "completed" },
-  { id: "open", name: "Open", group: "unstarted" },
-] as never[];
+const makeState = (id: string, name: string, group: IState["group"]): IState => ({
+  id,
+  name,
+  group,
+  color: "",
+  default: false,
+  description: "",
+  project_id: "project",
+  sequence: 0,
+  workspace_id: "workspace",
+});
+
+const states = [makeState("done", "Done", "completed"), makeState("open", "Open", "unstarted")];
 
 const makeFilter = (initialExpression?: TWorkItemFilterExpression) => {
   const filter = new FilterInstance<TWorkItemFilterProperty, TWorkItemFilterExpression>({
@@ -39,7 +54,7 @@ const makeFilter = (initialExpression?: TWorkItemFilterExpression) => {
 };
 
 // condition values are single values or lists; the config takes them the way the filter item passes them
-const value = (conditionValue: SingleOrArray<TFilterValue>) => conditionValue as TFilterValue;
+const value = (conditionValue: SingleOrArray<TFilterValue>) => conditionValue;
 
 const external = (filter: ReturnType<typeof makeFilter>) =>
   filter.expression ? workItemFiltersAdapter.toExternal(filter.expression) : {};

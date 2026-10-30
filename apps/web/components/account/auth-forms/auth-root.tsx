@@ -13,13 +13,8 @@ import { OAuthOptions } from "@plane/blocks/auth";
 import { useTranslation } from "@plane/i18n";
 // helpers
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
-import {
-  EAuthModes,
-  EAuthSteps,
-  EAuthenticationErrorCodes,
-  EErrorAlertType,
-  authErrorHandler,
-} from "@/helpers/authentication.helper";
+import { EAuthModes, EAuthSteps, EAuthenticationErrorCodes, EErrorAlertType } from "@/helpers/authentication.helper";
+import { getAuthErrorInfo } from "@/helpers/error.helper";
 // hooks
 import { useOAuthConfig } from "@/hooks/oauth";
 import { useInstance } from "@/hooks/store/use-instance";
@@ -63,11 +58,7 @@ export const AuthRoot = observer(function AuthRoot(props: TAuthRoot) {
 
   useEffect(() => {
     if (error_code && authMode) {
-      const errorhandler = authErrorHandler(
-        error_code?.toString() as EAuthenticationErrorCodes,
-        emailParam,
-        providerParam
-      );
+      const errorhandler = getAuthErrorInfo(error_code, emailParam, providerParam);
       if (errorhandler) {
         // password error handler
         if ([EAuthenticationErrorCodes.AUTHENTICATION_FAILED_SIGN_UP].includes(errorhandler.code)) {

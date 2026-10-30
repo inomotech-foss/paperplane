@@ -117,6 +117,14 @@ type TCommandWithPropsWithItemKey<T extends TEditorCommands> = T extends keyof T
   ? { itemKey: T } & TCommandExtraProps[T]
   : { itemKey: T };
 
+// A toolbar item's command key with the extra props that belong to that key.
+export type TToolbarItemCommand<T extends TEditorCommands> = {
+  itemKey: T;
+  extraProps?: TCommandParams[T];
+};
+
+export type TCommandParams = { [K in TEditorCommands]: TCommandWithProps<K> };
+
 export type TDocumentInfo = {
   characters: number;
   paragraphs: number;
@@ -129,6 +137,7 @@ export type CoreEditorRefApi = {
   createSelectionAtCursorPosition: () => void;
   emitRealTimeUpdate: (action: TDocumentEventsServer) => void;
   executeMenuItemCommand: <T extends TEditorCommands>(props: TCommandWithPropsWithItemKey<T>) => void;
+  executeToolbarItem: <T extends TEditorCommands>(item: TToolbarItemCommand<T>) => void;
   focus: (args: Parameters<RawCommands["focus"]>[0]) => void;
   getAttributesWithExtendedMark: (
     mark: string | MarkType,
@@ -150,6 +159,7 @@ export type CoreEditorRefApi = {
   isAnyDropbarOpen: () => boolean;
   isEditorReadyToDiscard: () => boolean;
   isMenuItemActive: <T extends TEditorCommands>(props: TCommandWithPropsWithItemKey<T>) => boolean;
+  isToolbarItemActive: <T extends TEditorCommands>(item: TToolbarItemCommand<T>) => boolean;
   isProviderDocumentEmpty: () => boolean;
   listenToRealTimeUpdate: () => TDocumentEventEmitter | undefined;
   onDocumentInfoChange: (callback: (documentInfo: TDocumentInfo) => void) => () => void;

@@ -176,15 +176,15 @@ export const InboxIssueCreateRoot = observer(function InboxIssueCreateRoot(props
           message: "Work item created successfully.",
         });
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error(error);
         setToast({
           type: "error",
           title: `Error!`,
           message: "Some error occurred. Please try again.",
         });
-      });
-    setFormSubmitting(false);
+      })
+      .finally(() => setFormSubmitting(false));
   };
 
   const isTitleLengthMoreThan255Character = formData?.name ? formData.name.length > 255 : false;

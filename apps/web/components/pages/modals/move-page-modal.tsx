@@ -71,8 +71,7 @@ export const MovePageModal = observer(function MovePageModal(props: Props) {
   const invalidParentIds = new Set<string>();
   if (page.id) {
     const idsToVisit = [page.id];
-    while (idsToVisit.length > 0) {
-      const currentId = idsToVisit.pop() as string;
+    for (let currentId = idsToVisit.pop(); currentId !== undefined; currentId = idsToVisit.pop()) {
       if (invalidParentIds.has(currentId)) continue;
       invalidParentIds.add(currentId);
       idsToVisit.push(...getChildPageIds(currentId));

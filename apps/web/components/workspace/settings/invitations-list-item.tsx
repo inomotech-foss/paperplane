@@ -24,6 +24,7 @@ import { ConfirmWorkspaceMemberRemove } from "@/components/workspace/confirm-wor
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUserPermissions } from "@/hooks/store/user";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type TRoleOption = { key: number; label: string };
 
@@ -80,11 +81,10 @@ export const WorkspaceInvitationsListItem = observer(function WorkspaceInvitatio
         message: "Invitation removed successfully.",
       });
     } catch (err: unknown) {
-      const error = err as { error?: string };
       setToast({
         type: "error",
         title: "Error!",
-        message: error?.error || "Something went wrong. Please try again.",
+        message: getApiErrorMessage(err) || "Something went wrong. Please try again.",
       });
     }
   };
@@ -159,11 +159,11 @@ export const WorkspaceInvitationsListItem = observer(function WorkspaceInvitatio
                 updateMemberInvitation(workspaceSlug.toString(), invitationDetails.id, {
                   role: value,
                 }).catch((err: unknown) => {
-                  const error = err as { error?: string };
                   setToast({
                     type: "error",
                     title: "Error!",
-                    message: error?.error || "An error occurred while updating member role. Please try again.",
+                    message:
+                      getApiErrorMessage(err) || "An error occurred while updating member role. Please try again.",
                   });
                 });
               }}

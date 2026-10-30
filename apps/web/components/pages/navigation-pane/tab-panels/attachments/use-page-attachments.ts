@@ -32,10 +32,11 @@ export function usePageAttachments(args: Args): TPageAttachmentOperations {
   const [uploadingCount, setUploadingCount] = useState(0);
   const { t } = useTranslation();
 
-  const key = workspaceSlug && projectId && pageId ? `PAGE_ATTACHMENTS_${workspaceSlug}_${projectId}_${pageId}` : null;
+  const target = workspaceSlug && projectId && pageId ? { workspaceSlug, projectId, pageId } : null;
 
-  const { data, isLoading, mutate } = useSWR(key, () =>
-    pageAttachmentService.list(workspaceSlug as string, projectId as string, pageId as string)
+  const { data, isLoading, mutate } = useSWR(
+    target ? `PAGE_ATTACHMENTS_${target.workspaceSlug}_${target.projectId}_${target.pageId}` : null,
+    target ? () => pageAttachmentService.list(target.workspaceSlug, target.projectId, target.pageId) : null
   );
 
   const upload = useCallback(

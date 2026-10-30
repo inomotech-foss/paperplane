@@ -15,6 +15,7 @@ import { Tooltip } from "@makeplane/propel/components/tooltip";
 // hooks
 import { useQueryParams } from "@/hooks/use-query-params";
 // plane web components
+import { isPageNavigationPaneTab } from "@/components/pages/navigation-pane/tab-panels";
 import type { TPageNavigationPaneTab } from "@/components/pages/navigation-pane/tab-panels";
 // store
 import type { EPageStoreType } from "@/hooks/store";
@@ -50,10 +51,10 @@ export const PageNavigationPaneRoot = observer(function PageNavigationPaneRoot(p
   // query params
   const { updateQueryParams } = useQueryParams();
   // derived values
-  const navigationPaneQueryParam = searchParams.get(
-    PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM
-  ) as TPageNavigationPaneTab | null;
-  const activeTab: TPageNavigationPaneTab = navigationPaneQueryParam || "outline";
+  const navigationPaneQueryParam = searchParams.get(PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM);
+  const activeTab: TPageNavigationPaneTab = isPageNavigationPaneTab(navigationPaneQueryParam)
+    ? navigationPaneQueryParam
+    : "outline";
 
   // Check if any extension is currently active based on query parameters
   const ActiveExtension = extensions.find((extension) => {
@@ -73,8 +74,8 @@ export const PageNavigationPaneRoot = observer(function PageNavigationPaneRoot(p
   const { t } = useTranslation();
 
   const handleTabChange = useCallback(
-    (value: string) => {
-      const updatedTab = value as TPageNavigationPaneTab;
+    (updatedTab: string) => {
+      if (!isPageNavigationPaneTab(updatedTab)) return;
       const isUpdatedTabInfo = updatedTab === "info";
       const updatedRoute = updateQueryParams({
         paramsToAdd: { [PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM]: updatedTab },

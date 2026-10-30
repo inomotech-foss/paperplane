@@ -18,6 +18,7 @@ import { ModuleForm } from "@/components/modules";
 import { useModule } from "@/hooks/store/use-module";
 import { useProject } from "@/hooks/store/use-project";
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   isOpen: boolean;
@@ -68,11 +69,14 @@ export const CreateUpdateModuleModal = observer(function CreateUpdateModuleModal
           message: "Module created successfully.",
         });
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: "Error!",
-          message: err?.detail ?? err?.error ?? "Module could not be created. Please try again.",
+          message:
+            getStringField(err, "detail") ??
+            getStringField(err, "error") ??
+            "Module could not be created. Please try again.",
         });
       });
   };
@@ -91,11 +95,14 @@ export const CreateUpdateModuleModal = observer(function CreateUpdateModuleModal
           message: "Module updated successfully.",
         });
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: "Error!",
-          message: err?.detail ?? err?.error ?? "Module could not be updated. Please try again.",
+          message:
+            getStringField(err, "detail") ??
+            getStringField(err, "error") ??
+            "Module could not be updated. Please try again.",
         });
       });
   };

@@ -11,7 +11,7 @@ import type { IWebhook } from "@plane/types";
 import { Switch } from "@makeplane/propel/components/switch";
 
 interface IWebHookToggle {
-  control: Control<IWebhook, any>;
+  control: Control<IWebhook>;
 }
 
 export function WebhookToggle({ control }: IWebHookToggle) {

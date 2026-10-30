@@ -11,15 +11,27 @@ import { CalendarOutline, GlobeOutline, PaletteOutline } from "@makeplane/propel
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { EStartOfTheWeek, TUserProfile } from "@plane/types";
+import type { TUserProfile } from "@plane/types";
+import { EStartOfTheWeek } from "@plane/types";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
 import { useUser, useUserProfile } from "@/hooks/store/user";
+import { isOneOf } from "@/helpers/guard.helper";
 
 /**
  * Preferences commands - Preferences related commands
  */
+const START_OF_THE_WEEK_VALUES = [
+  EStartOfTheWeek.SUNDAY,
+  EStartOfTheWeek.MONDAY,
+  EStartOfTheWeek.TUESDAY,
+  EStartOfTheWeek.WEDNESDAY,
+  EStartOfTheWeek.THURSDAY,
+  EStartOfTheWeek.FRIDAY,
+  EStartOfTheWeek.SATURDAY,
+];
+
 export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
   // store hooks
   const { setTheme } = useTheme();
@@ -112,7 +124,8 @@ export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
       i18n_title: "power_k.preferences_actions.update_theme",
       icon: PaletteOutline,
       onSelect: (data) => {
-        const theme = data as string;
+        if (typeof data !== "string") return;
+        const theme = data;
         void handleUpdateTheme(theme);
       },
       isEnabled: () => true,
@@ -127,7 +140,8 @@ export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
       i18n_title: "power_k.preferences_actions.update_timezone",
       icon: GlobeOutline,
       onSelect: (data) => {
-        const timezone = data as string;
+        if (typeof data !== "string") return;
+        const timezone = data;
         handleUpdateTimezone(timezone);
       },
       isEnabled: () => true,
@@ -142,7 +156,8 @@ export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
       i18n_title: "power_k.preferences_actions.update_start_of_week",
       icon: CalendarOutline,
       onSelect: (data) => {
-        const startOfWeek = data as EStartOfTheWeek;
+        if (!isOneOf(START_OF_THE_WEEK_VALUES, data)) return;
+        const startOfWeek = data;
         handleUpdateUserProfile({ start_of_the_week: startOfWeek });
       },
       isEnabled: () => true,
@@ -157,7 +172,8 @@ export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
       i18n_title: "power_k.preferences_actions.update_language",
       icon: Languages,
       onSelect: (data) => {
-        const language = data as string;
+        if (typeof data !== "string") return;
+        const language = data;
         handleUpdateUserProfile({ language });
       },
       isEnabled: () => true,

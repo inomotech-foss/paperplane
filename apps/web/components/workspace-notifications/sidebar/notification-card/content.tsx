@@ -36,7 +36,10 @@ export type TNotificationContentDetails = {
   showConnector?: boolean;
 };
 
-export type TNotificationContentHandler = (data: TNotificationFieldData) => TNotificationContentDetails | null;
+export type TNotificationContentHandler = (
+  data: TNotificationFieldData,
+  renderCommentBox?: boolean
+) => TNotificationContentDetails | null;
 
 export type TNotificationContentMap = {
   [key: string]: TNotificationContentHandler;
@@ -129,10 +132,7 @@ const getNotificationContentDetails = (
   if (baseHandler) {
     // Special case for comment field that needs renderCommentBox
     if (field === "comment") {
-      return (baseHandler as (data: TNotificationFieldData, renderCommentBox?: boolean) => TNotificationContentDetails)(
-        fieldData,
-        renderCommentBox
-      );
+      return baseHandler(fieldData, renderCommentBox);
     }
     return baseHandler(fieldData);
   }

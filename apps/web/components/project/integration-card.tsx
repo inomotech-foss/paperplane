@@ -18,12 +18,13 @@ import { SelectRepository } from "@/components/integration/github/select-reposit
 import { PROJECT_GITHUB_REPOSITORY } from "@plane/constants";
 // services
 import { ProjectService } from "@/services/project";
+import { getStringField, isRecord } from "@/helpers/narrow.helper";
 
 type Props = {
   integration: IWorkspaceIntegration;
 };
 
-const integrationDetails: { [key: string]: any } = {
+const integrationDetails: Record<string, { logo: string; description: string }> = {
   github: {
     logo: GithubLogo,
     description: "Select GitHub repository to enable sync.",
@@ -37,32 +38,45 @@ const integrationDetails: { [key: string]: any } = {
 // services
 const projectService = new ProjectService();
 
+const getRepositorySyncData = (repo: unknown) => {
+  if (!isRecord(repo) || !isRecord(repo.owner)) return null;
+  const { html_url, id, name } = repo;
+  const { login } = repo.owner;
+  if (typeof html_url !== "string" || typeof name !== "string" || typeof login !== "string") return null;
+  if (typeof id !== "string" && typeof id !== "number") return null;
+  return { name, owner: login, repository_id: String(id), url: html_url };
+};
+
+const getSyncedRepositoryName = (synced: unknown) => {
+  if (!Array.isArray(synced)) return null;
+  const first: unknown = synced[0];
+  if (!isRecord(first) || !isRecord(first.repo_detail)) return null;
+  const owner = getStringField(first.repo_detail, "owner");
+  const name = getStringField(first.repo_detail, "name");
+  return owner !== undefined && name !== undefined ? `${owner}/${name}` : null;
+};
+
 export function IntegrationCard({ integration }: Props) {
   const { workspaceSlug, projectId } = useParams();
 
-  const { data: syncedGithubRepository } = useSWR(projectId ? PROJECT_GITHUB_REPOSITORY(projectId) : null, () =>
-    workspaceSlug && projectId && integration
-      ? projectService.getProjectGithubRepository(workspaceSlug, projectId, integration.id)
-      : null
+  const { data: syncedGithubRepository } = useSWR(
+    projectId ? PROJECT_GITHUB_REPOSITORY(projectId) : null,
+    (): Promise<unknown> | null =>
+      workspaceSlug && projectId && integration
+        ? projectService.getProjectGithubRepository(workspaceSlug, projectId, integration.id)
+        : null
   );
+  const syncedRepositoryName = getSyncedRepositoryName(syncedGithubRepository);
 
-  const handleChange = (repo: any) => {
+  const handleChange = (repo: unknown) => {
     if (!workspaceSlug || !projectId || !integration) return;
 
-    const {
-      html_url,
-      owner: { login },
-      id,
-      name,
-    } = repo;
+    const syncData = getRepositorySyncData(repo);
+    if (!syncData) return;
+    const { owner: login, name } = syncData;
 
     projectService
-      .syncGithubRepository(workspaceSlug, projectId, integration.id, {
-        name,
-        owner: login,
-        repository_id: id,
-        url: html_url,
-      })
+      .syncGithubRepository(workspaceSlug, projectId, integration.id, syncData)
       .then(() => {
         mutate(PROJECT_GITHUB_REPOSITORY(projectId));
 
@@ -72,7 +86,7 @@ export function IntegrationCard({ integration }: Props) {
           message: `${login}/${name} repository synced with the project successfully.`,
         });
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
         setToast({
           type: "error",
@@ -104,16 +118,8 @@ export function IntegrationCard({ integration }: Props) {
           {integration.integration_detail.provider === "github" && (
             <SelectRepository
               integration={integration}
-              value={
-                syncedGithubRepository && syncedGithubRepository.length > 0
-                  ? `${syncedGithubRepository[0].repo_detail.owner}/${syncedGithubRepository[0].repo_detail.name}`
-                  : null
-              }
-              label={
-                syncedGithubRepository && syncedGithubRepository.length > 0
-                  ? `${syncedGithubRepository[0].repo_detail.owner}/${syncedGithubRepository[0].repo_detail.name}`
-                  : "Select Repository"
-              }
+              value={syncedRepositoryName}
+              label={syncedRepositoryName ?? "Select Repository"}
               onChange={handleChange}
             />
           )}

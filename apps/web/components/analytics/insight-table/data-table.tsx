@@ -65,6 +65,8 @@ export function DataTable<TData, TValue>({ columns, data, searchPlaceholder, act
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  const searchFilterValue: unknown = table.getColumn(table.getHeaderGroups()?.[0]?.headers?.[0]?.id)?.getFilterValue();
+
   return (
     <div className="space-y-4">
       <div className="flex w-full items-center justify-between">
@@ -99,7 +101,8 @@ export function DataTable<TData, TValue>({ columns, data, searchPlaceholder, act
               ref={inputRef}
               className="w-full max-w-[234px] border-none bg-transparent text-13 text-primary placeholder:text-placeholder focus:outline-none"
               placeholder="Search"
-              value={table.getColumn(table.getHeaderGroups()?.[0]?.headers?.[0]?.id)?.getFilterValue() as string}
+              aria-label="Search"
+              value={typeof searchFilterValue === "string" ? searchFilterValue : undefined}
               onChange={(e) => {
                 const columnId = table.getHeaderGroups()?.[0]?.headers?.[0]?.id;
                 if (columnId) table.getColumn(columnId)?.setFilterValue(e.target.value);
@@ -143,9 +146,7 @@ export function DataTable<TData, TValue>({ columns, data, searchPlaceholder, act
                     pinned="none"
                     render={<th className="whitespace-nowrap" />}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : (flexRender(header.column.columnDef.header, header.getContext()) as any)}
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -157,7 +158,7 @@ export function DataTable<TData, TValue>({ columns, data, searchPlaceholder, act
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} variant="table" pinned="none" padding="cell">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext()) as any}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>

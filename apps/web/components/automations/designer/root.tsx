@@ -18,9 +18,11 @@ import type { TAutomationConditionNode, TAutomationScheduleConfig, TAutomationTr
 import { Loader } from "@plane/blocks/skeleton";
 // hooks
 import { useAutomation } from "@/hooks/store/use-automation";
+import { getStringField, isRecord, isString } from "@/helpers/narrow.helper";
 import type { IAutomationStore } from "@/store/automation.store";
 // local imports
 import { useAutomationDetails, useAutomationMetadata } from "../helpers/metadata";
+import { isScheduleConfig } from "../helpers/trigger-config";
 import { AutomationActionsBlock } from "./actions-block";
 import { AutomationConditionBuilder, ensureConditionIds } from "./condition-builder";
 import { AutomationRunHistory } from "./run-history";
@@ -80,17 +82,12 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
     if (!automation || hydratedFor.current === automation.id) return;
     hydratedFor.current = automation.id;
     setCondition(ensureConditionIds(automation.condition));
-    setScheduleConfig((automation.trigger_config as TAutomationScheduleConfig) ?? { mode: "fixed" });
+    setScheduleConfig(isScheduleConfig(automation.trigger_config) ? automation.trigger_config : { mode: "fixed" });
   }, [automation]);
 
   const reportError = useCallback(
     (error: unknown) => {
-      const payload = error as Record<string, string | string[]> | undefined;
-      const firstDetail = payload
-        ? Object.values(payload)
-            .flat()
-            .find((value) => typeof value === "string")
-        : undefined;
+      const firstDetail = isRecord(error) ? Object.values(error).flat().find(isString) : undefined;
       setToast({
         type: "error",
         title: t("automations.toasts.update.error.title"),
@@ -172,11 +169,10 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
         ),
       });
     } catch (error) {
-      const payload = error as { is_enabled?: string };
       setToast({
         type: "error",
         title: t("automations.toasts.enable.error.title"),
-        message: payload?.is_enabled ?? t("automations.enable.validation.required"),
+        message: getStringField(error, "is_enabled") ?? t("automations.enable.validation.required"),
       });
     } finally {
       setIsTogglingEnabled(false);
@@ -195,7 +191,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
       setToast({
         type: "error",
         title: t("automations.toasts.run_now.error.title"),
-        message: (error as { error?: string })?.error ?? t("automations.toasts.run_now.error.message"),
+        message: getStringField(error, "error") ?? t("automations.toasts.run_now.error.message"),
       });
     }
   };

@@ -24,8 +24,7 @@ export interface SidebarUserMenuItemProps {
     href: string;
     access: EUserWorkspaceRoles[];
     labelTranslationKey: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Icon: any;
+    Icon: React.ComponentType<{ className?: string }>;
   };
   draftIssueCount: number;
 }
@@ -45,8 +44,7 @@ export const SidebarUserMenuItem = observer(function SidebarUserMenuItem(props: 
 
   if (item.key === "drafts" && draftIssueCount === 0) return null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (!allowPermissions(item.access as any, EUserPermissionsLevel.WORKSPACE, workspaceSlug.toString())) return null;
+  if (!allowPermissions(item.access, EUserPermissionsLevel.WORKSPACE, workspaceSlug.toString())) return null;
 
   const handleLinkClick = () => {
     if (window.innerWidth < 768) {

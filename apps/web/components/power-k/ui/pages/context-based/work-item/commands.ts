@@ -22,10 +22,10 @@ import {
   UserPlusOutline,
 } from "@makeplane/propel/icons";
 // plane imports
-import { EUserPermissionsLevel } from "@plane/constants";
+import { EUserPermissionsLevel, ISSUE_PRIORITIES } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { ICycle, IIssueLabel, IModule, TIssue, TIssuePriorities } from "@plane/types";
+import type { TIssue } from "@plane/types";
 import { EUserPermissions } from "@plane/types";
 import { copyTextToClipboard } from "@plane/utils";
 // components
@@ -37,6 +37,9 @@ import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
+import { getStringField, isOneOf } from "@/helpers/guard.helper";
+
+const PRIORITY_VALUES = ISSUE_PRIORITIES.map((priority) => priority.key);
 
 export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] => {
   // params
@@ -194,7 +197,8 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-state",
       onSelect: (data) => {
-        const stateId = data as string;
+        if (typeof data !== "string") return;
+        const stateId = data;
         if (entityDetails?.state_id === stateId) return;
         handleUpdateEntity({
           state_id: stateId,
@@ -214,7 +218,8 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-priority",
       onSelect: (data) => {
-        const priority = data as TIssuePriorities;
+        if (!isOneOf(PRIORITY_VALUES, data)) return;
+        const priority = data;
         if (entityDetails?.priority === priority) return;
         handleUpdateEntity({
           priority,
@@ -234,7 +239,8 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-assignee",
       onSelect: (data) => {
-        const assigneeId = data as string;
+        if (typeof data !== "string") return;
+        const assigneeId = data;
         handleUpdateAssignee(assigneeId);
       },
       shortcut: "a",
@@ -269,7 +275,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-estimate",
       onSelect: (data) => {
-        const estimatePointId = data as string | null;
+        const estimatePointId = typeof data === "string" ? data : null;
         if (entityDetails?.estimate_point === estimatePointId) return;
         handleUpdateEntity({
           estimate_point: estimatePointId,
@@ -289,7 +295,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-cycle",
       onSelect: (data) => {
-        const cycleId = (data as ICycle)?.id;
+        const cycleId = getStringField(data, "id");
         if (!workspaceSlug || !entityDetails || !entityDetails.project_id) return;
         if (entityDetails.cycle_id === cycleId) return;
         try {
@@ -325,7 +331,8 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-module",
       onSelect: (data) => {
-        const moduleId = (data as IModule)?.id;
+        const moduleId = getStringField(data, "id");
+        if (!moduleId) return;
         if (!workspaceSlug || !entityDetails || !entityDetails.project_id) return;
         try {
           if (entityDetails.module_ids?.includes(moduleId)) {
@@ -355,7 +362,8 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-labels",
       onSelect: (data) => {
-        const labelId = (data as IIssueLabel)?.id;
+        const labelId = getStringField(data, "id");
+        if (!labelId) return;
         if (!workspaceSlug || !entityDetails || !entityDetails.project_id) return;
         const updatedLabels = [...(entityDetails.label_ids ?? [])];
         if (updatedLabels.includes(labelId)) updatedLabels.splice(updatedLabels.indexOf(labelId), 1);

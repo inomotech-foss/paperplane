@@ -12,6 +12,7 @@ import { setToast } from "@plane/blocks/toast";
 // hooks
 import { useUser } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type Props = {
   isOpen: boolean;
@@ -48,11 +49,11 @@ export function DeactivateAccountModal(props: Props) {
         handleClose();
         return;
       })
-      .catch((err: any) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: "Error!",
-          message: err?.error,
+          message: getApiErrorMessage(err),
         });
       })
       .finally(() => setIsDeactivating(false));

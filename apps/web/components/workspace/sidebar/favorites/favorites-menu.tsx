@@ -31,11 +31,11 @@ import useLocalStorage from "@/hooks/use-local-storage";
 // plane web components
 import { FavoriteFolder } from "./favorite-folder";
 import { FavoriteRoot } from "./favorite-items";
-import type { TargetData } from "./favorites.helpers";
 import { getInstructionFromPayload } from "./favorites.helpers";
 import { NewFavoriteFolder } from "./new-fav-folder";
 import { IconButton } from "@makeplane/propel/components/icon-button";
 import { Icon } from "@makeplane/propel/components/icon";
+import { getDragDataId, getDragTargetData } from "@/components/common/drag-target-data";
 
 export const SidebarFavoritesMenu = observer(function SidebarFavoritesMenu() {
   // states
@@ -75,13 +75,13 @@ export const SidebarFavoritesMenu = observer(function SidebarFavoritesMenu() {
     const dropTarget =
       dropTargets.length > 1 ? dropTargets.find((target: DropTargetRecord) => target?.data?.isChild) : dropTargets[0];
 
-    const dropTargetData = dropTarget?.data as TargetData;
+    const dropTargetData = dropTarget ? getDragTargetData(dropTarget.data) : undefined;
 
     if (!dropTarget || !dropTargetData) return;
     const instruction = getInstructionFromPayload(dropTarget, source, location);
     const parentId = instruction === "make-child" ? dropTargetData.id : dropTargetData.parentId;
     const droppedFavId = instruction !== "make-child" ? dropTargetData.id : undefined;
-    const sourceData = source.data as TargetData;
+    const sourceData = getDragTargetData(source.data);
 
     if (!sourceData.id) return;
     if (isFolder) {
@@ -169,7 +169,7 @@ export const SidebarFavoritesMenu = observer(function SidebarFavoritesMenu() {
         },
         onDrop: ({ source }) => {
           setIsDragging(false);
-          const sourceId = source?.data?.id as string | undefined;
+          const sourceId = getDragDataId(source.data);
           console.log({ sourceId });
           if (!sourceId || !groupedFavorites[sourceId].parent) return;
         },

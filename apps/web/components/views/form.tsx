@@ -36,11 +36,12 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 // local imports
 import { LayoutDropDown } from "../dropdowns/layout";
 import { ProjectLevelWorkItemFiltersHOC } from "../work-item-filters/filters-hoc/project-level";
+import { getLogoPropsFromPicker } from "@/components/common/logo-props";
 
 type Props = {
   data?: IProjectView | null;
   handleClose: () => void;
-  handleFormSubmit: (values: IProjectView) => Promise<void>;
+  handleFormSubmit: (values: Partial<IProjectView>) => Promise<void>;
   preLoadedData?: Partial<IProjectView> | null;
   projectId: string;
   workspaceSlug: string;
@@ -100,7 +101,7 @@ export const ProjectViewForm = observer(function ProjectViewForm(props: Props) {
       display_filters: formData.display_filters,
       display_properties: formData.display_properties,
       access: formData.access,
-    } as IProjectView);
+    });
 
     reset({
       ...defaultValues,
@@ -135,21 +136,8 @@ export const ProjectViewForm = observer(function ProjectViewForm(props: Props) {
                     </>
                   </span>
                 }
-                // TODO: fix types
-                onChange={(val: any) => {
-                  // oxlint-disable-next-line no-shadow
-                  let logoValue = {};
-
-                  if (val?.type === "emoji")
-                    logoValue = {
-                      value: val.value,
-                    };
-                  else if (val?.type === "icon") logoValue = val.value;
-
-                  setValue("logo_props", {
-                    in_use: val?.type,
-                    [val?.type]: logoValue,
-                  });
+                onChange={(val) => {
+                  setValue("logo_props", getLogoPropsFromPicker(val));
                   setIsOpen(false);
                 }}
                 defaultIconColor={

@@ -9,14 +9,15 @@ import { useParams } from "next/navigation";
 // plane imports
 import type { TDisplayConfig } from "@plane/editor";
 import type { JSONContent, TPageVersion } from "@plane/types";
-import { Loader } from "@plane/blocks/skeleton";
 import { isJSONContentEmpty } from "@plane/utils";
 // components
 import { DocumentEditor } from "@/components/editor/document/editor";
+import { EditorContentLoader } from "@/components/pages/loaders/editor-content-loader";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { usePageFilters } from "@/hooks/use-page-filters";
 // plane web hooks
+import { toJSONContent } from "./json-content";
 import type { EPageStoreType } from "@/hooks/store";
 
 export type TVersionEditorProps = {
@@ -47,46 +48,11 @@ export const PagesVersionEditor = observer(function PagesVersionEditor(props: TV
   if (!versionDetails)
     return (
       <div className="size-full px-5">
-        <Loader className="relative space-y-4">
-          <Loader.Item width="50%" height="36px" />
-          <div className="space-y-2">
-            <div className="py-2">
-              <Loader.Item width="100%" height="36px" />
-            </div>
-            <Loader.Item width="80%" height="22px" />
-            <div className="relative flex items-center gap-2">
-              <Loader.Item width="30px" height="30px" />
-              <Loader.Item width="30%" height="22px" />
-            </div>
-            <div className="py-2">
-              <Loader.Item width="60%" height="36px" />
-            </div>
-            <Loader.Item width="70%" height="22px" />
-            <Loader.Item width="30%" height="22px" />
-            <div className="relative flex items-center gap-2">
-              <Loader.Item width="30px" height="30px" />
-              <Loader.Item width="30%" height="22px" />
-            </div>
-            <div className="py-2">
-              <Loader.Item width="50%" height="30px" />
-            </div>
-            <Loader.Item width="100%" height="22px" />
-            <div className="py-2">
-              <Loader.Item width="30%" height="30px" />
-            </div>
-            <Loader.Item width="30%" height="22px" />
-            <div className="relative flex items-center gap-2">
-              <div className="py-2">
-                <Loader.Item width="30px" height="30px" />
-              </div>
-              <Loader.Item width="30%" height="22px" />
-            </div>
-          </div>
-        </Loader>
+        <EditorContentLoader />
       </div>
     );
 
-  const versionDescription = isJSONContentEmpty(versionDetails?.description_json as JSONContent)
+  const versionDescription = isJSONContentEmpty(toJSONContent(versionDetails?.description_json))
     ? versionDetails?.description_html
     : versionDetails?.description_json;
   const description = diffContent ?? versionDescription;

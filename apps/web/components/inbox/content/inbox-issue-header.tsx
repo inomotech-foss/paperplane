@@ -194,8 +194,12 @@ export const InboxIssueActionsHeader = observer(function InboxIssueActionsHeader
   const handleInboxIssueNavigation = useCallback(
     (direction: "next" | "prev") => {
       if (!filteredInboxIssueIds || !currentInboxIssueId) return;
-      const activeElement = document.activeElement as HTMLElement;
-      if (activeElement && (activeElement.classList.contains("tiptap") || activeElement.id === "title-input")) return;
+      const activeElement = document.activeElement;
+      if (
+        activeElement instanceof HTMLElement &&
+        (activeElement.classList.contains("tiptap") || activeElement.id === "title-input")
+      )
+        return;
       const nextIssueIndex =
         direction === "next"
           ? (currentIssueIndex + 1) % filteredInboxIssueIds.length

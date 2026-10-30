@@ -10,6 +10,21 @@ import { Button as ButtonElement } from "@makeplane/propel/elements/button";
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@makeplane/propel/components/menu";
 import { ChevronDownOutline, SortDescendingOutline, SortAscendingOutline } from "@makeplane/propel/icons";
 import type { TModuleOrderByOptions } from "@plane/types";
+import { findLiteral } from "@/helpers/narrow.helper";
+
+const ORDER_BY_VALUES = [
+  "name",
+  "-name",
+  "progress",
+  "-progress",
+  "issues_length",
+  "-issues_length",
+  "target_date",
+  "-target_date",
+  "created_at",
+  "-created_at",
+  "sort_order",
+] as const satisfies readonly TModuleOrderByOptions[];
 
 type Props = {
   onChange: (value: TModuleOrderByOptions) => void;
@@ -42,7 +57,8 @@ export function ModuleOrderByDropdown(props: Props) {
             label={t(option.i18n_label)}
             selected={value?.includes(option.key) ?? false}
             onClick={() => {
-              if (isDescending && !isManual) onChange(`-${option.key}` as TModuleOrderByOptions);
+              const descendingKey = findLiteral(ORDER_BY_VALUES, `-${option.key}`);
+              if (isDescending && !isManual && descendingKey) onChange(descendingKey);
               else onChange(option.key);
             }}
           />
@@ -54,14 +70,16 @@ export function ModuleOrderByDropdown(props: Props) {
               label={t("common.sort.asc")}
               selected={!isDescending}
               onClick={() => {
-                if (isDescending) onChange(value.slice(1) as TModuleOrderByOptions);
+                const ascendingKey = value && findLiteral(ORDER_BY_VALUES, value.slice(1));
+                if (isDescending && ascendingKey) onChange(ascendingKey);
               }}
             />
             <MenuItem
               label={t("common.sort.desc")}
               selected={isDescending ?? false}
               onClick={() => {
-                if (!isDescending) onChange(`-${value}` as TModuleOrderByOptions);
+                const descendingKey = findLiteral(ORDER_BY_VALUES, `-${value}`);
+                if (!isDescending && descendingKey) onChange(descendingKey);
               }}
             />
           </>

@@ -17,7 +17,7 @@ type Props = {
   userProfile: IUserProfileData | undefined;
 };
 
-const priorityColors = {
+const priorityColors: Record<string, string> = {
   urgent: "#991b1b",
   high: "#ef4444",
   medium: "#f59e0b",
@@ -46,7 +46,7 @@ export function ProfilePriorityDistribution({ userProfile }: Props) {
                   key: "count",
                   label: "Count",
                   stackId: "bar-one",
-                  fill: (payload: any) => priorityColors[payload.key as keyof typeof priorityColors], // TODO: fix types
+                  fill: (payload) => priorityColors[String(payload.key)],
                   textClassName: "",
                   showPercentage: false,
                   showTopBorderRadius: () => true,

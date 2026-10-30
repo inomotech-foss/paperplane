@@ -12,8 +12,8 @@ import { ChevronRightOutline } from "@makeplane/propel/icons";
 type EmptySpaceProps = {
   title: string;
   description: string;
-  children: any;
-  Icon?: any;
+  children: React.ReactNode;
+  Icon?: React.ComponentType<{ className?: string }>;
   link?: { text: string; href: string };
 };
 
@@ -50,7 +50,7 @@ function EmptySpace({ title, description, children, Icon, link }: EmptySpaceProp
 type EmptySpaceItemProps = {
   title: string;
   description?: React.ReactNode | string;
-  Icon: any;
+  Icon: React.ComponentType<{ className?: string }>;
   action?: () => void;
   href?: string;
 };

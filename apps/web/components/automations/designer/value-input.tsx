@@ -10,6 +10,7 @@ import { useTranslation } from "@plane/i18n";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
 import type { TAutomationPropertyKind, TAutomationValueSource } from "@plane/types";
 // local imports
+import { toStringArray } from "@/helpers/narrow.helper";
 import { AutomationOptionSelect } from "../helpers/option-select";
 import { useValueOptions } from "../helpers/use-value-options";
 
@@ -36,7 +37,7 @@ const SourceMultiValueInput = observer(function SourceMultiValueInput(props: TSo
   const { projectId, source, value, onChange, disabled } = props;
   const { t } = useTranslation();
   const { optionsFor, labelFor } = useValueOptions(projectId);
-  const selected = Array.isArray(value) ? (value as string[]) : [];
+  const selected = toStringArray(value);
   return (
     <AutomationOptionSelect
       multiple
@@ -57,7 +58,7 @@ const SourceMultiValueInput = observer(function SourceMultiValueInput(props: TSo
 });
 
 const toSingleValue = (value: unknown): string | null =>
-  Array.isArray(value) ? ((value as string[])[0] ?? null) : ((value as string) ?? null);
+  Array.isArray(value) ? (toStringArray(value)[0] ?? null) : typeof value === "string" ? value : null;
 
 const SourceSingleValueInput = observer(function SourceSingleValueInput(props: TSourceProps) {
   const { projectId, source, value, onChange, disabled } = props;

@@ -13,6 +13,7 @@ import type {
   UseFormGetValues,
   UseFormSetValue,
   UseFormWatch,
+  FieldErrors,
 } from "react-hook-form";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { AddOutline, CloseCircleOutline } from "@makeplane/propel/icons";
@@ -35,6 +36,7 @@ import { useWorkspace } from "@/hooks/store/use-workspace";
 import { WorkspaceService } from "@/services/workspace.service";
 // components
 import { CommonOnboardingHeader } from "../common";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type Props = {
   handleStepChange: (step: EOnboardingSteps, skipInvites?: boolean) => void;
@@ -53,13 +55,13 @@ type FormValues = {
 type InviteMemberFormProps = {
   index: number;
   remove: UseFieldArrayRemove;
-  control: Control<FormValues, any>;
+  control: Control<FormValues>;
   setValue: UseFormSetValue<FormValues>;
   getValues: UseFormGetValues<FormValues>;
   watch: UseFormWatch<FormValues>;
   field: FieldArrayWithId<FormValues, "emails", "id">;
   fields: FieldArrayWithId<FormValues, "emails", "id">[];
-  errors: any;
+  errors: FieldErrors<FormValues>;
   isInvitationDisabled: boolean;
   setIsInvitationDisabled: (value: boolean) => void;
 };
@@ -269,11 +271,11 @@ export const InviteTeamStep = observer(function InviteTeamStep(props: Props) {
         });
         await nextStep();
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: "Error!",
-          message: err?.error,
+          message: getApiErrorMessage(err),
         });
       });
   };

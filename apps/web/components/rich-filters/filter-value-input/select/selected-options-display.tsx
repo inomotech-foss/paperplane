@@ -25,7 +25,7 @@ export function SelectedOptionsDisplay<V extends TFilterValue>(props: TSelectedO
   const remainingCount = selectedArray.length - displayCount;
   const selectedOptions = selectedArray
     .map((value) => options.find((opt) => opt.value === value))
-    .filter(Boolean) as IFilterOption<V>[];
+    .filter((option): option is IFilterOption<V> => option !== undefined);
 
   // When no value is selected, display the empty value
   if (selectedArray.length === 0) {

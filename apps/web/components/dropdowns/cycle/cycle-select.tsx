@@ -11,10 +11,12 @@ import { useParams } from "next/navigation";
 import { CycleSelect as CycleSelectBlock } from "@plane/blocks/property-select";
 import type { CycleOption } from "@plane/blocks/property-select";
 import type { SelectPaginationParams, SelectTooltip, SelectTooltipOverride, SelectVariant } from "@plane/blocks/select";
+import { CYCLE_STATUS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import type { ICycle, TCycleGroups, TPaginatedResponse } from "@plane/types";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
+import { isOneOf } from "@/helpers/guard.helper";
 
 /** Statuses a work item can be assigned to — completed cycles are never offered. */
 const DEFAULT_CYCLE_STATUSES: TCycleGroups[] = ["current", "upcoming", "draft"];
@@ -45,8 +47,12 @@ type CycleSelectWebProps = {
 };
 
 /** CE cycle statuses come off the API upper-cased; a cycle without dates has none and reads as a draft. */
-const getCycleStatus = (cycle: ICycle): TCycleGroups =>
-  (cycle.status?.toLowerCase() as TCycleGroups | undefined) ?? "draft";
+const CYCLE_GROUPS = CYCLE_STATUS.map((status) => status.value);
+
+const getCycleStatus = (cycle: ICycle): TCycleGroups => {
+  const status = cycle.status?.toLowerCase();
+  return isOneOf(CYCLE_GROUPS, status) ? status : "draft";
+};
 
 const toOption = (cycle: ICycle): CycleOption => ({
   id: cycle.id,

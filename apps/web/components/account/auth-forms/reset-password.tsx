@@ -18,8 +18,9 @@ import { PasswordStrengthIndicator } from "@plane/blocks/auth";
 // components
 import { getPasswordStrength } from "@plane/utils";
 // helpers
-import type { EAuthenticationErrorCodes, TAuthErrorInfo } from "@/helpers/authentication.helper";
-import { EErrorAlertType, authErrorHandler } from "@/helpers/authentication.helper";
+import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
+import { EErrorAlertType } from "@/helpers/authentication.helper";
+import { getAuthErrorInfo } from "@/helpers/error.helper";
 // services
 import { AuthService } from "@/services/auth.service";
 // local imports
@@ -87,7 +88,7 @@ export const ResetPasswordForm = observer(function ResetPasswordForm() {
 
   useEffect(() => {
     if (error_code) {
-      const errorhandler = authErrorHandler(error_code?.toString() as EAuthenticationErrorCodes);
+      const errorhandler = getAuthErrorInfo(error_code);
       if (errorhandler) {
         setErrorInfo(errorhandler);
       }

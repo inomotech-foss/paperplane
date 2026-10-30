@@ -25,13 +25,13 @@ import {
 } from "@makeplane/propel/components/dialog";
 import { setToast } from "@plane/blocks/toast";
 // helpers
-import { authErrorHandler } from "@/helpers/authentication.helper";
-import type { EAuthenticationErrorCodes } from "@/helpers/authentication.helper";
 // hooks
 import { useUser } from "@/hooks/store/user";
 // services
 import { AuthService } from "@/services/auth.service";
 import userService from "@/services/user.service";
+import { getApiErrorMessage, getAuthErrorInfo } from "@/helpers/error.helper";
+import { getField, getStringField } from "@/helpers/guard.helper";
 
 type Props = { isOpen: boolean; onClose: () => void };
 
@@ -95,9 +95,7 @@ export const ChangeEmailModal = observer(function ChangeEmailModal(props: Props)
         handleClose();
       } catch (error: unknown) {
         const errorMessage =
-          (error as { error?: string; message?: string })?.error ||
-          (error as { error?: string; message?: string })?.message ||
-          changeEmailT("form.code.errors.invalid");
+          getApiErrorMessage(error) || getStringField(error, "message") || changeEmailT("form.code.errors.invalid");
         setError("code", { type: "custom", message: errorMessage });
       }
       return;
@@ -125,18 +123,14 @@ export const ChangeEmailModal = observer(function ChangeEmailModal(props: Props)
       setCurrentStep("UNIQUE_CODE");
     } catch (error: unknown) {
       // Extract error code and message from backend response
-      const err = error as { error_code?: number | string; error_message?: string };
-      const errorCode = err?.error_code?.toString();
-
-      // Use authErrorHandler to get user-friendly error message
-      const errorInfo = errorCode ? authErrorHandler(errorCode as EAuthenticationErrorCodes) : undefined;
+      const errorInfo = getAuthErrorInfo(getField(error, "error_code"));
 
       // Get error message from handler or fallback
       const errorMessage = errorInfo
         ? typeof errorInfo.message === "string"
           ? errorInfo.message
           : String(errorInfo.message)
-        : err?.error_message || changeEmailT("form.email.errors.validation_failed");
+        : getStringField(error, "error_message") || changeEmailT("form.email.errors.validation_failed");
 
       setError("email", { type: "custom", message: errorMessage });
     }

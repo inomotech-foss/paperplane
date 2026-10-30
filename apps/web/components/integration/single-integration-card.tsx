@@ -33,7 +33,7 @@ type Props = {
   integration: IAppIntegration;
 };
 
-const integrationDetails: { [key: string]: any } = {
+const integrationDetails: { [key: string]: { logo: string; installed: string; notInstalled: string } } = {
   github: {
     logo: GithubLogo,
     installed: "Activate GitHub on individual projects to sync with specific repositories.",

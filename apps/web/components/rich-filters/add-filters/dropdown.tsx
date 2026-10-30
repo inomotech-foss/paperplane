@@ -73,7 +73,8 @@ export const AddFilterDropdown = observer(function AddFilterDropdown<
       <Combobox
         value=""
         onValueChange={(value) => {
-          if (typeof value === "string" && value) handleFilterSelect(value as P);
+          const selectedConfig = availableConfigs.find((config) => config.id === value);
+          if (selectedConfig) handleFilterSelect(selectedConfig.id);
         }}
         defaultOpen={defaultOpen}
         disabled={isDisabled}

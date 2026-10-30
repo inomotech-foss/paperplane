@@ -92,8 +92,8 @@ export const InboxSidebar = observer(function InboxSidebar(props: IInboxSidebarP
               variant="underline"
               value={currentTab}
               onValueChange={(value) => {
-                const nextTab = value as TInboxIssueCurrentTab;
-                if (nextTab === currentTab) return;
+                const nextTab = tabNavigationOptions.find((option) => option.key === value)?.key;
+                if (!nextTab || nextTab === currentTab) return;
                 handleCurrentTab(workspaceSlug, projectId, nextTab);
                 router.push(`/${workspaceSlug}/projects/${projectId}/intake?currentTab=${nextTab}`);
               }}

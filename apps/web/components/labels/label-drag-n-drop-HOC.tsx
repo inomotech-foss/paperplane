@@ -21,8 +21,8 @@ import { DropIndicator } from "@plane/blocks/common";
 // components
 import { useUserPermissions } from "@/hooks/store/user";
 import { LabelName } from "./label-block/label-name";
-import type { TargetData } from "./label-utils";
 import { getCanDrop, getInstructionFromPayload } from "./label-utils";
+import { getDragTargetData } from "@/components/common/drag-target-data";
 
 type LabelDragPreviewProps = {
   label: IIssueLabel;
@@ -140,7 +140,7 @@ export const LabelDndHOC = observer(function LabelDndHOC(props: Props) {
           let parentId: string | null = null,
             dropAtEndOfList = false;
 
-          const dropTargetData = dropTarget?.data as TargetData;
+          const dropTargetData = dropTarget ? getDragTargetData(dropTarget.data) : undefined;
 
           if (!dropTarget || !dropTargetData) return;
 
@@ -148,13 +148,13 @@ export const LabelDndHOC = observer(function LabelDndHOC(props: Props) {
           const dropInstruction = getInstructionFromPayload(dropTarget, source, location);
 
           // if instruction is make child the set parentId as current dropTarget Id or else set it as dropTarget's parentId
-          parentId = dropInstruction === "make-child" ? dropTargetData.id : dropTargetData.parentId;
+          parentId = (dropInstruction === "make-child" ? dropTargetData.id : dropTargetData.parentId) ?? null;
           // if instruction is any other than make-child, i.e., reorder-above and reorder-below then set the droppedId as dropTarget's id
           const droppedLabelId = dropInstruction !== "make-child" ? dropTargetData.id : undefined;
           // if instruction is to reorder-below that is enabled only for end of the last items in the list then dropAtEndOfList as true
           if (dropInstruction === "reorder-below") dropAtEndOfList = true;
 
-          const sourceData = source.data as TargetData;
+          const sourceData = getDragTargetData(source.data);
           if (sourceData.id) onDrop(sourceData.id, parentId, droppedLabelId, dropAtEndOfList);
         },
       })

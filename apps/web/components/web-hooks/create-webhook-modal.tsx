@@ -17,6 +17,7 @@ import { WebhookForm } from "./form";
 import { GeneratedHookDetails } from "./generated-hook-details";
 // utils
 import { getCurrentHookAsCSV } from "./utils";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 interface ICreateWebhookModal {
   currentWorkspace: IWorkspace | null;
@@ -79,11 +80,11 @@ export function CreateWebhookModal(props: ICreateWebhookModal) {
         const csvData = getCurrentHookAsCSV(currentWorkspace, webHook, secretKey ?? undefined);
         csvDownload(csvData, `webhook-secret-key-${Date.now()}`);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         setToast({
           type: "error",
           title: t("workspace_settings.settings.webhooks.toasts.not_created.title"),
-          message: error?.error ?? t("workspace_settings.settings.webhooks.toasts.not_created.message"),
+          message: getApiErrorMessage(error) ?? t("workspace_settings.settings.webhooks.toasts.not_created.message"),
         });
       });
   };

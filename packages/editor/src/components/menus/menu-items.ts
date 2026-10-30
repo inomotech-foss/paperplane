@@ -57,8 +57,8 @@ import {
   unsetLinkEditor,
 } from "@/helpers/editor-commands";
 // types
-import type { TCommandWithProps, TEditorCommands } from "@/types";
-type TMenuItemParams = { [K in TEditorCommands]: TCommandWithProps<K> };
+import type { TCommandParams, TEditorCommands, TToolbarItemCommand } from "@/types";
+type TMenuItemParams = TCommandParams;
 type isActiveFunction<T extends TEditorCommands> = (params?: TMenuItemParams[T]) => boolean;
 type commandFunction<T extends TEditorCommands> = (params?: TMenuItemParams[T]) => void;
 
@@ -85,6 +85,22 @@ export const executeEditorMenuItem = <K extends TEditorCommands>(
   item.command(params);
   return true;
 };
+
+/** Runs a toolbar item's command with its own extra props. */
+export const executeToolbarMenuItem = <K extends TEditorCommands>(
+  items: TEditorMenuItems,
+  item: TToolbarItemCommand<K>
+): boolean => {
+  const menuItem = items[item.itemKey];
+  if (!menuItem) return false;
+  menuItem.command(item.extraProps);
+  return true;
+};
+
+export const isToolbarMenuItemActive = <K extends TEditorCommands>(
+  items: TEditorMenuItems,
+  item: TToolbarItemCommand<K>
+): boolean => items[item.itemKey]?.isActive(item.extraProps) ?? false;
 
 export const isEditorMenuItemActive = <K extends TEditorCommands>(
   items: TEditorMenuItems,

@@ -24,6 +24,7 @@ import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserProfile, useUserSettings } from "@/hooks/store/user";
 // services
 import { WorkspaceService } from "@/services/workspace.service";
+import { getField } from "@/helpers/guard.helper";
 
 type Props = {
   stepChange: (steps: Partial<TOnboardingSteps>) => Promise<void>;
@@ -64,8 +65,8 @@ export const CreateWorkspace = observer(function CreateWorkspace(props: Props) {
     if (isSubmitting) return;
 
     try {
-      const res = await workspaceService.workspaceSlugCheck(formData.slug);
-      if (res?.status === true && !RESTRICTED_URLS.includes(formData.slug)) {
+      const res: unknown = await workspaceService.workspaceSlugCheck(formData.slug);
+      if (getField(res, "status") === true && !RESTRICTED_URLS.includes(formData.slug)) {
         setSlugError(false);
         const workspaceResponse = await createWorkspace(formData);
         setToast({

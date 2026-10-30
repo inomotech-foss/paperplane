@@ -12,6 +12,7 @@ import type {
   TFilterProperty,
   TSingleSelectFilterFieldConfig,
   TFilterConditionNodeForDisplay,
+  TFilterValue,
 } from "@plane/types";
 import { useTranslation } from "@plane/i18n";
 import { Select } from "@plane/blocks/select";
@@ -22,10 +23,10 @@ import { SelectedOptionsDisplay } from "./selected-options-display";
 import { loadOptions } from "./shared";
 
 type TSingleSelectFilterValueInputProps<P extends TFilterProperty> = {
-  config: TSingleSelectFilterFieldConfig<string>;
-  condition: TFilterConditionNodeForDisplay<P, string>;
+  config: TSingleSelectFilterFieldConfig<TFilterValue>;
+  condition: TFilterConditionNodeForDisplay<P, TFilterValue>;
   isDisabled?: boolean;
-  onChange: (value: string | null) => void;
+  onChange: (value: TFilterValue) => void;
 };
 
 export const SingleSelectFilterValueInput = observer(function SingleSelectFilterValueInput<P extends TFilterProperty>(
@@ -35,11 +36,11 @@ export const SingleSelectFilterValueInput = observer(function SingleSelectFilter
   // plane hooks
   const { t } = useTranslation();
   // states
-  const [options, setOptions] = useState<IFilterOption<string>[]>([]);
+  const [options, setOptions] = useState<IFilterOption<TFilterValue>[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   // derived values
   // Ruling 46: a value whose option has not loaded yet still resolves to a stand-in keyed by it.
-  const selectedOption = useMemo<IFilterOption<string> | null>(() => {
+  const selectedOption = useMemo<IFilterOption<TFilterValue> | null>(() => {
     const [currentValue] = toFilterArray(condition.value).map(String);
     if (!currentValue) return null;
     return (
@@ -65,11 +66,11 @@ export const SingleSelectFilterValueInput = observer(function SingleSelectFilter
 
   return (
     <div className={cn("flex min-w-0", !isDisabled && COMMON_FILTER_ITEM_BORDER_CLASSNAME)}>
-      <Select<IFilterOption<string>>
+      <Select<IFilterOption<TFilterValue>>
         getValues={() => options}
         value={selectedOption}
         onChange={handleSelectChange}
-        getOptionValue={(option) => option.value}
+        getOptionValue={(option) => String(option.value)}
         getOptionLabel={(option) => option.label}
         getOptionIcon={(option) =>
           option.icon ? <span className={cn("shrink-0", option.iconClassName)}>{option.icon}</span> : undefined
@@ -82,7 +83,7 @@ export const SingleSelectFilterValueInput = observer(function SingleSelectFilter
       >
         {/* A flat segment of the filter chip, like the operator segment beside it. */}
         <Select.Trigger variant="select-ghost-md" appendIcon={null} className="h-full min-h-0 rounded-none">
-          <SelectedOptionsDisplay<string> selectedValue={condition.value} options={options} displayCount={1} />
+          <SelectedOptionsDisplay<TFilterValue> selectedValue={condition.value} options={options} displayCount={1} />
         </Select.Trigger>
       </Select>
     </div>

@@ -14,6 +14,8 @@ import { TextArea, TextAreaGroup } from "@makeplane/propel/components/text-area"
 import { EmojiPicker, Logo } from "@plane/blocks/emoji-icon-picker";
 import { setToast } from "@plane/blocks/toast";
 import type { TIssueType, TLogoProps } from "@plane/types";
+import { getLogoPropsFromPicker } from "@/components/common/logo-props";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 const DEFAULT_LOGO_PROPS: TLogoProps = {
   in_use: "icon",
@@ -70,7 +72,7 @@ export const CreateUpdateIssueTypeForm = observer(function CreateUpdateIssueType
         type: "error",
         title: t("common.error.label"),
         message:
-          (error as { error?: string })?.error ??
+          getApiErrorMessage(error) ??
           t(
             isUpdating
               ? "work_item_types.update.toast.error.message.default"
@@ -99,12 +101,8 @@ export const CreateUpdateIssueTypeForm = observer(function CreateUpdateIssueType
           className="flex items-center justify-center"
           buttonClassName="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-sm border border-subtle bg-surface-2"
           label={<Logo logo={logoProps} size={18} />}
-          // TODO: fix types
-          onChange={(val: any) => {
-            let logoValue = {};
-            if (val?.type === "emoji") logoValue = { value: val.value };
-            else if (val?.type === "icon") logoValue = val.value;
-            setLogoProps({ in_use: val?.type, [val?.type]: logoValue } as TLogoProps);
+          onChange={(val) => {
+            setLogoProps(getLogoPropsFromPicker(val));
             setIsLogoPickerOpen(false);
           }}
           defaultIconColor={logoProps?.in_use === "icon" ? logoProps?.icon?.color : undefined}

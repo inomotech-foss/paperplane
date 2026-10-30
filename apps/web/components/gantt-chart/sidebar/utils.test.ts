@@ -3,8 +3,10 @@
  * See the LICENSE file for details.
  */
 
+import type { Mock } from "vitest";
 import { describe, expect, it, vi } from "vitest";
 import type { IGanttBlock } from "@plane/types";
+import type { TGanttBlockUpdateHandler } from "../types";
 import { getSiblingDrop, getSortOrderAt, handleOrderChange } from "./utils";
 
 // a > (a1 > a1x), a2; b; c, flattened depth first as the timeline renders it
@@ -74,27 +76,40 @@ describe("getSortOrderAt", () => {
 });
 
 describe("handleOrderChange", () => {
-  const getBlockById = (id: string) => ({ id, sort_order: SORT_ORDER[id], data: { id } }) as unknown as IGanttBlock;
+  const getBlockById = (id: string): IGanttBlock => ({
+    id,
+    name: id,
+    sort_order: SORT_ORDER[id],
+    start_date: undefined,
+    target_date: undefined,
+    data: { id },
+  });
+
+  const expectUpdate = (update: Mock<TGanttBlockUpdateHandler>, id: string, newSortOrder: number) => {
+    const call = update.mock.lastCall;
+    expect(call?.[0]).toEqual({ id });
+    expect(call?.[1].sort_order?.newSortOrder).toBe(newSortOrder);
+  };
 
   it("computes the sort order from siblings in a list of mixed depths", () => {
-    const update = vi.fn();
+    const update = vi.fn<TGanttBlockUpdateHandler>();
     // c between a and b: a1, a1x and a2 sit in between but belong to a
     handleOrderChange("c", "b", false, ROWS, getBlockById, update, getParentId);
-    expect(update).toHaveBeenCalledWith({ id: "c" }, { sort_order: expect.objectContaining({ newSortOrder: 1500 }) });
+    expectUpdate(update, "c", 1500);
 
     update.mockClear();
     // a1 to the bottom of a's group: a1x sits right above b but is a grandchild
     handleOrderChange("a1", "b", false, ROWS, getBlockById, update, getParentId);
-    expect(update).toHaveBeenCalledWith({ id: "a1" }, { sort_order: expect.objectContaining({ newSortOrder: 7000 }) });
+    expectUpdate(update, "a1", 7000);
 
     update.mockClear();
     // a2 to the top of a's group: a sits right above a1 but is the parent
     handleOrderChange("a2", "a1", false, ROWS, getBlockById, update, getParentId);
-    expect(update).toHaveBeenCalledWith({ id: "a2" }, { sort_order: expect.objectContaining({ newSortOrder: 4000 }) });
+    expectUpdate(update, "a2", 4000);
   });
 
   it("does not update on a rejected drop", () => {
-    const update = vi.fn();
+    const update = vi.fn<TGanttBlockUpdateHandler>();
     handleOrderChange("b", "a1", false, ROWS, getBlockById, update, getParentId);
     handleOrderChange("a2", "c", true, ROWS, getBlockById, update, getParentId);
     expect(update).not.toHaveBeenCalled();

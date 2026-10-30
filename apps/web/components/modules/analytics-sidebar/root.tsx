@@ -294,7 +294,8 @@ export const ModuleAnalyticsSidebar = observer(function ModuleAnalyticsSidebar(p
                   getValues={() => MODULE_STATUS}
                   value={MODULE_STATUS.find((status) => status.value === value) ?? null}
                   onChange={(val) => {
-                    void submitChanges({ status: val as IModule["status"] });
+                    const status = MODULE_STATUS.find((option) => option.value === val)?.value;
+                    if (status) void submitChanges({ status });
                   }}
                   getOptionValue={(status) => status.value}
                   getOptionLabel={(status) => t(status.i18n_label)}

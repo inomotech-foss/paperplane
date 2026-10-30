@@ -15,6 +15,8 @@ import { isCommentEmpty } from "@plane/utils";
 import { STICKY_COLORS_LIST } from "@/components/editor/sticky-editor/color-palette";
 // hooks
 import { useSticky } from "@/hooks/use-stickies";
+import { getApiErrorMessage } from "@/helpers/error.helper";
+import { getField } from "@/helpers/guard.helper";
 
 export type TOperations = {
   create: (data?: Partial<TSticky>) => Promise<void>;
@@ -85,12 +87,12 @@ export const useStickyOperations = (props: TProps) => {
             title: t("stickies.toasts.created.title"),
             message: t("stickies.toasts.created.message"),
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error("Error in creating sticky:", error);
           setToast({
             type: "error",
             title: t("stickies.toasts.not_created.title"),
-            message: error?.data?.error ?? t("stickies.toasts.not_created.message"),
+            message: getApiErrorMessage(getField(error, "data")) ?? t("stickies.toasts.not_created.message"),
           });
         }
       },

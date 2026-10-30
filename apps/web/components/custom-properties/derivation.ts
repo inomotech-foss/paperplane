@@ -6,6 +6,7 @@
 
 import type {
   TIssueCustomProperty,
+  TIssueCustomPropertyDerivationConfig,
   TIssueCustomPropertyLookupConfig,
   TIssueCustomPropertyRollupConfig,
   TIssueCustomPropertyRollupFunction,
@@ -20,11 +21,21 @@ export const isComputedProperty = (property: TIssueCustomProperty | null | undef
 export const isWorkItemReferenceProperty = (property: TIssueCustomProperty | null | undefined) =>
   property?.property_type === "RELATION" && property.relation_type === "ISSUE";
 
+const isRollupConfig = (config: TIssueCustomPropertyDerivationConfig): config is TIssueCustomPropertyRollupConfig =>
+  "function" in config && "scope" in config;
+
+const isLookupConfig = (config: TIssueCustomPropertyDerivationConfig): config is TIssueCustomPropertyLookupConfig =>
+  "source" in config && !isRollupConfig(config);
+
 export const getLookupConfig = (property: TIssueCustomProperty) =>
-  property.derivation === "LOOKUP" ? (property.derivation_config as TIssueCustomPropertyLookupConfig) : undefined;
+  property.derivation === "LOOKUP" && isLookupConfig(property.derivation_config)
+    ? property.derivation_config
+    : undefined;
 
 export const getRollupConfig = (property: TIssueCustomProperty) =>
-  property.derivation === "ROLLUP" ? (property.derivation_config as TIssueCustomPropertyRollupConfig) : undefined;
+  property.derivation === "ROLLUP" && isRollupConfig(property.derivation_config)
+    ? property.derivation_config
+    : undefined;
 
 export const ROLLUP_BUILTIN_SOURCES = ["items", "start_date", "target_date"] as const;
 

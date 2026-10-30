@@ -21,7 +21,6 @@ import {
 } from "@makeplane/propel/icons";
 // plane imports
 import { EUserPermissionsLevel } from "@plane/constants";
-import type { ICycle, IModule, IPartialProject, IProjectView, IWorkspace } from "@plane/types";
 import { EUserProjectRoles, EUserWorkspaceRoles } from "@plane/types";
 // components
 import type { TPowerKCommandConfig, TPowerKContext } from "@/components/power-k/core/types";
@@ -31,6 +30,7 @@ import { isProjectFeatureEnabled } from "@/components/settings/project/work-item
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
 import { getProjectUrl } from "@/components/project/features/features";
+import { getStringField } from "@/helpers/guard.helper";
 
 export type TPowerKNavigationCommandKeys =
   | "open_workspace"
@@ -101,8 +101,9 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "ow",
       page: "open-workspace",
       onSelect: (data, ctx) => {
-        const workspaceDetails = data as IWorkspace;
-        handlePowerKNavigate(ctx, [workspaceDetails.slug]);
+        const workspaceSlug = getStringField(data, "slug");
+        if (!workspaceSlug) return;
+        handlePowerKNavigate(ctx, [workspaceSlug]);
       },
       isEnabled: (ctx) => baseWorkspaceConditions(ctx),
       isVisible: (ctx) => baseWorkspaceConditions(ctx),
@@ -164,9 +165,9 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "op",
       page: "open-project",
       onSelect: (data, ctx) => {
-        const projectDetails = data as IPartialProject;
+        const projectId = getStringField(data, "id");
         const workspaceSlug = ctx.params.workspaceSlug?.toString();
-        if (workspaceSlug) ctx.router.push(getProjectUrl(workspaceSlug, projectDetails.id));
+        if (workspaceSlug && projectId) ctx.router.push(getProjectUrl(workspaceSlug, projectId));
       },
       isEnabled: (ctx) => baseWorkspaceConditions(ctx),
       isVisible: (ctx) => baseWorkspaceConditions(ctx),
@@ -277,7 +278,8 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "os",
       page: "open-workspace-setting",
       onSelect: (data, ctx) => {
-        const settingsHref = data as string;
+        if (typeof data !== "string") return;
+        const settingsHref = data;
         handlePowerKNavigate(ctx, [ctx.params.workspaceSlug?.toString(), settingsHref]);
       },
       isEnabled: (ctx) => baseWorkspaceConditions(ctx) && !baseProjectConditions(ctx),
@@ -323,13 +325,14 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "oc",
       page: "open-project-cycle",
       onSelect: (data, ctx) => {
-        const cycleDetails = data as ICycle;
+        const cycleDetailsId = getStringField(data, "id");
+        if (!cycleDetailsId) return;
         handlePowerKNavigate(ctx, [
           ctx.params.workspaceSlug?.toString(),
           "projects",
           ctx.params.projectId?.toString(),
           "cycles",
-          cycleDetails.id,
+          cycleDetailsId,
         ]);
       },
       isEnabled: (ctx) =>
@@ -375,13 +378,14 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "om",
       page: "open-project-module",
       onSelect: (data, ctx) => {
-        const moduleDetails = data as IModule;
+        const moduleDetailsId = getStringField(data, "id");
+        if (!moduleDetailsId) return;
         handlePowerKNavigate(ctx, [
           ctx.params.workspaceSlug?.toString(),
           "projects",
           ctx.params.projectId?.toString(),
           "modules",
-          moduleDetails.id,
+          moduleDetailsId,
         ]);
       },
       isEnabled: (ctx) =>
@@ -427,13 +431,14 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "ov",
       page: "open-project-view",
       onSelect: (data, ctx) => {
-        const viewDetails = data as IProjectView;
+        const viewDetailsId = getStringField(data, "id");
+        if (!viewDetailsId) return;
         handlePowerKNavigate(ctx, [
           ctx.params.workspaceSlug?.toString(),
           "projects",
           ctx.params.projectId?.toString(),
           "views",
-          viewDetails.id,
+          viewDetailsId,
         ]);
       },
       isEnabled: (ctx) =>
@@ -526,7 +531,8 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "os",
       page: "open-project-setting",
       onSelect: (data, ctx) => {
-        const settingsHref = data as string;
+        if (typeof data !== "string") return;
+        const settingsHref = data;
         handlePowerKNavigate(ctx, [
           ctx.params.workspaceSlug?.toString(),
           "settings",

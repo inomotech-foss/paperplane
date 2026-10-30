@@ -30,7 +30,7 @@ export const ViewFiltersSelection = observer(function ViewFiltersSelection(props
 
   // handles filter update
   const handleFilters = (key: keyof TViewFilterProps, value: boolean | string | EViewAccess | string[]) => {
-    const currValues = (filters.filters?.[key] ?? []) as (string | EViewAccess)[];
+    const currValues: (string | EViewAccess)[] | boolean = filters.filters?.[key] ?? [];
 
     if (typeof currValues === "boolean" && typeof value === "boolean") return;
 

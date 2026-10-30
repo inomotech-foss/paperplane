@@ -10,7 +10,6 @@ import { INBOX_ISSUE_ORDER_BY_OPTIONS, INBOX_ISSUE_SORT_BY_OPTIONS } from "@plan
 import { useTranslation } from "@plane/i18n";
 import { Button as ButtonElement } from "@makeplane/propel/elements/button";
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@makeplane/propel/components/menu";
-import type { TInboxIssueSortingOrderByKeys, TInboxIssueSortingSortByKeys } from "@plane/types";
 // hooks
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 import useSize from "@/hooks/use-window-size";
@@ -56,7 +55,7 @@ export const InboxIssueOrderByDropdown = observer(function InboxIssueOrderByDrop
             key={option.key}
             label={t(option.i18n_label)}
             selected={!!inboxSorting?.order_by?.includes(option.key)}
-            onClick={() => handleInboxIssueSorting("order_by", option.key as TInboxIssueSortingOrderByKeys)}
+            onClick={() => handleInboxIssueSorting("order_by", option.key)}
           />
         ))}
         <MenuSeparator />
@@ -65,7 +64,7 @@ export const InboxIssueOrderByDropdown = observer(function InboxIssueOrderByDrop
             key={option.key}
             label={t(option.i18n_label)}
             selected={!!inboxSorting?.sort_by?.includes(option.key)}
-            onClick={() => handleInboxIssueSorting("sort_by", option.key as TInboxIssueSortingSortByKeys)}
+            onClick={() => handleInboxIssueSorting("sort_by", option.key)}
           />
         ))}
       </MenuContent>

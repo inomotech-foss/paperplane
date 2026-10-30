@@ -11,6 +11,7 @@ import type { IState, TStateGroups, TStateOperationsCallbacks } from "@plane/typ
 import { cn } from "@plane/utils";
 // components
 import { GroupItem } from "@/components/project-states";
+import { isStateGroup } from "@/helpers/guard.helper";
 
 type TGroupList = {
   groupedStates: Record<string, IState[]>;
@@ -58,9 +59,8 @@ export const GroupList = observer(function GroupList(props: TGroupList) {
   };
   return (
     <div className={cn("space-y-5", groupListClassName)}>
-      {Object.entries(groupedStates).map(([key, value]) => {
-        const groupKey = key as TStateGroups;
-        const groupStates = value;
+      {Object.entries(groupedStates).map(([groupKey, groupStates]) => {
+        if (!isStateGroup(groupKey)) return null;
         return (
           <GroupItem
             key={groupKey}

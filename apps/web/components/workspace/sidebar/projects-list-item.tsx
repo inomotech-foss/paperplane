@@ -49,6 +49,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 // local imports
 import { HIGHLIGHT_CLASS, highlightIssueOnDrop } from "../../issues/issue-layouts/utils";
 import { ProjectNavigation } from "./project-navigation";
+import { getDragDataId } from "@/components/common/drag-target-data";
 
 type Props = {
   projectId: string;
@@ -205,8 +206,8 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
             : undefined;
           if (!currentInstruction) return;
 
-          const sourceId = source?.data?.id as string | undefined;
-          const destinationId = self?.data?.id as string | undefined;
+          const sourceId = getDragDataId(source.data);
+          const destinationId = getDragDataId(self.data);
 
           handleOnProjectDrop?.(sourceId, destinationId, currentInstruction === "DRAG_BELOW");
 

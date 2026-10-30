@@ -30,6 +30,7 @@ import { useModule } from "@/hooks/store/use-module";
 import { useUserPermissions, useUserProfile } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   moduleId: string;
@@ -120,11 +121,11 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
           message: "Module updated successfully.",
         });
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: "Error!",
-          message: err?.detail ?? "Module could not be updated. Please try again.",
+          message: getStringField(err, "detail") ?? "Module could not be updated. Please try again.",
         });
       });
   };

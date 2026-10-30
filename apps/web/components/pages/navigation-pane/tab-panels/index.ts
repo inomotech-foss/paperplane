@@ -45,3 +45,6 @@ export const ORDERED_PAGE_NAVIGATION_TABS_LIST: {
   PAGE_NAVIGATION_PANE_TABS_LIST.info,
   PAGE_NAVIGATION_PANE_TABS_LIST.assets,
 ];
+
+export const isPageNavigationPaneTab = (value: string | null): value is TPageNavigationPaneTab =>
+  value !== null && Object.hasOwn(PAGE_NAVIGATION_PANE_TABS_LIST, value);

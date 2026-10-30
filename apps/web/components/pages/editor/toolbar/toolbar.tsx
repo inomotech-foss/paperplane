@@ -33,19 +33,13 @@ type ToolbarItemProps = {
   isActive: boolean;
   // insert actions (table, image, attachment) are plain buttons, not pressed-state toggles
   isInsertAction: boolean;
-  executeCommand: EditorRefApi["executeMenuItemCommand"];
+  executeCommand: EditorRefApi["executeToolbarItem"];
 };
 
 const ToolbarItem = React.memo(function ToolbarItem(props: ToolbarItemProps) {
   const { item, isActive, isInsertAction, executeCommand } = props;
 
-  const handleClick = () =>
-    // TODO: update this while toolbar homogenization
-    // @ts-expect-error type mismatch here
-    executeCommand({
-      itemKey: item.itemKey,
-      ...item.extraProps,
-    });
+  const handleClick = () => executeCommand(item);
   const icon = <Icon icon={item.icon} />;
 
   return (
@@ -71,12 +65,7 @@ export function PageToolbar(props: Props) {
     Object.values(toolbarItems)
       .flat()
       .forEach((item) => {
-        // TODO: update this while toolbar homogenization
-        // @ts-expect-error type mismatch here
-        initialStates[item.renderKey] = editorRef.isMenuItemActive({
-          itemKey: item.itemKey,
-          ...item.extraProps,
-        });
+        initialStates[item.renderKey] = editorRef.isToolbarItemActive(item);
       });
     return initialStates;
   });
@@ -86,12 +75,7 @@ export function PageToolbar(props: Props) {
     Object.values(toolbarItems)
       .flat()
       .forEach((item) => {
-        // TODO: update this while toolbar homogenization
-        // @ts-expect-error type mismatch here
-        newActiveStates[item.renderKey] = editorRef.isMenuItemActive({
-          itemKey: item.itemKey,
-          ...item.extraProps,
-        });
+        newActiveStates[item.renderKey] = editorRef.isToolbarItemActive(item);
       });
     setActiveStates(newActiveStates);
   }, [editorRef]);
@@ -101,12 +85,7 @@ export function PageToolbar(props: Props) {
     return () => unsubscribe();
   }, [editorRef, updateActiveStates]);
 
-  const activeTypography = TYPOGRAPHY_ITEMS.find((item) =>
-    editorRef.isMenuItemActive({
-      itemKey: item.itemKey,
-      ...item.extraProps,
-    })
-  );
+  const activeTypography = TYPOGRAPHY_ITEMS.find((item) => editorRef.isToolbarItemActive(item));
 
   return (
     <TooltipProvider>
@@ -123,10 +102,7 @@ export function PageToolbar(props: Props) {
                   selected={activeTypography?.itemKey === item.itemKey}
                   onClick={() => {
                     if (activeTypography?.itemKey !== item.itemKey) {
-                      editorRef.executeMenuItemCommand({
-                        itemKey: item.itemKey,
-                        ...item.extraProps,
-                      });
+                      editorRef.executeToolbarItem(item);
                     }
                   }}
                 />
@@ -158,7 +134,7 @@ export function PageToolbar(props: Props) {
                     item={item}
                     isActive={activeStates[item.renderKey]}
                     isInsertAction={key === "complex"}
-                    executeCommand={editorRef.executeMenuItemCommand}
+                    executeCommand={editorRef.executeToolbarItem}
                   />
                 ))}
               </ToolbarGroup>

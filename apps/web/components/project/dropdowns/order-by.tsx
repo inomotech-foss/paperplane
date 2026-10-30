@@ -20,6 +20,19 @@ type Props = {
 
 const DISABLED_ORDERING_OPTIONS = new Set(["sort_order"]);
 
+const ORDER_BY_VALUES = [
+  "sort_order",
+  "name",
+  "-name",
+  "created_at",
+  "-created_at",
+  "members_length",
+  "-members_length",
+] as const satisfies readonly TProjectOrderByOptions[];
+
+const isProjectOrderBy = (value: string): value is TProjectOrderByOptions =>
+  ORDER_BY_VALUES.some((option) => option === value);
+
 export function ProjectOrderByDropdown(props: Props) {
   const { onChange, value, isMobile = false } = props;
   const { t } = useTranslation();
@@ -49,8 +62,9 @@ export function ProjectOrderByDropdown(props: Props) {
             label={t(option.i18n_label)}
             selected={!!value?.includes(option.key)}
             onClick={() => {
-              if (isDescending)
-                onChange(option.key == "sort_order" ? option.key : (`-${option.key}` as TProjectOrderByOptions));
+              const descendingKey = `-${option.key}`;
+              if (isDescending && option.key !== "sort_order" && isProjectOrderBy(descendingKey))
+                onChange(descendingKey);
               else onChange(option.key);
             }}
           />
@@ -61,7 +75,8 @@ export function ProjectOrderByDropdown(props: Props) {
           selected={!isOrderingDisabled && !isDescending}
           disabled={isOrderingDisabled}
           onClick={() => {
-            if (isDescending) onChange(value.slice(1) as TProjectOrderByOptions);
+            const ascendingKey = value?.slice(1);
+            if (isDescending && ascendingKey && isProjectOrderBy(ascendingKey)) onChange(ascendingKey);
           }}
         />
         <MenuItem
@@ -69,7 +84,8 @@ export function ProjectOrderByDropdown(props: Props) {
           selected={!isOrderingDisabled && isDescending}
           disabled={isOrderingDisabled}
           onClick={() => {
-            if (!isDescending) onChange(`-${value}` as TProjectOrderByOptions);
+            const descendingKey = `-${value}`;
+            if (!isDescending && isProjectOrderBy(descendingKey)) onChange(descendingKey);
           }}
         />
       </MenuContent>

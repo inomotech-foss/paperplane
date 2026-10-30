@@ -43,7 +43,7 @@ export const CreateUpdateProjectViewModal = observer(function CreateUpdateProjec
     onClose();
   };
 
-  const handleCreateView = async (payload: IProjectView) => {
+  const handleCreateView = async (payload: Partial<IProjectView>) => {
     try {
       const res = await createView(workspaceSlug, projectId, payload);
       handleClose();
@@ -62,9 +62,9 @@ export const CreateUpdateProjectViewModal = observer(function CreateUpdateProjec
     }
   };
 
-  const handleUpdateView = async (payload: IProjectView) => {
+  const handleUpdateView = async (viewId: string, payload: Partial<IProjectView>) => {
     try {
-      const viewDetails = await updateView(workspaceSlug, projectId, data?.id as string, payload);
+      const viewDetails = await updateView(workspaceSlug, projectId, viewId, payload);
       mutateFilters(workspaceSlug, viewDetails.id, viewDetails);
       resetExpression(EIssuesStoreType.PROJECT_VIEW, viewDetails.id, viewDetails.rich_filters);
       handleClose();
@@ -77,9 +77,9 @@ export const CreateUpdateProjectViewModal = observer(function CreateUpdateProjec
     }
   };
 
-  const handleFormSubmit = async (formData: IProjectView) => {
+  const handleFormSubmit = async (formData: Partial<IProjectView>) => {
     if (!data) await handleCreateView(formData);
-    else await handleUpdateView(formData);
+    else await handleUpdateView(data.id, formData);
   };
 
   return (

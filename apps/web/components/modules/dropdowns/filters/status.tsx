@@ -14,7 +14,7 @@ import type { TModuleStatus } from "@plane/types";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 
 type Props = {
-  appliedFilters: TModuleStatus[] | null;
+  appliedFilters: string[] | null;
   handleUpdate: (val: string) => void;
   searchQuery: string;
 };
@@ -27,6 +27,7 @@ export const FilterStatus = observer(function FilterStatus(props: Props) {
 
   const filteredOptions = MODULE_STATUS.filter((p) => p.value.includes(searchQuery.toLowerCase()));
   const appliedFiltersCount = appliedFilters?.length ?? 0;
+  const appliedFilterSet = new Set(appliedFilters);
 
   return (
     <>
@@ -41,7 +42,7 @@ export const FilterStatus = observer(function FilterStatus(props: Props) {
             filteredOptions.map((status) => (
               <FilterOption
                 key={status.value}
-                isChecked={appliedFilters?.includes(status.value) ? true : false}
+                isChecked={appliedFilterSet.has(status.value)}
                 onClick={() => handleUpdate(status.value)}
                 icon={<ModuleStatusIcon status={status.value} />}
                 title={t(status.i18n_label)}

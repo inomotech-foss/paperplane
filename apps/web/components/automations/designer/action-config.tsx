@@ -10,7 +10,6 @@ import { useParams } from "next/navigation";
 import { useTranslation } from "@plane/i18n";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
 import type {
-  TAddCommentConfig,
   TAutomationActionConfig,
   TAutomationActionType,
   TAutomationChangeType,
@@ -28,7 +27,16 @@ import { Switch } from "@makeplane/propel/components/switch";
 import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
 // hooks
 import { useProjectIssueTypes } from "@/hooks/use-preselected-issue-type";
+import { toStringArray } from "@/helpers/narrow.helper";
 // local imports
+import {
+  getCommentHtml,
+  isConditionValue,
+  toCallWebhookConfig,
+  toChangePropertyConfig,
+  toCreateWorkItemConfig,
+  toSendNotificationConfig,
+} from "../helpers/action-config";
 import { AutomationOptionSelect } from "../helpers/option-select";
 import { changeTypeLabelKey, findMutableProperty, usableMutableProperties } from "../helpers/metadata";
 import { AutomationValueInput } from "./value-input";
@@ -104,14 +112,14 @@ function ShiftDaysInput(props: TChangeValueProps) {
   );
 }
 
-const isRelativeDate = (value: TAutomationDateValue | undefined): value is Exclude<TAutomationDateValue, string> =>
-  typeof value === "object" && value !== null && value.mode === "relative";
+const isRelativeDate = (value: TChangePropertyConfig["value"]): value is Exclude<TAutomationDateValue, string> =>
+  typeof value === "object" && value !== null && !Array.isArray(value) && value.mode === "relative";
 
 /** A date property: either an absolute date or a number of days from the run. */
 function DateValueEditor(props: TChangeValueProps) {
   const { typed, onChange, disabled } = props;
   const { t } = useTranslation();
-  const dateValue = typed.value as TAutomationDateValue | undefined;
+  const dateValue = typed.value;
   const relativeMode = isRelativeDate(dateValue);
   const modeLabelKey = relativeMode
     ? "automations.action.configuration.relative_date.mode_relative"
@@ -190,7 +198,7 @@ function ChangePropertyValueEditor(
       source={definition.source}
       multiple={definition.kind === "multi_option"}
       value={typed.value}
-      onChange={(value) => onChange({ ...typed, value: value as TChangePropertyConfig["value"] })}
+      onChange={(value) => onChange({ ...typed, value: isConditionValue(value) ? value : undefined })}
       disabled={disabled}
     />
   );
@@ -200,7 +208,7 @@ function ChangePropertyValueEditor(
 const ChangePropertyConfig = observer(function ChangePropertyConfig(props: ConfigProps) {
   const { projectId, scope, metadata, config, onChange, disabled } = props;
   const { t } = useTranslation();
-  const typed = config as TChangePropertyConfig;
+  const typed = toChangePropertyConfig(config);
 
   const properties = usableMutableProperties(metadata, scope);
   const definition = findMutableProperty(metadata, typed.property);
@@ -209,7 +217,7 @@ const ChangePropertyConfig = observer(function ChangePropertyConfig(props: Confi
 
   const handlePropertyChange = (propertyKey: string) => {
     const nextDefinition = findMutableProperty(metadata, propertyKey);
-    const nextChangeType = (nextDefinition?.change_types[0] ?? "set") as TAutomationChangeType;
+    const nextChangeType = nextDefinition?.change_types[0] ?? "set";
     onChange({ property: propertyKey, change_type: nextChangeType, value: undefined });
   };
 
@@ -276,12 +284,11 @@ const ChangePropertyConfig = observer(function ChangePropertyConfig(props: Confi
 const AddCommentConfig = observer(function AddCommentConfig(props: ConfigProps) {
   const { config, onChange, disabled, metadata } = props;
   const { t } = useTranslation();
-  const typed = config as TAddCommentConfig;
 
   return (
     <div className="flex flex-col gap-2">
       <textarea
-        value={typed.comment_html ?? ""}
+        value={getCommentHtml(config)}
         onChange={(event) => onChange({ comment_html: event.target.value })}
         disabled={disabled}
         rows={4}
@@ -297,8 +304,8 @@ const AddCommentConfig = observer(function AddCommentConfig(props: ConfigProps) 
 const SendNotificationConfig = observer(function SendNotificationConfig(props: ConfigProps) {
   const { projectId, metadata, config, onChange, disabled } = props;
   const { t } = useTranslation();
-  const typed = config as TSendNotificationConfig;
-  const recipients = typed.recipients ?? [];
+  const typed = toSendNotificationConfig(config);
+  const recipients = typed.recipients;
   // Set membership, so the button loop below doesn't rescan the list per item.
   const selectedRecipients = new Set(recipients);
 
@@ -343,7 +350,7 @@ const SendNotificationConfig = observer(function SendNotificationConfig(props: C
             source="members"
             multiple
             value={typed.member_ids ?? []}
-            onChange={(value) => onChange({ ...typed, member_ids: value as string[] })}
+            onChange={(value) => onChange({ ...typed, member_ids: toStringArray(value) })}
             disabled={disabled}
           />
         </div>
@@ -401,7 +408,7 @@ function CreateWorkItemProjectField(props: TCreateFieldProps) {
           // Changing project invalidates any state/assignee/label already chosen.
           onChange({
             ...typed,
-            project_id: (value as string) ?? undefined,
+            project_id: typeof value === "string" ? value : undefined,
             type_id: undefined,
             state_id: undefined,
             assignee_ids: [],
@@ -496,7 +503,7 @@ function CreateWorkItemPickers(props: TCreateFieldProps & { targetProjectId?: st
               source="states"
               multiple={false}
               value={typed.state_id ?? null}
-              onChange={(value) => onChange({ ...typed, state_id: (value as string) ?? undefined })}
+              onChange={(value) => onChange({ ...typed, state_id: typeof value === "string" ? value : undefined })}
               disabled={disabled}
             />
           </div>
@@ -508,7 +515,7 @@ function CreateWorkItemPickers(props: TCreateFieldProps & { targetProjectId?: st
             source="priorities"
             multiple={false}
             value={typed.priority ?? null}
-            onChange={(value) => onChange({ ...typed, priority: (value as string) ?? undefined })}
+            onChange={(value) => onChange({ ...typed, priority: typeof value === "string" ? value : undefined })}
             disabled={disabled}
           />
         </div>
@@ -523,7 +530,7 @@ function CreateWorkItemPickers(props: TCreateFieldProps & { targetProjectId?: st
             source="members"
             multiple
             value={typed.assignee_ids ?? []}
-            onChange={(value) => onChange({ ...typed, assignee_ids: value as string[] })}
+            onChange={(value) => onChange({ ...typed, assignee_ids: toStringArray(value) })}
             disabled={disabled}
           />
         </div>
@@ -536,7 +543,7 @@ function CreateWorkItemPickers(props: TCreateFieldProps & { targetProjectId?: st
               source="labels"
               multiple
               value={typed.label_ids ?? []}
-              onChange={(value) => onChange({ ...typed, label_ids: value as string[] })}
+              onChange={(value) => onChange({ ...typed, label_ids: toStringArray(value) })}
               disabled={disabled}
             />
           </div>
@@ -578,7 +585,7 @@ function CreateWorkItemDueField(props: TCreateFieldProps) {
 const CreateWorkItemConfig = observer(function CreateWorkItemConfig(props: ConfigProps) {
   const { projectId, scope, metadata, config, onChange, disabled } = props;
   const { t } = useTranslation();
-  const typed = config as TCreateWorkItemConfig;
+  const typed = toCreateWorkItemConfig(config);
   const fieldProps = { typed, onChange, disabled };
 
   // A workspace rule has no implicit project, so the author picks one. Until they
@@ -616,7 +623,7 @@ const CreateWorkItemConfig = observer(function CreateWorkItemConfig(props: Confi
 const CallWebhookConfig = observer(function CallWebhookConfig(props: ConfigProps) {
   const { config, onChange, disabled, metadata } = props;
   const { t } = useTranslation();
-  const typed = config as TCallWebhookConfig;
+  const typed = toCallWebhookConfig(config);
 
   return (
     <div className="flex flex-col gap-3">

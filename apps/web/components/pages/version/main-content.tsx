@@ -12,12 +12,13 @@ import { ShowOutline, WarningTriangleOutline } from "@makeplane/propel/icons";
 import { Button } from "@makeplane/propel/components/button";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { JSONContent, TPageVersion } from "@plane/types";
+import type { TPageVersion } from "@plane/types";
 import { isJSONContentEmpty, renderFormattedDate, renderFormattedTime } from "@plane/utils";
 // helpers
 import type { EPageStoreType } from "@/hooks/store";
 // local imports
 import { buildPageVersionDiff } from "./diff";
+import { toJSONContent } from "./json-content";
 import type { TVersionEditorProps } from "./editor";
 
 type Props = {
@@ -74,12 +75,12 @@ const useVersionDiff = (args: {
   // Both sides have to be in hand, or a still-loading fetch reads as a full rewrite.
   const diffContent = useMemo(() => {
     if (!isComparing || !versionDetails || !previousVersionDetails) return null;
-    const current = versionDetails.description_json as JSONContent | undefined;
+    const current = toJSONContent(versionDetails.description_json);
     if (isJSONContentEmpty(current)) return null;
-    return buildPageVersionDiff(previousVersionDetails.description_json as JSONContent | undefined, current);
+    return buildPageVersionDiff(toJSONContent(previousVersionDetails.description_json), current);
   }, [isComparing, previousVersionDetails, versionDetails]);
 
-  const compareEnabled = !!previousVersion && !isJSONContentEmpty(versionDetails?.description_json as JSONContent);
+  const compareEnabled = !!previousVersion && !isJSONContentEmpty(toJSONContent(versionDetails?.description_json));
 
   return { diffContent, compareEnabled };
 };
@@ -173,7 +174,7 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
     data: versionDetails,
     error: versionDetailsError,
     mutate: mutateVersionDetails,
-  } = useSWR(
+  } = useSWR<TPageVersion | undefined, unknown>(
     pageId && activeVersion ? `PAGE_VERSION_${activeVersion}` : null,
     pageId && activeVersion ? () => fetchVersionDetails(pageId, activeVersion) : null
   );

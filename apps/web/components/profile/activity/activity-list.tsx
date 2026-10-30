@@ -83,8 +83,8 @@ export const ActivityList = observer(function ActivityList(props: Props) {
                           id={activityItem.id}
                           initialValue={
                             activityItem?.new_value !== ""
-                              ? (activityItem.new_value?.toString() as string)
-                              : (activityItem.old_value?.toString() as string)
+                              ? (activityItem.new_value?.toString() ?? "")
+                              : (activityItem.old_value?.toString() ?? "")
                           }
                           containerClassName="text-11 bg-surface-1"
                           workspaceId={workspaceId}
@@ -99,9 +99,7 @@ export const ActivityList = observer(function ActivityList(props: Props) {
 
             const message =
               activityItem.verb === "created" &&
-              !["cycles", "modules", "attachment", "link", "estimate"].includes(
-                activityItem.field?.toString() as string
-              ) &&
+              !["cycles", "modules", "attachment", "link", "estimate"].includes(activityItem.field?.toString() ?? "") &&
               !activityItem.field ? (
                 <span>
                   created <IssueLink activity={activityItem} />

@@ -32,6 +32,7 @@ import { getTabIndex } from "@plane/utils";
 import { AccessField } from "@/components/common/access-field";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { getLogoPropsFromPicker } from "@/helpers/emoji.helper";
 
 type Props = {
   formData: Partial<TPage>;
@@ -101,20 +102,8 @@ export function PageForm(props: Props) {
                   </>
                 </span>
               }
-              onChange={(val: any) => {
-                let logoValue = {};
-
-                if (val?.type === "emoji")
-                  logoValue = {
-                    value: val.value,
-                    url: undefined,
-                  };
-                else if (val?.type === "icon") logoValue = val.value;
-
-                handleFormData("logo_props", {
-                  in_use: val?.type,
-                  [val?.type]: logoValue,
-                });
+              onChange={(val) => {
+                handleFormData("logo_props", getLogoPropsFromPicker(val));
                 setIsOpen(false);
               }}
               defaultIconColor={

@@ -28,6 +28,10 @@ type Props = {
 
 const DATE_FILTERS = new Set(["start_date", "end_date"]);
 
+const FILTER_KEYS = ["end_date", "start_date", "status"] as const satisfies readonly (keyof TCycleFilters)[];
+
+const isFilterKey = (key: string): key is keyof TCycleFilters => FILTER_KEYS.some((k) => k === key);
+
 export const CycleAppliedFiltersList = observer(function CycleAppliedFiltersList(props: Props) {
   const { appliedFilters, handleClearAllFilters, handleRemoveFilter, alwaysAllowEditing } = props;
   // store hooks
@@ -44,9 +48,8 @@ export const CycleAppliedFiltersList = observer(function CycleAppliedFiltersList
 
   return (
     <div className="flex flex-wrap items-stretch gap-2 bg-surface-1">
-      {Object.entries(appliedFilters).map(([key, value]) => {
-        const filterKey = key as keyof TCycleFilters;
-
+      {Object.entries(appliedFilters).map(([filterKey, value]) => {
+        if (!isFilterKey(filterKey)) return;
         if (!value) return;
         if (Array.isArray(value) && value.length === 0) return;
 

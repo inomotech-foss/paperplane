@@ -8,8 +8,7 @@ import React, { useState, useRef, useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { useDropzone } from "react-dropzone";
-import type { Control, FieldPath, FieldValues } from "react-hook-form";
-import { Controller } from "react-hook-form";
+import type { Control, FieldValues } from "react-hook-form";
 import useSWR from "swr";
 // plane imports
 import { Input, InputGroup } from "@makeplane/propel/components/input";
@@ -26,7 +25,11 @@ import { STATIC_COVER_IMAGES, getCoverImageDisplayURL } from "@/helpers/cover-im
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 // services
+import type { UnSplashImage } from "@/services/file.service";
 import { FileService } from "@/services/file.service";
+// local imports
+import { useObjectUrl } from "./use-object-url";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type TTabOption = {
   key: string;
@@ -52,7 +55,7 @@ type Props<TFieldValues extends FieldValues = FieldValues> = {
 const fileService = new FileService();
 
 function ImagePickerPopoverComponent<TFieldValues extends FieldValues = FieldValues>(props: Props<TFieldValues>) {
-  const { label, value, control, onChange, disabled = false, tabIndex, isProfileCover = false, projectId } = props;
+  const { label, value, onChange, disabled = false, tabIndex, isProfileCover = false, projectId } = props;
   // states
   const [image, setImage] = useState<File | null>(null);
   const [isImageUploading, setIsImageUploading] = useState(false);
@@ -90,7 +93,9 @@ function ImagePickerPopoverComponent<TFieldValues extends FieldValues = FieldVal
 
   const enabledTabs = useMemo(() => tabOptions.filter((tab) => tab.isEnabled), [tabOptions]);
 
-  const { data: unsplashImages, error: unsplashError } = useSWR(
+  const imagePreviewUrl = useObjectUrl(image);
+
+  const { data: unsplashImages, error: unsplashError } = useSWR<UnSplashImage[], unknown>(
     `UNSPLASH_IMAGES_${searchParams}`,
     () => fileService.getUnsplashImages(searchParams),
     {
@@ -137,11 +142,11 @@ function ImagePickerPopoverComponent<TFieldValues extends FieldValues = FieldVal
           image
         )
         .then((res) => uploadCallback(res.asset_url))
-        .catch((error) => {
+        .catch((error: unknown) => {
           console.error("Error uploading user cover image:", error);
           setIsImageUploading(false);
           setToast({
-            message: error?.error ?? "The image could not be uploaded",
+            message: getApiErrorMessage(error) ?? "The image could not be uploaded",
             type: "error",
             title: "Image not uploaded",
           });
@@ -158,11 +163,11 @@ function ImagePickerPopoverComponent<TFieldValues extends FieldValues = FieldVal
           image
         )
         .then((res) => uploadCallback(res.asset_url))
-        .catch((error) => {
+        .catch((error: unknown) => {
           console.error("Error uploading project cover image:", error);
           setIsImageUploading(false);
           setToast({
-            message: error?.error ?? "The image could not be uploaded",
+            message: getApiErrorMessage(error) ?? "The image could not be uploaded",
             type: "error",
             title: "Image not uploaded",
           });
@@ -217,30 +222,23 @@ function ImagePickerPopoverComponent<TFieldValues extends FieldValues = FieldVal
                           {(unsplashImages || !unsplashError) && (
                             <>
                               <div className="flex items-center gap-x-2">
-                                <Controller
-                                  control={control}
-                                  name={"search" as FieldPath<TFieldValues>}
-                                  render={({ field: { value, ref } }) => (
-                                    <InputGroup size="2xl">
-                                      <Input
-                                        size="2xl"
-                                        id="search"
-                                        name="search"
-                                        type="text"
-                                        onKeyDown={(e) => {
-                                          if (e.key === "Enter") {
-                                            e.preventDefault();
-                                            setSearchParams(formData.search);
-                                          }
-                                        }}
-                                        value={value}
-                                        onChange={(e) => setFormData({ ...formData, search: e.target.value })}
-                                        ref={ref}
-                                        placeholder="Search for images"
-                                      />
-                                    </InputGroup>
-                                  )}
-                                />
+                                <InputGroup size="2xl">
+                                  <Input
+                                    size="2xl"
+                                    id="search"
+                                    name="search"
+                                    type="text"
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        setSearchParams(formData.search);
+                                      }
+                                    }}
+                                    value={formData.search}
+                                    onChange={(e) => setFormData({ ...formData, search: e.target.value })}
+                                    placeholder="Search for images"
+                                  />
+                                </InputGroup>
                                 <Button
                                   variant="primary"
                                   size="lg"
@@ -306,7 +304,7 @@ function ImagePickerPopoverComponent<TFieldValues extends FieldValues = FieldVal
                             >
                               <img
                                 src={imageUrl}
-                                alt={`Cover image ${index + 1}`}
+                                alt={`Cover ${index + 1}`}
                                 className="absolute top-0 left-0 h-full w-full cursor-pointer rounded-sm object-cover transition-opacity hover:opacity-80"
                               />
                             </button>
@@ -333,8 +331,8 @@ function ImagePickerPopoverComponent<TFieldValues extends FieldValues = FieldVal
                               {image !== null || (value && value !== "") ? (
                                 <>
                                   <img
-                                    src={image ? URL.createObjectURL(image) : getCoverImageDisplayURL(value, "")}
-                                    alt="image"
+                                    src={image ? imagePreviewUrl : getCoverImageDisplayURL(value, "")}
+                                    alt="Selected cover"
                                     className="h-full w-full rounded-lg object-cover"
                                   />
                                 </>

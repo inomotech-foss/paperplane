@@ -6,6 +6,7 @@
 
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
+import type { FieldNamesMarkedBoolean } from "react-hook-form";
 // plane imports
 import { Field } from "@makeplane/propel/components/field";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
@@ -26,7 +27,10 @@ import { useUserProfile } from "@/hooks/store/user";
 import { useUser } from "@/hooks/store/user/user-user";
 
 type Props = {
-  handleFormSubmit: (values: Partial<IModule>, dirtyFields: any) => Promise<void>;
+  handleFormSubmit: (
+    values: Partial<IModule>,
+    dirtyFields: Partial<Readonly<FieldNamesMarkedBoolean<IModule>>>
+  ) => Promise<void>;
   handleClose: () => void;
   status: boolean;
   projectId: string;

@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { RefObject } from "react";
+import type { BaseSyntheticEvent, RefObject } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { ETabIndices } from "@plane/constants";
@@ -33,7 +33,7 @@ type TInboxIssueDescription = {
   data: Partial<TIssue>;
   handleData: (issueKey: keyof Partial<TIssue>, issueValue: Partial<TIssue>[keyof Partial<TIssue>]) => void;
   editorRef: RefObject<EditorRefApi | null>;
-  onEnterKeyPress?: (e?: any) => void;
+  onEnterKeyPress?: (e?: BaseSyntheticEvent) => void;
   onAssetUpload?: (assetId: string) => void;
 };
 

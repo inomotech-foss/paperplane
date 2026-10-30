@@ -22,6 +22,7 @@ import { useUser, useUserPermissions, useUserSettings } from "@/hooks/store/user
 import { useAppRouter } from "@/hooks/use-app-router";
 // plane web imports
 import { useMemberColumns } from "@/components/workspace/settings/useMemberColumns";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type Props = {
   memberDetails: (IWorkspaceMember | null)[];
@@ -51,11 +52,10 @@ export const WorkspaceMembersListItem = observer(function WorkspaceMembersListIt
       await fetchCurrentUserSettings();
       router.push(getWorkspaceRedirectionUrl());
     } catch (err: unknown) {
-      const error = err as { error?: string };
       setToast({
         type: "error",
         title: "Error!",
-        message: error?.error || t("something_went_wrong_please_try_again"),
+        message: getApiErrorMessage(err) || t("something_went_wrong_please_try_again"),
       });
     }
   };
@@ -66,11 +66,10 @@ export const WorkspaceMembersListItem = observer(function WorkspaceMembersListIt
     try {
       await removeMemberFromWorkspace(workspaceSlug.toString(), memberId);
     } catch (err: unknown) {
-      const error = err as { error?: string };
       setToast({
         type: "error",
         title: "Error!",
-        message: error?.error || t("something_went_wrong_please_try_again"),
+        message: getApiErrorMessage(err) || t("something_went_wrong_please_try_again"),
       });
     }
   };
@@ -107,9 +106,7 @@ export const WorkspaceMembersListItem = observer(function WorkspaceMembersListIt
       )}
       <DataTable<RowData>
         columns={columns ?? []}
-        data={
-          (memberDetails?.filter((member): member is IWorkspaceMember => member !== null) ?? []) as unknown as RowData[]
-        }
+        data={memberDetails?.filter((member): member is IWorkspaceMember => member !== null) ?? []}
         keyExtractor={(rowData) => rowData?.member.id ?? ""}
       />
     </div>

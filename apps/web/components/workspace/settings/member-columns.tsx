@@ -16,7 +16,7 @@ import { Icon } from "@makeplane/propel/components/icon";
 import { IconButton } from "@makeplane/propel/components/icon-button";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/components/menu";
 import { setToast } from "@plane/blocks/toast";
-import type { IUser, IWorkspaceMember } from "@plane/types";
+import type { IUser, IUserLite, IWorkspaceMember, TLoginMediums } from "@plane/types";
 // plane ui
 import { Select } from "@plane/blocks/select";
 // helpers
@@ -24,12 +24,12 @@ import { getFileURL } from "@plane/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
+import { getField } from "@/helpers/guard.helper";
 
-export interface RowData {
-  member: IWorkspaceMember;
-  role: EUserPermissions;
-  is_active: boolean;
-}
+// admins get the member's last login medium as well
+export type RowData = Omit<IWorkspaceMember, "member"> & {
+  member: IUserLite & { last_login_medium?: TLoginMediums };
+};
 
 type NameProps = {
   rowData: RowData;
@@ -159,8 +159,9 @@ export const AccountTypeColumn = observer(function AccountTypeColumn(props: Acco
                   updateMember(workspaceSlug.toString(), rowData.member.id, {
                     role: Number(val) as EUserPermissions,
                   }).catch((err: unknown) => {
-                    const error = err as { error?: string | string[] };
-                    const errorString = Array.isArray(error?.error) ? error.error[0] : error?.error;
+                    const errorField = getField(err, "error");
+                    const firstError: unknown = Array.isArray(errorField) ? errorField[0] : errorField;
+                    const errorString = typeof firstError === "string" ? firstError : undefined;
 
                     setToast({
                       type: "error",

@@ -4,6 +4,9 @@
  * See the LICENSE file for details.
  */
 
+import type { ChangeHandlerPayload } from "@plane/blocks/emoji-icon-picker";
+import type { TLogoProps } from "@plane/types";
+
 /**
  * Renders an emoji or icon
  * @param {string | { name: string; color: string }} emoji - The emoji or icon to render
@@ -27,3 +30,6 @@ export const renderEmoji = (
     );
   else return isNaN(parseInt(emoji)) ? emoji : String.fromCodePoint(parseInt(emoji));
 };
+
+export const getLogoPropsFromPicker = (value: ChangeHandlerPayload): TLogoProps =>
+  value.type === "emoji" ? { in_use: "emoji", emoji: { value: value.value } } : { in_use: "icon", icon: value.value };

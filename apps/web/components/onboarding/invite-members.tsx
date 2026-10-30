@@ -13,6 +13,7 @@ import type {
   UseFormGetValues,
   UseFormSetValue,
   UseFormWatch,
+  FieldErrors,
 } from "react-hook-form";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 // icons
@@ -36,6 +37,7 @@ import { cn } from "@plane/utils";
 import { WorkspaceService } from "@/services/workspace.service";
 // components
 import { SwitchAccountDropdown } from "./switch-account-dropdown";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type Props = {
   finishOnboarding: () => Promise<void>;
@@ -57,13 +59,13 @@ type FormValues = {
 type InviteMemberFormProps = {
   index: number;
   remove: UseFieldArrayRemove;
-  control: Control<FormValues, any>;
+  control: Control<FormValues>;
   setValue: UseFormSetValue<FormValues>;
   getValues: UseFormGetValues<FormValues>;
   watch: UseFormWatch<FormValues>;
   field: FieldArrayWithId<FormValues, "emails", "id">;
   fields: FieldArrayWithId<FormValues, "emails", "id">[];
-  errors: any;
+  errors: FieldErrors<FormValues>;
   isInvitationDisabled: boolean;
   setIsInvitationDisabled: (value: boolean) => void;
 };
@@ -269,11 +271,11 @@ export function InviteMembers(props: Props) {
         });
         await nextStep();
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: "Error!",
-          message: err?.error,
+          message: getApiErrorMessage(err),
         });
       });
   };

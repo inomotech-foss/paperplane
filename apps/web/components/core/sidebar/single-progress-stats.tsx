@@ -7,7 +7,7 @@
 import React from "react";
 
 type TSingleProgressStatsProps = {
-  title: any;
+  title: React.ReactNode;
   completed: number;
   total: number;
   onClick?: () => void;
@@ -21,6 +21,14 @@ export function SingleProgressStats({ title, completed, total, onClick, selected
         onClick ? "cursor-pointer hover:bg-surface-2" : ""
       } ${selected ? "bg-layer-1" : ""}`}
       onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div className="w-4/6">{title}</div>
       <div className="flex w-2/6 items-center justify-end gap-1 px-2">

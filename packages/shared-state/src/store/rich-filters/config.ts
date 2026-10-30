@@ -13,6 +13,7 @@ import type {
   TSupportedOperators,
   TFilterConfig,
   TFilterProperty,
+  SingleOrArray,
   TFilterValue,
   TOperatorSpecificConfigs,
   TAllAvailableOperatorsForDisplay,
@@ -51,9 +52,9 @@ export interface IFilterConfig<P extends TFilterProperty> extends TFilterConfig<
   getLabelForOperator: (operator: TAllAvailableOperatorsForDisplay | undefined) => string;
   getDisplayOperatorByValue: (
     operator: TAllAvailableOperatorsForDisplay,
-    value: TFilterValue
+    value: SingleOrArray<TFilterValue>
   ) => TAllAvailableOperatorsForDisplay;
-  getAllDisplayOperatorOptionsByValue: (value: TFilterValue) => TOperatorOptionForDisplay[];
+  getAllDisplayOperatorOptionsByValue: (value: SingleOrArray<TFilterValue>) => TOperatorOptionForDisplay[];
   // actions
   mutate: (updates: Partial<TFilterConfig<P>>) => void;
 }
@@ -210,7 +211,10 @@ export class FilterConfig<P extends TFilterProperty> implements IFilterConfig<P>
 
   // ------------ private helpers ------------
 
-  private _getPositiveDisplayOperator(operator: TSupportedOperators, value: TFilterValue): TSupportedOperators {
+  private _getPositiveDisplayOperator(
+    operator: TSupportedOperators,
+    value: SingleOrArray<TFilterValue>
+  ): TSupportedOperators {
     const operatorConfig = this.getOperatorConfig(operator);
     if (operatorConfig?.type === FILTER_FIELD_TYPE.MULTI_SELECT && (Array.isArray(value) ? value.length : 0) <= 1) {
       return operatorConfig.singleValueOperator;
@@ -224,7 +228,7 @@ export class FilterConfig<P extends TFilterProperty> implements IFilterConfig<P>
    */
   private _getAdditionalOperatorOptions = (
     operator: TSupportedOperators,
-    value: TFilterValue
+    value: SingleOrArray<TFilterValue>
   ): TOperatorOptionForDisplay | undefined => {
     const operatorConfig = this.getOperatorConfig(operator);
     if (!operatorConfig?.allowNegative || !NEGATABLE_FIELD_TYPES.has(operatorConfig.type)) return undefined;

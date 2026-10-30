@@ -16,7 +16,11 @@ import { DropIndicator } from "@plane/blocks/common";
 import { cn, getCurrentStateSequence } from "@plane/utils";
 // components
 import { StateItemTitle, StateUpdate } from "@/components/project-states";
+import { isStateGroup } from "@/helpers/guard.helper";
 // helpers
+const toDraggableData = (data: Record<string | symbol, unknown>): TDraggableData | undefined =>
+  typeof data.id === "string" && isStateGroup(data.groupKey) ? { id: data.id, groupKey: data.groupKey } : undefined;
+
 type TStateItem = {
   groupKey: TStateGroups;
   groupedStates: Record<string, IState[]>;
@@ -96,12 +100,12 @@ export const StateItem = observer(function StateItem(props: TStateItem) {
           onDrop: (data) => {
             setIsDraggedOver(false);
             const { self, source } = data;
-            const sourceData = source.data as TDraggableData;
-            const destinationData = self.data as TDraggableData;
+            const sourceData = toDraggableData(source.data);
+            const destinationData = toDraggableData(self.data);
 
             if (sourceData && destinationData && sourceData.id) {
               const destinationGroupKey = destinationData.groupKey;
-              const edge = extractClosestEdge(destinationData) || undefined;
+              const edge = extractClosestEdge(self.data) || undefined;
               const payload: Partial<IState> = {
                 id: sourceData.id,
                 group: destinationGroupKey,

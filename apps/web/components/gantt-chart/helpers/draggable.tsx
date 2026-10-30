@@ -9,6 +9,7 @@ import React from "react";
 import { observer } from "mobx-react";
 // hooks
 import type { IGanttBlock } from "@plane/types";
+import type { TGanttEnableFlag, TGanttRenderBlockData } from "@/components/gantt-chart/types";
 // helpers
 import { cn } from "@plane/utils";
 // components
@@ -17,13 +18,13 @@ import { RightResizable } from "./blockResizables/right-resizable";
 
 type Props = {
   block: IGanttBlock;
-  blockToRender: (data: any) => React.ReactNode;
+  blockToRender: (data: TGanttRenderBlockData) => React.ReactNode;
   handleBlockDrag: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, dragDirection: "left" | "right" | "move") => void;
   isMoving: "left" | "right" | "move" | undefined;
   enableBlockLeftResize: boolean;
   enableBlockRightResize: boolean;
   enableBlockMove: boolean;
-  enableDependency: boolean | ((blockId: string) => boolean);
+  enableDependency: TGanttEnableFlag;
   ganttContainerRef: RefObject<HTMLDivElement | null>;
 };
 
@@ -46,8 +47,8 @@ export const ChartDraggable = observer(function ChartDraggable(props: Props) {
         isMoving={isMoving}
         position={block.position}
       />
-      {/* oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
       <div
+        role="presentation"
         className={cn("relative z-[6] flex h-8 w-full items-center rounded-sm", {
           "pointer-events-none": isMoving,
         })}

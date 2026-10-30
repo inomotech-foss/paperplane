@@ -7,7 +7,7 @@
 import { useState } from "react";
 // plane imports
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import type { IWorkspaceMember, TProjectMembership } from "@plane/types";
+import type { IUserLite, TProjectMembership } from "@plane/types";
 import { renderFormattedDate } from "@plane/utils";
 // components
 import { MemberHeaderColumn } from "@/components/project/member-header-column";
@@ -18,7 +18,7 @@ import { useUser, useUserPermissions } from "@/hooks/store/user";
 import type { IMemberFilters } from "@/store/member/utils";
 
 export interface RowData extends Pick<TProjectMembership, "original_role"> {
-  member: IWorkspaceMember;
+  member: IUserLite;
 }
 
 type TUseProjectColumnsProps = {

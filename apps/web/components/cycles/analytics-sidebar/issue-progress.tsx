@@ -12,7 +12,7 @@ import { useSearchParams } from "next/navigation";
 import { Collapsible } from "@base-ui/react/collapsible";
 import { ChevronDownOutline, ChevronUpOutline } from "@makeplane/propel/icons";
 import { useTranslation } from "@plane/i18n";
-import type { ICycle, TCyclePlotType, TProgressSnapshot } from "@plane/types";
+import type { ICycle } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
 import { getDate } from "@plane/utils";
 // hooks
@@ -45,16 +45,8 @@ export const cycleChartOptions: Options[] = [
 export const validateCycleSnapshot = (cycleDetails: ICycle | null): ICycle | null => {
   if (!cycleDetails) return cycleDetails;
 
-  const updatedCycleDetails: any = { ...cycleDetails };
-  if (!isEmpty(cycleDetails.progress_snapshot)) {
-    Object.keys(cycleDetails.progress_snapshot || {}).forEach((key) => {
-      const currentKey = key as keyof TProgressSnapshot;
-      if (!isEmpty(cycleDetails.progress_snapshot) && !isEmpty(updatedCycleDetails)) {
-        updatedCycleDetails[currentKey as keyof ICycle] = cycleDetails?.progress_snapshot?.[currentKey];
-      }
-    });
-  }
-  return updatedCycleDetails;
+  if (isEmpty(cycleDetails.progress_snapshot)) return { ...cycleDetails };
+  return { ...cycleDetails, ...cycleDetails.progress_snapshot };
 };
 
 export const CycleAnalyticsProgress = observer(function CycleAnalyticsProgress(props: TCycleAnalyticsProgress) {
@@ -66,7 +58,7 @@ export const CycleAnalyticsProgress = observer(function CycleAnalyticsProgress(p
   // plane hooks
   const { t } = useTranslation();
   // store hooks
-  const { getPlotTypeByCycleId, getEstimateTypeByCycleId, getCycleById } = useCycle();
+  const { getEstimateTypeByCycleId, getCycleById } = useCycle();
   const { getFilter, updateFilterValueFromSidebar } = useWorkItemFilters();
   // derived values
   const cycleFilter = getFilter(EIssuesStoreType.CYCLE, cycleId);
@@ -74,7 +66,6 @@ export const CycleAnalyticsProgress = observer(function CycleAnalyticsProgress(p
   const selectedLabels = cycleFilter?.findFirstConditionByPropertyAndOperator("label_id", "in");
   const selectedStateGroups = cycleFilter?.findFirstConditionByPropertyAndOperator("state_group", "in");
   const cycleDetails = validateCycleSnapshot(getCycleById(cycleId));
-  const plotType: TCyclePlotType = getPlotTypeByCycleId(cycleId);
   const estimateType = getEstimateTypeByCycleId(cycleId);
   const totalIssues = cycleDetails?.total_issues || 0;
   const totalEstimatePoints = cycleDetails?.total_estimate_points || 0;
@@ -125,7 +116,6 @@ export const CycleAnalyticsProgress = observer(function CycleAnalyticsProgress(p
                   cycleId
                 )}
                 isEditable={Boolean(!peekCycle) && cycleFilter !== undefined}
-                plotType={plotType}
                 selectedFilters={{
                   assignees: selectedAssignees,
                   labels: selectedLabels,

@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import type { ComponentClass, ReactNode } from "react";
 import type {
   DropTargetRecord,
   DragLocationHistory,
@@ -14,6 +15,7 @@ import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import Masonry from "react-masonry-component";
+import type { MasonryPropTypes } from "react-masonry-component";
 
 // plane imports
 import { EUserPermissionsLevel } from "@plane/constants";
@@ -37,6 +39,15 @@ import { useStickyOperations } from "../sticky/use-operations";
 import { StickiesLoader } from "./stickies-loader";
 import { StickyDNDWrapper } from "./sticky-dnd-wrapper";
 import { getInstructionFromPayload } from "./sticky.helpers";
+import { getDragDataId } from "@/components/common/drag-target-data";
+import { isRecord } from "@/helpers/guard.helper";
+
+// react-masonry-component's typings omit children
+const MasonryLayout: ComponentClass<MasonryPropTypes & { children?: ReactNode }> = Masonry;
+
+// react-masonry-component types its ref as a plain component, but the instance can relayout
+const hasPerformLayout = (value: unknown): value is { performLayout: () => void } =>
+  isRecord(value) && typeof value.performLayout === "function";
 
 type TStickiesLayout = {
   workspaceSlug: string;
@@ -71,13 +82,11 @@ export const StickiesList = observer(function StickiesList(props: TProps) {
   );
   const stickiesResolvedPath = resolvedTheme === "light" ? lightStickiesAsset : darkStickiesAsset;
   const stickiesSearchResolvedPath = resolvedTheme === "light" ? lightStickiesSearchAsset : darkStickiesSearchAsset;
-  const masonryRef = useRef<any>(null);
+  const masonryRef = useRef<InstanceType<typeof MasonryLayout> | null>(null);
 
   const handleLayout = () => {
-    if (masonryRef.current) {
-      // Force reflow
-      masonryRef.current.performLayout();
-    }
+    // Force reflow
+    if (hasPerformLayout(masonryRef.current)) masonryRef.current.performLayout();
   };
 
   // Function to determine if an item is in first or last row
@@ -94,15 +103,16 @@ export const StickiesList = observer(function StickiesList(props: TProps) {
     if (!dropTargets || dropTargets.length <= 0) return;
 
     const dropTarget = dropTargets[0];
-    if (!dropTarget?.data?.id || !source.data?.id) return;
+    if (!dropTarget) return;
+    const droppedId = getDragDataId(dropTarget.data);
+    const sourceId = getDragDataId(source.data);
+    if (!droppedId || !sourceId) return;
 
     const instruction = getInstructionFromPayload(dropTarget, source, location);
-    const droppedId = dropTarget.data.id;
-    const sourceId = source.data.id;
 
     try {
-      if (!instruction || !droppedId || !sourceId) return;
-      stickyOperations.updatePosition(workspaceSlug, sourceId as string, droppedId as string, instruction);
+      if (!instruction) return;
+      stickyOperations.updatePosition(workspaceSlug, sourceId, droppedId, instruction);
     } catch (error) {
       console.error("Error reordering sticky:", error);
     }
@@ -149,8 +159,7 @@ export const StickiesList = observer(function StickiesList(props: TProps) {
 
   return (
     <div className="transition-opacity duration-300 ease-in-out">
-      {/* @ts-expect-error type mismatch here */}
-      <Masonry elementType="div" ref={masonryRef}>
+      <MasonryLayout elementType="div" ref={masonryRef}>
         {workspaceStickyIds.map((stickyId, index) => {
           const { isInFirstRow, isInLastRow } = getRowPositions(index);
           return (
@@ -168,7 +177,7 @@ export const StickiesList = observer(function StickiesList(props: TProps) {
           );
         })}
         {intersectionElement && <div style={{ width: itemWidth }}>{intersectionElement}</div>}
-      </Masonry>
+      </MasonryLayout>
     </div>
   );
 });

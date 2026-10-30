@@ -5,7 +5,8 @@
  */
 
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import type { Control, FieldErrors } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { InfoOutline, LockOutline } from "@makeplane/propel/icons";
 import { Field } from "@makeplane/propel/components/field";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
@@ -19,7 +20,7 @@ import { EmojiPicker, Logo } from "@plane/blocks/emoji-icon-picker";
 import { setToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { EFileAssetType } from "@plane/types";
-import type { IProject, IWorkspace } from "@plane/types";
+import type { IProject } from "@plane/types";
 import { Select } from "@plane/blocks/select";
 import { renderFormattedDate } from "@plane/utils";
 import { CoverImage } from "@/components/common/cover-image";
@@ -27,6 +28,8 @@ import { ImagePickerPopover } from "@/components/core/image-picker-popover";
 import { TimezoneSelect } from "@/components/global";
 // helpers
 import { handleCoverImageChange } from "@/helpers/cover-image.helper";
+import { getLogoPropsFromPicker } from "@/helpers/emoji.helper";
+import { errorFieldIncludes, isRecord } from "@/helpers/narrow.helper";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { usePlatformOS } from "@/hooks/use-platform-os";
@@ -43,20 +46,21 @@ export interface IProjectDetailsForm {
 }
 const projectService = new ProjectService();
 
+// The form only keeps the id of an expanded workspace.
+const getWorkspaceId = (project: IProject) =>
+  typeof project.workspace === "object" ? project.workspace.id : undefined;
+
 export function ProjectDetailsForm(props: IProjectDetailsForm) {
   const { project, workspaceSlug, projectId, isAdmin } = props;
   const { t } = useTranslation();
   // states
-  const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   // store hooks
   const { updateProject } = useProject();
-  const { isMobile } = usePlatformOS();
 
   // form info
   const {
     handleSubmit,
-    watch,
     control,
     setValue,
     setError,
@@ -66,18 +70,14 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
   } = useForm<IProject>({
     defaultValues: {
       ...project,
-      workspace: (project.workspace as IWorkspace).id,
+      workspace: getWorkspaceId(project),
     },
   });
-  // derived values
-  const currentNetwork = NETWORK_CHOICES.find((n) => n.key === project?.network);
-  const coverImage = watch("cover_image_url");
-
   useEffect(() => {
     if (project && projectId !== getValues("id")) {
       reset({
         ...project,
-        workspace: (project.workspace as IWorkspace).id,
+        workspace: getWorkspaceId(project),
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -101,14 +101,16 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
           message: t("project_settings.general.toast.success"),
         });
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         try {
-          // Handle the new error format where codes are nested in arrays under field names
-          const errorData = err ?? {};
-
-          const nameError = errorData.name?.includes("PROJECT_NAME_ALREADY_EXIST");
-          const identifierError = errorData?.identifier?.includes("PROJECT_IDENTIFIER_ALREADY_EXIST");
-          const nameSpecialCharError = errorData?.name?.includes("PROJECT_NAME_CANNOT_CONTAIN_SPECIAL_CHARACTERS");
+          // Codes are nested in arrays under field names
+          const nameError = errorFieldIncludes(err, "name", "PROJECT_NAME_ALREADY_EXIST");
+          const identifierError = errorFieldIncludes(err, "identifier", "PROJECT_IDENTIFIER_ALREADY_EXIST");
+          const nameSpecialCharError = errorFieldIncludes(
+            err,
+            "name",
+            "PROJECT_NAME_CANNOT_CONTAIN_SPECIAL_CHARACTERS"
+          );
 
           if (nameError || identifierError || nameSpecialCharError) {
             if (nameError) {
@@ -153,6 +155,31 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
       });
   };
 
+  // Returns false when the cover image could not be processed.
+  const applyCoverImageChange = async (formData: IProject, payload: Partial<IProject>) => {
+    try {
+      const coverImagePayload = await handleCoverImageChange(project.cover_image_url, formData.cover_image_url, {
+        workspaceSlug: workspaceSlug.toString(),
+        entityIdentifier: project.id,
+        entityType: EFileAssetType.PROJECT_COVER,
+        isUserAsset: false,
+      });
+
+      if (coverImagePayload) {
+        Object.assign(payload, coverImagePayload);
+      }
+      return true;
+    } catch (error) {
+      console.error("Error handling cover image:", error);
+      setToast({
+        type: "error",
+        title: t("toast.error"),
+        message: error instanceof Error ? error.message : "Failed to process cover image",
+      });
+      return false;
+    }
+  };
+
   const onSubmit = async (formData: IProject) => {
     if (!workspaceSlug) return;
     setIsLoading(true);
@@ -166,114 +193,27 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
       timezone: formData.timezone,
     };
 
-    // Handle cover image changes
     try {
-      const coverImagePayload = await handleCoverImageChange(project.cover_image_url, formData.cover_image_url, {
-        workspaceSlug: workspaceSlug.toString(),
-        entityIdentifier: project.id,
-        entityType: EFileAssetType.PROJECT_COVER,
-        isUserAsset: false,
-      });
+      if (!(await applyCoverImageChange(formData, payload))) return;
 
-      if (coverImagePayload) {
-        Object.assign(payload, coverImagePayload);
-      }
-    } catch (error) {
-      console.error("Error handling cover image:", error);
-      setToast({
-        type: "error",
-        title: t("toast.error"),
-        message: error instanceof Error ? error.message : "Failed to process cover image",
-      });
-      setIsLoading(false);
-      return;
+      if (project.identifier !== formData.identifier)
+        await projectService
+          .checkProjectIdentifierAvailability(workspaceSlug, payload.identifier ?? "")
+          .then(async (res: unknown) => {
+            if (isRecord(res) && res.exists) setError("identifier", { message: t("common.identifier_already_exists") });
+            else await handleUpdateChange(payload);
+          });
+      else await handleUpdateChange(payload);
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 300);
     }
-
-    if (project.identifier !== formData.identifier)
-      await projectService
-        .checkProjectIdentifierAvailability(workspaceSlug, payload.identifier ?? "")
-        .then(async (res) => {
-          if (res.exists) setError("identifier", { message: t("common.identifier_already_exists") });
-          else await handleUpdateChange(payload);
-        });
-    else await handleUpdateChange(payload);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 300);
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="relative h-44 w-full">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-        <CoverImage src={coverImage} alt="Project cover image" className="h-44 w-full rounded-md" />
-        <div className="absolute bottom-4 z-5 flex w-full items-end justify-between gap-3 px-4">
-          <div className="flex flex-grow gap-3 truncate">
-            <Controller
-              control={control}
-              name="logo_props"
-              render={({ field: { value, onChange } }) => (
-                <EmojiPicker
-                  iconType="material"
-                  closeOnSelect={false}
-                  isOpen={isOpen}
-                  handleToggle={(val: boolean) => setIsOpen(val)}
-                  className="flex items-center justify-center"
-                  buttonClassName="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-lg bg-white/10"
-                  label={<Logo logo={value} size={28} />}
-                  // TODO: fix types
-                  onChange={(val: any) => {
-                    let logoValue = {};
-
-                    if (val?.type === "emoji")
-                      logoValue = {
-                        value: val.value,
-                      };
-                    else if (val?.type === "icon") logoValue = val.value;
-
-                    onChange({
-                      in_use: val?.type,
-                      [val?.type]: logoValue,
-                    });
-                    setIsOpen(false);
-                  }}
-                  defaultIconColor={value?.in_use && value.in_use === "icon" ? value?.icon?.color : undefined}
-                  defaultOpen={value.in_use && value.in_use === "emoji" ? "emoji" : "icon"}
-                  disabled={!isAdmin}
-                />
-              )}
-            />
-            <div className="flex flex-col gap-1 truncate text-on-color">
-              <span className="truncate text-16 font-semibold">{watch("name")}</span>
-              <span className="flex items-center gap-2 text-13">
-                <span>{watch("identifier")} .</span>
-                <span className="flex items-center gap-1.5">
-                  {project.network === 0 && <LockOutline className="h-2.5 w-2.5 text-on-color" />}
-                  {currentNetwork && t(currentNetwork?.i18n_label)}
-                </span>
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-shrink-0 justify-center">
-            <div>
-              <Controller
-                control={control}
-                name="cover_image_url"
-                render={({ field: { value, onChange } }) => (
-                  <ImagePickerPopover
-                    label={t("change_cover")}
-                    control={control}
-                    onChange={onChange}
-                    value={value ?? null}
-                    disabled={!isAdmin}
-                    projectId={project.id}
-                  />
-                )}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      <ProjectDetailsFormHeader control={control} project={project} isAdmin={isAdmin} />
       <div className="mt-8 flex flex-col gap-8">
         <div className="flex flex-col gap-1">
           <h4 className="text-13">{t("common.project_name")}</h4>
@@ -331,124 +271,12 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
             )}
           />
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="flex flex-col gap-1">
-            <h4 className="text-13">Project ID</h4>
-            <div className="relative">
-              <Controller
-                control={control}
-                name="identifier"
-                rules={{
-                  required: t("project_id_is_required"),
-                  validate: (value) => /^[ÇŞĞIİÖÜA-Z0-9]+$/.test(value.toUpperCase()) || t("project_id_allowed_char"),
-                  minLength: {
-                    value: 1,
-                    message: t("project_id_min_char"),
-                  },
-                  maxLength: {
-                    value: 10,
-                    message: t("project_id_max_char"),
-                  },
-                }}
-                render={({ field: { value, ref } }) => (
-                  <Field name="identifier" invalid={Boolean(errors.identifier)}>
-                    <InputGroup size="2xl">
-                      <Input
-                        size="2xl"
-                        id="identifier"
-                        name="identifier"
-                        type="text"
-                        value={value}
-                        onChange={handleIdentifierChange}
-                        ref={ref}
-                        placeholder={t("project_settings.general.enter_project_id")}
-                        disabled={!isAdmin}
-                      />
-                    </InputGroup>
-                  </Field>
-                )}
-              />
-              <Tooltip
-                label={t("project_id_tooltip_content")}
-                layout="stacked"
-                side="right"
-                align="start"
-                disabled={isMobile}
-              >
-                <InfoOutline className="absolute top-2.5 right-2 h-4 w-4 text-placeholder" />
-              </Tooltip>
-            </div>
-            <span className="text-11 text-danger-primary">
-              <>{errors?.identifier?.message}</>
-            </span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <h4 className="text-13">{t("workspace_projects.network.label")}</h4>
-            <Controller
-              name="network"
-              control={control}
-              render={({ field: { value, onChange } }) => {
-                const selectedNetwork = NETWORK_CHOICES.find((n) => n.key === value);
-                return (
-                  <Select<TNetworkChoice>
-                    getValues={() => NETWORK_CHOICES}
-                    value={selectedNetwork ?? null}
-                    onChange={(key) => onChange(Number(key))}
-                    getOptionValue={(network) => String(network.key)}
-                    getOptionLabel={(network) => t(network.i18n_label)}
-                    getOptionIcon={(network) => (
-                      <ProjectNetworkIcon iconKey={network.iconKey} className="mt-0.5 size-4 shrink-0" />
-                    )}
-                    getOptionDescription={(network) => t(network.description)}
-                    placeholder={t("select_network")}
-                    showSearch={false}
-                    pinSelected={false}
-                    contentSizing="anchor"
-                    disabled={!isAdmin}
-                    estimateItemSize={64}
-                  >
-                    <Select.Trigger
-                      variant="select-lg"
-                      className="font-medium"
-                      disabled={!isAdmin}
-                      prependIcon={
-                        selectedNetwork ? (
-                          <ProjectNetworkIcon iconKey={selectedNetwork.iconKey} className="h-3.5 w-3.5" />
-                        ) : undefined
-                      }
-                    >
-                      <span className="min-w-0 grow truncate text-left">
-                        {selectedNetwork ? t(selectedNetwork.i18n_label) : t("select_network")}
-                      </span>
-                    </Select.Trigger>
-                  </Select>
-                );
-              }}
-            />
-          </div>
-          <div className="col-span-1 flex flex-col gap-1 sm:col-span-2 xl:col-span-1">
-            <h4 className="text-13">{t("common.project_timezone")}</h4>
-            <Controller
-              name="timezone"
-              control={control}
-              rules={{ required: t("project_settings.general.please_select_a_timezone") }}
-              render={({ field: { value, onChange } }) => (
-                <>
-                  <TimezoneSelect
-                    value={value}
-                    onChange={(value: string) => {
-                      onChange(value);
-                    }}
-                    error={Boolean(errors.timezone)}
-                    buttonClassName="!border-subtle !shadow-none font-medium rounded-md"
-                    disabled={!isAdmin}
-                  />
-                </>
-              )}
-            />
-            {errors.timezone && <span className="text-11 text-danger-primary">{errors.timezone.message}</span>}
-          </div>
-        </div>
+        <ProjectDetailsFormSettings
+          control={control}
+          errors={errors}
+          isAdmin={isAdmin}
+          onIdentifierChange={handleIdentifierChange}
+        />
         <div className="flex items-center justify-between py-2">
           <>
             <Button
@@ -467,5 +295,214 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
         </div>
       </div>
     </form>
+  );
+}
+
+type TProjectDetailsFormHeaderProps = {
+  control: Control<IProject>;
+  project: IProject;
+  isAdmin: boolean;
+};
+
+function ProjectDetailsFormHeader(props: TProjectDetailsFormHeaderProps) {
+  const { control, project, isAdmin } = props;
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [name, identifier, coverImage] = useWatch({ control, name: ["name", "identifier", "cover_image_url"] });
+  const currentNetwork = NETWORK_CHOICES.find((n) => n.key === project?.network);
+
+  return (
+    <div className="relative h-44 w-full">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+      <CoverImage src={coverImage} alt="Project cover image" className="h-44 w-full rounded-md" />
+      <div className="absolute bottom-4 z-5 flex w-full items-end justify-between gap-3 px-4">
+        <div className="flex flex-grow gap-3 truncate">
+          <Controller
+            control={control}
+            name="logo_props"
+            render={({ field: { value, onChange } }) => (
+              <EmojiPicker
+                iconType="material"
+                closeOnSelect={false}
+                isOpen={isOpen}
+                handleToggle={(val: boolean) => setIsOpen(val)}
+                className="flex items-center justify-center"
+                buttonClassName="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-lg bg-white/10"
+                label={<Logo logo={value} size={28} />}
+                onChange={(val) => {
+                  onChange(getLogoPropsFromPicker(val));
+                  setIsOpen(false);
+                }}
+                defaultIconColor={value?.in_use && value.in_use === "icon" ? value?.icon?.color : undefined}
+                defaultOpen={value.in_use && value.in_use === "emoji" ? "emoji" : "icon"}
+                disabled={!isAdmin}
+              />
+            )}
+          />
+          <div className="flex flex-col gap-1 truncate text-on-color">
+            <span className="truncate text-16 font-semibold">{name}</span>
+            <span className="flex items-center gap-2 text-13">
+              <span>{identifier} .</span>
+              <span className="flex items-center gap-1.5">
+                {project.network === 0 && <LockOutline className="h-2.5 w-2.5 text-on-color" />}
+                {currentNetwork && t(currentNetwork?.i18n_label)}
+              </span>
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-shrink-0 justify-center">
+          <div>
+            <Controller
+              control={control}
+              name="cover_image_url"
+              render={({ field: { value, onChange } }) => (
+                <ImagePickerPopover
+                  label={t("change_cover")}
+                  control={control}
+                  onChange={onChange}
+                  value={value ?? null}
+                  disabled={!isAdmin}
+                  projectId={project.id}
+                />
+              )}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type TProjectDetailsFormSettingsProps = {
+  control: Control<IProject>;
+  errors: FieldErrors<IProject>;
+  isAdmin: boolean;
+  onIdentifierChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+};
+
+function ProjectDetailsFormSettings(props: TProjectDetailsFormSettingsProps) {
+  const { control, errors, isAdmin, onIdentifierChange } = props;
+  const { t } = useTranslation();
+  const { isMobile } = usePlatformOS();
+
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="flex flex-col gap-1">
+        <h4 className="text-13">Project ID</h4>
+        <div className="relative">
+          <Controller
+            control={control}
+            name="identifier"
+            rules={{
+              required: t("project_id_is_required"),
+              validate: (value) => /^[ÇŞĞIİÖÜA-Z0-9]+$/.test(value.toUpperCase()) || t("project_id_allowed_char"),
+              minLength: {
+                value: 1,
+                message: t("project_id_min_char"),
+              },
+              maxLength: {
+                value: 10,
+                message: t("project_id_max_char"),
+              },
+            }}
+            render={({ field: { value, ref } }) => (
+              <Field name="identifier" invalid={Boolean(errors.identifier)}>
+                <InputGroup size="2xl">
+                  <Input
+                    size="2xl"
+                    id="identifier"
+                    name="identifier"
+                    type="text"
+                    value={value}
+                    onChange={onIdentifierChange}
+                    ref={ref}
+                    placeholder={t("project_settings.general.enter_project_id")}
+                    disabled={!isAdmin}
+                  />
+                </InputGroup>
+              </Field>
+            )}
+          />
+          <Tooltip
+            label={t("project_id_tooltip_content")}
+            layout="stacked"
+            side="right"
+            align="start"
+            disabled={isMobile}
+          >
+            <InfoOutline className="absolute top-2.5 right-2 h-4 w-4 text-placeholder" />
+          </Tooltip>
+        </div>
+        <span className="text-11 text-danger-primary">
+          <>{errors?.identifier?.message}</>
+        </span>
+      </div>
+      <div className="flex flex-col gap-1">
+        <h4 className="text-13">{t("workspace_projects.network.label")}</h4>
+        <Controller
+          name="network"
+          control={control}
+          render={({ field: { value, onChange } }) => {
+            const selectedNetwork = NETWORK_CHOICES.find((n) => n.key === value);
+            return (
+              <Select<TNetworkChoice>
+                getValues={() => NETWORK_CHOICES}
+                value={selectedNetwork ?? null}
+                onChange={(key) => onChange(Number(key))}
+                getOptionValue={(network) => String(network.key)}
+                getOptionLabel={(network) => t(network.i18n_label)}
+                getOptionIcon={(network) => (
+                  <ProjectNetworkIcon iconKey={network.iconKey} className="mt-0.5 size-4 shrink-0" />
+                )}
+                getOptionDescription={(network) => t(network.description)}
+                placeholder={t("select_network")}
+                showSearch={false}
+                pinSelected={false}
+                contentSizing="anchor"
+                disabled={!isAdmin}
+                estimateItemSize={64}
+              >
+                <Select.Trigger
+                  variant="select-lg"
+                  className="font-medium"
+                  disabled={!isAdmin}
+                  prependIcon={
+                    selectedNetwork ? (
+                      <ProjectNetworkIcon iconKey={selectedNetwork.iconKey} className="h-3.5 w-3.5" />
+                    ) : undefined
+                  }
+                >
+                  <span className="min-w-0 grow truncate text-left">
+                    {selectedNetwork ? t(selectedNetwork.i18n_label) : t("select_network")}
+                  </span>
+                </Select.Trigger>
+              </Select>
+            );
+          }}
+        />
+      </div>
+      <div className="col-span-1 flex flex-col gap-1 sm:col-span-2 xl:col-span-1">
+        <h4 className="text-13">{t("common.project_timezone")}</h4>
+        <Controller
+          name="timezone"
+          control={control}
+          rules={{ required: t("project_settings.general.please_select_a_timezone") }}
+          render={({ field: { value, onChange } }) => (
+            <>
+              <TimezoneSelect
+                value={value}
+                onChange={(value: string) => {
+                  onChange(value);
+                }}
+                error={Boolean(errors.timezone)}
+                buttonClassName="!border-subtle !shadow-none font-medium rounded-md"
+                disabled={!isAdmin}
+              />
+            </>
+          )}
+        />
+        {errors.timezone && <span className="text-11 text-danger-primary">{errors.timezone.message}</span>}
+      </div>
+    </div>
   );
 }

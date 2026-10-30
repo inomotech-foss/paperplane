@@ -8,7 +8,7 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // PLane
 import { GANTT_TIMELINE_TYPE } from "@plane/types";
-import type { IBlockUpdateData, IBlockUpdateDependencyData, IModule } from "@plane/types";
+import type { IBlockUpdateData, IBlockUpdateDependencyData, IModule, TGanttBlockData } from "@plane/types";
 // components
 import { GanttChartRoot, ModuleGanttSidebar } from "@/components/gantt-chart";
 import { TimeLineTypeContext } from "@/components/gantt-chart/contexts";
@@ -22,16 +22,18 @@ export const ModulesListGanttChartView = observer(function ModulesListGanttChart
   const { workspaceSlug, projectId } = useParams();
   // store
   const { currentProjectDetails } = useProject();
-  const { getFilteredModuleIds, updateModuleDetails } = useModule();
+  const { getFilteredModuleIds, getModuleById, updateModuleDetails } = useModule();
 
   // derived values
   const filteredModuleIds = projectId ? getFilteredModuleIds(projectId.toString()) : undefined;
 
-  const handleModuleUpdate = async (module: IModule, data: IBlockUpdateData) => {
+  const handleModuleUpdate = async (block: TGanttBlockData, data: IBlockUpdateData) => {
+    const module = getModuleById(block.id);
     if (!workspaceSlug || !module) return;
 
-    const payload: any = { ...data };
-    if (data.sort_order) payload.sort_order = data.sort_order.newSortOrder;
+    const { sort_order, ...rest } = data;
+    const payload: Partial<IModule> = { ...rest };
+    if (sort_order) payload.sort_order = sort_order.newSortOrder;
 
     await updateModuleDetails(workspaceSlug.toString(), module.project_id, module.id, payload);
   };
@@ -61,7 +63,7 @@ export const ModulesListGanttChartView = observer(function ModulesListGanttChart
         blockIds={filteredModuleIds}
         sidebarToRender={(props) => <ModuleGanttSidebar {...props} />}
         blockUpdateHandler={(block, payload) => handleModuleUpdate(block, payload)}
-        blockToRender={(data: IModule) => <ModuleGanttBlock moduleId={data.id} />}
+        blockToRender={(data) => <ModuleGanttBlock moduleId={data.id} />}
         enableBlockLeftResize={isAllowed}
         enableBlockRightResize={isAllowed}
         enableBlockMove={isAllowed}

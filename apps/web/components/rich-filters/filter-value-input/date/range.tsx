@@ -9,7 +9,12 @@ import { observer } from "mobx-react";
 // plane imports
 import { DateRangeSelect } from "@plane/blocks/property-select";
 import type { DateRangeValue } from "@plane/blocks/property-select";
-import type { TDateRangeFilterFieldConfig, TFilterConditionNodeForDisplay, TFilterProperty } from "@plane/types";
+import type {
+  TDateRangeFilterFieldConfig,
+  TFilterConditionNodeForDisplay,
+  TFilterProperty,
+  TFilterValue,
+} from "@plane/types";
 import { cn, isValidDate, renderFormattedPayloadDate, toFilterArray } from "@plane/utils";
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
@@ -17,8 +22,8 @@ import { useUserProfile } from "@/hooks/store/user";
 import { COMMON_FILTER_ITEM_BORDER_CLASSNAME, EMPTY_FILTER_PLACEHOLDER_TEXT } from "../../shared";
 
 type TDateRangeFilterValueInputProps<P extends TFilterProperty> = {
-  config: TDateRangeFilterFieldConfig<string>;
-  condition: TFilterConditionNodeForDisplay<P, string>;
+  config: TDateRangeFilterFieldConfig<TFilterValue>;
+  condition: TFilterConditionNodeForDisplay<P, TFilterValue>;
   isDisabled?: boolean;
   onChange: (value: string[]) => void;
 };

@@ -19,7 +19,7 @@ import { GanttLayoutListItemLoader } from "@/components/ui/loader/layouts/gantt-
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 
-type Props<T extends IBaseLayoutsBaseItem> = {
+export type TBaseGanttSidebarProps<T extends IBaseLayoutsBaseItem> = {
   blockUpdateHandler: (block: T, payload: IBlockUpdateData) => void;
   canLoadMoreBlocks?: boolean;
   loadMoreItems?: (groupId: string) => void;
@@ -31,7 +31,9 @@ type Props<T extends IBaseLayoutsBaseItem> = {
   renderItem: (item: T) => React.ReactNode;
 };
 
-export const BaseGanttSidebar = observer(function BaseGanttSidebar<T extends IBaseLayoutsBaseItem>(props: Props<T>) {
+export const BaseGanttSidebar = observer(function BaseGanttSidebar<T extends IBaseLayoutsBaseItem>(
+  props: TBaseGanttSidebarProps<T>
+) {
   const {
     blockUpdateHandler,
     blockIds,
@@ -62,7 +64,10 @@ export const BaseGanttSidebar = observer(function BaseGanttSidebar<T extends IBa
     droppedBlockId: string | undefined,
     dropAtEndOfList: boolean
   ) => {
-    handleOrderChange(draggingBlockId, droppedBlockId, dropAtEndOfList, blockIds, getBlockById, blockUpdateHandler);
+    handleOrderChange(draggingBlockId, droppedBlockId, dropAtEndOfList, blockIds, getBlockById, (block, payload) => {
+      const item = items[block.id];
+      if (item) blockUpdateHandler(item, payload);
+    });
   };
 
   return (

@@ -76,9 +76,11 @@ export const TimezoneSelect = observer(function TimezoneSelect(props: TTimezoneS
   // hooks
   const { t } = useTranslation();
   const { contains } = useFilter();
-  const { disabled: isDisabled, timezones } = useTimezone();
+  const timezoneState = useTimezone();
+  const { timezones } = timezoneState;
   // derived values
-  const isSelectDisabled = Boolean(isDisabled) || disabled;
+  const isTimezoneDisabled: unknown = timezoneState.disabled;
+  const isSelectDisabled = Boolean(isTimezoneDisabled) || disabled;
   const options: TTimezoneOption[] = timezones.map((option) => ({
     value: option.value,
     label: getTimezoneLabel(option),

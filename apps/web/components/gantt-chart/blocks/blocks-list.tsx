@@ -6,18 +6,19 @@
 
 //
 import type { IBlockUpdateDependencyData } from "@plane/types";
+import type { TGanttEnableFlag, TGanttRenderBlockData } from "@/components/gantt-chart/types";
 import { GanttChartBlock } from "@/components/gantt-chart/blocks/block";
 
 export type GanttChartBlocksProps = {
   blockIds: string[];
-  blockToRender: (data: any) => React.ReactNode;
-  enableBlockLeftResize: boolean | ((blockId: string) => boolean);
-  enableBlockRightResize: boolean | ((blockId: string) => boolean);
-  enableBlockMove: boolean | ((blockId: string) => boolean);
+  blockToRender: (data: TGanttRenderBlockData) => React.ReactNode;
+  enableBlockLeftResize: TGanttEnableFlag;
+  enableBlockRightResize: TGanttEnableFlag;
+  enableBlockMove: TGanttEnableFlag;
   ganttContainerRef: React.RefObject<HTMLDivElement | null>;
   showAllBlocks: boolean;
   updateBlockDates?: (updates: IBlockUpdateDependencyData[]) => Promise<void>;
-  enableDependency: boolean | ((blockId: string) => boolean);
+  enableDependency: TGanttEnableFlag;
 };
 
 export function GanttChartBlocksList(props: GanttChartBlocksProps) {

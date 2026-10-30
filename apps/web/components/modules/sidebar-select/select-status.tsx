@@ -22,7 +22,7 @@ import { Select } from "@plane/blocks/select";
 type ModuleStatusOption = (typeof MODULE_STATUS)[number];
 
 type Props = {
-  control: Control<Partial<IModule>, any>;
+  control: Control<Partial<IModule>>;
   submitChanges: (formData: Partial<IModule>) => void;
   watch: UseFormWatch<Partial<IModule>>;
 };
@@ -44,7 +44,8 @@ export function SidebarStatusSelect({ control, submitChanges, watch }: Props) {
               getValues={() => MODULE_STATUS}
               value={MODULE_STATUS.find((option) => option.value === value) ?? null}
               onChange={(val) => {
-                submitChanges({ status: val as IModule["status"] });
+                const status = MODULE_STATUS.find((option) => option.value === val)?.value;
+                if (status) submitChanges({ status });
               }}
               getOptionValue={(option) => option.value}
               getOptionLabel={(option) => t(option.i18n_label)}

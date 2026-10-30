@@ -33,13 +33,18 @@ type TProps<V extends string> = TCommonProps<V> &
 /** Single or multi select over a flat `{ value, query }` option list. */
 export function AutomationOptionSelect<V extends string>(props: TProps<V>) {
   const { options, label, disabled, className, showSearch = true } = props;
+  const knownValues = new Set<string>([
+    ...options.map((option) => option.value),
+    ...(props.multiple ? props.value : []),
+  ]);
+  const isKnownValue = (id: string): id is V => knownValues.has(id);
 
   const shared = {
     getValues: () => options,
-    getOptionValue: (option: TAutomationOption<V>) => option.value,
-    getOptionLabel: (option: TAutomationOption<V>) => option.query,
-    getOptionIcon: (option: TAutomationOption<V>) => option.icon,
-    getOptionPlaceholder: (id: string) => ({ value: id as V, query: id }),
+    getOptionValue: (option: TAutomationOption) => option.value,
+    getOptionLabel: (option: TAutomationOption) => option.query,
+    getOptionIcon: (option: TAutomationOption) => option.icon,
+    getOptionPlaceholder: (id: string): TAutomationOption => ({ value: id, query: id }),
     pinSelected: false,
     showSearch,
     disabled,
@@ -54,7 +59,12 @@ export function AutomationOptionSelect<V extends string>(props: TProps<V>) {
   if (props.multiple) {
     const { value, onChange } = props;
     return (
-      <Select<TAutomationOption<V>> {...shared} multiple valueIds={value} onChange={(next) => onChange(next as V[])}>
+      <Select<TAutomationOption>
+        {...shared}
+        multiple
+        valueIds={value}
+        onChange={(next) => onChange(next.filter(isKnownValue))}
+      >
         {trigger}
       </Select>
     );
@@ -62,10 +72,12 @@ export function AutomationOptionSelect<V extends string>(props: TProps<V>) {
 
   const { value, onChange } = props;
   return (
-    <Select<TAutomationOption<V>>
+    <Select<TAutomationOption>
       {...shared}
       value={options.find((option) => option.value === value) ?? null}
-      onChange={(next) => onChange(next as V)}
+      onChange={(next) => {
+        if (isKnownValue(next)) onChange(next);
+      }}
     >
       {trigger}
     </Select>

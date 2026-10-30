@@ -25,6 +25,7 @@ import { useProject } from "@/hooks/store/use-project";
 import { AutomationCreateModal } from "../create-modal";
 import { AutomationDeleteModal } from "../delete-modal";
 import { findTrigger, useAutomationMetadata } from "../helpers/metadata";
+import { getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   workspaceSlug: string;
@@ -67,7 +68,7 @@ const AutomationRow = observer(function AutomationRow(props: {
       setToast({
         type: "error",
         title: t("automations.toasts.enable.error.title"),
-        message: (error as { is_enabled?: string })?.is_enabled ?? t("automations.enable.validation.required"),
+        message: getStringField(error, "is_enabled") ?? t("automations.enable.validation.required"),
       });
     }
   };

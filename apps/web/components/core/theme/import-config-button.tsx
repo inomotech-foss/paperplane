@@ -12,6 +12,7 @@ import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { setToast } from "@plane/blocks/toast";
 import type { IUserTheme } from "@plane/types";
+import { getField } from "@/helpers/guard.helper";
 
 type Props = {
   handleUpdateTheme: (formData: IUserTheme) => Promise<void>;
@@ -31,24 +32,26 @@ export const CustomThemeImportConfigButton = observer(function CustomThemeImport
 
     try {
       const text = await file.text();
-      const config = JSON.parse(text) as IUserTheme;
+      const config: unknown = JSON.parse(text);
+      const primary = getField(config, "primary");
+      const background = getField(config, "background");
 
       // Validate required fields
-      if (!config.primary || !config.background) {
+      if (!primary || !background) {
         throw new Error("Missing required fields: primary and background");
       }
 
       // Validate hex color format
       const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      if (!hexPattern.test(config.primary)) {
+      if (typeof primary !== "string" || !hexPattern.test(primary)) {
         throw new Error("Invalid brand color hex format");
       }
-      if (!hexPattern.test(config.background)) {
+      if (typeof background !== "string" || !hexPattern.test(background)) {
         throw new Error("Invalid neutral color hex format");
       }
 
       // Validate theme mode
-      const themeMode = config.darkPalette ?? false;
+      const themeMode = getField(config, "darkPalette") ?? false;
       if (typeof themeMode !== "boolean") {
         throw new Error("Invalid theme mode. Must be a boolean");
       }
@@ -56,8 +59,8 @@ export const CustomThemeImportConfigButton = observer(function CustomThemeImport
       // Apply the configuration to form
       const formData: IUserTheme = {
         theme: "custom",
-        primary: config.primary,
-        background: config.background,
+        primary,
+        background,
         darkPalette: themeMode,
       };
 

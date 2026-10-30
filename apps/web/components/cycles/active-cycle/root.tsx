@@ -11,6 +11,7 @@ import { useTheme } from "next-themes";
 import { EmptyStateDetailed } from "@plane/blocks/empty-state";
 // plane imports
 import { useTranslation } from "@plane/i18n";
+import type { TWorkItemFilterCondition } from "@plane/shared-state";
 import type { ICycle } from "@plane/types";
 import { Row } from "@plane/blocks/layout";
 // assets
@@ -40,7 +41,7 @@ type ActiveCyclesComponentProps = {
   activeCycleResolvedPath: string;
   workspaceSlug: string;
   projectId: string;
-  handleFiltersUpdate: (filters: any) => void;
+  handleFiltersUpdate: (conditions: TWorkItemFilterCondition[]) => void;
   cycleIssueDetails?: ActiveCycleIssueDetails | { nextPageResults: boolean };
 };
 

@@ -9,7 +9,6 @@ import { observer } from "mobx-react";
 import { useTranslation } from "@plane/i18n";
 import { setPromiseToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
-import type { IProject } from "@plane/types";
 import {
   CyclesOutline,
   IntakeOutline,
@@ -26,6 +25,7 @@ import { useProject } from "@/hooks/store/use-project";
 // plane web imports
 import { UpgradeBadge } from "@/components/workspace/upgrade-badge";
 // local imports
+import type { TProjectFeatureItem, TProjectFeatureProperty } from "./helper";
 import { ProjectFeatureToggle } from "./helper";
 
 type Props = {
@@ -89,7 +89,7 @@ const PROJECT_FEATURES_LIST = {
     isPro: false,
     isEnabled: true,
   },
-};
+} satisfies Record<string, TProjectFeatureItem>;
 
 export const ProjectFeaturesList = observer(function ProjectFeaturesList(props: Props) {
   const { workspaceSlug, projectId, isAdmin } = props;
@@ -99,12 +99,12 @@ export const ProjectFeaturesList = observer(function ProjectFeaturesList(props: 
   // derived values
   const currentProjectDetails = getProjectById(projectId);
 
-  const handleSubmit = (_featureKey: string, featureProperty: string) => {
+  const handleSubmit = (_featureKey: string, featureProperty: TProjectFeatureProperty) => {
     if (!workspaceSlug || !projectId || !currentProjectDetails) return;
 
     // making the request to update the project feature
     const settingsPayload = {
-      [featureProperty]: !currentProjectDetails?.[featureProperty as keyof IProject],
+      [featureProperty]: !currentProjectDetails?.[featureProperty],
     };
     const updateProjectPromise = updateProject(workspaceSlug, projectId, settingsPayload);
 
@@ -145,7 +145,7 @@ export const ProjectFeaturesList = observer(function ProjectFeaturesList(props: 
                     workspaceSlug={workspaceSlug}
                     projectId={projectId}
                     featureItem={featureItem}
-                    value={Boolean(currentProjectDetails?.[featureItem.property as keyof IProject])}
+                    value={Boolean(currentProjectDetails?.[featureItem.property])}
                     handleSubmit={handleSubmit}
                     disabled={!isAdmin}
                   />

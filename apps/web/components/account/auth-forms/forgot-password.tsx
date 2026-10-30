@@ -20,6 +20,7 @@ import { setToast } from "@plane/blocks/toast";
 
 import { checkEmailValidity } from "@plane/utils";
 // hooks
+import { getApiErrorMessage } from "@/helpers/error.helper";
 import useTimer from "@/hooks/use-timer";
 // services
 import { AuthService } from "@/services/auth.service";
@@ -72,11 +73,11 @@ export const ForgotPasswordForm = observer(function ForgotPasswordForm() {
         });
         setResendCodeTimer(30);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: t("auth.forgot_password.toast.error.title"),
-          message: err?.error ?? t("auth.forgot_password.toast.error.message"),
+          message: getApiErrorMessage(err) ?? t("auth.forgot_password.toast.error.message"),
         });
       });
   };

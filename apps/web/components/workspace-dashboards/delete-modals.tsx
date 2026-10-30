@@ -13,6 +13,7 @@ import type { TWorkspaceDashboard, TWorkspaceDashboardWidget } from "@plane/type
 import { ConfirmDialog } from "@plane/blocks/dialog";
 // hooks
 import { useWorkspaceDashboards } from "@/hooks/store/use-workspace-dashboards";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type TDeleteDashboardProps = {
   isOpen: boolean;
@@ -39,7 +40,7 @@ export const DeleteDashboardModal = observer(function DeleteDashboardModal(props
       setToast({
         type: "error",
         title: t("common.error.label"),
-        message: (error as { error?: string })?.error ?? t("insight_dashboards.delete.error"),
+        message: getApiErrorMessage(error) ?? t("insight_dashboards.delete.error"),
       });
     } finally {
       setIsSubmitting(false);
@@ -81,7 +82,7 @@ export const DeleteWidgetModal = observer(function DeleteWidgetModal(props: TDel
       setToast({
         type: "error",
         title: t("common.error.label"),
-        message: (error as { error?: string })?.error ?? t("insight_dashboards.widget.delete_error"),
+        message: getApiErrorMessage(error) ?? t("insight_dashboards.widget.delete_error"),
       });
     } finally {
       setIsSubmitting(false);

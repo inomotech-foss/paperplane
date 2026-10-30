@@ -16,6 +16,7 @@ import type { TPage, TPageNavigationTabs } from "@plane/types";
 import { EUserProjectRoles } from "@plane/types";
 // components
 import { PageLoader } from "@/components/pages/loaders/page-loader";
+import { getStringField, isRecord } from "@/helpers/narrow.helper";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 // plane web hooks
@@ -63,11 +64,13 @@ export const PagesListMainContent = observer(function PagesListMainContent(props
         const pageId = `/${workspaceSlug}/projects/${currentProjectDetails?.id}/pages/${res?.id}`;
         router.push(pageId);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: "Error!",
-          message: err?.data?.error || "Page could not be created. Please try again.",
+          message:
+            getStringField(isRecord(err) ? err.data : undefined, "error") ||
+            "Page could not be created. Please try again.",
         });
       })
       .finally(() => setIsCreatingPage(false));

@@ -41,15 +41,12 @@ export const FilterItem = observer(function FilterItem<P extends TFilterProperty
   // derived values
   const filterConfig = condition?.property ? filter.configManager.getConfigByProperty(condition.property) : undefined;
   const operatorOptions =
-    filterConfig?.getAllDisplayOperatorOptionsByValue(condition.value as TFilterValue)?.map((option) => ({
+    filterConfig?.getAllDisplayOperatorOptionsByValue(condition.value)?.map((option) => ({
       value: option.value,
       label: option.label,
     })) ?? [];
   const selectedOperatorFieldConfig = filterConfig?.getOperatorConfig(condition.operator);
-  const selectedOperatorOption = filterConfig?.getDisplayOperatorByValue(
-    condition.operator,
-    condition.value as TFilterValue
-  );
+  const selectedOperatorOption = filterConfig?.getDisplayOperatorByValue(condition.operator, condition.value);
   // Disable operator selection when filter is disabled or only one operator option is available and selected
   const isOperatorSelectionDisabled =
     isDisabled ||
@@ -98,7 +95,10 @@ export const FilterItem = observer(function FilterItem<P extends TFilterProperty
         <Select<(typeof operatorOptions)[number]>
           getValues={() => operatorOptions}
           value={operatorOptions.find((option) => option.value === condition.operator) ?? null}
-          onChange={(operator) => handleOperatorChange(operator as TAllAvailableOperatorsForDisplay)}
+          onChange={(operator) => {
+            const option = operatorOptions.find((item) => item.value === operator);
+            if (option) handleOperatorChange(option.value);
+          }}
           disabled={isOperatorSelectionDisabled}
           getOptionValue={(option) => option.value}
           getOptionLabel={(option) => option.label}

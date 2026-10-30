@@ -28,6 +28,7 @@ import { PageNavigationPaneRoot, PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM } from ".
 import { setPendingCommentThread } from "../navigation-pane/tab-panels/comments/pending-thread";
 import { PageVersionsOverlay } from "../version";
 import { PagesVersionEditor } from "../version/editor";
+import { getCommentEventThreadId } from "./comment-event";
 import { PageEditorBody } from "./editor-body";
 import type { TEditorBodyConfig, TEditorBodyHandlers } from "./editor-body";
 import { PageEditorToolbarRoot } from "./toolbar/root";
@@ -173,9 +174,9 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
       });
       router.push(updatedRoute);
     };
-    const onCreate = (event: Event) => openCommentsTab((event as CustomEvent).detail?.threadId);
+    const onCreate = (event: Event) => openCommentsTab(getCommentEventThreadId(event));
     const onMarkClick = (event: MouseEvent) => {
-      const target = (event.target as HTMLElement | null)?.closest?.(`[${COMMENT_MARK_DATA_ATTRIBUTE}]`);
+      const target = event.target instanceof Element ? event.target.closest(`[${COMMENT_MARK_DATA_ATTRIBUTE}]`) : null;
       if (target) openCommentsTab();
     };
     document.addEventListener(EDITOR_COMMENT_CREATE_EVENT, onCreate);

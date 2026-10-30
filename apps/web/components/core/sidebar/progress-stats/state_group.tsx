@@ -7,9 +7,9 @@
 import { observer } from "mobx-react";
 // plane imports
 import { StateGroupIcon } from "@plane/blocks/icons";
-import type { TStateGroups } from "@plane/types";
 // components
 import { SingleProgressStats } from "@/components/core/sidebar/single-progress-stats";
+import { isStateGroup } from "@/helpers/guard.helper";
 
 export type TStateGroupData = {
   state: string | undefined;
@@ -28,14 +28,16 @@ type TStateGroupStatComponent = {
 export const StateGroupStatComponent = observer(function StateGroupStatComponent(props: TStateGroupStatComponent) {
   const { distribution, isEditable, totalIssuesCount, selectedStateGroups, handleStateGroupFiltersUpdate } = props;
 
+  const selectedStateGroupSet = new Set(selectedStateGroups);
+
   return (
     <div>
-      {distribution.map((group, index) => (
+      {distribution.map((group) => (
         <SingleProgressStats
-          key={index}
+          key={group.state ?? ""}
           title={
             <div className="flex items-center gap-2">
-              <StateGroupIcon stateGroup={group.state as TStateGroups} />
+              <StateGroupIcon stateGroup={isStateGroup(group.state) ? group.state : "unstarted"} />
               <span className="text-11 capitalize">{group.state}</span>
             </div>
           }
@@ -43,7 +45,7 @@ export const StateGroupStatComponent = observer(function StateGroupStatComponent
           total={totalIssuesCount}
           {...(isEditable && {
             onClick: () => group.state && handleStateGroupFiltersUpdate(group.state),
-            selected: group.state ? selectedStateGroups.includes(group.state) : false,
+            selected: group.state ? selectedStateGroupSet.has(group.state) : false,
           })}
         />
       ))}

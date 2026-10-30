@@ -13,7 +13,7 @@ import useSWR from "swr";
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { IProject, IUserLite, IWorkspace } from "@plane/types";
+import type { IProject, IUserLite } from "@plane/types";
 import { Switch } from "@makeplane/propel/components/switch";
 import { Loader } from "@plane/blocks/skeleton";
 // constants
@@ -23,6 +23,10 @@ import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 // components
 import { MemberSelect } from "@/components/dropdowns/member/member-select";
+
+// Members may come expanded or as plain ids.
+const getMemberId = (member: IUserLite | string | null | undefined) =>
+  typeof member === "object" && member !== null ? member.id : member;
 
 const defaultValues: Partial<IProject> = {
   project_lead: null,
@@ -82,10 +86,9 @@ export const ProjectSettingsMemberDefaults = observer(function ProjectSettingsMe
 
     reset({
       ...currentProjectDetails,
-      default_assignee:
-        (currentProjectDetails.default_assignee as IUserLite)?.id ?? currentProjectDetails.default_assignee,
-      project_lead: (currentProjectDetails.project_lead as IUserLite)?.id ?? currentProjectDetails.project_lead,
-      workspace: (currentProjectDetails.workspace as IWorkspace).id,
+      default_assignee: getMemberId(currentProjectDetails.default_assignee),
+      project_lead: getMemberId(currentProjectDetails.project_lead),
+      workspace: typeof currentProjectDetails.workspace === "object" ? currentProjectDetails.workspace.id : undefined,
     });
   }, [currentProjectDetails, reset]);
 
@@ -94,9 +97,8 @@ export const ProjectSettingsMemberDefaults = observer(function ProjectSettingsMe
 
     reset({
       ...currentProjectDetails,
-      default_assignee:
-        (currentProjectDetails?.default_assignee as IUserLite)?.id ?? currentProjectDetails?.default_assignee,
-      project_lead: (currentProjectDetails?.project_lead as IUserLite)?.id ?? currentProjectDetails?.project_lead,
+      default_assignee: getMemberId(currentProjectDetails?.default_assignee),
+      project_lead: getMemberId(currentProjectDetails?.project_lead),
       ...formData,
     });
 
@@ -115,7 +117,7 @@ export const ProjectSettingsMemberDefaults = observer(function ProjectSettingsMe
           message: t("project_settings.general.toast.success"),
         });
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
       });
   };
@@ -133,7 +135,7 @@ export const ProjectSettingsMemberDefaults = observer(function ProjectSettingsMe
           message: t("project_settings.general.toast.success"),
         });
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
       });
   };
@@ -147,7 +149,7 @@ export const ProjectSettingsMemberDefaults = observer(function ProjectSettingsMe
             name="project_lead"
             render={({ field: { value } }) => (
               <MemberSelect
-                value={value as string | null}
+                value={typeof value === "string" ? value : null}
                 // The clear row emits "", which `submitChanges` stores as null through its "none" branch.
                 onChange={(val: string) => {
                   void submitChanges({ project_lead: val || "none" });
@@ -174,7 +176,7 @@ export const ProjectSettingsMemberDefaults = observer(function ProjectSettingsMe
             name="default_assignee"
             render={({ field: { value } }) => (
               <MemberSelect
-                value={value as string | null}
+                value={typeof value === "string" ? value : null}
                 // The clear row emits "", which `submitChanges` stores as null through its "none" branch.
                 onChange={(val: string) => {
                   void submitChanges({ default_assignee: val || "none" });

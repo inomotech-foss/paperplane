@@ -334,6 +334,7 @@ const activityDetails: {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+              aria-label="Open link in a new tab"
             >
               link
             </a>
@@ -354,6 +355,7 @@ const activityDetails: {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+              aria-label="Open link in a new tab"
             >
               link
             </a>
@@ -374,6 +376,7 @@ const activityDetails: {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+              aria-label="Open link in a new tab"
             >
               link
             </a>
@@ -716,7 +719,7 @@ const activityDetails: {
 };
 
 export function ActivityIcon({ activity }: { activity: IIssueActivity }) {
-  return <>{activityDetails[activity.field as keyof typeof activityDetails]?.icon}</>;
+  return <>{activity.field ? activityDetails[activity.field]?.icon : undefined}</>;
 }
 
 type ActivityMessageProps = {
@@ -731,7 +734,7 @@ export function ActivityMessage({ activity, showIssue = false }: ActivityMessage
 
   return (
     <>
-      {activityDetails[activityField as keyof typeof activityDetails]?.message(
+      {activityDetails[activityField]?.message(
         activity,
         showIssue,
         workspaceSlug ? workspaceSlug.toString() : (activity.workspace_detail?.slug ?? "")

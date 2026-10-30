@@ -18,6 +18,7 @@ import { VIEWS_LIST } from "@/components/gantt-chart/data";
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //
 import { GANTT_BREADCRUMBS_HEIGHT } from "../constants";
+import { isGanttView } from "../views/guards";
 
 type Props = {
   blockIds: string[];
@@ -59,20 +60,22 @@ export const GanttChartHeader = observer(function GanttChartHeader(props: Props)
       {actions}
 
       <div className="flex flex-wrap items-center gap-2">
-        {VIEWS_LIST.map((chartView: any) => (
+        {VIEWS_LIST.map((chartView) => (
           <button
             type="button"
-            key={chartView?.key}
+            key={chartView.key}
             className={cn(
               "cursor-pointer rounded-md bg-layer-transparent p-1 px-2 text-11 hover:bg-layer-transparent-hover",
               {
-                "bg-layer-transparent-selected": currentView === chartView?.key,
+                "bg-layer-transparent-selected": currentView === chartView.key,
               }
             )}
-            aria-pressed={currentView === chartView?.key}
-            onClick={() => handleChartView(chartView?.key)}
+            aria-pressed={currentView === chartView.key}
+            onClick={() => {
+              if (isGanttView(chartView.key)) handleChartView(chartView.key);
+            }}
           >
-            {t(chartView?.i18n_title)}
+            {t(chartView.i18n_title)}
           </button>
         ))}
       </div>

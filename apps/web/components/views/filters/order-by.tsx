@@ -62,7 +62,7 @@ export function ViewOrderByDropdown(props: Props) {
             selected={sortKey === option.key}
             onClick={() =>
               onChange({
-                key: option.key as TViewFiltersSortKey,
+                key: option.key,
               })
             }
           />
@@ -78,7 +78,7 @@ export function ViewOrderByDropdown(props: Props) {
               onClick={() => {
                 if (!isSelected)
                   onChange({
-                    order: option.key as TViewFiltersSortBy,
+                    order: option.key,
                   });
               }}
             />

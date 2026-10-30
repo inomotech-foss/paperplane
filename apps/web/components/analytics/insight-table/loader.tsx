@@ -9,14 +9,14 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@makeplane/propel/components/table";
 import { Loader } from "@plane/blocks/skeleton";
 
-interface TableSkeletonProps {
-  columns: ColumnDef<any>[];
+interface TableSkeletonProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
   rows: number;
 }
 
-const getColumnKey = (column: ColumnDef<any>) => column.id ?? String(column.header ?? "");
+const getColumnKey = <TData, TValue>(column: ColumnDef<TData, TValue>) => column.id ?? String(column.header ?? "");
 
-export function TableLoader({ columns, rows }: TableSkeletonProps) {
+export function TableLoader<TData, TValue>({ columns, rows }: TableSkeletonProps<TData, TValue>) {
   const rowKeys = Array.from({ length: rows }, (_, rowIndex) => `skeleton-row-${rowIndex}`);
 
   return (

@@ -9,7 +9,14 @@ import { observer } from "mobx-react";
 import { Tabs, TabsList, Tab, TabsPanel } from "@makeplane/propel/components/tabs";
 import { useTranslation } from "@plane/i18n";
 import type { TWorkItemFilterCondition } from "@plane/shared-state";
-import type { TCycleDistribution, TCycleEstimateDistribution, TCyclePlotType } from "@plane/types";
+import type {
+  TCycleAssigneesDistribution,
+  TCycleDistribution,
+  TCycleDistributionBase,
+  TCycleEstimateDistribution,
+  TCycleEstimateDistributionBase,
+  TCycleLabelsDistribution,
+} from "@plane/types";
 import { toFilterArray } from "@plane/utils";
 // components
 import type { TAssigneeData } from "@/components/core/sidebar/progress-stats/assignee";
@@ -22,7 +29,15 @@ import type { TStateGroupData } from "@/components/core/sidebar/progress-stats/s
 import { StateGroupStatComponent } from "@/components/core/sidebar/progress-stats/state_group";
 // helpers
 // hooks
+import { isString } from "@/helpers/narrow.helper";
 import useLocalStorage from "@/hooks/use-local-storage";
+
+type TDistributionBase = TCycleDistributionBase | TCycleEstimateDistributionBase;
+
+const getDistributionCounts = (item: TDistributionBase) =>
+  "completed_issues" in item
+    ? { completed: item.completed_issues, total: item.total_issues }
+    : { completed: item.completed_estimates, total: item.total_estimates };
 
 type TCycleProgressStats = {
   cycleId: string;
@@ -30,7 +45,6 @@ type TCycleProgressStats = {
   groupedIssues: Record<string, number>;
   handleFiltersUpdate: (condition: TWorkItemFilterCondition) => void;
   isEditable?: boolean;
-  plotType: TCyclePlotType;
   selectedFilters: TSelectedFilterProgressStats;
   totalIssuesCount: number;
 };
@@ -42,7 +56,6 @@ export const CycleProgressStats = observer(function CycleProgressStats(props: TC
     groupedIssues,
     handleFiltersUpdate,
     isEditable = false,
-    plotType,
     selectedFilters,
     totalIssuesCount,
   } = props;
@@ -54,45 +67,25 @@ export const CycleProgressStats = observer(function CycleProgressStats(props: TC
     "stat-assignees"
   );
   // derived values
-  const currentDistribution = distribution as TCycleDistribution;
-  const currentEstimateDistribution = distribution as TCycleEstimateDistribution;
-  const selectedAssigneeIds = toFilterArray(selectedFilters?.assignees?.value || []) as string[];
-  const selectedLabelIds = toFilterArray(selectedFilters?.labels?.value || []) as string[];
-  const selectedStateGroups = toFilterArray(selectedFilters?.stateGroups?.value || []) as string[];
+  const selectedAssigneeIds = toFilterArray(selectedFilters?.assignees?.value || []).filter(isString);
+  const selectedLabelIds = toFilterArray(selectedFilters?.labels?.value || []).filter(isString);
+  const selectedStateGroups = toFilterArray(selectedFilters?.stateGroups?.value || []).filter(isString);
 
-  const distributionAssigneeData: TAssigneeData =
-    plotType === "burndown"
-      ? (currentDistribution?.assignees || []).map((assignee) => ({
-          id: assignee?.assignee_id || undefined,
-          title: assignee?.display_name || undefined,
-          avatar_url: assignee?.avatar_url || undefined,
-          completed: assignee.completed_issues,
-          total: assignee.total_issues,
-        }))
-      : (currentEstimateDistribution?.assignees || []).map((assignee) => ({
-          id: assignee?.assignee_id || undefined,
-          title: assignee?.display_name || undefined,
-          avatar_url: assignee?.avatar_url || undefined,
-          completed: assignee.completed_estimates,
-          total: assignee.total_estimates,
-        }));
+  const assignees: (TCycleAssigneesDistribution & TDistributionBase)[] = distribution?.assignees || [];
+  const distributionAssigneeData: TAssigneeData = assignees.map((assignee) => ({
+    id: assignee?.assignee_id || undefined,
+    title: assignee?.display_name || undefined,
+    avatar_url: assignee?.avatar_url || undefined,
+    ...getDistributionCounts(assignee),
+  }));
 
-  const distributionLabelData: TLabelData =
-    plotType === "burndown"
-      ? (currentDistribution?.labels || []).map((label) => ({
-          id: label?.label_id || undefined,
-          title: label?.label_name || undefined,
-          color: label?.color || undefined,
-          completed: label.completed_issues,
-          total: label.total_issues,
-        }))
-      : (currentEstimateDistribution?.labels || []).map((label) => ({
-          id: label?.label_id || undefined,
-          title: label?.label_name || undefined,
-          color: label?.color || undefined,
-          completed: label.completed_estimates,
-          total: label.total_estimates,
-        }));
+  const labels: (TCycleLabelsDistribution & TDistributionBase)[] = distribution?.labels || [];
+  const distributionLabelData: TLabelData = labels.map((label) => ({
+    id: label?.label_id || undefined,
+    title: label?.label_name || undefined,
+    color: label?.color || undefined,
+    ...getDistributionCounts(label),
+  }));
 
   const distributionStateData: TStateGroupData = Object.keys(groupedIssues || {}).map((state) => ({
     state: state,

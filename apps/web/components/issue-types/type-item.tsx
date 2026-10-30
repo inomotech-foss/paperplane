@@ -18,6 +18,7 @@ import { cn } from "@plane/utils";
 // local imports
 import type { TIssueTypeOperationsCallbacks } from "./create-update-form";
 import { CreateUpdateIssueTypeForm } from "./create-update-form";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type TIssueTypeItemProps = {
   issueType: TIssueType;
@@ -44,7 +45,7 @@ export const IssueTypeItem = observer(function IssueTypeItem(props: TIssueTypeIt
     try {
       await operationsCallbacks.updateIssueType(issueType.id, { is_active: isActive });
     } catch (error) {
-      showError((error as { error?: string })?.error);
+      showError(getApiErrorMessage(error));
     }
   };
 

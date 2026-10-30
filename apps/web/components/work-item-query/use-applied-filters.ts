@@ -25,6 +25,10 @@ type QueryFilterStore = {
   ): Promise<void>;
 };
 
+// the profile filter store keeps no per-entity filters
+const isQueryFilterStore = (store: object): store is QueryFilterStore =>
+  "getIssueFilters" in store && "updateFilters" in store;
+
 type RichFilter = { hasActiveFilters: boolean; clearFilters: () => Promise<void> } | undefined;
 
 /**
@@ -35,13 +39,13 @@ type RichFilter = { hasActiveFilters: boolean; clearFilters: () => Promise<void>
 export const useAppliedFilters = (storeType: EIssuesStoreType, entityId: string | undefined, filter?: RichFilter) => {
   const { workspaceSlug, projectId } = useParams();
   const { issuesFilter } = useIssues(storeType);
-  const store = issuesFilter as unknown as QueryFilterStore;
+  const store = isQueryFilterStore(issuesFilter) ? issuesFilter : undefined;
   const draft = usePqlDraft();
-  const hasQuery = (!!entityId && appliedQuery(store.getIssueFilters(entityId)).trim().length > 0) || !!draft;
+  const hasQuery = (!!entityId && appliedQuery(store?.getIssueFilters(entityId)).trim().length > 0) || !!draft;
   const hasRichFilters = !!filter?.hasActiveFilters;
 
   const clearQuery = useCallback(async () => {
-    if (!hasQuery || !workspaceSlug || !entityId) return;
+    if (!hasQuery || !workspaceSlug || !entityId || !store) return;
     await store.updateFilters(
       workspaceSlug.toString(),
       projectId?.toString(),

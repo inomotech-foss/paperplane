@@ -33,7 +33,8 @@ export const ModuleStatusDropdown = observer(function ModuleStatusDropdown(props
       getValues={() => MODULE_STATUS}
       value={moduleStatus}
       onChange={(val) => {
-        void handleModuleDetailsChange({ status: val as TModuleStatus });
+        const status = MODULE_STATUS.find((option) => option.value === val)?.value;
+        if (status) void handleModuleDetailsChange({ status });
       }}
       getOptionValue={(status) => status.value}
       getOptionLabel={(status) => t(status.i18n_label)}

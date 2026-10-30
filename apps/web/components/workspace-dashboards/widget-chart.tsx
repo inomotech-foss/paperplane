@@ -98,7 +98,7 @@ export function WidgetChart(props: Props) {
                 <td className="py-1 pr-2">{row.name}</td>
                 {valueKeys.map((key) => (
                   <td key={key} className="py-1 pr-2 text-right tabular-nums">
-                    {formatMetricValue(row[key] as number)}
+                    {formatMetricValue(row[key])}
                   </td>
                 ))}
                 {seriesKeys.length > 0 && (

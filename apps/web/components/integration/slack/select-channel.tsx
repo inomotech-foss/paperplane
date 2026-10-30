@@ -19,12 +19,16 @@ import { useInstance } from "@/hooks/store/use-instance";
 import useIntegrationPopup from "@/hooks/use-integration-popup";
 // services
 import { AppInstallationService } from "@/services/app_installation.service";
+import { getField, isRecord } from "@/helpers/guard.helper";
 
 type Props = {
   integration: IWorkspaceIntegration;
 };
 
 const appInstallationService = new AppInstallationService();
+
+const isSlackIntegration = (value: unknown): value is ISlackIntegration =>
+  isRecord(value) && typeof value.id === "string" && typeof value.project === "string";
 
 export const SelectChannel = observer(function SelectChannel({ integration }: Props) {
   // store hooks
@@ -43,7 +47,7 @@ export const SelectChannel = observer(function SelectChannel({ integration }: Pr
     slack_client_id: config?.slack_client_id || "",
   });
 
-  const { data: projectIntegration } = useSWR(
+  const { data: projectIntegration } = useSWR<unknown>(
     workspaceSlug && projectId && integration.id ? SLACK_CHANNEL_INFO(workspaceSlug, projectId) : null,
     () =>
       workspaceSlug && projectId && integration.id
@@ -52,9 +56,10 @@ export const SelectChannel = observer(function SelectChannel({ integration }: Pr
   );
 
   useEffect(() => {
-    if (projectId && projectIntegration && projectIntegration.length > 0) {
-      const projectSlackIntegrationCheck: ISlackIntegration | undefined = projectIntegration.find(
-        (_slack: ISlackIntegration) => _slack.project === projectId
+    const projectIntegrations: unknown[] = Array.isArray(projectIntegration) ? projectIntegration : [];
+    if (projectId && projectIntegrations.length > 0) {
+      const projectSlackIntegrationCheck = projectIntegrations.find(
+        (item): item is ISlackIntegration => isSlackIntegration(item) && item.project === projectId
       );
       if (projectSlackIntegrationCheck) {
         setSlackChannel(() => projectSlackIntegrationCheck);
@@ -65,17 +70,17 @@ export const SelectChannel = observer(function SelectChannel({ integration }: Pr
 
   const handleDelete = async () => {
     if (!workspaceSlug || !projectId) return;
-    if (projectIntegration.length === 0) return;
-    mutate(SLACK_CHANNEL_INFO(workspaceSlug?.toString(), projectId?.toString()), (prevData: any) => {
+    if (Array.isArray(projectIntegration) && projectIntegration.length === 0) return;
+    mutate(SLACK_CHANNEL_INFO(workspaceSlug?.toString(), projectId?.toString()), (prevData: unknown) => {
       if (!prevData) return;
-      return prevData.id !== integration.id;
+      return getField(prevData, "id") !== integration.id;
     }).then(() => {
       setSlackChannelAvailabilityToggle(false);
       setSlackChannel(null);
     });
     appInstallationService
       .removeSlackChannel(workspaceSlug, projectId, integration.id, slackChannel?.id)
-      .catch((err) => console.error(err));
+      .catch((err: unknown) => console.error(err));
   };
 
   const handleAuth = async () => {

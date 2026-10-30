@@ -9,6 +9,7 @@ import { useRef } from "react";
 import { observer } from "mobx-react";
 // components
 import type { IBlockUpdateDependencyData, IGanttBlock } from "@plane/types";
+import type { TGanttRenderBlockData } from "@/components/gantt-chart/types";
 import { cn } from "@plane/utils";
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 // helpers
@@ -46,7 +47,7 @@ const getBarState = (block: IGanttBlock | undefined, editing: TBarEditing) => {
 type Props = {
   blockId: string;
   showAllBlocks: boolean;
-  blockToRender: (data: any) => React.ReactNode;
+  blockToRender: (data: TGanttRenderBlockData) => React.ReactNode;
   enableBlockLeftResize: boolean;
   enableBlockRightResize: boolean;
   enableBlockMove: boolean;
