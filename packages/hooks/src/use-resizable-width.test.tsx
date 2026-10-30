@@ -61,7 +61,7 @@ afterEach(() => {
 });
 
 const store = (value: unknown) => localStorage.setItem(KEY, JSON.stringify(value));
-const persisted = () => JSON.parse(localStorage.getItem(KEY) ?? "null");
+const persisted = (): unknown => JSON.parse(localStorage.getItem(KEY) ?? "null");
 const handle = () => screen.getByTestId("handle");
 const boxWidth = () => screen.getByTestId("box").style.width;
 const cssWidth = () => screen.getByTestId("box").style.getPropertyValue(PROPERTY);

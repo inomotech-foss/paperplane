@@ -6,6 +6,7 @@
 
 import "reflect-metadata";
 import type { RequestHandler } from "express";
+import { getMiddlewares } from "./metadata";
 
 // Define valid HTTP methods
 type RestMethod = "get" | "post" | "put" | "patch" | "delete";
@@ -50,8 +51,7 @@ export const Delete = createHttpMethodDecorator("delete");
  */
 export function Middleware(middleware: RequestHandler): MethodDecorator {
   return function (target: object, propertyKey: string | symbol) {
-    const middlewares = Reflect.getMetadata("middlewares", target, propertyKey) || [];
-    middlewares.push(middleware);
+    const middlewares = [...getMiddlewares(target, propertyKey), middleware];
     Reflect.defineMetadata("middlewares", middlewares, target, propertyKey);
   };
 }

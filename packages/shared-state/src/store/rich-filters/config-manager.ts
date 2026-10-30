@@ -120,8 +120,8 @@ export class FilterConfigManager<
    * @param property - The property to get the config for.
    * @returns The config for the property, or undefined if not found.
    */
-  getConfigByProperty: IFilterConfigManager<P>["getConfigByProperty"] = computedFn(
-    (property) => this.filterConfigs.get(property) as IFilterConfig<P>
+  getConfigByProperty: IFilterConfigManager<P>["getConfigByProperty"] = computedFn((property) =>
+    this.filterConfigs.get(property)
   );
 
   // ------------ helpers ------------

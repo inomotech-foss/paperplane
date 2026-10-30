@@ -9,13 +9,16 @@ import path from "node:path";
 
 export const LOCALES_DIR = path.resolve(import.meta.dirname, "../../src/locales");
 
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
 /** Recursively flatten an object into dot-notation keys. */
 export function flattenKeys(obj: Record<string, unknown>, prefix = ""): string[] {
   const keys: string[] = [];
   for (const [k, v] of Object.entries(obj)) {
     const full = prefix ? `${prefix}.${k}` : k;
-    if (v !== null && typeof v === "object" && !Array.isArray(v)) {
-      keys.push(...flattenKeys(v as Record<string, unknown>, full));
+    if (isRecord(v)) {
+      keys.push(...flattenKeys(v, full));
     } else {
       keys.push(full);
     }
@@ -26,12 +29,15 @@ export function flattenKeys(obj: Record<string, unknown>, prefix = ""): string[]
 /** Parse JSON from a file, including the file path in any error message. */
 export function readJsonFile(filePath: string): Record<string, unknown> {
   const raw = fs.readFileSync(filePath, "utf-8");
+  let parsed: unknown;
   try {
-    return JSON.parse(raw) as Record<string, unknown>;
+    parsed = JSON.parse(raw);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     throw new Error(`Failed to parse JSON at ${filePath}: ${message}`, { cause: err });
   }
+  if (!isRecord(parsed)) throw new Error(`Expected a JSON object at ${filePath}`);
+  return parsed;
 }
 
 export interface NamespaceData {

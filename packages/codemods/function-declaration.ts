@@ -12,7 +12,6 @@ import {
   JSCodeshift,
   TSTypeReference,
   Identifier,
-  BlockStatement,
   Expression,
   Pattern,
   SpreadElement,
@@ -20,11 +19,13 @@ import {
   ASTNode,
   Node,
   FunctionDeclaration,
-  TSType,
+  TSTypeParameterInstantiation,
   VariableDeclarator,
   ArrowFunctionExpression,
   FunctionExpression,
 } from "jscodeshift";
+
+type TSType = TSTypeParameterInstantiation["params"][number];
 
 const COMPONENT_TYPE_NAMES = new Set([
   "FC",
@@ -124,17 +125,15 @@ function ensureParamType(
   }
 
   if (j.TSType.check(propsType)) {
-    // @ts-expect-error: jscodeshift types are too strict here
     param.typeAnnotation = j.tsTypeAnnotation(propsType);
   }
 }
 
-function toBlockBody(j: JSCodeshift, body: BlockStatement | Expression) {
+function toBlockBody(j: JSCodeshift, body: ArrowFunctionExpression["body"]) {
   if (j.BlockStatement.check(body)) {
     return body;
   }
 
-  // @ts-expect-error: jscodeshift types are too strict here
   const returnStatement = j.returnStatement(body);
 
   return j.blockStatement([returnStatement]);
@@ -216,7 +215,6 @@ function extractPropsTypeFromWrapper(
 
   if (isMemo) {
     // For memo<Props>, the first type parameter is the props type
-    // @ts-expect-error: jscodeshift types are too strict here
     return typeParam;
   }
 
@@ -527,10 +525,10 @@ export default function transform(file: FileInfo, api: API, options: Options) {
       j(path).replaceWith(newFunction);
     });
 
-  const quote = options.quote ?? '"';
+  const quote: unknown = options.quote;
 
   const source = root.toSource({
-    quote,
+    quote: quote === "single" || quote === "auto" ? quote : "double",
   });
 
   return source;

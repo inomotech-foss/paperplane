@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { applyTransform } from "@hypermod/utils";
+import { applyTransform } from "./apply-transform";
 import * as transformer from "../remove-directives";
 
 describe("remove-directives", () => {

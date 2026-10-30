@@ -79,7 +79,7 @@ describe("syntaxError", () => {
 describe("highlightTokens", () => {
   it("tells field identifiers from bare values", () => {
     const tagged = highlightTokens("priority = urgent and state in (a, b)");
-    const byText = Object.fromEntries(tagged.map(({ token, tag }) => [token.text, tag.toString()]));
+    const byText = Object.fromEntries(tagged.map(({ token, tag }) => [token.text ?? "", tag.toString()]));
     expect(byText["priority"]).toBe(byText["state"]);
     expect(byText["urgent"]).toBe(byText["a"]);
     expect(byText["priority"]).not.toBe(byText["urgent"]);
@@ -88,7 +88,7 @@ describe("highlightTokens", () => {
 
   it("tags a name followed by '(' as a function, and the same name without it as a value", () => {
     const tagged = highlightTokens("assignee = currentUser() and priority = now");
-    const byText = Object.fromEntries(tagged.map(({ token, tag }) => [token.text, tag.toString()]));
+    const byText = Object.fromEntries(tagged.map(({ token, tag }) => [token.text ?? "", tag.toString()]));
     const values = highlightTokens("priority = urgent")
       .find(({ token }) => token.text === "urgent")!
       .tag.toString();
