@@ -12,8 +12,10 @@ from django.conf import settings
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
+from plane.license.api.serializers.response import InstanceInfoResponse
 from plane.app.views import BaseAPIView
 from plane.db.models import Workspace
 from plane.license.api.permissions import InstanceAdminPermission
@@ -32,6 +34,7 @@ class InstanceEndpoint(BaseAPIView):
             return [InstanceAdminPermission()]
         return [AllowAny()]
 
+    @extend_schema(responses={200: InstanceInfoResponse})
     @cache_response(60 * 60 * 2, user=False)
     @method_decorator(cache_control(private=True, max_age=12))
     def get(self, request):
@@ -171,6 +174,7 @@ class InstanceEndpoint(BaseAPIView):
         response_data = {"config": data, "instance": instance_data}
         return Response(response_data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: InstanceSerializer})
     @invalidate_cache(path="/api/instances/", user=False)
     def patch(self, request):
         # Get the instance
@@ -185,6 +189,7 @@ class InstanceEndpoint(BaseAPIView):
 class SignUpScreenVisitedEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Recorded")})
     @invalidate_cache(path="/api/instances/", user=False)
     def post(self, request):
         instance = Instance.objects.first()

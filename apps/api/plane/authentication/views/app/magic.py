@@ -12,8 +12,10 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.response.auth import MagicKeySerializer
 from plane.authentication.provider.credentials.magic_code import MagicCodeProvider
 from plane.authentication.utils.login import user_login
 from plane.authentication.utils.redirection_path import get_redirection_path
@@ -38,6 +40,7 @@ class MagicGenerateEndpoint(APIView):
 
     throttle_classes = [AuthenticationThrottle]
 
+    @extend_schema(responses={200: MagicKeySerializer})
     def post(self, request):
         # Check if instance is configured
         instance = Instance.objects.first()

@@ -17,8 +17,10 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
+from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.app.permissions import WorkSpaceAdminPermission
 from plane.app.serializers import (
     WorkSpaceMemberInviteSerializer,
@@ -49,6 +51,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             .select_related("workspace", "workspace__owner", "created_by")
         )
 
+    @extend_schema(responses={200: MessageResponseSerializer})
     def create(self, request, slug):
         emails = request.data.get("emails", [])
         # Check if email is provided
@@ -160,6 +163,7 @@ class WorkspaceJoinEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
     """Invitation response endpoint the user can respond to the invitation"""
 
+    @extend_schema(responses={200: MessageResponseSerializer})
     @invalidate_cache(path="/api/workspaces/", user=False)
     @invalidate_cache(path="/api/users/me/workspaces/", multiple=True)
     @invalidate_cache(
@@ -247,6 +251,7 @@ class WorkspaceJoinEndpoint(BaseAPIView):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    @extend_schema(responses={200: WorkSpaceMemberInvitePublicSerializer})
     def get(self, request, slug, pk):
         workspace_invitation = WorkspaceMemberInvite.objects.get(workspace__slug=slug, pk=pk)
         # Use the public serializer that omits the token and invite_link fields so
@@ -272,6 +277,7 @@ class UserWorkspaceInvitationsViewSet(BaseViewSet):
         # invitations addressed to their own email.
         return super().list(request)
 
+    @extend_schema(responses={204: OpenApiResponse(description="Joined")})
     @invalidate_cache(path="/api/workspaces/", user=False)
     @invalidate_cache(path="/api/users/me/workspaces/", multiple=True)
     def create(self, request):

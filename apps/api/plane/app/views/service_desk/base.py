@@ -20,8 +20,11 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from drf_spectacular.types import OpenApiTypes
 
 # Module imports
+from plane.app.serializers.response.misc import EmailReplySerializer
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.serializers import (
     IssueCommentSerializer,
@@ -69,6 +72,7 @@ def _clean_email_list(emails, exclude=()):
 
 
 class ServiceDeskConfigEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ServiceDeskConfigSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def get(self, request, slug, project_id):
         config = ServiceDeskConfig.objects.filter(workspace__slug=slug, project_id=project_id).first()
@@ -79,6 +83,12 @@ class ServiceDeskConfigEndpoint(BaseAPIView):
             )
         return Response(ServiceDeskConfigSerializer(config).data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(ServiceDeskConfigSerializer, description="Updated"),
+            201: OpenApiResponse(ServiceDeskConfigSerializer, description="Created"),
+        }
+    )
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         mailbox_email = (request.data.get("mailbox_email") or "").strip().lower()
@@ -185,6 +195,14 @@ class ServiceDeskWebhookEndpoint(APIView):
     permission_classes = [AllowAny]
     throttle_classes = []
 
+    @extend_schema(
+        responses={
+            (200, "text/plain"): OpenApiResponse(
+                OpenApiTypes.STR, description="The validation token, on a subscription handshake"
+            ),
+            202: OpenApiResponse(description="Notification accepted"),
+        }
+    )
     def post(self, request):
         validation_token = request.query_params.get("validationToken")
         if validation_token is not None:
@@ -218,6 +236,7 @@ class IssueEmailThreadEndpoint(BaseAPIView):
             .first()
         )
 
+    @extend_schema(responses={200: IssueEmailThreadSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def get(self, request, slug, project_id, issue_id):
         thread = self._get_thread(slug, project_id, issue_id)
@@ -228,6 +247,7 @@ class IssueEmailThreadEndpoint(BaseAPIView):
             )
         return Response(IssueEmailThreadSerializer(thread).data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: IssueEmailThreadSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def patch(self, request, slug, project_id, issue_id):
         thread = self._get_thread(slug, project_id, issue_id)
@@ -258,6 +278,7 @@ class IssueEmailThreadEndpoint(BaseAPIView):
 
 
 class IssueEmailReplyEndpoint(BaseAPIView):
+    @extend_schema(responses={201: EmailReplySerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id, issue_id):
         thread = IssueEmailThread.objects.filter(workspace__slug=slug, project_id=project_id, issue_id=issue_id).first()

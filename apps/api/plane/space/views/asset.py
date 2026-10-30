@@ -14,7 +14,9 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
+from plane.app.serializers.response.asset import REDIRECT, AssetUploadSerializer
 from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
 from plane.db.models import DeployBoard, FileAsset, IssueComment
 from plane.settings.storage import S3Storage
@@ -43,6 +45,7 @@ class EntityAssetEndpoint(BaseAPIView):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+    @extend_schema(responses={302: REDIRECT})
     def get(self, request, anchor, pk):
         # Get the deploy board
         deploy_board = DeployBoard.objects.filter(anchor=anchor).first()
@@ -84,6 +87,7 @@ class EntityAssetEndpoint(BaseAPIView):
         # Redirect to the signed URL
         return HttpResponseRedirect(signed_url)
 
+    @extend_schema(responses={200: AssetUploadSerializer})
     def post(self, request, anchor):
         # Get the deploy board
         deploy_board = DeployBoard.objects.filter(anchor=anchor).first()
@@ -174,6 +178,7 @@ class EntityAssetEndpoint(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(responses={204: OpenApiResponse(description="Done")})
     def patch(self, request, anchor, pk):
         # Get the deploy board
         deploy_board = DeployBoard.objects.filter(anchor=anchor).first()
@@ -228,6 +233,7 @@ class EntityAssetEndpoint(BaseAPIView):
 class AssetRestoreEndpoint(BaseAPIView):
     """Endpoint to restore a deleted assets."""
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Done")})
     def post(self, request, anchor, pk):
         # Get the deploy board
         deploy_board = DeployBoard.objects.filter(anchor=anchor, entity_name="project").first()
@@ -253,6 +259,7 @@ class AssetRestoreEndpoint(BaseAPIView):
 class EntityBulkAssetEndpoint(BaseAPIView):
     """Endpoint to bulk update assets."""
 
+    @extend_schema(responses={204: OpenApiResponse(description="Done")})
     def post(self, request, anchor, entity_id):
         # Get the deploy board
         deploy_board = DeployBoard.objects.filter(anchor=anchor, entity_name="project").first()

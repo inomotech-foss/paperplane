@@ -9,6 +9,7 @@ from rest_framework.response import Response
 # Django modules
 from django.db.models import Q
 from django.db import IntegrityError
+from drf_spectacular.utils import extend_schema
 
 # Module imports
 from plane.app.views.base import BaseAPIView
@@ -21,6 +22,7 @@ from plane.app.permissions import allow_permission, ROLE
 class WorkspaceFavoriteEndpoint(BaseAPIView):
     use_read_replica = True
 
+    @extend_schema(responses={200: UserFavoriteSerializer(many=True)})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug):
         # the second filter is to check if the user is a member of the project
@@ -35,6 +37,7 @@ class WorkspaceFavoriteEndpoint(BaseAPIView):
         serializer = UserFavoriteSerializer(favorites, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: UserFavoriteSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def post(self, request, slug):
         try:
@@ -75,6 +78,7 @@ class WorkspaceFavoriteEndpoint(BaseAPIView):
         except IntegrityError:
             return Response({"error": "Favorite already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses={200: UserFavoriteSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def patch(self, request, slug, favorite_id):
         favorite = UserFavorite.objects.get(user=request.user, workspace__slug=slug, pk=favorite_id)
@@ -94,6 +98,7 @@ class WorkspaceFavoriteEndpoint(BaseAPIView):
 
 
 class WorkspaceFavoriteGroupEndpoint(BaseAPIView):
+    @extend_schema(responses={200: UserFavoriteSerializer(many=True)})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug, favorite_id):
         favorites = UserFavorite.objects.filter(user=request.user, workspace__slug=slug, parent_id=favorite_id).filter(

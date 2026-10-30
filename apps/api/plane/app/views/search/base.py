@@ -25,8 +25,10 @@ from django.utils import timezone
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.response.search import EntitySearchSerializer, GlobalSearchSerializer
 from plane.app.views.base import BaseAPIView
 from plane.app.permissions import ROLE, WorkspaceUserPermission
 from plane.utils.mentions import mentionable_users
@@ -293,6 +295,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             )[:100]
         )
 
+    @extend_schema(responses={200: GlobalSearchSerializer})
     def get(self, request, slug):
         query = request.query_params.get("search", False)
         entities_param = request.query_params.get("entities")
@@ -330,6 +333,7 @@ class GlobalSearchEndpoint(BaseAPIView):
 class SearchEndpoint(BaseAPIView):
     permission_classes = (WorkspaceUserPermission,)
 
+    @extend_schema(responses={200: EntitySearchSerializer})
     def get(self, request, slug):
         query = request.query_params.get("query", False)
         query_types = request.query_params.get("query_type", "user_mention").split(",")

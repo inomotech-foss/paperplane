@@ -9,8 +9,10 @@ from django.db.models import Q
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.response.public import PublicStateSerializer
 from .base import BaseAPIView
 from plane.db.models import DeployBoard, State
 
@@ -18,6 +20,7 @@ from plane.db.models import DeployBoard, State
 class ProjectStatesEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: PublicStateSerializer(many=True)})
     def get(self, request, anchor):
         deploy_board = DeployBoard.objects.filter(anchor=anchor).first()
         if not deploy_board:

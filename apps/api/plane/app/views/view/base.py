@@ -21,7 +21,7 @@ from django.db import transaction
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
 from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
@@ -465,6 +465,7 @@ class IssueViewFavoriteViewSet(BaseViewSet):
             .select_related("view")
         )
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Added to favorites")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id):
         # 404 unless the view is in this project and visible to the user

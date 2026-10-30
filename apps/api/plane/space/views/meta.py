@@ -6,16 +6,19 @@
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 from plane.db.models import DeployBoard, Project
 
 from .base import BaseAPIView
 from plane.space.serializer.project import ProjectLiteSerializer
+from plane.app.serializers.response.public import PublicProjectMetaSerializer
 
 
 class ProjectMetaDataEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: PublicProjectMetaSerializer})
     def get(self, request, anchor):
         try:
             deploy_board = DeployBoard.objects.get(anchor=anchor, entity_name="project")

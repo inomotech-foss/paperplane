@@ -8,8 +8,11 @@ from django.db import IntegrityError
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.utils.openapi.schema import DetailOrList
+from plane.app.serializers.response.misc import WebhookWithoutSecretSerializer
 from plane.db.models import Webhook, WebhookLog, Workspace
 from plane.db.models.webhook import generate_token
 from ..base import BaseAPIView
@@ -18,6 +21,7 @@ from plane.app.serializers import WebhookSerializer, WebhookLogSerializer
 
 
 class WebhookEndpoint(BaseAPIView):
+    @extend_schema(responses={201: WebhookSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug):
         workspace = Workspace.objects.get(slug=slug)
@@ -38,6 +42,7 @@ class WebhookEndpoint(BaseAPIView):
                 )
             raise IntegrityError
 
+    @extend_schema(responses={200: DetailOrList(WebhookWithoutSecretSerializer)})
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def get(self, request, slug, pk=None):
         if pk is None:
@@ -78,6 +83,7 @@ class WebhookEndpoint(BaseAPIView):
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: WebhookWithoutSecretSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, pk):
         webhook = Webhook.objects.get(workspace__slug=slug, pk=pk)
@@ -112,6 +118,7 @@ class WebhookEndpoint(BaseAPIView):
 
 
 class WebhookSecretRegenerateEndpoint(BaseAPIView):
+    @extend_schema(request=None, responses={200: WebhookSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug, pk):
         webhook = Webhook.objects.get(workspace__slug=slug, pk=pk)
@@ -122,6 +129,7 @@ class WebhookSecretRegenerateEndpoint(BaseAPIView):
 
 
 class WebhookLogsEndpoint(BaseAPIView):
+    @extend_schema(responses={200: WebhookLogSerializer(many=True)})
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def get(self, request, slug, webhook_id):
         webhook_logs = WebhookLog.objects.filter(workspace__slug=slug, webhook=webhook_id)

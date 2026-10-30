@@ -7,8 +7,10 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
+from plane.app.serializers.response.asset import FileAssetLookupSerializer
 from ..base import BaseAPIView, BaseViewSet
 from plane.app.permissions import WorkspaceMemberPermission
 from plane.db.models import FileAsset, Workspace
@@ -24,6 +26,7 @@ class FileAssetEndpoint(BaseAPIView):
     A viewset for viewing and editing task instances.
     """
 
+    @extend_schema(responses={200: FileAssetLookupSerializer})
     def get(self, request, workspace_id, asset_key):
         asset_key = str(workspace_id) + "/" + asset_key
         # A project-bound asset requires active membership of its project.
@@ -37,6 +40,7 @@ class FileAssetEndpoint(BaseAPIView):
                 status=status.HTTP_200_OK,
             )
 
+    @extend_schema(responses={201: FileAssetSerializer})
     def post(self, request, slug):
         # WorkspaceMemberPermission already rejects unknown slugs before this runs.
         # Use .get() so any TOCTOU race still surfaces as a 404 via ObjectDoesNotExist.
@@ -63,6 +67,7 @@ class FileAssetEndpoint(BaseAPIView):
 class FileAssetViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated, WorkspaceMemberPermission]
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Done")})
     def restore(self, request, workspace_id, asset_key):
         asset_key = str(workspace_id) + "/" + asset_key
         file_asset = FileAsset.objects.get(asset=asset_key)
@@ -90,6 +95,7 @@ class UserAssetsEndpoint(BaseAPIView):
                 status=status.HTTP_200_OK,
             )
 
+    @extend_schema(responses={201: FileAssetSerializer})
     def post(self, request):
         serializer = FileAssetSerializer(data=request.data)
         if serializer.is_valid():

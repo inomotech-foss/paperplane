@@ -6,8 +6,10 @@
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.response.public import PublicNamedSerializer
 from .base import BaseAPIView
 from plane.db.models import DeployBoard, Cycle
 
@@ -15,6 +17,7 @@ from plane.db.models import DeployBoard, Cycle
 class ProjectCyclesEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: PublicNamedSerializer(many=True)})
     def get(self, request, anchor):
         deploy_board = DeployBoard.objects.filter(anchor=anchor).first()
         if not deploy_board:

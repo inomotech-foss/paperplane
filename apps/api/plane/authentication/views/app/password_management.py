@@ -20,8 +20,10 @@ from django.http import HttpResponseRedirect
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_bytes, smart_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views import View
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.bgtasks.forgot_password_task import forgot_password
 from plane.license.models import Instance
 from plane.db.models import User
@@ -48,6 +50,7 @@ class ForgotPasswordEndpoint(APIView):
 
     throttle_classes = [AuthenticationThrottle]
 
+    @extend_schema(responses={200: MessageResponseSerializer})
     def post(self, request):
         email = request.data.get("email")
 

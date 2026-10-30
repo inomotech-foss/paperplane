@@ -16,8 +16,15 @@ from django.db.models import Q
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
+from plane.app.serializers.response.asset import (
+    REDIRECT,
+    AssetExistsSerializer,
+    AssetUploadSerializer,
+    DuplicatedAssetSerializer,
+)
 from ..base import BaseAPIView
 from plane.db.models import FileAsset, Workspace, Project, User, WorkspaceMember, ProjectMember
 from plane.settings.storage import S3Storage
@@ -148,6 +155,7 @@ class UserAssetsV2Endpoint(BaseAPIView):
             return
         return
 
+    @extend_schema(responses={200: AssetUploadSerializer})
     def post(self, request):
         # get the asset key
         name = sanitize_filename(request.data.get("name")) or "unnamed"
@@ -209,6 +217,7 @@ class UserAssetsV2Endpoint(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(responses={204: OpenApiResponse(description="Done")})
     def patch(self, request, asset_id):
         # get the asset id
         asset = FileAsset.objects.get(id=asset_id, user_id=request.user.id)
@@ -357,6 +366,7 @@ class WorkspaceFileAssetEndpoint(BaseAPIView):
         else:
             return
 
+    @extend_schema(responses={200: AssetUploadSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def post(self, request, slug):
         name = sanitize_filename(request.data.get("name")) or "unnamed"
@@ -434,6 +444,7 @@ class WorkspaceFileAssetEndpoint(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(responses={204: OpenApiResponse(description="Done")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def patch(self, request, slug, asset_id):
         # get the asset id
@@ -488,6 +499,7 @@ class WorkspaceFileAssetEndpoint(BaseAPIView):
         asset.save(update_fields=["is_deleted", "deleted_at"])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(responses={302: REDIRECT})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def get(self, request, slug, asset_id):
         # get the asset id
@@ -523,6 +535,7 @@ class StaticFileAssetEndpoint(BaseAPIView):
 
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={302: REDIRECT})
     def get(self, request, asset_id):
         # get the asset id
         asset = FileAsset.objects.get(id=asset_id)
@@ -563,6 +576,7 @@ class StaticFileAssetEndpoint(BaseAPIView):
 class AssetRestoreEndpoint(BaseAPIView):
     """Endpoint to restore a deleted assets."""
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Done")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def post(self, request, slug, asset_id):
         asset = FileAsset.all_objects.get(id=asset_id, workspace__slug=slug)
@@ -612,6 +626,7 @@ class ProjectAssetEndpoint(BaseAPIView):
             return {"draft_issue_id": entity_id}
         return {}
 
+    @extend_schema(responses={200: AssetUploadSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def post(self, request, slug, project_id):
         name = sanitize_filename(request.data.get("name")) or "unnamed"
@@ -679,6 +694,7 @@ class ProjectAssetEndpoint(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(responses={204: OpenApiResponse(description="Done")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id, pk):
         # get the asset id
@@ -716,6 +732,7 @@ class ProjectAssetEndpoint(BaseAPIView):
         asset.save(update_fields=["is_deleted", "deleted_at"])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(responses={302: REDIRECT})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, pk):
         # get the asset id
@@ -746,6 +763,7 @@ class ProjectBulkAssetEndpoint(BaseAPIView):
         project.cover_image_asset_id = asset.id
         project.save()
 
+    @extend_schema(responses={204: OpenApiResponse(description="Done")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def post(self, request, slug, project_id, entity_id):
         asset_ids = request.data.get("asset_ids", [])
@@ -829,6 +847,7 @@ class ProjectBulkAssetEndpoint(BaseAPIView):
 class AssetCheckEndpoint(BaseAPIView):
     """Endpoint to check if an asset exists."""
 
+    @extend_schema(responses={200: AssetExistsSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def get(self, request, slug, asset_id):
         asset = FileAsset.all_objects.filter(id=asset_id, workspace__slug=slug, deleted_at__isnull=True).first()
@@ -873,6 +892,7 @@ class DuplicateAssetEndpoint(BaseAPIView):
 
         return {}
 
+    @extend_schema(responses={200: DuplicatedAssetSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def post(self, request, slug, asset_id):
         project_id = request.data.get("project_id", None)
@@ -959,6 +979,7 @@ class DuplicateAssetEndpoint(BaseAPIView):
 class WorkspaceAssetDownloadEndpoint(BaseAPIView):
     """Endpoint to generate a download link for an asset with content-disposition=attachment."""
 
+    @extend_schema(responses={302: REDIRECT})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def get(self, request, slug, asset_id):
         try:
@@ -993,6 +1014,7 @@ class WorkspaceAssetDownloadEndpoint(BaseAPIView):
 class ProjectAssetDownloadEndpoint(BaseAPIView):
     """Endpoint to generate a download link for an asset with content-disposition=attachment."""
 
+    @extend_schema(responses={302: REDIRECT})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="PROJECT")
     def get(self, request, slug, project_id, asset_id):
         try:

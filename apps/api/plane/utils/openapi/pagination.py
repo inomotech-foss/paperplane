@@ -18,6 +18,16 @@ class _NullField(serializers.Field):
     """Always null, so the flat, grouped and sub-grouped variants stay distinct."""
 
 
+# One instance per component name: drf-spectacular warns about two inline serializers sharing a name.
+_BUILT = {}
+
+
+def _once(name, build):
+    if name not in _BUILT:
+        _BUILT[name] = build()
+    return _BUILT[name]
+
+
 def _item_name(serializer):
     cls = serializer if isinstance(serializer, type) else type(serializer)
     return cls.__name__.removesuffix("Serializer")
@@ -37,19 +47,24 @@ def paginated_response(serializer, grouping=FLAT, name=None):
     name: component name prefix, defaults to the serializer name without "Serializer".
     """
     name = name or _item_name(serializer)
+    prefix = {FLAT: "Paginated", GROUPED: "GroupedPaginated", SUB_GROUPED: "SubGroupedPaginated"}.get(grouping)
+    if prefix is None:
+        raise ValueError(f"Unknown grouping: {grouping}")
+    return _once(f"{prefix}{name}List", lambda: _build_paginated(serializer, grouping, name, prefix))
+
+
+def _build_paginated(serializer, grouping, name, prefix):
     items = serializers.ListField(child=serializer() if isinstance(serializer, type) else serializer)
     if grouping == FLAT:
-        results, prefix = items, "Paginated"
+        results = items
     elif grouping == GROUPED:
         # Grouping by an m2m field (labels, assignees, modules) can yield a null total.
         group = _group(f"{name}Group", items, nullable_total=True)
-        results, prefix = serializers.DictField(child=group), "GroupedPaginated"
-    elif grouping == SUB_GROUPED:
+        results = serializers.DictField(child=group)
+    else:
         sub_groups = serializers.DictField(child=_group(f"{name}SubGroup", items))
         group = _group(f"{name}SubGroupedGroup", sub_groups)
-        results, prefix = serializers.DictField(child=group), "SubGroupedPaginated"
-    else:
-        raise ValueError(f"Unknown grouping: {grouping}")
+        results = serializers.DictField(child=group)
 
     grouped_by = _NullField() if grouping == FLAT else serializers.CharField(min_length=1)
     sub_grouped_by = serializers.CharField(min_length=1) if grouping == SUB_GROUPED else _NullField()
@@ -80,6 +95,10 @@ def _paginated(name, results, grouped_by, sub_grouped_by):
 def paginated_union(serializer, name=None):
     """paginate() output that is flat, grouped or sub-grouped depending on group_by and sub_group_by."""
     name = name or _item_name(serializer)
+    return _once(f"{name}ListResponse", lambda: _build_union(serializer, name))
+
+
+def _build_union(serializer, name):
     union = PolymorphicProxySerializer(
         component_name=f"{name}ListResponse",
         serializers=[paginated_response(serializer, grouping, name) for grouping in (FLAT, GROUPED, SUB_GROUPED)],
@@ -93,6 +112,10 @@ def paginated_union(serializer, name=None):
 def cursor_paginated_response(serializer, name=None):
     """Schema of what plane.utils.global_paginator.paginate() returns."""
     name = name or _item_name(serializer)
+    return _once(f"CursorPaginated{name}List", lambda: _build_cursor(serializer, name))
+
+
+def _build_cursor(serializer, name):
     paginated = inline_serializer(
         name=f"CursorPaginated{name}List",
         fields={
@@ -108,3 +131,21 @@ def cursor_paginated_response(serializer, name=None):
         },
     )
     return set_override(paginated, "many", False)
+
+
+def list_or_paginated(serializer, name=None):
+    """A plain list, or paginate() output when the client sends both cursor and per_page."""
+    name = name or _item_name(serializer)
+    return _once(f"{name}ListOrPage", lambda: _build_list_or_page(serializer, name))
+
+
+def _build_list_or_page(serializer, name):
+    child = serializer() if isinstance(serializer, type) else serializer
+    union = PolymorphicProxySerializer(
+        component_name=f"{name}ListOrPage",
+        serializers=[serializers.ListSerializer(child=child), paginated_response(serializer, FLAT, name)],
+        resource_type_field_name=None,
+        many=False,
+        help_text="Paginated when both cursor and per_page are given",
+    )
+    return set_override(union, "many", False)

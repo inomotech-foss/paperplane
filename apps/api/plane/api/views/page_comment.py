@@ -8,6 +8,7 @@ from django.utils import timezone
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
 from plane.api.serializers.page_comment import PageCommentSerializer
@@ -153,6 +154,7 @@ class PageCommentResolveAPIEndpoint(BaseAPIView):
             .distinct()
         )
 
+    @extend_schema(request=None, responses={200: PageCommentSerializer})
     def post(self, request, slug, project_id, page_id, pk):
         page_comment = self.get_queryset().get(pk=pk)
         page_comment.is_resolved = True
@@ -161,6 +163,7 @@ class PageCommentResolveAPIEndpoint(BaseAPIView):
         page_comment.save()
         return Response(PageCommentSerializer(page_comment).data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: PageCommentSerializer})
     def delete(self, request, slug, project_id, page_id, pk):
         page_comment = self.get_queryset().get(pk=pk)
         page_comment.is_resolved = False

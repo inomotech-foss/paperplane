@@ -9,8 +9,10 @@ from django.db.models import Exists, OuterRef
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.response.public import PublicMemberSerializer
 from .base import BaseAPIView
 from plane.app.serializers import DeployBoardSerializer
 from plane.db.models import Project, DeployBoard, ProjectMember
@@ -19,6 +21,7 @@ from plane.db.models import Project, DeployBoard, ProjectMember
 class ProjectDeployBoardPublicSettingsEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: DeployBoardSerializer})
     def get(self, request, anchor):
         project_deploy_board = DeployBoard.objects.get(anchor=anchor, entity_name="project")
         serializer = DeployBoardSerializer(project_deploy_board)
@@ -54,6 +57,7 @@ class WorkspaceProjectDeployBoardEndpoint(BaseAPIView):
 class WorkspaceProjectAnchorEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: DeployBoardSerializer})
     def get(self, request, slug, project_id):
         project_deploy_board = DeployBoard.objects.get(
             workspace__slug=slug, project_id=project_id, entity_identifier=project_id, entity_name="project"
@@ -65,6 +69,7 @@ class WorkspaceProjectAnchorEndpoint(BaseAPIView):
 class ProjectMembersEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: PublicMemberSerializer(many=True)})
     def get(self, request, anchor):
         deploy_board = DeployBoard.objects.filter(anchor=anchor).first()
         if not deploy_board:
