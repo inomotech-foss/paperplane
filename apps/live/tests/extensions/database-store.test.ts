@@ -6,12 +6,13 @@ import * as Y from "yjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TDocumentPayload } from "@plane/types";
 import { Database } from "@/extensions/database";
+import { AppError } from "@/lib/errors";
 
 vi.mock("@/redis", () => ({ redisManager: { getClient: () => null } }));
 
 const api = vi.hoisted(() => ({
   saved: [] as string[],
-  failures: [] as { response: { status: number } }[],
+  failures: [] as number[],
 }));
 vi.mock("@/services/page/handler", () => ({
   getPageService: () => ({
@@ -19,7 +20,7 @@ vi.mock("@/services/page/handler", () => ({
     fetchDetails: () => Promise.resolve({ name: "" }),
     updateDescriptionBinary: (_id: string, payload: TDocumentPayload) => {
       const failure = api.failures.shift();
-      if (failure) return Promise.reject(Object.assign(new Error("save failed"), { isAxiosError: true, ...failure }));
+      if (failure) return Promise.reject(new AppError("save failed", { statusCode: failure }));
       api.saved.push(payload.description_html!);
       return Promise.resolve();
     },
@@ -46,7 +47,7 @@ describe("page saves after a failed save", () => {
   it("retries a save that failed with a server error", async () => {
     const server = new Hocuspocus({ quiet: true, debounce: 20, maxDebounce: 100, extensions: [new Database()] });
     const connection = await openPage(server);
-    api.failures.push({ response: { status: 502 } });
+    api.failures.push(502);
     await type(connection, "kept after a 502");
     await connection.disconnect();
     await vi.waitFor(() => expect(api.saved.at(-1)).toContain("kept after a 502"));
@@ -56,7 +57,7 @@ describe("page saves after a failed save", () => {
   it("keeps saving later edits after a rejected save", async () => {
     const server = new Hocuspocus({ quiet: true, debounce: 20, maxDebounce: 100, extensions: [new Database()] });
     const connection = await openPage(server);
-    api.failures.push({ response: { status: 403 } });
+    api.failures.push(403);
     await type(connection, "rejected");
     await vi.waitFor(() => expect(api.failures).toHaveLength(0));
     await type(connection, "saved later");
