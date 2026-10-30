@@ -5382,7 +5382,7 @@ export interface components {
             end_date: string | null;
             /** Format: uuid */
             owned_by_id: string;
-            view_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             external_source: string | null;
@@ -5401,7 +5401,7 @@ export interface components {
             /** Format: date-time */
             archived_at: string;
             sub_issues: number;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: double */
             completed_estimate_points: number | null;
             /** Format: double */
@@ -5426,7 +5426,7 @@ export interface components {
             end_date: string | null;
             /** Format: uuid */
             owned_by_id: string;
-            view_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             external_source: string | null;
@@ -5464,7 +5464,7 @@ export interface components {
             /** Format: uuid */
             lead_id: string | null;
             member_ids: string[];
-            view_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             external_source: string | null;
@@ -5672,6 +5672,10 @@ export interface components {
          * @enum {string}
          */
         ChartTypeEnum: "number" | "bar" | "line" | "area" | "pie" | "donut" | "table";
+        /** @description Stored as sent by the client. The backend does not validate it. */
+        ClientJson: {
+            [key: string]: unknown;
+        };
         CommentReaction: {
             /** Format: uuid */
             readonly id: string;
@@ -5871,13 +5875,13 @@ export interface components {
             readonly end_date: string | null;
             /** Format: uuid */
             readonly owned_by_id: string;
-            readonly view_props: unknown;
+            readonly view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             readonly sort_order: number;
             readonly external_source: string | null;
             readonly external_id: string | null;
             readonly progress_snapshot: unknown;
-            readonly logo_props: unknown;
+            readonly logo_props: components["schemas"]["ClientJson"];
             readonly is_favorite?: boolean;
             readonly total_issues?: number;
             readonly cancelled_issues?: number;
@@ -5907,7 +5911,7 @@ export interface components {
             end_date: string | null;
             /** Format: uuid */
             owned_by_id: string;
-            view_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             external_source: string | null;
@@ -5919,7 +5923,7 @@ export interface components {
             assignee_ids: string[];
             /** @description CURRENT, UPCOMING, COMPLETED or DRAFT */
             status: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             version: number;
             /** Format: uuid */
             created_by: string | null;
@@ -5930,7 +5934,7 @@ export interface components {
             readonly id: string;
             /** Cycle Name */
             name: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: uuid */
             readonly project_id: string;
         };
@@ -5992,7 +5996,7 @@ export interface components {
             end_date: string | null;
             /** Format: uuid */
             owned_by_id: string;
-            view_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             external_source: string | null;
@@ -6004,7 +6008,7 @@ export interface components {
             assignee_ids: string[];
             /** @description CURRENT, UPCOMING, COMPLETED or DRAFT */
             status: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             version: number;
             /** Format: uuid */
             created_by: string | null;
@@ -6045,7 +6049,7 @@ export interface components {
             end_date: string | null;
             /** Format: uuid */
             owned_by_id: string;
-            view_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             external_source: string | null;
@@ -6057,7 +6061,7 @@ export interface components {
             assignee_ids: string[];
             /** @description CURRENT, UPCOMING, COMPLETED or DRAFT */
             status: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             version: number;
             /** Format: uuid */
             created_by: string | null;
@@ -6074,10 +6078,10 @@ export interface components {
             readonly updated_at: string;
             /** Format: date-time */
             deleted_at: string | null;
-            filters: unknown;
-            display_filters: unknown;
-            display_properties: unknown;
-            rich_filters: unknown;
+            filters: components["schemas"]["ClientJson"];
+            display_filters: components["schemas"]["ClientJson"];
+            display_properties: components["schemas"]["ClientJson"];
+            rich_filters: components["schemas"]["ClientJson"];
             /** Format: uuid */
             created_by: string | null;
             /**
@@ -6110,7 +6114,7 @@ export interface components {
             readonly deleted_at: string | null;
             name: string;
             description: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             access: components["schemas"]["AccessEnum"];
             /** Format: double */
             readonly sort_order: number;
@@ -6143,7 +6147,7 @@ export interface components {
             readonly deleted_at: string | null;
             name: string;
             description: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             access: components["schemas"]["AccessEnum"];
             /** Format: double */
             readonly sort_order: number;
@@ -6184,14 +6188,14 @@ export interface components {
         DashboardRequest: {
             name: string;
             description?: string;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             access?: components["schemas"]["AccessEnum"];
         };
         DashboardType: {
             /** Format: uuid */
             id: string;
             name: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
         };
         DashboardWidget: {
             /** Format: uuid */
@@ -6523,7 +6527,7 @@ export interface components {
             name: string;
             /** Format: uuid */
             id: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: uuid */
             projects__id: string | null;
             workspace__slug: string;
@@ -6543,7 +6547,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             identifier: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             workspace__slug: string;
         };
         EntitySearchWorkItem: {
@@ -6840,8 +6844,8 @@ export interface components {
             /** Intake Description */
             description: string;
             is_default: boolean;
-            view_props: unknown;
-            logo_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: uuid */
             created_by: string | null;
             /**
@@ -6884,8 +6888,8 @@ export interface components {
             /** Intake Description */
             description?: string;
             is_default?: boolean;
-            view_props?: unknown;
-            logo_props?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
+            logo_props?: components["schemas"]["ClientJson"];
             /** Format: uuid */
             created_by?: string | null;
             /**
@@ -7882,7 +7886,7 @@ export interface components {
             readonly deleted_at: string | null;
             name: string;
             description: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             is_active: boolean;
             /** Format: double */
             level: number;
@@ -7952,7 +7956,7 @@ export interface components {
         IssueTypeRequest: {
             name: string;
             description?: string;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             is_active?: boolean;
             /** Format: double */
             level?: number;
@@ -8047,14 +8051,14 @@ export interface components {
             description: string;
             /** View Query */
             readonly query: unknown;
-            filters: unknown;
-            display_filters: unknown;
-            display_properties: unknown;
-            rich_filters: unknown;
+            filters: components["schemas"]["ClientJson"];
+            display_filters: components["schemas"]["ClientJson"];
+            display_properties: components["schemas"]["ClientJson"];
+            rich_filters: components["schemas"]["ClientJson"];
             readonly access: components["schemas"]["AccessEnum"];
             /** Format: double */
             sort_order: number;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             readonly is_locked: boolean;
             /** Format: date-time */
             archived_at: string | null;
@@ -8079,13 +8083,13 @@ export interface components {
             name: string;
             /** View Description */
             description?: string;
-            filters?: unknown;
-            display_filters?: unknown;
-            display_properties?: unknown;
-            rich_filters?: unknown;
+            filters?: components["schemas"]["ClientJson"];
+            display_filters?: components["schemas"]["ClientJson"];
+            display_properties?: components["schemas"]["ClientJson"];
+            rich_filters?: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order?: number;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             /** Format: date-time */
             archived_at?: string | null;
         };
@@ -8209,12 +8213,12 @@ export interface components {
             /** Format: uuid */
             readonly lead_id: string | null;
             member_ids: string[] | null;
-            readonly view_props: unknown;
+            readonly view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             readonly sort_order: number;
             readonly external_source: string | null;
             readonly external_id: string | null;
-            readonly logo_props: unknown;
+            readonly logo_props: components["schemas"]["ClientJson"];
             /** Format: double */
             readonly total_estimate_points: number;
             /** Format: double */
@@ -8259,12 +8263,12 @@ export interface components {
             /** Format: uuid */
             readonly lead_id: string | null;
             member_ids: string[] | null;
-            readonly view_props: unknown;
+            readonly view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             readonly sort_order: number;
             readonly external_source: string | null;
             readonly external_id: string | null;
-            readonly logo_props: unknown;
+            readonly logo_props: components["schemas"]["ClientJson"];
             /** Format: double */
             readonly total_estimate_points: number;
             /** Format: double */
@@ -8303,7 +8307,7 @@ export interface components {
             readonly id: string;
             /** Module Name */
             name: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: uuid */
             readonly project_id: string;
         };
@@ -8332,14 +8336,14 @@ export interface components {
             /** Format: date */
             target_date: string | null;
             status: components["schemas"]["ModuleStatusEnum"];
-            view_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             external_source: string | null;
             external_id: string | null;
             /** Format: date-time */
             archived_at: string | null;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: uuid */
             readonly created_by: string | null;
             /**
@@ -8371,14 +8375,14 @@ export interface components {
             /** Format: date */
             target_date?: string | null;
             status?: components["schemas"]["ModuleStatusEnum"];
-            view_props?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order?: number;
             external_source?: string | null;
             external_id?: string | null;
             /** Format: date-time */
             archived_at?: string | null;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             /** Format: uuid */
             lead?: string | null;
         };
@@ -8476,7 +8480,7 @@ export interface components {
             /** Format: uuid */
             lead_id: string | null;
             member_ids: string[];
-            view_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             external_source: string | null;
@@ -8486,7 +8490,7 @@ export interface components {
             created_at: string;
             /** Format: date-time */
             updated_at: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: double */
             completed_estimate_points: number;
             /** Format: double */
@@ -8521,10 +8525,10 @@ export interface components {
             readonly updated_at: string;
             /** Format: date-time */
             deleted_at: string | null;
-            filters: unknown;
-            display_filters: unknown;
-            display_properties: unknown;
-            rich_filters: unknown;
+            filters: components["schemas"]["ClientJson"];
+            display_filters: components["schemas"]["ClientJson"];
+            display_properties: components["schemas"]["ClientJson"];
+            rich_filters: components["schemas"]["ClientJson"];
             /** Format: uuid */
             created_by: string | null;
             /**
@@ -8568,14 +8572,14 @@ export interface components {
             /** Format: date */
             target_date: string | null;
             status: components["schemas"]["ModuleStatusEnum"];
-            view_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             external_source: string | null;
             external_id: string | null;
             /** Format: date-time */
             readonly archived_at: string | null;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: uuid */
             readonly created_by: string | null;
             /**
@@ -8608,12 +8612,12 @@ export interface components {
             /** Format: date */
             target_date?: string | null;
             status?: components["schemas"]["ModuleStatusEnum"];
-            view_props?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order?: number;
             external_source?: string | null;
             external_id?: string | null;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             /** Format: uuid */
             lead?: string | null;
         };
@@ -8829,8 +8833,8 @@ export interface components {
              * Format: uuid
              */
             updated_by: string | null;
-            view_props: unknown;
-            logo_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
+            logo_props: components["schemas"]["ClientJson"];
             label_ids?: string[];
             project_ids?: string[];
         };
@@ -9045,8 +9049,8 @@ export interface components {
              * Format: uuid
              */
             updated_by: string | null;
-            view_props: unknown;
-            logo_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
+            logo_props: components["schemas"]["ClientJson"];
             label_ids?: string[];
             project_ids?: string[];
             description_html: string;
@@ -9055,7 +9059,7 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             name: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: uuid */
             readonly project_id: string | null;
         };
@@ -9127,7 +9131,7 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             readonly name: string;
-            readonly logo_props: unknown;
+            readonly logo_props: components["schemas"]["ClientJson"];
             /** Format: uuid */
             readonly parent: string | null;
             /** Format: uuid */
@@ -9167,8 +9171,8 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
-            view_props?: unknown;
-            logo_props?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
+            logo_props?: components["schemas"]["ClientJson"];
             label_ids?: string[];
             project_ids?: string[];
         };
@@ -9209,8 +9213,8 @@ export interface components {
              * Format: uuid
              */
             updated_by: string | null;
-            view_props: unknown;
-            logo_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
+            logo_props: components["schemas"]["ClientJson"];
             label_ids?: string[];
             project_ids?: string[];
             description_html: string;
@@ -9303,8 +9307,8 @@ export interface components {
              * Format: uuid
              */
             updated_by: string | null;
-            view_props: unknown;
-            logo_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
+            logo_props: components["schemas"]["ClientJson"];
             label_ids?: string[];
             project_ids?: string[];
             description_html: string;
@@ -9508,7 +9512,7 @@ export interface components {
         PatchedDashboardRequest: {
             name?: string;
             description?: string;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             access?: components["schemas"]["AccessEnum"];
         };
         PatchedDashboardWidgetRequest: {
@@ -9575,8 +9579,8 @@ export interface components {
             /** Intake Description */
             description?: string;
             is_default?: boolean;
-            view_props?: unknown;
-            logo_props?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
+            logo_props?: components["schemas"]["ClientJson"];
             /** Format: uuid */
             created_by?: string | null;
             /**
@@ -9704,7 +9708,7 @@ export interface components {
         PatchedIssueTypeRequest: {
             name?: string;
             description?: string;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             is_active?: boolean;
             /** Format: double */
             level?: number;
@@ -9718,13 +9722,13 @@ export interface components {
             name?: string;
             /** View Description */
             description?: string;
-            filters?: unknown;
-            display_filters?: unknown;
-            display_properties?: unknown;
-            rich_filters?: unknown;
+            filters?: components["schemas"]["ClientJson"];
+            display_filters?: components["schemas"]["ClientJson"];
+            display_properties?: components["schemas"]["ClientJson"];
+            rich_filters?: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order?: number;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             /** Format: date-time */
             archived_at?: string | null;
         };
@@ -9767,12 +9771,12 @@ export interface components {
             /** Format: date */
             target_date?: string | null;
             status?: components["schemas"]["ModuleStatusEnum"];
-            view_props?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order?: number;
             external_source?: string | null;
             external_id?: string | null;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             /** Format: uuid */
             lead?: string | null;
         };
@@ -9838,8 +9842,8 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
-            view_props?: unknown;
-            logo_props?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
+            logo_props?: components["schemas"]["ClientJson"];
             label_ids?: string[];
             project_ids?: string[];
         };
@@ -9847,7 +9851,7 @@ export interface components {
             onboarding_step?: components["schemas"]["OnboardingStepRequest"];
             mobile_onboarding_step?: components["schemas"]["MobileOnboardingStepRequest"];
             product_tour?: components["schemas"]["ProductTourRequest"];
-            theme?: unknown;
+            theme?: components["schemas"]["ClientJson"];
             is_app_rail_docked?: boolean;
             is_tour_completed?: boolean;
             use_case?: string | null;
@@ -9865,7 +9869,7 @@ export interface components {
             mobile_timezone_auto_set?: boolean;
             language?: string;
             start_of_the_week?: components["schemas"]["StartOfTheWeekEnum"];
-            goals?: unknown;
+            goals?: components["schemas"]["ClientJson"];
             background_color?: string;
             is_navigation_tour_completed?: boolean;
             has_marketing_email_consent?: boolean;
@@ -9878,9 +9882,9 @@ export interface components {
         PatchedProjectMemberRequest: {
             comment?: string | null;
             role?: components["schemas"]["RoleEnum"];
-            view_props?: unknown;
-            default_props?: unknown;
-            preferences?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
+            default_props?: components["schemas"]["ClientJson"];
+            preferences?: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order?: number;
             is_active?: boolean;
@@ -9898,7 +9902,7 @@ export interface components {
             /** Project Identifier */
             identifier?: string;
             emoji?: string | null;
-            icon_prop?: unknown;
+            icon_prop?: components["schemas"]["ClientJson"] | null;
             module_view?: boolean;
             cycle_view?: boolean;
             issue_views_view?: boolean;
@@ -9911,7 +9915,7 @@ export interface components {
             cover_image?: string | null;
             archive_in?: number;
             close_in?: number;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             /** Format: date-time */
             archived_at?: string | null;
             timezone?: components["schemas"]["TimezoneEnum"];
@@ -9946,7 +9950,7 @@ export interface components {
             description?: unknown;
             description_html?: string;
             description_stripped?: string | null;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             color?: string | null;
             background_color?: string | null;
             /** Format: double */
@@ -10023,7 +10027,7 @@ export interface components {
             /** Format: date-time */
             deleted_at?: string | null;
             name?: string;
-            colors?: unknown;
+            colors?: components["schemas"]["ClientJson"];
             /** Format: uuid */
             created_by?: string | null;
             /**
@@ -10051,10 +10055,10 @@ export interface components {
         PatchedWorkspaceUserPropertiesRequest: {
             /** Format: date-time */
             deleted_at?: string | null;
-            filters?: unknown;
-            display_filters?: unknown;
-            display_properties?: unknown;
-            rich_filters?: unknown;
+            filters?: components["schemas"]["ClientJson"];
+            display_filters?: components["schemas"]["ClientJson"];
+            display_properties?: components["schemas"]["ClientJson"];
+            rich_filters?: components["schemas"]["ClientJson"];
             navigation_project_limit?: number;
             navigation_control_preference?: components["schemas"]["NavigationControlPreferenceEnum"];
             /** Format: uuid */
@@ -10112,7 +10116,7 @@ export interface components {
              * Format: date-time
              */
             readonly updated_at: string;
-            theme: unknown;
+            theme: components["schemas"]["ClientJson"];
             is_app_rail_docked: boolean;
             is_tour_completed: boolean;
             use_case: string | null;
@@ -10130,7 +10134,7 @@ export interface components {
             mobile_timezone_auto_set: boolean;
             language: string;
             start_of_the_week: components["schemas"]["StartOfTheWeekEnum"];
-            goals: unknown;
+            goals: components["schemas"]["ClientJson"];
             background_color: string;
             is_navigation_tour_completed: boolean;
             has_marketing_email_consent: boolean;
@@ -10153,7 +10157,7 @@ export interface components {
             readonly id: string;
             /** Project Name */
             name: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
         };
         ProjectFavoriteRequest: {
             /** Format: uuid */
@@ -10241,7 +10245,7 @@ export interface components {
             /** Project Identifier */
             identifier: string;
             emoji: string | null;
-            icon_prop: unknown;
+            icon_prop: components["schemas"]["ClientJson"] | null;
             module_view: boolean;
             cycle_view: boolean;
             issue_views_view: boolean;
@@ -10254,7 +10258,7 @@ export interface components {
             cover_image: string | null;
             archive_in: number;
             close_in: number;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: date-time */
             archived_at: string | null;
             timezone: components["schemas"]["TimezoneEnum"];
@@ -10288,7 +10292,7 @@ export interface components {
             identifier: string;
             /** Format: double */
             sort_order: number | null;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             member_role: number | null;
             intake_count: number;
             /** Format: date-time */
@@ -10329,7 +10333,7 @@ export interface components {
             /** Project Identifier */
             identifier: string;
             emoji?: string | null;
-            icon_prop?: unknown;
+            icon_prop?: components["schemas"]["ClientJson"] | null;
             module_view?: boolean;
             cycle_view?: boolean;
             issue_views_view?: boolean;
@@ -10342,7 +10346,7 @@ export interface components {
             cover_image?: string | null;
             archive_in?: number;
             close_in?: number;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             /** Format: date-time */
             archived_at?: string | null;
             timezone?: components["schemas"]["TimezoneEnum"];
@@ -10377,7 +10381,7 @@ export interface components {
             readonly name: string;
             readonly cover_image: string | null;
             readonly cover_image_url: string | null;
-            readonly logo_props: unknown;
+            readonly logo_props: components["schemas"]["ClientJson"];
             /** Project Description */
             readonly description: string;
         };
@@ -10398,9 +10402,9 @@ export interface components {
             readonly deleted_at: string | null;
             comment: string | null;
             role: components["schemas"]["RoleEnum"];
-            view_props: unknown;
-            default_props: unknown;
-            preferences: unknown;
+            view_props: components["schemas"]["ClientJson"];
+            default_props: components["schemas"]["ClientJson"];
+            preferences: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             is_active: boolean;
@@ -10434,9 +10438,9 @@ export interface components {
             deleted_at: string | null;
             comment: string | null;
             role: components["schemas"]["RoleEnum"];
-            view_props?: unknown;
-            default_props?: unknown;
-            preferences?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
+            default_props?: components["schemas"]["ClientJson"];
+            preferences?: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             is_active: boolean;
@@ -10465,9 +10469,9 @@ export interface components {
             readonly deleted_at: string | null;
             comment: string | null;
             role: components["schemas"]["RoleEnum"];
-            view_props?: unknown;
-            default_props?: unknown;
-            preferences?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
+            default_props?: components["schemas"]["ClientJson"];
+            preferences?: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             is_active: boolean;
@@ -10544,7 +10548,7 @@ export interface components {
             readonly is_subscribed?: boolean;
         };
         ProjectMemberPreference: {
-            preferences: unknown;
+            preferences: components["schemas"]["ClientJson"];
             /** Format: uuid */
             readonly project_id: string;
             /** Format: uuid */
@@ -10553,7 +10557,7 @@ export interface components {
             readonly workspace_id: string;
         };
         ProjectMemberPreferences: {
-            preferences: unknown;
+            preferences: components["schemas"]["ClientJson"];
         };
         ProjectMemberRetrieveResponse: components["schemas"]["ProjectMemberAdminDetail"] | components["schemas"]["ProjectMemberRole"];
         ProjectMemberRole: {
@@ -10584,7 +10588,7 @@ export interface components {
             /** Project Identifier */
             identifier: string;
             emoji?: string | null;
-            icon_prop?: unknown;
+            icon_prop?: components["schemas"]["ClientJson"] | null;
             module_view?: boolean;
             cycle_view?: boolean;
             issue_views_view?: boolean;
@@ -10597,7 +10601,7 @@ export interface components {
             cover_image?: string | null;
             archive_in?: number;
             close_in?: number;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             /** Format: date-time */
             archived_at?: string | null;
             timezone?: components["schemas"]["TimezoneEnum"];
@@ -10664,11 +10668,11 @@ export interface components {
             readonly updated_at: string;
             /** Format: date-time */
             deleted_at: string | null;
-            filters: unknown;
-            display_filters: unknown;
-            display_properties: unknown;
-            rich_filters: unknown;
-            preferences: unknown;
+            filters: components["schemas"]["ClientJson"];
+            display_filters: components["schemas"]["ClientJson"];
+            display_properties: components["schemas"]["ClientJson"];
+            rich_filters: components["schemas"]["ClientJson"];
+            preferences: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order: number;
             /** Format: uuid */
@@ -10766,7 +10770,7 @@ export interface components {
             /** Project Name */
             readonly name: string;
             readonly cover_image: string | null;
-            readonly icon_prop: unknown;
+            readonly icon_prop: components["schemas"]["ClientJson"] | null;
             readonly emoji: string | null;
             /** Project Description */
             readonly description: string;
@@ -11096,7 +11100,7 @@ export interface components {
             description_stripped: string | null;
             /** Format: byte */
             readonly description_binary: string | null;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             color: string | null;
             background_color: string | null;
             /** Format: double */
@@ -11120,7 +11124,7 @@ export interface components {
             description?: unknown;
             description_html?: string;
             description_stripped?: string | null;
-            logo_props?: unknown;
+            logo_props?: components["schemas"]["ClientJson"];
             color?: string | null;
             background_color?: string | null;
             /** Format: double */
@@ -11716,7 +11720,7 @@ export interface components {
             is_comments_enabled: boolean;
             is_reactions_enabled: boolean;
             is_votes_enabled: boolean;
-            view_props: unknown;
+            view_props: components["schemas"]["ClientJson"] | null;
             is_activity_enabled: boolean;
             is_disabled: boolean;
             /** Format: uuid */
@@ -11932,7 +11936,7 @@ export interface components {
         UserProjectIssueCounts: {
             /** Format: uuid */
             id: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             created_issues: number;
             assigned_issues: number;
             completed_issues: number;
@@ -12437,7 +12441,7 @@ export interface components {
             readonly id: string;
             /** View Name */
             name: string;
-            logo_props: unknown;
+            logo_props: components["schemas"]["ClientJson"];
             /** Format: uuid */
             readonly project_id: string | null;
         };
@@ -12896,13 +12900,13 @@ export interface components {
             readonly deleted_at: string | null;
             role: components["schemas"]["RoleEnum"];
             company_role: string | null;
-            view_props: unknown;
-            default_props: unknown;
-            issue_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
+            default_props: components["schemas"]["ClientJson"];
+            issue_props: components["schemas"]["ClientJson"];
             readonly is_active: boolean;
-            getting_started_checklist: unknown;
-            tips: unknown;
-            explored_features: unknown;
+            getting_started_checklist: components["schemas"]["ClientJson"];
+            tips: components["schemas"]["ClientJson"];
+            explored_features: components["schemas"]["ClientJson"];
             pql_dialect: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
             /** Format: uuid */
             readonly created_by: string | null;
@@ -13080,13 +13084,13 @@ export interface components {
             readonly deleted_at: string | null;
             role: components["schemas"]["RoleEnum"];
             company_role: string | null;
-            view_props: unknown;
-            default_props: unknown;
-            issue_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
+            default_props: components["schemas"]["ClientJson"];
+            issue_props: components["schemas"]["ClientJson"];
             readonly is_active: boolean;
-            getting_started_checklist: unknown;
-            tips: unknown;
-            explored_features: unknown;
+            getting_started_checklist: components["schemas"]["ClientJson"];
+            tips: components["schemas"]["ClientJson"];
+            explored_features: components["schemas"]["ClientJson"];
             pql_dialect: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
             /** Format: uuid */
             readonly created_by: string | null;
@@ -13113,13 +13117,13 @@ export interface components {
             deleted_at: string | null;
             role: components["schemas"]["RoleEnum"];
             company_role: string | null;
-            view_props: unknown;
-            default_props: unknown;
-            issue_props: unknown;
+            view_props: components["schemas"]["ClientJson"];
+            default_props: components["schemas"]["ClientJson"];
+            issue_props: components["schemas"]["ClientJson"];
             is_active: boolean;
-            getting_started_checklist: unknown;
-            tips: unknown;
-            explored_features: unknown;
+            getting_started_checklist: components["schemas"]["ClientJson"];
+            tips: components["schemas"]["ClientJson"];
+            explored_features: components["schemas"]["ClientJson"];
             pql_dialect: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
             /** Format: uuid */
             created_by: string | null;
@@ -13136,7 +13140,7 @@ export interface components {
         WorkspaceMemberRow: components["schemas"]["WorkspaceMemberAdmin"] | components["schemas"]["WorkSpaceMember"];
         WorkspaceMemberViewPropsRequest: {
             /** @description An empty object when omitted */
-            view_props?: unknown;
+            view_props?: components["schemas"]["ClientJson"];
         };
         WorkspaceModule: {
             /** Format: uuid */
@@ -13161,12 +13165,12 @@ export interface components {
             /** Format: uuid */
             readonly lead_id: string | null;
             member_ids: string[] | null;
-            readonly view_props: unknown;
+            readonly view_props: components["schemas"]["ClientJson"];
             /** Format: double */
             readonly sort_order: number;
             readonly external_source: string | null;
             readonly external_id: string | null;
-            readonly logo_props: unknown;
+            readonly logo_props: components["schemas"]["ClientJson"];
             /** Format: double */
             readonly total_estimate_points?: number;
             /** Format: double */
@@ -13226,7 +13230,7 @@ export interface components {
             /** Format: date-time */
             deleted_at: string | null;
             name: string;
-            colors: unknown;
+            colors: components["schemas"]["ClientJson"];
             /** Format: uuid */
             created_by: string | null;
             /**
@@ -13243,7 +13247,7 @@ export interface components {
             /** Format: date-time */
             deleted_at?: string | null;
             name: string;
-            colors?: unknown;
+            colors?: components["schemas"]["ClientJson"];
             /** Format: uuid */
             created_by?: string | null;
             /**
@@ -13326,10 +13330,10 @@ export interface components {
             readonly updated_at: string;
             /** Format: date-time */
             deleted_at: string | null;
-            filters: unknown;
-            display_filters: unknown;
-            display_properties: unknown;
-            rich_filters: unknown;
+            filters: components["schemas"]["ClientJson"];
+            display_filters: components["schemas"]["ClientJson"];
+            display_properties: components["schemas"]["ClientJson"];
+            rich_filters: components["schemas"]["ClientJson"];
             navigation_project_limit: number;
             navigation_control_preference: components["schemas"]["NavigationControlPreferenceEnum"];
             /** Format: uuid */
@@ -26415,6 +26419,7 @@ export const navigationControlPreferenceEnumValues: ReadonlyArray<FlattenedDeepR
 export const networkEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NetworkEnum"]> = [0, 2];
 export const notificationViewModeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NotificationViewModeEnum"]> = ["full", "compact"];
 export const notifyModeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NotifyModeEnum"]> = ["NONE", "ADMINS", "MEMBERS", "CUSTOM"];
+export const pqlDialectEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PqlDialectEnum"]> = ["jql", "plane"];
 export const priorityEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PriorityEnum"]> = ["urgent", "high", "medium", "low", "none"];
 export const projectStateGroupEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ProjectStateGroupEnum"]> = ["backlog", "unstarted", "started", "completed", "cancelled"];
 export const propertyTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PropertyTypeEnum"]> = ["TEXT", "DECIMAL", "OPTION", "DATETIME", "BOOLEAN", "RELATION"];

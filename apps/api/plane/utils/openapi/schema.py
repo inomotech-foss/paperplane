@@ -13,6 +13,7 @@ from drf_spectacular.plumbing import append_meta, force_instance
 from rest_framework import serializers
 from rest_framework.fields import empty
 
+from .fields import ClientJsonField, as_client_json, is_client_json
 from .hooks import V1_PATH_PREFIX
 
 ALWAYS = (True, False)
@@ -116,6 +117,15 @@ class AutoSchema(SpectacularAutoSchema):
 
     The public v1 schema keeps the stock behaviour.
     """
+
+    def _map_serializer_field(self, field, direction, bypass_extensions=False):
+        if (
+            not isinstance(field, ClientJsonField)
+            and is_client_json(field)
+            and not self.path.startswith(V1_PATH_PREFIX)
+        ):
+            field = as_client_json(field)
+        return super()._map_serializer_field(field, direction, bypass_extensions)
 
     def _get_request_for_media_type(self, serializer, direction="request"):
         # A view that reads request.data by hand requires the same keys on PATCH as on POST.

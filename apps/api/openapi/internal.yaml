@@ -17100,7 +17100,8 @@ components:
         owned_by_id:
           type: string
           format: uuid
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -17141,7 +17142,8 @@ components:
           format: date-time
         sub_issues:
           type: integer
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         completed_estimate_points:
           type: number
           format: double
@@ -17216,7 +17218,8 @@ components:
         owned_by_id:
           type: string
           format: uuid
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -17318,7 +17321,8 @@ components:
           items:
             type: string
             format: uuid
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -17886,6 +17890,11 @@ components:
         * `pie` - Pie
         * `donut` - Donut
         * `table` - Table
+    ClientJson:
+      type: object
+      additionalProperties: true
+      description: Stored as sent by the client. The backend does not validate it.
+      x-client-owned: true
     CommentReaction:
       type: object
       properties:
@@ -18403,6 +18412,8 @@ components:
           format: uuid
           readOnly: true
         view_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
         sort_order:
           type: number
@@ -18419,6 +18430,8 @@ components:
         progress_snapshot:
           readOnly: true
         logo_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
         is_favorite:
           type: boolean
@@ -18496,7 +18509,8 @@ components:
         owned_by_id:
           type: string
           format: uuid
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -18521,7 +18535,8 @@ components:
         status:
           type: string
           description: CURRENT, UPCOMING, COMPLETED or DRAFT
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         version:
           type: integer
         created_by:
@@ -18564,7 +18579,8 @@ components:
           type: string
           title: Cycle Name
           maxLength: 255
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         project_id:
           type: string
           format: uuid
@@ -18685,7 +18701,8 @@ components:
         owned_by_id:
           type: string
           format: uuid
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -18710,7 +18727,8 @@ components:
         status:
           type: string
           description: CURRENT, UPCOMING, COMPLETED or DRAFT
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         version:
           type: integer
         created_by:
@@ -18815,7 +18833,8 @@ components:
         owned_by_id:
           type: string
           format: uuid
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -18840,7 +18859,8 @@ components:
         status:
           type: string
           description: CURRENT, UPCOMING, COMPLETED or DRAFT
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         version:
           type: integer
         created_by:
@@ -18889,10 +18909,14 @@ components:
           type: string
           format: date-time
           nullable: true
-        filters: {}
-        display_filters: {}
-        display_properties: {}
-        rich_filters: {}
+        filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_properties:
+          $ref: '#/components/schemas/ClientJson'
+        rich_filters:
+          $ref: '#/components/schemas/ClientJson'
         created_by:
           type: string
           format: uuid
@@ -18965,7 +18989,8 @@ components:
           maxLength: 255
         description:
           type: string
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         access:
           allOf:
           - $ref: '#/components/schemas/AccessEnum'
@@ -19045,7 +19070,8 @@ components:
           maxLength: 255
         description:
           type: string
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         access:
           allOf:
           - $ref: '#/components/schemas/AccessEnum'
@@ -19172,7 +19198,8 @@ components:
           maxLength: 255
         description:
           type: string
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         access:
           allOf:
           - $ref: '#/components/schemas/AccessEnum'
@@ -19188,7 +19215,8 @@ components:
           format: uuid
         name:
           type: string
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
       required:
       - id
       - name
@@ -19986,7 +20014,8 @@ components:
         id:
           type: string
           format: uuid
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         projects__id:
           type: string
           format: uuid
@@ -20034,7 +20063,8 @@ components:
           format: uuid
         identifier:
           type: string
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         workspace__slug:
           type: string
       required:
@@ -20735,8 +20765,10 @@ components:
           title: Intake Description
         is_default:
           type: boolean
-        view_props: {}
-        logo_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         created_by:
           type: string
           format: uuid
@@ -20849,8 +20881,10 @@ components:
           title: Intake Description
         is_default:
           type: boolean
-        view_props: {}
-        logo_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         created_by:
           type: string
           format: uuid
@@ -23278,7 +23312,8 @@ components:
           maxLength: 255
         description:
           type: string
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         is_active:
           type: boolean
         level:
@@ -23433,7 +23468,8 @@ components:
           maxLength: 255
         description:
           type: string
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         is_active:
           type: boolean
         level:
@@ -23656,10 +23692,14 @@ components:
         query:
           readOnly: true
           title: View Query
-        filters: {}
-        display_filters: {}
-        display_properties: {}
-        rich_filters: {}
+        filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_properties:
+          $ref: '#/components/schemas/ClientJson'
+        rich_filters:
+          $ref: '#/components/schemas/ClientJson'
         access:
           allOf:
           - $ref: '#/components/schemas/AccessEnum'
@@ -23667,7 +23707,8 @@ components:
         sort_order:
           type: number
           format: double
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         is_locked:
           type: boolean
           readOnly: true
@@ -23736,14 +23777,19 @@ components:
         description:
           type: string
           title: View Description
-        filters: {}
-        display_filters: {}
-        display_properties: {}
-        rich_filters: {}
+        filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_properties:
+          $ref: '#/components/schemas/ClientJson'
+        rich_filters:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         archived_at:
           type: string
           format: date-time
@@ -24049,6 +24095,8 @@ components:
             format: uuid
           nullable: true
         view_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
         sort_order:
           type: number
@@ -24063,6 +24111,8 @@ components:
           readOnly: true
           nullable: true
         logo_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
         total_estimate_points:
           type: number
@@ -24194,6 +24244,8 @@ components:
             format: uuid
           nullable: true
         view_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
         sort_order:
           type: number
@@ -24208,6 +24260,8 @@ components:
           readOnly: true
           nullable: true
         logo_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
         total_estimate_points:
           type: number
@@ -24329,7 +24383,8 @@ components:
           type: string
           title: Module Name
           maxLength: 255
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         project_id:
           type: string
           format: uuid
@@ -24382,7 +24437,8 @@ components:
           nullable: true
         status:
           $ref: '#/components/schemas/ModuleStatusEnum'
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -24398,7 +24454,8 @@ components:
           type: string
           format: date-time
           nullable: true
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         created_by:
           type: string
           format: uuid
@@ -24483,7 +24540,8 @@ components:
           nullable: true
         status:
           $ref: '#/components/schemas/ModuleStatusEnum'
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -24499,7 +24557,8 @@ components:
           type: string
           format: date-time
           nullable: true
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         lead:
           type: string
           format: uuid
@@ -24711,7 +24770,8 @@ components:
           items:
             type: string
             format: uuid
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -24729,7 +24789,8 @@ components:
         updated_at:
           type: string
           format: date-time
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         completed_estimate_points:
           type: number
           format: double
@@ -24821,10 +24882,14 @@ components:
           type: string
           format: date-time
           nullable: true
-        filters: {}
-        display_filters: {}
-        display_properties: {}
-        rich_filters: {}
+        filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_properties:
+          $ref: '#/components/schemas/ClientJson'
+        rich_filters:
+          $ref: '#/components/schemas/ClientJson'
         created_by:
           type: string
           format: uuid
@@ -24913,7 +24978,8 @@ components:
           nullable: true
         status:
           $ref: '#/components/schemas/ModuleStatusEnum'
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -24930,7 +24996,8 @@ components:
           format: date-time
           readOnly: true
           nullable: true
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         created_by:
           type: string
           format: uuid
@@ -25022,7 +25089,8 @@ components:
           nullable: true
         status:
           $ref: '#/components/schemas/ModuleStatusEnum'
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -25034,7 +25102,8 @@ components:
           type: string
           nullable: true
           maxLength: 255
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         lead:
           type: string
           format: uuid
@@ -25518,8 +25587,10 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-        view_props: {}
-        logo_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         label_ids:
           type: array
           items:
@@ -26037,8 +26108,10 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-        view_props: {}
-        logo_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         label_ids:
           type: array
           items:
@@ -26078,7 +26151,8 @@ components:
           readOnly: true
         name:
           type: string
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         project_id:
           type: string
           format: uuid
@@ -26249,6 +26323,8 @@ components:
           type: string
           readOnly: true
         logo_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
         parent:
           type: string
@@ -26334,8 +26410,10 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-        view_props: {}
-        logo_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         label_ids:
           type: array
           items:
@@ -26420,8 +26498,10 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-        view_props: {}
-        logo_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         label_ids:
           type: array
           items:
@@ -26620,8 +26700,10 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-        view_props: {}
-        logo_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         label_ids:
           type: array
           items:
@@ -26761,9 +26843,11 @@ components:
         grouped_by:
           type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
           type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -27236,7 +27320,8 @@ components:
           maxLength: 255
         description:
           type: string
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         access:
           allOf:
           - $ref: '#/components/schemas/AccessEnum'
@@ -27362,8 +27447,10 @@ components:
           title: Intake Description
         is_default:
           type: boolean
-        view_props: {}
-        logo_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         created_by:
           type: string
           format: uuid
@@ -27647,7 +27734,8 @@ components:
           maxLength: 255
         description:
           type: string
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         is_active:
           type: boolean
         level:
@@ -27676,14 +27764,19 @@ components:
         description:
           type: string
           title: View Description
-        filters: {}
-        display_filters: {}
-        display_properties: {}
-        rich_filters: {}
+        filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_properties:
+          $ref: '#/components/schemas/ClientJson'
+        rich_filters:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         archived_at:
           type: string
           format: date-time
@@ -27769,7 +27862,8 @@ components:
           nullable: true
         status:
           $ref: '#/components/schemas/ModuleStatusEnum'
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -27781,7 +27875,8 @@ components:
           type: string
           nullable: true
           maxLength: 255
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         lead:
           type: string
           format: uuid
@@ -27915,8 +28010,10 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-        view_props: {}
-        logo_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         label_ids:
           type: array
           items:
@@ -27936,7 +28033,8 @@ components:
           $ref: '#/components/schemas/MobileOnboardingStepRequest'
         product_tour:
           $ref: '#/components/schemas/ProductTourRequest'
-        theme: {}
+        theme:
+          $ref: '#/components/schemas/ClientJson'
         is_app_rail_docked:
           type: boolean
         is_tour_completed:
@@ -27982,7 +28080,8 @@ components:
           - $ref: '#/components/schemas/StartOfTheWeekEnum'
           minimum: 0
           maximum: 32767
-        goals: {}
+        goals:
+          $ref: '#/components/schemas/ClientJson'
         background_color:
           type: string
           minLength: 1
@@ -28014,9 +28113,12 @@ components:
           - $ref: '#/components/schemas/RoleEnum'
           minimum: 0
           maximum: 32767
-        view_props: {}
-        default_props: {}
-        preferences: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        default_props:
+          $ref: '#/components/schemas/ClientJson'
+        preferences:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -28054,6 +28156,8 @@ components:
           nullable: true
           maxLength: 255
         icon_prop:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           nullable: true
         module_view:
           type: boolean
@@ -28084,7 +28188,8 @@ components:
           type: integer
           maximum: 12
           minimum: 0
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         archived_at:
           type: string
           format: date-time
@@ -28156,7 +28261,8 @@ components:
         description_stripped:
           type: string
           nullable: true
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         color:
           type: string
           nullable: true
@@ -28324,7 +28430,8 @@ components:
           type: string
           minLength: 1
           maxLength: 300
-        colors: {}
+        colors:
+          $ref: '#/components/schemas/ClientJson'
         created_by:
           type: string
           format: uuid
@@ -28369,10 +28476,14 @@ components:
           type: string
           format: date-time
           nullable: true
-        filters: {}
-        display_filters: {}
-        display_properties: {}
-        rich_filters: {}
+        filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_properties:
+          $ref: '#/components/schemas/ClientJson'
+        rich_filters:
+          $ref: '#/components/schemas/ClientJson'
         navigation_project_limit:
           type: integer
           maximum: 2147483647
@@ -28483,7 +28594,8 @@ components:
           format: date-time
           readOnly: true
           title: Last Modified At
-        theme: {}
+        theme:
+          $ref: '#/components/schemas/ClientJson'
         is_app_rail_docked:
           type: boolean
         is_tour_completed:
@@ -28527,7 +28639,8 @@ components:
           - $ref: '#/components/schemas/StartOfTheWeekEnum'
           minimum: 0
           maximum: 32767
-        goals: {}
+        goals:
+          $ref: '#/components/schemas/ClientJson'
         background_color:
           type: string
           maxLength: 255
@@ -28609,7 +28722,8 @@ components:
           type: string
           title: Project Name
           maxLength: 255
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
       required:
       - id
       - name
@@ -28820,6 +28934,8 @@ components:
           nullable: true
           maxLength: 255
         icon_prop:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           nullable: true
         module_view:
           type: boolean
@@ -28850,7 +28966,8 @@ components:
           type: integer
           maximum: 12
           minimum: 0
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         archived_at:
           type: string
           format: date-time
@@ -28963,7 +29080,8 @@ components:
           type: number
           format: double
           nullable: true
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         member_role:
           type: integer
           nullable: true
@@ -29069,6 +29187,8 @@ components:
           nullable: true
           maxLength: 255
         icon_prop:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           nullable: true
         module_view:
           type: boolean
@@ -29099,7 +29219,8 @@ components:
           type: integer
           maximum: 12
           minimum: 0
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         archived_at:
           type: string
           format: date-time
@@ -29174,6 +29295,8 @@ components:
           nullable: true
           readOnly: true
         logo_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
         description:
           type: string
@@ -29229,9 +29352,12 @@ components:
           - $ref: '#/components/schemas/RoleEnum'
           minimum: 0
           maximum: 32767
-        view_props: {}
-        default_props: {}
-        preferences: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        default_props:
+          $ref: '#/components/schemas/ClientJson'
+        preferences:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -29317,9 +29443,12 @@ components:
           - $ref: '#/components/schemas/RoleEnum'
           minimum: 0
           maximum: 32767
-        view_props: {}
-        default_props: {}
-        preferences: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        default_props:
+          $ref: '#/components/schemas/ClientJson'
+        preferences:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -29390,9 +29519,12 @@ components:
           - $ref: '#/components/schemas/RoleEnum'
           minimum: 0
           maximum: 32767
-        view_props: {}
-        default_props: {}
-        preferences: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        default_props:
+          $ref: '#/components/schemas/ClientJson'
+        preferences:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -29597,7 +29729,8 @@ components:
     ProjectMemberPreference:
       type: object
       properties:
-        preferences: {}
+        preferences:
+          $ref: '#/components/schemas/ClientJson'
         project_id:
           type: string
           format: uuid
@@ -29619,7 +29752,8 @@ components:
     ProjectMemberPreferences:
       type: object
       properties:
-        preferences: {}
+        preferences:
+          $ref: '#/components/schemas/ClientJson'
       required:
       - preferences
     ProjectMemberRetrieveResponse:
@@ -29700,6 +29834,8 @@ components:
           nullable: true
           maxLength: 255
         icon_prop:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           nullable: true
         module_view:
           type: boolean
@@ -29730,7 +29866,8 @@ components:
           type: integer
           maximum: 12
           minimum: 0
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         archived_at:
           type: string
           format: date-time
@@ -29873,11 +30010,16 @@ components:
           type: string
           format: date-time
           nullable: true
-        filters: {}
-        display_filters: {}
-        display_properties: {}
-        rich_filters: {}
-        preferences: {}
+        filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_properties:
+          $ref: '#/components/schemas/ClientJson'
+        rich_filters:
+          $ref: '#/components/schemas/ClientJson'
+        preferences:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -30088,6 +30230,8 @@ components:
           readOnly: true
           nullable: true
         icon_prop:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
           nullable: true
         emoji:
@@ -30879,7 +31023,8 @@ components:
           format: byte
           readOnly: true
           nullable: true
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         color:
           type: string
           nullable: true
@@ -30942,7 +31087,8 @@ components:
         description_stripped:
           type: string
           nullable: true
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         color:
           type: string
           nullable: true
@@ -32204,6 +32350,8 @@ components:
         is_votes_enabled:
           type: boolean
         view_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           nullable: true
         is_activity_enabled:
           type: boolean
@@ -32809,7 +32957,8 @@ components:
         id:
           type: string
           format: uuid
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         created_issues:
           type: integer
         assigned_issues:
@@ -33843,7 +33992,8 @@ components:
           type: string
           title: View Name
           maxLength: 255
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         project_id:
           type: string
           format: uuid
@@ -35035,15 +35185,21 @@ components:
         company_role:
           type: string
           nullable: true
-        view_props: {}
-        default_props: {}
-        issue_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        default_props:
+          $ref: '#/components/schemas/ClientJson'
+        issue_props:
+          $ref: '#/components/schemas/ClientJson'
         is_active:
           type: boolean
           readOnly: true
-        getting_started_checklist: {}
-        tips: {}
-        explored_features: {}
+        getting_started_checklist:
+          $ref: '#/components/schemas/ClientJson'
+        tips:
+          $ref: '#/components/schemas/ClientJson'
+        explored_features:
+          $ref: '#/components/schemas/ClientJson'
         pql_dialect:
           nullable: true
           oneOf:
@@ -35488,15 +35644,21 @@ components:
         company_role:
           type: string
           nullable: true
-        view_props: {}
-        default_props: {}
-        issue_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        default_props:
+          $ref: '#/components/schemas/ClientJson'
+        issue_props:
+          $ref: '#/components/schemas/ClientJson'
         is_active:
           type: boolean
           readOnly: true
-        getting_started_checklist: {}
-        tips: {}
-        explored_features: {}
+        getting_started_checklist:
+          $ref: '#/components/schemas/ClientJson'
+        tips:
+          $ref: '#/components/schemas/ClientJson'
+        explored_features:
+          $ref: '#/components/schemas/ClientJson'
         pql_dialect:
           nullable: true
           oneOf:
@@ -35567,14 +35729,20 @@ components:
         company_role:
           type: string
           nullable: true
-        view_props: {}
-        default_props: {}
-        issue_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        default_props:
+          $ref: '#/components/schemas/ClientJson'
+        issue_props:
+          $ref: '#/components/schemas/ClientJson'
         is_active:
           type: boolean
-        getting_started_checklist: {}
-        tips: {}
-        explored_features: {}
+        getting_started_checklist:
+          $ref: '#/components/schemas/ClientJson'
+        tips:
+          $ref: '#/components/schemas/ClientJson'
+        explored_features:
+          $ref: '#/components/schemas/ClientJson'
         pql_dialect:
           nullable: true
           oneOf:
@@ -35622,6 +35790,8 @@ components:
       type: object
       properties:
         view_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           description: An empty object when omitted
     WorkspaceModule:
       type: object
@@ -35680,6 +35850,8 @@ components:
             format: uuid
           nullable: true
         view_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
         sort_order:
           type: number
@@ -35694,6 +35866,8 @@ components:
           readOnly: true
           nullable: true
         logo_props:
+          allOf:
+          - $ref: '#/components/schemas/ClientJson'
           readOnly: true
         total_estimate_points:
           type: number
@@ -35844,7 +36018,8 @@ components:
         name:
           type: string
           maxLength: 300
-        colors: {}
+        colors:
+          $ref: '#/components/schemas/ClientJson'
         created_by:
           type: string
           format: uuid
@@ -35884,7 +36059,8 @@ components:
           type: string
           minLength: 1
           maxLength: 300
-        colors: {}
+        colors:
+          $ref: '#/components/schemas/ClientJson'
         created_by:
           type: string
           format: uuid
@@ -36052,10 +36228,14 @@ components:
           type: string
           format: date-time
           nullable: true
-        filters: {}
-        display_filters: {}
-        display_properties: {}
-        rich_filters: {}
+        filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_properties:
+          $ref: '#/components/schemas/ClientJson'
+        rich_filters:
+          $ref: '#/components/schemas/ClientJson'
         navigation_project_limit:
           type: integer
           maximum: 2147483647

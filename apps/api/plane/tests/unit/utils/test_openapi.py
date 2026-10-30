@@ -28,7 +28,7 @@ from plane.tests.openapi import strict
 from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated_response, paginated_union
 from plane.utils.openapi.hooks import is_callable
 from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, DetailOrList, _source_presence, single
-from plane.utils.openapi.fields import typed_json
+from plane.utils.openapi.fields import ClientJsonField, typed_json
 from plane.utils.openapi.serializers import DictOf, EmptyObjectSerializer
 from plane.utils.openapi.surfaces import SURFACES
 from plane.utils.paginator import BasePaginator, GroupedOffsetPaginator, SubGroupedOffsetPaginator
@@ -364,6 +364,32 @@ class TestResponseHelpers:
 
         value = _schema(path("items/", View.as_view()))["components"]["schemas"]["Holder"]["properties"]["value"]
         assert value == {"allOf": [{"$ref": "#/components/schemas/PageItem"}], "nullable": True}
+
+
+@pytest.mark.unit
+class TestClientJson:
+    def test_named_json_columns_are_client_json(self):
+        class HolderSerializer(serializers.Serializer):
+            view_props = serializers.JSONField()
+            maybe = ClientJsonField(allow_null=True)
+            metadata = serializers.JSONField()
+            shaped = typed_json(PageItemSerializer)()
+
+        class View(APIView):
+            @extend_schema(request=HolderSerializer, responses={200: HolderSerializer})
+            def post(self, request):
+                pass
+
+        schema = _schema(path("items/", View.as_view()))
+        components = schema["components"]["schemas"]
+        for name in ("Holder", "HolderRequest"):
+            props = components[name]["properties"]
+            assert props["view_props"] == {"$ref": "#/components/schemas/ClientJson"}
+            assert props["maybe"] == {"allOf": [{"$ref": "#/components/schemas/ClientJson"}], "nullable": True}
+            assert props["metadata"] == {}
+            assert props["shaped"]["$ref"].startswith("#/components/schemas/PageItem")
+        assert components["ClientJson"]["x-client-owned"] is True
+        assert components["ClientJson"]["additionalProperties"] is True
 
 
 @pytest.mark.unit

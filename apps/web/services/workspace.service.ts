@@ -14,7 +14,6 @@ import type {
   IWorkspaceMember,
   IWorkspaceMemberInvitation,
   IWorkspaceSearchResults,
-  IWorkspaceViewProps,
   IUserProjectsRole,
   IWorkspaceView,
   TIssuesResponse,
@@ -121,7 +120,10 @@ export class WorkspaceService extends APIService {
     );
   }
 
-  async updateWorkspaceView(workspaceSlug: string, data: { view_props: IWorkspaceViewProps }): Promise<void> {
+  async updateWorkspaceView(
+    workspaceSlug: string,
+    data: ApiRequestBody<"/api/workspaces/{slug}/workspace-views/", "post">
+  ): Promise<void> {
     return unwrap(
       apiClient.POST("/api/workspaces/{slug}/workspace-views/", { params: workspacePath(workspaceSlug), body: data })
     );
