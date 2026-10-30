@@ -9,11 +9,9 @@ import type { Control } from "react-hook-form";
 // plane imports
 import type { EditorRefApi } from "@plane/editor";
 // types
-import type { TBulkIssueProperties, TIssue } from "@plane/types";
+import type { TIssue } from "@plane/types";
 // components
 import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
-
-export type TIssueFields = TIssue & TBulkIssueProperties;
 
 export type TIssueTypeDropdownVariant = "xs" | "sm";
 
