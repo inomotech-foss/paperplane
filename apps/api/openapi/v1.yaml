@@ -9939,6 +9939,13 @@ paths:
       description: Get the name, identifier and entity counts of a project.
       summary: Get project summary
       parameters:
+      - in: query
+        name: fields
+        schema:
+          type: string
+        description: 'Comma-separated counts to return: members, states, labels, cycles,
+          modules, issues, intakes, pages. Unknown names are ignored. Defaults to
+          all.'
       - in: path
         name: project_id
         schema:

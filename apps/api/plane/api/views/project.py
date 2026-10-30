@@ -725,7 +725,19 @@ class ProjectSummaryAPIEndpoint(BaseAPIView):
     @project_docs(
         summary="Get project summary",
         description="Get the name, identifier and entity counts of a project.",
-        parameters=[PROJECT_ID_PARAMETER],
+        parameters=[
+            PROJECT_ID_PARAMETER,
+            OpenApiParameter(
+                name="fields",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description=(
+                    "Comma-separated counts to return: " + ", ".join(ALLOWED_PROJECT_SUMMARY_FIELDS) + ". "
+                    "Unknown names are ignored. Defaults to all."
+                ),
+            ),
+        ],
         responses={
             200: inline_serializer(
                 name="ProjectSummary",

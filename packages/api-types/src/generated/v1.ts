@@ -11507,7 +11507,10 @@ export interface operations {
     };
     workspaces_projects_summary_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Comma-separated counts to return: members, states, labels, cycles, modules, issues, intakes, pages. Unknown names are ignored. Defaults to all. */
+                fields?: string;
+            };
             header?: never;
             path: {
                 /** @description Project ID */
