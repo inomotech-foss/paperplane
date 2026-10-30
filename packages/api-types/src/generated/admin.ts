@@ -491,8 +491,8 @@ export interface components {
         };
         PaginatedInstanceUserList: {
             results: components["schemas"]["InstanceUser"][];
-            grouped_by: string | null;
-            sub_grouped_by: string | null;
+            grouped_by: (null) | null;
+            sub_grouped_by: (null) | null;
             total_count: number;
             next_cursor: string;
             prev_cursor: string;
@@ -505,8 +505,8 @@ export interface components {
         };
         PaginatedInstanceWorkspaceList: {
             results: components["schemas"]["Workspace"][];
-            grouped_by: string | null;
-            sub_grouped_by: string | null;
+            grouped_by: (null) | null;
+            sub_grouped_by: (null) | null;
             total_count: number;
             next_cursor: string;
             prev_cursor: string;

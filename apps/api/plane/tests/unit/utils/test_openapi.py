@@ -164,6 +164,9 @@ class TestPaginatedResponse:
         )
         assert data["results"] == {}
         jsonschema.validate(data, _response_schema(GROUPED))
+        for other in (FLAT, SUB_GROUPED):
+            with pytest.raises(jsonschema.ValidationError):
+                jsonschema.validate(data, _response_schema(other))
 
 
 def _component(serializer_class):

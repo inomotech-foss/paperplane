@@ -4,12 +4,17 @@
 """Schema of the wrapper that plane.utils.paginator.BasePaginator.paginate() returns."""
 
 from drf_spectacular.drainage import set_override
-from drf_spectacular.utils import PolymorphicProxySerializer, inline_serializer
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field, inline_serializer
 from rest_framework import serializers
 
 FLAT = "flat"
 GROUPED = "grouped"
 SUB_GROUPED = "sub_grouped"
+
+
+@extend_schema_field({"allOf": [{"type": "string", "nullable": True, "enum": [None]}], "nullable": True})
+class _NullField(serializers.Field):
+    """Always null, so the flat, grouped and sub-grouped variants stay distinct."""
 
 
 def _item_name(serializer):
@@ -45,16 +50,18 @@ def paginated_response(serializer, grouping=FLAT, name=None):
     else:
         raise ValueError(f"Unknown grouping: {grouping}")
 
+    grouped_by = _NullField() if grouping == FLAT else serializers.CharField()
+    sub_grouped_by = serializers.CharField() if grouping == SUB_GROUPED else _NullField()
     # A viewset's list action would otherwise wrap the wrapper in an array.
-    return set_override(_paginated(f"{prefix}{name}List", results), "many", False)
+    return set_override(_paginated(f"{prefix}{name}List", results, grouped_by, sub_grouped_by), "many", False)
 
 
-def _paginated(name, results):
+def _paginated(name, results, grouped_by, sub_grouped_by):
     return inline_serializer(
         name=name,
         fields={
-            "grouped_by": serializers.CharField(allow_null=True),
-            "sub_grouped_by": serializers.CharField(allow_null=True),
+            "grouped_by": grouped_by,
+            "sub_grouped_by": sub_grouped_by,
             "total_count": serializers.IntegerField(),
             "next_cursor": serializers.CharField(),
             "prev_cursor": serializers.CharField(),

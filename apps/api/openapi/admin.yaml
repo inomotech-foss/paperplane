@@ -877,10 +877,18 @@ components:
           items:
             $ref: '#/components/schemas/InstanceUser'
         grouped_by:
-          type: string
+          allOf:
+          - type: string
+            nullable: true
+            enum:
+            - null
           nullable: true
         sub_grouped_by:
-          type: string
+          allOf:
+          - type: string
+            nullable: true
+            enum:
+            - null
           nullable: true
         total_count:
           type: integer
@@ -921,10 +929,18 @@ components:
           items:
             $ref: '#/components/schemas/Workspace'
         grouped_by:
-          type: string
+          allOf:
+          - type: string
+            nullable: true
+            enum:
+            - null
           nullable: true
         sub_grouped_by:
-          type: string
+          allOf:
+          - type: string
+            nullable: true
+            enum:
+            - null
           nullable: true
         total_count:
           type: integer
