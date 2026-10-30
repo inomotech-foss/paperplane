@@ -53,6 +53,9 @@ from plane.bgtasks.workspace_seed_task import workspace_seed
 from plane.utils.url import contains_url
 from plane.utils.csv_utils import sanitize_csv_row
 from plane.utils.openapi.serializers import SlugAvailabilitySerializer
+from plane.utils.openapi.parameters import SLUG_QUERY_PARAMETER
+from plane.app.serializers.request.user import UserActivityExportSerializer
+from plane.app.serializers.request.workspace import WorkspaceCreateSerializer
 
 
 class WorkSpaceViewSet(BaseViewSet):
@@ -83,6 +86,7 @@ class WorkSpaceViewSet(BaseViewSet):
             .annotate(total_members=member_count)
         )
 
+    @extend_schema(request=WorkspaceCreateSerializer, responses={201: WorkSpaceSerializer})
     def create(self, request):
         try:
             (DISABLE_WORKSPACE_CREATION,) = get_configuration_value(
@@ -218,7 +222,7 @@ class UserWorkSpacesEndpoint(BaseAPIView):
 
 
 class WorkSpaceAvailabilityCheckEndpoint(BaseAPIView):
-    @extend_schema(responses={200: SlugAvailabilitySerializer})
+    @extend_schema(parameters=[SLUG_QUERY_PARAMETER], responses={200: SlugAvailabilitySerializer})
     def get(self, request):
         slug = request.GET.get("slug", False)
 
@@ -355,7 +359,10 @@ class ExportWorkspaceUserActivityEndpoint(BaseAPIView):
         csv_buffer.seek(0)
         return csv_buffer
 
-    @extend_schema(responses={(200, "text/csv"): OpenApiResponse(OpenApiTypes.STR, description="CSV file")})
+    @extend_schema(
+        request=UserActivityExportSerializer,
+        responses={(200, "text/csv"): OpenApiResponse(OpenApiTypes.STR, description="CSV file")},
+    )
     def post(self, request, slug, user_id):
         if not request.data.get("date"):
             return Response({"error": "Date is required"}, status=status.HTTP_400_BAD_REQUEST)

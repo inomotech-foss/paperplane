@@ -1691,7 +1691,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_home_preferences_retrieve"];
+        get: operations["workspaces_home_preferences_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5350,6 +5350,13 @@ export interface components {
             cycle_details: unknown;
             module_details: unknown;
         };
+        ApiTokenCreateRequest: {
+            /** @description A random hex string when omitted */
+            label?: string;
+            description?: string;
+            /** Format: date-time */
+            expired_at?: string | null;
+        };
         AppInstallation: {
             /** Format: uuid */
             id: string;
@@ -6473,6 +6480,22 @@ export interface components {
         EmailReply: {
             comment: components["schemas"]["IssueComment"];
             email_message: components["schemas"]["IssueEmailMessage"];
+        };
+        EmailUpdateRequest: {
+            /**
+             * Format: email
+             * @description The new email address
+             */
+            email: string;
+            /** @description The code sent to the new address */
+            code: string;
+        };
+        EmailVerificationCodeRequest: {
+            /**
+             * Format: email
+             * @description The new email address
+             */
+            email: string;
         };
         EmptyObject: Record<string, never>;
         EntitySearch: {
@@ -8140,6 +8163,16 @@ export interface components {
         MessageResponse: {
             message: string;
         };
+        MobileOnboardingStep: {
+            profile_complete: boolean;
+            workspace_create: boolean;
+            workspace_join: boolean;
+        };
+        MobileOnboardingStepRequest: {
+            profile_complete: boolean;
+            workspace_create: boolean;
+            workspace_join: boolean;
+        };
         Module: {
             /** Format: uuid */
             readonly id: string;
@@ -8597,6 +8630,8 @@ export interface components {
         Notification: {
             /** Format: uuid */
             readonly id: string;
+            data: components["schemas"]["NotificationData"] | null;
+            message: string | null;
             readonly triggered_by_details: components["schemas"]["UserLite"] | null;
             readonly is_inbox_issue?: boolean;
             readonly is_intake_issue?: boolean;
@@ -8610,12 +8645,10 @@ export interface components {
             readonly updated_at: string;
             /** Format: date-time */
             deleted_at: string | null;
-            data: unknown;
             /** Format: uuid */
             entity_identifier: string | null;
             entity_name: string;
             title: string;
-            message: unknown;
             message_html: string;
             message_stripped: string | null;
             sender: string;
@@ -8641,7 +8674,58 @@ export interface components {
             /** Format: uuid */
             receiver: string;
         };
+        NotificationAutomationData: {
+            id: string;
+            name: string;
+        };
+        NotificationCommentData: {
+            id: string;
+        };
+        NotificationData: {
+            issue?: components["schemas"]["NotificationIssueData"];
+            issue_activity?: components["schemas"]["NotificationIssueActivityData"];
+            page?: components["schemas"]["NotificationPageData"];
+            comment?: components["schemas"]["NotificationCommentData"];
+            automation?: components["schemas"]["NotificationAutomationData"];
+        };
+        NotificationIssueActivityData: {
+            id: string | null;
+            verb: string;
+            field: string | null;
+            actor: string | null;
+            new_value: string;
+            old_value: string;
+            issue_comment?: string;
+            old_identifier?: string | null;
+            new_identifier?: string | null;
+        };
+        NotificationIssueData: {
+            id: string;
+            name: string;
+            identifier: string;
+            sequence_id: number;
+            state_name: string | null;
+            state_group: string | null;
+            /** @description Only on mention notifications */
+            project_id?: string;
+            /** @description Only on mention notifications */
+            workspace_slug?: string;
+        };
         NotificationListOrPage: components["schemas"]["Notification"][] | components["schemas"]["PaginatedNotificationList"];
+        NotificationMarkAllReadRequest: {
+            /** @description Only snoozed notifications when true */
+            snoozed?: boolean;
+            /** @description Only archived notifications when true */
+            archived?: boolean;
+            /** @description watching, assigned or created narrows the set, anything else marks all */
+            type?: string;
+        };
+        NotificationPageData: {
+            id: string;
+            name: string;
+            project_id: string;
+            workspace_slug: string;
+        };
         /**
          * @description * `full` - Full
          *     * `compact` - Compact
@@ -8658,6 +8742,18 @@ export interface components {
         NotifyModeEnum: "NONE" | "ADMINS" | "MEMBERS" | "CUSTOM";
         /** @enum {unknown} */
         NullEnum: null;
+        OnboardingStep: {
+            profile_complete: boolean;
+            workspace_create: boolean;
+            workspace_invite: boolean;
+            workspace_join: boolean;
+        };
+        OnboardingStepRequest: {
+            profile_complete: boolean;
+            workspace_create: boolean;
+            workspace_invite: boolean;
+            workspace_join: boolean;
+        };
         OrderedState: {
             /** Format: uuid */
             readonly id: string;
@@ -9342,6 +9438,19 @@ export interface components {
             total_results: number;
             extra_stats: unknown;
         };
+        PatchedAPITokenRequest: {
+            /** Format: date-time */
+            deleted_at?: string | null;
+            label?: string;
+            description?: string;
+            /** Format: uuid */
+            created_by?: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by?: string | null;
+        };
         PatchedAnalyticViewRequest: {
             /** Format: date-time */
             deleted_at?: string | null;
@@ -9640,39 +9749,12 @@ export interface components {
             /** Format: uuid */
             lead?: string | null;
         };
-        PatchedNotificationRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
-            data?: unknown;
-            /** Format: uuid */
-            entity_identifier?: string | null;
-            entity_name?: string;
-            title?: string;
-            message?: unknown;
-            message_html?: string;
-            message_stripped?: string | null;
-            sender?: string;
-            /** Format: date-time */
-            read_at?: string | null;
-            /** Format: date-time */
-            snoozed_till?: string | null;
-            /** Format: date-time */
-            archived_at?: string | null;
-            /** Format: uuid */
-            created_by?: string | null;
+        PatchedNotificationSnoozeRequest: {
             /**
-             * Last Modified By
-             * Format: uuid
+             * Format: date-time
+             * @description Null when omitted
              */
-            updated_by?: string | null;
-            /** Format: uuid */
-            workspace?: string;
-            /** Format: uuid */
-            project?: string | null;
-            /** Format: uuid */
-            triggered_by?: string | null;
-            /** Format: uuid */
-            receiver?: string;
+            snoozed_till?: string | null;
         };
         PatchedPageAttachmentRequest: {
             /** Format: date-time */
@@ -9733,6 +9815,34 @@ export interface components {
             logo_props?: unknown;
             label_ids?: string[];
             project_ids?: string[];
+        };
+        PatchedProfileRequest: {
+            onboarding_step?: components["schemas"]["OnboardingStepRequest"];
+            mobile_onboarding_step?: components["schemas"]["MobileOnboardingStepRequest"];
+            product_tour?: components["schemas"]["ProductTourRequest"];
+            theme?: unknown;
+            is_app_rail_docked?: boolean;
+            is_tour_completed?: boolean;
+            use_case?: string | null;
+            role?: string | null;
+            is_onboarded?: boolean;
+            /** Format: uuid */
+            last_workspace_id?: string | null;
+            billing_address_country?: string;
+            billing_address?: unknown;
+            has_billing_address?: boolean;
+            company_name?: string;
+            notification_view_mode?: components["schemas"]["NotificationViewModeEnum"];
+            is_smooth_cursor_enabled?: boolean;
+            is_mobile_onboarded?: boolean;
+            mobile_timezone_auto_set?: boolean;
+            language?: string;
+            start_of_the_week?: components["schemas"]["StartOfTheWeekEnum"];
+            goals?: unknown;
+            background_color?: string;
+            is_navigation_tour_completed?: boolean;
+            has_marketing_email_consent?: boolean;
+            is_subscribed_to_changelog?: boolean;
         };
         PatchedProjectListRequest: {
             /** Format: date-time */
@@ -9845,6 +9955,10 @@ export interface components {
             mention?: boolean;
             issue_completed?: boolean;
         };
+        PatchedUserOnboardedRequest: {
+            /** @description False when omitted */
+            is_onboarded?: boolean;
+        };
         PatchedUserRequest: {
             /** Format: date-time */
             last_login?: string | null;
@@ -9869,18 +9983,9 @@ export interface components {
             /** Format: uuid */
             merged_into?: string | null;
         };
-        PatchedWorkSpaceMemberInviteRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
-            accepted?: boolean;
-            role?: components["schemas"]["RoleEnum"];
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
+        PatchedUserTourCompletedRequest: {
+            /** @description False when omitted */
+            is_tour_completed?: boolean;
         };
         PatchedWorkSpaceRequest: {
             /** Workspace Name */
@@ -9899,17 +10004,6 @@ export interface components {
             is_enabled?: boolean;
             /** Format: double */
             sort_order?: number;
-        };
-        PatchedWorkspaceMemberAdminRequest: {
-            role?: components["schemas"]["RoleEnum"];
-            company_role?: string | null;
-            view_props?: unknown;
-            default_props?: unknown;
-            issue_props?: unknown;
-            getting_started_checklist?: unknown;
-            tips?: unknown;
-            explored_features?: unknown;
-            pql_dialect?: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
         };
         PatchedWorkspaceMemberDialectRequest: {
             pql_dialect?: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
@@ -9943,11 +10037,22 @@ export interface components {
             /** Format: uuid */
             project?: string | null;
         };
-        PatchedWorkspaceUserPreferenceRequest: {
-            key?: string;
-            is_pinned?: boolean;
-            /** Format: double */
-            sort_order?: number;
+        PatchedWorkspaceUserPropertiesRequest: {
+            /** Format: date-time */
+            deleted_at?: string | null;
+            filters?: unknown;
+            display_filters?: unknown;
+            display_properties?: unknown;
+            rich_filters?: unknown;
+            navigation_project_limit?: number;
+            navigation_control_preference?: components["schemas"]["NavigationControlPreferenceEnum"];
+            /** Format: uuid */
+            created_by?: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by?: string | null;
         };
         /**
          * @description * `jql` - JQL
@@ -9956,7 +10061,7 @@ export interface components {
          */
         PqlDialectEnum: "jql" | "plane";
         PriorityCount: {
-            priority: string;
+            priority: components["schemas"]["PriorityEnum"];
             priority_count: number;
             priority_order: number;
         };
@@ -9969,9 +10074,26 @@ export interface components {
          * @enum {string}
          */
         PriorityEnum: "urgent" | "high" | "medium" | "low" | "none";
+        ProductTour: {
+            work_items: boolean;
+            cycles: boolean;
+            modules: boolean;
+            intake: boolean;
+            pages: boolean;
+        };
+        ProductTourRequest: {
+            work_items: boolean;
+            cycles: boolean;
+            modules: boolean;
+            intake: boolean;
+            pages: boolean;
+        };
         Profile: {
             /** Format: uuid */
             readonly id: string;
+            onboarding_step: components["schemas"]["OnboardingStep"];
+            mobile_onboarding_step: components["schemas"]["MobileOnboardingStep"];
+            product_tour: components["schemas"]["ProductTour"];
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -9982,7 +10104,6 @@ export interface components {
             theme: unknown;
             is_app_rail_docked: boolean;
             is_tour_completed: boolean;
-            onboarding_step: unknown;
             use_case: string | null;
             role: string | null;
             is_onboarded: boolean;
@@ -9995,7 +10116,6 @@ export interface components {
             notification_view_mode: components["schemas"]["NotificationViewModeEnum"];
             is_smooth_cursor_enabled: boolean;
             is_mobile_onboarded: boolean;
-            mobile_onboarding_step: unknown;
             mobile_timezone_auto_set: boolean;
             language: string;
             start_of_the_week: components["schemas"]["StartOfTheWeekEnum"];
@@ -10004,7 +10124,6 @@ export interface components {
             is_navigation_tour_completed: boolean;
             has_marketing_email_consent: boolean;
             is_subscribed_to_changelog: boolean;
-            product_tour: unknown;
             /** Format: uuid */
             readonly user: string;
         };
@@ -10035,6 +10154,9 @@ export interface components {
             name: string;
             /** Format: uuid */
             project: string;
+        };
+        ProjectJoinRequest: {
+            project_ids: string[];
         };
         ProjectLink: {
             /** Format: uuid */
@@ -10739,6 +10861,9 @@ export interface components {
          * @enum {integer}
          */
         RoleEnum: 20 | 15 | 5;
+        RoleUpdateRequest: {
+            role: components["schemas"]["RoleEnum"];
+        };
         SavedAnalytics: {
             total: number;
             /** @description Rows by x value. count for issue_count, estimate otherwise, segment with a segment. */
@@ -10836,9 +10961,19 @@ export interface components {
          */
         StartOfTheWeekEnum: 0 | 1 | 2 | 3 | 4 | 5 | 6;
         StateGroupCount: {
-            state_group: string | null;
+            state_group: (components["schemas"]["StateGroupEnum"] | components["schemas"]["NullEnum"]) | null;
             state_count: number;
         };
+        /**
+         * @description * `backlog` - Backlog
+         *     * `unstarted` - Unstarted
+         *     * `started` - Started
+         *     * `completed` - Completed
+         *     * `cancelled` - Cancelled
+         *     * `triage` - Triage
+         * @enum {string}
+         */
+        StateGroupEnum: "backlog" | "unstarted" | "started" | "completed" | "cancelled" | "triage";
         StateGroupTotal: {
             state_group: string | null;
             state_count: number;
@@ -11598,6 +11733,13 @@ export interface components {
             /** Format: uuid */
             merged_into: string | null;
         };
+        UserActivityExportRequest: {
+            /**
+             * Format: date
+             * @description Export the activity of this day
+             */
+            date: string;
+        };
         UserAdminLite: {
             /** Format: uuid */
             readonly id: string;
@@ -11731,30 +11873,6 @@ export interface components {
             assigned_issues: number;
             completed_issues: number;
             pending_issues: number;
-        };
-        UserRequest: {
-            /** Format: date-time */
-            last_login?: string | null;
-            display_name?: string;
-            first_name?: string;
-            last_name?: string;
-            avatar?: string;
-            /** Format: uuid */
-            avatar_asset?: string | null;
-            cover_image?: (string) | null;
-            /** Format: uuid */
-            cover_image_asset?: string | null;
-            is_password_expired?: boolean;
-            is_password_reset_required?: boolean;
-            bot_type?: string | null;
-            user_timezone?: components["schemas"]["UserTimezoneEnum"];
-            is_email_valid?: boolean;
-            /** Format: date-time */
-            masked_at?: string | null;
-            /** Format: date-time */
-            deleted_at?: string | null;
-            /** Format: uuid */
-            merged_into?: string | null;
         };
         UserSession: {
             is_authenticated: boolean;
@@ -12699,6 +12817,39 @@ export interface components {
             /** Format: uuid */
             readonly owner: string;
         };
+        WorkSpaceMember: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly member: components["schemas"]["UserLite"];
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            readonly deleted_at: string | null;
+            role: components["schemas"]["RoleEnum"];
+            company_role: string | null;
+            view_props: unknown;
+            default_props: unknown;
+            issue_props: unknown;
+            readonly is_active: boolean;
+            getting_started_checklist: unknown;
+            tips: unknown;
+            explored_features: unknown;
+            pql_dialect: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            /** Format: uuid */
+            readonly workspace: string;
+        };
         WorkSpaceMemberInvite: {
             /** Format: uuid */
             readonly id: string;
@@ -12748,20 +12899,21 @@ export interface components {
             /** Format: uuid */
             readonly created_by: string | null;
         };
-        WorkSpaceMemberInviteRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
-            accepted?: boolean;
-            role?: components["schemas"]["RoleEnum"];
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
-        };
         WorkSpaceRequest: {
+            /** Workspace Name */
+            name: string;
+            logo?: string | null;
+            slug: string;
+            organization_size?: string | null;
+            timezone?: components["schemas"]["TimezoneEnum"];
+            background_color?: string;
+            pql_dialect?: components["schemas"]["PqlDialectEnum"];
+            /** Format: uuid */
+            logo_asset?: string | null;
+        };
+        WorkspaceCreateRequest: {
+            /** @description Stored on the creator's membership */
+            company_role?: string;
             /** Workspace Name */
             name: string;
             logo?: string | null;
@@ -12809,6 +12961,38 @@ export interface components {
             /** Format: double */
             sort_order: number;
         };
+        WorkspaceHomePreferenceRow: {
+            key: string;
+            is_enabled: boolean;
+            config: unknown;
+            /** Format: double */
+            sort_order: number;
+        };
+        WorkspaceInvitationsJoinRequest: {
+            /** @description Invitation ids to accept */
+            invitations: string[];
+        };
+        WorkspaceInviteEmailRequest: {
+            /** Format: email */
+            email: string;
+            /**
+             * @description Guest when omitted
+             *
+             *     * `20` - Admin
+             *     * `15` - Member
+             *     * `5` - Guest
+             */
+            role?: components["schemas"]["RoleEnum"];
+        };
+        WorkspaceInviteRequest: {
+            emails: components["schemas"]["WorkspaceInviteEmailRequest"][];
+        };
+        WorkspaceJoinRequest: {
+            /** @description The token from the invitation email */
+            token: string;
+            /** @description False when omitted, which declines */
+            accepted?: boolean;
+        };
         WorkspaceLite: {
             /** Workspace Name */
             readonly name: string;
@@ -12850,17 +13034,6 @@ export interface components {
             /** Format: uuid */
             readonly workspace: string;
         };
-        WorkspaceMemberAdminRequest: {
-            role?: components["schemas"]["RoleEnum"];
-            company_role?: string | null;
-            view_props?: unknown;
-            default_props?: unknown;
-            issue_props?: unknown;
-            getting_started_checklist?: unknown;
-            tips?: unknown;
-            explored_features?: unknown;
-            pql_dialect?: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
-        };
         WorkspaceMemberMe: {
             /** Format: uuid */
             readonly id: string;
@@ -12895,6 +13068,11 @@ export interface components {
             workspace: string;
             /** Format: uuid */
             member: string;
+        };
+        WorkspaceMemberRow: components["schemas"]["WorkspaceMemberAdmin"] | components["schemas"]["WorkSpaceMember"];
+        WorkspaceMemberViewPropsRequest: {
+            /** @description An empty object when omitted */
+            view_props?: unknown;
         };
         WorkspaceModule: {
             /** Format: uuid */
@@ -12955,6 +13133,21 @@ export interface components {
             readonly entity_data: string;
             /** Format: date-time */
             readonly visited_at: string;
+        };
+        WorkspaceSidebarPreference: {
+            is_pinned: boolean;
+            /** Format: double */
+            sort_order: number;
+        };
+        WorkspaceSidebarPreferenceMap: {
+            [key: string]: components["schemas"]["WorkspaceSidebarPreference"];
+        };
+        WorkspaceSidebarPreferenceUpdateRequest: {
+            /** @description Items without a known key are skipped */
+            key: string;
+            is_pinned?: boolean;
+            /** Format: double */
+            sort_order?: number;
         };
         WorkspaceTheme: {
             /** Format: uuid */
@@ -13051,12 +13244,6 @@ export interface components {
             updated_by?: string | null;
             /** Format: uuid */
             project?: string | null;
-        };
-        WorkspaceUserPreference: {
-            key: string;
-            is_pinned: boolean;
-            /** Format: double */
-            sort_order: number;
         };
         WorkspaceUserProfile: {
             /** @description Empty unless the caller is a workspace admin or member */
@@ -14782,7 +14969,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ApiTokenCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ApiTokenCreateRequest"];
+                "multipart/form-data": components["schemas"]["ApiTokenCreateRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -14844,7 +15037,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAPITokenRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAPITokenRequest"];
+                "multipart/form-data": components["schemas"]["PatchedAPITokenRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -15129,11 +15328,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["PatchedUserRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedUserRequest"];
-                "multipart/form-data": components["schemas"]["PatchedUserRequest"];
+                "application/json": components["schemas"]["EmailUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["EmailUpdateRequest"];
+                "multipart/form-data": components["schemas"]["EmailUpdateRequest"];
             };
         };
         responses: {
@@ -15154,11 +15353,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["UserRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["UserRequest"];
-                "multipart/form-data": components["schemas"]["UserRequest"];
+                "application/json": components["schemas"]["EmailVerificationCodeRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["EmailVerificationCodeRequest"];
+                "multipart/form-data": components["schemas"]["EmailVerificationCodeRequest"];
             };
         };
         responses: {
@@ -15242,7 +15441,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedUserOnboardedRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedUserOnboardedRequest"];
+                "multipart/form-data": components["schemas"]["PatchedUserOnboardedRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -15280,7 +15485,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedProfileRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedProfileRequest"];
+                "multipart/form-data": components["schemas"]["PatchedProfileRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -15318,7 +15529,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedUserTourCompletedRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedUserTourCompletedRequest"];
+                "multipart/form-data": components["schemas"]["PatchedUserTourCompletedRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -15479,9 +15696,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ProjectMemberInviteRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["ProjectMemberInviteRequest"];
-                "multipart/form-data": components["schemas"]["ProjectMemberInviteRequest"];
+                "application/json": components["schemas"]["ProjectJoinRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ProjectJoinRequest"];
+                "multipart/form-data": components["schemas"]["ProjectJoinRequest"];
             };
         };
         responses: {
@@ -15524,11 +15741,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["WorkSpaceMemberInviteRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["WorkSpaceMemberInviteRequest"];
-                "multipart/form-data": components["schemas"]["WorkSpaceMemberInviteRequest"];
+                "application/json": components["schemas"]["WorkspaceInvitationsJoinRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WorkspaceInvitationsJoinRequest"];
+                "multipart/form-data": components["schemas"]["WorkspaceInvitationsJoinRequest"];
             };
         };
         responses: {
@@ -15562,7 +15779,10 @@ export interface operations {
     };
     workspace_slug_check_retrieve: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description Workspace slug to check, a 400 when missing */
+                slug: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -15610,9 +15830,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["WorkSpaceRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["WorkSpaceRequest"];
-                "multipart/form-data": components["schemas"]["WorkSpaceRequest"];
+                "application/json": components["schemas"]["WorkspaceCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WorkspaceCreateRequest"];
+                "multipart/form-data": components["schemas"]["WorkspaceCreateRequest"];
             };
         };
         responses: {
@@ -16845,9 +17065,12 @@ export interface operations {
             };
         };
     };
-    workspaces_home_preferences_retrieve: {
+    workspaces_home_preferences_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -16861,7 +17084,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkspaceHomePreference"];
+                    "application/json": components["schemas"]["WorkspaceHomePreferenceRow"][];
                 };
             };
         };
@@ -16927,11 +17150,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["WorkSpaceMemberInviteRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["WorkSpaceMemberInviteRequest"];
-                "multipart/form-data": components["schemas"]["WorkSpaceMemberInviteRequest"];
+                "application/json": components["schemas"]["WorkspaceInviteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WorkspaceInviteRequest"];
+                "multipart/form-data": components["schemas"]["WorkspaceInviteRequest"];
             };
         };
         responses: {
@@ -16998,11 +17221,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["PatchedWorkSpaceMemberInviteRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedWorkSpaceMemberInviteRequest"];
-                "multipart/form-data": components["schemas"]["PatchedWorkSpaceMemberInviteRequest"];
+                "application/json": components["schemas"]["RoleUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["RoleUpdateRequest"];
+                "multipart/form-data": components["schemas"]["RoleUpdateRequest"];
             };
         };
         responses: {
@@ -17048,7 +17271,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceJoinRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WorkspaceJoinRequest"];
+                "multipart/form-data": components["schemas"]["WorkspaceJoinRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -17129,7 +17358,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkspaceMemberAdmin"][];
+                    "application/json": components["schemas"]["WorkspaceMemberRow"][];
                 };
             };
         };
@@ -17151,7 +17380,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkspaceMemberAdmin"];
+                    "application/json": components["schemas"]["WorkspaceMemberRow"];
                 };
             };
         };
@@ -17187,11 +17416,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["PatchedWorkspaceMemberAdminRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedWorkspaceMemberAdminRequest"];
-                "multipart/form-data": components["schemas"]["PatchedWorkspaceMemberAdminRequest"];
+                "application/json": components["schemas"]["RoleUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["RoleUpdateRequest"];
+                "multipart/form-data": components["schemas"]["RoleUpdateRequest"];
             };
         };
         responses: {
@@ -17200,7 +17429,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkspaceMemberAdmin"];
+                    "application/json": components["schemas"]["WorkSpaceMember"];
                 };
             };
         };
@@ -17214,21 +17443,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["WorkspaceMemberAdminRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["WorkspaceMemberAdminRequest"];
-                "multipart/form-data": components["schemas"]["WorkspaceMemberAdminRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            200: {
+            /** @description Left the workspace */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkspaceMemberAdmin"];
-                };
+                content?: never;
             };
         };
     };
@@ -24396,7 +24618,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkspaceUserPreference"];
+                    "application/json": components["schemas"]["WorkspaceSidebarPreferenceMap"];
                 };
             };
         };
@@ -24410,11 +24632,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["PatchedWorkspaceUserPreferenceRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedWorkspaceUserPreferenceRequest"];
-                "multipart/form-data": components["schemas"]["PatchedWorkspaceUserPreferenceRequest"];
+                "application/json": components["schemas"]["WorkspaceSidebarPreferenceUpdateRequest"][];
+                "application/x-www-form-urlencoded": components["schemas"]["WorkspaceSidebarPreferenceUpdateRequest"][];
+                "multipart/form-data": components["schemas"]["WorkspaceSidebarPreferenceUpdateRequest"][];
             };
         };
         responses: {
@@ -24423,7 +24645,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkspaceUserPreference"];
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
         };
@@ -24611,7 +24833,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserActivityExportRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["UserActivityExportRequest"];
+                "multipart/form-data": components["schemas"]["UserActivityExportRequest"];
+            };
+        };
         responses: {
             /** @description CSV file */
             200: {
@@ -24877,7 +25105,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedWorkspaceUserPropertiesRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedWorkspaceUserPropertiesRequest"];
+                "multipart/form-data": components["schemas"]["PatchedWorkspaceUserPropertiesRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -24914,12 +25148,24 @@ export interface operations {
     workspaces_users_notifications_list: {
         parameters: {
             query?: {
+                /** @description false when omitted */
+                archived?: "false" | "true";
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Any non-empty value lists mentions only, otherwise mentions are left out */
+                mentioned?: string;
+                /** @description Sort field, -created_at by default */
+                order_by?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Both read and unread when omitted */
+                read?: "false" | "true";
                 /** @description A search term. */
                 search?: string;
+                /** @description false when omitted */
+                snoozed?: "false" | "true";
+                /** @description Comma separated subscribed, assigned and created. All notifications without any of them */
+                type?: string;
             };
             header?: never;
             path: {
@@ -24994,9 +25240,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedNotificationRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedNotificationRequest"];
-                "multipart/form-data": components["schemas"]["PatchedNotificationRequest"];
+                "application/json": components["schemas"]["PatchedNotificationSnoozeRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedNotificationSnoozeRequest"];
+                "multipart/form-data": components["schemas"]["PatchedNotificationSnoozeRequest"];
             };
         };
         responses: {
@@ -25107,7 +25353,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["NotificationMarkAllReadRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["NotificationMarkAllReadRequest"];
+                "multipart/form-data": components["schemas"]["NotificationMarkAllReadRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -25716,7 +25968,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceMemberViewPropsRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WorkspaceMemberViewPropsRequest"];
+                "multipart/form-data": components["schemas"]["WorkspaceMemberViewPropsRequest"];
+            };
+        };
         responses: {
             /** @description Saved */
             204: {

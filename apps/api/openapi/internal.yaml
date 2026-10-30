@@ -2021,6 +2021,17 @@ paths:
       operationId: users_api_tokens_create
       tags:
       - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiTokenCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ApiTokenCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApiTokenCreateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -2062,6 +2073,17 @@ paths:
         required: true
       tags:
       - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAPITokenRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAPITokenRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAPITokenRequest'
       security:
       - sessionAuth: []
       responses:
@@ -2329,13 +2351,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUserRequest'
+              $ref: '#/components/schemas/EmailUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUserRequest'
+              $ref: '#/components/schemas/EmailUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUserRequest'
+              $ref: '#/components/schemas/EmailUpdateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -2354,13 +2377,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserRequest'
+              $ref: '#/components/schemas/EmailVerificationCodeRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UserRequest'
+              $ref: '#/components/schemas/EmailVerificationCodeRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UserRequest'
+              $ref: '#/components/schemas/EmailVerificationCodeRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -2427,6 +2451,17 @@ paths:
       operationId: users_me_onboard_partial_update
       tags:
       - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserOnboardedRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserOnboardedRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserOnboardedRequest'
       security:
       - sessionAuth: []
       responses:
@@ -2454,6 +2489,17 @@ paths:
       operationId: users_me_profile_partial_update
       tags:
       - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileRequest'
       security:
       - sessionAuth: []
       responses:
@@ -2482,6 +2528,17 @@ paths:
       operationId: users_me_tour_completed_partial_update
       tags:
       - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserTourCompletedRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserTourCompletedRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserTourCompletedRequest'
       security:
       - sessionAuth: []
       responses:
@@ -2655,13 +2712,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProjectMemberInviteRequest'
+              $ref: '#/components/schemas/ProjectJoinRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ProjectMemberInviteRequest'
+              $ref: '#/components/schemas/ProjectJoinRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ProjectMemberInviteRequest'
+              $ref: '#/components/schemas/ProjectJoinRequest'
         required: true
       security:
       - sessionAuth: []
@@ -2703,13 +2760,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WorkSpaceMemberInviteRequest'
+              $ref: '#/components/schemas/WorkspaceInvitationsJoinRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/WorkSpaceMemberInviteRequest'
+              $ref: '#/components/schemas/WorkspaceInvitationsJoinRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/WorkSpaceMemberInviteRequest'
+              $ref: '#/components/schemas/WorkspaceInvitationsJoinRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -2733,6 +2791,13 @@ paths:
   /api/workspace-slug-check/:
     get:
       operationId: workspace_slug_check_retrieve
+      parameters:
+      - in: query
+        name: slug
+        schema:
+          type: string
+        description: Workspace slug to check, a 400 when missing
+        required: true
       tags:
       - workspace-slug-check
       security:
@@ -2775,13 +2840,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WorkSpaceRequest'
+              $ref: '#/components/schemas/WorkspaceCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/WorkSpaceRequest'
+              $ref: '#/components/schemas/WorkspaceCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/WorkSpaceRequest'
+              $ref: '#/components/schemas/WorkspaceCreateRequest'
         required: true
       security:
       - sessionAuth: []
@@ -4185,8 +4250,14 @@ paths:
           description: ''
   /api/workspaces/{slug}/home-preferences/:
     get:
-      operationId: workspaces_home_preferences_retrieve
+      operationId: workspaces_home_preferences_list
       parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -4201,7 +4272,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkspaceHomePreference'
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkspaceHomePreferenceRow'
           description: ''
   /api/workspaces/{slug}/home-preferences/{key}/:
     patch:
@@ -4281,13 +4354,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WorkSpaceMemberInviteRequest'
+              $ref: '#/components/schemas/WorkspaceInviteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/WorkSpaceMemberInviteRequest'
+              $ref: '#/components/schemas/WorkspaceInviteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/WorkSpaceMemberInviteRequest'
+              $ref: '#/components/schemas/WorkspaceInviteRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -4343,13 +4417,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedWorkSpaceMemberInviteRequest'
+              $ref: '#/components/schemas/RoleUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedWorkSpaceMemberInviteRequest'
+              $ref: '#/components/schemas/RoleUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedWorkSpaceMemberInviteRequest'
+              $ref: '#/components/schemas/RoleUpdateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -4423,6 +4498,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceJoinRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WorkspaceJoinRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WorkspaceJoinRequest'
+        required: true
       security:
       - sessionAuth: []
       - {}
@@ -4527,7 +4614,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/WorkspaceMemberAdmin'
+                  $ref: '#/components/schemas/WorkspaceMemberRow'
           description: ''
   /api/workspaces/{slug}/members/{pk}/:
     get:
@@ -4553,7 +4640,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkspaceMemberAdmin'
+                $ref: '#/components/schemas/WorkspaceMemberRow'
           description: ''
     patch:
       operationId: workspaces_members_partial_update
@@ -4575,13 +4662,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedWorkspaceMemberAdminRequest'
+              $ref: '#/components/schemas/RoleUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedWorkspaceMemberAdminRequest'
+              $ref: '#/components/schemas/RoleUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedWorkspaceMemberAdminRequest'
+              $ref: '#/components/schemas/RoleUpdateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -4589,7 +4677,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkspaceMemberAdmin'
+                $ref: '#/components/schemas/WorkSpaceMember'
           description: ''
     delete:
       operationId: workspaces_members_destroy
@@ -4623,26 +4711,11 @@ paths:
         required: true
       tags:
       - workspaces
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WorkspaceMemberAdminRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/WorkspaceMemberAdminRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/WorkspaceMemberAdminRequest'
       security:
       - sessionAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WorkspaceMemberAdmin'
-          description: ''
+        '204':
+          description: Left the workspace
   /api/workspaces/{slug}/modules/:
     get:
       operationId: workspaces_modules_list
@@ -14495,7 +14568,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkspaceUserPreference'
+                $ref: '#/components/schemas/WorkspaceSidebarPreferenceMap'
           description: ''
     patch:
       operationId: workspaces_sidebar_preferences_partial_update
@@ -14511,13 +14584,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedWorkspaceUserPreferenceRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkspaceSidebarPreferenceUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedWorkspaceUserPreferenceRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkspaceSidebarPreferenceUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedWorkspaceUserPreferenceRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkspaceSidebarPreferenceUpdateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -14525,7 +14605,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkspaceUserPreference'
+                $ref: '#/components/schemas/MessageResponse'
           description: ''
   /api/workspaces/{slug}/states/:
     get:
@@ -14759,6 +14839,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserActivityExportRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserActivityExportRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserActivityExportRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -15051,6 +15143,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceUserPropertiesRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceUserPropertiesRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceUserPropertiesRequest'
       security:
       - sessionAuth: []
       responses:
@@ -15091,6 +15194,14 @@ paths:
       operationId: workspaces_users_notifications_list
       parameters:
       - in: query
+        name: archived
+        schema:
+          type: string
+          enum:
+          - 'false'
+          - 'true'
+        description: false when omitted
+      - in: query
         name: cursor
         schema:
           type: string
@@ -15101,6 +15212,17 @@ paths:
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
       - in: query
+        name: mentioned
+        schema:
+          type: string
+        description: Any non-empty value lists mentions only, otherwise mentions are
+          left out
+      - in: query
+        name: order_by
+        schema:
+          type: string
+        description: Sort field, -created_at by default
+      - in: query
         name: per_page
         schema:
           type: integer
@@ -15110,6 +15232,14 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: read
+        schema:
+          type: string
+          enum:
+          - 'false'
+          - 'true'
+        description: Both read and unread when omitted
       - name: search
         required: false
         in: query
@@ -15121,6 +15251,20 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: snoozed
+        schema:
+          type: string
+          enum:
+          - 'false'
+          - 'true'
+        description: false when omitted
+      - in: query
+        name: type
+        schema:
+          type: string
+        description: Comma separated subscribed, assigned and created. All notifications
+          without any of them
       tags:
       - workspaces
       security:
@@ -15178,13 +15322,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedNotificationRequest'
+              $ref: '#/components/schemas/PatchedNotificationSnoozeRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedNotificationRequest'
+              $ref: '#/components/schemas/PatchedNotificationSnoozeRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedNotificationRequest'
+              $ref: '#/components/schemas/PatchedNotificationSnoozeRequest'
       security:
       - sessionAuth: []
       responses:
@@ -15328,6 +15472,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationMarkAllReadRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationMarkAllReadRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationMarkAllReadRequest'
       security:
       - sessionAuth: []
       responses:
@@ -16053,6 +16208,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceMemberViewPropsRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WorkspaceMemberViewPropsRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WorkspaceMemberViewPropsRequest'
       security:
       - sessionAuth: []
       responses:
@@ -16686,6 +16852,19 @@ components:
       - label_details
       - cycle_details
       - module_details
+    ApiTokenCreateRequest:
+      type: object
+      properties:
+        label:
+          type: string
+          minLength: 1
+          description: A random hex string when omitted
+        description:
+          type: string
+        expired_at:
+          type: string
+          format: date-time
+          nullable: true
     AppInstallation:
       type: object
       properties:
@@ -19540,6 +19719,31 @@ components:
       required:
       - comment
       - email_message
+    EmailUpdateRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          description: The new email address
+        code:
+          type: string
+          minLength: 1
+          description: The code sent to the new address
+      required:
+      - code
+      - email
+    EmailVerificationCodeRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          description: The new email address
+      required:
+      - email
     EmptyObject:
       type: object
       additionalProperties: false
@@ -23552,6 +23756,32 @@ components:
           type: string
       required:
       - message
+    MobileOnboardingStep:
+      type: object
+      properties:
+        profile_complete:
+          type: boolean
+        workspace_create:
+          type: boolean
+        workspace_join:
+          type: boolean
+      required:
+      - profile_complete
+      - workspace_create
+      - workspace_join
+    MobileOnboardingStepRequest:
+      type: object
+      properties:
+        profile_complete:
+          type: boolean
+        workspace_create:
+          type: boolean
+        workspace_join:
+          type: boolean
+      required:
+      - profile_complete
+      - workspace_create
+      - workspace_join
     Module:
       type: object
       properties:
@@ -24656,6 +24886,13 @@ components:
           type: string
           format: uuid
           readOnly: true
+        data:
+          allOf:
+          - $ref: '#/components/schemas/NotificationData'
+          nullable: true
+        message:
+          type: string
+          nullable: true
         triggered_by_details:
           allOf:
           - $ref: '#/components/schemas/UserLite'
@@ -24683,8 +24920,6 @@ components:
           type: string
           format: date-time
           nullable: true
-        data:
-          nullable: true
         entity_identifier:
           type: string
           format: uuid
@@ -24694,8 +24929,6 @@ components:
           maxLength: 255
         title:
           type: string
-        message:
-          nullable: true
         message_html:
           type: string
         message_stripped:
@@ -24741,15 +24974,15 @@ components:
           format: uuid
       required:
       - id
+      - data
+      - message
       - triggered_by_details
       - created_at
       - updated_at
       - deleted_at
-      - data
       - entity_identifier
       - entity_name
       - title
-      - message
       - message_html
       - message_stripped
       - sender
@@ -24762,12 +24995,135 @@ components:
       - project
       - triggered_by
       - receiver
+    NotificationAutomationData:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+    NotificationCommentData:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+      - id
+    NotificationData:
+      type: object
+      properties:
+        issue:
+          $ref: '#/components/schemas/NotificationIssueData'
+        issue_activity:
+          $ref: '#/components/schemas/NotificationIssueActivityData'
+        page:
+          $ref: '#/components/schemas/NotificationPageData'
+        comment:
+          $ref: '#/components/schemas/NotificationCommentData'
+        automation:
+          $ref: '#/components/schemas/NotificationAutomationData'
+    NotificationIssueActivityData:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        verb:
+          type: string
+        field:
+          type: string
+          nullable: true
+        actor:
+          type: string
+          nullable: true
+        new_value:
+          type: string
+        old_value:
+          type: string
+        issue_comment:
+          type: string
+        old_identifier:
+          type: string
+          nullable: true
+        new_identifier:
+          type: string
+          nullable: true
+      required:
+      - id
+      - verb
+      - field
+      - actor
+      - new_value
+      - old_value
+    NotificationIssueData:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        identifier:
+          type: string
+        sequence_id:
+          type: integer
+        state_name:
+          type: string
+          nullable: true
+        state_group:
+          type: string
+          nullable: true
+        project_id:
+          type: string
+          description: Only on mention notifications
+        workspace_slug:
+          type: string
+          description: Only on mention notifications
+      required:
+      - id
+      - name
+      - identifier
+      - sequence_id
+      - state_name
+      - state_group
     NotificationListOrPage:
       oneOf:
       - type: array
         items:
           $ref: '#/components/schemas/Notification'
       - $ref: '#/components/schemas/PaginatedNotificationList'
+    NotificationMarkAllReadRequest:
+      type: object
+      properties:
+        snoozed:
+          type: boolean
+          description: Only snoozed notifications when true
+        archived:
+          type: boolean
+          description: Only archived notifications when true
+        type:
+          type: string
+          minLength: 1
+          description: watching, assigned or created narrows the set, anything else
+            marks all
+    NotificationPageData:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        project_id:
+          type: string
+        workspace_slug:
+          type: string
+      required:
+      - id
+      - name
+      - project_id
+      - workspace_slug
     NotificationViewModeEnum:
       enum:
       - full
@@ -24791,6 +25147,38 @@ components:
     NullEnum:
       enum:
       - null
+    OnboardingStep:
+      type: object
+      properties:
+        profile_complete:
+          type: boolean
+        workspace_create:
+          type: boolean
+        workspace_invite:
+          type: boolean
+        workspace_join:
+          type: boolean
+      required:
+      - profile_complete
+      - workspace_create
+      - workspace_invite
+      - workspace_join
+    OnboardingStepRequest:
+      type: object
+      properties:
+        profile_complete:
+          type: boolean
+        workspace_create:
+          type: boolean
+        workspace_invite:
+          type: boolean
+        workspace_join:
+          type: boolean
+      required:
+      - profile_complete
+      - workspace_create
+      - workspace_invite
+      - workspace_join
     OrderedState:
       type: object
       properties:
@@ -26521,6 +26909,28 @@ components:
       - total_pages
       - total_results
       - extra_stats
+    PatchedAPITokenRequest:
+      type: object
+      properties:
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        label:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
     PatchedAnalyticViewRequest:
       type: object
       properties:
@@ -27121,72 +27531,14 @@ components:
           type: string
           format: uuid
           nullable: true
-    PatchedNotificationRequest:
+    PatchedNotificationSnoozeRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
-        data:
-          nullable: true
-        entity_identifier:
-          type: string
-          format: uuid
-          nullable: true
-        entity_name:
-          type: string
-          minLength: 1
-          maxLength: 255
-        title:
-          type: string
-          minLength: 1
-        message:
-          nullable: true
-        message_html:
-          type: string
-        message_stripped:
-          type: string
-          nullable: true
-        sender:
-          type: string
-          minLength: 1
-          maxLength: 255
-        read_at:
-          type: string
-          format: date-time
-          nullable: true
         snoozed_till:
           type: string
           format: date-time
           nullable: true
-        archived_at:
-          type: string
-          format: date-time
-          nullable: true
-        created_by:
-          type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
-        workspace:
-          type: string
-          format: uuid
-        project:
-          type: string
-          format: uuid
-          nullable: true
-        triggered_by:
-          type: string
-          format: uuid
-          nullable: true
-        receiver:
-          type: string
-          format: uuid
+          description: Null when omitted
     PatchedPageAttachmentRequest:
       type: object
       properties:
@@ -27320,6 +27672,72 @@ components:
           items:
             type: string
             format: uuid
+    PatchedProfileRequest:
+      type: object
+      properties:
+        onboarding_step:
+          $ref: '#/components/schemas/OnboardingStepRequest'
+        mobile_onboarding_step:
+          $ref: '#/components/schemas/MobileOnboardingStepRequest'
+        product_tour:
+          $ref: '#/components/schemas/ProductTourRequest'
+        theme: {}
+        is_app_rail_docked:
+          type: boolean
+        is_tour_completed:
+          type: boolean
+        use_case:
+          type: string
+          nullable: true
+        role:
+          type: string
+          nullable: true
+          maxLength: 300
+        is_onboarded:
+          type: boolean
+        last_workspace_id:
+          type: string
+          format: uuid
+          nullable: true
+        billing_address_country:
+          type: string
+          minLength: 1
+          maxLength: 255
+        billing_address:
+          nullable: true
+        has_billing_address:
+          type: boolean
+        company_name:
+          type: string
+          maxLength: 255
+        notification_view_mode:
+          $ref: '#/components/schemas/NotificationViewModeEnum'
+        is_smooth_cursor_enabled:
+          type: boolean
+        is_mobile_onboarded:
+          type: boolean
+        mobile_timezone_auto_set:
+          type: boolean
+        language:
+          type: string
+          minLength: 1
+          maxLength: 255
+        start_of_the_week:
+          allOf:
+          - $ref: '#/components/schemas/StartOfTheWeekEnum'
+          minimum: 0
+          maximum: 32767
+        goals: {}
+        background_color:
+          type: string
+          minLength: 1
+          maxLength: 255
+        is_navigation_tour_completed:
+          type: boolean
+        has_marketing_email_consent:
+          type: boolean
+        is_subscribed_to_changelog:
+          type: boolean
     PatchedProjectListRequest:
       type: object
       properties:
@@ -27536,6 +27954,12 @@ components:
           type: boolean
         issue_completed:
           type: boolean
+    PatchedUserOnboardedRequest:
+      type: object
+      properties:
+        is_onboarded:
+          type: boolean
+          description: False when omitted
     PatchedUserRequest:
       type: object
       properties:
@@ -27595,29 +28019,12 @@ components:
           type: string
           format: uuid
           nullable: true
-    PatchedWorkSpaceMemberInviteRequest:
+    PatchedUserTourCompletedRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
-        accepted:
+        is_tour_completed:
           type: boolean
-        role:
-          allOf:
-          - $ref: '#/components/schemas/RoleEnum'
-          minimum: 0
-          maximum: 32767
-        created_by:
-          type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
+          description: False when omitted
     PatchedWorkSpaceRequest:
       type: object
       properties:
@@ -27662,28 +28069,6 @@ components:
         sort_order:
           type: number
           format: double
-    PatchedWorkspaceMemberAdminRequest:
-      type: object
-      properties:
-        role:
-          allOf:
-          - $ref: '#/components/schemas/RoleEnum'
-          minimum: 0
-          maximum: 32767
-        company_role:
-          type: string
-          nullable: true
-        view_props: {}
-        default_props: {}
-        issue_props: {}
-        getting_started_checklist: {}
-        tips: {}
-        explored_features: {}
-        pql_dialect:
-          nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/PqlDialectEnum'
-          - $ref: '#/components/schemas/NullEnum'
     PatchedWorkspaceMemberDialectRequest:
       type: object
       properties:
@@ -27741,18 +28126,32 @@ components:
           type: string
           format: uuid
           nullable: true
-    PatchedWorkspaceUserPreferenceRequest:
+    PatchedWorkspaceUserPropertiesRequest:
       type: object
       properties:
-        key:
+        deleted_at:
           type: string
-          minLength: 1
-          maxLength: 255
-        is_pinned:
-          type: boolean
-        sort_order:
-          type: number
-          format: double
+          format: date-time
+          nullable: true
+        filters: {}
+        display_filters: {}
+        display_properties: {}
+        rich_filters: {}
+        navigation_project_limit:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        navigation_control_preference:
+          $ref: '#/components/schemas/NavigationControlPreferenceEnum'
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
     PqlDialectEnum:
       enum:
       - jql
@@ -27765,7 +28164,7 @@ components:
       type: object
       properties:
         priority:
-          type: string
+          $ref: '#/components/schemas/PriorityEnum'
         priority_count:
           type: integer
         priority_order:
@@ -27788,6 +28187,44 @@ components:
         * `medium` - Medium
         * `low` - Low
         * `none` - None
+    ProductTour:
+      type: object
+      properties:
+        work_items:
+          type: boolean
+        cycles:
+          type: boolean
+        modules:
+          type: boolean
+        intake:
+          type: boolean
+        pages:
+          type: boolean
+      required:
+      - work_items
+      - cycles
+      - modules
+      - intake
+      - pages
+    ProductTourRequest:
+      type: object
+      properties:
+        work_items:
+          type: boolean
+        cycles:
+          type: boolean
+        modules:
+          type: boolean
+        intake:
+          type: boolean
+        pages:
+          type: boolean
+      required:
+      - cycles
+      - intake
+      - modules
+      - pages
+      - work_items
     Profile:
       type: object
       properties:
@@ -27795,6 +28232,12 @@ components:
           type: string
           format: uuid
           readOnly: true
+        onboarding_step:
+          $ref: '#/components/schemas/OnboardingStep'
+        mobile_onboarding_step:
+          $ref: '#/components/schemas/MobileOnboardingStep'
+        product_tour:
+          $ref: '#/components/schemas/ProductTour'
         created_at:
           type: string
           format: date-time
@@ -27809,7 +28252,6 @@ components:
           type: boolean
         is_tour_completed:
           type: boolean
-        onboarding_step: {}
         use_case:
           type: string
           nullable: true
@@ -27839,7 +28281,6 @@ components:
           type: boolean
         is_mobile_onboarded:
           type: boolean
-        mobile_onboarding_step: {}
         mobile_timezone_auto_set:
           type: boolean
         language:
@@ -27860,19 +28301,20 @@ components:
           type: boolean
         is_subscribed_to_changelog:
           type: boolean
-        product_tour: {}
         user:
           type: string
           format: uuid
           readOnly: true
       required:
       - id
+      - onboarding_step
+      - mobile_onboarding_step
+      - product_tour
       - created_at
       - updated_at
       - theme
       - is_app_rail_docked
       - is_tour_completed
-      - onboarding_step
       - use_case
       - role
       - is_onboarded
@@ -27884,7 +28326,6 @@ components:
       - notification_view_mode
       - is_smooth_cursor_enabled
       - is_mobile_onboarded
-      - mobile_onboarding_step
       - mobile_timezone_auto_set
       - language
       - start_of_the_week
@@ -27893,7 +28334,6 @@ components:
       - is_navigation_tour_completed
       - has_marketing_email_consent
       - is_subscribed_to_changelog
-      - product_tour
       - user
     ProjectArchive:
       type: object
@@ -27965,6 +28405,16 @@ components:
       - id
       - name
       - project
+    ProjectJoinRequest:
+      type: object
+      properties:
+        project_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - project_ids
     ProjectLink:
       type: object
       properties:
@@ -29686,6 +30136,13 @@ components:
         * `20` - Admin
         * `15` - Member
         * `5` - Guest
+    RoleUpdateRequest:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - role
     SavedAnalytics:
       type: object
       properties:
@@ -29905,13 +30362,31 @@ components:
       type: object
       properties:
         state_group:
-          type: string
           nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/StateGroupEnum'
+          - $ref: '#/components/schemas/NullEnum'
         state_count:
           type: integer
       required:
       - state_group
       - state_count
+    StateGroupEnum:
+      enum:
+      - backlog
+      - unstarted
+      - started
+      - completed
+      - cancelled
+      - triage
+      type: string
+      description: |-
+        * `backlog` - Backlog
+        * `unstarted` - Unstarted
+        * `started` - Started
+        * `completed` - Completed
+        * `cancelled` - Cancelled
+        * `triage` - Triage
     StateGroupTotal:
       type: object
       properties:
@@ -31598,6 +32073,15 @@ components:
       - masked_at
       - deleted_at
       - merged_into
+    UserActivityExportRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Export the activity of this day
+      required:
+      - date
     UserAdminLite:
       type: object
       properties:
@@ -31977,65 +32461,6 @@ components:
       - assigned_issues
       - completed_issues
       - pending_issues
-    UserRequest:
-      type: object
-      properties:
-        last_login:
-          type: string
-          format: date-time
-          nullable: true
-        display_name:
-          type: string
-          minLength: 1
-          maxLength: 255
-        first_name:
-          type: string
-          maxLength: 255
-        last_name:
-          type: string
-          maxLength: 255
-        avatar:
-          type: string
-        avatar_asset:
-          type: string
-          format: uuid
-          nullable: true
-        cover_image:
-          nullable: true
-          oneOf:
-          - type: string
-            format: uri
-            maxLength: 800
-          - type: string
-            maxLength: 0
-        cover_image_asset:
-          type: string
-          format: uuid
-          nullable: true
-        is_password_expired:
-          type: boolean
-        is_password_reset_required:
-          type: boolean
-        bot_type:
-          type: string
-          nullable: true
-          maxLength: 30
-        user_timezone:
-          $ref: '#/components/schemas/UserTimezoneEnum'
-        is_email_valid:
-          type: boolean
-        masked_at:
-          type: string
-          format: date-time
-          nullable: true
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
-        merged_into:
-          type: string
-          format: uuid
-          nullable: true
     UserSession:
       type: object
       properties:
@@ -34213,6 +34638,87 @@ components:
       - updated_by
       - logo_asset
       - owner
+    WorkSpaceMember:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        member:
+          allOf:
+          - $ref: '#/components/schemas/UserLite'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          minimum: 0
+          maximum: 32767
+        company_role:
+          type: string
+          nullable: true
+        view_props: {}
+        default_props: {}
+        issue_props: {}
+        is_active:
+          type: boolean
+          readOnly: true
+        getting_started_checklist: {}
+        tips: {}
+        explored_features: {}
+        pql_dialect:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/PqlDialectEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          title: Last Modified By
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - id
+      - member
+      - created_at
+      - updated_at
+      - deleted_at
+      - role
+      - company_role
+      - view_props
+      - default_props
+      - issue_props
+      - is_active
+      - getting_started_checklist
+      - tips
+      - explored_features
+      - pql_dialect
+      - created_by
+      - updated_by
+      - workspace
     WorkSpaceMemberInvite:
       type: object
       properties:
@@ -34341,32 +34847,48 @@ components:
       - created_at
       - updated_at
       - created_by
-    WorkSpaceMemberInviteRequest:
-      type: object
-      properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
-        accepted:
-          type: boolean
-        role:
-          allOf:
-          - $ref: '#/components/schemas/RoleEnum'
-          minimum: 0
-          maximum: 32767
-        created_by:
-          type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
     WorkSpaceRequest:
       type: object
       properties:
+        name:
+          type: string
+          minLength: 1
+          title: Workspace Name
+          maxLength: 80
+        logo:
+          type: string
+          nullable: true
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 48
+          pattern: ^[-a-zA-Z0-9_]+$
+        organization_size:
+          type: string
+          nullable: true
+          maxLength: 20
+        timezone:
+          $ref: '#/components/schemas/TimezoneEnum'
+        background_color:
+          type: string
+          minLength: 1
+          maxLength: 255
+        pql_dialect:
+          $ref: '#/components/schemas/PqlDialectEnum'
+        logo_asset:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - name
+      - slug
+    WorkspaceCreateRequest:
+      type: object
+      properties:
+        company_role:
+          type: string
+          writeOnly: true
+          description: Stored on the creator's membership
         name:
           type: string
           minLength: 1
@@ -34479,6 +35001,72 @@ components:
       - key
       - is_enabled
       - sort_order
+    WorkspaceHomePreferenceRow:
+      type: object
+      properties:
+        key:
+          type: string
+        is_enabled:
+          type: boolean
+        config: {}
+        sort_order:
+          type: number
+          format: double
+      required:
+      - key
+      - is_enabled
+      - config
+      - sort_order
+    WorkspaceInvitationsJoinRequest:
+      type: object
+      properties:
+        invitations:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Invitation ids to accept
+      required:
+      - invitations
+    WorkspaceInviteEmailRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            Guest when omitted
+
+            * `20` - Admin
+            * `15` - Member
+            * `5` - Guest
+      required:
+      - email
+    WorkspaceInviteRequest:
+      type: object
+      properties:
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspaceInviteEmailRequest'
+      required:
+      - emails
+    WorkspaceJoinRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+          description: The token from the invitation email
+        accepted:
+          type: boolean
+          description: False when omitted, which declines
+      required:
+      - token
     WorkspaceLite:
       type: object
       properties:
@@ -34584,28 +35172,6 @@ components:
       - created_by
       - updated_by
       - workspace
-    WorkspaceMemberAdminRequest:
-      type: object
-      properties:
-        role:
-          allOf:
-          - $ref: '#/components/schemas/RoleEnum'
-          minimum: 0
-          maximum: 32767
-        company_role:
-          type: string
-          nullable: true
-        view_props: {}
-        default_props: {}
-        issue_props: {}
-        getting_started_checklist: {}
-        tips: {}
-        explored_features: {}
-        pql_dialect:
-          nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/PqlDialectEnum'
-          - $ref: '#/components/schemas/NullEnum'
     WorkspaceMemberMe:
       type: object
       properties:
@@ -34684,6 +35250,15 @@ components:
       - updated_by
       - workspace
       - member
+    WorkspaceMemberRow:
+      oneOf:
+      - $ref: '#/components/schemas/WorkspaceMemberAdmin'
+      - $ref: '#/components/schemas/WorkSpaceMember'
+    WorkspaceMemberViewPropsRequest:
+      type: object
+      properties:
+        view_props:
+          description: An empty object when omitted
     WorkspaceModule:
       type: object
       properties:
@@ -34853,6 +35428,35 @@ components:
       - entity_identifier
       - entity_data
       - visited_at
+    WorkspaceSidebarPreference:
+      type: object
+      properties:
+        is_pinned:
+          type: boolean
+        sort_order:
+          type: number
+          format: double
+      required:
+      - is_pinned
+      - sort_order
+    WorkspaceSidebarPreferenceMap:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/WorkspaceSidebarPreference'
+    WorkspaceSidebarPreferenceUpdateRequest:
+      type: object
+      properties:
+        key:
+          type: string
+          minLength: 1
+          description: Items without a known key are skipped
+        is_pinned:
+          type: boolean
+        sort_order:
+          type: number
+          format: double
+      required:
+      - key
     WorkspaceTheme:
       type: object
       properties:
@@ -35051,21 +35655,6 @@ components:
           nullable: true
       required:
       - url
-    WorkspaceUserPreference:
-      type: object
-      properties:
-        key:
-          type: string
-          maxLength: 255
-        is_pinned:
-          type: boolean
-        sort_order:
-          type: number
-          format: double
-      required:
-      - key
-      - is_pinned
-      - sort_order
     WorkspaceUserProfile:
       type: object
       properties:

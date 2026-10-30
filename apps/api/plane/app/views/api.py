@@ -16,11 +16,12 @@ from rest_framework import status
 from .base import BaseAPIView
 from plane.db.models import APIToken
 from plane.app.serializers import APITokenSerializer, APITokenReadSerializer
+from plane.app.serializers.request.user import ApiTokenCreateSerializer
 from plane.utils.openapi.schema import DetailOrList
 
 
 class ApiTokenEndpoint(BaseAPIView):
-    @extend_schema(responses={201: APITokenSerializer})
+    @extend_schema(request=ApiTokenCreateSerializer, responses={201: APITokenSerializer})
     def post(self, request: Request) -> Response:
         label = request.data.get("label", str(uuid4().hex))
         description = request.data.get("description", "")
@@ -57,7 +58,7 @@ class ApiTokenEndpoint(BaseAPIView):
         api_token.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @extend_schema(responses={200: APITokenSerializer})
+    @extend_schema(request=APITokenSerializer, responses={200: APITokenSerializer})
     def patch(self, request: Request, pk: str) -> Response:
         api_token = APIToken.objects.get(user=request.user, pk=pk)
         serializer = APITokenSerializer(api_token, data=request.data, partial=True)

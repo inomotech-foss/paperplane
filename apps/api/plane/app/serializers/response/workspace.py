@@ -1,7 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from drf_spectacular.utils import PolymorphicProxySerializer
 from rest_framework import serializers
+
+from plane.app.serializers.workspace import WorkspaceMemberAdminSerializer, WorkSpaceMemberSerializer
+from plane.db.models import Issue
+from plane.db.models.state import StateGroup
+from plane.utils.openapi.serializers import DictOf
 
 
 class ActivityCountSerializer(serializers.Serializer):
@@ -20,12 +26,12 @@ class CompletedIssueWeekInMonthSerializer(serializers.Serializer):
 
 
 class StateGroupCountSerializer(serializers.Serializer):
-    state_group = serializers.CharField(allow_null=True)
+    state_group = serializers.ChoiceField(choices=StateGroup.choices, allow_null=True)
     state_count = serializers.IntegerField()
 
 
 class PriorityCountSerializer(serializers.Serializer):
-    priority = serializers.CharField()
+    priority = serializers.ChoiceField(choices=Issue.PRIORITY_CHOICES)
     priority_count = serializers.IntegerField()
     priority_order = serializers.IntegerField()
 
@@ -100,3 +106,31 @@ class WorkspaceUserProfileSerializer(serializers.Serializer):
         many=True, help_text="Empty unless the caller is a workspace admin or member"
     )
     user_data = WorkspaceUserDataSerializer()
+
+
+def workspace_member_row(many=False):
+    """Members and admins see the member's email, guests do not."""
+    return PolymorphicProxySerializer(
+        component_name="WorkspaceMemberRow",
+        serializers=[WorkspaceMemberAdminSerializer, WorkSpaceMemberSerializer],
+        resource_type_field_name=None,
+        many=many,
+    )
+
+
+class WorkspaceHomePreferenceRowSerializer(serializers.Serializer):
+    key = serializers.CharField()
+    is_enabled = serializers.BooleanField()
+    config = serializers.JSONField()
+    sort_order = serializers.FloatField()
+
+
+class WorkspaceSidebarPreferenceSerializer(serializers.Serializer):
+    is_pinned = serializers.BooleanField()
+    sort_order = serializers.FloatField()
+
+
+class WorkspaceSidebarPreferenceMapSerializer(DictOf):
+    """Sidebar preferences by key."""
+
+    child = WorkspaceSidebarPreferenceSerializer

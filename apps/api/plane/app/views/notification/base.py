@@ -11,7 +11,6 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
-from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
 from plane.utils.openapi.pagination import list_or_paginated
 from plane.app.serializers import (
     NotificationSerializer,
@@ -25,7 +24,11 @@ from plane.db.models import (
     UserNotificationPreference,
     WorkspaceMember,
 )
-from plane.app.serializers.response.notification import UnreadNotificationCountSerializer
+from plane.app.serializers.request.workspace import NotificationMarkAllReadSerializer, NotificationSnoozeSerializer
+from plane.app.serializers.response.notification import (
+    NOTIFICATION_LIST_PARAMETERS,
+    UnreadNotificationCountSerializer,
+)
 from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.utils.paginator import BasePaginator
 from plane.utils.order_queryset import NOTIFICATION_ORDER_BY_ALLOWLIST, sanitize_order_by
@@ -50,9 +53,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
             .select_related("workspace", "project", "triggered_by", "receiver")
         )
 
-    @extend_schema(
-        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: list_or_paginated(NotificationSerializer)}
-    )
+    @extend_schema(parameters=NOTIFICATION_LIST_PARAMETERS, responses={200: list_or_paginated(NotificationSerializer)})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list(self, request, slug):
         # Get query parameters
@@ -161,6 +162,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=NotificationSnoozeSerializer, responses={200: NotificationSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def partial_update(self, request, slug, pk):
         notification = Notification.objects.get(workspace__slug=slug, pk=pk, receiver=request.user)
@@ -248,7 +250,7 @@ class UnreadNotificationEndpoint(BaseAPIView):
 
 
 class MarkAllReadNotificationViewSet(BaseViewSet):
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=NotificationMarkAllReadSerializer, responses={200: MessageResponseSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def create(self, request, slug):
         snoozed = request.data.get("snoozed", False)

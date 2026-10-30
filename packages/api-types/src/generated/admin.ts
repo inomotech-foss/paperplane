@@ -623,6 +623,15 @@ export interface components {
                 [key: string]: components["schemas"]["MergeCount"];
             };
         };
+        InstanceUserMergeRequestRequest: {
+            /**
+             * Format: uuid
+             * @description The user merged into the survivor
+             */
+            source: string;
+            /** @description False when omitted */
+            keep_source_email?: boolean;
+        };
         InstanceUserOwnedWorkspace: {
             /** Format: uuid */
             id: string;
@@ -631,6 +640,13 @@ export interface components {
         };
         InstanceUserReactivate: {
             user: components["schemas"]["InstanceUser"];
+        };
+        InstanceWorkspaceTransferOwnerRequest: {
+            /**
+             * Format: uuid
+             * @description An active, non-bot user
+             */
+            owner: string;
         };
         MergeCount: {
             moved: number;
@@ -1981,8 +1997,16 @@ export interface operations {
             query?: {
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description true lists deleted users too */
+                include_deleted?: string;
+                /** @description true or false, both when omitted */
+                is_active?: string;
+                /** @description true or false, both when omitted */
+                is_bot?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Matches email, display name, first or last name */
+                search?: string;
             };
             header?: never;
             path?: never;
@@ -2071,7 +2095,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InstanceUserMergeRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["InstanceUserMergeRequestRequest"];
+                "multipart/form-data": components["schemas"]["InstanceUserMergeRequestRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -2092,7 +2122,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InstanceUserMergeRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["InstanceUserMergeRequestRequest"];
+                "multipart/form-data": components["schemas"]["InstanceUserMergeRequestRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -2127,7 +2163,10 @@ export interface operations {
     };
     workspace_slug_check_retrieve: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description Workspace slug to check, a 400 when missing */
+                slug: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2243,7 +2282,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InstanceWorkspaceTransferOwnerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["InstanceWorkspaceTransferOwnerRequest"];
+                "multipart/form-data": components["schemas"]["InstanceWorkspaceTransferOwnerRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {

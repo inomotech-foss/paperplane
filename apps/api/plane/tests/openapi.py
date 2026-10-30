@@ -40,6 +40,31 @@ def _schema(surface):
         return yaml.safe_load(f)
 
 
+def documented_request(route, method, body, surface="internal"):
+    """Validate a request body against the documented request body of a route, and return it."""
+    operation = _schema(surface)["paths"][route][method]
+    assert "requestBody" in operation, f"{method.upper()} {route} documents no request body"
+    schema = operation["requestBody"]["content"]["application/json"]["schema"]
+    jsonschema.validate(body, strict({**schema, "components": _schema(surface)["components"]}))
+    return body
+
+
+def documented_query(route, method, surface="internal"):
+    """The names of the query parameters a route documents."""
+    parameters = _schema(surface)["paths"][route][method].get("parameters", [])
+    return {parameter["name"] for parameter in parameters if parameter["in"] == "query"}
+
+
+def assert_no_content(response, surface="internal"):
+    """Assert that the route documents a body-less response with this status."""
+    route = "/" + ROUTE_PARAMETER.sub(r"{\1}", response.wsgi_request.resolver_match.route)
+    method = response.wsgi_request.method.lower()
+    documented = _schema(surface)["paths"][route][method]["responses"]
+    assert str(response.status_code) in documented, f"{method.upper()} {route} does not document {response.status_code}"
+    assert "content" not in documented[str(response.status_code)]
+    assert not response.content
+
+
 def assert_matches_schema(response, surface="internal"):
     """Validate the response body against the documented response for its route, method and status."""
     route = "/" + ROUTE_PARAMETER.sub(r"{\1}", response.wsgi_request.resolver_match.route)

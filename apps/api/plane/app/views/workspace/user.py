@@ -284,7 +284,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
 class WorkspaceUserPropertiesEndpoint(BaseAPIView):
     permission_classes = [WorkspaceViewerPermission]
 
-    @extend_schema(responses={200: WorkspaceUserPropertiesSerializer})
+    @extend_schema(request=WorkspaceUserPropertiesSerializer, responses={200: WorkspaceUserPropertiesSerializer})
     def patch(self, request, slug):
         workspace = Workspace.objects.get(slug=slug)
 

@@ -172,11 +172,10 @@ export class WorkspaceService extends APIService {
       });
   }
 
-  /** The backend only accepts the role. */
   async updateWorkspaceInvitation(
     workspaceSlug: string,
     invitationId: string,
-    data: Pick<TWorkspaceInvitationUpdateBody, "role">
+    data: TWorkspaceInvitationUpdateBody
   ): Promise<IWorkspaceMemberInvitation> {
     return unwrap(
       apiClient.PATCH("/api/workspaces/{slug}/invitations/{pk}/", {

@@ -14,24 +14,30 @@ from django.core.validators import validate_email
 from django.utils import timezone
 
 # Third party modules
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
-from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.app.permissions import WorkSpaceAdminPermission
 from plane.app.serializers import (
     WorkSpaceMemberInviteSerializer,
     WorkSpaceMemberInvitePublicSerializer,
     WorkSpaceMemberSerializer,
 )
+from plane.app.serializers.request.workspace import (
+    RoleUpdateSerializer,
+    WorkspaceInvitationsJoinSerializer,
+    WorkspaceInviteSerializer,
+    WorkspaceJoinSerializer,
+)
 from plane.app.views.base import BaseAPIView
 from plane.bgtasks.workspace_invitation_task import workspace_invitation
 from plane.db.models import User, Workspace, WorkspaceMember, WorkspaceMemberInvite
 from plane.utils.cache import invalidate_cache, invalidate_cache_directly
 from plane.utils.host import base_host
+from plane.utils.openapi.serializers import MessageResponseSerializer
 from .. import BaseViewSet
 
 
@@ -51,7 +57,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             .select_related("workspace", "workspace__owner", "created_by")
         )
 
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=WorkspaceInviteSerializer, responses={200: MessageResponseSerializer})
     def create(self, request, slug):
         emails = request.data.get("emails", [])
         # Check if email is provided
@@ -130,6 +136,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
 
         return Response({"message": "Emails sent successfully"}, status=status.HTTP_200_OK)
 
+    @extend_schema(request=RoleUpdateSerializer, responses={200: WorkSpaceMemberInviteSerializer})
     def partial_update(self, request, slug, pk):
         # SECURITY: only ``role`` is writable, capped at the requester's own role as in create().
         if not isinstance(request.data, dict) or set(request.data) != {"role"}:
@@ -163,7 +170,7 @@ class WorkspaceJoinEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
     """Invitation response endpoint the user can respond to the invitation"""
 
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=WorkspaceJoinSerializer, responses={200: MessageResponseSerializer})
     @invalidate_cache(path="/api/workspaces/", user=False)
     @invalidate_cache(path="/api/users/me/workspaces/", multiple=True)
     @invalidate_cache(
@@ -277,7 +284,7 @@ class UserWorkspaceInvitationsViewSet(BaseViewSet):
         # invitations addressed to their own email.
         return super().list(request)
 
-    @extend_schema(responses={204: OpenApiResponse(description="Joined")})
+    @extend_schema(request=WorkspaceInvitationsJoinSerializer, responses={204: OpenApiResponse(description="Joined")})
     @invalidate_cache(path="/api/workspaces/", user=False)
     @invalidate_cache(path="/api/users/me/workspaces/", multiple=True)
     def create(self, request):

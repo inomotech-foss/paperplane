@@ -17,6 +17,8 @@ from plane.db.models import Profile, Project, User, Workspace, WorkspaceMember
 from plane.license.api.serializers import WorkspaceSerializer
 from plane.utils.constants import RESTRICTED_WORKSPACE_SLUGS
 from plane.utils.openapi.serializers import SlugAvailabilitySerializer
+from plane.utils.openapi.parameters import SLUG_QUERY_PARAMETER
+from plane.license.api.serializers.request import InstanceWorkspaceTransferOwnerSerializer
 from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
 from plane.utils.openapi.pagination import paginated_response
 
@@ -24,7 +26,7 @@ from plane.utils.openapi.pagination import paginated_response
 class InstanceWorkSpaceAvailabilityCheckEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
-    @extend_schema(responses={200: SlugAvailabilitySerializer})
+    @extend_schema(parameters=[SLUG_QUERY_PARAMETER], responses={200: SlugAvailabilitySerializer})
     def get(self, request):
         slug = request.GET.get("slug", False)
 
@@ -155,7 +157,7 @@ class InstanceWorkSpaceDetailEndpoint(BaseAPIView):
 class InstanceWorkSpaceTransferOwnerEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
-    @extend_schema(responses={200: WorkspaceSerializer})
+    @extend_schema(request=InstanceWorkspaceTransferOwnerSerializer, responses={200: WorkspaceSerializer})
     def post(self, request, pk):
         workspace = get_object_or_404(Workspace, pk=pk)
         owner_id = request.data.get("owner")

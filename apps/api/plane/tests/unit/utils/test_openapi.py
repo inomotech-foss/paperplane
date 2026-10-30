@@ -28,7 +28,8 @@ from plane.tests.openapi import strict
 from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated_response, paginated_union
 from plane.utils.openapi.hooks import is_callable
 from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, DetailOrList, _source_presence, single
-from plane.utils.openapi.serializers import EmptyObjectSerializer
+from plane.utils.openapi.fields import typed_json
+from plane.utils.openapi.serializers import DictOf, EmptyObjectSerializer
 from plane.utils.openapi.surfaces import SURFACES
 from plane.utils.paginator import BasePaginator, GroupedOffsetPaginator, SubGroupedOffsetPaginator
 from plane.utils.issue_type import link_starter_type
@@ -334,3 +335,59 @@ class TestResponseHelpers:
         assert component["required"] == ["always"]
         assert component["properties"]["sometimes"]["nullable"] is True
         assert component["properties"]["annotated"]["nullable"] is True
+
+    def test_dict_of(self):
+        class PageItemMapSerializer(DictOf):
+            child = PageItemSerializer
+
+        class View(APIView):
+            @extend_schema(responses={200: PageItemMapSerializer})
+            def get(self, request):
+                pass
+
+        schema = _schema(path("items/", View.as_view()))
+        assert schema["components"]["schemas"]["PageItemMap"] == {
+            "type": "object",
+            "additionalProperties": {"$ref": "#/components/schemas/PageItem"},
+        }
+
+    def test_typed_json(self):
+        class HolderSerializer(serializers.Serializer):
+            value = typed_json(PageItemSerializer)(allow_null=True, required=False)
+
+        assert HolderSerializer(data={"value": {"any": 1}}).is_valid()
+
+        class View(APIView):
+            @extend_schema(responses={200: HolderSerializer})
+            def get(self, request):
+                pass
+
+        value = _schema(path("items/", View.as_view()))["components"]["schemas"]["Holder"]["properties"]["value"]
+        assert value == {"allOf": [{"$ref": "#/components/schemas/PageItem"}], "nullable": True}
+
+
+@pytest.mark.unit
+class TestRequestBodies:
+    def _request(self, serializer):
+        class View(APIView):
+            @extend_schema(request=serializer, responses={204: None})
+            def patch(self, request):
+                pass
+
+        schema = _schema(path("items/", View.as_view()))
+        ref = schema["paths"]["/items/"]["patch"]["requestBody"]["content"]["application/json"]["schema"]["$ref"]
+        return ref.rsplit("/", 1)[1], schema
+
+    def test_patch_is_partial(self):
+        name, schema = self._request(PageItemSerializer)
+        assert name == "PatchedPageItemRequest"
+        assert "required" not in schema["components"]["schemas"][name]
+
+    def test_partial_on_patch_false_keeps_required(self):
+        class RoleSerializer(serializers.Serializer):
+            partial_on_patch = False
+            role = serializers.IntegerField()
+
+        name, schema = self._request(RoleSerializer)
+        assert name == "RoleRequest"
+        assert schema["components"]["schemas"][name]["required"] == ["role"]

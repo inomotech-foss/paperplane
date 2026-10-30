@@ -11,10 +11,7 @@ import { APIService } from "../api.service";
 import type { ApiClient } from "../client";
 import { createApiClient, unwrap } from "../client";
 
-export type TWorkspaceInvitationUpdateBody = Pick<
-  ApiRequestBody<"/api/workspaces/{slug}/invitations/{pk}/", "patch">,
-  "role"
->;
+export type TWorkspaceInvitationUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/invitations/{pk}/", "patch">;
 
 const invitationPath = (slug: string, pk: string) => ({ path: { slug, pk } });
 
@@ -67,7 +64,7 @@ export class WorkspaceInvitationService extends APIService {
   }
 
   /**
-   * Updates the role of an invitation. The backend accepts no other field.
+   * Updates the role of an invitation
    * @param workspaceSlug
    * @param invitationId
    * @param data

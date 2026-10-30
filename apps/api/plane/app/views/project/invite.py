@@ -25,6 +25,7 @@ from plane.app.serializers import (
     ProjectMemberInvitePublicSerializer,
 )
 from plane.app.permissions import allow_permission, ROLE
+from plane.app.serializers.request.user import ProjectJoinSerializer
 from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.db.models import (
     ProjectMember,
@@ -144,7 +145,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
             .select_related("workspace", "workspace__owner", "project")
         )
 
-    @extend_schema(responses={201: MessageResponseSerializer})
+    @extend_schema(request=ProjectJoinSerializer, responses={201: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def create(self, request, slug):
         project_ids = request.data.get("project_ids", [])

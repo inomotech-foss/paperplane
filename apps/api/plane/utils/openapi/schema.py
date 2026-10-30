@@ -117,6 +117,16 @@ class AutoSchema(SpectacularAutoSchema):
     The public v1 schema keeps the stock behaviour.
     """
 
+    def _get_request_for_media_type(self, serializer, direction="request"):
+        # A view that reads request.data by hand requires the same keys on PATCH as on POST.
+        if self.method == "PATCH" and getattr(serializer, "partial_on_patch", True) is False:
+            self.method = "POST"
+            try:
+                return super()._get_request_for_media_type(serializer, direction)
+            finally:
+                self.method = "PATCH"
+        return super()._get_request_for_media_type(serializer, direction)
+
     def _get_response_for_code(self, serializer, status_code, media_types=None, direction="response"):
         if isinstance(serializer, DetailOrList):
             serializer = serializer.resolve(self.path)
