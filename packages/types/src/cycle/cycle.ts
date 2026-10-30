@@ -127,7 +127,7 @@ export interface ICycle extends TProgressSnapshot {
   };
   workspace_id: string;
   project_detail: IProjectDetails;
-  progress: TCycleProgressSnapshot[];
+  progress?: TCycleProgressSnapshot[];
   version: number;
 }
 
