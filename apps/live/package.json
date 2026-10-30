@@ -47,7 +47,6 @@
     "@tiptap/html": "catalog:",
     "@tiptap/pm": "catalog:",
     "@tiptap/y-tiptap": "catalog:",
-    "axios": "catalog:",
     "compression": "catalog:",
     "cors": "catalog:",
     "dotenv": "catalog:",

@@ -4,17 +4,15 @@
  * See the LICENSE file for details.
  */
 
-import type { AxiosError } from "axios";
-
 /**
  * Application error class that sanitizes and standardizes errors across the app.
- * Extracts only essential information from AxiosError to prevent massive log bloat
- * and sensitive data leaks (cookies, tokens, etc).
+ * Keeps only essential information to prevent massive log bloat and sensitive data
+ * leaks (cookies, tokens, etc). `APIService` builds API errors with the status,
+ * method and path.
  *
  * Usage:
  *   new AppError("Simple error message")
  *   new AppError("Custom error", { code: "MY_CODE", statusCode: 400 })
- *   new AppError(axiosError)  // Auto-extracts essential info
  *   new AppError(anyError)    // Works with any error type
  */
 export class AppError extends Error {
@@ -40,19 +38,6 @@ export class AppError extends Error {
       if (data) {
         Object.assign(this, data);
       }
-      return;
-    }
-
-    // AxiosError - extract ONLY essential info (no config, no headers, no cookies)
-    if (error && typeof error === "object" && "isAxiosError" in error) {
-      const axiosError = error as AxiosError;
-      const responseData = axiosError.response?.data as any;
-      super(responseData?.message || axiosError.message);
-      this.name = "AppError";
-      this.statusCode = axiosError.response?.status;
-      this.method = axiosError.config?.method?.toUpperCase();
-      this.url = axiosError.config?.url;
-      this.code = axiosError.code;
       return;
     }
 

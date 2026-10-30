@@ -4,31 +4,35 @@
  * See the LICENSE file for details.
  */
 
+import { z } from "zod";
 import { logger } from "@plane/logger";
 import type { TDocumentPayload, TPage } from "@plane/types";
 // services
 import { AppError } from "@/lib/errors";
 import { APIService } from "../api.service";
 
-export type TUserMention = {
-  id: string;
-  display_name: string;
-  avatar_url?: string;
-};
+const userMentionSchema = z.object({
+  id: z.string(),
+  display_name: z.string(),
+  avatar_url: z.string().optional(),
+});
+
+export type TUserMention = z.infer<typeof userMentionSchema>;
+
+const pageDetailsSchema = z.looseObject({
+  name: z.string().optional(),
+  description_html: z.string().nullish(),
+});
+
+/** The page fields live reads. */
+export type TPageDetails = z.infer<typeof pageDetailsSchema>;
 
 export abstract class PageCoreService extends APIService {
   protected abstract basePath: string;
 
-  constructor() {
-    super();
-  }
-
-  async fetchDetails(pageId: string): Promise<TPage> {
+  async fetchDetails(pageId: string): Promise<TPageDetails> {
     try {
-      const response = await this.get(`${this.basePath}/pages/${pageId}/`, {
-        headers: this.getHeader(),
-      });
-      return response?.data as TPage;
+      return pageDetailsSchema.parse(await this.requestJson("GET", `${this.basePath}/pages/${pageId}/`));
     } catch (error) {
       const appError = new AppError(error, {
         context: { operation: "fetchDetails", pageId },
@@ -40,18 +44,10 @@ export abstract class PageCoreService extends APIService {
 
   async fetchDescriptionBinary(pageId: string): Promise<Buffer> {
     try {
-      const response = await this.get(`${this.basePath}/pages/${pageId}/description/`, {
-        headers: {
-          ...this.getHeader(),
-          "Content-Type": "application/octet-stream",
-        },
-        responseType: "arraybuffer",
+      const response = await this.request("GET", `${this.basePath}/pages/${pageId}/description/`, {
+        headers: { "Content-Type": "application/octet-stream" },
       });
-      const data = response?.data;
-      if (!Buffer.isBuffer(data)) {
-        throw new Error("Expected response to be a Buffer");
-      }
-      return data;
+      return Buffer.from(await response.arrayBuffer());
     } catch (error) {
       const appError = new AppError(error, {
         context: { operation: "fetchDescriptionBinary", pageId },
@@ -67,60 +63,25 @@ export abstract class PageCoreService extends APIService {
   async updatePageProperties(
     pageId: string,
     params: { data: Partial<TPage>; abortSignal?: AbortSignal }
-  ): Promise<TPage> {
+  ): Promise<void> {
     const { data, abortSignal } = params;
-
-    // Early abort check
-    if (abortSignal?.aborted) {
-      throw new AppError(new DOMException("Aborted", "AbortError"));
-    }
-
-    // Create an abort listener that will reject the pending promise
-    let abortListener: (() => void) | undefined;
-    const abortPromise = new Promise((_, reject) => {
-      if (abortSignal) {
-        abortListener = () => {
-          reject(new AppError(new DOMException("Aborted", "AbortError")));
-        };
-        abortSignal.addEventListener("abort", abortListener);
-      }
-    });
-
     try {
-      return await Promise.race([
-        this.patch(`${this.basePath}/pages/${pageId}/`, data, {
-          headers: this.getHeader(),
-          signal: abortSignal,
-        })
-          .then((response) => response?.data)
-          .catch((error) => {
-            const appError = new AppError(error, {
-              context: { operation: "updatePageProperties", pageId },
-            });
-
-            if (appError.code === "ABORT_ERROR") {
-              throw appError;
-            }
-
-            logger.error("Failed to update page properties", appError);
-            throw appError;
-          }),
-        abortPromise,
-      ]);
-    } finally {
-      // Clean up abort listener
-      if (abortSignal && abortListener) {
-        abortSignal.removeEventListener("abort", abortListener);
-      }
+      await this.request("PATCH", `${this.basePath}/pages/${pageId}/`, {
+        body: data,
+        ...(abortSignal ? { signal: abortSignal } : {}),
+      });
+    } catch (error) {
+      const appError = new AppError(error, {
+        context: { operation: "updatePageProperties", pageId },
+      });
+      if (appError.code !== "ABORT_ERROR") logger.error("Failed to update page properties", appError);
+      throw appError;
     }
   }
 
-  async updateDescriptionBinary(pageId: string, data: TDocumentPayload): Promise<any> {
+  async updateDescriptionBinary(pageId: string, data: TDocumentPayload): Promise<void> {
     try {
-      const response = await this.patch(`${this.basePath}/pages/${pageId}/description/`, data, {
-        headers: this.getHeader(),
-      });
-      return response?.data as unknown;
+      await this.request("PATCH", `${this.basePath}/pages/${pageId}/description/`, { body: data });
     } catch (error) {
       const appError = new AppError(error, {
         context: { operation: "updateDescriptionBinary", pageId },
@@ -137,13 +98,10 @@ export abstract class PageCoreService extends APIService {
    */
   async fetchUserMentions(pageId: string): Promise<TUserMention[]> {
     try {
-      const response = await this.get(`${this.basePath}/pages/${pageId}/mentions/`, {
-        headers: this.getHeader(),
-        params: {
-          mention_type: "user_mention",
-        },
+      const data = await this.requestJson("GET", `${this.basePath}/pages/${pageId}/mentions/`, {
+        query: { mention_type: "user_mention" },
       });
-      return (response?.data as TUserMention[]) ?? [];
+      return z.array(userMentionSchema).parse(data ?? []);
     } catch (error) {
       const appError = new AppError(error, {
         context: { operation: "fetchUserMentions", pageId },
@@ -154,7 +112,7 @@ export abstract class PageCoreService extends APIService {
   }
 
   /**
-   * Resolves an image asset ID to its actual URL by following the 302 redirect
+   * Resolves an image asset ID to its actual URL by reading the 302 redirect
    * @param workspaceSlug - The workspace slug
    * @param assetId - The asset UUID
    * @param projectId - Optional project ID for project-specific assets
@@ -170,25 +128,16 @@ export abstract class PageCoreService extends APIService {
       : `/api/assets/v2/workspaces/${workspaceSlug}/${assetId}/?disposition=inline`;
 
     try {
-      const response = await this.get(path, {
-        headers: this.getHeader(),
-        maxRedirects: 0,
-        validateStatus: (status: number) => status >= 200 && status < 400,
-      });
-      // If we get a 302, the Location header contains the presigned URL
+      const response = await this.request("GET", path, { redirect: "manual" });
       if (response.status === 302 || response.status === 301) {
-        return response.headers?.location || null;
+        return response.headers.get("location") || null;
       }
       return null;
     } catch (error) {
-      // Axios throws on 3xx when maxRedirects is 0, so we need to handle the redirect from the error
-      if ((error as any).response?.status === 302 || (error as any).response?.status === 301) {
-        return (error as any).response.headers?.location || null;
-      }
       logger.error("Failed to resolve image asset URL", {
         assetId,
         workspaceSlug,
-        error: (error as any).message,
+        error: error instanceof Error ? error.message : undefined,
       });
       return null;
     }
