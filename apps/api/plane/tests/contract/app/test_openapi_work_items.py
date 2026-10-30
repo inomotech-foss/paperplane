@@ -15,6 +15,7 @@ from plane.db.models import (
     IssueComment,
     IssueDescriptionVersion,
     IssueLabel,
+    IssueRelation,
     IssueVersion,
     Label,
     ProjectMember,
@@ -91,8 +92,15 @@ class TestWorkItemLists:
         expanded = {"issues": ids, "fields": "id"}
         assert documented(session_client.get(url(workspace, project, "issues/list/"), expanded))
         assert documented(session_client.get(url(workspace, project, "issues-detail/")))["results"]
+        parent, child = issues
+        IssueRelation.objects.create(
+            issue=parent, related_issue=child, relation_type="relates_to", project=project, workspace=workspace
+        )
         detail = {"expand": "issue_relation,issue_related"}
-        assert documented(session_client.get(url(workspace, project, "issues-detail/"), detail))["results"]
+        rows = documented(session_client.get(url(workspace, project, "issues-detail/"), detail))["results"]
+        by_id = {row["id"]: row for row in rows}
+        assert by_id[str(parent.id)]["issue_relation"]
+        assert by_id[str(child.id)]["issue_related"]
         assert documented(session_client.get(url(workspace, project, "v2/issues/")))["results"]
         assert documented(session_client.get(url(workspace, project, "v2/issues/"), {"description": "true"}))
         documented(session_client.get(url(workspace, project, "deleted-issues/")))
