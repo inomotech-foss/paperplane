@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { ConfirmDialog } from "@plane/blocks/dialog";
 import { setToast } from "@plane/blocks/toast";
-import type { IWorkspace } from "@plane/types";
+import type { TInstanceWorkspace } from "@plane/services";
 // helpers
 import { getApiErrorMessage } from "@/helpers/error";
 // hooks
@@ -17,7 +17,7 @@ import { useWorkspace } from "@/hooks/store";
 type Props = {
   isOpen: boolean;
   handleClose: () => void;
-  workspace: IWorkspace;
+  workspace: TInstanceWorkspace;
 };
 
 export function DeleteWorkspaceDialog(props: Props) {

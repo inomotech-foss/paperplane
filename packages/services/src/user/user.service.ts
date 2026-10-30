@@ -5,23 +5,34 @@
  */
 
 // plane imports
+import type { AdminApiResponse, AdminPaths, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type { IUser, TUserProfile } from "@plane/types";
 // api service
 import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
+
+export type TInstanceAdminMe = AdminApiResponse<"/api/instances/admins/me/", "get">;
 
 /**
  * Service class for managing user operations
  * Handles operations for retrieving the current user's details and perform CRUD operations
  * @extends {APIService}
+ * @remarks Methods on the typed client throw `ApiError`.
  */
 export class UserService extends APIService {
+  private readonly client: ApiClient<InternalPaths>;
+  private readonly adminClient: ApiClient<AdminPaths>;
+
   /**
    * Constructor for UserService
    * @param BASE_URL - Base URL for API requests
    */
   constructor(BASE_URL?: string) {
     super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
+    this.adminClient = createApiClient<AdminPaths>(BASE_URL || API_BASE_URL);
   }
 
   /**
@@ -29,11 +40,7 @@ export class UserService extends APIService {
    * @returns {Promise<IUser>} Promise resolving to the current user details
    */
   async me(): Promise<IUser> {
-    return this.get("/api/users/me/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error;
-      });
+    return unwrap(this.client.GET("/api/users/me/"));
   }
 
   /**
@@ -79,14 +86,9 @@ export class UserService extends APIService {
 
   /**
    * Retrieves the current instance admin details
-   * @returns {Promise<IUser>} Promise resolving to the current instance admin details
-   * @throws {Error} If the API request fails
+   * @returns {Promise<TInstanceAdminMe>} Promise resolving to the current instance admin details
    */
-  async adminDetails(): Promise<IUser> {
-    return this.get("/api/instances/admins/me/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async adminDetails(): Promise<TInstanceAdminMe> {
+    return unwrap(this.adminClient.GET("/api/instances/admins/me/"));
   }
 }

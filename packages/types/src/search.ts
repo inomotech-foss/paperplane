@@ -9,13 +9,13 @@ import type { TIssue } from "./issues/issue";
 import type { IModule } from "./module";
 import type { TPage } from "./page";
 import type { IProject } from "./project";
-import type { IUser } from "./users";
+import type { IUser, IUserLite } from "./users";
 import type { IWorkspace } from "./workspace";
 
 export type TSearchEntities = "user_mention" | "issue" | "project" | "cycle" | "module" | "page";
 
 export type TUserSearchResponse = {
-  member__avatar_url: IUser["avatar_url"];
+  member__avatar_url: IUserLite["avatar_url"];
   member__display_name: IUser["display_name"];
   member__id: IUser["id"];
   is_project_member?: boolean;

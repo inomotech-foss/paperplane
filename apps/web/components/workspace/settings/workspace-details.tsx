@@ -32,7 +32,10 @@ const PQL_DIALECT_OPTIONS: { value: TPqlDialect; label: string }[] = [
   { value: "plane", label: "Plane" },
 ];
 
-const defaultValues: Partial<IWorkspace> = {
+// `url` is shown read-only and never sent.
+type TWorkspaceDetailsForm = IWorkspace & { url: string };
+
+const defaultValues: Partial<TWorkspaceDetailsForm> = {
   name: "",
   url: "",
   logo_url: null,
@@ -56,13 +59,13 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
     reset,
     watch,
     formState: { errors },
-  } = useForm<IWorkspace>({
+  } = useForm<TWorkspaceDetailsForm>({
     defaultValues: { ...defaultValues, ...currentWorkspace },
   });
   // derived values
   const workspaceLogo = watch("logo_url");
 
-  const onSubmit = async (formData: IWorkspace) => {
+  const onSubmit = async (formData: TWorkspaceDetailsForm) => {
     if (!currentWorkspace) return;
 
     setIsLoading(true);

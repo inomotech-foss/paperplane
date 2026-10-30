@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import type { InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type {
   TUnreadNotificationsCount,
@@ -13,10 +14,16 @@ import type {
 } from "@plane/types";
 // services
 import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
 
+/** Methods on the typed client throw `ApiError`. */
 export class WorkspaceNotificationService extends APIService {
+  private readonly client: ApiClient<InternalPaths>;
+
   constructor(BASE_URL?: string) {
     super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
   }
 
   /**
@@ -24,12 +31,12 @@ export class WorkspaceNotificationService extends APIService {
    * @param {string} workspaceSlug - The unique identifier for the workspace
    * @returns {Promise<TUnreadNotificationsCount | undefined>} The count of unread notifications
    */
-  async getUnreadCount(workspaceSlug: string): Promise<TUnreadNotificationsCount | undefined> {
-    return this.get(`/api/workspaces/${workspaceSlug}/users/notifications/unread/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async getUnreadCount(workspaceSlug: string): Promise<TUnreadNotificationsCount> {
+    return unwrap(
+      this.client.GET("/api/workspaces/{slug}/users/notifications/unread/", {
+        params: { path: { slug: workspaceSlug } },
+      })
+    );
   }
 
   /**

@@ -3,6 +3,7 @@
  * See the LICENSE file for details.
  */
 
+import type { AdminPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type {
   IInstanceUserDetail,
@@ -14,10 +15,18 @@ import type {
   IInstanceUser,
 } from "@plane/types";
 import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
 
+const userPath = (pk: string) => ({ path: { pk } });
+
+/** Methods on the typed client throw `ApiError`. */
 export class InstanceUserService extends APIService {
+  private readonly client: ApiClient<AdminPaths>;
+
   constructor(BASE_URL?: string) {
     super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<AdminPaths>(BASE_URL || API_BASE_URL);
   }
 
   async list(params: TInstanceUserListParams = {}): Promise<TInstanceUserPaginationInfo> {
@@ -29,35 +38,19 @@ export class InstanceUserService extends APIService {
   }
 
   async retrieve(userId: string): Promise<IInstanceUserDetail> {
-    return this.get(`/api/instances/users/${userId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.GET("/api/instances/users/{pk}/", { params: userPath(userId) }));
   }
 
   async deactivate(userId: string): Promise<TInstanceUserDeactivation> {
-    return this.post(`/api/instances/users/${userId}/deactivate/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.POST("/api/instances/users/{pk}/deactivate/", { params: userPath(userId) }));
   }
 
   async reactivate(userId: string): Promise<{ user: IInstanceUser }> {
-    return this.post(`/api/instances/users/${userId}/reactivate/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.POST("/api/instances/users/{pk}/reactivate/", { params: userPath(userId) }));
   }
 
   async destroy(userId: string): Promise<void> {
-    return this.delete(`/api/instances/users/${userId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.DELETE("/api/instances/users/{pk}/", { params: userPath(userId) }));
   }
 
   async mergePreview(survivorId: string, data: TInstanceUserMergeRequest): Promise<TInstanceUserMergeResult> {

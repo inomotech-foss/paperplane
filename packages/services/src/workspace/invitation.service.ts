@@ -4,45 +4,51 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiRequestBody, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
-import type { IWorkspaceMemberInvitation, IWorkspaceBulkInviteFormData, IWorkspaceMember } from "@plane/types";
+import type { IWorkspaceMemberInvitation, IWorkspaceBulkInviteFormData } from "@plane/types";
 import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
+
+export type TWorkspaceInvitationUpdateBody = Pick<
+  ApiRequestBody<"/api/workspaces/{slug}/invitations/{pk}/", "patch">,
+  "role"
+>;
+
+const invitationPath = (slug: string, pk: string) => ({ path: { slug, pk } });
 
 /**
  * Service class for managing workspace invitations
  * Handles operations related to inviting users to workspaces and managing invitations
  * @extends {APIService}
+ * @remarks Methods on the typed client throw `ApiError`.
  */
 export class WorkspaceInvitationService extends APIService {
+  private readonly client: ApiClient<InternalPaths>;
+
   constructor(BASE_URL?: string) {
     super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
   }
 
   /**
    * Retrieves all workspace invitations for the current user
    * @returns {Promise<IWorkspaceMemberInvitation[]>} Promise resolving to array of workspace invitations
-   * @throws {Error} If the API request fails
    */
   async userInvitations(): Promise<IWorkspaceMemberInvitation[]> {
-    return this.get("/api/users/me/workspaces/invitations/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.GET("/api/users/me/workspaces/invitations/"));
   }
 
   /**
    * Retrieves all invitations for a specific workspace
    * @param {string} workspaceSlug - The unique slug identifier for the workspace
    * @returns {Promise<IWorkspaceMemberInvitation[]>} Promise resolving to array of workspace invitations
-   * @throws {Error} If the API request fails
    */
   async workspaceInvitations(workspaceSlug: string): Promise<IWorkspaceMemberInvitation[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/invitations/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      this.client.GET("/api/workspaces/{slug}/invitations/", { params: { path: { slug: workspaceSlug } } })
+    );
   }
 
   /**
@@ -61,32 +67,35 @@ export class WorkspaceInvitationService extends APIService {
   }
 
   /**
-   * Update Invitation
+   * Updates the role of an invitation. The backend accepts no other field.
    * @param workspaceSlug
    * @param invitationId
    * @param data
-   * @returns
    */
-  async update(workspaceSlug: string, invitationId: string, data: Partial<IWorkspaceMember>): Promise<any> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/invitations/${invitationId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async update(
+    workspaceSlug: string,
+    invitationId: string,
+    data: TWorkspaceInvitationUpdateBody
+  ): Promise<IWorkspaceMemberInvitation> {
+    return unwrap(
+      this.client.PATCH("/api/workspaces/{slug}/invitations/{pk}/", {
+        params: invitationPath(workspaceSlug, invitationId),
+        body: data,
+      })
+    );
   }
 
   /**
    * Delete Workspace invitation
    * @param workspaceSlug
    * @param invitationId
-   * @returns
    */
-  async destroy(workspaceSlug: string, invitationId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/invitations/${invitationId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async destroy(workspaceSlug: string, invitationId: string): Promise<void> {
+    return unwrap(
+      this.client.DELETE("/api/workspaces/{slug}/invitations/{pk}/", {
+        params: invitationPath(workspaceSlug, invitationId),
+      })
+    );
   }
 
   /**

@@ -19,3 +19,6 @@ export function redirectToSignIn() {
 
 /** Typed client for the internal API. A 401 sends the user to sign in. */
 export const apiClient = createApiClient<InternalPaths>(API_BASE_URL, { onUnauthorized: redirectToSignIn });
+
+/** Typed client for requests that probe the session. A 401 does not redirect. */
+export const apiClientWithoutRedirect = createApiClient<InternalPaths>(API_BASE_URL);

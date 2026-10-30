@@ -6,7 +6,6 @@
 
 import type { TUserPermissions } from "./enums";
 import type { IIssueActivity, TIssuePriorities, TStateGroups } from ".";
-import type { TLoginMediums } from "./instance";
 
 /**
  * @description The start of the week for the user
@@ -32,24 +31,23 @@ export interface IUserLite {
   last_name: string;
   joining_date?: string;
 }
-export interface IUser extends IUserLite {
+/** The current user as `/api/users/me/` returns it. */
+export interface IUser extends Omit<IUserLite, "avatar_url" | "email"> {
+  avatar_url: string | null;
   // only for uploading the cover image
   cover_image_asset?: string | null;
   cover_image?: string | null;
   // only for rendering the cover image
   cover_image_url: string | null;
   date_joined: string;
-  email: string;
+  email: string | null;
   is_active: boolean;
   is_email_verified: boolean;
   is_password_autoset: boolean;
-  is_tour_completed: boolean;
-  mobile_number: string | null;
-  last_workspace_id: string;
   user_timezone: string;
   username: string;
-  last_login_medium: TLoginMediums;
-  theme: IUserTheme;
+  last_login_medium: string;
+  last_login_time: string | null;
 }
 
 export interface IUserAccount {
@@ -88,16 +86,17 @@ export interface IInstanceAdminStatus {
   is_instance_admin: boolean;
 }
 
+/** `undefined` until the settings are loaded. */
 export interface IUserSettings {
   id: string | undefined;
-  email: string | undefined;
+  email: string | null | undefined;
   workspace: {
-    last_workspace_id: string | undefined;
-    last_workspace_slug: string | undefined;
-    last_workspace_name: string | undefined;
-    last_workspace_logo: string | undefined;
-    fallback_workspace_id: string | undefined;
-    fallback_workspace_slug: string | undefined;
+    last_workspace_id: string | null | undefined;
+    last_workspace_slug: string | null | undefined;
+    last_workspace_name?: string | undefined;
+    last_workspace_logo?: string | undefined;
+    fallback_workspace_id: string | null | undefined;
+    fallback_workspace_slug: string | null | undefined;
     invites: number | undefined;
   };
 }
@@ -172,7 +171,7 @@ export interface IUserProfileProjectSegregation {
     pending_issues: number;
   }[];
   user_data: Pick<IUser, "avatar_url" | "cover_image_url" | "display_name" | "first_name" | "last_name"> & {
-    date_joined: Date;
+    date_joined: string;
     user_timezone: string;
   };
 }

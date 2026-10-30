@@ -4,40 +4,37 @@
  * See the LICENSE file for details.
  */
 
+import type { InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type { IApiToken } from "@plane/types";
 import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
 
+/** Methods on the typed client throw `ApiError`. */
 export class APITokenService extends APIService {
+  private readonly client: ApiClient<InternalPaths>;
+
   constructor(BASE_URL?: string) {
     super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
   }
 
   /**
-   * Retrieves all API tokens for a specific workspace
-   * @returns {Promise<IApiToken[]>} Array of API tokens associated with the workspace
-   * @throws {Error} Throws response data if the request fails
+   * Retrieves all API tokens of the current user
+   * @returns {Promise<IApiToken[]>} Array of API tokens
    */
   async list(): Promise<IApiToken[]> {
-    return this.get(`/api/users/api-tokens/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.GET("/api/users/api-tokens/"));
   }
 
   /**
    * Retrieves a specific API token by its ID
    * @param {string} tokenId - The unique identifier of the API token
    * @returns {Promise<IApiToken>} The requested API token's details
-   * @throws {Error} Throws response data if the request fails
    */
   async retrieve(tokenId: string): Promise<IApiToken> {
-    return this.get(`/api/users/api-tokens/${tokenId}`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.GET("/api/users/api-tokens/{pk}/", { params: { path: { pk: tokenId } } }));
   }
 
   /**
@@ -55,16 +52,10 @@ export class APITokenService extends APIService {
   }
 
   /**
-   * Deletes a specific API token from the workspace
+   * Deletes a specific API token
    * @param {string} tokenId - The unique identifier of the API token to delete
-   * @returns {Promise<IApiToken>} The deleted API token's details
-   * @throws {Error} Throws response data if the request fails
    */
-  async destroy(tokenId: string): Promise<IApiToken> {
-    return this.delete(`/api/users/api-tokens/${tokenId}`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async destroy(tokenId: string): Promise<void> {
+    return unwrap(this.client.DELETE("/api/users/api-tokens/{pk}/", { params: { path: { pk: tokenId } } }));
   }
 }

@@ -79,7 +79,7 @@ const SidebarDropdownItem = observer(function SidebarDropdownItem(props: TProps)
               {workspace.name}
             </div>
             <div className="flex w-fit gap-2 text-13 text-tertiary capitalize">
-              <span>{getUserRole(workspace.role)?.toLowerCase() || "guest"}</span>
+              <span>{(workspace.role !== undefined && getUserRole(workspace.role)?.toLowerCase()) || "guest"}</span>
               <div className="m-auto h-1 w-1 rounded-full bg-layer-1/50" />
               <span className="capitalize">{t("member", { count: workspace.total_members || 0 })}</span>
             </div>
@@ -93,7 +93,7 @@ const SidebarDropdownItem = observer(function SidebarDropdownItem(props: TProps)
       </Menu.Item>
       {isActiveWorkspace && (
         <div className="mt-2 mb-1 flex gap-2">
-          {[EUserPermissions.ADMIN, EUserPermissions.MEMBER].includes(workspace?.role) && (
+          {(workspace.role === EUserPermissions.ADMIN || workspace.role === EUserPermissions.MEMBER) && (
             <Menu.Item
               render={
                 <Button
@@ -109,7 +109,7 @@ const SidebarDropdownItem = observer(function SidebarDropdownItem(props: TProps)
               {t("settings")}
             </Menu.Item>
           )}
-          {[EUserPermissions.ADMIN].includes(workspace?.role) && (
+          {workspace.role === EUserPermissions.ADMIN && (
             <Menu.Item
               render={
                 <Button

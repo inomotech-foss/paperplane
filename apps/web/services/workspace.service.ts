@@ -4,16 +4,16 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiRequestBody, ApiResponse } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type {
   IWorkspace,
   IWorkspaceMemberMe,
   TPqlDialect,
   IWorkspaceMember,
   IWorkspaceMemberInvitation,
-  ILastActiveWorkspaceDetails,
   IWorkspaceSearchResults,
-  IProductUpdateResponse,
   IWorkspaceBulkInviteFormData,
   IWorkspaceViewProps,
   IUserProjectsRole,
@@ -29,27 +29,27 @@ import type {
   IWorkspaceUserPropertiesResponse,
 } from "@plane/types";
 // services
+import { apiClient } from "@/services/api-client";
 import { APIService } from "@/services/api.service";
 
+export type TLastVisitedWorkspace = ApiResponse<"/api/users/last-visited-workspace/", "get">;
+export type TWorkspaceInvitationUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/invitations/{pk}/", "patch">;
+
+const workspacePath = (slug: string) => ({ path: { slug } });
+const workspaceItemPath = (slug: string, pk: string) => ({ path: { slug, pk } });
+
+/** Methods on the typed client throw `ApiError` from `@plane/services`. */
 export class WorkspaceService extends APIService {
   constructor() {
     super(API_BASE_URL);
   }
 
   async userWorkspaces(): Promise<IWorkspace[]> {
-    return this.get("/api/users/me/workspaces/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(apiClient.GET("/api/users/me/workspaces/"));
   }
 
   async getWorkspace(workspaceSlug: string): Promise<IWorkspace> {
-    return this.get(`/api/workspaces/${workspaceSlug}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return unwrap(apiClient.GET("/api/workspaces/{slug}/", { params: workspacePath(workspaceSlug) }));
   }
 
   async createWorkspace(data: Partial<IWorkspace>): Promise<IWorkspace> {
@@ -68,12 +68,8 @@ export class WorkspaceService extends APIService {
       });
   }
 
-  async deleteWorkspace(workspaceSlug: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteWorkspace(workspaceSlug: string): Promise<void> {
+    return unwrap(apiClient.DELETE("/api/workspaces/{slug}/", { params: workspacePath(workspaceSlug) }));
   }
 
   async inviteWorkspace(workspaceSlug: string, data: IWorkspaceBulkInviteFormData): Promise<any> {
@@ -102,20 +98,13 @@ export class WorkspaceService extends APIService {
       });
   }
 
-  async getLastActiveWorkspaceAndProjects(): Promise<ILastActiveWorkspaceDetails> {
-    return this.get("/api/users/last-visited-workspace/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  /** The backend currently answers this route with a 500. */
+  async getLastActiveWorkspaceAndProjects(): Promise<TLastVisitedWorkspace> {
+    return unwrap(apiClient.GET("/api/users/last-visited-workspace/"));
   }
 
   async userWorkspaceInvitations(): Promise<IWorkspaceMemberInvitation[]> {
-    return this.get("/api/users/me/workspaces/invitations/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(apiClient.GET("/api/users/me/workspaces/invitations/"));
   }
 
   async workspaceMemberMe(workspaceSlug: string): Promise<IWorkspaceMemberMe> {
@@ -165,20 +154,14 @@ export class WorkspaceService extends APIService {
       });
   }
 
-  async deleteWorkspaceMember(workspaceSlug: string, memberId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/members/${memberId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteWorkspaceMember(workspaceSlug: string, memberId: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/members/{pk}/", { params: workspaceItemPath(workspaceSlug, memberId) })
+    );
   }
 
   async workspaceInvitations(workspaceSlug: string): Promise<IWorkspaceMemberInvitation[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/invitations/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(apiClient.GET("/api/workspaces/{slug}/invitations/", { params: workspacePath(workspaceSlug) }));
   }
 
   async getWorkspaceInvitation(workspaceSlug: string, invitationId: string): Promise<IWorkspaceMemberInvitation> {
@@ -189,24 +172,26 @@ export class WorkspaceService extends APIService {
       });
   }
 
+  /** The backend only accepts the role. */
   async updateWorkspaceInvitation(
     workspaceSlug: string,
     invitationId: string,
-    data: Partial<IWorkspaceMember>
-  ): Promise<any> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/invitations/${invitationId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    data: Pick<TWorkspaceInvitationUpdateBody, "role">
+  ): Promise<IWorkspaceMemberInvitation> {
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/invitations/{pk}/", {
+        params: workspaceItemPath(workspaceSlug, invitationId),
+        body: data,
+      })
+    );
   }
 
-  async deleteWorkspaceInvitations(workspaceSlug: string, invitationId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/invitations/${invitationId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteWorkspaceInvitations(workspaceSlug: string, invitationId: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/invitations/{pk}/", {
+        params: workspaceItemPath(workspaceSlug, invitationId),
+      })
+    );
   }
 
   async workspaceSlugCheck(slug: string): Promise<any> {
@@ -229,13 +214,6 @@ export class WorkspaceService extends APIService {
       params,
     })
       .then((res) => res?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-  async getProductUpdates(): Promise<IProductUpdateResponse[]> {
-    return this.get("/api/release-notes/")
-      .then((response) => response?.data)
       .catch((error) => {
         throw error?.response?.data;
       });
@@ -299,11 +277,9 @@ export class WorkspaceService extends APIService {
   }
 
   async getWorkspaceUserProjectsRole(workspaceSlug: string): Promise<IUserProjectsRole> {
-    return this.get(`/api/users/me/workspaces/${workspaceSlug}/project-roles/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/users/me/workspaces/{slug}/project-roles/", { params: workspacePath(workspaceSlug) })
+    );
   }
 
   // quicklinks

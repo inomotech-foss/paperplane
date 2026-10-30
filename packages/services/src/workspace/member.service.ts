@@ -4,23 +4,30 @@
  * See the LICENSE file for details.
  */
 
+import type { InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type { IWorkspaceMemberMe, IWorkspaceMember, IUserProjectsRole } from "@plane/types";
 import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
 
 /**
  * Service class for managing workspace members
  * Handles operations related to workspace membership, including member information,
  * updates, deletions, and role management
  * @extends {APIService}
+ * @remarks Methods on the typed client throw `ApiError`.
  */
 export class WorkspaceMemberService extends APIService {
+  private readonly client: ApiClient<InternalPaths>;
+
   /**
    * Creates an instance of WorkspaceMemberService
    * @param {string} baseUrl - The base URL for API requests
    */
   constructor(BASE_URL?: string) {
     super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
   }
 
   /**
@@ -74,12 +81,12 @@ export class WorkspaceMemberService extends APIService {
    * @returns {Promise<any>} Promise resolving to the deletion response
    * @throws {Error} If the API request fails
    */
-  async destroy(workspaceSlug: string, memberId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/members/${memberId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async destroy(workspaceSlug: string, memberId: string): Promise<void> {
+    return unwrap(
+      this.client.DELETE("/api/workspaces/{slug}/members/{pk}/", {
+        params: { path: { slug: workspaceSlug, pk: memberId } },
+      })
+    );
   }
 
   /**
@@ -89,10 +96,8 @@ export class WorkspaceMemberService extends APIService {
    * @throws {Error} If the API request fails
    */
   async getWorkspaceUserProjectsRole(workspaceSlug: string): Promise<IUserProjectsRole> {
-    return this.get(`/api/users/me/workspaces/${workspaceSlug}/project-roles/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      this.client.GET("/api/users/me/workspaces/{slug}/project-roles/", { params: { path: { slug: workspaceSlug } } })
+    );
   }
 }

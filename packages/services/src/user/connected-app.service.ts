@@ -3,29 +3,26 @@
  * See the LICENSE file for details.
  */
 
+import type { InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type { IConnectedApp } from "@plane/types";
-import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
 
-export class ConnectedAppService extends APIService {
+/** Errors are thrown as `ApiError`. */
+export class ConnectedAppService {
+  private readonly client: ApiClient<InternalPaths>;
+
   constructor(BASE_URL?: string) {
-    super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
   }
 
   async list(): Promise<IConnectedApp[]> {
-    return this.get("/api/users/connected-apps/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.GET("/api/users/connected-apps/"));
   }
 
   /** Drops the grant and retires the credentials issued against it. */
   async revoke(applicationId: number): Promise<void> {
-    return this.delete(`/api/users/connected-apps/${applicationId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.DELETE("/api/users/connected-apps/{pk}/", { params: { path: { pk: applicationId } } }));
   }
 }

@@ -7,6 +7,7 @@
 /* eslint-disable no-useless-catch */
 
 import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type {
   TNotificationPaginatedInfo,
   TNotificationPaginatedInfoQueryParams,
@@ -15,20 +16,19 @@ import type {
 } from "@plane/types";
 // helpers
 // services
+import { apiClient } from "@/services/api-client";
 import { APIService } from "@/services/api.service";
 
+/** Methods on the typed client throw `ApiError` from `@plane/services`. */
 export class WorkspaceNotificationService extends APIService {
   constructor() {
     super(API_BASE_URL);
   }
 
-  async fetchUnreadNotificationsCount(workspaceSlug: string): Promise<TUnreadNotificationsCount | undefined> {
-    try {
-      const { data } = await this.get(`/api/workspaces/${workspaceSlug}/users/notifications/unread/`);
-      return data || undefined;
-    } catch (error) {
-      throw error;
-    }
+  async fetchUnreadNotificationsCount(workspaceSlug: string): Promise<TUnreadNotificationsCount> {
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/users/notifications/unread/", { params: { path: { slug: workspaceSlug } } })
+    );
   }
 
   async fetchNotifications(

@@ -4,104 +4,88 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiRequestBody, ApiResponse, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
-import type { IWorkspace, ILastActiveWorkspaceDetails, IWorkspaceSearchResults } from "@plane/types";
+import type { IWorkspace, IWorkspaceSearchResults } from "@plane/types";
 import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
+
+export type TWorkspaceCreateBody = ApiRequestBody<"/api/workspaces/", "post">;
+export type TWorkspaceUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/", "patch">;
+/** The backend currently answers this route with a 500. */
+export type TLastVisitedWorkspace = ApiResponse<"/api/users/last-visited-workspace/", "get">;
+
+const workspacePath = (slug: string) => ({ path: { slug } });
 
 /**
  * Service class for managing workspace operations
  * Handles CRUD operations and various workspace-related functionalities
  * @extends {APIService}
+ * @remarks Methods on the typed client throw `ApiError`.
  */
 export class WorkspaceService extends APIService {
+  private readonly client: ApiClient<InternalPaths>;
+
   /**
    * Creates an instance of WorkspaceService
    * @param {string} baseUrl - The base URL for API requests
    */
   constructor(BASE_URL?: string) {
     super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
   }
+
   /**
    * Retrieves all workspaces for the current user
    * @returns {Promise<IWorkspace[]>} Promise resolving to an array of workspaces
-   * @throws {Error} If the API request fails
    */
   async list(): Promise<IWorkspace[]> {
-    return this.get("/api/users/me/workspaces/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.GET("/api/users/me/workspaces/"));
   }
 
   /**
    * Retrieves details of a specific workspace
    * @param {string} workspaceSlug - The unique slug identifier for the workspace
    * @returns {Promise<IWorkspace>} Promise resolving to workspace details
-   * @throws {Error} If the API request fails
    */
   async retrieve(workspaceSlug: string): Promise<IWorkspace> {
-    return this.get(`/api/workspaces/${workspaceSlug}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return unwrap(this.client.GET("/api/workspaces/{slug}/", { params: workspacePath(workspaceSlug) }));
   }
 
   /**
    * Creates a new workspace
-   * @param {Partial<IWorkspace>} data - Workspace data for creation
+   * @param {TWorkspaceCreateBody} data - Workspace data for creation
    * @returns {Promise<IWorkspace>} Promise resolving to the created workspace
-   * @throws {Error} If the API request fails
    */
-  async create(data: Partial<IWorkspace>): Promise<IWorkspace> {
-    return this.post("/api/workspaces/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async create(data: TWorkspaceCreateBody): Promise<IWorkspace> {
+    return unwrap(this.client.POST("/api/workspaces/", { body: data }));
   }
 
   /**
    * Updates an existing workspace
    * @param {string} workspaceSlug - The unique slug identifier for the workspace
-   * @param {Partial<IWorkspace>} data - Updated workspace data
+   * @param {TWorkspaceUpdateBody} data - Updated workspace data
    * @returns {Promise<IWorkspace>} Promise resolving to the updated workspace
-   * @throws {Error} If the API request fails
    */
-  async update(workspaceSlug: string, data: Partial<IWorkspace>): Promise<IWorkspace> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async update(workspaceSlug: string, data: TWorkspaceUpdateBody): Promise<IWorkspace> {
+    return unwrap(this.client.PATCH("/api/workspaces/{slug}/", { params: workspacePath(workspaceSlug), body: data }));
   }
 
   /**
    * Deletes a workspace
    * @param {string} workspaceSlug - The unique slug identifier for the workspace
-   * @returns {Promise<any>} Promise resolving to the deletion response
-   * @throws {Error} If the API request fails
    */
-  async destroy(workspaceSlug: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async destroy(workspaceSlug: string): Promise<void> {
+    return unwrap(this.client.DELETE("/api/workspaces/{slug}/", { params: workspacePath(workspaceSlug) }));
   }
 
   /**
    * Retrieves information about the user's last visited workspace
-   * @returns {Promise<ILastActiveWorkspaceDetails>} Promise resolving to last active workspace details
-   * @throws {Error} If the API request fails
+   * @returns {Promise<TLastVisitedWorkspace>} Promise resolving to last active workspace details
    */
-  async lastVisited(): Promise<ILastActiveWorkspaceDetails> {
-    return this.get("/api/users/last-visited-workspace/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async lastVisited(): Promise<TLastVisitedWorkspace> {
+    return unwrap(this.client.GET("/api/users/last-visited-workspace/"));
   }
 
   /**

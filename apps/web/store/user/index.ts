@@ -107,9 +107,9 @@ export class UserStore implements IUserStore {
 
   /**
    * @description fetches the current user
-   * @returns {Promise<IUser>}
+   * @returns {Promise<IUser | undefined>}
    */
-  fetchCurrentUser = async (): Promise<IUser> => {
+  fetchCurrentUser = async (): Promise<IUser | undefined> => {
     try {
       runInAction(() => {
         this.isLoading = true;
