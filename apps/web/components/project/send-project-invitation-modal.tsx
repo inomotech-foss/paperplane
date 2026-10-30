@@ -234,7 +234,7 @@ export const SendProjectInvitationModal = observer(function SendProjectInvitatio
                                   showSearch={false}
                                   pinSelected={false}
                                 >
-                                  <Select.Trigger<TRoleOption>
+                                  <Select.Trigger
                                     variant="pill-md"
                                     appendIcon={<ChevronDownOutline />}
                                     tooltip={{ emptyContent: "Select role" }}

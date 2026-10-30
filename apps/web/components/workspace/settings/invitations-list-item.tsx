@@ -174,10 +174,7 @@ export const WorkspaceInvitationsListItem = observer(function WorkspaceInvitatio
               showSearch={false}
               pinSelected={false}
             >
-              <Select.Trigger<TRoleOption>
-                variant="pill-sm"
-                appendIcon={hasRoleChangeAccess ? <ChevronDownOutline /> : undefined}
-              >
+              <Select.Trigger variant="pill-sm" appendIcon={hasRoleChangeAccess ? <ChevronDownOutline /> : undefined}>
                 <span className="min-w-0 truncate">{ROLE[invitationDetails.role]}</span>
               </Select.Trigger>
             </Select>

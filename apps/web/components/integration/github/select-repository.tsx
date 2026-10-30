@@ -82,7 +82,7 @@ export function SelectRepository(props: Props) {
         ) : undefined
       }
     >
-      <Select.Trigger<IGithubRepository> variant="select-md">{label}</Select.Trigger>
+      <Select.Trigger variant="select-md">{label}</Select.Trigger>
     </Select>
   );
 }

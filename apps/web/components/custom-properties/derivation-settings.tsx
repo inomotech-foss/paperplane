@@ -63,7 +63,7 @@ function PickOne(props: {
       pinSelected={false}
       disabled={disabled}
     >
-      <Select.Trigger<TPickOption>
+      <Select.Trigger
         variant="select-md"
         className="w-auto"
         disabled={disabled}

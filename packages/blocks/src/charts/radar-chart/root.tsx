@@ -18,6 +18,7 @@ import type { TRadarChartProps } from "@plane/types";
 import { getLegendProps } from "../components/legend";
 import { CustomRadarAxisTick } from "../components/tick";
 import { CustomTooltip } from "../components/tooltip";
+import { readField, toChartKey } from "../payload";
 
 function RadarChart<T extends string, K extends string>(props: TRadarChartProps<T, K>) {
   const { data, radars, margin, showTooltip, legend, className, angleAxis } = props;
@@ -68,11 +69,9 @@ function RadarChart<T extends string, K extends string>(props: TRadarChartProps<
             />
           )}
           {legend && (
-            // @ts-expect-error recharts types are not up to date
             <Legend
               onMouseEnter={(payload) => {
-                // @ts-expect-error recharts types are not up to date
-                const key: string | undefined = payload.payload?.key;
+                const key = toChartKey(readField(payload.payload, "key"));
                 if (!key) return;
                 setActiveLegend(key);
                 setActiveIndex(null);

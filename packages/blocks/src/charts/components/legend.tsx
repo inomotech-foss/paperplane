@@ -9,8 +9,10 @@ import type { LegendProps } from "recharts";
 // plane imports
 import type { TChartLegend } from "@plane/types";
 import { cn } from "@plane/utils";
+// local imports
+import { readField, toChartText } from "../payload";
 
-export const getLegendProps = (args: TChartLegend): LegendProps => {
+export const getLegendProps = (args: TChartLegend): Omit<LegendProps, "ref"> => {
   const { align, layout, verticalAlign } = args;
   return {
     layout,
@@ -56,7 +58,7 @@ const CustomLegend = React.forwardRef(function CustomLegend(
     >
       {payload.map((item, index) => (
         <div
-          key={item.value}
+          key={toChartText(item.value)}
           className={cn("flex items-center gap-1.5 text-13 font-medium whitespace-nowrap text-tertiary", {
             "px-2": layout === "horizontal",
             "py-2": layout === "vertical",
@@ -72,7 +74,7 @@ const CustomLegend = React.forwardRef(function CustomLegend(
               ? (e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    onClick(item, index, e as unknown as React.MouseEvent);
+                    e.currentTarget.click();
                   }
                 }
               : undefined
@@ -86,8 +88,8 @@ const CustomLegend = React.forwardRef(function CustomLegend(
               backgroundColor: item.color,
             }}
           />
-          {/* @ts-expect-error recharts types are not up to date */}
-          {formatter?.(item.value, { value: item.value }, index) ?? item.payload?.name}
+          {formatter?.(item.value, { value: toChartText(item.value) }, index) ??
+            toChartText(readField(item.payload, "name"))}
         </div>
       ))}
     </div>

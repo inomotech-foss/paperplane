@@ -25,6 +25,21 @@ type CreateLabelEmptyStateProps = {
   onCreated: (id: string) => void;
 };
 
+function isDuplicateNameError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    Array.isArray(error.name) &&
+    error.name.includes("LABEL_NAME_ALREADY_EXISTS")
+  );
+}
+
+function apiErrorMessage(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || !("error" in error)) return undefined;
+  return typeof error.error === "string" ? error.error : undefined;
+}
+
 /**
  * Empty state for `LabelSelect`'s search: a plain "no matching labels" message, or — when the
  * caller can create labels — a "+ Add "<query>" to labels" row that creates and selects one.
@@ -45,10 +60,9 @@ export function CreateLabelEmptyState({ query, canCreate, onCreateLabel, onCreat
       onCreated(created.id);
       close();
     } catch (error) {
-      const err = error as { name?: string[]; error?: string };
-      const message = err?.name?.includes("LABEL_NAME_ALREADY_EXISTS")
+      const message = isDuplicateNameError(error)
         ? t("label.create.already_exists")
-        : (err?.error ?? t("failed_to_create_label"));
+        : (apiErrorMessage(error) ?? t("failed_to_create_label"));
       setToast({ type: "error", title: t("error"), message });
     } finally {
       setIsCreating(false);

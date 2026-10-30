@@ -90,13 +90,21 @@ type CrumbProps = {
  */
 function getSelectedNavigationItem(props: CrumbProps): { label?: unknown; href?: unknown } | undefined {
   if (!Array.isArray(props.navigationItems) || typeof props.selectedItemKey !== "string") return undefined;
-  const items = props.navigationItems as { key?: unknown; label?: unknown; href?: unknown }[];
-  return items.find((item) => item?.key === props.selectedItemKey);
+  const items: unknown[] = props.navigationItems;
+  const item = items.find((candidate) => readField(candidate, "key") === props.selectedItemKey);
+  return item === undefined ? undefined : { label: readField(item, "label"), href: readField(item, "href") };
 }
 
+const readField = (source: unknown, key: string): unknown =>
+  typeof source === "object" && source !== null ? Reflect.get(source, key) : undefined;
+
 function getProps(node: React.ReactNode): CrumbProps | undefined {
-  return React.isValidElement(node) ? (node.props as CrumbProps) : undefined;
+  return React.isValidElement<CrumbProps>(node) ? node.props : undefined;
 }
+
+type TClickHandler = (event: React.MouseEvent<HTMLElement>) => void;
+
+const isClickHandler = (candidate: unknown): candidate is TClickHandler => typeof candidate === "function";
 
 /**
  * The name a single element declares for itself, most explicit first: the Ruling 39 `crumbLabel`,
@@ -112,9 +120,9 @@ export function readCrumbLabel(props: CrumbProps | undefined): string | undefine
   return undefined;
 }
 
-/** `Array.isArray` widens a `ReactNode` to `any[]`, so re-assert the element type it really holds. */
-function asChildren(node: React.ReactNode): React.ReactNode[] {
-  return node as React.ReactNode[];
+/** `Array.isArray` widens a `ReactNode` to `any[]`, so this keeps the element type it really holds. */
+function isNodeArray(node: React.ReactNode): node is React.ReactNode[] {
+  return Array.isArray(node);
 }
 
 /** Joins every string and number leaf under a node, so a crumb's visible text becomes its label. */
@@ -122,10 +130,7 @@ function getTextContent(node: React.ReactNode, depth = 0): string {
   if (node === null || node === undefined || typeof node === "boolean") return "";
   if (typeof node === "string") return node;
   if (typeof node === "number") return String(node);
-  if (Array.isArray(node))
-    return asChildren(node)
-      .map((child) => getTextContent(child, depth))
-      .join("");
+  if (isNodeArray(node)) return node.map((child) => getTextContent(child, depth)).join("");
   if (depth >= MAX_CRUMB_DEPTH) return "";
   const props = getProps(node);
   if (!props) return "";
@@ -147,8 +152,8 @@ function findNavigation(
   depth = 0
 ): { href?: string; onClick?: (event: React.MouseEvent<HTMLElement>) => void } {
   if (depth >= MAX_CRUMB_DEPTH) return {};
-  if (Array.isArray(node)) {
-    for (const child of asChildren(node)) {
+  if (isNodeArray(node)) {
+    for (const child of node) {
       const found = findNavigation(child, depth);
       if (found.href || found.onClick) return found;
     }
@@ -159,16 +164,11 @@ function findNavigation(
   // A wrapper's own route wins over anything below it: `crumbHref` is the explicit declaration,
   // and it is the only one a wrapper component can make — its `<Link>` lives inside its markup.
   const href = typeof props.crumbHref === "string" ? props.crumbHref : undefined;
-  const onClick =
-    typeof props.crumbOnClick === "function"
-      ? (props.crumbOnClick as (event: React.MouseEvent<HTMLElement>) => void)
-      : undefined;
+  const onClick = isClickHandler(props.crumbOnClick) ? props.crumbOnClick : undefined;
   if (href || onClick) return { href, onClick };
   const derivedHref = typeof props.href === "string" ? props.href : undefined;
   // `BreadcrumbNavigationSelect` navigates to the crumb itself through `handleOnClick`.
-  const derivedOnClick = [props.onClick, props.handleOnClick].find(
-    (candidate): candidate is (event: React.MouseEvent<HTMLElement>) => void => typeof candidate === "function"
-  );
+  const derivedOnClick = [props.onClick, props.handleOnClick].find(isClickHandler);
   if (derivedHref || derivedOnClick) return { href: derivedHref, onClick: derivedOnClick };
   const selectedHref = getSelectedNavigationItem(props)?.href;
   if (typeof selectedHref === "string" && selectedHref !== "") return { href: selectedHref };

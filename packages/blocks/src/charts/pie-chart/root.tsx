@@ -6,10 +6,12 @@
 
 import React, { useMemo, useState } from "react";
 import { Cell, PieChart as CorePieChart, Label, Legend, Pie, ResponsiveContainer, Tooltip } from "recharts";
+import type { PieLabelRenderProps } from "recharts";
 // plane imports
 import type { TPieChartProps } from "@plane/types";
 // local components
 import { getLegendProps } from "../components/legend";
+import { isChartPayload, readField, toChartKey, toChartText, toDominantBaseline, toTextAnchor } from "../payload";
 import { CustomActiveShape } from "./active-shape";
 import { CustomPieChartTooltip } from "./tooltip";
 
@@ -78,21 +80,25 @@ export const PieChart = React.memo(function PieChart<K extends string, T extends
             labelLine={false}
             label={
               showLabel
-                ? ({ payload, ...props }) => (
-                    <text
-                      className="text-sm font-medium transition-opacity duration-200"
-                      cx={props.cx}
-                      cy={props.cy}
-                      x={props.x}
-                      y={props.y}
-                      textAnchor={props.textAnchor}
-                      dominantBaseline={props.dominantBaseline}
-                      fill="var(--text-color-secondary)"
-                      opacity={!!activeLegend && activeLegend !== payload.key ? 0.1 : 1}
-                    >
-                      {customLabel?.(payload.count) ?? payload.count}
-                    </text>
-                  )
+                ? (props: PieLabelRenderProps) => {
+                    const payload: unknown = props.payload;
+                    const count = readField(payload, "count");
+                    return (
+                      <text
+                        className="text-sm font-medium transition-opacity duration-200"
+                        cx={props.cx}
+                        cy={props.cy}
+                        x={props.x}
+                        y={props.y}
+                        textAnchor={toTextAnchor(props.textAnchor)}
+                        dominantBaseline={toDominantBaseline(readField(props, "dominantBaseline"))}
+                        fill="var(--text-color-secondary)"
+                        opacity={!!activeLegend && activeLegend !== readField(payload, "key") ? 0.1 : 1}
+                      >
+                        {customLabel?.(count) ?? toChartText(count)}
+                      </text>
+                    );
+                  }
                 : undefined
             }
           >
@@ -109,11 +115,9 @@ export const PieChart = React.memo(function PieChart<K extends string, T extends
             )}
           </Pie>
           {legend && (
-            // @ts-expect-error recharts types are not up to date
             <Legend
               onMouseEnter={(payload) => {
-                // @ts-expect-error recharts types are not up to date
-                const key: string | undefined = payload.payload?.key;
+                const key = toChartKey(readField(payload.payload, "key"));
                 if (!key) return;
                 setActiveLegend(key);
                 setActiveIndex(null);
@@ -133,11 +137,13 @@ export const PieChart = React.memo(function PieChart<K extends string, T extends
               }}
               content={({ active, payload }) => {
                 if (!active || !payload || !payload.length) return null;
-                const cellData = cells.find((c) => c.key === payload[0].payload.key);
+                const datum: unknown = payload[0].payload;
+                const cellData = cells.find((c) => c.key === readField(datum, "key"));
                 if (!cellData) return null;
+                const tooltipPayload = readField(datum, "payload");
                 const label = tooltipLabel
                   ? typeof tooltipLabel === "function"
-                    ? tooltipLabel(payload[0]?.payload?.payload)
+                    ? tooltipLabel(isChartPayload(tooltipPayload) ? tooltipPayload : {})
                     : tooltipLabel
                   : dataKey;
                 return <CustomPieChartTooltip dotColor={cellData.fill} label={label} payload={payload} />;

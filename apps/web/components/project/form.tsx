@@ -407,21 +407,19 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
                     disabled={!isAdmin}
                     estimateItemSize={64}
                   >
-                    <Select.Trigger<TNetworkChoice>
+                    <Select.Trigger
                       variant="select-lg"
                       className="font-medium"
                       disabled={!isAdmin}
-                      prependIcon={(networks) =>
-                        networks[0] ? (
-                          <ProjectNetworkIcon iconKey={networks[0].iconKey} className="h-3.5 w-3.5" />
+                      prependIcon={
+                        selectedNetwork ? (
+                          <ProjectNetworkIcon iconKey={selectedNetwork.iconKey} className="h-3.5 w-3.5" />
                         ) : undefined
                       }
                     >
-                      {(networks) => (
-                        <span className="min-w-0 grow truncate text-left">
-                          {networks[0] ? t(networks[0].i18n_label) : t("select_network")}
-                        </span>
-                      )}
+                      <span className="min-w-0 grow truncate text-left">
+                        {selectedNetwork ? t(selectedNetwork.i18n_label) : t("select_network")}
+                      </span>
                     </Select.Trigger>
                   </Select>
                 );

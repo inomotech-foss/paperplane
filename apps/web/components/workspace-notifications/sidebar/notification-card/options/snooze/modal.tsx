@@ -235,7 +235,7 @@ export function NotificationSnoozeModal(props: TNotificationSnoozeModal) {
                           </div>
                         }
                       >
-                        <Select.Trigger<TTimeOption> variant="select-lg">
+                        <Select.Trigger variant="select-lg">
                           <span className="min-w-0 grow truncate text-left">
                             {value ? (
                               <span>

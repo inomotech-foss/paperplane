@@ -8,7 +8,11 @@ import type { Combobox } from "@base-ui/react/combobox";
 import type { PopoverRootChangeEventDetails } from "@base-ui/react/popover";
 
 /** Open-change details of any host a `NestedSubmenu` flyout can live under. */
-type MenuDismissalEventDetails = PopoverRootChangeEventDetails | Combobox.Root.ChangeEventDetails;
+// The two fields of a base-ui change-event details object that a dismissal check reads.
+export type MenuDismissalEventDetails = Pick<
+  PopoverRootChangeEventDetails | Combobox.Root.ChangeEventDetails,
+  "reason"
+> & { event: Event | null };
 
 /**
  * Whether a host menu's dismissal originated inside a region that owns its own dismissal
@@ -39,7 +43,14 @@ export function isDismissalFromPreventedRegion(eventDetails?: MenuDismissalEvent
  * (base-ui's `preventBaseUIHandler` escape hatch) so their defaults survive. Row-origin events
  * keep base-ui's focus-keeping untouched.
  */
-export const preservePanelPointerDefaults: NonNullable<Combobox.Item.Props["onPointerDownCapture"]> = (event) => {
+// The three fields of a base-ui item pointer event that this reads.
+type TPointerDownCaptureEvent = {
+  target: EventTarget | null;
+  currentTarget: Element;
+  preventBaseUIHandler: () => void;
+};
+
+export const preservePanelPointerDefaults = (event: TPointerDownCaptureEvent): void => {
   if (event.target instanceof Node && !event.currentTarget.contains(event.target)) {
     event.preventBaseUIHandler();
   }

@@ -74,20 +74,14 @@ export const ProjectSelect = observer(function ProjectSelect(props: Props) {
         )
       }
     >
-      <Select.Trigger<ProjectOption>
-        variant="select-md"
-        className="w-auto"
-        prependIcon={<ProjectsOutline aria-hidden="true" />}
-      >
-        {(selectedOptions) => (
-          <span className="truncate">
-            {selectedOptions.length > 3
-              ? `3+ projects`
-              : selectedOptions.length > 0
-                ? selectedOptions.map((option) => option.name).join(", ")
-                : "All projects"}
-          </span>
-        )}
+      <Select.Trigger variant="select-md" className="w-auto" prependIcon={<ProjectsOutline aria-hidden="true" />}>
+        <span className="truncate">
+          {selected.length > 3
+            ? `3+ projects`
+            : selected.length > 0
+              ? selected.map((option) => option.name).join(", ")
+              : "All projects"}
+        </span>
       </Select.Trigger>
     </Select>
   );

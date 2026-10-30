@@ -5,6 +5,7 @@
  */
 
 import type * as React from "react";
+import type { IconGlyph } from "@makeplane/propel/components/icon";
 
 /** Row look, shared by the context-menu and dropdown renderings of a `TContextMenuItem`. */
 export type TContextMenuItemVariant = "neutral" | "accent" | "danger";
@@ -30,14 +31,12 @@ export type TContextMenuItem = {
    */
   description?: string;
   /**
-   * Leading glyph component, e.g. a lucide icon. Deliberately `any`-propped, matching the legacy
-   * type: the arrays that feed this mix lucide icons, `ISvgIcons` glyphs and local components.
+   * Leading glyph component, e.g. a lucide icon, an `ISvgIcons` glyph or a local SVG component.
    *
    * There is no `iconClassName` to go with it. Propel's row sizes and tints its own glyph, so the
    * legacy prop was accepted and ignored through the migration and is gone with its last call site.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon?: React.FC<any>;
+  icon?: IconGlyph;
   /** Invoked when the row is pressed. */
   action: () => void;
   /**

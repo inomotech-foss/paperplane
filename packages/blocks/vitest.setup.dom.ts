@@ -124,9 +124,8 @@ function stubScrolling() {
 
 /** Defines `Element.prototype[name]` only when jsdom has left it unimplemented. */
 function stubElementMethod(name: string, value: () => unknown) {
-  const proto = Element.prototype as unknown as Record<string, unknown>;
-  if (typeof proto[name] === "function") return;
-  proto[name] = value;
+  if (typeof Reflect.get(Element.prototype, name) === "function") return;
+  Reflect.set(Element.prototype, name, value);
 }
 
 beforeEach(() => {

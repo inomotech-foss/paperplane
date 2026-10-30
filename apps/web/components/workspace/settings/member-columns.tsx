@@ -175,7 +175,7 @@ export const AccountTypeColumn = observer(function AccountTypeColumn(props: Acco
                 showSearch={false}
                 pinSelected={false}
               >
-                <Select.Trigger<TRoleOption> variant="select-ghost-md">
+                <Select.Trigger variant="select-ghost-md">
                   <span className="min-w-0 flex-1 truncate text-left">{ROLE[rowData.role]}</span>
                 </Select.Trigger>
               </Select>

@@ -13,7 +13,7 @@ import type { TAreaChartProps } from "@plane/types";
 import { getLegendProps } from "../components/legend";
 import { CustomXAxisTick, CustomYAxisTick } from "../components/tick";
 import { CustomTooltip } from "../components/tooltip";
-import { toChartNumber } from "../payload";
+import { toChartKey, toChartNumber } from "../payload";
 
 export const AreaChart = React.memo(function AreaChart<K extends string, T extends string>(
   props: TAreaChartProps<K, T>
@@ -159,10 +159,9 @@ export const AreaChart = React.memo(function AreaChart<K extends string, T exten
             allowDecimals={!!yAxis.allowDecimals}
           />
           {legend && (
-            // @ts-expect-error recharts types are not up to date
             <Legend
-              formatter={(value) => itemLabels[value]}
-              onMouseEnter={(payload) => setActiveLegend(payload.value)}
+              formatter={(value: unknown) => (typeof value === "string" ? itemLabels[value] : undefined)}
+              onMouseEnter={(payload) => setActiveLegend(toChartKey(payload.value))}
               onMouseLeave={() => setActiveLegend(null)}
               {...getLegendProps(legend)}
             />

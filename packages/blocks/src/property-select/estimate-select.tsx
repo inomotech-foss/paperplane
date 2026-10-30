@@ -90,22 +90,18 @@ export function EstimateSelect(props: EstimateSelectProps) {
       getOptionLabel={(estimate) => estimate.displayValue}
       getOptionIcon={() => <EstimateOutline className="size-4 shrink-0 text-primary" />}
     >
-      <Select.Trigger<EstimateOption>
+      <Select.Trigger
         disabled={disabled}
         variant={variant}
         tabIndex={tabIndex}
         className={className}
         prependIcon={<EstimateOutline />}
-        label={(estimates) => estimates[0]?.displayValue ?? placeholder}
+        label={value?.displayValue ?? placeholder}
         tooltip={tooltip}
       >
-        {(estimates) => {
-          const selected = estimates[0];
-          const label = selected?.displayValue ?? placeholder;
-          return (
-            <>{(!!selected || !!placeholder) && <span className="min-w-0 grow truncate text-left">{label}</span>}</>
-          );
-        }}
+        {(!!value || !!placeholder) && (
+          <span className="min-w-0 grow truncate text-left">{value?.displayValue ?? placeholder}</span>
+        )}
       </Select.Trigger>
     </Select>
   );

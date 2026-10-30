@@ -61,7 +61,7 @@ function Draggable({ children, data, className, allowExternalDrop, onExternalDro
             // Handle external drops
             if (args.source.data.isExternal) {
               const edge = extractClosestEdge(args.self.data);
-              handleExternalDrop(args.source.data, edge as "top" | "bottom");
+              if (edge === "top" || edge === "bottom") handleExternalDrop(args.source.data, edge);
             }
           },
           canDrop: ({ source }) => {

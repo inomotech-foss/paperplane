@@ -97,20 +97,18 @@ export function ModuleSelect(props: ModuleSelectProps) {
             : undefined
         }
       >
-        <Select.Trigger<ModuleOption>
+        <Select.Trigger
           disabled={disabled}
           variant={variant}
           tabIndex={tabIndex}
           className={className}
           prependIcon={<ModuleOutline />}
-          label={(modules) => modules[0]?.name ?? placeholder}
+          label={value?.name ?? placeholder}
           tooltip={tooltip}
         >
-          {(modules) => {
-            const selected = modules[0];
-            const label = selected?.name ?? placeholder;
-            return (!!selected || !!placeholder) && <span className="min-w-0 grow truncate text-left">{label}</span>;
-          }}
+          {(!!value || !!placeholder) && (
+            <span className="min-w-0 grow truncate text-left">{value?.name ?? placeholder}</span>
+          )}
         </Select.Trigger>
       </Select>
     );
@@ -133,6 +131,7 @@ export function ModuleSelect(props: ModuleSelectProps) {
 
   // "table-cell" / "pill" summarise as "N modules"; "select" / "select-ghost" list per-module pills instead.
   const showCountOnMultiple = variant === "table-cell" || variant.startsWith("pill-");
+  const showPills = !showCountOnMultiple && value.length > 0;
 
   return (
     <Select<ModuleOption>
@@ -155,37 +154,34 @@ export function ModuleSelect(props: ModuleSelectProps) {
           : undefined
       }
     >
-      <Select.Trigger<ModuleOption>
+      <Select.Trigger
         disabled={disabled}
         variant={variant}
         tabIndex={tabIndex}
         className={className}
-        prependIcon={(modules) => (!showCountOnMultiple && modules.length > 0 ? undefined : <ModuleOutline />)}
-        label={(modules) => triggerLabel(modules, showCountOnMultiple, placeholder)}
+        prependIcon={showPills ? undefined : <ModuleOutline />}
+        label={triggerLabel(value, showCountOnMultiple, placeholder)}
         tooltip={tooltip}
       >
-        {(modules) => {
-          const showPills = !showCountOnMultiple && modules.length > 0;
-          return showPills ? (
-            <div className="flex min-w-0 grow flex-wrap items-center gap-1">
-              {modules.map((module) => (
-                <span
-                  key={module.id}
-                  className="flex h-5 max-w-full items-center gap-1 rounded-sm bg-layer-3 px-1.5 text-caption-md-medium text-secondary"
-                >
-                  <ModuleOutline className="size-3.5 shrink-0" />
-                  <span className="truncate">{module.name}</span>
-                </span>
-              ))}
-            </div>
-          ) : (
-            (modules.length > 0 || !!placeholder) && (
-              <span className="min-w-0 grow truncate text-left">
-                {triggerLabel(modules, showCountOnMultiple, placeholder)}
+        {showPills ? (
+          <div className="flex min-w-0 grow flex-wrap items-center gap-1">
+            {value.map((module) => (
+              <span
+                key={module.id}
+                className="flex h-5 max-w-full items-center gap-1 rounded-sm bg-layer-3 px-1.5 text-caption-md-medium text-secondary"
+              >
+                <ModuleOutline className="size-3.5 shrink-0" />
+                <span className="truncate">{module.name}</span>
               </span>
-            )
-          );
-        }}
+            ))}
+          </div>
+        ) : (
+          (value.length > 0 || !!placeholder) && (
+            <span className="min-w-0 grow truncate text-left">
+              {triggerLabel(value, showCountOnMultiple, placeholder)}
+            </span>
+          )
+        )}
       </Select.Trigger>
     </Select>
   );

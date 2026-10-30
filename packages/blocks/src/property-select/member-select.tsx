@@ -203,8 +203,8 @@ export function MemberSelect(props: MemberSelectProps) {
   // A call-site can override the variant's default label visibility (e.g. avatars-only subscriber rows).
   const showLabel = showLabelProp ?? defaultShowLabel;
 
-  const selectedList = props.multiple ? props.value : props.value ? [props.value] : [];
-  const selectedIds = new Set(selectedList.map((member) => member.id));
+  const members = props.multiple ? props.value : props.value ? [props.value] : [];
+  const selectedIds = new Set(members.map((member) => member.id));
 
   const clearLabel = !props.multiple ? (props.clearLabel ?? (placeholder || "No assignee")) : "No assignee";
   const clearOption = useMemo<MemberOption>(
@@ -257,40 +257,36 @@ export function MemberSelect(props: MemberSelectProps) {
   };
 
   const trigger = (
-    <Select.Trigger<MemberOption>
+    <Select.Trigger
       disabled={disabled}
       variant={triggerVariant}
       tabIndex={tabIndex}
       data-testid={testId}
       className={cn(isAvatarGroup && AVATAR_GROUP_TRIGGER_CLASSNAME, className)}
-      prependIcon={(members) =>
-        members.length === 0 ? props.multiple ? <AssigneeOutline /> : <UserAltOutline /> : undefined
-      }
-      label={(members) => triggerLabel(members, showCountOnMultiple, placeholder)}
+      prependIcon={members.length === 0 ? props.multiple ? <AssigneeOutline /> : <UserAltOutline /> : undefined}
+      label={triggerLabel(members, showCountOnMultiple, placeholder)}
       tooltip={tooltip}
     >
-      {(members) => (
-        <>
-          {members.length > 0 && (
-            <span
-              className={cn("flex items-center gap-1", !(showLabel && (members.length > 0 || !!placeholder)) && "grow")}
-            >
-              {/* Resolve one more than `MAX_TRIGGER_AVATARS` so `AvatarGroup` can render the real extra face
+      <>
+        {members.length > 0 && (
+          <span
+            className={cn("flex items-center gap-1", !(showLabel && (members.length > 0 || !!placeholder)) && "grow")}
+          >
+            {/* Resolve one more than `MAX_TRIGGER_AVATARS` so `AvatarGroup` can render the real extra face
                   instead of a "+1" chip when `total` is exactly `max + 1`; `total` covers the rest. */}
-              <AvatarGroup size={avatarSize} max={MAX_TRIGGER_AVATARS} total={members.length}>
-                {members.slice(0, MAX_TRIGGER_AVATARS + 1).map((member) => (
-                  <Avatar key={member.id} alt={memberAvatarAlt(member)} src={member.avatar_url ?? ""} />
-                ))}
-              </AvatarGroup>
-            </span>
-          )}
-          {showLabel && (members.length > 0 || !!placeholder) && (
-            <span className="min-w-0 grow truncate text-left">
-              {triggerLabel(members, showCountOnMultiple, placeholder)}
-            </span>
-          )}
-        </>
-      )}
+            <AvatarGroup size={avatarSize} max={MAX_TRIGGER_AVATARS} total={members.length}>
+              {members.slice(0, MAX_TRIGGER_AVATARS + 1).map((member) => (
+                <Avatar key={member.id} alt={memberAvatarAlt(member)} src={member.avatar_url ?? ""} />
+              ))}
+            </AvatarGroup>
+          </span>
+        )}
+        {showLabel && (members.length > 0 || !!placeholder) && (
+          <span className="min-w-0 grow truncate text-left">
+            {triggerLabel(members, showCountOnMultiple, placeholder)}
+          </span>
+        )}
+      </>
     </Select.Trigger>
   );
 

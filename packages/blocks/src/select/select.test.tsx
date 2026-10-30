@@ -34,10 +34,10 @@ function renderSelect(extra: Record<string, unknown> = {}, triggerProps: Record<
     searchPlaceholder: "Search options",
     ...extra,
   } as ComponentProps<typeof Select<Option>>;
-  const trigger = { variant: "select-md", ...triggerProps } as ComponentProps<typeof Select.Trigger<Option>>;
+  const trigger = { variant: "select-md", ...triggerProps } as ComponentProps<typeof Select.Trigger>;
   render(
     <Select<Option> {...props}>
-      <Select.Trigger<Option> {...trigger}>
+      <Select.Trigger {...trigger}>
         <Select.Value />
       </Select.Trigger>
     </Select>
@@ -55,6 +55,17 @@ const popup = () => within(document.body);
 const trigger = (name: string = TRIGGER_NAME) =>
   screen.queryByRole("combobox", { name }) ?? screen.getByRole("button", { name });
 const search = () => popup().getByRole("combobox", { name: /search options/i });
+
+const inputOf = (element: HTMLElement): HTMLInputElement => {
+  if (!(element instanceof HTMLInputElement)) throw new Error("Expected an input");
+  return element;
+};
+
+type TChipsFieldConfig = {
+  lazyMount?: boolean;
+  single?: boolean;
+  getValues?: (params: SelectPaginationParams) => Promise<TPaginatedResponse<Option[]>>;
+};
 
 async function openSelect(user: ReturnType<typeof userEvent.setup>, name?: string) {
   await user.click(trigger(name));
@@ -493,7 +504,7 @@ describe("Select on Propel combobox", () => {
     // Base UI's own Enter handler closes a popup that has no active index — which is exactly the
     // submit case — and the close would then clear the query through `applyOpenSideEffects`.
     // `preventBaseUIHandler` in `handleSearchKeyDown` is what holds the documented contract.
-    expect((search() as HTMLInputElement).value).toBe("Backend");
+    expect(inputOf(search()).value).toBe("Backend");
   });
 
   it("calls onSearchSubmit on Enter from the search-input chips field too", async () => {
@@ -514,7 +525,7 @@ describe("Select on Propel combobox", () => {
         searchPlaceholder="Add options"
         onSearchSubmit={onSearchSubmit}
       >
-        <Select.Trigger<Option> variant="search-input" />
+        <Select.Trigger variant="search-input" />
       </Select>
     );
 
@@ -536,27 +547,37 @@ describe("Select on Propel combobox", () => {
    * input (so the popup keeps none of its own) and `lazyMount` is off, because the resting button
    * the lazy state renders is not an input at all.
    */
-  function renderChipsField(extra: Record<string, unknown> = {}) {
+  function renderChipsField(config: TChipsFieldConfig = { lazyMount: false }) {
     const onChange = vi.fn();
-    const props = {
-      multiple: true,
-      value: [],
-      getValues: () => options,
-      onChange,
+    const common = {
       getOptionValue: (o: Option) => o.id,
       getOptionLabel: (o: Option) => o.name,
-      lazyMount: false,
       showSearch: false,
       placeholder: TRIGGER_NAME,
       searchPlaceholder: "Add options",
-      ...extra,
-    } as unknown as ComponentProps<typeof Select<Option>>;
-    render(
-      <Select<Option> {...props}>
-        <Select.Trigger<Option> variant="search-input" />
-      </Select>
-    );
-    const field = screen.getByRole("combobox") as HTMLInputElement;
+      ...(config.lazyMount === undefined ? {} : { lazyMount: config.lazyMount }),
+    };
+    const trigger = <Select.Trigger variant="search-input" />;
+    if (config.single) {
+      render(
+        <Select<Option> {...common} value={null} getValues={() => options} onChange={onChange}>
+          {trigger}
+        </Select>
+      );
+    } else if (config.getValues) {
+      render(
+        <Select<Option> {...common} multiple value={[]} infinite getValues={config.getValues} onChange={onChange}>
+          {trigger}
+        </Select>
+      );
+    } else {
+      render(
+        <Select<Option> {...common} multiple value={[]} getValues={() => options} onChange={onChange}>
+          {trigger}
+        </Select>
+      );
+    }
+    const field = inputOf(screen.getByRole("combobox"));
     return { onChange, field };
   }
 
@@ -571,7 +592,7 @@ describe("Select on Propel combobox", () => {
     const user = userEvent.setup();
     // The chips field is a base-ui part with no resting form; under the default lazy mount it used
     // to render outside any Root and throw.
-    const { onChange, field } = renderChipsField({ lazyMount: undefined });
+    const { onChange, field } = renderChipsField({});
 
     expect(document.querySelector("[data-select-popup]")).toBeNull();
     await user.click(field);
@@ -598,7 +619,7 @@ describe("Select on Propel combobox", () => {
 
   it("keeps the first character typed into a closed single-select search-input field", async () => {
     const user = userEvent.setup();
-    const { field } = renderChipsField({ multiple: false, value: null });
+    const { field } = renderChipsField({ lazyMount: false, single: true });
 
     await closeWithFocusInField(user, field);
     await user.keyboard("19");
@@ -614,7 +635,7 @@ describe("Select on Propel combobox", () => {
       (_params: SelectPaginationParams): Promise<TPaginatedResponse<Option[]>> =>
         Promise.resolve({ results: options.slice(0, 5), next_page_results: false })
     );
-    const { field } = renderChipsField({ infinite: true, getValues });
+    const { field } = renderChipsField({ lazyMount: false, getValues });
 
     await closeWithFocusInField(user, field);
     await user.keyboard("ab");
@@ -655,7 +676,7 @@ describe("Select on Propel combobox", () => {
     renderSelect({ positionerZIndex: 120 });
 
     await openSelect(user);
-    const positioner = document.querySelector("[data-select-popup]")?.parentElement as HTMLElement | null;
+    const positioner = document.querySelector("[data-select-popup]")?.parentElement ?? null;
     expect(positioner?.style.zIndex).toBe("120");
   });
 
@@ -681,7 +702,11 @@ describe("Select on Propel combobox", () => {
   it("renders the caller's error copy", async () => {
     const user = userEvent.setup();
     const getValues = vi.fn().mockRejectedValue(new Error("nope"));
-    renderSelect({ infinite: true, getValues, errorMessage: (err: unknown) => `Failed: ${(err as Error).message}` });
+    renderSelect({
+      infinite: true,
+      getValues,
+      errorMessage: (err: unknown) => `Failed: ${err instanceof Error ? err.message : String(err)}`,
+    });
 
     await openSelect(user);
     expect(await popup().findByText("Failed: nope")).toBeDefined();
@@ -1053,11 +1078,11 @@ describe("Select on Propel combobox", () => {
 
   /** An infinite ids-in multi-select: the shape Ruling 46 prescribes for a paginated list. */
   function InfiniteIdsIn(props: {
-    getValues: (params: { cursor?: string; search?: string }) => Promise<unknown>;
+    getValues: (params: SelectPaginationParams) => Promise<TPaginatedResponse<Option[]>>;
     chips?: boolean;
   }) {
     const [ids, setIds] = useState<string[]>([]);
-    const selectProps = {
+    const selectProps: ComponentProps<typeof Select<Option>> = {
       multiple: true,
       infinite: true,
       defaultOpen: true,
@@ -1070,13 +1095,13 @@ describe("Select on Propel combobox", () => {
       getOptionLabel: (o: Option) => o.name,
       placeholder: TRIGGER_NAME,
       searchPlaceholder: "Search options",
-    } as unknown as ComponentProps<typeof Select<Option>>;
+    };
     return (
       <Select<Option> {...selectProps}>
         {props.chips ? (
-          <Select.Trigger<Option> variant="search-input" />
+          <Select.Trigger variant="search-input" />
         ) : (
-          <Select.Trigger<Option> variant="select-md">
+          <Select.Trigger variant="select-md">
             <Select.Value />
           </Select.Trigger>
         )}
@@ -1125,7 +1150,7 @@ describe("Select on Propel combobox", () => {
 
     function MultiInfinite() {
       const [ids, setIds] = useState<string[]>([]);
-      const props = {
+      const props: ComponentProps<typeof Select<Option>> = {
         multiple: true,
         infinite: true,
         getValues,
@@ -1135,10 +1160,10 @@ describe("Select on Propel combobox", () => {
         getOptionLabel: (o: Option) => o.name,
         placeholder: TRIGGER_NAME,
         searchPlaceholder: "Search options",
-      } as unknown as ComponentProps<typeof Select<Option>>;
+      };
       return (
         <Select<Option> {...props}>
-          <Select.Trigger<Option> variant="select-md">
+          <Select.Trigger variant="select-md">
             <Select.Value />
           </Select.Trigger>
         </Select>

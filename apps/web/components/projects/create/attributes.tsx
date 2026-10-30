@@ -49,16 +49,12 @@ function ProjectAttributes(props: Props) {
               pinSelected={false}
               estimateItemSize={64}
             >
-              <Select.Trigger<TNetworkChoice>
+              <Select.Trigger
                 variant="pill-md"
                 tabIndex={getIndex("network")}
-                prependIcon={(networks) =>
-                  networks[0] ? <ProjectNetworkIcon iconKey={networks[0].iconKey} /> : undefined
-                }
+                prependIcon={currentNetwork ? <ProjectNetworkIcon iconKey={currentNetwork.iconKey} /> : undefined}
               >
-                {(networks) => (
-                  <span className="truncate">{networks[0] ? t(networks[0].i18n_label) : t("select_network")}</span>
-                )}
+                <span className="truncate">{currentNetwork ? t(currentNetwork.i18n_label) : t("select_network")}</span>
               </Select.Trigger>
             </Select>
           );

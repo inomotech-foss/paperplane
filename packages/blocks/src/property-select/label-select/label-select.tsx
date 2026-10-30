@@ -98,6 +98,45 @@ export function LabelSelect(props: LabelSelectProps) {
     );
   };
 
+  const labels = value;
+  const triggerContent = () => {
+    if (labels.length === 0) {
+      return !!placeholder && <span className="min-w-0 grow truncate text-left">{placeholder}</span>;
+    }
+    // select / select-ghost variants show individual label pills matching the legacy chip style
+    if (isSelectKind) {
+      return (
+        <div className="flex min-w-0 grow flex-wrap items-center gap-1">
+          {labels.map((label) => (
+            <span
+              key={label.id}
+              className="flex h-6 shrink-0 items-center gap-1 rounded-md bg-label-grey-bg px-2 text-body-xs-medium text-label-grey-text"
+            >
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: label.color ?? "#000000" }} />
+              <span className="truncate">{label.name}</span>
+            </span>
+          ))}
+        </div>
+      );
+    }
+    // inline / table-cell: single dot + name for 1, first dot + the pluralised count for multiple
+    if (labels.length === 1) {
+      const label = labels[0];
+      return (
+        <>
+          <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: label.color ?? "#000000" }} />
+          <span className="min-w-0 grow truncate text-left">{label.name}</span>
+        </>
+      );
+    }
+    return (
+      <>
+        <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: labels[0].color ?? "#000000" }} />
+        <span className="min-w-0 grow truncate text-left">{t("labels_count", { count: labels.length })}</span>
+      </>
+    );
+  };
+
   return (
     <Select<LabelOption>
       infinite
@@ -119,14 +158,14 @@ export function LabelSelect(props: LabelSelectProps) {
           : undefined
       }
     >
-      <Select.Trigger<LabelOption>
+      <Select.Trigger
         disabled={disabled}
         variant={variant}
         tabIndex={tabIndex}
         className={className}
         data-testid={testId}
-        prependIcon={(labels) => (labels.length === 0 ? <LabelPropertyIcon /> : undefined)}
-        label={(labels) =>
+        prependIcon={labels.length === 0 ? <LabelPropertyIcon /> : undefined}
+        label={
           labels.length === 0
             ? (placeholder ?? "")
             : labels.length === 1
@@ -135,49 +174,7 @@ export function LabelSelect(props: LabelSelectProps) {
         }
         tooltip={tooltip}
       >
-        {(labels) => {
-          if (labels.length === 0) {
-            return !!placeholder && <span className="min-w-0 grow truncate text-left">{placeholder}</span>;
-          }
-          // select / select-ghost variants show individual label pills matching the legacy chip style
-          if (isSelectKind) {
-            return (
-              <div className="flex min-w-0 grow flex-wrap items-center gap-1">
-                {labels.map((label) => (
-                  <span
-                    key={label.id}
-                    className="flex h-6 shrink-0 items-center gap-1 rounded-md bg-label-grey-bg px-2 text-body-xs-medium text-label-grey-text"
-                  >
-                    <span
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{ backgroundColor: label.color ?? "#000000" }}
-                    />
-                    <span className="truncate">{label.name}</span>
-                  </span>
-                ))}
-              </div>
-            );
-          }
-          // inline / table-cell: single dot + name for 1, first dot + the pluralised count for multiple
-          if (labels.length === 1) {
-            const label = labels[0];
-            return (
-              <>
-                <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: label.color ?? "#000000" }} />
-                <span className="min-w-0 grow truncate text-left">{label.name}</span>
-              </>
-            );
-          }
-          return (
-            <>
-              <span
-                className="h-2 w-2 shrink-0 rounded-full"
-                style={{ backgroundColor: labels[0].color ?? "#000000" }}
-              />
-              <span className="min-w-0 grow truncate text-left">{t("labels_count", { count: labels.length })}</span>
-            </>
-          );
-        }}
+        {triggerContent()}
       </Select.Trigger>
     </Select>
   );

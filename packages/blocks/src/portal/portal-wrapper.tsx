@@ -84,7 +84,7 @@ export function PortalWrapper({
 
   // Fallback behavior for client-side rendering
   if (fallbackToDocument) {
-    return content ? (content as React.ReactElement) : null;
+    return content ? <>{content}</> : null;
   }
 
   return null;

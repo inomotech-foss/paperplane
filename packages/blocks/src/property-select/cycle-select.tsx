@@ -111,28 +111,20 @@ export function CycleSelect(props: CycleSelectProps) {
           : undefined
       }
     >
-      <Select.Trigger<CycleOption>
+      <Select.Trigger
         disabled={disabled}
         variant={variant}
         tabIndex={tabIndex}
         className={className}
-        prependIcon={(cycles) =>
-          cycles[0]?.status ? (
-            <CycleGroupIcon cycleGroup={cycles[0].status} className="size-3.5 shrink-0" />
-          ) : (
-            <CyclesOutline />
-          )
+        prependIcon={
+          value?.status ? <CycleGroupIcon cycleGroup={value.status} className="size-3.5 shrink-0" /> : <CyclesOutline />
         }
-        label={(cycles) => cycles[0]?.name ?? placeholder}
+        label={value?.name ?? placeholder}
         tooltip={tooltip}
       >
-        {(cycles) => {
-          const selected = cycles[0];
-          const label = selected?.name ?? placeholder;
-          return (
-            <>{(!!selected || !!placeholder) && <span className="min-w-0 grow truncate text-left">{label}</span>}</>
-          );
-        }}
+        {(!!value || !!placeholder) && (
+          <span className="min-w-0 grow truncate text-left">{value?.name ?? placeholder}</span>
+        )}
       </Select.Trigger>
     </Select>
   );

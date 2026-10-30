@@ -105,35 +105,29 @@ export function StateSelect(props: StateSelectProps) {
           : undefined
       }
     >
-      <Select.Trigger<StateOption>
+      <Select.Trigger
         disabled={disabled}
         variant={variant}
         tabIndex={tabIndex}
         className={className}
         data-testid={testId}
-        prependIcon={(states) => (
+        prependIcon={
           <StateGroupIcon
-            stateGroup={states[0]?.group ?? "backlog"}
-            color={states[0]?.color ?? "currentColor"}
-            percentage={states[0]?.order}
+            stateGroup={value?.group ?? "backlog"}
+            color={value?.color ?? "currentColor"}
+            percentage={value?.order}
             size="md"
           />
-        )}
-        label={(states) => states[0]?.name ?? placeholder}
+        }
+        label={value?.name ?? placeholder}
         tooltip={tooltip}
       >
-        {(states) => {
-          const selected = states[0];
-          const label = selected?.name ?? placeholder;
-          return (
-            (!!selected || !!placeholder) && (
-              <span className="flex min-w-0 grow items-center gap-2 truncate text-left">
-                <span className="truncate">{label}</span>
-                {selected?.name && appendElement ? appendElement : undefined}
-              </span>
-            )
-          );
-        }}
+        {(!!value || !!placeholder) && (
+          <span className="flex min-w-0 grow items-center gap-2 truncate text-left">
+            <span className="truncate">{value?.name ?? placeholder}</span>
+            {value?.name && appendElement ? appendElement : undefined}
+          </span>
+        )}
       </Select.Trigger>
     </Select>
   );

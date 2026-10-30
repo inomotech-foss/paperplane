@@ -41,8 +41,8 @@ function DurationDropdown({ placeholder = "Duration", onChange, value }: Props) 
       getOptionLabel={(option) => option.name}
       pinSelected={false}
     >
-      <Select.Trigger<TDurationOption> variant="select-md" prependIcon={<CalendarOutline aria-hidden="true" />}>
-        {(selected) => <span className="truncate">{selected[0]?.name ?? placeholder}</span>}
+      <Select.Trigger variant="select-md" prependIcon={<CalendarOutline aria-hidden="true" />}>
+        <span className="truncate">{selectedOption?.name ?? placeholder}</span>
       </Select.Trigger>
     </Select>
   );

@@ -151,6 +151,7 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .map(([key, value]) => key)
     .filter((l) => VIEW_OPTIONS.find((o) => o.key === l));
+  const selectedViewOptions = VIEW_OPTIONS.filter((o) => selectedLayouts.includes(o.key));
 
   const handleFormSubmit = async (formData: Partial<TProjectPublishSettings>) => {
     if (!selectedLayouts || selectedLayouts.length === 0) {
@@ -292,7 +293,7 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
                             <Select<TViewOption>
                               multiple
                               getValues={() => VIEW_OPTIONS}
-                              value={VIEW_OPTIONS.filter((o) => selectedLayouts.includes(o.key))}
+                              value={selectedViewOptions}
                               onChange={(keys) => {
                                 // The old dropdown refused to unset the last remaining layout; a
                                 // publish needs at least one, so an empty selection is a no-op.
@@ -307,12 +308,10 @@ export const PublishProjectModal = observer(function PublishProjectModal(props: 
                               showSearch={false}
                               pinSelected={false}
                             >
-                              <Select.Trigger<TViewOption> variant="select-ghost-md">
-                                {(options) => (
-                                  <span className="min-w-0 grow truncate text-left">
-                                    {options.map((o) => o.label).join(", ")}
-                                  </span>
-                                )}
+                              <Select.Trigger variant="select-ghost-md">
+                                <span className="min-w-0 grow truncate text-left">
+                                  {selectedViewOptions.map((o) => o.label).join(", ")}
+                                </span>
                               </Select.Trigger>
                             </Select>
                           </span>

@@ -16,38 +16,12 @@ import { isDismissalFromPreventedRegion, preservePanelPointerDefaults } from "./
  */
 type DismissalDetails = NonNullable<Parameters<typeof isDismissalFromPreventedRegion>[0]>;
 type DismissalReason = DismissalDetails["reason"];
-/** The native event Base UI pairs with a given reason. */
-type EventFor<Reason extends DismissalReason> = Extract<DismissalDetails, { reason: Reason }>["event"];
 
-/**
- * Every field Base UI publishes on a change-event details object. Only `event: null` needs the
- * assertion — Base UI types it non-nullable, and a reason with no origin event is exactly the case
- * these helpers have to tolerate.
- */
-function detailsFor<Reason extends DismissalReason>(reason: Reason, event: EventFor<Reason> | null): DismissalDetails {
-  return {
-    reason,
-    event,
-    cancel: () => {},
-    allowPropagation: () => {},
-    preventUnmountOnClose: () => {},
-    isCanceled: false,
-    isPropagationAllowed: false,
-    trigger: undefined,
-  } as Extract<DismissalDetails, { reason: Reason }>;
+function detailsFor(reason: DismissalReason, event: Event | null): DismissalDetails {
+  return { reason, event };
 }
 
-type PointerDownCaptureEvent = Parameters<typeof preservePanelPointerDefaults>[0];
-
-/**
- * The three fields the helper reads, checked against Base UI's own item event — the rest of a React
- * synthetic event is not constructible in a unit test.
- */
-function pointerDownCapture(
-  fields: Pick<PointerDownCaptureEvent, "target" | "currentTarget" | "preventBaseUIHandler">
-): PointerDownCaptureEvent {
-  return fields as PointerDownCaptureEvent;
-}
+const pointerDownCapture = (fields: Parameters<typeof preservePanelPointerDefaults>[0]) => fields;
 
 function buildTree() {
   document.body.replaceChildren();

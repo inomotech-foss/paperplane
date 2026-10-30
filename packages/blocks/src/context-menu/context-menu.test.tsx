@@ -69,6 +69,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+const isVirtualAnchor = (value: unknown): value is TVirtualAnchor =>
+  typeof value === "object" && value !== null && typeof Reflect.get(value, "getBoundingClientRect") === "function";
+
 describe("ContextMenu opening and anchoring", () => {
   it("stays closed until its parent is right-clicked", () => {
     render(<Harness items={[{ key: "copy", title: "Copy link", action: vi.fn() }]} />);
@@ -99,11 +102,13 @@ describe("ContextMenu opening and anchoring", () => {
     await openMenu(120, 80);
     const latest = surface.props.at(-1);
     expect(latest).toMatchObject({ side: "bottom", align: "start", sideOffset: 0 });
-    const anchor = latest?.anchor as TVirtualAnchor;
+    const anchor = latest?.anchor;
+    if (!isVirtualAnchor(anchor)) throw new Error("The surface has no virtual anchor");
     expect(anchor.getBoundingClientRect()).toMatchObject({ x: 120, y: 80, width: 0, height: 0 });
 
     rightClick(screen.getByTestId("target"), 300, 45);
-    const next = surface.props.at(-1)?.anchor as TVirtualAnchor;
+    const next = surface.props.at(-1)?.anchor;
+    if (!isVirtualAnchor(next)) throw new Error("The surface has no virtual anchor");
     expect(next.getBoundingClientRect()).toMatchObject({ x: 300, y: 45, width: 0, height: 0 });
   });
 

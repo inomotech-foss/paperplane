@@ -22,6 +22,7 @@ import type { TLineChartProps } from "@plane/types";
 import { getLegendProps } from "../components/legend";
 import { CustomXAxisTick, CustomYAxisTick } from "../components/tick";
 import { CustomTooltip } from "../components/tooltip";
+import { toChartKey, toChartLabel } from "../payload";
 
 export const LineChart = React.memo(function LineChart<K extends string, T extends string>(
   props: TLineChartProps<K, T>
@@ -144,11 +145,10 @@ export const LineChart = React.memo(function LineChart<K extends string, T exten
             allowDecimals={!!yAxis.allowDecimals}
           />
           {legend && (
-            // @ts-expect-error recharts types are not up to date
             <Legend
-              onMouseEnter={(payload) => setActiveLegend(payload.value)}
+              onMouseEnter={(payload) => setActiveLegend(toChartKey(payload.value))}
               onMouseLeave={() => setActiveLegend(null)}
-              formatter={(value) => itemLabels[value]}
+              formatter={(value: unknown) => (typeof value === "string" ? itemLabels[value] : undefined)}
               {...getLegendProps(legend)}
             />
           )}
@@ -162,7 +162,7 @@ export const LineChart = React.memo(function LineChart<K extends string, T exten
                 pointerEvents: "auto",
               }}
               content={({ active, label, payload }) => {
-                if (customTooltipContent) return customTooltipContent({ active, label, payload });
+                if (customTooltipContent) return customTooltipContent({ active, label: toChartLabel(label), payload });
                 return (
                   <CustomTooltip
                     active={active}

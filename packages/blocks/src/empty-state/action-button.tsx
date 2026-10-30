@@ -7,6 +7,7 @@
 import { Button } from "@makeplane/propel/components/button";
 import type { ButtonSize, ButtonVariant as PropelButtonVariant } from "@makeplane/propel/components/button";
 import type { ActionButton, ButtonVariant } from "./types";
+import { IS_DEV } from "../utils/is-dev";
 
 /**
  * propel: the in-repo Propel button is gone (Ruling 25). `EmptyState`'s public `ActionButton` keeps
@@ -30,12 +31,7 @@ const VARIANT_MAP: Record<ButtonVariant, PropelButtonVariant> = {
   link: "tertiary",
 };
 
-// Safely detects a non-production build without requiring @types/node — same idiom as
-// `combobox.tsx` and `@plane/blocks`' toast manager.
-const __DEV__ = (() => {
-  const proc = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process;
-  return proc ? proc.env?.NODE_ENV !== "production" : false;
-})();
+const __DEV__ = IS_DEV;
 
 type EmptyStateActionButtonProps = {
   action: ActionButton;
