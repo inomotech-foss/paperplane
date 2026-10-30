@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+
+from plane.importers.plane.tables import SKIPPED, TABLES, TableSpec, plan_columns
+
+
+def test_plan_columns_intersects_and_applies_transforms():
+    spec = TableSpec("issues", transforms={"archived_at": "archived_at::date"})
+    cols = plan_columns(
+        {"id": "uuid", "name": "text", "state_group": "text", "archived_at": "timestamptz"},
+        {"id", "name", "archived_at", "type_id"},
+        spec,
+    )
+    assert cols == ['archived_at::date AS "archived_at"', 'id AS "id"', 'name AS "name"']
+
+
+def test_plan_columns_fills_required_target_only_columns():
+    spec = TableSpec("projects", defaults={"issue_view": "true"})
+    assert 'true AS "issue_view"' in plan_columns({"id": "uuid"}, {"id", "issue_view"}, spec)
+
+
+def test_relation_type_transform_maps_definitions():
+    spec = next(s for s in TABLES if s.name == "issue_relations")
+    assert "work_item_relation_definitions" in spec.transforms["relation_type"]
+
+
+def test_every_listed_table_is_copied_or_skipped_once():
+    names = [s.name for s in TABLES]
+    assert len(names) == len(set(names))
+    assert not set(names) & set(SKIPPED)
