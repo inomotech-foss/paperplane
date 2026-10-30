@@ -8,7 +8,7 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { Workflow } from "lucide-react";
 // helpers
-import { readNumber, readString } from "@/helpers/narrow";
+import { readNumber, readString, readText } from "@/helpers/narrow";
 // types
 import type { TDiagramHandler, TDiagramSaveProps, TFileHandler } from "@/types";
 // local imports
@@ -24,7 +24,7 @@ function Diagram(props: NodeViewProps & TDiagramOptions) {
   const { attrs } = props.node;
   const assetId = readString(attrs, "asset_id") ?? null;
   const previewAssetId = readString(attrs, "preview_asset_id") ?? null;
-  const title = readString(attrs, "title") ?? null;
+  const title = readText(attrs, "title") ?? null;
   const width = readNumber(attrs, "width") ?? null;
   const height = readNumber(attrs, "height") ?? null;
   const [src, setSrc] = useState<string>();

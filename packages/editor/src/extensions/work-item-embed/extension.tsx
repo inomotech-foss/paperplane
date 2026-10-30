@@ -7,7 +7,7 @@
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 // helpers
-import { readString } from "@/helpers/narrow";
+import { readString, readText } from "@/helpers/narrow";
 // types
 import type { TWorkItemEmbedHandler } from "@/types";
 // local imports
@@ -29,8 +29,8 @@ function WorkItemEmbed(props: NodeViewProps & TWorkItemEmbedOptions) {
         {workItemId
           ? renderComponent?.({
               workItemId,
-              projectId: readString(attrs, EWorkItemEmbedAttributeNames.PROJECT_IDENTIFIER),
-              workspaceSlug: readString(attrs, EWorkItemEmbedAttributeNames.WORKSPACE_IDENTIFIER),
+              projectId: readText(attrs, EWorkItemEmbedAttributeNames.PROJECT_IDENTIFIER),
+              workspaceSlug: readText(attrs, EWorkItemEmbedAttributeNames.WORKSPACE_IDENTIFIER),
             })
           : null}
       </div>
