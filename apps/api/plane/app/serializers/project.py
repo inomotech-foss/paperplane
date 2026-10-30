@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+# Python imports
+import uuid
+
 # Third party imports
 from rest_framework import serializers
 
@@ -115,22 +118,22 @@ class ProjectLiteSerializer(BaseSerializer):
 
 class ProjectListSerializer(DynamicBaseSerializer):
     is_favorite = serializers.BooleanField(read_only=True)
-    sort_order = serializers.FloatField(read_only=True)
-    member_role = serializers.IntegerField(read_only=True)
-    anchor = serializers.CharField(read_only=True)
+    sort_order = serializers.FloatField(read_only=True, allow_null=True)
+    member_role = serializers.IntegerField(read_only=True, allow_null=True)
+    anchor = serializers.CharField(read_only=True, allow_null=True)
     members = serializers.SerializerMethodField()
     cover_image_url = serializers.CharField(read_only=True)
     inbox_view = serializers.BooleanField(read_only=True, source="intake_view")
     next_work_item_sequence = serializers.SerializerMethodField()
 
-    def get_members(self, obj):
+    def get_members(self, obj) -> list[uuid.UUID]:
         project_members = getattr(obj, "members_list", None)
         if project_members is not None:
             # Filter members by the project ID
             return [member.member_id for member in project_members if member.is_active and not member.member.is_bot]
         return []
 
-    def get_next_work_item_sequence(self, obj):
+    def get_next_work_item_sequence(self, obj) -> int:
         """Get the next sequence ID that will be assigned to a new issue"""
         max_sequence = IssueSequence.objects.filter(project_id=obj.id).aggregate(max_seq=Max("sequence"))["max_seq"]
         return (max_sequence + 1) if max_sequence else 1
@@ -138,6 +141,8 @@ class ProjectListSerializer(DynamicBaseSerializer):
     class Meta:
         model = Project
         fields = "__all__"
+        # ProjectViewSet annotates these on every queryset it serializes.
+        response_required = ("is_favorite",)
 
 
 class ProjectDetailSerializer(BaseSerializer):

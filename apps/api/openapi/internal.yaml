@@ -2516,7 +2516,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectMemberInvite'
+                $ref: '#/components/schemas/MessageResponse'
           description: ''
   /api/users/me/workspaces/invitations/:
     get:
@@ -4098,8 +4098,14 @@ paths:
           description: No response body
   /api/workspaces/{slug}/labels/:
     get:
-      operationId: workspaces_labels_retrieve
+      operationId: workspaces_labels_list
       parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -4111,7 +4117,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Label'
+          description: ''
   /api/workspaces/{slug}/members/:
     get:
       operationId: workspaces_members_list
@@ -4301,7 +4313,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectIdentifierCheck'
+          description: ''
     delete:
       operationId: workspaces_project_identifiers_destroy
       parameters:
@@ -4319,8 +4335,14 @@ paths:
           description: No response body
   /api/workspaces/{slug}/project-links/:
     get:
-      operationId: workspaces_project_links_retrieve
+      operationId: workspaces_project_links_list
       parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -4332,7 +4354,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectLink'
+          description: ''
   /api/workspaces/{slug}/project-members/:
     get:
       operationId: workspaces_project_members_retrieve
@@ -4355,8 +4383,14 @@ paths:
           description: ''
   /api/workspaces/{slug}/project-stats/:
     get:
-      operationId: workspaces_project_stats_retrieve
+      operationId: workspaces_project_stats_list
       parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -4368,7 +4402,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectStats'
+          description: ''
   /api/workspaces/{slug}/projects/:
     get:
       operationId: workspaces_projects_list
@@ -4395,7 +4435,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProjectList'
+                  $ref: '#/components/schemas/ProjectListItem'
           description: ''
     post:
       operationId: workspaces_projects_create
@@ -4657,7 +4697,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectArchive'
+          description: ''
     delete:
       operationId: workspaces_projects_archive_destroy
       parameters:
@@ -5151,8 +5195,12 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkLabels'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/bulk-delete-issues/:
     delete:
       operationId: workspaces_projects_bulk_delete_issues_destroy
@@ -7109,11 +7157,11 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '201':
+        '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectMemberInvite'
+                $ref: '#/components/schemas/MessageResponse'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/invitations/{pk}/:
     get:
@@ -7850,7 +7898,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueSequence'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/issue-types/:
     get:
       operationId: workspaces_projects_issue_types_list
@@ -9903,7 +9955,11 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMemberInvitePublic'
+          description: ''
     post:
       operationId: workspaces_projects_join_create
       parameters:
@@ -9931,10 +9987,14 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/links/:
     get:
-      operationId: workspaces_projects_links_retrieve
+      operationId: workspaces_projects_links_list
       parameters:
       - in: path
         name: project_id
@@ -9942,6 +10002,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -9953,7 +10019,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectLink'
+          description: ''
     post:
       operationId: workspaces_projects_links_create
       parameters:
@@ -9973,8 +10045,12 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectLink'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/links/{pk}/:
     patch:
       operationId: workspaces_projects_links_partial_update
@@ -10002,7 +10078,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectLink'
+          description: ''
     delete:
       operationId: workspaces_projects_links_destroy
       parameters:
@@ -10040,6 +10120,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -10051,7 +10137,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectLink'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/members/:
     get:
       operationId: workspaces_projects_members_list
@@ -10084,7 +10176,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProjectMemberAdmin'
+                  $ref: '#/components/schemas/ProjectMemberRole'
           description: ''
     post:
       operationId: workspaces_projects_members_create
@@ -10095,6 +10187,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -10120,7 +10218,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectMemberAdmin'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectMemberRole'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/members/{pk}/:
     get:
@@ -10152,7 +10252,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectMemberAdmin'
+                $ref: '#/components/schemas/ProjectMemberRetrieveResponse'
           description: ''
     patch:
       operationId: workspaces_projects_members_partial_update
@@ -10194,7 +10294,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectMemberAdmin'
+                $ref: '#/components/schemas/ProjectMemberDetail'
           description: ''
     delete:
       operationId: workspaces_projects_members_destroy
@@ -10240,26 +10340,11 @@ paths:
         required: true
       tags:
       - workspaces
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProjectMemberAdminRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ProjectMemberAdminRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ProjectMemberAdminRequest'
       security:
       - sessionAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProjectMemberAdmin'
-          description: ''
+        '204':
+          description: Left the project
   /api/workspaces/{slug}/projects/{project_id}/modules/:
     get:
       operationId: workspaces_projects_modules_list
@@ -12109,7 +12194,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMemberPreference'
+          description: ''
     patch:
       operationId: workspaces_projects_preferences_member_partial_update
       parameters:
@@ -12136,7 +12225,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMemberPreferences'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/project-deploy-boards/:
     get:
       operationId: workspaces_projects_project_deploy_boards_list
@@ -12167,9 +12260,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeployBoard'
+                $ref: '#/components/schemas/ProjectDeployBoardResponse'
           description: ''
     post:
       operationId: workspaces_projects_project_deploy_boards_create
@@ -12201,7 +12292,7 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '201':
+        '200':
           content:
             application/json:
               schema:
@@ -12351,7 +12442,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMember'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/project-views/:
     post:
       operationId: workspaces_projects_project_views_create
@@ -12372,8 +12467,8 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
-          description: No response body
+        '204':
+          description: Saved
   /api/workspaces/{slug}/projects/{project_id}/search-issues/:
     get:
       operationId: workspaces_projects_search_issues_retrieve
@@ -12975,7 +13070,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectUserProperty'
+          description: ''
     patch:
       operationId: workspaces_projects_user_properties_partial_update
       parameters:
@@ -12996,7 +13095,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectUserProperty'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/v2/issues/:
     get:
       operationId: workspaces_projects_v2_issues_retrieve
@@ -13314,7 +13417,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectList'
+                $ref: '#/components/schemas/ProjectListDetailResponse'
           description: ''
   /api/workspaces/{slug}/quick-links/:
     get:
@@ -13844,8 +13947,8 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '201':
-          description: No response body
+        '204':
+          description: Added to favorites
   /api/workspaces/{slug}/user-favorite-projects/{project_id}/:
     delete:
       operationId: workspaces_user_favorite_projects_destroy
@@ -15429,6 +15532,15 @@ components:
     BlankEnum:
       enum:
       - ''
+    BulkLabels:
+      type: object
+      properties:
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Label'
+      required:
+      - labels
     ChartTypeEnum:
       enum:
       - number
@@ -18066,6 +18178,16 @@ components:
             type: string
             format: uuid
           writeOnly: true
+    IssueSequence:
+      type: object
+      properties:
+        last_sequence:
+          type: integer
+        next_sequence:
+          type: integer
+      required:
+      - last_sequence
+      - next_sequence
     IssueSourceData:
       type: object
       properties:
@@ -20510,6 +20632,50 @@ components:
       - total_pages
       - total_results
       - extra_stats
+    PaginatedProjectListList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectList'
+        grouped_by:
+          type: string
+          nullable: true
+        sub_grouped_by:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+        next_cursor:
+          type: string
+        prev_cursor:
+          type: string
+        next_page_results:
+          type: boolean
+        prev_page_results:
+          type: boolean
+        count:
+          type: integer
+        total_pages:
+          type: integer
+        total_results:
+          type: integer
+        extra_stats:
+          nullable: true
+      required:
+      - results
+      - grouped_by
+      - sub_grouped_by
+      - total_count
+      - next_cursor
+      - prev_cursor
+      - next_page_results
+      - prev_page_results
+      - count
+      - total_pages
+      - total_results
+      - extra_stats
     PaginatedTrashedIssueList:
       type: object
       properties:
@@ -21928,6 +22094,81 @@ components:
       - is_subscribed_to_changelog
       - product_tour
       - user
+    ProjectArchive:
+      type: object
+      properties:
+        archived_at:
+          type: string
+      required:
+      - archived_at
+    ProjectDeployBoardResponse:
+      oneOf:
+      - $ref: '#/components/schemas/DeployBoard'
+      - $ref: '#/components/schemas/UnpublishedDeployBoard'
+    ProjectIdentifierCheck:
+      type: object
+      properties:
+        exists:
+          type: integer
+          description: Number of matching identifiers
+        identifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectIdentifierRow'
+      required:
+      - exists
+      - identifiers
+    ProjectIdentifierRow:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        project:
+          type: string
+          format: uuid
+      required:
+      - id
+      - name
+      - project
+    ProjectLink:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        url:
+          type: string
+        sort_order:
+          type: number
+          format: double
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+      required:
+      - id
+      - project
+      - title
+      - url
+      - sort_order
+      - created_at
+      - updated_at
     ProjectList:
       type: object
       properties:
@@ -21942,14 +22183,20 @@ components:
           type: number
           format: double
           readOnly: true
+          nullable: true
         member_role:
           type: integer
           readOnly: true
+          nullable: true
         anchor:
           type: string
           readOnly: true
+          nullable: true
         members:
-          type: string
+          type: array
+          items:
+            type: string
+            format: uuid
           readOnly: true
         cover_image_url:
           type: string
@@ -21959,7 +22206,7 @@ components:
           type: boolean
           readOnly: true
         next_work_item_sequence:
-          type: string
+          type: integer
           readOnly: true
         created_at:
           type: string
@@ -22080,6 +22327,10 @@ components:
           nullable: true
       required:
       - id
+      - is_favorite
+      - sort_order
+      - member_role
+      - anchor
       - members
       - cover_image_url
       - inbox_view
@@ -22120,6 +22371,96 @@ components:
       - cover_image_asset
       - estimate
       - default_state
+    ProjectListDetailResponse:
+      oneOf:
+      - type: array
+        items:
+          $ref: '#/components/schemas/ProjectList'
+      - $ref: '#/components/schemas/PaginatedProjectListList'
+    ProjectListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        identifier:
+          type: string
+        sort_order:
+          type: number
+          format: double
+          nullable: true
+        logo_props: {}
+        member_role:
+          type: integer
+          nullable: true
+        intake_count:
+          type: integer
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+        workspace:
+          type: string
+          format: uuid
+        cycle_view:
+          type: boolean
+        issue_views_view:
+          type: boolean
+        module_view:
+          type: boolean
+        page_view:
+          type: boolean
+        issue_view:
+          type: boolean
+        inbox_view:
+          type: boolean
+        guest_view_all_features:
+          type: boolean
+        project_lead:
+          type: string
+          format: uuid
+          nullable: true
+        network:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - id
+      - name
+      - identifier
+      - sort_order
+      - logo_props
+      - member_role
+      - intake_count
+      - archived_at
+      - workspace
+      - cycle_view
+      - issue_views_view
+      - module_view
+      - page_view
+      - issue_view
+      - inbox_view
+      - guest_view_all_features
+      - project_lead
+      - network
+      - created_at
+      - updated_at
+      - created_by
+      - updated_by
     ProjectListRequest:
       type: object
       properties:
@@ -22352,7 +22693,7 @@ components:
       - is_active
       - created_by
       - updated_by
-    ProjectMemberAdmin:
+    ProjectMemberAdminDetail:
       type: object
       properties:
         id:
@@ -22420,9 +22761,6 @@ components:
       - deleted_at
       - comment
       - role
-      - view_props
-      - default_props
-      - preferences
       - sort_order
       - is_active
       - created_by
@@ -22459,6 +22797,81 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
+    ProjectMemberDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          allOf:
+          - $ref: '#/components/schemas/WorkspaceLite'
+          readOnly: true
+        project:
+          allOf:
+          - $ref: '#/components/schemas/ProjectLite'
+          readOnly: true
+        member:
+          allOf:
+          - $ref: '#/components/schemas/UserLite'
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          minimum: 0
+          maximum: 32767
+        view_props: {}
+        default_props: {}
+        preferences: {}
+        sort_order:
+          type: number
+          format: double
+        is_active:
+          type: boolean
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          title: Last Modified By
+      required:
+      - id
+      - workspace
+      - project
+      - member
+      - created_at
+      - updated_at
+      - deleted_at
+      - comment
+      - role
+      - sort_order
+      - is_active
+      - created_by
+      - updated_by
     ProjectMemberInvite:
       type: object
       properties:
@@ -22531,6 +22944,45 @@ components:
       - role
       - created_by
       - updated_by
+    ProjectMemberInvitePublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        project:
+          allOf:
+          - $ref: '#/components/schemas/ProjectLite'
+          readOnly: true
+        workspace:
+          allOf:
+          - $ref: '#/components/schemas/WorkspaceLite'
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+          nullable: true
+        accepted:
+          type: boolean
+          readOnly: true
+        responded_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - id
+      - project
+      - workspace
+      - role
+      - message
+      - accepted
+      - responded_at
     ProjectMemberInviteRequest:
       type: object
       properties:
@@ -22573,6 +23025,38 @@ components:
       required:
       - email
       - token
+    ProjectMemberPreference:
+      type: object
+      properties:
+        preferences: {}
+        project_id:
+          type: string
+          format: uuid
+          readOnly: true
+        member_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        workspace_id:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - preferences
+      - project_id
+      - member_id
+      - workspace_id
+    ProjectMemberPreferences:
+      type: object
+      properties:
+        preferences: {}
+      required:
+      - preferences
+    ProjectMemberRetrieveResponse:
+      oneOf:
+      - $ref: '#/components/schemas/ProjectMemberAdminDetail'
+      - $ref: '#/components/schemas/ProjectMemberRole'
     ProjectMemberRole:
       type: object
       properties:
@@ -22668,6 +23152,94 @@ components:
         * `started` - Started
         * `completed` - Completed
         * `cancelled` - Cancelled
+    ProjectStats:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        total_issues:
+          type: integer
+          nullable: true
+        completed_issues:
+          type: integer
+          nullable: true
+        total_members:
+          type: integer
+          nullable: true
+        total_cycles:
+          type: integer
+          nullable: true
+        total_modules:
+          type: integer
+          nullable: true
+      required:
+      - id
+    ProjectUserProperty:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        filters: {}
+        display_filters: {}
+        display_properties: {}
+        rich_filters: {}
+        preferences: {}
+        sort_order:
+          type: number
+          format: double
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - id
+      - created_at
+      - updated_at
+      - deleted_at
+      - filters
+      - display_filters
+      - display_properties
+      - rich_filters
+      - preferences
+      - sort_order
+      - created_by
+      - updated_by
+      - project
+      - workspace
+      - user
     PropertyTypeEnum:
       enum:
       - TEXT
@@ -23841,6 +24413,53 @@ components:
       description: |-
         * `categories` - Categories
         * `points` - Points
+    UnpublishedDeployBoard:
+      type: object
+      properties:
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_comments_enabled:
+          type: boolean
+        is_reactions_enabled:
+          type: boolean
+        is_votes_enabled:
+          type: boolean
+        view_props:
+          nullable: true
+        is_activity_enabled:
+          type: boolean
+        is_disabled:
+          type: boolean
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+        intake:
+          type: string
+          format: uuid
+          nullable: true
+        intake_issue_type:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - deleted_at
+      - is_comments_enabled
+      - is_reactions_enabled
+      - is_votes_enabled
+      - view_props
+      - is_activity_enabled
+      - is_disabled
+      - created_by
+      - updated_by
+      - intake
+      - intake_issue_type
     UnreadNotificationCount:
       type: object
       properties:

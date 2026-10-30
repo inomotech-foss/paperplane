@@ -9,12 +9,14 @@ import random
 from django.db import IntegrityError
 
 # Third Party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework import status
 
 # Module imports
 from .. import BaseViewSet, BaseAPIView
 from plane.app.serializers import LabelSerializer
+from plane.app.serializers.response.project import BulkLabelsSerializer
 from plane.app.permissions import allow_permission, ProjectBasePermission, ROLE
 from plane.db.models import Project, Label
 from plane.utils.cache import invalidate_cache
@@ -88,6 +90,7 @@ class LabelViewSet(BaseViewSet):
 
 
 class BulkCreateIssueLabelsEndpoint(BaseAPIView):
+    @extend_schema(responses={201: BulkLabelsSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         label_data = request.data.get("label_data", [])

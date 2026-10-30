@@ -3,6 +3,7 @@
 
 from django.db.models import Max
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -29,11 +30,13 @@ def _project_links(slug, project_id):
 
 
 class ProjectLinkEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ProjectLinkSerializer(many=True)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id):
         links = _project_links(slug, project_id)
         return Response(ProjectLinkSerializer(links, many=True).data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={201: ProjectLinkSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         project = _active_project(slug, project_id)
@@ -48,6 +51,7 @@ class ProjectLinkEndpoint(BaseAPIView):
 
 
 class ProjectLinkDetailEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ProjectLinkSerializer})
     @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, pk):
         link = _project_links(slug, project_id).get(pk=pk)
@@ -64,6 +68,7 @@ class ProjectLinkDetailEndpoint(BaseAPIView):
 
 
 class ProjectLinkReorderEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ProjectLinkSerializer(many=True)})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         project = _active_project(slug, project_id)
@@ -90,6 +95,7 @@ class ProjectLinkReorderEndpoint(BaseAPIView):
 
 
 class WorkspaceProjectLinkEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ProjectLinkSerializer(many=True)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def get(self, request, slug):
         links = ProjectLink.objects.filter(

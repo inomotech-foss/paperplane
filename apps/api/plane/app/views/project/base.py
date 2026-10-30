@@ -12,6 +12,7 @@ from django.db.models import Exists, F, OuterRef, Prefetch, Q, Subquery, Count
 from django.utils import timezone
 
 # Third Party imports
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -23,6 +24,14 @@ from plane.app.serializers import (
     ProjectSerializer,
 )
 from plane.app.serializers.favorite import get_favorite_entities
+from plane.app.serializers.response.project import (
+    IssueSequenceSerializer,
+    ProjectArchiveSerializer,
+    ProjectDeployBoardResponse,
+    ProjectIdentifierCheckSerializer,
+    ProjectListDetailResponse,
+    ProjectListItemSerializer,
+)
 from plane.app.serializers.project import intake_form_error
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.bgtasks.recent_visited_task import recent_visited_task
@@ -107,6 +116,7 @@ class ProjectViewSet(BaseViewSet):
             .distinct()
         )
 
+    @extend_schema(responses={200: ProjectListDetailResponse})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list_detail(self, request, slug):
         fields = [field for field in request.GET.get("fields", "").split(",") if field]
@@ -151,6 +161,7 @@ class ProjectViewSet(BaseViewSet):
         projects = ProjectListSerializer(projects, many=True, fields=fields if fields else None).data
         return Response(projects, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: ProjectListItemSerializer(many=True)})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list(self, request, slug):
         sort_order = ProjectUserProperty.objects.filter(
@@ -436,6 +447,7 @@ class ProjectViewSet(BaseViewSet):
 
 
 class ProjectArchiveUnarchiveEndpoint(BaseAPIView):
+    @extend_schema(request=None, responses={200: ProjectArchiveSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id):
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
@@ -455,6 +467,7 @@ class ProjectArchiveUnarchiveEndpoint(BaseAPIView):
 class ProjectIssueSequenceEndpoint(BaseAPIView):
     """Move the number the next work item created in a project receives."""
 
+    @extend_schema(responses={200: IssueSequenceSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
@@ -478,6 +491,7 @@ class ProjectIssueSequenceEndpoint(BaseAPIView):
 
 
 class ProjectIdentifierEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ProjectIdentifierCheckSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug):
         name = request.GET.get("name", "").strip().upper()
@@ -508,6 +522,7 @@ class ProjectIdentifierEndpoint(BaseAPIView):
 
 
 class ProjectUserViewsEndpoint(BaseAPIView):
+    @extend_schema(responses={204: OpenApiResponse(description="Saved")})
     def post(self, request, slug, project_id):
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
 
@@ -547,6 +562,7 @@ class ProjectFavoritesViewSet(BaseViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    @extend_schema(responses={204: OpenApiResponse(description="Added to favorites")})
     def create(self, request, slug):
         project_id = request.data.get("project")
         # 404 unless the project is in this workspace and visible to the user
@@ -587,6 +603,7 @@ class DeployBoardViewSet(BaseViewSet):
             project_id=self.kwargs.get("project_id"),
         )
 
+    @extend_schema(responses={200: ProjectDeployBoardResponse})
     def list(self, request, slug, project_id):
         project_deploy_board = DeployBoard.objects.filter(
             entity_name="project", entity_identifier=project_id, workspace__slug=slug
@@ -595,6 +612,7 @@ class DeployBoardViewSet(BaseViewSet):
         serializer = DeployBoardSerializer(project_deploy_board)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: DeployBoardSerializer})
     def create(self, request, slug, project_id):
         comments = request.data.get("is_comments_enabled", False)
         reactions = request.data.get("is_reactions_enabled", False)

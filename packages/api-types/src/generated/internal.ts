@@ -1787,7 +1787,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_labels_retrieve"];
+        get: operations["workspaces_labels_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1899,7 +1899,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_project_links_retrieve"];
+        get: operations["workspaces_project_links_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1931,7 +1931,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_project_stats_retrieve"];
+        get: operations["workspaces_project_stats_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3435,7 +3435,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_links_retrieve"];
+        get: operations["workspaces_projects_links_list"];
         put?: never;
         post: operations["workspaces_projects_links_create"];
         delete?: never;
@@ -5312,6 +5312,9 @@ export interface components {
         };
         /** @enum {unknown} */
         BlankEnum: "";
+        BulkLabels: {
+            labels: components["schemas"]["Label"][];
+        };
         /**
          * @description * `number` - Number
          *     * `bar` - Bar
@@ -6434,6 +6437,10 @@ export interface components {
         IssueRelationRequest: {
             assignee_ids?: string[];
         };
+        IssueSequence: {
+            last_sequence: number;
+            next_sequence: number;
+        };
         IssueSourceData: {
             source: string | null;
             source_email: string | null;
@@ -7494,6 +7501,20 @@ export interface components {
             total_results: number;
             extra_stats: unknown;
         };
+        PaginatedProjectListList: {
+            results: components["schemas"]["ProjectList"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
         PaginatedTrashedIssueList: {
             results: components["schemas"]["TrashedIssue"][];
             grouped_by: string | null;
@@ -8174,18 +8195,50 @@ export interface components {
             /** Format: uuid */
             readonly user: string;
         };
+        ProjectArchive: {
+            archived_at: string;
+        };
+        ProjectDeployBoardResponse: components["schemas"]["DeployBoard"] | components["schemas"]["UnpublishedDeployBoard"];
+        ProjectIdentifierCheck: {
+            /** @description Number of matching identifiers */
+            exists: number;
+            identifiers: components["schemas"]["ProjectIdentifierRow"][];
+        };
+        ProjectIdentifierRow: {
+            id: number;
+            name: string;
+            /** Format: uuid */
+            project: string;
+        };
+        ProjectLink: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly project: string;
+            title: string;
+            url: string;
+            /** Format: double */
+            readonly sort_order: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+        };
         ProjectList: {
             /** Format: uuid */
             readonly id: string;
-            readonly is_favorite?: boolean;
+            readonly is_favorite: boolean;
             /** Format: double */
-            readonly sort_order?: number;
-            readonly member_role?: number;
-            readonly anchor?: string;
-            readonly members: string;
+            readonly sort_order: number | null;
+            readonly member_role: number | null;
+            readonly anchor: string | null;
+            readonly members: string[];
             readonly cover_image_url: string | null;
             readonly inbox_view: boolean;
-            readonly next_work_item_sequence: string;
+            readonly next_work_item_sequence: number;
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -8245,6 +8298,40 @@ export interface components {
             estimate: string | null;
             /** Format: uuid */
             default_state: string | null;
+        };
+        ProjectListDetailResponse: components["schemas"]["ProjectList"][] | components["schemas"]["PaginatedProjectListList"];
+        ProjectListItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            identifier: string;
+            /** Format: double */
+            sort_order: number | null;
+            logo_props: unknown;
+            member_role: number | null;
+            intake_count: number;
+            /** Format: date-time */
+            archived_at: string | null;
+            /** Format: uuid */
+            workspace: string;
+            cycle_view: boolean;
+            issue_views_view: boolean;
+            module_view: boolean;
+            page_view: boolean;
+            issue_view: boolean;
+            inbox_view: boolean;
+            guest_view_all_features: boolean;
+            /** Format: uuid */
+            project_lead: string | null;
+            network: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
         };
         ProjectListRequest: {
             /** Format: date-time */
@@ -8344,7 +8431,7 @@ export interface components {
              */
             readonly updated_by: string | null;
         };
-        ProjectMemberAdmin: {
+        ProjectMemberAdminDetail: {
             /** Format: uuid */
             readonly id: string;
             readonly workspace: components["schemas"]["WorkspaceLite"];
@@ -8361,9 +8448,9 @@ export interface components {
             deleted_at: string | null;
             comment: string | null;
             role: components["schemas"]["RoleEnum"];
-            view_props: unknown;
-            default_props: unknown;
-            preferences: unknown;
+            view_props?: unknown;
+            default_props?: unknown;
+            preferences?: unknown;
             /** Format: double */
             sort_order: number;
             is_active: boolean;
@@ -8394,6 +8481,37 @@ export interface components {
              */
             updated_by?: string | null;
         };
+        ProjectMemberDetail: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly workspace: components["schemas"]["WorkspaceLite"];
+            readonly project: components["schemas"]["ProjectLite"];
+            readonly member: components["schemas"]["UserLite"] | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            readonly deleted_at: string | null;
+            comment: string | null;
+            role: components["schemas"]["RoleEnum"];
+            view_props?: unknown;
+            default_props?: unknown;
+            preferences?: unknown;
+            /** Format: double */
+            sort_order: number;
+            is_active: boolean;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+        };
         ProjectMemberInvite: {
             /** Format: uuid */
             readonly id: string;
@@ -8423,6 +8541,17 @@ export interface components {
              */
             updated_by: string | null;
         };
+        ProjectMemberInvitePublic: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly project: components["schemas"]["ProjectLite"];
+            readonly workspace: components["schemas"]["WorkspaceLite"];
+            readonly role: components["schemas"]["RoleEnum"];
+            readonly message: string | null;
+            readonly accepted: boolean;
+            /** Format: date-time */
+            readonly responded_at: string | null;
+        };
         ProjectMemberInviteRequest: {
             /** Format: date-time */
             deleted_at?: string | null;
@@ -8441,6 +8570,19 @@ export interface components {
              */
             updated_by?: string | null;
         };
+        ProjectMemberPreference: {
+            preferences: unknown;
+            /** Format: uuid */
+            readonly project_id: string;
+            /** Format: uuid */
+            readonly member_id: string | null;
+            /** Format: uuid */
+            readonly workspace_id: string;
+        };
+        ProjectMemberPreferences: {
+            preferences: unknown;
+        };
+        ProjectMemberRetrieveResponse: components["schemas"]["ProjectMemberAdminDetail"] | components["schemas"]["ProjectMemberRole"];
         ProjectMemberRole: {
             /** Format: uuid */
             readonly id: string;
@@ -8482,6 +8624,48 @@ export interface components {
          * @enum {string}
          */
         ProjectStateGroupEnum: "backlog" | "unstarted" | "started" | "completed" | "cancelled";
+        ProjectStats: {
+            /** Format: uuid */
+            id: string;
+            total_issues?: number | null;
+            completed_issues?: number | null;
+            total_members?: number | null;
+            total_cycles?: number | null;
+            total_modules?: number | null;
+        };
+        ProjectUserProperty: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            filters: unknown;
+            display_filters: unknown;
+            display_properties: unknown;
+            rich_filters: unknown;
+            preferences: unknown;
+            /** Format: double */
+            sort_order: number;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            readonly project: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly user: string;
+        };
         /**
          * @description * `TEXT` - Text
          *     * `DECIMAL` - Decimal
@@ -9070,6 +9254,24 @@ export interface components {
          * @enum {string}
          */
         TypeEnum: "categories" | "points";
+        UnpublishedDeployBoard: {
+            /** Format: date-time */
+            deleted_at: string | null;
+            is_comments_enabled: boolean;
+            is_reactions_enabled: boolean;
+            is_votes_enabled: boolean;
+            view_props: unknown;
+            is_activity_enabled: boolean;
+            is_disabled: boolean;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
+            /** Format: uuid */
+            intake: string | null;
+            /** Format: uuid */
+            intake_issue_type: string | null;
+        };
         UnreadNotificationCount: {
             total_unread_notifications_count: number;
             mention_unread_notifications_count: number;
@@ -12410,7 +12612,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectMemberInvite"];
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
         };
@@ -13945,9 +14147,12 @@ export interface operations {
             };
         };
     };
-    workspaces_labels_retrieve: {
+    workspaces_labels_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -13956,12 +14161,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Label"][];
+                };
             };
         };
     };
@@ -14138,12 +14344,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectIdentifierCheck"];
+                };
             };
         };
     };
@@ -14167,9 +14374,12 @@ export interface operations {
             };
         };
     };
-    workspaces_project_links_retrieve: {
+    workspaces_project_links_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -14178,12 +14388,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectLink"][];
+                };
             };
         };
     };
@@ -14208,9 +14419,12 @@ export interface operations {
             };
         };
     };
-    workspaces_project_stats_retrieve: {
+    workspaces_project_stats_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -14219,12 +14433,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectStats"][];
+                };
             };
         };
     };
@@ -14247,7 +14462,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectList"][];
+                    "application/json": components["schemas"]["ProjectListItem"][];
                 };
             };
         };
@@ -14474,12 +14689,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectArchive"];
+                };
             };
         };
     };
@@ -14887,12 +15103,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["BulkLabels"];
+                };
             };
         };
     };
@@ -16345,12 +16562,12 @@ export interface operations {
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectMemberInvite"];
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
         };
@@ -16890,12 +17107,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["IssueSequence"];
+                };
             };
         };
     };
@@ -18344,12 +18562,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectMemberInvitePublic"];
+                };
             };
         };
     };
@@ -18366,18 +18585,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
-    workspaces_projects_links_retrieve: {
+    workspaces_projects_links_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -18387,12 +18610,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectLink"][];
+                };
             };
         };
     };
@@ -18408,12 +18632,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectLink"];
+                };
             };
         };
     };
@@ -18452,18 +18677,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectLink"];
+                };
             };
         };
     };
     workspaces_projects_links_reorder_create: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -18473,12 +18702,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectLink"][];
+                };
             };
         };
     };
@@ -18502,14 +18732,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectMemberAdmin"][];
+                    "application/json": components["schemas"]["ProjectMemberRole"][];
                 };
             };
         };
     };
     workspaces_projects_members_create: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -18530,7 +18763,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectMemberAdmin"];
+                    "application/json": components["schemas"]["ProjectMemberRole"][];
                 };
             };
         };
@@ -18553,7 +18786,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectMemberAdmin"];
+                    "application/json": components["schemas"]["ProjectMemberRetrieveResponse"];
                 };
             };
         };
@@ -18604,7 +18837,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectMemberAdmin"];
+                    "application/json": components["schemas"]["ProjectMemberDetail"];
                 };
             };
         };
@@ -18619,21 +18852,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["ProjectMemberAdminRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["ProjectMemberAdminRequest"];
-                "multipart/form-data": components["schemas"]["ProjectMemberAdminRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            200: {
+            /** @description Left the project */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProjectMemberAdmin"];
-                };
+                content?: never;
             };
         };
     };
@@ -19911,12 +20137,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectMemberPreference"];
+                };
             };
         };
     };
@@ -19933,12 +20160,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectMemberPreferences"];
+                };
             };
         };
     };
@@ -19962,7 +20190,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeployBoard"][];
+                    "application/json": components["schemas"]["ProjectDeployBoardResponse"];
                 };
             };
         };
@@ -19985,7 +20213,7 @@ export interface operations {
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -20102,12 +20330,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectMember"];
+                };
             };
         };
     };
@@ -20123,8 +20352,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Saved */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -20619,12 +20848,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectUserProperty"];
+                };
             };
         };
     };
@@ -20640,12 +20870,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectUserProperty"];
+                };
             };
         };
     };
@@ -20887,7 +21118,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectList"];
+                    "application/json": components["schemas"]["ProjectListDetailResponse"];
                 };
             };
         };
@@ -21354,8 +21585,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            201: {
+            /** @description Added to favorites */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };

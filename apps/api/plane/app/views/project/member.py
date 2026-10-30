@@ -5,7 +5,7 @@
 # Third Party imports
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.plumbing import build_basic_type, build_object_type
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Min
@@ -20,6 +20,11 @@ from plane.app.serializers import (
 )
 
 from plane.app.permissions import WorkspaceUserPermission
+from plane.app.serializers.response.project import (
+    ProjectMemberDetailSerializer,
+    ProjectMemberPreferencesSerializer,
+    ProjectMemberRetrieveResponse,
+)
 
 from plane.db.models import Project, ProjectMember, ProjectUserProperty, WorkspaceMember
 from plane.bgtasks.project_add_user_email_task import project_add_user_email
@@ -57,6 +62,7 @@ class ProjectMemberViewSet(BaseViewSet):
         )
 
     @allow_permission([ROLE.ADMIN])
+    @extend_schema(responses={201: ProjectMemberRoleSerializer(many=True)})
     def create(self, request, slug, project_id):
         # Get the list of members to be added to the project and their roles i.e. the user_id and the role
         members = request.data.get("members", [])
@@ -166,6 +172,7 @@ class ProjectMemberViewSet(BaseViewSet):
         # Return the serialized data
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(responses={200: ProjectMemberRoleSerializer(many=True)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def list(self, request, slug, project_id):
         # Get the list of project members for the project
@@ -181,6 +188,7 @@ class ProjectMemberViewSet(BaseViewSet):
         serializer = ProjectMemberRoleSerializer(project_members, fields=("id", "member", "role"), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: ProjectMemberRetrieveResponse})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def retrieve(self, request, slug, project_id, pk):
         requesting_project_member = ProjectMember.objects.get(
@@ -218,6 +226,7 @@ class ProjectMemberViewSet(BaseViewSet):
         )
 
     # Only project admins (or workspace admins in the project) may edit membership rows
+    @extend_schema(responses={200: ProjectMemberDetailSerializer})
     @allow_permission([ROLE.ADMIN])
     def partial_update(self, request, slug, project_id, pk):
         project_member = ProjectMember.objects.get(pk=pk, workspace__slug=slug, project_id=project_id, is_active=True)
@@ -346,6 +355,7 @@ class ProjectMemberViewSet(BaseViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Left the project")})
     def leave(self, request, slug, project_id):
         project_member = ProjectMember.objects.get(
             workspace__slug=slug,
@@ -375,6 +385,7 @@ class ProjectMemberViewSet(BaseViewSet):
 
 
 class ProjectMemberUserEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ProjectMemberSerializer})
     def get(self, request, slug, project_id):
         project_member = ProjectMember.objects.get(
             project_id=project_id,
@@ -420,6 +431,7 @@ class ProjectMemberPreferenceEndpoint(BaseAPIView):
             workspace__slug=slug,
         )
 
+    @extend_schema(responses={200: ProjectMemberPreferencesSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id, member_id):
         # Preferences are personal: a member may only modify their own.
@@ -438,6 +450,7 @@ class ProjectMemberPreferenceEndpoint(BaseAPIView):
             return Response({"preferences": serializer.data["preferences"]}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses={200: ProjectMemberPreferenceSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, member_id):
         # Preferences are personal: a member may only read their own.
