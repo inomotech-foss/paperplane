@@ -104,7 +104,6 @@
     {
       "files": [
         "apps/admin/**",
-        "apps/live/**",
         "apps/space/**",
         "apps/web/**",
         "packages/blocks/**",

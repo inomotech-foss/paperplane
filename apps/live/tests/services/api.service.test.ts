@@ -4,12 +4,14 @@
 import { createServer } from "node:http";
 import type { IncomingMessage, Server, ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { AppError } from "@/lib/errors";
 import { APIService } from "@/services/api.service";
+import { ProjectPageService } from "@/services/page/project-page.service";
 import type { HttpMethod, RequestOptions } from "@/services/api.service";
 
-vi.mock("@/env", () => ({ env: { API_BASE_URL: "http://unused.test" } }));
+const env = vi.hoisted(() => ({ API_BASE_URL: "http://unused.test" }));
+vi.mock("@/env", () => ({ env }));
 
 type Seen = { method: string | undefined; url: string | undefined; cookie: string | undefined; body: string };
 
@@ -41,6 +43,7 @@ beforeAll(async () => {
   const address: AddressInfo | string | null = server.address();
   if (address === null || typeof address === "string") throw new Error("server has no port");
   baseURL = `http://127.0.0.1:${address.port}/`;
+  env.API_BASE_URL = baseURL;
 });
 
 afterAll(() => {
@@ -82,7 +85,9 @@ describe("APIService", () => {
 
   it("throws an AppError with the status, method, path and body message", async () => {
     handle = json(413, { message: "too large" });
-    const error: unknown = await new TestService(baseURL).send("PATCH", "/api/pages/1/description/").catch((e) => e);
+    const error: unknown = await new TestService(baseURL)
+      .send("PATCH", "/api/pages/1/description/")
+      .catch((e: unknown) => e);
     expect(error).toBeInstanceOf(AppError);
     expect(error).toMatchObject({
       message: "too large",
@@ -124,8 +129,69 @@ describe("APIService", () => {
     ).rejects.toMatchObject({ code: "ABORT_ERROR" });
   });
 
+  it("throws an ABORT_ERROR AppError when the caller aborts while waiting for the response", async () => {
+    handle = (_req, res) => {
+      setTimeout(() => res.end(), 200);
+    };
+    const controller = new AbortController();
+    const sending = new TestService(baseURL).send("PATCH", "/api/x/", { signal: controller.signal });
+    setTimeout(() => controller.abort(), 20);
+    await expect(sending).rejects.toMatchObject({ code: "ABORT_ERROR" });
+  });
+
+  describe("with a short timeout", () => {
+    const timeout = AbortSignal.timeout.bind(AbortSignal);
+    beforeAll(() => {
+      vi.spyOn(AbortSignal, "timeout").mockImplementation(() => timeout(50));
+    });
+    afterEach(() => {
+      handle = (_req, res) => res.end();
+    });
+    afterAll(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("throws an ECONNABORTED AppError when the response does not arrive in time", async () => {
+      handle = (_req, res) => {
+        setTimeout(() => res.end(), 200);
+      };
+      await expect(new TestService(baseURL).send("GET", "/api/x/")).rejects.toMatchObject({
+        code: "ECONNABORTED",
+        method: "GET",
+        url: "/api/x/",
+      });
+    });
+
+    it("throws an ECONNABORTED AppError when the body does not arrive in time", async () => {
+      handle = (_req, res) => {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.write('{"partial":');
+        setTimeout(() => res.end("true}"), 200);
+      };
+      const error: unknown = await new TestService(baseURL).sendJson("GET", "/api/x/").catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(AppError);
+      expect(error).toMatchObject({ code: "ECONNABORTED", method: "GET", url: "/api/x/" });
+    });
+  });
+
+  it("reads a binary page description", async () => {
+    const bytes = Buffer.from([0, 1, 2, 254, 255]);
+    handle = (_req, res) => {
+      res.writeHead(200, { "Content-Type": "application/octet-stream" });
+      res.end(bytes);
+    };
+    const service = new ProjectPageService({ workspaceSlug: "w", projectId: "p", cookie: "session=abc" });
+    const description = await service.fetchDescriptionBinary("1");
+    expect(description.equals(bytes)).toBe(true);
+    expect(seen).toMatchObject({
+      method: "GET",
+      url: "/api/workspaces/w/projects/p/pages/1/description/",
+      cookie: "session=abc",
+    });
+  });
+
   it("throws an AppError without a status on a network error", async () => {
-    const error: unknown = await new TestService("http://127.0.0.1:1").send("GET", "/api/x/").catch((e) => e);
+    const error: unknown = await new TestService("http://127.0.0.1:1").send("GET", "/api/x/").catch((e: unknown) => e);
     expect(error).toBeInstanceOf(AppError);
     expect(error).toMatchObject({ statusCode: undefined, method: "GET", url: "/api/x/" });
   });

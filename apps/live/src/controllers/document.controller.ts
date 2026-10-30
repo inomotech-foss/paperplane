@@ -21,7 +21,7 @@ const convertDocumentSchema = z.object({
     .refine((html) => html.trim().length > 0, "HTML content cannot be just whitespace")
     .refine((html) => html.includes("<") && html.includes(">"), "Content must be valid HTML"),
   variant: z.enum(["rich", "document"]),
-});
+}) satisfies z.ZodType<TConvertDocumentRequestBody>;
 
 @Controller("/convert-document")
 export class DocumentController {
@@ -29,7 +29,7 @@ export class DocumentController {
   async convertDocument(req: Request, res: Response) {
     try {
       // Validate request body
-      const validatedData = convertDocumentSchema.parse(req.body as TConvertDocumentRequestBody);
+      const validatedData = convertDocumentSchema.parse(req.body);
       const { description_html, variant } = validatedData;
 
       // Process document conversion

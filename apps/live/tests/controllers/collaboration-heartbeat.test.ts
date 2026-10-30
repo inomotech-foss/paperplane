@@ -1,49 +1,69 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { EventEmitter } from "node:events";
-import type { Hocuspocus } from "@hocuspocus/server";
-import type { Request } from "express";
-import type WebSocket from "ws";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { once } from "node:events";
+import type { IncomingMessage } from "node:http";
+import { Hocuspocus } from "@hocuspocus/server";
+import { WebSocket, WebSocketServer } from "ws";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { CollaborationController } from "@/controllers/collaboration.controller";
 
-class FakeSocket extends EventEmitter {
-  ping = vi.fn();
-  terminate = vi.fn();
-  close = vi.fn();
-}
+let wss: WebSocketServer;
+const clients: WebSocket[] = [];
 
-const connect = () => {
-  const ws = new FakeSocket();
-  const server = { handleConnection: vi.fn() } as unknown as Hocuspocus;
-  new CollaborationController(server).handleConnection(ws as unknown as WebSocket, {} as Request);
-  return ws;
+beforeAll(async () => {
+  wss = new WebSocketServer({ host: "127.0.0.1", port: 0 });
+  await once(wss, "listening");
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+  for (const client of clients.splice(0)) client.terminate();
+});
+
+afterAll(async () => {
+  await new Promise<void>((resolve) => wss.close(() => resolve()));
+});
+
+const connect = async () => {
+  const address = wss.address();
+  if (!address || typeof address === "string") throw new Error("Expected a TCP address");
+  const accepted = new Promise<{ ws: WebSocket; request: IncomingMessage }>((resolve) => {
+    wss.once("connection", (ws, request) => resolve({ ws, request }));
+  });
+  clients.push(new WebSocket(`ws://127.0.0.1:${address.port}`));
+  const { ws, request } = await accepted;
+
+  const ping = vi.spyOn(ws, "ping").mockImplementation(() => {});
+  const terminate = vi.spyOn(ws, "terminate").mockImplementation(() => {});
+  vi.spyOn(ws, "close").mockImplementation(() => {});
+  vi.useFakeTimers();
+  const server = Object.assign(new Hocuspocus({ quiet: true }), { handleConnection: vi.fn() });
+  new CollaborationController(server).handleConnection(ws, request);
+  return { ws, ping, terminate };
 };
 
 describe("collaboration heartbeat", () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
-
-  it("keeps a socket that answers pings", () => {
-    const ws = connect();
+  it("keeps a socket that answers pings", async () => {
+    const { ws, ping, terminate } = await connect();
     for (let beat = 0; beat < 3; beat++) {
       vi.advanceTimersByTime(30_000);
       ws.emit("pong");
     }
-    expect(ws.ping).toHaveBeenCalledTimes(3);
-    expect(ws.terminate).not.toHaveBeenCalled();
+    expect(ping).toHaveBeenCalledTimes(3);
+    expect(terminate).not.toHaveBeenCalled();
   });
 
-  it("terminates a socket that stops answering", () => {
-    const ws = connect();
+  it("terminates a socket that stops answering", async () => {
+    const { terminate } = await connect();
     vi.advanceTimersByTime(60_000);
-    expect(ws.terminate).toHaveBeenCalledOnce();
+    expect(terminate).toHaveBeenCalledOnce();
   });
 
-  it("stops pinging once the socket is closed", () => {
-    const ws = connect();
+  it("stops pinging once the socket is closed", async () => {
+    const { ws, ping } = await connect();
     ws.emit("close");
     vi.advanceTimersByTime(90_000);
-    expect(ws.ping).not.toHaveBeenCalled();
+    expect(ping).not.toHaveBeenCalled();
   });
 });

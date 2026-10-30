@@ -4,6 +4,8 @@
  * See the LICENSE file for details.
  */
 
+import { isKeyOf } from "@/lib/is-key-of";
+
 /**
  * PDF Export Color Constants
  *
@@ -61,8 +63,8 @@ export type EditorColorKey = keyof typeof EDITOR_TEXT_COLORS;
  * Maps a color key to its text color hex value
  */
 export const getTextColorHex = (colorKey: string): string | null => {
-  if (colorKey in EDITOR_TEXT_COLORS) {
-    return EDITOR_TEXT_COLORS[colorKey as EditorColorKey];
+  if (isKeyOf(EDITOR_TEXT_COLORS, colorKey)) {
+    return EDITOR_TEXT_COLORS[colorKey];
   }
   return null;
 };
@@ -71,8 +73,8 @@ export const getTextColorHex = (colorKey: string): string | null => {
  * Maps a color key to its background color hex value
  */
 export const getBackgroundColorHex = (colorKey: string): string | null => {
-  if (colorKey in EDITOR_BACKGROUND_COLORS) {
-    return EDITOR_BACKGROUND_COLORS[colorKey as EditorColorKey];
+  if (isKeyOf(EDITOR_BACKGROUND_COLORS, colorKey)) {
+    return EDITOR_BACKGROUND_COLORS[colorKey];
   }
   return null;
 };

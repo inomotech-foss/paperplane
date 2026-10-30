@@ -95,7 +95,7 @@ export class Server {
   }
 
   private setupRoutes(hocuspocusServer: Hocuspocus) {
-    CONTROLLERS.forEach((controller) => registerController(this.router, controller, [hocuspocusServer]));
+    CONTROLLERS.forEach((controller) => registerController<[Hocuspocus]>(this.router, controller, [hocuspocusServer]));
   }
 
   public listen() {
@@ -112,9 +112,10 @@ export class Server {
   public async destroy() {
     // Stop accepting HTTP/WebSocket connections before draining collaboration.
     // Resolve with the close error instead of rejecting: an HTTP close failure must not cut the drain short.
-    const httpClosed = this.httpServer
+    const httpServer = this.httpServer;
+    const httpClosed = httpServer
       ? new Promise<Error | undefined>((resolve) => {
-          this.httpServer!.close(resolve);
+          httpServer.close(resolve);
         })
       : Promise.resolve(undefined);
 

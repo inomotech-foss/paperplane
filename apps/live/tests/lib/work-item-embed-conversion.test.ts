@@ -5,6 +5,8 @@
 
 import { describe, expect, it } from "vitest";
 import { convertHTMLDocumentToAllFormats } from "@plane/editor";
+import { tipTapDocumentSchema } from "@/lib/pdf";
+import type { TipTapNode } from "@/lib/pdf";
 
 const NODE_ID = "11111111-1111-4111-8111-111111111111";
 const WORK_ITEM_ID = "22222222-2222-4222-8222-222222222222";
@@ -17,13 +19,7 @@ const WORK_ITEM_EMBED_HTML =
   `project_identifier="${PROJECT_ID}" workspace_identifier="${WORKSPACE_SLUG}"></issue-embed-component>` +
   `<p>after</p>`;
 
-type TNode = {
-  type?: string;
-  attrs?: Record<string, unknown>;
-  content?: TNode[];
-};
-
-const findNode = (node: TNode, type: string): TNode | undefined => {
+const findNode = (node: TipTapNode, type: string): TipTapNode | undefined => {
   if (node.type === type) return node;
   for (const child of node.content ?? []) {
     const match = findNode(child, type);
@@ -44,7 +40,7 @@ describe("work item embed conversion", () => {
       variant: "document",
     });
 
-    const embed = findNode(description_json as TNode, "issue-embed-component");
+    const embed = findNode(tipTapDocumentSchema.parse(description_json), "issue-embed-component");
 
     expect(embed).toBeDefined();
     expect(embed?.attrs).toMatchObject({

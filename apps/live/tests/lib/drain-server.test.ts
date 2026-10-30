@@ -36,7 +36,7 @@ function serverWithDocument() {
       return Promise.resolve();
     }),
   };
-  return { server, events, instance: server as unknown as Hocuspocus };
+  return { server, events, instance: Object.assign(new Hocuspocus({ quiet: true }), server) };
 }
 
 describe("collaboration shutdown persistence", () => {
