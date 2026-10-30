@@ -8,6 +8,8 @@ from django.http import HttpResponseRedirect, StreamingHttpResponse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 from plane.app.permissions import ProjectPagePermission
 from plane.app.serializers import PageAttachmentSerializer
@@ -145,6 +147,11 @@ class PageAttachmentContentEndpoint(BaseAPIView):
 
     permission_classes = [ProjectPagePermission]
 
+    @extend_schema(
+        responses={
+            (200, "*/*"): OpenApiResponse(OpenApiTypes.BINARY, description="The file, with its stored content type")
+        }
+    )
     def get(self, request, slug, project_id, page_id, pk):
         asset = page_attachments(slug, project_id, page_id).filter(pk=pk).first()
         if asset is None:

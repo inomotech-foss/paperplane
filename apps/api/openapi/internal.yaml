@@ -800,7 +800,12 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+          description: The file, with its stored content type
   /api/assets/v2/workspaces/{slug}/restore/{asset_id}/:
     post:
       operationId: assets_v2_workspaces_restore_create
@@ -4387,7 +4392,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageQueryResponse'
+          description: ''
   /api/workspaces/{slug}/project-identifiers/:
     get:
       operationId: workspaces_project_identifiers_retrieve
@@ -6488,8 +6497,8 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '201':
-          description: No response body
+        '204':
+          description: Added to favorites
     delete:
       operationId: workspaces_projects_favorite_pages_destroy
       parameters:
@@ -11554,7 +11563,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Page'
+                $ref: '#/components/schemas/PageDetail'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/pages-summary/:
     get:
@@ -11580,7 +11589,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Page'
+                $ref: '#/components/schemas/PageSummary'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/:
     get:
@@ -11612,7 +11621,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Page'
+                $ref: '#/components/schemas/PageWithIssues'
           description: ''
     patch:
       operationId: workspaces_projects_pages_partial_update
@@ -11654,7 +11663,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Page'
+                $ref: '#/components/schemas/PageUpdate'
           description: ''
     delete:
       operationId: workspaces_projects_pages_destroy
@@ -11720,12 +11729,8 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Page'
-          description: ''
+        '204':
+          description: Done
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/archive/:
     post:
       operationId: workspaces_projects_pages_archive_create
@@ -11749,17 +11754,6 @@ paths:
         required: true
       tags:
       - workspaces
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
       security:
       - sessionAuth: []
       responses:
@@ -11767,7 +11761,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Page'
+                $ref: '#/components/schemas/ArchivedAt'
           description: ''
     delete:
       operationId: workspaces_projects_pages_archive_destroy
@@ -11795,7 +11789,7 @@ paths:
       - sessionAuth: []
       responses:
         '204':
-          description: No response body
+          description: Done
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/:
     get:
       operationId: workspaces_projects_pages_comments_list
@@ -12173,17 +12167,6 @@ paths:
         required: true
       tags:
       - workspaces
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PageCommentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PageCommentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PageCommentRequest'
       security:
       - sessionAuth: []
       responses:
@@ -12224,8 +12207,12 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageComment'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/description/:
     get:
       operationId: workspaces_projects_pages_description_retrieve
@@ -12253,7 +12240,12 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          description: Yjs document
     patch:
       operationId: workspaces_projects_pages_description_partial_update
       parameters:
@@ -12280,7 +12272,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/duplicate/:
     post:
       operationId: workspaces_projects_pages_duplicate_create
@@ -12307,8 +12303,12 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageDetail'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/lock/:
     post:
       operationId: workspaces_projects_pages_lock_create
@@ -12332,26 +12332,11 @@ paths:
         required: true
       tags:
       - workspaces
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
       security:
       - sessionAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Page'
-          description: ''
+        '204':
+          description: Done
     delete:
       operationId: workspaces_projects_pages_lock_destroy
       parameters:
@@ -12378,7 +12363,7 @@ paths:
       - sessionAuth: []
       responses:
         '204':
-          description: No response body
+          description: Done
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/position/:
     post:
       operationId: workspaces_projects_pages_position_create
@@ -12452,7 +12437,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PageVersion'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/versions/{pk}/:
     get:
       operationId: workspaces_projects_pages_versions_retrieve_2
@@ -12486,7 +12477,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageVersionDetail'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/preferences/member/{member_id}/:
     get:
       operationId: workspaces_projects_preferences_member_retrieve
@@ -15845,6 +15840,14 @@ components:
       - updated_by
       - user
       - workspace
+    Access1f9Enum:
+      enum:
+      - 0
+      - 1
+      type: integer
+      description: |-
+        * `0` - Public
+        * `1` - Private
     AccessEnum:
       enum:
       - 0
@@ -22826,7 +22829,7 @@ components:
           readOnly: true
         access:
           allOf:
-          - $ref: '#/components/schemas/PageAccessEnum'
+          - $ref: '#/components/schemas/Access1f9Enum'
           minimum: 0
           maximum: 32767
         color:
@@ -22899,14 +22902,6 @@ components:
       - updated_by
       - view_props
       - logo_props
-    PageAccessEnum:
-      enum:
-      - 0
-      - 1
-      type: integer
-      description: |-
-        * `0` - Public
-        * `1` - Private
     PageAttachment:
       type: object
       properties:
@@ -23307,6 +23302,97 @@ components:
           type: string
           nullable: true
           maxLength: 255
+    PageDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        owned_by:
+          type: string
+          format: uuid
+          readOnly: true
+        access:
+          allOf:
+          - $ref: '#/components/schemas/Access1f9Enum'
+          minimum: 0
+          maximum: 32767
+        color:
+          type: string
+          maxLength: 255
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        sort_order:
+          type: number
+          format: double
+        is_favorite:
+          type: boolean
+          readOnly: true
+        is_locked:
+          type: boolean
+        archived_at:
+          type: string
+          format: date
+          nullable: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        view_props: {}
+        logo_props: {}
+        label_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        project_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description_html:
+          type: string
+      required:
+      - id
+      - name
+      - owned_by
+      - access
+      - color
+      - parent
+      - sort_order
+      - is_locked
+      - archived_at
+      - workspace
+      - created_at
+      - updated_at
+      - created_by
+      - updated_by
+      - view_props
+      - logo_props
+      - description_html
     PageOrder:
       type: object
       properties:
@@ -23356,6 +23442,161 @@ components:
           description: Every page whose parent or sort order changed
       required:
       - pages
+    PageQueryContributor:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        page_count:
+          type: integer
+      required:
+      - user_id
+      - page_count
+    PageQueryContributors:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageQueryContributor'
+      required:
+      - results
+    PageQueryLabel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+      - id
+      - name
+    PageQueryLabels:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageQueryLabel'
+      required:
+      - results
+    PageQueryPages:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageQueryRow'
+      required:
+      - results
+    PageQueryReport:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageQueryReportRow'
+      required:
+      - results
+    PageQueryReportRow:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        value:
+          type: string
+        is_complete:
+          type: boolean
+        assignee_id:
+          type: string
+          format: uuid
+          nullable: true
+        due_date:
+          type: string
+          format: date
+          nullable: true
+        page_id:
+          type: string
+          format: uuid
+        page_name:
+          type: string
+        project_id:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - id
+      - value
+      - is_complete
+      - assignee_id
+      - due_date
+      - page_id
+      - page_name
+      - project_id
+    PageQueryResponse:
+      oneOf:
+      - $ref: '#/components/schemas/PageQueryPages'
+      - $ref: '#/components/schemas/PageQueryLabels'
+      - $ref: '#/components/schemas/PageQueryReport'
+      - $ref: '#/components/schemas/PageQueryContributors'
+    PageQueryRow:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        logo_props:
+          readOnly: true
+        parent:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        owned_by:
+          type: string
+          format: uuid
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        label_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+        project_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+          description: With kind=page-properties
+        property_colors:
+          type: object
+          additionalProperties:
+            type: string
+          description: With kind=page-properties
+      required:
+      - id
+      - name
+      - logo_props
+      - parent
+      - owned_by
+      - updated_at
     PageRequest:
       type: object
       properties:
@@ -23363,7 +23604,7 @@ components:
           type: string
         access:
           allOf:
-          - $ref: '#/components/schemas/PageAccessEnum'
+          - $ref: '#/components/schemas/Access1f9Enum'
           minimum: 0
           maximum: 32767
         color:
@@ -23409,6 +23650,319 @@ components:
           items:
             type: string
             format: uuid
+    PageSummary:
+      type: object
+      properties:
+        public_pages:
+          type: integer
+        private_pages:
+          type: integer
+        archived_pages:
+          type: integer
+      required:
+      - public_pages
+      - private_pages
+      - archived_pages
+    PageUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        owned_by:
+          type: string
+          format: uuid
+          readOnly: true
+        access:
+          allOf:
+          - $ref: '#/components/schemas/Access1f9Enum'
+          minimum: 0
+          maximum: 32767
+        color:
+          type: string
+          maxLength: 255
+        parent:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        sort_order:
+          type: number
+          format: double
+          readOnly: true
+        is_favorite:
+          type: boolean
+          readOnly: true
+        is_locked:
+          type: boolean
+        archived_at:
+          type: string
+          format: date
+          nullable: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        view_props: {}
+        logo_props: {}
+        label_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        project_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description_html:
+          type: string
+      required:
+      - id
+      - name
+      - owned_by
+      - access
+      - color
+      - parent
+      - sort_order
+      - is_locked
+      - archived_at
+      - workspace
+      - created_at
+      - updated_at
+      - created_by
+      - updated_by
+      - view_props
+      - logo_props
+      - description_html
+    PageVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        page:
+          type: string
+          format: uuid
+          readOnly: true
+        last_saved_at:
+          type: string
+          format: date-time
+        owned_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+      required:
+      - id
+      - workspace
+      - page
+      - last_saved_at
+      - owned_by
+      - created_at
+      - updated_at
+      - created_by
+      - updated_by
+    PageVersionDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        page:
+          type: string
+          format: uuid
+          readOnly: true
+        last_saved_at:
+          type: string
+          format: date-time
+        description_binary:
+          type: string
+          format: byte
+          readOnly: true
+          nullable: true
+        description_html:
+          type: string
+        description_json: {}
+        owned_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+      required:
+      - id
+      - workspace
+      - page
+      - last_saved_at
+      - description_binary
+      - description_html
+      - description_json
+      - owned_by
+      - created_at
+      - updated_at
+      - created_by
+      - updated_by
+    PageWithIssues:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        owned_by:
+          type: string
+          format: uuid
+          readOnly: true
+        access:
+          allOf:
+          - $ref: '#/components/schemas/Access1f9Enum'
+          minimum: 0
+          maximum: 32767
+        color:
+          type: string
+          maxLength: 255
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        sort_order:
+          type: number
+          format: double
+        is_favorite:
+          type: boolean
+          readOnly: true
+        is_locked:
+          type: boolean
+        archived_at:
+          type: string
+          format: date
+          nullable: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        view_props: {}
+        logo_props: {}
+        label_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        project_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description_html:
+          type: string
+        issue_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Work items the page mentions
+      required:
+      - id
+      - name
+      - owned_by
+      - access
+      - color
+      - parent
+      - sort_order
+      - is_locked
+      - archived_at
+      - workspace
+      - created_at
+      - updated_at
+      - created_by
+      - updated_by
+      - view_props
+      - logo_props
+      - description_html
+      - issue_ids
     PaginatedDraftIssueList:
       type: object
       properties:
@@ -24484,7 +25038,7 @@ components:
           type: string
         access:
           allOf:
-          - $ref: '#/components/schemas/PageAccessEnum'
+          - $ref: '#/components/schemas/Access1f9Enum'
           minimum: 0
           maximum: 32767
         color:

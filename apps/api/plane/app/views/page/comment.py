@@ -10,6 +10,7 @@ from django.utils import timezone
 from bs4 import BeautifulSoup
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
 
 # Module imports
 from .. import BaseViewSet
@@ -205,6 +206,7 @@ class PageCommentViewSet(BaseViewSet):
         page_comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(request=None, responses={200: PageCommentSerializer})
     def resolve(self, request, slug, project_id, page_id, pk):
         # Only top-level threads (parent is null) can be resolved.
         page_comment = PageComment.objects.get(workspace__slug=slug, page_id=page_id, pk=pk, parent__isnull=True)
@@ -214,6 +216,7 @@ class PageCommentViewSet(BaseViewSet):
         page_comment.save()
         return Response(PageCommentSerializer(page_comment).data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: PageCommentSerializer})
     def unresolve(self, request, slug, project_id, page_id, pk):
         page_comment = PageComment.objects.get(workspace__slug=slug, page_id=page_id, pk=pk, parent__isnull=True)
         page_comment.is_resolved = False
