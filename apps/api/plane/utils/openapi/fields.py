@@ -12,6 +12,9 @@ from rest_framework import serializers
 
 CLIENT_JSON_DESCRIPTION = "Stored as sent by the client. The backend does not validate it."
 
+# A body that is one client-owned object as a whole.
+CLIENT_JSON_REF = {"$ref": "#/components/schemas/ClientJson"}
+
 # Model JSON columns the web app writes and reads back. AutoSchema documents them as ClientJson by name.
 CLIENT_JSON_FIELDS = frozenset(
     {

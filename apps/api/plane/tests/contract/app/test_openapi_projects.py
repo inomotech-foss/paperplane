@@ -150,6 +150,16 @@ class TestProjectRequests:
         url, body = sent(route, "post", {"project": str(project.id)}, slug=workspace.slug)
         assert session_client.post(url, body, format="json").status_code == 204
 
+    def test_client_json_bodies(self, session_client, create_user, workspace, project):
+        base = "/api/workspaces/{slug}/projects/{project_id}"
+        ids = {"slug": workspace.slug, "project_id": project.id}
+        body = {"display_filters": {"layout": "kanban"}, "rich_filters": {"priority__in": "high"}}
+        url, body = sent(base + "/user-properties/", "patch", body, **ids)
+        assert documented(session_client.patch(url, body, format="json"))["display_filters"] == {"layout": "kanban"}
+        route = base + "/preferences/member/{member_id}/"
+        url, body = sent(route, "patch", {"pages": {"block_display": False}}, member_id=create_user.id, **ids)
+        documented(session_client.patch(url, body, format="json"))
+
     def test_join(self, session_client, create_user, workspace, project):
         invite = ProjectMemberInvite.objects.create(
             project=project, workspace=workspace, email=create_user.email, token="t", role=15

@@ -9932,6 +9932,24 @@ export interface components {
             /** Format: uuid */
             default_state?: string | null;
         };
+        PatchedProjectUserPropertyRequest: {
+            /** Format: date-time */
+            deleted_at?: string | null;
+            filters?: components["schemas"]["ClientJson"];
+            display_filters?: components["schemas"]["ClientJson"];
+            display_properties?: components["schemas"]["ClientJson"];
+            rich_filters?: components["schemas"]["ClientJson"];
+            preferences?: components["schemas"]["ClientJson"];
+            /** Format: double */
+            sort_order?: number;
+            /** Format: uuid */
+            created_by?: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by?: string | null;
+        };
         PatchedStateRequest: {
             /** State Name */
             name?: string;
@@ -23532,7 +23550,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ClientJson"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -24282,7 +24304,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedProjectUserPropertyRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedProjectUserPropertyRequest"];
+                "multipart/form-data": components["schemas"]["PatchedProjectUserPropertyRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {

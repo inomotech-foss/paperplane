@@ -21,6 +21,7 @@ from plane.app.serializers import (
 
 from plane.app.permissions import WorkspaceUserPermission
 from plane.app.serializers.request.project import ProjectMembersAddSerializer
+from plane.utils.openapi.fields import CLIENT_JSON_REF
 from plane.app.serializers.response.project import (
     ProjectMemberDetailSerializer,
     ProjectMemberPreferencesSerializer,
@@ -432,7 +433,10 @@ class ProjectMemberPreferenceEndpoint(BaseAPIView):
             workspace__slug=slug,
         )
 
-    @extend_schema(responses={200: ProjectMemberPreferencesSerializer})
+    @extend_schema(
+        request={"application/json": CLIENT_JSON_REF},
+        responses={200: ProjectMemberPreferencesSerializer},
+    )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id, member_id):
         # Preferences are personal: a member may only modify their own.
