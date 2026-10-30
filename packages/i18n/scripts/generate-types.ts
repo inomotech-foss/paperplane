@@ -10,6 +10,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { isRecord } from "./lib/locale-io.js";
 
 const COPYRIGHT_HEADER = `/**
  * Copyright (c) 2023-present Plane Software, Inc. and contributors
@@ -17,13 +18,11 @@ const COPYRIGHT_HEADER = `/**
  * See the LICENSE file for details.
  */`;
 
-type NestedObject = { [key: string]: string | NestedObject };
-
 /**
  * Recursively flatten a nested object into dot-notated keys.
  * Returns an array of flattened key strings.
  */
-function flattenKeys(obj: NestedObject, prefix = ""): string[] {
+function flattenKeys(obj: Record<string, unknown>, prefix = ""): string[] {
   const keys: string[] = [];
 
   for (const [key, value] of Object.entries(obj)) {
@@ -31,8 +30,8 @@ function flattenKeys(obj: NestedObject, prefix = ""): string[] {
 
     if (typeof value === "string") {
       keys.push(fullKey);
-    } else if (typeof value === "object" && value !== null) {
-      keys.push(...flattenKeys(value as NestedObject, fullKey));
+    } else if (isRecord(value)) {
+      keys.push(...flattenKeys(value, fullKey));
     }
   }
 
@@ -100,11 +99,13 @@ function main(): void {
     const content = fs.readFileSync(filePath, "utf-8");
     const parsed = (() => {
       try {
-        return JSON.parse(content) as NestedObject;
+        const value: unknown = JSON.parse(content);
+        if (isRecord(value)) return value;
       } catch {
-        console.error(`Error: Failed to parse JSON in ${file}`);
-        process.exit(1);
+        // reported below
       }
+      console.error(`Error: Failed to parse JSON in ${file}`);
+      process.exit(1);
     })();
 
     const fileKeys = flattenKeys(parsed);

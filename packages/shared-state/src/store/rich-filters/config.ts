@@ -49,7 +49,10 @@ export interface IFilterConfig<P extends TFilterProperty> extends TFilterConfig<
     operator: TAllAvailableOperatorsForDisplay
   ) => TOperatorSpecificConfigs[keyof TOperatorSpecificConfigs] | undefined;
   getLabelForOperator: (operator: TAllAvailableOperatorsForDisplay | undefined) => string;
-  getDisplayOperatorByValue: <T extends TAllAvailableOperatorsForDisplay>(operator: T, value: TFilterValue) => T;
+  getDisplayOperatorByValue: (
+    operator: TAllAvailableOperatorsForDisplay,
+    value: TFilterValue
+  ) => TAllAvailableOperatorsForDisplay;
   getAllDisplayOperatorOptionsByValue: (value: TFilterValue) => TOperatorOptionForDisplay[];
   // actions
   mutate: (updates: Partial<TFilterConfig<P>>) => void;
@@ -155,14 +158,10 @@ export class FilterConfig<P extends TFilterProperty> implements IFilterConfig<P>
   getDisplayOperatorByValue: IFilterConfig<P>["getDisplayOperatorByValue"] = computedFn((operator, value) => {
     // "is none of" with a single value reads "is not", like "is any of" reads "is"
     if (isNegatedOperator(operator)) {
-      const positiveOperator = this.getDisplayOperatorByValue(getOperatorForPayload(operator).operator, value);
-      return (getNegatedOperator(positiveOperator) ?? operator) as typeof operator;
+      const positiveOperator = this._getPositiveDisplayOperator(getOperatorForPayload(operator).operator, value);
+      return getNegatedOperator(positiveOperator) ?? operator;
     }
-    const operatorConfig = this.getOperatorConfig(operator);
-    if (operatorConfig?.type === FILTER_FIELD_TYPE.MULTI_SELECT && (Array.isArray(value) ? value.length : 0) <= 1) {
-      return operatorConfig.singleValueOperator as typeof operator;
-    }
-    return operator;
+    return this._getPositiveDisplayOperator(operator, value);
   });
 
   /**
@@ -202,16 +201,22 @@ export class FilterConfig<P extends TFilterProperty> implements IFilterConfig<P>
    */
   mutate: IFilterConfig<P>["mutate"] = action((updates) => {
     runInAction(() => {
-      for (const key in updates) {
-        if (updates.hasOwnProperty(key)) {
-          const configKey = key as keyof TFilterConfig<P>;
-          set(this, configKey, updates[configKey]);
-        }
+      for (const key of Object.keys(updates)) {
+        const value: unknown = Reflect.get(updates, key);
+        set(this, key, value);
       }
     });
   });
 
   // ------------ private helpers ------------
+
+  private _getPositiveDisplayOperator(operator: TSupportedOperators, value: TFilterValue): TSupportedOperators {
+    const operatorConfig = this.getOperatorConfig(operator);
+    if (operatorConfig?.type === FILTER_FIELD_TYPE.MULTI_SELECT && (Array.isArray(value) ? value.length : 0) <= 1) {
+      return operatorConfig.singleValueOperator;
+    }
+    return operator;
+  }
 
   /**
    * The negated option of an operator ("is not", "is none of", "does not contain"),

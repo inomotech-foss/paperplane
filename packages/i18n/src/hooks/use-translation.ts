@@ -6,7 +6,7 @@
 
 import { useCallback } from "react";
 import { useTranslation as useI18nextTranslation } from "react-i18next";
-import { SUPPORTED_LANGUAGES, LANGUAGE_STORAGE_KEY } from "../constants/language";
+import { FALLBACK_LANGUAGE, SUPPORTED_LANGUAGES, LANGUAGE_STORAGE_KEY } from "../constants/language";
 import type { TLanguage, ILanguageOption } from "../types";
 
 export type TTranslationStore = {
@@ -36,6 +36,9 @@ function coerceToString(key: string, value: unknown): string {
   return key;
 }
 
+const isSupportedLanguage = (value: string): value is TLanguage =>
+  SUPPORTED_LANGUAGES.some((language) => language.value === value);
+
 export function useTranslation(): TTranslationStore {
   // No namespace arg — fallbackNS in the i18next config ensures all namespaces
   // are searched for any key. Passing NAMESPACES here would trigger concurrent
@@ -61,7 +64,7 @@ export function useTranslation(): TTranslationStore {
   return {
     t: (key: string, params?: Record<string, unknown>) =>
       coerceToString(key, params === undefined ? t(key) : t(key, params)),
-    currentLocale: i18n.language as TLanguage,
+    currentLocale: isSupportedLanguage(i18n.language) ? i18n.language : FALLBACK_LANGUAGE,
     changeLanguage,
     languages: SUPPORTED_LANGUAGES,
   };

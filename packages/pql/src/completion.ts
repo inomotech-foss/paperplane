@@ -3,7 +3,7 @@
 
 import type { Completion, CompletionContext, CompletionResult, CompletionSource } from "@codemirror/autocomplete";
 import { CodeCompletionCore } from "antlr4-c3";
-import { CharStream, CommonTokenStream, type ParserRuleContext, ParseTreeWalker, Token } from "antlr4ng";
+import { CharStream, CommonTokenStream, ParseTreeWalker, Token } from "antlr4ng";
 
 import { PQLLexer } from "./generated/PQLLexer.js";
 import { PQLListener } from "./generated/PQLListener.js";
@@ -86,10 +86,10 @@ class PredicateFinder extends PQLListener {
     super();
   }
 
-  private consider(ctx: ParserRuleContext) {
+  private consider(ctx: PredicateContext | CustomPropertyPredicateContext) {
     const start = ctx.start?.tokenIndex ?? Infinity;
     const stop = ctx.stop?.tokenIndex ?? Infinity;
-    if (start < this.index && stop >= this.index - 1) this.found = ctx as PredicateContext;
+    if (start < this.index && stop >= this.index - 1) this.found = ctx;
   }
 
   override enterPredicate = (ctx: PredicateContext): void => this.consider(ctx);

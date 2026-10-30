@@ -352,11 +352,12 @@ export const defaultActivityFilters: TActivityFilters[] = [
 export const filterActivityOnSelectedFilters = (
   activity: TIssueActivityComment[],
   filters: TActivityFilters[]
-): TIssueActivityComment[] =>
-  activity.filter((activity) => {
-    if (activity.activity_type === EActivityFilterType.DEFAULT) return true;
-    return filters.includes(activity.activity_type as TActivityFilters);
-  });
+): TIssueActivityComment[] => {
+  const selected = new Set<string>(filters);
+  return activity.filter(
+    (item) => item.activity_type === EActivityFilterType.DEFAULT || selected.has(item.activity_type)
+  );
+};
 
 export const ENABLE_ISSUE_DEPENDENCIES = false;
 

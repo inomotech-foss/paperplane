@@ -5,20 +5,21 @@
  */
 
 import { makeObservable, observable } from "mobx";
+import type { IUser } from "@plane/types";
 import type { IWorkspaceStore } from "./workspace.store";
 
 export interface IUserStore {
-  user: any;
+  user: IUser | null;
   workspaces: Map<string, IWorkspaceStore>;
   isLoading: boolean;
-  error: any;
+  error: string | null;
 }
 
 export class UserStore implements IUserStore {
-  user: any = null;
+  user: IUser | null = null;
   workspaces: Map<string, IWorkspaceStore> = new Map();
   isLoading: boolean = false;
-  error: any = null;
+  error: string | null = null;
 
   constructor() {
     makeObservable(this, {

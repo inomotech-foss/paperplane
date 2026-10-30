@@ -6,49 +6,45 @@
 
 import type { EUserPermissions, IJiraMetadata } from "@plane/types";
 
-const paramsToKey = (params: any) => {
-  const {
-    state,
-    state_group,
-    priority,
-    mentions,
-    assignees,
-    created_by,
-    labels,
-    start_date,
-    target_date,
-    sub_issue,
-    project,
-    layout,
-    subscriber,
-  } = params;
+type TIssueKeyParams = {
+  state?: string;
+  state_group?: string;
+  priority?: string;
+  mentions?: string;
+  assignees?: string;
+  created_by?: string;
+  labels?: string;
+  start_date?: string;
+  target_date?: string;
+  sub_issue?: boolean | string;
+  project?: string;
+  layout?: string;
+  subscriber?: string;
+  type?: string;
+  group_by?: string;
+  order_by?: string;
+};
 
-  let projectKey = project ? project.split(",") : [];
-  let stateKey = state ? state.split(",") : [];
-  let stateGroupKey = state_group ? state_group.split(",") : [];
-  let priorityKey = priority ? priority.split(",") : [];
-  let mentionsKey = mentions ? mentions.split(",") : [];
-  let assigneesKey = assignees ? assignees.split(",") : [];
-  let createdByKey = created_by ? created_by.split(",") : [];
-  let labelsKey = labels ? labels.split(",") : [];
-  let subscriberKey = subscriber ? subscriber.split(",") : [];
+const sortedKey = (value: string | undefined) => (value ? value.split(",").toSorted().join("_") : "");
+
+const paramsToKey = (params: TIssueKeyParams) => {
+  const { start_date, target_date, sub_issue, layout } = params;
+
+  const projectKey = sortedKey(params.project);
+  const stateKey = sortedKey(params.state);
+  const stateGroupKey = sortedKey(params.state_group);
+  const priorityKey = sortedKey(params.priority);
+  const assigneesKey = sortedKey(params.assignees);
+  const mentionsKey = sortedKey(params.mentions);
+  const createdByKey = sortedKey(params.created_by);
+  const labelsKey = sortedKey(params.labels);
+  const subscriberKey = sortedKey(params.subscriber);
   const startDateKey = start_date ?? "";
   const targetDateKey = target_date ?? "";
   const type = params.type ? params.type.toUpperCase() : "NULL";
   const groupBy = params.group_by ? params.group_by.toUpperCase() : "NULL";
   const orderBy = params.order_by ? params.order_by.toUpperCase() : "NULL";
   const layoutKey = layout ? layout.toUpperCase() : "";
-
-  // sorting each keys in ascending order
-  projectKey = projectKey.toSorted().join("_");
-  stateKey = stateKey.toSorted().join("_");
-  stateGroupKey = stateGroupKey.toSorted().join("_");
-  priorityKey = priorityKey.toSorted().join("_");
-  assigneesKey = assigneesKey.toSorted().join("_");
-  mentionsKey = mentionsKey.toSorted().join("_");
-  createdByKey = createdByKey.toSorted().join("_");
-  labelsKey = labelsKey.toSorted().join("_");
-  subscriberKey = subscriberKey.toSorted().join("_");
 
   return `${layoutKey}_${projectKey}_${stateGroupKey}_${stateKey}_${priorityKey}_${assigneesKey}_${mentionsKey}_${createdByKey}_${type}_${groupBy}_${orderBy}_${labelsKey}_${startDateKey}_${targetDateKey}_${sub_issue}_${subscriberKey}`;
 };
@@ -100,7 +96,7 @@ export const PROJECT_GITHUB_REPOSITORY = (projectId: string) => `PROJECT_GITHUB_
 // cycles
 export const WORKSPACE_ACTIVE_CYCLES_LIST = (workspaceSlug: string, cursor: string, per_page: string) =>
   `WORKSPACE_ACTIVE_CYCLES_LIST_${workspaceSlug.toUpperCase()}_${cursor.toUpperCase()}_${per_page.toUpperCase()}`;
-export const CYCLE_ISSUES_WITH_PARAMS = (cycleId: string, params?: any) => {
+export const CYCLE_ISSUES_WITH_PARAMS = (cycleId: string, params?: TIssueKeyParams) => {
   if (!params) return `CYCLE_ISSUES_WITH_PARAMS_${cycleId.toUpperCase()}`;
 
   const paramsKey = paramsToKey(params);
