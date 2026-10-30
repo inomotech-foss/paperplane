@@ -150,34 +150,19 @@ export class UserStore implements IUserStore {
   /**
    * @description updates the current user
    * @param data
-   * @returns {Promise<IUser>}
+   * @returns {Promise<IUser | undefined>} the user with the update applied
    */
-  updateCurrentUser = async (data: Partial<IUser>): Promise<IUser> => {
+  updateCurrentUser = async (data: Partial<IUser>): Promise<IUser | undefined> => {
     const currentUserData = cloneDeep(this.data);
     try {
-      if (currentUserData) {
-        Object.keys(data).forEach((key: string) => {
-          const userKey: keyof IUser = key as keyof IUser;
-          if (this.data) set(this.data, userKey, data[userKey]);
-        });
-      }
+      if (this.data) Object.assign(this.data, data);
       const user = await this.userService.updateUser(data);
-      if (user && this.data) {
-        runInAction(() => {
-          Object.keys(user).forEach((key: string) => {
-            const userKey: keyof IUser = key as keyof IUser;
-            if (this.data) set(this.data, userKey, user[userKey]);
-          });
-        });
-      }
-      return user;
+      runInAction(() => {
+        if (this.data) Object.assign(this.data, user);
+      });
+      return this.data;
     } catch (error) {
-      if (currentUserData) {
-        Object.keys(currentUserData).forEach((key: string) => {
-          const userKey: keyof IUser = key as keyof IUser;
-          if (this.data) set(this.data, userKey, currentUserData[userKey]);
-        });
-      }
+      if (this.data && currentUserData) Object.assign(this.data, currentUserData);
       runInAction(() => {
         this.error = {
           status: "user-update-error",

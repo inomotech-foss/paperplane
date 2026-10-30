@@ -46,7 +46,7 @@ function WorkspaceInvitationPage() {
   );
 
   const handleAccept = () => {
-    if (!invitationDetail) return;
+    if (!invitationDetail || !token) return;
     workspaceService
       .joinWorkspace(invitationDetail.workspace.slug, invitationDetail.id, {
         accepted: true,

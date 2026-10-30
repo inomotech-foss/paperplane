@@ -15,6 +15,7 @@ import type {
   IWorkspaceUserPropertiesResponse,
 } from "@plane/types";
 // services
+import type { TWorkspaceCreateBody } from "@/services/workspace.service";
 import { WorkspaceService } from "@/services/workspace.service";
 // store
 import type { CoreRootStore } from "@/store/root.store";
@@ -42,7 +43,7 @@ export interface IWorkspaceRootStore {
   // fetch actions
   fetchWorkspaces: () => Promise<IWorkspace[]>;
   // crud actions
-  createWorkspace: (data: Partial<IWorkspace>) => Promise<IWorkspace>;
+  createWorkspace: (data: TWorkspaceCreateBody) => Promise<IWorkspace>;
   updateWorkspace: (workspaceSlug: string, data: Partial<IWorkspace>) => Promise<IWorkspace>;
   updateWorkspaceLogo: (workspaceSlug: string, logoURL: string) => void;
   deleteWorkspace: (workspaceSlug: string) => Promise<void>;
@@ -200,7 +201,7 @@ export class BaseWorkspaceRootStore implements IWorkspaceRootStore {
    * create workspace using the workspace data
    * @param data
    */
-  createWorkspace = async (data: Partial<IWorkspace>) =>
+  createWorkspace = async (data: TWorkspaceCreateBody) =>
     await this.workspaceService.createWorkspace(data).then((response) => {
       runInAction(() => {
         this.workspaces = set(this.workspaces, response.id, response);

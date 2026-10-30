@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { InternalPaths } from "@plane/api-types";
+import type { ApiSchema, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type {
   TUnreadNotificationsCount,
@@ -12,24 +12,25 @@ import type {
   TNotification,
   TNotificationPaginatedInfoQueryParams,
 } from "@plane/types";
-// services
-import { APIService } from "../api.service";
 import type { ApiClient } from "../client";
 import { createApiClient, unwrap } from "../client";
 
-/** Methods on the typed client throw `ApiError`. */
-export class WorkspaceNotificationService extends APIService {
+const flag = (value: boolean | undefined) => (value === undefined ? undefined : value ? "true" : "false");
+
+const notificationPath = (slug: string, pk: string) => ({ path: { slug, pk } });
+
+/** Errors are thrown as `ApiError`. */
+export class WorkspaceNotificationService {
   private readonly client: ApiClient<InternalPaths>;
 
   constructor(BASE_URL?: string) {
-    super(BASE_URL || API_BASE_URL);
     this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
   }
 
   /**
    * Retrieves the count of unread notifications for a workspace
    * @param {string} workspaceSlug - The unique identifier for the workspace
-   * @returns {Promise<TUnreadNotificationsCount | undefined>} The count of unread notifications
+   * @returns {Promise<TUnreadNotificationsCount>} The count of unread notifications
    */
   async getUnreadCount(workspaceSlug: string): Promise<TUnreadNotificationsCount> {
     return unwrap(
@@ -43,108 +44,98 @@ export class WorkspaceNotificationService extends APIService {
    * Retrieves paginated notifications for a workspace
    * @param {string} workspaceSlug - The unique identifier for the workspace
    * @param {TNotificationPaginatedInfoQueryParams} params - Query parameters for pagination and filtering
-   * @returns {Promise<TNotificationPaginatedInfo | undefined>} Paginated list of notifications
+   * @returns {Promise<TNotificationPaginatedInfo | undefined>} `undefined` when the API answers with a plain list,
+   * which it does unless `per_page` and `cursor` are sent
    */
   async list(
     workspaceSlug: string,
     params: TNotificationPaginatedInfoQueryParams
   ): Promise<TNotificationPaginatedInfo | undefined> {
-    return this.get(`/api/workspaces/${workspaceSlug}/users/notifications/`, { params })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const data = await unwrap(
+      this.client.GET("/api/workspaces/{slug}/users/notifications/", {
+        params: {
+          path: { slug: workspaceSlug },
+          query: {
+            type: params.type,
+            snoozed: flag(params.snoozed),
+            archived: flag(params.archived),
+            read: flag(params.read),
+            mentioned: params.mentioned ? "true" : undefined,
+            per_page: params.per_page,
+            cursor: params.cursor,
+          },
+        },
+      })
+    );
+    return Array.isArray(data) ? undefined : data;
   }
 
   /**
-   * Updates a specific notification by ID
+   * Updates when a notification is snoozed till. The API updates no other field and clears it when it is missing.
    * @param {string} workspaceSlug - The unique identifier for the workspace
    * @param {string} notificationId - The unique identifier for the notification
-   * @param {Partial<TNotification>} data - The notification data to update
-   * @returns {Promise<TNotification | undefined>} The updated notification
+   * @param {Partial<Pick<TNotification, "snoozed_till">>} data - The new snooze time
+   * @returns {Promise<TNotification>} The updated notification
    */
   async update(
     workspaceSlug: string,
     notificationId: string,
-    data: Partial<TNotification>
-  ): Promise<TNotification | undefined> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/users/notifications/${notificationId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    data: Partial<Pick<TNotification, "snoozed_till">>
+  ): Promise<TNotification> {
+    return unwrap(
+      this.client.PATCH("/api/workspaces/{slug}/users/notifications/{pk}/", {
+        params: notificationPath(workspaceSlug, notificationId),
+        body: { snoozed_till: data.snoozed_till },
+      })
+    );
   }
 
-  /**
-   * Marks a notification as read
-   * @param {string} workspaceSlug - The unique identifier for the workspace
-   * @param {string} notificationId - The unique identifier for the notification
-   * @returns {Promise<TNotification | undefined>} The updated notification
-   */
-  async markAsRead(workspaceSlug: string, notificationId: string): Promise<TNotification | undefined> {
-    return this.post(`/api/workspaces/${workspaceSlug}/users/notifications/${notificationId}/read/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async markAsRead(workspaceSlug: string, notificationId: string): Promise<TNotification> {
+    return unwrap(
+      this.client.POST("/api/workspaces/{slug}/users/notifications/{pk}/read/", {
+        params: notificationPath(workspaceSlug, notificationId),
+      })
+    );
   }
 
-  /**
-   * Marks a notification as unread
-   * @param {string} workspaceSlug - The unique identifier for the workspace
-   * @param {string} notificationId - The unique identifier for the notification
-   * @returns {Promise<TNotification | undefined>} The updated notification
-   */
-  async markAsUnread(workspaceSlug: string, notificationId: string): Promise<TNotification | undefined> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/users/notifications/${notificationId}/read/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async markAsUnread(workspaceSlug: string, notificationId: string): Promise<TNotification> {
+    return unwrap(
+      this.client.DELETE("/api/workspaces/{slug}/users/notifications/{pk}/read/", {
+        params: notificationPath(workspaceSlug, notificationId),
+      })
+    );
   }
 
-  /**
-   * Archives a notification
-   * @param {string} workspaceSlug - The unique identifier for the workspace
-   * @param {string} notificationId - The unique identifier for the notification
-   * @returns {Promise<TNotification | undefined>} The updated notification
-   */
-  async archive(workspaceSlug: string, notificationId: string): Promise<TNotification | undefined> {
-    return this.post(`/api/workspaces/${workspaceSlug}/users/notifications/${notificationId}/archive/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async archive(workspaceSlug: string, notificationId: string): Promise<TNotification> {
+    return unwrap(
+      this.client.POST("/api/workspaces/{slug}/users/notifications/{pk}/archive/", {
+        params: notificationPath(workspaceSlug, notificationId),
+      })
+    );
   }
 
-  /**
-   * Unarchives a notification
-   * @param {string} workspaceSlug - The unique identifier for the workspace
-   * @param {string} notificationId - The unique identifier for the notification
-   * @returns {Promise<TNotification | undefined>} The updated notification
-   */
-  async unarchive(workspaceSlug: string, notificationId: string): Promise<TNotification | undefined> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/users/notifications/${notificationId}/archive/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async unarchive(workspaceSlug: string, notificationId: string): Promise<TNotification> {
+    return unwrap(
+      this.client.DELETE("/api/workspaces/{slug}/users/notifications/{pk}/archive/", {
+        params: notificationPath(workspaceSlug, notificationId),
+      })
+    );
   }
 
   /**
    * Marks all notifications as read based on filter criteria
    * @param {string} workspaceSlug - The unique identifier for the workspace
    * @param {TNotificationPaginatedInfoQueryParams} data - Filter criteria for notifications to mark as read
-   * @returns {Promise<TNotification | undefined>} The result of the operation
    */
   async markAllAsRead(
     workspaceSlug: string,
     data: TNotificationPaginatedInfoQueryParams
-  ): Promise<TNotification | undefined> {
-    return this.post(`/api/workspaces/${workspaceSlug}/users/notifications/mark-all-read/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  ): Promise<ApiSchema<"MessageResponse">> {
+    return unwrap(
+      this.client.POST("/api/workspaces/{slug}/users/notifications/mark-all-read/", {
+        params: { path: { slug: workspaceSlug } },
+        body: data,
+      })
+    );
   }
 }

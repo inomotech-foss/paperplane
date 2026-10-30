@@ -4,19 +4,19 @@
  * See the LICENSE file for details.
  */
 
-import type { InternalPaths } from "@plane/api-types";
+import type { ApiRequestBody, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type { IApiToken } from "@plane/types";
-import { APIService } from "../api.service";
 import type { ApiClient } from "../client";
 import { createApiClient, unwrap } from "../client";
 
-/** Methods on the typed client throw `ApiError`. */
-export class APITokenService extends APIService {
+export type TApiTokenCreateBody = ApiRequestBody<"/api/users/api-tokens/", "post">;
+
+/** Errors are thrown as `ApiError`. */
+export class APITokenService {
   private readonly client: ApiClient<InternalPaths>;
 
   constructor(BASE_URL?: string) {
-    super(BASE_URL || API_BASE_URL);
     this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
   }
 
@@ -39,16 +39,11 @@ export class APITokenService extends APIService {
 
   /**
    * Creates a new API token for a workspace
-   * @param {Partial<IApiToken>} data - The data for creating the new API token
-   * @returns {Promise<IApiToken>} The newly created API token
-   * @throws {Error} Throws response data if the request fails
+   * @param {TApiTokenCreateBody} data - The data for creating the new API token
+   * @returns {Promise<IApiToken>} The newly created API token, the only response that includes `token`
    */
-  async create(data: Partial<IApiToken>): Promise<IApiToken> {
-    return this.post(`/api/users/api-tokens/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async create(data: TApiTokenCreateBody): Promise<IApiToken> {
+    return unwrap(this.client.POST("/api/users/api-tokens/", { body: data }));
   }
 
   /**

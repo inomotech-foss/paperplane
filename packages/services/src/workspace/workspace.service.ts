@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { ApiRequestBody, ApiResponse, InternalPaths } from "@plane/api-types";
+import type { ApiRequestBody, ApiResponse, ApiSchema, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type { IWorkspace, IWorkspaceSearchResults } from "@plane/types";
 import { APIService } from "../api.service";
@@ -91,15 +91,10 @@ export class WorkspaceService extends APIService {
   /**
    * Checks if a workspace slug is available
    * @param {string} slug - The workspace slug to check
-   * @returns {Promise<any>} Promise resolving to slug availability status
-   * @throws {Error} If the API request fails
+   * @returns {Promise<ApiSchema<"SlugAvailability">>} `status` is true when the slug is free
    */
-  async slugCheck(slug: string): Promise<any> {
-    return this.get(`/api/workspace-slug-check/?slug=${slug}`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async slugCheck(slug: string): Promise<ApiSchema<"SlugAvailability">> {
+    return unwrap(this.client.GET("/api/workspace-slug-check/", { params: { query: { slug } } }));
   }
 
   /**

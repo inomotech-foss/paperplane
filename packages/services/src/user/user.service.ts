@@ -5,7 +5,7 @@
  */
 
 // plane imports
-import type { AdminApiResponse, AdminPaths, InternalPaths } from "@plane/api-types";
+import type { AdminApiResponse, AdminPaths, ApiRequestBody, ApiResponse, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type { IUser, TUserProfile } from "@plane/types";
 // api service
@@ -14,6 +14,18 @@ import type { ApiClient } from "../client";
 import { createApiClient, unwrap } from "../client";
 
 export type TInstanceAdminMe = AdminApiResponse<"/api/instances/admins/me/", "get">;
+export type TUserUpdateBody = ApiRequestBody<"/api/users/me/", "patch">;
+export type TUserUpdateResponse = ApiResponse<"/api/users/me/", "patch">;
+
+/** The writable fields of `data`. The API ignores the others, such as `avatar_url`. */
+export const userUpdateBody = (data: Partial<IUser>): TUserUpdateBody => ({
+  first_name: data.first_name,
+  last_name: data.last_name,
+  display_name: data.display_name,
+  cover_image: data.cover_image,
+  cover_image_asset: data.cover_image_asset,
+  user_timezone: data.user_timezone,
+});
 
 /**
  * Service class for managing user operations
@@ -44,17 +56,12 @@ export class UserService extends APIService {
   }
 
   /**
-   * Updates the current user details
+   * Updates the current user details. Sends only the fields the API writes.
    * @param {Partial<IUser>} data Data to update the user with
-   * @returns {Promise<IUser>} Promise resolving to the updated user details
-   * @throws {Error} If the API request fails
+   * @returns {Promise<TUserUpdateResponse>} Promise resolving to the updated user details
    */
-  async update(data: Partial<IUser>): Promise<IUser> {
-    return this.patch("/api/users/me/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async update(data: Partial<IUser>): Promise<TUserUpdateResponse> {
+    return unwrap(this.client.PATCH("/api/users/me/", { body: userUpdateBody(data) }));
   }
 
   /**

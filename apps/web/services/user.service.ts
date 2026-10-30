@@ -5,9 +5,10 @@
  */
 
 // services
-import type { ApiRequestBody, ApiResponse } from "@plane/api-types";
+import type { ApiRequestBody, ApiResponse, ApiSchema } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
-import { unwrap } from "@plane/services";
+import { unwrap, userUpdateBody } from "@plane/services";
+import type { TUserUpdateResponse } from "@plane/services";
 import type {
   IUser,
   IUserActivityResponse,
@@ -18,6 +19,7 @@ import type {
   IUserEmailNotificationSettings,
   TIssuesResponse,
   TUserProfile,
+  TStateGroups,
   IEmailCheckResponse,
 } from "@plane/types";
 import { apiClient, apiClientWithoutRedirect } from "@/services/api-client";
@@ -25,8 +27,14 @@ import { APIService } from "@/services/api.service";
 
 export type TUserAccount = ApiResponse<"/api/users/me/accounts/", "get">[number];
 export type TEmailNotificationSettingsBody = ApiRequestBody<"/api/users/me/notification-preferences/", "patch">;
+export type TMessageResponse = ApiSchema<"MessageResponse">;
 
 const userPath = (slug: string, user_id: string) => ({ path: { slug, user_id } });
+
+type TStateGroupCount = ApiSchema<"StateGroupCount">;
+
+export const hasChartStateGroup = (row: TStateGroupCount): row is TStateGroupCount & { state_group: TStateGroups } =>
+  row.state_group !== null && row.state_group !== "triage";
 
 /** Methods on the typed client throw `ApiError` from `@plane/services`. */
 export class UserService extends APIService {
@@ -73,32 +81,17 @@ export class UserService extends APIService {
     return unwrap(apiClient.GET("/api/users/me/notification-preferences/"));
   }
 
-  async updateUser(data: Partial<IUser>): Promise<any> {
-    return this.patch("/api/users/me/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  /** Sends only the fields the API writes. */
+  async updateUser(data: Partial<IUser>): Promise<TUserUpdateResponse> {
+    return unwrap(apiClient.PATCH("/api/users/me/", { body: userUpdateBody(data) }));
   }
 
-  async updateUserOnBoard(): Promise<any> {
-    return this.patch("/api/users/me/onboard/", {
-      is_onboarded: true,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async updateUserOnBoard(): Promise<TMessageResponse> {
+    return unwrap(apiClient.PATCH("/api/users/me/onboard/", { body: { is_onboarded: true } }));
   }
 
-  async updateUserTourCompleted(): Promise<any> {
-    return this.patch("/api/users/me/tour-completed/", {
-      is_tour_completed: true,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async updateUserTourCompleted(): Promise<TMessageResponse> {
+    return unwrap(apiClient.PATCH("/api/users/me/tour-completed/", { body: { is_tour_completed: true } }));
   }
 
   async updateCurrentUserEmailNotificationSettings(
@@ -119,12 +112,12 @@ export class UserService extends APIService {
       });
   }
 
+  /** Leaves out work items without a state or in triage, which the profile charts have no group for. */
   async getUserProfileData(workspaceSlug: string, userId: string): Promise<IUserProfileData> {
-    return this.get(`/api/workspaces/${workspaceSlug}/user-stats/${userId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const data = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/user-stats/{user_id}/", { params: userPath(workspaceSlug, userId) })
+    );
+    return { ...data, state_distribution: data.state_distribution.filter(hasChartStateGroup) };
   }
 
   async getUserProfileProjectsSegregation(
@@ -159,12 +152,14 @@ export class UserService extends APIService {
     data: {
       date: string;
     }
-  ): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/user-activity/${userId}/export/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  ): Promise<string> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/user-activity/{user_id}/export/", {
+        params: userPath(workspaceSlug, userId),
+        body: data,
+        parseAs: "text",
+      })
+    );
   }
 
   async getUserProfileIssues(
@@ -190,20 +185,19 @@ export class UserService extends APIService {
     return unwrap(apiClient.DELETE("/api/users/me/"));
   }
 
-  async leaveWorkspace(workspaceSlug: string) {
-    return this.post(`/api/workspaces/${workspaceSlug}/members/leave/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async leaveWorkspace(workspaceSlug: string): Promise<void> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/members/leave/", { params: { path: { slug: workspaceSlug } } })
+    );
   }
 
-  async joinProject(workspaceSlug: string, project_ids: string[]): Promise<any> {
-    return this.post(`/api/users/me/workspaces/${workspaceSlug}/projects/invitations/`, { project_ids })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async joinProject(workspaceSlug: string, project_ids: string[]): Promise<TMessageResponse> {
+    return unwrap(
+      apiClient.POST("/api/users/me/workspaces/{slug}/projects/invitations/", {
+        params: { path: { slug: workspaceSlug } },
+        body: { project_ids },
+      })
+    );
   }
 
   async leaveProject(workspaceSlug: string, projectId: string) {
@@ -230,20 +224,12 @@ export class UserService extends APIService {
       });
   }
 
-  async generateEmailCode(data: { email: string }): Promise<any> {
-    return this.post("/api/users/me/email/generate-code/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async generateEmailCode(data: { email: string }): Promise<TMessageResponse> {
+    return unwrap(apiClient.POST("/api/users/me/email/generate-code/", { body: data }));
   }
 
-  async verifyEmailCode(data: { email: string; code: string }): Promise<any> {
-    return this.patch("/api/users/me/email/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async verifyEmailCode(data: { email: string; code: string }): Promise<IUser> {
+    return unwrap(apiClient.PATCH("/api/users/me/email/", { body: data }));
   }
 }
 

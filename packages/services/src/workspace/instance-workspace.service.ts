@@ -6,7 +6,6 @@
 
 import type { AdminApiResponse, AdminApiSchema, AdminPaths, RequestBodyOf } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
-import { APIService } from "../api.service";
 import type { ApiClient } from "../client";
 import { createApiClient, unwrap } from "../client";
 
@@ -17,10 +16,9 @@ export type TInstanceWorkspaceCreateBody = RequestBodyOf<AdminPaths, "/api/insta
 /**
  * Service class for managing instance workspaces
  * Handles CRUD operations on instance workspaces
- * @extends APIService
- * @remarks Methods on the typed client throw `ApiError`.
+ * @remarks Errors are thrown as `ApiError`.
  */
-export class InstanceWorkspaceService extends APIService {
+export class InstanceWorkspaceService {
   private readonly client: ApiClient<AdminPaths>;
 
   /**
@@ -28,7 +26,6 @@ export class InstanceWorkspaceService extends APIService {
    * @param BASE_URL - Base URL for API requests
    */
   constructor(BASE_URL?: string) {
-    super(BASE_URL || API_BASE_URL);
     this.client = createApiClient<AdminPaths>(BASE_URL || API_BASE_URL);
   }
 
@@ -48,16 +45,10 @@ export class InstanceWorkspaceService extends APIService {
   /**
    * Checks if a workspace slug is available
    * @param {string} slug - The workspace slug to check
-   * @returns {Promise<any>} Promise resolving to slug availability status
-   * @throws {Error} If the API request fails
+   * @returns {Promise<AdminApiSchema<"SlugAvailability">>} `status` is true when the slug is free
    */
-  async slugCheck(slug: string): Promise<any> {
-    const params = new URLSearchParams({ slug });
-    return this.get(`/api/instances/workspace-slug-check/?${params.toString()}`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async slugCheck(slug: string): Promise<AdminApiSchema<"SlugAvailability">> {
+    return unwrap(this.client.GET("/api/instances/workspace-slug-check/", { params: { query: { slug } } }));
   }
 
   /**
@@ -78,10 +69,11 @@ export class InstanceWorkspaceService extends APIService {
   }
 
   async transferOwner(workspaceId: string, ownerId: string): Promise<TInstanceWorkspace> {
-    return this.post(`/api/instances/workspaces/${workspaceId}/transfer-owner/`, { owner: ownerId })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      this.client.POST("/api/instances/workspaces/{pk}/transfer-owner/", {
+        params: { path: { pk: workspaceId } },
+        body: { owner: ownerId },
+      })
+    );
   }
 }

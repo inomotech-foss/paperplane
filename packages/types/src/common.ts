@@ -6,7 +6,7 @@
 
 export type TPaginationInfo = {
   count: number;
-  extra_stats: string | null;
+  extra_stats: unknown;
   next_cursor: string;
   next_page_results: boolean;
   prev_cursor: string;

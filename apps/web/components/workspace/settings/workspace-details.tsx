@@ -21,6 +21,7 @@ import { cn, copyUrlToClipboard, getFileURL, validateWorkspaceName } from "@plan
 // components
 import { WorkspaceImageUploadModal } from "@/components/core/modals/workspace-image-upload-modal";
 import { TimezoneSelect } from "@/components/global/timezone-select";
+import { isTimezone } from "@/lib/timezone";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -262,7 +263,13 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <>
-                    <TimezoneSelect value={value} onChange={onChange} disabled={!isAdmin} />
+                    <TimezoneSelect
+                      value={value}
+                      onChange={(next) => {
+                        if (isTimezone(next)) onChange(next);
+                      }}
+                      disabled={!isAdmin}
+                    />
                   </>
                 )}
               />

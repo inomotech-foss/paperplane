@@ -31,7 +31,7 @@ export interface IUserProfileStore {
   fetchUserProfile: () => Promise<TUserProfile | undefined>;
   updateUserProfile: (data: Partial<TUserProfile>) => Promise<TUserProfile | undefined>;
   finishUserOnboarding: () => Promise<void>;
-  updateTourCompleted: () => Promise<TUserProfile | undefined>;
+  updateTourCompleted: () => Promise<void>;
   updateUserTheme: (data: Partial<IUserTheme>) => Promise<TUserProfile | undefined>;
 }
 
@@ -202,14 +202,13 @@ export class ProfileStore implements IUserProfileStore {
 
   /**
    * @description updates the user tour completed status
-   * @returns @returns {Promise<TUserProfile | undefined>}
+   * @returns {Promise<void>}
    */
-  updateTourCompleted = async () => {
+  updateTourCompleted = async (): Promise<void> => {
     const isUserProfileTourCompleted = this.data.is_tour_completed || false;
     try {
       this.mutateUserProfile({ is_tour_completed: true });
-      const userProfile = await this.userService.updateUserTourCompleted();
-      return userProfile;
+      await this.userService.updateUserTourCompleted();
     } catch (error) {
       runInAction(() => {
         this.mutateUserProfile({ is_tour_completed: isUserProfileTourCompleted });

@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import type { TTimezone } from "@plane/api-types";
 import type { TPaginationInfo } from "./common";
 import type { ICycle } from "./cycle";
 import type { TUserPermissions } from "./enums";
@@ -34,7 +35,7 @@ export interface IWorkspace {
   total_projects?: number;
   /** Absent from update responses. */
   role?: number;
-  timezone: string;
+  timezone: TTimezone;
   /** The workspace's default PQL dialect; only admins change it. */
   pql_dialect: TPqlDialect;
 }

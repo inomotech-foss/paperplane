@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { ApiRequestBody, ApiResponse } from "@plane/api-types";
+import type { ApiRequestBody, ApiResponse, ApiSchema } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import { unwrap } from "@plane/services";
 import type {
@@ -14,7 +14,6 @@ import type {
   IWorkspaceMember,
   IWorkspaceMemberInvitation,
   IWorkspaceSearchResults,
-  IWorkspaceBulkInviteFormData,
   IWorkspaceViewProps,
   IUserProjectsRole,
   IWorkspaceView,
@@ -33,6 +32,15 @@ import { apiClient } from "@/services/api-client";
 import { APIService } from "@/services/api.service";
 
 export type TLastVisitedWorkspace = ApiResponse<"/api/users/last-visited-workspace/", "get">;
+export type TWorkspaceCreateBody = ApiRequestBody<"/api/workspaces/", "post">;
+export type TWorkspaceUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/", "patch">;
+export type TWorkspaceInviteBody = ApiRequestBody<"/api/workspaces/{slug}/invitations/", "post">;
+export type TWorkspaceJoinBody = ApiRequestBody<"/api/workspaces/{slug}/invitations/{pk}/join/", "post">;
+export type TWorkspaceInvitationsJoinBody = ApiRequestBody<"/api/users/me/workspaces/invitations/", "post">;
+export type TWorkspaceInvitationPublic = ApiSchema<"WorkSpaceMemberInvitePublic">;
+export type TWorkspaceMemberUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/members/{pk}/", "patch">;
+export type TSlugAvailability = ApiSchema<"SlugAvailability">;
+export type TMessageResponse = ApiSchema<"MessageResponse">;
 export type TWorkspaceInvitationUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/invitations/{pk}/", "patch">;
 
 const workspacePath = (slug: string) => ({ path: { slug } });
@@ -52,50 +60,39 @@ export class WorkspaceService extends APIService {
     return unwrap(apiClient.GET("/api/workspaces/{slug}/", { params: workspacePath(workspaceSlug) }));
   }
 
-  async createWorkspace(data: Partial<IWorkspace>): Promise<IWorkspace> {
-    return this.post("/api/workspaces/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async createWorkspace(data: TWorkspaceCreateBody): Promise<IWorkspace> {
+    return unwrap(apiClient.POST("/api/workspaces/", { body: data }));
   }
 
-  async updateWorkspace(workspaceSlug: string, data: Partial<IWorkspace>): Promise<IWorkspace> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async updateWorkspace(workspaceSlug: string, data: TWorkspaceUpdateBody): Promise<IWorkspace> {
+    return unwrap(apiClient.PATCH("/api/workspaces/{slug}/", { params: workspacePath(workspaceSlug), body: data }));
   }
 
   async deleteWorkspace(workspaceSlug: string): Promise<void> {
     return unwrap(apiClient.DELETE("/api/workspaces/{slug}/", { params: workspacePath(workspaceSlug) }));
   }
 
-  async inviteWorkspace(workspaceSlug: string, data: IWorkspaceBulkInviteFormData): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/invitations/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async inviteWorkspace(workspaceSlug: string, data: TWorkspaceInviteBody): Promise<TMessageResponse> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/invitations/", { params: workspacePath(workspaceSlug), body: data })
+    );
   }
 
-  async joinWorkspace(workspaceSlug: string, invitationId: string, data: any): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/invitations/${invitationId}/join/`, data, {
-      headers: {},
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async joinWorkspace(
+    workspaceSlug: string,
+    invitationId: string,
+    data: TWorkspaceJoinBody
+  ): Promise<TMessageResponse> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/invitations/{pk}/join/", {
+        params: workspaceItemPath(workspaceSlug, invitationId),
+        body: data,
+      })
+    );
   }
 
-  async joinWorkspaces(data: any): Promise<any> {
-    return this.post("/api/users/me/workspaces/invitations/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async joinWorkspaces(data: TWorkspaceInvitationsJoinBody): Promise<void> {
+    return unwrap(apiClient.POST("/api/users/me/workspaces/invitations/", { body: data }));
   }
 
   /** The backend currently answers this route with a 500. */
@@ -119,39 +116,32 @@ export class WorkspaceService extends APIService {
     workspaceSlug: string,
     data: { pql_dialect: TPqlDialect | null }
   ): Promise<IWorkspaceMemberMe> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/workspace-members/me/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/workspace-members/me/", { params: workspacePath(workspaceSlug), body: data })
+    );
   }
 
-  async updateWorkspaceView(workspaceSlug: string, data: { view_props: IWorkspaceViewProps }): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/workspace-views/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async updateWorkspaceView(workspaceSlug: string, data: { view_props: IWorkspaceViewProps }): Promise<void> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/workspace-views/", { params: workspacePath(workspaceSlug), body: data })
+    );
   }
 
   async fetchWorkspaceMembers(workspaceSlug: string): Promise<IWorkspaceMember[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/members/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(apiClient.GET("/api/workspaces/{slug}/members/", { params: workspacePath(workspaceSlug) }));
   }
 
   async updateWorkspaceMember(
     workspaceSlug: string,
     memberId: string,
-    data: Partial<IWorkspaceMember>
+    data: TWorkspaceMemberUpdateBody
   ): Promise<IWorkspaceMember> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/members/${memberId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/members/{pk}/", {
+        params: workspaceItemPath(workspaceSlug, memberId),
+        body: data,
+      })
+    );
   }
 
   async deleteWorkspaceMember(workspaceSlug: string, memberId: string): Promise<void> {
@@ -164,12 +154,13 @@ export class WorkspaceService extends APIService {
     return unwrap(apiClient.GET("/api/workspaces/{slug}/invitations/", { params: workspacePath(workspaceSlug) }));
   }
 
-  async getWorkspaceInvitation(workspaceSlug: string, invitationId: string): Promise<IWorkspaceMemberInvitation> {
-    return this.get(`/api/workspaces/${workspaceSlug}/invitations/${invitationId}/join/`, { headers: {} })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  /** The public view of an invitation, without its token. */
+  async getWorkspaceInvitation(workspaceSlug: string, invitationId: string): Promise<TWorkspaceInvitationPublic> {
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/invitations/{pk}/join/", {
+        params: workspaceItemPath(workspaceSlug, invitationId),
+      })
+    );
   }
 
   async updateWorkspaceInvitation(
@@ -193,12 +184,8 @@ export class WorkspaceService extends APIService {
     );
   }
 
-  async workspaceSlugCheck(slug: string): Promise<any> {
-    return this.get(`/api/workspace-slug-check/?slug=${slug}`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async workspaceSlugCheck(slug: string): Promise<TSlugAvailability> {
+    return unwrap(apiClient.GET("/api/workspace-slug-check/", { params: { query: { slug } } }));
   }
 
   async searchWorkspace(
@@ -362,12 +349,12 @@ export class WorkspaceService extends APIService {
   }
 
   async fetchSidebarNavigationPreferences(workspaceSlug: string): Promise<IWorkspaceSidebarNavigation> {
-    return this.get(`/api/workspaces/${workspaceSlug}/sidebar-preferences/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/sidebar-preferences/", { params: workspacePath(workspaceSlug) })
+    );
   }
+
+  /** The backend has no such route, so this always fails. */
 
   async updateSidebarPreference(
     workspaceSlug: string,
@@ -384,12 +371,13 @@ export class WorkspaceService extends APIService {
   async updateBulkSidebarPreferences(
     workspaceSlug: string,
     data: Array<{ key: string; is_pinned: boolean; sort_order: number }>
-  ): Promise<IWorkspaceSidebarNavigation> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/sidebar-preferences/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+  ): Promise<TMessageResponse> {
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/sidebar-preferences/", {
+        params: workspacePath(workspaceSlug),
+        body: data,
+      })
+    );
   }
 
   async fetchWorkspaceFilters(workspaceSlug: string): Promise<IWorkspaceUserPropertiesResponse> {

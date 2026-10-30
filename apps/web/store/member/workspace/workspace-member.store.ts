@@ -306,10 +306,9 @@ export class WorkspaceMemberStore implements IWorkspaceMemberStore {
    * @param workspaceSlug
    * @param data
    */
-  inviteMembersToWorkspace = async (workspaceSlug: string, data: IWorkspaceBulkInviteFormData) => {
-    const response = await this.workspaceService.inviteWorkspace(workspaceSlug, data);
+  inviteMembersToWorkspace = async (workspaceSlug: string, data: IWorkspaceBulkInviteFormData): Promise<void> => {
+    await this.workspaceService.inviteWorkspace(workspaceSlug, data);
     await this.fetchWorkspaceMemberInvitations(workspaceSlug);
-    return response;
   };
 
   /**

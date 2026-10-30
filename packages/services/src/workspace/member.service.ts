@@ -4,12 +4,14 @@
  * See the LICENSE file for details.
  */
 
-import type { InternalPaths } from "@plane/api-types";
+import type { ApiRequestBody, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type { IWorkspaceMemberMe, IWorkspaceMember, IUserProjectsRole } from "@plane/types";
 import { APIService } from "../api.service";
 import type { ApiClient } from "../client";
 import { createApiClient, unwrap } from "../client";
+
+export type TWorkspaceMemberUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/members/{pk}/", "patch">;
 
 /**
  * Service class for managing workspace members
@@ -48,30 +50,25 @@ export class WorkspaceMemberService extends APIService {
    * Retrieves all members of a specific workspace
    * @param {string} workspaceSlug - The unique slug identifier for the workspace
    * @returns {Promise<IWorkspaceMember[]>} Promise resolving to array of workspace members
-   * @throws {Error} If the API request fails
    */
   async list(workspaceSlug: string): Promise<IWorkspaceMember[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/members/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.GET("/api/workspaces/{slug}/members/", { params: { path: { slug: workspaceSlug } } }));
   }
 
   /**
    * Updates a workspace member's information
    * @param {string} workspaceSlug - The unique slug identifier for the workspace
    * @param {string} memberId - The unique identifier for the member
-   * @param {Partial<IWorkspaceMember>} data - Updated member data
+   * @param {TWorkspaceMemberUpdateBody} data - The new role, the only field the API accepts
    * @returns {Promise<IWorkspaceMember>} Promise resolving to the updated member information
-   * @throws {Error} If the API request fails
    */
-  async update(workspaceSlug: string, memberId: string, data: Partial<IWorkspaceMember>): Promise<IWorkspaceMember> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/members/${memberId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async update(workspaceSlug: string, memberId: string, data: TWorkspaceMemberUpdateBody): Promise<IWorkspaceMember> {
+    return unwrap(
+      this.client.PATCH("/api/workspaces/{slug}/members/{pk}/", {
+        params: { path: { slug: workspaceSlug, pk: memberId } },
+        body: data,
+      })
+    );
   }
 
   /**

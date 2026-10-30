@@ -11,6 +11,7 @@ import { Select } from "@plane/blocks/select";
 import { setToast } from "@plane/blocks/toast";
 // components
 import { TimezoneSelect } from "@/components/global";
+import { isUserTimezone } from "@/lib/timezone";
 import { StartOfWeekPreference } from "@/components/profile/start-of-week-preference";
 import { SettingsControlItem } from "@/components/settings/control-item";
 // hooks
@@ -33,6 +34,7 @@ export const ProfileSettingsLanguageAndTimezonePreferencesList = observer(
 
     const handleTimezoneChange = async (value: string) => {
       try {
+        if (!isUserTimezone(value)) throw new Error(`Unknown timezone ${value}`);
         await updateCurrentUser({ user_timezone: value });
         setToast({
           title: "Success!",

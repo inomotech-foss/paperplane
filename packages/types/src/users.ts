@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import type { TUserTimezone } from "@plane/api-types";
 import type { TUserPermissions } from "./enums";
 import type { IIssueActivity, TIssuePriorities, TStateGroups } from ".";
 
@@ -22,9 +23,9 @@ export enum EStartOfTheWeek {
 }
 
 export interface IUserLite {
-  avatar_url: string;
+  avatar_url: string | null;
   display_name: string;
-  email?: string;
+  email?: string | null;
   first_name: string;
   id: string;
   is_bot: boolean;
@@ -32,8 +33,7 @@ export interface IUserLite {
   joining_date?: string;
 }
 /** The current user as `/api/users/me/` returns it. */
-export interface IUser extends Omit<IUserLite, "avatar_url" | "email"> {
-  avatar_url: string | null;
+export interface IUser extends Omit<IUserLite, "email"> {
   // only for uploading the cover image
   cover_image_asset?: string | null;
   cover_image?: string | null;
@@ -44,7 +44,7 @@ export interface IUser extends Omit<IUserLite, "avatar_url" | "email"> {
   is_active: boolean;
   is_email_verified: boolean;
   is_password_autoset: boolean;
-  user_timezone: string;
+  user_timezone: TUserTimezone;
   username: string;
   last_login_medium: string;
   last_login_time: string | null;
