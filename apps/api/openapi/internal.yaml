@@ -25483,6 +25483,8 @@ components:
         logo_props: {}
         project_id:
           type: string
+          format: uuid
+          nullable: true
           readOnly: true
       required:
       - id

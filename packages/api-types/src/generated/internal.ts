@@ -8947,7 +8947,8 @@ export interface components {
             readonly id: string;
             name: string;
             logo_props: unknown;
-            readonly project_id: string;
+            /** Format: uuid */
+            readonly project_id: string | null;
         };
         PageOrder: {
             /** Format: uuid */

@@ -131,7 +131,7 @@ class WorkSpaceMemberInviteSerializer(BaseSerializer):
     workspace = WorkspaceLiteSerializer(read_only=True)
     invite_link = serializers.SerializerMethodField()
 
-    def get_invite_link(self, obj):
+    def get_invite_link(self, obj) -> str:
         return f"/workspace-invitations/?invitation_id={obj.id}&slug={obj.workspace.slug}&token={obj.token}"
 
     class Meta:
