@@ -7,12 +7,6 @@
 import type { FieldError, FieldValues } from "react-hook-form";
 import { isRecord } from "@/helpers/guards";
 
-/**
- * Get a nested error from a form's errors object
- * @param errors - The form's errors object
- * @param path - The path to the error
- * @returns The error or undefined if not found
- */
 const getChild = (value: unknown, key: string): unknown =>
   typeof value === "object" && value !== null
     ? Object.entries(value).find(([childKey]) => childKey === key)?.[1]
@@ -21,6 +15,12 @@ const getChild = (value: unknown, key: string): unknown =>
 const isFieldError = (value: unknown): value is FieldError =>
   isRecord(value) && "message" in value && typeof value.type === "string";
 
+/**
+ * Get a nested error from a form's errors object
+ * @param errors - The form's errors object
+ * @param path - The path to the error
+ * @returns The error or undefined if not found
+ */
 export const getNestedError = <T extends FieldValues>(errors: T, path: string): FieldError | undefined => {
   const keys = path.split(".");
   let current: unknown = errors;
