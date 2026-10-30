@@ -12,7 +12,8 @@ GROUPED = "grouped"
 SUB_GROUPED = "sub_grouped"
 
 
-@extend_schema_field({"allOf": [{"type": "string", "nullable": True, "enum": [None]}], "nullable": True})
+# A null-only type would be dropped by openapi-fetch, so this is a string that cannot hold a value.
+@extend_schema_field({"type": "string", "nullable": True, "maxLength": 0})
 class _NullField(serializers.Field):
     """Always null, so the flat, grouped and sub-grouped variants stay distinct."""
 
@@ -50,8 +51,8 @@ def paginated_response(serializer, grouping=FLAT, name=None):
     else:
         raise ValueError(f"Unknown grouping: {grouping}")
 
-    grouped_by = _NullField() if grouping == FLAT else serializers.CharField()
-    sub_grouped_by = serializers.CharField() if grouping == SUB_GROUPED else _NullField()
+    grouped_by = _NullField() if grouping == FLAT else serializers.CharField(min_length=1)
+    sub_grouped_by = serializers.CharField(min_length=1) if grouping == SUB_GROUPED else _NullField()
     # A viewset's list action would otherwise wrap the wrapper in an array.
     return set_override(_paginated(f"{prefix}{name}List", results, grouped_by, sub_grouped_by), "many", False)
 

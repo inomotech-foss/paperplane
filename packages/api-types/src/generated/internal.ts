@@ -5985,7 +5985,7 @@ export interface components {
                 [key: string]: components["schemas"]["WorkItemGroup"];
             };
             grouped_by: string;
-            sub_grouped_by: (null) | null;
+            sub_grouped_by: string | null;
             total_count: number;
             next_cursor: string;
             prev_cursor: string;
@@ -7934,8 +7934,8 @@ export interface components {
         };
         PaginatedDraftIssueList: {
             results: components["schemas"]["DraftIssue"][];
-            grouped_by: (null) | null;
-            sub_grouped_by: (null) | null;
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
             total_count: number;
             next_cursor: string;
             prev_cursor: string;
@@ -7948,8 +7948,8 @@ export interface components {
         };
         PaginatedIssueActivityList: {
             results: components["schemas"]["IssueActivity"][];
-            grouped_by: (null) | null;
-            sub_grouped_by: (null) | null;
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
             total_count: number;
             next_cursor: string;
             prev_cursor: string;
@@ -7962,8 +7962,8 @@ export interface components {
         };
         PaginatedProjectListList: {
             results: components["schemas"]["ProjectList"][];
-            grouped_by: (null) | null;
-            sub_grouped_by: (null) | null;
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
             total_count: number;
             next_cursor: string;
             prev_cursor: string;
@@ -7976,8 +7976,8 @@ export interface components {
         };
         PaginatedTrashedIssueList: {
             results: components["schemas"]["TrashedIssue"][];
-            grouped_by: (null) | null;
-            sub_grouped_by: (null) | null;
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
             total_count: number;
             next_cursor: string;
             prev_cursor: string;
@@ -7990,8 +7990,8 @@ export interface components {
         };
         PaginatedViewWorkItemList: {
             results: components["schemas"]["ViewWorkItem"][];
-            grouped_by: (null) | null;
-            sub_grouped_by: (null) | null;
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
             total_count: number;
             next_cursor: string;
             prev_cursor: string;
@@ -8004,8 +8004,8 @@ export interface components {
         };
         PaginatedWorkItemDetailRowList: {
             results: components["schemas"]["WorkItemDetailRow"][];
-            grouped_by: (null) | null;
-            sub_grouped_by: (null) | null;
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
             total_count: number;
             next_cursor: string;
             prev_cursor: string;
@@ -8018,8 +8018,8 @@ export interface components {
         };
         PaginatedWorkItemList: {
             results: components["schemas"]["WorkItemListItem"][];
-            grouped_by: (null) | null;
-            sub_grouped_by: (null) | null;
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
             total_count: number;
             next_cursor: string;
             prev_cursor: string;

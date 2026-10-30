@@ -877,19 +877,13 @@ components:
           items:
             $ref: '#/components/schemas/InstanceUser'
         grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -929,19 +923,13 @@ components:
           items:
             $ref: '#/components/schemas/Workspace'
         grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:

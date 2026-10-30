@@ -17510,13 +17510,11 @@ components:
             $ref: '#/components/schemas/WorkItemGroup'
         grouped_by:
           type: string
+          minLength: 1
         sub_grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -22138,19 +22136,13 @@ components:
           items:
             $ref: '#/components/schemas/DraftIssue'
         grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -22190,19 +22182,13 @@ components:
           items:
             $ref: '#/components/schemas/IssueActivity'
         grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -22242,19 +22228,13 @@ components:
           items:
             $ref: '#/components/schemas/ProjectList'
         grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -22294,19 +22274,13 @@ components:
           items:
             $ref: '#/components/schemas/TrashedIssue'
         grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -22346,19 +22320,13 @@ components:
           items:
             $ref: '#/components/schemas/ViewWorkItem'
         grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -22398,19 +22366,13 @@ components:
           items:
             $ref: '#/components/schemas/WorkItemDetailRow'
         grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -22450,19 +22412,13 @@ components:
           items:
             $ref: '#/components/schemas/WorkItemListItem'
         grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
-          allOf:
-          - type: string
-            nullable: true
-            enum:
-            - null
+          type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -25408,8 +25364,10 @@ components:
             $ref: '#/components/schemas/WorkItemSubGroupedGroup'
         grouped_by:
           type: string
+          minLength: 1
         sub_grouped_by:
           type: string
+          minLength: 1
         total_count:
           type: integer
         next_cursor:
