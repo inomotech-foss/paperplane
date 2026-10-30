@@ -22,11 +22,15 @@ from plane.db.models import (
     IssueEmailThread,
     Label,
     Notification,
+    Page,
+    PageComment,
     ProjectMember,
+    ProjectPage,
     State,
     WorkspaceMemberInvite,
 )
-from plane.license.models import Instance
+from plane.license.models import Instance, InstanceConfiguration
+from plane.license.utils.encryption import encrypt_data
 from plane.tests.factories import ProjectFactory
 from plane.tests.openapi import documented, no_tasks  # noqa: F401
 from plane.utils.issue_type import link_starter_type
@@ -278,7 +282,22 @@ class TestAuthAndAdmin:
 
     def test_admin(self, instance_admin_client):
         documented(instance_admin_client.get("/api/instances/"), surface="admin")
-        assert documented(instance_admin_client.get("/api/instances/configurations/"), surface="admin") is not None
+        InstanceConfiguration.objects.bulk_create(
+            [
+                InstanceConfiguration(key="EMAIL_HOST", value="smtp.example", category="SMTP"),
+                InstanceConfiguration(
+                    key="EMAIL_HOST_PASSWORD", value=encrypt_data("s"), category="SMTP", is_encrypted=True
+                ),
+                InstanceConfiguration(key="EMAIL_PORT", value=None, category="SMTP"),
+            ]
+        )
+        with patch.dict("os.environ", {"PROVISION_MANAGED_KEYS": "EMAIL_HOST"}):
+            configs = documented(instance_admin_client.get("/api/instances/configurations/"), surface="admin")
+        assert {c["key"]: c["is_managed"] for c in configs} == {
+            "EMAIL_HOST": True,
+            "EMAIL_HOST_PASSWORD": False,
+            "EMAIL_PORT": False,
+        }
         app = documented(
             instance_admin_client.post(
                 "/api/instances/oauth-applications/",
@@ -295,3 +314,23 @@ class TestAuthAndAdmin:
             ),
             surface="admin",
         )
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestPublicV1:
+    def test_project_summary(self, api_key_client, workspace, project, issue):
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/summary/"
+        summary = documented(api_key_client.get(url, {"fields": "issues,states,unknown"}), surface="v1")
+        assert summary["counts"] == {"issues": 1, "states": 1}
+        everything = documented(api_key_client.get(url), surface="v1")["counts"]
+        assert set(everything) == {"members", "states", "labels", "cycles", "modules", "issues", "intakes", "pages"}
+
+    def test_page_comment_resolve(self, api_key_client, create_user, workspace, project):
+        page = Page.objects.create(name="P", workspace=workspace, owned_by=create_user, access=Page.PUBLIC_ACCESS)
+        ProjectPage.objects.create(workspace=workspace, project=project, page=page, created_by=create_user)
+        comment = PageComment.objects.create(page=page, comment_html="<p>c</p>", anchor_id="a1", actor=create_user)
+        project_url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}"
+        url = f"{project_url}/pages/{page.id}/comments/{comment.id}/resolve/"
+        assert documented(api_key_client.post(url), surface="v1")["is_resolved"] is True
+        assert documented(api_key_client.delete(url), surface="v1")["is_resolved"] is False
