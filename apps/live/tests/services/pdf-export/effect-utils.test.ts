@@ -34,7 +34,8 @@ describe("effect-utils", () => {
 
       assert(Either.isLeft(result), "Expected Left but got Right");
       expect(result.left).toBeInstanceOf(PdfTimeoutError);
-      expect((result.left as PdfTimeoutError).operation).toBe("test-operation");
+      assert(result.left instanceof PdfTimeoutError);
+      expect(result.left.operation).toBe("test-operation");
     });
 
     it("should retry on failure up to maxRetries times", async () => {
@@ -129,7 +130,7 @@ describe("effect-utils", () => {
     it("should wrap rejected promise with custom error", async () => {
       const effect = tryAsync(
         () => Promise.reject(new Error("original")),
-        (err) => new Error(`wrapped: ${(err as Error).message}`)
+        (err) => new Error(`wrapped: ${err instanceof Error ? err.message : String(err)}`)
       );
 
       const result = await Effect.runPromise(Effect.either(effect));
@@ -143,7 +144,7 @@ describe("effect-utils", () => {
         () => {
           throw new Error("sync error");
         },
-        (err) => new Error(`caught: ${(err as Error).message}`)
+        (err) => new Error(`caught: ${err instanceof Error ? err.message : String(err)}`)
       );
 
       const result = await Effect.runPromise(Effect.either(effect));

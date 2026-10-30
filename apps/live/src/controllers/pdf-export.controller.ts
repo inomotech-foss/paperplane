@@ -64,8 +64,8 @@ export class PdfExportController {
    */
   private mapErrorToHttpResponse(error: unknown): { status: number; error: string } {
     if (error && typeof error === "object" && "_tag" in error) {
-      const tag = (error as { _tag: string })._tag;
-      const message = (error as { message?: string }).message || "Unknown error";
+      const tag = error._tag;
+      const message = ("message" in error && typeof error.message === "string" && error.message) || "Unknown error";
 
       switch (tag) {
         case "PdfValidationError":

@@ -10,10 +10,10 @@ import { AppError } from "@/lib/errors";
 
 vi.mock("@/redis", () => ({ redisManager: { getClient: () => null } }));
 
-const api = vi.hoisted(() => ({
-  saved: [] as string[],
-  failures: [] as number[],
-}));
+const api = vi.hoisted(() => {
+  const state: { saved: string[]; failures: number[] } = { saved: [], failures: [] };
+  return state;
+});
 vi.mock("@/services/page/handler", () => ({
   getPageService: () => ({
     fetchDescriptionBinary: () => Promise.resolve(new Uint8Array()),
@@ -21,7 +21,7 @@ vi.mock("@/services/page/handler", () => ({
     updateDescriptionBinary: (_id: string, payload: TDocumentPayload) => {
       const failure = api.failures.shift();
       if (failure) return Promise.reject(new AppError("save failed", { statusCode: failure }));
-      api.saved.push(payload.description_html!);
+      api.saved.push(payload.description_html ?? "");
       return Promise.resolve();
     },
   }),

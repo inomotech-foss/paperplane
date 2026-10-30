@@ -9,8 +9,8 @@ import { logger } from "@plane/logger";
 /**
  * DebounceState - Tracks the state of a debounced function
  */
-export interface DebounceState {
-  lastArgs: any[] | null;
+export interface DebounceState<TArgs extends unknown[] = unknown[]> {
+  lastArgs: TArgs | null;
   timerId: ReturnType<typeof setTimeout> | null;
   lastCallTime: number | undefined;
   lastExecutionTime: number;
@@ -21,7 +21,7 @@ export interface DebounceState {
 /**
  * Creates a new DebounceState object
  */
-export const createDebounceState = (): DebounceState => ({
+export const createDebounceState = <TArgs extends unknown[]>(): DebounceState<TArgs> => ({
   lastArgs: null,
   timerId: null,
   lastCallTime: undefined,
@@ -45,8 +45,10 @@ export interface DebounceOptions {
  * Enhanced debounce manager with abort support
  * Manages the state and timing of debounced function calls
  */
-export class DebounceManager {
-  private state: DebounceState;
+export type DebouncedFunction<TArgs extends unknown[]> = (...args: [...TArgs, AbortSignal]) => Promise<void>;
+
+export class DebounceManager<TArgs extends unknown[]> {
+  private state: DebounceState<TArgs>;
   private wait: number;
   private logPrefix: string;
 
@@ -55,7 +57,7 @@ export class DebounceManager {
    * @param options Debounce configuration options
    */
   constructor(options: DebounceOptions) {
-    this.state = createDebounceState();
+    this.state = createDebounceState<TArgs>();
     this.wait = options.wait;
     this.logPrefix = options.logPrefix || "";
   }
@@ -65,7 +67,7 @@ export class DebounceManager {
    * @param func The function to call
    * @param args The arguments to pass to the function
    */
-  schedule(func: (...args: any[]) => Promise<void>, ...args: any[]): void {
+  schedule(func: DebouncedFunction<TArgs>, ...args: TArgs): void {
     // Always update the last arguments
     this.state.lastArgs = args;
 
@@ -103,7 +105,7 @@ export class DebounceManager {
   /**
    * Called when the timer expires
    */
-  private timerExpired(func: (...args: any[]) => Promise<void>): void {
+  private timerExpired(func: DebouncedFunction<TArgs>): void {
     const time = Date.now();
 
     // Check if this timer expiration represents the end of the debounce period
@@ -122,12 +124,12 @@ export class DebounceManager {
   /**
    * Execute the debounced function
    */
-  private executeFunction(func: (...args: any[]) => Promise<void>, time: number): void {
+  private executeFunction(func: DebouncedFunction<TArgs>, time: number): void {
     this.state.timerId = null;
     this.state.lastExecutionTime = time;
 
     // Execute the function asynchronously
-    this.performFunction(func).catch((error) => {
+    this.performFunction(func).catch((error: unknown) => {
       logger.error(`${this.logPrefix}: Error in execution:`, error);
     });
   }
@@ -135,12 +137,12 @@ export class DebounceManager {
   /**
    * Perform the actual function call, handling any in-progress operations
    */
-  private async performFunction(func: (...args: any[]) => Promise<void>): Promise<void> {
+  private async performFunction(func: DebouncedFunction<TArgs>): Promise<void> {
     const args = this.state.lastArgs;
     if (!args) return;
 
     // Store the args we're about to use
-    const currentArgs = [...args];
+    const currentArgs = args;
 
     // If another operation is in progress, abort it
     await this.abortOngoingOperation();
@@ -150,11 +152,7 @@ export class DebounceManager {
     this.state.abortController = new AbortController();
 
     try {
-      // Add the abort signal to the arguments if the function can use it
-      const execArgs = [...currentArgs];
-      execArgs.push(this.state.abortController.signal);
-
-      await func(...execArgs);
+      await func(...currentArgs, this.state.abortController.signal);
 
       // Only clear lastArgs if they haven't been changed during this operation
       if (this.state.lastArgs && this.arraysEqual(this.state.lastArgs, currentArgs)) {
@@ -230,7 +228,7 @@ export class DebounceManager {
   /**
    * Force immediate execution
    */
-  async flush(func: (...args: any[]) => Promise<void>): Promise<void> {
+  async flush(func: DebouncedFunction<TArgs>): Promise<void> {
     // Clear any pending timeout
     if (this.state.timerId) {
       clearTimeout(this.state.timerId);
@@ -273,7 +271,7 @@ export class DebounceManager {
   /**
    * Compare two arrays for equality
    */
-  private arraysEqual(a: any[], b: any[]): boolean {
+  private arraysEqual(a: readonly unknown[], b: readonly unknown[]): boolean {
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) {
       if (a[i] !== b[i]) return false;

@@ -12,8 +12,8 @@ import { logger } from "@plane/logger";
 import { AppError } from "@/lib/errors";
 import { waitForRedisReady } from "@/lib/wait-for-redis";
 import { redisManager } from "@/redis";
-import { AdminCommand } from "@/types/admin-commands";
-import type { AdminCommandData, AdminCommandHandler } from "@/types/admin-commands";
+import { AdminCommand, adminCommandDataSchema, isAdminCommand } from "@/types/admin-commands";
+import type { AdminCommandData, AdminCommandDataMap, AdminCommandHandler } from "@/types/admin-commands";
 
 const getRedisClient = () => {
   const redisClient = redisManager.getClient();
@@ -57,14 +57,13 @@ export class Redis extends HocuspocusRedis {
     if (channel !== this.ADMIN_CHANNEL) return;
 
     try {
-      const data = JSON.parse(message) as AdminCommandData;
-
-      // Validate command
-      if (!data.command || !Object.values(AdminCommand).includes(data.command as AdminCommand)) {
-        logger.warn(`[Redis] Invalid admin command received: ${data.command}`);
+      const parsed = adminCommandDataSchema.safeParse(JSON.parse(message));
+      if (!parsed.success) {
+        logger.warn(`[Redis] Invalid admin command received: ${message}`);
         return;
       }
 
+      const data = parsed.data;
       const handler = this.adminHandlers.get(data.command);
 
       if (handler) {
@@ -80,11 +79,11 @@ export class Redis extends HocuspocusRedis {
   /**
    * Register handler for an admin command
    */
-  public onAdminCommand<T extends AdminCommandData = AdminCommandData>(
-    command: AdminCommand,
-    handler: AdminCommandHandler<T>
+  public onAdminCommand<C extends keyof AdminCommandDataMap>(
+    command: C,
+    handler: AdminCommandHandler<AdminCommandDataMap[C]>
   ) {
-    this.adminHandlers.set(command, handler as AdminCommandHandler);
+    this.adminHandlers.set(command, (data) => (isAdminCommand(data, command) ? handler(data) : undefined));
     logger.info(`[Redis] Registered admin command: ${command}`);
   }
 

@@ -4,7 +4,6 @@
  */
 
 import express from "express";
-import type { AddressInfo } from "node:net";
 import { describe, it, expect, beforeAll } from "vitest";
 
 // Importing env validates process.env and exits when a required key is absent.
@@ -32,7 +31,9 @@ const post = async (bodyLimit: string, html: string) => {
 
   const server = app.listen(0);
   try {
-    const { port } = server.address() as AddressInfo;
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("Expected a TCP address");
+    const { port } = address;
     const response = await fetch(`http://127.0.0.1:${port}/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

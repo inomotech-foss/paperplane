@@ -4,12 +4,17 @@
  * See the LICENSE file for details.
  */
 
-import type { Redis, Cluster } from "ioredis";
+/** The part of an ioredis client that readiness depends on. */
+export type RedisReadiness = {
+  readonly status: string;
+  on(event: "ready" | "error" | "end", listener: () => void): unknown;
+  off(event: "ready" | "error" | "end", listener: () => void): unknown;
+};
 
 /* ioredis owns reconnect attempts until ready/end or timeout. */
 const ignoreTransientError = () => {};
 
-export function waitForRedisReady(client: Redis | Cluster, timeoutMs = 30_000): Promise<void> {
+export function waitForRedisReady(client: RedisReadiness, timeoutMs = 30_000): Promise<void> {
   if (client.status === "ready") return Promise.resolve();
   return new Promise((resolve, reject) => {
     const cleanup = () => {

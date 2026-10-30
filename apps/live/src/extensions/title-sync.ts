@@ -7,7 +7,6 @@
 // hocuspocus
 import type { Extension, Hocuspocus, Document } from "@hocuspocus/server";
 import { getSchema } from "@tiptap/core";
-import type { JSONContent } from "@tiptap/core";
 import { prosemirrorJSONToYDoc } from "@tiptap/y-tiptap";
 import type * as Y from "yjs";
 // editor extensions
@@ -32,7 +31,7 @@ const titleSchema = getSchema(TITLE_EDITOR_EXTENSIONS);
  */
 export class TitleSyncExtension implements Extension {
   // Maps document names to their observers and update managers
-  private titleObservers: Map<string, (events: Y.YEvent<any>[]) => void> = new Map();
+  private titleObservers: Map<string, (events: Y.YEvent<Y.AbstractType<unknown>>[]) => void> = new Map();
   private titleUpdateManagers: Map<string, TitleUpdateManager> = new Map();
   // Store minimal data needed for each document's title observer (prevents closure memory leaks)
   private titleObserverData: Map<
@@ -57,7 +56,7 @@ export class TitleSyncExtension implements Extension {
         const pageDetails = await service.fetchDetails(documentName);
         const title = pageDetails.name;
         if (title == null) return;
-        const titleJson = (generateTitleProsemirrorJson as (text: string) => JSONContent)(title);
+        const titleJson = generateTitleProsemirrorJson(title);
         const titleField = prosemirrorJSONToYDoc(titleSchema, titleJson, "title");
         document.merge(titleField);
       }
@@ -107,10 +106,11 @@ export class TitleSyncExtension implements Extension {
    * Handle title changes for a document
    * This is a separate method to avoid closure memory leaks
    */
-  private handleTitleChange(documentName: string, events: Y.YEvent<any>[]) {
+  private handleTitleChange(documentName: string, events: Y.YEvent<Y.AbstractType<unknown>>[]) {
     let title = "";
     events.forEach((event) => {
-      title = extractTextFromHTML(event.currentTarget.toJSON() as string);
+      const html: unknown = event.currentTarget.toJSON();
+      title = typeof html === "string" ? extractTextFromHTML(html) : "";
     });
 
     // Get the manager for this document
@@ -175,8 +175,8 @@ export class TitleSyncExtension implements Extension {
     this.titleObserverData.delete(documentName);
 
     // Ensure manager is cleaned up if beforeUnloadDocument somehow didn't run
-    if (this.titleUpdateManagers.has(documentName)) {
-      const manager = this.titleUpdateManagers.get(documentName)!;
+    const manager = this.titleUpdateManagers.get(documentName);
+    if (manager) {
       manager.cancel();
       this.titleUpdateManagers.delete(documentName);
     }

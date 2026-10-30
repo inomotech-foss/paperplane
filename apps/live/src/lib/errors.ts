@@ -20,7 +20,7 @@ export class AppError extends Error {
   method?: string;
   url?: string;
   code?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 
   constructor(messageOrError: string | unknown, data?: Partial<Omit<AppError, "name" | "message">>) {
     // Handle error objects - extract essential info

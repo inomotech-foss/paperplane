@@ -5,6 +5,7 @@
  */
 
 import { once } from "node:events";
+import type { AddressInfo } from "node:net";
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { Hocuspocus } from "@hocuspocus/server";
 import RedisClient from "ioredis";
@@ -24,7 +25,22 @@ const V2_PAGE =
 const V2_PAGE_WITHOUT_TITLE =
   "AQOQj+TZDQAHAQdkZWZhdWx0AwlwYXJhZ3JhcGgHAJCP5NkNAAYEAJCP5NkNASdCb2R5IHNhdmVkIGJlZm9yZSB0aXRsZXMgbW92ZWQgaW50byBZanMA";
 
-const redisState = vi.hoisted(() => ({ client: null as RedisClient | null }));
+const redisState = vi.hoisted(() => {
+  const state: { client: RedisClient | null } = { client: null };
+  return state;
+});
+const portOf = (address: AddressInfo | string | null): number => {
+  if (!address || typeof address === "string") throw new Error("Expected a TCP address");
+  return address.port;
+};
+
+const firstText = (fragment: Y.XmlFragment): Y.XmlText => {
+  const block = fragment.get(0);
+  const text = block instanceof Y.XmlElement ? block.get(0) : undefined;
+  if (!(text instanceof Y.XmlText)) throw new Error("Expected text in the first block");
+  return text;
+};
+
 vi.mock("@/redis", () => ({ redisManager: { getClient: () => redisState.client } }));
 
 // Only the API boundary is replaced; Plane's codecs, persistence and title hooks run unchanged.
@@ -40,7 +56,7 @@ vi.mock("@/services/page/handler", () => ({
     fetchDetails: (id: string) => Promise.resolve(api.details.get(id) ?? { name: "" }),
     updateDescriptionBinary: (id: string, payload: TDocumentPayload) => {
       api.saved.set(id, Buffer.from(payload.description_binary!, "base64"));
-      api.html.set(id, payload.description_html!);
+      api.html.set(id, payload.description_html ?? "");
       return Promise.resolve();
     },
     updatePageProperties: (id: string, { data }: { data: { name: string } }) => {
@@ -84,7 +100,9 @@ describe.skipIf(!REDIS_URL)("Hocuspocus v3 with Plane's Redis extension and v2 d
 
   const savedDoc = (name: string) => {
     const doc = new Y.Doc();
-    Y.applyUpdate(doc, api.saved.get(name)!);
+    const saved = api.saved.get(name);
+    if (!saved) throw new Error(`No saved state for ${name}`);
+    Y.applyUpdate(doc, saved);
     return doc;
   };
 
@@ -120,7 +138,7 @@ describe.skipIf(!REDIS_URL)("Hocuspocus v3 with Plane's Redis extension and v2 d
       sockets.push(socket);
     }
     await Promise.all(sockets.map((socket) => once(socket, "listening")));
-    urls.push(...sockets.map((socket) => `ws://127.0.0.1:${(socket.address() as { port: number }).port}`));
+    urls.push(...sockets.map((socket) => `ws://127.0.0.1:${portOf(socket.address())}`));
   });
 
   afterAll(async () => {
@@ -145,7 +163,7 @@ describe.skipIf(!REDIS_URL)("Hocuspocus v3 with Plane's Redis extension and v2 d
     expect(second.document.getXmlFragment("default").toJSON()).toContain("<bold>bold</bold>");
     expect(second.document.getXmlFragment("title").toJSON()).toContain("Existing wiki title 🚀");
 
-    const text = (first.document.getXmlFragment("default").get(0) as Y.XmlElement).get(0) as Y.XmlText;
+    const text = firstText(first.document.getXmlFragment("default"));
     text.insert(text.length, " v3 edit");
     await vi.waitFor(() => expect(second.document.getXmlFragment("default").toJSON()).toContain("v3 edit"));
 
@@ -162,7 +180,7 @@ describe.skipIf(!REDIS_URL)("Hocuspocus v3 with Plane's Redis extension and v2 d
       cookie: "c",
     });
     await direct.transact((doc) => {
-      const title = (doc.getXmlFragment("title").get(0) as Y.XmlElement).get(0) as Y.XmlText;
+      const title = firstText(doc.getXmlFragment("title"));
       title.insert(title.length, " updated");
     });
     await direct.disconnect();

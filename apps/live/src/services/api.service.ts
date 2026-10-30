@@ -59,10 +59,6 @@ export abstract class APIService {
     this.header[key] = value;
   }
 
-  getHeader() {
-    return this.header;
-  }
-
   private buildURL(path: string, query: Record<string, string> | undefined): string {
     const search = query ? new URLSearchParams(query).toString() : "";
     const separator = path.includes("?") ? "&" : "?";
@@ -75,7 +71,27 @@ export abstract class APIService {
    *
    * Throws an `AppError` with the status, method and path for a non-2xx response, a network error or a timeout.
    */
-  protected async request(method: HttpMethod, path: string, options: RequestOptions = {}): Promise<Response> {
+  protected request(method: HttpMethod, path: string, options: RequestOptions = {}): Promise<Response> {
+    return this.fetchWith(method, path, options, (response) => Promise.resolve(response));
+  }
+
+  /** Same as `request`, returning the parsed body. */
+  protected requestJson(method: HttpMethod, path: string, options: RequestOptions = {}): Promise<unknown> {
+    return this.fetchWith(method, path, options, readBody);
+  }
+
+  /** Same as `request`, returning the raw body. */
+  protected requestBinary(method: HttpMethod, path: string, options: RequestOptions = {}): Promise<ArrayBuffer> {
+    return this.fetchWith(method, path, options, (response) => response.arrayBuffer());
+  }
+
+  /** The timeout and the caller's signal also cover `read`, so a stalled body fails like a stalled request. */
+  private async fetchWith<T>(
+    method: HttpMethod,
+    path: string,
+    options: RequestOptions,
+    read: (response: Response) => Promise<T>
+  ): Promise<T> {
     const { headers, query, body, signal, redirect } = options;
     let url = path;
     try {
@@ -84,6 +100,15 @@ export abstract class APIService {
       console.warn("[APIService] Failed to normalize trailing slash:", path, error);
     }
     const timeout = AbortSignal.timeout(TIMEOUT_MS);
+
+    const transportError = (error: unknown): AppError => {
+      if (signal?.aborted) return new AppError(new DOMException("Aborted", "AbortError"));
+      if (timeout.aborted) {
+        return new AppError(`timeout of ${TIMEOUT_MS}ms exceeded`, { method, url, code: "ECONNABORTED" });
+      }
+      const message = error instanceof Error ? error.message : "Network Error";
+      return new AppError(message, { method, url, code: causeCode(error) ?? "ERR_NETWORK" });
+    };
 
     let response: Response;
     try {
@@ -99,16 +124,17 @@ export abstract class APIService {
         ...(redirect ? { redirect } : {}),
       });
     } catch (error) {
-      if (signal?.aborted) throw new AppError(new DOMException("Aborted", "AbortError"));
-      if (timeout.aborted) {
-        throw new AppError(`timeout of ${TIMEOUT_MS}ms exceeded`, { method, url, code: "ECONNABORTED" });
-      }
-      const message = error instanceof Error ? error.message : "Network Error";
-      throw new AppError(message, { method, url, code: causeCode(error) ?? "ERR_NETWORK" });
+      throw transportError(error);
     }
 
     const isRedirect = redirect === "manual" && response.status >= 300 && response.status < 400;
-    if (response.ok || isRedirect) return response;
+    if (response.ok || isRedirect) {
+      try {
+        return await read(response);
+      } catch (error) {
+        throw transportError(error);
+      }
+    }
 
     const data = await readBody(response).catch(() => undefined);
     throw new AppError(bodyMessage(data) ?? `Request failed with status code ${response.status}`, {
@@ -117,10 +143,5 @@ export abstract class APIService {
       url,
       code: response.status >= 500 ? "ERR_BAD_RESPONSE" : "ERR_BAD_REQUEST",
     });
-  }
-
-  /** Same as `request`, returning the parsed body. */
-  protected async requestJson(method: HttpMethod, path: string, options: RequestOptions = {}): Promise<unknown> {
-    return readBody(await this.request(method, path, options));
   }
 }

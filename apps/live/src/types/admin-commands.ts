@@ -4,6 +4,8 @@
  * See the LICENSE file for details.
  */
 
+import { z } from "zod";
+
 /**
  * Type-safe admin commands for server-to-server communication
  */
@@ -110,25 +112,32 @@ export interface ClientForceCloseMessage {
 export type AdminCommandHandler<T extends AdminCommandData = AdminCommandData> = (data: T) => Promise<void> | void;
 
 /**
- * Type guard to check if data is a ForceCloseCommandData
+ * Admin command data keyed by command
  */
-export function isForceCloseCommand(data: AdminCommandData): data is ForceCloseCommandData {
-  return data.command === AdminCommand.FORCE_CLOSE;
-}
+export type AdminCommandDataMap = {
+  [C in AdminCommandData["command"]]: Extract<AdminCommandData, { command: C }>;
+};
 
-/**
- * Type guard to check if data is a HealthCheckCommandData
- */
-export function isHealthCheckCommand(data: AdminCommandData): data is HealthCheckCommandData {
-  return data.command === AdminCommand.HEALTH_CHECK;
-}
+export const isAdminCommand = <C extends keyof AdminCommandDataMap>(
+  data: AdminCommandData,
+  command: C
+): data is AdminCommandDataMap[C] => data.command === command;
 
-/**
- * Validate force close reason
- */
-export function isValidForceCloseReason(reason: string): reason is ForceCloseReason {
-  return Object.values(ForceCloseReason).includes(reason as ForceCloseReason);
-}
+export const adminCommandDataSchema: z.ZodType<AdminCommandData> = z.discriminatedUnion("command", [
+  z.object({
+    command: z.literal(AdminCommand.FORCE_CLOSE),
+    docId: z.string(),
+    reason: z.enum(ForceCloseReason),
+    code: z.enum(CloseCode),
+    originServer: z.string(),
+    timestamp: z.string().optional(),
+  }),
+  z.object({
+    command: z.literal(AdminCommand.HEALTH_CHECK),
+    originServer: z.string(),
+    timestamp: z.string(),
+  }),
+]);
 
 /**
  * Get human-readable message for force close reason

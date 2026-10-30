@@ -7,8 +7,9 @@
 import { Effect } from "effect";
 import sharp from "sharp";
 import { getAllDocumentFormatsFromDocumentEditorBinaryData } from "@plane/editor/server";
-import type { PDFExportMetadata, TipTapDocument } from "@/lib/pdf";
-import { renderPlaneDocToPdfBuffer } from "@/lib/pdf";
+import type { PDFExportMetadata, TipTapDocument, TipTapNode } from "@/lib/pdf";
+import { renderPlaneDocToPdfBuffer, tipTapDocumentSchema } from "@/lib/pdf";
+import type { TUserMention } from "@/services/page/core.service";
 import { getPageService } from "@/services/page/handler";
 import type { TDocumentTypes } from "@/types";
 import {
@@ -25,12 +26,6 @@ const IMAGE_TIMEOUT_MS = 8000;
 const CONTENT_FETCH_TIMEOUT_MS = 7000;
 const PDF_RENDER_TIMEOUT_MS = 15000;
 const IMAGE_MAX_DIMENSION = 1200;
-
-type TipTapNode = {
-  type: string;
-  attrs?: Record<string, unknown>;
-  content?: TipTapNode[];
-};
 
 /**
  * PDF Export Service
@@ -51,8 +46,8 @@ export class PdfExportService extends Effect.Service<PdfExportService>()("PdfExp
       const assetIds: string[] = [];
 
       const traverse = (node: TipTapNode) => {
-        if ((node.type === "imageComponent" || node.type === "image") && node.attrs?.src) {
-          const src = node.attrs.src as string;
+        const src = node.attrs?.src;
+        if ((node.type === "imageComponent" || node.type === "image") && typeof src === "string") {
           if (src && !src.startsWith("http") && !src.startsWith("data:")) {
             assetIds.push(src);
           }
@@ -103,9 +98,18 @@ export class PdfExportService extends Effect.Service<PdfExportService>()("PdfExp
 
         const binaryData = new Uint8Array(descriptionBinary);
         const { contentJSON, titleHTML } = getAllDocumentFormatsFromDocumentEditorBinaryData(binaryData, true);
+        const parsed = tipTapDocumentSchema.safeParse(contentJSON);
+        if (!parsed.success) {
+          return yield* Effect.fail(
+            new PdfContentFetchError({
+              message: "Page content has an unexpected shape",
+              cause: parsed.error,
+            })
+          );
+        }
 
         return {
-          contentJSON: contentJSON as TipTapDocument,
+          contentJSON: parsed.data,
           titleHTML: titleHTML || null,
           descriptionBinary,
         };
@@ -130,13 +134,13 @@ export class PdfExportService extends Effect.Service<PdfExportService>()("PdfExp
             return [];
           },
           () => []
-        ).pipe(recoverWithDefault([] as Array<{ id: string; display_name: string; avatar_url?: string }>));
+        ).pipe(recoverWithDefault<TUserMention[]>([]));
 
         return {
           userMentions: userMentionsRaw.map((u) => ({
             id: u.id,
             display_name: u.display_name,
-            avatar_url: u.avatar_url,
+            avatar_url: u.avatar_url ?? undefined,
           })),
         };
       }),
@@ -241,7 +245,7 @@ export class PdfExportService extends Effect.Service<PdfExportService>()("PdfExp
                 error,
               })
             ),
-            Effect.catchAll(() => Effect.succeed(null as readonly [string, string] | null))
+            Effect.catchAll(() => Effect.succeed<readonly [string, string] | null>(null))
           );
 
         const entries = Array.from(resolvedUrlMap.entries());
@@ -327,7 +331,7 @@ export const exportToPdf = (
     const content = yield* service.fetchPageContent(pageService, pageId, requestId);
 
     // Extract image asset IDs
-    const imageAssetIds = service.extractImageAssetIds(content.contentJSON as TipTapNode);
+    const imageAssetIds = service.extractImageAssetIds(content.contentJSON);
 
     // Fetch user mentions
     let metadata = yield* service.fetchUserMentions(pageService, pageId, requestId);

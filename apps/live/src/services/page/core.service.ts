@@ -14,7 +14,7 @@ import { APIService } from "../api.service";
 const userMentionSchema = z.object({
   id: z.string(),
   display_name: z.string(),
-  avatar_url: z.string().optional(),
+  avatar_url: z.string().nullish(),
 });
 
 export type TUserMention = z.infer<typeof userMentionSchema>;
@@ -44,10 +44,10 @@ export abstract class PageCoreService extends APIService {
 
   async fetchDescriptionBinary(pageId: string): Promise<Buffer> {
     try {
-      const response = await this.request("GET", `${this.basePath}/pages/${pageId}/description/`, {
+      const body = await this.requestBinary("GET", `${this.basePath}/pages/${pageId}/description/`, {
         headers: { "Content-Type": "application/octet-stream" },
       });
-      return Buffer.from(await response.arrayBuffer());
+      return Buffer.from(body);
     } catch (error) {
       const appError = new AppError(error, {
         context: { operation: "fetchDescriptionBinary", pageId },

@@ -8,6 +8,7 @@ export { createPdfDocument, renderPlaneDocToPdfBlob, renderPlaneDocToPdfBuffer }
 export { createKeyGenerator, nodeRenderers, renderNode } from "./node-renderers";
 export { markRenderers, applyMarks } from "./mark-renderers";
 export { pdfStyles } from "./styles";
+export { tipTapDocumentSchema } from "./document-schema";
 export type {
   KeyGenerator,
   MarkRendererRegistry,
