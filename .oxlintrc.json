@@ -108,8 +108,7 @@
         "apps/web/**",
         "packages/blocks/**",
         "packages/editor/**",
-        "packages/services/**",
-        "packages/utils/**"
+        "packages/services/**"
       ],
       "rules": {
         "typescript/ban-ts-comment": "off",

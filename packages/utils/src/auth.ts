@@ -9,6 +9,9 @@ import type { ReactNode } from "react";
 import type { TAuthErrorInfo } from "@plane/constants";
 import { E_PASSWORD_STRENGTH, EErrorAlertType, EAuthErrorCodes, LOGIN_MEDIUM_LABELS } from "@plane/constants";
 
+const getLoginMediumLabel = (provider: string | undefined): string | undefined =>
+  Object.entries(LOGIN_MEDIUM_LABELS).find(([medium]) => medium === provider)?.[1];
+
 /**
  * @description Password strength levels
  */
@@ -231,7 +234,7 @@ const errorCodeMessages: {
   [EAuthErrorCodes.OAUTH_EMAIL_CONFLICT]: {
     title: `Email belongs to another account`,
     message: (email, provider) =>
-      `The email ${email ? `${email} ` : ""}from your ${LOGIN_MEDIUM_LABELS[provider as keyof typeof LOGIN_MEDIUM_LABELS] || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
+      `The email ${email ? `${email} ` : ""}from your ${getLoginMediumLabel(provider) || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
   },
   // Reset Password
   [EAuthErrorCodes.INVALID_PASSWORD_TOKEN]: {

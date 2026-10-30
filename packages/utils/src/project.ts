@@ -65,7 +65,7 @@ export const shouldFilterProject = (
 ): boolean => {
   let fallsInFilters = true;
   Object.keys(filters).forEach((key) => {
-    const filterKey = key as keyof TProjectFilters;
+    const filterKey = key;
     if (filterKey === "access" && filters.access && filters.access.length > 0)
       fallsInFilters = fallsInFilters && filters.access.includes(`${project.network}`);
     if (filterKey === "lead" && filters.lead && filters.lead.length > 0)

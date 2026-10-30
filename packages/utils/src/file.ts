@@ -60,8 +60,8 @@ export const getBase64Image = async (url: string): Promise<string> => {
     const reader = new FileReader();
 
     reader.onloadend = () => {
-      if (reader.result) {
-        resolve(reader.result as string);
+      if (typeof reader.result === "string" && reader.result) {
+        resolve(reader.result);
       } else {
         reject(new Error("Failed to convert image to base64."));
       }

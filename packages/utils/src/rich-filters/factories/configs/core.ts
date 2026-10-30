@@ -8,7 +8,7 @@
 import type { TFilterValue, TSupportedOperators, TBaseFilterFieldConfig } from "@plane/types";
 import { FILTER_FIELD_TYPE } from "@plane/types";
 // local imports
-import type { IFilterIconConfig } from "./shared";
+import type { IFilterIconConfig, TFilterIconType } from "./shared";
 import { createFilterFieldConfig } from "./shared";
 
 // ------------ Selection filters ------------
@@ -23,6 +23,13 @@ export interface TOptionTransforms<TItem, TValue extends TFilterValue = string, 
   getValue: (item: TItem) => TValue;
   getIconData?: (item: TItem) => TIconData;
 }
+
+// Options get an icon only when the transforms provide its data.
+const getOptionIcon = <TItem, TValue extends TFilterValue, TIconData extends TFilterIconType>(
+  transforms: TOptionTransforms<TItem, TValue, TIconData>,
+  item: TItem,
+  iconConfig: IFilterIconConfig<TIconData> | undefined
+) => (transforms.getIconData ? iconConfig?.getOptionIcon?.(transforms.getIconData(item)) : undefined);
 
 /**
  * Single-select filter configuration
@@ -55,7 +62,7 @@ export const getSingleSelectConfig = <
         id: transforms.getId(item),
         label: transforms.getLabel(item),
         value: transforms.getValue(item),
-        icon: iconConfig?.getOptionIcon?.(transforms.getIconData?.(item) as TIconData),
+        icon: getOptionIcon(transforms, item, iconConfig),
       })),
   });
 
@@ -92,7 +99,7 @@ export const getMultiSelectConfig = <
         id: transforms.getId(item),
         label: transforms.getLabel(item),
         value: transforms.getValue(item),
-        icon: iconConfig?.getOptionIcon?.(transforms.getIconData?.(item) as TIconData),
+        icon: getOptionIcon(transforms, item, iconConfig),
       })),
   });
 

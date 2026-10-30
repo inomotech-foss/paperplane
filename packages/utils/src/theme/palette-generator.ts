@@ -96,7 +96,7 @@ export function calculateDynamicValueStop(oklch: OKLCH): number {
  * @returns True if value is a valid shade stop
  */
 function isValidShadeStop(value: number): value is ShadeStop {
-  return (SHADE_STOPS as readonly number[]).includes(value);
+  return SHADE_STOPS.some((stop) => stop === value);
 }
 
 /**
@@ -149,10 +149,8 @@ export function generateColorPalette(
     { stop: SHADE_STOPS[SHADE_STOPS.length - 1], lightness: lightnessMin }, // Darkest
   ];
 
-  // Generate palette by interpolating lightness for each stop
-  const palette: Partial<ColorPalette> = {};
-
-  SHADE_STOPS.forEach((stop) => {
+  // Interpolate the lightness for a stop
+  const shadeAt = (stop: ShadeStop): string => {
     let targetLightness: number;
 
     // Check if this is an anchor point
@@ -186,11 +184,25 @@ export function generateColorPalette(
     };
 
     // Convert to CSS string
-    const key = stop as keyof ColorPalette;
-    palette[key] = oklchToCSS(shadeOKLCH);
-  });
+    return oklchToCSS(shadeOKLCH);
+  };
 
-  return palette as ColorPalette;
+  return {
+    50: shadeAt(50),
+    100: shadeAt(100),
+    200: shadeAt(200),
+    300: shadeAt(300),
+    400: shadeAt(400),
+    500: shadeAt(500),
+    600: shadeAt(600),
+    700: shadeAt(700),
+    750: shadeAt(750),
+    800: shadeAt(800),
+    850: shadeAt(850),
+    900: shadeAt(900),
+    950: shadeAt(950),
+    1000: shadeAt(1000),
+  };
 }
 
 /**

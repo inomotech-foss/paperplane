@@ -121,7 +121,7 @@ export const QuickAddIssueRoot = observer(function QuickAddIssueRoot(props: TQui
       // oxlint-disable-next-line unicorn/no-useless-fallback-in-spread
       ...(prePopulatedData ?? {}),
       ...formData,
-      type_id: typeId,
+      type_id: typeId ?? formData.type_id,
     });
 
     if (quickAddCallback) {

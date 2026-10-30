@@ -42,10 +42,10 @@ export const convertWorkItemDataToSearchResponse = (
 export function getChangedIssuefields(formData: Partial<TIssue>, dirtyFields: { [key: string]: boolean | undefined }) {
   const changedFields = {};
 
-  const dirtyFieldKeys = Object.keys(dirtyFields) as (keyof TIssue)[];
-  for (const dirtyField of dirtyFieldKeys) {
+  for (const dirtyField of Object.keys(dirtyFields)) {
     if (dirtyFields[dirtyField]) {
-      set(changedFields, [dirtyField], formData[dirtyField]);
+      const value: unknown = Reflect.get(formData, dirtyField);
+      set(changedFields, [dirtyField], value);
     }
   }
 

@@ -5,34 +5,29 @@
  */
 
 import type { Handle } from "hast-util-to-mdast";
-import type { PhrasingContent, Text as MDASTText } from "mdast";
+import type { Text as MDASTText } from "mdast";
 // local imports
 import { createTextNode } from "./common";
 
 const processMarkElement = (state: Parameters<Handle>[0], node: Parameters<Handle>[1], wrapper: string): MDASTText => {
   if (node.children && node.children.length > 0) {
-    // Process all children and collect their text content
-    const processedChildren: PhrasingContent[] = [];
+    // Collect the text content of all children
+    const texts: string[] = [];
 
     for (const child of node.children) {
       if (child.type === "text") {
-        // Direct text child - keep as is
-        processedChildren.push(child as MDASTText);
+        texts.push(child.value);
       } else if (child.type === "element") {
         // Element child - recursively process it
         const processed = state.one(child, node);
-        if (processed) {
-          if (Array.isArray(processed)) {
-            processedChildren.push(...(processed as PhrasingContent[]));
-          } else {
-            processedChildren.push(processed as PhrasingContent);
-          }
+        for (const item of [processed ?? []].flat()) {
+          if (item.type === "text") texts.push(item.value);
         }
       }
     }
 
     // Concatenate all text content and wrap with the specified wrapper
-    const combinedText = processedChildren.map((child) => (child.type === "text" ? child.value : "")).join("");
+    const combinedText = texts.join("");
 
     return createTextNode(`${wrapper}${combinedText}${wrapper}`);
   }

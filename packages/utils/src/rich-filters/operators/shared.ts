@@ -22,9 +22,11 @@ const NEGATED_BY_OPERATOR: Partial<Record<TSupportedOperators, TNegatedOperators
   [EQUALITY_OPERATOR.ICONTAINS]: NEGATED_OPERATORS.NOT_ICONTAINS,
 };
 
-const OPERATOR_BY_NEGATED = Object.fromEntries(
-  Object.entries(NEGATED_BY_OPERATOR).map(([operator, negated]) => [negated, operator])
-) as Record<TNegatedOperators, TSupportedOperators>;
+const OPERATOR_BY_NEGATED: Record<TNegatedOperators, TSupportedOperators> = {
+  [NEGATED_OPERATORS.NOT_EXACT]: EQUALITY_OPERATOR.EXACT,
+  [NEGATED_OPERATORS.NOT_IN]: COLLECTION_OPERATOR.IN,
+  [NEGATED_OPERATORS.NOT_ICONTAINS]: EQUALITY_OPERATOR.ICONTAINS,
+};
 
 /** The negated display operator of an operator, when it has one ("is" -> "is not"). */
 export const getNegatedOperator = (operator: TSupportedOperators): TNegatedOperators | undefined =>

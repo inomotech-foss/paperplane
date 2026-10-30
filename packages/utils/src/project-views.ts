@@ -51,7 +51,7 @@ export const orderViews = (
 export const shouldFilterView = (view: IProjectView, filters: TViewFilterProps | undefined): boolean => {
   let fallsInFilters = true;
   Object.keys(filters ?? {}).forEach((key) => {
-    const filterKey = key as keyof TViewFilterProps;
+    const filterKey = key;
     if (filterKey === "owned_by" && filters?.owned_by && filters.owned_by.length > 0) {
       fallsInFilters = fallsInFilters && filters.owned_by.includes(`${view.created_by}`);
     }

@@ -447,10 +447,10 @@ export const processRelativeDate = (value: string): Date => {
  * @param filterValue The date filter string (e.g., "1_weeks;after;fromnow" or "2024-12-01;after")
  * @returns Object containing the comparison type and target date
  */
-export const parseDateFilter = (filterValue: string): { type: "after" | "before"; date: Date } => {
+export const parseDateFilter = (filterValue: string): { type: "after" | "before" | undefined; date: Date } => {
   const parts = filterValue.split(";");
   const dateStr = parts[0];
-  const type = parts[1] as "after" | "before";
+  const type = parts[1] === "after" || parts[1] === "before" ? parts[1] : undefined;
 
   let date: Date;
   if (dateStr.includes("_")) {
@@ -592,4 +592,4 @@ export const formatDuration = (seconds: number | undefined | null): string => {
  * @returns Whether the date is valid or not
  */
 export const isValidDate = (date: unknown): date is string | Date =>
-  (typeof date === "string" || typeof date === "object") && date !== null && !isNaN(Date.parse(date as string));
+  (typeof date === "string" || typeof date === "object") && date !== null && !isNaN(Date.parse(String(date)));

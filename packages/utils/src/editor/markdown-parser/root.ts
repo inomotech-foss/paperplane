@@ -42,19 +42,20 @@ function addSpacesToCheckboxes() {
           const liElement = child;
 
           // Find the label and div elements
-          const label = liElement.children?.find((c) => c.type === "element" && c.tagName === "label") as
-            | HASTElement
-            | undefined;
+          const label = liElement.children?.find(
+            (c): c is HASTElement => c.type === "element" && c.tagName === "label"
+          );
 
-          const contentDiv = liElement.children?.find((c) => c.type === "element" && c.tagName === "div") as
-            | HASTElement
-            | undefined;
+          const contentDiv = liElement.children?.find(
+            (c): c is HASTElement => c.type === "element" && c.tagName === "div"
+          );
 
           if (label && contentDiv) {
             // Find the checkbox input
             const checkbox = label.children?.find(
-              (c) => c.type === "element" && c.tagName === "input" && c.properties?.type === "checkbox"
-            ) as HASTElement | undefined;
+              (c): c is HASTElement =>
+                c.type === "element" && c.tagName === "input" && c.properties?.type === "checkbox"
+            );
 
             if (checkbox) {
               // Extract text content from the div, unwrapping any paragraph tags
