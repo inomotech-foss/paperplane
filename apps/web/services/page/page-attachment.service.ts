@@ -3,20 +3,16 @@
  * See the LICENSE file for details.
  */
 
-import type { AxiosRequestConfig } from "axios";
 import { API_BASE_URL } from "@plane/constants";
-import { getFileMetaDataForUpload, generateFileUploadPayload } from "@plane/services";
+import { getFileMetaDataForUpload, uploadToPresignedPost } from "@plane/services";
+import type { UploadProgressHandler } from "@plane/services";
 import type { TPageAttachment, TPageAttachmentUploadResponse } from "@plane/types";
 // services
 import { APIService } from "@/services/api.service";
-import { FileUploadService } from "@/services/file-upload.service";
 
 export class PageAttachmentService extends APIService {
-  private fileUploadService: FileUploadService;
-
   constructor() {
     super(API_BASE_URL);
-    this.fileUploadService = new FileUploadService();
   }
 
   private basePath(workspaceSlug: string, projectId: string, pageId: string): string {
@@ -46,18 +42,13 @@ export class PageAttachmentService extends APIService {
     projectId: string,
     pageId: string,
     file: File,
-    uploadProgressHandler?: AxiosRequestConfig["onUploadProgress"]
+    uploadProgressHandler?: UploadProgressHandler
   ): Promise<TPageAttachment> {
     const fileMetaData = await getFileMetaDataForUpload(file);
     return this.post(this.basePath(workspaceSlug, projectId, pageId), fileMetaData)
       .then(async (response) => {
         const signedURLResponse: TPageAttachmentUploadResponse = response?.data;
-        const fileUploadPayload = generateFileUploadPayload(signedURLResponse, file);
-        await this.fileUploadService.uploadFile(
-          signedURLResponse.upload_data.url,
-          fileUploadPayload,
-          uploadProgressHandler
-        );
+        await uploadToPresignedPost(signedURLResponse, file, { onProgress: uploadProgressHandler });
         await this.markUploaded(workspaceSlug, projectId, pageId, signedURLResponse.asset_id);
         return signedURLResponse.attachment;
       })

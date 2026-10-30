@@ -10,16 +10,12 @@ import type { TIssueComment, TIssueServiceType } from "@plane/types";
 import { EIssueServiceType } from "@plane/types";
 // services
 import { APIService } from "@/services/api.service";
-import { FileUploadService } from "@/services/file-upload.service";
 
 export class IssueCommentService extends APIService {
-  private fileUploadService: FileUploadService;
   private serviceType: TIssueServiceType;
 
   constructor(serviceType: TIssueServiceType = EIssueServiceType.ISSUES) {
     super(API_BASE_URL);
-    // upload service
-    this.fileUploadService = new FileUploadService();
     this.serviceType = serviceType;
   }
 

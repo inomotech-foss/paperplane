@@ -4,24 +4,20 @@
  * See the LICENSE file for details.
  */
 
-import type { AxiosRequestConfig } from "axios";
 import { API_BASE_URL } from "@plane/constants";
 // plane types
-import { getFileMetaDataForUpload, generateFileUploadPayload } from "@plane/services";
+import { getFileMetaDataForUpload, uploadToPresignedPost } from "@plane/services";
+import type { UploadProgressHandler } from "@plane/services";
 import type { TIssueAttachment, TIssueAttachmentUploadResponse, TIssueServiceType } from "@plane/types";
 import { EIssueServiceType } from "@plane/types";
 // services
 import { APIService } from "@/services/api.service";
-import { FileUploadService } from "@/services/file-upload.service";
 
 export class IssueAttachmentService extends APIService {
-  private fileUploadService: FileUploadService;
   private serviceType: TIssueServiceType;
 
   constructor(serviceType: TIssueServiceType = EIssueServiceType.ISSUES) {
     super(API_BASE_URL);
-    // upload service
-    this.fileUploadService = new FileUploadService();
     this.serviceType = serviceType;
   }
 
@@ -45,7 +41,7 @@ export class IssueAttachmentService extends APIService {
     projectId: string,
     issueId: string,
     file: File,
-    uploadProgressHandler?: AxiosRequestConfig["onUploadProgress"]
+    uploadProgressHandler?: UploadProgressHandler
   ): Promise<TIssueAttachment> {
     const fileMetaData = await getFileMetaDataForUpload(file);
     return this.post(
@@ -54,12 +50,7 @@ export class IssueAttachmentService extends APIService {
     )
       .then(async (response) => {
         const signedURLResponse: TIssueAttachmentUploadResponse = response?.data;
-        const fileUploadPayload = generateFileUploadPayload(signedURLResponse, file);
-        await this.fileUploadService.uploadFile(
-          signedURLResponse.upload_data.url,
-          fileUploadPayload,
-          uploadProgressHandler
-        );
+        await uploadToPresignedPost(signedURLResponse, file, { onProgress: uploadProgressHandler });
         await this.updateIssueAttachmentUploadStatus(workspaceSlug, projectId, issueId, signedURLResponse.asset_id);
         return signedURLResponse.attachment;
       })

@@ -13,18 +13,13 @@ import type { TDocumentPayload, TPage } from "@plane/types";
 // services
 import { apiClient } from "@/services/api-client";
 import { APIService } from "@/services/api.service";
-import { FileUploadService } from "@/services/file-upload.service";
 
 export type TPagePosition = ApiSchema<"PagePositionRequest">;
 export type TPageOrder = ApiSchema<"PageOrder">;
 
 export class ProjectPageService extends APIService {
-  private fileUploadService: FileUploadService;
-
   constructor() {
     super(API_BASE_URL);
-    // upload service
-    this.fileUploadService = new FileUploadService();
   }
 
   async fetchAll(workspaceSlug: string, projectId: string): Promise<TPage[]> {

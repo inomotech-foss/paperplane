@@ -6,12 +6,12 @@
 
 // plane imports
 import { API_BASE_URL } from "@plane/constants";
-// local services
 import type { TFileEntityInfo, TFileSignedURLResponse } from "@plane/types";
-import { FileUploadService } from "./file-upload.service";
-// helpers
+// local services
 import { FileService } from "./file.service";
-import { generateFileUploadPayload, getAssetIdFromUrl, getFileMetaDataForUpload } from "./helper";
+// helpers
+import { getAssetIdFromUrl, getFileMetaDataForUpload } from "./helper";
+import { uploadToPresignedPost } from "./presigned-upload";
 
 /**
  * Service class for managing file operations within plane sites application.
@@ -20,8 +20,7 @@ import { generateFileUploadPayload, getAssetIdFromUrl, getFileMetaDataForUpload 
  * @remarks This service is only available for plane sites
  */
 export class SitesFileService extends FileService {
-  private cancelSource: any;
-  fileUploadService: FileUploadService;
+  private uploadController = new AbortController();
 
   /**
    * Creates an instance of SitesFileService
@@ -30,8 +29,6 @@ export class SitesFileService extends FileService {
   constructor(BASE_URL?: string) {
     super(BASE_URL || API_BASE_URL);
     this.cancelUpload = this.cancelUpload.bind(this);
-    // services
-    this.fileUploadService = new FileUploadService();
   }
 
   /**
@@ -87,8 +84,7 @@ export class SitesFileService extends FileService {
     })
       .then(async (response) => {
         const signedURLResponse: TFileSignedURLResponse = response?.data;
-        const fileUploadPayload = generateFileUploadPayload(signedURLResponse, file);
-        await this.fileUploadService.uploadFile(signedURLResponse.upload_data.url, fileUploadPayload);
+        await uploadToPresignedPost(signedURLResponse, file, { signal: this.uploadController.signal });
         await this.updateAssetUploadStatus(anchor, signedURLResponse.asset_id);
         return signedURLResponse;
       })
@@ -115,9 +111,10 @@ export class SitesFileService extends FileService {
   }
 
   /**
-   * Cancels the upload
+   * Cancels the running uploads
    */
   cancelUpload() {
-    this.cancelSource.cancelUpload();
+    this.uploadController.abort();
+    this.uploadController = new AbortController();
   }
 }
