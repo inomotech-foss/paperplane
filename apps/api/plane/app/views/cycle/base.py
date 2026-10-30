@@ -34,6 +34,16 @@ from django.core.serializers.json import DjangoJSONEncoder
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from plane.utils.openapi.serializers import MessageResponseSerializer
+from plane.app.serializers.response.cycle import (
+    CycleDateCheckSerializer,
+    CycleDetailSerializer,
+    CycleListItemSerializer,
+    CycleProgressSerializer,
+    CycleSnapshotSerializer,
+    DistributionSerializer,
+)
 from plane.app.permissions import allow_permission, ROLE
 from plane.app.serializers import (
     CycleSerializer,
@@ -180,6 +190,7 @@ class CycleViewSet(BaseViewSet):
             .distinct()
         )
 
+    @extend_schema(responses={200: CycleListItemSerializer(many=True)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def list(self, request, slug, project_id):
         queryset = self.get_queryset().filter(archived_at__isnull=True)
@@ -267,6 +278,7 @@ class CycleViewSet(BaseViewSet):
         data = user_timezone_converter(data, datetime_fields, project_timezone)
         return Response(data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={201: CycleSnapshotSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id):
         if (request.data.get("start_date", None) is None and request.data.get("end_date", None) is None) or (
@@ -331,6 +343,7 @@ class CycleViewSet(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    @extend_schema(responses={200: CycleSnapshotSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def partial_update(self, request, slug, project_id, pk):
         queryset = self.get_queryset().filter(workspace__slug=slug, project_id=project_id, pk=pk)
@@ -405,6 +418,7 @@ class CycleViewSet(BaseViewSet):
             return Response(cycle, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses={200: CycleDetailSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def retrieve(self, request, slug, project_id, pk):
         queryset = self.get_queryset().filter(archived_at__isnull=True).filter(pk=pk)
@@ -515,6 +529,7 @@ class CycleViewSet(BaseViewSet):
 
 
 class CycleDateCheckEndpoint(BaseAPIView):
+    @extend_schema(responses={200: CycleDateCheckSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id):
         start_date = request.data.get("start_date", False)
@@ -565,6 +580,7 @@ class CycleFavoriteViewSet(BaseViewSet):
             .select_related("cycle", "cycle__owned_by")
         )
 
+    @extend_schema(responses={204: OpenApiResponse(description="Added to favorites")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id):
         # 404 unless the cycle is in this project and visible to the user
@@ -593,6 +609,7 @@ class CycleFavoriteViewSet(BaseViewSet):
 
 
 class TransferCycleIssueEndpoint(BaseAPIView):
+    @extend_schema(responses={200: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id, cycle_id):
         new_cycle_id = request.data.get("new_cycle_id", False)
@@ -623,6 +640,7 @@ class TransferCycleIssueEndpoint(BaseAPIView):
 
 
 class CycleUserPropertiesEndpoint(BaseAPIView):
+    @extend_schema(responses={201: CycleUserPropertiesSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id, cycle_id):
         cycle_properties = CycleUserProperties.objects.get(
@@ -643,6 +661,7 @@ class CycleUserPropertiesEndpoint(BaseAPIView):
         serializer = CycleUserPropertiesSerializer(cycle_properties)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(responses={200: CycleUserPropertiesSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, cycle_id):
         cycle_properties, _ = CycleUserProperties.objects.get_or_create(
@@ -656,6 +675,7 @@ class CycleUserPropertiesEndpoint(BaseAPIView):
 
 
 class CycleProgressEndpoint(BaseAPIView):
+    @extend_schema(responses={200: CycleProgressSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, cycle_id):
         cycle = Cycle.objects.filter(workspace__slug=slug, project_id=project_id, id=cycle_id).first()
@@ -784,6 +804,7 @@ class CycleProgressEndpoint(BaseAPIView):
 
 
 class CycleAnalyticsEndpoint(BaseAPIView):
+    @extend_schema(responses={200: DistributionSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, cycle_id):
         analytic_type = request.GET.get("type", "issues")

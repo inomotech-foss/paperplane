@@ -11,17 +11,20 @@ from django.db.models.functions import Coalesce
 # Third party modules
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
 from plane.app.views.base import BaseAPIView
 from plane.db.models import Module, ModuleLink
 from plane.app.permissions import WorkspaceViewerPermission
 from plane.app.serializers.module import ModuleSerializer
+from plane.app.serializers.response.module import WorkspaceModuleSerializer
 
 
 class WorkspaceModulesEndpoint(BaseAPIView):
     permission_classes = [WorkspaceViewerPermission]
 
+    @extend_schema(responses={200: WorkspaceModuleSerializer(many=True)})
     def get(self, request, slug):
         modules = (
             Module.objects.filter(

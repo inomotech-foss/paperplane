@@ -33,8 +33,15 @@ from django.utils import timezone
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
+from plane.utils.openapi.schema import single
+from plane.app.serializers.response.module import (
+    ModuleDetailResponseSerializer,
+    ModuleListItemSerializer,
+    ModuleListResponse,
+)
 from plane.app.permissions import (
     ProjectEntityPermission,
     ProjectLitePermission,
@@ -291,6 +298,7 @@ class ModuleViewSet(BaseViewSet):
             .order_by("-is_favorite", "-created_at")
         )
 
+    @extend_schema(responses={201: ModuleListItemSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id):
         project = Project.objects.get(workspace__slug=slug, pk=project_id)
@@ -349,6 +357,7 @@ class ModuleViewSet(BaseViewSet):
             return Response(module, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses={200: single(ModuleListResponse)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def list(self, request, slug, project_id):
         queryset = self.get_queryset().filter(archived_at__isnull=True)
@@ -391,6 +400,7 @@ class ModuleViewSet(BaseViewSet):
             modules = user_timezone_converter(modules, datetime_fields, request.user.user_timezone)
         return Response(modules, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: ModuleDetailResponseSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def retrieve(self, request, slug, project_id, pk):
         queryset = (
@@ -647,6 +657,7 @@ class ModuleViewSet(BaseViewSet):
 
         return Response(data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: ModuleListItemSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def partial_update(self, request, slug, project_id, pk):
         module_queryset = self.get_queryset().filter(pk=pk)
@@ -804,6 +815,7 @@ class ModuleFavoriteViewSet(BaseViewSet):
             .select_related("module")
         )
 
+    @extend_schema(responses={204: OpenApiResponse(description="Added to favorites")})
     def create(self, request, slug, project_id):
         # 404 unless the module is in this project and visible to the user
         get_favorite_entities("module", request.user.id, project_id).get(
@@ -830,6 +842,7 @@ class ModuleFavoriteViewSet(BaseViewSet):
 
 
 class ModuleUserPropertiesEndpoint(BaseAPIView):
+    @extend_schema(responses={201: ModuleUserPropertiesSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id, module_id):
         module_properties = ModuleUserProperties.objects.get(
@@ -850,6 +863,7 @@ class ModuleUserPropertiesEndpoint(BaseAPIView):
         serializer = ModuleUserPropertiesSerializer(module_properties)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(responses={200: ModuleUserPropertiesSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, module_id):
         module_properties, _ = ModuleUserProperties.objects.get_or_create(
