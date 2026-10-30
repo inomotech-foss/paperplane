@@ -4,16 +4,15 @@
  * See the LICENSE file for details.
  */
 
-import type { AxiosRequestConfig } from "axios";
 // plane types
 import { API_BASE_URL } from "@plane/constants";
-import { getFileMetaDataForUpload, generateFileUploadPayload } from "@plane/services";
+import { getFileMetaDataForUpload, uploadToPresignedPost } from "@plane/services";
+import type { UploadProgressHandler } from "@plane/services";
 import type { EFileAssetType, TFileEntityInfo, TFileSignedURLResponse } from "@plane/types";
 import { getAssetIdFromUrl } from "@plane/utils";
 // helpers
 // services
 import { APIService } from "@/services/api.service";
-import { FileUploadService } from "@/services/file-upload.service";
 
 export interface UnSplashImage {
   id: string;
@@ -51,14 +50,11 @@ export enum TFileAssetType {
 }
 
 export class FileService extends APIService {
-  private cancelSource: any;
-  private fileUploadService: FileUploadService;
+  private uploadController = new AbortController();
 
   constructor() {
     super(API_BASE_URL);
     this.cancelUpload = this.cancelUpload.bind(this);
-    // upload service
-    this.fileUploadService = new FileUploadService();
   }
 
   private async updateWorkspaceAssetUploadStatus(workspaceSlug: string, assetId: string): Promise<void> {
@@ -73,7 +69,7 @@ export class FileService extends APIService {
     workspaceSlug: string,
     data: TFileEntityInfo,
     file: File,
-    uploadProgressHandler?: AxiosRequestConfig["onUploadProgress"]
+    uploadProgressHandler?: UploadProgressHandler
   ): Promise<TFileSignedURLResponse> {
     const fileMetaData = await getFileMetaDataForUpload(file);
     return this.post(`/api/assets/v2/workspaces/${workspaceSlug}/`, {
@@ -82,12 +78,10 @@ export class FileService extends APIService {
     })
       .then(async (response) => {
         const signedURLResponse: TFileSignedURLResponse = response?.data;
-        const fileUploadPayload = generateFileUploadPayload(signedURLResponse, file);
-        await this.fileUploadService.uploadFile(
-          signedURLResponse.upload_data.url,
-          fileUploadPayload,
-          uploadProgressHandler
-        );
+        await uploadToPresignedPost(signedURLResponse, file, {
+          onProgress: uploadProgressHandler,
+          signal: this.uploadController.signal,
+        });
         await this.updateWorkspaceAssetUploadStatus(workspaceSlug.toString(), signedURLResponse.asset_id);
         return signedURLResponse;
       })
@@ -150,7 +144,7 @@ export class FileService extends APIService {
     projectId: string,
     data: TFileEntityInfo,
     file: File,
-    uploadProgressHandler?: AxiosRequestConfig["onUploadProgress"]
+    uploadProgressHandler?: UploadProgressHandler
   ): Promise<TFileSignedURLResponse> {
     const fileMetaData = await getFileMetaDataForUpload(file);
     return this.post(`/api/assets/v2/workspaces/${workspaceSlug}/projects/${projectId}/`, {
@@ -159,12 +153,10 @@ export class FileService extends APIService {
     })
       .then(async (response) => {
         const signedURLResponse: TFileSignedURLResponse = response?.data;
-        const fileUploadPayload = generateFileUploadPayload(signedURLResponse, file);
-        await this.fileUploadService.uploadFile(
-          signedURLResponse.upload_data.url,
-          fileUploadPayload,
-          uploadProgressHandler
-        );
+        await uploadToPresignedPost(signedURLResponse, file, {
+          onProgress: uploadProgressHandler,
+          signal: this.uploadController.signal,
+        });
         await this.updateProjectAssetUploadStatus(workspaceSlug, projectId, signedURLResponse.asset_id);
         return signedURLResponse;
       })
@@ -189,8 +181,7 @@ export class FileService extends APIService {
     })
       .then(async (response) => {
         const signedURLResponse: TFileSignedURLResponse = response?.data;
-        const fileUploadPayload = generateFileUploadPayload(signedURLResponse, file);
-        await this.fileUploadService.uploadFile(signedURLResponse.upload_data.url, fileUploadPayload);
+        await uploadToPresignedPost(signedURLResponse, file, { signal: this.uploadController.signal });
         await this.updateUserAssetUploadStatus(signedURLResponse.asset_id);
         return signedURLResponse;
       })
@@ -266,7 +257,8 @@ export class FileService extends APIService {
   }
 
   cancelUpload() {
-    this.cancelSource.cancel("Upload canceled");
+    this.uploadController.abort();
+    this.uploadController = new AbortController();
   }
 
   async getUnsplashImages(query?: string): Promise<UnSplashImage[]> {
