@@ -9,7 +9,13 @@ from django.db import connection
 
 from plane.db.models import Issue, IssueLink, IssueType, Project, Workspace
 from plane.importers.plane.fixups import link_work_item_pages
-from plane.importers.plane.loader import ImportRefused, OrphanRowsError, PlaneImporter
+from plane.importers.plane.loader import (
+    ImportConflict,
+    ImportRefused,
+    OrphanRowsError,
+    PlaneImporter,
+    UnhandledTablesError,
+)
 
 from .fakes import FakeSource
 
@@ -93,3 +99,23 @@ def test_page_link_becomes_issue_link(create_user):
     assert saved.title == "Spec"
     assert saved.url == f"http://pp.test/pages/projects/{project.id}/pages/{page_id}/"
     assert saved.created_at == NOW
+
+
+@pytest.mark.django_db
+def test_unique_key_clash_is_reported(create_user):
+    Workspace.objects.create(name="existing", slug="imported", owner=create_user)
+    source = FakeSource({"workspaces": [workspace_row(create_user, slug="imported")]})
+    with pytest.raises(ImportConflict) as error:
+        PlaneImporter(source, web_url="http://pp.test", allow_existing=True).run()
+    assert "workspaces" in str(error.value)
+    assert Workspace.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_unhandled_source_tables_stop_before_writing(create_user):
+    reaction = {"id": uuid.uuid4(), "reaction": "+1"}
+    source = FakeSource({"workspaces": [workspace_row(create_user)], "issue_reactions": [reaction]})
+    with pytest.raises(UnhandledTablesError) as error:
+        PlaneImporter(source, web_url="http://pp.test").run()
+    assert "issue_reactions" in str(error.value)
+    assert Workspace.objects.count() == 0

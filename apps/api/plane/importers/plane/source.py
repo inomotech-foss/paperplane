@@ -6,11 +6,16 @@ from psycopg import sql
 
 
 class PlaneSource:
-    """A read-only connection to a restored Plane database."""
+    """A read-only connection to a restored Plane database.
+
+    Every read runs in one REPEATABLE READ transaction, so counts and rows come
+    from a single snapshot even if the source is live.
+    """
 
     def __init__(self, dsn):
         self.connection = psycopg.connect(dsn, autocommit=False)
-        self.connection.execute("SET SESSION CHARACTERISTICS AS TRANSACTION READ ONLY")
+        self.connection.read_only = True
+        self.connection.isolation_level = psycopg.IsolationLevel.REPEATABLE_READ
 
     def columns(self, table):
         rows = self.connection.execute(

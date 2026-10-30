@@ -5,7 +5,7 @@ import pytest
 from django.db import connection
 
 from plane.db.models import Issue, IssueType, Project, ProjectIssueType, User, Workspace
-from plane.importers.plane.fixups import assign_default_types
+from plane.importers.plane.fixups import assign_default_types, link_untyped_projects
 
 from .fakes import FakeSource
 
@@ -71,3 +71,12 @@ def test_workspace_without_task_creates_one():
     created = IssueType.objects.get(id=type_of(issue))
     assert created.name == "Task"
     assert ProjectIssueType.objects.filter(project=project, issue_type=created).exists()
+
+
+@pytest.mark.django_db
+def test_project_without_any_type_gets_task():
+    project = make_project("typeless")
+    with connection.cursor() as cursor:
+        assert link_untyped_projects(cursor) == 1
+    linked = ProjectIssueType.objects.get(project=project)
+    assert linked.issue_type.name == "Task"

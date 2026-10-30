@@ -4,7 +4,13 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from plane.importers.plane.copier import MissingTableError
-from plane.importers.plane.loader import ImportRefused, OrphanRowsError, PlaneImporter
+from plane.importers.plane.loader import (
+    ImportConflict,
+    ImportRefused,
+    OrphanRowsError,
+    PlaneImporter,
+    UnhandledTablesError,
+)
 from plane.importers.plane.source import PlaneSource
 
 
@@ -23,8 +29,10 @@ class Command(BaseCommand):
             report = PlaneImporter(source, web_url=options["web_url"], allow_existing=options["allow_existing"]).run(
                 dry_run=options["dry_run"]
             )
-        except (MissingTableError, ImportRefused) as error:
+        except (MissingTableError, ImportRefused, UnhandledTablesError) as error:
             raise CommandError(str(error))
+        except ImportConflict as error:
+            raise CommandError(f"a row clashes on a unique key, nothing committed; load into a fresh database: {error}")
         except OrphanRowsError as error:
             raise CommandError(f"rows point at missing parents, nothing committed: {error}")
         finally:
@@ -33,6 +41,7 @@ class Command(BaseCommand):
         for table, rows in report.copied.items():
             self.stdout.write(f"{table:<32} {rows}")
         self.stdout.write(f"typed        {report.typed} work items given a default type")
+        self.stdout.write(f"projects     {report.typed_projects} projects given the Task type")
         self.stdout.write(f"page links   {report.page_links} work item to page links")
         for table, reason in report.skipped.items():
             self.stdout.write(self.style.WARNING(f"skipped      {table}: {reason}"))

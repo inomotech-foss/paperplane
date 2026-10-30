@@ -7,6 +7,22 @@ from plane.db.models import ProjectIssueType
 from plane.utils.issue_type import link_starter_type
 
 
+def link_untyped_projects(cursor):
+    """Link the workspace's "Task" type to every project that has no active type.
+
+    A project without one cannot create work items.
+    """
+    cursor.execute(
+        "SELECT p.id, p.workspace_id FROM projects p WHERE NOT EXISTS ("
+        "SELECT 1 FROM project_issue_types pit JOIN issue_types t ON t.id = pit.issue_type_id "
+        "WHERE pit.project_id = p.id AND pit.deleted_at IS NULL AND t.deleted_at IS NULL AND t.is_active)"
+    )
+    projects = cursor.fetchall()
+    for project_id, workspace_id in projects:
+        link_starter_type(SimpleNamespace(id=project_id, workspace_id=workspace_id))
+    return len(projects)
+
+
 def _source_default_types(source):
     if "is_default" not in source.columns("issue_types"):
         return set()

@@ -5,15 +5,23 @@ from dataclasses import dataclass, field
 from io import StringIO
 
 from django.core.management import call_command
-from django.db import connection, transaction
+from django.db import IntegrityError, connection, transaction
 
 from .copier import MissingTableError, copy_table, target_columns
-from .fixups import assign_default_types, link_work_item_pages
+from .fixups import assign_default_types, link_untyped_projects, link_work_item_pages
 from .tables import SKIPPED, TABLES
 
 
 class ImportRefused(Exception):
     """The target already holds data and the caller did not allow that."""
+
+
+class ImportConflict(Exception):
+    """A row clashes with a target row on a unique key other than id."""
+
+
+class UnhandledTablesError(Exception):
+    """The source has data in tables the importer neither copies nor skips."""
 
 
 class OrphanRowsError(Exception):
@@ -26,6 +34,7 @@ class OrphanRowsError(Exception):
 class ImportReport:
     copied: dict = field(default_factory=dict)
     typed: int = 0
+    typed_projects: int = 0
     page_links: int = 0
     skipped: dict = field(default_factory=dict)
     orphans: dict = field(default_factory=dict)
@@ -68,35 +77,48 @@ class PlaneImporter:
         report = ImportReport(dry_run=dry_run)
         with connection.cursor() as cursor:
             self._preflight(cursor)
-            with transaction.atomic():
-                # Parents and children load in table order, not FK order, so FK
-                # triggers are off for the copy and the orphan check stands in.
-                cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
-                cursor.execute("ALTER TABLE issues ALTER COLUMN type_id DROP NOT NULL")
-                cursor.execute("SET LOCAL session_replication_role = replica")
-                for spec in TABLES:
-                    report.copied[spec.name] = copy_table(self.source, spec, cursor)
-                report.typed = assign_default_types(self.source, cursor)
-                report.page_links = link_work_item_pages(self.source, cursor, self.web_url)
-                cursor.execute("SET LOCAL session_replication_role = origin")
-                cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
-                cursor.execute("ALTER TABLE issues ALTER COLUMN type_id SET NOT NULL")
-
-                report.orphans = orphan_report(cursor)
-                if report.orphans:
-                    raise OrphanRowsError(report.orphans)
-                call_command("recompute_derived_properties", stdout=StringIO())
-                if dry_run:
-                    transaction.set_rollback(True)
+            try:
+                self._load(cursor, report, dry_run)
+            except IntegrityError as error:
+                # Upserts key on id only; a re-run onto a target that gained
+                # rows of its own can clash on a natural key instead.
+                raise ImportConflict(str(error).strip()) from error
 
         present = self.source.tables_with_rows()
         report.skipped = {name: reason for name, reason in SKIPPED.items() if name in present}
         return report
 
+    def _load(self, cursor, report, dry_run):
+        with transaction.atomic():
+            # Parents and children load in table order, not FK order, so FK
+            # triggers are off for the copy and the orphan check stands in.
+            cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+            cursor.execute("ALTER TABLE issues ALTER COLUMN type_id DROP NOT NULL")
+            cursor.execute("SET LOCAL session_replication_role = replica")
+            for spec in TABLES:
+                report.copied[spec.name] = copy_table(self.source, spec, cursor)
+            report.typed = assign_default_types(self.source, cursor)
+            report.typed_projects = link_untyped_projects(cursor)
+            report.page_links = link_work_item_pages(self.source, cursor, self.web_url)
+            cursor.execute("SET LOCAL session_replication_role = origin")
+            cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+            cursor.execute("ALTER TABLE issues ALTER COLUMN type_id SET NOT NULL")
+
+            report.orphans = orphan_report(cursor)
+            if report.orphans:
+                raise OrphanRowsError(report.orphans)
+            call_command("recompute_derived_properties", stdout=StringIO())
+            if dry_run:
+                transaction.set_rollback(True)
+
     def _preflight(self, cursor):
         missing = [spec.name for spec in TABLES if not target_columns(cursor, spec.name)]
         if missing:
             raise MissingTableError(", ".join(missing))
+        handled = {spec.name for spec in TABLES} | SKIPPED.keys()
+        unhandled = sorted(set(self.source.tables_with_rows()) - handled)
+        if unhandled:
+            raise UnhandledTablesError("source tables with rows the importer does not handle: " + ", ".join(unhandled))
         cursor.execute("SELECT EXISTS (SELECT 1 FROM workspaces)")
         if cursor.fetchone()[0] and not self.allow_existing:
             raise ImportRefused("the target already has workspaces; pass --allow-existing to load anyway")
