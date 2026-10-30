@@ -5,6 +5,7 @@
  */
 
 import type { TUserTimezone } from "@plane/api-types";
+import type { IUserTheme } from "./client-json";
 import type { TUserPermissions } from "./enums";
 import type { IIssueActivity, TIssuePriorities, TStateGroups } from ".";
 
@@ -62,12 +63,7 @@ export type TUserProfile = {
   user: string | undefined;
   role: string | undefined;
   last_workspace_id: string | undefined;
-  theme: {
-    theme: string | undefined;
-    primary: string | undefined;
-    background: string | undefined;
-    darkPalette: boolean | undefined;
-  };
+  theme: IUserTheme;
   onboarding_step: TOnboardingSteps;
   is_onboarded: boolean;
   is_tour_completed: boolean;
@@ -99,13 +95,6 @@ export interface IUserSettings {
     fallback_workspace_slug: string | null | undefined;
     invites: number | undefined;
   };
-}
-
-export interface IUserTheme {
-  theme: string | undefined; // 'light', 'dark', 'custom', etc.
-  primary?: string | undefined;
-  background?: string | undefined;
-  darkPalette?: boolean | undefined;
 }
 
 export interface IUserMemberLite extends IUserLite {

@@ -6,7 +6,7 @@
 
 import type { ILinkDetails } from "../issues";
 import type { TIssue } from "../issues/issue";
-import type { IIssueFilterOptions } from "../view-props";
+import type { IIssueFilterOptions } from "../client-json";
 
 export type TModuleStatus = "backlog" | "planned" | "in-progress" | "paused" | "completed" | "cancelled";
 

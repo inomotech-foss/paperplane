@@ -5,7 +5,7 @@
  */
 
 // local imports
-import type { TLogoProps } from "../common";
+import type { TLogoProps } from "../client-json";
 
 /**
  * A named work item type (with icon/color/description) scoped to a project.

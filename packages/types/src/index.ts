@@ -57,6 +57,7 @@ export * from "./timezone";
 export * from "./users";
 export * from "./utils";
 export * from "./view-props";
+export * from "./client-json";
 export * from "./views";
 export * from "./waitlist";
 export * from "./webhook";

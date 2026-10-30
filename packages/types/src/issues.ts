@@ -13,12 +13,11 @@ import type { TStateGroups } from "./state";
 import type { IUserLite } from "./users";
 import type {
   IIssueDisplayProperties,
-  TIssueExtraOptions,
   TIssueGroupByOptions,
-  TIssueGroupingFilters,
   TIssueOrderByOptions,
   TTimelineColorBy,
-} from "./view-props";
+} from "./client-json";
+import type { TIssueExtraOptions, TIssueGroupingFilters } from "./view-props";
 import type { IWorkspaceLite } from "./workspace";
 
 export interface IIssueCycle {

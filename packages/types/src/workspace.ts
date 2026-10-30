@@ -10,7 +10,7 @@ import type { ICycle } from "./cycle";
 import type { TUserPermissions } from "./enums";
 import type { IUserLite } from "./users";
 import type { TLoginMediums } from "./instance";
-import type { IWorkspaceViewProps } from "./view-props";
+import type { IWorkspaceViewProps } from "./client-json";
 import type { TPqlDialect } from "./issues/work-item-query";
 
 export enum EUserWorkspaceRoles {

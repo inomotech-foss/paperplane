@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { IIssueDisplayProperties } from "../view-props";
+import type { IIssueDisplayProperties } from "../client-json";
 
 export type TIssueIdentifierSize = "xs" | "sm" | "md" | "lg";
 

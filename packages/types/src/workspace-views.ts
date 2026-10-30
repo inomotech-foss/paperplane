@@ -9,7 +9,7 @@ import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
   TWorkItemFilterExpression,
-} from "./view-props";
+} from "./client-json";
 import type { EViewAccess } from "./views";
 
 export interface IWorkspaceView {

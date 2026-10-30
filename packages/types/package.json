@@ -16,13 +16,15 @@
     "build": "tsdown",
     "check:lint": "oxlint --max-warnings=1 .",
     "check:types": "tsc --noEmit",
+    "test": "vitest run",
     "check:format": "oxfmt --check .",
     "fix:lint": "oxlint --fix .",
     "fix:format": "oxfmt .",
     "clean": "rm -rf .turbo && rm -rf .next && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@plane/api-types": "workspace:*"
+    "@plane/api-types": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@plane/typescript-config": "workspace:*",
@@ -30,7 +32,8 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "tsdown": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "react": "^19.0.0",

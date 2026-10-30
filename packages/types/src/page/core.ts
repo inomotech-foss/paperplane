@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TLogoProps } from "../common";
+import type { TLogoProps } from "../client-json";
 import type { EPageAccess } from "../enums";
 import type { TPageExtended } from "./extended";
 

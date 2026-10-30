@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TLogoProps } from "../common";
+import type { IProjectMemberNavigationPreferences, TLogoProps } from "../client-json";
 import type { TUserPermissions } from "../enums";
 import type { TStateGroups } from "../state";
 import type { IUser, IUserLite } from "../users";
@@ -112,11 +112,6 @@ export type TProjectMembership = {
 export interface IProjectBulkAddFormData {
   members: { role: TUserPermissions | EUserProjectRoles; member_id: string }[];
 }
-
-export type IProjectMemberNavigationPreferences = {
-  default_tab: string;
-  hide_in_more_menu: string[];
-};
 
 export type IProjectMemberPreferencesUpdate = {
   navigation: IProjectMemberNavigationPreferences;
