@@ -34,6 +34,7 @@ export const CustomCalloutExtensionConfig: CustomCalloutExtensionType = Node.cre
         value,
         {
           default: DEFAULT_CALLOUT_BLOCK_ATTRIBUTES[value],
+          parseHTML: (element: HTMLElement) => element.getAttribute(value),
         },
       ])
     );

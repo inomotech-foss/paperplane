@@ -9,7 +9,7 @@ import type { Attrs } from "@tiptap/pm/model";
 import type { TLogoProps } from "@plane/types";
 import { sanitizeHTML } from "@plane/utils";
 // helpers
-import { isOneOf, readProperty, readString } from "@/helpers/narrow";
+import { isOneOf, readProperty, readString, readText } from "@/helpers/narrow";
 // types
 import type { TCalloutBlockAttributes, TCalloutBlockEmojiAttributes, TCalloutBlockIconAttributes } from "./types";
 import { ECalloutAttributeNames } from "./types";
@@ -30,15 +30,15 @@ const LOGO_TYPES: readonly TCalloutBlockAttributes[ECalloutAttributeNames.LOGO_I
 export const getCalloutBlockAttributes = (attrs: Attrs): TCalloutBlockAttributes => {
   const logoInUse: unknown = attrs[ECalloutAttributeNames.LOGO_IN_USE];
   return {
-    [ECalloutAttributeNames.ID]: readString(attrs, ECalloutAttributeNames.ID) ?? null,
+    [ECalloutAttributeNames.ID]: readText(attrs, ECalloutAttributeNames.ID) ?? null,
     [ECalloutAttributeNames.LOGO_IN_USE]: isOneOf(LOGO_TYPES, logoInUse)
       ? logoInUse
       : DEFAULT_CALLOUT_BLOCK_ATTRIBUTES[ECalloutAttributeNames.LOGO_IN_USE],
-    [ECalloutAttributeNames.ICON_COLOR]: readString(attrs, ECalloutAttributeNames.ICON_COLOR),
-    [ECalloutAttributeNames.ICON_NAME]: readString(attrs, ECalloutAttributeNames.ICON_NAME),
-    [ECalloutAttributeNames.EMOJI_UNICODE]: readString(attrs, ECalloutAttributeNames.EMOJI_UNICODE),
-    [ECalloutAttributeNames.EMOJI_URL]: readString(attrs, ECalloutAttributeNames.EMOJI_URL),
-    [ECalloutAttributeNames.BACKGROUND]: readString(attrs, ECalloutAttributeNames.BACKGROUND),
+    [ECalloutAttributeNames.ICON_COLOR]: readText(attrs, ECalloutAttributeNames.ICON_COLOR),
+    [ECalloutAttributeNames.ICON_NAME]: readText(attrs, ECalloutAttributeNames.ICON_NAME),
+    [ECalloutAttributeNames.EMOJI_UNICODE]: readText(attrs, ECalloutAttributeNames.EMOJI_UNICODE),
+    [ECalloutAttributeNames.EMOJI_URL]: readText(attrs, ECalloutAttributeNames.EMOJI_URL),
+    [ECalloutAttributeNames.BACKGROUND]: readText(attrs, ECalloutAttributeNames.BACKGROUND),
     [ECalloutAttributeNames.BLOCK_TYPE]: "callout-component",
   };
 };

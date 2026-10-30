@@ -13,6 +13,13 @@ export const readString = (value: unknown, key: string): string | undefined => {
   return typeof property === "string" ? property : undefined;
 };
 
+// Tiptap's HTML parser turns all-digit attribute values into numbers.
+export const readText = (value: unknown, key: string): string | undefined => {
+  const property = readProperty(value, key);
+  if (typeof property === "number" && Number.isFinite(property)) return String(property);
+  return typeof property === "string" ? property : undefined;
+};
+
 export const readNumber = (value: unknown, key: string): number | undefined => {
   const property = readProperty(value, key);
   return typeof property === "number" ? property : undefined;
