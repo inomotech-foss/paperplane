@@ -31,8 +31,9 @@ const connect = async () => {
   const accepted = new Promise<{ ws: WebSocket; request: IncomingMessage }>((resolve) => {
     wss.once("connection", (ws, request) => resolve({ ws, request }));
   });
-  clients.push(new WebSocket(`ws://127.0.0.1:${address.port}`));
-  const { ws, request } = await accepted;
+  const client = new WebSocket(`ws://127.0.0.1:${address.port}`);
+  clients.push(client);
+  const [{ ws, request }] = await Promise.all([accepted, once(client, "open")]);
 
   const ping = vi.spyOn(ws, "ping").mockImplementation(() => {});
   const terminate = vi.spyOn(ws, "terminate").mockImplementation(() => {});
