@@ -140,27 +140,6 @@ export const adminCommandDataSchema: z.ZodType<AdminCommandData> = z.discriminat
 ]);
 
 /**
- * Type guard to check if data is a ForceCloseCommandData
- */
-export function isForceCloseCommand(data: AdminCommandData): data is ForceCloseCommandData {
-  return data.command === AdminCommand.FORCE_CLOSE;
-}
-
-/**
- * Type guard to check if data is a HealthCheckCommandData
- */
-export function isHealthCheckCommand(data: AdminCommandData): data is HealthCheckCommandData {
-  return data.command === AdminCommand.HEALTH_CHECK;
-}
-
-/**
- * Validate force close reason
- */
-export function isValidForceCloseReason(reason: string): reason is ForceCloseReason {
-  return Object.values(ForceCloseReason).some((value) => value === reason);
-}
-
-/**
  * Get human-readable message for force close reason
  */
 export function getForceCloseMessage(reason: ForceCloseReason): string {

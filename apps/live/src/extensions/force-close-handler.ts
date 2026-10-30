@@ -7,7 +7,7 @@
 import type { Connection, Extension, Hocuspocus, onConfigurePayload } from "@hocuspocus/server";
 import { logger } from "@plane/logger";
 import { Redis } from "@/extensions/redis";
-import { AdminCommand, CloseCode, getForceCloseMessage, isForceCloseCommand } from "@/types/admin-commands";
+import { AdminCommand, CloseCode, getForceCloseMessage } from "@/types/admin-commands";
 import type { ForceCloseReason, ClientForceCloseMessage, ForceCloseCommandData } from "@/types/admin-commands";
 
 /**
@@ -27,12 +27,6 @@ export class ForceCloseHandler implements Extension {
 
     // Register handler for force_close admin command
     redisExt.onAdminCommand(AdminCommand.FORCE_CLOSE, async (data) => {
-      // Type guard for safety
-      if (!isForceCloseCommand(data)) {
-        logger.error("[FORCE_CLOSE_HANDLER] Received invalid force close command");
-        return;
-      }
-
       const { docId, reason, code } = data;
 
       const document = instance.documents.get(docId);
