@@ -134,6 +134,9 @@ const formatV1Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, 
   return progress;
 };
 
+// Days after the last snapshot only carry a date.
+type TProgressRow = Partial<TCycleProgressSnapshot> & { date: string };
+
 /**
  * Formats cycle data for version 2
  * @param {boolean} isTypeIssue - Whether the type is an issue
@@ -142,9 +145,6 @@ const formatV1Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, 
  * @param {Date|string} endDate - End date
  * @returns {TProgressChartData} Formatted progress data
  */
-// Days after the last snapshot only carry a date.
-type TProgressRow = Partial<TCycleProgressSnapshot> & { date: string };
-
 const formatV2Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, endDate: Date | string) => {
   if (!cycle.progress) return [];
   let today: Date | string = startOfToday();
