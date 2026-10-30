@@ -8,7 +8,6 @@ import React, { useState, useRef, useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { useDropzone } from "react-dropzone";
-import type { Control, FieldValues } from "react-hook-form";
 import useSWR from "swr";
 // plane imports
 import { Input, InputGroup } from "@makeplane/propel/components/input";
@@ -37,13 +36,9 @@ type TTabOption = {
   isEnabled: boolean;
 };
 
-// Generic over the form's values because react-hook-form's Control is invariant: its
-// `_options.validate` narrows `name` to a keyof union, so `Control<any>` no longer
-// accepts a typed form's control. Inferring from `control` keeps call sites unchanged.
-type Props<TFieldValues extends FieldValues = FieldValues> = {
+type Props = {
   label: string | React.ReactNode;
   value: string | null;
-  control: Control<TFieldValues>;
   onChange: (data: string) => void;
   disabled?: boolean;
   tabIndex?: number;
@@ -54,7 +49,7 @@ type Props<TFieldValues extends FieldValues = FieldValues> = {
 // services
 const fileService = new FileService();
 
-function ImagePickerPopoverComponent<TFieldValues extends FieldValues = FieldValues>(props: Props<TFieldValues>) {
+export const ImagePickerPopover = observer(function ImagePickerPopover(props: Props) {
   const { label, value, onChange, disabled = false, tabIndex, isProfileCover = false, projectId } = props;
   // states
   const [image, setImage] = useState<File | null>(null);
@@ -390,7 +385,4 @@ function ImagePickerPopoverComponent<TFieldValues extends FieldValues = FieldVal
       </Popover>
     </div>
   );
-}
-
-// observer() erases the generic signature, so restore it with a cast.
-export const ImagePickerPopover = observer(ImagePickerPopoverComponent) as typeof ImagePickerPopoverComponent;
+});

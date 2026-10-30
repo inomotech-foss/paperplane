@@ -64,7 +64,6 @@ function ProjectCreateHeader(props: Props) {
                 onChange(data);
                 handleFormOnChange?.();
               }}
-              control={control}
               value={value ?? null}
               tabIndex={getIndex("cover_image")}
             />

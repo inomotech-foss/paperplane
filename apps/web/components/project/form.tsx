@@ -358,7 +358,6 @@ function ProjectDetailsFormHeader(props: TProjectDetailsFormHeaderProps) {
               render={({ field: { value, onChange } }) => (
                 <ImagePickerPopover
                   label={t("change_cover")}
-                  control={control}
                   onChange={onChange}
                   value={value ?? null}
                   disabled={!isAdmin}
