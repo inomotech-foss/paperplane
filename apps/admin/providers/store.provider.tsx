@@ -5,9 +5,10 @@
  */
 
 // plane admin store
+import type { TRootStoreInitialData } from "@/store/root.store";
 import { StoreContext, rootStore } from "./store-context";
 
-function initializeStore(initialData = {}) {
+function initializeStore(initialData: TRootStoreInitialData) {
   // Hydrate the shared client-side store with any initial data before use.
   if (initialData) {
     rootStore.hydrate(initialData);
@@ -17,8 +18,7 @@ function initializeStore(initialData = {}) {
 
 export type StoreProviderProps = {
   children: React.ReactNode;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialState?: any;
+  initialState?: TRootStoreInitialData;
 };
 
 export function StoreProvider({ children, initialState = {} }: StoreProviderProps) {

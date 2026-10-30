@@ -45,7 +45,7 @@ export function InstanceImageConfigForm(props: IInstanceImageConfigForm) {
           message: "Image Configuration Settings updated successfully",
         })
       )
-      .catch((err) => console.error(err));
+      .catch((err: unknown) => console.error(err));
   };
 
   return (

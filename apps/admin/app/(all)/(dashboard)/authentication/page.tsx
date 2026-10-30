@@ -91,7 +91,7 @@ const InstanceAuthenticationPage = observer(function InstanceAuthenticationPage(
           setIsSubmitting(false);
           return undefined;
         })
-        .catch((err) => {
+        .catch((err: unknown) => {
           console.error(err);
           setIsSubmitting(false);
         });

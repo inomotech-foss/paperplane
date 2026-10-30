@@ -57,7 +57,7 @@ const InstanceGiteaAuthenticationPage = observer(function InstanceGiteaAuthentic
       .then(() => {
         setIsSubmitting(false);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
         setIsSubmitting(false);
       });

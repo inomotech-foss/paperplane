@@ -95,7 +95,7 @@ export function InstanceAIForm(props: IInstanceAIForm) {
           message: "AI Settings updated successfully",
         })
       )
-      .catch((err) => console.error(err));
+      .catch((err: unknown) => console.error(err));
   };
 
   return (

@@ -58,7 +58,7 @@ const InstanceOIDCAuthenticationPage = observer(function InstanceOIDCAuthenticat
         setIsSubmitting(false);
         return;
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
         setIsSubmitting(false);
       });

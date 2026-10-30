@@ -59,7 +59,7 @@ const InstanceGitlabAuthenticationPage = observer(function InstanceGitlabAuthent
       .then(() => {
         setIsSubmitting(false);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
         setIsSubmitting(false);
       });

@@ -10,6 +10,7 @@ import type { TUserStatus } from "@plane/constants";
 import { EUserStatus } from "@plane/constants";
 import { AuthService, UserService } from "@plane/services";
 import type { IUser } from "@plane/types";
+import { isRecord } from "@/helpers/error";
 // root store
 import type { RootStore } from "@/store/root.store";
 
@@ -20,7 +21,7 @@ export interface IUserStore {
   isUserLoggedIn: boolean | undefined;
   currentUser: IUser | undefined;
   // fetch actions
-  hydrate: (data: any) => void;
+  hydrate: (data: IUser | undefined) => void;
   fetchCurrentUser: () => Promise<IUser>;
   reset: () => void;
   signOut: () => void;
@@ -52,7 +53,7 @@ export class UserStore implements IUserStore {
     this.authService = new AuthService();
   }
 
-  hydrate = (data: any) => {
+  hydrate = (data: IUser | undefined) => {
     if (data) this.currentUser = data;
   };
 
@@ -79,19 +80,15 @@ export class UserStore implements IUserStore {
         });
       }
       return currentUser;
-    } catch (error: any) {
+    } catch (error) {
       this.isLoading = false;
       this.isUserLoggedIn = false;
-      if (error.status === 403)
-        this.userStatus = {
-          status: EUserStatus.AUTHENTICATION_NOT_DONE,
-          message: error?.message || "",
-        };
-      else
-        this.userStatus = {
-          status: EUserStatus.ERROR,
-          message: error?.message || "",
-        };
+      const status = isRecord(error) ? error.status : undefined;
+      const message = isRecord(error) && typeof error.message === "string" ? error.message : "";
+      this.userStatus = {
+        status: status === 403 ? EUserStatus.AUTHENTICATION_NOT_DONE : EUserStatus.ERROR,
+        message,
+      };
       throw error;
     }
   };

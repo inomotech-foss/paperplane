@@ -110,7 +110,7 @@ export interface IInstanceConfiguration {
 }
 
 export type IFormattedInstanceConfiguration = {
-  [key in TInstanceConfigurationKeys]: string;
+  [key in TInstanceConfigurationKeys]?: string;
 };
 
 export type TLoginMediums = TCoreLoginMediums | TExtendedLoginMediums;

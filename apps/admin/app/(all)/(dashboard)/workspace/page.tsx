@@ -69,7 +69,7 @@ const WorkspaceManagementPage = observer(function WorkspaceManagementPage(_props
       .then(() => {
         setIsSubmitting(false);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
         setIsSubmitting(false);
       });

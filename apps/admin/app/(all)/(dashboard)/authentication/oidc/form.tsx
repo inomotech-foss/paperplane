@@ -30,6 +30,9 @@ type Props = {
 
 type OidcConfigFormValues = Record<TInstanceOidcAuthenticationConfigurationKeys, string>;
 
+const isOidcFormKey = (values: OidcConfigFormValues, key: string): key is keyof OidcConfigFormValues =>
+  Object.hasOwn(values, key);
+
 const OIDC_FORM_SWITCH_FIELD: TControllerSwitchFormField<OidcConfigFormValues> = {
   name: "ENABLE_OIDC_SYNC",
   label: "OIDC",
@@ -188,12 +191,12 @@ export function InstanceOIDCConfigForm(props: Props) {
         title: "Done!",
         message: "Your OIDC authentication is configured. You should test it now.",
       });
-      reset(
-        (Object.keys(formData) as TInstanceOidcAuthenticationConfigurationKeys[]).reduce((acc, key) => {
-          acc[key] = response.find((item) => item.key === key)?.value ?? "";
-          return acc;
-        }, {} as OidcConfigFormValues)
-      );
+      const savedValues = new Map<string, string>(response.map((item) => [item.key, item.value]));
+      const saved: OidcConfigFormValues = { ...formData };
+      for (const key of Object.keys(saved)) {
+        if (isOidcFormKey(saved, key)) saved[key] = savedValues.get(key) ?? "";
+      }
+      reset(saved);
     } catch (err) {
       console.error(err);
     }
