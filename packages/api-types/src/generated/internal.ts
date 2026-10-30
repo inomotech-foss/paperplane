@@ -10207,8 +10207,7 @@ export interface components {
             avatar?: string;
             /** Format: uuid */
             avatar_asset?: string | null;
-            /** Format: uri */
-            cover_image?: string | null;
+            cover_image?: (string) | null;
             /** Format: uuid */
             cover_image_asset?: string | null;
             is_password_expired?: boolean;
@@ -11187,8 +11186,7 @@ export interface components {
             avatar: string;
             /** Format: uuid */
             avatar_asset: string | null;
-            /** Format: uri */
-            cover_image: string | null;
+            cover_image: (string) | null;
             /** Format: uuid */
             cover_image_asset: string | null;
             /**
@@ -11313,8 +11311,7 @@ export interface components {
             avatar?: string;
             /** Format: uuid */
             avatar_asset?: string | null;
-            /** Format: uri */
-            cover_image?: string | null;
+            cover_image?: (string) | null;
             /** Format: uuid */
             cover_image_asset?: string | null;
             is_password_expired?: boolean;
