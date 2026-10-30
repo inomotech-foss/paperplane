@@ -33,6 +33,13 @@ from plane.app.serializers.response.project import (
     ProjectListItemSerializer,
 )
 from plane.app.serializers.project import intake_form_error
+from plane.app.serializers.request.project import (
+    PROJECT_IDENTIFIER_PARAMETERS,
+    DeployBoardCreateSerializer,
+    ProjectFavoriteSerializer,
+    ProjectIdentifierNameSerializer,
+    ProjectIssueSequenceSerializer,
+)
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.bgtasks.recent_visited_task import recent_visited_task
 from plane.bgtasks.webhook_task import model_activity, webhook_activity
@@ -276,6 +283,7 @@ class ProjectViewSet(BaseViewSet):
         serializer = ProjectListSerializer(project)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=ProjectSerializer, responses={201: ProjectListSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def create(self, request, slug):
         workspace = Workspace.objects.get(slug=slug)
@@ -334,6 +342,7 @@ class ProjectViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(request=ProjectSerializer, responses={200: ProjectListSerializer})
     def partial_update(self, request, slug, pk=None):
         # try:
         is_workspace_admin = WorkspaceMember.objects.filter(
@@ -467,7 +476,7 @@ class ProjectArchiveUnarchiveEndpoint(BaseAPIView):
 class ProjectIssueSequenceEndpoint(BaseAPIView):
     """Move the number the next work item created in a project receives."""
 
-    @extend_schema(responses={200: IssueSequenceSerializer})
+    @extend_schema(request=ProjectIssueSequenceSerializer, responses={200: IssueSequenceSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
@@ -491,7 +500,7 @@ class ProjectIssueSequenceEndpoint(BaseAPIView):
 
 
 class ProjectIdentifierEndpoint(BaseAPIView):
-    @extend_schema(responses={200: ProjectIdentifierCheckSerializer})
+    @extend_schema(parameters=PROJECT_IDENTIFIER_PARAMETERS, responses={200: ProjectIdentifierCheckSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug):
         name = request.GET.get("name", "").strip().upper()
@@ -504,6 +513,7 @@ class ProjectIdentifierEndpoint(BaseAPIView):
         return Response({"exists": len(exists), "identifiers": exists}, status=status.HTTP_200_OK)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
+    @extend_schema(request=ProjectIdentifierNameSerializer, responses={204: OpenApiResponse(description="Released")})
     def delete(self, request, slug):
         name = request.data.get("name", "").strip().upper()
 
@@ -562,7 +572,9 @@ class ProjectFavoritesViewSet(BaseViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @extend_schema(responses={204: OpenApiResponse(description="Added to favorites")})
+    @extend_schema(
+        request=ProjectFavoriteSerializer, responses={204: OpenApiResponse(description="Added to favorites")}
+    )
     def create(self, request, slug):
         project_id = request.data.get("project")
         # 404 unless the project is in this workspace and visible to the user
@@ -612,7 +624,7 @@ class DeployBoardViewSet(BaseViewSet):
         serializer = DeployBoardSerializer(project_deploy_board)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: DeployBoardSerializer})
+    @extend_schema(request=DeployBoardCreateSerializer, responses={200: DeployBoardSerializer})
     def create(self, request, slug, project_id):
         comments = request.data.get("is_comments_enabled", False)
         reactions = request.data.get("is_reactions_enabled", False)

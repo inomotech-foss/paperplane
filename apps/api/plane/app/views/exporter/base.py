@@ -3,13 +3,17 @@
 # See the LICENSE file for details.
 
 # Third Party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
 from plane.app.permissions import allow_permission, ROLE
 from plane.app.serializers import ExporterHistorySerializer
+from plane.app.serializers.request.project import EXPORT_HISTORY_PARAMETERS, IssueExportSerializer
 from plane.bgtasks.export_task import issue_export_task
 from plane.db.models import ExporterHistory, Project, Workspace
+from plane.utils.openapi.pagination import paginated_response
+from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.utils.order_queryset import EXPORTER_HISTORY_ORDER_BY_ALLOWLIST, sanitize_order_by
 
 # Module imports
@@ -20,6 +24,7 @@ class ExportIssuesEndpoint(BaseAPIView):
     model = ExporterHistory
     serializer_class = ExporterHistorySerializer
 
+    @extend_schema(request=IssueExportSerializer, responses={200: MessageResponseSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def post(self, request, slug):
         # Get the workspace
@@ -65,6 +70,7 @@ class ExportIssuesEndpoint(BaseAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    @extend_schema(parameters=EXPORT_HISTORY_PARAMETERS, responses={200: paginated_response(ExporterHistorySerializer)})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug):
         # Users see only the exports they initiated.

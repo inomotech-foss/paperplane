@@ -13,6 +13,7 @@ from .base import BaseSerializer, DynamicBaseSerializer
 from django.db.models import Max
 from plane.app.serializers.workspace import WorkspaceLiteSerializer
 from plane.app.serializers.user import UserLiteSerializer, UserAdminLiteSerializer
+from plane.app.serializers.request.project import DeployBoardViewPropsSerializer
 from plane.db.models import (
     Intake,
     Project,
@@ -27,6 +28,7 @@ from plane.utils.content_validator import (
     validate_html_content,
 )
 from plane.utils.issue_type import work_item_type_error
+from plane.utils.openapi.fields import typed_json
 from plane.utils.uuid import is_valid_uuid
 
 
@@ -263,6 +265,8 @@ def intake_form_error(project_id, intake_id, issue_type_id):
 class DeployBoardSerializer(BaseSerializer):
     project_details = ProjectLiteSerializer(read_only=True, source="project")
     workspace_detail = WorkspaceLiteSerializer(read_only=True, source="workspace")
+    # Same field ModelSerializer builds for the JSON column, with the layouts the board create writes.
+    view_props = typed_json(DeployBoardViewPropsSerializer)(required=False)
 
     class Meta:
         model = DeployBoard

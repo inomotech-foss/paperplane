@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.serializers import ProjectLinkSerializer
+from plane.app.serializers.request.project import ProjectLinkReorderSerializer
 from plane.app.views.base import BaseAPIView
 from plane.db.models import Project, ProjectLink
 
@@ -36,7 +37,7 @@ class ProjectLinkEndpoint(BaseAPIView):
         links = _project_links(slug, project_id)
         return Response(ProjectLinkSerializer(links, many=True).data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={201: ProjectLinkSerializer})
+    @extend_schema(request=ProjectLinkSerializer, responses={201: ProjectLinkSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         project = _active_project(slug, project_id)
@@ -51,7 +52,7 @@ class ProjectLinkEndpoint(BaseAPIView):
 
 
 class ProjectLinkDetailEndpoint(BaseAPIView):
-    @extend_schema(responses={200: ProjectLinkSerializer})
+    @extend_schema(request=ProjectLinkSerializer, responses={200: ProjectLinkSerializer})
     @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, pk):
         link = _project_links(slug, project_id).get(pk=pk)
@@ -68,7 +69,7 @@ class ProjectLinkDetailEndpoint(BaseAPIView):
 
 
 class ProjectLinkReorderEndpoint(BaseAPIView):
-    @extend_schema(responses={200: ProjectLinkSerializer(many=True)})
+    @extend_schema(request=ProjectLinkReorderSerializer, responses={200: ProjectLinkSerializer(many=True)})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         project = _active_project(slug, project_id)
