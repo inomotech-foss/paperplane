@@ -53,7 +53,7 @@ export type TAnalyticsFilterParams = {
 
 export interface IAnalyticsResponseFields {
   count: number;
-  filter_count: number;
+  filter_count?: number;
 }
 
 export interface IAnalyticsResponse {
