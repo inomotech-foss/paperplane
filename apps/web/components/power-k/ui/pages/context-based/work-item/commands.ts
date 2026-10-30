@@ -37,7 +37,7 @@ import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
-import { getStringField, isOneOf } from "@/helpers/guard.helper";
+import { getStringField, isOneOf } from "@/helpers/narrow.helper";
 
 const PRIORITY_VALUES = ISSUE_PRIORITIES.map((priority) => priority.key);
 

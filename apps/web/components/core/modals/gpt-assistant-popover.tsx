@@ -23,7 +23,7 @@ import { RichTextEditor } from "@/components/editor/rich-text";
 // services
 import { AIService } from "@/services/ai.service";
 import { getApiErrorMessage } from "@/helpers/error.helper";
-import { getField, getStringField } from "@/helpers/guard.helper";
+import { getField, getStringField } from "@/helpers/narrow.helper";
 const aiService = new AIService();
 
 type Props = {

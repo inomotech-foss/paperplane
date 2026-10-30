@@ -18,7 +18,7 @@ import type {
 // local imports
 import { buildDimensionChoices, ESTIMATE_METRIC_FIELD, PROPERTY_PREFIX } from "./utils";
 import type { TDimensionChoice } from "./utils";
-import { isRecord } from "@/helpers/guard.helper";
+import { isRecord } from "@/helpers/narrow.helper";
 
 export const NO_DIMENSION = "";
 const DEFAULT_BUCKET: TDashboardDateBucket = "month";

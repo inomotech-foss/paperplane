@@ -12,7 +12,7 @@ import type { IEmailCheckData } from "@plane/types";
 // helpers
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
 import { getAuthErrorInfo } from "@/helpers/error.helper";
-import { getField } from "@/helpers/guard.helper";
+import { getField } from "@/helpers/narrow.helper";
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 import { useAppRouter } from "@/hooks/use-app-router";

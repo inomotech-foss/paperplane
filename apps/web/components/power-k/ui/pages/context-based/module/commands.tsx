@@ -21,7 +21,7 @@ import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
 import { useModule } from "@/hooks/store/use-module";
 import { useUser } from "@/hooks/store/user";
-import { isOneOf } from "@/helpers/guard.helper";
+import { isOneOf } from "@/helpers/narrow.helper";
 
 const MODULE_STATUS_VALUES = MODULE_STATUS.map((status) => status.value);
 

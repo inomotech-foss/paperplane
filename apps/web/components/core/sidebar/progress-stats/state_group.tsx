@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 import { StateGroupIcon } from "@plane/blocks/icons";
 // components
 import { SingleProgressStats } from "@/components/core/sidebar/single-progress-stats";
-import { isStateGroup } from "@/helpers/guard.helper";
+import { isStateGroup } from "@/helpers/narrow.helper";
 
 export type TStateGroupData = {
   state: string | undefined;

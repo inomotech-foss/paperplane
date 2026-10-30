@@ -24,7 +24,7 @@ import { useUserProfile, useUserSettings } from "@/hooks/store/user";
 import { WorkspaceService } from "@/services/workspace.service";
 // local components
 import { CommonOnboardingHeader } from "../common";
-import { getField } from "@/helpers/guard.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 type Props = {
   user: IUser | undefined;

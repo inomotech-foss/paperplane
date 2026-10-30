@@ -12,7 +12,7 @@ import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { setToast } from "@plane/blocks/toast";
 import type { IUserTheme } from "@plane/types";
-import { getField } from "@/helpers/guard.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 type Props = {
   handleUpdateTheme: (formData: IUserTheme) => Promise<void>;

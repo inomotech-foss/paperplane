@@ -21,7 +21,7 @@ import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
 // services
 import { WorkspaceService } from "@/services/workspace.service";
-import { getField } from "@/helpers/guard.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 type Props = {
   onSubmit?: (res: IWorkspace) => Promise<void>;

@@ -24,7 +24,7 @@ import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserProfile, useUserSettings } from "@/hooks/store/user";
 // services
 import { WorkspaceService } from "@/services/workspace.service";
-import { getField } from "@/helpers/guard.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 type Props = {
   stepChange: (steps: Partial<TOnboardingSteps>) => Promise<void>;

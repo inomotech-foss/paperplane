@@ -10,7 +10,7 @@ import { setToast } from "@plane/blocks/toast";
 import type { TProjectLink } from "@plane/types";
 import { useHome } from "@/hooks/store/use-home";
 import { getApiErrorMessage } from "@/helpers/error.helper";
-import { getField } from "@/helpers/guard.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 export type TLinkOperations = {
   create: (data: Partial<TProjectLink>) => Promise<void>;

@@ -23,7 +23,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 import type { TProject } from "@plane/types";
 import { ProjectAttributes } from "./attributes";
 import { getProjectFormValues } from "./utils";
-import { errorFieldIncludes, getField } from "@/helpers/guard.helper";
+import { errorFieldIncludes, getField } from "@/helpers/narrow.helper";
 
 export type TCreateProjectFormProps = {
   setToFavorite?: boolean;

@@ -11,7 +11,7 @@ import type { IState, TStateGroups, TStateOperationsCallbacks } from "@plane/typ
 import { cn } from "@plane/utils";
 // components
 import { GroupItem } from "@/components/project-states";
-import { isStateGroup } from "@/helpers/guard.helper";
+import { isStateGroup } from "@/helpers/narrow.helper";
 
 type TGroupList = {
   groupedStates: Record<string, IState[]>;

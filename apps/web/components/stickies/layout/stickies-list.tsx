@@ -40,7 +40,7 @@ import { StickiesLoader } from "./stickies-loader";
 import { StickyDNDWrapper } from "./sticky-dnd-wrapper";
 import { getInstructionFromPayload } from "./sticky.helpers";
 import { getDragDataId } from "@/components/common/drag-target-data";
-import { isRecord } from "@/helpers/guard.helper";
+import { isRecord } from "@/helpers/narrow.helper";
 
 // react-masonry-component's typings omit children
 const MasonryLayout: ComponentClass<MasonryPropTypes & { children?: ReactNode }> = Masonry;

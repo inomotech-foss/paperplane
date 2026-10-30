@@ -15,7 +15,7 @@ import { AppliedDateFilters } from "@/components/common/applied-filters/date";
 import { AppliedMembersFilters } from "@/components/common/applied-filters/members";
 // local imports
 import { AppliedAccessFilters } from "./access";
-import { isOneOf } from "@/helpers/guard.helper";
+import { isOneOf } from "@/helpers/narrow.helper";
 
 type Props = {
   appliedFilters: TViewFilterProps;

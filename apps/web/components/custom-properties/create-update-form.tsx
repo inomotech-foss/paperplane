@@ -21,7 +21,7 @@ import { CustomPropertyIcon } from "@/components/issues/issue-detail/custom-prop
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { DerivationSettings } from "./derivation-settings";
 import { useDerivationDraft } from "./use-derivation-draft";
-import { getField, isOneOf } from "@/helpers/guard.helper";
+import { getField, isOneOf } from "@/helpers/narrow.helper";
 import { getApiErrorMessage } from "@/helpers/error.helper";
 
 export type TCustomPropertyOperationsCallbacks = {

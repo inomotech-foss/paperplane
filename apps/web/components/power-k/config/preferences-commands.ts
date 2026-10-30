@@ -17,7 +17,7 @@ import { EStartOfTheWeek } from "@plane/types";
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
 import { useUser, useUserProfile } from "@/hooks/store/user";
-import { isOneOf } from "@/helpers/guard.helper";
+import { isOneOf } from "@/helpers/narrow.helper";
 
 /**
  * Preferences commands - Preferences related commands

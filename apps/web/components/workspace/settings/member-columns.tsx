@@ -24,7 +24,7 @@ import { getFileURL } from "@plane/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
-import { getField } from "@/helpers/guard.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 // admins get the member's last login medium as well
 export type RowData = Omit<IWorkspaceMember, "member"> & {

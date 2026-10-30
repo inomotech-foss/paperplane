@@ -13,7 +13,7 @@ import { setToast } from "@plane/blocks/toast";
 import type { IState } from "@plane/types";
 // hooks
 import { useProjectState } from "@/hooks/store/use-project-state";
-import { getField } from "@/helpers/guard.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 type TStateDeleteModal = {
   isOpen: boolean;

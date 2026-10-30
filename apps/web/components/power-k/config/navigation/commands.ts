@@ -30,7 +30,7 @@ import { isProjectFeatureEnabled } from "@/components/settings/project/work-item
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
 import { getProjectUrl } from "@/components/project/features/features";
-import { getStringField } from "@/helpers/guard.helper";
+import { getStringField } from "@/helpers/narrow.helper";
 
 export type TPowerKNavigationCommandKeys =
   | "open_workspace"

@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@makeplane/propel/compo
 import { ColorSwatchPicker } from "@plane/blocks/common";
 import { setToast } from "@plane/blocks/toast";
 import type { IIssueLabel } from "@plane/types";
-import { errorFieldIncludes, getStringField } from "@/helpers/guard.helper";
+import { errorFieldIncludes, getStringField } from "@/helpers/narrow.helper";
 import { getApiErrorMessage } from "@/helpers/error.helper";
 
 // error codes

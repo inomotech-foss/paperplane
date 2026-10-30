@@ -36,7 +36,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 // local imports
 import { LayoutDropDown } from "../dropdowns/layout";
 import { ProjectLevelWorkItemFiltersHOC } from "../work-item-filters/filters-hoc/project-level";
-import { getLogoPropsFromPicker } from "@/components/common/logo-props";
+import { getLogoPropsFromPicker } from "@/helpers/emoji.helper";
 
 type Props = {
   data?: IProjectView | null;

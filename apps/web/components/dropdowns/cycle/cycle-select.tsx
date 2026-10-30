@@ -16,7 +16,7 @@ import { useTranslation } from "@plane/i18n";
 import type { ICycle, TCycleGroups, TPaginatedResponse } from "@plane/types";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
-import { isOneOf } from "@/helpers/guard.helper";
+import { isOneOf } from "@/helpers/narrow.helper";
 
 /** Statuses a work item can be assigned to — completed cycles are never offered. */
 const DEFAULT_CYCLE_STATUSES: TCycleGroups[] = ["current", "upcoming", "draft"];

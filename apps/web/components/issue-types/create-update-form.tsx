@@ -14,7 +14,7 @@ import { TextArea, TextAreaGroup } from "@makeplane/propel/components/text-area"
 import { EmojiPicker, Logo } from "@plane/blocks/emoji-icon-picker";
 import { setToast } from "@plane/blocks/toast";
 import type { TIssueType, TLogoProps } from "@plane/types";
-import { getLogoPropsFromPicker } from "@/components/common/logo-props";
+import { getLogoPropsFromPicker } from "@/helpers/emoji.helper";
 import { getApiErrorMessage } from "@/helpers/error.helper";
 
 const DEFAULT_LOGO_PROPS: TLogoProps = {

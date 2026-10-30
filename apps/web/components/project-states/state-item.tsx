@@ -16,7 +16,7 @@ import { DropIndicator } from "@plane/blocks/common";
 import { cn, getCurrentStateSequence } from "@plane/utils";
 // components
 import { StateItemTitle, StateUpdate } from "@/components/project-states";
-import { isStateGroup } from "@/helpers/guard.helper";
+import { isStateGroup } from "@/helpers/narrow.helper";
 // helpers
 const toDraggableData = (data: Record<string | symbol, unknown>): TDraggableData | undefined =>
   typeof data.id === "string" && isStateGroup(data.groupKey) ? { id: data.id, groupKey: data.groupKey } : undefined;

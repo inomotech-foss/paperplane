@@ -27,7 +27,7 @@ import { useUser } from "@/hooks/store/user";
 // services
 import { AuthService } from "@/services/auth.service";
 import { toAuthErrorCode } from "@/helpers/error.helper";
-import { getField } from "@/helpers/guard.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 export interface FormValues {
   old_password: string;

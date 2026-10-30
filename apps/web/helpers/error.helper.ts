@@ -5,7 +5,7 @@
 
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
 import { authErrorHandler, EAuthenticationErrorCodes } from "@/helpers/authentication.helper";
-import { getStringField, isOneOf } from "@/helpers/guard.helper";
+import { getStringField, isOneOf } from "@/helpers/narrow.helper";
 
 /** Reads the `error` message the API puts in a failed response body. */
 export const getApiErrorMessage = (error: unknown): string | undefined => getStringField(error, "error");

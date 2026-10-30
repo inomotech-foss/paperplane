@@ -31,7 +31,7 @@ import { useUser } from "@/hooks/store/user";
 import { AuthService } from "@/services/auth.service";
 import userService from "@/services/user.service";
 import { getApiErrorMessage, getAuthErrorInfo } from "@/helpers/error.helper";
-import { getField, getStringField } from "@/helpers/guard.helper";
+import { getField, getStringField } from "@/helpers/narrow.helper";
 
 type Props = { isOpen: boolean; onClose: () => void };
 

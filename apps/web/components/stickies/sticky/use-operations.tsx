@@ -16,7 +16,7 @@ import { STICKY_COLORS_LIST } from "@/components/editor/sticky-editor/color-pale
 // hooks
 import { useSticky } from "@/hooks/use-stickies";
 import { getApiErrorMessage } from "@/helpers/error.helper";
-import { getField } from "@/helpers/guard.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 export type TOperations = {
   create: (data?: Partial<TSticky>) => Promise<void>;

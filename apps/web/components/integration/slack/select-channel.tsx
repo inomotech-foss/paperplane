@@ -19,7 +19,7 @@ import { useInstance } from "@/hooks/store/use-instance";
 import useIntegrationPopup from "@/hooks/use-integration-popup";
 // services
 import { AppInstallationService } from "@/services/app_installation.service";
-import { getField, isRecord } from "@/helpers/guard.helper";
+import { getField, isRecord } from "@/helpers/narrow.helper";
 
 type Props = {
   integration: IWorkspaceIntegration;
