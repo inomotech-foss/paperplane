@@ -480,7 +480,7 @@ export interface components {
         InstanceConfiguration: {
             /** Format: uuid */
             readonly id: string;
-            readonly is_managed: string;
+            readonly is_managed: boolean;
             /** Format: date-time */
             readonly created_at: string;
             /**

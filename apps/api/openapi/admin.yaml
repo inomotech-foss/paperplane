@@ -926,7 +926,7 @@ components:
           format: uuid
           readOnly: true
         is_managed:
-          type: string
+          type: boolean
           readOnly: true
         created_at:
           type: string
