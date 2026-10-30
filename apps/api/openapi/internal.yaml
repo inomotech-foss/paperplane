@@ -24238,10 +24238,13 @@ components:
           format: uuid
           nullable: true
         cover_image:
-          type: string
-          format: uri
           nullable: true
-          maxLength: 800
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 800
+          - type: string
+            maxLength: 0
         cover_image_asset:
           type: string
           format: uuid
@@ -26273,10 +26276,13 @@ components:
           format: uuid
           nullable: true
         cover_image:
-          type: string
-          format: uri
           nullable: true
-          maxLength: 800
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 800
+          - type: string
+            maxLength: 0
         cover_image_asset:
           type: string
           format: uuid
@@ -26629,10 +26635,13 @@ components:
           format: uuid
           nullable: true
         cover_image:
-          type: string
-          format: uri
           nullable: true
-          maxLength: 800
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 800
+          - type: string
+            maxLength: 0
         cover_image_asset:
           type: string
           format: uuid
