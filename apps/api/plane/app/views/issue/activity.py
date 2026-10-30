@@ -13,8 +13,10 @@ from django.views.decorators.gzip import gzip_page
 # Third Party imports
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.response.issue import WorkItemHistoryEntry
 from .. import BaseAPIView
 from .relation import issue_in_project
 from plane.app.serializers import IssueActivitySerializer, IssueCommentSerializer
@@ -26,6 +28,7 @@ class IssueActivityEndpoint(BaseAPIView):
     permission_classes = [ProjectEntityPermission]
     use_read_replica = True
 
+    @extend_schema(responses={200: WorkItemHistoryEntry})
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, issue_id):

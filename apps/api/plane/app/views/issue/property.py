@@ -11,8 +11,11 @@ from django.db import IntegrityError, transaction
 # Third Party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
+from rest_framework import serializers
 
 # Module imports
+from plane.app.serializers.response.issue import PropertyValuesSerializer
 from .. import BaseViewSet, BaseAPIView
 from plane.app.permissions import ROLE, allow_permission, ProjectEntityPermission
 from plane.app.serializers import (
@@ -269,6 +272,7 @@ class IssuePropertyValueEndpoint(BaseAPIView):
         )
         return {"values": values, "display": display, "derived": derived_value_sources(issue, properties)}
 
+    @extend_schema(responses={200: PropertyValuesSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, issue_id):
         # Ensure the work item exists in the project
@@ -286,6 +290,7 @@ class IssuePropertyValueEndpoint(BaseAPIView):
             raise Issue.DoesNotExist()
         return Response(self.payload(issue), status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: PropertyValuesSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def put(self, request, slug, project_id, issue_id):
         issue = Issue.objects.get(pk=issue_id, project_id=project_id, workspace__slug=slug)
@@ -316,6 +321,7 @@ class BulkIssuePropertyValueEndpoint(BaseAPIView):
     model = IssuePropertyValue
     permission_classes = [ProjectEntityPermission]
 
+    @extend_schema(responses={200: serializers.DictField(child=serializers.DictField(child=serializers.JSONField()))})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id):
         queryset = (

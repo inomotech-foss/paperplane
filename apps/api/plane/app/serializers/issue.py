@@ -806,7 +806,7 @@ class IssueIntakeSerializer(DynamicBaseSerializer):
 
 class IssueSerializer(DynamicBaseSerializer):
     # ids
-    cycle_id = serializers.PrimaryKeyRelatedField(read_only=True)
+    cycle_id = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
     module_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
 
     # Many to many
@@ -814,9 +814,9 @@ class IssueSerializer(DynamicBaseSerializer):
     assignee_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
 
     # Count items
-    sub_issues_count = serializers.IntegerField(read_only=True)
-    attachment_count = serializers.IntegerField(read_only=True)
-    link_count = serializers.IntegerField(read_only=True)
+    sub_issues_count = serializers.IntegerField(read_only=True, allow_null=True)
+    attachment_count = serializers.IntegerField(read_only=True, allow_null=True)
+    link_count = serializers.IntegerField(read_only=True, allow_null=True)
 
     class Meta:
         model = Issue

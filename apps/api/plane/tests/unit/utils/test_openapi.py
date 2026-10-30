@@ -25,9 +25,9 @@ from plane.db.management.commands.generate_openapi import generate_schema
 from plane.db.models import Issue, IssueRelation, Notification, Project, State, User, Workspace
 from plane.tests.factories import ProjectFactory, WorkspaceFactory
 from plane.tests.openapi import strict
-from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated_response
+from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated_response, paginated_union
 from plane.utils.openapi.hooks import is_callable
-from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, DetailOrList, _source_presence
+from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, DetailOrList, _source_presence, single
 from plane.utils.openapi.serializers import EmptyObjectSerializer
 from plane.utils.openapi.surfaces import SURFACES
 from plane.utils.paginator import BasePaginator, GroupedOffsetPaginator, SubGroupedOffsetPaginator
@@ -276,3 +276,55 @@ class TestResponseHelpers:
         schema = _schema(path("items/", View.as_view()))
         assert _body(schema, "/items/") == {"$ref": "#/components/schemas/EmptyObject"}
         assert schema["components"]["schemas"]["EmptyObject"] == {"type": "object", "additionalProperties": False}
+
+    def test_list_action_keeps_single_and_paginated_bodies(self):
+        class Items(ViewSet):
+            @extend_schema(responses={200: single(PageItemSerializer)})
+            def list(self, request):
+                pass
+
+        class Pages(ViewSet):
+            @extend_schema(responses={200: paginated_response(PageItemSerializer)})
+            def list(self, request):
+                pass
+
+        schema = _schema(path("items/", Items.as_view({"get": "list"})), path("pages/", Pages.as_view({"get": "list"})))
+        assert _body(schema, "/items/") == {"$ref": "#/components/schemas/PageItem"}
+        assert _body(schema, "/pages/") == {"$ref": "#/components/schemas/PaginatedPageItemList"}
+
+    def test_paginated_union_and_bare_field(self):
+        class View(APIView):
+            @extend_schema(responses={200: paginated_union(PageItemSerializer)})
+            def get(self, request):
+                pass
+
+            @extend_schema(responses={200: serializers.DictField(child=serializers.IntegerField())})
+            def post(self, request):
+                pass
+
+        schema = _schema(path("items/", View.as_view()))
+        union = schema["components"]["schemas"]["PageItemListResponse"]["oneOf"]
+        assert [ref["$ref"].rsplit("/", 1)[1] for ref in union] == [
+            "PaginatedPageItemList",
+            "GroupedPaginatedPageItemList",
+            "SubGroupedPaginatedPageItemList",
+        ]
+        assert _body(schema, "/items/", "post") == {"type": "object", "additionalProperties": {"type": "integer"}}
+
+    def test_meta_presence_overrides(self):
+        class Annotated(serializers.Serializer):
+            always = serializers.IntegerField(read_only=True)
+            sometimes = serializers.IntegerField(allow_null=True)
+
+            class Meta:
+                response_required = ("always",)
+                response_optional = ("sometimes",)
+
+        class View(APIView):
+            @extend_schema(responses={200: Annotated})
+            def get(self, request):
+                pass
+
+        component = _schema(path("items/", View.as_view()))["components"]["schemas"]["Annotated"]
+        assert component["required"] == ["always"]
+        assert component["properties"]["sometimes"]["nullable"] is True

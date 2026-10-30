@@ -327,7 +327,7 @@ class DraftIssueCreateSerializer(BaseSerializer):
 
 class DraftIssueSerializer(BaseSerializer):
     # ids
-    cycle_id = serializers.PrimaryKeyRelatedField(read_only=True)
+    cycle_id = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
     module_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
 
     # Many to many

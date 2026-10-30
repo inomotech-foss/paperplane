@@ -1563,7 +1563,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_draft_issues_retrieve"];
+        get: operations["workspaces_draft_issues_list"];
         put?: never;
         post: operations["workspaces_draft_issues_create"];
         delete?: never;
@@ -1579,7 +1579,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_draft_issues_retrieve_2"];
+        get: operations["workspaces_draft_issues_retrieve"];
         put?: never;
         post?: never;
         delete: operations["workspaces_draft_issues_destroy"];
@@ -1771,7 +1771,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_issues_retrieve"];
+        get: operations["workspaces_issues_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2459,7 +2459,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_deleted_issues_retrieve"];
+        get: operations["workspaces_projects_deleted_issues_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3083,7 +3083,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_issues_history_retrieve"];
+        get: operations["workspaces_projects_issues_history_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4011,7 +4011,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_search_issues_retrieve"];
+        get: operations["workspaces_projects_search_issues_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4251,7 +4251,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_v2_issues_retrieve"];
+        get: operations["workspaces_projects_v2_issues_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5270,6 +5270,13 @@ export interface components {
             created_date: string;
             activity_count: number;
         };
+        AddedSubWorkItems: {
+            /** @description Sub work item ids by state group */
+            state_distribution: {
+                [key: string]: string[];
+            };
+            sub_issues: components["schemas"]["Issue"][];
+        };
         AnalyticView: {
             /** Format: uuid */
             readonly id: string;
@@ -5309,6 +5316,9 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
+        };
+        ArchivedAt: {
+            archived_at: string;
         };
         /** @enum {unknown} */
         BlankEnum: "";
@@ -5384,6 +5394,110 @@ export interface components {
             id: string;
             name: string;
             slug: string;
+        };
+        CreatedWorkItem: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: uuid */
+            type_id: string;
+            label_ids: string[];
+            assignee_ids: string[];
+            /** Format: uuid */
+            readonly project_id: string;
+            /** Format: uuid */
+            readonly workspace_id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            readonly deleted_at: string | null;
+            point: number | null;
+            /** Issue Name */
+            name: string;
+            description_json: unknown;
+            description_html: string;
+            description_stripped: string | null;
+            /** Format: byte */
+            readonly description_binary: string | null;
+            /** Issue Priority */
+            priority: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            /** Issue Sequence ID */
+            readonly sequence_id: number;
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            readonly completed_at: string | null;
+            /** Format: date */
+            readonly archived_at: string | null;
+            is_draft: boolean;
+            external_source: string | null;
+            external_id: string | null;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            /** Format: uuid */
+            readonly project: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            parent: string | null;
+            /** Format: uuid */
+            state: string | null;
+            /** Format: uuid */
+            estimate_point: string | null;
+            /** Format: uuid */
+            readonly type: string;
+            readonly assignees: string[];
+            readonly labels: string[];
+        };
+        CursorPaginatedIssueDescriptionVersionList: {
+            prev_cursor: string;
+            cursor: string;
+            next_cursor: string | null;
+            prev_page_results: boolean;
+            next_page_results: boolean;
+            page_count: number;
+            total_results: number;
+            total_pages: number;
+            results: components["schemas"]["VersionRow"][];
+        };
+        CursorPaginatedIssueVersionList: {
+            prev_cursor: string;
+            cursor: string;
+            next_cursor: string | null;
+            prev_page_results: boolean;
+            next_page_results: boolean;
+            page_count: number;
+            total_results: number;
+            total_pages: number;
+            results: components["schemas"]["VersionRow"][];
+        };
+        CursorPaginatedWorkItemSyncList: {
+            prev_cursor: string;
+            cursor: string;
+            next_cursor: string | null;
+            prev_page_results: boolean;
+            next_page_results: boolean;
+            page_count: number;
+            total_results: number;
+            total_pages: number;
+            results: components["schemas"]["WorkItemSyncItem"][];
         };
         Cycle: {
             /** Format: uuid */
@@ -5543,6 +5657,14 @@ export interface components {
             series?: unknown;
             config?: unknown;
         };
+        DateRollup: {
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            children_count: number;
+            descendants_count: number;
+        };
         DeployBoard: {
             /** Format: uuid */
             readonly id: string;
@@ -5612,6 +5734,134 @@ export interface components {
          * @enum {string}
          */
         DerivationEnum: "NONE" | "INHERIT" | "LOOKUP" | "ROLLUP";
+        DraftIssue: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Issue Name */
+            readonly name: string | null;
+            /** Format: uuid */
+            readonly state_id: string | null;
+            /** Format: double */
+            readonly sort_order: number;
+            /** Format: date-time */
+            readonly completed_at: string | null;
+            /** Format: uuid */
+            readonly estimate_point: string | null;
+            /** Issue Priority */
+            readonly priority: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            readonly start_date: string | null;
+            /** Format: date */
+            readonly target_date: string | null;
+            /** Format: uuid */
+            readonly project_id: string | null;
+            /** Format: uuid */
+            readonly parent_id: string | null;
+            readonly cycle_id: string | null;
+            module_ids?: string[];
+            label_ids?: string[];
+            assignee_ids?: string[];
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            /** Format: uuid */
+            readonly type_id: string | null;
+            readonly description_html: string;
+        };
+        DraftIssueDetail: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Issue Name */
+            readonly name: string | null;
+            /** Format: uuid */
+            readonly state_id: string | null;
+            /** Format: double */
+            readonly sort_order: number;
+            /** Format: date-time */
+            readonly completed_at: string | null;
+            /** Format: uuid */
+            readonly estimate_point: string | null;
+            /** Issue Priority */
+            readonly priority: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            readonly start_date: string | null;
+            /** Format: date */
+            readonly target_date: string | null;
+            /** Format: uuid */
+            readonly project_id: string | null;
+            /** Format: uuid */
+            readonly parent_id: string | null;
+            readonly cycle_id: string | null;
+            module_ids?: string[];
+            label_ids?: string[];
+            assignee_ids?: string[];
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            /** Format: uuid */
+            readonly type_id: string | null;
+            description_html: string;
+        };
+        DraftWorkItemSnapshot: {
+            /** Format: uuid */
+            id: string;
+            name: string | null;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            completed_at: string | null;
+            /** Format: uuid */
+            estimate_point: string | null;
+            priority: string;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            /** Format: uuid */
+            project_id: string | null;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: uuid */
+            cycle_id: string | null;
+            module_ids: string[];
+            label_ids: string[];
+            assignee_ids: string[];
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
+            /** Format: uuid */
+            type_id: string | null;
+            description_html: string;
+        };
         EmptyObject: Record<string, never>;
         Estimate: {
             /** Format: uuid */
@@ -5657,6 +5907,26 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
+        };
+        ExpandedRelation: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            project_id: string;
+            sequence_id: number;
+            name: string;
+            relation_type: string;
+            /** Format: uuid */
+            state_id: string | null;
+            priority: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            updated_by: string | null;
         };
         ExporterHistory: {
             /** Format: uuid */
@@ -5710,6 +5980,32 @@ export interface components {
          * @enum {string}
          */
         Group272Enum: "backlog" | "unstarted" | "started" | "completed" | "cancelled" | "triage";
+        GroupedPaginatedWorkItemList: {
+            results: {
+                [key: string]: components["schemas"]["WorkItemGroup"];
+            };
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
+        GroupedSubWorkItemList: {
+            /** @description Sub work item ids by state group */
+            state_distribution: {
+                [key: string]: string[];
+            };
+            /** @description Sub work items by group value */
+            sub_issues: {
+                [key: string]: components["schemas"]["SubWorkItem"][];
+            };
+        };
         InstanceAdminStatus: {
             is_instance_admin: boolean;
         };
@@ -5841,11 +6137,11 @@ export interface components {
             readonly parent_id: string | null;
             /** Format: uuid */
             readonly type_id: string;
-            readonly cycle_id?: string;
+            readonly cycle_id: string | null;
             module_ids?: string[];
             label_ids?: string[];
             assignee_ids?: string[];
-            readonly sub_issues_count?: number;
+            readonly sub_issues_count: number | null;
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -5860,8 +6156,8 @@ export interface components {
              * Format: uuid
              */
             readonly updated_by: string | null;
-            readonly attachment_count?: number;
-            readonly link_count?: number;
+            readonly attachment_count: number | null;
+            readonly link_count: number | null;
             readonly is_draft: boolean;
             /** Format: date */
             readonly archived_at: string | null;
@@ -6169,6 +6465,94 @@ export interface components {
             state?: string | null;
             /** Format: uuid */
             estimate_point?: string | null;
+        };
+        IssueDescriptionVersionDetail: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly project: string;
+            /** Format: uuid */
+            readonly issue: string;
+            /** Format: byte */
+            readonly description_binary: string | null;
+            description_html: string;
+            description_stripped: string | null;
+            description_json: unknown;
+            /** Format: date-time */
+            last_saved_at: string;
+            /** Format: uuid */
+            owned_by: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+        };
+        IssueDetail: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Issue Name */
+            readonly name: string;
+            /** Format: uuid */
+            readonly state_id: string | null;
+            /** Format: double */
+            readonly sort_order: number;
+            /** Format: date-time */
+            readonly completed_at: string | null;
+            /** Format: uuid */
+            readonly estimate_point: string | null;
+            /** Issue Priority */
+            readonly priority: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            readonly start_date: string | null;
+            /** Format: date */
+            readonly target_date: string | null;
+            /** Issue Sequence ID */
+            readonly sequence_id: number;
+            /** Format: uuid */
+            readonly project_id: string;
+            /** Format: uuid */
+            readonly parent_id: string | null;
+            /** Format: uuid */
+            readonly type_id: string;
+            readonly cycle_id: string | null;
+            module_ids?: string[];
+            label_ids?: string[];
+            assignee_ids?: string[];
+            readonly sub_issues_count: number | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            readonly attachment_count: number | null;
+            readonly link_count: number | null;
+            readonly is_draft: boolean;
+            /** Format: date */
+            readonly archived_at: string | null;
+            description_html: string;
+            readonly is_subscribed?: boolean;
+            readonly is_intake?: boolean;
         };
         IssueFlat: {
             /** Format: uuid */
@@ -6697,6 +7081,67 @@ export interface components {
             intake_forms: number;
             service_desks: number;
             automation_actions: number;
+        };
+        IssueVersionDetail: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly project: string;
+            /** Format: uuid */
+            readonly issue: string;
+            /** Format: uuid */
+            parent: string | null;
+            /** Format: uuid */
+            state: string | null;
+            /** Format: uuid */
+            estimate_point: string | null;
+            /** Issue Name */
+            name: string;
+            /** Issue Priority */
+            priority: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            assignees: string[];
+            /** Issue Sequence ID */
+            sequence_id: number;
+            labels: string[];
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            completed_at: string | null;
+            /** Format: date */
+            archived_at: string | null;
+            is_draft: boolean;
+            external_source: string | null;
+            external_id: string | null;
+            /** Format: uuid */
+            type: string | null;
+            /** Format: uuid */
+            cycle: string | null;
+            modules: string[];
+            meta: unknown;
+            /** Format: date-time */
+            last_saved_at: string;
+            /** Format: uuid */
+            owned_by: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
         };
         IssueView: {
             /** Format: uuid */
@@ -7487,6 +7932,20 @@ export interface components {
             label_ids?: string[];
             project_ids?: string[];
         };
+        PaginatedDraftIssueList: {
+            results: components["schemas"]["DraftIssue"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
         PaginatedIssueActivityList: {
             results: components["schemas"]["IssueActivity"][];
             grouped_by: string | null;
@@ -7517,6 +7976,48 @@ export interface components {
         };
         PaginatedTrashedIssueList: {
             results: components["schemas"]["TrashedIssue"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
+        PaginatedViewWorkItemList: {
+            results: components["schemas"]["ViewWorkItem"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
+        PaginatedWorkItemDetailRowList: {
+            results: components["schemas"]["WorkItemDetailRow"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
+        PaginatedWorkItemList: {
+            results: components["schemas"]["WorkItemListItem"][];
             grouped_by: string | null;
             sub_grouped_by: string | null;
             total_count: number;
@@ -8570,6 +9071,12 @@ export interface components {
              */
             updated_by?: string | null;
         };
+        ProjectMemberLite: {
+            readonly member: components["schemas"]["UserLite"] | null;
+            /** Format: uuid */
+            readonly id: string;
+            readonly is_subscribed?: boolean;
+        };
         ProjectMemberPreference: {
             preferences: unknown;
             /** Format: uuid */
@@ -8676,6 +9183,61 @@ export interface components {
          * @enum {string}
          */
         PropertyTypeEnum: "TEXT" | "DECIMAL" | "OPTION" | "DATETIME" | "BOOLEAN" | "RELATION";
+        PropertyValues: {
+            /** @description Value or values by property id */
+            values: {
+                [key: string]: unknown;
+            };
+            /** @description Display text by property id */
+            display: {
+                [key: string]: unknown;
+            };
+            /** @description source_issue_id by property id for derived values */
+            derived: {
+                [key: string]: {
+                    [key: string]: string | null;
+                };
+            };
+        };
+        QueryValidation: {
+            valid: boolean;
+            /** @description Filters AST when valid */
+            expression?: unknown;
+            error?: string;
+            position?: number | null;
+            line?: number | null;
+            column?: number | null;
+            token?: string | null;
+            expected?: unknown;
+            field?: string | null;
+            lookup?: string | null;
+        };
+        RelatedWorkItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: double */
+            sort_order: number;
+            priority: string;
+            sequence_id: number;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: uuid */
+            type_id: string;
+            label_ids: string[];
+            assignee_ids: string[];
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
+            relation_type: string;
+        };
         /**
          * @description * `USER` - User
          *     * `ISSUE` - Work item
@@ -8788,6 +9350,78 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
+        };
+        SubGroupedPaginatedWorkItemList: {
+            results: {
+                [key: string]: components["schemas"]["WorkItemSubGroupedGroup"];
+            };
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
+        SubWorkItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            completed_at: string | null;
+            /** Format: uuid */
+            estimate_point: string | null;
+            priority: string;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            sequence_id: number;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: uuid */
+            type_id: string;
+            /** Format: uuid */
+            cycle_id: string | null;
+            module_ids: string[];
+            label_ids: string[];
+            assignee_ids: string[];
+            sub_issues_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
+            attachment_count: number;
+            link_count: number;
+            is_draft: boolean;
+            /** Format: date-time */
+            archived_at: string | null;
+            state_group: string | null;
+        };
+        SubWorkItemList: {
+            /** @description Sub work item ids by state group */
+            state_distribution: {
+                [key: string]: string[];
+            };
+            sub_issues: components["schemas"]["SubWorkItem"][];
+        };
+        SubWorkItemsResponse: components["schemas"]["SubWorkItemList"] | components["schemas"]["GroupedSubWorkItemList"];
+        SubscriptionStatus: {
+            subscribed: boolean;
         };
         /**
          * @description * `Africa/Abidjan` - Africa/Abidjan
@@ -9961,12 +10595,316 @@ export interface components {
             fallback_workspace_slug: string | null;
             invites: number;
         };
+        VersionRow: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspace: string;
+            /** Format: uuid */
+            project: string;
+            /** Format: uuid */
+            issue: string;
+            /** Format: date-time */
+            last_saved_at: string;
+            /** Format: uuid */
+            owned_by: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
+        };
+        ViewWorkItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            completed_at: string | null;
+            /** Format: uuid */
+            estimate_point: string | null;
+            priority: string;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            sequence_id: number;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: uuid */
+            cycle_id: string | null;
+            module_ids: string[];
+            label_ids: string[];
+            assignee_ids: string[];
+            sub_issues_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
+            attachment_count: number;
+            link_count: number;
+            is_draft: boolean;
+            /** Format: date-time */
+            archived_at: string | null;
+            state__group: string | null;
+        };
         /**
          * @description * `-1` - DOWNVOTE
          *     * `1` - UPVOTE
          * @enum {integer}
          */
         VoteEnum: -1 | 1;
+        WorkItemDetailRow: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            completed_at: string | null;
+            /** Format: uuid */
+            estimate_point: string | null;
+            priority: string;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            sequence_id: number;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: uuid */
+            type_id: string;
+            /** Format: uuid */
+            cycle_id: string | null;
+            module_ids: string[];
+            label_ids: string[];
+            assignee_ids: string[];
+            sub_issues_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
+            attachment_count: number;
+            link_count: number;
+            is_draft: boolean;
+            /** Format: date-time */
+            archived_at: string | null;
+            /** @description Present with expand=issue_relation */
+            issue_relation?: components["schemas"]["ExpandedRelation"][];
+            /** @description Present with expand=issue_related */
+            issue_related?: components["schemas"]["ExpandedRelation"][];
+        };
+        WorkItemGroup: {
+            results: components["schemas"]["WorkItemListItem"][];
+            total_results: number | null;
+        };
+        WorkItemHistoryEntry: components["schemas"]["IssueActivity"] | components["schemas"]["IssueComment"];
+        WorkItemListItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            completed_at: string | null;
+            /** Format: uuid */
+            estimate_point: string | null;
+            priority: string;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            sequence_id: number;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: uuid */
+            type_id: string;
+            /** Format: uuid */
+            cycle_id: string | null;
+            module_ids?: string[];
+            label_ids?: string[];
+            assignee_ids?: string[];
+            sub_issues_count: number | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
+            attachment_count: number | null;
+            link_count: number | null;
+            is_draft: boolean;
+            /** Format: date-time */
+            archived_at: string | null;
+            state__group: string | null;
+            /** Format: uuid */
+            labels__id?: string | null;
+            /** Format: uuid */
+            assignees__id?: string | null;
+            /** Format: uuid */
+            issue_module__module_id?: string | null;
+        };
+        WorkItemListResponse: components["schemas"]["PaginatedWorkItemList"] | components["schemas"]["GroupedPaginatedWorkItemList"] | components["schemas"]["SubGroupedPaginatedWorkItemList"];
+        WorkItemMeta: {
+            sequence_id: number;
+            project_identifier: string;
+        };
+        WorkItemRelations: {
+            blocking: components["schemas"]["RelatedWorkItem"][];
+            blocked_by: components["schemas"]["RelatedWorkItem"][];
+            duplicate: components["schemas"]["RelatedWorkItem"][];
+            relates_to: components["schemas"]["RelatedWorkItem"][];
+            start_after: components["schemas"]["RelatedWorkItem"][];
+            start_before: components["schemas"]["RelatedWorkItem"][];
+            finish_after: components["schemas"]["RelatedWorkItem"][];
+            finish_before: components["schemas"]["RelatedWorkItem"][];
+        };
+        WorkItemSearchResult: {
+            name: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            start_date: string | null;
+            sequence_id: number;
+            project__name: string;
+            project__identifier: string;
+            /** Format: uuid */
+            project_id: string;
+            workspace__slug: string;
+            state__name: string | null;
+            state__group: string | null;
+            state__color: string | null;
+        };
+        WorkItemSnapshot: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            completed_at: string | null;
+            /** Format: uuid */
+            estimate_point: string | null;
+            priority: string;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            sequence_id: number;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: uuid */
+            type_id: string;
+            /** Format: uuid */
+            cycle_id: string | null;
+            module_ids: string[];
+            label_ids: string[];
+            assignee_ids: string[];
+            sub_issues_count: number | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
+            attachment_count: number | null;
+            link_count: number | null;
+            is_draft: boolean;
+            /** Format: date-time */
+            archived_at: string | null;
+            /** Format: date-time */
+            deleted_at: string | null;
+        };
+        WorkItemSubGroup: {
+            results: components["schemas"]["WorkItemListItem"][];
+            total_results: number;
+        };
+        WorkItemSubGroupedGroup: {
+            results: {
+                [key: string]: components["schemas"]["WorkItemSubGroup"];
+            };
+            total_results: number;
+        };
+        WorkItemSyncItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            completed_at: string | null;
+            /** Format: uuid */
+            estimate_point: string | null;
+            priority: string;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            sequence_id: number;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: uuid */
+            type_id: string;
+            /** Format: uuid */
+            cycle_id: string | null;
+            module_ids: string[];
+            label_ids: string[];
+            assignee_ids: string[];
+            sub_issues_count: number | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: uuid */
+            updated_by: string | null;
+            attachment_count: number | null;
+            link_count: number | null;
+            is_draft: boolean;
+            /** Format: date-time */
+            archived_at: string | null;
+            state__group: string | null;
+            /** @description Present when description=true */
+            description_html?: string;
+        };
+        WorkItemsByIdResponse: components["schemas"]["WorkItemSnapshot"][] | components["schemas"]["Issue"][];
         WorkSpace: {
             /** Format: uuid */
             readonly id: string;
@@ -13668,9 +14606,16 @@ export interface operations {
             };
         };
     };
-    workspaces_draft_issues_retrieve: {
+    workspaces_draft_issues_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -13679,12 +14624,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PaginatedDraftIssueList"];
+                };
             };
         };
     };
@@ -13699,16 +14645,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DraftWorkItemSnapshot"];
+                };
             };
         };
     };
-    workspaces_draft_issues_retrieve_2: {
+    workspaces_draft_issues_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -13720,12 +14667,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DraftIssueDetail"];
+                };
             };
         };
     };
@@ -13762,8 +14710,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Updated */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13783,12 +14731,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CreatedWorkItem"];
+                };
             };
         };
     };
@@ -14127,9 +15076,14 @@ export interface operations {
             };
         };
     };
-    workspaces_issues_retrieve: {
+    workspaces_issues_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -14138,12 +15092,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PaginatedViewWorkItemList"];
+                };
             };
         };
     };
@@ -14765,7 +15720,12 @@ export interface operations {
     };
     workspaces_projects_archived_issues_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -14780,7 +15740,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueFlat"][];
+                    "application/json": components["schemas"]["WorkItemListResponse"];
                 };
             };
         };
@@ -15082,12 +16042,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ArchivedAt"];
+                };
             };
         };
     };
@@ -15125,12 +16086,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -15684,9 +16646,12 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_deleted_issues_retrieve: {
+    workspaces_projects_deleted_issues_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -15696,12 +16661,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": string[];
+                };
             };
         };
     };
@@ -16629,12 +17595,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: components["schemas"]["DateRollup"];
+                    };
+                };
             };
         };
     };
@@ -16650,12 +17619,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -17086,12 +18056,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
             };
         };
     };
@@ -17298,7 +18273,12 @@ export interface operations {
     };
     workspaces_projects_issues_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -17313,7 +18293,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Issue"][];
+                    "application/json": components["schemas"]["WorkItemListResponse"];
                 };
             };
         };
@@ -17341,14 +18321,19 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueCreate"];
+                    "application/json": components["schemas"]["WorkItemSnapshot"];
                 };
             };
         };
     };
     workspaces_projects_issues_detail_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -17358,12 +18343,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PaginatedWorkItemDetailRowList"];
+                };
             };
         };
     };
@@ -17595,9 +18581,12 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_issues_history_retrieve: {
+    workspaces_projects_issues_history_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 issue_id: string;
@@ -17608,12 +18597,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkItemHistoryEntry"][];
+                };
             };
         };
     };
@@ -17874,14 +18864,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueRelation"][];
+                    "application/json": components["schemas"]["WorkItemRelations"];
                 };
             };
         };
     };
     workspaces_projects_issues_issue_relation_create: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 issue_id: string;
@@ -17903,7 +18896,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueRelation"];
+                    "application/json": components["schemas"]["IssueRelation"][];
                 };
             };
         };
@@ -17929,7 +18922,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueSubscriber"][];
+                    "application/json": components["schemas"]["ProjectMemberLite"][];
                 };
             };
         };
@@ -17999,12 +18992,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkItemMeta"];
+                };
             };
         };
     };
@@ -18050,12 +19044,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PropertyValues"];
+                };
             };
         };
     };
@@ -18072,12 +19067,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PropertyValues"];
+                };
             };
         };
     };
@@ -18178,13 +19174,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            /** @description Removed */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["IssueRelation"];
-                };
+                content?: never;
             };
         };
     };
@@ -18201,12 +19196,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SubWorkItemsResponse"];
+                };
             };
         };
     };
@@ -18223,12 +19219,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AddedSubWorkItems"];
+                };
             };
         };
     };
@@ -18250,7 +19247,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueSubscriber"];
+                    "application/json": components["schemas"]["SubscriptionStatus"];
                 };
             };
         };
@@ -18266,15 +19263,9 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["IssueSubscriberRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueSubscriberRequest"];
-                "multipart/form-data": components["schemas"]["IssueSubscriberRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -18297,7 +19288,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
+            /** @description Done */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -18308,7 +19299,10 @@ export interface operations {
     };
     workspaces_projects_issues_versions_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+            };
             header?: never;
             path: {
                 issue_id: string;
@@ -18319,18 +19313,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CursorPaginatedIssueVersionList"];
+                };
             };
         };
     };
     workspaces_projects_issues_versions_retrieve_2: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+            };
             header?: never;
             path: {
                 issue_id: string;
@@ -18342,12 +19340,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["IssueVersionDetail"];
+                };
             };
         };
     };
@@ -18369,7 +19368,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Issue"];
+                    "application/json": components["schemas"]["IssueDetail"];
                 };
             };
         };
@@ -18444,13 +19443,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            /** @description Updated */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["IssueCreate"];
-                };
+                content?: never;
             };
         };
     };
@@ -18472,7 +19470,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueFlat"];
+                    "application/json": components["schemas"]["IssueDetail"];
                 };
             };
         };
@@ -18488,20 +19486,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["IssueFlatRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueFlatRequest"];
-                "multipart/form-data": components["schemas"]["IssueFlatRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueFlat"];
+                    "application/json": components["schemas"]["ArchivedAt"];
                 };
             };
         };
@@ -18519,7 +19511,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
+            /** @description Done */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -18540,12 +19532,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkItemsByIdResponse"];
+                };
             };
         };
     };
@@ -20361,9 +21354,12 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_search_issues_retrieve: {
+    workspaces_projects_search_issues_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -20373,12 +21369,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkItemSearchResult"][];
+                };
             };
         };
     };
@@ -20880,9 +21877,14 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_v2_issues_retrieve: {
+    workspaces_projects_v2_issues_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -20892,12 +21894,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CursorPaginatedWorkItemSyncList"];
+                };
             };
         };
     };
@@ -21059,7 +22062,10 @@ export interface operations {
     };
     workspaces_projects_work_items_description_versions_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -21070,18 +22076,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CursorPaginatedIssueDescriptionVersionList"];
+                };
             };
         };
     };
     workspaces_projects_work_items_description_versions_retrieve_2: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+            };
             header?: never;
             path: {
                 pk: string;
@@ -21093,12 +22103,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["IssueDescriptionVersionDetail"];
+                };
             };
         };
     };
@@ -21720,7 +22731,12 @@ export interface operations {
     };
     workspaces_user_issues_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -21730,12 +22746,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkItemListResponse"];
+                };
             };
         };
     };
@@ -22366,12 +23383,34 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        fields: {
+                            name: string;
+                            type: string;
+                            lookups: string[];
+                            operators: string[];
+                            people: boolean;
+                            choices: string[] | null;
+                            aliases: string[];
+                            plane_aliases: string[];
+                        }[];
+                        /** @description Reason by field name */
+                        unsupported: {
+                            [key: string]: string;
+                        };
+                        functions: {
+                            name: string;
+                            kind: string;
+                            arguments: number;
+                        }[];
+                        custom_property_syntax: string;
+                    };
+                };
             };
         };
     };
@@ -22386,12 +23425,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["QueryValidation"];
+                };
             };
         };
     };
@@ -22408,12 +23448,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["IssueDetail"];
+                };
             };
         };
     };
@@ -22605,8 +23646,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Saved */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };

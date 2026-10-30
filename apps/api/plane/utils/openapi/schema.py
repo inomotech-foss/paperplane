@@ -8,6 +8,7 @@ import uritemplate
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import OneToOneRel
 from drf_spectacular.openapi import AutoSchema as SpectacularAutoSchema
+from drf_spectacular.drainage import set_override
 from drf_spectacular.plumbing import append_meta, force_instance
 from rest_framework import serializers
 from rest_framework.fields import empty
@@ -82,20 +83,29 @@ def _guessed_presence(serializer, field):
     return _source_presence(model, field.source)
 
 
+def single(serializer):
+    """One object from a viewset's list action, which drf-spectacular would document as an array."""
+    return set_override(force_instance(serializer), "many", False)
+
+
 class DetailOrList:
     """Response of an APIView routed on a list and a detail path.
 
-    One `serializer` when the path has `kwarg`, a list of them otherwise. Use it as a value of the responses dict.
+    One `serializer` when the path has `kwarg`, else `collection`, which defaults to a list of them.
+    Use it as a value of the responses dict.
     """
 
-    def __init__(self, serializer, kwarg="pk"):
+    def __init__(self, serializer, kwarg="pk", collection=None):
         self.serializer = serializer
         self.kwarg = kwarg
+        self.collection = collection
 
     def resolve(self, path):
         serializer = force_instance(self.serializer)
         if self.kwarg in uritemplate.variables(path):
             return serializer
+        if self.collection is not None:
+            return force_instance(self.collection)
         return serializers.ListSerializer(child=serializer)
 
 
@@ -108,6 +118,9 @@ class AutoSchema(SpectacularAutoSchema):
     def _get_response_for_code(self, serializer, status_code, media_types=None, direction="response"):
         if isinstance(serializer, DetailOrList):
             serializer = serializer.resolve(self.path)
+        if isinstance(serializer, serializers.Field) and not isinstance(serializer, serializers.BaseSerializer):
+            # A bare field, such as a DictField for a body keyed by id.
+            serializer = self._map_serializer_field(serializer, direction)
         return super()._get_response_for_code(serializer, status_code, media_types, direction)
 
     def _map_basic_serializer(self, serializer, direction):

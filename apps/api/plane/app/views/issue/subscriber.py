@@ -6,8 +6,10 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
+from plane.app.serializers.response.issue import SubscriptionStatusSerializer
 from .. import BaseViewSet
 from plane.app.serializers import IssueSubscriberSerializer, ProjectMemberLiteSerializer
 from plane.app.permissions import ProjectEntityPermission, ProjectLitePermission
@@ -64,6 +66,7 @@ class IssueSubscriberViewSet(BaseViewSet):
             .distinct()
         )
 
+    @extend_schema(responses={200: ProjectMemberLiteSerializer(many=True)})
     def list(self, request, slug, project_id, issue_id):
         members = ProjectMember.objects.filter(
             workspace__slug=slug, project_id=project_id, is_active=True
@@ -81,6 +84,7 @@ class IssueSubscriberViewSet(BaseViewSet):
         issue_subscriber.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(request=None, responses={201: IssueSubscriberSerializer})
     def subscribe(self, request, slug, project_id, issue_id):
         Issue.objects.get(pk=issue_id, workspace__slug=slug, project_id=project_id)
         if IssueSubscriber.objects.filter(
@@ -100,6 +104,7 @@ class IssueSubscriberViewSet(BaseViewSet):
         serializer = IssueSubscriberSerializer(subscriber)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Done")})
     def unsubscribe(self, request, slug, project_id, issue_id):
         issue_subscriber = IssueSubscriber.objects.get(
             project=project_id,
@@ -110,6 +115,7 @@ class IssueSubscriberViewSet(BaseViewSet):
         issue_subscriber.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(responses={200: SubscriptionStatusSerializer})
     def subscription_status(self, request, slug, project_id, issue_id):
         issue_subscriber = IssueSubscriber.objects.filter(
             issue=issue_id,

@@ -3,7 +3,8 @@
 
 """Schema of the wrapper that plane.utils.paginator.BasePaginator.paginate() returns."""
 
-from drf_spectacular.utils import inline_serializer
+from drf_spectacular.drainage import set_override
+from drf_spectacular.utils import PolymorphicProxySerializer, inline_serializer
 from rest_framework import serializers
 
 FLAT = "flat"
@@ -44,8 +45,13 @@ def paginated_response(serializer, grouping=FLAT, name=None):
     else:
         raise ValueError(f"Unknown grouping: {grouping}")
 
+    # A viewset's list action would otherwise wrap the wrapper in an array.
+    return set_override(_paginated(f"{prefix}{name}List", results), "many", False)
+
+
+def _paginated(name, results):
     return inline_serializer(
-        name=f"{prefix}{name}List",
+        name=name,
         fields={
             "grouped_by": serializers.CharField(allow_null=True),
             "sub_grouped_by": serializers.CharField(allow_null=True),
@@ -61,3 +67,36 @@ def paginated_response(serializer, grouping=FLAT, name=None):
             "results": results,
         },
     )
+
+
+def paginated_union(serializer, name=None):
+    """paginate() output that is flat, grouped or sub-grouped depending on group_by and sub_group_by."""
+    name = name or _item_name(serializer)
+    union = PolymorphicProxySerializer(
+        component_name=f"{name}ListResponse",
+        serializers=[paginated_response(serializer, grouping, name) for grouping in (FLAT, GROUPED, SUB_GROUPED)],
+        resource_type_field_name=None,
+        many=False,
+        help_text="Grouped when group_by is given, sub-grouped when sub_group_by is given too",
+    )
+    return set_override(union, "many", False)
+
+
+def cursor_paginated_response(serializer, name=None):
+    """Schema of what plane.utils.global_paginator.paginate() returns."""
+    name = name or _item_name(serializer)
+    paginated = inline_serializer(
+        name=f"CursorPaginated{name}List",
+        fields={
+            "prev_cursor": serializers.CharField(),
+            "cursor": serializers.CharField(),
+            "next_cursor": serializers.CharField(allow_null=True),
+            "prev_page_results": serializers.BooleanField(),
+            "next_page_results": serializers.BooleanField(),
+            "page_count": serializers.IntegerField(),
+            "total_results": serializers.IntegerField(),
+            "total_pages": serializers.IntegerField(),
+            "results": serializers.ListField(child=serializer() if isinstance(serializer, type) else serializer),
+        },
+    )
+    return set_override(paginated, "many", False)
