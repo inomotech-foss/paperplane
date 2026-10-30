@@ -34,6 +34,7 @@ import {
   getSourceFromDropPayload,
   getDestinationFromDropPayload,
   getIssueBlockId,
+  getGroupIssueIds,
 } from "@/components/issues/issue-layouts/utils";
 import { KanbanIssueBlockLoader } from "@/components/ui/loader/layouts/kanban-layout-loader";
 import { useWorkFlowFDragNDrop } from "@/components/workflow";
@@ -249,9 +250,7 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
 
   const isSubGroup = !!sub_group_id && sub_group_id !== "null";
 
-  const issueIds = isSubGroup
-    ? ((groupedIssueIds as TSubGroupedIssues)?.[groupId]?.[sub_group_id] ?? [])
-    : ((groupedIssueIds as TGroupedIssues)?.[groupId] ?? []);
+  const issueIds = getGroupIssueIds(groupedIssueIds, groupId, isSubGroup ? sub_group_id : undefined);
 
   const groupIssueCount = getGroupIssueCount(groupId, sub_group_id, false) ?? 0;
 

@@ -18,6 +18,7 @@ import type { IProject, TIssue, EIssueLayoutTypes } from "@plane/types";
 import { cn, createIssuePayload } from "@plane/utils";
 // components
 import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
+import { getStringProp } from "@/components/issues/narrow";
 // hooks
 import { usePreselectedIssueTypeId } from "@/hooks/use-preselected-issue-type";
 // local imports
@@ -126,17 +127,17 @@ export const QuickAddIssueRoot = observer(function QuickAddIssueRoot(props: TQui
 
     if (quickAddCallback) {
       const quickAddPromise = quickAddCallback(projectId.toString(), { ...payload });
-      setPromiseToast<any>(quickAddPromise, {
+      setPromiseToast(quickAddPromise, {
         loading: t("issue.adding"),
         success: {
           title: t("common.success"),
           message: () => t("issue.create.success"),
           actionItems: (data) =>
-            buildCreateIssueToastActions({ workspaceSlug: workspaceSlug.toString(), issueId: data.id }),
+            data ? buildCreateIssueToastActions({ workspaceSlug: workspaceSlug.toString(), issueId: data.id }) : [],
         },
         error: {
           title: t("common.error.label"),
-          message: (err) => err?.message || t("common.error.message"),
+          message: (err) => getStringProp(err, "message") || t("common.error.message"),
         },
       });
 

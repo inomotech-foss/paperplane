@@ -27,7 +27,7 @@ type Props = {
   enableQuickIssueCreate?: boolean;
   disableIssueCreation?: boolean;
   quickAddCallback?: (projectId: string | null | undefined, data: TIssue) => Promise<TIssue | undefined>;
-  addIssuesToView?: (issueIds: string[]) => Promise<any>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   readOnly?: boolean;
   isMobileView?: boolean;
   canEditProperties: (projectId: string | undefined) => boolean;

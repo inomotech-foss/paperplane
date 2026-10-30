@@ -12,9 +12,10 @@ import { useParams } from "next/navigation";
 import { Dialog, DialogContent } from "@makeplane/propel/components/dialog";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { TBaseIssue, TIssue } from "@plane/types";
+import type { TIssue, TWorkspaceDraftIssue } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
 // hooks
+import { getStringProp } from "@/components/issues/narrow";
 import { useIssueModal } from "@/hooks/context/use-issue-modal";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -33,13 +34,16 @@ import { IssueFormRoot } from "./form";
 import type { IssueFormProps } from "./form";
 import type { IssuesModalProps } from "./modal";
 
+const isWorkItem = (value: TIssue | TWorkspaceDraftIssue): value is TIssue => "sequence_id" in value;
+
+type TWorkItemRef = { id: string; project_id: string | null | undefined };
+
 export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueModalBase(props: IssuesModalProps) {
   const {
     data,
     isOpen,
     onClose,
     beforeFormSubmit,
-    onSubmit,
     withDraftIssueWrapper = true,
     storeType: issueStoreFromProps,
     isDraft = false,
@@ -122,14 +126,14 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.project_id, data?.id, data?.sourceIssueId, projectId, isOpen, activeProjectId]);
 
-  const addIssueToCycle = async (issue: TIssue, cycleId: string) => {
+  const addIssueToCycle = async (issue: TWorkItemRef, cycleId: string) => {
     if (!workspaceSlug || !issue.project_id) return;
 
     await issues.addIssueToCycle(workspaceSlug.toString(), issue.project_id, cycleId, [issue.id]);
     fetchCycleDetails(workspaceSlug.toString(), issue.project_id, cycleId);
   };
 
-  const addIssueToModule = async (issue: TIssue, moduleIds: string[]) => {
+  const addIssueToModule = async (issue: TWorkItemRef, moduleIds: string[]) => {
     if (!workspaceSlug || !issue.project_id) return;
 
     await Promise.all([
@@ -158,14 +162,14 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
   const handleCreateIssue = async (
     payload: Partial<TIssue>,
     is_draft_issue: boolean = false
-  ): Promise<TIssue | undefined> => {
+  ): Promise<TIssue | TWorkspaceDraftIssue | undefined> => {
     if (!workspaceSlug || !payload.project_id) return;
 
     try {
-      let response: TIssue | undefined;
+      let response: TIssue | TWorkspaceDraftIssue | undefined;
       // if draft issue, use draft issue store to create issue
       if (is_draft_issue) {
-        response = (await draftIssues.createIssue(workspaceSlug.toString(), payload)) as TIssue;
+        response = await draftIssues.createIssue(workspaceSlug.toString(), payload);
       }
       // if cycle id in payload does not match the cycleId in url
       // or if the moduleIds in Payload does not match the moduleId in url
@@ -245,11 +249,11 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
       setDescription("<p></p>");
       setChangesMade(null);
       return response;
-    } catch (error: any) {
+    } catch (error) {
       setToast({
         type: "error",
         title: t("error"),
-        message: error?.error ?? t(is_draft_issue ? "draft_creation_failed" : "issue_creation_failed"),
+        message: getStringProp(error, "error") ?? t(is_draft_issue ? "draft_creation_failed" : "issue_creation_failed"),
       });
       throw error;
     }
@@ -268,7 +272,7 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
     const currentCycleId = data?.cycle_id;
     if (currentCycleId && payload.cycle_id === null) {
       await issues.removeIssueFromCycle(slug, data.project_id, currentCycleId, data.id);
-      fetchCycleDetails(slug, data.project_id, currentCycleId).catch((error) => {
+      fetchCycleDetails(slug, data.project_id, currentCycleId).catch((error: unknown) => {
         console.error(error);
       });
     }
@@ -276,7 +280,7 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
     // Adding the cycle
     const newCycleId = payload.cycle_id;
     if (newCycleId && newCycleId !== "" && (payload.cycle_id !== cycleId || storeType !== EIssuesStoreType.CYCLE)) {
-      await addIssueToCycle(data as TBaseIssue, newCycleId);
+      await addIssueToCycle({ id: data.id, project_id: data.project_id }, newCycleId);
     }
   };
 
@@ -345,12 +349,12 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
             : undefined,
       });
       handleClose();
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       setToast({
         type: "error",
         title: t("error"),
-        message: error?.error ?? t("issue_could_not_be_updated"),
+        message: getStringProp(error, "error") ?? t("issue_could_not_be_updated"),
       });
     }
   };
@@ -360,14 +364,17 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
     // remove sourceIssueId from payload since it is not needed
     if (data?.sourceIssueId) delete data.sourceIssueId;
 
-    let response: TIssue | undefined = undefined;
+    let response: TIssue | TWorkspaceDraftIssue | undefined = undefined;
 
     try {
       if (beforeFormSubmit) await beforeFormSubmit();
       if (!data?.id) response = await handleCreateIssue(payload, is_draft_issue);
       else response = await handleUpdateIssue(payload);
     } finally {
-      if (response != undefined && onSubmit) await onSubmit(response);
+      if (response !== undefined) {
+        if (props.isDraft) await props.onSubmit?.(response);
+        else if (isWorkItem(response)) await props.onSubmit?.(response);
+      }
     }
   };
 

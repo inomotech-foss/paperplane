@@ -146,15 +146,12 @@ export const SubIssuesCollapsibleContent = observer(function SubIssuesCollapsibl
             handleIssueCrudState("delete", null, null);
             toggleDeleteIssueModal(null);
           }}
-          data={issueCrudState?.delete?.issue as TIssue}
-          onSubmit={async () =>
-            await subIssueOperations.deleteSubIssue(
-              workspaceSlug,
-              projectId,
-              issueCrudState?.delete?.parentIssueId as string,
-              issueCrudState?.delete?.issue?.id as string
-            )
-          }
+          data={issueCrudState?.delete?.issue}
+          onSubmit={async () => {
+            const { parentIssueId: deleteParentId, issue: deleteIssue } = issueCrudState.delete;
+            if (!deleteParentId || !deleteIssue?.id) return;
+            await subIssueOperations.deleteSubIssue(workspaceSlug, projectId, deleteParentId, deleteIssue.id);
+          }}
           isSubIssue
         />
       )}

@@ -11,36 +11,41 @@ import { useParams } from "next/navigation";
 // plane constants
 import { EIssueFilterType, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 // types
-import type { EIssuesStoreType, GroupByColumnTypes, TGroupedIssues, TIssueKanbanFilters } from "@plane/types";
-import { EIssueLayoutTypes } from "@plane/types";
+import type { TIssueKanbanFilters } from "@plane/types";
+import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
 // constants
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { useUserPermissions } from "@/hooks/store/user";
 // hooks
 import { useGroupIssuesDragNDrop } from "@/hooks/use-group-dragndrop";
-import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
+
 import { useIssuesActions } from "@/hooks/use-issues-actions";
 // components
 import { IssueLayoutHOC } from "../issue-layout-HOC";
+import { useLayoutStoreType } from "../use-layout-store-type";
+import { isGroupedIssues } from "../utils";
 import { List } from "./default";
 // types
 import type { IQuickActionProps, TRenderQuickActions } from "./list-view-types";
 
-type ListStoreType =
-  | EIssuesStoreType.PROJECT
-  | EIssuesStoreType.MODULE
-  | EIssuesStoreType.CYCLE
-  | EIssuesStoreType.PROJECT_VIEW
-  | EIssuesStoreType.PROFILE
-  | EIssuesStoreType.ARCHIVED
-  | EIssuesStoreType.WORKSPACE_DRAFT
-  | EIssuesStoreType.TEAM
-  | EIssuesStoreType.TEAM_VIEW;
+const LIST_STORE_TYPES = [
+  EIssuesStoreType.PROJECT,
+  EIssuesStoreType.MODULE,
+  EIssuesStoreType.CYCLE,
+  EIssuesStoreType.PROJECT_VIEW,
+  EIssuesStoreType.PROFILE,
+  EIssuesStoreType.ARCHIVED,
+  EIssuesStoreType.WORKSPACE_DRAFT,
+  EIssuesStoreType.TEAM,
+  EIssuesStoreType.TEAM_VIEW,
+] as const;
+
+const EMPTY_KANBAN_FILTERS: TIssueKanbanFilters = { group_by: [], sub_group_by: [] };
 
 interface IBaseListRoot {
   QuickActions: FC<IQuickActionProps>;
-  addIssuesToView?: (issueIds: string[]) => Promise<any>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   canEditPropertiesBasedOnProject?: (projectId: string) => boolean;
   viewId?: string | undefined;
   isCompletedCycle?: boolean;
@@ -48,7 +53,7 @@ interface IBaseListRoot {
 export const BaseListRoot = observer(function BaseListRoot(props: IBaseListRoot) {
   const { QuickActions, viewId, addIssuesToView, canEditPropertiesBasedOnProject, isCompletedCycle = false } = props;
   // router
-  const storeType = useIssueStoreType() as ListStoreType;
+  const storeType = useLayoutStoreType(LIST_STORE_TYPES);
   //stores
   const { issuesFilter, issues } = useIssues(storeType);
   const {
@@ -69,19 +74,19 @@ export const BaseListRoot = observer(function BaseListRoot(props: IBaseListRoot)
   const displayProperties = issuesFilter?.issueFilters?.displayProperties;
   const orderBy = displayFilters?.order_by || undefined;
 
-  const group_by = (displayFilters?.group_by || null) as GroupByColumnTypes | null;
+  const group_by = displayFilters?.group_by || null;
   const showEmptyGroup = displayFilters?.show_empty_groups ?? false;
 
   const { workspaceSlug, projectId } = useParams();
   const { updateFilters } = useIssuesActions(storeType);
-  const collapsedGroups =
-    issuesFilter?.issueFilters?.kanbanFilters || ({ group_by: [], sub_group_by: [] } as TIssueKanbanFilters);
+  const collapsedGroups = issuesFilter?.issueFilters?.kanbanFilters || EMPTY_KANBAN_FILTERS;
 
   useEffect(() => {
     fetchIssues("init-loader", { canGroup: true, perPageCount: group_by ? 50 : 100 }, viewId);
   }, [fetchIssues, storeType, group_by, viewId]);
 
-  const groupedIssueIds = issues?.groupedIssueIds as TGroupedIssues | undefined;
+  const allGroupedIssueIds = issues?.groupedIssueIds;
+  const groupedIssueIds = allGroupedIssueIds && isGroupedIssues(allGroupedIssueIds) ? allGroupedIssueIds : undefined;
   // auth
   const isEditingAllowed = allowPermissions(
     [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
@@ -137,7 +142,7 @@ export const BaseListRoot = observer(function BaseListRoot(props: IBaseListRoot)
         }
         updateFilters(projectId?.toString() ?? "", EIssueFilterType.KANBAN_FILTERS, {
           group_by: collapsedGroups,
-        } as TIssueKanbanFilters);
+        });
       }
     },
     [workspaceSlug, issuesFilter, projectId, updateFilters]

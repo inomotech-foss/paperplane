@@ -32,9 +32,7 @@ import { Logo } from "@plane/blocks/emoji-icon-picker";
 import type { ISvgIcons } from "@plane/blocks/icons";
 import { CycleGroupIcon, PriorityIcon, StateGroupIcon } from "@plane/blocks/icons";
 import type {
-  GroupByColumnTypes,
   IGroupByColumn,
-  TCycleGroups,
   IIssueDisplayProperties,
   IPragmaticDropPayload,
   TIssue,
@@ -42,7 +40,7 @@ import type {
   IIssueFilterOptions,
   IIssueFilters,
   TGroupedIssues,
-  IIssueDisplayFilterOptions,
+  TIssues,
   TGetColumns,
   TSpreadsheetColumn,
 } from "@plane/types";
@@ -54,6 +52,7 @@ import { renderFormattedDate, getFileURL } from "@plane/utils";
 import { store } from "@/lib/store-context";
 import { ISSUE_FILTER_DEFAULT_DATA } from "@/store/issue/helpers/base-issues.store";
 import { DEFAULT_DISPLAY_PROPERTIES } from "@/store/issue/issue-details/sub_issues_filter.store";
+import { getStringField, isStringArray, keysOf, toCycleGroup } from "@/components/issues/narrow";
 // constants
 import { ISSUE_GROUP_BY_OPTIONS } from "@plane/constants";
 // components
@@ -79,7 +78,7 @@ export const HIGHLIGHT_CLASS = "highlight";
 export const HIGHLIGHT_WITH_LINE = "highlight-with-line";
 
 export type GroupDropLocation = {
-  columnId: string;
+  columnId?: string;
   groupId: string;
   subGroupId?: string;
   id: string | undefined;
@@ -107,15 +106,12 @@ export const isWorkspaceLevel = (type: EIssuesStoreType) =>
     : false;
 
 type TGetGroupByColumns = {
-  groupBy: GroupByColumnTypes | null;
+  groupBy: TIssueGroupByOptions | undefined;
   includeNone: boolean;
   isWorkspaceLevel: boolean;
   projectId?: string;
 };
 
-// NOTE: Type of groupBy is different compared to what's being passed from the components.
-// We are using `as` to typecast it to the expected type.
-// It can break the includeNone logic if not handled properly.
 export const getGroupByColumns = ({
   groupBy,
   includeNone,
@@ -138,9 +134,11 @@ export const getGroupByColumns = ({
   if (!groupBy) return undefined;
 
   // Map of group by options to their corresponding column getter functions
-  const groupByColumnMap: Record<
-    GroupByColumnTypes,
-    ({ isWorkspaceLevel, projectId }: TGetColumns) => IGroupByColumn[] | undefined
+  const groupByColumnMap: Partial<
+    Record<
+      NonNullable<TIssueGroupByOptions>,
+      ({ isWorkspaceLevel, projectId }: TGetColumns) => IGroupByColumn[] | undefined
+    >
   > = {
     project: getProjectColumns,
     cycle: getCycleColumns,
@@ -191,7 +189,7 @@ const getCycleColumns = (): IGroupByColumn[] | undefined => {
   // Map the cycle details to the group by columns
   const cycles: IGroupByColumn[] = [];
   cycleDetails?.map((cycle) => {
-    const cycleStatus = cycle.status ? (cycle.status.toLocaleLowerCase() as TCycleGroups) : "draft";
+    const cycleStatus = toCycleGroup(cycle.status);
     const isDropDisabled = cycleStatus === "completed";
     cycles.push({
       id: cycle.id,
@@ -361,7 +359,7 @@ export const getDisplayPropertiesCount = (
   displayProperties: IIssueDisplayProperties,
   ignoreFields?: (keyof IIssueDisplayProperties)[]
 ) => {
-  const propertyKeys = Object.keys(displayProperties) as (keyof IIssueDisplayProperties)[];
+  const propertyKeys = keysOf(displayProperties);
 
   let count = 0;
 
@@ -414,13 +412,15 @@ export const getSourceFromDropPayload = (payload: IPragmaticDropPayload): GroupD
     }
   }
 
-  if (sourceIssueData?.id === undefined || !sourceColumData?.groupId) return;
+  const sourceId = getStringField(sourceIssueData, "id");
+  const sourceGroupId = sourceColumData ? getStringField(sourceColumData, "groupId") : undefined;
+  if (sourceId === undefined || !sourceColumData || !sourceGroupId) return;
 
   return {
-    groupId: sourceColumData.groupId as string,
-    subGroupId: sourceColumData.subGroupId as string,
-    columnId: sourceColumData.columnId as string,
-    id: sourceIssueData.id as string,
+    groupId: sourceGroupId,
+    subGroupId: getStringField(sourceColumData, "subGroupId"),
+    columnId: getStringField(sourceColumData, "columnId"),
+    id: sourceId,
   };
 };
 
@@ -450,16 +450,17 @@ export const getDestinationFromDropPayload = (payload: IPragmaticDropPayload): G
     }
   }
 
-  if (!destinationColumnData?.groupId) return;
+  const destinationGroupId = destinationColumnData ? getStringField(destinationColumnData, "groupId") : undefined;
+  if (!destinationColumnData || !destinationGroupId) return;
 
   // extract instruction from destination issue
   const extractedInstruction = destinationIssueData ? extractInstruction(destinationIssueData)?.type : "";
 
   return {
-    groupId: destinationColumnData.groupId as string,
-    subGroupId: destinationColumnData.subGroupId as string,
-    columnId: destinationColumnData.columnId as string,
-    id: destinationIssueData?.id as string | undefined,
+    groupId: destinationGroupId,
+    subGroupId: getStringField(destinationColumnData, "subGroupId"),
+    columnId: getStringField(destinationColumnData, "columnId"),
+    id: destinationIssueData ? getStringField(destinationIssueData, "id") : undefined,
     canAddIssueBelow: extractedInstruction === "reorder-below",
   };
 };
@@ -549,6 +550,15 @@ const getGroupId = (groupId: string) => {
   return [groupId];
 };
 
+/** Array values swap the source id for the destination id, scalar values take the destination id. */
+const getDroppedGroupValue = (value: unknown, sourceGroupId: string, destinationGroupId: string) => {
+  if (isStringArray(value)) {
+    const remaining = pull(clone(value), sourceGroupId);
+    return destinationGroupId !== "None" ? uniq(concat(remaining, [destinationGroupId])) : remaining;
+  }
+  return destinationGroupId === "None" ? null : destinationGroupId;
+};
+
 export const handleGroupDragDrop = async (
   source: GroupDropLocation,
   destination: GroupDropLocation,
@@ -589,16 +599,7 @@ export const handleGroupDragDrop = async (
   // update updatedIssue values based on the source and destination groupIds
   if (source.groupId && destination.groupId && source.groupId !== destination.groupId && groupBy) {
     const groupKey = ISSUE_FILTER_DEFAULT_DATA[groupBy];
-    let groupValue: any = clone(sourceIssue[groupKey]);
-
-    // If groupValues is an array, remove source groupId and add destination groupId
-    if (Array.isArray(groupValue)) {
-      pull(groupValue, source.groupId);
-      if (destination.groupId !== "None") groupValue = uniq(concat(groupValue, [destination.groupId]));
-    } // else just update the groupValue based on destination groupId
-    else {
-      groupValue = destination.groupId === "None" ? null : destination.groupId;
-    }
+    const groupValue = getDroppedGroupValue(sourceIssue[groupKey], source.groupId, destination.groupId);
 
     // keep track of updates on what was added and what was removed
     issueUpdates[groupKey] = { ADD: getGroupId(destination.groupId), REMOVE: getGroupId(source.groupId) };
@@ -609,16 +610,7 @@ export const handleGroupDragDrop = async (
   // update updatedIssue values based on the source and destination subGroupIds
   if (subGroupBy && source.subGroupId && destination.subGroupId && source.subGroupId !== destination.subGroupId) {
     const subGroupKey = ISSUE_FILTER_DEFAULT_DATA[subGroupBy];
-    let subGroupValue: any = clone(sourceIssue[subGroupKey]);
-
-    // If subGroupValue is an array, remove source subGroupId and add destination subGroupId
-    if (Array.isArray(subGroupValue)) {
-      pull(subGroupValue, source.subGroupId);
-      if (destination.subGroupId !== "None") subGroupValue = uniq(concat(subGroupValue, [destination.subGroupId]));
-    } // else just update the subGroupValue based on destination subGroupId
-    else {
-      subGroupValue = destination.subGroupId === "None" ? null : destination.subGroupId;
-    }
+    const subGroupValue = getDroppedGroupValue(sourceIssue[subGroupKey], source.subGroupId, destination.subGroupId);
 
     // keep track of updates on what was added and what was removed
     issueUpdates[subGroupKey] = { ADD: getGroupId(destination.subGroupId), REMOVE: getGroupId(source.subGroupId) };
@@ -637,6 +629,20 @@ export const handleGroupDragDrop = async (
  */
 export const removeNillKeys = <T,>(obj: T) =>
   Object.fromEntries(Object.entries(obj ?? {}).filter(([key, value]) => key && !isNil(value)));
+
+export const isGroupedIssues = (groupedIssueIds: TIssues): groupedIssueIds is TGroupedIssues =>
+  Object.values(groupedIssueIds).every((value) => Array.isArray(value));
+
+/** Returns the issue ids of a group, or of a sub group when `subGroupId` is given. */
+export const getGroupIssueIds = (
+  groupedIssueIds: TIssues | undefined,
+  groupId: string,
+  subGroupId?: string
+): string[] => {
+  const group = groupedIssueIds?.[groupId];
+  if (subGroupId === undefined) return Array.isArray(group) ? group : [];
+  return group && !Array.isArray(group) ? (group[subGroupId] ?? []) : [];
+};
 
 /**
  * This Method returns if the grouped values are subGrouped
@@ -702,7 +708,7 @@ export function getApproximateCardHeight(displayProperties: IIssueDisplayPropert
   let propertyCount = 0;
 
   // count the remaining properties
-  (Object.keys(clonedProperties) as (keyof IIssueDisplayProperties)[]).forEach((key: keyof IIssueDisplayProperties) => {
+  keysOf(clonedProperties).forEach((key) => {
     if (clonedProperties[key]) {
       propertyCount++;
     }
@@ -771,12 +777,13 @@ export function SpreadSheetPropertyIcon(props: ISvgIcons & { iconKey: string }) 
  * @returns
  */
 export const isDisplayFiltersApplied = (filters: Partial<IIssueFilters>): boolean => {
-  const isDisplayPropertiesApplied = Object.keys(DEFAULT_DISPLAY_PROPERTIES).some(
-    (key) => !filters.displayProperties?.[key as keyof IIssueDisplayProperties]
+  const isDisplayPropertiesApplied = keysOf(DEFAULT_DISPLAY_PROPERTIES).some(
+    (key) => !filters.displayProperties?.[key]
   );
 
-  const isDisplayFiltersApplied = Object.keys(filters.displayFilters ?? {}).some((key) => {
-    const value = filters.displayFilters?.[key as keyof IIssueDisplayFilterOptions];
+  const { displayFilters } = filters;
+  const isDisplayFiltersApplied = keysOf(displayFilters ?? {}).some((key) => {
+    const value = displayFilters?.[key];
     if (!value) return false;
     // -create_at is the default order
     if (key === "order_by") {

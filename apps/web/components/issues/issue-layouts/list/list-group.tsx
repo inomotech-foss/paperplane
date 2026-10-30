@@ -29,6 +29,7 @@ import { cn } from "@plane/utils";
 import { ListLoaderItemRow } from "@/components/ui/loader/layouts/list-layout-loader";
 import { useWorkFlowFDragNDrop } from "@/components/workflow";
 // hooks
+import { getStringField } from "@/components/issues/narrow";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useIssuesStore } from "@/hooks/use-issue-layout-store";
@@ -64,7 +65,7 @@ interface Props {
   quickAddCallback?: ((projectId: string | null | undefined, data: TIssue) => Promise<TIssue | undefined>) | undefined;
   handleOnDrop: (source: GroupDropLocation, destination: GroupDropLocation) => Promise<void>;
   disableIssueCreation?: boolean;
-  addIssuesToView?: (issueIds: string[]) => Promise<TIssue>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   isCompletedCycle?: boolean;
   showEmptyGroup?: boolean;
   loadMoreIssues: (groupId?: string) => void;
@@ -146,7 +147,7 @@ export const ListGroup = observer(function ListGroup(props: Props) {
     return true;
   };
 
-  const prePopulateQuickAddData = (groupByKey: string | null, value: any) => {
+  const prePopulateQuickAddData = (groupByKey: string | null, value: string) => {
     const defaultState = projectState.projectStates?.find((state) => state.default);
     let preloadedData: object = { state_id: defaultState?.id };
 
@@ -200,7 +201,7 @@ export const ListGroup = observer(function ListGroup(props: Props) {
           setIsDraggingOverColumn(true);
         },
         onDrag: ({ source }) => {
-          const sourceGroupId = source?.data?.groupId as string | undefined;
+          const sourceGroupId = getStringField(source.data, "groupId");
           const currentGroupId = group.id;
 
           if (sourceGroupId) dropHandlersRef.current.handleWorkFlowState(sourceGroupId, currentGroupId);

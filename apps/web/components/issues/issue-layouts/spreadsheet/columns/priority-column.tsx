@@ -14,7 +14,7 @@ import { PrioritySelect } from "@/components/dropdowns/priority/priority-select"
 type Props = {
   issue: TIssue;
   onClose: () => void;
-  onChange: (issue: TIssue, data: Partial<TIssue>, updates: any) => void;
+  onChange: (issue: TIssue, data: Partial<TIssue>, updates: unknown) => void;
   disabled: boolean;
 };
 

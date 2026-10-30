@@ -7,9 +7,10 @@
 import React from "react";
 // components
 import { Tooltip } from "@makeplane/propel/components/tooltip";
+import type { IIssueLabel } from "@plane/types";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 type Props = {
-  labelDetails: any[];
+  labelDetails: Pick<IIssueLabel, "id" | "name" | "color">[];
   maxRender?: number;
 };
 

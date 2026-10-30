@@ -28,7 +28,6 @@ import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifi
 // local components
 import { WorkItemPreviewCard } from "../../preview-card";
 import type { TRenderQuickActions } from "../list/list-view-types";
-import type { CalendarStoreType } from "./base-calendar-root";
 
 type Props = {
   issue: TIssue;
@@ -51,7 +50,7 @@ export const CalendarIssueBlock = observer(
     const { getIsIssuePeeked } = useIssueDetail();
     const { handleRedirection } = useIssuePeekOverviewRedirection();
     const { isMobile } = usePlatformOS();
-    const storeType = useIssueStoreType() as CalendarStoreType;
+    const storeType = useIssueStoreType();
     const { issuesFilter } = useIssues(storeType);
     const { getProjectIdentifierById } = useProject();
 

@@ -9,6 +9,7 @@ import type { TActivityFilters, TActivityFilterOption } from "@plane/constants";
 import { ACTIVITY_FILTER_TYPE_OPTIONS } from "@plane/constants";
 // components
 import { ActivityFilter } from "@/components/issues/issue-detail/issue-activity";
+import { keysOf } from "@/components/issues/narrow";
 
 export type TActivityFilterRoot = {
   selectedFilters: TActivityFilters[];
@@ -20,8 +21,8 @@ export type TActivityFilterRoot = {
 export function ActivityFilterRoot(props: TActivityFilterRoot) {
   const { selectedFilters, toggleFilter } = props;
 
-  const filters: TActivityFilterOption[] = Object.entries(ACTIVITY_FILTER_TYPE_OPTIONS).map(([key, value]) => {
-    const filterKey = key as TActivityFilters;
+  const filters: TActivityFilterOption[] = keysOf(ACTIVITY_FILTER_TYPE_OPTIONS).map((filterKey) => {
+    const value = ACTIVITY_FILTER_TYPE_OPTIONS[filterKey];
     return {
       key: filterKey,
       labelTranslationKey: value.labelTranslationKey,

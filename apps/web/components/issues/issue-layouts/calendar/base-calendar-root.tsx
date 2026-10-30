@@ -17,24 +17,27 @@ import { EIssuesStoreType } from "@plane/types";
 import { useCalendarView } from "@/hooks/store/use-calendar-view";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useUserPermissions } from "@/hooks/store/user";
-import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
+import { getStringProp } from "@/components/issues/narrow";
 import { useIssuesActions } from "@/hooks/use-issues-actions";
 // types
 import type { IQuickActionProps } from "../list/list-view-types";
 import { CalendarChart } from "./calendar";
+import { useLayoutStoreType } from "../use-layout-store-type";
+import { isGroupedIssues } from "../utils";
 import { handleDragDrop } from "./utils";
 
-export type CalendarStoreType =
-  | EIssuesStoreType.PROJECT
-  | EIssuesStoreType.MODULE
-  | EIssuesStoreType.CYCLE
-  | EIssuesStoreType.PROJECT_VIEW
-  | EIssuesStoreType.TEAM
-  | EIssuesStoreType.TEAM_VIEW;
+const CALENDAR_STORE_TYPES = [
+  EIssuesStoreType.PROJECT,
+  EIssuesStoreType.MODULE,
+  EIssuesStoreType.CYCLE,
+  EIssuesStoreType.PROJECT_VIEW,
+  EIssuesStoreType.TEAM,
+  EIssuesStoreType.TEAM_VIEW,
+] as const;
 
 interface IBaseCalendarRoot {
   QuickActions: FC<IQuickActionProps>;
-  addIssuesToView?: (issueIds: string[]) => Promise<any>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   isCompletedCycle?: boolean;
   viewId?: string | undefined;
   canEditPropertiesBasedOnProject?: (projectId: string) => boolean;
@@ -47,7 +50,7 @@ export const BaseCalendarRoot = observer(function BaseCalendarRoot(props: IBaseC
   const { workspaceSlug } = useParams();
 
   // hooks
-  const storeType = useIssueStoreType() as CalendarStoreType;
+  const storeType = useLayoutStoreType(CALENDAR_STORE_TYPES);
   const { allowPermissions } = useUserPermissions();
   const { issues, issuesFilter, issueMap } = useIssues(storeType);
   const {
@@ -73,7 +76,8 @@ export const BaseCalendarRoot = observer(function BaseCalendarRoot(props: IBaseC
 
   const displayFilters = issuesFilter.issueFilters?.displayFilters;
 
-  const groupedIssueIds = (issues.groupedIssueIds ?? {}) as TGroupedIssues;
+  const allGroupedIssueIds = issues.groupedIssueIds ?? {};
+  const groupedIssueIds: TGroupedIssues = isGroupedIssues(allGroupedIssueIds) ? allGroupedIssueIds : {};
 
   const layout = displayFilters?.calendar?.layout ?? "month";
   const { startDate, endDate } = issueCalendarView.getStartAndEndDate(layout) ?? {};
@@ -109,11 +113,11 @@ export const BaseCalendarRoot = observer(function BaseCalendarRoot(props: IBaseC
       workspaceSlug?.toString(),
       issueProjectId,
       updateIssue
-    ).catch((err) => {
+    ).catch((err: unknown) => {
       setToast({
         title: "Error!",
         type: "error",
-        message: err?.detail ?? "Failed to perform this action",
+        message: getStringProp(err, "detail") ?? "Failed to perform this action",
       });
     });
   };

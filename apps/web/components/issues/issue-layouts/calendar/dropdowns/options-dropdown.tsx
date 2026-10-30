@@ -39,6 +39,9 @@ interface ICalendarHeader {
   ) => Promise<void>;
 }
 
+const isCalendarLayout = (value: unknown): value is TCalendarLayouts =>
+  typeof value === "string" && Object.hasOwn(CALENDAR_LAYOUTS, value);
+
 export const CalendarOptionsDropdown = observer(function CalendarOptionsDropdown(props: ICalendarHeader) {
   const { issuesFilterStore, updateFilters } = props;
 
@@ -112,7 +115,9 @@ export const CalendarOptionsDropdown = observer(function CalendarOptionsDropdown
         <MenuRadioGroup
           marker="radio"
           value={calendarLayout}
-          onValueChange={(value) => handleLayoutChange(value as TCalendarLayouts)}
+          onValueChange={(value: unknown) => {
+            if (isCalendarLayout(value)) handleLayoutChange(value);
+          }}
         >
           {Object.entries(CALENDAR_LAYOUTS).map(([layout, layoutDetails]) => (
             <MenuRadioItem key={layout} value={layout} label={layoutDetails.title} closeOnClick={isMobile} />

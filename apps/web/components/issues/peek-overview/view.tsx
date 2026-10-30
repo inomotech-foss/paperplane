@@ -129,7 +129,7 @@ export const IssueView = observer(function IssueView(props: IIssueView) {
 
   const shouldUsePortal = !embedIssue;
 
-  const portalContainer = document.getElementById("full-screen-portal") as HTMLElement;
+  const portalContainer = typeof document === "undefined" ? null : document.getElementById("full-screen-portal");
 
   const content = (
     <div className="w-full text-body-sm-regular">

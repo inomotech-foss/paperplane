@@ -32,7 +32,7 @@ interface IHeaderGroupByCard {
   handleCollapsedGroups: (toggle: "group_by" | "sub_group_by", value: string) => void;
   issuePayload: Partial<TIssue>;
   disableIssueCreation?: boolean;
-  addIssuesToView?: (issueIds: string[]) => Promise<TIssue>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
 }
 
 export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHeaderGroupByCard) {

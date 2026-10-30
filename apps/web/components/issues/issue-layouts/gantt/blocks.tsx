@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import type React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane imports
@@ -34,7 +35,6 @@ import { useTimeLineChart } from "@/hooks/use-timeline-chart";
 import { WorkItemPreviewCard } from "../../preview-card";
 import { getBlockViewDetails } from "../utils";
 import { getBarColor } from "./bar-color";
-import type { GanttStoreType } from "./base-gantt-root";
 import type { TGanttRowState } from "./hierarchy-context";
 import { useGanttHierarchy } from "./hierarchy-context";
 
@@ -54,7 +54,7 @@ export const IssueGanttBlock = observer(function IssueGanttBlock(props: Props) {
   } = useIssueDetail();
   const { getProjectIdentifierById } = useProject();
   const { getIssueTypeById } = useIssueTypes();
-  const storeType = useIssueStoreType() as GanttStoreType;
+  const storeType = useIssueStoreType();
   const { issuesFilter } = useIssues(storeType);
   // hooks
   const { isMobile } = usePlatformOS();
@@ -215,7 +215,7 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
     issue: { getIssueById },
   } = useIssueDetail();
   const { isMobile } = usePlatformOS();
-  const storeType = useIssueStoreType() as GanttStoreType;
+  const storeType = useIssueStoreType();
   const { issuesFilter } = useIssues(storeType);
   const { getProjectIdentifierById } = useProject();
   const { getIssueTypeById } = useIssueTypes();
@@ -234,8 +234,8 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
 
   const nestingDepth = useNestingDepth(issueId, rowState);
 
-  const handleIssuePeekOverview = (e: any) => {
-    e.stopPropagation(true);
+  const handleIssuePeekOverview = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.stopPropagation();
     e.preventDefault();
     handleRedirection(workspaceSlug, issueDetails, isMobile);
   };

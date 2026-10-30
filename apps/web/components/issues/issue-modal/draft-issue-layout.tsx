@@ -14,6 +14,7 @@ import { setToast } from "@plane/blocks/toast";
 import type { TIssue } from "@plane/types";
 import { isEmptyHtmlString } from "@plane/utils";
 // hooks
+import { keysOf } from "@/components/issues/narrow";
 import { useIssueModal } from "@/hooks/context/use-issue-modal";
 import { useWorkspaceDraftIssues } from "@/hooks/store/workspace-draft";
 // local imports
@@ -38,9 +39,9 @@ export const DraftIssueLayout = observer(function DraftIssueLayout(props: DraftI
   const { t } = useTranslation();
 
   const sanitizeChanges = (): Partial<TIssue> => {
-    const sanitizedChanges = { ...changesMade };
-    Object.entries(sanitizedChanges).forEach(([key, value]) => {
-      const issueKey = key as keyof TIssue;
+    const sanitizedChanges: Partial<TIssue> = { ...changesMade };
+    keysOf(sanitizedChanges).forEach((issueKey) => {
+      const value = sanitizedChanges[issueKey];
       if (value === null || value === undefined || value === "") delete sanitizedChanges[issueKey];
       if (typeof value === "object" && isEmpty(value)) delete sanitizedChanges[issueKey];
       if (Array.isArray(value) && value.length === 0) delete sanitizedChanges[issueKey];
@@ -96,7 +97,7 @@ export const DraftIssueLayout = observer(function DraftIssueLayout(props: DraftI
         onClose();
         return res;
       })
-      .catch((_error) => {
+      .catch((_error: unknown) => {
         setToast({
           type: "error",
           title: `${t("error")}!`,

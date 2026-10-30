@@ -11,8 +11,8 @@ import { useParams } from "next/navigation";
 import { ALL_ISSUES, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { EIssuesStoreType, IBlockUpdateData, TIssue } from "@plane/types";
-import { EIssueLayoutTypes, GANTT_TIMELINE_TYPE } from "@plane/types";
+import type { IBlockUpdateData, TIssue } from "@plane/types";
+import { EIssueLayoutTypes, EIssuesStoreType, GANTT_TIMELINE_TYPE } from "@plane/types";
 import { renderFormattedPayloadDate } from "@plane/utils";
 // components
 import { TimeLineTypeContext } from "@/components/gantt-chart/contexts";
@@ -22,7 +22,7 @@ import { IssueGanttSidebar } from "@/components/gantt-chart/sidebar/issues/sideb
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useUserPermissions } from "@/hooks/store/user";
-import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
+
 import { useIssuesActions } from "@/hooks/use-issues-actions";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { useIssuesTimeLineChart, useTimeLineChart } from "@/hooks/use-timeline-chart";
@@ -31,6 +31,8 @@ import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
 import { IssueLayoutHOC } from "../issue-layout-HOC";
 import { GanttQuickAddIssueButton } from "../quick-add/button/gantt";
 import { QuickAddIssueRoot } from "../quick-add/root";
+import { useLayoutStoreType } from "../use-layout-store-type";
+import { getGroupIssueIds } from "../utils";
 import { IssueGanttBlock } from "./blocks";
 import type { TGanttExpansion } from "./hierarchy";
 import { DEFAULT_GANTT_EXPANSION, buildGanttRows, showGanttLevels, toggleGanttRow } from "./hierarchy";
@@ -55,11 +57,12 @@ const hashRollupInputs = (issueIds: string[], getIssueById: (issueId: string) =>
   return hash;
 };
 
-export type GanttStoreType =
-  | EIssuesStoreType.PROJECT
-  | EIssuesStoreType.MODULE
-  | EIssuesStoreType.CYCLE
-  | EIssuesStoreType.PROJECT_VIEW;
+const GANTT_STORE_TYPES = [
+  EIssuesStoreType.PROJECT,
+  EIssuesStoreType.MODULE,
+  EIssuesStoreType.CYCLE,
+  EIssuesStoreType.PROJECT_VIEW,
+] as const;
 
 type TRowStateSources = {
   hasChildren: (issueId: string) => boolean;
@@ -91,7 +94,7 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
   // router
   const { workspaceSlug, projectId } = useParams();
 
-  const storeType = useIssueStoreType() as GanttStoreType;
+  const storeType = useLayoutStoreType(GANTT_STORE_TYPES);
   const { issues } = useIssues(storeType);
   const { fetchIssues, fetchNextIssues, updateIssue, quickAddIssue } = useIssuesActions(storeType);
   const { initGantt } = useTimeLineChart(GANTT_TIMELINE_TYPE.ISSUE);
@@ -127,7 +130,7 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
   }, []);
 
   const { visibleIds, rows, levelCount } = buildGanttRows({
-    issueIds: (issues.groupedIssueIds?.[ALL_ISSUES] as string[]) ?? [],
+    issueIds: getGroupIssueIds(issues.groupedIssueIds, ALL_ISSUES),
     getParentId: (issueId) => getIssueById(issueId)?.parent_id,
     getFetchedChildIds: (issueId) =>
       fetchedParentIds.has(issueId) ? subIssuesStore.subIssuesByIssueId(issueId) : undefined,
@@ -216,8 +219,8 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
   const updateIssueBlockStructure = async (issue: TIssue, data: IBlockUpdateData) => {
     if (!workspaceSlug) return;
 
-    const payload: any = { ...data };
-    if (data.sort_order) payload.sort_order = data.sort_order.newSortOrder;
+    const { sort_order, ...rest } = data;
+    const payload: Partial<TIssue> = { ...rest, ...(sort_order ? { sort_order: sort_order.newSortOrder } : {}) };
 
     updateIssue && (await updateIssue(issue.project_id, issue.id, payload));
   };

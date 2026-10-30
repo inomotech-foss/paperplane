@@ -26,7 +26,7 @@ import {
   DialogTitle,
 } from "@makeplane/propel/components/dialog";
 import { setToast } from "@plane/blocks/toast";
-import type { TIssue, TWorkspaceDraftIssue } from "@plane/types";
+import type { TIssue } from "@plane/types";
 // hooks
 import { Switch } from "@makeplane/propel/components/switch";
 import {
@@ -78,7 +78,7 @@ export interface IssueFormProps {
   handleDraftAndClose?: () => void;
   isProjectSelectionDisabled?: boolean;
   showActionButtons?: boolean;
-  dataResetProperties?: any[];
+  dataResetProperties?: unknown[];
 }
 
 export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormProps) {
@@ -231,7 +231,10 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
     const submitData = !data?.id
       ? formData
       : {
-          ...getChangedIssuefields(formData, dirtyFields as { [key: string]: boolean | undefined }),
+          ...getChangedIssuefields(
+            formData,
+            Object.fromEntries(Object.entries(dirtyFields).map(([key, value]) => [key, Boolean(value)]))
+          ),
           project_id: getValues<"project_id">("project_id"),
           id: data.id,
           description_html: formData.description_html ?? "<p></p>",
@@ -261,7 +264,7 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
           editorRef?.current?.clearEditor();
         }
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error(error);
       });
   };
@@ -278,10 +281,20 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
         isDraft: true,
       });
 
+      const values = { ...data, ...getValues() };
+      // Drafts model empty fields as undefined, so nulls are left out of the payload.
       await moveIssue(workspaceSlug.toString(), data.id, {
-        ...data,
-        ...getValues(),
-      } as TWorkspaceDraftIssue);
+        ...values,
+        state_id: values.state_id ?? undefined,
+        priority: values.priority ?? undefined,
+        project_id: values.project_id ?? undefined,
+        parent_id: values.parent_id ?? undefined,
+        cycle_id: values.cycle_id ?? undefined,
+        module_ids: values.module_ids ?? undefined,
+        start_date: values.start_date ?? undefined,
+        target_date: values.target_date ?? undefined,
+        completed_at: values.completed_at ?? undefined,
+      });
     } catch {
       setToast({
         type: "error",

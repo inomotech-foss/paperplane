@@ -30,7 +30,7 @@ import { ProjectService } from "@/services/project";
 type Props = {
   isOpen: boolean;
   handleClose: () => void;
-  value?: any;
+  value?: Pick<ISearchIssueResponse, "id">;
   onChange: (issue: ISearchIssueResponse) => void;
   projectId: string | undefined;
   issueId?: string;
@@ -54,7 +54,7 @@ export function ParentIssuesListModal({ isOpen, handleClose: onClose, value, onC
 
   const { baseTabIndex } = getTabIndex(undefined, isMobile);
   // derived values
-  const selectedIssueId = typeof value?.id === "string" ? value.id : null;
+  const selectedIssueId = value?.id ?? null;
 
   const handleClose = () => {
     onClose();

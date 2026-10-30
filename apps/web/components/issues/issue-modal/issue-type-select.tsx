@@ -5,7 +5,7 @@
  */
 
 import { Controller } from "react-hook-form";
-import type { Control, Path } from "react-hook-form";
+import type { Control } from "react-hook-form";
 // plane imports
 import type { EditorRefApi } from "@plane/editor";
 // types
@@ -17,8 +17,8 @@ export type TIssueFields = TIssue & TBulkIssueProperties;
 
 export type TIssueTypeDropdownVariant = "xs" | "sm";
 
-export type TIssueTypeSelectProps<T extends Partial<TIssueFields>> = {
-  control: Control<T>;
+export type TIssueTypeSelectProps = {
+  control: Control<TIssue>;
   projectId: string | null;
   editorRef?: React.MutableRefObject<EditorRefApi | null>;
   disabled?: boolean;
@@ -31,19 +31,19 @@ export type TIssueTypeSelectProps<T extends Partial<TIssueFields>> = {
   handleFormChange?: () => void;
 };
 
-export function IssueTypeSelect<T extends Partial<TIssueFields>>(props: TIssueTypeSelectProps<T>) {
+export function IssueTypeSelect(props: TIssueTypeSelectProps) {
   const { control, projectId, disabled, placeholder, dropDownContainerClassName, handleFormChange } = props;
 
   return (
     <Controller
       control={control}
-      name={"type_id" as Path<T>}
+      name="type_id"
       render={({ field: { value, onChange } }) => (
         <IssueTypeDropdown
           projectId={projectId}
-          value={(value as string | null) ?? null}
+          value={value ?? null}
           onChange={(val) => {
-            onChange(val as never);
+            onChange(val);
             handleFormChange?.();
           }}
           disabled={disabled}

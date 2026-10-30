@@ -11,6 +11,7 @@ import { AddOutline } from "@makeplane/propel/icons";
 import { setToast } from "@plane/blocks/toast";
 import type { TIssueLink } from "@plane/types";
 // hooks
+import { getStringProp } from "@/components/issues/narrow";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
 import { IssueLinkCreateUpdateModal } from "./create-update-link-modal";
@@ -56,9 +57,9 @@ export function IssueLinkRoot(props: TIssueLinkRoot) {
             title: "Link created",
           });
           toggleIssueLinkModal(false);
-        } catch (error: any) {
+        } catch (error) {
           setToast({
-            message: error?.data?.error ?? "The link could not be created",
+            message: getStringProp(error, "data", "error") ?? "The link could not be created",
             type: "error",
             title: "Link not created",
           });

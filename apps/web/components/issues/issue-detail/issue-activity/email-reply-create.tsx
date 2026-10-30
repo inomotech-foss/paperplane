@@ -17,6 +17,7 @@ import type { TCommentsOperations, TIssueEmailThread } from "@plane/types";
 import { cn, convertBytesToSize, isCommentEmpty } from "@plane/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text";
+import { getStringProp } from "@/components/issues/narrow";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useWorkspace } from "@/hooks/store/use-workspace";
@@ -75,7 +76,7 @@ export const EmailReplyCreate = observer(function EmailReplyCreate(props: TEmail
   // file size
   const { maxFileSize } = useFileSize();
   // derived values
-  const workspaceId = workspaceStore.getWorkspaceBySlug(workspaceSlug)?.id as string;
+  const workspaceId = workspaceStore.getWorkspaceBySlug(workspaceSlug)?.id ?? "";
   const recipients = new Set<string>();
   for (const email of [emailThread.creator_email, ...emailThread.to_emails, ...emailThread.cc_emails]) {
     const normalized = email.trim().toLowerCase();
@@ -127,7 +128,7 @@ export const EmailReplyCreate = observer(function EmailReplyCreate(props: TEmail
       setToast({
         type: "error",
         title: "Error!",
-        message: (error as { error?: string })?.error ?? "Failed to send the email reply. Please try again.",
+        message: getStringProp(error, "error") ?? "Failed to send the email reply. Please try again.",
       });
     }
   };

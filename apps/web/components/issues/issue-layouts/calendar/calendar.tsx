@@ -61,7 +61,7 @@ type Props = {
     sourceDate: string | undefined,
     destinationDate: string | undefined
   ) => Promise<void>;
-  addIssuesToView?: (issueIds: string[]) => Promise<any>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   readOnly?: boolean;
   updateFilters?: (
     projectId: string,

@@ -42,8 +42,7 @@ export const buildIssueHierarchy = (
   // Promote the members of parent cycles, which no root reaches.
   const reached = new Set<string>();
   const stack = [...rootIds];
-  while (stack.length > 0) {
-    const issueId = stack.pop() as string;
+  for (let issueId = stack.pop(); issueId !== undefined; issueId = stack.pop()) {
     if (reached.has(issueId)) continue;
     reached.add(issueId);
     const children = childIdsByParentId.get(issueId);
@@ -60,8 +59,7 @@ export const buildIssueHierarchy = (
       if (index >= 0) siblings.splice(index, 1);
     }
     stack.push(issueId);
-    while (stack.length > 0) {
-      const current = stack.pop() as string;
+    for (let current = stack.pop(); current !== undefined; current = stack.pop()) {
       if (reached.has(current)) continue;
       reached.add(current);
       const children = childIdsByParentId.get(current);

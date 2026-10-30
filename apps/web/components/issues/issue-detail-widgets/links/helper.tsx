@@ -10,6 +10,7 @@ import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
 import type { TIssueLink } from "@plane/types";
 // hooks
+import { getStringProp } from "@/components/issues/narrow";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
 import type { TLinkOperations } from "../../issue-detail/links";
@@ -30,9 +31,9 @@ export const useLinkOperations = (workspaceSlug: string, projectId: string, issu
             type: "success",
             title: t("links.toasts.created.title"),
           });
-        } catch (error: any) {
+        } catch (error) {
           setToast({
-            message: error?.data?.error ?? t("links.toasts.not_created.message"),
+            message: getStringProp(error, "data", "error") ?? t("links.toasts.not_created.message"),
             type: "error",
             title: t("links.toasts.not_created.title"),
           });
@@ -48,9 +49,9 @@ export const useLinkOperations = (workspaceSlug: string, projectId: string, issu
             type: "success",
             title: t("links.toasts.updated.title"),
           });
-        } catch (error: any) {
+        } catch (error) {
           setToast({
-            message: error?.data?.error ?? t("links.toasts.not_updated.message"),
+            message: getStringProp(error, "data", "error") ?? t("links.toasts.not_updated.message"),
             type: "error",
             title: t("links.toasts.not_updated.title"),
           });
