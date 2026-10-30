@@ -5,7 +5,7 @@
  */
 
 import useSWR from "swr";
-import type { TTimezoneObject } from "@plane/types";
+import type { TTimezoneObject, TTimezones } from "@plane/types";
 // services
 import timezoneService from "@/services/timezone.service";
 
@@ -23,13 +23,23 @@ const groupTimezones = (timezones: TTimezoneObject[]): TTimezoneObject[] => {
       });
     } else {
       const existing = acc.get(key);
-      existing.label = `${existing.label}, ${timezone.label}`;
+      if (existing) existing.label = `${existing.label}, ${timezone.label}`;
     }
 
     return acc;
-  }, new Map());
+  }, new Map<string, TTimezoneObject>());
 
   return Array.from(groupedMap.values());
+};
+
+const getTimeZoneLabel = (timezone: TTimezoneObject | undefined) => {
+  if (!timezone) return undefined;
+  return (
+    <div className="flex gap-1.5">
+      <span className="text-placeholder">{timezone.utc_offset}</span>
+      <span className="text-secondary">{timezone.label}</span>
+    </div>
+  );
 };
 
 const useTimezone = () => {
@@ -38,24 +48,15 @@ const useTimezone = () => {
     data: timezones,
     isLoading: timezoneIsLoading,
     error: timezonesError,
-  } = useSWR("TIMEZONES_LIST", () => timezoneService.fetch(), {
+  } = useSWR<TTimezones, unknown>("TIMEZONES_LIST", () => timezoneService.fetch(), {
     refreshInterval: 0,
   });
 
   // derived values
-  const isDisabled = timezoneIsLoading || timezonesError || !timezones;
+  const isDisabled = timezoneIsLoading || Boolean(timezonesError) || !timezones;
 
-  const getTimeZoneLabel = (timezone: TTimezoneObject | undefined) => {
-    if (!timezone) return undefined;
-    return (
-      <div className="flex gap-1.5">
-        <span className="text-placeholder">{timezone.utc_offset}</span>
-        <span className="text-secondary">{timezone.label}</span>
-      </div>
-    );
-  };
   const options = [
-    ...groupTimezones(timezones?.timezones || [])?.map((timezone) => ({
+    ...groupTimezones(timezones?.timezones || []).map((timezone) => ({
       value: timezone.value,
       query: `${timezone.value} ${timezone.label}, ${timezone.gmt_offset}, ${timezone.utc_offset}`,
       content: getTimeZoneLabel(timezone),
