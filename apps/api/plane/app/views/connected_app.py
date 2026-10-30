@@ -2,10 +2,12 @@
 # See the LICENSE file for details.
 
 from django.db import transaction
+from drf_spectacular.utils import extend_schema
 from oauth2_provider.models import get_access_token_model, get_grant_model, get_refresh_token_model
 from rest_framework import status
 from rest_framework.response import Response
 
+from plane.app.serializers.response.user import ConnectedAppSerializer
 from plane.db.models import ApplicationInstallation
 
 from .base import BaseAPIView
@@ -22,6 +24,7 @@ class ConnectedAppEndpoint(BaseAPIView):
     needs the application to drive it. This is where a user sees the whole list.
     """
 
+    @extend_schema(responses={200: ConnectedAppSerializer(many=True)})
     def get(self, request):
         installations = (
             ApplicationInstallation.objects.filter(user=request.user)

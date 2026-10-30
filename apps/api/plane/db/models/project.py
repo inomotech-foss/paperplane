@@ -130,7 +130,7 @@ class Project(ChangeTrackerMixin, BaseModel):
         super().__init__(*args, **kwargs)
 
     @property
-    def cover_image_url(self):
+    def cover_image_url(self) -> str | None:
         # Return cover image url
         if self.cover_image_asset:
             return self.cover_image_asset.asset_url

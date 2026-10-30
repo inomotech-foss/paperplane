@@ -3,12 +3,20 @@
 
 from django.db.models import Count, Exists, OuterRef, Q
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
 from plane.authentication.utils.host import base_host
 from plane.db.models import User, Workspace, WorkspaceMember
 from plane.license.api.permissions import InstanceAdminPermission
+from plane.license.api.serializers.response import (
+    InstanceUserDeactivateSerializer,
+    InstanceUserDetailSerializer,
+    InstanceUserMergeSerializer,
+    InstanceUserReactivateSerializer,
+    InstanceUserSerializer,
+)
 from plane.license.models import INSTANCE_ADMIN_MIN_ROLE, InstanceAdmin
 from plane.license.utils.user_lifecycle import (
     UserLifecycleError,
@@ -17,6 +25,8 @@ from plane.license.utils.user_lifecycle import (
     soft_delete_user,
 )
 from plane.license.utils.user_merge import MergeError, merge_users
+from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.utils.openapi.pagination import paginated_response
 
 from .base import BaseAPIView
 
@@ -93,6 +103,10 @@ def lifecycle_error(error, http_status=status.HTTP_400_BAD_REQUEST):
 class InstanceUserEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
+    @extend_schema(
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER],
+        responses={200: paginated_response(InstanceUserSerializer)},
+    )
     def get(self, request):
         users = annotated_users()
         if parse_bool(request.query_params.get("include_deleted")) is not True:
@@ -121,6 +135,7 @@ class InstanceUserEndpoint(BaseAPIView):
 class InstanceUserDetailEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
+    @extend_schema(responses={200: InstanceUserDetailSerializer})
     def get(self, request, pk):
         user = get_object_or_404(annotated_users(), pk=pk)
         return Response(serialize_user_detail(user), status=status.HTTP_200_OK)
@@ -140,6 +155,7 @@ class InstanceUserDetailEndpoint(BaseAPIView):
 class InstanceUserDeactivateEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
+    @extend_schema(request=None, responses={200: InstanceUserDeactivateSerializer})
     def post(self, request, pk):
         user = get_object_or_404(User, pk=pk, deleted_at__isnull=True)
         if user.pk == request.user.pk:
@@ -153,6 +169,7 @@ class InstanceUserDeactivateEndpoint(BaseAPIView):
 class InstanceUserReactivateEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
+    @extend_schema(request=None, responses={200: InstanceUserReactivateSerializer})
     def post(self, request, pk):
         user = get_object_or_404(User, pk=pk)
         try:
@@ -167,6 +184,7 @@ class InstanceUserMergeEndpoint(BaseAPIView):
 
     dry_run = False
 
+    @extend_schema(responses={200: InstanceUserMergeSerializer})
     def post(self, request, pk):
         survivor = get_object_or_404(User, pk=pk)
         source_id = request.data.get("source")

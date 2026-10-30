@@ -84,7 +84,7 @@ class FileAsset(BaseModel):
         return str(self.asset)
 
     @property
-    def asset_url(self):
+    def asset_url(self) -> str | None:
         if (
             self.entity_type == self.EntityTypeContext.WORKSPACE_LOGO
             or self.entity_type == self.EntityTypeContext.USER_AVATAR

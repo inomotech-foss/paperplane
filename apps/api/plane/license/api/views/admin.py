@@ -17,6 +17,7 @@ from django.contrib.auth import logout
 from django.db import transaction
 
 # Third party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -28,6 +29,7 @@ from plane.license.api.serializers import (
     InstanceAdminMeSerializer,
     InstanceAdminSerializer,
 )
+from plane.license.api.serializers.response import InstanceAdminSessionSerializer
 from plane.license.models import INSTANCE_ADMIN_MIN_ROLE, Instance, InstanceAdmin
 from plane.db.models import User, Profile
 from plane.utils.cache import cache_response, invalidate_cache
@@ -49,6 +51,7 @@ from plane.utils.path_validator import get_safe_redirect_url
 class InstanceAdminEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
+    @extend_schema(responses={201: InstanceAdminSerializer})
     @invalidate_cache(path="/api/instances/", user=False)
     # Create an instance admin
     def post(self, request):
@@ -72,6 +75,7 @@ class InstanceAdminEndpoint(BaseAPIView):
         serializer = InstanceAdminSerializer(instance_admin)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(responses={200: InstanceAdminSerializer(many=True)})
     @cache_response(60 * 60 * 2, user=False)
     def get(self, request):
         instance = Instance.objects.first()
@@ -487,6 +491,7 @@ class InstanceAdminOIDCCallbackEndpoint(View):
 class InstanceAdminUserMeEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
+    @extend_schema(responses={200: InstanceAdminMeSerializer})
     def get(self, request):
         serializer = InstanceAdminMeSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -495,6 +500,7 @@ class InstanceAdminUserMeEndpoint(BaseAPIView):
 class InstanceAdminUserSessionEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: InstanceAdminSessionSerializer})
     def get(self, request):
         if request.user.is_authenticated and InstanceAdmin.objects.filter(user=request.user).exists():
             serializer = InstanceAdminMeSerializer(request.user)

@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
 # Third Party imports
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 # Module imports
@@ -359,6 +360,12 @@ class IssueCreateSerializer(BaseSerializer):
         return super().update(instance, validated_data)
 
 
+class IssueSourceDataSerializer(serializers.Serializer):
+    source = serializers.CharField(allow_null=True)
+    source_email = serializers.CharField(allow_null=True)
+    extra = serializers.JSONField()
+
+
 class IssueActivitySerializer(BaseSerializer):
     actor_detail = UserLiteSerializer(read_only=True, source="actor")
     issue_detail = IssueFlatSerializer(read_only=True, source="issue")
@@ -366,6 +373,7 @@ class IssueActivitySerializer(BaseSerializer):
     workspace_detail = WorkspaceLiteSerializer(read_only=True, source="workspace")
     source_data = serializers.SerializerMethodField()
 
+    @extend_schema_field(IssueSourceDataSerializer(allow_null=True))
     def get_source_data(self, obj):
         if hasattr(obj, "issue") and hasattr(obj.issue, "source_data") and obj.issue.source_data:
             return {

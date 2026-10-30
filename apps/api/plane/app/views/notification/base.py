@@ -7,6 +7,7 @@ from django.db.models import Exists, OuterRef, Q, Case, When, BooleanField
 from django.utils import timezone
 
 # Third party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -22,6 +23,8 @@ from plane.db.models import (
     UserNotificationPreference,
     WorkspaceMember,
 )
+from plane.app.serializers.response.notification import UnreadNotificationCountSerializer
+from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.utils.paginator import BasePaginator
 from plane.utils.order_queryset import NOTIFICATION_ORDER_BY_ALLOWLIST, sanitize_order_by
 from plane.app.permissions import allow_permission, ROLE
@@ -201,6 +204,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
 class UnreadNotificationEndpoint(BaseAPIView):
     use_read_replica = True
 
+    @extend_schema(responses={200: UnreadNotificationCountSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def get(self, request, slug):
         # Watching Issues Count
@@ -235,6 +239,7 @@ class UnreadNotificationEndpoint(BaseAPIView):
 
 
 class MarkAllReadNotificationViewSet(BaseViewSet):
+    @extend_schema(responses={200: MessageResponseSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def create(self, request, slug):
         snoozed = request.data.get("snoozed", False)

@@ -18,13 +18,17 @@ from rest_framework import serializers
 from rest_framework.renderers import JSONRenderer
 from rest_framework.request import Request
 from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
 
 from plane.app.serializers import IssueRelationSerializer, NotificationSerializer
 from plane.db.management.commands.generate_openapi import generate_schema
-from plane.db.models import Issue, IssueRelation, Notification, State, User
+from plane.db.models import Issue, IssueRelation, Notification, Project, State, User, Workspace
 from plane.tests.factories import ProjectFactory, WorkspaceFactory
+from plane.tests.openapi import strict
 from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated_response
-from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, _source_presence
+from plane.utils.openapi.hooks import is_callable
+from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, DetailOrList, _source_presence
+from plane.utils.openapi.serializers import EmptyObjectSerializer
 from plane.utils.openapi.surfaces import SURFACES
 from plane.utils.paginator import BasePaginator, GroupedOffsetPaginator, SubGroupedOffsetPaginator
 from plane.utils.issue_type import link_starter_type
@@ -76,23 +80,6 @@ class PageItemSerializer(serializers.Serializer):
     state_id = serializers.UUIDField()
 
 
-def _strict(node):
-    """Turn an OpenAPI 3.0 schema into a JSON schema that rejects unknown keys."""
-    if isinstance(node, list):
-        return [_strict(item) for item in node]
-    if not isinstance(node, dict):
-        return node
-    node = {key: _strict(value) for key, value in node.items()}
-    if "properties" in node:
-        node["additionalProperties"] = False
-    if node.pop("nullable", False):
-        if "type" in node:
-            node["type"] = [node["type"], "null"]
-        else:
-            node = {"anyOf": [node, {"type": "null"}]}
-    return node
-
-
 def _response_schema(grouping):
     class View(APIView):
         @extend_schema(responses=paginated_response(PageItemSerializer, grouping))
@@ -104,7 +91,7 @@ def _response_schema(grouping):
     response = schema["paths"]["/items/"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
     for component in schema["components"]["schemas"].values():
         assert set(component.get("required", [])) == set(component["properties"])
-    return _strict({**response, "components": schema["components"]})
+    return strict({**response, "components": schema["components"]})
 
 
 def _paginate(**kwargs):
@@ -219,3 +206,73 @@ class TestSerializedPresence:
         data = IssueRelationSerializer(IssueRelation(related_issue=Issue(name="a", state=None))).data
         assert "state_id" not in data
         assert data["name"] == "a"
+
+    def test_optional_property_is_nullable(self):
+        assert _source_presence(User, "avatar_url") == MAYBE_NULL
+        assert _source_presence(Workspace, "logo_url") == MAYBE_NULL
+        assert _source_presence(Project, "cover_image_url") == MAYBE_NULL
+        assert _source_presence(User, "full_name") == ALWAYS
+
+
+class ItemView(APIView):
+    def get(self, request, pk=None):
+        pass
+
+    def patch(self, request, pk):
+        pass
+
+    def post(self, request):
+        pass
+
+
+class ItemViewSet(ViewSet):
+    def update_item(self, request, *args, **kwargs):
+        pass
+
+
+@pytest.mark.unit
+class TestIsCallable:
+    def test_apiview_routed_twice(self):
+        view = ItemView.as_view()
+        assert is_callable("/items/", "GET", view)
+        assert is_callable("/items/{pk}/", "GET", view)
+        assert not is_callable("/items/", "PATCH", view)
+        assert is_callable("/items/{pk}/", "PATCH", view)
+        assert is_callable("/items/", "POST", view)
+        assert not is_callable("/items/{pk}/", "POST", view)
+
+    def test_kwargs_handler_takes_any_path(self):
+        view = ItemViewSet.as_view({"patch": "update_item"})
+        assert is_callable("/items/{pk}/", "PATCH", view)
+
+
+def _schema(*patterns):
+    with patched_settings({"PREPROCESSING_HOOKS": []}):
+        return SchemaGenerator(patterns=list(patterns)).get_schema(request=None, public=True)
+
+
+def _body(schema, path, method="get", code="200"):
+    return schema["paths"][path][method]["responses"][code]["content"]["application/json"]["schema"]
+
+
+@pytest.mark.unit
+class TestResponseHelpers:
+    def test_detail_or_list(self):
+        class View(APIView):
+            @extend_schema(responses={200: DetailOrList(PageItemSerializer)})
+            def get(self, request, pk=None):
+                pass
+
+        schema = _schema(path("items/", View.as_view()), path("items/<uuid:pk>/", View.as_view()))
+        assert _body(schema, "/items/") == {"type": "array", "items": {"$ref": "#/components/schemas/PageItem"}}
+        assert _body(schema, "/items/{pk}/") == {"$ref": "#/components/schemas/PageItem"}
+
+    def test_empty_object(self):
+        class View(APIView):
+            @extend_schema(responses={200: EmptyObjectSerializer})
+            def get(self, request):
+                pass
+
+        schema = _schema(path("items/", View.as_view()))
+        assert _body(schema, "/items/") == {"$ref": "#/components/schemas/EmptyObject"}
+        assert schema["components"]["schemas"]["EmptyObject"] == {"type": "object", "additionalProperties": False}

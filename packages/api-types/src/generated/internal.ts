@@ -32,12 +32,10 @@ export interface paths {
         put?: never;
         /** @description This endpoint is used to upload user profile images. */
         post: operations["assets_v2_user_assets_create"];
-        /** @description This endpoint is used to upload user profile images. */
-        delete: operations["assets_v2_user_assets_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /** @description This endpoint is used to upload user profile images. */
-        patch: operations["assets_v2_user_assets_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/assets/v2/user-assets/{asset_id}/": {
@@ -49,14 +47,13 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        post?: never;
         /** @description This endpoint is used to upload user profile images. */
-        post: operations["assets_v2_user_assets_create_2"];
-        /** @description This endpoint is used to upload user profile images. */
-        delete: operations["assets_v2_user_assets_destroy_2"];
+        delete: operations["assets_v2_user_assets_destroy"];
         options?: never;
         head?: never;
         /** @description This endpoint is used to upload user profile images. */
-        patch: operations["assets_v2_user_assets_partial_update_2"];
+        patch: operations["assets_v2_user_assets_partial_update"];
         trace?: never;
     };
     "/api/assets/v2/workspaces/{slug}/": {
@@ -66,17 +63,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        get: operations["assets_v2_workspaces_retrieve"];
+        get?: never;
         put?: never;
         /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
         post: operations["assets_v2_workspaces_create"];
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        delete: operations["assets_v2_workspaces_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        patch: operations["assets_v2_workspaces_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/assets/v2/workspaces/{slug}/{asset_id}/": {
@@ -87,16 +81,15 @@ export interface paths {
             cookie?: never;
         };
         /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        get: operations["assets_v2_workspaces_retrieve_2"];
+        get: operations["assets_v2_workspaces_retrieve"];
         put?: never;
+        post?: never;
         /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        post: operations["assets_v2_workspaces_create_2"];
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        delete: operations["assets_v2_workspaces_destroy_2"];
+        delete: operations["assets_v2_workspaces_destroy"];
         options?: never;
         head?: never;
         /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        patch: operations["assets_v2_workspaces_partial_update_2"];
+        patch: operations["assets_v2_workspaces_partial_update"];
         trace?: never;
     };
     "/api/assets/v2/workspaces/{slug}/check/{asset_id}/": {
@@ -160,17 +153,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        get: operations["assets_v2_workspaces_projects_retrieve"];
+        get?: never;
         put?: never;
         /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
         post: operations["assets_v2_workspaces_projects_create"];
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        delete: operations["assets_v2_workspaces_projects_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        patch: operations["assets_v2_workspaces_projects_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/assets/v2/workspaces/{slug}/projects/{project_id}/{entity_id}/bulk/": {
@@ -201,16 +191,15 @@ export interface paths {
             cookie?: never;
         };
         /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        get: operations["assets_v2_workspaces_projects_retrieve_2"];
+        get: operations["assets_v2_workspaces_projects_retrieve"];
         put?: never;
+        post?: never;
         /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        post: operations["assets_v2_workspaces_projects_create_2"];
-        /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        delete: operations["assets_v2_workspaces_projects_destroy_2"];
+        delete: operations["assets_v2_workspaces_projects_destroy"];
         options?: never;
         head?: never;
         /** @description This endpoint is used to upload cover images/logos etc for workspace, projects and users. */
-        patch: operations["assets_v2_workspaces_projects_partial_update_2"];
+        patch: operations["assets_v2_workspaces_projects_partial_update"];
         trace?: never;
     };
     "/api/assets/v2/workspaces/{slug}/projects/{project_id}/download/{asset_id}/": {
@@ -248,18 +237,10 @@ export interface paths {
          *     to the user set timezone
          */
         post: operations["assets_v2_workspaces_projects_issues_attachments_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["assets_v2_workspaces_projects_issues_attachments_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        patch: operations["assets_v2_workspaces_projects_issues_attachments_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/assets/v2/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/attachments/{pk}/": {
@@ -275,23 +256,19 @@ export interface paths {
          */
         get: operations["assets_v2_workspaces_projects_issues_attachments_retrieve_2"];
         put?: never;
+        post?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        post: operations["assets_v2_workspaces_projects_issues_attachments_create_2"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["assets_v2_workspaces_projects_issues_attachments_destroy_2"];
+        delete: operations["assets_v2_workspaces_projects_issues_attachments_destroy"];
         options?: never;
         head?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        patch: operations["assets_v2_workspaces_projects_issues_attachments_partial_update_2"];
+        patch: operations["assets_v2_workspaces_projects_issues_attachments_partial_update"];
         trace?: never;
     };
     "/api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/": {
@@ -318,24 +295,10 @@ export interface paths {
          *     PATCH marks it uploaded.
          */
         post: operations["assets_v2_workspaces_projects_pages_attachments_create"];
-        /**
-         * @description Files attached to a page, as opposed to images embedded in its body.
-         *
-         *     Same three-step flow as work-item attachments: POST reserves the asset and
-         *     returns a presigned URL, the client PUTs the file straight to storage, then
-         *     PATCH marks it uploaded.
-         */
-        delete: operations["assets_v2_workspaces_projects_pages_attachments_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description Files attached to a page, as opposed to images embedded in its body.
-         *
-         *     Same three-step flow as work-item attachments: POST reserves the asset and
-         *     returns a presigned URL, the client PUTs the file straight to storage, then
-         *     PATCH marks it uploaded.
-         */
-        patch: operations["assets_v2_workspaces_projects_pages_attachments_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/{pk}/": {
@@ -354,6 +317,7 @@ export interface paths {
          */
         get: operations["assets_v2_workspaces_projects_pages_attachments_retrieve_2"];
         put?: never;
+        post?: never;
         /**
          * @description Files attached to a page, as opposed to images embedded in its body.
          *
@@ -361,15 +325,7 @@ export interface paths {
          *     returns a presigned URL, the client PUTs the file straight to storage, then
          *     PATCH marks it uploaded.
          */
-        post: operations["assets_v2_workspaces_projects_pages_attachments_create_2"];
-        /**
-         * @description Files attached to a page, as opposed to images embedded in its body.
-         *
-         *     Same three-step flow as work-item attachments: POST reserves the asset and
-         *     returns a presigned URL, the client PUTs the file straight to storage, then
-         *     PATCH marks it uploaded.
-         */
-        delete: operations["assets_v2_workspaces_projects_pages_attachments_destroy_2"];
+        delete: operations["assets_v2_workspaces_projects_pages_attachments_destroy"];
         options?: never;
         head?: never;
         /**
@@ -379,7 +335,7 @@ export interface paths {
          *     returns a presigned URL, the client PUTs the file straight to storage, then
          *     PATCH marks it uploaded.
          */
-        patch: operations["assets_v2_workspaces_projects_pages_attachments_partial_update_2"];
+        patch: operations["assets_v2_workspaces_projects_pages_attachments_partial_update"];
         trace?: never;
     };
     "/api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/{pk}/content/": {
@@ -765,17 +721,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description A project board only serves the project it belongs to. */
-        get: operations["public_assets_v2_anchor_retrieve"];
+        get?: never;
         put?: never;
         /** @description A project board only serves the project it belongs to. */
         post: operations["public_assets_v2_anchor_create"];
-        /** @description A project board only serves the project it belongs to. */
-        delete: operations["public_assets_v2_anchor_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /** @description A project board only serves the project it belongs to. */
-        patch: operations["public_assets_v2_anchor_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/public/assets/v2/anchor/{anchor}/{entity_id}/bulk/": {
@@ -803,16 +756,15 @@ export interface paths {
             cookie?: never;
         };
         /** @description A project board only serves the project it belongs to. */
-        get: operations["public_assets_v2_anchor_retrieve_2"];
+        get: operations["public_assets_v2_anchor_retrieve"];
         put?: never;
+        post?: never;
         /** @description A project board only serves the project it belongs to. */
-        post: operations["public_assets_v2_anchor_create_2"];
-        /** @description A project board only serves the project it belongs to. */
-        delete: operations["public_assets_v2_anchor_destroy_2"];
+        delete: operations["public_assets_v2_anchor_destroy"];
         options?: never;
         head?: never;
         /** @description A project board only serves the project it belongs to. */
-        patch: operations["public_assets_v2_anchor_partial_update_2"];
+        patch: operations["public_assets_v2_anchor_partial_update"];
         trace?: never;
     };
     "/api/public/assets/v2/anchor/{anchor}/restore/{pk}/": {
@@ -826,23 +778,6 @@ export interface paths {
         put?: never;
         /** @description Endpoint to restore a deleted assets. */
         post: operations["public_assets_v2_anchor_restore_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/workspaces/{slug}/project-boards/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description A project board only serves the project it belongs to. */
-        get: operations["public_workspaces_project_boards_retrieve"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -944,18 +879,10 @@ export interface paths {
          *     to the user set timezone
          */
         post: operations["users_api_tokens_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["users_api_tokens_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        patch: operations["users_api_tokens_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/users/api-tokens/{pk}/": {
@@ -971,23 +898,19 @@ export interface paths {
          */
         get: operations["users_api_tokens_retrieve_2"];
         put?: never;
+        post?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        post: operations["users_api_tokens_create_2"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["users_api_tokens_destroy_2"];
+        delete: operations["users_api_tokens_destroy"];
         options?: never;
         head?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        patch: operations["users_api_tokens_partial_update_2"];
+        patch: operations["users_api_tokens_partial_update"];
         trace?: never;
     };
     "/api/users/connected-apps/": {
@@ -1003,7 +926,23 @@ export interface paths {
          *     The consent screen is the only other place a grant can be narrowed, and it
          *     needs the application to drive it. This is where a user sees the whole list.
          */
-        get: operations["users_connected_apps_retrieve"];
+        get: operations["users_connected_apps_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/connected-apps/{pk}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
         put?: never;
         post?: never;
         /**
@@ -1018,34 +957,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/users/connected-apps/{pk}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description OAuth applications the signed-in user has granted access to.
-         *
-         *     The consent screen is the only other place a grant can be narrowed, and it
-         *     needs the application to drive it. This is where a user sees the whole list.
-         */
-        get: operations["users_connected_apps_retrieve_2"];
-        put?: never;
-        post?: never;
-        /**
-         * @description OAuth applications the signed-in user has granted access to.
-         *
-         *     The consent screen is the only other place a grant can be narrowed, and it
-         *     needs the application to drive it. This is where a user sees the whole list.
-         */
-        delete: operations["users_connected_apps_destroy_2"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/users/file-assets/": {
         parameters: {
             query?: never;
@@ -1053,22 +964,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        get: operations["users_file_assets_retrieve"];
+        get?: never;
         put?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
         post: operations["users_file_assets_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["users_file_assets_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1085,18 +988,14 @@ export interface paths {
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        get: operations["users_file_assets_retrieve_2"];
+        get: operations["users_file_assets_retrieve"];
         put?: never;
+        post?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        post: operations["users_file_assets_create_2"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["users_file_assets_destroy_2"];
+        delete: operations["users_file_assets_destroy"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1164,11 +1063,7 @@ export interface paths {
         get: operations["users_me_accounts_retrieve"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["users_me_accounts_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1192,7 +1087,7 @@ export interface paths {
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        delete: operations["users_me_accounts_destroy_2"];
+        delete: operations["users_me_accounts_destroy"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1399,7 +1294,7 @@ export interface paths {
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        get: operations["users_me_workspaces_retrieve"];
+        get: operations["users_me_workspaces_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1419,7 +1314,7 @@ export interface paths {
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        get: operations["users_me_workspaces_activity_graph_retrieve"];
+        get: operations["users_me_workspaces_activity_graph_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1459,7 +1354,7 @@ export interface paths {
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        get: operations["users_me_workspaces_issues_completed_graph_retrieve"];
+        get: operations["users_me_workspaces_issues_completed_graph_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1831,26 +1726,10 @@ export interface paths {
          *     project or an explicit list.
          */
         post: operations["workspaces_automations_create"];
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        delete: operations["workspaces_automations_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        patch: operations["workspaces_automations_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/workspaces/{slug}/automations/{automation_id}/actions/": {
@@ -1879,6 +1758,22 @@ export interface paths {
          *     project or an explicit list.
          */
         post: operations["workspaces_automations_actions_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/automations/{automation_id}/actions/{pk}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
         /**
          * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
          *     permission level that matches their URL.
@@ -1899,54 +1794,6 @@ export interface paths {
          *     project or an explicit list.
          */
         patch: operations["workspaces_automations_actions_partial_update"];
-        trace?: never;
-    };
-    "/api/workspaces/{slug}/automations/{automation_id}/actions/{pk}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        get: operations["workspaces_automations_actions_retrieve_2"];
-        put?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        post: operations["workspaces_automations_actions_create_2"];
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        delete: operations["workspaces_automations_actions_destroy_2"];
-        options?: never;
-        head?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        patch: operations["workspaces_automations_actions_partial_update_2"];
         trace?: never;
     };
     "/api/workspaces/{slug}/automations/{automation_id}/runs/": {
@@ -1998,6 +1845,7 @@ export interface paths {
          */
         get: operations["workspaces_automations_retrieve_2"];
         put?: never;
+        post?: never;
         /**
          * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
          *     permission level that matches their URL.
@@ -2006,16 +1854,7 @@ export interface paths {
          *     Workspace scoped ones live under the workspace and fan out to either every
          *     project or an explicit list.
          */
-        post: operations["workspaces_automations_create_2"];
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        delete: operations["workspaces_automations_destroy_2"];
+        delete: operations["workspaces_automations_destroy"];
         options?: never;
         head?: never;
         /**
@@ -2026,7 +1865,7 @@ export interface paths {
          *     Workspace scoped ones live under the workspace and fan out to either every
          *     project or an explicit list.
          */
-        patch: operations["workspaces_automations_partial_update_2"];
+        patch: operations["workspaces_automations_partial_update"];
         trace?: never;
     };
     "/api/workspaces/{slug}/cycles/": {
@@ -2387,22 +2226,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        get: operations["workspaces_file_assets_retrieve_2"];
+        get?: never;
         put?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        post: operations["workspaces_file_assets_create_2"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["workspaces_file_assets_destroy_2"];
+        post: operations["workspaces_file_assets_create"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2425,11 +2256,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        patch: operations["workspaces_home_preferences_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/workspaces/{slug}/home-preferences/{key}/": {
@@ -2439,11 +2266,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        get: operations["workspaces_home_preferences_retrieve_2"];
+        get?: never;
         put?: never;
         post?: never;
         delete?: never;
@@ -2453,7 +2276,7 @@ export interface paths {
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        patch: operations["workspaces_home_preferences_partial_update_2"];
+        patch: operations["workspaces_home_preferences_partial_update"];
         trace?: never;
     };
     "/api/workspaces/{slug}/invitations/": {
@@ -2926,16 +2749,8 @@ export interface paths {
          */
         get: operations["workspaces_projects_archived_cycles_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        post: operations["workspaces_projects_archived_cycles_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["workspaces_projects_archived_cycles_destroy"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2954,16 +2769,8 @@ export interface paths {
          */
         get: operations["workspaces_projects_archived_cycles_retrieve_2"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        post: operations["workspaces_projects_archived_cycles_create_2"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["workspaces_projects_archived_cycles_destroy_2"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3002,16 +2809,8 @@ export interface paths {
          */
         get: operations["workspaces_projects_archived_modules_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        post: operations["workspaces_projects_archived_modules_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["workspaces_projects_archived_modules_destroy"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3030,16 +2829,8 @@ export interface paths {
          */
         get: operations["workspaces_projects_archived_modules_retrieve_2"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        post: operations["workspaces_projects_archived_modules_create_2"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["workspaces_projects_archived_modules_destroy_2"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3071,26 +2862,10 @@ export interface paths {
          *     project or an explicit list.
          */
         post: operations["workspaces_projects_automations_create"];
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        delete: operations["workspaces_projects_automations_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        patch: operations["workspaces_projects_automations_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/": {
@@ -3119,6 +2894,22 @@ export interface paths {
          *     project or an explicit list.
          */
         post: operations["workspaces_projects_automations_actions_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/{pk}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
         /**
          * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
          *     permission level that matches their URL.
@@ -3139,54 +2930,6 @@ export interface paths {
          *     project or an explicit list.
          */
         patch: operations["workspaces_projects_automations_actions_partial_update"];
-        trace?: never;
-    };
-    "/api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/{pk}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        get: operations["workspaces_projects_automations_actions_retrieve_2"];
-        put?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        post: operations["workspaces_projects_automations_actions_create_2"];
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        delete: operations["workspaces_projects_automations_actions_destroy_2"];
-        options?: never;
-        head?: never;
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        patch: operations["workspaces_projects_automations_actions_partial_update_2"];
         trace?: never;
     };
     "/api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/runs/": {
@@ -3238,6 +2981,7 @@ export interface paths {
          */
         get: operations["workspaces_projects_automations_retrieve_2"];
         put?: never;
+        post?: never;
         /**
          * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
          *     permission level that matches their URL.
@@ -3246,16 +2990,7 @@ export interface paths {
          *     Workspace scoped ones live under the workspace and fan out to either every
          *     project or an explicit list.
          */
-        post: operations["workspaces_projects_automations_create_2"];
-        /**
-         * @description Shared CRUD for automations. Subclasses set ``scope`` and apply the
-         *     permission level that matches their URL.
-         *
-         *     Project scoped automations live under a project and are pinned to it.
-         *     Workspace scoped ones live under the workspace and fan out to either every
-         *     project or an explicit list.
-         */
-        delete: operations["workspaces_projects_automations_destroy_2"];
+        delete: operations["workspaces_projects_automations_destroy"];
         options?: never;
         head?: never;
         /**
@@ -3266,7 +3001,7 @@ export interface paths {
          *     Workspace scoped ones live under the workspace and fan out to either every
          *     project or an explicit list.
          */
-        patch: operations["workspaces_projects_automations_partial_update_2"];
+        patch: operations["workspaces_projects_automations_partial_update"];
         trace?: never;
     };
     "/api/workspaces/{slug}/projects/{project_id}/bulk-archive-issues/": {
@@ -3424,11 +3159,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        get: operations["workspaces_projects_cycles_archive_retrieve"];
+        get?: never;
         put?: never;
         /**
          * @description This enables timezone conversion according
@@ -4575,11 +4306,7 @@ export interface paths {
          *     to the user set timezone
          */
         post: operations["workspaces_projects_issues_issue_attachments_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["workspaces_projects_issues_issue_attachments_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4592,22 +4319,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        get: operations["workspaces_projects_issues_issue_attachments_retrieve_2"];
+        get?: never;
         put?: never;
+        post?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        post: operations["workspaces_projects_issues_issue_attachments_create_2"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["workspaces_projects_issues_issue_attachments_destroy_2"];
+        delete: operations["workspaces_projects_issues_issue_attachments_destroy"];
         options?: never;
         head?: never;
         patch?: never;
@@ -5240,11 +4959,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        get: operations["workspaces_projects_modules_archive_retrieve"];
+        get?: never;
         put?: never;
         /**
          * @description This enables timezone conversion according
@@ -6720,6 +6435,22 @@ export interface paths {
          *     to the user set timezone
          */
         post: operations["workspaces_user_favorites_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/user-favorites/{favorite_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
@@ -6732,38 +6463,6 @@ export interface paths {
          *     to the user set timezone
          */
         patch: operations["workspaces_user_favorites_partial_update"];
-        trace?: never;
-    };
-    "/api/workspaces/{slug}/user-favorites/{favorite_id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        get: operations["workspaces_user_favorites_retrieve_2"];
-        put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        post: operations["workspaces_user_favorites_create_2"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["workspaces_user_favorites_destroy_2"];
-        options?: never;
-        head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        patch: operations["workspaces_user_favorites_partial_update_2"];
         trace?: never;
     };
     "/api/workspaces/{slug}/user-favorites/{favorite_id}/group/": {
@@ -7100,18 +6799,10 @@ export interface paths {
          *     to the user set timezone
          */
         post: operations["workspaces_webhooks_create"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["workspaces_webhooks_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        patch: operations["workspaces_webhooks_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/workspaces/{slug}/webhooks/{pk}/": {
@@ -7127,23 +6818,19 @@ export interface paths {
          */
         get: operations["workspaces_webhooks_retrieve_2"];
         put?: never;
+        post?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        post: operations["workspaces_webhooks_create_2"];
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        delete: operations["workspaces_webhooks_destroy_2"];
+        delete: operations["workspaces_webhooks_destroy"];
         options?: never;
         head?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
          */
-        patch: operations["workspaces_webhooks_partial_update_2"];
+        patch: operations["workspaces_webhooks_partial_update"];
         trace?: never;
     };
     "/api/workspaces/{slug}/webhooks/{pk}/regenerate/": {
@@ -7338,11 +7025,7 @@ export interface paths {
          */
         get: operations["workspaces_file_assets_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
-        post: operations["workspaces_file_assets_create"];
+        post?: never;
         /**
          * @description This enables timezone conversion according
          *     to the user set timezone
@@ -7538,12 +7221,116 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        APIToken: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            label: string;
+            description: string;
+            readonly is_active: boolean;
+            /** Format: date-time */
+            readonly last_used: string | null;
+            readonly token: string;
+            readonly user_type: components["schemas"]["UserTypeEnum"];
+            /** Format: date-time */
+            readonly expired_at: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            readonly user: string;
+            /** Format: uuid */
+            readonly workspace: string | null;
+        };
+        APITokenRead: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly is_active: boolean;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            label: string;
+            description: string;
+            /** Format: date-time */
+            last_used: string | null;
+            user_type: components["schemas"]["UserTypeEnum"];
+            /** Format: date-time */
+            expired_at: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            user: string;
+            /** Format: uuid */
+            workspace: string | null;
+        };
         /**
          * @description * `0` - Private
          *     * `1` - Public
          * @enum {integer}
          */
         AccessEnum: 0 | 1;
+        Account: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            provider_account_id: string;
+            provider: components["schemas"]["AccountProviderEnum"];
+            access_token: string;
+            /** Format: date-time */
+            access_token_expired_at: string | null;
+            refresh_token: string | null;
+            /** Format: date-time */
+            refresh_token_expired_at: string | null;
+            /** Format: date-time */
+            last_connected_at: string;
+            id_token: string;
+            metadata: unknown;
+            /** Format: uuid */
+            readonly user: string;
+        };
+        /**
+         * @description * `google` - Google
+         *     * `github` - Github
+         *     * `gitlab` - GitLab
+         *     * `gitea` - Gitea
+         *     * `oidc` - OIDC
+         * @enum {string}
+         */
+        AccountProviderEnum: "google" | "github" | "gitlab" | "gitea" | "oidc";
+        ActivityCount: {
+            /** Format: date */
+            created_date: string;
+            activity_count: number;
+        };
         AnalyticView: {
             /** Format: uuid */
             readonly id: string;
@@ -7629,6 +7416,32 @@ export interface components {
         };
         CommentReactionRequest: {
             reaction: string;
+        };
+        CompletedIssueWeek: {
+            /** @description ISO week of completion modulo 4 */
+            week: number;
+            completed_count: number;
+        };
+        CompletedIssueWeekInMonth: {
+            week_in_month: number;
+            completed_count: number;
+        };
+        ConnectedApp: {
+            /** @description OAuth application id */
+            id: number;
+            name: string;
+            /**
+             * Format: date-time
+             * @description When access was first granted
+             */
+            connected_at: string;
+            workspaces: components["schemas"]["ConnectedAppWorkspace"][];
+        };
+        ConnectedAppWorkspace: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
         };
         Cycle: {
             /** Format: uuid */
@@ -7859,6 +7672,7 @@ export interface components {
          * @enum {string}
          */
         DerivationEnum: "NONE" | "INHERIT" | "LOOKUP" | "ROLLUP";
+        EmptyObject: Record<string, never>;
         Estimate: {
             /** Format: uuid */
             readonly id: string;
@@ -7915,7 +7729,7 @@ export interface components {
              */
             readonly updated_at: string;
             readonly project: string[] | null;
-            readonly provider: components["schemas"]["ProviderEnum"];
+            readonly provider: components["schemas"]["ExporterHistoryProviderEnum"];
             readonly status: components["schemas"]["ExporterHistoryStatusEnum"];
             /** Format: uri */
             readonly url: string | null;
@@ -7931,6 +7745,13 @@ export interface components {
              */
             readonly updated_by: string | null;
         };
+        /**
+         * @description * `json` - json
+         *     * `csv` - csv
+         *     * `xlsx` - xlsx
+         * @enum {string}
+         */
+        ExporterHistoryProviderEnum: "json" | "csv" | "xlsx";
         /**
          * @description * `queued` - Queued
          *     * `processing` - Processing
@@ -7949,6 +7770,9 @@ export interface components {
          * @enum {string}
          */
         Group272Enum: "backlog" | "unstarted" | "started" | "completed" | "cancelled" | "triage";
+        InstanceAdminStatus: {
+            is_instance_admin: boolean;
+        };
         Intake: {
             /** Format: uuid */
             readonly id: string;
@@ -8103,10 +7927,61 @@ export interface components {
             /** Format: date */
             readonly archived_at: string | null;
         };
+        IssueActivity: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly actor_detail: components["schemas"]["UserLite"] | null;
+            readonly issue_detail: components["schemas"]["IssueFlat"] | null;
+            readonly project_detail: components["schemas"]["ProjectLite"];
+            readonly workspace_detail: components["schemas"]["WorkspaceLite"];
+            readonly source_data: components["schemas"]["IssueSourceData"] | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            /** Action */
+            verb: string;
+            /** Field Name */
+            field: string | null;
+            old_value: string | null;
+            new_value: string | null;
+            comment: string;
+            attachments: string[];
+            /** Format: uuid */
+            old_identifier: string | null;
+            /** Format: uuid */
+            new_identifier: string | null;
+            /** Format: double */
+            epoch: number | null;
+            external_source: string | null;
+            external_id: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            project: string;
+            /** Format: uuid */
+            workspace: string;
+            /** Format: uuid */
+            issue: string | null;
+            /** Format: uuid */
+            issue_comment: string | null;
+            /** Format: uuid */
+            actor: string | null;
+        };
         IssueAttachment: {
             /** Format: uuid */
             readonly id: string;
-            readonly asset_url: string;
+            readonly asset_url: string | null;
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -8649,6 +8524,11 @@ export interface components {
         IssueRelationRequest: {
             assignee_ids?: string[];
         };
+        IssueSourceData: {
+            source: string | null;
+            source_email: string | null;
+            extra: unknown;
+        };
         IssueState: {
             /** Format: uuid */
             readonly id: string;
@@ -9012,6 +8892,15 @@ export interface components {
             /** Format: double */
             sort_order?: number;
         };
+        LastVisitedWorkspace: {
+            /** @description An empty object when the user has no last workspace */
+            workspace_details: components["schemas"]["LastVisitedWorkspaceDetails"];
+            project_details: components["schemas"]["ProjectMember"][];
+        };
+        LastVisitedWorkspaceDetails: components["schemas"]["WorkSpace"] | components["schemas"]["EmptyObject"];
+        MessageResponse: {
+            message: string;
+        };
         Module: {
             /** Format: uuid */
             readonly id: string;
@@ -9299,6 +9188,12 @@ export interface components {
             lead?: string | null;
         };
         /**
+         * @description * `ACCORDION` - Accordion
+         *     * `TABBED` - Tabbed
+         * @enum {string}
+         */
+        NavigationControlPreferenceEnum: "ACCORDION" | "TABBED";
+        /**
          * @description * `0` - Secret
          *     * `2` - Public
          * @enum {integer}
@@ -9385,6 +9280,12 @@ export interface components {
             /** Format: uuid */
             receiver: string;
         };
+        /**
+         * @description * `full` - Full
+         *     * `compact` - Compact
+         * @enum {string}
+         */
+        NotificationViewModeEnum: "full" | "compact";
         /** @enum {unknown} */
         NullEnum: null;
         /** @description Schema only: the list endpoints always set the in-group order. */
@@ -9407,6 +9308,16 @@ export interface components {
             sequence: number;
             /** Format: double */
             order: number;
+        };
+        OverdueIssue: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            workspace__slug: string;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: date */
+            target_date: string;
         };
         Page: {
             /** Format: uuid */
@@ -9454,7 +9365,7 @@ export interface components {
         PageAttachment: {
             /** Format: uuid */
             readonly id: string;
-            readonly asset_url: string;
+            readonly asset_url: string | null;
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -9665,6 +9576,20 @@ export interface components {
             logo_props?: unknown;
             label_ids?: string[];
             project_ids?: string[];
+        };
+        PaginatedIssueActivityList: {
+            results: components["schemas"]["IssueActivity"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
         };
         PaginatedTrashedIssueList: {
             results: components["schemas"]["TrashedIssue"][];
@@ -10309,6 +10234,11 @@ export interface components {
          * @enum {string}
          */
         PqlDialectEnum: "jql" | "plane";
+        PriorityCount: {
+            priority: string;
+            priority_count: number;
+            priority_order: number;
+        };
         /**
          * @description * `urgent` - Urgent
          *     * `high` - High
@@ -10318,6 +10248,45 @@ export interface components {
          * @enum {string}
          */
         PriorityEnum: "urgent" | "high" | "medium" | "low" | "none";
+        Profile: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            theme: unknown;
+            is_app_rail_docked: boolean;
+            is_tour_completed: boolean;
+            onboarding_step: unknown;
+            use_case: string | null;
+            role: string | null;
+            is_onboarded: boolean;
+            /** Format: uuid */
+            last_workspace_id: string | null;
+            billing_address_country: string;
+            billing_address: unknown;
+            has_billing_address: boolean;
+            company_name: string;
+            notification_view_mode: components["schemas"]["NotificationViewModeEnum"];
+            is_smooth_cursor_enabled: boolean;
+            is_mobile_onboarded: boolean;
+            mobile_onboarding_step: unknown;
+            mobile_timezone_auto_set: boolean;
+            language: string;
+            start_of_the_week: components["schemas"]["StartOfTheWeekEnum"];
+            goals: unknown;
+            background_color: string;
+            is_navigation_tour_completed: boolean;
+            has_marketing_email_consent: boolean;
+            is_subscribed_to_changelog: boolean;
+            product_tour: unknown;
+            /** Format: uuid */
+            readonly user: string;
+        };
         ProjectList: {
             /** Format: uuid */
             readonly id: string;
@@ -10327,7 +10296,7 @@ export interface components {
             readonly member_role?: number;
             readonly anchor?: string;
             readonly members: string;
-            readonly cover_image_url: string;
+            readonly cover_image_url: string | null;
             readonly inbox_view: boolean;
             readonly next_work_item_sequence: string;
             /** Format: date-time */
@@ -10452,10 +10421,41 @@ export interface components {
             /** Project Name */
             readonly name: string;
             readonly cover_image: string | null;
-            readonly cover_image_url: string;
+            readonly cover_image_url: string | null;
             readonly logo_props: unknown;
             /** Project Description */
             readonly description: string;
+        };
+        ProjectMember: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly workspace: components["schemas"]["WorkspaceLite"];
+            readonly project: components["schemas"]["ProjectLite"];
+            readonly member: components["schemas"]["UserLite"] | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            readonly deleted_at: string | null;
+            comment: string | null;
+            role: components["schemas"]["RoleEnum"];
+            view_props: unknown;
+            default_props: unknown;
+            preferences: unknown;
+            /** Format: double */
+            sort_order: number;
+            is_active: boolean;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
         };
         ProjectMemberAdmin: {
             /** Format: uuid */
@@ -10607,13 +10607,6 @@ export interface components {
          */
         PropertyTypeEnum: "TEXT" | "DECIMAL" | "OPTION" | "DATETIME" | "BOOLEAN" | "RELATION";
         /**
-         * @description * `json` - json
-         *     * `csv` - csv
-         *     * `xlsx` - xlsx
-         * @enum {string}
-         */
-        ProviderEnum: "json" | "csv" | "xlsx";
-        /**
          * @description * `USER` - User
          *     * `ISSUE` - Work item
          * @enum {string}
@@ -10632,6 +10625,25 @@ export interface components {
          * @enum {integer}
          */
         RoleEnum: 20 | 15 | 5;
+        SlugAvailability: {
+            /** @description True when the slug is free */
+            status: boolean;
+        };
+        /**
+         * @description * `0` - Sunday
+         *     * `1` - Monday
+         *     * `2` - Tuesday
+         *     * `3` - Wednesday
+         *     * `4` - Thursday
+         *     * `5` - Friday
+         *     * `6` - Saturday
+         * @enum {integer}
+         */
+        StartOfTheWeekEnum: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+        StateGroupCount: {
+            state_group: string | null;
+            state_count: number;
+        };
         StateLite: {
             /** Format: uuid */
             readonly id: string;
@@ -11172,6 +11184,20 @@ export interface components {
          * @enum {string}
          */
         TypeEnum: "categories" | "points";
+        UnreadNotificationCount: {
+            total_unread_notifications_count: number;
+            mention_unread_notifications_count: number;
+        };
+        UpcomingIssue: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            workspace__slug: string;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: date */
+            start_date: string;
+        };
         User: {
             /** Format: date-time */
             last_login: string | null;
@@ -11241,7 +11267,7 @@ export interface components {
             first_name: string;
             last_name: string;
             avatar: string;
-            readonly avatar_url: string;
+            readonly avatar_url: string | null;
             readonly is_bot: boolean;
             display_name: string;
             email: string | null;
@@ -11255,13 +11281,20 @@ export interface components {
             email?: string | null;
             last_login_medium?: string;
         };
+        UserCycle: {
+            cycle__name: string;
+            /** Format: uuid */
+            cycle__id: string;
+            /** Format: uuid */
+            cycle__project_id: string;
+        };
         UserLite: {
             /** Format: uuid */
             readonly id: string;
             first_name: string;
             last_name: string;
             avatar: string;
-            readonly avatar_url: string;
+            readonly avatar_url: string | null;
             readonly is_bot: boolean;
             display_name: string;
         };
@@ -11270,6 +11303,39 @@ export interface components {
             last_name?: string;
             avatar?: string;
             display_name?: string;
+        };
+        UserMe: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly avatar: string;
+            /** Format: uri */
+            readonly cover_image: string | null;
+            readonly avatar_url: string | null;
+            readonly cover_image_url: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            readonly date_joined: string;
+            readonly display_name: string;
+            readonly email: string | null;
+            readonly first_name: string;
+            readonly last_name: string;
+            readonly is_active: boolean;
+            readonly is_bot: boolean;
+            readonly is_email_verified: boolean;
+            readonly user_timezone: components["schemas"]["UserTimezoneEnum"];
+            readonly username: string;
+            readonly is_password_autoset: boolean;
+            readonly last_login_medium: string;
+            /** Format: date-time */
+            readonly last_login_time: string | null;
+        };
+        UserMeSettings: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly email: string | null;
+            readonly workspace: components["schemas"]["UserWorkspaceSettings"];
         };
         UserNotificationPreference: {
             /** Format: uuid */
@@ -11302,6 +11368,15 @@ export interface components {
             /** Format: uuid */
             readonly project: string | null;
         };
+        UserProjectIssueCounts: {
+            /** Format: uuid */
+            id: string;
+            logo_props: unknown;
+            created_issues: number;
+            assigned_issues: number;
+            completed_issues: number;
+            pending_issues: number;
+        };
         UserRequest: {
             /** Format: date-time */
             last_login?: string | null;
@@ -11325,6 +11400,11 @@ export interface components {
             deleted_at?: string | null;
             /** Format: uuid */
             merged_into?: string | null;
+        };
+        UserSession: {
+            is_authenticated: boolean;
+            /** @description Present when authenticated */
+            user?: components["schemas"]["UserMe"];
         };
         /**
          * @description * `Africa/Abidjan` - Africa/Abidjan
@@ -11764,6 +11844,36 @@ export interface components {
          */
         UserTimezoneEnum: "Africa/Abidjan" | "Africa/Accra" | "Africa/Addis_Ababa" | "Africa/Algiers" | "Africa/Asmara" | "Africa/Bamako" | "Africa/Bangui" | "Africa/Banjul" | "Africa/Bissau" | "Africa/Blantyre" | "Africa/Brazzaville" | "Africa/Bujumbura" | "Africa/Cairo" | "Africa/Casablanca" | "Africa/Ceuta" | "Africa/Conakry" | "Africa/Dakar" | "Africa/Dar_es_Salaam" | "Africa/Djibouti" | "Africa/Douala" | "Africa/El_Aaiun" | "Africa/Freetown" | "Africa/Gaborone" | "Africa/Harare" | "Africa/Johannesburg" | "Africa/Juba" | "Africa/Kampala" | "Africa/Khartoum" | "Africa/Kigali" | "Africa/Kinshasa" | "Africa/Lagos" | "Africa/Libreville" | "Africa/Lome" | "Africa/Luanda" | "Africa/Lubumbashi" | "Africa/Lusaka" | "Africa/Malabo" | "Africa/Maputo" | "Africa/Maseru" | "Africa/Mbabane" | "Africa/Mogadishu" | "Africa/Monrovia" | "Africa/Nairobi" | "Africa/Ndjamena" | "Africa/Niamey" | "Africa/Nouakchott" | "Africa/Ouagadougou" | "Africa/Porto-Novo" | "Africa/Sao_Tome" | "Africa/Tripoli" | "Africa/Tunis" | "Africa/Windhoek" | "America/Adak" | "America/Anchorage" | "America/Anguilla" | "America/Antigua" | "America/Araguaina" | "America/Argentina/Buenos_Aires" | "America/Argentina/Catamarca" | "America/Argentina/Cordoba" | "America/Argentina/Jujuy" | "America/Argentina/La_Rioja" | "America/Argentina/Mendoza" | "America/Argentina/Rio_Gallegos" | "America/Argentina/Salta" | "America/Argentina/San_Juan" | "America/Argentina/San_Luis" | "America/Argentina/Tucuman" | "America/Argentina/Ushuaia" | "America/Aruba" | "America/Asuncion" | "America/Atikokan" | "America/Bahia" | "America/Bahia_Banderas" | "America/Barbados" | "America/Belem" | "America/Belize" | "America/Blanc-Sablon" | "America/Boa_Vista" | "America/Bogota" | "America/Boise" | "America/Cambridge_Bay" | "America/Campo_Grande" | "America/Cancun" | "America/Caracas" | "America/Cayenne" | "America/Cayman" | "America/Chicago" | "America/Chihuahua" | "America/Ciudad_Juarez" | "America/Costa_Rica" | "America/Creston" | "America/Cuiaba" | "America/Curacao" | "America/Danmarkshavn" | "America/Dawson" | "America/Dawson_Creek" | "America/Denver" | "America/Detroit" | "America/Dominica" | "America/Edmonton" | "America/Eirunepe" | "America/El_Salvador" | "America/Fort_Nelson" | "America/Fortaleza" | "America/Glace_Bay" | "America/Goose_Bay" | "America/Grand_Turk" | "America/Grenada" | "America/Guadeloupe" | "America/Guatemala" | "America/Guayaquil" | "America/Guyana" | "America/Halifax" | "America/Havana" | "America/Hermosillo" | "America/Indiana/Indianapolis" | "America/Indiana/Knox" | "America/Indiana/Marengo" | "America/Indiana/Petersburg" | "America/Indiana/Tell_City" | "America/Indiana/Vevay" | "America/Indiana/Vincennes" | "America/Indiana/Winamac" | "America/Inuvik" | "America/Iqaluit" | "America/Jamaica" | "America/Juneau" | "America/Kentucky/Louisville" | "America/Kentucky/Monticello" | "America/Kralendijk" | "America/La_Paz" | "America/Lima" | "America/Los_Angeles" | "America/Lower_Princes" | "America/Maceio" | "America/Managua" | "America/Manaus" | "America/Marigot" | "America/Martinique" | "America/Matamoros" | "America/Mazatlan" | "America/Menominee" | "America/Merida" | "America/Metlakatla" | "America/Mexico_City" | "America/Miquelon" | "America/Moncton" | "America/Monterrey" | "America/Montevideo" | "America/Montserrat" | "America/Nassau" | "America/New_York" | "America/Nome" | "America/Noronha" | "America/North_Dakota/Beulah" | "America/North_Dakota/Center" | "America/North_Dakota/New_Salem" | "America/Nuuk" | "America/Ojinaga" | "America/Panama" | "America/Paramaribo" | "America/Phoenix" | "America/Port-au-Prince" | "America/Port_of_Spain" | "America/Porto_Velho" | "America/Puerto_Rico" | "America/Punta_Arenas" | "America/Rankin_Inlet" | "America/Recife" | "America/Regina" | "America/Resolute" | "America/Rio_Branco" | "America/Santarem" | "America/Santiago" | "America/Santo_Domingo" | "America/Sao_Paulo" | "America/Scoresbysund" | "America/Sitka" | "America/St_Barthelemy" | "America/St_Johns" | "America/St_Kitts" | "America/St_Lucia" | "America/St_Thomas" | "America/St_Vincent" | "America/Swift_Current" | "America/Tegucigalpa" | "America/Thule" | "America/Tijuana" | "America/Toronto" | "America/Tortola" | "America/Vancouver" | "America/Whitehorse" | "America/Winnipeg" | "America/Yakutat" | "Antarctica/Casey" | "Antarctica/Davis" | "Antarctica/DumontDUrville" | "Antarctica/Macquarie" | "Antarctica/Mawson" | "Antarctica/McMurdo" | "Antarctica/Palmer" | "Antarctica/Rothera" | "Antarctica/Syowa" | "Antarctica/Troll" | "Antarctica/Vostok" | "Arctic/Longyearbyen" | "Asia/Aden" | "Asia/Almaty" | "Asia/Amman" | "Asia/Anadyr" | "Asia/Aqtau" | "Asia/Aqtobe" | "Asia/Ashgabat" | "Asia/Atyrau" | "Asia/Baghdad" | "Asia/Bahrain" | "Asia/Baku" | "Asia/Bangkok" | "Asia/Barnaul" | "Asia/Beirut" | "Asia/Bishkek" | "Asia/Brunei" | "Asia/Chita" | "Asia/Choibalsan" | "Asia/Colombo" | "Asia/Damascus" | "Asia/Dhaka" | "Asia/Dili" | "Asia/Dubai" | "Asia/Dushanbe" | "Asia/Famagusta" | "Asia/Gaza" | "Asia/Hebron" | "Asia/Ho_Chi_Minh" | "Asia/Hong_Kong" | "Asia/Hovd" | "Asia/Irkutsk" | "Asia/Jakarta" | "Asia/Jayapura" | "Asia/Jerusalem" | "Asia/Kabul" | "Asia/Kamchatka" | "Asia/Karachi" | "Asia/Kathmandu" | "Asia/Khandyga" | "Asia/Kolkata" | "Asia/Krasnoyarsk" | "Asia/Kuala_Lumpur" | "Asia/Kuching" | "Asia/Kuwait" | "Asia/Macau" | "Asia/Magadan" | "Asia/Makassar" | "Asia/Manila" | "Asia/Muscat" | "Asia/Nicosia" | "Asia/Novokuznetsk" | "Asia/Novosibirsk" | "Asia/Omsk" | "Asia/Oral" | "Asia/Phnom_Penh" | "Asia/Pontianak" | "Asia/Pyongyang" | "Asia/Qatar" | "Asia/Qostanay" | "Asia/Qyzylorda" | "Asia/Riyadh" | "Asia/Sakhalin" | "Asia/Samarkand" | "Asia/Seoul" | "Asia/Shanghai" | "Asia/Singapore" | "Asia/Srednekolymsk" | "Asia/Taipei" | "Asia/Tashkent" | "Asia/Tbilisi" | "Asia/Tehran" | "Asia/Thimphu" | "Asia/Tokyo" | "Asia/Tomsk" | "Asia/Ulaanbaatar" | "Asia/Urumqi" | "Asia/Ust-Nera" | "Asia/Vientiane" | "Asia/Vladivostok" | "Asia/Yakutsk" | "Asia/Yangon" | "Asia/Yekaterinburg" | "Asia/Yerevan" | "Atlantic/Azores" | "Atlantic/Bermuda" | "Atlantic/Canary" | "Atlantic/Cape_Verde" | "Atlantic/Faroe" | "Atlantic/Madeira" | "Atlantic/Reykjavik" | "Atlantic/South_Georgia" | "Atlantic/St_Helena" | "Atlantic/Stanley" | "Australia/Adelaide" | "Australia/Brisbane" | "Australia/Broken_Hill" | "Australia/Darwin" | "Australia/Eucla" | "Australia/Hobart" | "Australia/Lindeman" | "Australia/Lord_Howe" | "Australia/Melbourne" | "Australia/Perth" | "Australia/Sydney" | "Canada/Atlantic" | "Canada/Central" | "Canada/Eastern" | "Canada/Mountain" | "Canada/Newfoundland" | "Canada/Pacific" | "Europe/Amsterdam" | "Europe/Andorra" | "Europe/Astrakhan" | "Europe/Athens" | "Europe/Belgrade" | "Europe/Berlin" | "Europe/Bratislava" | "Europe/Brussels" | "Europe/Bucharest" | "Europe/Budapest" | "Europe/Busingen" | "Europe/Chisinau" | "Europe/Copenhagen" | "Europe/Dublin" | "Europe/Gibraltar" | "Europe/Guernsey" | "Europe/Helsinki" | "Europe/Isle_of_Man" | "Europe/Istanbul" | "Europe/Jersey" | "Europe/Kaliningrad" | "Europe/Kirov" | "Europe/Kyiv" | "Europe/Lisbon" | "Europe/Ljubljana" | "Europe/London" | "Europe/Luxembourg" | "Europe/Madrid" | "Europe/Malta" | "Europe/Mariehamn" | "Europe/Minsk" | "Europe/Monaco" | "Europe/Moscow" | "Europe/Oslo" | "Europe/Paris" | "Europe/Podgorica" | "Europe/Prague" | "Europe/Riga" | "Europe/Rome" | "Europe/Samara" | "Europe/San_Marino" | "Europe/Sarajevo" | "Europe/Saratov" | "Europe/Simferopol" | "Europe/Skopje" | "Europe/Sofia" | "Europe/Stockholm" | "Europe/Tallinn" | "Europe/Tirane" | "Europe/Ulyanovsk" | "Europe/Vaduz" | "Europe/Vatican" | "Europe/Vienna" | "Europe/Vilnius" | "Europe/Volgograd" | "Europe/Warsaw" | "Europe/Zagreb" | "Europe/Zurich" | "GMT" | "Indian/Antananarivo" | "Indian/Chagos" | "Indian/Christmas" | "Indian/Cocos" | "Indian/Comoro" | "Indian/Kerguelen" | "Indian/Mahe" | "Indian/Maldives" | "Indian/Mauritius" | "Indian/Mayotte" | "Indian/Reunion" | "Pacific/Apia" | "Pacific/Auckland" | "Pacific/Bougainville" | "Pacific/Chatham" | "Pacific/Chuuk" | "Pacific/Easter" | "Pacific/Efate" | "Pacific/Fakaofo" | "Pacific/Fiji" | "Pacific/Funafuti" | "Pacific/Galapagos" | "Pacific/Gambier" | "Pacific/Guadalcanal" | "Pacific/Guam" | "Pacific/Honolulu" | "Pacific/Kanton" | "Pacific/Kiritimati" | "Pacific/Kosrae" | "Pacific/Kwajalein" | "Pacific/Majuro" | "Pacific/Marquesas" | "Pacific/Midway" | "Pacific/Nauru" | "Pacific/Niue" | "Pacific/Norfolk" | "Pacific/Noumea" | "Pacific/Pago_Pago" | "Pacific/Palau" | "Pacific/Pitcairn" | "Pacific/Pohnpei" | "Pacific/Port_Moresby" | "Pacific/Rarotonga" | "Pacific/Saipan" | "Pacific/Tahiti" | "Pacific/Tarawa" | "Pacific/Tongatapu" | "Pacific/Wake" | "Pacific/Wallis" | "US/Alaska" | "US/Arizona" | "US/Central" | "US/Eastern" | "US/Hawaii" | "US/Mountain" | "US/Pacific" | "UTC";
         /**
+         * @description * `0` - Human
+         *     * `1` - Bot
+         * @enum {integer}
+         */
+        UserTypeEnum: 0 | 1;
+        UserWorkspaceDashboard: {
+            issue_activities: components["schemas"]["ActivityCount"][];
+            completed_issues: components["schemas"]["CompletedIssueWeekInMonth"][];
+            assigned_issues_count: number;
+            pending_issues_count: number;
+            completed_issues_count: number;
+            issues_due_week_count: number;
+            state_distribution: components["schemas"]["StateGroupCount"][];
+            overdue_issues: components["schemas"]["OverdueIssue"][];
+            upcoming_issues: components["schemas"]["UpcomingIssue"][];
+        };
+        UserWorkspaceSettings: {
+            /** Format: uuid */
+            last_workspace_id: string | null;
+            last_workspace_slug: string | null;
+            /** @description Present when there is a last workspace */
+            last_workspace_name?: string;
+            /** @description Present when there is a last workspace */
+            last_workspace_logo?: string;
+            /** Format: uuid */
+            fallback_workspace_id: string | null;
+            fallback_workspace_slug: string | null;
+            invites: number;
+        };
+        /**
          * @description * `-1` - DOWNVOTE
          *     * `1` - UPVOTE
          * @enum {integer}
@@ -11773,7 +11883,7 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             readonly total_members?: number;
-            readonly logo_url: string;
+            readonly logo_url: string | null;
             readonly role?: number;
             /** Format: date-time */
             readonly created_at: string;
@@ -11870,7 +11980,7 @@ export interface components {
             readonly slug: string;
             /** Format: uuid */
             readonly id: string;
-            readonly logo_url: string;
+            readonly logo_url: string | null;
         };
         WorkspaceMemberAdmin: {
             /** Format: uuid */
@@ -12000,6 +12110,18 @@ export interface components {
              */
             updated_by?: string | null;
         };
+        WorkspaceUserData: {
+            /** Format: email */
+            email: string;
+            first_name: string;
+            last_name: string;
+            avatar_url: string | null;
+            cover_image_url: string | null;
+            /** Format: date-time */
+            date_joined: string;
+            user_timezone: string;
+            display_name: string;
+        };
         WorkspaceUserLink: {
             /** Format: uuid */
             readonly id: string;
@@ -12050,6 +12172,52 @@ export interface components {
             is_pinned: boolean;
             /** Format: double */
             sort_order: number;
+        };
+        WorkspaceUserProfile: {
+            /** @description Empty unless the caller is a workspace admin or member */
+            project_data: components["schemas"]["UserProjectIssueCounts"][];
+            user_data: components["schemas"]["WorkspaceUserData"];
+        };
+        WorkspaceUserProperties: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            filters: unknown;
+            display_filters: unknown;
+            display_properties: unknown;
+            rich_filters: unknown;
+            navigation_project_limit: number;
+            navigation_control_preference: components["schemas"]["NavigationControlPreferenceEnum"];
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly user: string;
+        };
+        WorkspaceUserStats: {
+            state_distribution: components["schemas"]["StateGroupCount"][];
+            priority_distribution: components["schemas"]["PriorityCount"][];
+            created_issues: number;
+            assigned_issues: number;
+            completed_issues: number;
+            pending_issues: number;
+            subscribed_issues: number;
+            present_cycles: components["schemas"]["UserCycle"][];
+            upcoming_cycles: components["schemas"]["UserCycle"][];
         };
     };
     responses: never;
@@ -12102,7 +12270,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                asset_id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -12120,86 +12290,8 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_user_assets_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
             path: {
                 asset_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_user_assets_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                asset_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_user_assets_partial_update_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                asset_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_workspaces_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
             };
             cookie?: never;
         };
@@ -12234,11 +12326,33 @@ export interface operations {
             };
         };
     };
+    assets_v2_workspaces_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     assets_v2_workspaces_destroy: {
         parameters: {
             query?: never;
             header?: never;
             path: {
+                asset_id: string;
                 slug: string;
             };
             cookie?: never;
@@ -12255,89 +12369,6 @@ export interface operations {
         };
     };
     assets_v2_workspaces_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_workspaces_retrieve_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                asset_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_workspaces_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                asset_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_workspaces_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                asset_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_workspaces_partial_update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -12421,70 +12452,7 @@ export interface operations {
             };
         };
     };
-    assets_v2_workspaces_projects_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     assets_v2_workspaces_projects_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_workspaces_projects_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_workspaces_projects_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -12527,7 +12495,7 @@ export interface operations {
             };
         };
     };
-    assets_v2_workspaces_projects_retrieve_2: {
+    assets_v2_workspaces_projects_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -12549,29 +12517,7 @@ export interface operations {
             };
         };
     };
-    assets_v2_workspaces_projects_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_workspaces_projects_destroy_2: {
+    assets_v2_workspaces_projects_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -12593,7 +12539,7 @@ export interface operations {
             };
         };
     };
-    assets_v2_workspaces_projects_partial_update_2: {
+    assets_v2_workspaces_projects_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -12689,57 +12635,6 @@ export interface operations {
             };
         };
     };
-    assets_v2_workspaces_projects_issues_attachments_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                issue_id: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_workspaces_projects_issues_attachments_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                issue_id: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedIssueAttachmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedIssueAttachmentRequest"];
-                "multipart/form-data": components["schemas"]["PatchedIssueAttachmentRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IssueAttachment"];
-                };
-            };
-        };
-    };
     assets_v2_workspaces_projects_issues_attachments_retrieve_2: {
         parameters: {
             query?: never;
@@ -12764,37 +12659,7 @@ export interface operations {
             };
         };
     };
-    assets_v2_workspaces_projects_issues_attachments_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                issue_id: string;
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["IssueAttachmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueAttachmentRequest"];
-                "multipart/form-data": components["schemas"]["IssueAttachmentRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IssueAttachment"];
-                };
-            };
-        };
-    };
-    assets_v2_workspaces_projects_issues_attachments_destroy_2: {
+    assets_v2_workspaces_projects_issues_attachments_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -12817,7 +12682,7 @@ export interface operations {
             };
         };
     };
-    assets_v2_workspaces_projects_issues_attachments_partial_update_2: {
+    assets_v2_workspaces_projects_issues_attachments_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -12899,57 +12764,6 @@ export interface operations {
             };
         };
     };
-    assets_v2_workspaces_projects_pages_attachments_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                page_id: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    assets_v2_workspaces_projects_pages_attachments_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                page_id: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedPageAttachmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedPageAttachmentRequest"];
-                "multipart/form-data": components["schemas"]["PatchedPageAttachmentRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PageAttachment"];
-                };
-            };
-        };
-    };
     assets_v2_workspaces_projects_pages_attachments_retrieve_2: {
         parameters: {
             query?: never;
@@ -12974,37 +12788,7 @@ export interface operations {
             };
         };
     };
-    assets_v2_workspaces_projects_pages_attachments_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                page_id: string;
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PageAttachmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PageAttachmentRequest"];
-                "multipart/form-data": components["schemas"]["PageAttachmentRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PageAttachment"];
-                };
-            };
-        };
-    };
-    assets_v2_workspaces_projects_pages_attachments_destroy_2: {
+    assets_v2_workspaces_projects_pages_attachments_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -13027,7 +12811,7 @@ export interface operations {
             };
         };
     };
-    assets_v2_workspaces_projects_pages_attachments_partial_update_2: {
+    assets_v2_workspaces_projects_pages_attachments_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -13807,67 +13591,7 @@ export interface operations {
             };
         };
     };
-    public_assets_v2_anchor_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                anchor: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     public_assets_v2_anchor_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                anchor: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_assets_v2_anchor_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                anchor: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_assets_v2_anchor_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -13908,7 +13632,7 @@ export interface operations {
             };
         };
     };
-    public_assets_v2_anchor_retrieve_2: {
+    public_assets_v2_anchor_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -13929,28 +13653,7 @@ export interface operations {
             };
         };
     };
-    public_assets_v2_anchor_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                anchor: string;
-                pk: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_assets_v2_anchor_destroy_2: {
+    public_assets_v2_anchor_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -13971,7 +13674,7 @@ export interface operations {
             };
         };
     };
-    public_assets_v2_anchor_partial_update_2: {
+    public_assets_v2_anchor_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -13999,26 +13702,6 @@ export interface operations {
             path: {
                 anchor: string;
                 pk: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_workspaces_project_boards_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
             };
             cookie?: never;
         };
@@ -14117,12 +13800,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["APITokenRead"][];
+                };
             };
         };
     };
@@ -14135,12 +13819,34 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIToken"];
+                };
+            };
+        };
+    };
+    users_api_tokens_retrieve_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pk: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["APITokenRead"];
+                };
             };
         };
     };
@@ -14148,7 +13854,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                pk: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -14166,24 +13874,6 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    users_api_tokens_retrieve_2: {
-        parameters: {
-            query?: never;
-            header?: never;
             path: {
                 pk: string;
             };
@@ -14191,90 +13881,35 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
-            };
-        };
-    };
-    users_api_tokens_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
+                content: {
+                    "application/json": components["schemas"]["APIToken"];
                 };
-                content?: never;
             };
         };
     };
-    users_api_tokens_destroy_2: {
+    users_connected_apps_list: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
+            query?: {
+                /** @description A search term. */
+                search?: string;
             };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    users_api_tokens_partial_update_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    users_connected_apps_retrieve: {
-        parameters: {
-            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ConnectedApp"][];
+                };
             };
         };
     };
@@ -14282,44 +13917,6 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    users_connected_apps_retrieve_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    users_connected_apps_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
             path: {
                 pk: number;
             };
@@ -14329,24 +13926,6 @@ export interface operations {
         responses: {
             /** @description No response body */
             204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    users_file_assets_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -14372,65 +13951,27 @@ export interface operations {
             };
         };
     };
+    users_file_assets_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     users_file_assets_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    users_file_assets_retrieve_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                asset_key: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    users_file_assets_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                asset_key: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    users_file_assets_destroy_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -14459,12 +14000,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LastVisitedWorkspace"];
+                };
             };
         };
     };
@@ -14482,7 +14024,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["User"];
+                    "application/json": components["schemas"]["UserMe"];
                 };
             };
         };
@@ -14539,30 +14081,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
-            };
-        };
-    };
-    users_me_accounts_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
+                content: {
+                    "application/json": components["schemas"]["Account"][];
                 };
-                content?: never;
             };
         };
     };
@@ -14577,16 +14102,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
             };
         };
     };
-    users_me_accounts_destroy_2: {
+    users_me_accounts_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -14608,19 +14134,25 @@ export interface operations {
     };
     users_me_activities_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PaginatedIssueActivityList"];
+                };
             };
         };
     };
@@ -14644,7 +14176,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["User"];
+                    "application/json": components["schemas"]["UserMe"];
                 };
             };
         };
@@ -14669,7 +14201,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["User"];
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
         };
@@ -14688,7 +14220,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["User"];
+                    "application/json": components["schemas"]["InstanceAdminStatus"];
                 };
             };
         };
@@ -14746,12 +14278,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -14764,12 +14297,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Profile"];
+                };
             };
         };
     };
@@ -14782,12 +14316,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Profile"];
+                };
             };
         };
     };
@@ -14805,7 +14340,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["User"];
+                    "application/json": components["schemas"]["UserMeSettings"];
                 };
             };
         };
@@ -14819,36 +14354,44 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
-    users_me_workspaces_retrieve: {
+    users_me_workspaces_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkSpace"][];
+                };
             };
         };
     };
-    users_me_workspaces_activity_graph_retrieve: {
+    users_me_workspaces_activity_graph_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -14857,12 +14400,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ActivityCount"][];
+                };
             };
         };
     };
@@ -14877,18 +14421,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserWorkspaceDashboard"];
+                };
             };
         };
     };
-    users_me_workspaces_issues_completed_graph_retrieve: {
+    users_me_workspaces_issues_completed_graph_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -14897,12 +14445,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CompletedIssueWeek"][];
+                };
             };
         };
     };
@@ -14917,12 +14466,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
+                };
             };
         };
     };
@@ -15033,12 +14585,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserSession"];
+                };
             };
         };
     };
@@ -15051,12 +14604,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SlugAvailability"];
+                };
             };
         };
     };
@@ -15484,46 +15038,6 @@ export interface operations {
             };
         };
     };
-    workspaces_automations_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_automations_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     workspaces_automations_actions_retrieve: {
         parameters: {
             query?: never;
@@ -15572,6 +15086,7 @@ export interface operations {
             header?: never;
             path: {
                 automation_id: string;
+                pk: string;
                 slug: string;
             };
             cookie?: never;
@@ -15588,93 +15103,6 @@ export interface operations {
         };
     };
     workspaces_automations_actions_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                automation_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_automations_actions_retrieve_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                automation_id: string;
-                pk: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_automations_actions_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                automation_id: string;
-                pk: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_automations_actions_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                automation_id: string;
-                pk: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_automations_actions_partial_update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -15759,28 +15187,7 @@ export interface operations {
             };
         };
     };
-    workspaces_automations_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_automations_destroy_2: {
+    workspaces_automations_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -15801,7 +15208,7 @@ export interface operations {
             };
         };
     };
-    workspaces_automations_partial_update_2: {
+    workspaces_automations_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -16399,7 +15806,7 @@ export interface operations {
             };
         };
     };
-    workspaces_file_assets_retrieve_2: {
+    workspaces_file_assets_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -16412,46 +15819,6 @@ export interface operations {
         responses: {
             /** @description No response body */
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_file_assets_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_file_assets_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16481,55 +15848,6 @@ export interface operations {
         };
     };
     workspaces_home_preferences_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedWorkspaceHomePreferenceRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedWorkspaceHomePreferenceRequest"];
-                "multipart/form-data": components["schemas"]["PatchedWorkspaceHomePreferenceRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkspaceHomePreference"];
-                };
-            };
-        };
-    };
-    workspaces_home_preferences_retrieve_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                key: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkspaceHomePreference"];
-                };
-            };
-        };
-    };
-    workspaces_home_preferences_partial_update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -17321,48 +16639,6 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_archived_cycles_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_archived_cycles_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     workspaces_projects_archived_cycles_retrieve_2: {
         parameters: {
             query?: never;
@@ -17378,50 +16654,6 @@ export interface operations {
         responses: {
             /** @description No response body */
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_archived_cycles_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_archived_cycles_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -17472,48 +16704,6 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_archived_modules_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_archived_modules_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     workspaces_projects_archived_modules_retrieve_2: {
         parameters: {
             query?: never;
@@ -17529,50 +16719,6 @@ export interface operations {
         responses: {
             /** @description No response body */
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_archived_modules_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_archived_modules_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -17602,48 +16748,6 @@ export interface operations {
         };
     };
     workspaces_projects_automations_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_automations_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_automations_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -17714,6 +16818,7 @@ export interface operations {
             header?: never;
             path: {
                 automation_id: string;
+                pk: string;
                 project_id: string;
                 slug: string;
             };
@@ -17731,97 +16836,6 @@ export interface operations {
         };
     };
     workspaces_projects_automations_actions_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                automation_id: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_automations_actions_retrieve_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                automation_id: string;
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_automations_actions_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                automation_id: string;
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_automations_actions_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                automation_id: string;
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_automations_actions_partial_update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -17910,29 +16924,7 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_automations_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_automations_destroy_2: {
+    workspaces_projects_automations_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -17954,7 +16946,7 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_automations_partial_update_2: {
+    workspaces_projects_automations_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -18165,28 +17157,6 @@ export interface operations {
         };
     };
     workspaces_projects_cycles_analytics_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                cycle_id: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_cycles_archive_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -20600,81 +19570,6 @@ export interface operations {
             header?: never;
             path: {
                 issue_id: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_projects_issues_issue_attachments_retrieve_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                issue_id: string;
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IssueAttachment"];
-                };
-            };
-        };
-    };
-    workspaces_projects_issues_issue_attachments_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                issue_id: string;
-                pk: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["IssueAttachmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueAttachmentRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IssueAttachment"];
-                };
-            };
-        };
-    };
-    workspaces_projects_issues_issue_attachments_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                issue_id: string;
                 pk: string;
                 project_id: string;
                 slug: string;
@@ -21906,28 +20801,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ModuleWrite"];
                 };
-            };
-        };
-    };
-    workspaces_projects_modules_archive_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                module_id: string;
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -24516,7 +23389,12 @@ export interface operations {
     };
     workspaces_user_activity_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -24526,12 +23404,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PaginatedIssueActivityList"];
+                };
             };
         };
     };
@@ -24547,12 +23426,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
+            /** @description CSV file */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "text/csv": string;
+                };
             };
         };
     };
@@ -24662,6 +23543,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                favorite_id: string;
                 slug: string;
             };
             cookie?: never;
@@ -24678,89 +23560,6 @@ export interface operations {
         };
     };
     workspaces_user_favorites_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_user_favorites_retrieve_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                favorite_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_user_favorites_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                favorite_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_user_favorites_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                favorite_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_user_favorites_partial_update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -24835,12 +23634,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkspaceUserProfile"];
+                };
             };
         };
     };
@@ -24855,12 +23655,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkspaceUserProperties"];
+                };
             };
         };
     };
@@ -24875,12 +23676,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkspaceUserProperties"];
+                };
             };
         };
     };
@@ -24896,12 +23698,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkspaceUserStats"];
+                };
             };
         };
     };
@@ -25109,12 +23912,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -25129,12 +23933,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UnreadNotificationCount"];
+                };
             };
         };
     };
@@ -25349,46 +24154,6 @@ export interface operations {
             };
         };
     };
-    workspaces_webhooks_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_webhooks_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     workspaces_webhooks_retrieve_2: {
         parameters: {
             query?: never;
@@ -25410,28 +24175,7 @@ export interface operations {
             };
         };
     };
-    workspaces_webhooks_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pk: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_webhooks_destroy_2: {
+    workspaces_webhooks_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -25452,7 +24196,7 @@ export interface operations {
             };
         };
     };
-    workspaces_webhooks_partial_update_2: {
+    workspaces_webhooks_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -25567,12 +24311,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkspaceMemberMe"];
+                };
             };
         };
     };
@@ -25753,27 +24498,6 @@ export interface operations {
         };
     };
     workspaces_file_assets_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                asset_key: string;
-                workspace_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    workspaces_file_assets_create: {
         parameters: {
             query?: never;
             header?: never;

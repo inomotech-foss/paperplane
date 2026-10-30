@@ -3,6 +3,9 @@
 # See the LICENSE file for details.
 
 # Third Party imports
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.plumbing import build_basic_type, build_object_type
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Min
@@ -388,6 +391,14 @@ class UserProjectRolesEndpoint(BaseAPIView):
     permission_classes = [WorkspaceUserPermission]
     use_read_replica = True
 
+    @extend_schema(
+        responses={
+            200: build_object_type(
+                description="Project role by project id",
+                additionalProperties=build_basic_type(OpenApiTypes.INT),
+            )
+        }
+    )
     def get(self, request, slug):
         project_members = ProjectMember.objects.filter(
             workspace__slug=slug,

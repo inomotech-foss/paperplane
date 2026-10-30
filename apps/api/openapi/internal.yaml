@@ -42,9 +42,17 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/assets/v2/user-assets/{asset_id}/:
     patch:
       operationId: assets_v2_user_assets_partial_update
       description: This endpoint is used to upload user profile images.
+      parameters:
+      - in: path
+        name: asset_id
+        schema:
+          type: string
+          format: uuid
+        required: true
       tags:
       - assets
       security:
@@ -54,51 +62,6 @@ paths:
           description: No response body
     delete:
       operationId: assets_v2_user_assets_destroy
-      description: This endpoint is used to upload user profile images.
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/assets/v2/user-assets/{asset_id}/:
-    post:
-      operationId: assets_v2_user_assets_create_2
-      description: This endpoint is used to upload user profile images.
-      parameters:
-      - in: path
-        name: asset_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    patch:
-      operationId: assets_v2_user_assets_partial_update_2
-      description: This endpoint is used to upload user profile images.
-      parameters:
-      - in: path
-        name: asset_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: assets_v2_user_assets_destroy_2
       description: This endpoint is used to upload user profile images.
       parameters:
       - in: path
@@ -115,8 +78,8 @@ paths:
         '204':
           description: No response body
   /api/assets/v2/workspaces/{slug}/:
-    get:
-      operationId: assets_v2_workspaces_retrieve
+    post:
+      operationId: assets_v2_workspaces_create
       description: This endpoint is used to upload cover images/logos etc for workspace,
         projects and users.
       parameters:
@@ -132,11 +95,18 @@ paths:
       responses:
         '200':
           description: No response body
-    post:
-      operationId: assets_v2_workspaces_create
+  /api/assets/v2/workspaces/{slug}/{asset_id}/:
+    get:
+      operationId: assets_v2_workspaces_retrieve
       description: This endpoint is used to upload cover images/logos etc for workspace,
         projects and users.
       parameters:
+      - in: path
+        name: asset_id
+        schema:
+          type: string
+          format: uuid
+        required: true
       - in: path
         name: slug
         schema:
@@ -155,6 +125,12 @@ paths:
         projects and users.
       parameters:
       - in: path
+        name: asset_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
         name: slug
         schema:
           type: string
@@ -168,93 +144,6 @@ paths:
           description: No response body
     delete:
       operationId: assets_v2_workspaces_destroy
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/assets/v2/workspaces/{slug}/{asset_id}/:
-    get:
-      operationId: assets_v2_workspaces_retrieve_2
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
-      parameters:
-      - in: path
-        name: asset_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    post:
-      operationId: assets_v2_workspaces_create_2
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
-      parameters:
-      - in: path
-        name: asset_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    patch:
-      operationId: assets_v2_workspaces_partial_update_2
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
-      parameters:
-      - in: path
-        name: asset_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: assets_v2_workspaces_destroy_2
       description: This endpoint is used to upload cover images/logos etc for workspace,
         projects and users.
       parameters:
@@ -348,29 +237,6 @@ paths:
         '200':
           description: No response body
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/:
-    get:
-      operationId: assets_v2_workspaces_projects_retrieve
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
-      parameters:
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
     post:
       operationId: assets_v2_workspaces_projects_create
       description: This endpoint is used to upload cover images/logos etc for workspace,
@@ -393,52 +259,6 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
-    patch:
-      operationId: assets_v2_workspaces_projects_partial_update
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
-      parameters:
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: assets_v2_workspaces_projects_destroy
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
-      parameters:
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
           description: No response body
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/{entity_id}/bulk/:
     post:
@@ -473,36 +293,7 @@ paths:
           description: No response body
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/{pk}/:
     get:
-      operationId: assets_v2_workspaces_projects_retrieve_2
-      description: This endpoint is used to upload cover images/logos etc for workspace,
-        projects and users.
-      parameters:
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    post:
-      operationId: assets_v2_workspaces_projects_create_2
+      operationId: assets_v2_workspaces_projects_retrieve
       description: This endpoint is used to upload cover images/logos etc for workspace,
         projects and users.
       parameters:
@@ -531,7 +322,7 @@ paths:
         '200':
           description: No response body
     patch:
-      operationId: assets_v2_workspaces_projects_partial_update_2
+      operationId: assets_v2_workspaces_projects_partial_update
       description: This endpoint is used to upload cover images/logos etc for workspace,
         projects and users.
       parameters:
@@ -560,7 +351,7 @@ paths:
         '200':
           description: No response body
     delete:
-      operationId: assets_v2_workspaces_projects_destroy_2
+      operationId: assets_v2_workspaces_projects_destroy
       description: This endpoint is used to upload cover images/logos etc for workspace,
         projects and users.
       parameters:
@@ -698,81 +489,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/IssueAttachment'
           description: ''
-    patch:
-      operationId: assets_v2_workspaces_projects_issues_attachments_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: issue_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedIssueAttachmentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedIssueAttachmentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedIssueAttachmentRequest'
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueAttachment'
-          description: ''
-    delete:
-      operationId: assets_v2_workspaces_projects_issues_attachments_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: issue_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/attachments/{pk}/:
     get:
       operationId: assets_v2_workspaces_projects_issues_attachments_retrieve_2
@@ -814,60 +530,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/IssueAttachment'
           description: ''
-    post:
-      operationId: assets_v2_workspaces_projects_issues_attachments_create_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: issue_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IssueAttachmentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/IssueAttachmentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/IssueAttachmentRequest'
-        required: true
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueAttachment'
-          description: ''
     patch:
-      operationId: assets_v2_workspaces_projects_issues_attachments_partial_update_2
+      operationId: assets_v2_workspaces_projects_issues_attachments_partial_update
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -918,7 +582,7 @@ paths:
                 $ref: '#/components/schemas/IssueAttachment'
           description: ''
     delete:
-      operationId: assets_v2_workspaces_projects_issues_attachments_destroy_2
+      operationId: assets_v2_workspaces_projects_issues_attachments_destroy
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -1040,87 +704,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/PageAttachment'
           description: ''
-    patch:
-      operationId: assets_v2_workspaces_projects_pages_attachments_partial_update
-      description: |-
-        Files attached to a page, as opposed to images embedded in its body.
-
-        Same three-step flow as work-item attachments: POST reserves the asset and
-        returns a presigned URL, the client PUTs the file straight to storage, then
-        PATCH marks it uploaded.
-      parameters:
-      - in: path
-        name: page_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedPageAttachmentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedPageAttachmentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedPageAttachmentRequest'
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PageAttachment'
-          description: ''
-    delete:
-      operationId: assets_v2_workspaces_projects_pages_attachments_destroy
-      description: |-
-        Files attached to a page, as opposed to images embedded in its body.
-
-        Same three-step flow as work-item attachments: POST reserves the asset and
-        returns a presigned URL, the client PUTs the file straight to storage, then
-        PATCH marks it uploaded.
-      parameters:
-      - in: path
-        name: page_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/{pk}/:
     get:
       operationId: assets_v2_workspaces_projects_pages_attachments_retrieve_2
@@ -1165,63 +748,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/PageAttachment'
           description: ''
-    post:
-      operationId: assets_v2_workspaces_projects_pages_attachments_create_2
-      description: |-
-        Files attached to a page, as opposed to images embedded in its body.
-
-        Same three-step flow as work-item attachments: POST reserves the asset and
-        returns a presigned URL, the client PUTs the file straight to storage, then
-        PATCH marks it uploaded.
-      parameters:
-      - in: path
-        name: page_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - assets
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PageAttachmentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PageAttachmentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PageAttachmentRequest'
-        required: true
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PageAttachment'
-          description: ''
     patch:
-      operationId: assets_v2_workspaces_projects_pages_attachments_partial_update_2
+      operationId: assets_v2_workspaces_projects_pages_attachments_partial_update
       description: |-
         Files attached to a page, as opposed to images embedded in its body.
 
@@ -1275,7 +803,7 @@ paths:
                 $ref: '#/components/schemas/PageAttachment'
           description: ''
     delete:
-      operationId: assets_v2_workspaces_projects_pages_attachments_destroy_2
+      operationId: assets_v2_workspaces_projects_pages_attachments_destroy
       description: |-
         Files attached to a page, as opposed to images embedded in its body.
 
@@ -2258,23 +1786,6 @@ paths:
         '200':
           description: No response body
   /api/public/assets/v2/anchor/{anchor}/:
-    get:
-      operationId: public_assets_v2_anchor_retrieve
-      description: A project board only serves the project it belongs to.
-      parameters:
-      - in: path
-        name: anchor
-        schema:
-          type: string
-        required: true
-      tags:
-      - public
-      security:
-      - sessionAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
     post:
       operationId: public_assets_v2_anchor_create
       description: A project board only serves the project it belongs to.
@@ -2290,38 +1801,6 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
-    patch:
-      operationId: public_assets_v2_anchor_partial_update
-      description: A project board only serves the project it belongs to.
-      parameters:
-      - in: path
-        name: anchor
-        schema:
-          type: string
-        required: true
-      tags:
-      - public
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: public_assets_v2_anchor_destroy
-      description: A project board only serves the project it belongs to.
-      parameters:
-      - in: path
-        name: anchor
-        schema:
-          type: string
-        required: true
-      tags:
-      - public
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
           description: No response body
   /api/public/assets/v2/anchor/{anchor}/{entity_id}/bulk/:
     post:
@@ -2348,7 +1827,7 @@ paths:
           description: No response body
   /api/public/assets/v2/anchor/{anchor}/{pk}/:
     get:
-      operationId: public_assets_v2_anchor_retrieve_2
+      operationId: public_assets_v2_anchor_retrieve
       description: A project board only serves the project it belongs to.
       parameters:
       - in: path
@@ -2370,30 +1849,8 @@ paths:
       responses:
         '200':
           description: No response body
-    post:
-      operationId: public_assets_v2_anchor_create_2
-      description: A project board only serves the project it belongs to.
-      parameters:
-      - in: path
-        name: anchor
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - public
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
     patch:
-      operationId: public_assets_v2_anchor_partial_update_2
+      operationId: public_assets_v2_anchor_partial_update
       description: A project board only serves the project it belongs to.
       parameters:
       - in: path
@@ -2415,7 +1872,7 @@ paths:
         '200':
           description: No response body
     delete:
-      operationId: public_assets_v2_anchor_destroy_2
+      operationId: public_assets_v2_anchor_destroy
       description: A project board only serves the project it belongs to.
       parameters:
       - in: path
@@ -2456,24 +1913,6 @@ paths:
       - public
       security:
       - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/public/workspaces/{slug}/project-boards/:
-    get:
-      operationId: public_workspaces_project_boards_retrieve
-      description: A project board only serves the project it belongs to.
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - public
-      security:
-      - sessionAuth: []
-      - {}
       responses:
         '200':
           description: No response body
@@ -2554,7 +1993,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/APITokenRead'
+          description: ''
     post:
       operationId: users_api_tokens_create
       description: |-
@@ -2565,32 +2010,12 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
-          description: No response body
-    patch:
-      operationId: users_api_tokens_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      tags:
-      - users
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: users_api_tokens_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      tags:
-      - users
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIToken'
+          description: ''
   /api/users/api-tokens/{pk}/:
     get:
       operationId: users_api_tokens_retrieve_2
@@ -2610,28 +2035,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
-    post:
-      operationId: users_api_tokens_create_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - users
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APITokenRead'
+          description: ''
     patch:
-      operationId: users_api_tokens_partial_update_2
+      operationId: users_api_tokens_partial_update
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -2648,9 +2058,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIToken'
+          description: ''
     delete:
-      operationId: users_api_tokens_destroy_2
+      operationId: users_api_tokens_destroy
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -2670,56 +2084,35 @@ paths:
           description: No response body
   /api/users/connected-apps/:
     get:
-      operationId: users_connected_apps_retrieve
-      description: |-
-        OAuth applications the signed-in user has granted access to.
-
-        The consent screen is the only other place a grant can be narrowed, and it
-        needs the application to drive it. This is where a user sees the whole list.
-      tags:
-      - users
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: users_connected_apps_destroy
-      description: |-
-        OAuth applications the signed-in user has granted access to.
-
-        The consent screen is the only other place a grant can be narrowed, and it
-        needs the application to drive it. This is where a user sees the whole list.
-      tags:
-      - users
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/users/connected-apps/{pk}/:
-    get:
-      operationId: users_connected_apps_retrieve_2
+      operationId: users_connected_apps_list
       description: |-
         OAuth applications the signed-in user has granted access to.
 
         The consent screen is the only other place a grant can be narrowed, and it
         needs the application to drive it. This is where a user sees the whole list.
       parameters:
-      - in: path
-        name: pk
+      - name: search
+        required: false
+        in: query
+        description: A search term.
         schema:
-          type: integer
-        required: true
+          type: string
       tags:
       - users
       security:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConnectedApp'
+          description: ''
+  /api/users/connected-apps/{pk}/:
     delete:
-      operationId: users_connected_apps_destroy_2
+      operationId: users_connected_apps_destroy
       description: |-
         OAuth applications the signed-in user has granted access to.
 
@@ -2739,18 +2132,6 @@ paths:
         '204':
           description: No response body
   /api/users/file-assets/:
-    get:
-      operationId: users_file_assets_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      tags:
-      - users
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
     post:
       operationId: users_file_assets_create
       description: |-
@@ -2763,39 +2144,9 @@ paths:
       responses:
         '200':
           description: No response body
-    delete:
-      operationId: users_file_assets_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      tags:
-      - users
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/users/file-assets/{asset_key}/:
     get:
-      operationId: users_file_assets_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: asset_key
-        schema:
-          type: string
-        required: true
-      tags:
-      - users
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    post:
-      operationId: users_file_assets_create_2
+      operationId: users_file_assets_retrieve
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -2813,7 +2164,7 @@ paths:
         '200':
           description: No response body
     delete:
-      operationId: users_file_assets_destroy_2
+      operationId: users_file_assets_destroy
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -2842,7 +2193,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LastVisitedWorkspace'
+          description: ''
   /api/users/me/:
     get:
       operationId: users_me_retrieve
@@ -2858,7 +2213,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserMe'
           description: ''
     patch:
       operationId: users_me_partial_update
@@ -2911,19 +2266,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
-    delete:
-      operationId: users_me_accounts_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      tags:
-      - users
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+          description: ''
   /api/users/me/accounts/{pk}/:
     get:
       operationId: users_me_accounts_retrieve_2
@@ -2943,9 +2292,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
     delete:
-      operationId: users_me_accounts_destroy_2
+      operationId: users_me_accounts_destroy
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -2969,13 +2322,38 @@ paths:
       description: |-
         This enables timezone conversion according
         to the user set timezone
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Pagination cursor for getting next set of results
+        examples:
+          NextPageCursor:
+            value: '20:1:0'
+            summary: Next page cursor
+            description: 'Cursor format: ''page_size:page_number:offset'''
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: 'Number of results per page (default: 20, max: 100)'
+        examples:
+          Default:
+            value: 20
+          Maximum:
+            value: 100
       tags:
       - users
       security:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedIssueActivityList'
+          description: ''
   /api/users/me/email/:
     patch:
       operationId: users_me_email_partial_update
@@ -3003,7 +2381,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserMe'
           description: ''
   /api/users/me/email/generate-code/:
     post:
@@ -3032,7 +2410,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/MessageResponse'
           description: ''
   /api/users/me/instance-admin/:
     get:
@@ -3049,7 +2427,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/InstanceAdminStatus'
           description: ''
   /api/users/me/notification-preferences/:
     get:
@@ -3107,7 +2485,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
   /api/users/me/profile/:
     get:
       operationId: users_me_profile_retrieve
@@ -3120,7 +2502,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
     patch:
       operationId: users_me_profile_partial_update
       description: |-
@@ -3132,7 +2518,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
   /api/users/me/settings/:
     get:
       operationId: users_me_settings_retrieve
@@ -3148,7 +2538,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserMeSettings'
           description: ''
   /api/users/me/tour-completed/:
     patch:
@@ -3162,27 +2552,50 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
   /api/users/me/workspaces/:
     get:
-      operationId: users_me_workspaces_retrieve
+      operationId: users_me_workspaces_list
       description: |-
         This enables timezone conversion according
         to the user set timezone
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       tags:
       - users
       security:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkSpace'
+          description: ''
   /api/users/me/workspaces/{slug}/activity-graph/:
     get:
-      operationId: users_me_workspaces_activity_graph_retrieve
+      operationId: users_me_workspaces_activity_graph_list
       description: |-
         This enables timezone conversion according
         to the user set timezone
       parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -3194,7 +2607,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActivityCount'
+          description: ''
   /api/users/me/workspaces/{slug}/dashboard/:
     get:
       operationId: users_me_workspaces_dashboard_retrieve
@@ -3213,14 +2632,24 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWorkspaceDashboard'
+          description: ''
   /api/users/me/workspaces/{slug}/issues-completed-graph/:
     get:
-      operationId: users_me_workspaces_issues_completed_graph_retrieve
+      operationId: users_me_workspaces_issues_completed_graph_list
       description: |-
         This enables timezone conversion according
         to the user set timezone
       parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -3232,7 +2661,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompletedIssueWeek'
+          description: ''
   /api/users/me/workspaces/{slug}/project-roles/:
     get:
       operationId: users_me_workspaces_project_roles_retrieve
@@ -3251,7 +2686,14 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Project role by project id
+                additionalProperties:
+                  type: integer
+          description: ''
   /api/users/me/workspaces/{slug}/projects/invitations/:
     get:
       operationId: users_me_workspaces_projects_invitations_list
@@ -3383,7 +2825,11 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSession'
+          description: ''
   /api/workspace-slug-check/:
     get:
       operationId: workspace_slug_check_retrieve
@@ -3396,7 +2842,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlugAvailability'
+          description: ''
   /api/workspaces/:
     get:
       operationId: workspaces_list
@@ -3876,50 +3326,6 @@ paths:
       responses:
         '200':
           description: No response body
-    patch:
-      operationId: workspaces_automations_partial_update
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: workspaces_automations_destroy
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/workspaces/{slug}/automations/{automation_id}/actions/:
     get:
       operationId: workspaces_automations_actions_retrieve
@@ -3977,6 +3383,7 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/workspaces/{slug}/automations/{automation_id}/actions/{pk}/:
     patch:
       operationId: workspaces_automations_actions_partial_update
       description: |-
@@ -3989,6 +3396,12 @@ paths:
       parameters:
       - in: path
         name: automation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: pk
         schema:
           type: string
           format: uuid
@@ -4007,137 +3420,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_automations_actions_destroy
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: automation_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/workspaces/{slug}/automations/{automation_id}/actions/{pk}/:
-    get:
-      operationId: workspaces_automations_actions_retrieve_2
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: automation_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    post:
-      operationId: workspaces_automations_actions_create_2
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: automation_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    patch:
-      operationId: workspaces_automations_actions_partial_update_2
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: automation_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: workspaces_automations_actions_destroy_2
       description: |-
         Shared CRUD for automations. Subclasses set ``scope`` and apply the
         permission level that matches their URL.
@@ -4256,36 +3538,8 @@ paths:
       responses:
         '200':
           description: No response body
-    post:
-      operationId: workspaces_automations_create_2
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
     patch:
-      operationId: workspaces_automations_partial_update_2
+      operationId: workspaces_automations_partial_update
       description: |-
         Shared CRUD for automations. Subclasses set ``scope`` and apply the
         permission level that matches their URL.
@@ -4313,7 +3567,7 @@ paths:
         '200':
           description: No response body
     delete:
-      operationId: workspaces_automations_destroy_2
+      operationId: workspaces_automations_destroy
       description: |-
         Shared CRUD for automations. Subclasses set ``scope`` and apply the
         permission level that matches their URL.
@@ -5023,26 +4277,8 @@ paths:
                 $ref: '#/components/schemas/ExporterHistory'
           description: ''
   /api/workspaces/{slug}/file-assets/:
-    get:
-      operationId: workspaces_file_assets_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
     post:
-      operationId: workspaces_file_assets_create_2
+      operationId: workspaces_file_assets_create
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -5058,24 +4294,6 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
-    delete:
-      operationId: workspaces_file_assets_destroy_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
           description: No response body
   /api/workspaces/{slug}/home-preferences/:
     get:
@@ -5100,69 +4318,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/WorkspaceHomePreference'
           description: ''
+  /api/workspaces/{slug}/home-preferences/{key}/:
     patch:
       operationId: workspaces_home_preferences_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedWorkspaceHomePreferenceRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedWorkspaceHomePreferenceRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedWorkspaceHomePreferenceRequest'
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WorkspaceHomePreference'
-          description: ''
-  /api/workspaces/{slug}/home-preferences/{key}/:
-    get:
-      operationId: workspaces_home_preferences_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: key
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WorkspaceHomePreference'
-          description: ''
-    patch:
-      operationId: workspaces_home_preferences_partial_update_2
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -6102,54 +5260,6 @@ paths:
       responses:
         '200':
           description: No response body
-    post:
-      operationId: workspaces_projects_archived_cycles_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: workspaces_projects_archived_cycles_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/workspaces/{slug}/projects/{project_id}/archived-cycles/{pk}/:
     get:
       operationId: workspaces_projects_archived_cycles_retrieve_2
@@ -6180,66 +5290,6 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
-    post:
-      operationId: workspaces_projects_archived_cycles_create_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: workspaces_projects_archived_cycles_destroy_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
           description: No response body
   /api/workspaces/{slug}/projects/{project_id}/archived-issues/:
     get:
@@ -6297,54 +5347,6 @@ paths:
       responses:
         '200':
           description: No response body
-    post:
-      operationId: workspaces_projects_archived_modules_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: workspaces_projects_archived_modules_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/workspaces/{slug}/projects/{project_id}/archived-modules/{pk}/:
     get:
       operationId: workspaces_projects_archived_modules_retrieve_2
@@ -6375,66 +5377,6 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
-    post:
-      operationId: workspaces_projects_archived_modules_create_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: workspaces_projects_archived_modules_destroy_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
           description: No response body
   /api/workspaces/{slug}/projects/{project_id}/automations/:
     get:
@@ -6492,62 +5434,6 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
-    patch:
-      operationId: workspaces_projects_automations_partial_update
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: workspaces_projects_automations_destroy
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
           description: No response body
   /api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/:
     get:
@@ -6618,6 +5504,7 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/{pk}/:
     patch:
       operationId: workspaces_projects_automations_actions_partial_update
       description: |-
@@ -6630,6 +5517,12 @@ paths:
       parameters:
       - in: path
         name: automation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: pk
         schema:
           type: string
           format: uuid
@@ -6654,161 +5547,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_projects_automations_actions_destroy
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: automation_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/{pk}/:
-    get:
-      operationId: workspaces_projects_automations_actions_retrieve_2
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: automation_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    post:
-      operationId: workspaces_projects_automations_actions_create_2
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: automation_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    patch:
-      operationId: workspaces_projects_automations_actions_partial_update_2
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: automation_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: workspaces_projects_automations_actions_destroy_2
       description: |-
         Shared CRUD for automations. Subclasses set ``scope`` and apply the
         permission level that matches their URL.
@@ -6951,42 +5689,8 @@ paths:
       responses:
         '200':
           description: No response body
-    post:
-      operationId: workspaces_projects_automations_create_2
-      description: |-
-        Shared CRUD for automations. Subclasses set ``scope`` and apply the
-        permission level that matches their URL.
-
-        Project scoped automations live under a project and are pinned to it.
-        Workspace scoped ones live under the workspace and fan out to either every
-        project or an explicit list.
-      parameters:
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
     patch:
-      operationId: workspaces_projects_automations_partial_update_2
+      operationId: workspaces_projects_automations_partial_update
       description: |-
         Shared CRUD for automations. Subclasses set ``scope`` and apply the
         permission level that matches their URL.
@@ -7020,7 +5724,7 @@ paths:
         '200':
           description: No response body
     delete:
-      operationId: workspaces_projects_automations_destroy_2
+      operationId: workspaces_projects_automations_destroy
       description: |-
         Shared CRUD for automations. Subclasses set ``scope`` and apply the
         permission level that matches their URL.
@@ -7350,36 +6054,6 @@ paths:
         '200':
           description: No response body
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/archive/:
-    get:
-      operationId: workspaces_projects_cycles_archive_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: cycle_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
     post:
       operationId: workspaces_projects_cycles_archive_create
       description: |-
@@ -10912,128 +9586,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/IssueAttachment'
           description: ''
+  /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/:
     delete:
       operationId: workspaces_projects_issues_issue_attachments_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: issue_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/:
-    get:
-      operationId: workspaces_projects_issues_issue_attachments_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: issue_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueAttachment'
-          description: ''
-    post:
-      operationId: workspaces_projects_issues_issue_attachments_create_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: issue_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/IssueAttachmentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/IssueAttachmentRequest'
-        required: true
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueAttachment'
-          description: ''
-    delete:
-      operationId: workspaces_projects_issues_issue_attachments_destroy_2
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -12903,36 +11458,6 @@ paths:
                 $ref: '#/components/schemas/ModuleWrite'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/archive/:
-    get:
-      operationId: workspaces_projects_modules_archive_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: module_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
     post:
       operationId: workspaces_projects_modules_archive_create
       description: |-
@@ -16685,6 +15210,26 @@ paths:
         This enables timezone conversion according
         to the user set timezone
       parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Pagination cursor for getting next set of results
+        examples:
+          NextPageCursor:
+            value: '20:1:0'
+            summary: Next page cursor
+            description: 'Cursor format: ''page_size:page_number:offset'''
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: 'Number of results per page (default: 20, max: 100)'
+        examples:
+          Default:
+            value: 20
+          Maximum:
+            value: 100
       - in: path
         name: slug
         schema:
@@ -16702,7 +15247,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedIssueActivityList'
+          description: ''
   /api/workspaces/{slug}/user-activity/{user_id}/export/:
     post:
       operationId: workspaces_user_activity_export_create
@@ -16727,7 +15276,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            text/csv:
+              schema:
+                type: string
+          description: CSV file
   /api/workspaces/{slug}/user-favorite-projects/:
     get:
       operationId: workspaces_user_favorite_projects_retrieve
@@ -16827,12 +15380,19 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/workspaces/{slug}/user-favorites/{favorite_id}/:
     patch:
       operationId: workspaces_user_favorites_partial_update
       description: |-
         This enables timezone conversion according
         to the user set timezone
       parameters:
+      - in: path
+        name: favorite_id
+        schema:
+          type: string
+          format: uuid
+        required: true
       - in: path
         name: slug
         schema:
@@ -16847,97 +15407,6 @@ paths:
           description: No response body
     delete:
       operationId: workspaces_user_favorites_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/workspaces/{slug}/user-favorites/{favorite_id}/:
-    get:
-      operationId: workspaces_user_favorites_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: favorite_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    post:
-      operationId: workspaces_user_favorites_create_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: favorite_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    patch:
-      operationId: workspaces_user_favorites_partial_update_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: favorite_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: workspaces_user_favorites_destroy_2
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -17034,7 +15503,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceUserProfile'
+          description: ''
   /api/workspaces/{slug}/user-properties/:
     get:
       operationId: workspaces_user_properties_retrieve
@@ -17053,7 +15526,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceUserProperties'
+          description: ''
     patch:
       operationId: workspaces_user_properties_partial_update
       description: |-
@@ -17071,7 +15548,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceUserProperties'
+          description: ''
   /api/workspaces/{slug}/user-stats/{user_id}/:
     get:
       operationId: workspaces_user_stats_retrieve
@@ -17096,7 +15577,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceUserStats'
+          description: ''
   /api/workspaces/{slug}/users/notifications/:
     get:
       operationId: workspaces_users_notifications_list
@@ -17367,8 +15852,12 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '201':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
   /api/workspaces/{slug}/users/notifications/unread/:
     get:
       operationId: workspaces_users_notifications_unread_retrieve
@@ -17387,7 +15876,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadNotificationCount'
+          description: ''
   /api/workspaces/{slug}/views/:
     get:
       operationId: workspaces_views_list
@@ -17647,42 +16140,6 @@ paths:
       responses:
         '200':
           description: No response body
-    patch:
-      operationId: workspaces_webhooks_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: workspaces_webhooks_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/workspaces/{slug}/webhooks/{pk}/:
     get:
       operationId: workspaces_webhooks_retrieve_2
@@ -17708,32 +16165,8 @@ paths:
       responses:
         '200':
           description: No response body
-    post:
-      operationId: workspaces_webhooks_create_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: pk
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
     patch:
-      operationId: workspaces_webhooks_partial_update_2
+      operationId: workspaces_webhooks_partial_update
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -17757,7 +16190,7 @@ paths:
         '200':
           description: No response body
     delete:
-      operationId: workspaces_webhooks_destroy_2
+      operationId: workspaces_webhooks_destroy
       description: |-
         This enables timezone conversion according
         to the user set timezone
@@ -17894,7 +16327,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberMe'
+          description: ''
     patch:
       operationId: workspaces_workspace_members_me_partial_update
       description: |-
@@ -18131,30 +16568,6 @@ paths:
       responses:
         '200':
           description: No response body
-    post:
-      operationId: workspaces_file_assets_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
-      parameters:
-      - in: path
-        name: asset_key
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: workspace_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - workspaces
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          description: No response body
     delete:
       operationId: workspaces_file_assets_destroy
       description: |-
@@ -18314,6 +16727,157 @@ paths:
           description: No response body
 components:
   schemas:
+    APIToken:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        label:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        is_active:
+          type: boolean
+          readOnly: true
+        last_used:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        token:
+          type: string
+          readOnly: true
+        user_type:
+          allOf:
+          - $ref: '#/components/schemas/UserTypeEnum'
+          readOnly: true
+        expired_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+      required:
+      - id
+      - created_at
+      - updated_at
+      - deleted_at
+      - label
+      - description
+      - is_active
+      - last_used
+      - token
+      - user_type
+      - expired_at
+      - created_by
+      - updated_by
+      - user
+      - workspace
+    APITokenRead:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        label:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        last_used:
+          type: string
+          format: date-time
+          nullable: true
+        user_type:
+          allOf:
+          - $ref: '#/components/schemas/UserTypeEnum'
+          minimum: 0
+          maximum: 32767
+        expired_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        user:
+          type: string
+          format: uuid
+        workspace:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - id
+      - is_active
+      - created_at
+      - updated_at
+      - deleted_at
+      - label
+      - description
+      - last_used
+      - user_type
+      - expired_at
+      - created_by
+      - updated_by
+      - user
+      - workspace
     AccessEnum:
       enum:
       - 0
@@ -18322,6 +16886,89 @@ components:
       description: |-
         * `0` - Private
         * `1` - Public
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        provider_account_id:
+          type: string
+          maxLength: 255
+        provider:
+          $ref: '#/components/schemas/AccountProviderEnum'
+        access_token:
+          type: string
+        access_token_expired_at:
+          type: string
+          format: date-time
+          nullable: true
+        refresh_token:
+          type: string
+          nullable: true
+        refresh_token_expired_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_connected_at:
+          type: string
+          format: date-time
+        id_token:
+          type: string
+        metadata: {}
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - id
+      - created_at
+      - updated_at
+      - provider_account_id
+      - provider
+      - access_token
+      - access_token_expired_at
+      - refresh_token
+      - refresh_token_expired_at
+      - last_connected_at
+      - id_token
+      - metadata
+      - user
+    AccountProviderEnum:
+      enum:
+      - google
+      - github
+      - gitlab
+      - gitea
+      - oidc
+      type: string
+      description: |-
+        * `google` - Google
+        * `github` - Github
+        * `gitlab` - GitLab
+        * `gitea` - Gitea
+        * `oidc` - OIDC
+    ActivityCount:
+      type: object
+      properties:
+        created_date:
+          type: string
+          format: date
+        activity_count:
+          type: integer
+      required:
+      - created_date
+      - activity_count
     AnalyticView:
       type: object
       properties:
@@ -18495,6 +17142,62 @@ components:
           minLength: 1
       required:
       - reaction
+    CompletedIssueWeek:
+      type: object
+      properties:
+        week:
+          type: integer
+          description: ISO week of completion modulo 4
+        completed_count:
+          type: integer
+      required:
+      - week
+      - completed_count
+    CompletedIssueWeekInMonth:
+      type: object
+      properties:
+        week_in_month:
+          type: integer
+        completed_count:
+          type: integer
+      required:
+      - week_in_month
+      - completed_count
+    ConnectedApp:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: OAuth application id
+        name:
+          type: string
+        connected_at:
+          type: string
+          format: date-time
+          description: When access was first granted
+        workspaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedAppWorkspace'
+      required:
+      - id
+      - name
+      - connected_at
+      - workspaces
+    ConnectedAppWorkspace:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+      required:
+      - id
+      - name
+      - slug
     Cycle:
       type: object
       properties:
@@ -19009,6 +17712,9 @@ components:
         * `INHERIT` - Inherit from parent
         * `LOOKUP` - From ancestor
         * `ROLLUP` - Roll up from children
+    EmptyObject:
+      type: object
+      additionalProperties: false
     Estimate:
       type: object
       properties:
@@ -19123,7 +17829,7 @@ components:
           nullable: true
         provider:
           allOf:
-          - $ref: '#/components/schemas/ProviderEnum'
+          - $ref: '#/components/schemas/ExporterHistoryProviderEnum'
           readOnly: true
         status:
           allOf:
@@ -19169,6 +17875,16 @@ components:
       - token
       - created_by
       - updated_by
+    ExporterHistoryProviderEnum:
+      enum:
+      - json
+      - csv
+      - xlsx
+      type: string
+      description: |-
+        * `json` - json
+        * `csv` - csv
+        * `xlsx` - xlsx
     ExporterHistoryStatusEnum:
       enum:
       - queued
@@ -19197,6 +17913,13 @@ components:
         * `completed` - Completed
         * `cancelled` - Cancelled
         * `triage` - Triage
+    InstanceAdminStatus:
+      type: object
+      properties:
+        is_instance_admin:
+          type: boolean
+      required:
+      - is_instance_admin
     Intake:
       type: object
       properties:
@@ -19559,6 +18282,148 @@ components:
       - updated_by
       - is_draft
       - archived_at
+    IssueActivity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        actor_detail:
+          allOf:
+          - $ref: '#/components/schemas/UserLite'
+          readOnly: true
+          nullable: true
+        issue_detail:
+          allOf:
+          - $ref: '#/components/schemas/IssueFlat'
+          readOnly: true
+          nullable: true
+        project_detail:
+          allOf:
+          - $ref: '#/components/schemas/ProjectLite'
+          readOnly: true
+        workspace_detail:
+          allOf:
+          - $ref: '#/components/schemas/WorkspaceLite'
+          readOnly: true
+        source_data:
+          allOf:
+          - $ref: '#/components/schemas/IssueSourceData'
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        verb:
+          type: string
+          title: Action
+          maxLength: 255
+        field:
+          type: string
+          nullable: true
+          title: Field Name
+          maxLength: 255
+        old_value:
+          type: string
+          nullable: true
+        new_value:
+          type: string
+          nullable: true
+        comment:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uri
+            maxLength: 200
+          maxItems: 10
+        old_identifier:
+          type: string
+          format: uuid
+          nullable: true
+        new_identifier:
+          type: string
+          format: uuid
+          nullable: true
+        epoch:
+          type: number
+          format: double
+          nullable: true
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        project:
+          type: string
+          format: uuid
+        workspace:
+          type: string
+          format: uuid
+        issue:
+          type: string
+          format: uuid
+          nullable: true
+        issue_comment:
+          type: string
+          format: uuid
+          nullable: true
+        actor:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - id
+      - actor_detail
+      - issue_detail
+      - project_detail
+      - workspace_detail
+      - source_data
+      - created_at
+      - updated_at
+      - deleted_at
+      - verb
+      - field
+      - old_value
+      - new_value
+      - comment
+      - attachments
+      - old_identifier
+      - new_identifier
+      - epoch
+      - external_source
+      - external_id
+      - created_by
+      - updated_by
+      - project
+      - workspace
+      - issue
+      - issue_comment
+      - actor
     IssueAttachment:
       type: object
       properties:
@@ -19569,6 +18434,7 @@ components:
         asset_url:
           type: string
           readOnly: true
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -20846,6 +19712,20 @@ components:
             type: string
             format: uuid
           writeOnly: true
+    IssueSourceData:
+      type: object
+      properties:
+        source:
+          type: string
+          nullable: true
+        source_email:
+          type: string
+          nullable: true
+        extra: {}
+      required:
+      - source
+      - source_email
+      - extra
     IssueState:
       type: object
       properties:
@@ -21674,6 +20554,31 @@ components:
           format: double
       required:
       - name
+    LastVisitedWorkspace:
+      type: object
+      properties:
+        workspace_details:
+          allOf:
+          - $ref: '#/components/schemas/LastVisitedWorkspaceDetails'
+          description: An empty object when the user has no last workspace
+        project_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectMember'
+      required:
+      - workspace_details
+      - project_details
+    LastVisitedWorkspaceDetails:
+      oneOf:
+      - $ref: '#/components/schemas/WorkSpace'
+      - $ref: '#/components/schemas/EmptyObject'
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
     Module:
       type: object
       properties:
@@ -22335,6 +21240,14 @@ components:
           nullable: true
       required:
       - name
+    NavigationControlPreferenceEnum:
+      enum:
+      - ACCORDION
+      - TABBED
+      type: string
+      description: |-
+        * `ACCORDION` - Accordion
+        * `TABBED` - Tabbed
     NetworkEnum:
       enum:
       - 0
@@ -22528,6 +21441,14 @@ components:
       - sender
       - title
       - workspace
+    NotificationViewModeEnum:
+      enum:
+      - full
+      - compact
+      type: string
+      description: |-
+        * `full` - Full
+        * `compact` - Compact
     NullEnum:
       enum:
       - null
@@ -22580,6 +21501,28 @@ components:
       - description
       - sequence
       - order
+    OverdueIssue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        workspace__slug:
+          type: string
+        project_id:
+          type: string
+          format: uuid
+        target_date:
+          type: string
+          format: date
+      required:
+      - id
+      - name
+      - workspace__slug
+      - project_id
+      - target_date
     Page:
       type: object
       properties:
@@ -22686,6 +21629,7 @@ components:
         asset_url:
           type: string
           readOnly: true
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -23177,6 +22121,50 @@ components:
           items:
             type: string
             format: uuid
+    PaginatedIssueActivityList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueActivity'
+        grouped_by:
+          type: string
+          nullable: true
+        sub_grouped_by:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+        next_cursor:
+          type: string
+        prev_cursor:
+          type: string
+        next_page_results:
+          type: boolean
+        prev_page_results:
+          type: boolean
+        count:
+          type: integer
+        total_pages:
+          type: integer
+        total_results:
+          type: integer
+        extra_stats:
+          nullable: true
+      required:
+      - results
+      - grouped_by
+      - sub_grouped_by
+      - total_count
+      - next_cursor
+      - prev_cursor
+      - next_page_results
+      - prev_page_results
+      - count
+      - total_pages
+      - total_results
+      - extra_stats
     PaginatedTrashedIssueList:
       type: object
       properties:
@@ -24475,6 +23463,19 @@ components:
       description: |-
         * `jql` - JQL
         * `plane` - Plane
+    PriorityCount:
+      type: object
+      properties:
+        priority:
+          type: string
+        priority_count:
+          type: integer
+        priority_order:
+          type: integer
+      required:
+      - priority
+      - priority_count
+      - priority_order
     PriorityEnum:
       enum:
       - urgent
@@ -24489,6 +23490,113 @@ components:
         * `medium` - Medium
         * `low` - Low
         * `none` - None
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        theme: {}
+        is_app_rail_docked:
+          type: boolean
+        is_tour_completed:
+          type: boolean
+        onboarding_step: {}
+        use_case:
+          type: string
+          nullable: true
+        role:
+          type: string
+          nullable: true
+          maxLength: 300
+        is_onboarded:
+          type: boolean
+        last_workspace_id:
+          type: string
+          format: uuid
+          nullable: true
+        billing_address_country:
+          type: string
+          maxLength: 255
+        billing_address:
+          nullable: true
+        has_billing_address:
+          type: boolean
+        company_name:
+          type: string
+          maxLength: 255
+        notification_view_mode:
+          $ref: '#/components/schemas/NotificationViewModeEnum'
+        is_smooth_cursor_enabled:
+          type: boolean
+        is_mobile_onboarded:
+          type: boolean
+        mobile_onboarding_step: {}
+        mobile_timezone_auto_set:
+          type: boolean
+        language:
+          type: string
+          maxLength: 255
+        start_of_the_week:
+          allOf:
+          - $ref: '#/components/schemas/StartOfTheWeekEnum'
+          minimum: 0
+          maximum: 32767
+        goals: {}
+        background_color:
+          type: string
+          maxLength: 255
+        is_navigation_tour_completed:
+          type: boolean
+        has_marketing_email_consent:
+          type: boolean
+        is_subscribed_to_changelog:
+          type: boolean
+        product_tour: {}
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - id
+      - created_at
+      - updated_at
+      - theme
+      - is_app_rail_docked
+      - is_tour_completed
+      - onboarding_step
+      - use_case
+      - role
+      - is_onboarded
+      - last_workspace_id
+      - billing_address_country
+      - billing_address
+      - has_billing_address
+      - company_name
+      - notification_view_mode
+      - is_smooth_cursor_enabled
+      - is_mobile_onboarded
+      - mobile_onboarding_step
+      - mobile_timezone_auto_set
+      - language
+      - start_of_the_week
+      - goals
+      - background_color
+      - is_navigation_tour_completed
+      - has_marketing_email_consent
+      - is_subscribed_to_changelog
+      - product_tour
+      - user
     ProjectList:
       type: object
       properties:
@@ -24515,6 +23623,7 @@ components:
         cover_image_url:
           type: string
           readOnly: true
+          nullable: true
         inbox_view:
           type: boolean
           readOnly: true
@@ -24818,6 +23927,7 @@ components:
           nullable: true
         cover_image_url:
           type: string
+          nullable: true
           readOnly: true
         logo_props:
           readOnly: true
@@ -24833,6 +23943,84 @@ components:
       - cover_image_url
       - logo_props
       - description
+    ProjectMember:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          allOf:
+          - $ref: '#/components/schemas/WorkspaceLite'
+          readOnly: true
+        project:
+          allOf:
+          - $ref: '#/components/schemas/ProjectLite'
+          readOnly: true
+        member:
+          allOf:
+          - $ref: '#/components/schemas/UserLite'
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          minimum: 0
+          maximum: 32767
+        view_props: {}
+        default_props: {}
+        preferences: {}
+        sort_order:
+          type: number
+          format: double
+        is_active:
+          type: boolean
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          title: Last Modified By
+      required:
+      - id
+      - workspace
+      - project
+      - member
+      - created_at
+      - updated_at
+      - deleted_at
+      - comment
+      - role
+      - view_props
+      - default_props
+      - preferences
+      - sort_order
+      - is_active
+      - created_by
+      - updated_by
     ProjectMemberAdmin:
       type: object
       properties:
@@ -25167,16 +24355,6 @@ components:
         * `DATETIME` - Datetime
         * `BOOLEAN` - Boolean
         * `RELATION` - Relation
-    ProviderEnum:
-      enum:
-      - json
-      - csv
-      - xlsx
-      type: string
-      description: |-
-        * `json` - json
-        * `csv` - csv
-        * `xlsx` - xlsx
     RelationTypeEnum:
       enum:
       - USER
@@ -25203,6 +24381,43 @@ components:
         * `20` - Admin
         * `15` - Member
         * `5` - Guest
+    SlugAvailability:
+      type: object
+      properties:
+        status:
+          type: boolean
+          description: True when the slug is free
+      required:
+      - status
+    StartOfTheWeekEnum:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      type: integer
+      description: |-
+        * `0` - Sunday
+        * `1` - Monday
+        * `2` - Tuesday
+        * `3` - Wednesday
+        * `4` - Thursday
+        * `5` - Friday
+        * `6` - Saturday
+    StateGroupCount:
+      type: object
+      properties:
+        state_group:
+          type: string
+          nullable: true
+        state_count:
+          type: integer
+      required:
+      - state_group
+      - state_count
     StateLite:
       type: object
       properties:
@@ -26297,6 +25512,38 @@ components:
       description: |-
         * `categories` - Categories
         * `points` - Points
+    UnreadNotificationCount:
+      type: object
+      properties:
+        total_unread_notifications_count:
+          type: integer
+        mention_unread_notifications_count:
+          type: integer
+      required:
+      - total_unread_notifications_count
+      - mention_unread_notifications_count
+    UpcomingIssue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        workspace__slug:
+          type: string
+        project_id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          format: date
+      required:
+      - id
+      - name
+      - workspace__slug
+      - project_id
+      - start_date
     User:
       type: object
       properties:
@@ -26505,6 +25752,7 @@ components:
           type: string
         avatar_url:
           type: string
+          nullable: true
           readOnly: true
         is_bot:
           type: boolean
@@ -26552,6 +25800,21 @@ components:
           type: string
           minLength: 1
           maxLength: 20
+    UserCycle:
+      type: object
+      properties:
+        cycle__name:
+          type: string
+        cycle__id:
+          type: string
+          format: uuid
+        cycle__project_id:
+          type: string
+          format: uuid
+      required:
+      - cycle__name
+      - cycle__id
+      - cycle__project_id
     UserLite:
       type: object
       properties:
@@ -26569,6 +25832,7 @@ components:
           type: string
         avatar_url:
           type: string
+          nullable: true
           readOnly: true
         is_bot:
           type: boolean
@@ -26599,6 +25863,112 @@ components:
           type: string
           minLength: 1
           maxLength: 255
+    UserMe:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        avatar:
+          type: string
+          readOnly: true
+        cover_image:
+          type: string
+          format: uri
+          readOnly: true
+          nullable: true
+        avatar_url:
+          type: string
+          nullable: true
+          readOnly: true
+        cover_image_url:
+          type: string
+          nullable: true
+          readOnly: true
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Created At
+        display_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          readOnly: true
+          nullable: true
+        first_name:
+          type: string
+          readOnly: true
+        last_name:
+          type: string
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+        is_bot:
+          type: boolean
+          readOnly: true
+        is_email_verified:
+          type: boolean
+          readOnly: true
+        user_timezone:
+          allOf:
+          - $ref: '#/components/schemas/UserTimezoneEnum'
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        is_password_autoset:
+          type: boolean
+          readOnly: true
+        last_login_medium:
+          type: string
+          readOnly: true
+        last_login_time:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - id
+      - avatar
+      - cover_image
+      - avatar_url
+      - cover_image_url
+      - date_joined
+      - display_name
+      - email
+      - first_name
+      - last_name
+      - is_active
+      - is_bot
+      - is_email_verified
+      - user_timezone
+      - username
+      - is_password_autoset
+      - last_login_medium
+      - last_login_time
+    UserMeSettings:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          readOnly: true
+          nullable: true
+        workspace:
+          allOf:
+          - $ref: '#/components/schemas/UserWorkspaceSettings'
+          readOnly: true
+      required:
+      - id
+      - email
+      - workspace
     UserNotificationPreference:
       type: object
       properties:
@@ -26670,6 +26040,28 @@ components:
       - user
       - workspace
       - project
+    UserProjectIssueCounts:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        logo_props: {}
+        created_issues:
+          type: integer
+        assigned_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        pending_issues:
+          type: integer
+      required:
+      - id
+      - logo_props
+      - created_issues
+      - assigned_issues
+      - completed_issues
+      - pending_issues
     UserRequest:
       type: object
       properties:
@@ -26729,6 +26121,17 @@ components:
           type: string
           format: uuid
           nullable: true
+    UserSession:
+      type: object
+      properties:
+        is_authenticated:
+          type: boolean
+        user:
+          allOf:
+          - $ref: '#/components/schemas/UserMe'
+          description: Present when authenticated
+      required:
+      - is_authenticated
     UserTimezoneEnum:
       enum:
       - Africa/Abidjan
@@ -27599,6 +27002,86 @@ components:
         * `US/Mountain` - US/Mountain
         * `US/Pacific` - US/Pacific
         * `UTC` - UTC
+    UserTypeEnum:
+      enum:
+      - 0
+      - 1
+      type: integer
+      description: |-
+        * `0` - Human
+        * `1` - Bot
+    UserWorkspaceDashboard:
+      type: object
+      properties:
+        issue_activities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityCount'
+        completed_issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompletedIssueWeekInMonth'
+        assigned_issues_count:
+          type: integer
+        pending_issues_count:
+          type: integer
+        completed_issues_count:
+          type: integer
+        issues_due_week_count:
+          type: integer
+        state_distribution:
+          type: array
+          items:
+            $ref: '#/components/schemas/StateGroupCount'
+        overdue_issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/OverdueIssue'
+        upcoming_issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpcomingIssue'
+      required:
+      - issue_activities
+      - completed_issues
+      - assigned_issues_count
+      - pending_issues_count
+      - completed_issues_count
+      - issues_due_week_count
+      - state_distribution
+      - overdue_issues
+      - upcoming_issues
+    UserWorkspaceSettings:
+      type: object
+      properties:
+        last_workspace_id:
+          type: string
+          format: uuid
+          nullable: true
+        last_workspace_slug:
+          type: string
+          nullable: true
+        last_workspace_name:
+          type: string
+          description: Present when there is a last workspace
+        last_workspace_logo:
+          type: string
+          description: Present when there is a last workspace
+        fallback_workspace_id:
+          type: string
+          format: uuid
+          nullable: true
+        fallback_workspace_slug:
+          type: string
+          nullable: true
+        invites:
+          type: integer
+      required:
+      - last_workspace_id
+      - last_workspace_slug
+      - fallback_workspace_id
+      - fallback_workspace_slug
+      - invites
     VoteEnum:
       enum:
       - -1
@@ -27620,6 +27103,7 @@ components:
         logo_url:
           type: string
           readOnly: true
+          nullable: true
         role:
           type: integer
           readOnly: true
@@ -27858,6 +27342,7 @@ components:
           readOnly: true
         logo_url:
           type: string
+          nullable: true
           readOnly: true
       required:
       - name
@@ -28147,6 +27632,38 @@ components:
           title: Last Modified By
       required:
       - name
+    WorkspaceUserData:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        avatar_url:
+          type: string
+          nullable: true
+        cover_image_url:
+          type: string
+          nullable: true
+        date_joined:
+          type: string
+          format: date-time
+        user_timezone:
+          type: string
+        display_name:
+          type: string
+      required:
+      - email
+      - first_name
+      - last_name
+      - avatar_url
+      - cover_image_url
+      - date_joined
+      - user_timezone
+      - display_name
     WorkspaceUserLink:
       type: object
       properties:
@@ -28253,6 +27770,120 @@ components:
       - key
       - is_pinned
       - sort_order
+    WorkspaceUserProfile:
+      type: object
+      properties:
+        project_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserProjectIssueCounts'
+          description: Empty unless the caller is a workspace admin or member
+        user_data:
+          $ref: '#/components/schemas/WorkspaceUserData'
+      required:
+      - project_data
+      - user_data
+    WorkspaceUserProperties:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        filters: {}
+        display_filters: {}
+        display_properties: {}
+        rich_filters: {}
+        navigation_project_limit:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        navigation_control_preference:
+          $ref: '#/components/schemas/NavigationControlPreferenceEnum'
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - id
+      - created_at
+      - updated_at
+      - deleted_at
+      - filters
+      - display_filters
+      - display_properties
+      - rich_filters
+      - navigation_project_limit
+      - navigation_control_preference
+      - created_by
+      - updated_by
+      - workspace
+      - user
+    WorkspaceUserStats:
+      type: object
+      properties:
+        state_distribution:
+          type: array
+          items:
+            $ref: '#/components/schemas/StateGroupCount'
+        priority_distribution:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriorityCount'
+        created_issues:
+          type: integer
+        assigned_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        pending_issues:
+          type: integer
+        subscribed_issues:
+          type: integer
+        present_cycles:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserCycle'
+        upcoming_cycles:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserCycle'
+      required:
+      - state_distribution
+      - priority_distribution
+      - created_issues
+      - assigned_issues
+      - completed_issues
+      - pending_issues
+      - subscribed_issues
+      - present_cycles
+      - upcoming_cycles
   securitySchemes:
     cookieAuth:
       type: apiKey

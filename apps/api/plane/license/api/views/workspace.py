@@ -3,6 +3,7 @@
 # See the LICENSE file for details.
 
 # Third party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import IntegrityError, transaction
@@ -15,11 +16,15 @@ from plane.license.api.permissions import InstanceAdminPermission
 from plane.db.models import Profile, Project, User, Workspace, WorkspaceMember
 from plane.license.api.serializers import WorkspaceSerializer
 from plane.utils.constants import RESTRICTED_WORKSPACE_SLUGS
+from plane.utils.openapi.serializers import SlugAvailabilitySerializer
+from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.utils.openapi.pagination import paginated_response
 
 
 class InstanceWorkSpaceAvailabilityCheckEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
+    @extend_schema(responses={200: SlugAvailabilitySerializer})
     def get(self, request):
         slug = request.GET.get("slug", False)
 
@@ -38,6 +43,10 @@ class InstanceWorkSpaceEndpoint(BaseAPIView):
     serializer_class = WorkspaceSerializer
     permission_classes = [InstanceAdminPermission]
 
+    @extend_schema(
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER],
+        responses={200: paginated_response(WorkspaceSerializer, name="InstanceWorkspace")},
+    )
     def get(self, request):
         project_count = (
             Project.objects.filter(workspace_id=OuterRef("id"))
@@ -69,6 +78,7 @@ class InstanceWorkSpaceEndpoint(BaseAPIView):
             default_per_page=10,
         )
 
+    @extend_schema(responses={201: WorkspaceSerializer})
     def post(self, request):
         try:
             serializer = WorkspaceSerializer(data=request.data)
@@ -130,6 +140,7 @@ def annotated_workspaces():
 class InstanceWorkSpaceDetailEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
+    @extend_schema(responses={200: WorkspaceSerializer})
     def get(self, request, pk):
         workspace = get_object_or_404(annotated_workspaces(), pk=pk)
         return Response(WorkspaceSerializer(workspace).data, status=status.HTTP_200_OK)
@@ -144,6 +155,7 @@ class InstanceWorkSpaceDetailEndpoint(BaseAPIView):
 class InstanceWorkSpaceTransferOwnerEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
+    @extend_schema(responses={200: WorkspaceSerializer})
     def post(self, request, pk):
         workspace = get_object_or_404(Workspace, pk=pk)
         owner_id = request.data.get("owner")

@@ -22,6 +22,8 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 # Third party modules
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -33,6 +35,7 @@ from plane.app.permissions import (
 
 # Module imports
 from plane.app.serializers import WorkSpaceSerializer, WorkspaceThemeSerializer
+from plane.app.serializers.response.workspace import UserWorkspaceDashboardSerializer
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.app.views.workspace.user import _visible_issues_q
 from plane.db.models import (
@@ -49,6 +52,7 @@ from plane.license.utils.instance_value import get_configuration_value
 from plane.bgtasks.workspace_seed_task import workspace_seed
 from plane.utils.url import contains_url
 from plane.utils.csv_utils import sanitize_csv_row
+from plane.utils.openapi.serializers import SlugAvailabilitySerializer
 
 
 class WorkSpaceViewSet(BaseViewSet):
@@ -178,6 +182,7 @@ class UserWorkSpacesEndpoint(BaseAPIView):
     filterset_fields = ["owner"]
     use_read_replica = True
 
+    @extend_schema(responses={200: WorkSpaceSerializer(many=True)})
     def get(self, request):
         fields = [field for field in request.GET.get("fields", "").split(",") if field]
         member_count = (
@@ -213,6 +218,7 @@ class UserWorkSpacesEndpoint(BaseAPIView):
 
 
 class WorkSpaceAvailabilityCheckEndpoint(BaseAPIView):
+    @extend_schema(responses={200: SlugAvailabilitySerializer})
     def get(self, request):
         slug = request.GET.get("slug", False)
 
@@ -232,6 +238,7 @@ class WeekInMonth(Func):
 
 
 class UserWorkspaceDashboardEndpoint(BaseAPIView):
+    @extend_schema(responses={200: UserWorkspaceDashboardSerializer})
     def get(self, request, slug):
         issue_activities = (
             IssueActivity.objects.filter(
@@ -348,6 +355,7 @@ class ExportWorkspaceUserActivityEndpoint(BaseAPIView):
         csv_buffer.seek(0)
         return csv_buffer
 
+    @extend_schema(responses={(200, "text/csv"): OpenApiResponse(OpenApiTypes.STR, description="CSV file")})
     def post(self, request, slug, user_id):
         if not request.data.get("date"):
             return Response({"error": "Date is required"}, status=status.HTTP_400_BAD_REQUEST)
