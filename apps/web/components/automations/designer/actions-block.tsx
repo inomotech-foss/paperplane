@@ -26,7 +26,7 @@ import { useAutomation } from "@/hooks/store/use-automation";
 // local imports
 import { allowedActions, findAction } from "../helpers/metadata";
 import { AutomationActionConfig } from "./action-config";
-import { getStringField } from "@/helpers/narrow.helper";
+import { getFirstStringField, getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   workspaceSlug: string;
@@ -76,7 +76,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
       setToast({
         type: "error",
         title: t("automations.toasts.action.update.error.title"),
-        message: getStringField(error, "config") ?? t("automations.toasts.action.update.error.message"),
+        message: getFirstStringField(error, "config") ?? t("automations.toasts.action.update.error.message"),
       });
     } finally {
       setIsSaving(false);
@@ -157,7 +157,7 @@ export const AutomationActionsBlock = observer(function AutomationActionsBlock(p
       setToast({
         type: "error",
         title: t("automations.toasts.action.create.error.title"),
-        message: getStringField(error, "config") ?? t("automations.toasts.action.create.error.message"),
+        message: getFirstStringField(error, "config") ?? t("automations.toasts.action.create.error.message"),
       });
     } finally {
       setIsAdding(false);

@@ -18,7 +18,7 @@ import type { TAutomationConditionNode, TAutomationScheduleConfig, TAutomationTr
 import { Loader } from "@plane/blocks/skeleton";
 // hooks
 import { useAutomation } from "@/hooks/store/use-automation";
-import { getStringField, isRecord, isString } from "@/helpers/narrow.helper";
+import { getFirstStringField, getStringField, isRecord, isString } from "@/helpers/narrow.helper";
 import type { IAutomationStore } from "@/store/automation.store";
 // local imports
 import { useAutomationDetails, useAutomationMetadata } from "../helpers/metadata";
@@ -172,7 +172,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
       setToast({
         type: "error",
         title: t("automations.toasts.enable.error.title"),
-        message: getStringField(error, "is_enabled") ?? t("automations.enable.validation.required"),
+        message: getFirstStringField(error, "is_enabled") ?? t("automations.enable.validation.required"),
       });
     } finally {
       setIsTogglingEnabled(false);
