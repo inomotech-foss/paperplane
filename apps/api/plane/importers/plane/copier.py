@@ -4,6 +4,7 @@
 from itertools import islice
 
 from psycopg import sql
+from psycopg.types.json import Jsonb
 
 from .tables import plan_columns
 
@@ -28,11 +29,13 @@ def copy_table(source, spec, cursor):
     if not targets:
         raise MissingTableError(spec.name)
 
-    select = plan_columns(source.columns(spec.name), targets, spec)
+    source_columns = source.columns(spec.name)
+    select = plan_columns(source_columns, targets, spec)
     if not select:
         return 0
     columns = [item.rsplit(' AS "', 1)[1].rstrip('"') for item in select]
 
+    json_at = [i for i, column in enumerate(columns) if source_columns.get(column) in ("json", "jsonb")]
     updates = [column for column in columns if column != "id"]
     statement = sql.SQL("INSERT INTO {table} ({columns}) VALUES ({values}) ON CONFLICT (id) DO {action}").format(
         table=sql.Identifier(spec.name),
@@ -48,7 +51,17 @@ def copy_table(source, spec, cursor):
 
     written = 0
     rows = source.rows(spec.name, select)
+    if json_at:
+        rows = (_wrap_json(row, json_at) for row in rows)
     while batch := list(islice(rows, BATCH_SIZE)):
         cursor.executemany(query, batch)
         written += len(batch)
     return written
+
+
+def _wrap_json(row, positions):
+    row = list(row)
+    for i in positions:
+        if row[i] is not None:
+            row[i] = Jsonb(row[i])
+    return row

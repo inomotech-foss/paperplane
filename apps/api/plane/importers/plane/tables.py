@@ -138,7 +138,7 @@ def plan_columns(source_cols, target_cols, spec):
     """The aliased SELECT list that maps a source row onto the target table."""
     select = {}
     for column in source_cols.keys() & target_cols:
-        select[column] = spec.transforms.get(column, column)
+        select[column] = spec.transforms.get(column, f'"{column}"')
     for column, expression in spec.defaults.items():
         if column in target_cols and column not in source_cols:
             select[column] = expression

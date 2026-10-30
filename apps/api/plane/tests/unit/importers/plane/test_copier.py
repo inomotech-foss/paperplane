@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import pytest
 from django.db import connection
 
-from plane.db.models import Workspace
+from plane.db.models import Workspace, WorkspaceUserProperties
 from plane.importers.plane.copier import MissingTableError, copy_table
 from plane.importers.plane.tables import TableSpec
 
@@ -57,3 +57,27 @@ def test_copy_twice_updates_in_place(create_user):
 def test_missing_target_table_raises():
     with connection.cursor() as cursor, pytest.raises(MissingTableError):
         copy_table(FakeSource(), TableSpec("no_such_table"), cursor)
+
+
+@pytest.mark.django_db
+def test_copy_writes_json_columns(create_user):
+    workspace = Workspace.objects.create(name="json", slug="json", owner=create_user)
+    filters = {"priority": ["urgent"], "state_group": None}
+    row = {
+        "id": uuid.uuid4(),
+        "workspace_id": workspace.id,
+        "user_id": create_user.id,
+        "created_at": CREATED,
+        "updated_at": CREATED,
+        "filters": filters,
+        "display_filters": {},
+        "display_properties": {},
+        "rich_filters": {},
+        "navigation_control_preference": "ACCORDION",
+        "navigation_project_limit": 10,
+    }
+    json_types = dict.fromkeys(["filters", "display_filters", "display_properties", "rich_filters"], "jsonb")
+    source = FakeSource({"workspace_user_properties": [row]}, types=json_types)
+    with connection.cursor() as cursor:
+        copy_table(source, TableSpec("workspace_user_properties"), cursor)
+    assert WorkspaceUserProperties.objects.get(id=row["id"]).filters == filters

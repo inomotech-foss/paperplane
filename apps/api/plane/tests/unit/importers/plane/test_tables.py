@@ -11,7 +11,7 @@ def test_plan_columns_intersects_and_applies_transforms():
         {"id", "name", "archived_at", "type_id"},
         spec,
     )
-    assert cols == ['archived_at::date AS "archived_at"', 'id AS "id"', 'name AS "name"']
+    assert cols == ['archived_at::date AS "archived_at"', '"id" AS "id"', '"name" AS "name"']
 
 
 def test_plan_columns_fills_required_target_only_columns():
@@ -28,3 +28,7 @@ def test_every_listed_table_is_copied_or_skipped_once():
     names = [s.name for s in TABLES]
     assert len(names) == len(set(names))
     assert not set(names) & set(SKIPPED)
+
+
+def test_plan_columns_quotes_reserved_words():
+    assert plan_columns({"group": "text"}, {"group"}, TableSpec("states")) == ['"group" AS "group"']
