@@ -37,7 +37,7 @@ export function AIFeaturesMenu(props: Props) {
         middleware: [flip(), shift()],
       })
         .then(({ x, y }) => Object.assign(menuElement.style, { left: `${x}px`, top: `${y}px` }))
-        .catch((error) => console.error("An error occurred while positioning the AI menu:", error));
+        .catch((error: unknown) => console.error("An error occurred while positioning the AI menu:", error));
     });
     menuElement.focus();
 
@@ -46,8 +46,8 @@ export function AIFeaturesMenu(props: Props) {
 
   useEffect(() => {
     const handleClickAIHandle = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.matches("#ai-handle") || menuRef.current?.contains(e.target as Node)) {
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      if (target?.matches("#ai-handle") || menuRef.current?.contains(e.target instanceof Node ? e.target : null)) {
         e.preventDefault();
 
         if (!isPopupVisible) setAnchor(target);

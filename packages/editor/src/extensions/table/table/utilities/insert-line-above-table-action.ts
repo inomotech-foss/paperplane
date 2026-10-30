@@ -8,7 +8,7 @@ import type { KeyboardShortcutCommand } from "@tiptap/core";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
-import { findParentNodeOfType } from "@/helpers/common";
+import { findParentNodeOfType, isAncestorOfPosition } from "@/helpers/common";
 
 export const insertLineAboveTableAction: KeyboardShortcutCommand = ({ editor }) => {
   // Check if the current selection or the closest node is a table
@@ -26,8 +26,7 @@ export const insertLineAboveTableAction: KeyboardShortcutCommand = ({ editor }) 
 
     // Determine if the selection is in the first row of the table
     const firstRow = tableNode.node.child(0);
-    const selectionPath = (selection.$anchor as any).path;
-    const selectionInFirstRow = selectionPath.includes(firstRow);
+    const selectionInFirstRow = isAncestorOfPosition(selection.$anchor, firstRow);
 
     if (!selectionInFirstRow) return false;
 

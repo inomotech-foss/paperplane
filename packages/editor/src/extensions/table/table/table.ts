@@ -68,7 +68,7 @@ declare module "@tiptap/core" {
       toggleHeaderCell: () => ReturnType;
       clearSelectedCells: () => ReturnType;
       mergeOrSplit: () => ReturnType;
-      setCellAttribute: (name: string, value: any) => ReturnType;
+      setCellAttribute: (name: string, value: unknown) => ReturnType;
       goToNextCell: () => ReturnType;
       goToPreviousCell: () => ReturnType;
       fixTables: () => ReturnType;
@@ -303,14 +303,17 @@ export const Table = Node.create<TableOptions>({
   },
 
   extendNodeSchema(extension) {
+    const options: unknown = extension.options;
+    const storage: unknown = extension.storage;
     const context = {
       name: extension.name,
-      options: extension.options,
-      storage: extension.storage,
+      options,
+      storage,
     };
+    const tableRole = callOrReturn(getExtensionField<unknown>(extension, "tableRole", context));
 
     return {
-      tableRole: callOrReturn(getExtensionField(extension, "tableRole", context)),
+      tableRole,
     };
   },
 });

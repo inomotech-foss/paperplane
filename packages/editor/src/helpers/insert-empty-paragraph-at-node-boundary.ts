@@ -5,11 +5,27 @@
  */
 
 import type { KeyboardShortcutCommand } from "@tiptap/core";
-import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
+import type { Node as ProseMirrorNode, ResolvedPos } from "@tiptap/pm/model";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 
 type Direction = "up" | "down";
+
+const findNodeInSelection = (
+  $from: ResolvedPos,
+  $to: ResolvedPos,
+  nodeType: string
+): { node: ProseMirrorNode; pos: number } | null => {
+  let found: { node: ProseMirrorNode; pos: number } | null = null;
+  $from.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+    if (node.type.name === nodeType) {
+      found = { node, pos };
+      return false; // Stop iterating once the target node is found
+    }
+    return true;
+  });
+  return found;
+};
 
 export const insertEmptyParagraphAtNodeBoundaries: (direction: Direction, nodeType: string) => KeyboardShortcutCommand =
   (direction, nodeType) =>
@@ -18,20 +34,10 @@ export const insertEmptyParagraphAtNodeBoundaries: (direction: Direction, nodeTy
       const { selection, doc } = editor.state;
       const { $from, $to } = selection;
 
-      let targetNode: ProseMirrorNode | null = null;
-      let targetNodePos: number | null = null;
-
       // Check if the selection itself is the target node
-      doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
-        if (node.type.name === nodeType) {
-          targetNode = node;
-          targetNodePos = pos;
-          return false; // Stop iterating once the target node is found
-        }
-        return true;
-      });
-
-      if (targetNode === null || targetNodePos === null) return false;
+      const target = findNodeInSelection($from, $to, nodeType);
+      if (target === null) return false;
+      const { node: targetNode, pos: targetNodePos } = target;
 
       const docSize = doc.content.size; // Get the size of the document
 
@@ -64,7 +70,7 @@ export const insertEmptyParagraphAtNodeBoundaries: (direction: Direction, nodeTy
         }
 
         case "down": {
-          const insertPosDown = targetNodePos + (targetNode as ProseMirrorNode).nodeSize;
+          const insertPosDown = targetNodePos + targetNode.nodeSize;
 
           // Ensure the insert position is within the document boundaries
           if (insertPosDown < 0 || insertPosDown > docSize) return false;

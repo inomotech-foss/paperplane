@@ -28,7 +28,9 @@ type TableColumnDragHandlePluginState = {
   renderers?: ReactRenderer[];
 };
 
-const TABLE_COLUMN_DRAG_HANDLE_PLUGIN_KEY = new PluginKey("tableColumnHandlerDecorationPlugin");
+const TABLE_COLUMN_DRAG_HANDLE_PLUGIN_KEY = new PluginKey<TableColumnDragHandlePluginState>(
+  "tableColumnHandlerDecorationPlugin"
+);
 
 export const TableColumnDragHandlePlugin = (editor: Editor): Plugin<TableColumnDragHandlePluginState> =>
   new Plugin<TableColumnDragHandlePluginState>({
@@ -108,15 +110,12 @@ export const TableColumnDragHandlePlugin = (editor: Editor): Plugin<TableColumnD
     },
     props: {
       decorations(state) {
-        return (TABLE_COLUMN_DRAG_HANDLE_PLUGIN_KEY.getState(state) as TableColumnDragHandlePluginState | undefined)
-          ?.decorations;
+        return TABLE_COLUMN_DRAG_HANDLE_PLUGIN_KEY.getState(state)?.decorations;
       },
     },
     destroy() {
       // Clean up all renderers when plugin is destroyed
-      const state =
-        editor.state &&
-        (TABLE_COLUMN_DRAG_HANDLE_PLUGIN_KEY.getState(editor.state) as TableColumnDragHandlePluginState | undefined);
+      const state = editor.state && TABLE_COLUMN_DRAG_HANDLE_PLUGIN_KEY.getState(editor.state);
       state?.renderers?.forEach((renderer: ReactRenderer) => {
         try {
           renderer.destroy();

@@ -12,8 +12,8 @@ import { insertEmptyParagraphAtNodeBoundaries } from "@/helpers/insert-empty-par
 // types
 import type { TFileHandler } from "@/types";
 // local imports
-import type { CustomImageNodeViewProps } from "../custom-image/components/node-view";
 import { CustomImageNodeView } from "../custom-image/components/node-view";
+import { getCustomImageAttributes } from "../custom-image/utils";
 import { ImageExtensionConfig } from "./extension-config";
 
 declare module "@tiptap/core" {
@@ -63,7 +63,7 @@ export function ImageExtension(props: Props) {
     // render custom image node
     addNodeView() {
       return ReactNodeViewRenderer((props) => (
-        <CustomImageNodeView {...props} node={props.node as CustomImageNodeViewProps["node"]} />
+        <CustomImageNodeView {...props} attrs={getCustomImageAttributes(props.node.attrs)} />
       ));
     },
   });

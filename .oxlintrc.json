@@ -106,7 +106,6 @@
         "apps/admin/**",
         "apps/space/**",
         "apps/web/**",
-        "packages/editor/**",
         "packages/services/**"
       ],
       "rules": {

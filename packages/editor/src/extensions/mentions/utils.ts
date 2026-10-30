@@ -50,7 +50,7 @@ export const renderMentionsDropdown =
         });
         if (!props.clientRect) return;
         props.editor.commands.addActiveDropbarExtension(CORE_EXTENSIONS.MENTION);
-        const element = component.element as HTMLElement;
+        const element = component.element;
         cleanup = updateFloatingUIFloaterPosition(props.editor, element).cleanup;
       },
       onUpdate: (props) => {
@@ -58,7 +58,7 @@ export const renderMentionsDropdown =
         component.updateProps(props);
         if (!props.clientRect) return;
         cleanup();
-        cleanup = updateFloatingUIFloaterPosition(props.editor, component.element as HTMLElement).cleanup;
+        cleanup = updateFloatingUIFloaterPosition(props.editor, component.element).cleanup;
       },
       onKeyDown: ({ event }) => {
         if ([...DROPDOWN_NAVIGATION_KEYS, "Escape"].includes(event.key)) {

@@ -5,10 +5,20 @@
 
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
+// helpers
+import { isOneOf } from "@/helpers/narrow";
 // types
-import type { TQueryBlockHandler, TQueryBlockHandlerProps, TQueryBlockKind, TQueryBlockScope } from "@/types";
+import type { TQueryBlockHandler, TQueryBlockHandlerProps } from "@/types";
 // local imports
-import { DEFAULT_QUERY_BLOCK_KIND, DEFAULT_QUERY_BLOCK_SCOPE, QueryBlockExtensionConfig } from "./extension-config";
+import {
+  DEFAULT_QUERY_BLOCK_KIND,
+  DEFAULT_QUERY_BLOCK_SCOPE,
+  QUERY_BLOCK_KINDS,
+  QUERY_BLOCK_SCOPES,
+  QueryBlockExtensionConfig,
+} from "./extension-config";
+
+const QUERY_BLOCK_STATUSES: readonly NonNullable<TQueryBlockHandlerProps["status"]>[] = ["complete", "incomplete"];
 
 type TQueryBlockOptions = {
   renderComponent: TQueryBlockHandler["renderComponent"] | undefined;
@@ -30,16 +40,19 @@ function commaList(value: unknown) {
     .filter(Boolean);
 }
 
-function QueryBlock(props: NodeViewProps) {
-  const { renderComponent } = props.extension.options as TQueryBlockOptions;
+function QueryBlock(props: NodeViewProps & TQueryBlockOptions) {
+  const { renderComponent } = props;
   const attrs = props.node.attrs;
+  const kind: unknown = attrs.kind;
+  const scope: unknown = attrs.scope;
+  const status: unknown = attrs.status;
 
   return (
     <NodeViewWrapper className="editor-query-block-component my-2 block">
       <div contentEditable={false}>
         {renderComponent?.({
-          kind: (optionalString(attrs.kind) ?? DEFAULT_QUERY_BLOCK_KIND) as TQueryBlockKind,
-          scope: (optionalString(attrs.scope) ?? DEFAULT_QUERY_BLOCK_SCOPE) as TQueryBlockScope,
+          kind: isOneOf(QUERY_BLOCK_KINDS, kind) ? kind : DEFAULT_QUERY_BLOCK_KIND,
+          scope: isOneOf(QUERY_BLOCK_SCOPES, scope) ? scope : DEFAULT_QUERY_BLOCK_SCOPE,
           rootPageId: optionalString(attrs["root-page-id"]),
           depth: optionalNumber(attrs.depth),
           limit: optionalNumber(attrs.limit),
@@ -48,7 +61,7 @@ function QueryBlock(props: NodeViewProps) {
           labels: commaList(attrs.labels),
           placeholder: optionalString(attrs.placeholder),
           columns: commaList(attrs.columns),
-          status: optionalString(attrs.status) as TQueryBlockHandlerProps["status"],
+          status: isOneOf(QUERY_BLOCK_STATUSES, status) ? status : undefined,
         })}
       </div>
     </NodeViewWrapper>
@@ -69,7 +82,8 @@ export function QueryBlockExtension(handler: TQueryBlockHandler | undefined) {
     },
 
     addNodeView() {
-      return ReactNodeViewRenderer(QueryBlock);
+      const { renderComponent } = this.options;
+      return ReactNodeViewRenderer((props) => <QueryBlock {...props} renderComponent={renderComponent} />);
     },
   });
 }

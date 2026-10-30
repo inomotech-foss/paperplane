@@ -16,10 +16,10 @@ import {
   PasteRule,
   removeDuplicates,
 } from "@tiptap/core";
+import type { Editor as CoreEditor } from "@tiptap/core";
 import type { EmojiStorage } from "@tiptap/extension-emoji";
 import { emojis, emojiToShortcode, shortcodeToEmoji } from "@tiptap/extension-emoji";
 import { Fragment } from "@tiptap/pm/model";
-import type { Transaction } from "@tiptap/pm/state";
 import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
 import type { SuggestionOptions } from "@tiptap/suggestion";
 import Suggestion from "@tiptap/suggestion";
@@ -27,11 +27,20 @@ import emojiRegex from "emoji-regex";
 import { isEmojiSupported } from "is-emoji-supported";
 // helpers
 import { customFindSuggestionMatch } from "@/helpers/find-suggestion-match";
+// local imports
+import type { EmojiItem as EmojiListItem } from "./components/emojis-list";
 
-// Extended storage type to include our custom forceOpen flag
-export interface ExtendedEmojiStorage extends EmojiStorage {
-  forceOpen: boolean;
-}
+const forceOpenEditors = new WeakSet<CoreEditor>();
+
+/** Makes the next emoji suggestion open even with an empty query. */
+export const setEmojiForceOpen = (editor: CoreEditor, forceOpen: boolean) => {
+  if (forceOpen) forceOpenEditors.add(editor);
+  else forceOpenEditors.delete(editor);
+};
+
+export const isEmojiForceOpen = (editor: CoreEditor) => forceOpenEditors.has(editor);
+
+const getEmojiShortcode = (attrs: Record<string, unknown>) => String(attrs.name);
 
 export type EmojiItem = {
   /**
@@ -77,7 +86,7 @@ export type EmojiOptions = {
   emojis: EmojiItem[];
   enableEmoticons: boolean;
   forceFallbackImages: boolean;
-  suggestion: Omit<SuggestionOptions, "editor">;
+  suggestion: Omit<SuggestionOptions<EmojiListItem, { name: string }>, "editor">;
 };
 
 export const EmojiSuggestionPluginKey = new PluginKey("emojiSuggestion");
@@ -154,18 +163,17 @@ export const Emoji = Node.create<EmojiOptions, EmojiStorage>({
     const supportMap: Record<number, boolean> = removeDuplicates(emojis.map((item) => item.version))
       .filter((version) => typeof version === "number")
       .reduce((versions, version) => {
-        const emoji = emojis.find((item) => item.version === version && item.emoji);
+        const emoji = emojis.find((item) => item.version === version && item.emoji)?.emoji;
 
         return {
           ...versions,
-          [version]: emoji ? isEmojiSupported(emoji.emoji as string) : false,
+          [version]: emoji ? isEmojiSupported(emoji) : false,
         };
       }, {});
 
     return {
       emojis: this.options.emojis,
       isSupported: (emojiItem) => (emojiItem.version ? supportMap[emojiItem.version] : false),
-      forceOpen: false,
     };
   },
 
@@ -174,7 +182,7 @@ export const Emoji = Node.create<EmojiOptions, EmojiStorage>({
       name: {
         default: null,
         parseHTML: (element) => element.dataset.name,
-        renderHTML: (attributes) => ({
+        renderHTML: (attributes: Record<string, unknown>) => ({
           "data-name": attributes.name,
         }),
       },
@@ -190,11 +198,12 @@ export const Emoji = Node.create<EmojiOptions, EmojiStorage>({
   },
 
   renderHTML({ HTMLAttributes, node }) {
-    const emojiItem = shortcodeToEmoji(node.attrs.name, this.options.emojis);
+    const shortcode = getEmojiShortcode(node.attrs);
+    const emojiItem = shortcodeToEmoji(shortcode, this.options.emojis);
     const attributes = mergeAttributes(HTMLAttributes, this.options.HTMLAttributes, { "data-type": this.name });
 
     if (!emojiItem) {
-      return ["span", attributes, `:${node.attrs.name}:`];
+      return ["span", attributes, `:${shortcode}:`];
     }
 
     const renderFallbackImage = false;
@@ -217,9 +226,10 @@ export const Emoji = Node.create<EmojiOptions, EmojiStorage>({
   },
 
   renderText({ node }) {
-    const emojiItem = shortcodeToEmoji(node.attrs.name, this.options.emojis);
+    const shortcode = getEmojiShortcode(node.attrs);
+    const emojiItem = shortcodeToEmoji(shortcode, this.options.emojis);
 
-    return emojiItem?.emoji || `:${node.attrs.name}:`;
+    return emojiItem?.emoji || `:${shortcode}:`;
   },
 
   addCommands() {
@@ -282,7 +292,7 @@ export const Emoji = Node.create<EmojiOptions, EmojiStorage>({
 
     if (this.options.enableEmoticons) {
       // get the list of supported emoticons
-      const emoticons = this.options.emojis.flatMap((item) => item.emoticons).filter((item) => item) as string[];
+      const emoticons = this.options.emojis.flatMap((item) => item.emoticons ?? []).filter((item) => item);
 
       const emoticonRegex = new RegExp(`(?:^|\\s)(${emoticons.map((item) => escapeForRegEx(item)).join("|")}) $`);
 
@@ -386,7 +396,7 @@ export const Emoji = Node.create<EmojiOptions, EmojiStorage>({
           }
 
           const { tr } = newState;
-          const transform = combineTransactionSteps(oldState.doc, transactions as Transaction[]);
+          const transform = combineTransactionSteps(oldState.doc, [...transactions]);
           const changes = getChangedRanges(transform);
 
           changes.forEach(({ newRange }) => {

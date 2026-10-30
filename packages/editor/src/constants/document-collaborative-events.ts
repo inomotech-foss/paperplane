@@ -30,68 +30,53 @@ export type ErrorPayload = CreatePayload<{
   should_disconnect?: boolean;
 }>;
 
-// Enhanced DocumentCollaborativeEvents with payload types.
-// Both the client name and server name are defined, and we add a "payloadType" property
-// so that we can later derive a mapping from client event to payload type.
 export const DocumentCollaborativeEvents = {
   lock: {
     client: "locked",
     server: "lock",
-    payloadType: {} as LockedPayload,
   },
   unlock: {
     client: "unlocked",
     server: "unlock",
-    payloadType: {} as UnlockedPayload,
   },
   archive: {
     client: "archived",
     server: "archive",
-    payloadType: {} as ArchivedPayload,
   },
   unarchive: {
     client: "unarchived",
     server: "unarchive",
-    payloadType: {} as UnarchivedPayload,
   },
   "make-public": {
     client: "made-public",
     server: "make-public",
-    payloadType: {} as MadePublicPayload,
   },
   "make-private": {
     client: "made-private",
     server: "make-private",
-    payloadType: {} as MadePrivatePayload,
   },
   delete: {
     client: "deleted",
     server: "delete",
-    payloadType: {} as DeletedPayload,
   },
   move: {
     client: "moved",
     server: "move",
-    payloadType: {} as MovedPayload,
   },
   duplicate: {
     client: "duplicated",
     server: "duplicate",
-    payloadType: {} as DuplicatedPayload,
   },
   property_update: {
     client: "property_updated",
     server: "property_update",
-    payloadType: {} as PropertyUpdatedPayload,
   },
   restore: {
     client: "restored",
     server: "restore",
-    payloadType: {} as RestoredPayload,
   },
   error: {
     client: "error",
     server: "error",
-    payloadType: {} as ErrorPayload,
   },
 } as const;

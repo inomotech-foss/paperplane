@@ -21,6 +21,8 @@ import type { ISvgIcons } from "@plane/blocks/icons";
 import { cn } from "@plane/utils";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+// helpers
+import { nodeToJSONContent } from "@/helpers/prosemirror-json";
 // types
 import type { IEditorProps } from "@/types";
 // components
@@ -78,8 +80,8 @@ export function BlockMenu(props: Props) {
   // Handle click on drag handle
   const handleClickDragHandle = useCallback(
     (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      const dragHandle = target.closest("#drag-handle");
+      const target = event.target instanceof Node ? event.target : null;
+      const dragHandle = target instanceof Element ? target.closest("#drag-handle") : null;
 
       if (dragHandle) {
         event.preventDefault();
@@ -183,7 +185,7 @@ export function BlockMenu(props: Props) {
             throw new Error("The insertion position is invalid or outside the document.");
           }
 
-          const contentToInsert = firstChild.toJSON();
+          const contentToInsert = nodeToJSONContent(firstChild);
 
           // Insert the content at the calculated position
           editor

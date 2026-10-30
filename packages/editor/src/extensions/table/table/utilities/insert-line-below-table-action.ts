@@ -8,7 +8,7 @@ import type { KeyboardShortcutCommand } from "@tiptap/core";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
-import { findParentNodeOfType } from "@/helpers/common";
+import { findParentNodeOfType, isAncestorOfPosition } from "@/helpers/common";
 
 export const insertLineBelowTableAction: KeyboardShortcutCommand = ({ editor }) => {
   // Check if the current selection or the closest node is a table
@@ -28,8 +28,7 @@ export const insertLineBelowTableAction: KeyboardShortcutCommand = ({ editor }) 
     // Determine if the selection is in the last row of the table
     const rowCount = table.childCount;
     const lastRow = table.child(rowCount - 1);
-    const selectionPath = (selection.$anchor as any).path;
-    const selectionInLastRow = selectionPath.includes(lastRow);
+    const selectionInLastRow = isAncestorOfPosition(selection.$anchor, lastRow);
 
     if (!selectionInLastRow) return false;
 

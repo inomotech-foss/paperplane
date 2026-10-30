@@ -10,7 +10,6 @@ import type { TMentionHandler } from "@/types";
 // extension config
 import { CustomMentionExtensionConfig } from "./extension-config";
 // node view
-import type { MentionNodeViewProps } from "./mention-node-view";
 import { MentionNodeView } from "./mention-node-view";
 // utils
 import { renderMentionsDropdown } from "./utils";
@@ -19,8 +18,9 @@ export function CustomMentionExtension(props: TMentionHandler) {
   const { searchCallback, renderComponent, getMentionedEntityDetails, currentUserId } = props;
   return CustomMentionExtensionConfig.extend({
     addOptions(this) {
+      if (!this.parent) throw new Error("Mention options require the parent extension");
       return {
-        ...this.parent!(),
+        ...this.parent(),
         renderComponent,
         getMentionedEntityDetails,
       };
@@ -28,7 +28,7 @@ export function CustomMentionExtension(props: TMentionHandler) {
 
     addNodeView() {
       return ReactNodeViewRenderer((nodeViewProps) => (
-        <MentionNodeView {...nodeViewProps} node={nodeViewProps.node as MentionNodeViewProps["node"]} />
+        <MentionNodeView {...nodeViewProps} renderComponent={renderComponent} />
       ));
     },
   }).configure({

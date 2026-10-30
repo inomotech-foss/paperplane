@@ -12,7 +12,6 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 import { ECustomImageAttributeNames } from "./types";
 import type {
   CustomImageExtensionOptions,
-  TCustomImageAttributes,
   CustomImageExtensionType,
   CustomImageExtensionStorage,
   InsertImageComponentProps,
@@ -41,14 +40,13 @@ export const CustomImageExtensionConfig: CustomImageExtensionType = BaseImageExt
   addAttributes() {
     const attributes = {
       ...this.parent?.(),
-      ...Object.values(ECustomImageAttributeNames).reduce(
-        (acc, value) => {
-          acc[value] = {
+      ...Object.fromEntries(
+        Object.values(ECustomImageAttributeNames).map((value) => [
+          value,
+          {
             default: DEFAULT_CUSTOM_IMAGE_ATTRIBUTES[value],
-          };
-          return acc;
-        },
-        {} as Record<ECustomImageAttributeNames, { default: TCustomImageAttributes[ECustomImageAttributeNames] }>
+          },
+        ])
       ),
     };
 

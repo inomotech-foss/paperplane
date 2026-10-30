@@ -12,10 +12,9 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 import { insertEmptyParagraphAtNodeBoundaries } from "@/helpers/insert-empty-paragraph-at-node-boundary";
 // local imports
 import { CustomCalloutBlock } from "./block";
-import type { CustomCalloutNodeViewProps } from "./block";
 import { CustomCalloutExtensionConfig } from "./extension-config";
 import type { CustomCalloutExtensionOptions, CustomCalloutExtensionStorage } from "./types";
-import { getStoredBackgroundColor, getStoredLogo } from "./utils";
+import { getCalloutBlockAttributes, getStoredBackgroundColor, getStoredLogo } from "./utils";
 
 export const CustomCalloutExtension = CustomCalloutExtensionConfig.extend<
   CustomCalloutExtensionOptions,
@@ -76,7 +75,7 @@ export const CustomCalloutExtension = CustomCalloutExtensionConfig.extend<
 
   addNodeView() {
     return ReactNodeViewRenderer((props) => (
-      <CustomCalloutBlock {...props} node={props.node as CustomCalloutNodeViewProps["node"]} />
+      <CustomCalloutBlock {...props} attrs={getCalloutBlockAttributes(props.node.attrs)} />
     ));
   },
 });

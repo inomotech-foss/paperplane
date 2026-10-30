@@ -17,7 +17,9 @@ type TableCellSelectionOutlinePluginState = {
   decorations?: DecorationSet;
 };
 
-const TABLE_SELECTION_OUTLINE_PLUGIN_KEY = new PluginKey("table-cell-selection-outline");
+const TABLE_SELECTION_OUTLINE_PLUGIN_KEY = new PluginKey<TableCellSelectionOutlinePluginState>(
+  "table-cell-selection-outline"
+);
 
 export const TableCellSelectionOutlinePlugin = (editor: Editor): Plugin<TableCellSelectionOutlinePluginState> =>
   new Plugin<TableCellSelectionOutlinePluginState>({
@@ -60,7 +62,7 @@ export const TableCellSelectionOutlinePlugin = (editor: Editor): Plugin<TableCel
     },
     props: {
       decorations(state) {
-        return TABLE_SELECTION_OUTLINE_PLUGIN_KEY.getState(state).decorations;
+        return TABLE_SELECTION_OUTLINE_PLUGIN_KEY.getState(state)?.decorations;
       },
     },
   });

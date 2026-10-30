@@ -212,7 +212,10 @@ const tableToCells = (table: TableNodeLocation): TableRows => {
 const tableFromCells = (editor: Editor, table: TableNodeLocation, rows: TableRows, tr: Transaction): void => {
   const schema = editor.schema.nodes;
   const newRowNodes = rows.map((row) =>
-    schema.tableRow.create(null, row.filter((cell) => cell !== null) as readonly Node[])
+    schema.tableRow.create(
+      null,
+      row.filter((cell): cell is Node => cell !== null)
+    )
   );
   const newTableNode = table.node.copy(Fragment.from(newRowNodes));
   tr.replaceWith(table.pos, table.pos + table.node.nodeSize, newTableNode);

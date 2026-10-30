@@ -19,11 +19,12 @@ import { DROPDOWN_NAVIGATION_KEYS } from "@/helpers/tippy";
 import type { IEditorProps, ISlashCommandItem, TEditorCommands, TSlashCommandSectionKeys } from "@/types";
 // components
 import { getSlashCommandFilteredSections } from "./command-items-list";
+import type { TSlashCommandSection } from "./command-items-list";
 import type { SlashCommandsMenuProps } from "./command-menu";
 import { SlashCommandsMenu } from "./command-menu";
 
 export type SlashCommandOptions = {
-  suggestion: Omit<SuggestionOptions, "editor">;
+  suggestion: Omit<SuggestionOptions<TSlashCommandSection, ISlashCommandItem>, "editor">;
 };
 
 export type TSlashCommandAdditionalOption = ISlashCommandItem & {
@@ -84,7 +85,7 @@ const Command = Extension.create<SlashCommandOptions>({
               });
               if (!props.clientRect) return;
               props.editor.commands.addActiveDropbarExtension(CORE_EXTENSIONS.SLASH_COMMANDS);
-              const element = component.element as HTMLElement;
+              const element = component.element;
               cleanup = updateFloatingUIFloaterPosition(props.editor, element).cleanup;
             },
 
@@ -92,7 +93,7 @@ const Command = Extension.create<SlashCommandOptions>({
               if (!component || !component.element) return;
               component.updateProps(props);
               if (!props.clientRect) return;
-              const element = component.element as HTMLElement;
+              const element = component.element;
               cleanup();
               cleanup = updateFloatingUIFloaterPosition(props.editor, element).cleanup;
             },

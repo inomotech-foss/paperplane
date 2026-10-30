@@ -11,12 +11,12 @@ import * as Y from "yjs";
 // plane imports
 import { convertHTMLToMarkdown } from "@plane/utils";
 // components
-import { getEditorMenuItems } from "@/components/menus";
+import { executeEditorMenuItem, getEditorMenuItems, isEditorMenuItemActive } from "@/components/menus";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 import { CORE_EDITOR_META } from "@/constants/meta";
 // types
-import type { EditorRefApi, IEditorProps, TEditorCommands } from "@/types";
+import type { EditorRefApi, IEditorProps } from "@/types";
 // local imports
 import { getParagraphCount } from "./common";
 import { isDocumentEditorYDocEmpty } from "./yjs-utils";
@@ -137,14 +137,7 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
     emitRealTimeUpdate: (message) => provider?.sendStateless(message),
     executeMenuItemCommand: (props) => {
       const { itemKey } = props;
-      const editorItems = getEditorMenuItems(editor);
-
-      const getEditorMenuItem = (key: TEditorCommands) => editorItems.find((item) => item.key === key);
-
-      const item = getEditorMenuItem(itemKey);
-      if (item) {
-        item.command(props);
-      } else {
+      if (!executeEditorMenuItem(getEditorMenuItems(editor), itemKey, props)) {
         console.warn(`No command found for item: ${itemKey}`);
       }
     },
@@ -191,14 +184,7 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
     },
     isEditorReadyToDiscard: () => editor?.storage?.utility?.uploadInProgress === false,
     isMenuItemActive: (props) => {
-      const { itemKey } = props;
-      const editorItems = getEditorMenuItems(editor);
-
-      const getEditorMenuItem = (key: TEditorCommands) => editorItems.find((item) => item.key === key);
-      const item = getEditorMenuItem(itemKey);
-      if (!item) return false;
-
-      return item.isActive(props);
+      return isEditorMenuItemActive(getEditorMenuItems(editor), props.itemKey, props);
     },
     isProviderDocumentEmpty: () => !provider?.document || isDocumentEditorYDocEmpty(provider.document),
     listenToRealTimeUpdate: () => provider && { on: provider.on.bind(provider), off: provider.off.bind(provider) },

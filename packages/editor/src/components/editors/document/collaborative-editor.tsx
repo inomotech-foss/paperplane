@@ -15,6 +15,7 @@ import { DEFAULT_DISPLAY_CONFIG } from "@/constants/config";
 import { CollaborationProvider, useCollaboration } from "@/contexts/collaboration-context";
 // helpers
 import { getEditorClassNames } from "@/helpers/common";
+import { readProperty, readString } from "@/helpers/narrow";
 // hooks
 import { useCollaborativeEditor } from "@/hooks/use-collaborative-editor";
 // types
@@ -74,9 +75,14 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
     const updateCollaborators = () => {
       const peersById = new Map<string, TAwarenessUser>();
       awareness.getStates().forEach((awarenessState) => {
-        const peer = (awarenessState as { user?: TAwarenessUser } | undefined)?.user;
-        if (peer?.id && peer.id !== user.id) {
-          peersById.set(peer.id, peer);
+        const peer = readProperty(awarenessState, "user");
+        const peerId = readString(peer, "id");
+        if (peerId && peerId !== user.id) {
+          peersById.set(peerId, {
+            id: peerId,
+            name: readString(peer, "name") ?? "",
+            color: readString(peer, "color") ?? "",
+          });
         }
       });
       onCollaboratorsChange?.(Array.from(peersById.values()));
@@ -197,9 +203,7 @@ const CollaborativeDocumentEditorWithRef = React.forwardRef(function Collaborati
   props: ICollaborativeDocumentEditorProps,
   ref: React.ForwardedRef<EditorRefApi>
 ) {
-  return (
-    <CollaborativeDocumentEditor key={props.id} {...props} forwardedRef={ref as React.MutableRefObject<EditorRefApi>} />
-  );
+  return <CollaborativeDocumentEditor key={props.id} {...props} forwardedRef={ref} />;
 });
 
 CollaborativeDocumentEditorWithRef.displayName = "CollaborativeDocumentEditorWithRef";

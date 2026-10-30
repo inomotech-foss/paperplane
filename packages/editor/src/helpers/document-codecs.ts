@@ -16,6 +16,7 @@ import {
   DocumentEditorExtensionsWithoutProps,
 } from "@/extensions/core-without-props";
 import { TitleExtensions } from "@/extensions/title-extension";
+import { nodeToJSONContent } from "@/helpers/prosemirror-json";
 import { sanitizeHTML } from "@plane/utils";
 
 export type HTMLCodec = {
@@ -148,7 +149,7 @@ export const createDocumentCodecs = ({ generateHTML, generateJSON }: HTMLCodec) 
     Y.applyUpdate(yDoc, description);
     // convert to JSON
     const type = yDoc.getXmlFragment("default");
-    const contentJSON = yXmlFragmentToProseMirrorRootNode(type, richTextEditorSchema).toJSON();
+    const contentJSON = nodeToJSONContent(yXmlFragmentToProseMirrorRootNode(type, richTextEditorSchema));
     // convert to HTML
     const contentHTML = generateHTML(contentJSON, RICH_TEXT_EDITOR_EXTENSIONS);
 
@@ -179,13 +180,13 @@ export const createDocumentCodecs = ({ generateHTML, generateJSON }: HTMLCodec) 
     Y.applyUpdate(yDoc, description);
     // convert to JSON
     const type = yDoc.getXmlFragment("default");
-    const contentJSON = yXmlFragmentToProseMirrorRootNode(type, documentEditorSchema).toJSON();
+    const contentJSON = nodeToJSONContent(yXmlFragmentToProseMirrorRootNode(type, documentEditorSchema));
     // convert to HTML
     const contentHTML = generateHTML(contentJSON, DOCUMENT_EDITOR_EXTENSIONS);
 
     if (updateTitle) {
       const title = yDoc.getXmlFragment("title");
-      const titleJSON = yXmlFragmentToProseMirrorRootNode(title, documentEditorSchema).toJSON();
+      const titleJSON = nodeToJSONContent(yXmlFragmentToProseMirrorRootNode(title, documentEditorSchema));
       const titleHTML = extractTextFromHTML(generateHTML(titleJSON, DOCUMENT_EDITOR_EXTENSIONS));
 
       return {

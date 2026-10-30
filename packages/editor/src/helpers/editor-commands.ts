@@ -11,7 +11,7 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 import { replaceCodeWithText } from "@/extensions/code/utils/replace-code-block-with-text";
 import type { InsertImageComponentProps } from "@/extensions/custom-image/types";
 // helpers
-import type { ExtendedEmojiStorage } from "@/extensions/emoji/emoji";
+import { setEmojiForceOpen } from "@/extensions/emoji/emoji";
 import { findTableAncestor } from "@/helpers/common";
 
 /**
@@ -227,7 +227,6 @@ export const insertAtomBlock = (editor: Editor, type: CORE_EXTENSIONS, range?: R
 
 export const openEmojiPicker = (editor: Editor, range?: Range) => {
   if (range) editor.chain().focus().deleteRange(range).run();
-  const emojiStorage = editor.storage.emoji as ExtendedEmojiStorage;
-  emojiStorage.forceOpen = true;
+  setEmojiForceOpen(editor, true);
   editor.chain().focus().insertContent(":").run();
 };

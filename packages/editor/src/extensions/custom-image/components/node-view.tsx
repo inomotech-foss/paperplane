@@ -16,15 +16,13 @@ import { CustomImageUploader } from "./uploader";
 
 export type CustomImageNodeViewProps = Omit<NodeViewProps, "extension" | "updateAttributes"> & {
   extension: CustomImageExtensionType;
-  node: NodeViewProps["node"] & {
-    attrs: TCustomImageAttributes;
-  };
+  attrs: TCustomImageAttributes;
   updateAttributes: (attrs: Partial<TCustomImageAttributes>) => void;
 };
 
 export function CustomImageNodeView(props: CustomImageNodeViewProps) {
-  const { editor, extension, node, updateAttributes } = props;
-  const { src: imgNodeSrc, status } = node.attrs;
+  const { attrs, editor, extension, updateAttributes } = props;
+  const { src: imgNodeSrc, status } = attrs;
 
   const [isUploaded, setIsUploaded] = useState(!!imgNodeSrc);
   const [resolvedSrc, setResolvedSrc] = useState<string | undefined>(undefined);
@@ -39,8 +37,8 @@ export function CustomImageNodeView(props: CustomImageNodeViewProps) {
 
   useEffect(() => {
     const closestEditorContainer = imageComponentRef.current?.closest(".editor-container");
-    if (closestEditorContainer) {
-      setEditorContainer(closestEditorContainer as HTMLDivElement);
+    if (closestEditorContainer instanceof HTMLDivElement) {
+      setEditorContainer(closestEditorContainer);
     }
   }, []);
 
@@ -137,7 +135,7 @@ export function CustomImageNodeView(props: CustomImageNodeViewProps) {
   const shouldShowBlock = hasValidImageSource && !failedToLoadImage && !hasDuplicationFailed;
 
   return (
-    <NodeViewWrapper key={node.attrs[ECustomImageAttributeNames.ID]}>
+    <NodeViewWrapper key={attrs[ECustomImageAttributeNames.ID]}>
       <div className="mx-0 my-2 p-0" data-drag-handle ref={imageComponentRef}>
         {shouldShowBlock && !hasDuplicationFailed ? (
           <CustomImageBlock
@@ -154,7 +152,7 @@ export function CustomImageNodeView(props: CustomImageNodeViewProps) {
             failedToLoadImage={failedToLoadImage}
             hasDuplicationFailed={hasDuplicationFailed}
             loadImageFromFileSystem={setImageFromFileSystem}
-            maxFileSize={(editor.storage.imageComponent as { maxFileSize?: number } | undefined)?.maxFileSize ?? 0}
+            maxFileSize={editor.storage.imageComponent?.maxFileSize ?? 0}
             setIsUploaded={setIsUploaded}
             {...props}
           />

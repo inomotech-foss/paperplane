@@ -233,25 +233,24 @@ export const getSlashCommandFilteredSections =
             command: ({ editor, range }) => toggleTextColor(undefined, editor, range),
           },
           ...COLORS_LIST.map(
-            (color) =>
-              ({
-                commandKey: "text-color",
-                key: `text-color-${color.key}`,
-                title: color.label,
-                description: "Change text color",
-                searchTerms: ["color", "text", color.label],
+            (color): ISlashCommandItem => ({
+              commandKey: "text-color",
+              key: `text-color-${color.key}`,
+              title: color.label,
+              description: "Change text color",
+              searchTerms: ["color", "text", color.label],
 
-                icon: (
-                  <TextOutline
-                    className="size-3.5"
-                    style={{
-                      color: color.textColor,
-                    }}
-                  />
-                ),
+              icon: (
+                <TextOutline
+                  className="size-3.5"
+                  style={{
+                    color: color.textColor,
+                  }}
+                />
+              ),
 
-                command: ({ editor, range }) => toggleTextColor(color.key, editor, range),
-              }) as ISlashCommandItem
+              command: ({ editor, range }) => toggleTextColor(color.key, editor, range),
+            })
           ),
         ],
       },
@@ -274,22 +273,21 @@ export const getSlashCommandFilteredSections =
             command: ({ editor, range }) => toggleTextColor(undefined, editor, range),
           },
           ...COLORS_LIST.map(
-            (color) =>
-              ({
-                commandKey: "background-color",
-                key: `background-color-${color.key}`,
-                title: color.label,
-                description: "Change background color",
-                searchTerms: ["color", "bg", "background", color.label],
-                icon: <TextOutline className="size-3.5" />,
+            (color): ISlashCommandItem => ({
+              commandKey: "background-color",
+              key: `background-color-${color.key}`,
+              title: color.label,
+              description: "Change background color",
+              searchTerms: ["color", "bg", "background", color.label],
+              icon: <TextOutline className="size-3.5" />,
 
-                iconContainerStyle: {
-                  borderRadius: "4px",
-                  backgroundColor: color.backgroundColor,
-                },
+              iconContainerStyle: {
+                borderRadius: "4px",
+                backgroundColor: color.backgroundColor,
+              },
 
-                command: ({ editor, range }) => toggleBackgroundColor(color.key, editor, range),
-              }) as ISlashCommandItem
+              command: ({ editor, range }) => toggleBackgroundColor(color.key, editor, range),
+            })
           ),
         ],
       },

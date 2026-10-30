@@ -14,8 +14,8 @@ type TChildPagesOptions = {
   renderComponent: TChildPagesHandler["renderComponent"] | undefined;
 };
 
-function ChildPages(props: NodeViewProps) {
-  const { renderComponent } = props.extension.options as TChildPagesOptions;
+function ChildPages(props: NodeViewProps & TChildPagesOptions) {
+  const { renderComponent } = props;
   const depth = Number(props.node.attrs.depth) || DEFAULT_CHILD_PAGES_DEPTH;
 
   return (
@@ -39,7 +39,8 @@ export function ChildPagesExtension(handler: TChildPagesHandler | undefined) {
     },
 
     addNodeView() {
-      return ReactNodeViewRenderer(ChildPages);
+      const { renderComponent } = this.options;
+      return ReactNodeViewRenderer((props) => <ChildPages {...props} renderComponent={renderComponent} />);
     },
   });
 }

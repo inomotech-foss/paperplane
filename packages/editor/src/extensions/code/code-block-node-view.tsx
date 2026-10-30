@@ -14,8 +14,9 @@ import { useState } from "react";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 // plane utils
 import { cn } from "@plane/utils";
+// helpers
+import { readString } from "@/helpers/narrow";
 // types
-import type { TCodeBlockAttributes } from "./types";
 import { ECodeBlockAttributeNames } from "./types";
 
 // we just have ts support for now
@@ -29,7 +30,7 @@ type Props = {
 export function CodeBlockComponent({ node }: Props) {
   const [copied, setCopied] = useState(false);
   // derived values
-  const attrs = node.attrs as TCodeBlockAttributes;
+  const blockId = readString(node.attrs, ECodeBlockAttributeNames.ID);
 
   const copyToClipboard = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     try {
@@ -44,7 +45,7 @@ export function CodeBlockComponent({ node }: Props) {
   };
 
   return (
-    <NodeViewWrapper key={attrs[ECodeBlockAttributeNames.ID]} className="code-block group/code relative">
+    <NodeViewWrapper key={blockId} className="code-block group/code relative">
       <Tooltip label="Copy code">
         <button
           type="button"

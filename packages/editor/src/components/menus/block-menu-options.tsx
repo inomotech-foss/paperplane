@@ -10,6 +10,8 @@ import type { Editor } from "@tiptap/react";
 import { DragDropOutline } from "@makeplane/propel/icons";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+// helpers
+import { readNumber } from "@/helpers/narrow";
 // types
 import type { BlockMenuOption } from "./block-menu";
 
@@ -66,7 +68,7 @@ const setTableToFullWidth = (editor: Editor): void => {
         if (!cell) continue;
 
         // Handle colspan for merged cells
-        const colspan = cell.attrs.colspan || 1;
+        const colspan = readNumber(cell.attrs, "colspan") || 1;
         tr.setNodeMarkup(tableStart + cellPos, null, {
           ...cell.attrs,
           colwidth: Array(colspan).fill(equalWidth),

@@ -15,6 +15,7 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
 import { isValidHttpUrl } from "@/helpers/common";
 import { setLinkEditor, unsetLinkEditor } from "@/helpers/editor-commands";
+import { readString } from "@/helpers/narrow";
 import { FloatingMenuRoot } from "../floating-menu/root";
 import { useFloatingMenu } from "../floating-menu/use-floating-menu";
 
@@ -81,7 +82,7 @@ export function BubbleMenuLinkSelector(props: Props) {
             placeholder="Enter or paste a link"
             onClick={(e) => e.stopPropagation()}
             className="flex-1 rounded-sm border-r-[0.5px] border-strong bg-surface-1 px-1.5 py-2 text-11 outline-none placeholder:text-placeholder"
-            defaultValue={editor.getAttributes("link").href || ""}
+            defaultValue={readString(editor.getAttributes("link"), "href") || ""}
             onKeyDown={(e) => {
               setError(false);
               if (e.key === "Enter") {

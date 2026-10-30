@@ -4,20 +4,28 @@
  * See the LICENSE file for details.
  */
 
-import type { NodeType, Schema } from "@tiptap/pm/model";
+import { NodeType } from "@tiptap/pm/model";
+import type { Schema } from "@tiptap/pm/model";
+// helpers
+import { isRecord } from "@/helpers/narrow";
+
+const isNodeTypeRecord = (value: unknown): value is { [key: string]: NodeType } =>
+  isRecord(value) && Object.values(value).every((item) => item instanceof NodeType);
 
 export function getTableNodeTypes(schema: Schema): { [key: string]: NodeType } {
-  if (schema.cached.tableNodeTypes) {
-    return schema.cached.tableNodeTypes;
+  const cached: unknown = schema.cached.tableNodeTypes;
+  if (isNodeTypeRecord(cached)) {
+    return cached;
   }
 
   const roles: { [key: string]: NodeType } = {};
 
   Object.keys(schema.nodes).forEach((type) => {
     const nodeType = schema.nodes[type];
+    const tableRole: unknown = nodeType.spec.tableRole;
 
-    if (nodeType.spec.tableRole) {
-      roles[nodeType.spec.tableRole] = nodeType;
+    if (typeof tableRole === "string" && tableRole) {
+      roles[tableRole] = nodeType;
     }
   });
 

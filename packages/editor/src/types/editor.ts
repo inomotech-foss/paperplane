@@ -9,6 +9,7 @@ import type { MarkType, NodeType } from "@tiptap/pm/model";
 import type { Selection } from "@tiptap/pm/state";
 import type { EditorProps, EditorView } from "@tiptap/pm/view";
 import type { NodeViewProps as TNodeViewProps } from "@tiptap/react";
+import type { BaseSyntheticEvent } from "react";
 // plane imports
 import type { TCustomComponentsMetaData } from "@plane/utils";
 // extension types
@@ -132,7 +133,7 @@ export type CoreEditorRefApi = {
   getAttributesWithExtendedMark: (
     mark: string | MarkType,
     attribute: string | NodeType | MarkType
-  ) => Record<string, any> | undefined;
+  ) => Record<string, unknown> | undefined;
   getCoordsFromPos: (pos?: number) => ReturnType<EditorView["coordsAtPos"]> | undefined;
   getCurrentCursorPosition: () => number | undefined;
   getDocument: () => {
@@ -185,7 +186,7 @@ export type IEditorProps = {
   extensions?: Extensions;
   flaggedExtensions: TExtensions[];
   fileHandler: TFileHandler;
-  forwardedRef?: React.MutableRefObject<EditorRefApi | null>;
+  forwardedRef?: React.ForwardedRef<EditorRefApi>;
   getEditorMetaData: (htmlContent: string) => TCustomComponentsMetaData;
   handleEditorReady?: (value: boolean) => void;
   id: string;
@@ -195,7 +196,7 @@ export type IEditorProps = {
   onAssetChange?: (assets: TEditorAsset[]) => void;
   onEditorFocus?: () => void;
   onChange?: (json: object, html: string, options?: { isMigrationUpdate?: boolean }) => void;
-  onEnterKeyPress?: (e?: any) => void;
+  onEnterKeyPress?: (e?: BaseSyntheticEvent) => void;
   onTransaction?: () => void;
   pageAttachmentsHandler?: TPageAttachmentsHandler;
   queryBlockHandler?: TQueryBlockHandler;

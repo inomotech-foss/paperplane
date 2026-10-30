@@ -73,7 +73,7 @@ const RichTextEditorWithRef = forwardRef(function RichTextEditorWithRef(
   props: IRichTextEditorProps,
   ref: React.ForwardedRef<EditorRefApi>
 ) {
-  return <RichTextEditor {...props} forwardedRef={ref as React.MutableRefObject<EditorRefApi | null>} />;
+  return <RichTextEditor {...props} forwardedRef={ref} />;
 });
 
 RichTextEditorWithRef.displayName = "RichTextEditorWithRef";

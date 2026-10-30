@@ -6,12 +6,14 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+// types
+import type { TQueryBlockKind, TQueryBlockScope } from "@/types";
 
-export const DEFAULT_QUERY_BLOCK_KIND = "recent";
-export const DEFAULT_QUERY_BLOCK_SCOPE = "page";
+export const DEFAULT_QUERY_BLOCK_KIND: TQueryBlockKind = "recent";
+export const DEFAULT_QUERY_BLOCK_SCOPE: TQueryBlockScope = "page";
 export const MAX_QUERY_BLOCK_DEPTH = 20;
 
-const KINDS = [
+export const QUERY_BLOCK_KINDS: readonly TQueryBlockKind[] = [
   "tree",
   "index",
   "recent",
@@ -23,9 +25,9 @@ const KINDS = [
   "task-report",
   "decision-report",
 ];
-const SCOPES = ["page", "project", "workspace"];
+export const QUERY_BLOCK_SCOPES: readonly TQueryBlockScope[] = ["page", "project", "workspace"];
 
-function pick(value: string | null, allowed: string[], fallback: string) {
+function pick(value: string | null, allowed: readonly string[], fallback: string) {
   return value && allowed.includes(value) ? value : fallback;
 }
 
@@ -52,11 +54,11 @@ export const QueryBlockExtensionConfig = Node.create({
     return {
       kind: {
         default: DEFAULT_QUERY_BLOCK_KIND,
-        parseHTML: (element) => pick(element.getAttribute("kind"), KINDS, DEFAULT_QUERY_BLOCK_KIND),
+        parseHTML: (element) => pick(element.getAttribute("kind"), QUERY_BLOCK_KINDS, DEFAULT_QUERY_BLOCK_KIND),
       },
       scope: {
         default: DEFAULT_QUERY_BLOCK_SCOPE,
-        parseHTML: (element) => pick(element.getAttribute("scope"), SCOPES, DEFAULT_QUERY_BLOCK_SCOPE),
+        parseHTML: (element) => pick(element.getAttribute("scope"), QUERY_BLOCK_SCOPES, DEFAULT_QUERY_BLOCK_SCOPE),
       },
       "root-page-id": {
         default: null,

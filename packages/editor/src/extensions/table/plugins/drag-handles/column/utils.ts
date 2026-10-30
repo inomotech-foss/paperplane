@@ -58,7 +58,7 @@ export const calculateColumnDropIndex = (col: number, columns: TableColumn[], le
       if (index === col) return false;
       const currentColumnCenter = p.left + p.width / 2;
       const currentColumnEdge = p.left + p.width;
-      const nextColumn = columns[index + 1] as TableColumn | undefined;
+      const nextColumn: TableColumn | undefined = columns[index + 1];
       const nextColumnCenter = nextColumn ? nextColumn.width / 2 : 0;
 
       return draggedColumnRight >= currentColumnCenter && draggedColumnRight < currentColumnEdge + nextColumnCenter;
@@ -72,7 +72,7 @@ export const calculateColumnDropIndex = (col: number, columns: TableColumn[], le
     const findHoveredColumn = columns.find((p, index) => {
       if (index === col) return false;
       const currentColumnCenter = p.left + p.width / 2;
-      const prevColumn = columns[index - 1] as TableColumn | undefined;
+      const prevColumn: TableColumn | undefined = columns[index - 1];
       const prevColumnLeft = prevColumn ? prevColumn.left : 0;
       const prevColumnCenter = prevColumn ? prevColumn.width / 2 : 0;
 

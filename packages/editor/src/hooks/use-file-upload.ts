@@ -59,8 +59,8 @@ export const useUploader = (args: TUploaderArgs) => {
         if (loadFileFromFileSystem) {
           const reader = new FileReader();
           reader.onload = () => {
-            if (reader.result) {
-              loadFileFromFileSystem(reader.result as string);
+            if (typeof reader.result === "string" && reader.result) {
+              loadFileFromFileSystem(reader.result);
             } else {
               console.error("Failed to read the file: reader.result is null");
             }

@@ -8,6 +8,8 @@ import type { KeyboardEvent } from "react";
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { renderToString } from "katex";
+// helpers
+import { readString } from "@/helpers/narrow";
 // local imports
 import { MathBlockExtensionConfig, MathInlineExtensionConfig } from "./extension-config";
 
@@ -22,7 +24,7 @@ const renderLatex = (latex: string, displayMode: boolean): string => {
 
 function MathNodeView(props: NodeViewProps & { displayMode: boolean }) {
   const { displayMode, editor, node, updateAttributes } = props;
-  const latex: string = node.attrs.latex ?? "";
+  const latex = readString(node.attrs, "latex") ?? "";
   const isEditable = editor.isEditable;
 
   const [isEditing, setIsEditing] = useState(false);

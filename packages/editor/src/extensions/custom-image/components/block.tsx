@@ -30,12 +30,12 @@ type CustomImageBlockProps = CustomImageNodeViewProps & {
 export function CustomImageBlock(props: CustomImageBlockProps) {
   // props
   const {
+    attrs,
     editor,
     editorContainer,
     extension,
     getPos,
     imageFromFileSystem,
-    node,
     selected,
     setEditorContainer,
     setFailedToLoadImage,
@@ -50,7 +50,7 @@ export function CustomImageBlock(props: CustomImageBlockProps) {
     src: imgNodeSrc,
     alignment: nodeAlignment,
     status,
-  } = node.attrs;
+  } = attrs;
   // states
   const [size, setSize] = useState<TCustomImageSize>({
     width: ensurePixelString(nodeWidth, "35%") ?? "35%",
@@ -66,7 +66,7 @@ export function CustomImageBlock(props: CustomImageBlockProps) {
   const [hasErroredOnFirstLoad, setHasErroredOnFirstLoad] = useState(false);
   const [hasTriedRestoringImageOnce, setHasTriedRestoringImageOnce] = useState(false);
   // extension options
-  const isTouchDevice = !!(editor.storage.utility as { isTouchDevice?: boolean } | undefined)?.isTouchDevice;
+  const isTouchDevice = !!editor.storage.utility?.isTouchDevice;
 
   const updateAttributesSafely = useCallback(
     (attributes: Partial<TCustomImageAttributes>, errorMessage: string) => {
@@ -225,11 +225,7 @@ export function CustomImageBlock(props: CustomImageBlockProps) {
 
   return (
     <div
-      id={
-        node.attrs[ECustomImageAttributeNames.ID]
-          ? getImageBlockId(node.attrs[ECustomImageAttributeNames.ID])
-          : undefined
-      }
+      id={attrs[ECustomImageAttributeNames.ID] ? getImageBlockId(attrs[ECustomImageAttributeNames.ID]) : undefined}
       className={cn("w-fit max-w-full transition-all", {
         "ml-[50%] -translate-x-1/2": nodeAlignment === "center",
         "ml-[100%] -translate-x-full": nodeAlignment === "right",
@@ -301,8 +297,8 @@ export function CustomImageBlock(props: CustomImageBlockProps) {
             ...(size.aspectRatio && { aspectRatio: size.aspectRatio }),
           }}
         />
-        {showUploadStatus && node.attrs[ECustomImageAttributeNames.ID] && (
-          <ImageUploadStatus editor={editor} nodeId={node.attrs[ECustomImageAttributeNames.ID]} />
+        {showUploadStatus && attrs[ECustomImageAttributeNames.ID] && (
+          <ImageUploadStatus editor={editor} nodeId={attrs[ECustomImageAttributeNames.ID]} />
         )}
         {showImageToolbar && (
           <ImageToolbarRoot

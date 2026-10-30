@@ -35,7 +35,10 @@ export type SideMenuPluginProps = {
 export type SideMenuHandleOptions = {
   view: (view: EditorView, sideMenu: HTMLDivElement | null) => void;
   domEvents?: {
-    [key: string]: (...args: any) => void;
+    mousemove?: () => void;
+    dragenter?: (view: EditorView) => void;
+    drop?: (view: EditorView, event: DragEvent) => void;
+    dragend?: (view: EditorView) => void;
   };
 };
 
@@ -159,7 +162,7 @@ const SideMenu = (options: SideMenuPluginProps) => {
           stopObservingLayout ??= observeLayoutShift(view.dom, hideSideMenu);
           showSideMenu();
           if (handlesConfig.dragDrop) {
-            dragHandleDOMEvents?.mousemove();
+            dragHandleDOMEvents?.mousemove?.();
           }
           if (handlesConfig.ai) {
             aiHandleDOMEvents?.mousemove?.();

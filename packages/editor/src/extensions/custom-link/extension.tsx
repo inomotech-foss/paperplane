@@ -12,6 +12,7 @@ import { find, registerCustomProtocol } from "linkifyjs";
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
 import { isValidHttpUrl } from "@/helpers/common";
+import { readProperty, readString } from "@/helpers/narrow";
 // local imports
 import { autolink } from "./helpers/autolink";
 import { clickHandler } from "./helpers/clickHandler";
@@ -201,7 +202,7 @@ export const CustomLinkExtension = Mark.create<LinkOptions, CustomLinkStorage>({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const href = (HTMLAttributes.href as string) || "";
+    const href = readString(HTMLAttributes, "href") || "";
     if (isDangerousHref(href)) {
       return ["a", mergeAttributes(this.options.HTMLAttributes, { ...HTMLAttributes, href: "" }), 0];
     }
@@ -256,7 +257,7 @@ export const CustomLinkExtension = Mark.create<LinkOptions, CustomLinkStorage>({
         },
         type: this.type,
         getAttributes: (match) => ({
-          href: match.data?.href,
+          href: readProperty(match.data, "href"),
         }),
       }),
     ];

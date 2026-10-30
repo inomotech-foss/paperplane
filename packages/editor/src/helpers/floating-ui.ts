@@ -43,7 +43,9 @@ export const updateFloatingUIFloaterPosition: UpdateFloatingUIFloaterPosition = 
           ...options?.elementStyle,
         });
       })
-      .catch((error) => console.error("An error occurred while updating floating UI floater position:", error));
+      .catch((error: unknown) =>
+        console.error("An error occurred while updating floating UI floater position:", error)
+      );
   });
 
   return {
