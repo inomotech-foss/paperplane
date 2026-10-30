@@ -14,6 +14,8 @@
         "company_size": "회사 규모",
         "url": "작업 공간 URL",
         "workspace_timezone": "작업 공간 시간대",
+        "pql_dialect": "쿼리 구문",
+        "pql_dialect_description": "쿼리 바의 제안과 도움말에 사용하는 기본 표기입니다. 각 멤버는 자신의 표기를 선택할 수 있으며, 쿼리는 두 표기를 모두 허용합니다.",
         "update_workspace": "작업 공간 업데이트",
         "delete_workspace": "이 작업 공간 삭제",
         "delete_workspace_description": "작업 공간을 삭제하면 해당 작업 공간 내의 모든 데이터와 리소스가 영구적으로 삭제되며 복구할 수 없습니다.",

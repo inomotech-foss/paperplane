@@ -8,6 +8,7 @@ import { API_BASE_URL } from "@plane/constants";
 import type {
   IWorkspace,
   IWorkspaceMemberMe,
+  TPqlDialect,
   IWorkspaceMember,
   IWorkspaceMemberInvitation,
   ILastActiveWorkspaceDetails,
@@ -122,6 +123,17 @@ export class WorkspaceService extends APIService {
       .then((response) => response?.data)
       .catch((error) => {
         throw error?.response;
+      });
+  }
+
+  async updateWorkspaceMemberMe(
+    workspaceSlug: string,
+    data: { pql_dialect: TPqlDialect | null }
+  ): Promise<IWorkspaceMemberMe> {
+    return this.patch(`/api/workspaces/${workspaceSlug}/workspace-members/me/`, data)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
       });
   }
 

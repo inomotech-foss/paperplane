@@ -543,7 +543,10 @@
     "example_invoices": "Faktur lunas seorang pelanggan yang jatuh tempo pada 2026",
     "example_everything": "Semua yang ada di bawah seorang pelanggan",
     "example_overdue": "Item kerja terbuka yang terlambat seminggu",
-    "example_amount": "Item kerja Anda dengan jumlah di atas 1000"
+    "example_amount": "Item kerja Anda dengan jumlah di atas 1000",
+    "dialect": "Sintaks",
+    "dialect_default": "Bawaan ruang kerja ({dialect})",
+    "dialect_error": "Tidak dapat mengubah sintaks kueri"
   },
   "timeline_hierarchy": {
     "menu": "Hierarki",

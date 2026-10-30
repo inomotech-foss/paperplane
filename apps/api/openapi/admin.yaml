@@ -610,6 +610,14 @@ paths:
           description: No response body
 components:
   schemas:
+    PqlDialectEnum:
+      enum:
+      - jql
+      - plane
+      type: string
+      description: |-
+        * `jql` - JQL
+        * `plane` - Plane
     TimezoneEnum:
       enum:
       - Africa/Abidjan
@@ -1568,6 +1576,8 @@ components:
         background_color:
           type: string
           maxLength: 255
+        pql_dialect:
+          $ref: '#/components/schemas/PqlDialectEnum'
         created_by:
           type: string
           format: uuid
@@ -1596,6 +1606,7 @@ components:
       - organization_size
       - timezone
       - background_color
+      - pql_dialect
       - created_by
       - updated_by
       - logo_asset
@@ -1629,6 +1640,8 @@ components:
           type: string
           minLength: 1
           maxLength: 255
+        pql_dialect:
+          $ref: '#/components/schemas/PqlDialectEnum'
         logo_asset:
           type: string
           format: uuid

@@ -95,6 +95,11 @@ describe("toVocabulary", () => {
   });
 
   it("is empty before the fields have loaded", () => {
-    expect(toVocabulary(undefined)).toEqual({ fields: [], functions: [], valuesFor: undefined });
+    expect(toVocabulary(undefined)).toEqual({ fields: [], functions: [], valuesFor: undefined, dialect: "jql" });
+  });
+
+  it("carries the dialect completion should use", () => {
+    expect(toVocabulary(payload, undefined, "plane").dialect).toBe("plane");
+    expect(toVocabulary(payload, undefined, "plane")).not.toEqual(toVocabulary(payload, undefined, "jql"));
   });
 });

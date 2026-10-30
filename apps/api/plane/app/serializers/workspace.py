@@ -115,6 +115,14 @@ class WorkspaceMemberMeSerializer(BaseSerializer):
         fields = "__all__"
 
 
+class WorkspaceMemberDialectSerializer(BaseSerializer):
+    """The one field a member may change on their own row."""
+
+    class Meta:
+        model = WorkspaceMember
+        fields = ["pql_dialect"]
+
+
 class WorkspaceMemberAdminSerializer(WorkSpaceMemberSerializer):
     member = UserAdminLiteSerializer(read_only=True)
 

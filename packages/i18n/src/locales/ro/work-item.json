@@ -543,7 +543,10 @@
     "example_invoices": "Facturile plătite ale unui client, scadente în 2026",
     "example_everything": "Tot ce se află sub un client",
     "example_overdue": "Activități deschise, restante de o săptămână",
-    "example_amount": "Activitățile tale cu o sumă peste 1000"
+    "example_amount": "Activitățile tale cu o sumă peste 1000",
+    "dialect": "Sintaxă",
+    "dialect_default": "Implicit pentru spațiul de lucru ({dialect})",
+    "dialect_error": "Sintaxa interogărilor nu a putut fi schimbată"
   },
   "timeline_hierarchy": {
     "menu": "Ierarhie",

@@ -42,4 +42,4 @@ export { parseQuery, syntaxError, tokenName, tokenize, type ParseResult, type Pq
 export { pqlPlaceholder } from "./placeholder.js";
 export { rejectNewlines, singleLine, singleLineKeymap, type SingleLineOptions } from "./single-line.js";
 export { parseField, parsed } from "./state.js";
-export { findField, type FieldInfo, type FunctionInfo, type Vocabulary } from "./vocabulary.js";
+export { type Dialect, findField, type FieldInfo, type FunctionInfo, type Vocabulary } from "./vocabulary.js";

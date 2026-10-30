@@ -543,7 +543,10 @@
     "example_invoices": "ある顧客の 2026 年期限の支払済み請求書",
     "example_everything": "ある顧客の配下にあるすべて",
     "example_overdue": "1 週間以上期限を過ぎた未完了の作業項目",
-    "example_amount": "金額が 1000 を超える自分の作業項目"
+    "example_amount": "金額が 1000 を超える自分の作業項目",
+    "dialect": "構文",
+    "dialect_default": "ワークスペースの既定（{dialect}）",
+    "dialect_error": "クエリ構文を変更できませんでした"
   },
   "timeline_hierarchy": {
     "menu": "階層",

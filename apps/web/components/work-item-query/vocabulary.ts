@@ -2,12 +2,16 @@
 // See the LICENSE file for details.
 
 import type { Vocabulary } from "@plane/pql";
-import type { TWorkItemQueryFields } from "@plane/types";
+import type { TPqlDialect, TWorkItemQueryFields } from "@plane/types";
 
 export type ValuesFor = Vocabulary["valuesFor"];
 
 /** The fields endpoint payload in the shape the editor package completes from. */
-export const toVocabulary = (fields: TWorkItemQueryFields | undefined, valuesFor?: ValuesFor): Vocabulary => ({
+export const toVocabulary = (
+  fields: TWorkItemQueryFields | undefined,
+  valuesFor?: ValuesFor,
+  dialect: TPqlDialect = "jql"
+): Vocabulary => ({
   fields: (fields?.fields ?? []).map((field) => ({
     name: field.name,
     aliases: field.aliases,
@@ -20,4 +24,5 @@ export const toVocabulary = (fields: TWorkItemQueryFields | undefined, valuesFor
   })),
   functions: fields?.functions ?? [],
   valuesFor,
+  dialect,
 });

@@ -543,7 +543,10 @@
     "example_invoices": "Facturas pagadas de un cliente con vencimiento en 2026",
     "example_everything": "Todo lo que hay bajo un cliente",
     "example_overdue": "Elementos de trabajo abiertos con una semana de retraso",
-    "example_amount": "Sus elementos de trabajo con un importe superior a 1000"
+    "example_amount": "Sus elementos de trabajo con un importe superior a 1000",
+    "dialect": "Sintaxis",
+    "dialect_default": "Predeterminada del espacio de trabajo ({dialect})",
+    "dialect_error": "No se pudo cambiar la sintaxis de consulta"
   },
   "timeline_hierarchy": {
     "menu": "Jerarquía",

@@ -14,6 +14,8 @@
         "company_size": "Şirket Büyüklüğü",
         "url": "Çalışma Alanı URL'si",
         "workspace_timezone": "Çalışma Alanı Saat Dilimi",
+        "pql_dialect": "Sorgu söz dizimi",
+        "pql_dialect_description": "Sorgu çubuğundaki öneriler ve yardım için varsayılan yazım. Her üye kendi yazımını seçebilir ve sorgular her ikisini de kabul eder.",
         "update_workspace": "Çalışma Alanını Güncelle",
         "delete_workspace": "Bu çalışma alanını sil",
         "delete_workspace_description": "Bir çalışma alanı silindiğinde, içindeki tüm veri ve kaynaklar kalıcı olarak kaldırılır ve kurtarılamaz.",

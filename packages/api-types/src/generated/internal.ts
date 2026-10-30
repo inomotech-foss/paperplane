@@ -7246,7 +7246,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * @description This enables timezone conversion according
+         *     to the user set timezone
+         */
+        patch: operations["workspaces_workspace_members_me_partial_update"];
         trace?: never;
     };
     "/api/workspaces/{slug}/workspace-themes/": {
@@ -10240,6 +10244,7 @@ export interface components {
             organization_size?: string | null;
             timezone?: components["schemas"]["TimezoneEnum"];
             background_color?: string;
+            pql_dialect?: components["schemas"]["PqlDialectEnum"];
             /** Format: uuid */
             logo_asset?: string | null;
         };
@@ -10258,6 +10263,11 @@ export interface components {
             getting_started_checklist?: unknown;
             tips?: unknown;
             explored_features?: unknown;
+            pql_dialect?: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
+        };
+        /** @description The one field a member may change on their own row. */
+        PatchedWorkspaceMemberDialectRequest: {
+            pql_dialect?: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
         };
         PatchedWorkspaceThemeRequest: {
             /** Format: date-time */
@@ -10294,6 +10304,12 @@ export interface components {
             /** Format: double */
             sort_order?: number;
         };
+        /**
+         * @description * `jql` - JQL
+         *     * `plane` - Plane
+         * @enum {string}
+         */
+        PqlDialectEnum: "jql" | "plane";
         /**
          * @description * `urgent` - Urgent
          *     * `high` - High
@@ -11778,6 +11794,7 @@ export interface components {
             organization_size: string | null;
             timezone: components["schemas"]["TimezoneEnum"];
             background_color: string;
+            pql_dialect: components["schemas"]["PqlDialectEnum"];
             /** Format: uuid */
             readonly created_by: string | null;
             /**
@@ -11840,6 +11857,7 @@ export interface components {
             organization_size?: string | null;
             timezone?: components["schemas"]["TimezoneEnum"];
             background_color?: string;
+            pql_dialect?: components["schemas"]["PqlDialectEnum"];
             /** Format: uuid */
             logo_asset?: string | null;
         };
@@ -11879,6 +11897,7 @@ export interface components {
             getting_started_checklist: unknown;
             tips: unknown;
             explored_features: unknown;
+            pql_dialect: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
             /** Format: uuid */
             readonly created_by: string | null;
             /**
@@ -11898,6 +11917,42 @@ export interface components {
             getting_started_checklist?: unknown;
             tips?: unknown;
             explored_features?: unknown;
+            pql_dialect?: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
+        };
+        WorkspaceMemberMe: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly draft_issue_count?: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            role: components["schemas"]["RoleEnum"];
+            company_role: string | null;
+            view_props: unknown;
+            default_props: unknown;
+            issue_props: unknown;
+            is_active: boolean;
+            getting_started_checklist: unknown;
+            tips: unknown;
+            explored_features: unknown;
+            pql_dialect: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            workspace: string;
+            /** Format: uuid */
+            member: string;
         };
         WorkspaceRecentVisit: {
             /** Format: uuid */
@@ -25517,6 +25572,40 @@ export interface operations {
         responses: {
             /** @description No response body */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    workspaces_workspace_members_me_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedWorkspaceMemberDialectRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedWorkspaceMemberDialectRequest"];
+                "multipart/form-data": components["schemas"]["PatchedWorkspaceMemberDialectRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceMemberMe"];
+                };
+            };
+            /** @description A key other than pql_dialect, or an unknown dialect */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

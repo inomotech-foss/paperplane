@@ -8,6 +8,14 @@ import { WorkItemQueryBar } from "./query-bar";
 
 vi.mock("@plane/i18n", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock("./values", () => ({ useValuesFor: () => () => [] }));
+vi.mock("./use-pql-dialect", () => ({
+  usePqlDialect: () => ({
+    dialect: "jql",
+    workspaceDialect: "jql",
+    memberDialect: null,
+    setMemberDialect: () => Promise.resolve(),
+  }),
+}));
 type TEditorProps = {
   value: string;
   onChange: (next: string) => void;

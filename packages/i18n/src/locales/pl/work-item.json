@@ -543,7 +543,10 @@
     "example_invoices": "Opłacone faktury klienta z terminem w 2026 r.",
     "example_everything": "Wszystko poniżej klienta",
     "example_overdue": "Otwarte elementy pracy przeterminowane o tydzień",
-    "example_amount": "Twoje elementy pracy o kwocie powyżej 1000"
+    "example_amount": "Twoje elementy pracy o kwocie powyżej 1000",
+    "dialect": "Składnia",
+    "dialect_default": "Domyślna dla przestrzeni roboczej ({dialect})",
+    "dialect_error": "Nie udało się zmienić składni zapytań"
   },
   "timeline_hierarchy": {
     "menu": "Hierarchia",

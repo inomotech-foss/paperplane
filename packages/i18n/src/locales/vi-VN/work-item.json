@@ -543,7 +543,10 @@
     "example_invoices": "Hóa đơn đã thanh toán của một khách hàng, đến hạn trong năm 2026",
     "example_everything": "Mọi thứ bên dưới một khách hàng",
     "example_overdue": "Mục công việc đang mở đã quá hạn một tuần",
-    "example_amount": "Mục công việc của bạn có số tiền trên 1000"
+    "example_amount": "Mục công việc của bạn có số tiền trên 1000",
+    "dialect": "Cú pháp",
+    "dialect_default": "Mặc định của không gian làm việc ({dialect})",
+    "dialect_error": "Không thể thay đổi cú pháp truy vấn"
   },
   "timeline_hierarchy": {
     "menu": "Phân cấp",

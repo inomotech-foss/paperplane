@@ -14,6 +14,8 @@
         "company_size": "Rozmiar firmy",
         "url": "URL przestrzeni roboczej",
         "workspace_timezone": "Strefa czasowa przestrzeni roboczej",
+        "pql_dialect": "Składnia zapytań",
+        "pql_dialect_description": "Domyślny zapis podpowiedzi i pomocy na pasku zapytań. Każdy członek może wybrać własny, a zapytania akceptują oba.",
         "update_workspace": "Zaktualizuj przestrzeń",
         "delete_workspace": "Usuń tę przestrzeń",
         "delete_workspace_description": "Usunięcie przestrzeni spowoduje wymazanie wszystkich danych i zasobów. Ta akcja jest nieodwracalna.",

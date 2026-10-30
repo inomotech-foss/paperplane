@@ -14,6 +14,8 @@
         "company_size": "会社の規模",
         "url": "ワークスペースURL",
         "workspace_timezone": "ワークスペースのタイムゾーン",
+        "pql_dialect": "クエリ構文",
+        "pql_dialect_description": "クエリバーの候補とヘルプで使う既定の表記です。メンバーはそれぞれ独自に選択でき、クエリはどちらの表記も受け付けます。",
         "update_workspace": "ワークスペースを更新",
         "delete_workspace": "このワークスペースを削除",
         "delete_workspace_description": "ワークスペースを削除すると、そのワークスペース内のすべてのデータとリソースが完全に削除され、復元することはできません。",

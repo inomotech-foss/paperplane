@@ -17,6 +17,8 @@ from plane.utils.constants import RESTRICTED_WORKSPACE_SLUGS
 from plane.utils.color import get_random_color
 
 ROLE_CHOICES = ((20, "Admin"), (15, "Member"), (5, "Guest"))
+# The PQL spelling the query bar completes and explains; the parser accepts both.
+PQL_DIALECT_CHOICES = (("jql", "JQL"), ("plane", "Plane"))
 
 
 def get_default_props():
@@ -137,6 +139,7 @@ class Workspace(BaseModel):
     organization_size = models.CharField(max_length=20, blank=True, null=True)
     timezone = models.CharField(max_length=255, default="UTC", choices=TIMEZONE_CHOICES)
     background_color = models.CharField(max_length=255, default=get_random_color)
+    pql_dialect = models.CharField(max_length=8, choices=PQL_DIALECT_CHOICES, default="jql")
 
     def __str__(self):
         """Return name of the Workspace"""
@@ -211,6 +214,8 @@ class WorkspaceMember(BaseModel):
     getting_started_checklist = models.JSONField(default=dict)
     tips = models.JSONField(default=dict)
     explored_features = models.JSONField(default=dict)
+    # The member's own PQL dialect; null follows the workspace's.
+    pql_dialect = models.CharField(max_length=8, choices=PQL_DIALECT_CHOICES, null=True, default=None)
 
     class Meta:
         unique_together = ["workspace", "member", "deleted_at"]

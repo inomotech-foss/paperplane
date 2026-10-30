@@ -14,6 +14,8 @@
         "company_size": "Dimensione aziendale",
         "url": "URL dello spazio di lavoro",
         "workspace_timezone": "Fuso orario dello spazio di lavoro",
+        "pql_dialect": "Sintassi delle query",
+        "pql_dialect_description": "La scrittura predefinita per i suggerimenti e la guida della barra delle query. Ogni membro può sceglierne una propria e le query accettano entrambe.",
         "update_workspace": "Aggiorna spazio di lavoro",
         "delete_workspace": "Elimina questo spazio di lavoro",
         "delete_workspace_description": "Eliminando uno spazio di lavoro, tutti i dati e le risorse all'interno di esso verranno rimossi definitivamente e non potranno essere recuperati.",

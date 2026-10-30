@@ -12,7 +12,8 @@ import { CircleHelp, Play, X } from "lucide-react";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import type { SemanticError } from "@plane/pql";
-import type { TWorkItemQueryValidation } from "@plane/types";
+import type { TPqlDialect, TWorkItemQueryValidation } from "@plane/types";
+import { setToast } from "@plane/blocks/toast";
 import { cn } from "@plane/utils";
 // services
 import { WorkItemQueryService } from "@/services/issue";
@@ -21,6 +22,7 @@ import { checkWorkItemQuery } from "./check";
 import { editorBoxClass } from "./editor-classes";
 import { WorkItemQueryHelp } from "./query-help";
 import { useValuesFor } from "./values";
+import { usePqlDialect } from "./use-pql-dialect";
 import { toVocabulary } from "./vocabulary";
 
 const workItemQueryService = new WorkItemQueryService();
@@ -102,7 +104,14 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
     { revalidateOnFocus: false }
   );
   const valuesFor = useValuesFor(projectId);
-  const vocabulary = useMemo(() => toVocabulary(fields, valuesFor), [fields, valuesFor]);
+  const { dialect, workspaceDialect, memberDialect, setMemberDialect } = usePqlDialect(workspaceSlug);
+  const vocabulary = useMemo(() => toVocabulary(fields, valuesFor, dialect), [fields, valuesFor, dialect]);
+
+  const changeDialect = (next: TPqlDialect | null) => {
+    setMemberDialect(next).catch(() =>
+      setToast({ type: "error", title: t("error"), message: t("work_item_query.dialect_error") })
+    );
+  };
 
   const validate = useCallback(
     async (pql: string): Promise<SemanticError | null> => {
@@ -262,7 +271,16 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
           {runError}
         </p>
       )}
-      {isHelpOpen && <WorkItemQueryHelp fields={fields} onClose={() => setIsHelpOpen(false)} />}
+      {isHelpOpen && (
+        <WorkItemQueryHelp
+          fields={fields}
+          dialect={dialect}
+          workspaceDialect={workspaceDialect}
+          memberDialect={memberDialect}
+          onDialectChange={changeDialect}
+          onClose={() => setIsHelpOpen(false)}
+        />
+      )}
     </div>
   );
 });

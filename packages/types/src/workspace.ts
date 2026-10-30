@@ -11,6 +11,7 @@ import type { TProjectMembership } from "./project";
 import type { IUser, IUserLite } from "./users";
 import type { TLoginMediums } from "./instance";
 import type { IWorkspaceViewProps } from "./view-props";
+import type { TPqlDialect } from "./issues/work-item-query";
 
 export enum EUserWorkspaceRoles {
   ADMIN = 20,
@@ -34,6 +35,8 @@ export interface IWorkspace {
   total_projects?: number;
   role: number;
   timezone: string;
+  /** The workspace's default PQL dialect; only admins change it. */
+  pql_dialect: TPqlDialect;
 }
 
 export interface IWorkspaceLite {
@@ -107,6 +110,8 @@ export interface IWorkspaceMemberMe {
   view_props: IWorkspaceViewProps;
   workspace: string;
   draft_issue_count: number;
+  /** The member's own PQL dialect; null follows the workspace's. */
+  pql_dialect: TPqlDialect | null;
 }
 
 export interface ILastActiveWorkspaceDetails {

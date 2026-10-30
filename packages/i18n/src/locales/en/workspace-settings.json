@@ -14,6 +14,8 @@
         "company_size": "Company size",
         "url": "Workspace URL",
         "workspace_timezone": "Workspace Timezone",
+        "pql_dialect": "Query syntax",
+        "pql_dialect_description": "The default spelling for query bar suggestions and help. Each member can choose their own, and queries accept both.",
         "update_workspace": "Update workspace",
         "delete_workspace": "Delete this workspace",
         "delete_workspace_description": "When deleting a workspace, all of the data and resources within that workspace will be permanently removed and cannot be recovered.",

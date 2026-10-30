@@ -5,6 +5,11 @@ import { describe, expect, it } from "vitest";
 
 import { candidatesAt, positionAt, quote, subjectAt } from "./completion.js";
 import { vocabulary } from "./test-vocabulary.js";
+import type { Vocabulary } from "./vocabulary.js";
+
+const plane: Vocabulary = { ...vocabulary, dialect: "plane" };
+const insertsFor = async (source: string, vocab: Vocabulary) =>
+  (await candidatesAt(source, source.length, vocab)).options.map((option) => option.insert);
 
 const labels = async (source: string, caret = source.length) =>
   (await candidatesAt(source, caret, vocabulary)).options.map((option) => option.label);
@@ -25,6 +30,8 @@ describe("candidatesAt", () => {
       "assignees__id",
       "due_date",
       "target_date",
+      "state_group",
+      "state__group",
       "not",
       'cf[""]',
       'childOf("")',
@@ -115,6 +122,46 @@ describe("candidatesAt", () => {
     expect(names).toContain("isOverdue()");
     expect(names).not.toContain("openStates()");
     expect(names).not.toContain('openStates("")');
+  });
+
+  it("offers Plane field names in the plane dialect", async () => {
+    const fields = (await candidatesAt("", 0, plane)).options.map((o) => o.label);
+    expect(fields).toEqual(expect.arrayContaining(["dueDate", "targetDate", "stateGroup", "priority", "state"]));
+    expect(fields).not.toContain("due_date");
+    expect(fields).not.toContain("target_date");
+    expect(fields).not.toContain("state_group");
+  });
+
+  it("finds a field by any name in the plane dialect", async () => {
+    const values = (await candidatesAt("due_date < ", 11, plane)).options.map((o) => o.label);
+    expect(values).toContain("today()");
+  });
+
+  it("offers list functions after in on the state group field in the plane dialect", async () => {
+    const source = "stateGroup in ";
+    const options = (await candidatesAt(source, source.length, plane)).options.map((o) => o.label);
+    expect(options).toEqual(expect.arrayContaining(["(", "activeStates()", "closedStates()", "openStates()"]));
+    const notIn = "stateGroup not in ";
+    const negated = (await candidatesAt(notIn, notIn.length, plane)).options.map((o) => o.label);
+    expect(negated).toContain("openStates()");
+  });
+
+  it("does not offer list functions on other fields", async () => {
+    const source = "priority in ";
+    const options = (await candidatesAt(source, source.length, plane)).options.map((o) => o.label);
+    expect(options).not.toContain("openStates()");
+  });
+
+  it("does not offer list functions in the jql dialect", async () => {
+    expect(await labels("state_group in ")).not.toContain("openStates()");
+  });
+
+  it("leaves room for a list function after in on the state group field in the plane dialect", async () => {
+    const stateGroup = await insertsFor("stateGroup ", plane);
+    expect(stateGroup).toContain("in ");
+    expect(stateGroup).toContain("not in ");
+    expect(await insertsFor("priority ", plane)).toContain("in (");
+    expect(await insertsFor("state_group ", vocabulary)).toContain("in (");
   });
 
   it("offers nothing field-specific for a custom property value", async () => {

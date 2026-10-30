@@ -24,11 +24,16 @@ export type FunctionInfo = {
   arguments: number;
 };
 
+// Which spelling completion offers; the parser accepts both.
+export type Dialect = "jql" | "plane";
+
 export type Vocabulary = {
   fields: FieldInfo[];
   functions: FunctionInfo[];
   // Entity names for a field, or custom property names when `field` is "cf".
   valuesFor?: (field: string, prefix: string) => Promise<string[]>;
+  // Absent means "jql".
+  dialect?: Dialect;
 };
 
 export function findField(vocabulary: Vocabulary, name: string): FieldInfo | undefined {

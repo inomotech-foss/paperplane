@@ -543,7 +543,10 @@
     "example_invoices": "某客户 2026 年到期的已付款发票",
     "example_everything": "某客户之下的全部内容",
     "example_overdue": "逾期一周的未完成工作项",
-    "example_amount": "金额超过 1000 的我的工作项"
+    "example_amount": "金额超过 1000 的我的工作项",
+    "dialect": "语法",
+    "dialect_default": "工作区默认（{dialect}）",
+    "dialect_error": "无法更改查询语法"
   },
   "timeline_hierarchy": {
     "menu": "层级",

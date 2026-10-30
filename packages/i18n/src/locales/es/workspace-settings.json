@@ -14,6 +14,8 @@
         "company_size": "Tamaño de la empresa",
         "url": "URL del espacio de trabajo",
         "workspace_timezone": "Zona horaria del espacio de trabajo",
+        "pql_dialect": "Sintaxis de consulta",
+        "pql_dialect_description": "La escritura predeterminada para las sugerencias y la ayuda de la barra de consultas. Cada miembro puede elegir la suya y las consultas aceptan ambas.",
         "update_workspace": "Actualizar espacio de trabajo",
         "delete_workspace": "Eliminar este espacio de trabajo",
         "delete_workspace_description": "Al eliminar un espacio de trabajo, todos los datos y recursos dentro de ese espacio se eliminarán permanentemente y no podrán recuperarse.",

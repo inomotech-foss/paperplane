@@ -543,7 +543,10 @@
     "example_invoices": "Zaplatené faktúry zákazníka so splatnosťou v roku 2026",
     "example_everything": "Všetko pod zákazníkom",
     "example_overdue": "Otvorené pracovné položky týždeň po termíne",
-    "example_amount": "Vaše pracovné položky so sumou nad 1000"
+    "example_amount": "Vaše pracovné položky so sumou nad 1000",
+    "dialect": "Syntax",
+    "dialect_default": "Predvolená pre pracovný priestor ({dialect})",
+    "dialect_error": "Syntax dopytov sa nepodarilo zmeniť"
   },
   "timeline_hierarchy": {
     "menu": "Hierarchia",

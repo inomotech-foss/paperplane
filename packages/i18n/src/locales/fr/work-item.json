@@ -543,7 +543,10 @@
     "example_invoices": "Factures payées d’un client, échues en 2026",
     "example_everything": "Tout ce qui se trouve sous un client",
     "example_overdue": "Éléments de travail ouverts en retard d’une semaine",
-    "example_amount": "Vos éléments de travail dont le montant dépasse 1000"
+    "example_amount": "Vos éléments de travail dont le montant dépasse 1000",
+    "dialect": "Syntaxe",
+    "dialect_default": "Par défaut de l’espace de travail ({dialect})",
+    "dialect_error": "Impossible de modifier la syntaxe des requêtes"
   },
   "timeline_hierarchy": {
     "menu": "Hiérarchie",

@@ -17895,6 +17895,41 @@ paths:
       responses:
         '200':
           description: No response body
+    patch:
+      operationId: workspaces_workspace_members_me_partial_update
+      description: |-
+        This enables timezone conversion according
+        to the user set timezone
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceMemberDialectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceMemberDialectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceMemberDialectRequest'
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberMe'
+          description: ''
+        '400':
+          description: A key other than pql_dialect, or an unknown dialect
   /api/workspaces/{slug}/workspace-themes/:
     get:
       operationId: workspaces_workspace_themes_list
@@ -24319,6 +24354,8 @@ components:
           type: string
           minLength: 1
           maxLength: 255
+        pql_dialect:
+          $ref: '#/components/schemas/PqlDialectEnum'
         logo_asset:
           type: string
           format: uuid
@@ -24352,6 +24389,20 @@ components:
         getting_started_checklist: {}
         tips: {}
         explored_features: {}
+        pql_dialect:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/PqlDialectEnum'
+          - $ref: '#/components/schemas/NullEnum'
+    PatchedWorkspaceMemberDialectRequest:
+      type: object
+      description: The one field a member may change on their own row.
+      properties:
+        pql_dialect:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/PqlDialectEnum'
+          - $ref: '#/components/schemas/NullEnum'
     PatchedWorkspaceThemeRequest:
       type: object
       properties:
@@ -24413,6 +24464,14 @@ components:
         sort_order:
           type: number
           format: double
+    PqlDialectEnum:
+      enum:
+      - jql
+      - plane
+      type: string
+      description: |-
+        * `jql` - JQL
+        * `plane` - Plane
     PriorityEnum:
       enum:
       - urgent
@@ -27589,6 +27648,8 @@ components:
         background_color:
           type: string
           maxLength: 255
+        pql_dialect:
+          $ref: '#/components/schemas/PqlDialectEnum'
         created_by:
           type: string
           format: uuid
@@ -27620,6 +27681,7 @@ components:
       - organization_size
       - timezone
       - background_color
+      - pql_dialect
       - created_by
       - updated_by
       - logo_asset
@@ -27746,6 +27808,8 @@ components:
           type: string
           minLength: 1
           maxLength: 255
+        pql_dialect:
+          $ref: '#/components/schemas/PqlDialectEnum'
         logo_asset:
           type: string
           format: uuid
@@ -27833,6 +27897,11 @@ components:
         getting_started_checklist: {}
         tips: {}
         explored_features: {}
+        pql_dialect:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/PqlDialectEnum'
+          - $ref: '#/components/schemas/NullEnum'
         created_by:
           type: string
           format: uuid
@@ -27863,6 +27932,7 @@ components:
       - getting_started_checklist
       - tips
       - explored_features
+      - pql_dialect
       - created_by
       - updated_by
       - workspace
@@ -27883,6 +27953,89 @@ components:
         getting_started_checklist: {}
         tips: {}
         explored_features: {}
+        pql_dialect:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/PqlDialectEnum'
+          - $ref: '#/components/schemas/NullEnum'
+    WorkspaceMemberMe:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        draft_issue_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          minimum: 0
+          maximum: 32767
+        company_role:
+          type: string
+          nullable: true
+        view_props: {}
+        default_props: {}
+        issue_props: {}
+        is_active:
+          type: boolean
+        getting_started_checklist: {}
+        tips: {}
+        explored_features: {}
+        pql_dialect:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/PqlDialectEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        workspace:
+          type: string
+          format: uuid
+        member:
+          type: string
+          format: uuid
+      required:
+      - id
+      - created_at
+      - updated_at
+      - deleted_at
+      - role
+      - company_role
+      - view_props
+      - default_props
+      - issue_props
+      - is_active
+      - getting_started_checklist
+      - tips
+      - explored_features
+      - pql_dialect
+      - created_by
+      - updated_by
+      - workspace
+      - member
     WorkspaceRecentVisit:
       type: object
       properties:

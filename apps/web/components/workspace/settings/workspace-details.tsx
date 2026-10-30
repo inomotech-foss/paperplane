@@ -10,12 +10,13 @@ import { Controller, useForm } from "react-hook-form";
 // Plane Imports
 import { Field } from "@makeplane/propel/components/field";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
+import { Select, SelectContent, SelectItem, SelectList, SelectTrigger } from "@makeplane/propel/components/select";
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { EditOutline } from "@makeplane/propel/icons";
 import { setToast } from "@plane/blocks/toast";
-import type { IWorkspace } from "@plane/types";
+import type { IWorkspace, TPqlDialect } from "@plane/types";
 import { cn, copyUrlToClipboard, getFileURL, validateWorkspaceName } from "@plane/utils";
 // components
 import { WorkspaceImageUploadModal } from "@/components/core/modals/workspace-image-upload-modal";
@@ -26,11 +27,17 @@ import { useUserPermissions } from "@/hooks/store/user";
 // plane web components
 import { DeleteWorkspaceSection } from "@/components/workspace/delete-workspace-section";
 
+const PQL_DIALECT_OPTIONS: { value: TPqlDialect; label: string }[] = [
+  { value: "jql", label: "JQL" },
+  { value: "plane", label: "Plane" },
+];
+
 const defaultValues: Partial<IWorkspace> = {
   name: "",
   url: "",
   logo_url: null,
   timezone: "UTC",
+  pql_dialect: "jql",
 };
 
 export const WorkspaceDetails = observer(function WorkspaceDetails() {
@@ -63,6 +70,7 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
     const payload: Partial<IWorkspace> = {
       name: formData.name,
       timezone: formData.timezone,
+      pql_dialect: formData.pql_dialect,
     };
 
     try {
@@ -255,6 +263,37 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
                   </>
                 )}
               />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="workspace-pql-dialect" className="text-body-sm-medium text-tertiary">
+                {t("workspace_settings.settings.general.pql_dialect")}
+              </label>
+              <Controller
+                name="pql_dialect"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Select<TPqlDialect>
+                    items={PQL_DIALECT_OPTIONS}
+                    value={value ?? "jql"}
+                    onValueChange={(dialect) => {
+                      if (dialect) onChange(dialect);
+                    }}
+                    disabled={!isAdmin}
+                  >
+                    <SelectTrigger id="workspace-pql-dialect" size="md" />
+                    <SelectContent>
+                      <SelectList>
+                        {PQL_DIALECT_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value} size="md" label={option.label} />
+                        ))}
+                      </SelectList>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <p className="text-caption-sm-regular text-tertiary">
+                {t("workspace_settings.settings.general.pql_dialect_description")}
+              </p>
             </div>
           </div>
         </div>

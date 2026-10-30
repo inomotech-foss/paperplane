@@ -543,7 +543,10 @@
     "example_invoices": "Betaalde facturen van een klant, vervallen in 2026",
     "example_everything": "Alles onder een klant",
     "example_overdue": "Open werkitems die een week te laat zijn",
-    "example_amount": "Jouw werkitems met een bedrag boven 1000"
+    "example_amount": "Jouw werkitems met een bedrag boven 1000",
+    "dialect": "Syntaxis",
+    "dialect_default": "Standaard van werkruimte ({dialect})",
+    "dialect_error": "De querysyntaxis kon niet worden gewijzigd"
   },
   "timeline_hierarchy": {
     "menu": "Hiërarchie",

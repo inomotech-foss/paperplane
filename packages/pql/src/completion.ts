@@ -171,10 +171,32 @@ function fieldBoost(name: string, index: number): number {
   return index === 0 ? 1 : 0;
 }
 
+// The field list functions such as openStates() apply to.
+const LIST_FUNCTION_FIELD = "state__group";
+
+// In the Plane dialect a field with a Plane name is offered under that name only.
+function namesFor(vocabulary: Vocabulary, field: FieldInfo): string[] {
+  if (vocabulary.dialect === "plane" && field.planeAliases?.length) return field.planeAliases;
+  return [...new Set([...field.aliases, field.name])];
+}
+
+// A list function follows `in` directly, so the Plane dialect leaves the parenthesis off on that field.
+function takesListFunction(vocabulary: Vocabulary, field: FieldInfo | undefined): boolean {
+  return vocabulary.dialect === "plane" && field?.name === LIST_FUNCTION_FIELD;
+}
+
+function listCandidates(vocabulary: Vocabulary): Candidate[] {
+  const options: Candidate[] = [{ label: "(", insert: "(", type: "operator" }];
+  for (const { name, kind } of vocabulary.functions) {
+    if (kind === "list") options.push({ label: `${name}()`, insert: `${name}()`, type: "function", boost: 1 });
+  }
+  return options;
+}
+
 function fieldCandidates(vocabulary: Vocabulary, position: Position): Candidate[] {
   const options: Candidate[] = [];
   for (const field of vocabulary.fields) {
-    const names = [...new Set([...field.aliases, field.name])];
+    const names = namesFor(vocabulary, field);
     names.forEach((name, i) => options.push({ label: name, insert: name, type: "field", boost: fieldBoost(name, i) }));
   }
   if (position.tokenCandidates.has(P.NOT)) options.push({ label: "not", insert: "not ", type: "keyword" });
@@ -215,10 +237,11 @@ export async function candidatesAt(source: string, caret: number, vocabulary: Vo
   } else if (position.rules.has(P.RULE_operator)) {
     const subject = subjectAt(source, index);
     const field = subject.field ? findField(vocabulary, subject.field) : undefined;
+    const listOpener = takesListFunction(vocabulary, field) ? "" : "(";
     for (const operator of operatorCandidates(position, vocabulary, field)) {
       options.push({
         label: operator,
-        insert: spaced(operator.endsWith("in") ? `${operator} (` : `${operator} `),
+        insert: spaced(operator.endsWith("in") ? `${operator} ${listOpener}` : `${operator} `),
         type: "operator",
       });
     }
@@ -231,6 +254,10 @@ export async function candidatesAt(source: string, caret: number, vocabulary: Vo
     for (const name of (await vocabulary.valuesFor?.("cf", prefix)) ?? []) {
       options.push({ label: name, insert: closer ? name + closer : quote(name), type: "value" });
     }
+  } else if (position.tokenCandidates.has(P.LPAREN) && tokens[index - 1]?.type === P.IN) {
+    const subject = subjectAt(source, index);
+    const field = subject.field ? findField(vocabulary, subject.field) : undefined;
+    if (takesListFunction(vocabulary, field)) options.push(...listCandidates(vocabulary));
   } else if (valueStartsHere) {
     options.push(...(await valueCandidates(vocabulary, subjectAt(source, index), prefix, closer)));
   }

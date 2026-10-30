@@ -543,7 +543,10 @@
     "example_invoices": "Bezahlte Rechnungen eines Kunden, fällig in 2026",
     "example_everything": "Alles unterhalb eines Kunden",
     "example_overdue": "Offene Arbeitselemente, die seit einer Woche überfällig sind",
-    "example_amount": "Ihre Arbeitselemente mit einem Betrag über 1000"
+    "example_amount": "Ihre Arbeitselemente mit einem Betrag über 1000",
+    "dialect": "Syntax",
+    "dialect_default": "Standard des Arbeitsbereichs ({dialect})",
+    "dialect_error": "Die Abfragesyntax konnte nicht geändert werden"
   },
   "timeline_hierarchy": {
     "menu": "Hierarchie",

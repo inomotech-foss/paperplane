@@ -543,7 +543,10 @@
     "example_invoices": "Bir müşterinin 2026 vadeli ödenmiş faturaları",
     "example_everything": "Bir müşterinin altındaki her şey",
     "example_overdue": "Bir haftadır gecikmiş açık iş öğeleri",
-    "example_amount": "Tutarı 1000 üzerindeki iş öğeleriniz"
+    "example_amount": "Tutarı 1000 üzerindeki iş öğeleriniz",
+    "dialect": "Söz dizimi",
+    "dialect_default": "Çalışma alanı varsayılanı ({dialect})",
+    "dialect_error": "Sorgu söz dizimi değiştirilemedi"
   },
   "timeline_hierarchy": {
     "menu": "Hiyerarşi",

@@ -39,6 +39,15 @@ export const vocabulary: Vocabulary = {
       operators: ["=", "!=", ">", ">=", "<", "<=", "in", "not in", "is null", "is not null"],
       choices: null,
     },
+    {
+      name: "state__group",
+      aliases: ["state_group"],
+      planeAliases: ["stateGroup"],
+      type: "text",
+      lookups: ["exact", "in", "isnull"],
+      operators: ["=", "!=", "in", "not in", "is null", "is not null"],
+      choices: ["backlog", "unstarted", "started", "completed", "cancelled"],
+    },
   ],
   functions: [
     { name: "activeStates", kind: "list", arguments: 0 },

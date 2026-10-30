@@ -14,6 +14,8 @@
         "company_size": "Veľkosť spoločnosti",
         "url": "URL pracovného priestoru",
         "workspace_timezone": "Časové pásmo pracovného priestoru",
+        "pql_dialect": "Syntax dopytov",
+        "pql_dialect_description": "Predvolený zápis pre návrhy a pomocníka v paneli dopytov. Každý člen si môže zvoliť vlastný a dopyty prijímajú oba.",
         "update_workspace": "Aktualizovať priestor",
         "delete_workspace": "Zmazať tento priestor",
         "delete_workspace_description": "Zmazaním priestoru odstránite všetky dáta a zdroje. Akcia je nevratná.",

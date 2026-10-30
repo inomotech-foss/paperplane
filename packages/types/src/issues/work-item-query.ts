@@ -4,6 +4,9 @@
  * See the LICENSE file for details.
  */
 
+/** Which PQL spelling the query bar completes and explains; the parser accepts both. */
+export type TPqlDialect = "jql" | "plane";
+
 /** Result of validating a Plane Query Language expression without running it. */
 export type TWorkItemQueryValidation = {
   valid: boolean;

@@ -23,6 +23,7 @@ from .workspace import (
     WorkspaceThemeSerializer,
     WorkspaceMemberAdminSerializer,
     WorkspaceMemberMeSerializer,
+    WorkspaceMemberDialectSerializer,
     WorkspaceUserPropertiesSerializer,
     WorkspaceUserLinkSerializer,
     WorkspaceRecentVisitSerializer,

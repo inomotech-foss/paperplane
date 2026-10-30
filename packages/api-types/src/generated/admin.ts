@@ -505,6 +505,12 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * @description * `jql` - JQL
+         *     * `plane` - Plane
+         * @enum {string}
+         */
+        PqlDialectEnum: "jql" | "plane";
+        /**
          * @description * `Africa/Abidjan` - Africa/Abidjan
          *     * `Africa/Accra` - Africa/Accra
          *     * `Africa/Addis_Ababa` - Africa/Addis_Ababa
@@ -976,6 +982,7 @@ export interface components {
             organization_size: string | null;
             timezone: components["schemas"]["TimezoneEnum"];
             background_color: string;
+            pql_dialect: components["schemas"]["PqlDialectEnum"];
             /** Format: uuid */
             readonly created_by: string | null;
             /**
@@ -996,6 +1003,7 @@ export interface components {
             organization_size?: string | null;
             timezone?: components["schemas"]["TimezoneEnum"];
             background_color?: string;
+            pql_dialect?: components["schemas"]["PqlDialectEnum"];
             /** Format: uuid */
             logo_asset?: string | null;
         };

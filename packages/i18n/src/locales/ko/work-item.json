@@ -543,7 +543,10 @@
     "example_invoices": "특정 고객의 2026년 만기 결제 완료 청구서",
     "example_everything": "특정 고객 아래의 모든 항목",
     "example_overdue": "일주일 이상 기한이 지난 미완료 작업 항목",
-    "example_amount": "금액이 1000을 초과하는 내 작업 항목"
+    "example_amount": "금액이 1000을 초과하는 내 작업 항목",
+    "dialect": "구문",
+    "dialect_default": "작업 공간 기본값({dialect})",
+    "dialect_error": "쿼리 구문을 변경할 수 없습니다"
   },
   "timeline_hierarchy": {
     "menu": "계층",

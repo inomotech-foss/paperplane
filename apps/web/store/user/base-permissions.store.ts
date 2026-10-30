@@ -14,7 +14,13 @@ import {
   EUserPermissionsLevel,
   WORKSPACE_SIDEBAR_DYNAMIC_NAVIGATION_ITEMS_LINKS,
 } from "@plane/constants";
-import type { EUserProjectRoles, IUserProjectsRole, IWorkspaceMemberMe, TProjectMembership } from "@plane/types";
+import type {
+  EUserProjectRoles,
+  IUserProjectsRole,
+  IWorkspaceMemberMe,
+  TPqlDialect,
+  TProjectMembership,
+} from "@plane/types";
 import { EUserWorkspaceRoles } from "@plane/types";
 // plane web imports
 import { WorkspaceService } from "@/services/workspace.service";
@@ -52,6 +58,7 @@ export interface IBaseUserPermissionStore {
   ) => boolean;
   // actions
   fetchUserWorkspaceInfo: (workspaceSlug: string) => Promise<IWorkspaceMemberMe>;
+  updateWorkspaceMemberDialect: (workspaceSlug: string, dialect: TPqlDialect | null) => Promise<void>;
   leaveWorkspace: (workspaceSlug: string) => Promise<void>;
   fetchUserProjectInfo: (workspaceSlug: string, projectId: string) => Promise<TProjectMembership>;
   fetchUserProjectPermissions: (workspaceSlug: string) => Promise<IUserProjectsRole>;
@@ -82,6 +89,7 @@ export class BaseUserPermissionStore implements IBaseUserPermissionStore {
       // computed
       // actions
       fetchUserWorkspaceInfo: action,
+      updateWorkspaceMemberDialect: action,
       leaveWorkspace: action,
       fetchUserProjectInfo: action,
       fetchUserProjectPermissions: action,
@@ -253,6 +261,18 @@ export class BaseUserPermissionStore implements IBaseUserPermissionStore {
       this.loader = false;
       throw error;
     }
+  };
+
+  /**
+   * @description Sets the user's own PQL dialect in a workspace; null follows the workspace's
+   * @param { string } workspaceSlug
+   * @param { TPqlDialect | null } dialect
+   */
+  updateWorkspaceMemberDialect = async (workspaceSlug: string, dialect: TPqlDialect | null): Promise<void> => {
+    const response = await workspaceService.updateWorkspaceMemberMe(workspaceSlug, { pql_dialect: dialect });
+    runInAction(() => {
+      set(this.workspaceUserInfo, [workspaceSlug, "pql_dialect"], response.pql_dialect);
+    });
   };
 
   /**

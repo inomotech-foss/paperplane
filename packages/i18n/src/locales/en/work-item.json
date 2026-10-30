@@ -543,7 +543,10 @@
     "example_invoices": "Paid invoices of a customer, due in 2026",
     "example_everything": "Everything below a customer",
     "example_overdue": "Open work items overdue by a week",
-    "example_amount": "Your work items with an amount above 1000"
+    "example_amount": "Your work items with an amount above 1000",
+    "dialect": "Syntax",
+    "dialect_default": "Workspace default ({dialect})",
+    "dialect_error": "Could not change the query syntax"
   },
   "timeline_hierarchy": {
     "menu": "Hierarchy",
