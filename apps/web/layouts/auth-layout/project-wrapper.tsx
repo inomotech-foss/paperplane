@@ -11,6 +11,7 @@ import useSWR from "swr";
 // plane imports
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { GANTT_TIMELINE_TYPE } from "@plane/types";
+import type { TProject } from "@plane/types";
 // components
 import { ProjectAccessRestriction } from "@/components/auth-screens/project/project-access-restriction";
 import { isProjectFeatureEnabled } from "@/components/settings/project/work-items-dependency";
@@ -34,6 +35,7 @@ import {
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
+import { readNumber } from "@/helpers/guards";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { useLabel } from "@/hooks/store/use-label";
 import { useMember } from "@/hooks/store/use-member";
@@ -92,7 +94,7 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   }, []);
 
   // fetching project details
-  const { isLoading: isProjectDetailsLoading, error: projectDetailsError } = useSWR(
+  const { isLoading: isProjectDetailsLoading, error: projectDetailsError } = useSWR<TProject, unknown>(
     PROJECT_DETAILS(workspaceSlug, projectId),
     () => fetchProjectDetails(workspaceSlug, projectId)
   );
@@ -179,7 +181,7 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   if (!isProjectLoading && hasPermissionToCurrentProject === false) {
     return (
       <ProjectAccessRestriction
-        errorStatusCode={projectDetailsError?.status}
+        errorStatusCode={readNumber(projectDetailsError, "status")}
         isWorkspaceAdmin={isWorkspaceAdmin}
         handleJoinProject={handleJoinProject}
         isJoinButtonDisabled={isJoiningProject}

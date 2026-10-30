@@ -13,7 +13,6 @@ import { getWorkspaceActivePath, pathnameToAccessKey } from "@/components/settin
 import { SettingsMobileNav } from "@/components/settings/mobile/nav";
 // plane imports
 import { WORKSPACE_SETTINGS_ACCESS } from "@plane/constants";
-import type { EUserWorkspaceRoles } from "@plane/types";
 // components
 import { WorkspaceSettingsSidebarRoot } from "@/components/settings/workspace/sidebar";
 // hooks
@@ -34,7 +33,7 @@ const WorkspaceSettingLayout = observer(function WorkspaceSettingLayout({ params
 
   let isAuthorized: boolean | string = false;
   if (pathname && workspaceSlug && userWorkspaceRole) {
-    isAuthorized = WORKSPACE_SETTINGS_ACCESS[accessKey]?.includes(userWorkspaceRole as EUserWorkspaceRoles);
+    isAuthorized = WORKSPACE_SETTINGS_ACCESS[accessKey]?.some((role) => role === userWorkspaceRole);
   }
 
   return (

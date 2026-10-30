@@ -6,9 +6,9 @@
 
 import useSWR from "swr";
 // plane imports
-import { GROUP_CHOICES } from "@plane/constants";
+import { STATE_GROUPS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
-import type { IUserStateDistribution, TStateGroups } from "@plane/types";
+import type { IUserStateDistribution } from "@plane/types";
 import { ContentWrapper } from "@plane/blocks/layout";
 // components
 import { PageHead } from "@/components/core/page-title";
@@ -32,11 +32,11 @@ export default function ProfileOverviewPage({ params }: Route.ComponentProps) {
     userService.getUserProfileData(workspaceSlug, userId)
   );
 
-  const stateDistribution: IUserStateDistribution[] = Object.keys(GROUP_CHOICES).map((key) => {
+  const stateDistribution: IUserStateDistribution[] = Object.values(STATE_GROUPS).map(({ key }) => {
     const group = userProfile?.state_distribution.find((g) => g.state_group === key);
 
     if (group) return group;
-    else return { state_group: key as TStateGroups, state_count: 0 };
+    else return { state_group: key, state_count: 0 };
   });
 
   return (

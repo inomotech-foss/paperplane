@@ -4,6 +4,8 @@
  * See the LICENSE file for details.
  */
 
+const asHTMLElement = (node: Node | null | undefined) => (node instanceof HTMLElement ? node : null);
+
 export const useTableKeyboardNavigation = () => {
   const getPreviousRow = (element: HTMLElement) => {
     const previousRow = element.closest("tr")?.previousSibling;
@@ -22,32 +24,32 @@ export const useTableKeyboardNavigation = () => {
   };
 
   const handleKeyBoardNavigation = function (e: React.KeyboardEvent<HTMLTableElement>) {
-    const element = e.target as HTMLElement;
+    const element = e.target;
 
-    if (!(element?.tagName === "TD" || element?.tagName === "TH")) return;
+    if (!(element instanceof HTMLElement) || !(element.tagName === "TD" || element.tagName === "TH")) return;
 
     let c: HTMLElement | null = null;
     if (e.key == "ArrowRight") {
       // Right Arrow
-      c = element.nextSibling as HTMLElement;
+      c = asHTMLElement(element.nextSibling);
     } else if (e.key == "ArrowLeft") {
       // Left Arrow
-      c = element.previousSibling as HTMLElement;
+      c = asHTMLElement(element.previousSibling);
     } else if (e.key == "ArrowUp") {
       // Up Arrow
       const index = Array.prototype.indexOf.call(element?.parentNode?.childNodes || [], element);
       const prevRow = getPreviousRow(element);
 
-      c = prevRow?.childNodes?.[index] as HTMLElement;
+      c = asHTMLElement(prevRow?.childNodes?.[index]);
     } else if (e.key == "ArrowDown") {
       // Down Arrow
       const index = Array.prototype.indexOf.call(element?.parentNode?.childNodes || [], element);
       const nextRow = getNextRow(element);
 
-      c = nextRow?.childNodes[index] as HTMLElement;
+      c = asHTMLElement(nextRow?.childNodes[index]);
     } else if (e.key == "Enter" || e.key == "Space") {
       e.preventDefault();
-      (element?.querySelector(".clickable") as HTMLElement)?.click();
+      element.querySelector<HTMLElement>(".clickable")?.click();
       return;
     }
 

@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
+import type { IModule } from "@plane/types";
 // plane imports
 import { cn } from "@plane/utils";
 // assets
@@ -34,7 +35,7 @@ function ModuleIssuesPage({ params }: Route.ComponentProps) {
   const { setValue, storedValue } = useLocalStorage("module_sidebar_collapsed", "false");
   const isSidebarCollapsed = storedValue ? (storedValue === "true" ? true : false) : false;
   // fetching module details
-  const { error } = useSWR(`CURRENT_MODULE_DETAILS_${moduleId}`, () =>
+  const { error } = useSWR<IModule, unknown>(`CURRENT_MODULE_DETAILS_${moduleId}`, () =>
     fetchModuleDetails(workspaceSlug, projectId, moduleId)
   );
   // derived values

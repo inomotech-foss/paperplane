@@ -36,6 +36,8 @@ export const NotificationOption = observer(function NotificationOption(props: TN
   // hooks
   const notification = useNotification(notificationId);
 
+  if (!notification) return null;
+
   return (
     <div
       className={cn("hidden flex-shrink-0 text-body-xs-medium group-hover:block", {

@@ -14,6 +14,9 @@ import type { TCustomComponentsMetaData } from "@plane/utils";
 import { useMember } from "@/hooks/store/use-member";
 // plane web hooks
 import { useAdditionalEditorMention } from "@/hooks/use-additional-editor-mention";
+import { isOneOf } from "@/helpers/guards";
+
+const SEARCH_ENTITIES: readonly TSearchEntities[] = ["user_mention", "issue", "project", "cycle", "module", "page"];
 
 type TArgs = {
   projectId?: string;
@@ -49,16 +52,15 @@ export const useParseEditorContent = (args: TArgs) => {
         span.setAttribute("data-node-type", "mention-block");
         // get the user id from the component
         const id = component.getAttribute("entity_identifier") || "";
-        const entityType = (component.getAttribute("entity_name") || "user_mention") as TSearchEntities;
+        const entityType = component.getAttribute("entity_name") || "user_mention";
         let textContent = "user";
         if (entityType === "user_mention") {
           const userDetails = getUserDetails(id);
           textContent = userDetails?.display_name ?? "";
         } else {
-          const mentionDetails = parseAdditionalEditorContent({
-            id,
-            entityType,
-          });
+          const mentionDetails = isOneOf(SEARCH_ENTITIES, entityType)
+            ? parseAdditionalEditorContent({ id, entityType })
+            : undefined;
           if (mentionDetails) {
             textContent = mentionDetails.textContent;
           }
@@ -176,18 +178,16 @@ export const useParseEditorContent = (args: TArgs) => {
       const mentionRegex =
         /<mention-component[^>]*entity_identifier="([^"]+)"[^>]*entity_name="([^"]+)"[^>]*><\/mention-component>/g;
       const originUrl = typeof window !== "undefined" && (window.location.origin ?? "");
-      parsedMarkdownContent = parsedMarkdownContent.replace(mentionRegex, (_match, id, entity_type) => {
-        const entityType = entity_type as TSearchEntities;
+      parsedMarkdownContent = parsedMarkdownContent.replace(mentionRegex, (_match, id: string, entityType: string) => {
         if (!id || !entityType) return "";
         if (entityType === "user_mention") {
           const userDetails = getUserDetails(id);
           if (!userDetails) return "";
           return `[${userDetails.display_name}](${originUrl}/${workspaceSlug}/profile/${id})`;
         } else {
-          const mentionDetails = parseAdditionalEditorContent({
-            id,
-            entityType,
-          });
+          const mentionDetails = isOneOf(SEARCH_ENTITIES, entityType)
+            ? parseAdditionalEditorContent({ id, entityType })
+            : undefined;
           if (!mentionDetails) {
             return "";
           } else {

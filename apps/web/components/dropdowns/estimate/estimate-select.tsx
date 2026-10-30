@@ -97,9 +97,7 @@ export const EstimateSelect = observer(function EstimateSelect(props: Props) {
     [projectId, areEstimateEnabledByProjectId, resolveActiveEstimate]
   );
 
-  // CE change: CE's `useEstimate` returns an empty object (not `undefined`) while no estimate is
-  // active, so the point lookup is optional-called.
-  const point = value ? estimate?.estimatePointById?.(value) : undefined;
+  const point = value ? estimate?.estimatePointById(value) : undefined;
   const selected: EstimateOption | null =
     value && point ? { id: value, displayValue: formatEstimatePointValue(estimate, point.value ?? "") } : null;
 

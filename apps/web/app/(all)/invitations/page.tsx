@@ -98,7 +98,7 @@ function UserInvitationsPage() {
             setIsJoiningWorkspaces(false);
           });
       })
-      .catch((_err) => {
+      .catch((_err: unknown) => {
         setToast({
           type: "error",
           title: t("error"),
@@ -107,6 +107,8 @@ function UserInvitationsPage() {
         setIsJoiningWorkspaces(false);
       });
   };
+
+  const respondedInvitationIds = new Set(invitationsRespond);
 
   return (
     <AuthenticationWrapper>
@@ -131,7 +133,7 @@ function UserInvitationsPage() {
                 <h4 className="text-20 font-semibold">{t("join_a_workspace")}</h4>
                 <div className="max-h-[37vh] space-y-4 overflow-y-auto md:w-3/5">
                   {invitations.map((invitation) => {
-                    const isSelected = invitationsRespond.includes(invitation.id);
+                    const isSelected = respondedInvitationIds.has(invitation.id);
 
                     return (
                       <button

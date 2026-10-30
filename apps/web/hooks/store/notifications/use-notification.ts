@@ -10,10 +10,10 @@ import { StoreContext } from "@/lib/store-context";
 // mobx store
 import type { INotification } from "@/store/notifications/notification";
 
-export const useNotification = (notificationId: string | undefined): INotification => {
+export const useNotification = (notificationId: string | undefined): INotification | undefined => {
   const context = useContext(StoreContext);
   if (context === undefined) throw new Error("useNotification must be used within StoreProvider");
-  if (!notificationId) return {} as INotification;
+  if (!notificationId) return undefined;
 
-  return context.workspaceNotification.notifications?.[notificationId] ?? {};
+  return context.workspaceNotification.notifications[notificationId];
 };

@@ -26,6 +26,7 @@ import { MemberSelect } from "@/components/dropdowns/member/member-select";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
 // hooks
+import { readString } from "@/helpers/guards";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -55,7 +56,8 @@ function NotifyModeSelect(props: { value: TServiceDeskNotifyMode; onChange: (val
         getValues={() => NOTIFY_MODE_OPTIONS}
         value={selectedOption}
         onChange={(val) => {
-          if (val) onChange(val as TServiceDeskNotifyMode);
+          const option = NOTIFY_MODE_OPTIONS.find((item) => item.value === val);
+          if (option) onChange(option.value);
         }}
         getOptionValue={(option) => option.value}
         getOptionLabel={(option) => option.label}
@@ -181,8 +183,7 @@ function ServiceDeskConfigForm(props: TServiceDeskConfigFormProps) {
       setToast({
         type: "error",
         title: "Error!",
-        message:
-          (err as { error?: string } | undefined)?.error ?? "Failed to save service desk settings. Please try again.",
+        message: readString(err, "error") ?? "Failed to save service desk settings. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -273,7 +274,7 @@ function ServiceDeskSettingsPage({ params }: Route.ComponentProps) {
     error,
     isLoading,
     mutate,
-  } = useSWR(
+  } = useSWR<TServiceDeskConfig, unknown>(
     workspaceSlug && projectId ? `SERVICE_DESK_CONFIG_${workspaceSlug}_${projectId}` : null,
     workspaceSlug && projectId ? () => serviceDeskService.getConfig(workspaceSlug, projectId) : null,
     { shouldRetryOnError: false, revalidateOnFocus: false }

@@ -25,26 +25,25 @@ const useReloadConfirmations = (isActive = true, message?: string, defaultShowAl
     (event: MouseEvent) => {
       if (!isActive || !showAlert) return;
       // Skip if event target is not available or defaultPrevented
-      if (!event.target || event.defaultPrevented) return;
+      if (!(event.target instanceof Element) || event.defaultPrevented) return;
       // Skip control/command/option/alt+click
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       // check if the event target is an anchor or a child of an anchor tag
-      const eventTarget = event.target as HTMLElement;
-      if (!eventTarget.closest("a")) return; // This is intentionally not type safe
+      const anchorElement = event.target.closest("a");
+      if (!anchorElement) return;
       // check if anchor target is _blank
-      const anchorElement = eventTarget.closest("a") as HTMLAnchorElement;
       const isAnchorTargetBlank = anchorElement.getAttribute("target") === "_blank";
       if (isAnchorTargetBlank) return;
       // show confirm dialog
       const isLeaving = confirm(alertMessage);
       if (isLeaving) {
-        onLeave && onLeave();
+        onLeave?.();
       } else {
         event.preventDefault();
         event.stopPropagation();
       }
     },
-    [isActive, showAlert]
+    [isActive, showAlert, alertMessage, onLeave]
   );
 
   useEffect(() => {

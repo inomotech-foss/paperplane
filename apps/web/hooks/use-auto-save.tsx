@@ -10,7 +10,7 @@ import { debounce } from "lodash-es";
 const AUTO_SAVE_TIME = 30000;
 
 const useAutoSave = (handleSaveDescription: () => void) => {
-  const intervalIdRef = useRef<any>(null);
+  const intervalIdRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const handleSaveDescriptionRef = useRef(handleSaveDescription);
 
   // Update the ref to always point to the latest handleSaveDescription

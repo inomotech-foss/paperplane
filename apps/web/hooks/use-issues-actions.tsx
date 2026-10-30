@@ -17,19 +17,30 @@ import type {
   TLoader,
   TProfileViews,
   TSupportedFilterForUpdate,
+  TWorkspaceDraftIssue,
+  TWorkspaceDraftPaginationInfo,
 } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
+import { isOneOf } from "@/helpers/guards";
 import { useIssues } from "./store/use-issues";
+
+const PROFILE_VIEWS: readonly TProfileViews[] = ["assigned", "created", "subscribed"];
+
+// Workspace drafts page through their own response shape.
+type TFetchedIssues = TIssuesResponse | TWorkspaceDraftPaginationInfo<TWorkspaceDraftIssue>;
 
 export interface IssueActions {
   fetchIssues: (
     loadType: TLoader,
     options: IssuePaginationOptions,
     viewId?: string
-  ) => Promise<TIssuesResponse | undefined>;
-  fetchNextIssues: (groupId?: string, subGroupId?: string) => Promise<TIssuesResponse | undefined>;
+  ) => Promise<TFetchedIssues | undefined>;
+  fetchNextIssues: (groupId?: string, subGroupId?: string) => Promise<TFetchedIssues | undefined>;
   removeIssue: (projectId: string | undefined | null, issueId: string) => Promise<void>;
-  createIssue?: (projectId: string | undefined | null, data: Partial<TIssue>) => Promise<TIssue | undefined>;
+  createIssue?: (
+    projectId: string | undefined | null,
+    data: Partial<TIssue>
+  ) => Promise<TIssue | TWorkspaceDraftIssue | undefined>;
   quickAddIssue?: (projectId: string | undefined | null, data: TIssue) => Promise<TIssue | undefined>;
   updateIssue?: (projectId: string | undefined | null, issueId: string, data: Partial<TIssue>) => Promise<void>;
   removeIssueFromView?: (projectId: string | undefined | null, issueId: string) => Promise<void>;
@@ -66,7 +77,6 @@ export const useIssuesActions = (storeType: EIssuesStoreType): IssueActions => {
     case EIssuesStoreType.GLOBAL:
       return globalIssueActions;
     case EIssuesStoreType.WORKSPACE_DRAFT:
-      //@ts-expect-error type mismatch
       return workspaceDraftIssueActions;
     case EIssuesStoreType.PROJECT:
     default:
@@ -94,7 +104,7 @@ const useProjectIssueActions = () => {
       if (!workspaceSlug || !projectId) return;
       return issues.fetchNextIssues(workspaceSlug.toString(), projectId.toString(), groupId, subGroupId);
     },
-    [issues.fetchIssues, workspaceSlug, projectId]
+    [issues.fetchNextIssues, workspaceSlug, projectId]
   );
 
   const createIssue = useCallback(
@@ -183,7 +193,7 @@ const useCycleIssueActions = () => {
         subGroupId
       );
     },
-    [issues.fetchIssues, workspaceSlug, projectId, cycleId]
+    [issues.fetchNextIssues, workspaceSlug, projectId, cycleId]
   );
 
   const createIssue = useCallback(
@@ -290,7 +300,7 @@ const useModuleIssueActions = () => {
         subGroupId
       );
     },
-    [issues.fetchIssues, workspaceSlug, projectId, moduleId]
+    [issues.fetchNextIssues, workspaceSlug, projectId, moduleId]
   );
 
   const createIssue = useCallback(
@@ -333,7 +343,7 @@ const useModuleIssueActions = () => {
       if (!workspaceSlug || !projectId) return;
       return await issues.archiveIssue(workspaceSlug, projectId, issueId);
     },
-    [issues.archiveIssue, moduleId, workspaceSlug]
+    [issues.archiveIssue, workspaceSlug]
   );
 
   const updateFilters = useCallback(
@@ -341,7 +351,7 @@ const useModuleIssueActions = () => {
       if (!moduleId || !workspaceSlug) return;
       return await issuesFilter.updateFilters(workspaceSlug, projectId, filterType, filters, moduleId);
     },
-    [issuesFilter.updateFilters, moduleId]
+    [issuesFilter.updateFilters, moduleId, workspaceSlug]
   );
 
   return useMemo(
@@ -356,7 +366,17 @@ const useModuleIssueActions = () => {
       archiveIssue,
       updateFilters,
     }),
-    [fetchIssues, createIssue, updateIssue, removeIssue, removeIssueFromView, archiveIssue, updateFilters]
+    [
+      fetchIssues,
+      fetchNextIssues,
+      createIssue,
+      quickAddIssue,
+      updateIssue,
+      removeIssue,
+      removeIssueFromView,
+      archiveIssue,
+      updateFilters,
+    ]
   );
 };
 
@@ -370,14 +390,8 @@ const useProfileIssueActions = () => {
 
   const fetchIssues = useCallback(
     async (loadType: TLoader, options: IssuePaginationOptions, viewId?: string) => {
-      if (!workspaceSlug || !userId || !viewId) return;
-      return issues.fetchIssues(
-        workspaceSlug.toString(),
-        userId.toString(),
-        loadType,
-        options,
-        viewId as TProfileViews
-      );
+      if (!workspaceSlug || !userId || !isOneOf(PROFILE_VIEWS, viewId)) return;
+      return issues.fetchIssues(workspaceSlug.toString(), userId.toString(), loadType, options, viewId);
     },
     [issues.fetchIssues, workspaceSlug, userId]
   );
@@ -386,7 +400,7 @@ const useProfileIssueActions = () => {
       if (!workspaceSlug || !userId) return;
       return issues.fetchNextIssues(workspaceSlug.toString(), userId.toString(), groupId, subGroupId);
     },
-    [issues.fetchIssues, workspaceSlug, userId]
+    [issues.fetchNextIssues, workspaceSlug, userId]
   );
 
   const createIssue = useCallback(
@@ -436,7 +450,7 @@ const useProfileIssueActions = () => {
       archiveIssue,
       updateFilters,
     }),
-    [fetchIssues, createIssue, updateIssue, removeIssue, archiveIssue, updateFilters]
+    [fetchIssues, fetchNextIssues, createIssue, updateIssue, removeIssue, archiveIssue, updateFilters]
   );
 };
 
@@ -461,7 +475,7 @@ const useProjectViewIssueActions = () => {
       if (!workspaceSlug || !projectId || !viewId) return;
       return issues.fetchNextIssues(workspaceSlug.toString(), projectId.toString(), viewId, groupId, subGroupId);
     },
-    [issues.fetchIssues, workspaceSlug, projectId]
+    [issues.fetchNextIssues, workspaceSlug, projectId, viewId]
   );
 
   const createIssue = useCallback(
@@ -543,7 +557,7 @@ const useArchivedIssueActions = () => {
       if (!workspaceSlug || !projectId) return;
       return issues.fetchNextIssues(workspaceSlug.toString(), projectId.toString(), groupId, subGroupId);
     },
-    [issues.fetchIssues, workspaceSlug, projectId]
+    [issues.fetchNextIssues, workspaceSlug, projectId]
   );
 
   const removeIssue = useCallback(
@@ -551,14 +565,14 @@ const useArchivedIssueActions = () => {
       if (!workspaceSlug || !projectId) return;
       return await issues.removeIssue(workspaceSlug, projectId, issueId);
     },
-    [issues.removeIssue]
+    [issues.removeIssue, workspaceSlug]
   );
   const restoreIssue = useCallback(
     async (projectId: string | undefined | null, issueId: string) => {
       if (!workspaceSlug || !projectId) return;
       return await issues.restoreIssue(workspaceSlug, projectId, issueId);
     },
-    [issues.restoreIssue]
+    [issues.restoreIssue, workspaceSlug]
   );
 
   const updateFilters = useCallback(
@@ -566,7 +580,7 @@ const useArchivedIssueActions = () => {
       if (!workspaceSlug) return;
       return await issuesFilter.updateFilters(workspaceSlug, projectId, filterType, filters);
     },
-    [issuesFilter.updateFilters]
+    [issuesFilter.updateFilters, workspaceSlug]
   );
 
   return useMemo(
@@ -601,7 +615,7 @@ const useGlobalIssueActions = () => {
       if (!workspaceSlug || !globalViewId) return;
       return issues.fetchNextIssues(workspaceSlug.toString(), globalViewId.toString(), groupId, subGroupId);
     },
-    [issues.fetchIssues, workspaceSlug, globalViewId]
+    [issues.fetchNextIssues, workspaceSlug, globalViewId]
   );
 
   const createIssue = useCallback(
@@ -643,7 +657,7 @@ const useGlobalIssueActions = () => {
       removeIssue,
       updateFilters,
     }),
-    [createIssue, updateIssue, removeIssue, updateFilters]
+    [fetchIssues, fetchNextIssues, createIssue, updateIssue, removeIssue, updateFilters]
   );
 };
 
@@ -676,7 +690,7 @@ const useWorkspaceDraftIssueActions = () => {
   const updateIssue = useCallback(
     async (projectId: string | undefined | null, issueId: string, data: Partial<TIssue>) => {
       if (!workspaceSlug || !projectId) return;
-      return await issues.updateIssue(workspaceSlug, issueId, data);
+      await issues.updateIssue(workspaceSlug, issueId, data);
     },
     [issues, workspaceSlug]
   );

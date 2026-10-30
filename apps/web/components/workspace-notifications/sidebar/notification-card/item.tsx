@@ -31,7 +31,8 @@ export const NotificationItem = observer(function NotificationItem(props: TNotif
   const { workspaceSlug, notificationId } = props;
   // hooks
   const { currentSelectedNotificationId, setCurrentSelectedNotificationId } = useWorkspaceNotifications();
-  const { asJson: notification, markNotificationAsRead } = useNotification(notificationId);
+  const notificationStore = useNotification(notificationId);
+  const notification = notificationStore?.asJson;
   const { getIsIssuePeeked, setPeekIssue } = useIssueDetail();
   const { getWorkspaceBySlug } = useWorkspace();
   const router = useAppRouter();
@@ -47,12 +48,12 @@ export const NotificationItem = observer(function NotificationItem(props: TNotif
   const workspace = getWorkspaceBySlug(workspaceSlug);
 
   const notificationField = notification?.data?.issue_activity?.field || undefined;
-  const notificationTriggeredBy = notification.triggered_by_details || undefined;
+  const notificationTriggeredBy = notification?.triggered_by_details || undefined;
 
   const markAsReadIfNeeded = async () => {
-    if (notification.read_at === null) {
+    if (notificationStore && notification?.read_at === null) {
       try {
-        await markNotificationAsRead(workspaceSlug);
+        await notificationStore.markNotificationAsRead(workspaceSlug);
       } catch (error) {
         console.error(error);
       }

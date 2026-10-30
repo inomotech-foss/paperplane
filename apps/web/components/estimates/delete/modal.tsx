@@ -37,7 +37,7 @@ export const DeleteEstimateModal = observer(function DeleteEstimateModal(props: 
   const { workspaceSlug, projectId, estimateId, isOpen, handleClose } = props;
   // hooks
   const { areEstimateEnabledByProjectId, deleteEstimate } = useProjectEstimates();
-  const { asJson: estimate } = useEstimate(estimateId);
+  const estimate = useEstimate(estimateId)?.asJson;
   const { updateProject } = useProject();
   // states
   const [buttonLoader, setButtonLoader] = useState(false);

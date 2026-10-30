@@ -150,7 +150,9 @@ const setup = (initialEntries: string[], options: TOptions = {}) => {
   function Project() {
     const { projectId = "" } = useParams();
     useSWR(`PROJECT_DETAILS_${projectId}`, projectFetches);
-    useLayoutEffect(() => projectMounts(), []);
+    useLayoutEffect(() => {
+      projectMounts();
+    }, []);
     return <Outlet />;
   }
 
@@ -457,9 +459,8 @@ describe("work item view route", () => {
 
     await waitFor(() => expect(layout()).toBe("p2/spreadsheet"));
     expect(router.state.location.pathname).toBe("/p2/issues");
-    expect(update).toHaveBeenCalledWith("ws", "p1", {
-      display_filters: expect.objectContaining({ layout: EIssueLayoutTypes.CALENDAR }),
-    });
+    const displayFilters: unknown = expect.objectContaining({ layout: EIssueLayoutTypes.CALENDAR });
+    expect(update).toHaveBeenCalledWith("ws", "p1", { display_filters: displayFilters });
   });
 
   it("shows display properties a URL changes", async () => {

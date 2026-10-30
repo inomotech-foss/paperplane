@@ -25,17 +25,9 @@ import {
 import { Avatar } from "@makeplane/propel/components/avatar";
 import { Logo } from "@plane/blocks/emoji-icon-picker";
 import { CycleGroupIcon, PriorityIcon, StateGroupIcon } from "@plane/blocks/icons";
-import type {
-  ICycle,
-  IState,
-  IUserLite,
-  TFilterConfig,
-  IIssueLabel,
-  IModule,
-  IProject,
-  TWorkItemFilterProperty,
-} from "@plane/types";
+import type { IState, IUserLite, TFilterConfig, IIssueLabel, TWorkItemFilterProperty } from "@plane/types";
 import type { TWorkItemFilterOption } from "@plane/utils";
+import { isPresent } from "@/helpers/guards";
 import {
   getAssigneeFilterConfig,
   getBelowWorkItemFilterConfig,
@@ -128,38 +120,27 @@ export const useWorkItemFiltersConfig = (props: TUseWorkItemFiltersConfigProps):
   const filtersToShow = useMemo(() => new Set(allowedFilters), [allowedFilters]);
   const project = useMemo(() => getProjectById(projectId), [projectId, getProjectById]);
   const members: IUserLite[] | undefined = useMemo(
-    () =>
-      memberIds
-        ? (memberIds.map((memberId) => getUserDetails(memberId)).filter((member) => member) as IUserLite[])
-        : undefined,
+    () => (memberIds ? memberIds.map((memberId) => getUserDetails(memberId)).filter(isPresent) : undefined),
     [memberIds, getUserDetails]
   );
   const workItemStates: IState[] | undefined = useMemo(
-    () =>
-      stateIds ? (stateIds.map((stateId) => getStateById(stateId)).filter((state) => state) as IState[]) : undefined,
+    () => (stateIds ? stateIds.map((stateId) => getStateById(stateId)).filter(isPresent) : undefined),
     [stateIds, getStateById]
   );
   const workItemLabels: IIssueLabel[] | undefined = useMemo(
-    () =>
-      labelIds
-        ? (labelIds.map((labelId) => getLabelById(labelId)).filter((label) => label) as IIssueLabel[])
-        : undefined,
+    () => (labelIds ? labelIds.map((labelId) => getLabelById(labelId)).filter(isPresent) : undefined),
     [labelIds, getLabelById]
   );
   const cycles = useMemo(
-    () => (cycleIds ? (cycleIds.map((cycleId) => getCycleById(cycleId)).filter((cycle) => cycle) as ICycle[]) : []),
+    () => (cycleIds ? cycleIds.map((cycleId) => getCycleById(cycleId)).filter(isPresent) : []),
     [cycleIds, getCycleById]
   );
   const modules = useMemo(
-    () =>
-      moduleIds ? (moduleIds.map((moduleId) => getModuleById(moduleId)).filter((module) => module) as IModule[]) : [],
+    () => (moduleIds ? moduleIds.map((moduleId) => getModuleById(moduleId)).filter(isPresent) : []),
     [moduleIds, getModuleById]
   );
   const projects = useMemo(
-    () =>
-      projectIds
-        ? (projectIds.map((projectId) => getProjectById(projectId)).filter((project) => project) as IProject[])
-        : [],
+    () => (projectIds ? projectIds.map((projectId) => getProjectById(projectId)).filter(isPresent) : []),
     [projectIds, getProjectById]
   );
   const areAllConfigsInitialized = useMemo(() => isLoaderReady(projectLoader), [projectLoader]);

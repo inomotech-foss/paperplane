@@ -20,6 +20,7 @@ import { Header } from "@plane/blocks/layout";
 // helpers
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 // hooks
+import { isRecord, readString } from "@/helpers/guards";
 import { useProject } from "@/hooks/store/use-project";
 // plane web imports
 import { CommonProjectBreadcrumbs } from "@/components/breadcrumbs/common";
@@ -52,11 +53,12 @@ export const PagesListHeader = observer(function PagesListHeader() {
         const pageId = `/${workspaceSlug}/projects/${currentProjectDetails?.id}/pages/${res?.id}`;
         router.push(pageId);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: "Error!",
-          message: err?.data?.error || "Page could not be created. Please try again.",
+          message:
+            readString(isRecord(err) ? err.data : undefined, "error") || "Page could not be created. Please try again.",
         });
       })
       .finally(() => setIsCreatingPage(false));

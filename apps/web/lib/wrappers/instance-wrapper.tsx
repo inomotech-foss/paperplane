@@ -22,7 +22,7 @@ const InstanceWrapper = observer(function InstanceWrapper(props: TInstanceWrappe
   // store
   const { isLoading, instance, error, fetchInstanceInfo } = useInstance();
 
-  const { isLoading: isInstanceSWRLoading, error: instanceSWRError } = useSWR(
+  const { isLoading: isInstanceSWRLoading, error: instanceSWRError } = useSWR<void, unknown>(
     "INSTANCE_INFORMATION",
     async () => await fetchInstanceInfo(),
     { revalidateOnFocus: false }
