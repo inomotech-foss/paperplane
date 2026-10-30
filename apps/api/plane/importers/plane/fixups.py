@@ -32,8 +32,69 @@ def assign_default_types(source, cursor):
         )
         if linked is None:
             linked = link_starter_type(SimpleNamespace(id=project_id, workspace_id=workspace_id)).id
-        cursor.execute(
-            "UPDATE issues SET type_id = %s WHERE project_id = %s AND type_id IS NULL", [linked, project_id]
-        )
+        cursor.execute("UPDATE issues SET type_id = %s WHERE project_id = %s AND type_id IS NULL", [linked, project_id])
         typed += cursor.rowcount
     return typed
+
+
+_PAGE_LINK_SELECT = [
+    'id AS "id"',
+    'issue_id AS "issue_id"',
+    'project_id AS "project_id"',
+    'workspace_id AS "workspace_id"',
+    'page_id AS "page_id"',
+    'created_at AS "created_at"',
+    'updated_at AS "updated_at"',
+    'created_by_id AS "created_by_id"',
+    'deleted_at AS "deleted_at"',
+    '(SELECT p.name FROM pages p WHERE p.id = page_id) AS "title"',
+    '(SELECT w.slug FROM workspaces w WHERE w.id = workspace_id) AS "workspace_slug"',
+]
+
+
+def link_work_item_pages(source, cursor, web_url):
+    """Turn Plane's work-item-to-page links into ordinary work item links.
+
+    PaperPlane has no such link table. Each link keeps its id, dates and
+    author; soft-deleted links stay deleted.
+    """
+    if not source.columns("workitem_pages"):
+        return 0
+    base = web_url.rstrip("/")
+    linked = 0
+    for row in source.rows("workitem_pages", _PAGE_LINK_SELECT):
+        (
+            link_id,
+            issue_id,
+            project_id,
+            workspace_id,
+            page_id,
+            created_at,
+            updated_at,
+            created_by_id,
+            deleted_at,
+            title,
+            slug,
+        ) = row
+        cursor.execute(
+            "INSERT INTO issue_links (id, issue_id, project_id, workspace_id, title, url, metadata, created_at, "
+            "updated_at, created_by_id, updated_by_id, deleted_at) "
+            "VALUES (%s, %s, %s, %s, %s, %s, '{}'::jsonb, %s, %s, %s, %s, %s) "
+            "ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, url = EXCLUDED.url, "
+            "deleted_at = EXCLUDED.deleted_at, updated_at = EXCLUDED.updated_at",
+            [
+                link_id,
+                issue_id,
+                project_id,
+                workspace_id,
+                title or "Page",
+                f"{base}/{slug}/projects/{project_id}/pages/{page_id}/",
+                created_at,
+                updated_at,
+                created_by_id,
+                created_by_id,
+                deleted_at,
+            ],
+        )
+        linked += 1
+    return linked

@@ -43,7 +43,9 @@ def test_null_type_gets_projects_default_type():
     ProjectIssueType.objects.create(project=project, issue_type=default, workspace_id=project.workspace_id)
     issue = untyped_issue(project, placeholder)
 
-    source = FakeSource({"issue_types": [{"id": default.id, "is_default": True}, {"id": placeholder.id, "is_default": False}]})
+    source = FakeSource(
+        {"issue_types": [{"id": default.id, "is_default": True}, {"id": placeholder.id, "is_default": False}]}
+    )
     assert run(source) == 1
     assert type_of(issue) == default.id
 
