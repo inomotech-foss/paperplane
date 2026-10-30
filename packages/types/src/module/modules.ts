@@ -72,7 +72,7 @@ export interface IModule {
   name: string;
   description: string;
   description_text: unknown;
-  description_html: string;
+  description_html: unknown;
   workspace_id: string;
   project_id: string;
   lead_id: string | null;
