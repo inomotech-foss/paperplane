@@ -4,7 +4,8 @@
 import { describe, expect, it } from "vitest";
 import { projectCreateBody, projectUpdateBody } from "./project.service";
 
-const strip = (value: object): unknown => JSON.parse(JSON.stringify(value));
+const strip = (value: Record<string, unknown>) =>
+  Object.fromEntries(Object.entries(value).filter(([, field]) => field !== undefined));
 
 const lead = { id: "u1", avatar_url: null, display_name: "a", first_name: "A", last_name: "B", is_bot: false };
 
