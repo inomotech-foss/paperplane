@@ -2,7 +2,7 @@
 // See the LICENSE file for details.
 
 import { describe, expect, it } from "vitest";
-import { toIssueListQuery, toIssueSearchQuery, wantsRelations } from "./issue-query";
+import { toIssueListQuery, toIssueSearchQuery, toWorkspaceIssueListQuery, wantsRelations } from "./issue-query";
 
 describe("toIssueListQuery", () => {
   it("converts the store params to the documented query", () => {
@@ -33,5 +33,17 @@ describe("toIssueSearchQuery", () => {
       parent: "true",
       cycle: undefined,
     });
+  });
+});
+
+describe("toWorkspaceIssueListQuery", () => {
+  it("drops the grouping, which the workspace list does not read", () => {
+    const query = toWorkspaceIssueListQuery({
+      group_by: "priority",
+      sub_group_by: "state_id",
+      per_page: "50",
+      pql: "x",
+    });
+    expect(query).toEqual({ per_page: 50, pql: "x" });
   });
 });

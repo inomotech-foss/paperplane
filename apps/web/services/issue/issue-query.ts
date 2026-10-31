@@ -91,3 +91,12 @@ export const toIssueSearchQuery = (params: TProjectIssuesSearchParams): TIssueSe
   target_date: params.target_date,
   limit: params.limit,
 });
+
+type TWorkspaceListOperation = InternalPaths["/api/workspaces/{slug}/issues/"]["get"];
+type TWorkspaceIssueListQuery = NonNullable<TWorkspaceListOperation["parameters"]["query"]>;
+
+/** The list query of a workspace view, which is never grouped. */
+export function toWorkspaceIssueListQuery(params: TIssueParamsRecord | undefined): TWorkspaceIssueListQuery {
+  const { group_by: _groupBy, sub_group_by: _subGroupBy, ...query } = toIssueListQuery(params);
+  return query;
+}

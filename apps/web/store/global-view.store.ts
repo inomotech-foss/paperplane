@@ -33,7 +33,7 @@ export interface IGlobalViewStore {
     data: Partial<IWorkspaceView>,
     shouldSyncFilters?: boolean
   ) => Promise<IWorkspaceView | undefined>;
-  deleteGlobalView: (workspaceSlug: string, viewId: string) => Promise<any>;
+  deleteGlobalView: (workspaceSlug: string, viewId: string) => Promise<void>;
 }
 
 export class GlobalViewStore implements IGlobalViewStore {
@@ -164,9 +164,8 @@ export class GlobalViewStore implements IGlobalViewStore {
   ): Promise<IWorkspaceView | undefined> {
     const currentViewData = this.getViewDetailsById(viewId) ? cloneDeep(this.getViewDetailsById(viewId)) : undefined;
     try {
-      Object.keys(data).forEach((key) => {
-        const currentKey = key as keyof IWorkspaceView;
-        set(this.globalViewMap, [viewId, currentKey], data[currentKey]);
+      runInAction(() => {
+        Object.entries(data).forEach(([key, value]) => set(this.globalViewMap, [viewId, key], value));
       });
 
       const currentView = await this.workspaceService.updateView(workspaceSlug, viewId, data);
@@ -182,10 +181,12 @@ export class GlobalViewStore implements IGlobalViewStore {
       }
       return currentView;
     } catch {
-      Object.keys(data).forEach((key) => {
-        const currentKey = key as keyof IWorkspaceView;
-        if (currentViewData) set(this.globalViewMap, [viewId, currentKey], currentViewData[currentKey]);
-      });
+      if (currentViewData) {
+        const previous: Record<string, unknown> = { ...currentViewData };
+        runInAction(() => {
+          Object.keys(data).forEach((key) => set(this.globalViewMap, [viewId, key], previous[key]));
+        });
+      }
     }
   }
 
@@ -194,7 +195,7 @@ export class GlobalViewStore implements IGlobalViewStore {
    * @param workspaceSlug
    * @param viewId
    */
-  deleteGlobalView = async (workspaceSlug: string, viewId: string): Promise<any> =>
+  deleteGlobalView = async (workspaceSlug: string, viewId: string): Promise<void> =>
     await this.workspaceService.deleteView(workspaceSlug, viewId).then(() => {
       runInAction(() => {
         delete this.globalViewMap[viewId];
