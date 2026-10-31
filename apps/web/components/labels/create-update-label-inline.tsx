@@ -19,7 +19,7 @@ import { ColorSwatchPicker } from "@plane/blocks/common";
 import { setToast } from "@plane/blocks/toast";
 import type { IIssueLabel } from "@plane/types";
 import { errorFieldIncludes, getStringField } from "@/helpers/narrow.helper";
-import { getApiErrorMessage } from "@/helpers/error.helper";
+import { getApiErrorBody, getApiErrorMessage } from "@/helpers/error.helper";
 
 // error codes
 const errorCodes = {
@@ -73,7 +73,7 @@ export const CreateUpdateLabelInline = observer(
     };
 
     const getErrorMessage = (error: unknown, operation: "create" | "update"): string => {
-      const labelError = errorFieldIncludes(error, "name", errorCodes.LABEL_NAME_ALREADY_EXISTS);
+      const labelError = errorFieldIncludes(getApiErrorBody(error), "name", errorCodes.LABEL_NAME_ALREADY_EXISTS);
       if (labelError) {
         return t("label.create.already_exists");
       }

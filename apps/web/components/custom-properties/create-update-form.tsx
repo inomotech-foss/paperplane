@@ -22,7 +22,7 @@ import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { DerivationSettings } from "./derivation-settings";
 import { useDerivationDraft } from "./use-derivation-draft";
 import { getField, isOneOf } from "@/helpers/narrow.helper";
-import { getApiErrorMessage } from "@/helpers/error.helper";
+import { getApiErrorBody, getApiErrorMessage } from "@/helpers/error.helper";
 import type { TPropertyCreateBody, TPropertyUpdateBody } from "@/services/issue";
 
 export type TCustomPropertyOperationsCallbacks = {
@@ -46,7 +46,7 @@ export const getPropertyTypeLabelKey = (propertyType: TIssueCustomPropertyType, 
 
 /** The API's reason a property could not be saved, e.g. a derivation that would form a cycle. */
 const getSaveErrorMessage = (error: unknown): string | undefined => {
-  const derivationConfig = getField(error, "derivation_config");
+  const derivationConfig = getField(getApiErrorBody(error), "derivation_config");
   const derivationError: unknown = Array.isArray(derivationConfig) ? derivationConfig[0] : derivationConfig;
   return (typeof derivationError === "string" ? derivationError : undefined) ?? getApiErrorMessage(error);
 };
