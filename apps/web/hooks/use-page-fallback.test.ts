@@ -5,7 +5,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
-import { AxiosError, AxiosHeaders } from "axios";
+import { ApiError } from "@plane/services";
 import type { CollaborationState } from "@plane/editor";
 import type { TDocumentPayload } from "@plane/types";
 import { usePageFallback } from "./use-page-fallback";
@@ -30,14 +30,7 @@ const connected: CollaborationState = {
   isServerDisconnected: false,
 };
 
-const httpError = (status: number) =>
-  new AxiosError("failed", undefined, undefined, undefined, {
-    data: {},
-    status,
-    statusText: "",
-    headers: {},
-    config: { headers: new AxiosHeaders() },
-  });
+const httpError = (status: number) => new ApiError(new Response(null, { status }), {});
 
 const createEditor = () => {
   const state = { isEmpty: true };
