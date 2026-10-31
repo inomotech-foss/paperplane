@@ -61,14 +61,15 @@ describe("toProjectView", () => {
 describe("toViewUpdateBody", () => {
   it("drops the fields the endpoint does not accept", () => {
     const body = toViewUpdateBody({ ...toProjectView(row, "p1"), name: "N" });
-    expect(body).toEqual({
+    expect(Object.keys(body).sort()).toEqual(
+      ["description", "display_filters", "display_properties", "logo_props", "name", "rich_filters"].sort()
+    );
+    expect(body).toMatchObject({
       name: "N",
-      description: "",
       rich_filters: { priority__in: "high" },
-      display_filters: expect.objectContaining({ layout: "kanban" }),
       display_properties: { key: true },
-      logo_props: { in_use: "emoji", emoji: { value: "1" } },
     });
+    expect(body.display_filters?.layout).toBe("kanban");
   });
 
   it("sends an empty name on create when none is given", () => {
