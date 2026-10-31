@@ -5458,7 +5458,7 @@ export interface components {
             start_date: string | null;
             /** Format: date */
             target_date: string | null;
-            status: string;
+            status: components["schemas"]["ModuleStatusEnum"];
             /** Format: uuid */
             lead_id: string | null;
             member_ids: string[];
@@ -8974,7 +8974,7 @@ export interface components {
             start_date: string | null;
             /** Format: date */
             target_date: string | null;
-            status: string;
+            status: components["schemas"]["ModuleStatusEnum"];
             /** Format: uuid */
             lead_id: string | null;
             member_ids: string[];

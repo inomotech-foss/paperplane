@@ -19138,7 +19138,7 @@ components:
           format: date
           nullable: true
         status:
-          type: string
+          $ref: '#/components/schemas/ModuleStatusEnum'
         lead_id:
           type: string
           format: uuid
@@ -27734,7 +27734,7 @@ components:
           format: date
           nullable: true
         status:
-          type: string
+          $ref: '#/components/schemas/ModuleStatusEnum'
         lead_id:
           type: string
           format: uuid
