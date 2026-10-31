@@ -12,8 +12,10 @@ from django.db.models.functions import Coalesce, Lower
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.response.page import PageQueryResponse
 from plane.app.permissions import ROLE, WorkspaceEntityPermission
 from plane.app.serializers import PageQuerySerializer
 from plane.db.models import Label, Page, PageIndexEntry, PageLabel, ProjectPage
@@ -68,6 +70,7 @@ class PageQueryEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
     use_read_replica = True
 
+    @extend_schema(responses={200: PageQueryResponse})
     def get(self, request, slug):
         kind = request.GET.get("kind") or "recent"
         handler = {

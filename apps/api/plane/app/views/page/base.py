@@ -30,8 +30,12 @@ from django.db.models.functions import Coalesce
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.types import OpenApiTypes
 
 # Module imports
+from plane.app.serializers.response.page import PageSummarySerializer, PageWithIssuesSerializer
+from plane.app.serializers.response.issue import ArchivedAtSerializer
+from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.app.permissions import allow_permission, ROLE
 from plane.app.serializers import (
     PageSerializer,
@@ -155,6 +159,7 @@ class PageViewSet(BaseViewSet):
             .filter(project=True)
         )
 
+    @extend_schema(responses={201: PageDetailSerializer})
     def create(self, request, slug, project_id):
         serializer = PageSerializer(
             data=request.data,
@@ -181,6 +186,7 @@ class PageViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses={200: PageUpdateSerializer})
     def partial_update(self, request, slug, project_id, page_id):
         try:
             page = Page.objects.get(
@@ -256,6 +262,7 @@ class PageViewSet(BaseViewSet):
         ]
         return Response(PagePositionResponseSerializer({"pages": visible}).data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: PageWithIssuesSerializer})
     def retrieve(self, request, slug, project_id, page_id=None):
         page = self.get_queryset().filter(pk=page_id).first()
         track_visit = request.query_params.get("track_visit", "true").lower() == "true"
@@ -279,6 +286,7 @@ class PageViewSet(BaseViewSet):
                 )
             return Response(data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Done")})
     def lock(self, request, slug, project_id, page_id):
         page = Page.objects.get(
             pk=page_id,
@@ -291,6 +299,7 @@ class PageViewSet(BaseViewSet):
         page.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Done")})
     def unlock(self, request, slug, project_id, page_id):
         page = Page.objects.get(
             pk=page_id,
@@ -304,6 +313,7 @@ class PageViewSet(BaseViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(responses={204: OpenApiResponse(description="Done")})
     def access(self, request, slug, project_id, page_id):
         access = request.data.get("access", 0)
         page = Page.objects.get(
@@ -352,6 +362,7 @@ class PageViewSet(BaseViewSet):
         pages = PageSerializer(queryset, many=True).data
         return Response(pages, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={200: ArchivedAtSerializer})
     def archive(self, request, slug, project_id, page_id):
         page = Page.objects.get(
             pk=page_id,
@@ -383,6 +394,7 @@ class PageViewSet(BaseViewSet):
 
         return Response({"archived_at": str(datetime.now())}, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Done")})
     def unarchive(self, request, slug, project_id, page_id):
         page = Page.objects.get(
             pk=page_id,
@@ -465,6 +477,7 @@ class PageViewSet(BaseViewSet):
         ).delete(soft=False)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(responses={200: PageSummarySerializer})
     def summary(self, request, slug, project_id):
         queryset = (
             Page.objects.filter(workspace__slug=slug)
@@ -519,6 +532,7 @@ class PageViewSet(BaseViewSet):
 class PageFavoriteViewSet(BaseViewSet):
     model = UserFavorite
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Added to favorites")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id, page_id):
         # 404 unless the page is in this project and visible to the user
@@ -547,6 +561,9 @@ class PageFavoriteViewSet(BaseViewSet):
 class PagesDescriptionViewSet(BaseViewSet):
     permission_classes = [ProjectPagePermission]
 
+    @extend_schema(
+        responses={(200, "application/octet-stream"): OpenApiResponse(OpenApiTypes.BINARY, description="Yjs document")}
+    )
     def retrieve(self, request, slug, project_id, page_id):
         page = Page.objects.get(
             Q(owned_by=self.request.user) | Q(access=0),
@@ -567,6 +584,7 @@ class PagesDescriptionViewSet(BaseViewSet):
         response["Content-Disposition"] = 'attachment; filename="page_description.bin"'
         return response
 
+    @extend_schema(responses={200: MessageResponseSerializer})
     def partial_update(self, request, slug, project_id, page_id):
         page = Page.objects.get(
             Q(owned_by=self.request.user) | Q(access=0),
@@ -628,6 +646,7 @@ class PagesDescriptionViewSet(BaseViewSet):
 class PageDuplicateEndpoint(BaseAPIView):
     permission_classes = [ProjectPagePermission]
 
+    @extend_schema(responses={201: PageDetailSerializer})
     def post(self, request, slug, project_id, page_id):
         page = Page.objects.get(
             pk=page_id,

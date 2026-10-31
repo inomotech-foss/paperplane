@@ -5,8 +5,10 @@
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.utils.openapi.schema import DetailOrList
 from plane.db.models import PageVersion
 from ..base import BaseAPIView
 from plane.app.serializers import PageVersionSerializer, PageVersionDetailSerializer
@@ -16,6 +18,9 @@ from plane.app.permissions import ProjectPagePermission
 class PageVersionEndpoint(BaseAPIView):
     permission_classes = [ProjectPagePermission]
 
+    @extend_schema(
+        responses={200: DetailOrList(PageVersionDetailSerializer, collection=PageVersionSerializer(many=True))}
+    )
     def get(self, request, slug, project_id, page_id, pk=None):
         # Check if pk is provided
         if pk:
