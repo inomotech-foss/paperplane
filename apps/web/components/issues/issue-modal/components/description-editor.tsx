@@ -21,6 +21,7 @@ import { getDescriptionPlaceholderI18n, getTabIndex } from "@plane/utils";
 // components
 import { GptAssistantPopover } from "@/components/core/modals/gpt-assistant-popover";
 import { RichTextEditor } from "@/components/editor/rich-text";
+import { getStringProp, isRecord } from "@/components/issues/narrow";
 // helpers
 // hooks
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
@@ -124,20 +125,20 @@ export const IssueDescriptionEditor = observer(function IssueDescriptionEditor(p
         prompt: issueName,
         task: "Generate a proper description for this work item.",
       })
-      .then((res) => {
-        if (res.response === "")
+      .then((res: unknown) => {
+        if (getStringProp(res, "response") === "")
           setToast({
             type: "error",
             title: "Error!",
             message:
               "Work item title isn't informative enough to generate the description. Please try with a different title.",
           });
-        else handleAiAssistance(res.response_html);
+        else handleAiAssistance(getStringProp(res, "response_html") ?? "");
       })
-      .catch((err) => {
-        const error = err?.data?.error;
+      .catch((err: unknown) => {
+        const error = getStringProp(err, "data", "error");
 
-        if (err.status === 429)
+        if (isRecord(err) && err.status === 429)
           setToast({
             type: "error",
             title: "Error!",
@@ -272,8 +273,8 @@ export const IssueDescriptionEditor = observer(function IssueDescriptionEditor(p
                   // this is done so that the title do not reset after gpt popover closed
                   handleGptAssistantClose();
                 }}
-                onResponse={(response) => {
-                  handleAiAssistance(response);
+                onResponse={(response: unknown) => {
+                  if (typeof response === "string") handleAiAssistance(response);
                 }}
                 placement="top-end"
                 button={

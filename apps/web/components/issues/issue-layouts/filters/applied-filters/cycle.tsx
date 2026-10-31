@@ -7,7 +7,7 @@
 import { observer } from "mobx-react";
 import { CycleGroupIcon } from "@plane/blocks/icons";
 import { CloseOutline } from "@makeplane/propel/icons";
-import type { TCycleGroups } from "@plane/types";
+import { toCycleGroup } from "@/components/issues/narrow";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 // ui
@@ -31,7 +31,7 @@ export const AppliedCycleFilters = observer(function AppliedCycleFilters(props: 
 
         if (!cycleDetails) return null;
 
-        const cycleStatus = (cycleDetails?.status ? cycleDetails?.status.toLocaleLowerCase() : "draft") as TCycleGroups;
+        const cycleStatus = toCycleGroup(cycleDetails.status);
 
         return (
           <div key={cycleId} className="flex items-center gap-1 truncate rounded-sm bg-layer-1 p-1 text-11">

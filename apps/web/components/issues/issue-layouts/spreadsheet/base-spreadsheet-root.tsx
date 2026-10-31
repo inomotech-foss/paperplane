@@ -10,7 +10,7 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane imports
 import { ALL_ISSUES, EIssueFilterType, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import type { EIssuesStoreType, IIssueDisplayFilterOptions } from "@plane/types";
+import type { IIssueDisplayFilterOptions } from "@plane/types";
 import { EIssueLayoutTypes } from "@plane/types";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
@@ -21,14 +21,6 @@ import { useIssuesActions } from "@/hooks/use-issues-actions";
 import { IssueLayoutHOC } from "../issue-layout-HOC";
 import type { IQuickActionProps, TRenderQuickActions } from "../list/list-view-types";
 import { SpreadsheetView } from "./spreadsheet-view";
-
-export type SpreadsheetStoreType =
-  | EIssuesStoreType.PROJECT
-  | EIssuesStoreType.MODULE
-  | EIssuesStoreType.CYCLE
-  | EIssuesStoreType.PROJECT_VIEW
-  | EIssuesStoreType.TEAM
-  | EIssuesStoreType.TEAM_VIEW;
 
 interface IBaseSpreadsheetRoot {
   QuickActions: FC<IQuickActionProps>;
@@ -42,7 +34,7 @@ export const BaseSpreadsheetRoot = observer(function BaseSpreadsheetRoot(props: 
   // router
   const { projectId } = useParams();
   // store hooks
-  const storeType = useIssueStoreType() as SpreadsheetStoreType;
+  const storeType = useIssueStoreType();
   const { allowPermissions } = useUserPermissions();
   const { issues, issuesFilter } = useIssues(storeType);
   const {

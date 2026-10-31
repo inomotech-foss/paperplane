@@ -16,6 +16,7 @@ import type { TGroupedIssues, TIssue, TIssueMap, TPaginationData, ICalendarDate 
 // components
 import { cn, renderFormattedPayloadDate } from "@plane/utils";
 import { highlightIssueOnDrop } from "@/components/issues/issue-layouts/utils";
+import { getStringField } from "@/components/issues/narrow";
 // helpers
 import { MONTHS_LIST } from "@plane/constants";
 // helpers
@@ -45,7 +46,7 @@ type Props = {
     sourceDate: string | undefined,
     destinationDate: string | undefined
   ) => Promise<void>;
-  addIssuesToView?: (issueIds: string[]) => Promise<any>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   readOnly?: boolean;
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
@@ -82,8 +83,8 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
   const dayTileRef = useRef<HTMLDivElement | null>(null);
 
   // Reads the latest issues map and drop handler without re-registering the drop target
-  const handleDrop = useEffectEvent((sourceData: { id: string; date: string }, destinationDate: string) => {
-    const issueDetails = issues?.[sourceData?.id];
+  const handleDrop = useEffectEvent((sourceData: { id?: string; date?: string }, destinationDate: string) => {
+    const issueDetails = sourceData.id ? issues?.[sourceData.id] : undefined;
     if (issueDetails?.start_date) {
       const issueStartDate = new Date(issueDetails.start_date);
       const targetDate = new Date(destinationDate);
@@ -98,7 +99,7 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
       }
     }
 
-    handleDragAndDrop(sourceData?.id, issueDetails?.project_id ?? undefined, sourceData?.date, destinationDate);
+    handleDragAndDrop(sourceData.id, issueDetails?.project_id ?? undefined, sourceData.date, destinationDate);
     return true;
   });
 
@@ -119,11 +120,11 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
         },
         onDrop: ({ source, self }) => {
           setIsDraggingOver(false);
-          const sourceData = source?.data as { id: string; date: string } | undefined;
-          const destinationData = self?.data as { date: string } | undefined;
-          if (!sourceData || !destinationData) return;
+          const destinationDate = getStringField(self.data, "date");
+          if (!destinationDate) return;
+          const sourceData = { id: getStringField(source.data, "id"), date: getStringField(source.data, "date") };
 
-          if (!handleDrop(sourceData, destinationData.date)) return;
+          if (!handleDrop(sourceData, destinationDate)) return;
           highlightIssueOnDrop(source?.element?.id, false);
         },
       })

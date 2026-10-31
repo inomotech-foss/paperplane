@@ -7,6 +7,7 @@
 import { observer } from "mobx-react";
 
 // icons
+import { ISSUE_PRIORITIES } from "@plane/constants";
 import { PriorityIcon } from "@plane/blocks/icons";
 import { CloseOutline } from "@makeplane/propel/icons";
 import type { TIssuePriorities } from "@plane/types";
@@ -18,6 +19,9 @@ type Props = {
   editable: boolean | undefined;
 };
 
+const isIssuePriority = (value: string): value is TIssuePriorities =>
+  ISSUE_PRIORITIES.some((priority) => priority.key === value);
+
 export const AppliedPriorityFilters = observer(function AppliedPriorityFilters(props: Props) {
   const { handleRemove, values, editable } = props;
 
@@ -25,7 +29,7 @@ export const AppliedPriorityFilters = observer(function AppliedPriorityFilters(p
     <>
       {values.map((priority) => (
         <div key={priority} className="flex items-center gap-1 rounded-sm bg-layer-1 p-1 text-11">
-          <PriorityIcon priority={priority as TIssuePriorities} className={`h-3 w-3`} />
+          {isIssuePriority(priority) && <PriorityIcon priority={priority} className={`h-3 w-3`} />}
           {priority}
           {editable && (
             <button

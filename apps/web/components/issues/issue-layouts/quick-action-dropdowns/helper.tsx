@@ -53,31 +53,12 @@ export const stopQuickActionPropagation = (e: React.SyntheticEvent) => {
 };
 
 // Generic helper function to handle optional function calls gracefully
-// Overload for functions without parameters
 export function handleOptionalAction(
   optionalFn: (() => void) | (() => Promise<void>) | undefined,
   actionName: string
-): void;
-
-// Overload for functions with one parameter
-export function handleOptionalAction<T>(
-  optionalFn: ((param: T) => void) | ((param: T) => Promise<void>) | undefined,
-  actionName: string,
-  param: T
-): void;
-
-// Implementation
-export function handleOptionalAction<T>(
-  optionalFn: (() => void) | (() => Promise<void>) | ((param: T) => void) | ((param: T) => Promise<void>) | undefined,
-  actionName: string,
-  param?: T
 ): void {
   if (optionalFn) {
-    if (param !== undefined) {
-      (optionalFn as (param: T) => void | Promise<void>)(param);
-    } else {
-      (optionalFn as () => void | Promise<void>)();
-    }
+    optionalFn();
   } else {
     setToast({
       type: "error",
@@ -263,7 +244,7 @@ export const useMenuItemFactory = (props: MenuItemFactoryProps) => {
     title: t("common.actions.archive"),
     description: isInArchivableGroup ? undefined : t("issue.archive.description"),
     icon: ArchiveOutline,
-    action: () => handleOptionalAction(setArchiveIssueModal, "Archive", true),
+    action: () => handleOptionalAction(setArchiveIssueModal ? () => setArchiveIssueModal(true) : undefined, "Archive"),
     disabled: !isInArchivableGroup,
     shouldRender: isArchivingAllowed,
   });

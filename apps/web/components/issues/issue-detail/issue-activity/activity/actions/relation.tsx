@@ -6,8 +6,8 @@
 
 import { observer } from "mobx-react";
 // types
-import type { TIssueRelationTypes } from "@plane/types";
 // hooks
+import { isRelationType } from "@/components/issues/narrow";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
 import { useTimeLineRelationOptions } from "@/components/relations";
@@ -31,7 +31,7 @@ export const IssueRelationActivity = observer(function IssueRelationActivity(pro
   if (!activity) return <></>;
   return (
     <IssueActivityBlockComponent
-      icon={activity.field ? ISSUE_RELATION_OPTIONS[activity.field as TIssueRelationTypes]?.icon(14) : <></>}
+      icon={isRelationType(activity.field) ? ISSUE_RELATION_OPTIONS[activity.field]?.icon(14) : <></>}
       activityId={activityId}
       ends={ends}
     >

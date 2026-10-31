@@ -6,7 +6,7 @@
 
 import type { MutableRefObject } from "react";
 // components
-import type { TIssue, IIssueDisplayProperties, TIssueMap, TGroupedIssues } from "@plane/types";
+import type { TIssue, IIssueDisplayProperties, TIssueMap } from "@plane/types";
 // hooks
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 // types
@@ -14,7 +14,7 @@ import { IssueBlockRoot } from "./block-root";
 import type { TRenderQuickActions } from "./list-view-types";
 
 interface Props {
-  issueIds: TGroupedIssues | any;
+  issueIds: string[];
   issuesMap: TIssueMap;
   groupId: string;
   canEditProperties: (projectId: string | undefined) => boolean;
@@ -46,7 +46,7 @@ export function IssueBlocksList(props: Props) {
     <div className="relative h-full w-full">
       {issueIds &&
         issueIds.length > 0 &&
-        issueIds.map((issueId: string, index: number) => (
+        issueIds.map((issueId, index) => (
           <IssueBlockRoot
             key={issueId}
             issueId={issueId}

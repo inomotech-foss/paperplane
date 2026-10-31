@@ -11,14 +11,12 @@ import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-sc
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { EIssueFilterType, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import type { EIssuesStoreType } from "@plane/types";
-import { EIssueLayoutTypes } from "@plane/types";
+import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
 //hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useGroupIssuesDragNDrop } from "@/hooks/use-group-dragndrop";
-import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { useIssuesActions } from "@/hooks/use-issues-actions";
 // store
 // ui
@@ -26,23 +24,25 @@ import { useIssuesActions } from "@/hooks/use-issues-actions";
 import { DeleteIssueModal } from "../../delete-issue-modal";
 import { IssueLayoutHOC } from "../issue-layout-HOC";
 import type { IQuickActionProps, TRenderQuickActions } from "../list/list-view-types";
+import { useLayoutStoreType } from "../use-layout-store-type";
 //components
 import { KanBan } from "./default";
 import { KanbanDeleteDropZone } from "./kanban-delete-drop-zone";
 import { KanBanSwimLanes } from "./swimlanes";
 
-export type KanbanStoreType =
-  | EIssuesStoreType.PROJECT
-  | EIssuesStoreType.MODULE
-  | EIssuesStoreType.CYCLE
-  | EIssuesStoreType.PROJECT_VIEW
-  | EIssuesStoreType.PROFILE
-  | EIssuesStoreType.TEAM
-  | EIssuesStoreType.TEAM_VIEW;
+const KANBAN_STORE_TYPES = [
+  EIssuesStoreType.PROJECT,
+  EIssuesStoreType.MODULE,
+  EIssuesStoreType.CYCLE,
+  EIssuesStoreType.PROJECT_VIEW,
+  EIssuesStoreType.PROFILE,
+  EIssuesStoreType.TEAM,
+  EIssuesStoreType.TEAM_VIEW,
+] as const;
 
 export interface IBaseKanBanLayout {
   QuickActions: FC<IQuickActionProps>;
-  addIssuesToView?: (issueIds: string[]) => Promise<any>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   canEditPropertiesBasedOnProject?: (projectId: string) => boolean;
   isCompletedCycle?: boolean;
   viewId?: string | undefined;
@@ -56,7 +56,7 @@ export const BaseKanBanRoot = observer(function BaseKanBanRoot(props: IBaseKanBa
   // router
   const { workspaceSlug, projectId } = useParams();
   // store hooks
-  const storeType = useIssueStoreType() as KanbanStoreType;
+  const storeType = useLayoutStoreType(KANBAN_STORE_TYPES);
   const { allowPermissions } = useUserPermissions();
   const { issueMap, issuesFilter, issues } = useIssues(storeType);
   const {

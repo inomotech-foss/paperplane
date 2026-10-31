@@ -33,7 +33,7 @@ interface IHeaderGroupByCard {
   issuePayload: Partial<TIssue>;
   canEditProperties: (projectId: string | undefined) => boolean;
   disableIssueCreation?: boolean;
-  addIssuesToView?: (issueIds: string[]) => Promise<TIssue>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   selectionHelpers: TSelectionHelper;
   handleCollapsedGroups: (value: string) => void;
 }

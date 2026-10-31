@@ -9,7 +9,7 @@ import { sortBy } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { CycleGroupIcon } from "@plane/blocks/icons";
-import type { TCycleGroups } from "@plane/types";
+import { toCycleGroup } from "@/components/issues/narrow";
 // components
 import { Loader } from "@plane/blocks/skeleton";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
@@ -57,9 +57,6 @@ export const FilterCycle = observer(function FilterCycle(props: Props) {
     else setItemsToRender(sortedOptions.length);
   };
 
-  const cycleStatus = (status: TCycleGroups | undefined) =>
-    (status ? status.toLocaleLowerCase() : "draft") as TCycleGroups;
-
   return (
     <>
       <FilterHeader
@@ -78,10 +75,10 @@ export const FilterCycle = observer(function FilterCycle(props: Props) {
                     isChecked={appliedFilters?.includes(cycle.id) ? true : false}
                     onClick={() => handleUpdate(cycle.id)}
                     icon={
-                      <CycleGroupIcon cycleGroup={cycleStatus(cycle?.status)} className="h-3.5 w-3.5 flex-shrink-0" />
+                      <CycleGroupIcon cycleGroup={toCycleGroup(cycle?.status)} className="h-3.5 w-3.5 flex-shrink-0" />
                     }
                     title={cycle.name}
-                    activePulse={cycleStatus(cycle?.status) === "current" ? true : false}
+                    activePulse={toCycleGroup(cycle?.status) === "current" ? true : false}
                   />
                 ))}
                 {sortedOptions.length > 5 && (

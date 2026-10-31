@@ -13,6 +13,7 @@ import type { TIssue, TIssueRelationTypes } from "@plane/types";
 import { cn } from "@plane/utils";
 // components
 import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
+import { keysOf } from "@/components/issues/narrow";
 import { useTimeLineRelationOptions } from "@/components/relations";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -45,7 +46,10 @@ export const RelationsCollapsibleContent = observer(function RelationsCollapsibl
   const [issueCrudState, setIssueCrudState] = useState<{
     update: TIssueCrudState;
     delete: TIssueCrudState;
-    removeRelation: TIssueCrudState & { relationKey: string | undefined; relationIssueId: string | undefined };
+    removeRelation: TIssueCrudState & {
+      relationKey: TIssueRelationTypes | null | undefined;
+      relationIssueId: string | undefined;
+    };
   }>({
     update: {
       toggle: false,
@@ -103,7 +107,7 @@ export const RelationsCollapsibleContent = observer(function RelationsCollapsibl
   if (!relations) return null;
 
   // map relations to array
-  const relationsArray = (Object.keys(relations) as TIssueRelationTypes[])
+  const relationsArray = keysOf(relations)
     .filter((relationKey) => !!ISSUE_RELATION_OPTIONS[relationKey])
     .map((relationKey) => {
       const issueIds = relations[relationKey];
@@ -168,7 +172,7 @@ export const RelationsCollapsibleContent = observer(function RelationsCollapsibl
             handleIssueCrudState("delete", null, null);
             toggleDeleteIssueModal(null);
           }}
-          data={issueCrudState?.delete?.issue as TIssue}
+          data={issueCrudState?.delete?.issue}
           onSubmit={async () => {
             if (
               issueCrudState.removeRelation.issueId &&
@@ -180,7 +184,7 @@ export const RelationsCollapsibleContent = observer(function RelationsCollapsibl
                 workspaceSlug,
                 issueCrudState.removeRelation.issue.project_id,
                 issueCrudState.removeRelation.issueId,
-                issueCrudState.removeRelation.relationKey as TIssueRelationTypes,
+                issueCrudState.removeRelation.relationKey,
                 issueCrudState.removeRelation.relationIssueId,
                 true
               );

@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import type { ComponentType } from "react";
 import { useRef } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
@@ -38,7 +39,7 @@ import { Icon } from "@makeplane/propel/components/icon";
 
 export type TPeekModes = "side-peek" | "modal" | "full-screen";
 
-type TPeekOption = { key: TPeekModes; icon: any; i18n_title: string };
+type TPeekOption = { key: TPeekModes; icon: ComponentType<{ className?: string }>; i18n_title: string };
 
 const PEEK_OPTIONS: TPeekOption[] = [
   {
@@ -184,7 +185,10 @@ export const IssuePeekOverviewHeader = observer(function IssuePeekOverviewHeader
             <Select<TPeekOption>
               getValues={() => PEEK_OPTIONS}
               value={currentMode}
-              onChange={(val) => setPeekMode(val as TPeekModes)}
+              onChange={(val) => {
+                const option = PEEK_OPTIONS.find((mode) => mode.key === val);
+                if (option) setPeekMode(option.key);
+              }}
               getOptionValue={(mode) => mode.key}
               getOptionLabel={(mode) => t(mode.i18n_title)}
               getOptionIcon={(mode) => <mode.icon className="-my-1 h-4 w-4 flex-shrink-0" />}

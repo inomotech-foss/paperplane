@@ -8,20 +8,18 @@ import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane imports
-import type { EIssuesStoreType, TIssue } from "@plane/types";
+import type { EIssuesStoreType, TIssue, TWorkspaceDraftIssue } from "@plane/types";
 // local imports
 import { CreateUpdateIssueModalBase } from "./base";
 import { IssueModalProvider } from "./provider";
 
-export interface IssuesModalProps {
+interface IIssuesModalBaseProps {
   data?: Partial<TIssue>;
   isOpen: boolean;
   onClose: () => void;
   beforeFormSubmit?: () => Promise<void>;
-  onSubmit?: (res: TIssue) => Promise<void>;
   withDraftIssueWrapper?: boolean;
   storeType?: EIssuesStoreType;
-  isDraft?: boolean;
   fetchIssueDetails?: boolean;
   moveToIssue?: boolean;
   modalTitle?: string;
@@ -34,6 +32,12 @@ export interface IssuesModalProps {
   allowedProjectIds?: string[];
   showActionItemsOnUpdate?: boolean;
 }
+
+export type IssuesModalProps = IIssuesModalBaseProps &
+  (
+    | { isDraft?: false; onSubmit?: (res: TIssue) => Promise<void> }
+    | { isDraft: true; onSubmit?: (res: TIssue | TWorkspaceDraftIssue) => Promise<void> }
+  );
 
 export const CreateUpdateIssueModal = observer(function CreateUpdateIssueModal(props: IssuesModalProps) {
   // router params

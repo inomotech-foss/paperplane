@@ -12,7 +12,6 @@ import { observer } from "mobx-react";
 import { ALL_ISSUES } from "@plane/constants";
 // types
 import type {
-  GroupByColumnTypes,
   TGroupedIssues,
   TIssue,
   IIssueDisplayProperties,
@@ -50,7 +49,7 @@ export interface IList {
   quickAddCallback?: (projectId: string | null | undefined, data: TIssue) => Promise<TIssue | undefined>;
   disableIssueCreation?: boolean;
   handleOnDrop: (source: GroupDropLocation, destination: GroupDropLocation) => Promise<void>;
-  addIssuesToView?: (issueIds: string[]) => Promise<TIssue>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   isCompletedCycle?: boolean;
   loadMoreIssues: (groupId?: string) => void;
   handleCollapsedGroups: (value: string) => void;
@@ -86,7 +85,7 @@ export const List = observer(function List(props: IList) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const groups = getGroupByColumns({
-    groupBy: group_by as GroupByColumnTypes,
+    groupBy: group_by,
     includeNone: true,
     isWorkspaceLevel: isWorkspaceLevel(storeType),
   });

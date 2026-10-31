@@ -6,12 +6,13 @@
 
 import { observer } from "mobx-react";
 // plane imports
-import type { E_SORT_ORDER, TActivityFilters, EActivityFilterType } from "@plane/constants";
+import type { E_SORT_ORDER, TActivityFilters } from "@plane/constants";
 import { BASE_ACTIVITY_FILTER_TYPES, filterActivityOnSelectedFilters } from "@plane/constants";
 import type { TCommentsOperations } from "@plane/types";
 // components
 import { CommentCard } from "@/components/comments/card/root";
 // hooks
+import { includesValue } from "@/components/issues/narrow";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
 import { IssueActivityItem } from "./activity/activity-list";
@@ -73,7 +74,7 @@ export const IssueActivityCommentRoot = observer(function IssueActivityCommentRo
             projectId={projectId}
             enableReplies
           />
-        ) : BASE_ACTIVITY_FILTER_TYPES.includes(activityComment.activity_type as EActivityFilterType) ? (
+        ) : includesValue(BASE_ACTIVITY_FILTER_TYPES, activityComment.activity_type) ? (
           <IssueActivityItem
             key={activityComment.id}
             activityId={activityComment.id}

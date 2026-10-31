@@ -7,7 +7,7 @@
 import { observer } from "mobx-react";
 
 // icons
-import { EIconSize } from "@plane/constants";
+import { EIconSize, STATE_GROUPS } from "@plane/constants";
 import { StateGroupIcon } from "@plane/blocks/icons";
 import { CloseOutline } from "@makeplane/propel/icons";
 import type { TStateGroups } from "@plane/types";
@@ -17,6 +17,8 @@ type Props = {
   values: string[];
 };
 
+const isStateGroup = (value: string): value is TStateGroups => Object.hasOwn(STATE_GROUPS, value);
+
 export const AppliedStateGroupFilters = observer(function AppliedStateGroupFilters(props: Props) {
   const { handleRemove, values } = props;
 
@@ -24,7 +26,7 @@ export const AppliedStateGroupFilters = observer(function AppliedStateGroupFilte
     <>
       {values.map((stateGroup) => (
         <div key={stateGroup} className="flex items-center gap-1 rounded-sm bg-layer-1 p-1 text-11">
-          <StateGroupIcon stateGroup={stateGroup as TStateGroups} size={EIconSize.SM} />
+          {isStateGroup(stateGroup) && <StateGroupIcon stateGroup={stateGroup} size={EIconSize.SM} />}
           {stateGroup}
           <button
             type="button"

@@ -116,7 +116,7 @@ export const IssueTitleInput = observer(function IssueTitleInput(props: IssueTit
       if (hasUnsavedChanges.current && currentTitleRef.current.trim().length > 0) {
         issueOperations
           .update(workspaceSlug, projectId, issueId, { name: currentTitleRef.current.trim() })
-          .catch((error) => {
+          .catch((error: unknown) => {
             console.error("Failed to save title on unmount:", error);
           })
           .finally(() => {

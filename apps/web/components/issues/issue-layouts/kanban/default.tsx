@@ -7,7 +7,6 @@
 import type { MutableRefObject } from "react";
 import { observer } from "mobx-react";
 import type {
-  GroupByColumnTypes,
   IGroupByColumn,
   TGroupedIssues,
   TIssue,
@@ -31,7 +30,7 @@ import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { useWorkFlowFDragNDrop } from "@/components/workflow";
 import type { TRenderQuickActions } from "../list/list-view-types";
 import type { GroupDropLocation } from "../utils";
-import { getGroupByColumns, isWorkspaceLevel, getApproximateCardHeight } from "../utils";
+import { getGroupByColumns, getGroupIssueIds, isWorkspaceLevel, getApproximateCardHeight } from "../utils";
 // components
 import { HeaderGroupByCard } from "./headers/group-by-card";
 import { KanbanGroup } from "./kanban-group";
@@ -60,7 +59,7 @@ export interface IKanBan {
   enableQuickIssueCreate?: boolean;
   quickAddCallback?: (projectId: string | null | undefined, data: TIssue) => Promise<TIssue | undefined>;
   disableIssueCreation?: boolean;
-  addIssuesToView?: (issueIds: string[]) => Promise<TIssue>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   canEditProperties: (projectId: string | undefined) => boolean;
   scrollableContainerRef?: MutableRefObject<HTMLDivElement | null>;
   handleOnDrop: (source: GroupDropLocation, destination: GroupDropLocation) => Promise<void>;
@@ -105,7 +104,7 @@ export const KanBan = observer(function KanBan(props: IKanBan) {
   const { getIsWorkflowWorkItemCreationDisabled } = useWorkFlowFDragNDrop(group_by, sub_group_by);
 
   const list = getGroupByColumns({
-    groupBy: group_by as GroupByColumnTypes,
+    groupBy: group_by,
     includeNone: true,
     isWorkspaceLevel: isWorkspaceLevel(storeType),
   });
@@ -149,9 +148,7 @@ export const KanBan = observer(function KanBan(props: IKanBan) {
 
           if (groupByVisibilityToggle.showGroup === false) return <></>;
 
-          const issueIds = isSubGroup
-            ? ((groupedIssueIds as TSubGroupedIssues)?.[subList.id]?.[sub_group_id] ?? [])
-            : ((groupedIssueIds as TGroupedIssues)?.[subList.id] ?? []);
+          const issueIds = getGroupIssueIds(groupedIssueIds, subList.id, isSubGroup ? sub_group_id : undefined);
           const issueLength = issueIds?.length;
           const groupHeight = issueLength * approximateCardHeight;
 

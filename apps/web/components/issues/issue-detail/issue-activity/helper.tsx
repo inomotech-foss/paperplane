@@ -10,6 +10,7 @@ import { setToast } from "@plane/blocks/toast";
 import { EFileAssetType } from "@plane/types";
 import type { TCommentsOperations } from "@plane/types";
 import { copyUrlToClipboard, formatTextList, generateWorkItemLink } from "@plane/utils";
+import { hasStringId } from "@/components/issues/narrow";
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";
@@ -74,13 +75,13 @@ export const useWorkItemCommentOperations = (
       createComment: async (data) => {
         try {
           if (!workspaceSlug || !projectId || !issueId) throw new Error("Missing fields");
-          const comment = await createComment(workspaceSlug, projectId, issueId, data);
+          const comment: unknown = await createComment(workspaceSlug, projectId, issueId, data);
           setToast({
             title: t("common.success"),
             type: "success",
             message: t("issue.comments.create.success"),
           });
-          return comment;
+          return hasStringId(comment) ? comment : undefined;
         } catch {
           setToast({
             title: t("common.error.label"),

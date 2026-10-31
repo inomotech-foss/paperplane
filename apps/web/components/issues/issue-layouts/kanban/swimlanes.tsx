@@ -8,7 +8,6 @@ import type { MutableRefObject } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import type {
-  GroupByColumnTypes,
   IGroupByColumn,
   TGroupedIssues,
   TIssue,
@@ -102,7 +101,7 @@ const SubGroupSwimlaneHeader = observer(function SubGroupSwimlaneHeader({
 });
 
 interface ISubGroupSwimlane extends ISubGroupSwimlaneHeader {
-  addIssuesToView?: (issueIds: string[]) => Promise<TIssue>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   canEditProperties: (projectId: string | undefined) => boolean;
   collapsedGroups: TIssueKanbanFilters;
   disableIssueCreation?: boolean;
@@ -230,7 +229,7 @@ const SubGroupSwimlane = observer(function SubGroupSwimlane(props: ISubGroupSwim
 });
 
 export interface IKanBanSwimLanes {
-  addIssuesToView?: (issueIds: string[]) => Promise<TIssue>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   canEditProperties: (projectId: string | undefined) => boolean;
   collapsedGroups: TIssueKanbanFilters;
   disableIssueCreation?: boolean;
@@ -283,12 +282,12 @@ export const KanBanSwimLanes = observer(function KanBanSwimLanes(props: IKanBanS
   const storeType = useIssueStoreType();
   // derived values
   const groupByList = getGroupByColumns({
-    groupBy: group_by as GroupByColumnTypes,
+    groupBy: group_by,
     includeNone: true,
     isWorkspaceLevel: isWorkspaceLevel(storeType),
   });
   const subGroupByList = getGroupByColumns({
-    groupBy: sub_group_by as GroupByColumnTypes,
+    groupBy: sub_group_by,
     includeNone: true,
     isWorkspaceLevel: isWorkspaceLevel(storeType),
   });

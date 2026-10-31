@@ -15,6 +15,7 @@ import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { TIssueEmailMessage, TIssueEmailThread } from "@plane/types";
 import { checkEmailValidity, cn } from "@plane/utils";
 // services
+import { getStringProp } from "@/components/issues/narrow";
 import { ServiceDeskService } from "@/services/service-desk.service";
 
 type TEmailThreadPanel = {
@@ -110,7 +111,7 @@ const useRecipientsEditor = (props: TEmailThreadPanel) => {
       setToast({
         type: "error",
         title: "Error!",
-        message: (error as { error?: string })?.error ?? "Failed to update email recipients. Please try again.",
+        message: getStringProp(error, "error") ?? "Failed to update email recipients. Please try again.",
       });
     } finally {
       setIsSaving(false);

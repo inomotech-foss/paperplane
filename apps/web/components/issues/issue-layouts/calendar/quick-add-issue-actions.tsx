@@ -20,13 +20,14 @@ import { cn } from "@plane/utils";
 // components
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 // hooks
+import { getStringProp } from "@/components/issues/narrow";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { QuickAddIssueRoot } from "../quick-add";
 
 type TCalendarQuickAddIssueActions = {
   prePopulatedData?: Partial<TIssue>;
   quickAddCallback?: (projectId: string | null | undefined, data: TIssue) => Promise<TIssue | undefined>;
-  addIssuesToView?: (issueIds: string[]) => Promise<any>;
+  addIssuesToView?: (issueIds: string[]) => Promise<unknown>;
   onOpen?: () => void;
 };
 
@@ -65,7 +66,7 @@ export const CalendarQuickAddIssueActions = observer(function CalendarQuickAddIs
       },
       error: {
         title: t("toast.error"),
-        message: (err) => err?.message || t("common.errors.default.message"),
+        message: (err) => getStringProp(err, "message") || t("common.errors.default.message"),
       },
     });
   };

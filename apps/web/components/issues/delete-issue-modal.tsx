@@ -15,6 +15,7 @@ import type { TDeDupeIssue, TIssue } from "@plane/types";
 // ui
 import { ConfirmDialog } from "@plane/blocks/dialog";
 // hooks
+import { getStringProp } from "@/components/issues/narrow";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
@@ -92,7 +93,7 @@ export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props)
       onClose();
     } catch (errors) {
       const isPermissionError =
-        (errors as { error?: string } | undefined)?.error ===
+        getStringProp(errors, "error") ===
         `Only admin or creator can delete the ${isSubIssue ? "sub-work item" : "work item"}`;
       const currentError = isPermissionError
         ? PROJECT_ERROR_MESSAGES.permissionError

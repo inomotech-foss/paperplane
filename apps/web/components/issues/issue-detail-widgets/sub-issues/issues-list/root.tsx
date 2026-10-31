@@ -10,7 +10,7 @@ import { observer } from "mobx-react";
 import { FilterOutline } from "@makeplane/propel/icons";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
-import type { GroupByColumnTypes, TIssue, TSubIssueOperations } from "@plane/types";
+import type { TIssue, TSubIssueOperations } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
 // hooks
 import { SectionEmptyState } from "@/components/empty-state/section-empty-state-root";
@@ -62,7 +62,7 @@ export const SubIssuesListRoot = observer(function SubIssuesListRoot(props: Prop
   const filteredSubWorkItemsCount = (getFilteredSubWorkItems(rootIssueId, filters.filters ?? {}) ?? []).length;
 
   const groups = getGroupByColumns({
-    groupBy: group_by as GroupByColumnTypes,
+    groupBy: group_by,
     includeNone: true,
     isWorkspaceLevel: isWorkspaceLevel(storeType),
     projectId,

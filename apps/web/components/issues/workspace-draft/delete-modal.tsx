@@ -14,6 +14,7 @@ import type { TWorkspaceDraftIssue } from "@plane/types";
 import { ConfirmDialog } from "@plane/blocks/dialog";
 // constants
 // hooks
+import { getStringProp } from "@/components/issues/narrow";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 
@@ -76,8 +77,7 @@ export function WorkspaceDraftIssueDeleteIssueModal(props: Props) {
         message: t("workspace_draft_issues.toasts.deleted.success"),
       });
     } catch (errors) {
-      const isPermissionError =
-        (errors as { error?: string } | undefined)?.error === "Only admin or creator can delete the work item";
+      const isPermissionError = getStringProp(errors, "error") === "Only admin or creator can delete the work item";
       const currentError = isPermissionError
         ? PROJECT_ERROR_MESSAGES.permissionError
         : PROJECT_ERROR_MESSAGES.issueDeleteError;
