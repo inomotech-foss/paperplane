@@ -9,7 +9,7 @@ import { mutate } from "swr";
 // plane imports
 import { Dialog, DialogContent } from "@makeplane/propel/components/dialog";
 import { setToast } from "@plane/blocks/toast";
-import { APITokenService } from "@plane/services";
+import { APITokenService, isApiError } from "@plane/services";
 import type { IApiToken } from "@plane/types";
 import { renderFormattedDate, csvDownload } from "@plane/utils";
 // constants
@@ -17,7 +17,6 @@ import { API_TOKENS_LIST } from "@plane/constants";
 // local imports
 import { CreateApiTokenForm } from "./form";
 import { GeneratedTokenDetails } from "./generated-token-details";
-import { getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   isOpen: boolean;
@@ -75,7 +74,7 @@ export function CreateApiTokenModal(props: Props) {
         setToast({
           type: "error",
           title: "Error!",
-          message: getStringField(err, "message") || getStringField(err, "detail"),
+          message: isApiError(err) ? (err.detail ?? err.error) : undefined,
         });
 
         throw err;

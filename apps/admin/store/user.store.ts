@@ -8,9 +8,8 @@ import { action, observable, runInAction, makeObservable } from "mobx";
 // plane internal packages
 import type { TUserStatus } from "@plane/constants";
 import { EUserStatus } from "@plane/constants";
-import { AuthService, UserService } from "@plane/services";
-import type { IUser } from "@plane/types";
-import { isRecord } from "@/helpers/error";
+import { AuthService, UserService, isApiError } from "@plane/services";
+import type { TInstanceAdminMe } from "@plane/services";
 // root store
 import type { RootStore } from "@/store/root.store";
 
@@ -19,10 +18,10 @@ export interface IUserStore {
   isLoading: boolean;
   userStatus: TUserStatus | undefined;
   isUserLoggedIn: boolean | undefined;
-  currentUser: IUser | undefined;
+  currentUser: TInstanceAdminMe | undefined;
   // fetch actions
-  hydrate: (data: IUser | undefined) => void;
-  fetchCurrentUser: () => Promise<IUser>;
+  hydrate: (data: TInstanceAdminMe | undefined) => void;
+  fetchCurrentUser: () => Promise<TInstanceAdminMe>;
   reset: () => void;
   signOut: () => void;
 }
@@ -32,7 +31,7 @@ export class UserStore implements IUserStore {
   isLoading: boolean = true;
   userStatus: TUserStatus | undefined = undefined;
   isUserLoggedIn: boolean | undefined = undefined;
-  currentUser: IUser | undefined = undefined;
+  currentUser: TInstanceAdminMe | undefined = undefined;
   // services
   userService;
   authService;
@@ -53,13 +52,13 @@ export class UserStore implements IUserStore {
     this.authService = new AuthService();
   }
 
-  hydrate = (data: IUser | undefined) => {
+  hydrate = (data: TInstanceAdminMe | undefined) => {
     if (data) this.currentUser = data;
   };
 
   /**
    * @description Fetches the current user
-   * @returns Promise<IUser>
+   * @returns Promise<TInstanceAdminMe>
    */
   fetchCurrentUser = async () => {
     try {
@@ -83,12 +82,17 @@ export class UserStore implements IUserStore {
     } catch (error) {
       this.isLoading = false;
       this.isUserLoggedIn = false;
-      const status = isRecord(error) ? error.status : undefined;
-      const message = isRecord(error) && typeof error.message === "string" ? error.message : "";
-      this.userStatus = {
-        status: status === 403 ? EUserStatus.AUTHENTICATION_NOT_DONE : EUserStatus.ERROR,
-        message,
-      };
+      const message = isApiError(error) ? (error.detail ?? error.error ?? "") : "";
+      if (isApiError(error) && error.status === 403)
+        this.userStatus = {
+          status: EUserStatus.AUTHENTICATION_NOT_DONE,
+          message,
+        };
+      else
+        this.userStatus = {
+          status: EUserStatus.ERROR,
+          message,
+        };
       throw error;
     }
   };

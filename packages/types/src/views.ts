@@ -4,13 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import type { TLogoProps } from "./common";
+import type { TLogoProps } from "./client-json";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
   IIssueFilterOptions,
   TWorkItemFilterExpression,
-} from "./view-props";
+} from "./client-json";
 
 export enum EViewAccess {
   PRIVATE,

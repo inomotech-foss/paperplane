@@ -8,33 +8,34 @@ import { set, unset } from "lodash-es";
 import { action, observable, runInAction, makeObservable, computed } from "mobx";
 // plane imports
 import { InstanceWorkspaceService } from "@plane/services";
-import type { IWorkspace, TLoader, TPaginationInfo } from "@plane/types";
+import type { TInstanceWorkspace, TInstanceWorkspaceCreateBody } from "@plane/services";
+import type { TLoader, TPaginationInfo } from "@plane/types";
 // root store
 import type { RootStore } from "@/store/root.store";
 
 export interface IWorkspaceStore {
   // observables
   loader: TLoader;
-  workspaces: Record<string, IWorkspace>;
+  workspaces: Record<string, TInstanceWorkspace>;
   paginationInfo: TPaginationInfo | undefined;
   // computed
   workspaceIds: string[];
   // helper actions
-  hydrate: (data: Record<string, IWorkspace> | undefined) => void;
-  getWorkspaceById: (workspaceId: string) => IWorkspace | undefined;
+  hydrate: (data: Record<string, TInstanceWorkspace> | undefined) => void;
+  getWorkspaceById: (workspaceId: string) => TInstanceWorkspace | undefined;
   // fetch actions
-  fetchWorkspaces: () => Promise<IWorkspace[]>;
-  fetchNextWorkspaces: () => Promise<IWorkspace[]>;
+  fetchWorkspaces: () => Promise<TInstanceWorkspace[]>;
+  fetchNextWorkspaces: () => Promise<TInstanceWorkspace[]>;
   // curd actions
-  createWorkspace: (data: IWorkspace) => Promise<IWorkspace>;
+  createWorkspace: (data: TInstanceWorkspaceCreateBody) => Promise<TInstanceWorkspace>;
   deleteWorkspace: (workspaceId: string) => Promise<void>;
-  transferOwner: (workspaceId: string, ownerId: string) => Promise<IWorkspace>;
+  transferOwner: (workspaceId: string, ownerId: string) => Promise<TInstanceWorkspace>;
 }
 
 export class WorkspaceStore implements IWorkspaceStore {
   // observables
   loader: TLoader = "init-loader";
-  workspaces: Record<string, IWorkspace> = {};
+  workspaces: Record<string, TInstanceWorkspace> = {};
   paginationInfo: TPaginationInfo | undefined = undefined;
   // services
   instanceWorkspaceService;
@@ -69,16 +70,16 @@ export class WorkspaceStore implements IWorkspaceStore {
   // helper actions
   /**
    * @description Hydrates the workspaces
-   * @param data - Record<string, IWorkspace>
+   * @param data - Record<string, TInstanceWorkspace>
    */
-  hydrate = (data: Record<string, IWorkspace> | undefined) => {
+  hydrate = (data: Record<string, TInstanceWorkspace> | undefined) => {
     if (data) this.workspaces = data;
   };
 
   /**
    * @description Gets a workspace by id
    * @param workspaceId - string
-   * @returns IWorkspace | undefined
+   * @returns TInstanceWorkspace | undefined
    */
   getWorkspaceById = (workspaceId: string) => this.workspaces[workspaceId];
 
@@ -87,7 +88,7 @@ export class WorkspaceStore implements IWorkspaceStore {
    * @description Fetches all workspaces
    * @returns Promise<>
    */
-  fetchWorkspaces = async (): Promise<IWorkspace[]> => {
+  fetchWorkspaces = async (): Promise<TInstanceWorkspace[]> => {
     try {
       if (this.workspaceIds.length > 0) {
         this.loader = "mutation";
@@ -97,7 +98,7 @@ export class WorkspaceStore implements IWorkspaceStore {
       const paginatedWorkspaceData = await this.instanceWorkspaceService.list();
       runInAction(() => {
         const { results, ...paginationInfo } = paginatedWorkspaceData;
-        results.forEach((workspace: IWorkspace) => {
+        results.forEach((workspace: TInstanceWorkspace) => {
           set(this.workspaces, [workspace.id], workspace);
         });
         set(this, "paginationInfo", paginationInfo);
@@ -113,16 +114,16 @@ export class WorkspaceStore implements IWorkspaceStore {
 
   /**
    * @description Fetches the next page of workspaces
-   * @returns Promise<IWorkspace[]>
+   * @returns Promise<TInstanceWorkspace[]>
    */
-  fetchNextWorkspaces = async (): Promise<IWorkspace[]> => {
+  fetchNextWorkspaces = async (): Promise<TInstanceWorkspace[]> => {
     if (!this.paginationInfo || this.paginationInfo.next_page_results === false) return [];
     try {
       this.loader = "pagination";
       const paginatedWorkspaceData = await this.instanceWorkspaceService.list(this.paginationInfo.next_cursor);
       runInAction(() => {
         const { results, ...paginationInfo } = paginatedWorkspaceData;
-        results.forEach((workspace: IWorkspace) => {
+        results.forEach((workspace: TInstanceWorkspace) => {
           set(this.workspaces, [workspace.id], workspace);
         });
         set(this, "paginationInfo", paginationInfo);
@@ -139,10 +140,10 @@ export class WorkspaceStore implements IWorkspaceStore {
   // curd actions
   /**
    * @description Creates a new workspace
-   * @param data - IWorkspace
-   * @returns Promise<IWorkspace>
+   * @param data - TInstanceWorkspaceCreateBody
+   * @returns Promise<TInstanceWorkspace>
    */
-  createWorkspace = async (data: IWorkspace): Promise<IWorkspace> => {
+  createWorkspace = async (data: TInstanceWorkspaceCreateBody): Promise<TInstanceWorkspace> => {
     try {
       this.loader = "mutation";
       const workspace = await this.instanceWorkspaceService.create(data);
@@ -165,7 +166,7 @@ export class WorkspaceStore implements IWorkspaceStore {
     });
   };
 
-  transferOwner = async (workspaceId: string, ownerId: string): Promise<IWorkspace> => {
+  transferOwner = async (workspaceId: string, ownerId: string): Promise<TInstanceWorkspace> => {
     const workspace = await this.instanceWorkspaceService.transferOwner(workspaceId, ownerId);
     runInAction(() => {
       set(this.workspaces, [workspaceId], workspace);

@@ -8,8 +8,10 @@ from plane.db.models.workspace import WorkspaceHomePreference
 from plane.app.permissions import allow_permission, ROLE
 from plane.db.models import Workspace
 from plane.app.serializers.workspace import WorkspaceHomePreferenceSerializer
+from plane.app.serializers.response.workspace import WorkspaceHomePreferenceRowSerializer
 
 # Third party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -20,6 +22,7 @@ class WorkspaceHomePreferenceViewSet(BaseAPIView):
     def get_serializer_class(self):
         return WorkspaceHomePreferenceSerializer
 
+    @extend_schema(responses={200: WorkspaceHomePreferenceRowSerializer(many=True)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def get(self, request, slug):
         workspace = Workspace.objects.get(slug=slug)

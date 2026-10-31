@@ -4,62 +4,21 @@
  * See the LICENSE file for details.
  */
 
-import type { IProjectMemberNavigationPreferences } from "./project";
-import type { EIssueLayoutTypes, TIssue } from "./issues/issue";
-import type { LOGICAL_OPERATOR, TSupportedOperators } from "./rich-filters";
-import type { CompleteOrEmpty } from "./utils";
+import type {
+  IIssueDisplayFilterOptions,
+  IIssueDisplayProperties,
+  IIssueFilterOptions,
+  TIssueGroupByOptions,
+  TIssueOrderByOptions,
+  TProjectUserPreferences,
+  TWorkItemFilterExpression,
+} from "./client-json";
+import type { TIssue } from "./issues/issue";
+import type { TSupportedOperators } from "./rich-filters";
 
 export type TIssueLayouts = "list" | "kanban" | "calendar" | "spreadsheet" | "gantt_chart";
 
-export type TIssueGroupByOptions =
-  | "state"
-  | "priority"
-  | "labels"
-  | "created_by"
-  | "state_detail.group"
-  | "project"
-  | "assignees"
-  | "cycle"
-  | "module"
-  | "target_date"
-  | "team_project"
-  | null;
-
-export type TIssueOrderByOptions =
-  | "-created_at"
-  | "created_at"
-  | "updated_at"
-  | "-updated_at"
-  | "priority"
-  | "-priority"
-  | "sort_order"
-  | "state__name"
-  | "-state__name"
-  | "assignees__first_name"
-  | "-assignees__first_name"
-  | "labels__name"
-  | "-labels__name"
-  | "issue_module__module__name"
-  | "-issue_module__module__name"
-  | "issue_cycle__cycle__name"
-  | "-issue_cycle__cycle__name"
-  | "target_date"
-  | "-target_date"
-  | "estimate_point__key"
-  | "-estimate_point__key"
-  | "start_date"
-  | "-start_date"
-  | "link_count"
-  | "-link_count"
-  | "attachment_count"
-  | "-attachment_count"
-  | "sub_issues_count"
-  | "-sub_issues_count";
-
 export type TIssueGroupingFilters = "active" | "backlog";
-
-/** What the timeline bars take their colour from. */
-export type TTimelineColorBy = "state" | "key";
 
 export type TIssueExtraOptions = "show_empty_groups" | "sub_issue" | "hierarchy";
 
@@ -92,8 +51,6 @@ export type TIssueParams =
   | "filters"
   | "pql"
   | "hierarchy";
-
-export type TCalendarLayouts = "month" | "week";
 
 /**
  * Keys for the work item filter properties
@@ -133,81 +90,6 @@ export type TWorkItemFilterProperty =
 
 export type TWorkItemFilterConditionKey = `${TWorkItemFilterProperty}__${TSupportedOperators}`;
 
-export type TWorkItemFilterConditionData = Partial<{
-  [K in TWorkItemFilterConditionKey]: string | boolean | number;
-}>;
-
-export type TWorkItemFilterAndGroup = {
-  [LOGICAL_OPERATOR.AND]: TWorkItemFilterExpressionData[];
-};
-
-export type TWorkItemFilterNotGroup = {
-  [LOGICAL_OPERATOR.NOT]: TWorkItemFilterExpressionData;
-};
-
-export type TWorkItemFilterGroup = TWorkItemFilterAndGroup | TWorkItemFilterNotGroup;
-
-export type TWorkItemFilterExpressionData = TWorkItemFilterConditionData | TWorkItemFilterGroup;
-
-export type TWorkItemFilterExpression = CompleteOrEmpty<TWorkItemFilterExpressionData>;
-
-export interface IIssueFilterOptions {
-  assignees?: string[] | null;
-  mentions?: string[] | null;
-  created_by?: string[] | null;
-  labels?: string[] | null;
-  priority?: string[] | null;
-  cycle?: string[] | null;
-  module?: string[] | null;
-  project?: string[] | null;
-  team_project?: string[] | null;
-  start_date?: string[] | null;
-  state?: string[] | null;
-  state_group?: string[] | null;
-  subscriber?: string[] | null;
-  target_date?: string[] | null;
-  issue_type?: string[] | null;
-}
-
-export interface IIssueDisplayFilterOptions {
-  calendar?: {
-    show_weekends?: boolean;
-    layout?: TCalendarLayouts;
-  };
-  group_by?: TIssueGroupByOptions;
-  sub_group_by?: TIssueGroupByOptions;
-  layout?: EIssueLayoutTypes;
-  order_by?: TIssueOrderByOptions;
-  show_empty_groups?: boolean;
-  sub_issue?: boolean;
-  /** Nest loaded work items under their loaded parents (table layout). Client side only. */
-  hierarchy?: boolean;
-  /** Plane Query Language expression applied on top of the filters, empty for none. */
-  pql?: string;
-  /** Timeline bar colour source. */
-  color_by?: TTimelineColorBy;
-}
-export interface IIssueDisplayProperties {
-  // Per-project work item custom properties, keyed by `custom_property_<property_id>`
-  [key: `custom_property_${string}`]: boolean | undefined;
-  assignee?: boolean;
-  start_date?: boolean;
-  due_date?: boolean;
-  labels?: boolean;
-  key?: boolean;
-  priority?: boolean;
-  state?: boolean;
-  sub_issue_count?: boolean;
-  link?: boolean;
-  attachment_count?: boolean;
-  estimate?: boolean;
-  created_on?: boolean;
-  updated_on?: boolean;
-  modules?: boolean;
-  cycle?: boolean;
-  issue_type?: boolean;
-}
-
 export type TIssueKanbanFilters = {
   group_by: string[];
   sub_group_by: string[];
@@ -234,15 +116,7 @@ export interface IIssueFiltersResponse {
 
 export interface IProjectUserPropertiesResponse extends IIssueFiltersResponse {
   sort_order: number;
-  preferences: {
-    pages: {
-      block_display: boolean;
-    };
-    navigation: IProjectMemberNavigationPreferences;
-    work_items?: {
-      last_type_id?: string;
-    };
-  };
+  preferences: TProjectUserPreferences;
 }
 
 export interface IWorkspaceUserPropertiesResponse extends IIssueFiltersResponse {
@@ -281,12 +155,6 @@ export interface IWorkspaceViewIssuesParams {
 export interface IProjectViewProps {
   rich_filters: TWorkItemFilterExpression;
   display_filters: IIssueDisplayFilterOptions | undefined;
-}
-
-export interface IWorkspaceViewProps {
-  rich_filters: TWorkItemFilterExpression;
-  display_filters: IIssueDisplayFilterOptions | undefined;
-  display_properties: IIssueDisplayProperties;
 }
 
 export interface IssuePaginationOptions {

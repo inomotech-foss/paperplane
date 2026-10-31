@@ -30,6 +30,13 @@ import type { CoreRootStore } from "@/store/root.store";
 type TNotificationLoader = ENotificationLoader | undefined;
 type TNotificationQueryParamType = ENotificationQueryParamType;
 
+const EMPTY_NOTIFICATION_LITE: TNotificationLite = {
+  workspace_slug: undefined,
+  project_id: undefined,
+  notification_id: undefined,
+  issue_id: undefined,
+};
+
 export interface IWorkspaceNotificationStore {
   // observables
   loader: TNotificationLoader;
@@ -158,11 +165,11 @@ export class WorkspaceNotificationStore implements IWorkspaceNotificationStore {
    * @description get notification lite by notification id
    * @param { string } notificationId
    */
-  notificationLiteByNotificationId = computedFn((notificationId: string | undefined) => {
-    if (!notificationId) return {} as TNotificationLite;
+  notificationLiteByNotificationId = computedFn((notificationId: string | undefined): TNotificationLite => {
+    if (!notificationId) return EMPTY_NOTIFICATION_LITE;
     const { workspaceSlug } = this.store.router;
     const notification = this.notifications[notificationId];
-    if (!notification || !workspaceSlug) return {} as TNotificationLite;
+    if (!notification || !workspaceSlug) return EMPTY_NOTIFICATION_LITE;
     return {
       workspace_slug: workspaceSlug,
       project_id: notification.project,

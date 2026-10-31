@@ -12,7 +12,7 @@ import { Select } from "@plane/blocks/select";
 import type { GithubRepositoriesResponse, IGithubRepository, IWorkspaceIntegration } from "@plane/types";
 // helpers
 import { truncateText } from "@plane/utils";
-import { ProjectService } from "@/services/project";
+import { GithubIntegrationService } from "@/services/integrations";
 // types
 
 type Props = {
@@ -23,7 +23,7 @@ type Props = {
   characterLimit?: number;
 };
 
-const projectService = new ProjectService();
+const githubIntegrationService = new GithubIntegrationService();
 
 export function SelectRepository(props: Props) {
   const { integration, value, label, onChange, characterLimit = 25 } = props;
@@ -39,7 +39,7 @@ export function SelectRepository(props: Props) {
   };
 
   const fetchGithubRepos = async (url: string) => {
-    const data = await projectService.getGithubRepositories(url);
+    const data = await githubIntegrationService.getGithubRepositories(url);
 
     return data;
   };

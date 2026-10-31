@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TLogoProps } from "../common";
+import type { IProjectMemberNavigationPreferences, TLogoProps } from "../client-json";
 import type { TUserPermissions } from "../enums";
 import type { TStateGroups } from "../state";
 import type { IUser, IUserLite } from "../users";
@@ -35,22 +35,21 @@ export interface IPartialProject {
   project_lead?: IUserLite | string | null;
   network?: number;
   // Timestamps
-  created_at?: Date;
-  updated_at?: Date;
+  created_at?: string;
+  updated_at?: string;
   // actor
-  created_by?: string;
-  updated_by?: string;
+  created_by?: string | null;
+  updated_by?: string | null;
   intake_count?: number;
 }
 
 export interface IProject extends IPartialProject {
   archive_in?: number;
   close_in?: number;
-  // only for uploading the cover image
-  cover_image_asset?: null;
-  cover_image?: string;
+  cover_image_asset?: string | null;
+  cover_image?: string | null;
   // only for rendering the cover image
-  readonly cover_image_url?: string;
+  readonly cover_image_url?: string | null;
   default_assignee?: IUser | string | null;
   default_state?: string | null;
   description?: string;
@@ -68,11 +67,11 @@ export type TProjectAnalyticsCountParams = {
 };
 
 export type TProjectAnalyticsCount = Pick<IProject, "id"> & {
-  total_issues?: number;
-  completed_issues?: number;
-  total_cycles?: number;
-  total_members?: number;
-  total_modules?: number;
+  total_issues?: number | null;
+  completed_issues?: number | null;
+  total_cycles?: number | null;
+  total_members?: number | null;
+  total_modules?: number | null;
 };
 
 export interface IProjectLite {
@@ -112,11 +111,6 @@ export type TProjectMembership = {
 export interface IProjectBulkAddFormData {
   members: { role: TUserPermissions | EUserProjectRoles; member_id: string }[];
 }
-
-export type IProjectMemberNavigationPreferences = {
-  default_tab: string;
-  hide_in_more_menu: string[];
-};
 
 export type IProjectMemberPreferencesUpdate = {
   navigation: IProjectMemberNavigationPreferences;

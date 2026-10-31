@@ -30,7 +30,7 @@ export const SwitchAccountDropdown = observer(function SwitchAccountDropdown(pro
     ? `${user?.first_name} ${user?.last_name ?? ""}`
     : fullName && fullName.trim().length > 0
       ? fullName
-      : user?.email;
+      : (user?.email ?? undefined);
 
   if (!displayName && !fullName) return null;
 

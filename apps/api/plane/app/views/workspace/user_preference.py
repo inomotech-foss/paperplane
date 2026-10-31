@@ -6,11 +6,15 @@
 from ..base import BaseAPIView
 from plane.db.models.workspace import WorkspaceUserPreference
 from plane.app.serializers.workspace import WorkspaceUserPreferenceSerializer
+from plane.app.serializers.request.workspace import WorkspaceSidebarPreferenceUpdateSerializer
+from plane.app.serializers.response.workspace import WorkspaceSidebarPreferenceMapSerializer
+from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.app.permissions import allow_permission, ROLE
 from plane.db.models import Workspace
 
 
 # Third party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -22,6 +26,7 @@ class WorkspaceUserPreferenceViewSet(BaseAPIView):
     def get_serializer_class(self):
         return WorkspaceUserPreferenceSerializer
 
+    @extend_schema(responses={200: WorkspaceSidebarPreferenceMapSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def get(self, request, slug):
         workspace = Workspace.objects.get(slug=slug)
@@ -78,6 +83,9 @@ class WorkspaceUserPreferenceViewSet(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(
+        request=WorkspaceSidebarPreferenceUpdateSerializer(many=True), responses={200: MessageResponseSerializer}
+    )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def patch(self, request, slug):
         for data in request.data:

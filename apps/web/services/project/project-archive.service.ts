@@ -4,34 +4,27 @@
  * See the LICENSE file for details.
  */
 
-// helpers
-import { API_BASE_URL } from "@plane/constants";
-// services
-import { APIService } from "@/services/api.service";
+import type { ApiSchema } from "@plane/api-types";
+import { unwrap } from "@plane/services";
+import { apiClient } from "@/services/api-client";
 
-export class ProjectArchiveService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
 
-  async archiveProject(
-    workspaceSlug: string,
-    projectId: string
-  ): Promise<{
-    archived_at: string;
-  }> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/archive/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ProjectArchiveService {
+  async archiveProject(workspaceSlug: string, projectId: string): Promise<ApiSchema<"ProjectArchive">> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/archive/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
   }
 
   async restoreProject(workspaceSlug: string, projectId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/archive/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/archive/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
   }
 }

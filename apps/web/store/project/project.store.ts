@@ -65,10 +65,10 @@ export interface IProjectStore {
     params?: TProjectAnalyticsCountParams
   ) => Promise<TProjectAnalyticsCount[]>;
   // favorites actions
-  addProjectToFavorites: (workspaceSlug: string, projectId: string) => Promise<any>;
-  removeProjectFromFavorites: (workspaceSlug: string, projectId: string) => Promise<any>;
+  addProjectToFavorites: (workspaceSlug: string, projectId: string) => Promise<void>;
+  removeProjectFromFavorites: (workspaceSlug: string, projectId: string) => Promise<void>;
   // project-view action
-  updateProjectView: (workspaceSlug: string, projectId: string, viewProps: any) => Promise<any>;
+  updateProjectView: (workspaceSlug: string, projectId: string, viewProps: { sort_order: number }) => Promise<void>;
   // CRUD actions
   createProject: (workspaceSlug: string, data: Partial<TProject>) => Promise<TProject>;
   updateProject: (workspaceSlug: string, projectId: string, data: Partial<TProject>) => Promise<TProject>;
@@ -470,13 +470,12 @@ export class ProjectStore implements IProjectStore {
       runInAction(() => {
         set(this.projectMap, [projectId, "is_favorite"], true);
       });
-      const response = await this.rootStore.favorite.addFavorite(workspaceSlug.toString(), {
+      await this.rootStore.favorite.addFavorite(workspaceSlug.toString(), {
         entity_type: "project",
         entity_identifier: projectId,
         project_id: projectId,
         entity_data: { name: this.projectMap[projectId].name || "" },
       });
-      return response;
     } catch (error) {
       console.log("Failed to add project to favorite");
       runInAction(() => {
@@ -499,9 +498,7 @@ export class ProjectStore implements IProjectStore {
       runInAction(() => {
         set(this.projectMap, [projectId, "is_favorite"], false);
       });
-      const response = await this.rootStore.favorite.removeFavoriteEntity(workspaceSlug.toString(), projectId);
-
-      return response;
+      await this.rootStore.favorite.removeFavoriteEntity(workspaceSlug.toString(), projectId);
     } catch (error) {
       console.log("Failed to add project to favorite");
       runInAction(() => {
@@ -524,8 +521,7 @@ export class ProjectStore implements IProjectStore {
       runInAction(() => {
         set(this.projectMap, [projectId, "sort_order"], viewProps?.sort_order);
       });
-      const response = await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, viewProps);
-      return response;
+      await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, viewProps);
     } catch (error) {
       runInAction(() => {
         set(this.projectMap, [projectId, "sort_order"], currentProjectSortOrder);

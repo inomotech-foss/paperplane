@@ -7,7 +7,6 @@
 import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
-import type { IWorkspaceMemberInvitation } from "@plane/types";
 import { BoxesOutline, CloseOutline, ShareAltOutline, TickOutline, UserOutline } from "@makeplane/propel/icons";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
@@ -38,7 +37,7 @@ function WorkspaceInvitationPage() {
   // store hooks
   const { data: currentUser } = useUser();
 
-  const { data: invitationDetail, error } = useSWR<IWorkspaceMemberInvitation, unknown>(
+  const { data: invitationDetail, error } = useSWR(
     invitation_id && slug && WORKSPACE_INVITATION(invitation_id.toString()),
     invitation_id && slug
       ? () => workspaceService.getWorkspaceInvitation(slug.toString(), invitation_id.toString())
@@ -46,7 +45,7 @@ function WorkspaceInvitationPage() {
   );
 
   const handleAccept = () => {
-    if (!invitationDetail) return;
+    if (!invitationDetail || !token) return;
     workspaceService
       .joinWorkspace(invitationDetail.workspace.slug, invitationDetail.id, {
         accepted: true,

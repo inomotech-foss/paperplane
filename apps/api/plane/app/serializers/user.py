@@ -8,6 +8,7 @@ from rest_framework import serializers
 
 # Module import
 from plane.db.models import Account, FileAsset, Profile, User, Workspace, WorkspaceMemberInvite
+from plane.utils.openapi.fields import typed_json
 from plane.utils.url import contains_url
 
 from .base import BaseSerializer
@@ -224,7 +225,33 @@ class ResetPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True, min_length=8)
 
 
+class OnboardingStepSerializer(serializers.Serializer):
+    profile_complete = serializers.BooleanField()
+    workspace_create = serializers.BooleanField()
+    workspace_invite = serializers.BooleanField()
+    workspace_join = serializers.BooleanField()
+
+
+class MobileOnboardingStepSerializer(serializers.Serializer):
+    profile_complete = serializers.BooleanField()
+    workspace_create = serializers.BooleanField()
+    workspace_join = serializers.BooleanField()
+
+
+class ProductTourSerializer(serializers.Serializer):
+    work_items = serializers.BooleanField()
+    cycles = serializers.BooleanField()
+    modules = serializers.BooleanField()
+    intake = serializers.BooleanField()
+    pages = serializers.BooleanField()
+
+
 class ProfileSerializer(BaseSerializer):
+    # Same fields ModelSerializer builds for these JSON columns, with the shape of their defaults.
+    onboarding_step = typed_json(OnboardingStepSerializer)(required=False)
+    mobile_onboarding_step = typed_json(MobileOnboardingStepSerializer)(required=False)
+    product_tour = typed_json(ProductTourSerializer)(required=False)
+
     class Meta:
         model = Profile
         fields = "__all__"

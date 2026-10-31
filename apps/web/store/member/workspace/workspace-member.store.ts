@@ -56,7 +56,7 @@ export interface IWorkspaceMemberStore {
   updateMemberInvitation: (
     workspaceSlug: string,
     invitationId: string,
-    data: Partial<IWorkspaceMemberInvitation>
+    data: Pick<IWorkspaceMemberInvitation, "role">
   ) => Promise<void>;
   deleteMemberInvitation: (workspaceSlug: string, invitationId: string) => Promise<void>;
   isUserSuspended: (userId: string, workspaceSlug: string) => boolean;
@@ -306,10 +306,9 @@ export class WorkspaceMemberStore implements IWorkspaceMemberStore {
    * @param workspaceSlug
    * @param data
    */
-  inviteMembersToWorkspace = async (workspaceSlug: string, data: IWorkspaceBulkInviteFormData) => {
-    const response = await this.workspaceService.inviteWorkspace(workspaceSlug, data);
+  inviteMembersToWorkspace = async (workspaceSlug: string, data: IWorkspaceBulkInviteFormData): Promise<void> => {
+    await this.workspaceService.inviteWorkspace(workspaceSlug, data);
     await this.fetchWorkspaceMemberInvitations(workspaceSlug);
-    return response;
   };
 
   /**
@@ -321,7 +320,7 @@ export class WorkspaceMemberStore implements IWorkspaceMemberStore {
   updateMemberInvitation = async (
     workspaceSlug: string,
     invitationId: string,
-    data: Partial<IWorkspaceMemberInvitation>
+    data: Pick<IWorkspaceMemberInvitation, "role">
   ) => {
     const originalMemberInvitations = [...(this.workspaceMemberInvitations?.[workspaceSlug] ?? [])]; // in case of error, we will revert back to original members
     try {

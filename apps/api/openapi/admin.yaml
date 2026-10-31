@@ -284,6 +284,21 @@ paths:
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
       - in: query
+        name: include_deleted
+        schema:
+          type: string
+        description: true lists deleted users too
+      - in: query
+        name: is_active
+        schema:
+          type: string
+        description: true or false, both when omitted
+      - in: query
+        name: is_bot
+        schema:
+          type: string
+        description: true or false, both when omitted
+      - in: query
         name: per_page
         schema:
           type: integer
@@ -293,6 +308,11 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Matches email, display name, first or last name
       tags:
       - users
       security:
@@ -374,6 +394,18 @@ paths:
         required: true
       tags:
       - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstanceUserMergeRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InstanceUserMergeRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InstanceUserMergeRequestRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -395,6 +427,18 @@ paths:
         required: true
       tags:
       - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstanceUserMergeRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InstanceUserMergeRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InstanceUserMergeRequestRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -428,6 +472,13 @@ paths:
   /api/instances/workspace-slug-check/:
     get:
       operationId: workspace_slug_check_retrieve
+      parameters:
+      - in: query
+        name: slug
+        schema:
+          type: string
+        description: Workspace slug to check, a 400 when missing
+        required: true
       tags:
       - workspace-slug-check
       security:
@@ -548,6 +599,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstanceWorkspaceTransferOwnerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InstanceWorkspaceTransferOwnerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InstanceWorkspaceTransferOwnerRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -1282,6 +1345,18 @@ components:
       - source
       - email
       - relations
+    InstanceUserMergeRequestRequest:
+      type: object
+      properties:
+        source:
+          type: string
+          format: uuid
+          description: The user merged into the survivor
+        keep_source_email:
+          type: boolean
+          description: False when omitted
+      required:
+      - source
     InstanceUserOwnedWorkspace:
       type: object
       properties:
@@ -1303,6 +1378,15 @@ components:
           $ref: '#/components/schemas/InstanceUser'
       required:
       - user
+    InstanceWorkspaceTransferOwnerRequest:
+      type: object
+      properties:
+        owner:
+          type: string
+          format: uuid
+          description: An active, non-bot user
+      required:
+      - owner
     MergeCount:
       type: object
       properties:

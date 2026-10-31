@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TLogoProps } from "./common";
+import type { TLogoProps } from "./client-json";
 
 export type TSticky = {
   created_at?: string | undefined;

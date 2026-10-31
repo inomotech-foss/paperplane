@@ -65,7 +65,7 @@ export const OnboardingHeader = observer(function OnboardingHeader(props: Onboar
     ? user?.display_name
     : user?.first_name
       ? `${user?.first_name} ${user?.last_name ?? ""}`
-      : user?.email;
+      : (user?.email ?? undefined);
 
   return (
     <div className="sticky top-0 z-10 flex flex-col gap-4">

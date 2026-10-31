@@ -16,6 +16,7 @@ import { UserPermissionStore } from "@/store/user/base-permissions.store";
 // services
 import { AuthService } from "@/services/auth.service";
 import { UserService } from "@/services/user.service";
+import type { TChangePasswordBody } from "@/services/user.service";
 // stores
 import type { IAccountStore } from "@/store/user/account.store";
 import type { IUserProfileStore } from "@/store/user/profile.store";
@@ -45,10 +46,7 @@ export interface IUserStore {
   updateCurrentUser: (data: Partial<IUser>) => Promise<IUser | undefined>;
   handleSetPassword: (csrfToken: string, data: { password: string }) => Promise<IUser | undefined>;
   deactivateAccount: () => Promise<void>;
-  changePassword: (
-    csrfToken: string,
-    payload: { old_password?: string; new_password: string }
-  ) => Promise<IUser | undefined>;
+  changePassword: (csrfToken: string, payload: TChangePasswordBody) => Promise<void>;
   reset: () => void;
   signOut: () => Promise<void>;
   // computed
@@ -107,9 +105,9 @@ export class UserStore implements IUserStore {
 
   /**
    * @description fetches the current user
-   * @returns {Promise<IUser>}
+   * @returns {Promise<IUser | undefined>}
    */
-  fetchCurrentUser = async (): Promise<IUser> => {
+  fetchCurrentUser = async (): Promise<IUser | undefined> => {
     try {
       runInAction(() => {
         this.isLoading = true;
@@ -150,34 +148,19 @@ export class UserStore implements IUserStore {
   /**
    * @description updates the current user
    * @param data
-   * @returns {Promise<IUser>}
+   * @returns {Promise<IUser | undefined>} the user with the update applied
    */
-  updateCurrentUser = async (data: Partial<IUser>): Promise<IUser> => {
+  updateCurrentUser = async (data: Partial<IUser>): Promise<IUser | undefined> => {
     const currentUserData = cloneDeep(this.data);
     try {
-      if (currentUserData) {
-        Object.keys(data).forEach((key: string) => {
-          const userKey: keyof IUser = key as keyof IUser;
-          if (this.data) set(this.data, userKey, data[userKey]);
-        });
-      }
+      if (this.data) Object.assign(this.data, data);
       const user = await this.userService.updateUser(data);
-      if (user && this.data) {
-        runInAction(() => {
-          Object.keys(user).forEach((key: string) => {
-            const userKey: keyof IUser = key as keyof IUser;
-            if (this.data) set(this.data, userKey, user[userKey]);
-          });
-        });
-      }
-      return user;
+      runInAction(() => {
+        if (this.data) Object.assign(this.data, user);
+      });
+      return this.data;
     } catch (error) {
-      if (currentUserData) {
-        Object.keys(currentUserData).forEach((key: string) => {
-          const userKey: keyof IUser = key as keyof IUser;
-          if (this.data) set(this.data, userKey, currentUserData[userKey]);
-        });
-      }
+      if (this.data && currentUserData) Object.assign(this.data, currentUserData);
       runInAction(() => {
         this.error = {
           status: "user-update-error",
@@ -214,21 +197,11 @@ export class UserStore implements IUserStore {
     }
   };
 
-  changePassword = async (
-    csrfToken: string,
-    payload: {
-      old_password?: string;
-      new_password: string;
-    }
-  ): Promise<IUser | undefined> => {
-    try {
-      const user = await this.userService.changePassword(csrfToken, payload);
+  changePassword = async (csrfToken: string, payload: TChangePasswordBody): Promise<void> => {
+    await this.userService.changePassword(csrfToken, payload);
+    runInAction(() => {
       if (this.data) set(this.data, ["is_password_autoset"], false);
-      return user;
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
+    });
   };
 
   /**

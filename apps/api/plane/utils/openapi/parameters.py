@@ -576,3 +576,11 @@ ESTIMATE_ID_PARAMETER = OpenApiParameter(
     type=OpenApiTypes.UUID,
     location=OpenApiParameter.PATH,
 )
+
+SLUG_QUERY_PARAMETER = OpenApiParameter(
+    name="slug",
+    description="Workspace slug to check, a 400 when missing",
+    required=True,
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.QUERY,
+)

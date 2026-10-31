@@ -17,6 +17,7 @@ from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 
 ## Module imports
+from plane.app.serializers.request.user import EmailCheckRequestSerializer
 from plane.app.serializers.response.auth import EmailCheckSerializer
 from plane.db.models import User
 from plane.license.models import Instance
@@ -34,7 +35,7 @@ class EmailCheckEndpoint(APIView):
 
     throttle_classes = [AuthenticationThrottle]
 
-    @extend_schema(responses={200: EmailCheckSerializer})
+    @extend_schema(request=EmailCheckRequestSerializer, responses={200: EmailCheckSerializer})
     def post(self, request):
         # Check instance configuration
         instance = Instance.objects.first()

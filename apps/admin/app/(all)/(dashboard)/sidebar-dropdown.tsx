@@ -131,7 +131,7 @@ export const AdminSidebarDropdown = observer(function AdminSidebarDropdown() {
                 <WorkspaceAvatar
                   alt={currentUser.display_name ?? "Admin user"}
                   fallback={currentUser.display_name?.[0]?.toUpperCase()}
-                  src={getFileURL(currentUser.avatar_url)}
+                  src={getFileURL(currentUser.avatar_url ?? "")}
                   size="sm"
                 />
               </button>

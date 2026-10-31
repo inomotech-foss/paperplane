@@ -41,7 +41,7 @@ const baseProject: IProject = {
   issue_view: true,
   inbox_view: false,
   network: 2,
-  created_at: new Date("2026-01-01T00:00:00Z"),
+  created_at: "2026-01-01T00:00:00Z",
   members: ["u1", "u2"],
   is_favorite: false,
 };

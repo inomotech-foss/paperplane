@@ -99,7 +99,7 @@ export const NoProjectsEmptyState = observer(function NoProjectsEmptyState() {
               <img
                 src={getFileURL(currentUser?.avatar_url)}
                 className="absolute top-0 left-0 h-full w-full rounded-full object-cover"
-                alt={currentUser?.display_name || currentUser?.email}
+                alt={currentUser?.display_name || currentUser?.email || undefined}
               />
             </span>
           </Link>

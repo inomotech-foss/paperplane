@@ -3,11 +3,13 @@
 # See the LICENSE file for details.
 
 # Third party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
 from plane.db.models import UserRecentVisit
 from plane.app.serializers import WorkspaceRecentVisitSerializer
+from plane.app.serializers.request.workspace import RECENT_VISIT_PARAMETERS
 
 # Modules imports
 from ..base import BaseViewSet
@@ -21,6 +23,7 @@ class UserRecentVisitViewSet(BaseViewSet):
     def get_serializer_class(self):
         return WorkspaceRecentVisitSerializer
 
+    @extend_schema(parameters=RECENT_VISIT_PARAMETERS)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list(self, request, slug):
         user_recent_visits = UserRecentVisit.objects.filter(workspace__slug=slug, user=request.user)

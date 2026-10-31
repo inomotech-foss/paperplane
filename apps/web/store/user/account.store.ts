@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import { set } from "lodash-es";
 import { makeObservable, observable } from "mobx";
 // types
 import type { IUserAccount } from "@plane/types";
@@ -16,7 +15,7 @@ import type { CoreRootStore } from "../root.store";
 export interface IAccountStore {
   // observables
   isLoading: boolean;
-  error: any | undefined;
+  error: unknown;
   // model observables
   provider_account_id: string | undefined;
   provider: string | undefined;
@@ -24,7 +23,7 @@ export interface IAccountStore {
 
 export class AccountStore implements IAccountStore {
   isLoading: boolean = false;
-  error: any | undefined = undefined;
+  error: unknown = undefined;
   // model observables
   provider_account_id: string | undefined = undefined;
   provider: string | undefined = undefined;
@@ -44,9 +43,7 @@ export class AccountStore implements IAccountStore {
     });
     // service
     this.userService = new UserService();
-    // set account data
-    Object.entries(this._account).forEach(([key, value]) => {
-      set(this, [key], value ?? undefined);
-    });
+    this.provider_account_id = this._account.provider_account_id;
+    this.provider = this._account.provider;
   }
 }

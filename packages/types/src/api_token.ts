@@ -6,7 +6,7 @@
 
 export interface IApiToken {
   created_at: string;
-  created_by: string;
+  created_by: string | null;
   description: string;
   expired_at: string | null;
   id: string;
@@ -14,9 +14,10 @@ export interface IApiToken {
   label: string;
   last_used: string | null;
   updated_at: string;
-  updated_by: string;
+  updated_by: string | null;
   user: string;
   user_type: number;
+  /** Only in the create response. */
   token?: string;
-  workspace: string;
+  workspace: string | null;
 }

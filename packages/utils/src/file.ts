@@ -12,7 +12,7 @@ import { API_BASE_URL } from "@plane/constants";
  * @param {string} path
  * @returns {string} final URL with the base URL
  */
-export const getFileURL = (path: string): string | undefined => {
+export const getFileURL = (path: string | null | undefined): string | undefined => {
   if (!path) return undefined;
   const isValidURL = path.startsWith("http");
   if (isValidURL) return path;

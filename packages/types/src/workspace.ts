@@ -4,13 +4,13 @@
  * See the LICENSE file for details.
  */
 
+import type { TTimezone } from "@plane/api-types";
 import type { TPaginationInfo } from "./common";
 import type { ICycle } from "./cycle";
 import type { TUserPermissions } from "./enums";
-import type { TProjectMembership } from "./project";
-import type { IUser, IUserLite } from "./users";
+import type { IUserLite } from "./users";
 import type { TLoginMediums } from "./instance";
-import type { IWorkspaceViewProps } from "./view-props";
+import type { IWorkspaceViewProps } from "./client-json";
 import type { TPqlDialect } from "./issues/work-item-query";
 
 export enum EUserWorkspaceRoles {
@@ -21,20 +21,21 @@ export enum EUserWorkspaceRoles {
 
 export interface IWorkspace {
   readonly id: string;
-  readonly owner: IUser;
-  readonly created_at: Date;
-  readonly updated_at: Date;
+  readonly owner: string;
+  readonly created_at: string;
+  readonly updated_at: string;
   name: string;
-  url: string;
   logo_url: string | null;
-  readonly total_members: number;
+  /** Absent from create and update responses. */
+  readonly total_members?: number;
   readonly slug: string;
-  readonly created_by: string;
-  readonly updated_by: string;
+  readonly created_by: string | null;
+  readonly updated_by: string | null;
   organization_size?: string | null;
   total_projects?: number;
-  role: number;
-  timezone: string;
+  /** Absent from update responses. */
+  role?: number;
+  timezone: TTimezone;
   /** The workspace's default PQL dialect; only admins change it. */
   pql_dialect: TPqlDialect;
 }
@@ -49,14 +50,14 @@ export interface IWorkspaceMemberInvitation {
   accepted: boolean;
   email: string;
   id: string;
-  message: string;
-  responded_at: Date;
+  message: string | null;
+  responded_at: string | null;
   role: TUserPermissions;
   token: string;
   invite_link: string;
   workspace: {
     id: string;
-    logo_url: string;
+    logo_url: string | null;
     name: string;
     slug: string;
   };
@@ -99,24 +100,19 @@ export interface IWorkspaceMember {
 
 export interface IWorkspaceMemberMe {
   company_role: string | null;
-  created_at: Date;
-  created_by: string;
+  created_at: string;
+  created_by: string | null;
   default_props: IWorkspaceViewProps;
   id: string;
   member: string;
   role: TUserPermissions | EUserWorkspaceRoles;
-  updated_at: Date;
-  updated_by: string;
+  updated_at: string;
+  updated_by: string | null;
   view_props: IWorkspaceViewProps;
   workspace: string;
-  draft_issue_count: number;
+  draft_issue_count?: number;
   /** The member's own PQL dialect; null follows the workspace's. */
   pql_dialect: TPqlDialect | null;
-}
-
-export interface ILastActiveWorkspaceDetails {
-  workspace_details: IWorkspace;
-  project_details?: TProjectMembership[];
 }
 
 export interface IWorkspaceDefaultSearchResult {
@@ -145,8 +141,8 @@ export interface IWorkspaceIssueSearchResult {
 export interface IWorkspacePageSearchResult {
   id: string;
   name: string;
-  project_ids: string[];
-  project_identifiers: string[];
+  project_ids: string[] | null;
+  project_identifiers: string[] | null;
   workspace__slug: string;
 }
 
@@ -166,58 +162,6 @@ export interface IWorkspaceSearchResults {
     module: IWorkspaceDefaultSearchResult[];
     issue_view: IWorkspaceDefaultSearchResult[];
     page: IWorkspacePageSearchResult[];
-  };
-}
-
-export interface IProductUpdateResponse {
-  url: string;
-  assets_url: string;
-  upload_url: string;
-  html_url: string;
-  id: number;
-  author: {
-    login: string;
-    id: string;
-    node_id: string;
-    avatar_url: string;
-    gravatar_id: "";
-    url: string;
-    html_url: string;
-    followers_url: string;
-    following_url: string;
-    gists_url: string;
-    starred_url: string;
-    subscriptions_url: string;
-    organizations_url: string;
-    repos_url: string;
-    events_url: string;
-    received_events_url: string;
-    type: string;
-    site_admin: false;
-  };
-  node_id: string;
-  tag_name: string;
-  target_commitish: string;
-  name: string;
-  draft: boolean;
-  prerelease: true;
-  created_at: string;
-  published_at: string;
-  assets: [];
-  tarball_url: string;
-  zipball_url: string;
-  body: string;
-  reactions: {
-    url: string;
-    total_count: number;
-    "+1": number;
-    "-1": number;
-    laugh: number;
-    hooray: number;
-    confused: number;
-    heart: number;
-    rocket: number;
-    eyes: number;
   };
 }
 

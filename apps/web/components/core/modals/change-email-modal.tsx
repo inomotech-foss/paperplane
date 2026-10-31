@@ -24,13 +24,13 @@ import {
   DialogTitle,
 } from "@makeplane/propel/components/dialog";
 import { setToast } from "@plane/blocks/toast";
-// helpers
+import { isApiError } from "@plane/services";
 // hooks
 import { useUser } from "@/hooks/store/user";
 // services
 import { AuthService } from "@/services/auth.service";
 import userService from "@/services/user.service";
-import { getApiErrorMessage, getAuthErrorInfo } from "@/helpers/error.helper";
+import { getApiErrorBody, getAuthErrorInfo } from "@/helpers/error.helper";
 import { getField, getStringField } from "@/helpers/narrow.helper";
 
 type Props = { isOpen: boolean; onClose: () => void };
@@ -94,8 +94,7 @@ export const ChangeEmailModal = observer(function ChangeEmailModal(props: Props)
         await handleSignOut();
         handleClose();
       } catch (error: unknown) {
-        const errorMessage =
-          getApiErrorMessage(error) || getStringField(error, "message") || changeEmailT("form.code.errors.invalid");
+        const errorMessage = (isApiError(error) && error.error) || changeEmailT("form.code.errors.invalid");
         setError("code", { type: "custom", message: errorMessage });
       }
       return;
@@ -122,15 +121,15 @@ export const ChangeEmailModal = observer(function ChangeEmailModal(props: Props)
       // Move to verification code step
       setCurrentStep("UNIQUE_CODE");
     } catch (error: unknown) {
-      // Extract error code and message from backend response
-      const errorInfo = getAuthErrorInfo(getField(error, "error_code"));
+      const body = getApiErrorBody(error);
+      const errorInfo = getAuthErrorInfo(getField(body, "error_code"));
 
       // Get error message from handler or fallback
       const errorMessage = errorInfo
         ? typeof errorInfo.message === "string"
           ? errorInfo.message
           : String(errorInfo.message)
-        : getStringField(error, "error_message") || changeEmailT("form.email.errors.validation_failed");
+        : getStringField(body, "error_message") || changeEmailT("form.email.errors.validation_failed");
 
       setError("email", { type: "custom", message: errorMessage });
     }

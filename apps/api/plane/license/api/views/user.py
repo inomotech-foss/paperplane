@@ -10,6 +10,10 @@ from rest_framework.response import Response
 from plane.authentication.utils.host import base_host
 from plane.db.models import User, Workspace, WorkspaceMember
 from plane.license.api.permissions import InstanceAdminPermission
+from plane.license.api.serializers.request import (
+    INSTANCE_USER_LIST_PARAMETERS,
+    InstanceUserMergeRequestSerializer,
+)
 from plane.license.api.serializers.response import (
     InstanceUserDeactivateSerializer,
     InstanceUserDetailSerializer,
@@ -104,7 +108,7 @@ class InstanceUserEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
     @extend_schema(
-        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER],
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER, *INSTANCE_USER_LIST_PARAMETERS],
         responses={200: paginated_response(InstanceUserSerializer)},
     )
     def get(self, request):
@@ -184,7 +188,7 @@ class InstanceUserMergeEndpoint(BaseAPIView):
 
     dry_run = False
 
-    @extend_schema(responses={200: InstanceUserMergeSerializer})
+    @extend_schema(request=InstanceUserMergeRequestSerializer, responses={200: InstanceUserMergeSerializer})
     def post(self, request, pk):
         survivor = get_object_or_404(User, pk=pk)
         source_id = request.data.get("source")

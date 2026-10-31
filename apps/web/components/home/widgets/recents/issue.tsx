@@ -55,7 +55,7 @@ export const RecentIssue = observer(function RecentIssue(props: BlockProps) {
     setPeekIssue({
       workspaceSlug,
       projectId: issueDetails?.project_id,
-      issueId: activity.entity_data.id,
+      issueId: issueDetails.id,
     });
   };
 

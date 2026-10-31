@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.request.project import WORK_ITEM_SEARCH_PARAMETERS
 from plane.app.serializers.response.issue import WorkItemSearchResultSerializer
 from .base import BaseAPIView
 from plane.app.permissions import ROLE
@@ -106,7 +107,7 @@ class IssueSearchEndpoint(BaseAPIView):
         """Only work items that are the parent of another one."""
         return issues.filter(Exists(Issue.issue_objects.filter(parent_id=OuterRef("pk"))))
 
-    @extend_schema(responses={200: WorkItemSearchResultSerializer(many=True)})
+    @extend_schema(parameters=WORK_ITEM_SEARCH_PARAMETERS, responses={200: WorkItemSearchResultSerializer(many=True)})
     def get(self, request, slug, project_id):
         query = request.query_params.get("search", False)
         workspace_search = request.query_params.get("workspace_search", "false")
@@ -175,6 +176,7 @@ class IssueSearchEndpoint(BaseAPIView):
                 "state__name",
                 "state__group",
                 "state__color",
+                "type_id",
             )[:limit],
             status=status.HTTP_200_OK,
         )

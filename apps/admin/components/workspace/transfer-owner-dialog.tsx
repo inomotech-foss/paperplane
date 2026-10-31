@@ -17,7 +17,8 @@ import {
   DialogTitle,
 } from "@makeplane/propel/components/dialog";
 import { setToast } from "@plane/blocks/toast";
-import type { IInstanceUser, IWorkspace } from "@plane/types";
+import type { TInstanceWorkspace } from "@plane/services";
+import type { IInstanceUser } from "@plane/types";
 // components
 import { UserPicker } from "@/components/users/user-picker";
 // helpers
@@ -28,7 +29,7 @@ import { useWorkspace } from "@/hooks/store";
 type Props = {
   isOpen: boolean;
   handleClose: () => void;
-  workspace: IWorkspace;
+  workspace: TInstanceWorkspace;
 };
 
 export function TransferOwnerDialog(props: Props) {

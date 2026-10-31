@@ -17,7 +17,7 @@ import { SelectRepository } from "@/components/integration/github/select-reposit
 // constants
 import { PROJECT_GITHUB_REPOSITORY } from "@plane/constants";
 // services
-import { ProjectService } from "@/services/project";
+import { GithubIntegrationService } from "@/services/integrations";
 import { getStringField, isRecord } from "@/helpers/narrow.helper";
 
 type Props = {
@@ -36,7 +36,7 @@ const integrationDetails: Record<string, { logo: string; description: string }> 
 };
 
 // services
-const projectService = new ProjectService();
+const githubIntegrationService = new GithubIntegrationService();
 
 const getRepositorySyncData = (repo: unknown) => {
   if (!isRecord(repo) || !isRecord(repo.owner)) return null;
@@ -63,7 +63,7 @@ export function IntegrationCard({ integration }: Props) {
     projectId ? PROJECT_GITHUB_REPOSITORY(projectId) : null,
     (): Promise<unknown> | null =>
       workspaceSlug && projectId && integration
-        ? projectService.getProjectGithubRepository(workspaceSlug, projectId, integration.id)
+        ? githubIntegrationService.getProjectGithubRepository(workspaceSlug, projectId, integration.id)
         : null
   );
   const syncedRepositoryName = getSyncedRepositoryName(syncedGithubRepository);
@@ -75,7 +75,7 @@ export function IntegrationCard({ integration }: Props) {
     if (!syncData) return;
     const { owner: login, name } = syncData;
 
-    projectService
+    githubIntegrationService
       .syncGithubRepository(workspaceSlug, projectId, integration.id, syncData)
       .then(() => {
         mutate(PROJECT_GITHUB_REPOSITORY(projectId));

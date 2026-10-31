@@ -23,8 +23,8 @@ export type TNotificationIssueLite = {
   sequence_id: number | undefined;
   identifier: string | undefined;
   name: string | undefined;
-  state_name: string | undefined;
-  state_group: string | undefined;
+  state_name: string | null | undefined;
+  state_group: string | null | undefined;
 };
 
 export type TNotificationPageLite = {
@@ -34,14 +34,15 @@ export type TNotificationPageLite = {
   workspace_slug: string | undefined;
 };
 
+/** Each key is present only for its kind of notification. */
 export type TNotificationData = {
-  issue: TNotificationIssueLite | undefined;
-  issue_activity: {
-    id: string | undefined;
-    actor: string | undefined;
-    field: string | undefined;
-    issue_comment: string | undefined;
-    verb: "created" | "updated" | "deleted";
+  issue?: TNotificationIssueLite | undefined;
+  issue_activity?: {
+    id: string | null | undefined;
+    actor: string | null | undefined;
+    field: string | null | undefined;
+    issue_comment?: string | undefined;
+    verb: string;
     new_value: string | undefined;
     old_value: string | undefined;
   };
@@ -52,27 +53,27 @@ export type TNotificationData = {
 export type TNotification = {
   id: string;
   title: string | undefined;
-  data: TNotificationData | undefined;
-  entity_identifier: string | undefined;
+  data: TNotificationData | null | undefined;
+  entity_identifier: string | null | undefined;
   entity_name: string | undefined;
   message_html: string | undefined;
-  message: undefined;
-  message_stripped: string | undefined;
+  message: string | null | undefined;
+  message_stripped: string | null | undefined;
   sender: string | undefined;
   receiver: string | undefined;
-  triggered_by: string | undefined;
-  triggered_by_details: IUserLite | undefined;
-  read_at: string | undefined;
-  archived_at: string | undefined;
-  snoozed_till: string | undefined;
-  is_inbox_issue: boolean | undefined;
-  is_mentioned_notification: boolean | undefined;
+  triggered_by: string | null | undefined;
+  triggered_by_details: IUserLite | null | undefined;
+  read_at: string | null | undefined;
+  archived_at: string | null | undefined;
+  snoozed_till: string | null | undefined;
+  is_inbox_issue?: boolean;
+  is_mentioned_notification?: boolean;
   workspace: string | undefined;
-  project: string | undefined;
+  project: string | null | undefined;
   created_at: string | undefined;
   updated_at: string | undefined;
-  created_by: string | undefined;
-  updated_by: string | undefined;
+  created_by: string | null | undefined;
+  updated_by: string | null | undefined;
 };
 
 // notification paginated information
@@ -92,12 +93,12 @@ export type TNotificationPaginatedInfo = {
   next_page_results: boolean | undefined;
   prev_page_results: boolean | undefined;
   total_pages: number | undefined;
-  extra_stats: string | undefined;
+  extra_stats: unknown;
   count: number | undefined; // current paginated results count
   total_count: number | undefined; // total available results count
   results: TNotification[] | undefined;
-  grouped_by: string | undefined;
-  sub_grouped_by: string | undefined;
+  grouped_by: string | null | undefined;
+  sub_grouped_by: string | null | undefined;
 };
 
 // notification count
@@ -108,8 +109,8 @@ export type TUnreadNotificationsCount = {
 
 export type TNotificationLite = {
   workspace_slug: string | undefined;
-  project_id: string | undefined;
+  project_id: string | null | undefined;
   notification_id: string | undefined;
-  issue_id: string | undefined;
-  is_inbox_issue: boolean | undefined;
+  issue_id: string | null | undefined;
+  is_inbox_issue?: boolean;
 };

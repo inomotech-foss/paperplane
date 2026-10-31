@@ -1858,12 +1858,18 @@ importers:
 
   packages/types:
     dependencies:
+      '@plane/api-types':
+        specifier: workspace:*
+        version: link:../api-types
       react:
         specifier: 19.2.8
         version: 19.2.8
       react-dom:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
     devDependencies:
       '@plane/typescript-config':
         specifier: workspace:*
@@ -1883,6 +1889,9 @@ importers:
       typescript:
         specifier: 5.8.3
         version: 5.8.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@22.12.0)(@vitest/coverage-v8@4.1.11)(happy-dom@20.14.6)(jsdom@26.1.0)(vite@8.2.4(@types/node@22.12.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.43.1)(tsx@4.20.6)(yaml@2.8.3))
 
   packages/typescript-config: {}
 

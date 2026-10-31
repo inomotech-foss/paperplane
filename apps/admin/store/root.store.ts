@@ -5,7 +5,8 @@
  */
 
 import { enableStaticRendering } from "mobx-react";
-import type { IInstanceInfo, IUser, IWorkspace } from "@plane/types";
+import type { TInstanceAdminMe, TInstanceWorkspace } from "@plane/services";
+import type { IInstanceInfo } from "@plane/types";
 // stores
 import type { IInstanceStore } from "./instance.store";
 import { InstanceStore } from "./instance.store";
@@ -25,8 +26,8 @@ enableStaticRendering(typeof window === "undefined");
 export type TRootStoreInitialData = {
   theme?: string;
   instance?: IInstanceInfo;
-  user?: IUser;
-  workspace?: Record<string, IWorkspace>;
+  user?: TInstanceAdminMe;
+  workspace?: Record<string, TInstanceWorkspace>;
 };
 
 export class RootStore {

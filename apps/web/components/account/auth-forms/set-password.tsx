@@ -124,7 +124,7 @@ export const SetPasswordForm = observer(function SetPasswordForm() {
               id="email"
               name="email"
               type="email"
-              value={user?.email}
+              value={user?.email ?? undefined}
               placeholder={t("auth.common.email.placeholder")}
               autoComplete="off"
               disabled

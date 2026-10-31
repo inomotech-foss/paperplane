@@ -25,6 +25,9 @@ from plane.app.serializers import (
     ProjectMemberInvitePublicSerializer,
 )
 from plane.app.permissions import allow_permission, ROLE
+from plane.app.serializers.request.project import ProjectInvitationJoinSerializer, ProjectInviteSerializer
+from plane.bgtasks.project_invitation_task import project_invitation
+from plane.app.serializers.request.user import ProjectJoinSerializer
 from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.db.models import (
     ProjectMember,
@@ -68,7 +71,7 @@ class ProjectInvitationsViewset(BaseViewSet):
     def destroy(self, request, slug, project_id, pk):
         return super().destroy(request)
 
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=ProjectInviteSerializer, responses={200: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN])
     def create(self, request, slug, project_id):
         emails = request.data.get("emails", [])
@@ -78,12 +81,17 @@ class ProjectInvitationsViewset(BaseViewSet):
             return Response({"error": "Emails are required"}, status=status.HTTP_400_BAD_REQUEST)
 
         for email in emails:
-            workspace_role = WorkspaceMember.objects.filter(
-                workspace__slug=slug, member__email=email.get("email"), is_active=True
-            ).role
+            workspace_role = (
+                WorkspaceMember.objects.filter(workspace__slug=slug, member__email=email.get("email"), is_active=True)
+                .values_list("role", flat=True)
+                .first()
+            )
 
             if workspace_role in [5, 20] and workspace_role != email.get("role", 5):
-                return Response({"error": "You cannot invite a user with different role than workspace role"})
+                return Response(
+                    {"error": "You cannot invite a user with different role than workspace role"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         workspace = Workspace.objects.get(slug=slug)
 
@@ -121,7 +129,7 @@ class ProjectInvitationsViewset(BaseViewSet):
 
         # Send invitations
         for invitation in project_invitations:
-            project_invitations.delay(
+            project_invitation.delay(
                 invitation.email,
                 project_id,
                 invitation.token,
@@ -144,7 +152,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
             .select_related("workspace", "workspace__owner", "project")
         )
 
-    @extend_schema(responses={201: MessageResponseSerializer})
+    @extend_schema(request=ProjectJoinSerializer, responses={201: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def create(self, request, slug):
         project_ids = request.data.get("project_ids", [])
@@ -197,7 +205,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
 class ProjectJoinEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=ProjectInvitationJoinSerializer, responses={200: MessageResponseSerializer})
     def post(self, request, slug, project_id, pk):
         project_invite = ProjectMemberInvite.objects.get(pk=pk, project_id=project_id, workspace__slug=slug)
 

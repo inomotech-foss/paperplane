@@ -35,13 +35,10 @@ const currentUser: IUser = {
   is_active: true,
   is_email_verified: true,
   is_password_autoset: false,
-  is_tour_completed: true,
-  mobile_number: null,
-  last_workspace_id: "",
   user_timezone: "UTC",
   username: "me",
   last_login_medium: "email",
-  theme: { theme: "light" },
+  last_login_time: null,
 };
 
 describe("IssueReaction", () => {

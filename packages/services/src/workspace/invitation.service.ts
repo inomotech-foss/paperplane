@@ -4,120 +4,117 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiRequestBody, ApiSchema, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
-import type { IWorkspaceMemberInvitation, IWorkspaceBulkInviteFormData, IWorkspaceMember } from "@plane/types";
-import { APIService } from "../api.service";
+import type { IWorkspaceMemberInvitation } from "@plane/types";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
+
+export type TWorkspaceInvitationUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/invitations/{pk}/", "patch">;
+export type TWorkspaceInviteBody = ApiRequestBody<"/api/workspaces/{slug}/invitations/", "post">;
+export type TWorkspaceJoinBody = ApiRequestBody<"/api/workspaces/{slug}/invitations/{pk}/join/", "post">;
+export type TWorkspaceInvitationsJoinBody = ApiRequestBody<"/api/users/me/workspaces/invitations/", "post">;
+
+const invitationPath = (slug: string, pk: string) => ({ path: { slug, pk } });
 
 /**
  * Service class for managing workspace invitations
  * Handles operations related to inviting users to workspaces and managing invitations
- * @extends {APIService}
+ * @remarks Errors are thrown as `ApiError`.
  */
-export class WorkspaceInvitationService extends APIService {
+export class WorkspaceInvitationService {
+  private readonly client: ApiClient<InternalPaths>;
+
   constructor(BASE_URL?: string) {
-    super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
   }
 
   /**
    * Retrieves all workspace invitations for the current user
    * @returns {Promise<IWorkspaceMemberInvitation[]>} Promise resolving to array of workspace invitations
-   * @throws {Error} If the API request fails
    */
   async userInvitations(): Promise<IWorkspaceMemberInvitation[]> {
-    return this.get("/api/users/me/workspaces/invitations/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.GET("/api/users/me/workspaces/invitations/"));
   }
 
   /**
    * Retrieves all invitations for a specific workspace
    * @param {string} workspaceSlug - The unique slug identifier for the workspace
    * @returns {Promise<IWorkspaceMemberInvitation[]>} Promise resolving to array of workspace invitations
-   * @throws {Error} If the API request fails
    */
   async workspaceInvitations(workspaceSlug: string): Promise<IWorkspaceMemberInvitation[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/invitations/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      this.client.GET("/api/workspaces/{slug}/invitations/", { params: { path: { slug: workspaceSlug } } })
+    );
   }
 
   /**
    * Sends bulk invitations to users for a workspace
    * @param {string} workspaceSlug - The unique slug identifier for the workspace
-   * @param {IWorkspaceBulkInviteFormData} data - Bulk invitation data containing user information
-   * @returns {Promise<any>} Promise resolving to the invitation response
-   * @throws {Error} If the API request fails
+   * @param {TWorkspaceInviteBody} data - Bulk invitation data containing user information
    */
-  async invite(workspaceSlug: string, data: IWorkspaceBulkInviteFormData): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/invitations/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async invite(workspaceSlug: string, data: TWorkspaceInviteBody): Promise<ApiSchema<"MessageResponse">> {
+    return unwrap(
+      this.client.POST("/api/workspaces/{slug}/invitations/", { params: { path: { slug: workspaceSlug } }, body: data })
+    );
   }
 
   /**
-   * Update Invitation
+   * Updates the role of an invitation
    * @param workspaceSlug
    * @param invitationId
    * @param data
-   * @returns
    */
-  async update(workspaceSlug: string, invitationId: string, data: Partial<IWorkspaceMember>): Promise<any> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/invitations/${invitationId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async update(
+    workspaceSlug: string,
+    invitationId: string,
+    data: TWorkspaceInvitationUpdateBody
+  ): Promise<IWorkspaceMemberInvitation> {
+    return unwrap(
+      this.client.PATCH("/api/workspaces/{slug}/invitations/{pk}/", {
+        params: invitationPath(workspaceSlug, invitationId),
+        body: data,
+      })
+    );
   }
 
   /**
    * Delete Workspace invitation
    * @param workspaceSlug
    * @param invitationId
-   * @returns
    */
-  async destroy(workspaceSlug: string, invitationId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/invitations/${invitationId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async destroy(workspaceSlug: string, invitationId: string): Promise<void> {
+    return unwrap(
+      this.client.DELETE("/api/workspaces/{slug}/invitations/{pk}/", {
+        params: invitationPath(workspaceSlug, invitationId),
+      })
+    );
   }
 
   /**
    * Accepts an invitation to join a workspace
    * @param {string} workspaceSlug - The unique slug identifier for the workspace
    * @param {string} invitationId - The unique identifier for the invitation
-   * @param {any} data - Additional data required for joining the workspace
-   * @returns {Promise<any>} Promise resolving to the join response
-   * @throws {Error} If the API request fails
+   * @param {TWorkspaceJoinBody} data - The token from the invitation email and whether to accept
    */
-  async join(workspaceSlug: string, invitationId: string, data: any): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/invitations/${invitationId}/join/`, data, {
-      headers: {},
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async join(
+    workspaceSlug: string,
+    invitationId: string,
+    data: TWorkspaceJoinBody
+  ): Promise<ApiSchema<"MessageResponse">> {
+    return unwrap(
+      this.client.POST("/api/workspaces/{slug}/invitations/{pk}/join/", {
+        params: invitationPath(workspaceSlug, invitationId),
+        body: data,
+      })
+    );
   }
 
   /**
    * Accepts multiple workspace invitations at once
-   * @param {any} data - Data containing information about invitations to accept
-   * @returns {Promise<any>} Promise resolving to the bulk join response
-   * @throws {Error} If the API request fails
+   * @param {TWorkspaceInvitationsJoinBody} data - The ids of the invitations to accept
    */
-  async joinMany(data: any): Promise<any> {
-    return this.post("/api/users/me/workspaces/invitations/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async joinMany(data: TWorkspaceInvitationsJoinBody): Promise<void> {
+    return unwrap(this.client.POST("/api/users/me/workspaces/invitations/", { body: data }));
   }
 }

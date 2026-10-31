@@ -23,6 +23,8 @@ from plane.app.serializers import (
     WorkspaceMemberDialectSerializer,
     WorkSpaceMemberSerializer,
 )
+from plane.app.serializers.request.workspace import RoleUpdateSerializer, WorkspaceMemberViewPropsSerializer
+from plane.app.serializers.response.workspace import workspace_member_row
 from plane.app.views.base import BaseAPIView
 from plane.db.models import Project, ProjectMember, WorkspaceMember, DraftIssue
 from plane.utils.cache import invalidate_cache
@@ -60,6 +62,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
             .select_related("member", "member__avatar_asset")
         )
 
+    @extend_schema(responses={200: workspace_member_row(many=True)})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list(self, request, slug):
         workspace_member = WorkspaceMember.objects.get(member=request.user, workspace__slug=slug, is_active=True)
@@ -72,6 +75,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
             serializer = WorkSpaceMemberSerializer(workspace_members, fields=("id", "member", "role"), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: workspace_member_row()})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def retrieve(self, request, slug, pk):
         workspace_member = WorkspaceMember.objects.get(member=request.user, workspace__slug=slug, is_active=True)
@@ -91,6 +95,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
             serializer = WorkSpaceMemberSerializer(member, fields=("id", "member", "role"))
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=RoleUpdateSerializer, responses={200: WorkSpaceMemberSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def partial_update(self, request, slug, pk):
         workspace_member = WorkspaceMember.objects.select_related("member", "member__avatar_asset").get(
@@ -177,6 +182,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         workspace_member.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Left the workspace")})
     @invalidate_cache(
         path="/api/workspaces/:slug/members/",
         url_params=True,
@@ -221,7 +227,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
 
 class WorkspaceMemberUserViewsEndpoint(BaseAPIView):
-    @extend_schema(responses={204: OpenApiResponse(description="Saved")})
+    @extend_schema(request=WorkspaceMemberViewPropsSerializer, responses={204: OpenApiResponse(description="Saved")})
     def post(self, request, slug):
         workspace_member = WorkspaceMember.objects.get(workspace__slug=slug, member=request.user, is_active=True)
         workspace_member.view_props = request.data.get("view_props", {})

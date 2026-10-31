@@ -1,29 +1,33 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { API_BASE_URL } from "@plane/constants";
+import type { ApiRequestBody } from "@plane/api-types";
+import { unwrap } from "@plane/services";
 import type { TProjectSidebarLink, TProjectSidebarLinkPayload } from "@plane/types";
-import { APIService } from "@/services/api.service";
+import { apiClient } from "@/services/api-client";
 
-export class ProjectLinkService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+export type TProjectLinkUpdateBody = ApiRequestBody<
+  "/api/workspaces/{slug}/projects/{project_id}/links/{pk}/",
+  "patch"
+>;
 
+const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
+const linkPath = (slug: string, project_id: string, pk: string) => ({ path: { slug, project_id, pk } });
+
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ProjectLinkService {
   async listWorkspaceLinks(workspaceSlug: string): Promise<TProjectSidebarLink[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/project-links/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/project-links/", { params: { path: { slug: workspaceSlug } } })
+    );
   }
 
   async list(workspaceSlug: string, projectId: string): Promise<TProjectSidebarLink[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/links/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/links/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
   }
 
   async create(
@@ -31,39 +35,42 @@ export class ProjectLinkService extends APIService {
     projectId: string,
     data: TProjectSidebarLinkPayload
   ): Promise<TProjectSidebarLink> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/links/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/links/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: data,
+      })
+    );
   }
 
   async update(
     workspaceSlug: string,
     projectId: string,
     linkId: string,
-    data: Partial<TProjectSidebarLinkPayload>
+    data: TProjectLinkUpdateBody
   ): Promise<TProjectSidebarLink> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/links/${linkId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/links/{pk}/", {
+        params: linkPath(workspaceSlug, projectId, linkId),
+        body: data,
+      })
+    );
   }
 
   async remove(workspaceSlug: string, projectId: string, linkId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/links/${linkId}/`)
-      .then(() => undefined)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/links/{pk}/", {
+        params: linkPath(workspaceSlug, projectId, linkId),
+      })
+    );
   }
 
   async reorder(workspaceSlug: string, projectId: string, linkIds: string[]): Promise<TProjectSidebarLink[]> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/links/reorder/`, { link_ids: linkIds })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/links/reorder/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: { link_ids: linkIds },
+      })
+    );
   }
 }

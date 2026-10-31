@@ -5,7 +5,7 @@
  */
 
 import type { TIssue } from "../issues/issue";
-import type { IIssueFilterOptions } from "../view-props";
+import type { IIssueFilterOptions } from "../client-json";
 
 export type TCycleGroups = "current" | "upcoming" | "completed" | "draft";
 

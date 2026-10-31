@@ -8,13 +8,9 @@ import { clone, set } from "lodash-es";
 import { action, computed, observable, makeObservable, runInAction } from "mobx";
 // types
 import { computedFn } from "mobx-utils";
-import type {
-  IWorkspaceSidebarNavigationItem,
-  IWorkspace,
-  IWorkspaceSidebarNavigation,
-  IWorkspaceUserPropertiesResponse,
-} from "@plane/types";
+import type { IWorkspace, IWorkspaceSidebarNavigation, IWorkspaceUserPropertiesResponse } from "@plane/types";
 // services
+import type { TWorkspaceCreateBody } from "@/services/workspace.service";
 import { WorkspaceService } from "@/services/workspace.service";
 // store
 import type { CoreRootStore } from "@/store/root.store";
@@ -42,16 +38,11 @@ export interface IWorkspaceRootStore {
   // fetch actions
   fetchWorkspaces: () => Promise<IWorkspace[]>;
   // crud actions
-  createWorkspace: (data: Partial<IWorkspace>) => Promise<IWorkspace>;
+  createWorkspace: (data: TWorkspaceCreateBody) => Promise<IWorkspace>;
   updateWorkspace: (workspaceSlug: string, data: Partial<IWorkspace>) => Promise<IWorkspace>;
   updateWorkspaceLogo: (workspaceSlug: string, logoURL: string) => void;
   deleteWorkspace: (workspaceSlug: string) => Promise<void>;
   fetchSidebarNavigationPreferences: (workspaceSlug: string) => Promise<void>;
-  updateSidebarPreference: (
-    workspaceSlug: string,
-    key: string,
-    data: Partial<IWorkspaceSidebarNavigationItem>
-  ) => Promise<IWorkspaceSidebarNavigationItem | undefined>;
   updateBulkSidebarPreferences: (
     workspaceSlug: string,
     data: Array<{ key: string; is_pinned: boolean; sort_order: number }>
@@ -106,7 +97,6 @@ export class BaseWorkspaceRootStore implements IWorkspaceRootStore {
       updateWorkspaceLogo: action,
       deleteWorkspace: action,
       fetchSidebarNavigationPreferences: action,
-      updateSidebarPreference: action,
       updateBulkSidebarPreferences: action,
       fetchProjectNavigationPreferences: action,
       updateProjectNavigationPreferences: action,
@@ -200,7 +190,7 @@ export class BaseWorkspaceRootStore implements IWorkspaceRootStore {
    * create workspace using the workspace data
    * @param data
    */
-  createWorkspace = async (data: Partial<IWorkspace>) =>
+  createWorkspace = async (data: TWorkspaceCreateBody) =>
     await this.workspaceService.createWorkspace(data).then((response) => {
       runInAction(() => {
         this.workspaces = set(this.workspaces, response.id, response);
@@ -215,11 +205,10 @@ export class BaseWorkspaceRootStore implements IWorkspaceRootStore {
    */
   updateWorkspace = async (workspaceSlug: string, data: Partial<IWorkspace>) =>
     await this.workspaceService.updateWorkspace(workspaceSlug, data).then((res) => {
-      if (res && res.id) {
+      const workspace = this.workspaces[res.id];
+      if (workspace) {
         runInAction(() => {
-          Object.keys(data).forEach((key) => {
-            set(this.workspaces, [res.id, key], data[key as keyof IWorkspace]);
-          });
+          this.workspaces[res.id] = { ...workspace, ...data };
         });
       }
       return res;
@@ -267,39 +256,6 @@ export class BaseWorkspaceRootStore implements IWorkspaceRootStore {
       });
     } catch (error) {
       console.error("Failed to fetch sidebar preferences:", error);
-    }
-  };
-
-  updateSidebarPreference = async (
-    workspaceSlug: string,
-    key: string,
-    data: Partial<IWorkspaceSidebarNavigationItem>
-  ) => {
-    // Store the data before update to use for reverting if needed
-    const beforeUpdateData = clone(this.navigationPreferencesMap[workspaceSlug]?.[key]);
-
-    try {
-      runInAction(() => {
-        this.navigationPreferencesMap[workspaceSlug] = {
-          ...this.navigationPreferencesMap[workspaceSlug],
-          [key]: {
-            ...beforeUpdateData,
-            ...data,
-          },
-        };
-      });
-
-      const response = await this.workspaceService.updateSidebarPreference(workspaceSlug, key, data);
-      return response;
-    } catch (error) {
-      // Revert to original data if API call fails
-      runInAction(() => {
-        this.navigationPreferencesMap[workspaceSlug] = {
-          ...this.navigationPreferencesMap[workspaceSlug],
-          [key]: beforeUpdateData,
-        };
-      });
-      console.error("Failed to update sidebar preference:", error);
     }
   };
 

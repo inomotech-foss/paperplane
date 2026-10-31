@@ -232,7 +232,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
         />
         <div className="relative h-[118px] w-full rounded-t">
           <CoverImage
-            src={project.cover_image_url}
+            src={project.cover_image_url ?? undefined}
             alt={project.name}
             className="absolute top-0 left-0 h-full w-full rounded-t"
           />

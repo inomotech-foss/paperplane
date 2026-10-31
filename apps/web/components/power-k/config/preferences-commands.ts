@@ -18,6 +18,7 @@ import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
 import { useUser, useUserProfile } from "@/hooks/store/user";
 import { isOneOf } from "@/helpers/narrow.helper";
+import { isUserTimezone } from "@/lib/timezone";
 
 /**
  * Preferences commands - Preferences related commands
@@ -69,7 +70,10 @@ export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
 
   const handleUpdateTimezone = useCallback(
     (value: string) => {
-      updateCurrentUser({ user_timezone: value })
+      (isUserTimezone(value)
+        ? updateCurrentUser({ user_timezone: value })
+        : Promise.reject(new Error(`Unknown timezone ${value}`))
+      )
         .then(() => {
           setToast({
             type: "success",
@@ -87,8 +91,7 @@ export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
           return;
         });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [updateCurrentUser]
+    [t, updateCurrentUser]
   );
 
   const handleUpdateUserProfile = useCallback(

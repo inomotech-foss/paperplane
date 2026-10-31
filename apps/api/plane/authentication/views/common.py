@@ -17,6 +17,7 @@ from drf_spectacular.utils import extend_schema
 
 ## Module imports
 from plane.utils.openapi.serializers import MessageResponseSerializer
+from plane.app.serializers.request.user import ChangePasswordSerializer
 from plane.app.serializers.response.auth import CSRFTokenSerializer
 from plane.app.serializers import UserSerializer
 from plane.authentication.utils.login import user_login
@@ -63,7 +64,7 @@ def csrf_failure(request, reason=""):
 class ChangePasswordEndpoint(APIView):
     throttle_classes = [AuthenticationThrottle]
 
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=ChangePasswordSerializer, responses={200: MessageResponseSerializer})
     def post(self, request):
         if _password_auth_disabled():
             exc = AuthenticationException(

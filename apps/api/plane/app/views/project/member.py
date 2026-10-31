@@ -20,6 +20,8 @@ from plane.app.serializers import (
 )
 
 from plane.app.permissions import WorkspaceUserPermission
+from plane.app.serializers.request.project import ProjectMembersAddSerializer
+from plane.utils.openapi.fields import CLIENT_JSON_REF
 from plane.app.serializers.response.project import (
     ProjectMemberDetailSerializer,
     ProjectMemberPreferencesSerializer,
@@ -62,7 +64,7 @@ class ProjectMemberViewSet(BaseViewSet):
         )
 
     @allow_permission([ROLE.ADMIN])
-    @extend_schema(responses={201: ProjectMemberRoleSerializer(many=True)})
+    @extend_schema(request=ProjectMembersAddSerializer, responses={201: ProjectMemberRoleSerializer(many=True)})
     def create(self, request, slug, project_id):
         # Get the list of members to be added to the project and their roles i.e. the user_id and the role
         members = request.data.get("members", [])
@@ -226,7 +228,7 @@ class ProjectMemberViewSet(BaseViewSet):
         )
 
     # Only project admins (or workspace admins in the project) may edit membership rows
-    @extend_schema(responses={200: ProjectMemberDetailSerializer})
+    @extend_schema(request=ProjectMemberSerializer, responses={200: ProjectMemberDetailSerializer})
     @allow_permission([ROLE.ADMIN])
     def partial_update(self, request, slug, project_id, pk):
         project_member = ProjectMember.objects.get(pk=pk, workspace__slug=slug, project_id=project_id, is_active=True)
@@ -431,7 +433,10 @@ class ProjectMemberPreferenceEndpoint(BaseAPIView):
             workspace__slug=slug,
         )
 
-    @extend_schema(responses={200: ProjectMemberPreferencesSerializer})
+    @extend_schema(
+        request={"application/json": CLIENT_JSON_REF},
+        responses={200: ProjectMemberPreferencesSerializer},
+    )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id, member_id):
         # Preferences are personal: a member may only modify their own.

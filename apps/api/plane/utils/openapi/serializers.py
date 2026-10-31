@@ -24,3 +24,19 @@ class EmptyObjectExtension(OpenApiSerializerExtension):
 
     def map_serializer(self, auto_schema, direction):
         return {"type": "object", "additionalProperties": False}
+
+
+class DictOf(serializers.Serializer):
+    """An object with any keys whose values are `child`. Subclass it and set `child` to a serializer."""
+
+    child = None
+
+
+class DictOfExtension(OpenApiSerializerExtension):
+    target_class = DictOf
+    match_subclasses = True
+
+    def map_serializer(self, auto_schema, direction):
+        target = self.target if isinstance(self.target, type) else type(self.target)
+        child = auto_schema.resolve_serializer(target.child, direction)
+        return {"type": "object", "additionalProperties": child.ref}

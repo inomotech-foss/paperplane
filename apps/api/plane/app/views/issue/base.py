@@ -770,7 +770,7 @@ class IssueViewSet(BaseViewSet):
 
 
 class ProjectUserDisplayPropertyEndpoint(BaseAPIView):
-    @extend_schema(responses={200: ProjectUserPropertySerializer})
+    @extend_schema(request=ProjectUserPropertySerializer, responses={200: ProjectUserPropertySerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id):
         try:

@@ -9,6 +9,7 @@ import { intersection } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // types
+import { exportProviderEnumValues } from "@plane/api-types";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { setToast } from "@plane/blocks/toast";
@@ -28,6 +29,7 @@ import {
 // components
 import { ProjectSelect } from "@/components/dropdowns/project/project-select";
 // hooks
+import { findLiteral } from "@/helpers/narrow.helper";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -66,10 +68,11 @@ export const Exporter = observer(function Exporter(props: Props) {
   const [multiple, setMultiple] = useState<boolean>(false);
 
   async function ExportCSVToMail() {
-    setExportLoading(true);
-    if (workspaceSlug && user && typeof provider === "string") {
+    const exportProvider = typeof provider === "string" ? findLiteral(exportProviderEnumValues, provider) : undefined;
+    if (workspaceSlug && user && exportProvider) {
+      setExportLoading(true);
       const payload = {
-        provider: provider,
+        provider: exportProvider,
         project: value,
         multiple: multiple,
       };

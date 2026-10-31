@@ -4,113 +4,181 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiRequestBody, ApiSchema, TTimezone } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
+import { parseIssueFiltersResponse, parseLogoProps, parseProjectUserPreferences } from "@plane/types";
 import type {
-  GithubRepositoriesResponse,
   IProjectUserPropertiesResponse,
   ISearchIssueResponse,
+  TPartialProject,
+  TProject,
   TProjectAnalyticsCount,
   TProjectAnalyticsCountParams,
   TProjectIssuesSearchParams,
 } from "@plane/types";
-// helpers
-// plane web types
-import type { TProject, TPartialProject } from "@plane/types";
+import { isTimezone } from "@/lib/timezone";
 // services
+import { apiClient } from "@/services/api-client";
 import { APIService } from "@/services/api.service";
 
-export type TProjectIssueSequence = {
-  // highest work item number recorded for the project, 0 when it has none yet
-  last_sequence: number;
-  // number the next created work item receives
-  next_sequence: number;
+export type TProjectCreateBody = ApiRequestBody<"/api/workspaces/{slug}/projects/", "post">;
+export type TProjectUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/projects/{pk}/", "patch">;
+export type TProjectIdentifierCheck = ApiSchema<"ProjectIdentifierCheck">;
+export type TProjectIssueSequence = ApiSchema<"IssueSequence">;
+
+const NETWORKS: ApiSchema<"NetworkEnum">[] = [0, 2];
+
+const toId = (value: { id: string } | string | null | undefined): string | null | undefined =>
+  typeof value === "object" && value !== null ? value.id : value;
+
+const toNetwork = (value: number | undefined): ApiSchema<"NetworkEnum"> | undefined => {
+  if (value === undefined) return undefined;
+  const network = NETWORKS.find((item) => item === value);
+  if (network === undefined) throw new Error(`Unknown project network ${value}`);
+  return network;
 };
 
+const toTimezone = (value: string | undefined): TTimezone | undefined => {
+  if (value === undefined) return undefined;
+  if (!isTimezone(value)) throw new Error(`Unknown timezone ${value}`);
+  return value;
+};
+
+/** The fields of `data` the update writes. Throws for a network or timezone the API rejects. */
+export const projectUpdateBody = (data: Partial<TProject>): TProjectUpdateBody => ({
+  name: data.name,
+  identifier: data.identifier,
+  description: data.description,
+  network: toNetwork(data.network),
+  logo_props: data.logo_props,
+  cycle_view: data.cycle_view,
+  issue_views_view: data.issue_views_view,
+  module_view: data.module_view,
+  page_view: data.page_view,
+  issue_view: data.issue_view,
+  inbox_view: data.inbox_view,
+  guest_view_all_features: data.guest_view_all_features,
+  archive_in: data.archive_in,
+  close_in: data.close_in,
+  cover_image: data.cover_image,
+  cover_image_asset: data.cover_image_asset,
+  default_assignee: toId(data.default_assignee),
+  default_state: data.default_state,
+  estimate: data.estimate,
+  project_lead: toId(data.project_lead),
+  timezone: toTimezone(data.timezone),
+});
+
+/** Like the update, but the create reads the intake flag from `intake_view`. */
+export const projectCreateBody = (data: Partial<TProject>): TProjectCreateBody => {
+  const { inbox_view, ...body } = projectUpdateBody(data);
+  return { ...body, name: data.name ?? "", identifier: data.identifier ?? "", intake_view: inbox_view };
+};
+
+const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
+const projectItemPath = (slug: string, pk: string) => ({ path: { slug, pk } });
+
+export const toProject = (project: ApiSchema<"ProjectList">): TProject => ({
+  ...project,
+  logo_props: parseLogoProps(project.logo_props),
+});
+
+const toPartialProject = (project: ApiSchema<"ProjectListItem">): TPartialProject => ({
+  ...project,
+  logo_props: parseLogoProps(project.logo_props),
+});
+
+const toProjectUserProperties = (properties: ApiSchema<"ProjectUserProperty">): IProjectUserPropertiesResponse => ({
+  ...properties,
+  ...parseIssueFiltersResponse(properties),
+  preferences: parseProjectUserPreferences(properties.preferences),
+});
+
+/** Methods on the typed client throw `ApiError` from `@plane/services`. */
 export class ProjectService extends APIService {
   constructor() {
     super(API_BASE_URL);
   }
 
   async createProject(workspaceSlug: string, data: Partial<TProject>): Promise<TProject> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return toProject(
+      await unwrap(
+        apiClient.POST("/api/workspaces/{slug}/projects/", {
+          params: { path: { slug: workspaceSlug } },
+          body: projectCreateBody(data),
+        })
+      )
+    );
   }
 
-  async checkProjectIdentifierAvailability(workspaceSlug: string, data: string): Promise<any> {
-    return this.get(`/api/workspaces/${workspaceSlug}/project-identifiers`, {
-      params: {
-        name: data,
-      },
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async checkProjectIdentifierAvailability(workspaceSlug: string, name: string): Promise<TProjectIdentifierCheck> {
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/project-identifiers/", {
+        params: { path: { slug: workspaceSlug }, query: { name } },
+      })
+    );
   }
 
   async getProjectsLite(workspaceSlug: string): Promise<TPartialProject[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const projects = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/", { params: { path: { slug: workspaceSlug } } })
+    );
+    return projects.map(toPartialProject);
   }
 
+  /** The API pages the list only when asked to, which this call never does. */
   async getProjects(workspaceSlug: string): Promise<TProject[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/details/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const response = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/details/", { params: { path: { slug: workspaceSlug } } })
+    );
+    return (Array.isArray(response) ? response : response.results).map(toProject);
   }
 
   async getProject(workspaceSlug: string, projectId: string): Promise<TProject> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return toProject(
+      await unwrap(
+        apiClient.GET("/api/workspaces/{slug}/projects/{pk}/", { params: projectItemPath(workspaceSlug, projectId) })
+      )
+    );
   }
 
   async getProjectAnalyticsCount(
     workspaceSlug: string,
     params?: TProjectAnalyticsCountParams
   ): Promise<TProjectAnalyticsCount[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/project-stats/`, {
-      params,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/project-stats/", {
+        params: { path: { slug: workspaceSlug }, query: params },
+      })
+    );
   }
 
   async updateProject(workspaceSlug: string, projectId: string, data: Partial<TProject>): Promise<TProject> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return toProject(
+      await unwrap(
+        apiClient.PATCH("/api/workspaces/{slug}/projects/{pk}/", {
+          params: projectItemPath(workspaceSlug, projectId),
+          body: projectUpdateBody(data),
+        })
+      )
+    );
   }
 
-  async deleteProject(workspaceSlug: string, projectId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteProject(workspaceSlug: string, projectId: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{pk}/", { params: projectItemPath(workspaceSlug, projectId) })
+    );
   }
 
-  // User Properties
   async getProjectUserProperties(workspaceSlug: string, projectId: string): Promise<IProjectUserPropertiesResponse> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/user-properties/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return toProjectUserProperties(
+      await unwrap(
+        apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/user-properties/", {
+          params: projectPath(workspaceSlug, projectId),
+        })
+      )
+    );
   }
 
   async updateProjectUserProperties(
@@ -118,77 +186,14 @@ export class ProjectService extends APIService {
     projectId: string,
     data: Partial<IProjectUserPropertiesResponse>
   ): Promise<IProjectUserPropertiesResponse> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/user-properties/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async getGithubRepositories(url: string): Promise<GithubRepositoriesResponse> {
-    return this.request({
-      method: "get",
-      url,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async syncGithubRepository(
-    workspaceSlug: string,
-    projectId: string,
-    workspaceIntegrationId: string,
-    data: {
-      name: string;
-      owner: string;
-      repository_id: string;
-      url: string;
-    }
-  ): Promise<any> {
-    return this.post(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/workspace-integrations/${workspaceIntegrationId}/github-repository-sync/`,
-      data
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async getProjectGithubRepository(workspaceSlug: string, projectId: string, integrationId: string): Promise<any> {
-    return this.get(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/workspace-integrations/${integrationId}/github-repository-sync/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async getUserProjectFavorites(workspaceSlug: string): Promise<any[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/user-favorite-projects/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async addProjectToFavorites(workspaceSlug: string, project: string): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/user-favorite-projects/`, { project })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async removeProjectFromFavorites(workspaceSlug: string, projectId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/user-favorite-projects/${projectId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return toProjectUserProperties(
+      await unwrap(
+        apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/user-properties/", {
+          params: projectPath(workspaceSlug, projectId),
+          body: data,
+        })
+      )
+    );
   }
 
   async projectIssuesSearch(
@@ -206,10 +211,11 @@ export class ProjectService extends APIService {
   }
 
   async setIssueSequenceStart(workspaceSlug: string, projectId: string, start: number): Promise<TProjectIssueSequence> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-sequence/`, { start })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issue-sequence/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: { start },
+      })
+    );
   }
 }

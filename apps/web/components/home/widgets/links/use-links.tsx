@@ -7,14 +7,14 @@
 import { useMemo } from "react";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { TProjectLink } from "@plane/types";
+import type { TLinkEditableFields } from "@plane/types";
 import { useHome } from "@/hooks/store/use-home";
 import { getApiErrorMessage } from "@/helpers/error.helper";
 import { getField } from "@/helpers/narrow.helper";
 
 export type TLinkOperations = {
-  create: (data: Partial<TProjectLink>) => Promise<void>;
-  update: (linkId: string, data: Partial<TProjectLink>) => Promise<void>;
+  create: (data: TLinkEditableFields) => Promise<void>;
+  update: (linkId: string, data: TLinkEditableFields) => Promise<void>;
   remove: (linkId: string) => Promise<void>;
 };
 export type TProjectLinkRoot = {
@@ -39,7 +39,7 @@ export const useLinks = (workspaceSlug: string) => {
 
   const linkOperations: TLinkOperations = useMemo(
     () => ({
-      create: async (data: Partial<TProjectLink>) => {
+      create: async (data: TLinkEditableFields) => {
         try {
           if (!workspaceSlug) throw new Error("Missing required fields");
           await createLink(workspaceSlug, data);
@@ -59,7 +59,7 @@ export const useLinks = (workspaceSlug: string) => {
           throw error;
         }
       },
-      update: async (linkId: string, data: Partial<TProjectLink>) => {
+      update: async (linkId: string, data: TLinkEditableFields) => {
         try {
           if (!workspaceSlug) throw new Error("Missing required fields");
           await updateLink(workspaceSlug, linkId, data);

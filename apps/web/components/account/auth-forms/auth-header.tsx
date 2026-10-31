@@ -7,13 +7,13 @@
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { useTranslation } from "@plane/i18n";
-import type { IWorkspaceMemberInvitation } from "@plane/types";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 import { WorkspaceLogo } from "@/components/workspace/logo";
 // helpers
 import { EAuthModes, EAuthSteps } from "@/helpers/authentication.helper";
 // services
+import type { TWorkspaceInvitationPublic } from "@/services/workspace.service";
 import { WorkspaceService } from "@/services/workspace.service";
 
 type TAuthHeader = {
@@ -74,7 +74,7 @@ export const AuthHeader = observer(function AuthHeader(props: TAuthHeader) {
   const getHeaderSubHeader = (
     step: EAuthSteps,
     mode: EAuthModes,
-    invitation: IWorkspaceMemberInvitation | undefined,
+    invitation: TWorkspaceInvitationPublic | undefined,
     email: string | undefined
   ) => {
     if (invitation && email && invitation.email === email && invitation.workspace) {

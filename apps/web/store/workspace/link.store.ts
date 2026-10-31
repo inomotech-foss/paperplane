@@ -10,12 +10,13 @@ import { action, makeObservable, observable, runInAction } from "mobx";
 import type { TLink, TLinkIdMap, TLinkMap } from "@plane/types";
 // services
 import { WorkspaceService } from "@/services/workspace.service";
+import type { TWorkspaceLinkCreateBody, TWorkspaceLinkUpdateBody } from "@/services/workspace.service";
 
 export interface IWorkspaceLinkStoreActions {
   addLinks: (projectId: string, links: TLink[]) => void;
   fetchLinks: (workspaceSlug: string) => Promise<TLink[]>;
-  createLink: (workspaceSlug: string, data: Partial<TLink>) => Promise<TLink>;
-  updateLink: (workspaceSlug: string, linkId: string, data: Partial<TLink>) => Promise<TLink>;
+  createLink: (workspaceSlug: string, data: TWorkspaceLinkCreateBody) => Promise<TLink>;
+  updateLink: (workspaceSlug: string, linkId: string, data: TWorkspaceLinkUpdateBody) => Promise<TLink>;
   removeLink: (workspaceSlug: string, linkId: string) => Promise<void>;
   setLinkData: (link: TLink | undefined) => void;
   toggleLinkModal: (isOpen: boolean) => void;
@@ -98,7 +99,7 @@ export class WorkspaceLinkStore implements IWorkspaceLinkStore {
     return response;
   };
 
-  createLink = async (workspaceSlug: string, data: Partial<TLink>) => {
+  createLink = async (workspaceSlug: string, data: TWorkspaceLinkCreateBody) => {
     const response = await this.workspaceService.createWorkspaceLink(workspaceSlug, data);
 
     runInAction(() => {
@@ -108,11 +109,10 @@ export class WorkspaceLinkStore implements IWorkspaceLinkStore {
     return response;
   };
 
-  updateLink = async (workspaceSlug: string, linkId: string, data: Partial<TLink>) => {
+  updateLink = async (workspaceSlug: string, linkId: string, data: TWorkspaceLinkUpdateBody) => {
     runInAction(() => {
-      Object.keys(data).forEach((key) => {
-        set(this.linkMap, [linkId, key], data[key as keyof TLink]);
-      });
+      const link = this.linkMap[linkId];
+      if (link) set(this.linkMap, linkId, { ...link, ...data });
     });
 
     const response = await this.workspaceService.updateWorkspaceLink(workspaceSlug, linkId, data);

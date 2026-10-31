@@ -7,9 +7,8 @@ import { useState } from "react";
 // plane imports
 import { ConfirmDialog } from "@plane/blocks/dialog";
 import { setToast } from "@plane/blocks/toast";
+import { instanceUserError } from "@plane/services";
 import type { IInstanceUser, TInstanceUserError } from "@plane/types";
-// helpers
-import { isInstanceUserError } from "@/helpers/error";
 // hooks
 import { useInstanceUser } from "@/hooks/store";
 
@@ -33,7 +32,7 @@ export function DeleteUserDialog(props: Props) {
       setToast({ type: "success", title: "Deleted", message: `${user.email} was anonymised and deactivated.` });
       handleClose();
     } catch (caught) {
-      setRefusal(isInstanceUserError(caught) ? caught : { error: "The user was not deleted." });
+      setRefusal(instanceUserError(caught) ?? { error: "The user was not deleted." });
     } finally {
       setIsSubmitting(false);
     }

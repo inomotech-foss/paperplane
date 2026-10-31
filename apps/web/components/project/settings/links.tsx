@@ -18,6 +18,7 @@ import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
 import type { TProjectSidebarLink, TProjectSidebarLinkPayload } from "@plane/types";
+import { getApiErrorBody } from "@/helpers/error.helper";
 import { useProjectLink } from "@/hooks/store/use-project-link";
 import { getProjectLinkErrorMessage, isValidProjectLinkUrl } from "@/store/project/project-link-url";
 
@@ -178,7 +179,7 @@ export const ProjectLinksSettings = observer(function ProjectLinksSettings(props
     setToast({
       type: "error",
       title: t(`links.toasts.${key}.title`),
-      message: getProjectLinkErrorMessage(error) ?? t(`links.toasts.${key}.message`),
+      message: getProjectLinkErrorMessage(getApiErrorBody(error)) ?? t(`links.toasts.${key}.message`),
     });
 
   const handleCreate = async (data: TProjectSidebarLinkPayload) => {

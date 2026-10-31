@@ -4,72 +4,86 @@
  * See the LICENSE file for details.
  */
 
-// types
-import { API_BASE_URL } from "@plane/constants";
-import type { IProjectBulkAddFormData, TProjectMembership } from "@plane/types";
-// services
-import { APIService } from "@/services/api.service";
+import type { ApiRequestBody, ApiSchema } from "@plane/api-types";
+import { unwrap } from "@plane/services";
+import type { TProjectMembership } from "@plane/types";
+import { apiClient } from "@/services/api-client";
 
-export class ProjectMemberService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+export type TProjectMembersAddBody = ApiRequestBody<"/api/workspaces/{slug}/projects/{project_id}/members/", "post">;
+export type TProjectMemberUpdateBody = ApiRequestBody<
+  "/api/workspaces/{slug}/projects/{project_id}/members/{pk}/",
+  "patch"
+>;
+export type TProjectMemberMe = Omit<ApiSchema<"ProjectMember">, "view_props" | "default_props" | "preferences">;
 
+/** Leaves out rows whose user is gone, which have no member to key them by. */
+export const toMemberships = (rows: ApiSchema<"ProjectMemberRole">[]): TProjectMembership[] =>
+  rows.flatMap(({ member, ...row }) => (member ? [{ ...row, member }] : []));
+
+const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
+const memberPath = (slug: string, project_id: string, pk: string) => ({ path: { slug, project_id, pk } });
+
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ProjectMemberService {
   async fetchProjectMembers(workspaceSlug: string, projectId: string): Promise<TProjectMembership[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/members/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return toMemberships(
+      await unwrap(
+        apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/members/", {
+          params: projectPath(workspaceSlug, projectId),
+        })
+      )
+    );
   }
 
   async bulkAddMembersToProject(
     workspaceSlug: string,
     projectId: string,
-    data: IProjectBulkAddFormData
+    data: TProjectMembersAddBody
   ): Promise<TProjectMembership[]> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/members/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return toMemberships(
+      await unwrap(
+        apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/members/", {
+          params: projectPath(workspaceSlug, projectId),
+          body: data,
+        })
+      )
+    );
   }
 
-  async projectMemberMe(workspaceSlug: string, projectId: string): Promise<TProjectMembership> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/project-members/me/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
-  }
-
-  async getProjectMember(workspaceSlug: string, projectId: string, memberId: string): Promise<TProjectMembership> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/members/${memberId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async projectMemberMe(workspaceSlug: string, projectId: string): Promise<TProjectMemberMe> {
+    const {
+      view_props: _viewProps,
+      default_props: _defaultProps,
+      preferences: _preferences,
+      ...member
+    } = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/project-members/me/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
+    return member;
   }
 
   async updateProjectMember(
     workspaceSlug: string,
     projectId: string,
     memberId: string,
-    data: Partial<TProjectMembership>
-  ): Promise<TProjectMembership> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/members/${memberId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    data: TProjectMemberUpdateBody
+  ): Promise<void> {
+    await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/members/{pk}/", {
+        params: memberPath(workspaceSlug, projectId, memberId),
+        body: data,
+      })
+    );
   }
 
   async deleteProjectMember(workspaceSlug: string, projectId: string, memberId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/members/${memberId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/members/{pk}/", {
+        params: memberPath(workspaceSlug, projectId, memberId),
+      })
+    );
   }
 }
 

@@ -6,7 +6,7 @@
 
 export type TPaginationInfo = {
   count: number;
-  extra_stats: string | null;
+  extra_stats: unknown;
   next_cursor: string;
   next_page_results: boolean;
   prev_cursor: string;
@@ -14,19 +14,6 @@ export type TPaginationInfo = {
   total_pages: number;
   per_page?: number;
   total_results: number;
-};
-
-export type TLogoProps = {
-  in_use: "emoji" | "icon";
-  emoji?: {
-    value?: string;
-    url?: string;
-  };
-  icon?: {
-    name?: string;
-    color?: string;
-    background_color?: string;
-  };
 };
 
 export type TNameDescriptionLoader = "submitting" | "submitted" | "saved";

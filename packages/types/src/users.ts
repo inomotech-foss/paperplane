@@ -4,9 +4,10 @@
  * See the LICENSE file for details.
  */
 
+import type { TUserTimezone } from "@plane/api-types";
+import type { IUserTheme } from "./client-json";
 import type { TUserPermissions } from "./enums";
 import type { IIssueActivity, TIssuePriorities, TStateGroups } from ".";
-import type { TLoginMediums } from "./instance";
 
 /**
  * @description The start of the week for the user
@@ -23,33 +24,31 @@ export enum EStartOfTheWeek {
 }
 
 export interface IUserLite {
-  avatar_url: string;
+  avatar_url: string | null;
   display_name: string;
-  email?: string;
+  email?: string | null;
   first_name: string;
   id: string;
   is_bot: boolean;
   last_name: string;
   joining_date?: string;
 }
-export interface IUser extends IUserLite {
+/** The current user as `/api/users/me/` returns it. */
+export interface IUser extends Omit<IUserLite, "email"> {
   // only for uploading the cover image
   cover_image_asset?: string | null;
   cover_image?: string | null;
   // only for rendering the cover image
   cover_image_url: string | null;
   date_joined: string;
-  email: string;
+  email: string | null;
   is_active: boolean;
   is_email_verified: boolean;
   is_password_autoset: boolean;
-  is_tour_completed: boolean;
-  mobile_number: string | null;
-  last_workspace_id: string;
-  user_timezone: string;
+  user_timezone: TUserTimezone;
   username: string;
-  last_login_medium: TLoginMediums;
-  theme: IUserTheme;
+  last_login_medium: string;
+  last_login_time: string | null;
 }
 
 export interface IUserAccount {
@@ -62,20 +61,15 @@ export interface IUserAccount {
 export type TUserProfile = {
   id: string | undefined;
   user: string | undefined;
-  role: string | undefined;
-  last_workspace_id: string | undefined;
-  theme: {
-    theme: string | undefined;
-    primary: string | undefined;
-    background: string | undefined;
-    darkPalette: boolean | undefined;
-  };
+  role: string | null | undefined;
+  last_workspace_id: string | null | undefined;
+  theme: IUserTheme;
   onboarding_step: TOnboardingSteps;
   is_onboarded: boolean;
   is_tour_completed: boolean;
-  use_case: string | undefined;
+  use_case: string | null | undefined;
   billing_address_country: string | undefined;
-  billing_address: string | undefined;
+  billing_address: unknown;
   has_billing_address: boolean;
   has_marketing_email_consent: boolean;
   language: string;
@@ -88,25 +82,19 @@ export interface IInstanceAdminStatus {
   is_instance_admin: boolean;
 }
 
+/** `undefined` until the settings are loaded. */
 export interface IUserSettings {
   id: string | undefined;
-  email: string | undefined;
+  email: string | null | undefined;
   workspace: {
-    last_workspace_id: string | undefined;
-    last_workspace_slug: string | undefined;
-    last_workspace_name: string | undefined;
-    last_workspace_logo: string | undefined;
-    fallback_workspace_id: string | undefined;
-    fallback_workspace_slug: string | undefined;
+    last_workspace_id: string | null | undefined;
+    last_workspace_slug: string | null | undefined;
+    last_workspace_name?: string | undefined;
+    last_workspace_logo?: string | undefined;
+    fallback_workspace_id: string | null | undefined;
+    fallback_workspace_slug: string | null | undefined;
     invites: number | undefined;
   };
-}
-
-export interface IUserTheme {
-  theme: string | undefined; // 'light', 'dark', 'custom', etc.
-  primary?: string | undefined;
-  background?: string | undefined;
-  darkPalette?: boolean | undefined;
 }
 
 export interface IUserMemberLite extends IUserLite {
@@ -130,7 +118,7 @@ export interface IUserStateDistribution {
 
 export interface IUserActivityResponse {
   count: number;
-  extra_stats: null;
+  extra_stats: unknown;
   next_cursor: string;
   next_page_results: boolean;
   prev_cursor: string;
@@ -172,7 +160,7 @@ export interface IUserProfileProjectSegregation {
     pending_issues: number;
   }[];
   user_data: Pick<IUser, "avatar_url" | "cover_image_url" | "display_name" | "first_name" | "last_name"> & {
-    date_joined: Date;
+    date_joined: string;
     user_timezone: string;
   };
 }

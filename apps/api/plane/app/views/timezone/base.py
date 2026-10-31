@@ -77,7 +77,7 @@ class TimezoneEndpoint(APIView):
             ),  # UTC-03:30 (DST: UTC-02:30)
             ("Buenos Aires", "America/Argentina/Buenos_Aires"),  # UTC-03:00
             ("Brasilia", "America/Sao_Paulo"),  # UTC-03:00
-            ("Greenland", "America/Godthab"),  # UTC-03:00 (DST: UTC-02:00)
+            ("Greenland", "America/Nuuk"),  # UTC-03:00 (DST: UTC-02:00)
             ("Montevideo", "America/Montevideo"),  # UTC-03:00
             ("Falkland Islands", "Atlantic/Stanley"),  # UTC-03:00
             (
@@ -180,6 +180,9 @@ class TimezoneEndpoint(APIView):
 
         # Process timezone mapping
         for friendly_name, tz_identifier in timezone_locations:
+            # The models only accept pytz.common_timezones.
+            if tz_identifier not in pytz.common_timezones:
+                continue
             try:
                 tz = pytz.timezone(tz_identifier)
                 current_offset = now.astimezone(tz).strftime("%z")

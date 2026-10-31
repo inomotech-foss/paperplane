@@ -33,6 +33,12 @@ from plane.app.serializers import (
     UserMeSettingsSerializer,
     UserSerializer,
 )
+from plane.app.serializers.request.user import (
+    EmailUpdateSerializer,
+    EmailVerificationCodeSerializer,
+    UserOnboardedSerializer,
+    UserTourCompletedSerializer,
+)
 from plane.app.serializers.response.user import InstanceAdminStatusSerializer, UserSessionSerializer
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.db.models import (
@@ -150,7 +156,7 @@ class UserEndpoint(BaseViewSet):
 
         return None
 
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=EmailVerificationCodeSerializer, responses={200: MessageResponseSerializer})
     def generate_email_verification_code(self, request):
         """
         Generate and send a magic code to the new email address for verification.
@@ -198,7 +204,7 @@ class UserEndpoint(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-    @extend_schema(responses={200: UserMeSerializer})
+    @extend_schema(request=EmailUpdateSerializer, responses={200: UserMeSerializer})
     def update_email(self, request):
         """
         Verify the magic code and update the user's email address.
@@ -401,7 +407,7 @@ class UserSessionEndpoint(BaseAPIView):
 
 
 class UpdateUserOnBoardedEndpoint(BaseAPIView):
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=UserOnboardedSerializer, responses={200: MessageResponseSerializer})
     def patch(self, request):
         profile = Profile.objects.get(user_id=request.user.id)
         profile.is_onboarded = request.data.get("is_onboarded", False)
@@ -410,7 +416,7 @@ class UpdateUserOnBoardedEndpoint(BaseAPIView):
 
 
 class UpdateUserTourCompletedEndpoint(BaseAPIView):
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=UserTourCompletedSerializer, responses={200: MessageResponseSerializer})
     def patch(self, request):
         profile = Profile.objects.get(user_id=request.user.id)
         profile.is_tour_completed = request.data.get("is_tour_completed", False)
@@ -467,7 +473,7 @@ class ProfileEndpoint(BaseAPIView):
         serializer = ProfileSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: ProfileSerializer})
+    @extend_schema(request=ProfileSerializer, responses={200: ProfileSerializer})
     def patch(self, request):
         profile = Profile.objects.get(user=request.user)
         serializer = ProfileSerializer(profile, data=request.data, partial=True)

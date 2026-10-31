@@ -21,6 +21,7 @@ import { cn, copyUrlToClipboard, getFileURL, validateWorkspaceName } from "@plan
 // components
 import { WorkspaceImageUploadModal } from "@/components/core/modals/workspace-image-upload-modal";
 import { TimezoneSelect } from "@/components/global/timezone-select";
+import { isTimezone } from "@/lib/timezone";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -32,7 +33,10 @@ const PQL_DIALECT_OPTIONS: { value: TPqlDialect; label: string }[] = [
   { value: "plane", label: "Plane" },
 ];
 
-const defaultValues: Partial<IWorkspace> = {
+// `url` is shown read-only and never sent.
+type TWorkspaceDetailsForm = IWorkspace & { url: string };
+
+const defaultValues: Partial<TWorkspaceDetailsForm> = {
   name: "",
   url: "",
   logo_url: null,
@@ -56,13 +60,13 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
     reset,
     watch,
     formState: { errors },
-  } = useForm<IWorkspace>({
+  } = useForm<TWorkspaceDetailsForm>({
     defaultValues: { ...defaultValues, ...currentWorkspace },
   });
   // derived values
   const workspaceLogo = watch("logo_url");
 
-  const onSubmit = async (formData: IWorkspace) => {
+  const onSubmit = async (formData: TWorkspaceDetailsForm) => {
     if (!currentWorkspace) return;
 
     setIsLoading(true);
@@ -259,7 +263,19 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <>
-                    <TimezoneSelect value={value} onChange={onChange} disabled={!isAdmin} />
+                    <TimezoneSelect
+                      value={value}
+                      onChange={(next) => {
+                        if (isTimezone(next)) onChange(next);
+                        else
+                          setToast({
+                            type: "error",
+                            title: t("toast.error"),
+                            message: `Unknown timezone ${next}`,
+                          });
+                      }}
+                      disabled={!isAdmin}
+                    />
                   </>
                 )}
               />
