@@ -279,5 +279,7 @@ SPECTACULAR_SETTINGS = {
         "EstimateTypeEnum": "plane.db.models.estimate.EstimateType",
         "IssuePropertyRelationTypeEnum": "plane.db.models.issue_property.PropertyRelationTypeChoices",
         "WorkItemRelationTypeEnum": "plane.app.serializers.request.issue.RELATION_TYPES",
+        "CycleStatusEnum": "plane.app.serializers.response.cycle.CYCLE_STATUSES",
+        "PageAccessEnum": "plane.db.models.page.Page.ACCESS_CHOICES",
     },
 }

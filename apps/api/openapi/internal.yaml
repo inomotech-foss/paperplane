@@ -18608,14 +18608,6 @@ components:
       - updated_by
       - user
       - workspace
-    Access1f9Enum:
-      enum:
-      - 0
-      - 1
-      type: integer
-      description: |-
-        * `0` - Public
-        * `1` - Private
     AccessEe6Enum:
       enum:
       - INTERNAL
@@ -18960,7 +18952,7 @@ components:
             type: string
             format: uuid
         status:
-          $ref: '#/components/schemas/Status6b0Enum'
+          $ref: '#/components/schemas/CycleStatusEnum'
         cancelled_issues:
           type: integer
         started_issues:
@@ -19078,7 +19070,7 @@ components:
             type: string
             format: uuid
         status:
-          $ref: '#/components/schemas/Status6b0Enum'
+          $ref: '#/components/schemas/CycleStatusEnum'
         cancelled_issues:
           type: integer
         started_issues:
@@ -20423,7 +20415,7 @@ components:
           readOnly: true
         status:
           allOf:
-          - $ref: '#/components/schemas/Status6b0Enum'
+          - $ref: '#/components/schemas/CycleStatusEnum'
           readOnly: true
       required:
       - id
@@ -20518,7 +20510,7 @@ components:
             type: string
             format: uuid
         status:
-          $ref: '#/components/schemas/Status6b0Enum'
+          $ref: '#/components/schemas/CycleStatusEnum'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         version:
@@ -20708,7 +20700,7 @@ components:
             type: string
             format: uuid
         status:
-          $ref: '#/components/schemas/Status6b0Enum'
+          $ref: '#/components/schemas/CycleStatusEnum'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         version:
@@ -20840,7 +20832,7 @@ components:
             type: string
             format: uuid
         status:
-          $ref: '#/components/schemas/Status6b0Enum'
+          $ref: '#/components/schemas/CycleStatusEnum'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         version:
@@ -20871,6 +20863,18 @@ components:
       - logo_props
       - version
       - created_by
+    CycleStatusEnum:
+      enum:
+      - CURRENT
+      - UPCOMING
+      - COMPLETED
+      - DRAFT
+      type: string
+      description: |-
+        * `CURRENT` - CURRENT
+        * `UPCOMING` - UPCOMING
+        * `COMPLETED` - COMPLETED
+        * `DRAFT` - DRAFT
     CycleTransferRequest:
       type: object
       properties:
@@ -20967,7 +20971,8 @@ components:
           type: string
           format: date-time
           nullable: true
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -20979,7 +20984,8 @@ components:
           type: string
           nullable: true
           maxLength: 255
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         timezone:
           $ref: '#/components/schemas/TimezoneEnum'
       required:
@@ -28511,7 +28517,7 @@ components:
           readOnly: true
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -28591,12 +28597,20 @@ components:
       - updated_by
       - view_props
       - logo_props
+    PageAccessEnum:
+      enum:
+      - 0
+      - 1
+      type: integer
+      description: |-
+        * `0` - Public
+        * `1` - Private
     PageAccessRequest:
       type: object
       properties:
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           description: |-
             Public when omitted
 
@@ -28980,7 +28994,7 @@ components:
           type: string
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -29026,7 +29040,7 @@ components:
           readOnly: true
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -29373,7 +29387,7 @@ components:
           readOnly: true
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -29582,7 +29596,7 @@ components:
           readOnly: true
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -30307,7 +30321,8 @@ components:
           type: string
           format: date-time
           nullable: true
-        view_props: {}
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -30319,7 +30334,8 @@ components:
           type: string
           nullable: true
           maxLength: 255
-        logo_props: {}
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
         timezone:
           $ref: '#/components/schemas/TimezoneEnum'
     PatchedDashboardRequest:
@@ -31116,7 +31132,7 @@ components:
           type: string
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -34204,18 +34220,6 @@ components:
       required:
       - color
       - name
-    Status6b0Enum:
-      enum:
-      - CURRENT
-      - UPCOMING
-      - COMPLETED
-      - DRAFT
-      type: string
-      description: |-
-        * `CURRENT` - CURRENT
-        * `UPCOMING` - UPCOMING
-        * `COMPLETED` - COMPLETED
-        * `DRAFT` - DRAFT
     Status75aEnum:
       enum:
       - success
