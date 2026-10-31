@@ -242,7 +242,7 @@ class UnsplashEndpoint(BaseAPIView):
         per_page = request.GET.get("per_page", 20)
 
         url = (
-            f"https://api.unsplash.com/search/photos/?client_id={UNSPLASH_ACCESS_KEY}&query={query}&page=${page}&per_page={per_page}"
+            f"https://api.unsplash.com/search/photos/?client_id={UNSPLASH_ACCESS_KEY}&query={query}&page={page}&per_page={per_page}"
             if query
             else f"https://api.unsplash.com/photos/?client_id={UNSPLASH_ACCESS_KEY}&page={page}&per_page={per_page}"
         )
