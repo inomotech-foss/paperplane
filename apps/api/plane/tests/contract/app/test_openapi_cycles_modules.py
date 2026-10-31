@@ -1,16 +1,18 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-"""The cycle and module endpoints return what the OpenAPI schema documents."""
+"""The cycle and module endpoints accept and return what the OpenAPI schema documents."""
 
 from datetime import timedelta
 
+import jsonschema
 import pytest
 from django.utils import timezone
 
 from plane.db.models import (
     Cycle,
     CycleIssue,
+    CycleUserProperties,
     Estimate,
     EstimatePoint,
     Issue,
@@ -21,9 +23,11 @@ from plane.db.models import (
     ModuleIssue,
     ProjectMember,
     State,
+    UserFavorite,
 )
 from plane.tests.factories import ProjectFactory
 from plane.tests.openapi import documented, no_tasks  # noqa: F401
+from plane.tests.openapi import documented_query, documented_request
 from plane.utils.issue_type import link_starter_type
 
 
@@ -192,3 +196,72 @@ class TestModuleResponses:
         documented(session_client.post(url(workspace, project, f"modules/{module.id}/archive/")))
         assert documented(session_client.get(url(workspace, project, "archived-modules/")))
         documented(session_client.get(url(workspace, project, f"archived-modules/{module.id}/")))
+
+
+BASE = "/api/workspaces/{slug}/projects/{project_id}"
+
+
+def sent(route, method, body, **params):
+    """The path for `route` after checking `body` against its documented request body."""
+    documented_request(route, method, body)
+    return route.format(**params), body
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+@pytest.mark.usefixtures("no_tasks")
+class TestCycleRequests:
+    def test_create_and_update(self, session_client, workspace, project):
+        ids = {"slug": workspace.slug, "project_id": project.id}
+        body = {"name": "Next", "start_date": "2030-01-01", "end_date": "2030-01-10", "logo_props": {"in_use": "icon"}}
+        url, body = sent(BASE + "/cycles/", "post", body, **ids)
+        created = documented(session_client.post(url, body, format="json"), 201)
+        url, body = sent(
+            BASE + "/cycles/{pk}/", "patch", {"description": "d", "sort_order": 2}, pk=created["id"], **ids
+        )
+        assert documented(session_client.patch(url, body, format="json"))["sort_order"] == 2
+        with pytest.raises(jsonschema.ValidationError):
+            documented_request(BASE + "/cycles/{pk}/", "patch", {"version": 1})
+
+    def test_date_check_favorite_and_transfer(self, session_client, workspace, project, plan):
+        ids = {"slug": workspace.slug, "project_id": project.id}
+        body = {"start_date": "2030-02-01", "end_date": "2030-02-10", "cycle_id": str(plan["current"].id)}
+        url, body = sent(BASE + "/cycles/date-check/", "post", body, **ids)
+        assert documented(session_client.post(url, body, format="json"))["status"]
+        url, body = sent(BASE + "/user-favorite-cycles/", "post", {"cycle": str(plan["current"].id)}, **ids)
+        assert session_client.post(url, body, format="json").status_code == 204
+        assert UserFavorite.objects.filter(entity_type="cycle", entity_identifier=plan["current"].id).exists()
+        route = BASE + "/cycles/{cycle_id}/transfer-issues/"
+        url, body = sent(route, "post", {"new_cycle_id": str(plan["current"].id)}, cycle_id=plan["past"].id, **ids)
+        documented(session_client.post(url, body, format="json"))
+
+    def test_cycle_issues(self, session_client, workspace, project, plan):
+        cycle = plan["current"]
+        ids = {"slug": workspace.slug, "project_id": project.id, "cycle_id": cycle.id}
+        loose = Issue.objects.create(name="c", project=project, workspace=workspace, type=plan["issues"][0].type)
+        url, body = sent(BASE + "/cycles/{cycle_id}/cycle-issues/", "post", {"issues": [str(loose.id)]}, **ids)
+        documented(session_client.post(url, body, format="json"), 201)
+        assert CycleIssue.objects.filter(cycle=cycle, issue=loose).exists()
+        with pytest.raises(jsonschema.ValidationError):
+            documented_request(BASE + "/cycles/{cycle_id}/cycle-issues/", "post", {"issue": str(loose.id)})
+
+    def test_user_properties(self, session_client, workspace, project, plan):
+        cycle = plan["current"]
+        ids = {"slug": workspace.slug, "project_id": project.id, "cycle_id": cycle.id}
+        route = BASE + "/cycles/{cycle_id}/user-properties/"
+        documented(session_client.get(route.format(**ids)))
+        body = {"display_filters": {"layout": "kanban"}, "rich_filters": {}}
+        url, body = sent(route, "patch", body, **ids)
+        documented(session_client.patch(url, body, format="json"), 201)
+        assert CycleUserProperties.objects.get(cycle=cycle).display_filters == {"layout": "kanban"}
+
+    def test_query_parameters(self, session_client, workspace, project, plan):
+        assert documented_query(BASE + "/cycles/", "get") == {"cycle_view"}
+        assert documented_query("/api/workspaces/{slug}/cycles/", "get") == set()
+        assert documented_query(BASE + "/cycles/{cycle_id}/analytics/", "get") == {"type"}
+        route = BASE + "/cycles/{cycle_id}/cycle-issues/"
+        expected = {"cursor", "per_page", "group_by", "sub_group_by", "order_by", "sub_issue", "filters", "pql"}
+        assert expected | {"layout", "state", "priority"} <= documented_query(route, "get")
+        url = route.format(slug=workspace.slug, project_id=project.id, cycle_id=plan["current"].id)
+        params = {"group_by": "priority", "order_by": "-created_at", "sub_issue": "false", "per_page": 10}
+        assert documented(session_client.get(url, {**params, "cursor": "10:0:0"}))["results"]

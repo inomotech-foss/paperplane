@@ -3525,12 +3525,6 @@ paths:
     get:
       operationId: workspaces_cycles_list
       parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -6313,18 +6307,20 @@ paths:
     get:
       operationId: workspaces_projects_cycles_list
       parameters:
+      - in: query
+        name: cycle_view
+        schema:
+          type: string
+          enum:
+          - all
+          - current
+        description: current lists only the running cycle. All cycles when omitted
       - in: path
         name: project_id
         schema:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -6359,6 +6355,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CycleWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CycleWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CycleWriteRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -6389,6 +6397,14 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - issues
+          - points
+        description: Count work items or sum estimate points. issues when omitted
       tags:
       - workspaces
       security:
@@ -6464,6 +6480,16 @@ paths:
       operationId: workspaces_projects_cycles_cycle_issues_list
       parameters:
       - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
         name: cursor
         schema:
           type: string
@@ -6473,12 +6499,97 @@ paths:
             value: '20:1:0'
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
+      - in: query
+        name: cycle
+        schema:
+          type: string
+        description: Comma-separated cycle ids. Only work items that match one of
+          them.
       - in: path
         name: cycle_id
         schema:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: filters
+        schema:
+          type: string
+        description: JSON encoded filter expression with nested 'and' / 'or' / 'not'
+          groups. Mutually exclusive with 'pql'.
+        examples:
+          UrgentAndInProgress:
+            value: '{"and":[{"priority":"urgent"},{"state_group__in":["unstarted","started"]}]}'
+            summary: Urgent and in progress
+            description: Leaves are field comparisons with Django style lookups
+      - in: query
+        name: group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group the work items by this field
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label ids. Only work items that match one of
+          them.
+      - in: query
+        name: layout
+        schema:
+          type: string
+        description: The layout the list is for. Ignored by the backend
+      - in: query
+        name: mentions
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: module
+        schema:
+          type: string
+        description: Comma-separated module ids. Only work items that match one of
+          them.
+      - in: query
+        name: order_by
+        schema:
+          type: string
+        description: Field to order results by. Prefix with '-' for descending order
+        examples:
+          CreatedDateDescending:
+            value: -created_at
+            summary: Created date descending
+            description: Most recent items first
+          PriorityAscending:
+            value: priority
+            summary: Priority ascending
+            description: Order by priority (urgent, high, medium, low, none)
+          StateGroup:
+            value: state__group
+            summary: State group
+            description: Order by state group (backlog, unstarted, started, completed,
+              cancelled)
+          AssigneeName:
+            value: assignees__first_name
+            summary: Assignee name
+            description: Order by assignee first name
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Comma-separated work item ids. Only work items that match one
+          of them.
       - in: query
         name: per_page
         schema:
@@ -6489,6 +6600,36 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: pql
+        schema:
+          type: string
+        description: Plane Query Language expression. Human readable alternative to
+          'filters'; the two are mutually exclusive. Names resolve to ids (state =
+          "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches direct
+          children and descendantOf() every work item below one at any depth.
+        examples:
+          UrgentWorkItemsOfTheCaller:
+            value: priority = "urgent" AND assignee = currentUser()
+            summary: Urgent work items of the caller
+            description: Combine conditions with AND, OR, NOT and parentheses
+          PaidInvoicesOfACustomerDueThisYear:
+            value: descendantOf("CUST-1") AND type = "Invoice" AND state = "Paid"
+              AND cf["Due date"] >= "2026-01-01"
+            summary: Paid invoices of a customer due this year
+            description: Walk the hierarchy below a work item and filter by names
+              and custom properties
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma-separated priorities
+      - in: query
+        name: project
+        schema:
+          type: string
+        description: Comma-separated project ids. Only work items that match one of
+          them.
       - in: path
         name: project_id
         schema:
@@ -6500,6 +6641,55 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma-separated state ids. Only work items that match one of
+          them.
+      - in: query
+        name: state_group
+        schema:
+          type: string
+        description: Comma-separated state groups
+      - in: query
+        name: sub_group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group each group by this field. Requires group_by and must differ
+          from it
+      - in: query
+        name: sub_issue
+        schema:
+          type: boolean
+        description: Include work items that have a parent. True when omitted
+      - in: query
+        name: subscriber
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: target_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after,2026-02-01;before
       tags:
       - workspaces
       security:
@@ -6537,13 +6727,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CycleIssueRequest'
+              $ref: '#/components/schemas/CycleIssuesAddRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/CycleIssueRequest'
+              $ref: '#/components/schemas/CycleIssuesAddRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CycleIssueRequest'
+              $ref: '#/components/schemas/CycleIssuesAddRequest'
         required: true
       security:
       - sessionAuth: []
@@ -6777,6 +6967,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CycleTransferRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CycleTransferRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CycleTransferRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -6840,6 +7042,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueFiltersUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueFiltersUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueFiltersUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -6934,6 +7147,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCycleWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCycleWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCycleWriteRequest'
       security:
       - sessionAuth: []
       responses:
@@ -6987,6 +7211,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CycleDateCheckRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CycleDateCheckRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CycleDateCheckRequestRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -14918,6 +15154,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CycleFavoriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CycleFavoriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CycleFavoriteRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -19871,6 +20119,22 @@ components:
           type: string
       required:
       - status
+    CycleDateCheckRequestRequest:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        cycle_id:
+          type: string
+          format: uuid
+          description: The cycle being edited, which may overlap itself
+      required:
+      - end_date
+      - start_date
     CycleDetail:
       type: object
       properties:
@@ -19957,6 +20221,14 @@ components:
       - version
       - created_by
       - sub_issues
+    CycleFavoriteRequest:
+      type: object
+      properties:
+        cycle:
+          type: string
+          format: uuid
+      required:
+      - cycle
     CycleIssue:
       type: object
       properties:
@@ -20041,6 +20313,18 @@ components:
           format: uuid
       required:
       - issue
+    CycleIssuesAddRequest:
+      type: object
+      properties:
+        issues:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Work items of the project. Moves them out of their current
+            cycle
+      required:
+      - issues
     CycleListItem:
       type: object
       properties:
@@ -20256,6 +20540,15 @@ components:
       - logo_props
       - version
       - created_by
+    CycleTransferRequest:
+      type: object
+      properties:
+        new_cycle_id:
+          type: string
+          format: uuid
+          description: An active or upcoming cycle of the project
+      required:
+      - new_cycle_id
     CycleUserProperties:
       type: object
       properties:
@@ -20324,6 +20617,42 @@ components:
       - workspace
       - cycle
       - user
+    CycleWriteRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Cycle Name
+          maxLength: 255
+        description:
+          type: string
+          title: Cycle Description
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+        view_props: {}
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        logo_props: {}
+        timezone:
+          $ref: '#/components/schemas/TimezoneEnum'
+      required:
+      - name
     Dashboard:
       type: object
       properties:
@@ -29550,6 +29879,40 @@ components:
         issue:
           type: string
           format: uuid
+    PatchedCycleWriteRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Cycle Name
+          maxLength: 255
+        description:
+          type: string
+          title: Cycle Description
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+        view_props: {}
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        logo_props: {}
+        timezone:
+          $ref: '#/components/schemas/TimezoneEnum'
     PatchedDashboardRequest:
       type: object
       properties:
@@ -29971,6 +30334,17 @@ components:
             type: string
             format: email
             minLength: 1
+    PatchedIssueFiltersUpdateRequest:
+      type: object
+      properties:
+        filters:
+          $ref: '#/components/schemas/ClientJson'
+        rich_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_properties:
+          $ref: '#/components/schemas/ClientJson'
     PatchedIssueLinkRequest:
       type: object
       properties:

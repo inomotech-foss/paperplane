@@ -5943,6 +5943,17 @@ export interface components {
             status: boolean;
             error?: string;
         };
+        CycleDateCheckRequestRequest: {
+            /** Format: date */
+            start_date: string;
+            /** Format: date */
+            end_date: string;
+            /**
+             * Format: uuid
+             * @description The cycle being edited, which may overlap itself
+             */
+            cycle_id?: string;
+        };
         CycleDetail: {
             /** Format: uuid */
             id: string;
@@ -5975,6 +5986,10 @@ export interface components {
             /** Format: uuid */
             created_by: string | null;
             sub_issues: number;
+        };
+        CycleFavoriteRequest: {
+            /** Format: uuid */
+            cycle: string;
         };
         CycleIssue: {
             /** Format: uuid */
@@ -6018,6 +6033,10 @@ export interface components {
             updated_by?: string | null;
             /** Format: uuid */
             issue: string;
+        };
+        CycleIssuesAddRequest: {
+            /** @description Work items of the project. Moves them out of their current cycle */
+            issues: string[];
         };
         CycleListItem: {
             /** Format: uuid */
@@ -6104,6 +6123,13 @@ export interface components {
             /** Format: uuid */
             created_by: string | null;
         };
+        CycleTransferRequest: {
+            /**
+             * Format: uuid
+             * @description An active or upcoming cycle of the project
+             */
+            new_cycle_id: string;
+        };
         CycleUserProperties: {
             /** Format: uuid */
             readonly id: string;
@@ -6135,6 +6161,23 @@ export interface components {
             readonly cycle: string;
             /** Format: uuid */
             readonly user: string;
+        };
+        CycleWriteRequest: {
+            /** Cycle Name */
+            name: string;
+            /** Cycle Description */
+            description?: string;
+            /** Format: date-time */
+            start_date?: string | null;
+            /** Format: date-time */
+            end_date?: string | null;
+            view_props?: unknown;
+            /** Format: double */
+            sort_order?: number;
+            external_source?: string | null;
+            external_id?: string | null;
+            logo_props?: unknown;
+            timezone?: components["schemas"]["TimezoneEnum"];
         };
         Dashboard: {
             /** Format: uuid */
@@ -9911,6 +9954,23 @@ export interface components {
             /** Format: uuid */
             issue?: string;
         };
+        PatchedCycleWriteRequest: {
+            /** Cycle Name */
+            name?: string;
+            /** Cycle Description */
+            description?: string;
+            /** Format: date-time */
+            start_date?: string | null;
+            /** Format: date-time */
+            end_date?: string | null;
+            view_props?: unknown;
+            /** Format: double */
+            sort_order?: number;
+            external_source?: string | null;
+            external_id?: string | null;
+            logo_props?: unknown;
+            timezone?: components["schemas"]["TimezoneEnum"];
+        };
         PatchedDashboardRequest: {
             name?: string;
             description?: string;
@@ -10119,6 +10179,12 @@ export interface components {
         PatchedIssueEmailThreadUpdateRequest: {
             to_emails?: string[];
             cc_emails?: string[];
+        };
+        PatchedIssueFiltersUpdateRequest: {
+            filters?: components["schemas"]["ClientJson"];
+            rich_filters?: components["schemas"]["ClientJson"];
+            display_filters?: components["schemas"]["ClientJson"];
+            display_properties?: components["schemas"]["ClientJson"];
         };
         PatchedIssueLinkRequest: {
             /** Format: date-time */
@@ -17028,10 +17094,7 @@ export interface operations {
     };
     workspaces_cycles_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 slug: string;
@@ -19137,8 +19200,8 @@ export interface operations {
     workspaces_projects_cycles_list: {
         parameters: {
             query?: {
-                /** @description A search term. */
-                search?: string;
+                /** @description current lists only the running cycle. All cycles when omitted */
+                cycle_view?: "all" | "current";
             };
             header?: never;
             path: {
@@ -19169,7 +19232,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CycleWriteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CycleWriteRequest"];
+                "multipart/form-data": components["schemas"]["CycleWriteRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -19183,7 +19252,10 @@ export interface operations {
     };
     workspaces_projects_cycles_analytics_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Count work items or sum estimate points. issues when omitted */
+                type?: "issues" | "points";
+            };
             header?: never;
             path: {
                 cycle_id: string;
@@ -19252,10 +19324,52 @@ export interface operations {
     workspaces_projects_cycles_cycle_issues_list: {
         parameters: {
             query?: {
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                assignees?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                created_by?: string;
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Comma-separated cycle ids. Only work items that match one of them. */
+                cycle?: string;
+                /** @description JSON encoded filter expression with nested 'and' / 'or' / 'not' groups. Mutually exclusive with 'pql'. */
+                filters?: string;
+                /** @description Group the work items by this field */
+                group_by?: "assignees__id" | "created_by" | "cycle_id" | "issue_module__module_id" | "labels__id" | "priority" | "project_id" | "start_date" | "state__group" | "state_id" | "target_date";
+                /** @description Comma-separated label ids. Only work items that match one of them. */
+                labels?: string;
+                /** @description The layout the list is for. Ignored by the backend */
+                layout?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                mentions?: string;
+                /** @description Comma-separated module ids. Only work items that match one of them. */
+                module?: string;
+                /** @description Field to order results by. Prefix with '-' for descending order */
+                order_by?: string;
+                /** @description Comma-separated work item ids. Only work items that match one of them. */
+                parent?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Plane Query Language expression. Human readable alternative to 'filters'; the two are mutually exclusive. Names resolve to ids (state = "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches direct children and descendantOf() every work item below one at any depth. */
+                pql?: string;
+                /** @description Comma-separated priorities */
+                priority?: string;
+                /** @description Comma-separated project ids. Only work items that match one of them. */
+                project?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after */
+                start_date?: string;
+                /** @description Comma-separated state ids. Only work items that match one of them. */
+                state?: string;
+                /** @description Comma-separated state groups */
+                state_group?: string;
+                /** @description Group each group by this field. Requires group_by and must differ from it */
+                sub_group_by?: "assignees__id" | "created_by" | "cycle_id" | "issue_module__module_id" | "labels__id" | "priority" | "project_id" | "start_date" | "state__group" | "state_id" | "target_date";
+                /** @description Include work items that have a parent. True when omitted */
+                sub_issue?: boolean;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                subscriber?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after,2026-02-01;before */
+                target_date?: string;
             };
             header?: never;
             path: {
@@ -19290,9 +19404,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CycleIssueRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["CycleIssueRequest"];
-                "multipart/form-data": components["schemas"]["CycleIssueRequest"];
+                "application/json": components["schemas"]["CycleIssuesAddRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CycleIssuesAddRequest"];
+                "multipart/form-data": components["schemas"]["CycleIssuesAddRequest"];
             };
         };
         responses: {
@@ -19447,7 +19561,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CycleTransferRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CycleTransferRequest"];
+                "multipart/form-data": components["schemas"]["CycleTransferRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -19493,7 +19613,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedIssueFiltersUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedIssueFiltersUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedIssueFiltersUpdateRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -19584,7 +19710,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedCycleWriteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedCycleWriteRequest"];
+                "multipart/form-data": components["schemas"]["PatchedCycleWriteRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -19606,7 +19738,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CycleDateCheckRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CycleDateCheckRequestRequest"];
+                "multipart/form-data": components["schemas"]["CycleDateCheckRequestRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -24933,7 +25071,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CycleFavoriteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CycleFavoriteRequest"];
+                "multipart/form-data": components["schemas"]["CycleFavoriteRequest"];
+            };
+        };
         responses: {
             /** @description Added to favorites */
             204: {
@@ -27336,6 +27480,10 @@ type ReadonlyArray<T> = [
 ] ? Readonly<Exclude<T, undefined>> : Readonly<Exclude<T, undefined>[]>;
 export const pathsApiWorkspacesSlugProjectsProject_idArchivedIssuesGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/archived-issues/"]["get"]["parameters"]["query"]["group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idArchivedIssuesGetParametersQuerySub_group_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/archived-issues/"]["get"]["parameters"]["query"]["sub_group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
+export const pathsApiWorkspacesSlugProjectsProject_idCyclesGetParametersQueryCycle_viewValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/cycles/"]["get"]["parameters"]["query"]["cycle_view"]> = ["all", "current"];
+export const pathsApiWorkspacesSlugProjectsProject_idCyclesCycle_idAnalyticsGetParametersQueryTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/analytics/"]["get"]["parameters"]["query"]["type"]> = ["issues", "points"];
+export const pathsApiWorkspacesSlugProjectsProject_idCyclesCycle_idCycleIssuesGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/"]["get"]["parameters"]["query"]["group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
+export const pathsApiWorkspacesSlugProjectsProject_idCyclesCycle_idCycleIssuesGetParametersQuerySub_group_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/"]["get"]["parameters"]["query"]["sub_group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idInboxIssuesGetParametersQueryOrder_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/inbox-issues/"]["get"]["parameters"]["query"]["order_by"]> = ["-created_at", "-issue__created_at", "-issue__priority", "-issue__sequence_id", "-issue__sort_order", "-issue__start_date", "-issue__state__name", "-issue__target_date", "-issue__updated_at", "-status", "-updated_at", "created_at", "issue__created_at", "issue__priority", "issue__sequence_id", "issue__sort_order", "issue__start_date", "issue__state__name", "issue__target_date", "issue__updated_at", "status", "updated_at"];
 export const pathsApiWorkspacesSlugProjectsProject_idIntakeIssuesGetParametersQueryOrder_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/intake-issues/"]["get"]["parameters"]["query"]["order_by"]> = ["-created_at", "-issue__created_at", "-issue__priority", "-issue__sequence_id", "-issue__sort_order", "-issue__start_date", "-issue__state__name", "-issue__target_date", "-issue__updated_at", "-status", "-updated_at", "created_at", "issue__created_at", "issue__priority", "issue__sequence_id", "issue__sort_order", "issue__start_date", "issue__state__name", "issue__target_date", "issue__updated_at", "status", "updated_at"];
 export const pathsApiWorkspacesSlugProjectsProject_idIssuePropertiesGetParametersQueryUnscopedValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/issue-properties/"]["get"]["parameters"]["query"]["unscoped"]> = ["false", "true"];

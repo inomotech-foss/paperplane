@@ -20,7 +20,7 @@ from plane.app.serializers.cycle import CycleSerializer
 class WorkspaceCyclesEndpoint(BaseAPIView):
     permission_classes = [WorkspaceViewerPermission]
 
-    @extend_schema(responses={200: CycleSerializer(many=True)})
+    @extend_schema(filters=False, responses={200: CycleSerializer(many=True)})
     def get(self, request, slug):
         cycles = (
             Cycle.objects.filter(
