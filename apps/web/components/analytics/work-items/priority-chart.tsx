@@ -18,7 +18,7 @@ import { Button } from "@makeplane/propel/components/button";
 import { Icon } from "@makeplane/propel/components/icon";
 import { BarChart } from "@plane/blocks/charts/bar-chart";
 import { EmptyStateCompact } from "@plane/blocks/empty-state";
-import type { TBarItem, TChart, TChartDatum, ChartXAxisProperty, ChartYAxisMetric } from "@plane/types";
+import type { TBarItem, TChartDatum, ChartXAxisProperty, ChartYAxisMetric } from "@plane/types";
 // plane web components
 import { generateExtendedColors, parseChartData } from "@/components/chart/utils";
 // hooks
@@ -65,15 +65,15 @@ const PriorityChart = observer(function PriorityChart(props: Props) {
     `customized-insights-chart-${workspaceSlug}-${selectedDuration}-
     ${selectedProjects}-${selectedCycle}-${selectedModule}-${props.x_axis}-${props.y_axis}-${props.group_by}-${isPeekView}`,
     () =>
-      analyticsService.getAdvanceAnalyticsCharts<TChart>(
+      analyticsService.getCustomChart(
         workspaceSlug,
-        "custom-work-items",
         {
           // date_filter: selectedDuration,
           ...(selectedProjects?.length > 0 && { project_ids: selectedProjects?.join(",") }),
           ...(selectedCycle ? { cycle_id: selectedCycle } : {}),
           ...(selectedModule ? { module_id: selectedModule } : {}),
-          ...props,
+          x_axis,
+          group_by,
         },
         isPeekView
       )

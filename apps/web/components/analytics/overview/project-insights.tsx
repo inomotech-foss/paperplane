@@ -11,7 +11,6 @@ import useSWR from "swr";
 // plane package imports
 import { useTranslation } from "@plane/i18n";
 import { EmptyStateCompact } from "@plane/blocks/empty-state";
-import type { TChartData } from "@plane/types";
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
 // services
@@ -38,17 +37,12 @@ const ProjectInsights = observer(function ProjectInsights() {
   const { data: projectInsightsData, isLoading: isLoadingProjectInsight } = useSWR(
     `radar-chart-project-insights-${workspaceSlug}-${selectedDuration}-${selectedProjects}-${selectedCycle}-${selectedModule}-${isPeekView}`,
     () =>
-      analyticsService.getAdvanceAnalyticsCharts<TChartData<string, string>[]>(
-        workspaceSlug,
-        "projects",
-        {
-          // date_filter: selectedDuration,
-          ...(selectedProjects?.length > 0 && { project_ids: selectedProjects?.join(",") }),
-          ...(selectedCycle ? { cycle_id: selectedCycle } : {}),
-          ...(selectedModule ? { module_id: selectedModule } : {}),
-        },
-        isPeekView
-      )
+      analyticsService.getProjectsChart(workspaceSlug, {
+        // date_filter: selectedDuration,
+        ...(selectedProjects?.length > 0 && { project_ids: selectedProjects?.join(",") }),
+        ...(selectedCycle ? { cycle_id: selectedCycle } : {}),
+        ...(selectedModule ? { module_id: selectedModule } : {}),
+      })
   );
 
   return (

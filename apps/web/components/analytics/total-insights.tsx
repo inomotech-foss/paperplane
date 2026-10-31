@@ -11,7 +11,7 @@ import useSWR from "swr";
 import type { IInsightField } from "@plane/constants";
 import { ANALYTICS_INSIGHTS_FIELDS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
-import type { IAnalyticsResponse, TAnalyticsTabsBase } from "@plane/types";
+import type { TAnalyticsTabsBase } from "@plane/types";
 import { cn } from "@plane/utils";
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
@@ -61,7 +61,7 @@ const TotalInsights = observer(function TotalInsights({
   const { data: totalInsightsData, isLoading } = useSWR(
     `total-insights-${analyticsType}-${selectedDuration}-${selectedProjects}-${selectedCycle}-${selectedModule}`,
     () =>
-      analyticsService.getAdvanceAnalytics<IAnalyticsResponse>(
+      analyticsService.getAdvanceAnalytics(
         workspaceSlug,
         analyticsType,
         {
