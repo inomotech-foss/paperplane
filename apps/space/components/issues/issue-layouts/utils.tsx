@@ -4,18 +4,11 @@
  * See the LICENSE file for details.
  */
 
-import { isNil } from "lodash-es";
 // types
 import { EIconSize, ISSUE_PRIORITIES } from "@plane/constants";
 import { CycleGroupIcon, PriorityIcon, StateGroupIcon } from "@plane/blocks/icons";
 import { CyclesOutline, ModuleOutline } from "@makeplane/propel/icons";
-import type {
-  GroupByColumnTypes,
-  IGroupByColumn,
-  TCycleGroups,
-  IIssueDisplayProperties,
-  TGroupedIssues,
-} from "@plane/types";
+import type { IGroupByColumn, TIssueGroupByOptions } from "@plane/types";
 // ui
 import { Avatar } from "@makeplane/propel/components/avatar";
 // components
@@ -31,7 +24,7 @@ export const HIGHLIGHT_CLASS = "highlight";
 export const HIGHLIGHT_WITH_LINE = "highlight-with-line";
 
 export const getGroupByColumns = (
-  groupBy: GroupByColumnTypes | null,
+  groupBy: TIssueGroupByOptions | undefined,
   cycle: ICycleStore,
   module: IIssueModuleStore,
   label: IIssueLabelStore,
@@ -49,11 +42,11 @@ export const getGroupByColumns = (
     case "priority":
       return getPriorityColumns();
     case "labels":
-      return getLabelsColumns(label) as any;
+      return getLabelsColumns(label);
     case "assignees":
       return getAssigneeColumns(member);
     case "created_by":
-      return getCreatedByColumns(member) as any;
+      return getCreatedByColumns(member);
     default:
       if (includeNone) return [{ id: `All Issues`, name: `All work items`, payload: {}, icon: undefined }];
   }
@@ -68,11 +61,10 @@ const getCycleColumns = (cycleStore: ICycleStore): IGroupByColumn[] | undefined 
 
   cycles.map((cycle) => {
     if (cycle) {
-      const cycleStatus = cycle?.status ? (cycle.status.toLocaleLowerCase() as TCycleGroups) : "draft";
       cycleGroups.push({
         id: cycle.id,
         name: cycle.name,
-        icon: <CycleGroupIcon cycleGroup={cycleStatus} className="h-3.5 w-3.5" />,
+        icon: <CycleGroupIcon cycleGroup="draft" className="h-3.5 w-3.5" />,
         payload: { cycle_id: cycle.id },
       });
     }
@@ -94,15 +86,14 @@ const getModuleColumns = (moduleStore: IIssueModuleStore): IGroupByColumn[] | un
 
   const moduleGroups: IGroupByColumn[] = [];
 
-  modules.map((moduleInfo) => {
-    if (moduleInfo)
-      moduleGroups.push({
-        id: moduleInfo.id,
-        name: moduleInfo.name,
-        icon: <ModuleOutline className="h-3.5 w-3.5" />,
-        payload: { module_ids: [moduleInfo.id] },
-      });
-  }) as any;
+  for (const moduleInfo of modules) {
+    moduleGroups.push({
+      id: moduleInfo.id,
+      name: moduleInfo.name,
+      icon: <ModuleOutline className="h-3.5 w-3.5" />,
+      payload: { module_ids: [moduleInfo.id] },
+    });
+  }
   moduleGroups.push({
     id: "None",
     name: "None",
@@ -110,7 +101,7 @@ const getModuleColumns = (moduleStore: IIssueModuleStore): IGroupByColumn[] | un
     payload: { module_ids: [] },
   });
 
-  return moduleGroups as any;
+  return moduleGroups;
 };
 
 const getStateColumns = (projectState: IStateStore): IGroupByColumn[] | undefined => {
@@ -126,7 +117,7 @@ const getStateColumns = (projectState: IStateStore): IGroupByColumn[] | undefine
       </div>
     ),
     payload: { state_id: state.id },
-  })) as any;
+  }));
 };
 
 const getPriorityColumns = () => {
@@ -140,7 +131,7 @@ const getPriorityColumns = () => {
   }));
 };
 
-const getLabelsColumns = (label: IIssueLabelStore) => {
+const getLabelsColumns = (label: IIssueLabelStore): IGroupByColumn[] | undefined => {
   const { labels: storeLabels } = label;
 
   if (!storeLabels) return;
@@ -157,12 +148,12 @@ const getLabelsColumns = (label: IIssueLabelStore) => {
   }));
 };
 
-const getAssigneeColumns = (member: IIssueMemberStore) => {
+const getAssigneeColumns = (member: IIssueMemberStore): IGroupByColumn[] | undefined => {
   const { members } = member;
 
   if (!members) return;
 
-  const assigneeColumns: any = members.map((member) => ({
+  const assigneeColumns: IGroupByColumn[] = members.map((member) => ({
     id: member.id,
     name: member?.member__display_name || "",
     icon: (
@@ -180,7 +171,7 @@ const getAssigneeColumns = (member: IIssueMemberStore) => {
   return assigneeColumns;
 };
 
-const getCreatedByColumns = (member: IIssueMemberStore) => {
+const getCreatedByColumns = (member: IIssueMemberStore): IGroupByColumn[] | undefined => {
   const { members } = member;
 
   if (!members) return;
@@ -199,56 +190,5 @@ const getCreatedByColumns = (member: IIssueMemberStore) => {
   }));
 };
 
-export const getDisplayPropertiesCount = (
-  displayProperties: IIssueDisplayProperties,
-  ignoreFields?: (keyof IIssueDisplayProperties)[]
-) => {
-  const propertyKeys = Object.keys(displayProperties) as (keyof IIssueDisplayProperties)[];
-
-  let count = 0;
-
-  for (const propertyKey of propertyKeys) {
-    if (ignoreFields && ignoreFields.includes(propertyKey)) continue;
-    if (displayProperties[propertyKey]) count++;
-  }
-
-  return count;
-};
-
 export const getIssueBlockId = (issueId: string | undefined, groupId: string | undefined, subGroupId?: string) =>
   `issue_${issueId}_${groupId}_${subGroupId}`;
-
-/**
- * returns empty Array if groupId is None
- * @param groupId
- * @returns
- */
-export const getGroupId = (groupId: string) => {
-  if (groupId === "None") return [];
-  return [groupId];
-};
-
-/**
- * method that removes Null or undefined Keys from object
- * @param obj
- * @returns
- */
-export const removeNillKeys = <T,>(obj: T) =>
-  Object.fromEntries(Object.entries(obj ?? {}).filter(([key, value]) => key && !isNil(value)));
-
-/**
- * This Method returns if the grouped values are subGrouped
- * @param groupedIssueIds
- * @returns
- */
-export const isSubGrouped = (groupedIssueIds: TGroupedIssues) => {
-  if (!groupedIssueIds || Array.isArray(groupedIssueIds)) {
-    return false;
-  }
-
-  if (Array.isArray(groupedIssueIds[Object.keys(groupedIssueIds)[0]])) {
-    return false;
-  }
-
-  return true;
-};

@@ -7,8 +7,10 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "@plane/i18n";
 import { CloseOutline } from "@makeplane/propel/icons";
+// helpers
+import { ISSUE_FILTER_KEYS } from "@/helpers/filter.helper";
 // types
-import type { TFilters } from "@/types/issue";
+import type { TFilters, TIssueFilterKeys } from "@/types/issue";
 // components
 import { AppliedPriorityFilters } from "./priority";
 import { AppliedStateFilters } from "./state";
@@ -16,22 +18,19 @@ import { AppliedStateFilters } from "./state";
 type Props = {
   appliedFilters: TFilters;
   handleRemoveAllFilters: () => void;
-  handleRemoveFilter: (key: keyof TFilters, value: string | null) => void;
+  handleRemoveFilter: (key: TIssueFilterKeys, value: string | null) => void;
 };
 
 export const replaceUnderscoreIfSnakeCase = (str: string) => str.replace(/_/g, " ");
 
 export const AppliedFiltersList = observer(function AppliedFiltersList(props: Props) {
-  const { appliedFilters = {}, handleRemoveAllFilters, handleRemoveFilter } = props;
+  const { appliedFilters, handleRemoveAllFilters, handleRemoveFilter } = props;
   const { t } = useTranslation();
 
   return (
     <div className="flex flex-wrap items-stretch gap-2">
-      {Object.entries(appliedFilters).map(([key, value]) => {
-        const filterKey = key as keyof TFilters;
-        const filterValue = value as TFilters[keyof TFilters];
-
-        if (!filterValue) return;
+      {ISSUE_FILTER_KEYS.map((filterKey) => {
+        if (appliedFilters[filterKey].length === 0) return null;
 
         return (
           <div
@@ -43,14 +42,14 @@ export const AppliedFiltersList = observer(function AppliedFiltersList(props: Pr
               {filterKey === "priority" && (
                 <AppliedPriorityFilters
                   handleRemove={(val) => handleRemoveFilter("priority", val)}
-                  values={(filterValue ?? []) as TFilters["priority"]}
+                  values={appliedFilters.priority}
                 />
               )}
 
               {filterKey === "state" && (
                 <AppliedStateFilters
                   handleRemove={(val) => handleRemoveFilter("state", val)}
-                  values={filterValue ?? []}
+                  values={appliedFilters.state}
                 />
               )}
 

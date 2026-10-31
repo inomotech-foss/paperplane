@@ -1,5 +1,1 @@
-export type TPublicCycle = {
-  id: string;
-  name: string;
-  status: string;
-};
+export type { TPublicCycle } from "@/services/project.service";

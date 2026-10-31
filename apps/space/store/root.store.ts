@@ -58,13 +58,6 @@ export class RootStore {
     this.publishList = new PublishListStore(this);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  hydrate = (data: any) => {
-    if (!data) return;
-    this.instance.hydrate(data?.instance || undefined);
-    this.user.hydrate(data?.user || undefined);
-  };
-
   reset() {
     localStorage.setItem("theme", "system");
     this.instance = new InstanceStore(this);

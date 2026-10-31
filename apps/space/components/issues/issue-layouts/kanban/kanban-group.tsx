@@ -17,6 +17,8 @@ import type {
   TLoader,
 } from "@plane/types";
 import { cn } from "@plane/utils";
+// helpers
+import { getGroupIssueIds } from "@/helpers/grouped-issues.helper";
 // hooks
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 // local imports
@@ -85,9 +87,7 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
 
   const isSubGroup = !!subGroupId && subGroupId !== "null";
 
-  const issueIds = isSubGroup
-    ? ((groupedIssueIds as TSubGroupedIssues)?.[groupId]?.[subGroupId] ?? [])
-    : ((groupedIssueIds as TGroupedIssues)?.[groupId] ?? []);
+  const issueIds = getGroupIssueIds(groupedIssueIds, groupId, isSubGroup ? subGroupId : undefined);
 
   const groupIssueCount = getGroupIssueCount(groupId, subGroupId, false) ?? 0;
   const nextPageResults = getPaginationData(groupId, subGroupId)?.nextPageResults;
@@ -95,14 +95,14 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
   const loadMore = isPaginating ? (
     <KanbanIssueBlockLoader />
   ) : (
-    <div
-      className="w-full cursor-pointer p-3 text-13 font-medium text-accent-primary hover:text-accent-secondary hover:underline"
+    <button
+      type="button"
+      className="w-full cursor-pointer p-3 text-left text-13 font-medium text-accent-primary hover:text-accent-secondary hover:underline"
       onClick={loadMoreIssuesInThisGroup}
-      role="button"
     >
       {" "}
       Load More &darr;
-    </div>
+    </button>
   );
 
   const shouldLoadMore = nextPageResults === undefined ? issueIds?.length < groupIssueCount : !!nextPageResults;

@@ -103,7 +103,6 @@
     // Packages not yet clean of any. This list shrinks to empty.
     {
       "files": [
-        "apps/space/**",
         "apps/web/**",
         "packages/services/**"
       ],

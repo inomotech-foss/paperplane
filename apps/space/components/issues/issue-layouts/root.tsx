@@ -38,7 +38,7 @@ export const IssuesLayoutsRoot = observer(function IssuesLayoutsRoot(props: Prop
   // derived values
   const activeLayout = issueFilters?.display_filters?.layout || undefined;
 
-  const { error } = useSWR(
+  const { error } = useSWR<void, unknown>(
     anchor ? `PUBLIC_ISSUES_${anchor}` : null,
     anchor
       ? () => fetchPublicIssues(anchor, "init-loader", { groupedBy: "state", canGroup: true, perPageCount: 50 })

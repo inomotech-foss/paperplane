@@ -6,9 +6,9 @@
 
 import { action, makeObservable, observable, runInAction } from "mobx";
 // plane imports
-import { SitesCycleService } from "@plane/services";
 import type { TPublicCycle } from "@/types/cycle";
 // store
+import { PublicProjectService } from "@/services/project.service";
 import type { RootStore } from "./root.store";
 
 export interface ICycleStore {
@@ -22,7 +22,7 @@ export interface ICycleStore {
 
 export class CycleStore implements ICycleStore {
   cycles: TPublicCycle[] | undefined = undefined;
-  cycleService: SitesCycleService;
+  projectService: PublicProjectService;
   rootStore: RootStore;
 
   constructor(_rootStore: RootStore) {
@@ -32,14 +32,14 @@ export class CycleStore implements ICycleStore {
       // fetch action
       fetchCycles: action,
     });
-    this.cycleService = new SitesCycleService();
+    this.projectService = new PublicProjectService();
     this.rootStore = _rootStore;
   }
 
   getCycleById = (cycleId: string | undefined) => this.cycles?.find((cycle) => cycle.id === cycleId);
 
   fetchCycles = async (anchor: string) => {
-    const cyclesResponse = await this.cycleService.list(anchor);
+    const cyclesResponse = await this.projectService.listCycles(anchor);
     runInAction(() => {
       this.cycles = cyclesResponse;
     });

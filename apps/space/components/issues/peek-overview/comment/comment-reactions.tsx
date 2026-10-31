@@ -55,7 +55,8 @@ export const CommentReactions = observer(function CommentReactions(props: Props)
     return groupReactions(commentReactions ?? [], "reaction");
   }, [peekId, commentReactions]);
 
-  const userReactions = commentReactions?.filter((r) => r?.actor_detail?.id === user?.id);
+  const userId = user?.id;
+  const userReactions = commentReactions.filter((r) => !!userId && r.actor_detail?.id === userId);
 
   const handleAddReaction = (reactionHex: string) => {
     if (!anchor || !peekId) return;
@@ -68,7 +69,7 @@ export const CommentReactions = observer(function CommentReactions(props: Props)
   };
 
   const handleReactionClick = (reactionHex: string) => {
-    const userReaction = userReactions?.find((r) => r.actor_detail.id === user?.id && r.reaction === reactionHex);
+    const userReaction = userReactions?.find((r) => r.reaction === reactionHex);
 
     if (userReaction) handleRemoveReaction(reactionHex);
     else handleAddReaction(reactionHex);
@@ -93,11 +94,11 @@ export const CommentReactions = observer(function CommentReactions(props: Props)
         return {
           emoji: stringToEmoji(reaction),
           count: reactionList.length,
-          reacted: commentReactions?.some((r) => r?.actor_detail?.id === user?.id && r.reaction === reaction) || false,
+          reacted: commentReactions.some((r) => !!userId && r.actor_detail?.id === userId && r.reaction === reaction),
           users: userNames,
         };
       });
-  }, [groupedReactions, commentReactions, user?.id]);
+  }, [groupedReactions, commentReactions, userId]);
 
   const handleEmojiClick = (emoji: string) => {
     if (isInIframe) return;

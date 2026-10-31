@@ -11,11 +11,11 @@ import { CloseCircleOutline, HideOutline, ShowOutline } from "@makeplane/propel/
 import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@plane/constants";
 import { Button } from "@makeplane/propel/components/button";
 import { Input } from "@makeplane/propel/components/input";
-import { AuthService } from "@plane/services";
 import { PasswordStrengthIndicator } from "@plane/blocks/auth";
 import { getPasswordStrength } from "@plane/utils";
 // types
 import { EAuthModes, EAuthSteps } from "@/types/auth";
+import { AuthService } from "@/services/auth.service";
 
 type Props = {
   email: string;
@@ -45,7 +45,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
   // ref
   const formRef = useRef<HTMLFormElement>(null);
   // states
-  const [csrfPromise, setCsrfPromise] = useState<Promise<{ csrf_token: string }> | undefined>(undefined);
+  const [csrfPromise, setCsrfPromise] = useState<Promise<{ csrf_token: string } | undefined> | undefined>(undefined);
   const [passwordFormData, setPasswordFormData] = useState<TPasswordFormValues>({ ...defaultValues, email });
   const [showPassword, setShowPassword] = useState({
     password: false,
@@ -63,7 +63,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
 
   useEffect(() => {
     if (csrfPromise === undefined) {
-      const promise = authService.requestCSRFToken();
+      const promise = authService.requestCSRFToken().catch(() => undefined);
       setCsrfPromise(promise);
     }
   }, [csrfPromise]);

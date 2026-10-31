@@ -14,22 +14,21 @@ import { IconButton } from "@makeplane/propel/components/icon-button";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/components/menu";
 import type { EditorRefApi } from "@plane/editor";
 import { useTranslation } from "@plane/i18n";
-import type { TIssuePublicComment } from "@plane/types";
-import { getFileURL } from "@plane/utils";
+import { calculateTimeAgo, getFileURL } from "@plane/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text-editor";
 import { CommentReactions } from "@/components/issues/peek-overview/comment/comment-reactions";
-// helpers
-import { timeAgo } from "@/helpers/date-time.helper";
 // hooks
 import { usePublish } from "@/hooks/store/publish";
 import { useIssueDetails } from "@/hooks/store/use-issue-details";
 import { useUser } from "@/hooks/store/use-user";
 import useIsInIframe from "@/hooks/use-is-in-iframe";
+import type { TPublicComment } from "@/services/public-comment";
+import type { TCommentUpdate } from "@/store/issue-detail.store";
 
 type Props = {
   anchor: string;
-  comment: TIssuePublicComment;
+  comment: TPublicComment;
 };
 
 export const CommentCard = observer(function CommentCard(props: Props) {
@@ -51,7 +50,7 @@ export const CommentCard = observer(function CommentCard(props: Props) {
     control,
     formState: { isSubmitting },
     handleSubmit,
-  } = useForm<TIssuePublicComment>({
+  } = useForm<TCommentUpdate>({
     defaultValues: { comment_html: comment.comment_html },
   });
 
@@ -60,7 +59,10 @@ export const CommentCard = observer(function CommentCard(props: Props) {
     deleteIssueComment(anchor, peekId, comment.id);
   };
 
-  const handleCommentUpdate = async (formData: TIssuePublicComment) => {
+  const actor = comment.actor_detail;
+  const actorName = actor?.is_bot ? `${actor.first_name} Bot` : actor?.display_name;
+
+  const handleCommentUpdate = async (formData: TCommentUpdate) => {
     if (!anchor || !peekId) return;
     updateIssueComment(anchor, peekId, comment.id, formData);
     setIsEditing(false);
@@ -71,12 +73,10 @@ export const CommentCard = observer(function CommentCard(props: Props) {
   return (
     <div className="relative flex items-start space-x-3">
       <div className="relative px-1">
-        {comment.actor_detail.avatar_url && comment.actor_detail.avatar_url !== "" ? (
+        {actor?.avatar_url ? (
           <img
-            src={getFileURL(comment.actor_detail.avatar_url)}
-            alt={
-              comment.actor_detail.is_bot ? comment.actor_detail.first_name + " Bot" : comment.actor_detail.display_name
-            }
+            src={getFileURL(actor.avatar_url)}
+            alt={actorName}
             height={30}
             width={30}
             className="grid size-7 place-items-center rounded-full border-2 border-strong-1"
@@ -85,9 +85,7 @@ export const CommentCard = observer(function CommentCard(props: Props) {
           <div
             className={`bg-gray-500 grid size-7 place-items-center rounded-full border-2 border-strong-1 text-on-color`}
           >
-            {comment.actor_detail.is_bot
-              ? comment?.actor_detail?.first_name?.charAt(0)
-              : comment?.actor_detail?.display_name?.charAt(0)}
+            {actor?.is_bot ? actor.first_name?.charAt(0) : actor?.display_name?.charAt(0)}
           </div>
         )}
 
@@ -97,11 +95,9 @@ export const CommentCard = observer(function CommentCard(props: Props) {
       </div>
       <div className="min-w-0 flex-1">
         <div>
-          <div className="text-11">
-            {comment.actor_detail.is_bot ? comment.actor_detail.first_name + " Bot" : comment.actor_detail.display_name}
-          </div>
+          <div className="text-11">{actorName}</div>
           <p className="mt-0.5 text-11 text-secondary">
-            <>commented {timeAgo(comment.created_at)}</>
+            <>commented {calculateTimeAgo(comment.created_at)}</>
           </p>
         </div>
         <div className="issue-comments-section p-0">
@@ -170,7 +166,7 @@ export const CommentCard = observer(function CommentCard(props: Props) {
           </div>
         </div>
       </div>
-      {!isInIframe && currentUser?.id === comment?.actor_detail?.id && (
+      {!isInIframe && currentUser && currentUser.id === actor?.id && (
         <Menu>
           <MenuTrigger
             render={

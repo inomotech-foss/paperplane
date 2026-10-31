@@ -7,27 +7,27 @@
 import { clone } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 // plane imports
-import { SitesStateService } from "@plane/services";
-import type { IState } from "@plane/types";
 // helpers
-import { sortStates } from "@/helpers/state.helper";
+import { sortStates, toPublicState } from "@/helpers/state.helper";
+import { PublicProjectService } from "@/services/project.service";
+import type { TPublicState } from "@/helpers/state.helper";
 // store
 import type { RootStore } from "./root.store";
 
 export interface IStateStore {
   // observables
-  states: IState[] | undefined;
+  states: TPublicState[] | undefined;
   //computed
-  sortedStates: IState[] | undefined;
+  sortedStates: TPublicState[] | undefined;
   // computed actions
-  getStateById: (stateId: string | undefined) => IState | undefined;
+  getStateById: (stateId: string | undefined) => TPublicState | undefined;
   // fetch actions
-  fetchStates: (anchor: string) => Promise<IState[]>;
+  fetchStates: (anchor: string) => Promise<TPublicState[]>;
 }
 
 export class StateStore implements IStateStore {
-  states: IState[] | undefined = undefined;
-  stateService: SitesStateService;
+  states: TPublicState[] | undefined = undefined;
+  projectService: PublicProjectService;
   rootStore: RootStore;
 
   constructor(_rootStore: RootStore) {
@@ -39,7 +39,7 @@ export class StateStore implements IStateStore {
       // fetch action
       fetchStates: action,
     });
-    this.stateService = new SitesStateService();
+    this.projectService = new PublicProjectService();
     this.rootStore = _rootStore;
   }
 
@@ -51,7 +51,7 @@ export class StateStore implements IStateStore {
   getStateById = (stateId: string | undefined) => this.states?.find((state) => state.id === stateId);
 
   fetchStates = async (anchor: string) => {
-    const statesResponse = await this.stateService.list(anchor);
+    const statesResponse = (await this.projectService.listStates(anchor)).map(toPublicState);
     runInAction(() => {
       this.states = statesResponse;
     });

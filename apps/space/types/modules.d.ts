@@ -1,4 +1,1 @@
-export type TPublicModule = {
-  id: string;
-  name: string;
-};
+export type { TPublicModule } from "@/services/project.service";

@@ -5,13 +5,15 @@
  */
 
 import { useCallback } from "react";
-import { cloneDeep } from "lodash-es";
 import { observer } from "mobx-react";
 import { useRouter } from "next/navigation";
+// helpers
+import { hasAppliedFilters } from "@/helpers/filter.helper";
+import { isIssuePriority } from "@/helpers/narrow.helper";
 // hooks
 import { useIssueFilter } from "@/hooks/store/use-issue-filter";
 // store
-import type { TIssueLayout, TIssueQueryFilters } from "@/types/issue";
+import type { TIssueFilterKeys, TIssueLayout } from "@/types/issue";
 // components
 import { AppliedFiltersList } from "./filters-list";
 
@@ -28,17 +30,10 @@ export const IssueAppliedFilters = observer(function IssueAppliedFilters(props: 
   // derived values
   const issueFilters = getIssueFilters(anchor);
   const activeLayout = issueFilters?.display_filters?.layout || undefined;
-  const userFilters = issueFilters?.filters || {};
-
-  const appliedFilters: any = {};
-  Object.entries(userFilters).forEach(([key, value]) => {
-    if (!value) return;
-    if (Array.isArray(value) && value.length === 0) return;
-    appliedFilters[key] = value;
-  });
+  const appliedFilters = issueFilters?.filters;
 
   const updateRouteParams = useCallback(
-    (key: keyof TIssueQueryFilters, value: string[]) => {
+    (key: TIssueFilterKeys, value: string[]) => {
       const state = key === "state" ? value : (issueFilters?.filters?.state ?? []);
       const priority = key === "priority" ? value : (issueFilters?.filters?.priority ?? []);
       const labels = key === "labels" ? value : (issueFilters?.filters?.labels ?? []);
@@ -46,14 +41,14 @@ export const IssueAppliedFilters = observer(function IssueAppliedFilters(props: 
       const params: {
         board: TIssueLayout | string;
         priority?: string;
-        states?: string;
+        state?: string;
         labels?: string;
       } = {
         board: activeLayout || "list",
       };
 
       if (priority.length > 0) params.priority = priority.join(",");
-      if (state.length > 0) params.states = state.join(",");
+      if (state.length > 0) params.state = state.join(",");
       if (labels.length > 0) params.labels = labels.join(",");
 
       const qs = new URLSearchParams(params).toString();
@@ -63,13 +58,12 @@ export const IssueAppliedFilters = observer(function IssueAppliedFilters(props: 
   );
 
   const handleFilters = useCallback(
-    (key: keyof TIssueQueryFilters, value: string | null) => {
-      let newValues = cloneDeep(issueFilters?.filters?.[key]) ?? [];
+    (key: TIssueFilterKeys, value: string | null) => {
+      const currentValues = issueFilters?.filters?.[key] ?? [];
+      const newValues = value === null ? [] : currentValues.filter((item) => item !== value);
 
-      if (value === null) newValues = [];
-      else if (newValues.includes(value)) newValues.splice(newValues.indexOf(value), 1);
-
-      updateIssueFilters(anchor, "filters", key, newValues);
+      if (key === "priority") updateIssueFilters(anchor, "filters", key, newValues.filter(isIssuePriority));
+      else updateIssueFilters(anchor, "filters", key, newValues);
       updateRouteParams(key, newValues);
     },
     [anchor, issueFilters, updateIssueFilters, updateRouteParams]
@@ -92,13 +86,13 @@ export const IssueAppliedFilters = observer(function IssueAppliedFilters(props: 
     router.push(`/issues/${anchor}?${`board=${activeLayout || "list"}`}`);
   };
 
-  if (Object.keys(appliedFilters).length === 0) return null;
+  if (!appliedFilters || !hasAppliedFilters(appliedFilters)) return null;
 
   return (
     <div className="border-b border-subtle bg-surface-1 p-4">
       <AppliedFiltersList
-        appliedFilters={appliedFilters || {}}
-        handleRemoveFilter={handleFilters as any}
+        appliedFilters={appliedFilters}
+        handleRemoveFilter={handleFilters}
         handleRemoveAllFilters={handleRemoveAllFilters}
       />
     </div>

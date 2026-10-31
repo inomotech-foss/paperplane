@@ -9,7 +9,6 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 // types
 import type {
-  GroupByColumnTypes,
   IGroupByColumn,
   TGroupedIssues,
   IIssueDisplayProperties,
@@ -70,8 +69,8 @@ export const KanBanSwimLanes = observer(function KanBanSwimLanes(props: IKanBanS
   const modules = useModule();
   const state = useStates();
 
-  const groupByList = getGroupByColumns(groupBy as GroupByColumnTypes, cycle, modules, label, state, member);
-  const subGroupByList = getGroupByColumns(subGroupBy as GroupByColumnTypes, cycle, modules, label, state, member);
+  const groupByList = getGroupByColumns(groupBy, cycle, modules, label, state, member);
+  const subGroupByList = getGroupByColumns(subGroupBy, cycle, modules, label, state, member);
 
   if (!groupByList || !subGroupByList) return null;
 
@@ -278,7 +277,7 @@ const SubGroup = observer(function SubGroup(props: ISubGroup) {
         <div className="sticky top-[50px] z-[3] flex w-full items-center border-y-[0.5px] border-subtle bg-layer-1 py-1">
           <div className="sticky left-0 flex-shrink-0">
             <HeaderSubGroupByCard
-              icon={group.icon as any}
+              icon={group.icon}
               title={group.name || ""}
               count={issueCount}
               isExpanded={isExpanded}

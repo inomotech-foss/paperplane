@@ -23,17 +23,9 @@ function initializeStore() {
 
 export type StoreProviderProps = {
   children: React.ReactNode;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialState?: any;
 };
 
-export function StoreProvider({ children, initialState = undefined }: StoreProviderProps) {
+export function StoreProvider({ children }: StoreProviderProps) {
   const store = initializeStore();
-  // If your page has Next.js data fetching methods that use a Mobx store, it will
-  // get hydrated here, check `pages/ssg.js` and `pages/ssr.js` for more details
-  if (initialState) {
-    store.hydrate(initialState);
-  }
-
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }

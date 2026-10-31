@@ -5,7 +5,6 @@
  */
 
 import { useCallback } from "react";
-import { cloneDeep } from "lodash-es";
 import { observer } from "mobx-react";
 import { useRouter } from "next/navigation";
 // constants
@@ -14,11 +13,13 @@ import { ISSUE_DISPLAY_FILTERS_BY_LAYOUT } from "@plane/constants";
 import { FiltersDropdown } from "@/components/issues/filters/helpers/dropdown";
 import { FilterSelection } from "@/components/issues/filters/selection";
 // helpers
+import { toggleFilterValue } from "@/helpers/filter.helper";
+import { isIssuePriority } from "@/helpers/narrow.helper";
 import { queryParamGenerator } from "@/helpers/query-param-generator";
 // hooks
 import { useIssueFilter } from "@/hooks/store/use-issue-filter";
 // types
-import type { TIssueQueryFilters } from "@/types/issue";
+import type { TIssueFilterKeys } from "@/types/issue";
 
 type IssueFiltersDropdownProps = {
   anchor: string;
@@ -35,7 +36,7 @@ export const IssueFiltersDropdown = observer(function IssueFiltersDropdown(props
   const activeLayout = issueFilters?.display_filters?.layout || undefined;
 
   const updateRouteParams = useCallback(
-    (key: keyof TIssueQueryFilters, value: string[]) => {
+    (key: TIssueFilterKeys, value: string[]) => {
       const state = key === "state" ? value : (issueFilters?.filters?.state ?? []);
       const priority = key === "priority" ? value : (issueFilters?.filters?.priority ?? []);
       const labels = key === "labels" ? value : (issueFilters?.filters?.labels ?? []);
@@ -47,15 +48,13 @@ export const IssueFiltersDropdown = observer(function IssueFiltersDropdown(props
   );
 
   const handleFilters = useCallback(
-    (key: keyof TIssueQueryFilters, value: string) => {
+    (key: TIssueFilterKeys, value: string) => {
       if (!value) return;
 
-      const newValues = cloneDeep(issueFilters?.filters?.[key]) ?? [];
+      const newValues = toggleFilterValue(issueFilters?.filters?.[key] ?? [], value);
 
-      if (newValues.includes(value)) newValues.splice(newValues.indexOf(value), 1);
-      else newValues.push(value);
-
-      updateIssueFilters(anchor, "filters", key, newValues);
+      if (key === "priority") updateIssueFilters(anchor, "filters", key, newValues.filter(isIssuePriority));
+      else updateIssueFilters(anchor, "filters", key, newValues);
       updateRouteParams(key, newValues);
     },
     [anchor, issueFilters, updateIssueFilters, updateRouteParams]
@@ -66,7 +65,7 @@ export const IssueFiltersDropdown = observer(function IssueFiltersDropdown(props
       <FiltersDropdown title="Filters" placement="bottom-end">
         <FilterSelection
           filters={issueFilters?.filters ?? {}}
-          handleFilters={handleFilters as any}
+          handleFilters={handleFilters}
           layoutDisplayFiltersOptions={activeLayout ? ISSUE_DISPLAY_FILTERS_BY_LAYOUT?.[activeLayout]?.filters : []}
         />
       </FiltersDropdown>

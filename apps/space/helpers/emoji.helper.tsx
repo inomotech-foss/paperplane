@@ -23,17 +23,9 @@ export const renderEmoji = (
   else return isNaN(parseInt(emoji)) ? emoji : String.fromCodePoint(parseInt(emoji));
 };
 
-export const groupReactions = <T extends { reaction: string }>(reactions: T[], key: string) => {
-  const groupedReactions = reactions.reduce(
-    (acc: { [key: string]: T[] }, reaction: any) => {
-      if (!acc[reaction[key]]) {
-        acc[reaction[key]] = [];
-      }
-      acc[reaction[key]].push(reaction);
-      return acc;
-    },
-    {} as { [key: string]: T[] }
-  );
-
-  return groupedReactions;
-};
+export const groupReactions = <T extends { reaction: string }>(reactions: T[], key: "reaction") =>
+  reactions.reduce<{ [key: string]: T[] }>((acc, reaction) => {
+    const group = reaction[key];
+    acc[group] = [...(acc[group] ?? []), reaction];
+    return acc;
+  }, {});

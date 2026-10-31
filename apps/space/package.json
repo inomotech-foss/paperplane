@@ -10,11 +10,12 @@
     "preview": "react-router build && PORT=3002 react-router-serve ./build/server/index.js",
     "start": "PORT=3002 react-router-serve ./build/server/index.js",
     "clean": "rm -rf .turbo && rm -rf .next && rm -rf .react-router && rm -rf node_modules && rm -rf dist && rm -rf build",
-    "check:lint": "react-router typegen && oxlint --max-warnings=63 .",
+    "check:lint": "react-router typegen && oxlint --max-warnings=51 .",
     "check:types": "react-router typegen && tsc --noEmit",
     "check:format": "oxfmt --check .",
     "fix:lint": "oxlint --fix .",
-    "fix:format": "oxfmt ."
+    "fix:format": "oxfmt .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@bprogress/core": "catalog:",
@@ -22,6 +23,7 @@
     "@fontsource/ibm-plex-mono": "catalog:",
     "@fontsource/material-symbols-rounded": "catalog:",
     "@makeplane/propel": "catalog:",
+    "@plane/api-types": "workspace:*",
     "@plane/blocks": "workspace:*",
     "@plane/constants": "workspace:*",
     "@plane/editor": "workspace:*",
@@ -31,7 +33,6 @@
     "@plane/utils": "workspace:*",
     "@react-router/node": "catalog:",
     "@react-router/serve": "catalog:",
-    "axios": "catalog:",
     "clsx": "catalog:",
     "date-fns": "catalog:",
     "isbot": "catalog:",
@@ -48,7 +49,8 @@
     "react-hook-form": "catalog:",
     "react-router": "catalog:",
     "swr": "catalog:",
-    "uuid": "catalog:"
+    "uuid": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@plane/tailwind-config": "workspace:*",
@@ -63,6 +65,7 @@
     "dotenv": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vite-tsconfig-paths": "catalog:"
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:"
   }
 }

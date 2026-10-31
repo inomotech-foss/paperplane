@@ -9,12 +9,12 @@ import { CloseCircleOutline, TickCircleOutline } from "@makeplane/propel/icons";
 // plane imports
 import { API_BASE_URL } from "@plane/constants";
 import { Button } from "@makeplane/propel/components/button";
-import { AuthService } from "@plane/services";
 import { Input } from "@makeplane/propel/components/input";
 // hooks
 import useTimer from "@/hooks/use-timer";
 // types
 import { EAuthModes } from "@/types/auth";
+import { AuthService } from "@/services/auth.service";
 
 // services
 const authService = new AuthService();
@@ -68,7 +68,10 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
 
   useEffect(() => {
     if (csrfToken === undefined)
-      authService.requestCSRFToken().then((data) => data?.csrf_token && setCsrfToken(data.csrf_token));
+      authService
+        .requestCSRFToken()
+        .then((data) => data?.csrf_token && setCsrfToken(data.csrf_token))
+        .catch(() => {});
   }, [csrfToken]);
 
   const isRequestNewCodeDisabled = isRequestingNewCode || resendTimerCode > 0;
@@ -82,7 +85,7 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
       onSubmit={() => setIsSubmitting(true)}
       onError={() => setIsSubmitting(false)}
     >
-      <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
+      <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken ?? ""} />
       <input type="hidden" value={uniqueCodeFormData.email} name="email" />
       <input type="hidden" value={nextPath} name="next_path" />
       <div className="space-y-1">

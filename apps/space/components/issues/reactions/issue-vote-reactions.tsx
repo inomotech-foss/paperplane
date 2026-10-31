@@ -54,21 +54,19 @@ export const IssueVotes = observer(function IssueVotes(props: TIssueVotes) {
   const isUpVotedByUser = allUpVotes.some((vote) => vote.actor_details?.id === user?.id);
   const isDownVotedByUser = allDownVotes.some((vote) => vote.actor_details?.id === user?.id);
 
-  const handleVote = async (e: any, voteValue: 1 | -1) => {
+  const handleVote = async (voteValue: 1 | -1) => {
     if (!issueId) return;
 
     setIsSubmitting(true);
 
     const actionPerformed = votes?.find((vote) => vote.actor_details?.id === user?.id && vote.vote === voteValue);
 
-    if (actionPerformed) await issueDetailsStore.removeIssueVote(anchor, issueId);
-    else {
-      await issueDetailsStore.addIssueVote(anchor, issueId, {
-        vote: voteValue,
-      });
+    try {
+      if (actionPerformed) await issueDetailsStore.removeIssueVote(anchor, issueId);
+      else await issueDetailsStore.addIssueVote(anchor, issueId, { vote: voteValue });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   const VOTES_LIMIT = 1000;
@@ -93,9 +91,9 @@ export const IssueVotes = observer(function IssueVotes(props: TIssueVotes) {
         <button
           type="button"
           disabled={isSubmitting}
-          onClick={(e) => {
+          onClick={() => {
             if (isInIframe) return;
-            if (user) handleVote(e, 1);
+            if (user) handleVote(1);
             else router.push(`/?next_path=${pathName}?${queryParam}`);
           }}
           className={cn(
@@ -128,9 +126,9 @@ export const IssueVotes = observer(function IssueVotes(props: TIssueVotes) {
         <button
           type="button"
           disabled={isSubmitting}
-          onClick={(e) => {
+          onClick={() => {
             if (isInIframe) return;
-            if (user) handleVote(e, -1);
+            if (user) handleVote(-1);
             else router.push(`/?next_path=${pathName}?${queryParam}`);
           }}
           className={cn(
