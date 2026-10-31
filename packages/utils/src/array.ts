@@ -7,6 +7,17 @@
 import { isEmpty } from "lodash-es";
 import type { IIssueLabel, IIssueLabelTree } from "@plane/types";
 
+// Reads a property like `value?.[key]` does, including on primitives.
+const readProperty = (value: unknown, key: string): unknown =>
+  value === null || value === undefined ? undefined : Reflect.get(Object(value), key);
+
+const readPath = (value: unknown, path: string[]): unknown =>
+  path.reduce<unknown>((current, key) => readProperty(current, key), value);
+
+// Same result as the `<` operator for strings, numbers, dates and nullish values.
+const isLessThan = (a: unknown, b: unknown): boolean =>
+  typeof a === "string" && typeof b === "string" ? a < b : Number(a) < Number(b);
+
 /**
  * @description Groups an array of objects by a specified key
  * @param {any[]} array Array to group
@@ -16,11 +27,11 @@ import type { IIssueLabel, IIssueLabelTree } from "@plane/types";
  * const array = [{type: 'A', value: 1}, {type: 'B', value: 2}, {type: 'A', value: 3}];
  * groupBy(array, 'type') // returns { A: [{type: 'A', value: 1}, {type: 'A', value: 3}], B: [{type: 'B', value: 2}] }
  */
-export const groupBy = (array: any[], key: string) => {
+export const groupBy = <T>(array: T[], key: string): Record<string, T[]> => {
   const innerKey = key.split("."); // split the key by dot
-  return array.reduce((result, currentValue) => {
-    const key = innerKey.reduce((obj, i) => obj?.[i], currentValue) ?? "None"; // get the value of the inner key
-    (result[key] = result[key] || []).push(currentValue);
+  return array.reduce<Record<string, T[]>>((result, currentValue) => {
+    const groupKey = String(readPath(currentValue, innerKey) ?? "None"); // get the value of the inner key
+    (result[groupKey] = result[groupKey] || []).push(currentValue);
     return result;
   }, {});
 };
@@ -35,7 +46,11 @@ export const groupBy = (array: any[], key: string) => {
  * const array = [{value: 2}, {value: 1}, {value: 3}];
  * orderArrayBy(array, 'value', 'ascending') // returns [{value: 1}, {value: 2}, {value: 3}]
  */
-export const orderArrayBy = (orgArray: any[], key: string, ordering: "ascending" | "descending" = "ascending") => {
+export const orderArrayBy = <T>(
+  orgArray: T[],
+  key: string,
+  ordering: "ascending" | "descending" = "ascending"
+): T[] => {
   if (!orgArray || !Array.isArray(orgArray) || orgArray.length === 0) return [];
 
   const array = [...orgArray];
@@ -48,12 +63,12 @@ export const orderArrayBy = (orgArray: any[], key: string, ordering: "ascending"
   const innerKey = key.split("."); // split the key by dot
 
   return array.sort((a, b) => {
-    const keyA = innerKey.reduce((obj, i) => obj[i], a); // get the value of the inner key
-    const keyB = innerKey.reduce((obj, i) => obj[i], b); // get the value of the inner key
-    if (keyA < keyB) {
+    const keyA = readPath(a, innerKey); // get the value of the inner key
+    const keyB = readPath(b, innerKey); // get the value of the inner key
+    if (isLessThan(keyA, keyB)) {
       return ordering === "ascending" ? -1 : 1;
     }
-    if (keyA > keyB) {
+    if (isLessThan(keyB, keyA)) {
       return ordering === "ascending" ? 1 : -1;
     }
     return 0;
@@ -68,7 +83,7 @@ export const orderArrayBy = (orgArray: any[], key: string, ordering: "ascending"
  * checkDuplicates([1, 2, 2, 3]) // returns true
  * checkDuplicates([1, 2, 3]) // returns false
  */
-export const checkDuplicates = (array: any[]) => new Set(array).size !== array.length;
+export const checkDuplicates = (array: unknown[]) => new Set(array).size !== array.length;
 
 /**
  * @description Finds the string with the most characters in an array of strings
@@ -94,7 +109,7 @@ export const findStringWithMostCharacters = (strings: string[]): string => {
  * checkIfArraysHaveSameElements([1, 2], [2, 1]) // returns true
  * checkIfArraysHaveSameElements([1, 2], [1, 3]) // returns false
  */
-export const checkIfArraysHaveSameElements = (arr1: any[] | null, arr2: any[] | null): boolean => {
+export const checkIfArraysHaveSameElements = (arr1: unknown[] | null, arr2: unknown[] | null): boolean => {
   if (!arr1 || !arr2) return false;
   if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
   if (arr1.length === 0 && arr2.length === 0) return true;
@@ -129,8 +144,12 @@ export const groupByField = <T>(array: T[], field: keyof T): GroupedItems<T> =>
  * const array = [{value: 2}, {value: 1}];
  * sortByField(array, 'value') // returns [{value: 1}, {value: 2}]
  */
-export const sortByField = (array: any[], field: string): any[] =>
-  array.sort((a, b) => (a[field] < b[field] ? -1 : a[field] > b[field] ? 1 : 0));
+export const sortByField = <T>(array: T[], field: string): T[] =>
+  array.sort((a, b) => {
+    const valueA = readProperty(a, field);
+    const valueB = readProperty(b, field);
+    return isLessThan(valueA, valueB) ? -1 : isLessThan(valueB, valueA) ? 1 : 0;
+  });
 
 /**
  * @description Orders grouped data by a specified field
@@ -154,17 +173,16 @@ export const orderGroupedDataByField = <T>(groupedData: GroupedItems<T>, orderBy
 /**
  * @description Builds a tree structure from an array of labels
  * @param {IIssueLabel[]} array Array of labels
- * @param {any} parent Parent ID
+ * @param {string | null} parent Parent ID
  * @returns {IIssueLabelTree[]} Tree structure
  */
-export const buildTree = (array: IIssueLabel[], parent = null) => {
+export const buildTree = (array: IIssueLabel[], parent: string | null = null): IIssueLabelTree[] => {
   const tree: IIssueLabelTree[] = [];
 
-  array.forEach((item: any) => {
+  array.forEach((item) => {
     if (item.parent === parent) {
       const children = buildTree(array, item.id);
-      item.children = children;
-      tree.push(item);
+      tree.push(Object.assign(item, { children }));
     }
   });
 
@@ -173,15 +191,15 @@ export const buildTree = (array: IIssueLabel[], parent = null) => {
 
 /**
  * @description Returns valid keys from object whose value is not falsy
- * @param {any} obj Object to check
+ * @param {unknown} obj Object to check
  * @returns {string[]} Array of valid keys
  * @example
  * getValidKeysFromObject({a: 1, b: 0, c: null}) // returns ['a']
  */
-export const getValidKeysFromObject = (obj: any) => {
+export const getValidKeysFromObject = (obj: unknown): string[] => {
   if (!obj || isEmpty(obj) || typeof obj !== "object" || Array.isArray(obj)) return [];
 
-  return Object.keys(obj).filter((key) => !!obj[key]);
+  return Object.keys(obj).filter((key) => !!readProperty(obj, key));
 };
 
 /**

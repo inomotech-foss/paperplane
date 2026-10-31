@@ -13,11 +13,11 @@ import { getDate } from "./datetime";
  * @param {T} filters
  * @returns {number}
  */
-export const calculateTotalFilters = <T>(filters: T): number =>
+export const calculateTotalFilters = (filters: object | null | undefined): number =>
   filters && Object.keys(filters).length > 0
     ? Object.keys(filters)
         .map((key) => {
-          const value = filters[key as keyof T];
+          const value: unknown = Reflect.get(filters, key);
           if (value === null) return 0;
           if (Array.isArray(value)) return value.length;
           if (typeof value === "boolean") return value ? 1 : 0;

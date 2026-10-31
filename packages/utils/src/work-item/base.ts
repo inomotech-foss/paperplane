@@ -106,6 +106,39 @@ export const handleIssuesMutation: THandleIssuesMutation = (
   }
 };
 
+const ISSUE_PARAMS: Record<TIssueParams, true> = {
+  priority: true,
+  state_group: true,
+  state: true,
+  assignees: true,
+  mentions: true,
+  created_by: true,
+  subscriber: true,
+  labels: true,
+  cycle: true,
+  module: true,
+  start_date: true,
+  target_date: true,
+  project: true,
+  team_project: true,
+  group_by: true,
+  sub_group_by: true,
+  order_by: true,
+  type: true,
+  sub_issue: true,
+  show_empty_groups: true,
+  cursor: true,
+  per_page: true,
+  issue_type: true,
+  layout: true,
+  expand: true,
+  filters: true,
+  pql: true,
+  hierarchy: true,
+};
+
+const isIssueParam = (value: string): value is TIssueParams => Object.hasOwn(ISSUE_PARAMS, value);
+
 export const handleIssueQueryParamsByLayout = (
   layout: EIssueLayoutTypes | undefined,
   viewType:
@@ -125,7 +158,7 @@ export const handleIssueQueryParamsByLayout = (
 
   // add display filters query params
   Object.keys(currentViewLayoutOptions.display_filters).forEach((option) => {
-    queryParams.push(option as TIssueParams);
+    if (isIssueParam(option)) queryParams.push(option);
   });
 
   // the timeline offers no order option but always fetches in manual order
@@ -149,11 +182,8 @@ export const handleIssueQueryParamsByLayout = (
  * @param formData partial issue data from the form. This will override the default values
  * @returns full issue payload with some default values
  */
-export const createIssuePayload: (projectId: string, formData: Partial<TIssue>) => TIssue = (
-  projectId: string,
-  formData: Partial<TIssue>
-) => {
-  const payload: TIssue = {
+export const createIssuePayload = <T extends Partial<TIssue>>(projectId: string, formData: T) => {
+  const payload = {
     id: uuidv4(),
     project_id: projectId,
     priority: "none",
@@ -166,7 +196,7 @@ export const createIssuePayload: (projectId: string, formData: Partial<TIssue>) 
     tempId: uuidv4(),
     // to be overridden by the form data
     ...formData,
-  } as TIssue;
+  };
 
   return payload;
 };
@@ -230,44 +260,36 @@ export const getDescriptionPlaceholderI18n = (isFocused: boolean, description: s
   else return "common.click_to_add_description";
 };
 
+const countIds = (ids: unknown): number => (Array.isArray(ids) ? ids.length : 0);
+
+const valuesOf = (value: unknown): unknown[] =>
+  value && typeof value === "object" && !Array.isArray(value)
+    ? Object.keys(value).map((key): unknown => Reflect.get(value, key))
+    : [];
+
 export const issueCountBasedOnFilters = (
   issueIds: TGroupedIssues | TUnGroupedIssues | TSubGroupedIssues,
   layout: EIssueLayoutTypes,
   groupBy: string | undefined,
   subGroupBy: string | undefined
 ): number => {
-  let issuesCount = 0;
-  if (!layout) return issuesCount;
+  if (!layout || !issueIds) return 0;
 
-  if (["spreadsheet", "gantt_chart"].includes(layout)) {
-    issuesCount = (issueIds as TUnGroupedIssues)?.length;
-  } else if (layout === "calendar") {
-    Object.keys(issueIds || {}).map((groupId) => {
-      issuesCount += (issueIds as TGroupedIssues)?.[groupId]?.length;
-    });
-  } else if (layout === "list") {
-    if (groupBy) {
-      Object.keys(issueIds || {}).map((groupId) => {
-        issuesCount += (issueIds as TGroupedIssues)?.[groupId]?.length;
-      });
-    } else {
-      issuesCount = (issueIds as TUnGroupedIssues)?.length;
-    }
-  } else if (layout === "kanban") {
-    if (groupBy && subGroupBy) {
-      Object.keys(issueIds || {}).map((groupId) => {
-        Object.keys((issueIds as TSubGroupedIssues)?.[groupId] || {}).map((subGroupId) => {
-          issuesCount += (issueIds as TSubGroupedIssues)?.[groupId]?.[subGroupId]?.length || 0;
-        });
-      });
-    } else if (groupBy) {
-      Object.keys(issueIds || {}).map((groupId) => {
-        issuesCount += (issueIds as TGroupedIssues)?.[groupId]?.length;
-      });
-    }
+  const countGroups = () => valuesOf(issueIds).reduce<number>((total, group) => total + countIds(group), 0);
+  const countSubGroups = () =>
+    valuesOf(issueIds).reduce<number>(
+      (total, group) => total + valuesOf(group).reduce<number>((sum, ids) => sum + countIds(ids), 0),
+      0
+    );
+
+  if (["spreadsheet", "gantt_chart"].includes(layout)) return countIds(issueIds);
+  if (layout === "calendar") return countGroups();
+  if (layout === "list") return groupBy ? countGroups() : countIds(issueIds);
+  if (layout === "kanban") {
+    if (groupBy && subGroupBy) return countSubGroups();
+    if (groupBy) return countGroups();
   }
-
-  return issuesCount;
+  return 0;
 };
 
 /**

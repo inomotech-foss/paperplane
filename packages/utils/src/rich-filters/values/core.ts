@@ -10,13 +10,15 @@ import type { SingleOrArray, TFilterValue } from "@plane/types";
  * Converts any value to a non-null array for UI components that expect arrays
  * Returns empty array for null/undefined values
  */
-export const toFilterArray = <V extends TFilterValue>(value: SingleOrArray<V>): NonNullable<V>[] => {
+export function toFilterArray<V extends TFilterValue>(value: SingleOrArray<V>): NonNullable<V>[];
+export function toFilterArray(value: SingleOrArray<TFilterValue>): NonNullable<TFilterValue>[] {
   if (value === null || value === undefined) {
     return [];
   }
 
-  return Array.isArray(value) ? (value as NonNullable<V>[]) : ([value] as NonNullable<V>[]);
-};
+  const values: TFilterValue[] = Array.isArray(value) ? value : [value];
+  return values.filter((item) => item !== null && item !== undefined);
+}
 
 /**
  * Gets the length of a filter value

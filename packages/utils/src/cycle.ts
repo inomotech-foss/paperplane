@@ -50,7 +50,7 @@ export const orderCycles = (cycles: ICycle[], sortByManual: boolean): ICycle[] =
 export const shouldFilterCycle = (cycle: ICycle, filter: TCycleFilters): boolean => {
   let fallsInFilters = true;
   Object.keys(filter).forEach((key) => {
-    const filterKey = key as keyof TCycleFilters;
+    const filterKey = key;
     if (filterKey === "status" && filter.status && filter.status.length > 0)
       fallsInFilters = fallsInFilters && filter.status.includes(cycle.status?.toLowerCase() ?? "");
     if (filterKey === "start_date" && filter.start_date && filter.start_date.length > 0) {
@@ -72,11 +72,17 @@ export const shouldFilterCycle = (cycle: ICycle, filter: TCycleFilters): boolean
 
 /**
  * Calculates the scope based on whether it's an issue or estimate points
- * @param {any} p - Progress data
+ * @param {object} p - Progress data
  * @param {boolean} isTypeIssue - Whether the type is an issue
  * @returns {number} Calculated scope
  */
-const scope = (p: any, isTypeIssue: boolean) => (isTypeIssue ? p.total_issues : p.total_estimate_points);
+const scope = (
+  p: Partial<Pick<TCycleProgressSnapshot, "total_issues" | "total_estimate_points">>,
+  isTypeIssue: boolean
+): number | undefined => (isTypeIssue ? p.total_issues : p.total_estimate_points);
+
+// A missing count turns the arithmetic into NaN, as it did for those days before.
+const count = (value: number | undefined) => value ?? NaN;
 
 /**
  * Calculates the ideal progress value
@@ -109,7 +115,7 @@ const formatV1Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, 
   const progress = [...Object.keys(data.completion_chart), ...extendedArray].map((p) => {
     const pending = data.completion_chart[p] || 0;
     const total = isTypeIssue ? cycle.total_issues : cycle.total_estimate_points;
-    const completed = scope(cycle, isTypeIssue) - pending;
+    const completed = count(scope(cycle, isTypeIssue)) - pending;
 
     return {
       date: p,
@@ -128,6 +134,9 @@ const formatV1Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, 
   return progress;
 };
 
+// Days after the last snapshot only carry a date.
+type TProgressRow = Partial<TCycleProgressSnapshot> & { date: string };
+
 /**
  * Formats cycle data for version 2
  * @param {boolean} isTypeIssue - Whether the type is an issue
@@ -136,12 +145,6 @@ const formatV1Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, 
  * @param {Date|string} endDate - End date
  * @returns {TProgressChartData} Formatted progress data
  */
-// Days after the last snapshot only carry a date.
-type TProgressRow = Partial<TCycleProgressSnapshot> & { date: string };
-
-// A missing count turns the arithmetic into NaN, as it did for those days before.
-const count = (value: number | undefined) => value ?? NaN;
-
 const formatV2Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, endDate: Date | string) => {
   if (!cycle.progress) return [];
   let today: Date | string = startOfToday();
@@ -151,7 +154,7 @@ const formatV2Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, 
   today = format(startOfToday(), "yyyy-MM-dd");
   const todaysData = cycle?.progress[cycle?.progress.length - 1];
   const scopeToday = scope(todaysData, isTypeIssue);
-  const idealToday = ideal(todaysData.date, scopeToday, cycle);
+  const idealToday = ideal(todaysData.date, count(scopeToday), cycle);
 
   const rows: TProgressRow[] = [...orderBy(cycle?.progress, "date"), ...extendedArray];
   let progress = rows.map((p) => {
@@ -172,7 +175,7 @@ const formatV2Data = (isTypeIssue: boolean, cycle: ICycle, isBurnDown: boolean, 
       pending: Math.abs(pending),
       ideal:
         dataDate! < today
-          ? ideal(dataDate, scope(p, isTypeIssue), cycle)
+          ? ideal(dataDate, count(scope(p, isTypeIssue)), cycle)
           : dataDate! < cycle.end_date!
             ? idealToday
             : null,

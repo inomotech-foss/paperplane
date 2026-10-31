@@ -209,8 +209,9 @@ export const updateDistribution = (distributionObject: ICycle | IModule, distrib
   // iterate over path updates and directly apply changes on the distribution object
   for (const update of pathUpdates) {
     const { path, value } = update;
-    const currentValue: number = get(distributionObject, path);
-    if (currentValue !== undefined) set(distributionObject, path, (currentValue ?? 0) + value);
+    const currentValue: unknown = get(distributionObject, path);
+    if (currentValue !== undefined)
+      set(distributionObject, path, (typeof currentValue === "number" ? currentValue : 0) + value);
   }
 
   // for assignee update iterate through the assignee update and apply at the respective position

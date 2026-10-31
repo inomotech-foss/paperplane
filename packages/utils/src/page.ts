@@ -75,7 +75,7 @@ export const orderPages = (
 export const shouldFilterPage = (page: TPage, filters: TPageFilterProps | undefined): boolean => {
   let fallsInFilters = true;
   Object.keys(filters ?? {}).forEach((key) => {
-    const filterKey = key as keyof TPageFilterProps;
+    const filterKey = key;
     if (filterKey === "created_by" && filters?.created_by && filters.created_by.length > 0)
       fallsInFilters = fallsInFilters && filters.created_by.includes(`${page.owned_by}`);
     if (filterKey === "created_at" && filters?.created_at && filters.created_at.length > 0) {

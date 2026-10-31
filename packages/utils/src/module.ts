@@ -65,7 +65,7 @@ export const shouldFilterModule = (
 ): boolean => {
   let fallsInFilters = true;
   Object.keys(filters).forEach((key) => {
-    const filterKey = key as keyof TModuleFilters;
+    const filterKey = key;
     if (filterKey === "status" && filters.status && filters.status.length > 0)
       fallsInFilters = fallsInFilters && filters.status.includes(module.status?.toLowerCase() ?? "");
     if (filterKey === "lead" && filters.lead && filters.lead.length > 0)

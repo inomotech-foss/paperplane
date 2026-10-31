@@ -6,6 +6,7 @@
 
 // plane imports
 import type { TFilterExpression, TFilterGroupNode, TFilterProperty } from "@plane/types";
+import { LOGICAL_OPERATOR } from "@plane/types";
 // local imports
 import { isConditionNode, isGroupNode } from "../../types/core";
 import { getGroupChildren } from "../../types/shared";
@@ -47,6 +48,18 @@ const createGroupTransformResult = <P extends TFilterProperty>(
   shouldNotify,
 });
 
+// A NOT group keeps exactly one child.
+const withChildren = <P extends TFilterProperty>(
+  group: TFilterGroupNode<P>,
+  children: TFilterExpression<P>[]
+): TFilterGroupNode<P> | null => {
+  if (group.logicalOperator === LOGICAL_OPERATOR.NOT) {
+    const [child] = children;
+    return child ? { ...group, children: [child] } : null;
+  }
+  return children.length > 0 ? { ...group, children } : null;
+};
+
 /**
  * Transforms groups with children by processing all children.
  * Handles child collection, null filtering, and empty group removal.
@@ -73,15 +86,10 @@ export const transformGroupWithChildren = <P extends TFilterProperty>(
   }
 
   // If no children remain, remove the entire group
-  if (transformedChildren.length === 0) {
+  const updatedGroup = withChildren(group, transformedChildren);
+  if (!updatedGroup) {
     return { expression: null, shouldNotify };
   }
-
-  // Create updated group with transformed children - type-safe without casting
-  const updatedGroup: TFilterGroupNode<P> = {
-    ...group,
-    children: transformedChildren,
-  } as TFilterGroupNode<P>;
 
   return createGroupTransformResult(updatedGroup, shouldNotify);
 };
