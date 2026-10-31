@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from collections import defaultdict
 from uuid import UUID
 
 from django.db.models import Exists, OuterRef, Q
@@ -123,6 +124,7 @@ def user_favorites(user, slug, entity_type, project_id=None):
         entity_type=entity_type,
         project__project_projectmember__member=user,
         project__project_projectmember__is_active=True,
+        project__project_projectmember__deleted_at__isnull=True,
     )
     if project_id is not None:
         favorites = favorites.filter(project_id=project_id)
@@ -150,6 +152,9 @@ class UserFavoriteSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(FavoriteEntitySerializer(allow_null=True))
     def get_entity_data(self, obj):
+        prefetched = self.context.get("entity_data")
+        if prefetched is not None:
+            return prefetched.get(obj.id)
         entity_type = obj.entity_type
         entity_identifier = obj.entity_identifier
 
@@ -163,3 +168,29 @@ class UserFavoriteSerializer(serializers.ModelSerializer):
             except entity_model.DoesNotExist:
                 return None
         return None
+
+
+def serialize_favorites(favorites):
+    """UserFavoriteSerializer data with one entity query per entity type and project instead of one per row."""
+    favorites = list(favorites)
+    groups = defaultdict(list)
+    for favorite in favorites:
+        groups[(favorite.entity_type, favorite.user_id, favorite.project_id, favorite.workspace_id)].append(favorite)
+    entity_data = {}
+    for (entity_type, user_id, project_id, workspace_id), rows in groups.items():
+        _, entity_serializer = get_entity_model_and_serializer(entity_type)
+        entities = {}
+        if entity_serializer:
+            identifiers = [row.entity_identifier for row in rows]
+            entities = {
+                entity.id: entity
+                for entity in get_favorite_entities(entity_type, user_id, project_id).filter(
+                    pk__in=identifiers, workspace_id=workspace_id
+                )
+            }
+        for row in rows:
+            entity = entities.get(row.entity_identifier)
+            entity_data[row.id] = (
+                entity_serializer(entity, context={"project_id": project_id}).data if entity is not None else None
+            )
+    return UserFavoriteSerializer(favorites, many=True, context={"entity_data": entity_data}).data

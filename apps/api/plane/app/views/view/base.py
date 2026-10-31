@@ -29,7 +29,12 @@ from plane.utils.openapi.pagination import paginated_response
 from plane.app.permissions import allow_permission, ROLE
 from plane.app.serializers import IssueViewSerializer, ViewIssueListSerializer
 from plane.app.serializers.response.issue import ViewWorkItemSerializer
-from plane.app.serializers.favorite import UserFavoriteSerializer, get_favorite_entities, user_favorites
+from plane.app.serializers.favorite import (
+    UserFavoriteSerializer,
+    get_favorite_entities,
+    serialize_favorites,
+    user_favorites,
+)
 from plane.db.models import (
     Issue,
     FileAsset,
@@ -460,7 +465,7 @@ class IssueViewFavoriteViewSet(BaseViewSet):
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def list(self, request, slug, project_id):
         favorites = user_favorites(request.user, slug, "view", project_id)
-        return Response(UserFavoriteSerializer(favorites, many=True).data, status=status.HTTP_200_OK)
+        return Response(serialize_favorites(favorites), status=status.HTTP_200_OK)
 
     @extend_schema(request=None, responses={204: OpenApiResponse(description="Added to favorites")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])

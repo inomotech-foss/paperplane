@@ -23,7 +23,12 @@ from plane.app.serializers import (
     ProjectListSerializer,
     ProjectSerializer,
 )
-from plane.app.serializers.favorite import UserFavoriteSerializer, get_favorite_entities, user_favorites
+from plane.app.serializers.favorite import (
+    UserFavoriteSerializer,
+    get_favorite_entities,
+    serialize_favorites,
+    user_favorites,
+)
 from plane.app.serializers.response.project import (
     IssueSequenceSerializer,
     ProjectArchiveSerializer,
@@ -560,10 +565,9 @@ class ProjectFavoritesViewSet(BaseViewSet):
     model = UserFavorite
 
     @extend_schema(responses={200: UserFavoriteSerializer(many=True)})
-    @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def list(self, request, slug):
         favorites = user_favorites(request.user, slug, "project")
-        return Response(UserFavoriteSerializer(favorites, many=True).data, status=status.HTTP_200_OK)
+        return Response(serialize_favorites(favorites), status=status.HTTP_200_OK)
 
     @extend_schema(
         request=ProjectFavoriteSerializer, responses={204: OpenApiResponse(description="Added to favorites")}
