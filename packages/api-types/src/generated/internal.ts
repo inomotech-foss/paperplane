@@ -7029,6 +7029,29 @@ export interface components {
          * @enum {string}
          */
         ExporterHistoryStatusEnum: "queued" | "processing" | "completed" | "failed";
+        FavoriteCreateRequest: {
+            name?: string | null;
+            /** Format: double */
+            sequence?: number;
+            /**
+             * Format: uuid
+             * @description The folder that holds the favorite
+             */
+            parent?: string | null;
+            /** @description project, cycle, module, view, page or folder */
+            entity_type: string;
+            /**
+             * Format: uuid
+             * @description The favorited entity. Omitted for a folder
+             */
+            entity_identifier?: string | null;
+            is_folder?: boolean;
+            /**
+             * Format: uuid
+             * @description The project of the entity. Null for workspace views and folders
+             */
+            project_id?: string | null;
+        };
         FavoriteEntity: {
             /** Format: uuid */
             id: string;
@@ -10114,6 +10137,16 @@ export interface components {
             key?: number;
             description?: string;
             value?: string;
+        };
+        PatchedFavoriteUpdateRequest: {
+            name?: string | null;
+            /** Format: double */
+            sequence?: number;
+            /**
+             * Format: uuid
+             * @description The folder that holds the favorite
+             */
+            parent?: string | null;
         };
         PatchedIntakeIssueRequest: {
             status?: components["schemas"]["IntakeWorkItemStatusEnum"];
@@ -26248,10 +26281,7 @@ export interface operations {
     };
     workspaces_user_favorites_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 slug: string;
@@ -26279,7 +26309,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FavoriteCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["FavoriteCreateRequest"];
+                "multipart/form-data": components["schemas"]["FavoriteCreateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -26322,7 +26358,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedFavoriteUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedFavoriteUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedFavoriteUpdateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -26336,10 +26378,7 @@ export interface operations {
     };
     workspaces_user_favorites_group_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 favorite_id: string;

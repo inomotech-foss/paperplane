@@ -16870,12 +16870,6 @@ paths:
     get:
       operationId: workspaces_user_favorites_list
       parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -16904,6 +16898,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavoriteCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FavoriteCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FavoriteCreateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -16930,6 +16936,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFavoriteUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFavoriteUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFavoriteUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -16970,12 +16987,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -23115,6 +23126,38 @@ components:
         * `processing` - Processing
         * `completed` - Completed
         * `failed` - Failed
+    FavoriteCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        sequence:
+          type: number
+          format: double
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+          description: The folder that holds the favorite
+        entity_type:
+          type: string
+          minLength: 1
+          description: project, cycle, module, view, page or folder
+        entity_identifier:
+          type: string
+          format: uuid
+          nullable: true
+          description: The favorited entity. Omitted for a folder
+        is_folder:
+          type: boolean
+        project_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: The project of the entity. Null for workspace views and folders
+      required:
+      - entity_type
     FavoriteEntity:
       type: object
       properties:
@@ -30665,6 +30708,20 @@ components:
           type: string
           minLength: 1
           maxLength: 255
+    PatchedFavoriteUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        sequence:
+          type: number
+          format: double
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+          description: The folder that holds the favorite
     PatchedIntakeIssueRequest:
       type: object
       properties:
