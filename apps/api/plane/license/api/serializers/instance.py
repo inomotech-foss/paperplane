@@ -14,4 +14,22 @@ class InstanceSerializer(BaseSerializer):
     class Meta:
         model = Instance
         fields = "__all__"
-        read_only_fields = ["id", "email", "last_checked_at", "is_setup_done"]
+        # Only the settings an admin edits are writable. The rest comes from setup and the version check.
+        read_only_fields = [
+            "id",
+            "email",
+            "last_checked_at",
+            "is_setup_done",
+            "instance_id",
+            "current_version",
+            "latest_version",
+            "edition",
+            "namespace",
+            "is_signup_screen_visited",
+            "is_verified",
+            "is_test",
+            "is_current_version_deprecated",
+            "created_by",
+            "updated_by",
+            "deleted_at",
+        ]

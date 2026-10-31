@@ -370,31 +370,31 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: date-time */
-            deleted_at: string | null;
+            readonly deleted_at: string | null;
             instance_name: string;
             whitelist_emails: string | null;
-            instance_id: string;
-            current_version: string;
-            latest_version: string | null;
-            edition: string;
+            readonly instance_id: string;
+            readonly current_version: string;
+            readonly latest_version: string | null;
+            readonly edition: string;
             domain: string;
             /** Format: date-time */
             readonly last_checked_at: string;
-            namespace: string | null;
+            readonly namespace: string | null;
             is_telemetry_enabled: boolean;
             is_support_required: boolean;
             readonly is_setup_done: boolean;
-            is_signup_screen_visited: boolean;
-            is_verified: boolean;
-            is_test: boolean;
-            is_current_version_deprecated: boolean;
+            readonly is_signup_screen_visited: boolean;
+            readonly is_verified: boolean;
+            readonly is_test: boolean;
+            readonly is_current_version_deprecated: boolean;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         InstanceAdmin: {
             /** Format: uuid */
@@ -515,31 +515,31 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: date-time */
-            deleted_at: string | null;
+            readonly deleted_at: string | null;
             instance_name: string;
             whitelist_emails: string | null;
-            instance_id: string;
-            current_version: string;
-            latest_version: string | null;
-            edition: string;
+            readonly instance_id: string;
+            readonly current_version: string;
+            readonly latest_version: string | null;
+            readonly edition: string;
             domain: string;
             /** Format: date-time */
             readonly last_checked_at: string;
-            namespace: string | null;
+            readonly namespace: string | null;
             is_telemetry_enabled: boolean;
             is_support_required: boolean;
             readonly is_setup_done: boolean;
-            is_signup_screen_visited: boolean;
-            is_verified: boolean;
-            is_test: boolean;
-            is_current_version_deprecated: boolean;
+            readonly is_signup_screen_visited: boolean;
+            readonly is_verified: boolean;
+            readonly is_test: boolean;
+            readonly is_current_version_deprecated: boolean;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         InstanceInfo: {
             config: components["schemas"]["InstanceConfig"];

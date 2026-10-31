@@ -677,6 +677,7 @@ components:
         deleted_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         instance_name:
           type: string
@@ -686,17 +687,17 @@ components:
           nullable: true
         instance_id:
           type: string
-          maxLength: 255
+          readOnly: true
         current_version:
           type: string
-          maxLength: 255
+          readOnly: true
         latest_version:
           type: string
+          readOnly: true
           nullable: true
-          maxLength: 255
         edition:
           type: string
-          maxLength: 255
+          readOnly: true
         domain:
           type: string
         last_checked_at:
@@ -705,8 +706,8 @@ components:
           readOnly: true
         namespace:
           type: string
+          readOnly: true
           nullable: true
-          maxLength: 255
         is_telemetry_enabled:
           type: boolean
         is_support_required:
@@ -716,19 +717,25 @@ components:
           readOnly: true
         is_signup_screen_visited:
           type: boolean
+          readOnly: true
         is_verified:
           type: boolean
+          readOnly: true
         is_test:
           type: boolean
+          readOnly: true
         is_current_version_deprecated:
           type: boolean
+          readOnly: true
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
       required:
@@ -1060,6 +1067,7 @@ components:
         deleted_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         instance_name:
           type: string
@@ -1069,17 +1077,17 @@ components:
           nullable: true
         instance_id:
           type: string
-          maxLength: 255
+          readOnly: true
         current_version:
           type: string
-          maxLength: 255
+          readOnly: true
         latest_version:
           type: string
+          readOnly: true
           nullable: true
-          maxLength: 255
         edition:
           type: string
-          maxLength: 255
+          readOnly: true
         domain:
           type: string
         last_checked_at:
@@ -1088,8 +1096,8 @@ components:
           readOnly: true
         namespace:
           type: string
+          readOnly: true
           nullable: true
-          maxLength: 255
         is_telemetry_enabled:
           type: boolean
         is_support_required:
@@ -1099,19 +1107,25 @@ components:
           readOnly: true
         is_signup_screen_visited:
           type: boolean
+          readOnly: true
         is_verified:
           type: boolean
+          readOnly: true
         is_test:
           type: boolean
+          readOnly: true
         is_current_version_deprecated:
           type: boolean
+          readOnly: true
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
       required:
