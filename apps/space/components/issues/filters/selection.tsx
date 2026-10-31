@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { CloseOutline, SearchOutline } from "@makeplane/propel/icons";
 // types
@@ -23,6 +23,12 @@ export const FilterSelection = observer(function FilterSelection(props: Props) {
   const { filters, handleFilters, layoutDisplayFiltersOptions } = props;
 
   const [filtersSearchQuery, setFiltersSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus the search when the dropdown opens.
+  useEffect(() => {
+    searchInputRef.current?.focus();
+  }, []);
 
   const isFilterEnabled = (filter: keyof IIssueFilterOptions) => layoutDisplayFiltersOptions.includes(filter);
 
@@ -32,12 +38,13 @@ export const FilterSelection = observer(function FilterSelection(props: Props) {
         <div className="flex items-center gap-1.5 rounded-sm border-[0.5px] border-subtle bg-surface-2 px-1.5 py-1 text-11">
           <SearchOutline className="text-placeholder" width={12} height={12} />
           <input
+            ref={searchInputRef}
             type="text"
+            aria-label="Search filters"
             className="w-full bg-surface-2 outline-none placeholder:text-placeholder"
             placeholder="Search"
             value={filtersSearchQuery}
             onChange={(e) => setFiltersSearchQuery(e.target.value)}
-            autoFocus
           />
           {filtersSearchQuery !== "" && (
             <button type="button" className="grid place-items-center" onClick={() => setFiltersSearchQuery("")}>

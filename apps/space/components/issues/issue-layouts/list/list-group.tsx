@@ -64,9 +64,11 @@ const ListLoaderItemRow = forwardRef(function ListLoaderItemRow(
 });
 ListLoaderItemRow.displayName = "ListLoaderItemRow";
 
+const EMPTY_ISSUE_IDS: string[] = [];
+
 export const ListGroup = observer(function ListGroup(props: Props) {
   const {
-    groupIssueIds = [],
+    groupIssueIds = EMPTY_ISSUE_IDS,
     group,
     groupBy,
     displayProperties,
@@ -98,15 +100,15 @@ export const ListGroup = observer(function ListGroup(props: Props) {
   const loadMore = isPaginating ? (
     <ListLoaderItemRow />
   ) : (
-    <div
+    <button
+      type="button"
       className={
-        "relative flex h-11 cursor-pointer items-center gap-3 border border-transparent border-t-subtle-1 bg-surface-1 p-3 pl-6 text-13 font-medium text-accent-primary hover:text-accent-secondary hover:underline"
+        "relative flex h-11 w-full cursor-pointer items-center gap-3 border border-transparent border-t-subtle-1 bg-surface-1 p-3 pl-6 text-13 font-medium text-accent-primary hover:text-accent-secondary hover:underline"
       }
       onClick={() => loadMoreIssues(group.id)}
-      role="button"
     >
       {t("common.load_more")} &darr;
-    </div>
+    </button>
   );
 
   const validateEmptyIssueGroups = (issueCount: number = 0) => {
