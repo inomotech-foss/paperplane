@@ -271,12 +271,12 @@ export function FavoriteFolder(props: Props) {
         {isOpen && favorite.children && favorite.children.length > 0 && (
           <div className="animate-fade-in">
             <div className="mt-1 flex flex-col gap-0.5 px-2">
-              {orderBy(favorite.children, "sequence", "desc").map((child, index) => (
+              {orderBy(favorite.children, "sequence", "desc").map((child, index, children) => (
                 <FavoriteRoot
                   key={child.id}
                   workspaceSlug={workspaceSlug.toString()}
                   favorite={child}
-                  isLastChild={index === favorite.children.length - 1}
+                  isLastChild={index === children.length - 1}
                   parentId={favorite.id}
                   handleRemoveFromFavorites={handleRemoveFromFavorites}
                   handleDrop={handleDrop}

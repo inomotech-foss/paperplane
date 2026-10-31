@@ -23,11 +23,8 @@ import { EPageStoreType, usePage } from "@/hooks/store";
 import { useAdditionalFavoriteItemDetails } from "@/hooks/use-additional-favorite-item-details";
 
 export const useFavoriteItemDetails = (workspaceSlug: string, favorite: IFavorite) => {
-  const {
-    entity_identifier: favoriteItemId,
-    entity_data: { logo_props: favoriteItemLogoProps },
-    entity_type: favoriteItemEntityType,
-  } = favorite;
+  const { entity_identifier: favoriteItemId, entity_type: favoriteItemEntityType } = favorite;
+  const favoriteItemLogoProps = favorite.entity_data?.logo_props;
   const favoriteItemName = favorite?.entity_data?.name || favorite?.name;
   // store hooks
   const { getViewById } = useProjectView();

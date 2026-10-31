@@ -6,20 +6,24 @@
 
 import type { TLogoProps } from "../client-json";
 
+export type IFavoriteEntityData = {
+  id?: string;
+  name: string;
+  logo_props?: TLogoProps | undefined;
+  project_id?: string | null;
+};
+
 export type IFavorite = {
   id: string;
   name: string;
   entity_type: string;
-  entity_data: {
-    id?: string;
-    name: string;
-    logo_props?: TLogoProps | undefined;
-  };
+  /** Null when the favorited entity is gone or no longer visible to the user. */
+  entity_data: IFavoriteEntityData | null;
   is_folder: boolean;
-  sort_order: number;
+  sort_order?: number | null;
   parent: string | null;
   entity_identifier?: string | null;
-  children: IFavorite[];
+  children?: IFavorite[];
   project_id: string | null;
   sequence: number;
   workspace_id: string;

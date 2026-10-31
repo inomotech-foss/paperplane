@@ -5,7 +5,7 @@
  */
 
 import { orderBy, uniqBy, set } from "lodash-es";
-import { action, observable, makeObservable, runInAction, computed } from "mobx";
+import { action, observable, makeObservable, runInAction, computed, toJS } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import type { IFavorite } from "@plane/types";
 import { FavoriteService } from "@/services/favorite";
@@ -52,13 +52,13 @@ export class FavoriteStore implements IFavoriteStore {
     [entityId: string]: IFavorite;
   } = {};
   // service
-  favoriteService;
-  rootStore;
-  viewStore;
-  projectStore;
-  pageStore;
-  cycleStore;
-  moduleStore;
+  favoriteService: FavoriteService;
+  rootStore: CoreRootStore;
+  viewStore: CoreRootStore["projectView"];
+  projectStore: CoreRootStore["projectRoot"]["project"];
+  pageStore: CoreRootStore["projectPages"];
+  cycleStore: CoreRootStore["cycle"];
+  moduleStore: CoreRootStore["module"];
 
   constructor(_rootStore: CoreRootStore) {
     makeObservable(this, {
@@ -109,16 +109,20 @@ export class FavoriteStore implements IFavoriteStore {
   }
 
   get groupedFavorites() {
-    const data: { [favoriteId: string]: IFavorite } = JSON.parse(JSON.stringify(this.currentWorkspaceFavorites));
+    const data: { [favoriteId: string]: IFavorite } = {};
+    Object.values(this.currentWorkspaceFavorites).forEach((fav) => {
+      data[fav.id] = toJS(fav);
+    });
 
     Object.values(data).forEach((fav) => {
-      if (fav.parent && data[fav.parent]) {
-        if (data[fav.parent].children) {
-          if (!data[fav.parent].children.some((f) => f.id === fav.id)) {
-            data[fav.parent].children.push(fav);
+      const parent = fav.parent ? data[fav.parent] : undefined;
+      if (parent) {
+        if (parent.children) {
+          if (!parent.children.some((f) => f.id === fav.id)) {
+            parent.children.push(fav);
           }
         } else {
-          data[fav.parent].children = [fav];
+          parent.children = [fav];
         }
       }
     });
@@ -330,7 +334,8 @@ export class FavoriteStore implements IFavoriteStore {
     } catch (error) {
       console.error("Failed to delete favorite from favorite store", error);
       runInAction(() => {
-        if (parent) set(this.favoriteMap, [parent, "children"], [...this.favoriteMap[parent].children, initialState]);
+        if (parent)
+          set(this.favoriteMap, [parent, "children"], [...(this.favoriteMap[parent].children ?? []), initialState]);
         set(this.favoriteMap, [favoriteId], initialState);
         if (entity_identifier) {
           set(this.entityMap, [entity_identifier], initialState);
