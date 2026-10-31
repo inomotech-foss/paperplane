@@ -40,6 +40,7 @@ from plane.app.serializers.request.project import (
     ProjectIdentifierNameSerializer,
     ProjectIssueSequenceSerializer,
 )
+from plane.app.serializers.project import ProjectUpdateSerializer
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.bgtasks.recent_visited_task import recent_visited_task
 from plane.bgtasks.webhook_task import model_activity, webhook_activity
@@ -342,7 +343,7 @@ class ProjectViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(request=ProjectSerializer, responses={200: ProjectListSerializer})
+    @extend_schema(request=ProjectUpdateSerializer, responses={200: ProjectListSerializer})
     def partial_update(self, request, slug, pk=None):
         # try:
         is_workspace_admin = WorkspaceMember.objects.filter(

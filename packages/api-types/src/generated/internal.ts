@@ -5642,6 +5642,11 @@ export interface components {
         CSRFToken: {
             csrf_token: string;
         };
+        ChangePasswordRequest: {
+            /** @description Required unless the password was autoset */
+            old_password?: string;
+            new_password: string;
+        };
         Chart: {
             /** @description One row per x value, with a count per group */
             data: ({
@@ -6491,9 +6496,18 @@ export interface components {
         };
         EmailCheck: {
             existing: boolean;
-            /** @description MAGIC_CODE or CREDENTIAL */
-            status: string;
+            status: components["schemas"]["EmailCheckStatusEnum"];
         };
+        EmailCheckRequestRequest: {
+            /** Format: email */
+            email: string;
+        };
+        /**
+         * @description * `MAGIC_CODE` - MAGIC_CODE
+         *     * `CREDENTIAL` - CREDENTIAL
+         * @enum {string}
+         */
+        EmailCheckStatusEnum: "MAGIC_CODE" | "CREDENTIAL";
         EmailReply: {
             comment: components["schemas"]["IssueComment"];
             email_message: components["schemas"]["IssueEmailMessage"];
@@ -6667,6 +6681,13 @@ export interface components {
             /** Format: uuid */
             updated_by: string | null;
         };
+        /**
+         * @description * `json` - json
+         *     * `csv` - csv
+         *     * `xlsx` - xlsx
+         * @enum {string}
+         */
+        ExportProviderEnum: "json" | "csv" | "xlsx";
         ExporterHistory: {
             /** Format: uuid */
             readonly id: string;
@@ -6678,7 +6699,7 @@ export interface components {
              */
             readonly updated_at: string;
             readonly project: string[] | null;
-            readonly provider: components["schemas"]["ProviderF5fEnum"];
+            readonly provider: components["schemas"]["ExportProviderEnum"];
             readonly status: components["schemas"]["ExporterHistoryStatusEnum"];
             /** Format: uri */
             readonly url: string | null;
@@ -6823,6 +6844,15 @@ export interface components {
                 [key: string]: components["schemas"]["SubWorkItem"][];
             };
         };
+        /**
+         * @description * `quick_links` - Quick Links
+         *     * `recents` - Recents
+         *     * `my_stickies` - My Stickies
+         *     * `new_at_plane` - New at Plane
+         *     * `quick_tutorial` - Quick Tutorial
+         * @enum {string}
+         */
+        HomeWidgetKeyEnum: "quick_links" | "recents" | "my_stickies" | "new_at_plane" | "quick_tutorial";
         InstanceAdminStatus: {
             is_instance_admin: boolean;
         };
@@ -7437,7 +7467,7 @@ export interface components {
             readonly updated_at: string;
         };
         IssueExportRequest: {
-            provider: components["schemas"]["ProviderF5fEnum"];
+            provider: components["schemas"]["ExportProviderEnum"];
             /** @description Every project of the caller when omitted */
             project?: string[];
             /** @description One file per project */
@@ -7680,6 +7710,24 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
+        };
+        IssueRecentVisit: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Issue Name */
+            name: string;
+            /** Format: uuid */
+            state: string | null;
+            /** Issue Priority */
+            priority: components["schemas"]["PriorityEnum"];
+            readonly assignees: string[];
+            /** Format: uuid */
+            type: string;
+            /** Issue Sequence ID */
+            sequence_id: number;
+            /** Format: uuid */
+            readonly project_id: string;
+            readonly project_identifier: string;
         };
         IssueRelation: {
             /** Format: uuid */
@@ -9152,6 +9200,17 @@ export interface components {
                 [key: string]: string;
             };
         };
+        PageRecentVisit: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            logo_props: components["schemas"]["ClientJson"];
+            /** Format: uuid */
+            readonly project_id: string | null;
+            /** Format: uuid */
+            owned_by: string;
+            readonly project_identifier: string | null;
+        };
         PageRequest: {
             name?: string;
             access?: components["schemas"]["Access1f9Enum"];
@@ -9889,7 +9948,9 @@ export interface components {
             sort_order?: number;
             is_active?: boolean;
         };
-        PatchedProjectRequest: {
+        PatchedProjectUpdateRequest: {
+            /** @description Turns the intake on or off */
+            inbox_view?: boolean;
             /** Project Name */
             name?: string;
             /** Project Description */
@@ -9908,7 +9969,6 @@ export interface components {
             issue_views_view?: boolean;
             page_view?: boolean;
             issue_view?: boolean;
-            intake_view?: boolean;
             is_time_tracking_enabled?: boolean;
             is_issue_type_enabled?: boolean;
             guest_view_all_features?: boolean;
@@ -10197,6 +10257,21 @@ export interface components {
             token: string;
             /** @description False when omitted, which declines */
             accepted?: boolean;
+        };
+        ProjectInviteEmailRequest: {
+            /** Format: email */
+            email: string;
+            /**
+             * @description Guest when omitted
+             *
+             *     * `20` - Admin
+             *     * `15` - Member
+             *     * `5` - Guest
+             */
+            role?: components["schemas"]["RoleEnum"];
+        };
+        ProjectInviteRequest: {
+            emails: components["schemas"]["ProjectInviteEmailRequest"][];
         };
         ProjectIssueSequenceRequest: {
             /** @description The sequence number of the next work item */
@@ -10541,24 +10616,6 @@ export interface components {
             /** Format: date-time */
             readonly responded_at: string | null;
         };
-        ProjectMemberInviteRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
-            email: string;
-            accepted?: boolean;
-            token: string;
-            message?: string | null;
-            /** Format: date-time */
-            responded_at?: string | null;
-            role?: components["schemas"]["RoleEnum"];
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
-        };
         ProjectMemberLite: {
             readonly member: components["schemas"]["UserLite"] | null;
             /** Format: uuid */
@@ -10592,6 +10649,16 @@ export interface components {
         };
         ProjectMembersAddRequest: {
             members: components["schemas"]["ProjectMemberAddRequest"][];
+        };
+        ProjectRecentVisit: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Project Name */
+            name: string;
+            logo_props: components["schemas"]["ClientJson"];
+            readonly project_members: string[];
+            /** Project Identifier */
+            identifier: string;
         };
         ProjectRequest: {
             /** Project Name */
@@ -10743,13 +10810,6 @@ export interface components {
                 };
             };
         };
-        /**
-         * @description * `json` - json
-         *     * `csv` - csv
-         *     * `xlsx` - xlsx
-         * @enum {string}
-         */
-        ProviderF5fEnum: "json" | "csv" | "xlsx";
         PublicActor: {
             /** Format: uuid */
             id: string;
@@ -10910,6 +10970,7 @@ export interface components {
             field?: string | null;
             lookup?: string | null;
         };
+        RecentVisitEntity: components["schemas"]["IssueRecentVisit"] | components["schemas"]["PageRecentVisit"] | components["schemas"]["ProjectRecentVisit"];
         RelatedWorkItem: {
             /** Format: uuid */
             id: string;
@@ -11009,6 +11070,8 @@ export interface components {
             /** Format: uuid */
             project_id: string;
             workspace__slug: string;
+            /** Format: uuid */
+            type_id: string;
         };
         SearchWorkspace: {
             name: string;
@@ -12763,6 +12826,8 @@ export interface components {
             state__name: string | null;
             state__group: string | null;
             state__color: string | null;
+            /** Format: uuid */
+            type_id: string;
         };
         WorkItemSnapshot: {
             /** Format: uuid */
@@ -13048,7 +13113,7 @@ export interface components {
             sort_order: number;
         };
         WorkspaceHomePreferenceRow: {
-            key: string;
+            key: components["schemas"]["HomeWidgetKeyEnum"];
             is_enabled: boolean;
             config: unknown;
             /** Format: double */
@@ -13216,7 +13281,7 @@ export interface components {
             entity_name: string;
             /** Format: uuid */
             entity_identifier: string | null;
-            readonly entity_data: string;
+            readonly entity_data: components["schemas"]["RecentVisitEntity"] | null;
             /** Format: date-time */
             readonly visited_at: string;
         };
@@ -15213,12 +15278,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["FileAssetLookup"];
+                };
             };
         };
     };
@@ -17024,7 +17090,16 @@ export interface operations {
     };
     workspaces_entity_search_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Results per type, 5 by default */
+                count?: number;
+                /** @description Limits the results to this project */
+                project_id?: string;
+                /** @description Matches names and identifiers, every item when omitted */
+                query?: string;
+                /** @description Comma separated user_mention, project, issue, cycle, module or page, user_mention by default */
+                query_type?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -17849,9 +17924,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedProjectRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedProjectRequest"];
-                "multipart/form-data": components["schemas"]["PatchedProjectRequest"];
+                "application/json": components["schemas"]["PatchedProjectUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedProjectUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedProjectUpdateRequest"];
             };
         };
         responses: {
@@ -19893,9 +19968,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ProjectMemberInviteRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["ProjectMemberInviteRequest"];
-                "multipart/form-data": components["schemas"]["ProjectMemberInviteRequest"];
+                "application/json": components["schemas"]["ProjectInviteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ProjectInviteRequest"];
+                "multipart/form-data": components["schemas"]["ProjectInviteRequest"];
             };
         };
         responses: {
@@ -24704,6 +24779,8 @@ export interface operations {
     workspaces_recent_visits_list: {
         parameters: {
             query?: {
+                /** @description issue, page or project, every type when omitted */
+                entity_name?: string;
                 /** @description A search term. */
                 search?: string;
             };
@@ -24749,7 +24826,16 @@ export interface operations {
     };
     workspaces_search_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Comma separated entity types, every type when omitted */
+                entities?: string;
+                /** @description The project to search in */
+                project_id?: string;
+                /** @description Matches names and identifiers, every item when omitted */
+                search?: string;
+                /** @description false limits the results to project_id when it is set */
+                workspace_search?: "false" | "true";
+            };
             header?: never;
             path: {
                 slug: string;
@@ -26228,7 +26314,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ChangePasswordRequest"];
+                "multipart/form-data": components["schemas"]["ChangePasswordRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -26247,7 +26339,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailCheckRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["EmailCheckRequestRequest"];
+                "multipart/form-data": components["schemas"]["EmailCheckRequestRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -26426,6 +26524,7 @@ export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQu
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQueryParentValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["parent"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQuerySub_issueValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["sub_issue"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQueryWorkspace_searchValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["workspace_search"]> = ["false", "true"];
+export const pathsApiWorkspacesSlugSearchGetParametersQueryWorkspace_searchValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/search/"]["get"]["parameters"]["query"]["workspace_search"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugUsersNotificationsGetParametersQueryArchivedValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/users/notifications/"]["get"]["parameters"]["query"]["archived"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugUsersNotificationsGetParametersQueryReadValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/users/notifications/"]["get"]["parameters"]["query"]["read"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugUsersNotificationsGetParametersQuerySnoozedValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/users/notifications/"]["get"]["parameters"]["query"]["snoozed"]> = ["false", "true"];
@@ -26436,8 +26535,11 @@ export const blankEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["s
 export const chartTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ChartTypeEnum"]> = ["number", "bar", "line", "area", "pie", "donut", "table"];
 export const derivationEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DerivationEnum"]> = ["NONE", "INHERIT", "LOOKUP", "ROLLUP"];
 export const directionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DirectionEnum"]> = ["INBOUND", "OUTBOUND"];
+export const emailCheckStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["EmailCheckStatusEnum"]> = ["MAGIC_CODE", "CREDENTIAL"];
+export const exportProviderEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ExportProviderEnum"]> = ["json", "csv", "xlsx"];
 export const exporterHistoryStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ExporterHistoryStatusEnum"]> = ["queued", "processing", "completed", "failed"];
 export const group272EnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Group272Enum"]> = ["backlog", "unstarted", "started", "completed", "cancelled", "triage"];
+export const homeWidgetKeyEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["HomeWidgetKeyEnum"]> = ["quick_links", "recents", "my_stickies", "new_at_plane", "quick_tutorial"];
 export const intakeWorkItemStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IntakeWorkItemStatusEnum"]> = [-2, -1, 0, 1, 2];
 export const issueCommentAccessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IssueCommentAccessEnum"]> = ["INTERNAL", "EXTERNAL"];
 export const issueEmailMessageStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IssueEmailMessageStatusEnum"]> = ["RECEIVED", "PENDING", "SENT", "FAILED"];
@@ -26451,7 +26553,6 @@ export const pqlDialectEnumValues: ReadonlyArray<FlattenedDeepRequired<component
 export const priorityEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PriorityEnum"]> = ["urgent", "high", "medium", "low", "none"];
 export const projectStateGroupEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ProjectStateGroupEnum"]> = ["backlog", "unstarted", "started", "completed", "cancelled"];
 export const propertyTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PropertyTypeEnum"]> = ["TEXT", "DECIMAL", "OPTION", "DATETIME", "BOOLEAN", "RELATION"];
-export const providerF5fEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ProviderF5fEnum"]> = ["json", "csv", "xlsx"];
 export const relationTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RelationTypeEnum"]> = ["USER", "ISSUE"];
 export const removeTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RemoveTypeEnum"]> = ["unlink", "delete"];
 export const roleEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RoleEnum"]> = [20, 15, 5];

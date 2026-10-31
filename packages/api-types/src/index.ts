@@ -49,7 +49,7 @@ export type AdminApiResponse<P extends AdminApiPath, M extends MethodOf<AdminPat
 
 export type AdminApiSchema<N extends keyof AdminComponents["schemas"]> = AdminComponents["schemas"][N];
 
-export { timezoneEnumValues, userTimezoneEnumValues } from "./generated/internal";
+export { exportProviderEnumValues, timezoneEnumValues, userTimezoneEnumValues } from "./generated/internal";
 
 export type TTimezone = ApiSchema<"TimezoneEnum">;
 

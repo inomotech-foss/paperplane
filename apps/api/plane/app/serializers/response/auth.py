@@ -6,9 +6,12 @@ from rest_framework import serializers
 from .user import ConnectedAppWorkspaceSerializer
 
 
+EMAIL_CHECK_STATUSES = ["MAGIC_CODE", "CREDENTIAL"]
+
+
 class EmailCheckSerializer(serializers.Serializer):
     existing = serializers.BooleanField()
-    status = serializers.CharField(help_text="MAGIC_CODE or CREDENTIAL")
+    status = serializers.ChoiceField(choices=EMAIL_CHECK_STATUSES)
 
 
 class MagicKeySerializer(serializers.Serializer):

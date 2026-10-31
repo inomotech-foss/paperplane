@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from plane.app.serializers.workspace import WorkspaceMemberAdminSerializer, WorkSpaceMemberSerializer
 from plane.db.models import Issue
+from plane.db.models.workspace import WorkspaceHomePreference
 from plane.db.models.state import StateGroup
 from plane.utils.openapi.serializers import DictOf
 
@@ -119,7 +120,7 @@ def workspace_member_row(many=False):
 
 
 class WorkspaceHomePreferenceRowSerializer(serializers.Serializer):
-    key = serializers.CharField()
+    key = serializers.ChoiceField(choices=WorkspaceHomePreference.HomeWidgetKeys.choices)
     is_enabled = serializers.BooleanField()
     config = serializers.JSONField()
     sort_order = serializers.FloatField()

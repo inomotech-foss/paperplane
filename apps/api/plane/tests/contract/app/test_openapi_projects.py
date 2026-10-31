@@ -3,9 +3,10 @@
 
 """The project endpoints return what the OpenAPI schema documents."""
 
+import jsonschema
 import pytest
 
-from plane.db.models import Label, ProjectIdentifier, ProjectMember, ProjectMemberInvite, User, WorkspaceMember
+from plane.db.models import Issue, Label, ProjectIdentifier, ProjectMember, ProjectMemberInvite, User, WorkspaceMember
 from plane.tests.factories import ProjectFactory
 from plane.tests.openapi import documented, no_tasks  # noqa: F401
 from plane.tests.openapi import documented_query, documented_request
@@ -125,6 +126,13 @@ class TestProjectRequests:
         url, body = sent(route, "patch", {"name": "Renamed"}, slug=workspace.slug, pk=project.id)
         documented(session_client.patch(url, body, format="json"))
 
+    def test_update_turns_intake_on_with_inbox_view(self, session_client, workspace, project):
+        route = "/api/workspaces/{slug}/projects/{pk}/"
+        url, body = sent(route, "patch", {"inbox_view": True}, slug=workspace.slug, pk=project.id)
+        assert documented(session_client.patch(url, body, format="json"))["intake_view"] is True
+        with pytest.raises(jsonschema.ValidationError):
+            documented_request(route, "patch", {"intake_view": True})
+
     def test_links_and_members(self, session_client, workspace, project):
         base = "/api/workspaces/{slug}/projects/{project_id}"
         ids = {"slug": workspace.slug, "project_id": project.id}
@@ -183,3 +191,10 @@ class TestProjectRequests:
         assert {"search", "workspace_search", "issue_id", "parent", "limit"} <= documented_query(route, "get")
         url = route.format(slug=workspace.slug, project_id=project.id)
         documented(session_client.get(url, {"search": "x", "workspace_search": "false", "limit": 5}))
+
+    def test_search_issues_has_the_type(self, session_client, workspace, project):
+        issue = Issue.objects.create(
+            name="Typed", project=project, workspace=workspace, type=link_starter_type(project)
+        )
+        url = f"/api/workspaces/{workspace.slug}/projects/{project.id}/search-issues/"
+        assert documented(session_client.get(url, {"search": "Typed"}))[0]["type_id"] == str(issue.type_id)

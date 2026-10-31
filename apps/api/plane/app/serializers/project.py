@@ -103,6 +103,15 @@ class ProjectSerializer(BaseSerializer):
         return project
 
 
+class ProjectUpdateSerializer(ProjectSerializer):
+    """Schema only. The update reads intake on or off from inbox_view, not intake_view."""
+
+    inbox_view = serializers.BooleanField(required=False, help_text="Turns the intake on or off")
+
+    class Meta(ProjectSerializer.Meta):
+        read_only_fields = [*ProjectSerializer.Meta.read_only_fields, "intake_view"]
+
+
 class ProjectLiteSerializer(BaseSerializer):
     class Meta:
         model = Project

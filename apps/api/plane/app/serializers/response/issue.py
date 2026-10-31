@@ -320,6 +320,7 @@ class WorkItemSearchResultSerializer(serializers.Serializer):
     state__name = serializers.CharField(allow_null=True)
     state__group = serializers.CharField(allow_null=True)
     state__color = serializers.CharField(allow_null=True)
+    type_id = serializers.UUIDField()
 
 
 class ExpandedRelationSerializer(serializers.Serializer):

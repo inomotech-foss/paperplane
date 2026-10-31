@@ -3,6 +3,8 @@
 # See the LICENSE file for details.
 
 # Third party imports
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field
 from rest_framework import serializers
 
 # Module imports
@@ -262,10 +264,12 @@ class IssueRecentVisitSerializer(serializers.ModelSerializer):
             "project_identifier",
         ]
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_project_identifier(self, obj):
         project = obj.project
         return project.identifier if project else None
 
+    @extend_schema_field(serializers.ListField(child=serializers.UUIDField()))
     def get_assignees(self, obj):
         return list(obj.assignees.filter(issue_assignee__deleted_at__isnull=True).values_list("id", flat=True))
 
@@ -277,6 +281,7 @@ class ProjectRecentVisitSerializer(serializers.ModelSerializer):
         model = Project
         fields = ["id", "name", "logo_props", "project_members", "identifier"]
 
+    @extend_schema_field(serializers.ListField(child=serializers.UUIDField()))
     def get_project_members(self, obj):
         members = ProjectMember.objects.filter(project_id=obj.id, member__is_bot=False, is_active=True).values_list(
             "member", flat=True
@@ -300,9 +305,11 @@ class PageRecentVisitSerializer(serializers.ModelSerializer):
             "project_identifier",
         ]
 
+    @extend_schema_field(serializers.UUIDField(allow_null=True))
     def get_project_id(self, obj):
         return obj.project_id if hasattr(obj, "project_id") else obj.projects.values_list("id", flat=True).first()
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_project_identifier(self, obj):
         project = obj.projects.first()
 
@@ -326,6 +333,14 @@ class WorkspaceRecentVisitSerializer(BaseSerializer):
         fields = ["id", "entity_name", "entity_identifier", "entity_data", "visited_at"]
         read_only_fields = ["workspace", "owner", "created_by", "updated_by"]
 
+    @extend_schema_field(
+        PolymorphicProxySerializer(
+            component_name="RecentVisitEntity",
+            serializers=[IssueRecentVisitSerializer, PageRecentVisitSerializer, ProjectRecentVisitSerializer],
+            resource_type_field_name=None,
+            allow_null=True,
+        )
+    )
     def get_entity_data(self, obj):
         entity_name = obj.entity_name
         entity_identifier = obj.entity_identifier

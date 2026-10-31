@@ -24,6 +24,7 @@ class SearchWorkItemSerializer(serializers.Serializer):
     project__identifier = serializers.CharField()
     project_id = serializers.UUIDField()
     workspace__slug = serializers.CharField()
+    type_id = serializers.UUIDField()
 
 
 class SearchProjectEntitySerializer(serializers.Serializer):

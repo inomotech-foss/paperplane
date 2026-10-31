@@ -35,3 +35,12 @@ class UserActivityExportSerializer(serializers.Serializer):
 
 class ProjectJoinSerializer(serializers.Serializer):
     project_ids = serializers.ListField(child=serializers.UUIDField())
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=False, help_text="Required unless the password was autoset")
+    new_password = serializers.CharField()
+
+
+class EmailCheckRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()

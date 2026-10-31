@@ -28,6 +28,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.request.workspace import ENTITY_SEARCH_PARAMETERS, GLOBAL_SEARCH_PARAMETERS
 from plane.app.serializers.response.search import EntitySearchSerializer, GlobalSearchSerializer
 from plane.app.views.base import BaseAPIView
 from plane.app.permissions import ROLE, WorkspaceUserPermission
@@ -119,6 +120,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             "project__identifier",
             "project_id",
             "workspace__slug",
+            "type_id",
         )[:100]
 
     def filter_cycles(self, query, slug, project_id, workspace_search):
@@ -292,10 +294,11 @@ class GlobalSearchEndpoint(BaseAPIView):
                 "project__identifier",
                 "project_id",
                 "workspace__slug",
+                "type_id",
             )[:100]
         )
 
-    @extend_schema(responses={200: GlobalSearchSerializer})
+    @extend_schema(parameters=GLOBAL_SEARCH_PARAMETERS, responses={200: GlobalSearchSerializer})
     def get(self, request, slug):
         query = request.query_params.get("search", False)
         entities_param = request.query_params.get("entities")
@@ -333,7 +336,7 @@ class GlobalSearchEndpoint(BaseAPIView):
 class SearchEndpoint(BaseAPIView):
     permission_classes = (WorkspaceUserPermission,)
 
-    @extend_schema(responses={200: EntitySearchSerializer})
+    @extend_schema(parameters=ENTITY_SEARCH_PARAMETERS, responses={200: EntitySearchSerializer})
     def get(self, request, slug):
         query = request.query_params.get("query", False)
         query_types = request.query_params.get("query_type", "user_mention").split(",")

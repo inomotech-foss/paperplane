@@ -2177,7 +2177,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileAssetLookup'
+          description: ''
     delete:
       operationId: users_file_assets_destroy
       parameters:
@@ -4125,6 +4129,27 @@ paths:
     get:
       operationId: workspaces_entity_search_retrieve
       parameters:
+      - in: query
+        name: count
+        schema:
+          type: integer
+        description: Results per type, 5 by default
+      - in: query
+        name: project_id
+        schema:
+          type: string
+        description: Limits the results to this project
+      - in: query
+        name: query
+        schema:
+          type: string
+        description: Matches names and identifiers, every item when omitted
+      - in: query
+        name: query_type
+        schema:
+          type: string
+        description: Comma separated user_mention, project, issue, cycle, module or
+          page, user_mention by default
       - in: path
         name: slug
         schema:
@@ -5063,13 +5088,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedProjectRequest'
+              $ref: '#/components/schemas/PatchedProjectUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedProjectRequest'
+              $ref: '#/components/schemas/PatchedProjectUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedProjectRequest'
+              $ref: '#/components/schemas/PatchedProjectUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -7898,13 +7923,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProjectMemberInviteRequest'
+              $ref: '#/components/schemas/ProjectInviteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ProjectMemberInviteRequest'
+              $ref: '#/components/schemas/ProjectInviteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ProjectMemberInviteRequest'
+              $ref: '#/components/schemas/ProjectInviteRequest'
         required: true
       security:
       - sessionAuth: []
@@ -14670,6 +14695,11 @@ paths:
     get:
       operationId: workspaces_recent_visits_list
       parameters:
+      - in: query
+        name: entity_name
+        schema:
+          type: string
+        description: issue, page or project, every type when omitted
       - name: search
         required: false
         in: query
@@ -14724,11 +14754,34 @@ paths:
     get:
       operationId: workspaces_search_retrieve
       parameters:
+      - in: query
+        name: entities
+        schema:
+          type: string
+        description: Comma separated entity types, every type when omitted
+      - in: query
+        name: project_id
+        schema:
+          type: string
+        description: The project to search in
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Matches names and identifiers, every item when omitted
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: workspace_search
+        schema:
+          type: string
+          enum:
+          - 'false'
+          - 'true'
+        description: false limits the results to project_id when it is set
       tags:
       - workspaces
       security:
@@ -16500,6 +16553,18 @@ paths:
       operationId: auth_change_password_create
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+        required: true
       security:
       - cookieAuth: []
       responses:
@@ -16514,6 +16579,18 @@ paths:
       operationId: auth_email_check_create
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailCheckRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EmailCheckRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EmailCheckRequestRequest'
+        required: true
       security:
       - cookieAuth: []
       - {}
@@ -17846,6 +17923,18 @@ components:
           type: string
       required:
       - csrf_token
+    ChangePasswordRequest:
+      type: object
+      properties:
+        old_password:
+          type: string
+          minLength: 1
+          description: Required unless the password was autoset
+        new_password:
+          type: string
+          minLength: 1
+      required:
+      - new_password
     Chart:
       type: object
       properties:
@@ -19952,11 +20041,27 @@ components:
         existing:
           type: boolean
         status:
-          type: string
-          description: MAGIC_CODE or CREDENTIAL
+          $ref: '#/components/schemas/EmailCheckStatusEnum'
       required:
       - existing
       - status
+    EmailCheckRequestRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+      required:
+      - email
+    EmailCheckStatusEnum:
+      enum:
+      - MAGIC_CODE
+      - CREDENTIAL
+      type: string
+      description: |-
+        * `MAGIC_CODE` - MAGIC_CODE
+        * `CREDENTIAL` - CREDENTIAL
     EmailReply:
       type: object
       properties:
@@ -20346,6 +20451,16 @@ components:
       - created_at
       - updated_at
       - updated_by
+    ExportProviderEnum:
+      enum:
+      - json
+      - csv
+      - xlsx
+      type: string
+      description: |-
+        * `json` - json
+        * `csv` - csv
+        * `xlsx` - xlsx
     ExporterHistory:
       type: object
       properties:
@@ -20371,7 +20486,7 @@ components:
           nullable: true
         provider:
           allOf:
-          - $ref: '#/components/schemas/ProviderF5fEnum'
+          - $ref: '#/components/schemas/ExportProviderEnum'
           readOnly: true
         status:
           allOf:
@@ -20739,6 +20854,20 @@ components:
       required:
       - state_distribution
       - sub_issues
+    HomeWidgetKeyEnum:
+      enum:
+      - quick_links
+      - recents
+      - my_stickies
+      - new_at_plane
+      - quick_tutorial
+      type: string
+      description: |-
+        * `quick_links` - Quick Links
+        * `recents` - Recents
+        * `my_stickies` - My Stickies
+        * `new_at_plane` - New at Plane
+        * `quick_tutorial` - Quick Tutorial
     InstanceAdminStatus:
       type: object
       properties:
@@ -22285,7 +22414,7 @@ components:
       type: object
       properties:
         provider:
-          $ref: '#/components/schemas/ProviderF5fEnum'
+          $ref: '#/components/schemas/ExportProviderEnum'
         project:
           type: array
           items:
@@ -22856,6 +22985,56 @@ components:
           title: Last Modified By
       required:
       - reaction
+    IssueRecentVisit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          title: Issue Name
+          maxLength: 255
+        state:
+          type: string
+          format: uuid
+          nullable: true
+        priority:
+          allOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          title: Issue Priority
+        assignees:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+        type:
+          type: string
+          format: uuid
+        sequence_id:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: Issue Sequence ID
+        project_id:
+          type: string
+          format: uuid
+          readOnly: true
+        project_identifier:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - name
+      - state
+      - priority
+      - assignees
+      - type
+      - sequence_id
+      - project_id
+      - project_identifier
     IssueRelation:
       type: object
       properties:
@@ -26385,6 +26564,36 @@ components:
       - parent
       - owned_by
       - updated_at
+    PageRecentVisit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
+        project_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        owned_by:
+          type: string
+          format: uuid
+        project_identifier:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - id
+      - name
+      - logo_props
+      - project_id
+      - owned_by
+      - project_identifier
     PageRequest:
       type: object
       properties:
@@ -28140,9 +28349,12 @@ components:
           format: double
         is_active:
           type: boolean
-    PatchedProjectRequest:
+    PatchedProjectUpdateRequest:
       type: object
       properties:
+        inbox_view:
+          type: boolean
+          description: Turns the intake on or off
         name:
           type: string
           minLength: 1
@@ -28184,8 +28396,6 @@ components:
         page_view:
           type: boolean
         issue_view:
-          type: boolean
-        intake_view:
           type: boolean
         is_time_tracking_enabled:
           type: boolean
@@ -28820,6 +29030,33 @@ components:
           description: False when omitted, which declines
       required:
       - token
+    ProjectInviteEmailRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            Guest when omitted
+
+            * `20` - Admin
+            * `15` - Member
+            * `5` - Guest
+      required:
+      - email
+    ProjectInviteRequest:
+      type: object
+      properties:
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectInviteEmailRequest'
+      required:
+      - emails
     ProjectIssueSequenceRequest:
       type: object
       properties:
@@ -29711,48 +29948,6 @@ components:
       - message
       - accepted
       - responded_at
-    ProjectMemberInviteRequest:
-      type: object
-      properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
-        email:
-          type: string
-          minLength: 1
-          maxLength: 255
-        accepted:
-          type: boolean
-        token:
-          type: string
-          minLength: 1
-          maxLength: 255
-        message:
-          type: string
-          nullable: true
-          minLength: 1
-        responded_at:
-          type: string
-          format: date-time
-          nullable: true
-        role:
-          allOf:
-          - $ref: '#/components/schemas/RoleEnum'
-          minimum: 0
-          maximum: 32767
-        created_by:
-          type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
-      required:
-      - email
-      - token
     ProjectMemberLite:
       type: object
       properties:
@@ -29847,6 +30042,35 @@ components:
             $ref: '#/components/schemas/ProjectMemberAddRequest'
       required:
       - members
+    ProjectRecentVisit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          title: Project Name
+          maxLength: 255
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
+        project_members:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+        identifier:
+          type: string
+          title: Project Identifier
+          maxLength: 12
+      required:
+      - id
+      - name
+      - logo_props
+      - project_members
+      - identifier
     ProjectRequest:
       type: object
       properties:
@@ -30171,16 +30395,6 @@ components:
       - values
       - display
       - derived
-    ProviderF5fEnum:
-      enum:
-      - json
-      - csv
-      - xlsx
-      type: string
-      description: |-
-        * `json` - json
-        * `csv` - csv
-        * `xlsx` - xlsx
     PublicActor:
       type: object
       properties:
@@ -30619,6 +30833,11 @@ components:
           nullable: true
       required:
       - valid
+    RecentVisitEntity:
+      oneOf:
+      - $ref: '#/components/schemas/IssueRecentVisit'
+      - $ref: '#/components/schemas/PageRecentVisit'
+      - $ref: '#/components/schemas/ProjectRecentVisit'
     RelatedWorkItem:
       type: object
       properties:
@@ -30833,6 +31052,9 @@ components:
           format: uuid
         workspace__slug:
           type: string
+        type_id:
+          type: string
+          format: uuid
       required:
       - name
       - id
@@ -30840,6 +31062,7 @@ components:
       - project__identifier
       - project_id
       - workspace__slug
+      - type_id
     SearchWorkspace:
       type: object
       properties:
@@ -34812,6 +35035,9 @@ components:
         state__color:
           type: string
           nullable: true
+        type_id:
+          type: string
+          format: uuid
       required:
       - name
       - id
@@ -34824,6 +35050,7 @@ components:
       - state__name
       - state__group
       - state__color
+      - type_id
     WorkItemSnapshot:
       type: object
       properties:
@@ -35570,7 +35797,7 @@ components:
       type: object
       properties:
         key:
-          type: string
+          $ref: '#/components/schemas/HomeWidgetKeyEnum'
         is_enabled:
           type: boolean
         config: {}
@@ -35999,7 +36226,9 @@ components:
           format: uuid
           nullable: true
         entity_data:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/RecentVisitEntity'
+          nullable: true
           readOnly: true
         visited_at:
           type: string

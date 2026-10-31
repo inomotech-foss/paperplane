@@ -176,6 +176,7 @@ class IssueSearchEndpoint(BaseAPIView):
                 "state__name",
                 "state__group",
                 "state__color",
+                "type_id",
             )[:limit],
             status=status.HTTP_200_OK,
         )

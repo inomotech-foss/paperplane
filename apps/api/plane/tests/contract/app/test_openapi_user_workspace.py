@@ -22,6 +22,7 @@ from plane.db.models import (
     ProjectMemberInvite,
     State,
     User,
+    UserRecentVisit,
     WorkspaceMember,
     WorkspaceMemberInvite,
 )
@@ -304,6 +305,34 @@ class TestWorkspaceRequests:
         route = "/api/workspaces/{slug}/sidebar-preferences/"
         ok(send(session_client, "patch", route, [{"key": key, "is_pinned": True}], slug=workspace.slug))
         assert ok(session_client.get(f"/api/workspaces/{workspace.slug}/home-preferences/"))
+
+    def test_search(self, session_client, workspace, data):
+        route = "/api/workspaces/{slug}/search/"
+        assert {"search", "entities", "workspace_search", "project_id"} <= documented_query(route, "get")
+        params = {"search": "late", "workspace_search": "true"}
+        results = ok(session_client.get(route.format(slug=workspace.slug), params))["results"]
+        assert results["issue"][0]["type_id"] == str(data["issues"][0].type_id)
+        route = "/api/workspaces/{slug}/entity-search/"
+        assert {"query", "query_type", "count", "project_id"} <= documented_query(route, "get")
+        params = {"query": "", "query_type": "user_mention,project", "count": 2}
+        assert set(ok(session_client.get(route.format(slug=workspace.slug), params))) == {"user_mention", "project"}
+
+    def test_recent_visits(self, session_client, create_user, workspace, data):
+        project = data["project"]
+        for name, identifier in [("project", project.id), ("issue", data["issues"][0].id), ("cycle", project.id)]:
+            UserRecentVisit.objects.create(
+                workspace=workspace, user=create_user, entity_name=name, entity_identifier=identifier
+            )
+        route = "/api/workspaces/{slug}/recent-visits/"
+        assert "entity_name" in documented_query(route, "get")
+        visits = ok(session_client.get(route.format(slug=workspace.slug)))
+        assert {visit["entity_name"] for visit in visits} == {"project", "issue"}
+        issue = ok(session_client.get(route.format(slug=workspace.slug), {"entity_name": "issue"}))[0]
+        assert issue["entity_data"]["assignees"] == [str(create_user.id)]
+
+    def test_auth_bodies(self, session_client, create_user, data):
+        documented_request("/auth/email-check/", "post", {"email": "a@plane.so"})
+        documented_request("/auth/change-password/", "post", {"old_password": "a", "new_password": "b"})
 
     def test_notifications(self, session_client, workspace, data):
         base = f"/api/workspaces/{workspace.slug}/users/notifications/"
