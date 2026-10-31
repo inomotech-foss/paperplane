@@ -13,10 +13,35 @@ import { createApiClient, unwrap } from "../client";
 
 export type TWorkspaceCreateBody = ApiRequestBody<"/api/workspaces/", "post">;
 export type TWorkspaceUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/", "patch">;
-/** The backend currently answers this route with a 500. */
 export type TLastVisitedWorkspace = ApiResponse<"/api/users/last-visited-workspace/", "get">;
 
 const workspacePath = (slug: string) => ({ path: { slug } });
+
+export type TWorkspaceSearchParams = {
+  project_id?: string;
+  search: string;
+  workspace_search: boolean;
+};
+
+/** Every entity type is requested, so a missing list is an empty one. */
+export const toWorkspaceSearchResults = ({ results }: ApiSchema<"GlobalSearch">): IWorkspaceSearchResults => ({
+  results: {
+    workspace: results.workspace ?? [],
+    project: results.project ?? [],
+    issue: results.issue ?? [],
+    cycle: results.cycle ?? [],
+    module: results.module ?? [],
+    issue_view: results.issue_view ?? [],
+    page: results.page ?? [],
+  },
+});
+
+export const workspaceSearchQuery = (
+  params: TWorkspaceSearchParams
+): Omit<TWorkspaceSearchParams, "workspace_search"> & { workspace_search: "true" | "false" } => ({
+  ...params,
+  workspace_search: params.workspace_search ? "true" : "false",
+});
 
 /**
  * Service class for managing workspace operations
@@ -107,20 +132,13 @@ export class WorkspaceService extends APIService {
    * @returns {Promise<IWorkspaceSearchResults>} Promise resolving to search results
    * @throws {Error} If the API request fails
    */
-  async search(
-    workspaceSlug: string,
-    params: {
-      project_id?: string;
-      search: string;
-      workspace_search: boolean;
-    }
-  ): Promise<IWorkspaceSearchResults> {
-    return this.get(`/api/workspaces/${workspaceSlug}/search/`, {
-      params,
-    })
-      .then((res) => res?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async search(workspaceSlug: string, params: TWorkspaceSearchParams): Promise<IWorkspaceSearchResults> {
+    return toWorkspaceSearchResults(
+      await unwrap(
+        this.client.GET("/api/workspaces/{slug}/search/", {
+          params: { path: { slug: workspaceSlug }, query: workspaceSearchQuery(params) },
+        })
+      )
+    );
   }
 }

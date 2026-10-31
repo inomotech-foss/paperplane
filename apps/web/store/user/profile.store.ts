@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import { cloneDeep, set } from "lodash-es";
+import { cloneDeep } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 // plane imports
-import { setLanguage } from "@plane/i18n";
+import { SUPPORTED_LANGUAGES, setLanguage } from "@plane/i18n";
 import type { TLanguage } from "@plane/i18n";
 // types
 import type { IUserTheme, TUserProfile } from "@plane/types";
@@ -16,6 +16,9 @@ import { EStartOfTheWeek } from "@plane/types";
 import { UserService } from "@/services/user.service";
 // store
 import type { CoreRootStore } from "../root.store";
+
+const toLanguage = (value: string | undefined): TLanguage | undefined =>
+  SUPPORTED_LANGUAGES.find((language) => language.value === value)?.value;
 
 type TError = {
   status: string;
@@ -90,9 +93,7 @@ export class ProfileStore implements IUserProfileStore {
   // helper action
   mutateUserProfile = (data: Partial<TUserProfile>) => {
     if (!data) return;
-    Object.entries(data).forEach(([key, value]) => {
-      if (key in this.data) set(this.data, key, value);
-    });
+    this.data = { ...this.data, ...data };
   };
 
   // actions
@@ -111,9 +112,8 @@ export class ProfileStore implements IUserProfileStore {
         this.isLoading = false;
         this.data = userProfile;
       });
-      if (userProfile.language) {
-        void setLanguage(userProfile.language as TLanguage);
-      }
+      const language = toLanguage(userProfile.language);
+      if (language) void setLanguage(language);
       return userProfile;
     } catch (error) {
       runInAction(() => {
@@ -138,9 +138,8 @@ export class ProfileStore implements IUserProfileStore {
       if (currentUserProfileData) {
         this.mutateUserProfile(data);
       }
-      if (data.language) {
-        void setLanguage(data.language as TLanguage);
-      }
+      const language = toLanguage(data.language);
+      if (language) void setLanguage(language);
       const userProfile = await this.userService.updateCurrentUserProfile(data);
       return userProfile;
     } catch {
@@ -229,10 +228,7 @@ export class ProfileStore implements IUserProfileStore {
     const currentProfileTheme = cloneDeep(this.data.theme);
     try {
       runInAction(() => {
-        Object.keys(data).forEach((key) => {
-          const dataKey = key as keyof IUserTheme;
-          if (this.data.theme) set(this.data.theme, dataKey, data[dataKey]);
-        });
+        this.data.theme = { ...this.data.theme, ...data };
       });
       const userProfile = await this.userService.updateCurrentUserProfile({
         theme: this.data.theme,
@@ -240,10 +236,7 @@ export class ProfileStore implements IUserProfileStore {
       return userProfile;
     } catch (error) {
       runInAction(() => {
-        Object.keys(data).forEach((key: string) => {
-          const userKey: keyof IUserTheme = key as keyof IUserTheme;
-          if (currentProfileTheme) set(this.data.theme, userKey, currentProfileTheme[userKey]);
-        });
+        this.data.theme = currentProfileTheme;
         this.error = {
           status: "user-profile-theme-update-error",
           message: "Failed to update user profile theme",

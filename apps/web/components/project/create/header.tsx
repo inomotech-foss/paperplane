@@ -42,7 +42,7 @@ function ProjectCreateHeader(props: Props) {
   return (
     <div className="group relative h-44 w-full rounded-lg">
       <CoverImage
-        src={coverImage}
+        src={coverImage ?? undefined}
         alt={t("project_cover_image_alt")}
         className="absolute top-0 left-0 h-full w-full rounded-lg"
       />

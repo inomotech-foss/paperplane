@@ -15,8 +15,8 @@ import { useProject } from "@/hooks/store/use-project";
 type Props = {
   project: {
     id: string;
-    completed_issues?: number;
-    total_issues?: number;
+    completed_issues?: number | null;
+    total_issues?: number | null;
   };
   isLoading?: boolean;
 };

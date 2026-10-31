@@ -6,11 +6,12 @@
 
 import type { ApiRequestBody, ApiResponse, ApiSchema } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
-import { unwrap } from "@plane/services";
+import { toWorkspaceMemberMe, toWorkspaceSearchResults, unwrap, workspaceSearchQuery } from "@plane/services";
+import type { TWorkspaceMemberMeUpdateBody, TWorkspaceSearchParams } from "@plane/services";
+import { RECENT_ENTITY_NAMES, parseIssueFiltersResponse, parseLogoProps } from "@plane/types";
 import type {
   IWorkspace,
   IWorkspaceMemberMe,
-  TPqlDialect,
   IWorkspaceMember,
   IWorkspaceMemberInvitation,
   IWorkspaceSearchResults,
@@ -22,11 +23,15 @@ import type {
   TSearchEntityRequestPayload,
   TWidgetEntityData,
   TActivityEntityData,
-  IWorkspaceSidebarNavigationItem,
+  TLogoProps,
+  TIssueEntityData,
+  TPageEntityData,
+  TProjectEntityData,
   IWorkspaceSidebarNavigation,
   IWorkspaceUserPropertiesResponse,
 } from "@plane/types";
 // services
+import { isOneOf } from "@/helpers/narrow.helper";
 import { apiClient } from "@/services/api-client";
 import { APIService } from "@/services/api.service";
 
@@ -41,6 +46,35 @@ export type TWorkspaceMemberUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/
 export type TSlugAvailability = ApiSchema<"SlugAvailability">;
 export type TMessageResponse = ApiSchema<"MessageResponse">;
 export type TWorkspaceInvitationUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/invitations/{pk}/", "patch">;
+
+export type TWorkspaceLinkCreateBody = ApiRequestBody<"/api/workspaces/{slug}/quick-links/", "post">;
+export type TWorkspaceLinkUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/quick-links/{pk}/", "patch">;
+export type TWorkspaceWidgetUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/home-preferences/{key}/", "patch">;
+export type TWorkspaceWidgetUpdateResponse = ApiSchema<"WorkspaceHomePreference">;
+
+const toWorkspaceUserProperties = (
+  properties: ApiSchema<"WorkspaceUserProperties">
+): IWorkspaceUserPropertiesResponse => ({ ...properties, ...parseIssueFiltersResponse(properties) });
+
+const toRecentEntity = (
+  entity: ApiSchema<"RecentVisitEntity"> | null
+): TPageEntityData | TProjectEntityData | TIssueEntityData | null =>
+  entity && "logo_props" in entity ? { ...entity, logo_props: parseLogoProps(entity.logo_props) } : entity;
+
+const withParsedLogo = <T extends { logo_props: unknown }>(
+  entity: T
+): Omit<T, "logo_props"> & { logo_props: TLogoProps } => ({
+  ...entity,
+  logo_props: parseLogoProps(entity.logo_props),
+});
+
+/** Leaves out visits of entity types the home page cannot show. */
+export const toRecentVisits = (visits: ApiSchema<"WorkspaceRecentVisit">[]): TActivityEntityData[] =>
+  visits.flatMap((visit) =>
+    isOneOf(RECENT_ENTITY_NAMES, visit.entity_name)
+      ? [{ ...visit, entity_name: visit.entity_name, entity_data: toRecentEntity(visit.entity_data) }]
+      : []
+  );
 
 const workspacePath = (slug: string) => ({ path: { slug } });
 const workspaceItemPath = (slug: string, pk: string) => ({ path: { slug, pk } });
@@ -94,7 +128,6 @@ export class WorkspaceService extends APIService {
     return unwrap(apiClient.POST("/api/users/me/workspaces/invitations/", { body: data }));
   }
 
-  /** The backend currently answers this route with a 500. */
   async getLastActiveWorkspaceAndProjects(): Promise<TLastVisitedWorkspace> {
     return unwrap(apiClient.GET("/api/users/last-visited-workspace/"));
   }
@@ -104,19 +137,24 @@ export class WorkspaceService extends APIService {
   }
 
   async workspaceMemberMe(workspaceSlug: string): Promise<IWorkspaceMemberMe> {
-    return this.get(`/api/workspaces/${workspaceSlug}/workspace-members/me/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return toWorkspaceMemberMe(
+      await unwrap(
+        apiClient.GET("/api/workspaces/{slug}/workspace-members/me/", { params: workspacePath(workspaceSlug) })
+      )
+    );
   }
 
   async updateWorkspaceMemberMe(
     workspaceSlug: string,
-    data: { pql_dialect: TPqlDialect | null }
+    data: TWorkspaceMemberMeUpdateBody
   ): Promise<IWorkspaceMemberMe> {
-    return unwrap(
-      apiClient.PATCH("/api/workspaces/{slug}/workspace-members/me/", { params: workspacePath(workspaceSlug), body: data })
+    return toWorkspaceMemberMe(
+      await unwrap(
+        apiClient.PATCH("/api/workspaces/{slug}/workspace-members/me/", {
+          params: workspacePath(workspaceSlug),
+          body: data,
+        })
+      )
     );
   }
 
@@ -190,21 +228,14 @@ export class WorkspaceService extends APIService {
     return unwrap(apiClient.GET("/api/workspace-slug-check/", { params: { query: { slug } } }));
   }
 
-  async searchWorkspace(
-    workspaceSlug: string,
-    params: {
-      project_id?: string;
-      search: string;
-      workspace_search: boolean;
-    }
-  ): Promise<IWorkspaceSearchResults> {
-    return this.get(`/api/workspaces/${workspaceSlug}/search/`, {
-      params,
-    })
-      .then((res) => res?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async searchWorkspace(workspaceSlug: string, params: TWorkspaceSearchParams): Promise<IWorkspaceSearchResults> {
+    return toWorkspaceSearchResults(
+      await unwrap(
+        apiClient.GET("/api/workspaces/{slug}/search/", {
+          params: { path: { slug: workspaceSlug }, query: workspaceSearchQuery(params) },
+        })
+      )
+    );
   }
 
   async createView(workspaceSlug: string, data: Partial<IWorkspaceView>): Promise<IWorkspaceView> {
@@ -272,102 +303,84 @@ export class WorkspaceService extends APIService {
 
   // quicklinks
   async fetchWorkspaceLinks(workspaceSlug: string): Promise<TLink[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/quick-links/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return unwrap(apiClient.GET("/api/workspaces/{slug}/quick-links/", { params: workspacePath(workspaceSlug) }));
   }
 
-  async createWorkspaceLink(workspaceSlug: string, data: Partial<TLink>): Promise<TLink> {
-    return this.post(`/api/workspaces/${workspaceSlug}/quick-links/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+  async createWorkspaceLink(workspaceSlug: string, data: TWorkspaceLinkCreateBody): Promise<TLink> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/quick-links/", { params: workspacePath(workspaceSlug), body: data })
+    );
   }
 
-  async updateWorkspaceLink(workspaceSlug: string, linkId: string, data: Partial<TLink>): Promise<TLink> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/quick-links/${linkId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+  async updateWorkspaceLink(workspaceSlug: string, linkId: string, data: TWorkspaceLinkUpdateBody): Promise<TLink> {
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/quick-links/{pk}/", {
+        params: workspaceItemPath(workspaceSlug, linkId),
+        body: data,
+      })
+    );
   }
 
   async deleteWorkspaceLink(workspaceSlug: string, linkId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/quick-links/${linkId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/quick-links/{pk}/", { params: workspaceItemPath(workspaceSlug, linkId) })
+    );
   }
 
   async searchEntity(workspaceSlug: string, params: TSearchEntityRequestPayload): Promise<TSearchResponse> {
-    return this.get(`/api/workspaces/${workspaceSlug}/entity-search/`, {
-      params: {
-        ...params,
-        query_type: params.query_type.join(","),
-      },
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const response = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/entity-search/", {
+        params: {
+          path: { slug: workspaceSlug },
+          query: {
+            query: params.query,
+            query_type: params.query_type.join(","),
+            count: params.count,
+            project_id: params.project_id,
+          },
+        },
+      })
+    );
+    return {
+      ...response,
+      project: response.project?.map(withParsedLogo),
+      page: response.page?.map(withParsedLogo),
+    };
   }
 
   // recents
   async fetchWorkspaceRecents(workspaceSlug: string, entity_name?: string): Promise<TActivityEntityData[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/recent-visits/`, {
-      params: {
-        entity_name,
-      },
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return toRecentVisits(
+      await unwrap(
+        apiClient.GET("/api/workspaces/{slug}/recent-visits/", {
+          params: { path: { slug: workspaceSlug }, query: { entity_name } },
+        })
+      )
+    );
   }
 
   // widgets
   async fetchWorkspaceWidgets(workspaceSlug: string): Promise<TWidgetEntityData[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/home-preferences/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return unwrap(apiClient.GET("/api/workspaces/{slug}/home-preferences/", { params: workspacePath(workspaceSlug) }));
   }
 
   async updateWorkspaceWidget(
     workspaceSlug: string,
     widgetKey: string,
-    data: Partial<TWidgetEntityData>
-  ): Promise<TWidgetEntityData> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/home-preferences/${widgetKey}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    data: TWorkspaceWidgetUpdateBody
+  ): Promise<TWorkspaceWidgetUpdateResponse> {
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/home-preferences/{key}/", {
+        params: { path: { slug: workspaceSlug, key: widgetKey } },
+        body: data,
+      })
+    );
   }
 
   async fetchSidebarNavigationPreferences(workspaceSlug: string): Promise<IWorkspaceSidebarNavigation> {
     return unwrap(
       apiClient.GET("/api/workspaces/{slug}/sidebar-preferences/", { params: workspacePath(workspaceSlug) })
     );
-  }
-
-  /** The backend has no such route, so this always fails. */
-
-  async updateSidebarPreference(
-    workspaceSlug: string,
-    key: string,
-    data: Partial<IWorkspaceSidebarNavigationItem>
-  ): Promise<IWorkspaceSidebarNavigationItem> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/sidebar-preferences/${key}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
   }
 
   async updateBulkSidebarPreferences(
@@ -383,21 +396,19 @@ export class WorkspaceService extends APIService {
   }
 
   async fetchWorkspaceFilters(workspaceSlug: string): Promise<IWorkspaceUserPropertiesResponse> {
-    return this.get(`/api/workspaces/${workspaceSlug}/user-properties/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return toWorkspaceUserProperties(
+      await unwrap(apiClient.GET("/api/workspaces/{slug}/user-properties/", { params: workspacePath(workspaceSlug) }))
+    );
   }
 
   async patchWorkspaceFilters(
     workspaceSlug: string,
     data: Partial<IWorkspaceUserPropertiesResponse>
   ): Promise<IWorkspaceUserPropertiesResponse> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/user-properties/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return toWorkspaceUserProperties(
+      await unwrap(
+        apiClient.PATCH("/api/workspaces/{slug}/user-properties/", { params: workspacePath(workspaceSlug), body: data })
+      )
+    );
   }
 }

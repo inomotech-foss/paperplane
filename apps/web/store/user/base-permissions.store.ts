@@ -14,19 +14,14 @@ import {
   EUserPermissionsLevel,
   WORKSPACE_SIDEBAR_DYNAMIC_NAVIGATION_ITEMS_LINKS,
 } from "@plane/constants";
-import type {
-  EUserProjectRoles,
-  IUserProjectsRole,
-  IWorkspaceMemberMe,
-  TPqlDialect,
-  TProjectMembership,
-} from "@plane/types";
+import type { EUserProjectRoles, IUserProjectsRole, IWorkspaceMemberMe, TPqlDialect } from "@plane/types";
 import { EUserWorkspaceRoles } from "@plane/types";
 // plane web imports
 import { WorkspaceService } from "@/services/workspace.service";
 import type { RootStore } from "@/store/root.store";
 // services
 import projectMemberService from "@/services/project/project-member.service";
+import type { TProjectMemberMe } from "@/services/project/project-member.service";
 import userService from "@/services/user.service";
 
 // derived services
@@ -38,7 +33,7 @@ export interface IBaseUserPermissionStore {
   loader: boolean;
   // observables
   workspaceUserInfo: Record<string, IWorkspaceMemberMe>; // workspaceSlug -> IWorkspaceMemberMe
-  projectUserInfo: Record<string, Record<string, TProjectMembership>>; // workspaceSlug -> projectId -> TProjectMembership
+  projectUserInfo: Record<string, Record<string, TProjectMemberMe>>; // workspaceSlug -> projectId -> TProjectMemberMe
   workspaceProjectsPermissions: Record<string, IUserProjectsRole>; // workspaceSlug -> IUserProjectsRole
   // computed helpers
   workspaceInfoBySlug: (workspaceSlug: string) => IWorkspaceMemberMe | undefined;
@@ -60,7 +55,7 @@ export interface IBaseUserPermissionStore {
   fetchUserWorkspaceInfo: (workspaceSlug: string) => Promise<IWorkspaceMemberMe>;
   updateWorkspaceMemberDialect: (workspaceSlug: string, dialect: TPqlDialect | null) => Promise<void>;
   leaveWorkspace: (workspaceSlug: string) => Promise<void>;
-  fetchUserProjectInfo: (workspaceSlug: string, projectId: string) => Promise<TProjectMembership>;
+  fetchUserProjectInfo: (workspaceSlug: string, projectId: string) => Promise<TProjectMemberMe>;
   fetchUserProjectPermissions: (workspaceSlug: string) => Promise<IUserProjectsRole>;
   joinProject: (workspaceSlug: string, projectId: string) => Promise<void>;
   leaveProject: (workspaceSlug: string, projectId: string) => Promise<void>;
@@ -75,7 +70,7 @@ export class BaseUserPermissionStore implements IBaseUserPermissionStore {
   loader: boolean = false;
   // constants
   workspaceUserInfo: Record<string, IWorkspaceMemberMe> = {};
-  projectUserInfo: Record<string, Record<string, TProjectMembership>> = {};
+  projectUserInfo: Record<string, Record<string, TProjectMemberMe>> = {};
   workspaceProjectsPermissions: Record<string, IUserProjectsRole> = {};
   // observables
 
@@ -117,7 +112,7 @@ export class BaseUserPermissionStore implements IBaseUserPermissionStore {
   getWorkspaceRoleByWorkspaceSlug = computedFn(
     (workspaceSlug: string): TUserPermissions | EUserWorkspaceRoles | undefined => {
       if (!workspaceSlug) return undefined;
-      return this.workspaceUserInfo[workspaceSlug]?.role as TUserPermissions | EUserWorkspaceRoles | undefined;
+      return this.workspaceUserInfo[workspaceSlug]?.role;
     }
   );
 
@@ -143,13 +138,12 @@ export class BaseUserPermissionStore implements IBaseUserPermissionStore {
    */
   getProjectRolesByWorkspaceSlug = computedFn((workspaceSlug: string): IUserProjectsRole => {
     const projectPermissions = this.workspaceProjectsPermissions[workspaceSlug] || {};
-    return Object.keys(projectPermissions).reduce((acc, projectId) => {
+    const roles: IUserProjectsRole = {};
+    for (const projectId of Object.keys(projectPermissions)) {
       const projectRole = this.getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId);
-      if (projectRole) {
-        acc[projectId] = projectRole;
-      }
-      return acc;
-    }, {} as IUserProjectsRole);
+      if (projectRole) roles[projectId] = projectRole;
+    }
+    return roles;
   });
 
   /**
@@ -210,25 +204,17 @@ export class BaseUserPermissionStore implements IBaseUserPermissionStore {
     if (!workspaceSlug) workspaceSlug = currentWorkspaceSlug;
     if (!projectId) projectId = currentProjectId;
 
-    let currentUserRole: TUserPermissions | undefined = undefined;
+    let currentUserRole: number | undefined = undefined;
 
-    if (level === EUserPermissionsLevel.WORKSPACE) {
-      currentUserRole = (workspaceSlug && this.getWorkspaceRoleByWorkspaceSlug(workspaceSlug)) as
-        | EUserPermissions
-        | undefined;
+    if (level === EUserPermissionsLevel.WORKSPACE && workspaceSlug) {
+      currentUserRole = this.getWorkspaceRoleByWorkspaceSlug(workspaceSlug);
     }
 
-    if (level === EUserPermissionsLevel.PROJECT) {
-      currentUserRole = (workspaceSlug &&
-        projectId &&
-        this.getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId)) as EUserPermissions | undefined;
+    if (level === EUserPermissionsLevel.PROJECT && workspaceSlug && projectId) {
+      currentUserRole = this.getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId);
     }
 
-    if (typeof currentUserRole === "string") {
-      currentUserRole = parseInt(currentUserRole);
-    }
-
-    if (currentUserRole && typeof currentUserRole === "number" && allowPermissions.includes(currentUserRole)) {
+    if (currentUserRole && allowPermissions.some((permission) => permission === currentUserRole)) {
       if (onPermissionAllowed) {
         return onPermissionAllowed();
       } else {
@@ -298,9 +284,9 @@ export class BaseUserPermissionStore implements IBaseUserPermissionStore {
    * @description Fetches the user's project information
    * @param { string } workspaceSlug
    * @param { string } projectId
-   * @returns { Promise<TProjectMembership | undefined> }
+   * @returns { Promise<TProjectMemberMe> }
    */
-  fetchUserProjectInfo = async (workspaceSlug: string, projectId: string): Promise<TProjectMembership> => {
+  fetchUserProjectInfo = async (workspaceSlug: string, projectId: string): Promise<TProjectMemberMe> => {
     try {
       const response = await projectMemberService.projectMemberMe(workspaceSlug, projectId);
       if (response) {

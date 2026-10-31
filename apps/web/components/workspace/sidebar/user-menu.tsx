@@ -61,7 +61,7 @@ export const SidebarUserMenu = observer(function SidebarUserMenu() {
     },
   ];
 
-  const draftIssueCount = workspaceUserInfo[workspaceSlug.toString()]?.draft_issue_count;
+  const draftIssueCount = workspaceUserInfo[workspaceSlug.toString()]?.draft_issue_count ?? 0;
 
   return (
     <div className="flex flex-col gap-0.5">

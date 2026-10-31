@@ -3,9 +3,13 @@
  * See the LICENSE file for details.
  */
 
+import { isApiError } from "@plane/services";
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
 import { authErrorHandler, EAuthenticationErrorCodes } from "@/helpers/authentication.helper";
 import { getStringField, isOneOf } from "@/helpers/narrow.helper";
+
+/** The body of a failed typed client request, or `error` itself when it was thrown as the body. */
+export const getApiErrorBody = (error: unknown): unknown => (isApiError(error) ? error.data : error);
 
 /** Reads the `error` message the API puts in a failed response body. */
 export const getApiErrorMessage = (error: unknown): string | undefined => getStringField(error, "error");

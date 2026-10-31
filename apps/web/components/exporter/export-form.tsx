@@ -15,6 +15,7 @@ import {
   EXPORTERS_LIST,
   // ISSUE_DISPLAY_FILTERS_BY_PAGE,
 } from "@plane/constants";
+import { exportProviderEnumValues } from "@plane/api-types";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { setToast } from "@plane/blocks/toast";
@@ -27,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectList, SelectTrigger } from "@m
 // components
 import { ProjectSelect } from "@/components/dropdowns/project/project-select";
 // hooks
+import { findLiteral } from "@/helpers/narrow.helper";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { ProjectExportService } from "@/services/project/project-export.service";
@@ -93,12 +95,12 @@ export const ExportForm = observer(function ExportForm(props: Props) {
   // handlers
   async function ExportCSVToMail(formData: FormData) {
     setExportLoading(true);
-    if (workspaceSlug && user) {
+    const provider = findLiteral(exportProviderEnumValues, formData.provider.provider);
+    if (workspaceSlug && user && provider) {
       const payload = {
-        provider: formData.provider.provider,
+        provider,
         project: formData.project,
         multiple: formData.project.length > 1,
-        rich_filters: formData.filters,
       };
       try {
         await projectExportService.csvExport(workspaceSlug, payload);

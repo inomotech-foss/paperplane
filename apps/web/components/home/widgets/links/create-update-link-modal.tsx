@@ -13,7 +13,7 @@ import { Field } from "@makeplane/propel/components/field";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
-import type { TLinkEditableFields } from "@plane/types";
+import type { TLink, TLinkEditableFields } from "@plane/types";
 import {
   Dialog,
   DialogActions,
@@ -36,7 +36,7 @@ export type TLinkCreateEditModal = {
   isModalOpen: boolean;
   handleOnClose?: () => void;
   linkOperations: TLinkOperationsModal;
-  preloadedData?: TLinkCreateFormFieldOptions;
+  preloadedData?: Pick<TLink, "id" | "title" | "url">;
 };
 
 const defaultValues: TLinkCreateFormFieldOptions = {
@@ -74,7 +74,7 @@ export const LinkCreateUpdateModal = observer(function LinkCreateUpdateModal(pro
   };
 
   useEffect(() => {
-    if (isModalOpen) reset({ ...defaultValues, ...preloadedData });
+    if (isModalOpen) reset({ ...defaultValues, ...preloadedData, title: preloadedData?.title ?? "" });
     return () => reset(defaultValues);
   }, [preloadedData, reset, isModalOpen]);
 

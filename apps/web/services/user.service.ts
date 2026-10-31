@@ -4,10 +4,11 @@
  * See the LICENSE file for details.
  */
 
+import type { AxiosRequestConfig } from "axios";
 // services
 import type { ApiRequestBody, ApiResponse, ApiSchema } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
-import { unwrap, userUpdateBody } from "@plane/services";
+import { toUserProfile, unwrap, userUpdateBody } from "@plane/services";
 import type { TUserUpdateResponse } from "@plane/services";
 import type {
   IUser,
@@ -17,6 +18,7 @@ import type {
   IUserProfileProjectSegregation,
   IUserSettings,
   IUserEmailNotificationSettings,
+  TIssueParams,
   TIssuesResponse,
   TUserProfile,
   TStateGroups,
@@ -28,6 +30,7 @@ import { APIService } from "@/services/api.service";
 export type TUserAccount = ApiResponse<"/api/users/me/accounts/", "get">[number];
 export type TEmailNotificationSettingsBody = ApiRequestBody<"/api/users/me/notification-preferences/", "patch">;
 export type TMessageResponse = ApiSchema<"MessageResponse">;
+export type TChangePasswordBody = ApiRequestBody<"/auth/change-password/", "post">;
 
 const userPath = (slug: string, user_id: string) => ({ path: { slug, user_id } });
 
@@ -49,19 +52,11 @@ export class UserService extends APIService {
   }
 
   async getCurrentUserProfile(): Promise<TUserProfile> {
-    return this.get("/api/users/me/profile/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return toUserProfile(await unwrap(apiClient.GET("/api/users/me/profile/")));
   }
 
-  async updateCurrentUserProfile(data: any): Promise<any> {
-    return this.patch("/api/users/me/profile/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+  async updateCurrentUserProfile(data: Partial<TUserProfile>): Promise<TUserProfile> {
+    return toUserProfile(await unwrap(apiClient.PATCH("/api/users/me/profile/", { body: data })));
   }
 
   async getCurrentUserAccounts(): Promise<TUserAccount[]> {
@@ -100,16 +95,8 @@ export class UserService extends APIService {
     return unwrap(apiClient.PATCH("/api/users/me/notification-preferences/", { body: data }));
   }
 
-  async changePassword(token: string, data: { old_password?: string; new_password: string }): Promise<any> {
-    return this.post(`/auth/change-password/`, data, {
-      headers: {
-        "X-CSRFTOKEN": token,
-      },
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async changePassword(token: string, data: TChangePasswordBody): Promise<TMessageResponse> {
+    return unwrap(apiClient.POST("/auth/change-password/", { body: data, headers: { "X-CSRFTOKEN": token } }));
   }
 
   /** Leaves out work items without a state or in triage, which the profile charts have no group for. */
@@ -165,8 +152,8 @@ export class UserService extends APIService {
   async getUserProfileIssues(
     workspaceSlug: string,
     userId: string,
-    params: any,
-    config = {}
+    params: Partial<Record<TIssueParams, string | boolean>>,
+    config: AxiosRequestConfig = {}
   ): Promise<TIssuesResponse> {
     return this.get(
       `/api/workspaces/${workspaceSlug}/user-issues/${userId}/`,
@@ -200,28 +187,16 @@ export class UserService extends APIService {
     );
   }
 
-  async leaveProject(workspaceSlug: string, projectId: string) {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/members/leave/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async leaveProject(workspaceSlug: string, projectId: string): Promise<void> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/members/leave/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId } },
+      })
+    );
   }
 
   async checkEmail(token: string, email: string): Promise<IEmailCheckResponse> {
-    return this.post(
-      "/auth/email-check/",
-      { email },
-      {
-        headers: {
-          "X-CSRFTOKEN": token,
-        },
-      }
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(apiClient.POST("/auth/email-check/", { body: { email }, headers: { "X-CSRFTOKEN": token } }));
   }
 
   async generateEmailCode(data: { email: string }): Promise<TMessageResponse> {

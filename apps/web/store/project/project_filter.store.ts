@@ -88,10 +88,8 @@ export class ProjectFilterStore implements IProjectFilterStore {
     const workspaceSlug = this.rootStore.router.workspaceSlug;
     if (!workspaceSlug) return;
     const displayFilters = this.displayFilters[workspaceSlug];
-    return Object.keys(displayFilters).filter(
-      (key): key is TProjectAppliedDisplayFilterKeys =>
-        ["my_projects", "archived_projects"].includes(key) && !!displayFilters[key as keyof TProjectDisplayFilters]
-    );
+    const keys: TProjectAppliedDisplayFilterKeys[] = ["my_projects", "archived_projects"];
+    return keys.filter((key) => !!displayFilters?.[key]);
   }
 
   /**
@@ -136,9 +134,7 @@ export class ProjectFilterStore implements IProjectFilterStore {
    */
   updateDisplayFilters = (workspaceSlug: string, displayFilters: TProjectDisplayFilters) => {
     runInAction(() => {
-      Object.keys(displayFilters).forEach((key) => {
-        set(this.displayFilters, [workspaceSlug, key], displayFilters[key as keyof TProjectDisplayFilters]);
-      });
+      this.displayFilters[workspaceSlug] = { ...this.displayFilters[workspaceSlug], ...displayFilters };
     });
   };
 
@@ -149,9 +145,7 @@ export class ProjectFilterStore implements IProjectFilterStore {
    */
   updateFilters = (workspaceSlug: string, filters: TProjectFilters) => {
     runInAction(() => {
-      Object.keys(filters).forEach((key) => {
-        set(this.filters, [workspaceSlug, key], filters[key as keyof TProjectFilters]);
-      });
+      this.filters[workspaceSlug] = { ...this.filters[workspaceSlug], ...filters };
     });
   };
 

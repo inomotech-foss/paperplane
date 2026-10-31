@@ -9,8 +9,8 @@ import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { computedFn } from "mobx-utils";
 // plane imports
 import { EUserPermissions } from "@plane/constants";
+import { EUserProjectRoles } from "@plane/types";
 import type {
-  EUserProjectRoles,
   IProjectBulkAddFormData,
   IProjectUserPropertiesResponse,
   IUserLite,
@@ -27,6 +27,8 @@ import type { IUserStore } from "@/store/user";
 // local imports
 import type { IMemberRootStore } from "../index";
 import { sortProjectMembers } from "../utils";
+
+const PROJECT_ROLES = [EUserProjectRoles.ADMIN, EUserProjectRoles.MEMBER, EUserProjectRoles.GUEST];
 import type { IProjectMemberFiltersStore } from "./project-member-filters.store";
 import { ProjectMemberFiltersStore } from "./project-member-filters.store";
 
@@ -80,7 +82,7 @@ export interface IBaseProjectMemberStore {
     projectId: string,
     userId: string,
     role: EUserProjectRoles
-  ) => Promise<TProjectMembership>;
+  ) => Promise<void>;
   removeMemberFromProject: (workspaceSlug: string, projectId: string, userId: string) => Promise<void>;
 }
 
@@ -193,7 +195,7 @@ export class BaseProjectMemberStore implements IBaseProjectMemberStore {
       const projectMembership = this.getProjectMembershipByUserId(userId, projectId);
       if (!projectMembership) return undefined;
       const projectMembershipRole = projectMembership.original_role ?? projectMembership.role;
-      return projectMembershipRole ? (projectMembershipRole as EUserProjectRoles) : undefined;
+      return PROJECT_ROLES.find((role) => role === projectMembershipRole);
     }
   );
 
@@ -370,15 +372,7 @@ export class BaseProjectMemberStore implements IBaseProjectMemberStore {
         }
         set(this.rootStore.user.permission.projectUserInfo, [workspaceSlug, projectId, "role"], updatedProjectRole);
       });
-      const response = await this.projectMemberService.updateProjectMember(
-        workspaceSlug,
-        projectId,
-        memberDetails?.id,
-        {
-          role,
-        }
-      );
-      return response;
+      await this.projectMemberService.updateProjectMember(workspaceSlug, projectId, memberDetails.id, { role });
     } catch (error) {
       // revert back to original members in case of error
       runInAction(() => {

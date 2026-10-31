@@ -2,6 +2,7 @@
 // See the LICENSE file for details.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { MockInstance } from "vitest";
 import {
   DEFAULT_LOGO_PROPS,
   DEFAULT_PROJECT_USER_PREFERENCES,
@@ -9,6 +10,7 @@ import {
   parseDisplayFilters,
   parseDisplayProperties,
   parseIssueFilters,
+  parseIssueFiltersResponse,
   parseLogoProps,
   parseProjectUserPreferences,
   parseRichFilters,
@@ -17,7 +19,7 @@ import {
   resetClientJsonWarnings,
 } from "./index";
 
-let warn: ReturnType<typeof vi.spyOn>;
+let warn: MockInstance<typeof console.warn>;
 
 beforeEach(() => {
   resetClientJsonWarnings();
@@ -160,5 +162,17 @@ describe("parseUserTheme", () => {
 
   it("falls back for garbage", () => {
     expect(parseUserTheme("dark")).toEqual({});
+  });
+});
+
+describe("parseIssueFiltersResponse", () => {
+  it("parses each filter field on its own", () => {
+    expect(
+      parseIssueFiltersResponse({
+        rich_filters: { state_id__in: "s1" },
+        display_filters: { layout: "board" },
+        display_properties: null,
+      })
+    ).toEqual({ rich_filters: { state_id__in: "s1" }, display_filters: {}, display_properties: {} });
   });
 });

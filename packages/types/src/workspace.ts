@@ -100,17 +100,17 @@ export interface IWorkspaceMember {
 
 export interface IWorkspaceMemberMe {
   company_role: string | null;
-  created_at: Date;
-  created_by: string;
+  created_at: string;
+  created_by: string | null;
   default_props: IWorkspaceViewProps;
   id: string;
   member: string;
   role: TUserPermissions | EUserWorkspaceRoles;
-  updated_at: Date;
-  updated_by: string;
+  updated_at: string;
+  updated_by: string | null;
   view_props: IWorkspaceViewProps;
   workspace: string;
-  draft_issue_count: number;
+  draft_issue_count?: number;
   /** The member's own PQL dialect; null follows the workspace's. */
   pql_dialect: TPqlDialect | null;
 }
@@ -141,8 +141,8 @@ export interface IWorkspaceIssueSearchResult {
 export interface IWorkspacePageSearchResult {
   id: string;
   name: string;
-  project_ids: string[];
-  project_identifiers: string[];
+  project_ids: string[] | null;
+  project_identifiers: string[] | null;
   workspace__slug: string;
 }
 

@@ -26,7 +26,7 @@ import { useInstance } from "@/hooks/store/use-instance";
 import { useUser } from "@/hooks/store/user";
 // services
 import { AuthService } from "@/services/auth.service";
-import { toAuthErrorCode } from "@/helpers/error.helper";
+import { getApiErrorBody, toAuthErrorCode } from "@/helpers/error.helper";
 import { getField } from "@/helpers/narrow.helper";
 
 export interface FormValues {
@@ -99,7 +99,7 @@ export const SecurityProfileSettings = observer(function SecurityProfileSettings
         message: t("auth.common.password.toast.change_password.success.message"),
       });
     } catch (error: unknown) {
-      const code = toAuthErrorCode(getField(error, "error_code"));
+      const code = toAuthErrorCode(getField(getApiErrorBody(error), "error_code"));
       const errorInfo = code ? authErrorHandler(code) : undefined;
 
       setToast({

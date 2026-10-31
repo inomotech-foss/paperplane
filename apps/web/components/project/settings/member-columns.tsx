@@ -68,7 +68,7 @@ export function NameColumn(props: NameProps) {
                 <img
                   src={getFileURL(avatar_url)}
                   className="absolute top-0 left-0 h-full w-full rounded-full object-cover"
-                  alt={display_name || email}
+                  alt={display_name || email || ""}
                 />
               </span>
             </Link>

@@ -4,14 +4,22 @@
  * See the LICENSE file for details.
  */
 
-import type { ApiRequestBody, InternalPaths } from "@plane/api-types";
+import type { ApiRequestBody, ApiSchema, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
+import { parseWorkspaceViewProps } from "@plane/types";
 import type { IWorkspaceMemberMe, IWorkspaceMember, IUserProjectsRole } from "@plane/types";
 import { APIService } from "../api.service";
 import type { ApiClient } from "../client";
 import { createApiClient, unwrap } from "../client";
 
 export type TWorkspaceMemberUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/members/{pk}/", "patch">;
+export type TWorkspaceMemberMeUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/workspace-members/me/", "patch">;
+
+export const toWorkspaceMemberMe = (member: ApiSchema<"WorkspaceMemberMe">): IWorkspaceMemberMe => ({
+  ...member,
+  view_props: parseWorkspaceViewProps(member.view_props),
+  default_props: parseWorkspaceViewProps(member.default_props),
+});
 
 /**
  * Service class for managing workspace members
@@ -39,11 +47,11 @@ export class WorkspaceMemberService extends APIService {
    * @throws {Error} If the API request fails
    */
   async myInfo(workspaceSlug: string): Promise<IWorkspaceMemberMe> {
-    return this.get(`/api/workspaces/${workspaceSlug}/workspace-members/me/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return toWorkspaceMemberMe(
+      await unwrap(
+        this.client.GET("/api/workspaces/{slug}/workspace-members/me/", { params: { path: { slug: workspaceSlug } } })
+      )
+    );
   }
 
   /**

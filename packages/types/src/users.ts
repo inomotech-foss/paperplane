@@ -61,15 +61,15 @@ export interface IUserAccount {
 export type TUserProfile = {
   id: string | undefined;
   user: string | undefined;
-  role: string | undefined;
-  last_workspace_id: string | undefined;
+  role: string | null | undefined;
+  last_workspace_id: string | null | undefined;
   theme: IUserTheme;
   onboarding_step: TOnboardingSteps;
   is_onboarded: boolean;
   is_tour_completed: boolean;
-  use_case: string | undefined;
+  use_case: string | null | undefined;
   billing_address_country: string | undefined;
-  billing_address: string | undefined;
+  billing_address: unknown;
   has_billing_address: boolean;
   has_marketing_email_consent: boolean;
   language: string;
@@ -118,7 +118,7 @@ export interface IUserStateDistribution {
 
 export interface IUserActivityResponse {
   count: number;
-  extra_stats: null;
+  extra_stats: unknown;
   next_cursor: string;
   next_page_results: boolean;
   prev_cursor: string;

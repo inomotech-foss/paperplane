@@ -4,29 +4,17 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
-import type { TWorkItemFilterExpression } from "@plane/types";
-import { APIService } from "@/services/api.service";
-// helpers
+import type { ApiRequestBody, ApiSchema } from "@plane/api-types";
+import { unwrap } from "@plane/services";
+import { apiClient } from "@/services/api-client";
 
-export class ProjectExportService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+export type TIssueExportBody = ApiRequestBody<"/api/workspaces/{slug}/export-issues/", "post">;
 
-  async csvExport(
-    workspaceSlug: string,
-    data: {
-      provider: string;
-      project: string[];
-      multiple?: boolean;
-      rich_filters?: TWorkItemFilterExpression;
-    }
-  ): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/export-issues/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ProjectExportService {
+  async csvExport(workspaceSlug: string, data: TIssueExportBody): Promise<ApiSchema<"MessageResponse">> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/export-issues/", { params: { path: { slug: workspaceSlug } }, body: data })
+    );
   }
 }

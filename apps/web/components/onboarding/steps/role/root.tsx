@@ -55,7 +55,7 @@ export const RoleSetupStep = observer(function RoleSetupStep({ handleStepChange 
   } = useForm<TProfileSetupFormValues>({
     defaultValues: {
       ...defaultValues,
-      role: profile?.role,
+      role: profile?.role ?? "",
     },
     mode: "onChange",
   });

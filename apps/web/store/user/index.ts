@@ -16,6 +16,7 @@ import { UserPermissionStore } from "@/store/user/base-permissions.store";
 // services
 import { AuthService } from "@/services/auth.service";
 import { UserService } from "@/services/user.service";
+import type { TChangePasswordBody } from "@/services/user.service";
 // stores
 import type { IAccountStore } from "@/store/user/account.store";
 import type { IUserProfileStore } from "@/store/user/profile.store";
@@ -45,10 +46,7 @@ export interface IUserStore {
   updateCurrentUser: (data: Partial<IUser>) => Promise<IUser | undefined>;
   handleSetPassword: (csrfToken: string, data: { password: string }) => Promise<IUser | undefined>;
   deactivateAccount: () => Promise<void>;
-  changePassword: (
-    csrfToken: string,
-    payload: { old_password?: string; new_password: string }
-  ) => Promise<IUser | undefined>;
+  changePassword: (csrfToken: string, payload: TChangePasswordBody) => Promise<void>;
   reset: () => void;
   signOut: () => Promise<void>;
   // computed
@@ -199,21 +197,11 @@ export class UserStore implements IUserStore {
     }
   };
 
-  changePassword = async (
-    csrfToken: string,
-    payload: {
-      old_password?: string;
-      new_password: string;
-    }
-  ): Promise<IUser | undefined> => {
-    try {
-      const user = await this.userService.changePassword(csrfToken, payload);
+  changePassword = async (csrfToken: string, payload: TChangePasswordBody): Promise<void> => {
+    await this.userService.changePassword(csrfToken, payload);
+    runInAction(() => {
       if (this.data) set(this.data, ["is_password_autoset"], false);
-      return user;
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
+    });
   };
 
   /**

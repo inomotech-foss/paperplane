@@ -30,7 +30,7 @@ import { useUser } from "@/hooks/store/user";
 // services
 import { AuthService } from "@/services/auth.service";
 import userService from "@/services/user.service";
-import { getAuthErrorInfo } from "@/helpers/error.helper";
+import { getApiErrorBody, getAuthErrorInfo } from "@/helpers/error.helper";
 import { getField, getStringField } from "@/helpers/narrow.helper";
 
 type Props = { isOpen: boolean; onClose: () => void };
@@ -121,7 +121,7 @@ export const ChangeEmailModal = observer(function ChangeEmailModal(props: Props)
       // Move to verification code step
       setCurrentStep("UNIQUE_CODE");
     } catch (error: unknown) {
-      const body: unknown = isApiError(error) ? error.data : error;
+      const body = getApiErrorBody(error);
       const errorInfo = getAuthErrorInfo(getField(body, "error_code"));
 
       // Get error message from handler or fallback

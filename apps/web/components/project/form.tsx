@@ -29,7 +29,8 @@ import { TimezoneSelect } from "@/components/global";
 // helpers
 import { handleCoverImageChange } from "@/helpers/cover-image.helper";
 import { getLogoPropsFromPicker } from "@/helpers/emoji.helper";
-import { errorFieldIncludes, isRecord } from "@/helpers/narrow.helper";
+import { getApiErrorBody } from "@/helpers/error.helper";
+import { errorFieldIncludes } from "@/helpers/narrow.helper";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { usePlatformOS } from "@/hooks/use-platform-os";
@@ -104,10 +105,11 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
       .catch((err: unknown) => {
         try {
           // Codes are nested in arrays under field names
-          const nameError = errorFieldIncludes(err, "name", "PROJECT_NAME_ALREADY_EXIST");
-          const identifierError = errorFieldIncludes(err, "identifier", "PROJECT_IDENTIFIER_ALREADY_EXIST");
+          const errorBody = getApiErrorBody(err);
+          const nameError = errorFieldIncludes(errorBody, "name", "PROJECT_NAME_ALREADY_EXIST");
+          const identifierError = errorFieldIncludes(errorBody, "identifier", "PROJECT_IDENTIFIER_ALREADY_EXIST");
           const nameSpecialCharError = errorFieldIncludes(
-            err,
+            errorBody,
             "name",
             "PROJECT_NAME_CANNOT_CONTAIN_SPECIAL_CHARACTERS"
           );
@@ -199,8 +201,8 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
       if (project.identifier !== formData.identifier)
         await projectService
           .checkProjectIdentifierAvailability(workspaceSlug, payload.identifier ?? "")
-          .then(async (res: unknown) => {
-            if (isRecord(res) && res.exists) setError("identifier", { message: t("common.identifier_already_exists") });
+          .then(async (res) => {
+            if (res.exists) setError("identifier", { message: t("common.identifier_already_exists") });
             else await handleUpdateChange(payload);
           });
       else await handleUpdateChange(payload);
@@ -314,7 +316,7 @@ function ProjectDetailsFormHeader(props: TProjectDetailsFormHeaderProps) {
   return (
     <div className="relative h-44 w-full">
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-      <CoverImage src={coverImage} alt="Project cover image" className="h-44 w-full rounded-md" />
+      <CoverImage src={coverImage ?? undefined} alt="Project cover image" className="h-44 w-full rounded-md" />
       <div className="absolute bottom-4 z-5 flex w-full items-end justify-between gap-3 px-4">
         <div className="flex flex-grow gap-3 truncate">
           <Controller

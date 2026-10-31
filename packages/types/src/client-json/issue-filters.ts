@@ -195,3 +195,14 @@ export const parseIssueFilters = (value: unknown): IIssueFilterOptions =>
 
 export const parseRichFilters = (value: unknown): TWorkItemFilterExpression =>
   parseClientJson("rich_filters", filterExpressionSchema, value, {});
+
+/** The `rich_filters`, `display_filters` and `display_properties` of a user properties response. */
+export const parseIssueFiltersResponse = (value: {
+  rich_filters: unknown;
+  display_filters: unknown;
+  display_properties: unknown;
+}) => ({
+  rich_filters: parseRichFilters(value.rich_filters),
+  display_filters: parseDisplayFilters(value.display_filters),
+  display_properties: parseDisplayProperties(value.display_properties),
+});

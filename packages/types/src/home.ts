@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiSchema } from "@plane/api-types";
 import type { TLogoProps } from "./client-json";
 import type { TIssuePriorities } from "./issues";
-import type { TLinkMetadata } from "./issues/issue_link";
 
 export type TRecentActivityFilterKeys = "all item" | "issue" | "page" | "project" | "workspace_page";
-export type THomeWidgetKeys = "quick_links" | "recents" | "my_stickies" | "quick_tutorial" | "new_at_plane";
+export type THomeWidgetKeys = ApiSchema<"HomeWidgetKeyEnum">;
 
 export type THomeWidgetProps = {
   workspaceSlug: string;
@@ -19,9 +19,9 @@ export type TPageEntityData = {
   id: string;
   name: string;
   logo_props: TLogoProps;
-  project_id?: string;
+  project_id: string | null;
   owned_by: string;
-  project_identifier?: string;
+  project_identifier: string | null;
 };
 
 export type TProjectEntityData = {
@@ -35,7 +35,7 @@ export type TProjectEntityData = {
 export type TIssueEntityData = {
   id: string;
   name: string;
-  state: string;
+  state: string | null;
   priority: TIssuePriorities;
   assignees: string[];
   type: string | null;
@@ -44,12 +44,17 @@ export type TIssueEntityData = {
   project_identifier: string;
 };
 
+export type TRecentEntityName = "page" | "project" | "issue" | "workspace_page";
+
+export const RECENT_ENTITY_NAMES: TRecentEntityName[] = ["page", "project", "issue", "workspace_page"];
+
 export type TActivityEntityData = {
   id: string;
-  entity_name: "page" | "project" | "issue" | "workspace_page";
-  entity_identifier: string;
+  entity_name: TRecentEntityName;
+  entity_identifier: string | null;
   visited_at: string;
-  entity_data: TPageEntityData | TProjectEntityData | TIssueEntityData;
+  /** Null when the entity no longer exists. */
+  entity_data: TPageEntityData | TProjectEntityData | TIssueEntityData | null;
 };
 
 export type TLinkEditableFields = {
@@ -57,15 +62,7 @@ export type TLinkEditableFields = {
   url: string;
 };
 
-export type TLink = TLinkEditableFields & {
-  created_by_id: string;
-  id: string;
-  metadata: TLinkMetadata;
-  workspace_slug: string;
-
-  //need
-  created_at: Date;
-};
+export type TLink = ApiSchema<"WorkspaceUserLink">;
 
 export type TLinkMap = {
   [workspace_slug: string]: TLink;
@@ -75,9 +72,4 @@ export type TLinkIdMap = {
   [workspace_slug: string]: string[];
 };
 
-export type TWidgetEntityData = {
-  key: THomeWidgetKeys;
-  name: string;
-  is_enabled: boolean;
-  sort_order: number;
-};
+export type TWidgetEntityData = ApiSchema<"WorkspaceHomePreferenceRow">;
