@@ -14,7 +14,7 @@ vi.mock("@/hooks/store/use-issue-detail", () => ({
     reaction: {
       getReactionsByIssueId: () => ({ "128077": ["r1"] }),
       reactionsByUser: () => [],
-      getReactionById: () => ({ actor: "u2", display_name: "Ana" }),
+      getReactionById: () => ({ actor: "u2", actor_detail: { display_name: "Ana" } }),
     },
     createReaction: vi.fn(),
     removeReaction: vi.fn(),
