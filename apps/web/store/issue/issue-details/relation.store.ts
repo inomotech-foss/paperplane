@@ -65,7 +65,7 @@ export interface IIssueRelationStore extends IIssueRelationStoreActions {
     ISSUE_RELATION_OPTIONS: { [key in TIssueRelationTypes]?: TRelationObject }
   ) => number;
   getRelationByIssueIdRelationType: (issueId: string, relationType: TIssueRelationTypes) => string[] | undefined;
-  extractRelationsFromIssues: (issues: TIssue[]) => void;
+  extractRelationsFromIssues: (issues: Pick<TIssue, "id" | "issue_relation" | "issue_related">[]) => void;
   createCurrentRelation: (issueId: string, relationType: TIssueRelationTypes, relatedIssueId: string) => Promise<void>;
 }
 
@@ -286,7 +286,7 @@ export class IssueRelationStore implements IIssueRelationStore {
    * Extract Relation from the issue Array objects and store it in this Store
    * @param issues
    */
-  extractRelationsFromIssues = (issues: TIssue[]) => {
+  extractRelationsFromIssues = (issues: Pick<TIssue, "id" | "issue_relation" | "issue_related">[]) => {
     try {
       runInAction(() => {
         for (const issue of issues) {

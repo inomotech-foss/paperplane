@@ -83,7 +83,7 @@ describe("toInboxIssue", () => {
 });
 
 describe("toInboxIssueDetail", () => {
-  it("fills the missing lists and counts of the work item", () => {
+  it("leaves out the work item columns the detail does not send", () => {
     const detail = toInboxIssueDetail({
       id: "r1",
       status: 2,
@@ -95,7 +95,8 @@ describe("toInboxIssueDetail", () => {
     });
     expect(detail).toMatchObject({ status: EInboxIssueStatus.DUPLICATE, duplicate_to: "i2" });
     expect(detail.duplicate_issue_detail).toMatchObject({ id: "i2", sequence_id: 7 });
-    expect(detail.issue).toMatchObject({ label_ids: [], assignee_ids: [], sub_issues_count: 0, created_by: "u1" });
+    expect(detail.issue).toMatchObject({ created_by: "u1" });
+    expect(detail.issue).not.toHaveProperty("label_ids");
   });
 });
 

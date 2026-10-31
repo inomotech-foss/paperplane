@@ -7,7 +7,7 @@ import { observer } from "mobx-react";
 import useSWR from "swr";
 // plane imports
 import type { TWorkItemEmbedHandlerProps } from "@plane/editor";
-import type { TIssue } from "@plane/types";
+import type { TIssueRow } from "@plane/types";
 import { useTranslation } from "@plane/i18n";
 // components
 import { WorkItemPreviewCard } from "@/components/issues/preview-card";
@@ -25,7 +25,7 @@ export const PageWorkItemEmbedBlock = observer(function PageWorkItemEmbedBlock(p
   const { t } = useTranslation();
 
   const canFetch = !!workspaceSlug && !!projectId;
-  const { data: workItem, error } = useSWR<TIssue, unknown>(
+  const { data: workItem, error } = useSWR<TIssueRow, unknown>(
     canFetch ? `WORK_ITEM_EMBED_${workspaceSlug}_${projectId}_${workItemId}` : null,
     canFetch ? () => issueService.retrieve(workspaceSlug, projectId, workItemId) : null,
     { revalidateIfStale: false, revalidateOnFocus: false, revalidateOnReconnect: false }

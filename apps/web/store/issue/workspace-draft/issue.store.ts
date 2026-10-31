@@ -20,6 +20,7 @@ import type {
   TSubGroupedIssues,
   ViewFlags,
   TIssue,
+  TIssueRow,
 } from "@plane/types";
 import { getCurrentDateTimeInISO, convertToISODateString } from "@plane/utils";
 // services
@@ -59,7 +60,7 @@ export interface IWorkspaceDraftIssues {
     payload: Partial<TWorkspaceDraftIssue | TIssue>
   ) => Promise<void>;
   deleteIssue: (workspaceSlug: string, issueId: string) => Promise<void>;
-  moveIssue: (workspaceSlug: string, issueId: string, payload: Partial<TWorkspaceDraftIssue>) => Promise<TIssue>;
+  moveIssue: (workspaceSlug: string, issueId: string, payload: Partial<TWorkspaceDraftIssue>) => Promise<TIssueRow>;
   addCycleToIssue: (workspaceSlug: string, issueId: string, cycleId: string) => Promise<void>;
   addModulesToIssue: (workspaceSlug: string, issueId: string, moduleIds: string[]) => Promise<void>;
 

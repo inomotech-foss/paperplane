@@ -140,8 +140,7 @@ export class InboxIssueStore implements IInboxIssueStore {
 
       // If issue accepted sync issue to local db
       if (status === EInboxIssueStatus.ACCEPTED) {
-        const updatedIssue: TIssue = { ...this.issue, ...inboxIssue.issue };
-        this.store.issue.issues.addIssue([updatedIssue]);
+        this.store.issue.issues.addIssue([{ ...this.issue, ...inboxIssue.issue }]);
       }
     } catch {
       runInAction(() => set(this, "status", previousData.status));

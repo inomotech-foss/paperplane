@@ -27,7 +27,7 @@ import { WorkItemSubIssueFiltersStore } from "./sub_issues_filter.store";
 const STATE_GROUPS: TStateGroups[] = ["backlog", "unstarted", "started", "completed", "cancelled"];
 
 /** The projects of `issues` other than `projectId`. */
-const otherProjects = (issues: TIssue[], projectId: string): string[] =>
+const otherProjects = (issues: Pick<TIssue, "project_id">[], projectId: string): string[] =>
   uniq(issues.map((issue) => issue.project_id).filter((id): id is string => !!id && id !== projectId));
 
 export interface IIssueSubIssuesStoreActions {

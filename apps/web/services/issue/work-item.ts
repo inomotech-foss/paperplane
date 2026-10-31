@@ -9,6 +9,8 @@ import type {
   TIssue,
   TIssueLink,
   TIssuePriorities,
+  TIssueRelationTypes,
+  TIssueRow,
   TIssueResponseResults,
   TIssuesResponse,
   TLinkMetadata,
@@ -54,7 +56,7 @@ type TWorkItemRow = {
 };
 
 /** A work item row of the API as the stores keep it. */
-export function toBaseIssue(row: TWorkItemRow): TBaseIssue {
+export function toBaseIssue(row: TWorkItemRow): TIssueRow {
   return {
     id: row.id,
     name: row.name,
@@ -75,13 +77,14 @@ export function toBaseIssue(row: TWorkItemRow): TBaseIssue {
     created_by: row.created_by,
     updated_by: row.updated_by,
     is_draft: row.is_draft,
-    cycle_id: row.cycle_id ?? null,
-    label_ids: row.label_ids ?? [],
-    assignee_ids: row.assignee_ids ?? [],
-    module_ids: row.module_ids ?? null,
-    sub_issues_count: row.sub_issues_count ?? 0,
-    attachment_count: row.attachment_count ?? 0,
-    link_count: row.link_count ?? 0,
+    // The stores merge rows into what they hold, so a column the endpoint does not send stays out.
+    ...(row.cycle_id === undefined ? {} : { cycle_id: row.cycle_id }),
+    ...(row.label_ids === undefined ? {} : { label_ids: row.label_ids }),
+    ...(row.assignee_ids === undefined ? {} : { assignee_ids: row.assignee_ids }),
+    ...(row.module_ids === undefined ? {} : { module_ids: row.module_ids }),
+    ...(row.sub_issues_count === undefined ? {} : { sub_issues_count: row.sub_issues_count ?? 0 }),
+    ...(row.attachment_count === undefined ? {} : { attachment_count: row.attachment_count ?? 0 }),
+    ...(row.link_count === undefined ? {} : { link_count: row.link_count ?? 0 }),
     ...(row.is_intake === undefined ? {} : { is_intake: row.is_intake }),
   };
 }
@@ -89,7 +92,7 @@ export function toBaseIssue(row: TWorkItemRow): TBaseIssue {
 type TIssueDetail = ApiSchema<"ExpandedIssueDetail">;
 
 /** A work item from the detail endpoints. The expanded parent stays a partial work item. */
-export function toIssue(detail: TIssueDetail): TIssue {
+export function toIssue(detail: TIssueDetail): TIssueRow {
   return {
     ...toBaseIssue(detail),
     description_html: detail.description_html,
@@ -135,12 +138,38 @@ export function toIssueLink(row: TLinkRow): TIssueLink {
 type TListRow = ApiSchema<"WorkItemListItem"> | ApiSchema<"WorkItemDetailRow">;
 type TListPage = ApiSchema<"WorkItemListResponse"> | ApiSchema<"PaginatedWorkItemDetailRowList">;
 
-const toListIssue = (row: TListRow): TIssue => {
-  const issue: TIssue = toBaseIssue(row);
+const RELATION_TYPES: readonly TIssueRelationTypes[] = ["blocking", "blocked_by", "duplicate", "relates_to"];
+const isRelationType = (value: string): value is TIssueRelationTypes =>
+  RELATION_TYPES.some((relationType) => relationType === value);
+
+type TExpandedRelation = ApiSchema<"ExpandedRelation">;
+type TIssueRelationRow = NonNullable<TIssue["issue_relation"]>[number];
+
+/** Expanded relations of a list row. A row with a relation type the client does not know is skipped. */
+export function toIssueRelations(rows: TExpandedRelation[]): TIssueRelationRow[] {
+  const relations: TIssueRelationRow[] = [];
+  for (const row of rows) {
+    const relationType = row.relation_type;
+    if (!isRelationType(relationType)) continue;
+    relations.push({
+      id: row.id,
+      name: row.name,
+      project_id: row.project_id,
+      sequence_id: row.sequence_id,
+      relation_type: relationType,
+    });
+  }
+  return relations;
+}
+
+const toListIssue = (row: TListRow): TIssueRow => {
+  const issue: TIssueRow = toBaseIssue(row);
   if ("state__group" in row && row.state__group !== undefined) {
     const group = row.state__group;
     if (group === null || isStateGroup(group)) issue.state__group = group;
   }
+  if ("issue_relation" in row && row.issue_relation) issue.issue_relation = toIssueRelations(row.issue_relation);
+  if ("issue_related" in row && row.issue_related) issue.issue_related = toIssueRelations(row.issue_related);
   return issue;
 };
 
@@ -152,8 +181,8 @@ type TSubGroupedGroup = ApiSchema<"WorkItemSubGroupedGroup">;
 
 const isFlatGroup = (group: TGroup | TSubGroupedGroup): group is TGroup => Array.isArray(group.results);
 
-function toSubGroups(group: TSubGroupedGroup): Record<string, { results: TBaseIssue[]; total_results: number }> {
-  const subGroups: Record<string, { results: TBaseIssue[]; total_results: number }> = {};
+function toSubGroups(group: TSubGroupedGroup): Record<string, { results: TIssueRow[]; total_results: number }> {
+  const subGroups: Record<string, { results: TIssueRow[]; total_results: number }> = {};
   for (const [subGroupId, subGroup] of Object.entries(group.results)) {
     subGroups[subGroupId] = { results: subGroup.results.map(toListIssue), total_results: subGroup.total_results };
   }
@@ -162,7 +191,7 @@ function toSubGroups(group: TSubGroupedGroup): Record<string, { results: TBaseIs
 
 function toResults(results: TListPage["results"]): TIssueResponseResults {
   if (Array.isArray(results)) return results.map(toListIssue);
-  const groups: Exclude<TIssueResponseResults, TBaseIssue[]> = {};
+  const groups: Exclude<TIssueResponseResults, TIssueRow[]> = {};
   for (const [groupId, group] of Object.entries<TGroup | TSubGroupedGroup>(results)) {
     groups[groupId] = isFlatGroup(group)
       ? { results: group.results.map(toListIssue), total_results: group.total_results ?? 0 }

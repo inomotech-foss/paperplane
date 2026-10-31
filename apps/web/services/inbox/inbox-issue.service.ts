@@ -3,7 +3,7 @@
 
 import type { ApiRequestBody, ApiSchema, InternalPaths } from "@plane/api-types";
 import { unwrap } from "@plane/services";
-import type { TInboxIssue, TInboxIssueWithPagination, TIssue } from "@plane/types";
+import type { TInboxIssue, TInboxIssueWithPagination, TIssue, TIssueRow } from "@plane/types";
 import { EInboxIssueSource, EInboxIssueStatus } from "@plane/types";
 import { findLiteral, getField } from "@/helpers/narrow.helper";
 import { apiClient } from "@/services/api-client";
@@ -18,7 +18,7 @@ export type TInboxIssueUpdateBody = ApiRequestBody<
   "patch"
 >;
 /** An intake work item from the detail endpoints, which send the whole work item. */
-export type TInboxIssueDetail = TInboxIssue & { issue: TIssue };
+export type TInboxIssueDetail = TInboxIssue & { issue: TIssueRow };
 
 /** The intake fields of an update. A `snoozed_till` of YYYY-MM-DD is read as a day in the project timezone. */
 export type TInboxIssueStatusUpdate = Pick<TInboxIssueUpdateBody, "status" | "duplicate_to" | "snoozed_till">;
@@ -38,7 +38,7 @@ const toSource = (source: string | null): EInboxIssueSource | undefined =>
 
 const toDate = (value: string | null): Date | null => (value === null ? null : new Date(value));
 
-const toDetailIssue = (issue: ApiSchema<"IssueDetail">): TIssue => ({
+const toDetailIssue = (issue: ApiSchema<"IssueDetail">): TIssueRow => ({
   ...toBaseIssue(issue),
   description_html: issue.description_html,
   ...(issue.is_subscribed === undefined ? {} : { is_subscribed: issue.is_subscribed }),

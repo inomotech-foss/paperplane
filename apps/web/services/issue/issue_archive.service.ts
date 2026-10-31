@@ -2,7 +2,7 @@
 // See the LICENSE file for details.
 
 import { unwrap } from "@plane/services";
-import type { TIssue, TIssuesResponse } from "@plane/types";
+import type { TIssueRow, TIssuesResponse } from "@plane/types";
 import { apiClient } from "@/services/api-client";
 import { toIssueListQuery } from "./issue-query";
 import type { TIssueParamsRecord } from "./issue-query";
@@ -44,7 +44,7 @@ export class IssueArchiveService {
     );
   }
 
-  async retrieveArchivedIssue(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssue> {
+  async retrieveArchivedIssue(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueRow> {
     const detail = await unwrap(
       apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{pk}/archive/", {
         params: issuePath(workspaceSlug, projectId, issueId),

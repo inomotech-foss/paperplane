@@ -12,6 +12,7 @@ import { ALL_ISSUES, ISSUE_PRIORITIES } from "@plane/constants";
 // types
 import type {
   TIssue,
+  TIssueRow,
   TIssueGroupByOptions,
   TIssueOrderByOptions,
   TGroupedIssues,
@@ -544,7 +545,8 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     const response = await this.issueService.createIssue(workspaceSlug, projectId, data);
 
     // add Issue to Store
-    this.addIssue(response, shouldUpdateList);
+    const issue = this.rootIssueStore.issues.mergeIssue(response);
+    this.addIssue(issue, shouldUpdateList);
     // the next work item of the project starts with the same type
     this.rootIssueStore.rootStore.issueType
       .rememberIssueType(workspaceSlug, projectId, response.type_id)
@@ -554,7 +556,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     // oxlint-disable-next-line no-unused-expressions
     shouldUpdateList && (await this.fetchParentStats(workspaceSlug, projectId));
 
-    return response;
+    return issue;
   }
 
   /**
@@ -1246,7 +1248,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
    * @returns groupedIssueCount, object containing issue counts of individual groups
    */
   processIssueResponse(issueResponse: TIssuesResponse): {
-    issueList: TIssue[];
+    issueList: TIssueRow[];
     groupedIssues: TIssues;
     groupedIssueCount: TGroupedIssueCount;
   } {
@@ -1273,7 +1275,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       };
     }
 
-    const issueList: TIssue[] = [];
+    const issueList: TIssueRow[] = [];
     const groupedIssues: TGroupedIssues | TSubGroupedIssues = {};
     const groupedIssueCount: TGroupedIssueCount = {};
 

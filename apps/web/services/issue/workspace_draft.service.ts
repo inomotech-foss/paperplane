@@ -3,7 +3,7 @@
 
 import type { ApiRequestBody, ApiSchema } from "@plane/api-types";
 import { unwrap } from "@plane/services";
-import type { TIssue, TWorkspaceDraftIssue, TWorkspaceDraftPaginationInfo } from "@plane/types";
+import type { TIssue, TIssueRow, TWorkspaceDraftIssue, TWorkspaceDraftPaginationInfo } from "@plane/types";
 import { apiClient } from "@/services/api-client";
 import { toBaseIssue, toIssuePriority } from "./work-item";
 
@@ -134,7 +134,7 @@ export class WorkspaceDraftService {
     );
   }
 
-  async moveIssue(workspaceSlug: string, issueId: string, payload: TDraftPayload): Promise<TIssue> {
+  async moveIssue(workspaceSlug: string, issueId: string, payload: TDraftPayload): Promise<TIssueRow> {
     const issue = await unwrap(
       apiClient.POST("/api/workspaces/{slug}/draft-to-issue/{draft_id}/", {
         params: { path: { slug: workspaceSlug, draft_id: issueId } },

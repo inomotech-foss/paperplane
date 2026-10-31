@@ -8,7 +8,7 @@ import { set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { TIssue, TRelatedIssue } from "@plane/types";
+import type { TIssue, TIssueRow, TRelatedIssue } from "@plane/types";
 // helpers
 import { getCurrentDateTimeInISO } from "@plane/utils";
 import { rootStore } from "@/lib/store-context";
@@ -21,7 +21,8 @@ export type IIssueStore = {
   issuesIdentifierMap: Record<string, string>; // Record defines issue_identifier as key and issue_id as value
   // actions
   getIssues(workspaceSlug: string, projectId: string, issueIds: string[]): Promise<TIssue[]>;
-  addIssue(issues: TIssue[]): void;
+  addIssue(issues: TIssueRow[]): void;
+  mergeIssue(issue: TIssueRow): TIssue;
   addPartialIssues(issues: TRelatedIssue[]): void;
   addIssueIdentifier(issueIdentifier: string, issueId: string): void;
   updateIssue(issueId: string, issue: Partial<TIssue>): void;
@@ -76,6 +77,7 @@ export class IssueStore implements IIssueStore {
       issuesIdentifierMap: observable,
       // actions
       addIssue: action,
+      mergeIssue: action,
       addPartialIssues: action,
       addIssueIdentifier: action,
       updateIssue: action,
@@ -86,24 +88,22 @@ export class IssueStore implements IIssueStore {
 
   // actions
   /**
-   * @description This method will add issues to the issuesMap
-   * @param {TIssue[]} issues
-   * @returns {void}
+   * Merges rows into the issuesMap. A column the row leaves out keeps the stored value, or a default for a new work
+   * item.
    */
-  addIssue = (issues: TIssue[]) => {
-    if (issues && issues.length <= 0) return;
-    runInAction(() => {
-      issues.forEach((issue) => {
-        // add issue identifier to the issuesIdentifierMap
-        const projectIdentifier = rootStore.projectRoot.project.getProjectIdentifierById(issue?.project_id);
-        const workItemSequenceId = issue?.sequence_id;
-        const issueIdentifier = `${projectIdentifier}-${workItemSequenceId}`;
-        set(this.issuesIdentifierMap, issueIdentifier, issue.id);
+  addIssue = (issues: TIssueRow[]) => {
+    issues.forEach(this.mergeIssue);
+  };
 
-        const known = this.issuesMap[issue.id];
-        set(this.issuesMap, issue.id, known ? { ...known, ...issue } : issue);
-      });
+  /** Merges one row like addIssue and returns the stored work item. */
+  mergeIssue = (issue: TIssueRow): TIssue => {
+    const projectIdentifier = rootStore.projectRoot.project.getProjectIdentifierById(issue.project_id);
+    const merged: TIssue = { ...(this.issuesMap[issue.id] ?? emptyIssue(issue.id)), ...issue };
+    runInAction(() => {
+      set(this.issuesIdentifierMap, `${projectIdentifier}-${issue.sequence_id}`, issue.id);
+      set(this.issuesMap, issue.id, merged);
     });
+    return merged;
   };
 
   /** Merges rows that carry some work item fields, such as relations. Unknown work items get defaults for the rest. */
@@ -136,13 +136,7 @@ export class IssueStore implements IIssueStore {
   getIssues = async (workspaceSlug: string, projectId: string, issueIds: string[]) => {
     const issues = await this.issueService.retrieveIssues(workspaceSlug, projectId, issueIds);
 
-    runInAction(() => {
-      issues.forEach((issue) => {
-        if (!this.issuesMap[issue.id]) set(this.issuesMap, issue.id, issue);
-      });
-    });
-
-    return issues;
+    return issues.map((issue) => this.issuesMap[issue.id] ?? this.mergeIssue(issue));
   };
 
   /**

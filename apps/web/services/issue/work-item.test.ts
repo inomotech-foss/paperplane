@@ -8,6 +8,7 @@ import {
   toIssueCreateBody,
   toIssueLink,
   toIssuePriority,
+  toIssueRelations,
   toIssuesResponse,
   toIssueWriteBody,
   toLinkMetadata,
@@ -45,16 +46,35 @@ const page = { grouped_by: null, sub_grouped_by: null, total_count: 1, next_curs
 const counts = { next_page_results: false, prev_page_results: false, count: 1, total_pages: 1, total_results: 1 };
 
 describe("toBaseIssue", () => {
-  it("fills missing id lists and counts and narrows the priority", () => {
-    expect(toBaseIssue(row)).toMatchObject({
-      priority: "high",
-      label_ids: [],
-      assignee_ids: [],
-      module_ids: null,
-      sub_issues_count: 0,
-      link_count: 0,
-    });
+  it("leaves out the columns the row does not send, so the store keeps what it holds", () => {
+    const issue = toBaseIssue(row);
+    expect(issue).toMatchObject({ priority: "high", cycle_id: null, sub_issues_count: 0, link_count: 0 });
+    for (const column of ["label_ids", "assignee_ids", "module_ids"]) expect(issue).not.toHaveProperty(column);
     expect(toIssuePriority("bogus")).toBeNull();
+  });
+});
+
+describe("toIssueRelations", () => {
+  const relation = {
+    id: "r1",
+    project_id: "p1",
+    sequence_id: 2,
+    name: "R",
+    state_id: null,
+    priority: "none",
+    created_by: null,
+    created_at: "c",
+    updated_at: "u",
+    updated_by: null,
+  };
+
+  it("keeps the expanded relations and skips unknown relation types", () => {
+    expect(
+      toIssueRelations([
+        { ...relation, relation_type: "blocked_by" },
+        { ...relation, id: "r2", relation_type: "start_before" },
+      ])
+    ).toEqual([{ id: "r1", name: "R", project_id: "p1", sequence_id: 2, relation_type: "blocked_by" }]);
   });
 });
 

@@ -7,6 +7,7 @@ import type {
   TGanttDateRollup,
   TIssue,
   TIssueLink,
+  TIssueRow,
   TIssuesResponse,
   TIssueSubIssues,
   TSubIssuesStateDistribution,
@@ -27,7 +28,7 @@ export type TIssueMeta = ApiSchema<"WorkItemMeta">;
 export type TRequestOptions = { signal?: AbortSignal };
 
 /** A work item with the links that the detail endpoints embed. */
-export type TIssueWithLinks = { issue: TIssue; links: TIssueLink[] };
+export type TIssueWithLinks = { issue: TIssueRow; links: TIssueLink[] };
 
 const DETAIL_EXPAND = "issue_link,parent";
 
@@ -45,7 +46,7 @@ export const toStateDistribution = (distribution: Record<string, string[]>): TSu
 
 /** Errors are thrown as `ApiError` from `@plane/services`. */
 export class IssueService {
-  async createIssue(workspaceSlug: string, projectId: string, data: Partial<TIssue>): Promise<TIssue> {
+  async createIssue(workspaceSlug: string, projectId: string, data: Partial<TIssue>): Promise<TIssueRow> {
     const created = await unwrap(
       apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issues/", {
         params: projectPath(workspaceSlug, projectId),
@@ -81,7 +82,7 @@ export class IssueService {
     return toIssuesResponse(page);
   }
 
-  async retrieve(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssue> {
+  async retrieve(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueRow> {
     const detail = await unwrap(
       apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{pk}/", {
         params: issuePath(workspaceSlug, projectId, issueId),
@@ -116,7 +117,7 @@ export class IssueService {
     return { issue: toIssue(detail), links: (detail.issue_link ?? []).map(toIssueLink) };
   }
 
-  async retrieveIssues(workspaceSlug: string, projectId: string, issueIds: string[]): Promise<TIssue[]> {
+  async retrieveIssues(workspaceSlug: string, projectId: string, issueIds: string[]): Promise<TIssueRow[]> {
     const issues = await unwrap(
       apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/list/", {
         params: { ...projectPath(workspaceSlug, projectId), query: { issues: issueIds.join(",") } },
