@@ -2939,11 +2939,34 @@ paths:
     get:
       operationId: workspaces_advance_analytics_retrieve
       parameters:
+      - in: query
+        name: date_filter
+        schema:
+          type: string
+          enum:
+          - last_30_days
+          - last_3_months
+          - last_7_days
+          - yesterday
+        description: Limit the counts to a period. Every work item when omitted
+      - in: query
+        name: project_ids
+        schema:
+          type: string
+        description: Comma-separated project ids. Every project of the user when omitted
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: tab
+        schema:
+          type: string
+          enum:
+          - overview
+          - work-items
+        description: Which counts to return. overview when omitted
       tags:
       - workspaces
       security:
@@ -2962,11 +2985,73 @@ paths:
     get:
       operationId: workspaces_advance_analytics_charts_retrieve
       parameters:
+      - in: query
+        name: date_filter
+        schema:
+          type: string
+          enum:
+          - last_30_days
+          - last_3_months
+          - last_7_days
+          - yesterday
+        description: Limit the counts to a period. Every work item when omitted
+      - in: query
+        name: group_by
+        schema:
+          type: string
+          enum:
+          - ASSIGNEES
+          - COMPLETED_AT
+          - CREATED_AT
+          - CREATED_BY
+          - CYCLES
+          - ESTIMATE_POINTS
+          - LABELS
+          - MODULES
+          - PRIORITY
+          - START_DATE
+          - STATES
+          - STATE_GROUPS
+          - TARGET_DATE
+        description: Split each bar of a custom-work-items chart by this field
+      - in: query
+        name: project_ids
+        schema:
+          type: string
+        description: Comma-separated project ids. Every project of the user when omitted
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - custom-work-items
+          - projects
+          - work-items
+        description: The chart. projects when omitted
+      - in: query
+        name: x_axis
+        schema:
+          type: string
+          enum:
+          - ASSIGNEES
+          - COMPLETED_AT
+          - CREATED_AT
+          - CREATED_BY
+          - CYCLES
+          - ESTIMATE_POINTS
+          - LABELS
+          - MODULES
+          - PRIORITY
+          - START_DATE
+          - STATES
+          - STATE_GROUPS
+          - TARGET_DATE
+        description: The axis of a custom-work-items chart. PRIORITY when omitted
       tags:
       - workspaces
       security:
@@ -2982,17 +3067,33 @@ paths:
     get:
       operationId: workspaces_advance_analytics_stats_list
       parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
+      - in: query
+        name: date_filter
         schema:
           type: string
+          enum:
+          - last_30_days
+          - last_3_months
+          - last_7_days
+          - yesterday
+        description: Limit the counts to a period. Every work item when omitted
+      - in: query
+        name: project_ids
+        schema:
+          type: string
+        description: Comma-separated project ids. Every project of the user when omitted
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - work-items
+        description: The only supported value. work-items when omitted
       tags:
       - workspaces
       security:
@@ -5428,12 +5529,39 @@ paths:
     get:
       operationId: workspaces_projects_advance_analytics_retrieve
       parameters:
+      - in: query
+        name: cycle_id
+        schema:
+          type: string
+          format: uuid
+        description: Only the work items of this cycle
+      - in: query
+        name: date_filter
+        schema:
+          type: string
+          enum:
+          - last_30_days
+          - last_3_months
+          - last_7_days
+          - yesterday
+        description: Limit the counts to a period. Every work item when omitted
+      - in: query
+        name: module_id
+        schema:
+          type: string
+          format: uuid
+        description: Only the work items of this module
       - in: path
         name: project_id
         schema:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: project_ids
+        schema:
+          type: string
+        description: Comma-separated project ids. Every project of the user when omitted
       - in: path
         name: slug
         schema:
@@ -5457,17 +5585,90 @@ paths:
     get:
       operationId: workspaces_projects_advance_analytics_charts_retrieve
       parameters:
+      - in: query
+        name: cycle_id
+        schema:
+          type: string
+          format: uuid
+        description: Only the work items of this cycle
+      - in: query
+        name: date_filter
+        schema:
+          type: string
+          enum:
+          - last_30_days
+          - last_3_months
+          - last_7_days
+          - yesterday
+        description: Limit the counts to a period. Every work item when omitted
+      - in: query
+        name: group_by
+        schema:
+          type: string
+          enum:
+          - ASSIGNEES
+          - COMPLETED_AT
+          - CREATED_AT
+          - CREATED_BY
+          - CYCLES
+          - ESTIMATE_POINTS
+          - LABELS
+          - MODULES
+          - PRIORITY
+          - START_DATE
+          - STATES
+          - STATE_GROUPS
+          - TARGET_DATE
+        description: Split each bar of a custom-work-items chart by this field
+      - in: query
+        name: module_id
+        schema:
+          type: string
+          format: uuid
+        description: Only the work items of this module
       - in: path
         name: project_id
         schema:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: project_ids
+        schema:
+          type: string
+        description: Comma-separated project ids. Every project of the user when omitted
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - custom-work-items
+          - work-items
+        description: The chart
+      - in: query
+        name: x_axis
+        schema:
+          type: string
+          enum:
+          - ASSIGNEES
+          - COMPLETED_AT
+          - CREATED_AT
+          - CREATED_BY
+          - CYCLES
+          - ESTIMATE_POINTS
+          - LABELS
+          - MODULES
+          - PRIORITY
+          - START_DATE
+          - STATES
+          - STATE_GROUPS
+          - TARGET_DATE
+        description: The axis of a custom-work-items chart. PRIORITY when omitted
       tags:
       - workspaces
       security:
@@ -5483,23 +5684,51 @@ paths:
     get:
       operationId: workspaces_projects_advance_analytics_stats_list
       parameters:
+      - in: query
+        name: cycle_id
+        schema:
+          type: string
+          format: uuid
+        description: Only the work items of this cycle
+      - in: query
+        name: date_filter
+        schema:
+          type: string
+          enum:
+          - last_30_days
+          - last_3_months
+          - last_7_days
+          - yesterday
+        description: Limit the counts to a period. Every work item when omitted
+      - in: query
+        name: module_id
+        schema:
+          type: string
+          format: uuid
+        description: Only the work items of this module
       - in: path
         name: project_id
         schema:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
+      - in: query
+        name: project_ids
         schema:
           type: string
+        description: Comma-separated project ids. Every project of the user when omitted
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - work-items
+        description: The only supported value. work-items when omitted
       tags:
       - workspaces
       security:

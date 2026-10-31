@@ -16672,7 +16672,14 @@ export interface operations {
     };
     workspaces_advance_analytics_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+                /** @description Which counts to return. overview when omitted */
+                tab?: "overview" | "work-items";
+            };
             header?: never;
             path: {
                 slug: string;
@@ -16695,7 +16702,18 @@ export interface operations {
     };
     workspaces_advance_analytics_charts_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Split each bar of a custom-work-items chart by this field */
+                group_by?: "ASSIGNEES" | "COMPLETED_AT" | "CREATED_AT" | "CREATED_BY" | "CYCLES" | "ESTIMATE_POINTS" | "LABELS" | "MODULES" | "PRIORITY" | "START_DATE" | "STATES" | "STATE_GROUPS" | "TARGET_DATE";
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+                /** @description The chart. projects when omitted */
+                type?: "custom-work-items" | "projects" | "work-items";
+                /** @description The axis of a custom-work-items chart. PRIORITY when omitted */
+                x_axis?: "ASSIGNEES" | "COMPLETED_AT" | "CREATED_AT" | "CREATED_BY" | "CYCLES" | "ESTIMATE_POINTS" | "LABELS" | "MODULES" | "PRIORITY" | "START_DATE" | "STATES" | "STATE_GROUPS" | "TARGET_DATE";
+            };
             header?: never;
             path: {
                 slug: string;
@@ -16717,8 +16735,12 @@ export interface operations {
     workspaces_advance_analytics_stats_list: {
         parameters: {
             query?: {
-                /** @description A search term. */
-                search?: string;
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+                /** @description The only supported value. work-items when omitted */
+                type?: "work-items";
             };
             header?: never;
             path: {
@@ -18622,7 +18644,16 @@ export interface operations {
     };
     workspaces_projects_advance_analytics_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only the work items of this cycle */
+                cycle_id?: string;
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Only the work items of this module */
+                module_id?: string;
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -18646,7 +18677,22 @@ export interface operations {
     };
     workspaces_projects_advance_analytics_charts_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only the work items of this cycle */
+                cycle_id?: string;
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Split each bar of a custom-work-items chart by this field */
+                group_by?: "ASSIGNEES" | "COMPLETED_AT" | "CREATED_AT" | "CREATED_BY" | "CYCLES" | "ESTIMATE_POINTS" | "LABELS" | "MODULES" | "PRIORITY" | "START_DATE" | "STATES" | "STATE_GROUPS" | "TARGET_DATE";
+                /** @description Only the work items of this module */
+                module_id?: string;
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+                /** @description The chart */
+                type?: "custom-work-items" | "work-items";
+                /** @description The axis of a custom-work-items chart. PRIORITY when omitted */
+                x_axis?: "ASSIGNEES" | "COMPLETED_AT" | "CREATED_AT" | "CREATED_BY" | "CYCLES" | "ESTIMATE_POINTS" | "LABELS" | "MODULES" | "PRIORITY" | "START_DATE" | "STATES" | "STATE_GROUPS" | "TARGET_DATE";
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -18669,8 +18715,16 @@ export interface operations {
     workspaces_projects_advance_analytics_stats_list: {
         parameters: {
             query?: {
-                /** @description A search term. */
-                search?: string;
+                /** @description Only the work items of this cycle */
+                cycle_id?: string;
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Only the work items of this module */
+                module_id?: string;
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+                /** @description The only supported value. work-items when omitted */
+                type?: "work-items";
             };
             header?: never;
             path: {
@@ -27680,10 +27734,25 @@ type ReadonlyArray<T> = [
 ] extends [
     unknown[]
 ] ? Readonly<Exclude<T, undefined>> : Readonly<Exclude<T, undefined>[]>;
+export const pathsApiWorkspacesSlugAdvanceAnalyticsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsGetParametersQueryTabValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics/"]["get"]["parameters"]["query"]["tab"]> = ["overview", "work-items"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsChartsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-charts/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsChartsGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-charts/"]["get"]["parameters"]["query"]["group_by"]> = ["ASSIGNEES", "COMPLETED_AT", "CREATED_AT", "CREATED_BY", "CYCLES", "ESTIMATE_POINTS", "LABELS", "MODULES", "PRIORITY", "START_DATE", "STATES", "STATE_GROUPS", "TARGET_DATE"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsChartsGetParametersQueryTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-charts/"]["get"]["parameters"]["query"]["type"]> = ["custom-work-items", "projects", "work-items"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsChartsGetParametersQueryX_axisValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-charts/"]["get"]["parameters"]["query"]["x_axis"]> = ["ASSIGNEES", "COMPLETED_AT", "CREATED_AT", "CREATED_BY", "CYCLES", "ESTIMATE_POINTS", "LABELS", "MODULES", "PRIORITY", "START_DATE", "STATES", "STATE_GROUPS", "TARGET_DATE"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsStatsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-stats/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsStatsGetParametersQueryTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-stats/"]["get"]["parameters"]["query"]["type"]> = ["work-items"];
 export const pathsApiWorkspacesSlugPageQueryGetParametersQueryKindValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["kind"]> = ["by-label", "contributors", "decision-report", "index", "label-list", "page-properties", "recent", "search", "task-report", "tree"];
 export const pathsApiWorkspacesSlugPageQueryGetParametersQueryScopeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["scope"]> = ["project"];
 export const pathsApiWorkspacesSlugPageQueryGetParametersQuerySortValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["sort"]> = ["created", "modified", "title"];
 export const pathsApiWorkspacesSlugPageQueryGetParametersQueryStatusValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["status"]> = ["complete", "incomplete"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsChartsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-charts/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsChartsGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-charts/"]["get"]["parameters"]["query"]["group_by"]> = ["ASSIGNEES", "COMPLETED_AT", "CREATED_AT", "CREATED_BY", "CYCLES", "ESTIMATE_POINTS", "LABELS", "MODULES", "PRIORITY", "START_DATE", "STATES", "STATE_GROUPS", "TARGET_DATE"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsChartsGetParametersQueryTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-charts/"]["get"]["parameters"]["query"]["type"]> = ["custom-work-items", "work-items"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsChartsGetParametersQueryX_axisValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-charts/"]["get"]["parameters"]["query"]["x_axis"]> = ["ASSIGNEES", "COMPLETED_AT", "CREATED_AT", "CREATED_BY", "CYCLES", "ESTIMATE_POINTS", "LABELS", "MODULES", "PRIORITY", "START_DATE", "STATES", "STATE_GROUPS", "TARGET_DATE"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsStatsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-stats/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsStatsGetParametersQueryTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-stats/"]["get"]["parameters"]["query"]["type"]> = ["work-items"];
 export const pathsApiWorkspacesSlugProjectsProject_idArchivedIssuesGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/archived-issues/"]["get"]["parameters"]["query"]["group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idArchivedIssuesGetParametersQuerySub_group_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/archived-issues/"]["get"]["parameters"]["query"]["sub_group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idCyclesGetParametersQueryCycle_viewValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/cycles/"]["get"]["parameters"]["query"]["cycle_view"]> = ["all", "current"];
