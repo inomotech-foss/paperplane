@@ -89,7 +89,7 @@ export interface ICycleIssues extends IBaseIssuesStore {
     payload: {
       new_cycle_id: string;
     }
-  ) => Promise<TIssue>;
+  ) => Promise<void>;
 }
 
 export class CycleIssues extends BaseIssuesStore implements ICycleIssues {
@@ -330,7 +330,7 @@ export class CycleIssues extends BaseIssuesStore implements ICycleIssues {
     set(this.activeCycleIds, [cycleId], undefined);
 
     // set params for urgent and high
-    const params = { priority: `urgent,high`, cursor: `${perPageCount}:0:0`, per_page: perPageCount };
+    const params = { priority: `urgent,high`, cursor: `${perPageCount}:0:0`, per_page: String(perPageCount) };
     // call the fetch issues API
     const response = await this.cycleService.getCycleIssues(workspaceSlug, projectId, cycleId, params);
 
@@ -339,7 +339,8 @@ export class CycleIssues extends BaseIssuesStore implements ICycleIssues {
 
     // add issues to the main Issue Map
     this.rootIssueStore.issues.addIssue(issueList);
-    const activeIssueIds = groupedIssues[ALL_ISSUES] as string[];
+    const allIssueIds = groupedIssues[ALL_ISSUES];
+    const activeIssueIds = Array.isArray(allIssueIds) ? allIssueIds : [];
 
     // store the processed data in the current store
     set(this.activeCycleIds, [cycleId], {
@@ -369,7 +370,11 @@ export class CycleIssues extends BaseIssuesStore implements ICycleIssues {
     if (!activeCycle || !activeCycle.nextPageResults) return;
 
     // create params
-    const params = { priority: `urgent,high`, cursor: activeCycle.nextCursor, per_page: activeCycle.perPageCount };
+    const params = {
+      priority: `urgent,high`,
+      cursor: activeCycle.nextCursor,
+      per_page: String(activeCycle.perPageCount),
+    };
     // fetch API response
     const response = await this.cycleService.getCycleIssues(workspaceSlug, projectId, cycleId, params);
 
@@ -379,7 +384,8 @@ export class CycleIssues extends BaseIssuesStore implements ICycleIssues {
     // add issues to main issue Map
     this.rootIssueStore.issues.addIssue(issueList);
 
-    const activeIssueIds = groupedIssues[ALL_ISSUES] as string[];
+    const allIssueIds = groupedIssues[ALL_ISSUES];
+    const activeIssueIds = Array.isArray(allIssueIds) ? allIssueIds : [];
 
     // store the processed data for subsequent pages
     set(this.activeCycleIds, [cycleId, "issueCount"], response.total_count);

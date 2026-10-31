@@ -20,7 +20,7 @@ from drf_spectacular.utils import extend_schema
 
 
 # Module imports
-from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.app.serializers.request.cycle import SCOPED_ISSUE_LIST_PARAMETERS, CycleIssuesAddSerializer
 from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.app.serializers.response.issue import WorkItemListResponse
 from .. import BaseViewSet
@@ -109,7 +109,7 @@ class CycleIssueViewSet(BaseViewSet):
             .prefetch_related("assignees", "labels", "issue_module__module", "issue_cycle__cycle")
         )
 
-    @extend_schema(parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: WorkItemListResponse})
+    @extend_schema(parameters=SCOPED_ISSUE_LIST_PARAMETERS, responses={200: WorkItemListResponse})
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def list(self, request, slug, project_id, cycle_id):
@@ -230,7 +230,7 @@ class CycleIssueViewSet(BaseViewSet):
                 on_results=lambda issues: issue_on_results(group_by=group_by, issues=issues, sub_group_by=sub_group_by),
             )
 
-    @extend_schema(responses={201: MessageResponseSerializer})
+    @extend_schema(request=CycleIssuesAddSerializer, responses={201: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id, cycle_id):
         issues = request.data.get("issues", [])

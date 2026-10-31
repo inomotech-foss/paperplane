@@ -46,6 +46,7 @@ from plane.app.serializers import (
     PageUpdateSerializer,
 )
 from plane.app.serializers.favorite import get_favorite_entities
+from plane.app.serializers.request.page import TRACK_VISIT_PARAMETER, PageAccessSerializer, PageCreateSerializer
 from plane.db.models import (
     Page,
     PageLabel,
@@ -159,7 +160,7 @@ class PageViewSet(BaseViewSet):
             .filter(project=True)
         )
 
-    @extend_schema(responses={201: PageDetailSerializer})
+    @extend_schema(request=PageCreateSerializer, responses={201: PageDetailSerializer})
     def create(self, request, slug, project_id):
         serializer = PageSerializer(
             data=request.data,
@@ -186,7 +187,7 @@ class PageViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(responses={200: PageUpdateSerializer})
+    @extend_schema(request=PageUpdateSerializer, responses={200: PageUpdateSerializer})
     def partial_update(self, request, slug, project_id, page_id):
         try:
             page = Page.objects.get(
@@ -262,7 +263,7 @@ class PageViewSet(BaseViewSet):
         ]
         return Response(PagePositionResponseSerializer({"pages": visible}).data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: PageWithIssuesSerializer})
+    @extend_schema(parameters=[TRACK_VISIT_PARAMETER], responses={200: PageWithIssuesSerializer})
     def retrieve(self, request, slug, project_id, page_id=None):
         page = self.get_queryset().filter(pk=page_id).first()
         track_visit = request.query_params.get("track_visit", "true").lower() == "true"
@@ -313,7 +314,7 @@ class PageViewSet(BaseViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @extend_schema(responses={204: OpenApiResponse(description="Done")})
+    @extend_schema(request=PageAccessSerializer, responses={204: OpenApiResponse(description="Done")})
     def access(self, request, slug, project_id, page_id):
         access = request.data.get("access", 0)
         page = Page.objects.get(
@@ -334,6 +335,7 @@ class PageViewSet(BaseViewSet):
         page.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(filters=False)
     def list(self, request, slug, project_id):
         # PageSerializer carries no page body, but without defer() the query
         # still SELECTs (and, because the ArrayAgg annotations force a GROUP
@@ -584,7 +586,7 @@ class PagesDescriptionViewSet(BaseViewSet):
         response["Content-Disposition"] = 'attachment; filename="page_description.bin"'
         return response
 
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=PageBinaryUpdateSerializer, responses={200: MessageResponseSerializer})
     def partial_update(self, request, slug, project_id, page_id):
         page = Page.objects.get(
             Q(owned_by=self.request.user) | Q(access=0),
@@ -646,7 +648,7 @@ class PagesDescriptionViewSet(BaseViewSet):
 class PageDuplicateEndpoint(BaseAPIView):
     permission_classes = [ProjectPagePermission]
 
-    @extend_schema(responses={201: PageDetailSerializer})
+    @extend_schema(request=None, responses={201: PageDetailSerializer})
     def post(self, request, slug, project_id, page_id):
         page = Page.objects.get(
             pk=page_id,

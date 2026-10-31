@@ -11,6 +11,7 @@ import { computedFn } from "mobx-utils";
 import type { TModuleDisplayFilters, TModuleFilters, TModuleFiltersByState } from "@plane/types";
 // helpers
 import { storage } from "@/lib/local-storage";
+import { parseStoredModuleDisplayFilters, parseStoredModuleFilters } from "./module-filter-storage";
 // store
 import type { CoreRootStore } from "./root.store";
 
@@ -94,16 +95,12 @@ export class ModuleFilterStore implements IModuleFilterStore {
 
       runInAction(() => {
         if (displayFiltersData) {
-          const parsed = JSON.parse(displayFiltersData);
-          if (typeof parsed === "object" && parsed !== null) {
-            this.displayFilters = parsed;
-          }
+          const parsed: unknown = JSON.parse(displayFiltersData);
+          this.displayFilters = parseStoredModuleDisplayFilters(parsed);
         }
         if (filtersData) {
-          const parsed = JSON.parse(filtersData);
-          if (typeof parsed === "object" && parsed !== null) {
-            this.filters = parsed;
-          }
+          const parsed: unknown = JSON.parse(filtersData);
+          this.filters = parseStoredModuleFilters(parsed);
         }
       });
     } catch (error) {
@@ -203,8 +200,8 @@ export class ModuleFilterStore implements IModuleFilterStore {
    */
   updateDisplayFilters = (projectId: string, displayFilters: TModuleDisplayFilters) => {
     runInAction(() => {
-      Object.keys(displayFilters).forEach((key) => {
-        set(this.displayFilters, [projectId, key], displayFilters[key as keyof TModuleDisplayFilters]);
+      Object.entries(displayFilters).forEach(([key, value]) => {
+        set(this.displayFilters, [projectId, key], value);
       });
     });
     this.saveDisplayFiltersToLocalStorage();
@@ -217,8 +214,8 @@ export class ModuleFilterStore implements IModuleFilterStore {
    */
   updateFilters = (projectId: string, filters: TModuleFilters, state: keyof TModuleFiltersByState = "default") => {
     runInAction(() => {
-      Object.keys(filters).forEach((key) => {
-        set(this.filters, [projectId, state, key], filters[key as keyof TModuleFilters]);
+      Object.entries(filters).forEach(([key, value]) => {
+        set(this.filters, [projectId, state, key], value);
       });
     });
     this.saveFiltersToLocalStorage();

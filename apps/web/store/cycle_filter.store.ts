@@ -144,8 +144,8 @@ export class CycleFilterStore implements ICycleFilterStore {
    */
   updateDisplayFilters = (projectId: string, displayFilters: TCycleDisplayFilters) => {
     runInAction(() => {
-      Object.keys(displayFilters).forEach((key) => {
-        set(this.displayFilters, [projectId, key], displayFilters[key as keyof TCycleDisplayFilters]);
+      Object.entries(displayFilters).forEach(([key, value]) => {
+        set(this.displayFilters, [projectId, key], value);
       });
     });
   };
@@ -157,8 +157,8 @@ export class CycleFilterStore implements ICycleFilterStore {
    */
   updateFilters = (projectId: string, filters: TCycleFilters, state: keyof TCycleFiltersByState = "default") => {
     runInAction(() => {
-      Object.keys(filters).forEach((key) => {
-        set(this.filters, [projectId, state, key], filters[key as keyof TCycleFilters]);
+      Object.entries(filters).forEach(([key, value]) => {
+        set(this.filters, [projectId, state, key], value);
       });
     });
   };

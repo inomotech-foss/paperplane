@@ -5,6 +5,7 @@ from drf_spectacular.utils import PolymorphicProxySerializer
 from rest_framework import serializers
 
 from plane.app.serializers import ModuleDetailSerializer, ModuleSerializer
+from plane.db.models.module import ModuleStatus
 
 from .cycle import DistributionSerializer, EstimateDistributionSerializer
 
@@ -19,7 +20,7 @@ class _ModuleValuesSerializer(serializers.Serializer):
     description_html = serializers.JSONField(allow_null=True)
     start_date = serializers.DateField(allow_null=True)
     target_date = serializers.DateField(allow_null=True)
-    status = serializers.CharField()
+    status = serializers.ChoiceField(choices=ModuleStatus.choices)
     lead_id = serializers.UUIDField(allow_null=True)
     member_ids = serializers.ListField(child=serializers.UUIDField())
     view_props = serializers.JSONField()

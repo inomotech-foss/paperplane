@@ -5,7 +5,7 @@
  */
 
 import type { TIssue } from "../issues/issue";
-import type { IIssueFilterOptions } from "../client-json";
+import type { TLogoProps } from "../client-json";
 
 export type TCycleGroups = "current" | "upcoming" | "completed" | "draft";
 
@@ -98,37 +98,29 @@ export type TProgressSnapshot = {
   estimate_distribution?: TCycleEstimateDistribution;
 };
 
-export interface IProjectDetails {
+/** A cycle as the stores keep it. Fields that only some endpoints send are optional. */
+export interface ICycle extends Partial<TProgressSnapshot> {
   id: string;
-}
-
-export interface ICycle extends TProgressSnapshot {
-  progress_snapshot: TProgressSnapshot | undefined;
-
-  created_at?: string;
-  created_by?: string;
-  description: string;
-  end_date: string | null;
-  id: string;
-  is_favorite?: boolean;
-  name: string;
-  owned_by_id: string;
-  project_id: string;
-  status?: TCycleGroups;
-  sort_order: number;
-  start_date: string | null;
-  sub_issues?: number;
-  updated_at?: string;
-  updated_by?: string;
-  archived_at: string | null;
-  assignee_ids?: string[];
-  view_props: {
-    filters: IIssueFilterOptions;
-  };
   workspace_id: string;
-  project_detail: IProjectDetails;
+  project_id: string;
+  name: string;
+  description: string;
+  start_date: string | null;
+  end_date: string | null;
+  owned_by_id: string;
+  sort_order: number;
+  logo_props?: TLogoProps;
+  /** Set when the open work items moved to another cycle. */
+  progress_snapshot?: Partial<TProgressSnapshot>;
+  status?: TCycleGroups;
+  is_favorite?: boolean;
+  assignee_ids?: string[];
+  version?: number;
+  archived_at?: string | null;
+  created_at?: string;
+  created_by?: string | null;
+  sub_issues?: number;
   progress?: TCycleProgressSnapshot[];
-  version: number;
 }
 
 export interface CycleIssueResponse {

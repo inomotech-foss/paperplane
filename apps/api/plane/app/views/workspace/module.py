@@ -24,7 +24,7 @@ from plane.app.serializers.response.module import WorkspaceModuleSerializer
 class WorkspaceModulesEndpoint(BaseAPIView):
     permission_classes = [WorkspaceViewerPermission]
 
-    @extend_schema(responses={200: WorkspaceModuleSerializer(many=True)})
+    @extend_schema(filters=False, responses={200: WorkspaceModuleSerializer(many=True)})
     def get(self, request, slug):
         modules = (
             Module.objects.filter(

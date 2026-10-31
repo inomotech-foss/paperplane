@@ -16,6 +16,7 @@ from drf_spectacular.utils import extend_schema
 
 # Module imports
 from plane.app.serializers.response.page import PageQueryResponse
+from plane.app.serializers.request.page import PAGE_QUERY_PARAMETERS
 from plane.app.permissions import ROLE, WorkspaceEntityPermission
 from plane.app.serializers import PageQuerySerializer
 from plane.db.models import Label, Page, PageIndexEntry, PageLabel, ProjectPage
@@ -70,7 +71,7 @@ class PageQueryEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
     use_read_replica = True
 
-    @extend_schema(responses={200: PageQueryResponse})
+    @extend_schema(parameters=PAGE_QUERY_PARAMETERS, filters=False, responses={200: PageQueryResponse})
     def get(self, request, slug):
         kind = request.GET.get("kind") or "recent"
         handler = {

@@ -11,6 +11,7 @@ import { computedFn } from "mobx-utils";
 // types
 import type {
   ICycle,
+  IFavorite,
   TCyclePlotType,
   TProgressSnapshot,
   TCycleEstimateDistribution,
@@ -76,7 +77,7 @@ export interface ICycleStore {
     workspaceSlug: string,
     projectId: string,
     cycleId: string,
-    analytic_type: string
+    analyticType: TCycleEstimateType
   ) => Promise<TCycleDistribution | TCycleEstimateDistribution>;
   // crud
   createCycle: (workspaceSlug: string, projectId: string, data: Partial<ICycle>) => Promise<ICycle>;
@@ -88,7 +89,7 @@ export interface ICycleStore {
   ) => Promise<ICycle>;
   deleteCycle: (workspaceSlug: string, projectId: string, cycleId: string) => Promise<void>;
   // favorites
-  addCycleToFavorites: (workspaceSlug: string, projectId: string, cycleId: string) => Promise<any>;
+  addCycleToFavorites: (workspaceSlug: string, projectId: string, cycleId: string) => Promise<IFavorite>;
   removeCycleFromFavorites: (workspaceSlug: string, projectId: string, cycleId: string) => Promise<void>;
   // archive
   archiveCycle: (workspaceSlug: string, projectId: string, cycleId: string) => Promise<void>;
@@ -484,7 +485,7 @@ export class CycleStore implements ICycleStore {
    */
   fetchActiveCycleProgress = async (workspaceSlug: string, projectId: string, cycleId: string) => {
     this.progressLoader = true;
-    return await this.cycleService.workspaceActiveCyclesProgress(workspaceSlug, projectId, cycleId).then((progress) => {
+    return await this.cycleService.getCycleProgress(workspaceSlug, projectId, cycleId).then((progress) => {
       runInAction(() => {
         set(this.cycleMap, [cycleId], { ...this.cycleMap[cycleId], ...progress });
         this.progressLoader = false;
@@ -514,16 +515,21 @@ export class CycleStore implements ICycleStore {
     workspaceSlug: string,
     projectId: string,
     cycleId: string,
-    analytic_type: string
-  ) =>
-    await this.cycleService
-      .workspaceActiveCyclesAnalytics(workspaceSlug, projectId, cycleId, analytic_type)
-      .then((cycle) => {
-        runInAction(() => {
-          set(this.cycleMap, [cycleId, analytic_type === "points" ? "estimate_distribution" : "distribution"], cycle);
-        });
-        return cycle;
+    analyticType: TCycleEstimateType
+  ) => {
+    if (analyticType === "points") {
+      const distribution = await this.cycleService.getCycleEstimateDistribution(workspaceSlug, projectId, cycleId);
+      runInAction(() => {
+        set(this.cycleMap, [cycleId, "estimate_distribution"], distribution);
       });
+      return distribution;
+    }
+    const distribution = await this.cycleService.getCycleDistribution(workspaceSlug, projectId, cycleId);
+    runInAction(() => {
+      set(this.cycleMap, [cycleId, "distribution"], distribution);
+    });
+    return distribution;
+  };
 
   /**
    * @description fetches cycle details
@@ -617,14 +623,14 @@ export class CycleStore implements ICycleStore {
    * @param projectId
    * @param cycleId
    */
-  deleteCycle = async (workspaceSlug: string, projectId: string, cycleId: string) =>
-    await this.cycleService.deleteCycle(workspaceSlug, projectId, cycleId).then(() => {
-      runInAction(() => {
-        delete this.cycleMap[cycleId];
-        delete this.activeCycleIdMap[cycleId];
-        if (this.rootStore.favorite.entityMap[cycleId]) this.rootStore.favorite.removeFavoriteFromStore(cycleId);
-      });
+  deleteCycle = async (workspaceSlug: string, projectId: string, cycleId: string) => {
+    await this.cycleService.deleteCycle(workspaceSlug, projectId, cycleId);
+    runInAction(() => {
+      delete this.cycleMap[cycleId];
+      delete this.activeCycleIdMap[cycleId];
+      if (this.rootStore.favorite.entityMap[cycleId]) this.rootStore.favorite.removeFavoriteFromStore(cycleId);
     });
+  };
 
   /**
    * @description adds a cycle to favorites
@@ -688,17 +694,15 @@ export class CycleStore implements ICycleStore {
   archiveCycle = async (workspaceSlug: string, projectId: string, cycleId: string) => {
     const cycleDetails = this.getCycleById(cycleId);
     if (cycleDetails?.archived_at) return;
-    await this.cycleArchiveService
-      .archiveCycle(workspaceSlug, projectId, cycleId)
-      .then((response) => {
-        runInAction(() => {
-          set(this.cycleMap, [cycleId, "archived_at"], response.archived_at);
-          if (this.rootStore.favorite.entityMap[cycleId]) this.rootStore.favorite.removeFavoriteFromStore(cycleId);
-        });
-      })
-      .catch((error) => {
-        console.error("Failed to archive cycle in cycle store", error);
+    try {
+      const response = await this.cycleArchiveService.archiveCycle(workspaceSlug, projectId, cycleId);
+      runInAction(() => {
+        set(this.cycleMap, [cycleId, "archived_at"], response.archived_at);
+        if (this.rootStore.favorite.entityMap[cycleId]) this.rootStore.favorite.removeFavoriteFromStore(cycleId);
       });
+    } catch (error) {
+      console.error("Failed to archive cycle in cycle store", error);
+    }
   };
 
   /**
@@ -711,15 +715,13 @@ export class CycleStore implements ICycleStore {
   restoreCycle = async (workspaceSlug: string, projectId: string, cycleId: string) => {
     const cycleDetails = this.getCycleById(cycleId);
     if (!cycleDetails?.archived_at) return;
-    await this.cycleArchiveService
-      .restoreCycle(workspaceSlug, projectId, cycleId)
-      .then(() => {
-        runInAction(() => {
-          set(this.cycleMap, [cycleId, "archived_at"], null);
-        });
-      })
-      .catch((error) => {
-        console.error("Failed to restore cycle in cycle store", error);
+    try {
+      await this.cycleArchiveService.restoreCycle(workspaceSlug, projectId, cycleId);
+      runInAction(() => {
+        set(this.cycleMap, [cycleId, "archived_at"], null);
       });
+    } catch (error) {
+      console.error("Failed to restore cycle in cycle store", error);
+    }
   };
 }

@@ -99,11 +99,10 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
   archived_at: string | null | undefined;
   workspace: string | undefined;
   project_ids?: string[] | undefined;
-  created_by: string | undefined;
-  updated_by: string | undefined;
-  created_at: Date | undefined;
-  updated_at: Date | undefined;
-  deleted_at: Date | undefined;
+  created_by: string | null | undefined;
+  updated_by: string | null | undefined;
+  created_at: string | undefined;
+  updated_at: string | undefined;
   // helpers
   oldName: string = "";
   // services
@@ -143,7 +142,6 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
     this.created_at = page?.created_at || undefined;
     this.updated_at = page?.updated_at || undefined;
     this.oldName = page?.name || "";
-    this.deleted_at = page?.deleted_at || undefined;
 
     makeObservable(this, {
       // loaders
@@ -169,7 +167,6 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       updated_by: observable.ref,
       created_at: observable.ref,
       updated_at: observable.ref,
-      deleted_at: observable.ref,
       isSyncingWithServer: observable.ref,
       // helpers
       oldName: observable.ref,
@@ -247,7 +244,6 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       updated_by: this.updated_by,
       created_at: this.created_at,
       updated_at: this.updated_at,
-      deleted_at: this.deleted_at,
       ...this.asJSONExtended,
     };
   }
@@ -281,20 +277,12 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
   update = async (pageData: Partial<TPage>) => {
     const currentPage = this.asJSON;
     try {
-      runInAction(() => {
-        Object.keys(pageData).forEach((key) => {
-          const currentPageKey = key as keyof TPage;
-          set(this, key, pageData[currentPageKey] || undefined);
-        });
-      });
-
-      return await this.services.update(currentPage);
+      runInAction(() => this.mutateProperties(pageData));
+      return await this.services.update(pageData);
     } catch (error) {
+      const previous: Record<string, unknown> = currentPage;
       runInAction(() => {
-        Object.keys(pageData).forEach((key) => {
-          const currentPageKey = key as keyof TPage;
-          set(this, key, currentPage?.[currentPageKey] || undefined);
-        });
+        Object.keys(pageData).forEach((key) => set(this, key, previous[key]));
       });
       throw error;
     }
@@ -388,7 +376,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
     runInAction(() => (this.is_locked = true));
 
     if (shouldSync) {
-      await this.services.lock().catch((error) => {
+      await this.services.lock().catch((error: unknown) => {
         runInAction(() => {
           this.is_locked = pageIsLocked;
         });
@@ -405,7 +393,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
     runInAction(() => (this.is_locked = false));
 
     if (shouldSync) {
-      await this.services.unlock().catch((error) => {
+      await this.services.unlock().catch((error: unknown) => {
         runInAction(() => {
           this.is_locked = pageIsLocked;
         });
@@ -465,7 +453,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
   };
 
   updatePageLogo = async (value: ChangeHandlerPayload) => {
-    const originalLogoProps = { ...this.logo_props };
+    const originalLogoProps = this.logo_props;
     try {
       let logoValue = {};
       if (value?.type === "emoji")
@@ -489,7 +477,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
     } catch (error) {
       console.error("Error in updating page logo", error);
       runInAction(() => {
-        this.logo_props = originalLogoProps as TLogoProps;
+        this.logo_props = originalLogoProps;
       });
       throw error;
     }
@@ -514,7 +502,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
         project_id: projectId,
         entity_data: { name: this.name || "" },
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         runInAction(() => {
           this.is_favorite = pageIsFavorite;
         });
@@ -534,7 +522,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       this.is_favorite = false;
     });
 
-    await this.rootStore.favorite.removeFavoriteEntity(workspaceSlug, this.id).catch((error) => {
+    await this.rootStore.favorite.removeFavoriteEntity(workspaceSlug, this.id).catch((error: unknown) => {
       runInAction(() => {
         this.is_favorite = pageIsFavorite;
       });
@@ -552,8 +540,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
    * @param data Partial<TPage>
    */
   mutateProperties = (data: Partial<TPage>, shouldUpdateName: boolean = true) => {
-    Object.keys(data).forEach((key) => {
-      const value = data[key as keyof TPage];
+    Object.entries(data).forEach(([key, value]) => {
       if (key === "name" && !shouldUpdateName) return;
       set(this, key, value);
     });

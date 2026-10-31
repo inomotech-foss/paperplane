@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from collections import defaultdict
 from uuid import UUID
 
 from django.db.models import Exists, OuterRef, Q
-from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from plane.utils.openapi.fields import ClientJsonField
 from plane.db.models import (
     UserFavorite,
     Cycle,
@@ -57,6 +59,18 @@ class ViewFavoriteSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "logo_props", "project_id"]
 
 
+class FavoriteEntitySerializer(serializers.Serializer):
+    """The entity_data of a favorite. A project has no project_id."""
+
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    logo_props = ClientJsonField()
+    project_id = serializers.UUIDField(allow_null=True)
+
+    class Meta:
+        response_optional = ("project_id",)
+
+
 def get_entity_model_and_serializer(entity_type):
     entity_map = {
         "cycle": (Cycle, CycleFavoriteLiteSerializer),
@@ -102,6 +116,21 @@ def get_favorite_entities(entity_type, user_id, project_id):
     return entities
 
 
+def user_favorites(user, slug, entity_type, project_id=None):
+    """The user's favorites of entity_type in the projects they are an active member of."""
+    favorites = UserFavorite.objects.filter(
+        workspace__slug=slug,
+        user=user,
+        entity_type=entity_type,
+        project__project_projectmember__member=user,
+        project__project_projectmember__is_active=True,
+        project__project_projectmember__deleted_at__isnull=True,
+    )
+    if project_id is not None:
+        favorites = favorites.filter(project_id=project_id)
+    return favorites.distinct().order_by("sequence", "created_at")
+
+
 class UserFavoriteSerializer(serializers.ModelSerializer):
     entity_data = serializers.SerializerMethodField()
 
@@ -121,21 +150,11 @@ class UserFavoriteSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["workspace", "created_by", "updated_by"]
 
-    @extend_schema_field(
-        PolymorphicProxySerializer(
-            component_name="FavoriteEntity",
-            serializers=[
-                ProjectFavoriteLiteSerializer,
-                CycleFavoriteLiteSerializer,
-                ModuleFavoriteLiteSerializer,
-                ViewFavoriteSerializer,
-                PageFavoriteLiteSerializer,
-            ],
-            resource_type_field_name=None,
-            allow_null=True,
-        )
-    )
+    @extend_schema_field(FavoriteEntitySerializer(allow_null=True))
     def get_entity_data(self, obj):
+        prefetched = self.context.get("entity_data")
+        if prefetched is not None:
+            return prefetched.get(obj.id)
         entity_type = obj.entity_type
         entity_identifier = obj.entity_identifier
 
@@ -149,3 +168,29 @@ class UserFavoriteSerializer(serializers.ModelSerializer):
             except entity_model.DoesNotExist:
                 return None
         return None
+
+
+def serialize_favorites(favorites):
+    """UserFavoriteSerializer data with one entity query per entity type and project instead of one per row."""
+    favorites = list(favorites)
+    groups = defaultdict(list)
+    for favorite in favorites:
+        groups[(favorite.entity_type, favorite.user_id, favorite.project_id, favorite.workspace_id)].append(favorite)
+    entity_data = {}
+    for (entity_type, user_id, project_id, workspace_id), rows in groups.items():
+        _, entity_serializer = get_entity_model_and_serializer(entity_type)
+        entities = {}
+        if entity_serializer:
+            identifiers = [row.entity_identifier for row in rows]
+            entities = {
+                entity.id: entity
+                for entity in get_favorite_entities(entity_type, user_id, project_id).filter(
+                    pk__in=identifiers, workspace_id=workspace_id
+                )
+            }
+        for row in rows:
+            entity = entities.get(row.entity_identifier)
+            entity_data[row.id] = (
+                entity_serializer(entity, context={"project_id": project_id}).data if entity is not None else None
+            )
+    return UserFavoriteSerializer(favorites, many=True, context={"entity_data": entity_data}).data

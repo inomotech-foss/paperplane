@@ -3,35 +3,19 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
-import { getFileMetaDataForUpload, uploadToPresignedPost } from "@plane/services";
+import { getFileMetaDataForUpload, unwrap, uploadForm } from "@plane/services";
 import type { UploadProgressHandler } from "@plane/services";
-import type { TPageAttachment, TPageAttachmentUploadResponse } from "@plane/types";
-// services
-import { APIService } from "@/services/api.service";
+import type { TPageAttachment } from "@plane/types";
+import { apiClient } from "@/services/api-client";
+import { toPageAttachment } from "./page-convert";
 
-export class PageAttachmentService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+const pagePath = (slug: string, project_id: string, page_id: string) => ({ path: { slug, project_id, page_id } });
+const attachmentPath = (slug: string, project_id: string, page_id: string, pk: string) => ({
+  path: { slug, project_id, page_id, pk },
+});
 
-  private basePath(workspaceSlug: string, projectId: string, pageId: string): string {
-    return `/api/assets/v2/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/attachments/`;
-  }
-
-  private async markUploaded(
-    workspaceSlug: string,
-    projectId: string,
-    pageId: string,
-    attachmentId: string
-  ): Promise<void> {
-    return this.patch(`${this.basePath(workspaceSlug, projectId, pageId)}${attachmentId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class PageAttachmentService {
   /**
    * Reserves the asset, uploads straight to storage, then confirms. The
    * attachment is not listed until the confirmation lands, so an abandoned
@@ -45,24 +29,32 @@ export class PageAttachmentService extends APIService {
     uploadProgressHandler?: UploadProgressHandler
   ): Promise<TPageAttachment> {
     const fileMetaData = await getFileMetaDataForUpload(file);
-    return this.post(this.basePath(workspaceSlug, projectId, pageId), fileMetaData)
-      .then(async (response) => {
-        const signedURLResponse: TPageAttachmentUploadResponse = response?.data;
-        await uploadToPresignedPost(signedURLResponse, file, { onProgress: uploadProgressHandler });
-        await this.markUploaded(workspaceSlug, projectId, pageId, signedURLResponse.asset_id);
-        return signedURLResponse.attachment;
+    const upload = await unwrap(
+      apiClient.POST("/api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+        body: fileMetaData,
       })
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    );
+    if (!upload.upload_data) throw new Error("The storage did not return an upload URL");
+    const form = new FormData();
+    for (const [key, value] of Object.entries(upload.upload_data.fields)) form.append(key, value);
+    form.append("file", file);
+    await uploadForm(upload.upload_data.url, form, { onProgress: uploadProgressHandler });
+    await unwrap(
+      apiClient.PATCH("/api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/{pk}/", {
+        params: attachmentPath(workspaceSlug, projectId, pageId, upload.asset_id),
+      })
+    );
+    return toPageAttachment(upload.attachment);
   }
 
   async list(workspaceSlug: string, projectId: string, pageId: string): Promise<TPageAttachment[]> {
-    return this.get(this.basePath(workspaceSlug, projectId, pageId))
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const attachments = await unwrap(
+      apiClient.GET("/api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+      })
+    );
+    return attachments.map(toPageAttachment);
   }
 
   /**
@@ -71,22 +63,19 @@ export class PageAttachmentService extends APIService {
    * without CORS on the bucket.
    */
   async readContent(workspaceSlug: string, projectId: string, pageId: string, attachmentId: string): Promise<string> {
-    return this.get(
-      `${this.basePath(workspaceSlug, projectId, pageId)}${attachmentId}/content/`,
-      {},
-      { responseType: "text" }
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET(
+        "/api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/{pk}/content/",
+        { params: attachmentPath(workspaceSlug, projectId, pageId, attachmentId), parseAs: "text" }
+      )
+    );
   }
 
   async remove(workspaceSlug: string, projectId: string, pageId: string, attachmentId: string): Promise<void> {
-    return this.delete(`${this.basePath(workspaceSlug, projectId, pageId)}${attachmentId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.DELETE("/api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/{pk}/", {
+        params: attachmentPath(workspaceSlug, projectId, pageId, attachmentId),
+      })
+    );
   }
 }

@@ -4,43 +4,44 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type { TPageComment, TPageCommentReaction } from "@plane/types";
-// services
-import { APIService } from "@/services/api.service";
+import { apiClient } from "@/services/api-client";
+import { toPageComment, toPageCommentReaction } from "./page-convert";
+import type { TPageCommentBody } from "./page-convert";
+
+const pagePath = (slug: string, project_id: string, page_id: string) => ({ path: { slug, project_id, page_id } });
+const commentPath = (slug: string, project_id: string, page_id: string, pk: string) => ({
+  path: { slug, project_id, page_id, pk },
+});
 
 /**
  * REST client for page document/inline comment threads and replies.
- * Talks to the app (session-auth) endpoints added in the page-comments API.
+ * Errors are thrown as `ApiError` from `@plane/services`.
  */
-export class PageCommentService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
-
-  private basePath(workspaceSlug: string, projectId: string, pageId: string) {
-    return `/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/comments/`;
-  }
-
+export class PageCommentService {
   async list(workspaceSlug: string, projectId: string, pageId: string): Promise<TPageComment[]> {
-    return this.get(this.basePath(workspaceSlug, projectId, pageId))
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const comments = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+      })
+    );
+    return comments.map(toPageComment);
   }
 
   async create(
     workspaceSlug: string,
     projectId: string,
     pageId: string,
-    data: Partial<TPageComment>
+    data: TPageCommentBody
   ): Promise<TPageComment> {
-    return this.post(this.basePath(workspaceSlug, projectId, pageId), data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const comment = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+        body: data,
+      })
+    );
+    return toPageComment(comment);
   }
 
   async update(
@@ -48,37 +49,41 @@ export class PageCommentService extends APIService {
     projectId: string,
     pageId: string,
     commentId: string,
-    data: Partial<TPageComment>
+    data: TPageCommentBody
   ): Promise<TPageComment> {
-    return this.patch(`${this.basePath(workspaceSlug, projectId, pageId)}${commentId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const comment = await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/{pk}/", {
+        params: commentPath(workspaceSlug, projectId, pageId, commentId),
+        body: data,
+      })
+    );
+    return toPageComment(comment);
   }
 
   async destroy(workspaceSlug: string, projectId: string, pageId: string, commentId: string): Promise<void> {
-    return this.delete(`${this.basePath(workspaceSlug, projectId, pageId)}${commentId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/{pk}/", {
+        params: commentPath(workspaceSlug, projectId, pageId, commentId),
+      })
+    );
   }
 
   async resolve(workspaceSlug: string, projectId: string, pageId: string, commentId: string): Promise<TPageComment> {
-    return this.post(`${this.basePath(workspaceSlug, projectId, pageId)}${commentId}/resolve/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const comment = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/{pk}/resolve/", {
+        params: commentPath(workspaceSlug, projectId, pageId, commentId),
+      })
+    );
+    return toPageComment(comment);
   }
 
   async unresolve(workspaceSlug: string, projectId: string, pageId: string, commentId: string): Promise<TPageComment> {
-    return this.delete(`${this.basePath(workspaceSlug, projectId, pageId)}${commentId}/resolve/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const comment = await unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/{pk}/resolve/", {
+        params: commentPath(workspaceSlug, projectId, pageId, commentId),
+      })
+    );
+    return toPageComment(comment);
   }
 
   async addReaction(
@@ -88,11 +93,13 @@ export class PageCommentService extends APIService {
     commentId: string,
     reaction: string
   ): Promise<TPageCommentReaction> {
-    return this.post(`${this.basePath(workspaceSlug, projectId, pageId)}${commentId}/reactions/`, { reaction })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const created = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/{comment_id}/reactions/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, page_id: pageId, comment_id: commentId } },
+        body: { reaction },
+      })
+    );
+    return toPageCommentReaction(created);
   }
 
   async removeReaction(
@@ -102,10 +109,21 @@ export class PageCommentService extends APIService {
     commentId: string,
     reaction: string
   ): Promise<void> {
-    return this.delete(`${this.basePath(workspaceSlug, projectId, pageId)}${commentId}/reactions/${reaction}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.DELETE(
+        "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/{comment_id}/reactions/{reaction_code}/",
+        {
+          params: {
+            path: {
+              slug: workspaceSlug,
+              project_id: projectId,
+              page_id: pageId,
+              comment_id: commentId,
+              reaction_code: reaction,
+            },
+          },
+        }
+      )
+    );
   }
 }

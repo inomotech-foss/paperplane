@@ -4,53 +4,48 @@
  * See the LICENSE file for details.
  */
 
-// type
-import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type { IModule } from "@plane/types";
-// helpers
-// services
-import { APIService } from "@/services/api.service";
+import { apiClient } from "@/services/api-client";
+import { toModule } from "@/services/module-convert";
 
-export class ModuleArchiveService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+const modulePath = (slug: string, project_id: string, module_id: string) => ({
+  path: { slug, project_id, module_id },
+});
 
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ModuleArchiveService {
   async getArchivedModules(workspaceSlug: string, projectId: string): Promise<IModule[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/archived-modules/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const modules = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/archived-modules/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId } },
+      })
+    );
+    return modules.map(toModule);
   }
 
   async getArchivedModuleDetails(workspaceSlug: string, projectId: string, moduleId: string): Promise<IModule> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/archived-modules/${moduleId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const module = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/archived-modules/{pk}/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, pk: moduleId } },
+      })
+    );
+    return toModule(module);
   }
 
-  async archiveModule(
-    workspaceSlug: string,
-    projectId: string,
-    moduleId: string
-  ): Promise<{
-    archived_at: string;
-  }> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/archive/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async archiveModule(workspaceSlug: string, projectId: string, moduleId: string): Promise<{ archived_at: string }> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/archive/", {
+        params: modulePath(workspaceSlug, projectId, moduleId),
+      })
+    );
   }
 
   async restoreModule(workspaceSlug: string, projectId: string, moduleId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/archive/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/archive/", {
+        params: modulePath(workspaceSlug, projectId, moduleId),
+      })
+    );
   }
 }

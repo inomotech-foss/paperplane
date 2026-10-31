@@ -21,7 +21,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 import { CycleService } from "@/services/cycle.service";
 // local imports
 import { CycleForm } from "./form";
-import { getStringField, isRecord } from "@/helpers/narrow.helper";
+import { getStringField } from "@/helpers/narrow.helper";
 
 type CycleModalProps = {
   isOpen: boolean;
@@ -100,8 +100,8 @@ export function CycleCreateUpdateModal(props: CycleModalProps) {
   const dateChecker = async (projectId: string, payload: CycleDateCheckData) => {
     let status = false;
 
-    await cycleService.cycleDateCheck(workspaceSlug, projectId, payload).then((res: unknown) => {
-      status = isRecord(res) && Boolean(res.status);
+    await cycleService.cycleDateCheck(workspaceSlug, projectId, payload).then((res) => {
+      status = res.status;
     });
 
     return status;

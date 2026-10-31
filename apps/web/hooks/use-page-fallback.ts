@@ -5,11 +5,11 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isAxiosError } from "axios";
 import type { EditorRefApi, CollaborationState } from "@plane/editor";
 // plane editor
 import { convertBinaryDataToBase64String, getBinaryDataFromDocumentEditorHTMLString } from "@plane/editor";
 // plane types
+import { isApiError } from "@plane/services";
 import type { TDocumentPayload } from "@plane/types";
 // hooks
 import useAutoSave from "@/hooks/use-auto-save";
@@ -31,8 +31,8 @@ type TArgs = {
 
 // Retrying cannot fix a 4xx such as a locked page or a missing permission.
 const isPermanentFailure = (error: unknown): boolean => {
-  if (!isAxiosError(error) || !error.response) return false;
-  const { status } = error.response;
+  if (!isApiError(error)) return false;
+  const { status } = error;
   return status >= 400 && status < 500 && status !== 408 && status !== 429;
 };
 

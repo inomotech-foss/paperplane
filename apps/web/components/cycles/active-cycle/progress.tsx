@@ -34,15 +34,17 @@ export const ActiveCycleProgress = observer(function ActiveCycleProgress(props: 
   // plane hooks
   const { t } = useTranslation();
   // derived values
-  const closedIssues = cycle ? cycle.completed_issues + cycle.cancelled_issues : 0;
-  const closableIssues = cycle ? cycle.total_issues - cycle.cancelled_issues : 0;
+  const totalIssues = cycle?.total_issues ?? 0;
+  const cancelledIssues = cycle?.cancelled_issues ?? 0;
+  const closedIssues = (cycle?.completed_issues ?? 0) + cancelledIssues;
+  const closableIssues = totalIssues - cancelledIssues;
   const progressValue = closableIssues > 0 ? (closedIssues / closableIssues) * 100 : 0;
   const groupedIssues: Record<string, number> = cycle
     ? {
-        completed: cycle?.completed_issues,
-        started: cycle?.started_issues,
-        unstarted: cycle?.unstarted_issues,
-        backlog: cycle?.backlog_issues,
+        completed: cycle.completed_issues ?? 0,
+        started: cycle.started_issues ?? 0,
+        unstarted: cycle.unstarted_issues ?? 0,
+        backlog: cycle.backlog_issues ?? 0,
       }
     : {};
   const resolvedPath = resolvedTheme === "light" ? lightProgressAsset : darkProgressAsset;
@@ -52,15 +54,13 @@ export const ActiveCycleProgress = observer(function ActiveCycleProgress(props: 
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-4">
           <h3 className="text-14 font-semibold text-tertiary">{t("project_cycles.active_cycle.progress")}</h3>
-          {cycle.total_issues > 0 && (
+          {totalIssues > 0 && (
             <span className="flex gap-1 rounded-xs px-3 py-1 text-13 font-medium whitespace-nowrap text-placeholder">
-              {`${cycle.completed_issues + cycle.cancelled_issues}/${cycle.total_issues - cycle.cancelled_issues} ${
-                cycle.completed_issues + cycle.cancelled_issues > 1 ? "Work items" : "Work item"
-              } closed`}
+              {`${closedIssues}/${closableIssues} ${closedIssues > 1 ? "Work items" : "Work item"} closed`}
             </span>
           )}
         </div>
-        {cycle.total_issues > 0 && (
+        {totalIssues > 0 && (
           <LinearProgress
             value={progressValue}
             size="md"
@@ -71,7 +71,7 @@ export const ActiveCycleProgress = observer(function ActiveCycleProgress(props: 
         )}
       </div>
 
-      {cycle.total_issues > 0 ? (
+      {totalIssues > 0 ? (
         <div className="flex flex-col gap-5">
           {Object.entries(groupedIssues).map(([group, count], index) => (
             <Fragment key={group}>
@@ -99,11 +99,11 @@ export const ActiveCycleProgress = observer(function ActiveCycleProgress(props: 
               )}
             </Fragment>
           ))}
-          {cycle.cancelled_issues > 0 && (
+          {cancelledIssues > 0 && (
             <span className="flex items-center gap-2 text-13 text-tertiary">
               <span>
-                {`${cycle.cancelled_issues} cancelled ${
-                  cycle.cancelled_issues > 1 ? "work items are" : "work item is"
+                {`${cancelledIssues} cancelled ${
+                  cancelledIssues > 1 ? "work items are" : "work item is"
                 } excluded from this report.`}{" "}
               </span>
             </span>

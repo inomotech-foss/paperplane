@@ -3,6 +3,8 @@
 
 from rest_framework import serializers
 
+from plane.utils.openapi.fields import typed_json
+
 COUNTS = ("total_issues", "completed_issues", "pending_issues")
 ESTIMATES = ("total_estimates", "completed_estimates", "pending_estimates")
 
@@ -56,6 +58,37 @@ class EstimateDistributionSerializer(DistributionSerializer):
         response_optional = ("assignees", "labels", "completion_chart")
 
 
+CYCLE_STATUSES = ("CURRENT", "UPCOMING", "COMPLETED", "DRAFT")
+
+
+class ProgressSnapshotSerializer(serializers.Serializer):
+    """The progress of a cycle when its open work items moved to another cycle. Empty until then."""
+
+    total_issues = serializers.IntegerField()
+    completed_issues = serializers.IntegerField()
+    cancelled_issues = serializers.IntegerField()
+    started_issues = serializers.IntegerField()
+    unstarted_issues = serializers.IntegerField()
+    backlog_issues = serializers.IntegerField()
+    distribution = DistributionSerializer()
+    estimate_distribution = EstimateDistributionSerializer()
+
+    class Meta:
+        response_optional = (
+            "total_issues",
+            "completed_issues",
+            "cancelled_issues",
+            "started_issues",
+            "unstarted_issues",
+            "backlog_issues",
+            "distribution",
+            "estimate_distribution",
+        )
+
+
+ProgressSnapshotField = typed_json(ProgressSnapshotSerializer)
+
+
 class _CycleValuesSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     workspace_id = serializers.UUIDField()
@@ -69,12 +102,12 @@ class _CycleValuesSerializer(serializers.Serializer):
     sort_order = serializers.FloatField()
     external_source = serializers.CharField(allow_null=True)
     external_id = serializers.CharField(allow_null=True)
-    progress_snapshot = serializers.JSONField()
+    progress_snapshot = ProgressSnapshotField()
     is_favorite = serializers.BooleanField()
     total_issues = serializers.IntegerField()
     completed_issues = serializers.IntegerField()
     assignee_ids = serializers.ListField(child=serializers.UUIDField())
-    status = serializers.CharField(help_text="CURRENT, UPCOMING, COMPLETED or DRAFT")
+    status = serializers.ChoiceField(choices=CYCLE_STATUSES)
 
 
 class CycleSnapshotSerializer(_CycleValuesSerializer):

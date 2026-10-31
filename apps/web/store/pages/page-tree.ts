@@ -23,8 +23,8 @@ export function flattenVisibleTree(
   const rows: TPageVisibleRow[] = [];
   const stack: { pageId: string; depth: number }[] = [];
   for (let i = rootPageIds.length - 1; i >= 0; i--) stack.push({ pageId: rootPageIds[i], depth: 0 });
-  while (stack.length > 0) {
-    const { pageId, depth } = stack.pop() as { pageId: string; depth: number };
+  for (let entry = stack.pop(); entry !== undefined; entry = stack.pop()) {
+    const { pageId, depth } = entry;
     const childIds = childPageIdsByParentId.get(pageId) ?? [];
     rows.push({ pageId, depth, hasChildren: childIds.length > 0 });
     if (childIds.length > 0 && expandedPageIds[pageId]) {

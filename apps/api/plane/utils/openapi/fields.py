@@ -20,6 +20,7 @@ CLIENT_JSON_REF = {"$ref": "#/components/schemas/ClientJson"}
 # The JSON fields the web app owns, by the serializer that declares them. Subclasses inherit the marking.
 CLIENT_JSON_FIELDS = {
     "plane.app.serializers.cycle.CycleSerializer": {"logo_props", "view_props"},
+    "plane.app.serializers.cycle.CycleWriteSerializer": {"logo_props", "view_props"},
     "plane.app.serializers.cycle.CycleUserPropertiesSerializer": {
         "display_filters",
         "display_properties",

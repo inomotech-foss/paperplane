@@ -45,11 +45,11 @@ export interface IIssueModule {
 }
 
 export interface ILinkDetails {
-  created_at: Date;
-  created_by: string;
+  created_at: string;
+  created_by: string | null;
   id: string;
   metadata: TLinkMetadata;
-  title: string;
+  title: string | null;
   url: string;
 }
 

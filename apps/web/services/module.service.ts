@@ -4,55 +4,58 @@
  * See the LICENSE file for details.
  */
 
-// types
-import { API_BASE_URL } from "@plane/constants";
-import type { IModule, ILinkDetails, ModuleLink, TIssuesResponse } from "@plane/types";
-// services
-import { APIService } from "@/services/api.service";
+import { unwrap } from "@plane/services";
+import type { ILinkDetails, IModule } from "@plane/types";
+import { apiClient } from "@/services/api-client";
+import {
+  toModule,
+  toModuleCreateBody,
+  toModuleLink,
+  toModuleLinkBody,
+  toModuleUpdateBody,
+} from "@/services/module-convert";
 
-export class ModuleService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
+const moduleItemPath = (slug: string, project_id: string, pk: string) => ({ path: { slug, project_id, pk } });
+const modulePath = (slug: string, project_id: string, module_id: string) => ({
+  path: { slug, project_id, module_id },
+});
 
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ModuleService {
   async getWorkspaceModules(workspaceSlug: string): Promise<IModule[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/modules/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const modules = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/modules/", { params: { path: { slug: workspaceSlug } } })
+    );
+    return modules.map(toModule);
   }
 
   async getModules(workspaceSlug: string, projectId: string): Promise<IModule[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const modules = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/modules/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
+    return modules.map(toModule);
   }
 
-  async createModule(workspaceSlug: string, projectId: string, data: any): Promise<IModule> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async updateModule(workspaceSlug: string, projectId: string, moduleId: string, data: any): Promise<any> {
-    return this.put(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async createModule(workspaceSlug: string, projectId: string, data: Partial<IModule>): Promise<IModule> {
+    const module = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/modules/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: toModuleCreateBody(data),
+      })
+    );
+    return toModule(module);
   }
 
   async getModuleDetails(workspaceSlug: string, projectId: string, moduleId: string): Promise<IModule> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const module = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/modules/{pk}/", {
+        params: moduleItemPath(workspaceSlug, projectId, moduleId),
+      })
+    );
+    return toModule(module);
   }
 
   async patchModule(
@@ -61,39 +64,21 @@ export class ModuleService extends APIService {
     moduleId: string,
     data: Partial<IModule>
   ): Promise<IModule> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const module = await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/modules/{pk}/", {
+        params: moduleItemPath(workspaceSlug, projectId, moduleId),
+        body: toModuleUpdateBody(data),
+      })
+    );
+    return toModule(module);
   }
 
-  async deleteModule(workspaceSlug: string, projectId: string, moduleId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async getModuleIssues(
-    workspaceSlug: string,
-    projectId: string,
-    moduleId: string,
-    queries?: any,
-    config = {}
-  ): Promise<TIssuesResponse> {
-    return this.get(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/issues/`,
-      {
-        params: queries,
-      },
-      config
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteModule(workspaceSlug: string, projectId: string, moduleId: string): Promise<void> {
+    await unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/modules/{pk}/", {
+        params: moduleItemPath(workspaceSlug, projectId, moduleId),
+      })
+    );
   }
 
   async addIssuesToModule(
@@ -102,11 +87,12 @@ export class ModuleService extends APIService {
     moduleId: string,
     data: { issues: string[] }
   ): Promise<void> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/issues/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/issues/", {
+        params: modulePath(workspaceSlug, projectId, moduleId),
+        body: data,
+      })
+    );
   }
 
   async addModulesToIssue(
@@ -115,11 +101,12 @@ export class ModuleService extends APIService {
     issueId: string,
     data: { modules: string[]; removed_modules?: string[] }
   ): Promise<void> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issues/${issueId}/modules/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/modules/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, issue_id: issueId } },
+        body: data,
+      })
+    );
   }
 
   async removeIssuesFromModuleBulk(
@@ -128,49 +115,30 @@ export class ModuleService extends APIService {
     moduleId: string,
     issueIds: string[]
   ): Promise<void> {
-    const promiseDataUrls: any = [];
-    issueIds.forEach((issueId) => {
-      promiseDataUrls.push(
-        this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/issues/${issueId}/`)
-      );
-    });
-    await Promise.all(promiseDataUrls)
-      .then((response) => response)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async removeModulesFromIssueBulk(
-    workspaceSlug: string,
-    projectId: string,
-    issueId: string,
-    moduleIds: string[]
-  ): Promise<void> {
-    const promiseDataUrls: any = [];
-    moduleIds.forEach((moduleId) => {
-      promiseDataUrls.push(
-        this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/issues/${issueId}/`)
-      );
-    });
-    await Promise.all(promiseDataUrls)
-      .then((response) => response)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await Promise.all(
+      issueIds.map((issueId) =>
+        unwrap(
+          apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/issues/{issue_id}/", {
+            params: { path: { slug: workspaceSlug, project_id: projectId, module_id: moduleId, issue_id: issueId } },
+          })
+        )
+      )
+    );
   }
 
   async createModuleLink(
     workspaceSlug: string,
     projectId: string,
     moduleId: string,
-    data: Partial<ModuleLink>
+    data: Partial<ILinkDetails>
   ): Promise<ILinkDetails> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-links/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    const link = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-links/", {
+        params: modulePath(workspaceSlug, projectId, moduleId),
+        body: toModuleLinkBody(data),
+      })
+    );
+    return toModuleLink(link);
   }
 
   async updateModuleLink(
@@ -178,47 +146,22 @@ export class ModuleService extends APIService {
     projectId: string,
     moduleId: string,
     linkId: string,
-    data: Partial<ModuleLink>
+    data: Partial<ILinkDetails>
   ): Promise<ILinkDetails> {
-    return this.patch(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-links/${linkId}/`,
-      data
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    const link = await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-links/{pk}/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, module_id: moduleId, pk: linkId } },
+        body: { title: data.title, url: data.url },
+      })
+    );
+    return toModuleLink(link);
   }
 
-  async deleteModuleLink(workspaceSlug: string, projectId: string, moduleId: string, linkId: string): Promise<any> {
-    return this.delete(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-links/${linkId}/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async addModuleToFavorites(
-    workspaceSlug: string,
-    projectId: string,
-    data: {
-      module: string;
-    }
-  ): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/user-favorite-modules/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async removeModuleFromFavorites(workspaceSlug: string, projectId: string, moduleId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/user-favorite-modules/${moduleId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteModuleLink(workspaceSlug: string, projectId: string, moduleId: string, linkId: string): Promise<void> {
+    await unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-links/{pk}/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, module_id: moduleId, pk: linkId } },
+      })
+    );
   }
 }
