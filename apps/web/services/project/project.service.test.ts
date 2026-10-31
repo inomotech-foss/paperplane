@@ -22,8 +22,9 @@ describe("projectUpdateBody", () => {
     });
   });
 
-  it("drops a network or timezone the API does not accept", () => {
-    expect(strip(projectUpdateBody({ network: 1, timezone: "Mars/Olympus" }))).toEqual({});
+  it("throws for a network or timezone the API does not accept", () => {
+    expect(() => projectUpdateBody({ network: 1 })).toThrow("Unknown project network 1");
+    expect(() => projectUpdateBody({ timezone: "America/Godthab" })).toThrow("Unknown timezone America/Godthab");
     expect(projectUpdateBody({ network: 2, timezone: "UTC" })).toMatchObject({ network: 2, timezone: "UTC" });
   });
 });

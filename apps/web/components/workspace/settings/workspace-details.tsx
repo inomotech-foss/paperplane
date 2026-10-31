@@ -267,6 +267,12 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
                       value={value}
                       onChange={(next) => {
                         if (isTimezone(next)) onChange(next);
+                        else
+                          setToast({
+                            type: "error",
+                            title: t("toast.error"),
+                            message: `Unknown timezone ${next}`,
+                          });
                       }}
                       disabled={!isAdmin}
                     />

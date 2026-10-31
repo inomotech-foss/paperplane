@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { ApiRequestBody, ApiSchema } from "@plane/api-types";
+import type { ApiRequestBody, ApiSchema, TTimezone } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import { unwrap } from "@plane/services";
 import { parseIssueFiltersResponse, parseLogoProps, parseProjectUserPreferences } from "@plane/types";
@@ -32,12 +32,25 @@ const NETWORKS: ApiSchema<"NetworkEnum">[] = [0, 2];
 const toId = (value: { id: string } | string | null | undefined): string | null | undefined =>
   typeof value === "object" && value !== null ? value.id : value;
 
-/** The fields of `data` the update writes. */
+const toNetwork = (value: number | undefined): ApiSchema<"NetworkEnum"> | undefined => {
+  if (value === undefined) return undefined;
+  const network = NETWORKS.find((item) => item === value);
+  if (network === undefined) throw new Error(`Unknown project network ${value}`);
+  return network;
+};
+
+const toTimezone = (value: string | undefined): TTimezone | undefined => {
+  if (value === undefined) return undefined;
+  if (!isTimezone(value)) throw new Error(`Unknown timezone ${value}`);
+  return value;
+};
+
+/** The fields of `data` the update writes. Throws for a network or timezone the API rejects. */
 export const projectUpdateBody = (data: Partial<TProject>): TProjectUpdateBody => ({
   name: data.name,
   identifier: data.identifier,
   description: data.description,
-  network: NETWORKS.find((network) => network === data.network),
+  network: toNetwork(data.network),
   logo_props: data.logo_props,
   cycle_view: data.cycle_view,
   issue_views_view: data.issue_views_view,
@@ -54,7 +67,7 @@ export const projectUpdateBody = (data: Partial<TProject>): TProjectUpdateBody =
   default_state: data.default_state,
   estimate: data.estimate,
   project_lead: toId(data.project_lead),
-  timezone: isTimezone(data.timezone) ? data.timezone : undefined,
+  timezone: toTimezone(data.timezone),
 });
 
 /** Like the update, but the create reads the intake flag from `intake_view`. */
