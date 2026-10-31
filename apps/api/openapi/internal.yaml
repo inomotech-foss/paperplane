@@ -4661,6 +4661,16 @@ paths:
       operationId: workspaces_issues_list
       parameters:
       - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
         name: cursor
         schema:
           type: string
@@ -4671,6 +4681,74 @@ paths:
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
       - in: query
+        name: cycle
+        schema:
+          type: string
+        description: Comma-separated cycle ids. Only work items that match one of
+          them.
+      - in: query
+        name: filters
+        schema:
+          type: string
+        description: JSON encoded filter expression with nested 'and' / 'or' / 'not'
+          groups. Mutually exclusive with 'pql'.
+        examples:
+          UrgentAndInProgress:
+            value: '{"and":[{"priority":"urgent"},{"state_group__in":["unstarted","started"]}]}'
+            summary: Urgent and in progress
+            description: Leaves are field comparisons with Django style lookups
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label ids. Only work items that match one of
+          them.
+      - in: query
+        name: layout
+        schema:
+          type: string
+        description: The layout the list is for. Ignored by the backend
+      - in: query
+        name: mentions
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: module
+        schema:
+          type: string
+        description: Comma-separated module ids. Only work items that match one of
+          them.
+      - in: query
+        name: order_by
+        schema:
+          type: string
+        description: Field to order results by. Prefix with '-' for descending order
+        examples:
+          CreatedDateDescending:
+            value: -created_at
+            summary: Created date descending
+            description: Most recent items first
+          PriorityAscending:
+            value: priority
+            summary: Priority ascending
+            description: Order by priority (urgent, high, medium, low, none)
+          StateGroup:
+            value: state__group
+            summary: State group
+            description: Order by state group (backlog, unstarted, started, completed,
+              cancelled)
+          AssigneeName:
+            value: assignees__first_name
+            summary: Assignee name
+            description: Order by assignee first name
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Comma-separated work item ids. Only work items that match one
+          of them.
+      - in: query
         name: per_page
         schema:
           type: integer
@@ -4680,11 +4758,72 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: pql
+        schema:
+          type: string
+        description: Plane Query Language expression. Human readable alternative to
+          'filters'; the two are mutually exclusive. Names resolve to ids (state =
+          "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches direct
+          children and descendantOf() every work item below one at any depth.
+        examples:
+          UrgentWorkItemsOfTheCaller:
+            value: priority = "urgent" AND assignee = currentUser()
+            summary: Urgent work items of the caller
+            description: Combine conditions with AND, OR, NOT and parentheses
+          PaidInvoicesOfACustomerDueThisYear:
+            value: descendantOf("CUST-1") AND type = "Invoice" AND state = "Paid"
+              AND cf["Due date"] >= "2026-01-01"
+            summary: Paid invoices of a customer due this year
+            description: Walk the hierarchy below a work item and filter by names
+              and custom properties
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma-separated priorities
+      - in: query
+        name: project
+        schema:
+          type: string
+        description: Comma-separated project ids. Only work items that match one of
+          them.
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma-separated state ids. Only work items that match one of
+          them.
+      - in: query
+        name: state_group
+        schema:
+          type: string
+        description: Comma-separated state groups
+      - in: query
+        name: sub_issue
+        schema:
+          type: boolean
+        description: Include work items that have a parent. True when omitted
+      - in: query
+        name: subscriber
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: target_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after,2026-02-01;before
       tags:
       - workspaces
       security:
@@ -15607,6 +15746,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewFavoriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ViewFavoriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ViewFavoriteRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -15765,12 +15916,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -17479,12 +17624,6 @@ paths:
     get:
       operationId: workspaces_views_list
       parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -37227,6 +37366,14 @@ components:
       - updated_at
       - created_by
       - updated_by
+    ViewFavoriteRequest:
+      type: object
+      properties:
+        view:
+          type: string
+          format: uuid
+      required:
+      - view
     ViewWorkItem:
       type: object
       properties:

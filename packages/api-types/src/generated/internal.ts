@@ -13053,6 +13053,10 @@ export interface components {
             /** Format: uuid */
             updated_by: string | null;
         };
+        ViewFavoriteRequest: {
+            /** Format: uuid */
+            view: string;
+        };
         ViewWorkItem: {
             /** Format: uuid */
             id: string;
@@ -18047,10 +18051,48 @@ export interface operations {
     workspaces_issues_list: {
         parameters: {
             query?: {
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                assignees?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                created_by?: string;
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Comma-separated cycle ids. Only work items that match one of them. */
+                cycle?: string;
+                /** @description JSON encoded filter expression with nested 'and' / 'or' / 'not' groups. Mutually exclusive with 'pql'. */
+                filters?: string;
+                /** @description Comma-separated label ids. Only work items that match one of them. */
+                labels?: string;
+                /** @description The layout the list is for. Ignored by the backend */
+                layout?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                mentions?: string;
+                /** @description Comma-separated module ids. Only work items that match one of them. */
+                module?: string;
+                /** @description Field to order results by. Prefix with '-' for descending order */
+                order_by?: string;
+                /** @description Comma-separated work item ids. Only work items that match one of them. */
+                parent?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Plane Query Language expression. Human readable alternative to 'filters'; the two are mutually exclusive. Names resolve to ids (state = "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches direct children and descendantOf() every work item below one at any depth. */
+                pql?: string;
+                /** @description Comma-separated priorities */
+                priority?: string;
+                /** @description Comma-separated project ids. Only work items that match one of them. */
+                project?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after */
+                start_date?: string;
+                /** @description Comma-separated state ids. Only work items that match one of them. */
+                state?: string;
+                /** @description Comma-separated state groups */
+                state_group?: string;
+                /** @description Include work items that have a parent. True when omitted */
+                sub_issue?: boolean;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                subscriber?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after,2026-02-01;before */
+                target_date?: string;
             };
             header?: never;
             path: {
@@ -25332,7 +25374,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewFavoriteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ViewFavoriteRequest"];
+                "multipart/form-data": components["schemas"]["ViewFavoriteRequest"];
+            };
+        };
         responses: {
             /** @description Added to favorites */
             204: {
@@ -25448,10 +25496,7 @@ export interface operations {
     };
     workspaces_projects_views_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 project_id: string;
@@ -26720,10 +26765,7 @@ export interface operations {
     };
     workspaces_views_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 slug: string;

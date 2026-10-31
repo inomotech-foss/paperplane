@@ -24,8 +24,8 @@ from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
-from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
 from plane.utils.openapi.pagination import paginated_response
+from plane.app.serializers.request.view import WORKSPACE_ISSUE_LIST_PARAMETERS, ViewFavoriteSerializer
 from plane.app.permissions import allow_permission, ROLE
 from plane.app.serializers import IssueViewSerializer, ViewIssueListSerializer
 from plane.app.serializers.response.issue import ViewWorkItemSerializer
@@ -91,6 +91,7 @@ class WorkspaceViewViewSet(BaseViewSet):
             .distinct()
         )
 
+    @extend_schema(filters=False)
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list(self, request, slug):
         queryset = self.get_queryset()
@@ -258,7 +259,7 @@ class WorkspaceViewIssuesViewSet(BaseViewSet):
         return Issue.issue_objects.filter(workspace__slug=self.kwargs.get("slug"))
 
     @extend_schema(
-        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: paginated_response(ViewWorkItemSerializer)}
+        parameters=WORKSPACE_ISSUE_LIST_PARAMETERS, responses={200: paginated_response(ViewWorkItemSerializer)}
     )
     @method_decorator(gzip_page)
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
@@ -346,6 +347,7 @@ class IssueViewViewSet(BaseViewSet):
             .distinct()
         )
 
+    @extend_schema(filters=False)
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def list(self, request, slug, project_id):
         queryset = self.get_queryset()
@@ -467,7 +469,7 @@ class IssueViewFavoriteViewSet(BaseViewSet):
         favorites = user_favorites(request.user, slug, "view", project_id)
         return Response(serialize_favorites(favorites), status=status.HTTP_200_OK)
 
-    @extend_schema(request=None, responses={204: OpenApiResponse(description="Added to favorites")})
+    @extend_schema(request=ViewFavoriteSerializer, responses={204: OpenApiResponse(description="Added to favorites")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id):
         # 404 unless the view is in this project and visible to the user
