@@ -13,13 +13,14 @@ import { setToast } from "@plane/blocks/toast";
 import type { TIssueCustomPropertyOption } from "@plane/types";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { getApiErrorMessage } from "@/helpers/error.helper";
+import type { TPropertyOptionCreateBody, TPropertyOptionUpdateBody } from "@/services/issue";
 
 export type TCustomPropertyOptionOperationsCallbacks = {
-  createOption: (propertyId: string, data: Partial<TIssueCustomPropertyOption>) => Promise<TIssueCustomPropertyOption>;
+  createOption: (propertyId: string, data: TPropertyOptionCreateBody) => Promise<TIssueCustomPropertyOption>;
   updateOption: (
     propertyId: string,
     optionId: string,
-    data: Partial<TIssueCustomPropertyOption>
+    data: TPropertyOptionUpdateBody
   ) => Promise<TIssueCustomPropertyOption>;
   deleteOption: (propertyId: string, optionId: string) => Promise<void>;
 };

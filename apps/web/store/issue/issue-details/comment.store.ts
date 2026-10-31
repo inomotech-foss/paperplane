@@ -10,6 +10,7 @@ import { action, makeObservable, observable, runInAction } from "mobx";
 import type { TIssueComment, TIssueCommentMap, TIssueCommentIdMap, TIssueServiceType } from "@plane/types";
 // services
 import { IssueCommentService } from "@/services/issue";
+import type { TIssueCommentWriteBody } from "@/services/issue";
 // types
 import type { IIssueDetail } from "./root.store";
 
@@ -26,16 +27,16 @@ export interface IIssueCommentStoreActions {
     workspaceSlug: string,
     projectId: string,
     issueId: string,
-    data: Partial<TIssueComment>
-  ) => Promise<any>;
+    data: TIssueCommentWriteBody
+  ) => Promise<TIssueComment>;
   updateComment: (
     workspaceSlug: string,
     projectId: string,
     issueId: string,
     commentId: string,
-    data: Partial<TIssueComment>
-  ) => Promise<any>;
-  removeComment: (workspaceSlug: string, projectId: string, issueId: string, commentId: string) => Promise<any>;
+    data: TIssueCommentWriteBody
+  ) => Promise<TIssueComment>;
+  removeComment: (workspaceSlug: string, projectId: string, issueId: string, commentId: string) => Promise<void>;
 }
 
 export interface IIssueCommentStore extends IIssueCommentStoreActions {
@@ -75,7 +76,7 @@ export class IssueCommentStore implements IIssueCommentStore {
     this.serviceType = serviceType;
     this.rootIssueDetail = rootStore;
     // services
-    this.issueCommentService = new IssueCommentService(serviceType);
+    this.issueCommentService = new IssueCommentService();
   }
 
   // helper methods
@@ -97,20 +98,19 @@ export class IssueCommentStore implements IIssueCommentStore {
   ) => {
     this.loader = loaderType;
 
-    let props = {};
+    let createdAfter: string | undefined;
     const _commentIds = this.getCommentsByIssueId(issueId);
     if (_commentIds && _commentIds.length > 0) {
-      const _comment = this.getCommentById(_commentIds[_commentIds.length - 1]);
-      if (_comment) props = { created_at__gt: _comment.created_at };
+      createdAfter = this.getCommentById(_commentIds[_commentIds.length - 1])?.created_at;
     }
 
-    const comments = await this.issueCommentService.getIssueComments(workspaceSlug, projectId, issueId, props);
+    const comments = await this.issueCommentService.getIssueComments(workspaceSlug, projectId, issueId, createdAfter);
 
     const commentIds = comments.map((comment) => comment.id);
     runInAction(() => {
-      update(this.comments, issueId, (_commentIds) => {
-        if (!_commentIds) return commentIds;
-        return uniq(concat(_commentIds, commentIds));
+      update(this.comments, issueId, (currentIds: string[] | undefined) => {
+        if (!currentIds) return commentIds;
+        return uniq(concat(currentIds, commentIds));
       });
       comments.forEach((comment) => {
         this.rootIssueDetail.commentReaction.applyCommentReactions(comment.id, comment?.comment_reactions || []);
@@ -122,13 +122,13 @@ export class IssueCommentStore implements IIssueCommentStore {
     return comments;
   };
 
-  createComment = async (workspaceSlug: string, projectId: string, issueId: string, data: Partial<TIssueComment>) => {
+  createComment = async (workspaceSlug: string, projectId: string, issueId: string, data: TIssueCommentWriteBody) => {
     const response = await this.issueCommentService.createIssueComment(workspaceSlug, projectId, issueId, data);
 
     runInAction(() => {
-      update(this.comments, issueId, (_commentIds) => {
-        if (!_commentIds) return [response.id];
-        return uniq(concat(_commentIds, [response.id]));
+      update(this.comments, issueId, (currentIds: string[] | undefined) => {
+        if (!currentIds) return [response.id];
+        return uniq(concat(currentIds, [response.id]));
       });
       set(this.commentMap, response.id, response);
     });
@@ -141,13 +141,11 @@ export class IssueCommentStore implements IIssueCommentStore {
     projectId: string,
     issueId: string,
     commentId: string,
-    data: Partial<TIssueComment>
+    data: TIssueCommentWriteBody
   ) => {
     try {
       runInAction(() => {
-        Object.keys(data).forEach((key) => {
-          set(this.commentMap, [commentId, key], data[key as keyof TIssueComment]);
-        });
+        Object.entries(data).forEach(([key, value]) => set(this.commentMap, [commentId, key], value));
       });
 
       const response = await this.issueCommentService.patchIssueComment(
@@ -171,13 +169,11 @@ export class IssueCommentStore implements IIssueCommentStore {
   };
 
   removeComment = async (workspaceSlug: string, projectId: string, issueId: string, commentId: string) => {
-    const response = await this.issueCommentService.deleteIssueComment(workspaceSlug, projectId, issueId, commentId);
+    await this.issueCommentService.deleteIssueComment(workspaceSlug, projectId, issueId, commentId);
 
     runInAction(() => {
       pull(this.comments[issueId], commentId);
       delete this.commentMap[commentId];
     });
-
-    return response;
   };
 }

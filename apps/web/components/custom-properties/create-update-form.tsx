@@ -23,10 +23,11 @@ import { DerivationSettings } from "./derivation-settings";
 import { useDerivationDraft } from "./use-derivation-draft";
 import { getField, isOneOf } from "@/helpers/narrow.helper";
 import { getApiErrorMessage } from "@/helpers/error.helper";
+import type { TPropertyCreateBody, TPropertyUpdateBody } from "@/services/issue";
 
 export type TCustomPropertyOperationsCallbacks = {
-  createProperty: (data: Partial<TIssueCustomProperty>) => Promise<TIssueCustomProperty>;
-  updateProperty: (propertyId: string, data: Partial<TIssueCustomProperty>) => Promise<TIssueCustomProperty>;
+  createProperty: (data: TPropertyCreateBody) => Promise<TIssueCustomProperty>;
+  updateProperty: (propertyId: string, data: TPropertyUpdateBody) => Promise<TIssueCustomProperty>;
 };
 
 type TIssueTypeOption = { id: string; name: string; logo_props?: TLogoProps };

@@ -69,7 +69,7 @@ export class IssueActivityStore implements IIssueActivityStore {
     });
     this.serviceType = serviceType;
     // services
-    this.issueActivityService = new IssueActivityService(this.serviceType);
+    this.issueActivityService = new IssueActivityService();
   }
 
   // helper methods
@@ -146,20 +146,24 @@ export class IssueActivityStore implements IIssueActivityStore {
     try {
       this.loader = loaderType;
 
-      let props = {};
+      let createdAfter: string | undefined;
       const currentActivityIds = this.getActivitiesByIssueId(issueId);
       if (currentActivityIds && currentActivityIds.length > 0) {
-        const currentActivity = this.getActivityById(currentActivityIds[currentActivityIds.length - 1]);
-        if (currentActivity) props = { created_at__gt: currentActivity.created_at };
+        createdAfter = this.getActivityById(currentActivityIds[currentActivityIds.length - 1])?.created_at;
       }
 
-      const activities = await this.issueActivityService.getIssueActivities(workspaceSlug, projectId, issueId, props);
+      const activities = await this.issueActivityService.getIssueActivities(
+        workspaceSlug,
+        projectId,
+        issueId,
+        createdAfter
+      );
 
       const activityIds = activities.map((activity) => activity.id);
 
       runInAction(() => {
         // oxlint-disable-next-line no-shadow
-        update(this.activities, issueId, (currentActivityIds) => {
+        update(this.activities, issueId, (currentActivityIds: string[] | undefined) => {
           if (!currentActivityIds) return activityIds;
           return uniq(concat(currentActivityIds, activityIds));
         });

@@ -4,21 +4,10 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiSchema } from "@plane/api-types";
 import type { TFileSignedURLResponse } from "../file";
 
-export type TIssueAttachment = {
-  id: string;
-  attributes: {
-    name: string;
-    size: number;
-  };
-  asset_url: string;
-  issue_id: string;
-  // required
-  updated_at: string;
-  updated_by: string;
-  created_by: string;
-};
+export type TIssueAttachment = ApiSchema<"IssueAttachment">;
 
 export type TIssueAttachmentUploadResponse = TFileSignedURLResponse & {
   attachment: TIssueAttachment;

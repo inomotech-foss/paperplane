@@ -5,6 +5,8 @@
  */
 
 // local imports
+import type { ApiSchema } from "@plane/api-types";
+import { parseLogoProps } from "../client-json/logo-props";
 import type { TLogoProps } from "../client-json";
 
 /**
@@ -23,3 +25,8 @@ export type TIssueType = {
   external_id?: string | null;
   created_at?: string;
 };
+
+export const parseIssueType = (type: ApiSchema<"IssueType">): TIssueType => ({
+  ...type,
+  logo_props: parseLogoProps(type.logo_props),
+});

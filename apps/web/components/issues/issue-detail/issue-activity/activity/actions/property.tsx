@@ -27,7 +27,7 @@ export const IssuePropertyActivity = observer(function IssuePropertyActivity(pro
   const activity = getActivityById(activityId);
   if (!activity) return <></>;
 
-  const nameOf = (propertyId: string | undefined) => {
+  const nameOf = (propertyId: string | null) => {
     const property = propertyId ? getPropertyById(propertyId) : null;
     return property?.display_name || property?.name || "a custom property";
   };

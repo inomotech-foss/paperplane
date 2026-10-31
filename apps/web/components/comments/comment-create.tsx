@@ -92,6 +92,7 @@ export const CommentCreate = observer(function CommentCreate(props: TCommentCrea
 
   return (
     <div
+      role="presentation"
       className={cn("sticky bottom-0 z-[4] bg-surface-1 sm:static")}
       onKeyDown={(e) => {
         if (
@@ -130,7 +131,11 @@ export const CommentCreate = observer(function CommentCreate(props: TCommentCrea
                 initialValue={value ?? "<p></p>"}
                 containerClassName="min-h-min"
                 onChange={(comment_json, comment_html) => onChange(comment_html)}
-                accessSpecifier={accessValue ?? EIssueCommentAccessSpecifier.INTERNAL}
+                accessSpecifier={
+                  accessValue === "EXTERNAL"
+                    ? EIssueCommentAccessSpecifier.EXTERNAL
+                    : EIssueCommentAccessSpecifier.INTERNAL
+                }
                 handleAccessChange={onAccessChange}
                 isSubmitting={isSubmitting}
                 uploadFile={async (blockId, file) => {

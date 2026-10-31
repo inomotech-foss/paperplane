@@ -14,12 +14,13 @@ export type TWorkItemQueryValidation = {
   expression?: unknown;
   error?: string;
   /** Character offset of a syntax error, when the query did not parse. */
-  position?: number;
-  line?: number;
-  column?: number;
+  position?: number | null;
+  line?: number | null;
+  column?: number | null;
   token?: string | null;
-  expected?: string | null;
+  expected?: unknown;
   field?: string | null;
+  lookup?: string | null;
 };
 
 export type TWorkItemQueryField = {

@@ -4,33 +4,24 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type { TWorkItemQueryFields, TWorkItemQueryValidation } from "@plane/types";
-// services
-import { APIService } from "@/services/api.service";
+import { apiClient } from "@/services/api-client";
 
-/** Plane Query Language helpers: validate an expression, list its vocabulary. */
-export class WorkItemQueryService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
-
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class WorkItemQueryService {
   async validate(workspaceSlug: string, pql: string, projectId?: string): Promise<TWorkItemQueryValidation> {
-    return this.post(`/api/workspaces/${workspaceSlug}/work-item-query/validate/`, {
-      pql,
-      project_id: projectId ?? null,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/work-item-query/validate/", {
+        params: { path: { slug: workspaceSlug } },
+        body: { pql, project_id: projectId ?? null },
+      })
+    );
   }
 
   async fields(workspaceSlug: string): Promise<TWorkItemQueryFields> {
-    return this.get(`/api/workspaces/${workspaceSlug}/work-item-query/fields/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/work-item-query/fields/", { params: { path: { slug: workspaceSlug } } })
+    );
   }
 }

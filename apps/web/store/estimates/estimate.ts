@@ -15,6 +15,7 @@ import type {
 } from "@plane/types";
 // plane web services
 import estimateService from "@/services/estimate.service";
+import type { TEstimatePointCreateBody } from "@/services/estimate.service";
 // store
 import type { IEstimatePoint } from "@/store/estimates/estimate-point";
 import { EstimatePoint } from "@/store/estimates/estimate-point";
@@ -37,7 +38,7 @@ export interface IEstimate extends Omit<IEstimateType, "points"> {
   creteEstimatePoint: (
     workspaceSlug: string,
     projectId: string,
-    payload: Partial<IEstimatePointType>
+    payload: TEstimatePointCreateBody
   ) => Promise<IEstimatePointType | undefined>;
 }
 
@@ -50,10 +51,10 @@ export class Estimate implements IEstimate {
   workspace: string | undefined = undefined;
   project: string | undefined = undefined;
   last_used: boolean | undefined = undefined;
-  created_at: Date | undefined = undefined;
-  updated_at: Date | undefined = undefined;
-  created_by: string | undefined = undefined;
-  updated_by: string | undefined = undefined;
+  created_at: string | undefined = undefined;
+  updated_at: string | undefined = undefined;
+  created_by: string | null | undefined = undefined;
+  updated_by: string | null | undefined = undefined;
   // observables
   error: TErrorCodes | undefined = undefined;
   estimatePoints: Record<string, IEstimatePoint> = {};
@@ -125,8 +126,7 @@ export class Estimate implements IEstimate {
       (estimatePoint) => estimatePoint?.estimate === this.id
     );
     currentEstimatePoints = orderBy(currentEstimatePoints, ["key"], "asc");
-    const estimatePointIds = currentEstimatePoints.map((estimatePoint) => estimatePoint.id) as string[];
-    return estimatePointIds ?? undefined;
+    return currentEstimatePoints.flatMap((estimatePoint) => (estimatePoint.id ? [estimatePoint.id] : []));
   }
 
   estimatePointById = computedFn((estimatePointId: string) => {
@@ -138,7 +138,7 @@ export class Estimate implements IEstimate {
   creteEstimatePoint = async (
     workspaceSlug: string,
     projectId: string,
-    payload: Partial<IEstimatePointType>
+    payload: TEstimatePointCreateBody
   ): Promise<IEstimatePointType | undefined> => {
     if (!this.id || !payload) return;
 

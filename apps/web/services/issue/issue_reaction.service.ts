@@ -4,66 +4,64 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
-import { EIssueServiceType } from "@plane/types";
-import type { TIssueCommentReaction, TIssueReaction, TIssueServiceType } from "@plane/types";
-// services
-import { APIService } from "@/services/api.service";
-// types
+import { unwrap } from "@plane/services";
+import type { TIssueCommentReaction, TIssueReaction } from "@plane/types";
+import { apiClient } from "@/services/api-client";
 
-export class IssueReactionService extends APIService {
-  private serviceType: TIssueServiceType;
+const issuePath = (slug: string, project_id: string, issue_id: string) => ({ path: { slug, project_id, issue_id } });
+const commentPath = (slug: string, project_id: string, comment_id: string) => ({
+  path: { slug, project_id, comment_id },
+});
 
-  constructor(serviceType: TIssueServiceType = EIssueServiceType.ISSUES) {
-    super(API_BASE_URL);
-    this.serviceType = serviceType;
-  }
-
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class IssueReactionService {
   async createIssueReaction(
     workspaceSlug: string,
     projectId: string,
     issueId: string,
-    data: Partial<TIssueReaction>
-  ): Promise<any> {
-    return this.post(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/reactions/`,
-      data
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    reaction: string
+  ): Promise<TIssueReaction> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/reactions/", {
+        params: issuePath(workspaceSlug, projectId, issueId),
+        body: { reaction },
+      })
+    );
   }
 
   async listIssueReactions(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueReaction[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/reactions/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/reactions/", {
+        params: issuePath(workspaceSlug, projectId, issueId),
+      })
+    );
   }
 
-  async deleteIssueReaction(workspaceSlug: string, projectId: string, issueId: string, reaction: string): Promise<any> {
-    return this.delete(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/reactions/${reaction}/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteIssueReaction(
+    workspaceSlug: string,
+    projectId: string,
+    issueId: string,
+    reaction: string
+  ): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/reactions/{reaction_code}/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, issue_id: issueId, reaction_code: reaction } },
+      })
+    );
   }
 
   async createIssueCommentReaction(
     workspaceSlug: string,
     projectId: string,
     commentId: string,
-    data: Partial<TIssueCommentReaction>
-  ): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/comments/${commentId}/reactions/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    reaction: string
+  ): Promise<TIssueCommentReaction> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/comments/{comment_id}/reactions/", {
+        params: commentPath(workspaceSlug, projectId, commentId),
+        body: { reaction },
+      })
+    );
   }
 
   async listIssueCommentReactions(
@@ -71,11 +69,11 @@ export class IssueReactionService extends APIService {
     projectId: string,
     commentId: string
   ): Promise<TIssueCommentReaction[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/comments/${commentId}/reactions/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/comments/{comment_id}/reactions/", {
+        params: commentPath(workspaceSlug, projectId, commentId),
+      })
+    );
   }
 
   async deleteIssueCommentReaction(
@@ -83,13 +81,16 @@ export class IssueReactionService extends APIService {
     projectId: string,
     commentId: string,
     reaction: string
-  ): Promise<any> {
-    return this.delete(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/comments/${commentId}/reactions/${reaction}/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  ): Promise<void> {
+    return unwrap(
+      apiClient.DELETE(
+        "/api/workspaces/{slug}/projects/{project_id}/comments/{comment_id}/reactions/{reaction_code}/",
+        {
+          params: {
+            path: { slug: workspaceSlug, project_id: projectId, comment_id: commentId, reaction_code: reaction },
+          },
+        }
+      )
+    );
   }
 }

@@ -63,7 +63,7 @@ export const CommentCardDisplay = observer(function CommentCardDisplay(props: TC
   // store hooks
   const { getUserDetails } = useMember();
   // derived values
-  const userDetails = getUserDetails(comment?.actor);
+  const userDetails = comment?.actor ? getUserDetails(comment.actor) : undefined;
   const displayName = comment?.actor_detail?.is_bot
     ? comment?.actor_detail?.first_name + `Bot`
     : (userDetails?.display_name ?? comment?.actor_detail?.display_name);
