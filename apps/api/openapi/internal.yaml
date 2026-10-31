@@ -14870,7 +14870,7 @@ paths:
           description: Restored
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-cycles/:
     get:
-      operationId: workspaces_projects_user_favorite_cycles_retrieve
+      operationId: workspaces_projects_user_favorite_cycles_list
       parameters:
       - in: path
         name: project_id
@@ -14878,6 +14878,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -14889,7 +14895,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserFavorite'
+          description: ''
     post:
       operationId: workspaces_projects_user_favorite_cycles_create
       parameters:
@@ -14941,7 +14953,7 @@ paths:
           description: No response body
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-modules/:
     get:
-      operationId: workspaces_projects_user_favorite_modules_retrieve
+      operationId: workspaces_projects_user_favorite_modules_list
       parameters:
       - in: path
         name: project_id
@@ -14949,6 +14961,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -14960,7 +14978,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserFavorite'
+          description: ''
     post:
       operationId: workspaces_projects_user_favorite_modules_create
       parameters:
@@ -15012,7 +15036,7 @@ paths:
           description: No response body
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-views/:
     get:
-      operationId: workspaces_projects_user_favorite_views_retrieve
+      operationId: workspaces_projects_user_favorite_views_list
       parameters:
       - in: path
         name: project_id
@@ -15020,6 +15044,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -15031,7 +15061,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserFavorite'
+          description: ''
     post:
       operationId: workspaces_projects_user_favorite_views_create
       parameters:
@@ -16087,8 +16123,14 @@ paths:
           description: CSV file
   /api/workspaces/{slug}/user-favorite-projects/:
     get:
-      operationId: workspaces_user_favorite_projects_retrieve
+      operationId: workspaces_user_favorite_projects_list
       parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -16100,7 +16142,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserFavorite'
+          description: ''
     post:
       operationId: workspaces_user_favorite_projects_create
       parameters:
@@ -19909,28 +19957,6 @@ components:
       - version
       - created_by
       - sub_issues
-    CycleFavoriteLite:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-          title: Cycle Name
-          maxLength: 255
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-        project_id:
-          type: string
-          format: uuid
-          readOnly: true
-      required:
-      - id
-      - name
-      - logo_props
-      - project_id
     CycleIssue:
       type: object
       properties:
@@ -22241,12 +22267,23 @@ components:
         * `completed` - Completed
         * `failed` - Failed
     FavoriteEntity:
-      oneOf:
-      - $ref: '#/components/schemas/ProjectFavoriteLite'
-      - $ref: '#/components/schemas/CycleFavoriteLite'
-      - $ref: '#/components/schemas/ModuleFavoriteLite'
-      - $ref: '#/components/schemas/ViewFavorite'
-      - $ref: '#/components/schemas/PageFavoriteLite'
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
+        project_id:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - id
+      - name
+      - logo_props
     FileAsset:
       type: object
       properties:
@@ -26547,28 +26584,6 @@ components:
       - cancelled_estimate_points
       - estimate_distribution
       - distribution
-    ModuleFavoriteLite:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-          title: Module Name
-          maxLength: 255
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-        project_id:
-          type: string
-          format: uuid
-          readOnly: true
-      required:
-      - id
-      - name
-      - logo_props
-      - project_id
     ModuleFlat:
       type: object
       properties:
@@ -28317,27 +28332,6 @@ components:
       - view_props
       - logo_props
       - description_html
-    PageFavoriteLite:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-        project_id:
-          type: string
-          format: uuid
-          nullable: true
-          readOnly: true
-      required:
-      - id
-      - name
-      - logo_props
-      - project_id
     PageOrder:
       type: object
       properties:
@@ -31163,23 +31157,6 @@ components:
       oneOf:
       - $ref: '#/components/schemas/DeployBoard'
       - $ref: '#/components/schemas/UnpublishedDeployBoard'
-    ProjectFavoriteLite:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-          title: Project Name
-          maxLength: 255
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-      required:
-      - id
-      - name
-      - logo_props
     ProjectFavoriteRequest:
       type: object
       properties:
@@ -36489,29 +36466,6 @@ components:
       - updated_at
       - created_by
       - updated_by
-    ViewFavorite:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-          title: View Name
-          maxLength: 255
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-        project_id:
-          type: string
-          format: uuid
-          nullable: true
-          readOnly: true
-      required:
-      - id
-      - name
-      - logo_props
-      - project_id
     ViewWorkItem:
       type: object
       properties:

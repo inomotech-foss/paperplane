@@ -50,7 +50,7 @@ from plane.app.serializers import (
     CycleUserPropertiesSerializer,
     CycleWriteSerializer,
 )
-from plane.app.serializers.favorite import get_favorite_entities
+from plane.app.serializers.favorite import UserFavoriteSerializer, get_favorite_entities, user_favorites
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.db.models import (
     Cycle,
@@ -571,14 +571,11 @@ class CycleDateCheckEndpoint(BaseAPIView):
 class CycleFavoriteViewSet(BaseViewSet):
     model = UserFavorite
 
-    def get_queryset(self):
-        return self.filter_queryset(
-            super()
-            .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
-            .filter(user=self.request.user)
-            .select_related("cycle", "cycle__owned_by")
-        )
+    @extend_schema(responses={200: UserFavoriteSerializer(many=True)})
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
+    def list(self, request, slug, project_id):
+        favorites = user_favorites(request.user, slug, "cycle", project_id)
+        return Response(UserFavoriteSerializer(favorites, many=True).data, status=status.HTTP_200_OK)
 
     @extend_schema(responses={204: OpenApiResponse(description="Added to favorites")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])

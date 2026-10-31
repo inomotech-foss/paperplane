@@ -23,7 +23,7 @@ from plane.app.serializers import (
     ProjectListSerializer,
     ProjectSerializer,
 )
-from plane.app.serializers.favorite import get_favorite_entities
+from plane.app.serializers.favorite import UserFavoriteSerializer, get_favorite_entities, user_favorites
 from plane.app.serializers.response.project import (
     IssueSequenceSerializer,
     ProjectArchiveSerializer,
@@ -559,18 +559,11 @@ class ProjectUserViewsEndpoint(BaseAPIView):
 class ProjectFavoritesViewSet(BaseViewSet):
     model = UserFavorite
 
-    def get_queryset(self):
-        return self.filter_queryset(
-            super()
-            .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
-            .filter(user=self.request.user)
-            .select_related("project", "project__project_lead", "project__default_assignee")
-            .select_related("workspace", "workspace__owner")
-        )
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    @extend_schema(responses={200: UserFavoriteSerializer(many=True)})
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
+    def list(self, request, slug):
+        favorites = user_favorites(request.user, slug, "project")
+        return Response(UserFavoriteSerializer(favorites, many=True).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         request=ProjectFavoriteSerializer, responses={204: OpenApiResponse(description="Added to favorites")}

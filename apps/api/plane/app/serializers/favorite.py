@@ -5,9 +5,10 @@
 from uuid import UUID
 
 from django.db.models import Exists, OuterRef, Q
-from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from plane.utils.openapi.fields import ClientJsonField
 from plane.db.models import (
     UserFavorite,
     Cycle,
@@ -57,6 +58,18 @@ class ViewFavoriteSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "logo_props", "project_id"]
 
 
+class FavoriteEntitySerializer(serializers.Serializer):
+    """The entity_data of a favorite. A project has no project_id."""
+
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    logo_props = ClientJsonField()
+    project_id = serializers.UUIDField(allow_null=True)
+
+    class Meta:
+        response_optional = ("project_id",)
+
+
 def get_entity_model_and_serializer(entity_type):
     entity_map = {
         "cycle": (Cycle, CycleFavoriteLiteSerializer),
@@ -102,6 +115,20 @@ def get_favorite_entities(entity_type, user_id, project_id):
     return entities
 
 
+def user_favorites(user, slug, entity_type, project_id=None):
+    """The user's favorites of entity_type in the projects they are an active member of."""
+    favorites = UserFavorite.objects.filter(
+        workspace__slug=slug,
+        user=user,
+        entity_type=entity_type,
+        project__project_projectmember__member=user,
+        project__project_projectmember__is_active=True,
+    )
+    if project_id is not None:
+        favorites = favorites.filter(project_id=project_id)
+    return favorites.distinct().order_by("sequence", "created_at")
+
+
 class UserFavoriteSerializer(serializers.ModelSerializer):
     entity_data = serializers.SerializerMethodField()
 
@@ -121,20 +148,7 @@ class UserFavoriteSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["workspace", "created_by", "updated_by"]
 
-    @extend_schema_field(
-        PolymorphicProxySerializer(
-            component_name="FavoriteEntity",
-            serializers=[
-                ProjectFavoriteLiteSerializer,
-                CycleFavoriteLiteSerializer,
-                ModuleFavoriteLiteSerializer,
-                ViewFavoriteSerializer,
-                PageFavoriteLiteSerializer,
-            ],
-            resource_type_field_name=None,
-            allow_null=True,
-        )
-    )
+    @extend_schema_field(FavoriteEntitySerializer(allow_null=True))
     def get_entity_data(self, obj):
         entity_type = obj.entity_type
         entity_identifier = obj.entity_identifier

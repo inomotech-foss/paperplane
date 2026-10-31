@@ -4139,7 +4139,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_user_favorite_cycles_retrieve"];
+        get: operations["workspaces_projects_user_favorite_cycles_list"];
         put?: never;
         post: operations["workspaces_projects_user_favorite_cycles_create"];
         delete?: never;
@@ -4171,7 +4171,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_user_favorite_modules_retrieve"];
+        get: operations["workspaces_projects_user_favorite_modules_list"];
         put?: never;
         post: operations["workspaces_projects_user_favorite_modules_create"];
         delete?: never;
@@ -4203,7 +4203,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_user_favorite_views_retrieve"];
+        get: operations["workspaces_projects_user_favorite_views_list"];
         put?: never;
         post: operations["workspaces_projects_user_favorite_views_create"];
         delete?: never;
@@ -4523,7 +4523,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_user_favorite_projects_retrieve"];
+        get: operations["workspaces_user_favorite_projects_list"];
         put?: never;
         post: operations["workspaces_user_favorite_projects_create"];
         delete?: never;
@@ -5976,15 +5976,6 @@ export interface components {
             created_by: string | null;
             sub_issues: number;
         };
-        CycleFavoriteLite: {
-            /** Format: uuid */
-            readonly id: string;
-            /** Cycle Name */
-            name: string;
-            logo_props: components["schemas"]["ClientJson"];
-            /** Format: uuid */
-            readonly project_id: string;
-        };
         CycleIssue: {
             /** Format: uuid */
             readonly id: string;
@@ -6965,7 +6956,14 @@ export interface components {
          * @enum {string}
          */
         ExporterHistoryStatusEnum: "queued" | "processing" | "completed" | "failed";
-        FavoriteEntity: components["schemas"]["ProjectFavoriteLite"] | components["schemas"]["CycleFavoriteLite"] | components["schemas"]["ModuleFavoriteLite"] | components["schemas"]["ViewFavorite"] | components["schemas"]["PageFavoriteLite"];
+        FavoriteEntity: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            logo_props: components["schemas"]["ClientJson"];
+            /** Format: uuid */
+            project_id?: string | null;
+        };
         FileAsset: {
             /** Format: uuid */
             readonly id: string;
@@ -8711,15 +8709,6 @@ export interface components {
             estimate_distribution: components["schemas"]["EstimateDistribution"];
             distribution: components["schemas"]["Distribution"];
         };
-        ModuleFavoriteLite: {
-            /** Format: uuid */
-            readonly id: string;
-            /** Module Name */
-            name: string;
-            logo_props: components["schemas"]["ClientJson"];
-            /** Format: uuid */
-            readonly project_id: string;
-        };
         ModuleFlat: {
             /** Format: uuid */
             readonly id: string;
@@ -9463,14 +9452,6 @@ export interface components {
             label_ids?: string[];
             project_ids?: string[];
             description_html: string;
-        };
-        PageFavoriteLite: {
-            /** Format: uuid */
-            readonly id: string;
-            name: string;
-            logo_props: components["schemas"]["ClientJson"];
-            /** Format: uuid */
-            readonly project_id: string | null;
         };
         PageOrder: {
             /** Format: uuid */
@@ -10689,13 +10670,6 @@ export interface components {
             workspace_detail: components["schemas"]["WorkspaceLite"];
         };
         ProjectDeployBoardResponse: components["schemas"]["DeployBoard"] | components["schemas"]["UnpublishedDeployBoard"];
-        ProjectFavoriteLite: {
-            /** Format: uuid */
-            readonly id: string;
-            /** Project Name */
-            name: string;
-            logo_props: components["schemas"]["ClientJson"];
-        };
         ProjectFavoriteRequest: {
             /** Format: uuid */
             project: string;
@@ -12992,15 +12966,6 @@ export interface components {
             created_by: string | null;
             /** Format: uuid */
             updated_by: string | null;
-        };
-        ViewFavorite: {
-            /** Format: uuid */
-            readonly id: string;
-            /** View Name */
-            name: string;
-            logo_props: components["schemas"]["ClientJson"];
-            /** Format: uuid */
-            readonly project_id: string | null;
         };
         ViewWorkItem: {
             /** Format: uuid */
@@ -24959,9 +24924,12 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_user_favorite_cycles_retrieve: {
+    workspaces_projects_user_favorite_cycles_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -24971,12 +24939,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserFavorite"][];
+                };
             };
         };
     };
@@ -25023,9 +24992,12 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_user_favorite_modules_retrieve: {
+    workspaces_projects_user_favorite_modules_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -25035,12 +25007,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserFavorite"][];
+                };
             };
         };
     };
@@ -25087,9 +25060,12 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_user_favorite_views_retrieve: {
+    workspaces_projects_user_favorite_views_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -25099,12 +25075,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserFavorite"][];
+                };
             };
         };
     };
@@ -25914,9 +25891,12 @@ export interface operations {
             };
         };
     };
-    workspaces_user_favorite_projects_retrieve: {
+    workspaces_user_favorite_projects_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -25925,12 +25905,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserFavorite"][];
+                };
             };
         };
     };
