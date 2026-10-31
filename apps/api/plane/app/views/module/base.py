@@ -33,7 +33,10 @@ from django.utils import timezone
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
-from drf_spectacular.utils import OpenApiResponse, extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from plane.app.serializers.request.cycle import IssueFiltersUpdateSerializer
+from plane.app.serializers.request.module import ModuleFavoriteSerializer
+from plane.utils.openapi.parameters import FIELDS_PARAMETER
 
 # Module imports
 from plane.utils.openapi.schema import single
@@ -357,7 +360,7 @@ class ModuleViewSet(BaseViewSet):
             return Response(module, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(responses={200: single(ModuleListResponse)})
+    @extend_schema(parameters=[FIELDS_PARAMETER], filters=False, responses={200: single(ModuleListResponse)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def list(self, request, slug, project_id):
         queryset = self.get_queryset().filter(archived_at__isnull=True)
@@ -767,6 +770,7 @@ class ModuleViewSet(BaseViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema_view(list=extend_schema(filters=False))
 class ModuleLinkViewSet(BaseViewSet):
     permission_classes = [ProjectEntityPermission]
 
@@ -811,7 +815,7 @@ class ModuleFavoriteViewSet(BaseViewSet):
         favorites = user_favorites(request.user, slug, "module", project_id)
         return Response(UserFavoriteSerializer(favorites, many=True).data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={204: OpenApiResponse(description="Added to favorites")})
+    @extend_schema(request=ModuleFavoriteSerializer, responses={204: OpenApiResponse(description="Added to favorites")})
     def create(self, request, slug, project_id):
         # 404 unless the module is in this project and visible to the user
         get_favorite_entities("module", request.user.id, project_id).get(
@@ -838,7 +842,7 @@ class ModuleFavoriteViewSet(BaseViewSet):
 
 
 class ModuleUserPropertiesEndpoint(BaseAPIView):
-    @extend_schema(responses={201: ModuleUserPropertiesSerializer})
+    @extend_schema(request=IssueFiltersUpdateSerializer, responses={201: ModuleUserPropertiesSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id, module_id):
         module_properties = ModuleUserProperties.objects.get(

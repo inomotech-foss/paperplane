@@ -18,7 +18,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
-from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.app.serializers.request.cycle import SCOPED_ISSUE_LIST_PARAMETERS
+from plane.app.serializers.request.module import IssueModulesUpdateSerializer, ModuleIssuesAddSerializer
 from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.app.serializers.response.issue import WorkItemListResponse
 from plane.app.permissions import allow_permission, ROLE
@@ -96,7 +97,7 @@ class ModuleIssueViewSet(BaseViewSet):
             )
         ).distinct()
 
-    @extend_schema(parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: WorkItemListResponse})
+    @extend_schema(parameters=SCOPED_ISSUE_LIST_PARAMETERS, responses={200: WorkItemListResponse})
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def list(self, request, slug, project_id, module_id):
@@ -219,7 +220,7 @@ class ModuleIssueViewSet(BaseViewSet):
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     # create multiple issues inside a module
-    @extend_schema(responses={201: MessageResponseSerializer})
+    @extend_schema(request=ModuleIssuesAddSerializer, responses={201: MessageResponseSerializer})
     def create_module_issues(self, request, slug, project_id, module_id):
         issues = request.data.get("issues", [])
         if not issues:
@@ -268,7 +269,7 @@ class ModuleIssueViewSet(BaseViewSet):
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     # add multiple module inside an issue and remove multiple modules from an issue
-    @extend_schema(responses={201: MessageResponseSerializer})
+    @extend_schema(request=IssueModulesUpdateSerializer, responses={201: MessageResponseSerializer})
     def create_issue_modules(self, request, slug, project_id, issue_id):
         modules = request.data.get("modules", [])
         removed_modules = request.data.get("removed_modules", [])

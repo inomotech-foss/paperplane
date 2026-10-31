@@ -7929,6 +7929,12 @@ export interface components {
             /** Format: uuid */
             readonly project_id: string;
         };
+        IssueModulesUpdateRequest: {
+            /** @description Modules of the project to add the work item to */
+            modules?: string[];
+            /** @description Modules to remove the work item from */
+            removed_modules?: string[];
+        };
         IssueProperty: {
             /** Format: uuid */
             readonly id: string;
@@ -8752,6 +8758,10 @@ export interface components {
             estimate_distribution: components["schemas"]["EstimateDistribution"];
             distribution: components["schemas"]["Distribution"];
         };
+        ModuleFavoriteRequest: {
+            /** Format: uuid */
+            module: string;
+        };
         ModuleFlat: {
             /** Format: uuid */
             readonly id: string;
@@ -8863,6 +8873,10 @@ export interface components {
             deleted_at?: string | null;
             /** Format: uuid */
             issue: string;
+        };
+        ModuleIssuesAddRequest: {
+            /** @description Work items of the project */
+            issues: string[];
         };
         ModuleLink: {
             /** Format: uuid */
@@ -18171,10 +18185,7 @@ export interface operations {
     };
     workspaces_modules_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 slug: string;
@@ -22316,11 +22327,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
-                "application/json": components["schemas"]["ModuleIssueRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["ModuleIssueRequest"];
-                "multipart/form-data": components["schemas"]["ModuleIssueRequest"];
+                "application/json": components["schemas"]["IssueModulesUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueModulesUpdateRequest"];
+                "multipart/form-data": components["schemas"]["IssueModulesUpdateRequest"];
             };
         };
         responses: {
@@ -23213,8 +23224,8 @@ export interface operations {
     workspaces_projects_modules_list: {
         parameters: {
             query?: {
-                /** @description A search term. */
-                search?: string;
+                /** @description Comma-separated list of fields to include in response */
+                fields?: string;
             };
             header?: never;
             path: {
@@ -23311,10 +23322,52 @@ export interface operations {
     workspaces_projects_modules_issues_list: {
         parameters: {
             query?: {
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                assignees?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                created_by?: string;
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Comma-separated cycle ids. Only work items that match one of them. */
+                cycle?: string;
+                /** @description JSON encoded filter expression with nested 'and' / 'or' / 'not' groups. Mutually exclusive with 'pql'. */
+                filters?: string;
+                /** @description Group the work items by this field */
+                group_by?: "assignees__id" | "created_by" | "cycle_id" | "issue_module__module_id" | "labels__id" | "priority" | "project_id" | "start_date" | "state__group" | "state_id" | "target_date";
+                /** @description Comma-separated label ids. Only work items that match one of them. */
+                labels?: string;
+                /** @description The layout the list is for. Ignored by the backend */
+                layout?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                mentions?: string;
+                /** @description Comma-separated module ids. Only work items that match one of them. */
+                module?: string;
+                /** @description Field to order results by. Prefix with '-' for descending order */
+                order_by?: string;
+                /** @description Comma-separated work item ids. Only work items that match one of them. */
+                parent?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Plane Query Language expression. Human readable alternative to 'filters'; the two are mutually exclusive. Names resolve to ids (state = "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches direct children and descendantOf() every work item below one at any depth. */
+                pql?: string;
+                /** @description Comma-separated priorities */
+                priority?: string;
+                /** @description Comma-separated project ids. Only work items that match one of them. */
+                project?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after */
+                start_date?: string;
+                /** @description Comma-separated state ids. Only work items that match one of them. */
+                state?: string;
+                /** @description Comma-separated state groups */
+                state_group?: string;
+                /** @description Group each group by this field. Requires group_by and must differ from it */
+                sub_group_by?: "assignees__id" | "created_by" | "cycle_id" | "issue_module__module_id" | "labels__id" | "priority" | "project_id" | "start_date" | "state__group" | "state_id" | "target_date";
+                /** @description Include work items that have a parent. True when omitted */
+                sub_issue?: boolean;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                subscriber?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after,2026-02-01;before */
+                target_date?: string;
             };
             header?: never;
             path: {
@@ -23349,9 +23402,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ModuleIssueRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["ModuleIssueRequest"];
-                "multipart/form-data": components["schemas"]["ModuleIssueRequest"];
+                "application/json": components["schemas"]["ModuleIssuesAddRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ModuleIssuesAddRequest"];
+                "multipart/form-data": components["schemas"]["ModuleIssuesAddRequest"];
             };
         };
         responses: {
@@ -23474,10 +23527,7 @@ export interface operations {
     };
     workspaces_projects_modules_module_links_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 module_id: string;
@@ -23668,7 +23718,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedIssueFiltersUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedIssueFiltersUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedIssueFiltersUpdateRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -25145,7 +25201,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModuleFavoriteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ModuleFavoriteRequest"];
+                "multipart/form-data": components["schemas"]["ModuleFavoriteRequest"];
+            };
+        };
         responses: {
             /** @description Added to favorites */
             204: {
@@ -27490,6 +27552,8 @@ export const pathsApiWorkspacesSlugProjectsProject_idIssuePropertiesGetParameter
 export const pathsApiWorkspacesSlugProjectsProject_idIssuesGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/issues/"]["get"]["parameters"]["query"]["group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idIssuesGetParametersQuerySub_group_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/issues/"]["get"]["parameters"]["query"]["sub_group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idIssuesIssue_idHistoryGetParametersQueryActivity_typeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/history/"]["get"]["parameters"]["query"]["activity_type"]> = ["issue-comment", "issue-property"];
+export const pathsApiWorkspacesSlugProjectsProject_idModulesModule_idIssuesGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/issues/"]["get"]["parameters"]["query"]["group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
+export const pathsApiWorkspacesSlugProjectsProject_idModulesModule_idIssuesGetParametersQuerySub_group_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/issues/"]["get"]["parameters"]["query"]["sub_group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQueryCycleValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["cycle"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQueryHas_childrenValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["has_children"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQueryIssue_relationValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["issue_relation"]> = ["false", "true"];

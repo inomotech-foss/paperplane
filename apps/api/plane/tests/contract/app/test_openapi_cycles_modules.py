@@ -265,3 +265,59 @@ class TestCycleRequests:
         url = route.format(slug=workspace.slug, project_id=project.id, cycle_id=plan["current"].id)
         params = {"group_by": "priority", "order_by": "-created_at", "sub_issue": "false", "per_page": 10}
         assert documented(session_client.get(url, {**params, "cursor": "10:0:0"}))["results"]
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+@pytest.mark.usefixtures("no_tasks")
+class TestModuleRequests:
+    def test_create_and_update(self, session_client, create_user, workspace, project):
+        ids = {"slug": workspace.slug, "project_id": project.id}
+        body = {
+            "name": "Next",
+            "lead_id": str(create_user.id),
+            "member_ids": [str(create_user.id)],
+            "status": "planned",
+        }
+        url, body = sent(BASE + "/modules/", "post", body, **ids)
+        created = documented(session_client.post(url, body, format="json"), 201)
+        assert created["member_ids"] == [str(create_user.id)]
+        url, body = sent(BASE + "/modules/{pk}/", "patch", {"target_date": "2030-01-10"}, pk=created["id"], **ids)
+        assert documented(session_client.patch(url, body, format="json"))["target_date"] == "2030-01-10"
+
+    def test_module_issues(self, session_client, workspace, project, plan):
+        module = plan["module"]
+        ids = {"slug": workspace.slug, "project_id": project.id}
+        loose = Issue.objects.create(name="c", project=project, workspace=workspace, type=plan["issues"][0].type)
+        route = BASE + "/modules/{module_id}/issues/"
+        url, body = sent(route, "post", {"issues": [str(loose.id)]}, module_id=module.id, **ids)
+        documented(session_client.post(url, body, format="json"), 201)
+        route = BASE + "/issues/{issue_id}/modules/"
+        body = {"modules": [], "removed_modules": [str(module.id)]}
+        url, body = sent(route, "post", body, issue_id=loose.id, **ids)
+        documented(session_client.post(url, body, format="json"), 201)
+        assert not ModuleIssue.objects.filter(module=module, issue=loose).exists()
+
+    def test_favorite_link_and_user_properties(self, session_client, workspace, project, plan):
+        module = plan["module"]
+        ids = {"slug": workspace.slug, "project_id": project.id, "module_id": module.id}
+        url, body = sent(BASE + "/user-favorite-modules/", "post", {"module": str(module.id)}, **ids)
+        assert session_client.post(url, body, format="json").status_code == 204
+        route = BASE + "/modules/{module_id}/module-links/"
+        url, body = sent(route, "post", {"title": "Docs", "url": "https://a.test"}, **ids)
+        documented(session_client.post(url, body, format="json"), 201)
+        route = BASE + "/modules/{module_id}/user-properties/"
+        documented(session_client.get(route.format(**ids)))
+        url, body = sent(route, "patch", {"display_properties": {"key": True}}, **ids)
+        documented(session_client.patch(url, body, format="json"), 201)
+
+    def test_query_parameters(self, session_client, workspace, project, plan):
+        assert documented_query(BASE + "/modules/", "get") == {"fields"}
+        assert documented_query("/api/workspaces/{slug}/modules/", "get") == set()
+        assert documented_query(BASE + "/modules/{module_id}/module-links/", "get") == set()
+        route = BASE + "/modules/{module_id}/issues/"
+        assert {"cursor", "per_page", "group_by", "order_by", "filters", "pql", "layout"} <= documented_query(
+            route, "get"
+        )
+        url = route.format(slug=workspace.slug, project_id=project.id, module_id=plan["module"].id)
+        assert documented(session_client.get(url, {"group_by": "state_id", "per_page": 10}))["results"]
