@@ -4,23 +4,14 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type { TTimezones } from "@plane/types";
-// helpers
-// api services
-import { APIService } from "@/services/api.service";
+import { apiClient } from "@/services/api-client";
 
-export class TimezoneService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
-
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class TimezoneService {
   async fetch(): Promise<TTimezones> {
-    return this.get(`/api/timezones/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(apiClient.GET("/api/timezones/"));
   }
 }
 
