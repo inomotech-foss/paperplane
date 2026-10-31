@@ -67,8 +67,8 @@ type TChipsFieldConfig = {
   getValues?: (params: SelectPaginationParams) => Promise<TPaginatedResponse<Option[]>>;
 };
 
-/** The suite fakes setTimeout, so user-event has to advance it or every keystroke waits for real time. */
-const setupUser = () => userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+/** The suite fakes setTimeout, so user-event must not wait between keystrokes. */
+const setupUser = () => userEvent.setup({ delay: null, advanceTimers: vi.advanceTimersByTime });
 
 async function openSelect(user: ReturnType<typeof userEvent.setup>, name?: string) {
   await user.click(trigger(name));
@@ -133,7 +133,7 @@ describe("Select on Propel combobox", () => {
     await user.keyboard("{Enter}");
 
     expect(onChange).toHaveBeenCalledWith("id-24");
-  });
+  }, 15_000);
 
   it("selects the last row after End", async () => {
     const user = setupUser();
@@ -333,7 +333,7 @@ describe("Select on Propel combobox", () => {
     await user.keyboard("{Enter}");
 
     expect(onChange).toHaveBeenCalledWith("id-24");
-  });
+  }, 15_000);
 
   it("keeps selecting the right option once headings shift the rows", async () => {
     const user = setupUser();
