@@ -21191,6 +21191,7 @@ components:
           type: string
           format: uuid
           nullable: true
+          description: On update, the draft's own project or a 400
         cycle_id:
           type: string
           format: uuid
@@ -21704,6 +21705,7 @@ components:
 
             * `categories` - Categories
             * `points` - Points
+            * `time` - Time
         last_used:
           type: boolean
           description: False when omitted
@@ -21910,10 +21912,12 @@ components:
       enum:
       - categories
       - points
+      - time
       type: string
       description: |-
         * `categories` - Categories
         * `points` - Points
+        * `time` - Time
     EstimateUpdateRequest:
       type: object
       properties:
@@ -24596,7 +24600,7 @@ components:
         relation_type:
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/RelationType9a3Enum'
+          - $ref: '#/components/schemas/IssuePropertyRelationTypeEnum'
           - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         is_active:
@@ -24690,7 +24694,7 @@ components:
         relation_type:
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/RelationType9a3Enum'
+          - $ref: '#/components/schemas/IssuePropertyRelationTypeEnum'
           - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         is_active:
@@ -24817,6 +24821,14 @@ components:
           maxLength: 255
       required:
       - name
+    IssuePropertyRelationTypeEnum:
+      enum:
+      - USER
+      - ISSUE
+      type: string
+      description: |-
+        * `USER` - User
+        * `ISSUE` - Work item
     IssueReaction:
       type: object
       properties:
@@ -25031,35 +25043,11 @@ components:
       - created_at
       - updated_at
       - updated_by
-    IssueRelationCreateRelationTypeEnum:
-      enum:
-      - blocking
-      - blocked_by
-      - duplicate
-      - relates_to
-      - start_before
-      - start_after
-      - finish_before
-      - finish_after
-      - implemented_by
-      - implements
-      type: string
-      description: |-
-        * `blocking` - blocking
-        * `blocked_by` - blocked_by
-        * `duplicate` - duplicate
-        * `relates_to` - relates_to
-        * `start_before` - start_before
-        * `start_after` - start_after
-        * `finish_before` - finish_before
-        * `finish_after` - finish_after
-        * `implemented_by` - implemented_by
-        * `implements` - implements
     IssueRelationCreateRequest:
       type: object
       properties:
         relation_type:
-          $ref: '#/components/schemas/IssueRelationCreateRelationTypeEnum'
+          $ref: '#/components/schemas/WorkItemRelationTypeEnum'
         issues:
           type: array
           items:
@@ -25075,8 +25063,25 @@ components:
         related_issue:
           type: string
           format: uuid
+        relation_type:
+          allOf:
+          - $ref: '#/components/schemas/WorkItemRelationTypeEnum'
+          description: |-
+            Named in the activity of both items
+
+            * `blocking` - blocking
+            * `blocked_by` - blocked_by
+            * `duplicate` - duplicate
+            * `relates_to` - relates_to
+            * `start_before` - start_before
+            * `start_after` - start_after
+            * `finish_before` - finish_before
+            * `finish_after` - finish_after
+            * `implemented_by` - implemented_by
+            * `implements` - implements
       required:
       - related_issue
+      - relation_type
     IssueSequence:
       type: object
       properties:
@@ -29657,6 +29662,7 @@ components:
           type: string
           format: uuid
           nullable: true
+          description: On update, the draft's own project or a 400
         cycle_id:
           type: string
           format: uuid
@@ -30030,7 +30036,7 @@ components:
         relation_type:
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/RelationType9a3Enum'
+          - $ref: '#/components/schemas/IssuePropertyRelationTypeEnum'
           - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         is_active:
@@ -33105,14 +33111,6 @@ components:
       - created_by
       - updated_by
       - relation_type
-    RelationType9a3Enum:
-      enum:
-      - USER
-      - ISSUE
-      type: string
-      description: |-
-        * `USER` - User
-        * `ISSUE` - Work item
     RemoveTypeEnum:
       enum:
       - unlink
@@ -37214,6 +37212,30 @@ components:
           description: Resolves project-scoped names
       required:
       - pql
+    WorkItemRelationTypeEnum:
+      enum:
+      - blocking
+      - blocked_by
+      - duplicate
+      - relates_to
+      - start_before
+      - start_after
+      - finish_before
+      - finish_after
+      - implemented_by
+      - implements
+      type: string
+      description: |-
+        * `blocking` - blocking
+        * `blocked_by` - blocked_by
+        * `duplicate` - duplicate
+        * `relates_to` - relates_to
+        * `start_before` - start_before
+        * `start_after` - start_after
+        * `finish_before` - finish_before
+        * `finish_after` - finish_after
+        * `implemented_by` - implemented_by
+        * `implements` - implements
     WorkItemRelations:
       type: object
       properties:

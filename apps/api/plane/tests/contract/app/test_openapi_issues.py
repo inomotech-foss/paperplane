@@ -15,6 +15,7 @@ from plane.db.models import (
     IssueRelation,
     IssueType,
     ProjectIdentifier,
+    ProjectIssueType,
     ProjectMember,
     State,
 )
@@ -121,6 +122,28 @@ class TestIssueRequests:
         unlinked = IssueType.objects.create(workspace=workspace, name="Unlinked")
         body = {**body, "type_id": str(unlinked.id)}
         assert session_client.post(url, body, format="json").status_code == 400
+
+    def test_draft_update_checks_the_type_against_its_project(self, session_client, workspace, project, create_user):
+        other = ProjectFactory(workspace=workspace, identifier="OTH")
+        ProjectMember.objects.create(project=other, member=create_user, workspace=workspace, role=20)
+        bug = IssueType.objects.create(workspace=workspace, name="Bug")
+        ProjectIssueType.objects.create(project=other, issue_type=bug, workspace=workspace)
+        other_type = str(bug.id)
+        own_type = str(link_starter_type(project).id)
+        created = {"name": "Draft", "project_id": str(project.id), "type_id": own_type}
+        draft_id = session_client.post(
+            f"/api/workspaces/{workspace.slug}/draft-issues/", created, format="json"
+        ).json()["id"]
+        route = "/api/workspaces/{slug}/draft-issues/{pk}/"
+        moved = {"project_id": str(other.id), "type_id": other_type}
+        url, body = sent(route, "patch", moved, slug=workspace.slug, pk=draft_id)
+        response = session_client.patch(url, body, format="json")
+        assert response.status_code == 400
+        assert "project_id" in response.json()
+        same_project = {"project_id": str(project.id), "type_id": other_type}
+        assert session_client.patch(url, same_project, format="json").status_code == 400
+        draft = DraftIssue.objects.get(pk=draft_id)
+        assert (str(draft.project_id), str(draft.type_id)) == (str(project.id), own_type)
 
     def test_list_query_parameters(self, session_client, workspace, project):
         make_issue(project)

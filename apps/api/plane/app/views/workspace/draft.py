@@ -213,6 +213,12 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
                 {"error": "You don't have the required permissions."},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        # The type, labels and the rest are checked against the draft's project, so a move would apply them half.
+        if str(project_id or "") != str(issue.project_id or ""):
+            return Response(
+                {"project_id": ["A draft cannot move to another project."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         serializer = DraftIssueCreateSerializer(
             issue,

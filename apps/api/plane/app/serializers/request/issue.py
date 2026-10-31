@@ -188,7 +188,9 @@ class IssueRelationRemoveSerializer(serializers.Serializer):
 
 
 class DraftIssueWriteSerializer(DraftIssueCreateSerializer):
-    project_id = serializers.UUIDField(required=False, allow_null=True)
+    project_id = serializers.UUIDField(
+        required=False, allow_null=True, help_text="On update, the draft's own project or a 400"
+    )
     cycle_id = serializers.UUIDField(required=False, allow_null=True, help_text="A cycle of the project")
     module_ids = serializers.ListField(
         child=serializers.UUIDField(), required=False, help_text="Modules of the project"
