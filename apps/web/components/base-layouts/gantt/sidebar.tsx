@@ -15,6 +15,8 @@ import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 import { BLOCK_HEIGHT } from "@/components/gantt-chart/constants";
 import { GanttDnDHOC } from "@/components/gantt-chart/sidebar/gantt-dnd-HOC";
 import { handleOrderChange } from "@/components/gantt-chart/sidebar/utils";
+import { resolveGanttFlag } from "@/components/gantt-chart/types";
+import type { TGanttEnableFlag } from "@/components/gantt-chart/types";
 import { GanttLayoutListItemLoader } from "@/components/ui/loader/layouts/gantt-layout-loader";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
@@ -25,7 +27,7 @@ export type TBaseGanttSidebarProps<T extends IBaseLayoutsBaseItem> = {
   loadMoreItems?: (groupId: string) => void;
   ganttContainerRef: RefObject<HTMLDivElement | null>;
   blockIds: string[];
-  enableReorder: boolean;
+  enableReorder: TGanttEnableFlag;
   showAllBlocks?: boolean;
   items: Record<string, T>;
   renderItem: (item: T) => React.ReactNode;
@@ -96,7 +98,7 @@ export const BaseGanttSidebar = observer(function BaseGanttSidebar<T extends IBa
                 <GanttDnDHOC
                   id={blockId}
                   isLastChild={index === blockIds.length - 1}
-                  isDragEnabled={enableReorder}
+                  isDragEnabled={resolveGanttFlag(enableReorder, blockId)}
                   onDrop={handleOnDrop}
                 >
                   {(isDragging: boolean) => {
