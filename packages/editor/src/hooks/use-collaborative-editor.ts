@@ -214,7 +214,7 @@ export const useCollaborativeEditor = (props: UseCollaborativeEditorArgs) => {
     [provider, id, editable, titleRef, updatePageProperties, titleExtensions, extendedEditorProps, getEditorMetaData]
   );
 
-  const titleEditor = useTitleEditor(titleEditorConfig as Parameters<typeof useTitleEditor>[0]);
+  const titleEditor = useTitleEditor(titleEditorConfig);
 
   useEffect(() => {
     if (editor && titleEditor) {

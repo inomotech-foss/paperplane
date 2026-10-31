@@ -11,7 +11,7 @@ export type CommandListInstance = {
 type TArgs = {
   event: KeyboardEvent;
   sections: {
-    items: any[];
+    items: unknown[];
   }[];
   selectedIndex: {
     section: number;

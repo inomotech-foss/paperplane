@@ -6,14 +6,12 @@
 
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
+// helpers
+import { readProperty } from "@/helpers/narrow";
 
 type NodeHighlightState = {
   highlightedNodeId: string | null;
   decorations: DecorationSet;
-};
-
-type NodeHighlightMeta = {
-  nodeId?: string | null;
 };
 
 export const nodeHighlightPluginKey = new PluginKey<NodeHighlightState>("nodeHighlight");
@@ -68,12 +66,13 @@ export const NodeHighlightPlugin = () =>
         let highlightedNodeId = value.highlightedNodeId;
         let decorations = value.decorations;
 
-        const meta = tr.getMeta(nodeHighlightPluginKey) as NodeHighlightMeta | undefined;
+        const meta: unknown = tr.getMeta(nodeHighlightPluginKey);
         let shouldRecalculate = tr.docChanged;
 
         if (meta) {
-          if (meta.nodeId !== undefined) {
-            highlightedNodeId = typeof meta.nodeId === "string" && meta.nodeId.length > 0 ? meta.nodeId : null;
+          const nodeId = readProperty(meta, "nodeId");
+          if (nodeId !== undefined) {
+            highlightedNodeId = typeof nodeId === "string" && nodeId.length > 0 ? nodeId : null;
             shouldRecalculate = true;
           }
         }

@@ -11,13 +11,14 @@ import type { EditorState, Transaction } from "@tiptap/pm/state";
 import { CORE_EXTENSIONS } from "@plane/utils";
 // helpers
 import { CORE_ASSETS_META_DATA_RECORD } from "@/helpers/assets";
+import { readString } from "@/helpers/narrow";
 // plane editor imports
 import { NODE_FILE_MAP } from "@/constants/utility";
 // types
 import type { TFileHandler } from "@/types";
 // local imports
-import type { NodeFileMapType } from "../../constants/utility";
 import type { TFileNode } from "./types";
+import { getFileNodeType } from "./types";
 
 const RESTORE_PLUGIN_KEY = new PluginKey("restore-utility");
 
@@ -28,16 +29,17 @@ export const TrackFileRestorationPlugin = (editor: Editor, restoreHandler: TFile
       if (!transactions.some((tr) => tr.docChanged)) return null;
 
       const oldFileSources: {
-        [key: string]: Set<string> | undefined;
+        [key: string]: Set<unknown> | undefined;
       } = {};
       oldState.doc.descendants((node) => {
-        const nodeType = node.type.name as keyof NodeFileMapType;
-        const nodeFileSetDetails = NODE_FILE_MAP[nodeType];
-        if (nodeFileSetDetails) {
+        const nodeType = getFileNodeType(node);
+        const nodeFileSetDetails = nodeType && NODE_FILE_MAP[nodeType];
+        if (nodeType && nodeFileSetDetails) {
+          const src: unknown = node.attrs.src;
           if (oldFileSources[nodeType]) {
-            oldFileSources[nodeType].add(node.attrs.src);
+            oldFileSources[nodeType].add(src);
           } else {
-            oldFileSources[nodeType] = new Set([node.attrs.src]);
+            oldFileSources[nodeType] = new Set([src]);
           }
         }
       });
@@ -46,12 +48,12 @@ export const TrackFileRestorationPlugin = (editor: Editor, restoreHandler: TFile
         const addedFiles: TFileNode[] = [];
 
         newState.doc.descendants((node, pos) => {
-          const nodeType = node.type.name as keyof NodeFileMapType;
-          const isAValidNode = NODE_FILE_MAP[nodeType];
+          const nodeType = getFileNodeType(node);
           // if the node doesn't match, then return as no point in checking
-          if (!isAValidNode) return;
+          if (!nodeType || !NODE_FILE_MAP[nodeType]) return;
           if (pos < 0 || pos > newState.doc.content.size) return;
-          if (oldFileSources[nodeType]?.has(node.attrs.src)) return;
+          const src: unknown = node.attrs.src;
+          if (oldFileSources[nodeType]?.has(src)) return;
           // update assets list storage value
           const assetMetaData = CORE_ASSETS_META_DATA_RECORD[nodeType]?.(node.attrs);
           if (assetMetaData) {
@@ -61,13 +63,12 @@ export const TrackFileRestorationPlugin = (editor: Editor, restoreHandler: TFile
           }
           // if the src is just a id (private bucket), then we don't need to handle restore from here but
           // only while it fails to load
-          if (nodeType === CORE_EXTENSIONS.CUSTOM_IMAGE && !node.attrs.src?.startsWith("http")) return;
-          addedFiles.push(node as TFileNode);
+          const httpSrc = readString(node.attrs, "src")?.startsWith("http");
+          if (nodeType === CORE_EXTENSIONS.CUSTOM_IMAGE && !httpSrc) return;
+          if (typeof src === "string") addedFiles.push({ node, nodeType, src });
         });
 
-        addedFiles.forEach(async (node) => {
-          const nodeType = node.type.name as keyof NodeFileMapType;
-          const src = node.attrs.src;
+        addedFiles.forEach(async ({ nodeType, src }) => {
           const nodeFileSetDetails = NODE_FILE_MAP[nodeType];
           if (!nodeFileSetDetails) return;
           const extensionFileSetStorage = editor.storage[nodeType]?.[nodeFileSetDetails.fileSetName];

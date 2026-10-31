@@ -8,7 +8,6 @@ import { combineTransactionSteps, findChildrenInRange, findDuplicates, getChange
 import { Fragment, Slice } from "@tiptap/pm/model";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import type { Transaction } from "@tiptap/pm/state";
 // types
 import type { UniqueIDOptions } from "./extension";
 // utils
@@ -40,7 +39,7 @@ export const createUniqueIDPlugin = (options: UniqueIDOptions) => {
       const { tr } = newState;
 
       const { types, attributeName, generateUniqueID } = options;
-      const transform = combineTransactionSteps(oldState.doc, transactions as Transaction[]);
+      const transform = combineTransactionSteps(oldState.doc, [...transactions]);
 
       const { mapping } = transform;
 
@@ -54,7 +53,7 @@ export const createUniqueIDPlugin = (options: UniqueIDOptions) => {
           allNodesInDoc.push({ node, pos });
         }
       });
-      const allIds = allNodesInDoc.map(({ node }) => node.attrs[attributeName]).filter((id) => id !== null);
+      const allIds = allNodesInDoc.map(({ node }): unknown => node.attrs[attributeName]).filter((id) => id !== null);
       const duplicatedIds = findDuplicates(allIds);
 
       changes.forEach(({ newRange }) => {
@@ -65,7 +64,7 @@ export const createUniqueIDPlugin = (options: UniqueIDOptions) => {
           // we look at the current state of the node within `tr.doc`.
           // this helps to prevent adding new ids to the same node
           // if the node changed multiple times within one transaction
-          const id = tr.doc.nodeAt(pos)?.attrs[attributeName];
+          const id: unknown = tr.doc.nodeAt(pos)?.attrs[attributeName];
 
           if (id === null) {
             tr.setNodeMarkup(pos, undefined, {
@@ -109,7 +108,9 @@ export const createUniqueIDPlugin = (options: UniqueIDOptions) => {
     // we register a global drag handler to track the current drag source element
     view(view) {
       const handleDragstart = (event: DragEvent) => {
-        dragSourceElement = view.dom.parentElement?.contains(event.target as Element) ? view.dom.parentElement : null;
+        dragSourceElement = view.dom.parentElement?.contains(event.target instanceof Node ? event.target : null)
+          ? view.dom.parentElement
+          : null;
       };
 
       window.addEventListener("dragstart", handleDragstart);

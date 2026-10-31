@@ -6,21 +6,22 @@
 
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
+// helpers
+import { readString, readText } from "@/helpers/narrow";
 // types
 import type { TWorkItemEmbedHandler } from "@/types";
 // local imports
 import { WorkItemEmbedExtensionConfig } from "./extension-config";
-import type { TWorkItemEmbedAttributes } from "./types";
 import { EWorkItemEmbedAttributeNames } from "./types";
 
 type TWorkItemEmbedOptions = {
   renderComponent: TWorkItemEmbedHandler["renderComponent"] | undefined;
 };
 
-function WorkItemEmbed(props: NodeViewProps) {
-  const { renderComponent } = props.extension.options as TWorkItemEmbedOptions;
-  const attrs = props.node.attrs as TWorkItemEmbedAttributes;
-  const workItemId = attrs[EWorkItemEmbedAttributeNames.ENTITY_IDENTIFIER];
+function WorkItemEmbed(props: NodeViewProps & TWorkItemEmbedOptions) {
+  const { renderComponent } = props;
+  const { attrs } = props.node;
+  const workItemId = readString(attrs, EWorkItemEmbedAttributeNames.ENTITY_IDENTIFIER);
 
   return (
     <NodeViewWrapper className="issue-embed my-2 block">
@@ -28,8 +29,8 @@ function WorkItemEmbed(props: NodeViewProps) {
         {workItemId
           ? renderComponent?.({
               workItemId,
-              projectId: attrs[EWorkItemEmbedAttributeNames.PROJECT_IDENTIFIER],
-              workspaceSlug: attrs[EWorkItemEmbedAttributeNames.WORKSPACE_IDENTIFIER],
+              projectId: readText(attrs, EWorkItemEmbedAttributeNames.PROJECT_IDENTIFIER),
+              workspaceSlug: readText(attrs, EWorkItemEmbedAttributeNames.WORKSPACE_IDENTIFIER),
             })
           : null}
       </div>
@@ -51,7 +52,8 @@ export function WorkItemEmbedExtension(handler: TWorkItemEmbedHandler | undefine
     },
 
     addNodeView() {
-      return ReactNodeViewRenderer(WorkItemEmbed);
+      const { renderComponent } = this.options;
+      return ReactNodeViewRenderer((props) => <WorkItemEmbed {...props} renderComponent={renderComponent} />);
     },
   });
 }

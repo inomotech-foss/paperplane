@@ -12,6 +12,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // components
 import type { LinkViewProps } from "@/components/links";
 import { LinkView } from "@/components/links";
+// helpers
+import { readString } from "@/helpers/narrow";
 
 type Props = {
   editor: Editor;
@@ -76,12 +78,12 @@ export function LinkViewContainer({ editor, containerRef }: Props) {
       if (!editor || editorState.linkExtensionStorage?.isBubbleMenuOpen) return;
 
       // Find the closest anchor tag from the event target
-      const target = (event.target as HTMLElement)?.closest("a");
+      const target = event.target instanceof Element ? event.target.closest("a") : null;
       if (!target) return;
 
       const referenceProps = getReferenceProps();
       Object.entries(referenceProps).forEach(([key, value]) => {
-        target.setAttribute(key, value as string);
+        target.setAttribute(key, String(value));
       });
 
       const view = editor.view;
@@ -106,7 +108,7 @@ export function LinkViewContainer({ editor, containerRef }: Props) {
         if (!isOpen || (linkViewProps && (linkViewProps.from !== pos || linkViewProps.to !== pos + node.nodeSize))) {
           setLinkViewProps({
             view: "LinkPreview", // Always start with preview for new links
-            url: linkMark.attrs.href,
+            url: readString(linkMark.attrs, "href") ?? "",
             text: node.text || "",
             editor: editor,
             from: pos,
@@ -145,7 +147,7 @@ export function LinkViewContainer({ editor, containerRef }: Props) {
       if (!editor || !isOpen) return;
 
       // Check if mouse is truly leaving the container area
-      const relatedTarget = event.relatedTarget as HTMLElement;
+      const relatedTarget = event.relatedTarget instanceof Node ? event.relatedTarget : null;
       const container = containerRef.current;
       const floatingElement = refs.floating;
 

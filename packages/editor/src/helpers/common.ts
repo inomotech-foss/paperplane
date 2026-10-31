@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
+import type { Node as ProseMirrorNode, ResolvedPos } from "@tiptap/pm/model";
 import type { EditorState, Selection } from "@tiptap/pm/state";
 // plane imports
 import { cn } from "@plane/utils";
@@ -52,10 +52,18 @@ export const findParentNodeOfType = (
 };
 
 export const findTableAncestor = (node: Node | null): HTMLTableElement | null => {
-  while (node !== null && node.nodeName !== "TABLE") {
-    node = node.parentNode;
+  let current = node;
+  while (current !== null && !(current instanceof HTMLTableElement)) {
+    current = current.parentNode;
   }
-  return node as HTMLTableElement;
+  return current;
+};
+
+export const isAncestorOfPosition = ($pos: ResolvedPos, node: ProseMirrorNode): boolean => {
+  for (let depth = 0; depth <= $pos.depth; depth++) {
+    if ($pos.node(depth) === node) return true;
+  }
+  return false;
 };
 
 export const getTrimmedHTML = (html: string) =>

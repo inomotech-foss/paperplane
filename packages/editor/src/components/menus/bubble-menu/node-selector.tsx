@@ -10,7 +10,7 @@ import { ChevronDownOutline, TickOutline } from "@makeplane/propel/icons";
 // plane utils
 import { cn } from "@plane/utils";
 // components
-import type { EditorMenuItem } from "@/components/menus";
+import type { TAnyEditorMenuItem } from "@/components/menus";
 import {
   BulletListItem,
   HeadingOneItem,
@@ -25,8 +25,6 @@ import {
   HeadingFiveItem,
   HeadingSixItem,
 } from "@/components/menus";
-// types
-import type { TEditorCommands } from "@/types";
 // local imports
 import { FloatingMenuRoot } from "../floating-menu/root";
 import { useFloatingMenu } from "../floating-menu/use-floating-menu";
@@ -40,7 +38,7 @@ export function BubbleMenuNodeSelector(props: Props) {
   // floating ui
   const { options, getReferenceProps, getFloatingProps } = useFloatingMenu({});
   const { context } = options;
-  const items: EditorMenuItem<TEditorCommands>[] = [
+  const items: TAnyEditorMenuItem[] = [
     TextItem(editor),
     HeadingOneItem(editor),
     HeadingTwoItem(editor),
@@ -53,7 +51,7 @@ export function BubbleMenuNodeSelector(props: Props) {
     TodoListItem(editor),
     QuoteItem(editor),
     CodeItem(editor),
-  ] as EditorMenuItem<TEditorCommands>[];
+  ];
 
   const activeItem = items.filter((item) => item.isActive()).pop() ?? {
     name: "Multiple",

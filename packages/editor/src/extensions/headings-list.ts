@@ -8,6 +8,8 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+// helpers
+import { readNumber } from "@/helpers/narrow";
 // types
 import type { IMarking } from "@/types";
 
@@ -26,7 +28,7 @@ export const HeadingListExtension = Extension.create<unknown, HeadingExtensionSt
 
   addStorage() {
     return {
-      headings: [] as IMarking[],
+      headings: [],
     };
   },
 
@@ -41,7 +43,7 @@ export const HeadingListExtension = Extension.create<unknown, HeadingExtensionSt
 
         newState.doc.descendants((node) => {
           if (node.type.name === "heading") {
-            const level = node.attrs.level;
+            const level = readNumber(node.attrs, "level") ?? 0;
             const text = node.textContent;
 
             headings.push({

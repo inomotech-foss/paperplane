@@ -7,6 +7,8 @@
 import { getAttributes } from "@tiptap/core";
 import type { MarkType } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
+// helpers
+import { readString } from "@/helpers/narrow";
 
 type ClickHandlerOptions = {
   type: MarkType;
@@ -21,12 +23,12 @@ export function clickHandler(options: ClickHandlerOptions): Plugin {
           return false;
         }
 
-        let a = event.target as HTMLElement;
-        const els: HTMLElement[] = [];
+        let a: Node | null = event.target instanceof Node ? event.target : null;
+        const els: Node[] = [];
 
-        while (a?.nodeName !== "DIV") {
+        while (a && a.nodeName !== "DIV") {
           els.push(a);
-          a = a?.parentNode as HTMLElement;
+          a = a.parentNode;
         }
 
         if (!els.find((value) => value.nodeName === "A")) {
@@ -34,10 +36,10 @@ export function clickHandler(options: ClickHandlerOptions): Plugin {
         }
 
         const attrs = getAttributes(view.state, options.type.name);
-        const link = event.target as HTMLLinkElement;
+        const link = event.target;
 
-        const href = link?.href ?? attrs.href;
-        const target = link?.target ?? attrs.target;
+        const href = readString(link, "href") ?? readString(attrs, "href");
+        const target = readString(link, "target") ?? readString(attrs, "target");
 
         if (link && href) {
           // Defence-in-depth: link.href is the browser-resolved URL (whitespace

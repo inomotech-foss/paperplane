@@ -7,6 +7,8 @@
 import type { Editor } from "@tiptap/core";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+// helpers
+import { isOneOf, readString } from "@/helpers/narrow";
 // types
 import type { TFileHandler } from "@/types";
 
@@ -21,10 +23,11 @@ import type { TFileHandler } from "@/types";
 export const restorePublicImages = (editor: Editor, restoreImageFn: TFileHandler["restore"]) => {
   const imageSources = new Set<string>();
   editor.state.doc.descendants((node) => {
-    if ([CORE_EXTENSIONS.IMAGE, CORE_EXTENSIONS.CUSTOM_IMAGE].includes(node.type.name as CORE_EXTENSIONS)) {
-      if (!node.attrs.src?.startsWith("http")) return;
+    if (isOneOf([CORE_EXTENSIONS.IMAGE, CORE_EXTENSIONS.CUSTOM_IMAGE], node.type.name)) {
+      const src = readString(node.attrs, "src");
+      if (!src?.startsWith("http")) return;
 
-      imageSources.add(node.attrs.src);
+      imageSources.add(src);
     }
   });
 

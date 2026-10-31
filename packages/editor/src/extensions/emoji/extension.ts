@@ -14,16 +14,19 @@ import { emojiSuggestion } from "./suggestion";
 export const EmojiExtension = Emoji.extend({
   addStorage() {
     const extensionOptions = this.options;
+    if (!this.parent) throw new Error("Emoji storage requires the parent extension");
 
     return {
-      ...this.parent!(),
+      ...this.parent(),
       markdown: {
         serialize(state: MarkdownSerializerState, node: ProseMirrorNode) {
-          const emojiItem = shortcodeToEmoji(node.attrs.name, extensionOptions.emojis);
+          const name: unknown = node.attrs.name;
+          const shortcode = String(name);
+          const emojiItem = shortcodeToEmoji(shortcode, extensionOptions.emojis);
           if (emojiItem?.emoji) {
             state.write(emojiItem?.emoji);
           } else {
-            state.write(`:${node.attrs.name}:`);
+            state.write(`:${shortcode}:`);
           }
         },
       },

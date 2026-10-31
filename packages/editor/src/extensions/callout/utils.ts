@@ -4,9 +4,12 @@
  * See the LICENSE file for details.
  */
 
+import type { Attrs } from "@tiptap/pm/model";
 // plane imports
 import type { TLogoProps } from "@plane/types";
 import { sanitizeHTML } from "@plane/utils";
+// helpers
+import { isOneOf, readProperty, readString, readText } from "@/helpers/narrow";
 // types
 import type { TCalloutBlockAttributes, TCalloutBlockEmojiAttributes, TCalloutBlockIconAttributes } from "./types";
 import { ECalloutAttributeNames } from "./types";
@@ -20,6 +23,24 @@ export const DEFAULT_CALLOUT_BLOCK_ATTRIBUTES: TCalloutBlockAttributes = {
   [ECalloutAttributeNames.EMOJI_URL]: "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f4a1.png",
   [ECalloutAttributeNames.BACKGROUND]: undefined,
   [ECalloutAttributeNames.BLOCK_TYPE]: "callout-component",
+};
+
+const LOGO_TYPES: readonly TCalloutBlockAttributes[ECalloutAttributeNames.LOGO_IN_USE][] = ["emoji", "icon"];
+
+export const getCalloutBlockAttributes = (attrs: Attrs): TCalloutBlockAttributes => {
+  const logoInUse: unknown = attrs[ECalloutAttributeNames.LOGO_IN_USE];
+  return {
+    [ECalloutAttributeNames.ID]: readText(attrs, ECalloutAttributeNames.ID) ?? null,
+    [ECalloutAttributeNames.LOGO_IN_USE]: isOneOf(LOGO_TYPES, logoInUse)
+      ? logoInUse
+      : DEFAULT_CALLOUT_BLOCK_ATTRIBUTES[ECalloutAttributeNames.LOGO_IN_USE],
+    [ECalloutAttributeNames.ICON_COLOR]: readText(attrs, ECalloutAttributeNames.ICON_COLOR),
+    [ECalloutAttributeNames.ICON_NAME]: readText(attrs, ECalloutAttributeNames.ICON_NAME),
+    [ECalloutAttributeNames.EMOJI_UNICODE]: readText(attrs, ECalloutAttributeNames.EMOJI_UNICODE),
+    [ECalloutAttributeNames.EMOJI_URL]: readText(attrs, ECalloutAttributeNames.EMOJI_URL),
+    [ECalloutAttributeNames.BACKGROUND]: readText(attrs, ECalloutAttributeNames.BACKGROUND),
+    [ECalloutAttributeNames.BLOCK_TYPE]: "callout-component",
+  };
 };
 
 type TStoredLogoValue = Pick<TCalloutBlockAttributes, ECalloutAttributeNames.LOGO_IN_USE> &
@@ -36,30 +57,33 @@ export const getStoredLogo = (): TStoredLogoValue => {
   if (typeof window !== "undefined") {
     const storedData = sanitizeHTML(localStorage.getItem("editor-calloutComponent-logo") ?? "");
     if (storedData) {
-      let parsedData: TLogoProps;
+      let parsedData: unknown;
       try {
-        parsedData = JSON.parse(storedData) as TLogoProps;
+        parsedData = JSON.parse(storedData);
       } catch (error) {
         console.error(`Error parsing stored callout logo, stored value- ${storedData}`, error);
         localStorage.removeItem("editor-calloutComponent-logo");
         return fallBackValues;
       }
-      if (parsedData.in_use === "emoji" && parsedData.emoji?.value) {
+      const inUse = readString(parsedData, "in_use");
+      const emoji = readProperty(parsedData, "emoji");
+      const emojiValue = readString(emoji, "value");
+      if (inUse === "emoji" && emojiValue) {
         return {
           [ECalloutAttributeNames.LOGO_IN_USE]: "emoji",
-          [ECalloutAttributeNames.EMOJI_UNICODE]:
-            parsedData.emoji.value || DEFAULT_CALLOUT_BLOCK_ATTRIBUTES[ECalloutAttributeNames.EMOJI_UNICODE],
+          [ECalloutAttributeNames.EMOJI_UNICODE]: emojiValue,
           [ECalloutAttributeNames.EMOJI_URL]:
-            parsedData.emoji.url || DEFAULT_CALLOUT_BLOCK_ATTRIBUTES[ECalloutAttributeNames.EMOJI_URL],
+            readString(emoji, "url") || DEFAULT_CALLOUT_BLOCK_ATTRIBUTES[ECalloutAttributeNames.EMOJI_URL],
         };
       }
-      if (parsedData.in_use === "icon" && parsedData.icon?.name) {
+      const icon = readProperty(parsedData, "icon");
+      const iconName = readString(icon, "name");
+      if (inUse === "icon" && iconName) {
         return {
           [ECalloutAttributeNames.LOGO_IN_USE]: "icon",
-          [ECalloutAttributeNames.ICON_NAME]:
-            parsedData.icon.name || DEFAULT_CALLOUT_BLOCK_ATTRIBUTES[ECalloutAttributeNames.ICON_NAME],
+          [ECalloutAttributeNames.ICON_NAME]: iconName,
           [ECalloutAttributeNames.ICON_COLOR]:
-            parsedData.icon.color || DEFAULT_CALLOUT_BLOCK_ATTRIBUTES[ECalloutAttributeNames.ICON_COLOR],
+            readString(icon, "color") || DEFAULT_CALLOUT_BLOCK_ATTRIBUTES[ECalloutAttributeNames.ICON_COLOR],
         };
       }
     }

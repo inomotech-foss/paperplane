@@ -6,45 +6,55 @@
 
 import { Editor } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
+import { Awareness } from "y-protocols/awareness";
+import * as Y from "yjs";
 
 import { CustomStarterKitExtension } from "@/extensions/starter-kit";
 import {
   DocumentEditorAdditionalExtensions,
   type TDocumentEditorAdditionalExtensionsProps,
 } from "@/extensions/document-extensions";
+import type { TFileHandler } from "@/types";
 
-// Several extensions read fields off their handler as they are constructed, and
-// this suite is only about which extensions get registered. One self-returning
-// proxy stands in for every handler so a new field never breaks these tests.
-const handlerStub = (): never =>
-  new Proxy((() => handlerStub()) as object, {
-    get: () => handlerStub(),
-    apply: () => handlerStub(),
-  }) as never;
+// This suite is only about which extensions get registered, so the handlers do nothing.
+const renderNothing = () => null;
+
+const fileHandler: TFileHandler = {
+  assetsUploadStatus: {},
+  cancel: () => {},
+  checkIfAssetExists: () => Promise.resolve(false),
+  delete: () => Promise.resolve(),
+  getAssetDownloadSrc: () => Promise.resolve(""),
+  getAssetSrc: () => Promise.resolve(""),
+  restore: () => Promise.resolve(),
+  upload: () => Promise.resolve(""),
+  duplicate: () => Promise.resolve(""),
+  validation: { maxFileSize: 0 },
+};
 
 const props = (
   overrides: Partial<TDocumentEditorAdditionalExtensionsProps> = {}
-): TDocumentEditorAdditionalExtensionsProps =>
-  ({
-    childPagesHandler: handlerStub(),
-    diagramHandler: handlerStub(),
-    embedHandler: handlerStub(),
-    fileHandler: handlerStub(),
-    pageAttachmentsHandler: handlerStub(),
-    queryBlockHandler: handlerStub(),
-    workItemEmbedHandler: handlerStub(),
-    disabledExtensions: [],
-    flaggedExtensions: [],
-    isEditable: false,
-    userDetails: { id: "user-1", name: "Test User", color: "#000000" },
-    ...overrides,
-  }) as TDocumentEditorAdditionalExtensionsProps;
+): TDocumentEditorAdditionalExtensionsProps => ({
+  childPagesHandler: { renderComponent: renderNothing },
+  diagramHandler: { renderEditor: renderNothing },
+  embedHandler: { renderComponent: renderNothing },
+  fileHandler,
+  pageAttachmentsHandler: { renderComponent: renderNothing },
+  queryBlockHandler: { renderComponent: renderNothing },
+  workItemEmbedHandler: { renderComponent: renderNothing },
+  disabledExtensions: [],
+  flaggedExtensions: [],
+  extendedEditorProps: {},
+  isEditable: false,
+  userDetails: { id: "user-1", name: "Test User", color: "#000000" },
+  ...overrides,
+});
 
 const names = (extensions: ReturnType<typeof DocumentEditorAdditionalExtensions>) =>
   extensions.map((extension) => extension.name);
 
 // A stand-in for HocuspocusProvider: the cursor extension only needs awareness.
-const provider = { awareness: { getStates: () => new Map(), on: () => {}, off: () => {} } };
+const provider = { awareness: new Awareness(new Y.Doc()) };
 
 describe("DocumentEditorAdditionalExtensions", () => {
   it("leaves out the collaboration cursor when there is no provider", () => {
@@ -54,13 +64,13 @@ describe("DocumentEditorAdditionalExtensions", () => {
   });
 
   it("adds the collaboration cursor once a provider is connected", () => {
-    const extensions = DocumentEditorAdditionalExtensions(props({ provider: provider as never, isEditable: true }));
+    const extensions = DocumentEditorAdditionalExtensions(props({ provider, isEditable: true }));
     expect(names(extensions)).toContain("collaborationCaret");
   });
 
   it("honours the collaboration-cursor disabled flag even with a provider", () => {
     const extensions = DocumentEditorAdditionalExtensions(
-      props({ provider: provider as never, disabledExtensions: ["collaboration-cursor"] })
+      props({ provider, disabledExtensions: ["collaboration-cursor"] })
     );
     expect(names(extensions)).not.toContain("collaborationCaret");
   });
@@ -80,7 +90,7 @@ describe("DocumentEditorAdditionalExtensions", () => {
   });
 
   it("keeps every other extension in place without a provider", () => {
-    const withProvider = names(DocumentEditorAdditionalExtensions(props({ provider: provider as never })));
+    const withProvider = names(DocumentEditorAdditionalExtensions(props({ provider })));
     const without = names(DocumentEditorAdditionalExtensions(props()));
     expect(withProvider.filter((name) => name !== "collaborationCaret")).toEqual(without);
   });

@@ -11,9 +11,7 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { CORE_EXTENSIONS } from "@/constants/extension";
 
 function nodeEqualsType({ types, node }: { types: NodeType[]; node: ProseMirrorNode | null }) {
-  // TODO: check this logic, might be wrong
-  // @ts-expect-error - logic might be wrong
-  return (Array.isArray(types) && types.includes(node?.type)) || node?.type === types;
+  return node !== null && types.includes(node.type);
 }
 
 export interface TrailingNodeOptions {
@@ -32,13 +30,13 @@ export const TrailingNode = Extension.create<TrailingNodeOptions>({
   },
 
   addProseMirrorPlugins() {
-    const plugin = new PluginKey(this.name);
+    const plugin = new PluginKey<boolean>(this.name);
     const disabledNodes = Object.entries(this.editor.schema.nodes)
       .map(([, value]) => value)
       .filter((node) => this.options.notAfter.includes(node.name));
 
     return [
-      new Plugin({
+      new Plugin<boolean>({
         key: plugin,
         appendTransaction: (_, __, state) => {
           const { doc, tr, schema } = state;

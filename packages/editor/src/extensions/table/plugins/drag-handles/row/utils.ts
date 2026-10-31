@@ -58,7 +58,7 @@ export const calculateRowDropIndex = (row: number, rows: TableRow[], top: number
       if (index === row) return false;
       const currentRowCenter = p.top + p.height / 2;
       const currentRowEdge = p.top + p.height;
-      const nextRow = rows[index + 1] as TableRow | undefined;
+      const nextRow: TableRow | undefined = rows[index + 1];
       const nextRowCenter = nextRow ? nextRow.height / 2 : 0;
 
       return draggedRowBottom >= currentRowCenter && draggedRowBottom < currentRowEdge + nextRowCenter;
@@ -72,7 +72,7 @@ export const calculateRowDropIndex = (row: number, rows: TableRow[], top: number
     const findHoveredRow = rows.find((p, index) => {
       if (index === row) return false;
       const currentRowCenter = p.top + p.height / 2;
-      const prevRow = rows[index - 1] as TableRow | undefined;
+      const prevRow: TableRow | undefined = rows[index - 1];
       const prevRowTop = prevRow ? prevRow.top : 0;
       const prevRowCenter = prevRow ? prevRow.height / 2 : 0;
 

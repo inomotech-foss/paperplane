@@ -58,8 +58,9 @@ import {
 } from "@/helpers/editor-commands";
 // types
 import type { TCommandWithProps, TEditorCommands } from "@/types";
-type isActiveFunction<T extends TEditorCommands> = (params?: TCommandWithProps<T>) => boolean;
-type commandFunction<T extends TEditorCommands> = (params?: TCommandWithProps<T>) => void;
+type TMenuItemParams = { [K in TEditorCommands]: TCommandWithProps<K> };
+type isActiveFunction<T extends TEditorCommands> = (params?: TMenuItemParams[T]) => boolean;
+type commandFunction<T extends TEditorCommands> = (params?: TMenuItemParams[T]) => void;
 
 export type EditorMenuItem<T extends TEditorCommands> = {
   key: T;
@@ -68,6 +69,28 @@ export type EditorMenuItem<T extends TEditorCommands> = {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   isActive: isActiveFunction<T>;
 };
+
+export type TEditorMenuItems = { [K in TEditorCommands]?: EditorMenuItem<K> };
+
+export type TAnyEditorMenuItem = NonNullable<TEditorMenuItems[TEditorCommands]>;
+
+/** Runs the item's command, returns false when the editor has no item for the key. */
+export const executeEditorMenuItem = <K extends TEditorCommands>(
+  items: TEditorMenuItems,
+  key: K,
+  params: TMenuItemParams[K]
+): boolean => {
+  const item = items[key];
+  if (!item) return false;
+  item.command(params);
+  return true;
+};
+
+export const isEditorMenuItemActive = <K extends TEditorCommands>(
+  items: TEditorMenuItems,
+  key: K,
+  params: TMenuItemParams[K]
+): boolean => items[key]?.isActive(params) ?? false;
 
 export const TextItem = (editor: Editor): EditorMenuItem<"text"> => ({
   key: "text",
@@ -264,32 +287,32 @@ export const TextAlignItem = (editor: Editor): EditorMenuItem<"text-align"> => (
   icon: AlignCenterOutline,
 });
 
-export const getEditorMenuItems = (editor: Editor | null): EditorMenuItem<TEditorCommands>[] => {
-  if (!editor) return [];
+export const getEditorMenuItems = (editor: Editor | null): TEditorMenuItems => {
+  if (!editor) return {};
 
-  return [
-    TextItem(editor),
-    HeadingOneItem(editor),
-    HeadingTwoItem(editor),
-    HeadingThreeItem(editor),
-    HeadingFourItem(editor),
-    HeadingFiveItem(editor),
-    HeadingSixItem(editor),
-    BoldItem(editor),
-    ItalicItem(editor),
-    UnderLineItem(editor),
-    StrikeThroughItem(editor),
-    BulletListItem(editor),
-    TodoListItem(editor),
-    CodeItem(editor),
-    NumberedListItem(editor),
-    QuoteItem(editor),
-    TableItem(editor),
-    ImageItem(editor),
-    HorizontalRuleItem(editor),
-    LinkItem(editor),
-    TextColorItem(editor),
-    BackgroundColorItem(editor),
-    TextAlignItem(editor),
-  ] as EditorMenuItem<TEditorCommands>[];
+  return {
+    text: TextItem(editor),
+    h1: HeadingOneItem(editor),
+    h2: HeadingTwoItem(editor),
+    h3: HeadingThreeItem(editor),
+    h4: HeadingFourItem(editor),
+    h5: HeadingFiveItem(editor),
+    h6: HeadingSixItem(editor),
+    bold: BoldItem(editor),
+    italic: ItalicItem(editor),
+    underline: UnderLineItem(editor),
+    strikethrough: StrikeThroughItem(editor),
+    "bulleted-list": BulletListItem(editor),
+    "to-do-list": TodoListItem(editor),
+    code: CodeItem(editor),
+    "numbered-list": NumberedListItem(editor),
+    quote: QuoteItem(editor),
+    table: TableItem(editor),
+    image: ImageItem(editor),
+    divider: HorizontalRuleItem(editor),
+    link: LinkItem(editor),
+    "text-color": TextColorItem(editor),
+    "background-color": BackgroundColorItem(editor),
+    "text-align": TextAlignItem(editor),
+  };
 };

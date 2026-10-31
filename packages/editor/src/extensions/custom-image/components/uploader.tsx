@@ -32,6 +32,7 @@ type CustomImageUploaderProps = CustomImageNodeViewProps & {
 export function CustomImageUploader(props: CustomImageUploaderProps) {
   const {
     editor,
+    attrs,
     extension,
     failedToLoadImage,
     getPos,
@@ -47,7 +48,7 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasTriggeredFilePickerRef = useRef(false);
   const hasTriedUploadingOnMountRef = useRef(false);
-  const { id: imageEntityId } = node.attrs;
+  const { id: imageEntityId } = attrs;
   // derived values
   const imageComponentImageFileMap = useMemo(() => getImageComponentImageFileMap(editor), [editor]);
   const isTouchDevice = !!editor.storage.utility.isTouchDevice;

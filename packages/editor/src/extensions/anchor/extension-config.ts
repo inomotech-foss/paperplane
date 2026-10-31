@@ -6,6 +6,8 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+// helpers
+import { readString } from "@/helpers/narrow";
 
 /**
  * An invisible in-page jump target, as produced by Confluence's anchor macro.
@@ -35,7 +37,7 @@ export const AnchorExtensionConfig = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const name = (HTMLAttributes.name as string) ?? "";
+    const name = readString(HTMLAttributes, "name") ?? "";
     return ["anchor-component", mergeAttributes(HTMLAttributes, { id: name, "data-anchor": name })];
   },
 });

@@ -211,7 +211,7 @@ export function EditorBubbleMenu(props: Props) {
       });
     }
     function handleMouseDown(e: MouseEvent) {
-      const target = e.target as HTMLElement;
+      const target = e.target instanceof Node ? e.target : null;
       // Portal controls and selections in other editors must not start this editor's drag lifecycle.
       if (e.button !== 0 || !editor.view.dom.contains(target) || menuRef.current?.contains(target)) return;
       cancelAnimationFrame(showFrame ?? 0);

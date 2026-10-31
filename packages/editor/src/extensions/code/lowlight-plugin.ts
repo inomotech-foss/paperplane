@@ -4,32 +4,38 @@
  * See the LICENSE file for details.
  */
 
-// TODO: check all the type errors and fix them
-
 import { findChildren } from "@tiptap/core";
 import type { Node as ProsemirrorNode } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import highlight from "highlight.js/lib/core";
+import type { createLowlight } from "lowlight";
+// helpers
+import { readNumber } from "@/helpers/narrow";
 
-function parseNodes(nodes: any[], className: string[] = []): { text: string; classes: string[] }[] {
+export type Lowlight = ReturnType<typeof createLowlight>;
+type HighlightNode = ReturnType<Lowlight["highlight"]>["children"][number];
+
+function nodeClassNames(node: HighlightNode): string[] {
+  if (node.type !== "element") return [];
+  const className = node.properties.className;
+  if (Array.isArray(className)) return className.map(String);
+  return className === undefined || className === null ? [] : [String(className)];
+}
+
+function parseNodes(nodes: HighlightNode[], className: string[] = []): { text: string; classes: string[] }[] {
   return nodes.flatMap((node) => {
-    const classes = [...className, ...(node.properties ? node.properties.className : [])];
+    const classes = [...className, ...nodeClassNames(node)];
 
-    if (node.children) {
+    if (node.type === "element") {
       return parseNodes(node.children, classes);
     }
 
     return {
-      text: node.value,
+      text: node.type === "doctype" ? "" : node.value,
       classes,
     };
   });
-}
-
-function getHighlightNodes(result: any) {
-  // `.value` for lowlight v1, `.children` for lowlight v2
-  return result.value || result.children || [];
 }
 
 function registered(aliasOrLanguage: string) {
@@ -44,20 +50,21 @@ function getDecorations({
 }: {
   doc: ProsemirrorNode;
   name: string;
-  lowlight: any;
+  lowlight: Lowlight;
   defaultLanguage: string | null | undefined;
 }) {
   const decorations: Decoration[] = [];
 
   findChildren(doc, (node) => node.type.name === name).forEach((block) => {
     let from = block.pos + 1;
-    const language = block.node.attrs.language || defaultLanguage;
+    const attrLanguage: unknown = block.node.attrs.language;
+    const language = (typeof attrLanguage === "string" && attrLanguage) || defaultLanguage;
     const languages = lowlight.listLanguages();
 
     const nodes =
       language && (languages.includes(language) || registered(language))
-        ? getHighlightNodes(lowlight.highlight(language, block.node.textContent))
-        : getHighlightNodes(lowlight.highlightAuto(block.node.textContent));
+        ? lowlight.highlight(language, block.node.textContent).children
+        : lowlight.highlightAuto(block.node.textContent).children;
 
     parseNodes(nodes).forEach((node) => {
       const to = from + node.text.length;
@@ -77,24 +84,20 @@ function getDecorations({
   return DecorationSet.create(doc, decorations);
 }
 
-function isFunction(param: () => any) {
-  return typeof param === "function";
-}
-
 export function LowlightPlugin({
   name,
   lowlight,
   defaultLanguage,
 }: {
   name: string;
-  lowlight: any;
+  lowlight: Lowlight | undefined;
   defaultLanguage: string | null | undefined;
 }) {
-  if (!["highlight", "highlightAuto", "listLanguages"].every((api) => isFunction(lowlight[api]))) {
+  if (!lowlight) {
     throw Error("You should provide an instance of lowlight to use the code-block-lowlight extension");
   }
 
-  const lowlightPlugin: Plugin = new Plugin({
+  const lowlightPlugin: Plugin<DecorationSet> = new Plugin<DecorationSet>({
     key: new PluginKey("lowlight"),
 
     state: {
@@ -121,20 +124,15 @@ export function LowlightPlugin({
             // OR transaction has changes that completely encapsulate a node
             // (for example, a transaction that affects the entire document).
             // Such transactions can happen during collab syncing via y-prosemirror, for example.
-            transaction.steps.some(
-              (step) =>
-                // @ts-expect-error type error
-                step.from !== undefined &&
-                // @ts-expect-error type error
-                step.to !== undefined &&
-                oldNodes.some(
-                  (node) =>
-                    // @ts-expect-error type error
-                    node.pos >= step.from &&
-                    // @ts-expect-error type error
-                    node.pos + node.node.nodeSize <= step.to
-                )
-            ))
+            transaction.steps.some((step) => {
+              const from = readNumber(step, "from");
+              const to = readNumber(step, "to");
+              return (
+                from !== undefined &&
+                to !== undefined &&
+                oldNodes.some((node) => node.pos >= from && node.pos + node.node.nodeSize <= to)
+              );
+            }))
         ) {
           return getDecorations({
             doc: transaction.doc,

@@ -5,8 +5,11 @@
  */
 
 import { Mark, mergeAttributes } from "@tiptap/core";
+import type { CommandProps } from "@tiptap/core";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+// helpers
+import { readProperty, readString } from "@/helpers/narrow";
 
 /** DOM attribute that carries the comment thread id on a highlighted range. */
 export const COMMENT_MARK_DATA_ATTRIBUTE = "data-comment-thread-id";
@@ -102,13 +105,13 @@ export const CommentMark = Mark.create<TCommentMarkOptions, TCommentMarkStorage>
   addCommands() {
     const rewriteThreadMarks =
       (threadId: string, nextAttrs: { threadId: string; resolved: boolean } | null) =>
-      ({ state, dispatch, tr }: { state: any; dispatch: any; tr: any }) => {
+      ({ state, dispatch, tr }: CommandProps) => {
         const markType = state.schema.marks[this.name];
         if (!markType) return false;
         let changed = false;
-        state.doc.descendants((node: any, pos: number) => {
+        state.doc.descendants((node, pos) => {
           if (!node.isText) return;
-          const hasThread = node.marks.some((mark: any) => mark.type === markType && mark.attrs.threadId === threadId);
+          const hasThread = node.marks.some((mark) => mark.type === markType && mark.attrs.threadId === threadId);
           if (hasThread) {
             const from = pos;
             const to = pos + node.nodeSize;
@@ -136,15 +139,18 @@ export const CommentMark = Mark.create<TCommentMarkOptions, TCommentMarkStorage>
     if (typeof document === "undefined") return;
     const onResolve = (event: Event) => {
       if (!this.editor.isEditable) return;
-      const detail = (event as CustomEvent).detail as { threadId?: string; resolved?: boolean };
-      if (detail?.threadId !== undefined) {
-        this.editor.commands.setCommentThreadResolved(detail.threadId, Boolean(detail.resolved));
+      if (!(event instanceof CustomEvent)) return;
+      const detail: unknown = event.detail;
+      const threadId = readString(detail, "threadId");
+      if (threadId !== undefined) {
+        this.editor.commands.setCommentThreadResolved(threadId, Boolean(readProperty(detail, "resolved")));
       }
     };
     const onUnset = (event: Event) => {
       if (!this.editor.isEditable) return;
-      const detail = (event as CustomEvent).detail as { threadId?: string };
-      if (detail?.threadId) this.editor.commands.unsetCommentThread(detail.threadId);
+      if (!(event instanceof CustomEvent)) return;
+      const threadId = readString(event.detail, "threadId");
+      if (threadId) this.editor.commands.unsetCommentThread(threadId);
     };
     document.addEventListener(EDITOR_COMMENT_RESOLVE_EVENT, onResolve);
     document.addEventListener(EDITOR_COMMENT_UNSET_EVENT, onUnset);

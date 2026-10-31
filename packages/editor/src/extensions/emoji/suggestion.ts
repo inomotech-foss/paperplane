@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { EmojiOptions, EmojiStorage } from "@tiptap/extension-emoji";
+import type { EmojiItem as TiptapEmojiItem } from "@tiptap/extension-emoji";
 import { ReactRenderer } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 // constants
@@ -16,21 +16,25 @@ import { DROPDOWN_NAVIGATION_KEYS } from "@/helpers/tippy";
 // local imports
 import { EmojisListDropdown } from "./components/emojis-list";
 import type { EmojisListDropdownProps, EmojiItem } from "./components/emojis-list";
-import type { ExtendedEmojiStorage } from "./emoji";
+import type { EmojiOptions } from "./emoji";
+import { isEmojiForceOpen, setEmojiForceOpen } from "./emoji";
 
 const DEFAULT_EMOJIS = ["+1", "-1", "smile", "orange_heart", "eyes"];
 
+const isListItem = (emoji: TiptapEmojiItem | undefined): emoji is TiptapEmojiItem & EmojiItem =>
+  typeof emoji?.emoji === "string";
+
 export const emojiSuggestion: EmojiOptions["suggestion"] = {
   items: ({ editor, query }: { editor: Editor; query: string }): EmojiItem[] => {
-    const { emojis } = editor.storage.emoji as EmojiStorage;
+    const { emojis } = editor.storage.emoji;
 
     if (query.trim() === "") {
       const defaultEmojis = DEFAULT_EMOJIS.map((name) =>
         emojis.find((emoji) => emoji.shortcodes.includes(name) || emoji.name === name)
       )
-        .filter(Boolean)
+        .filter(isListItem)
         .slice(0, 5);
-      return defaultEmojis as EmojiItem[];
+      return defaultEmojis;
     }
     return emojis
       .filter(({ shortcodes, tags }) => {
@@ -40,7 +44,8 @@ export const emojiSuggestion: EmojiOptions["suggestion"] = {
           tags.find((tag: string) => tag.startsWith(lowerQuery))
         );
       })
-      .slice(0, 5) as EmojiItem[];
+      .filter(isListItem)
+      .slice(0, 5);
   },
 
   allowSpaces: false,
@@ -53,17 +58,16 @@ export const emojiSuggestion: EmojiOptions["suggestion"] = {
     const handleClose = (editor?: Editor) => {
       component?.destroy();
       component = null;
-      (editor || editorRef)?.commands.removeActiveDropbarExtension(CORE_EXTENSIONS.EMOJI);
-      const emojiStorage = editor?.storage.emoji as ExtendedEmojiStorage;
-      emojiStorage.forceOpen = false;
+      const target = editor ?? editorRef;
+      target?.commands.removeActiveDropbarExtension(CORE_EXTENSIONS.EMOJI);
+      if (target) setEmojiForceOpen(target, false);
       cleanup();
     };
 
     return {
       onStart: (props) => {
         editorRef = props.editor;
-        const emojiStorage = props.editor.storage.emoji as ExtendedEmojiStorage;
-        const forceOpen = emojiStorage.forceOpen || false;
+        const forceOpen = isEmojiForceOpen(props.editor);
         component = new ReactRenderer<CommandListInstance, EmojisListDropdownProps>(EmojisListDropdown, {
           props: {
             ...props,
@@ -75,18 +79,16 @@ export const emojiSuggestion: EmojiOptions["suggestion"] = {
         });
         if (!props.clientRect) return;
         props.editor.commands.addActiveDropbarExtension(CORE_EXTENSIONS.EMOJI);
-        const element = component.element as HTMLElement;
-        cleanup = updateFloatingUIFloaterPosition(props.editor, element).cleanup;
+        cleanup = updateFloatingUIFloaterPosition(props.editor, component.element).cleanup;
       },
 
       onUpdate: (props) => {
         if (!component || !component.element) return;
-        const emojiStorage = props.editor.storage.emoji as ExtendedEmojiStorage;
-        const forceOpen = emojiStorage.forceOpen || false;
+        const forceOpen = isEmojiForceOpen(props.editor);
         component.updateProps({ ...props, forceOpen });
         if (!props.clientRect) return;
         cleanup();
-        cleanup = updateFloatingUIFloaterPosition(props.editor, component.element as HTMLElement).cleanup;
+        cleanup = updateFloatingUIFloaterPosition(props.editor, component.element).cleanup;
       },
       onKeyDown: ({ event }) => {
         if ([...DROPDOWN_NAVIGATION_KEYS, "Escape"].includes(event.key)) {

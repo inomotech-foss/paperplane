@@ -8,10 +8,11 @@
 
 import type { CodeBlockOptions } from "./code-block";
 import { CodeBlock } from "./code-block";
+import type { Lowlight } from "./lowlight-plugin";
 import { LowlightPlugin } from "./lowlight-plugin";
 
 type CodeBlockLowlightOptions = CodeBlockOptions & {
-  lowlight: any;
+  lowlight: Lowlight | undefined;
   defaultLanguage: string | null | undefined;
 };
 
@@ -24,7 +25,7 @@ export const CodeBlockLowlight = CodeBlock.extend<CodeBlockLowlightOptions>({
         exitOnArrowDown: true,
         HTMLAttributes: {},
       }),
-      lowlight: {},
+      lowlight: undefined,
       defaultLanguage: null,
     };
   },

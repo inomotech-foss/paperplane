@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { Workflow } from "lucide-react";
+// helpers
+import { readNumber, readString, readText } from "@/helpers/narrow";
 // types
 import type { TDiagramHandler, TDiagramSaveProps, TFileHandler } from "@/types";
 // local imports
@@ -17,9 +19,14 @@ type TDiagramOptions = {
   renderEditor: TDiagramHandler["renderEditor"] | undefined;
 };
 
-function Diagram(props: NodeViewProps) {
-  const { getAssetSrc, renderEditor } = props.extension.options as TDiagramOptions;
-  const { asset_id: assetId, height, preview_asset_id: previewAssetId, title, width } = props.node.attrs;
+function Diagram(props: NodeViewProps & TDiagramOptions) {
+  const { getAssetSrc, renderEditor } = props;
+  const { attrs } = props.node;
+  const assetId = readString(attrs, "asset_id") ?? null;
+  const previewAssetId = readString(attrs, "preview_asset_id") ?? null;
+  const title = readText(attrs, "title") ?? null;
+  const width = readNumber(attrs, "width") ?? null;
+  const height = readNumber(attrs, "height") ?? null;
   const [src, setSrc] = useState<string>();
   const [isEditing, setIsEditing] = useState(false);
   const isEditable = renderEditor !== undefined && props.editor.isEditable;
@@ -99,7 +106,10 @@ export function DiagramExtension(fileHandler: TFileHandler, handler: TDiagramHan
     },
 
     addNodeView() {
-      return ReactNodeViewRenderer(Diagram);
+      const { getAssetSrc, renderEditor } = this.options;
+      return ReactNodeViewRenderer((props) => (
+        <Diagram {...props} getAssetSrc={getAssetSrc} renderEditor={renderEditor} />
+      ));
     },
   });
 }

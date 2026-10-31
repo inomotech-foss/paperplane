@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { Node } from "@tiptap/pm/model";
 import { UnlinkOutline } from "@makeplane/propel/icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 // components
@@ -101,7 +100,7 @@ export function LinkEditView({ viewProps }: LinkEditViewProps) {
 
     // Apply text change if different
     if (localText !== initialText) {
-      const node = editor.view.state.doc.nodeAt(from) as Node;
+      const node = editor.view.state.doc.nodeAt(from);
       if (!node || !node.marks) return false;
 
       editor

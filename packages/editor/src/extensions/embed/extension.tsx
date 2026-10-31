@@ -5,6 +5,8 @@
 
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
+// helpers
+import { readString } from "@/helpers/narrow";
 // types
 import type { TEmbedHandler } from "@/types";
 // local imports
@@ -14,9 +16,12 @@ type TEmbedOptions = {
   renderComponent: TEmbedHandler["renderComponent"] | undefined;
 };
 
-function Embed(props: NodeViewProps) {
-  const { renderComponent } = props.extension.options as TEmbedOptions;
-  const { url, width, height } = props.node.attrs;
+function Embed(props: NodeViewProps & TEmbedOptions) {
+  const { renderComponent } = props;
+  const { attrs } = props.node;
+  const url = readString(attrs, "url") ?? null;
+  const width = readString(attrs, "width") ?? null;
+  const height = readString(attrs, "height") ?? null;
 
   const onUrlChange = props.editor.isEditable ? (newUrl: string) => props.updateAttributes({ url: newUrl }) : undefined;
 
@@ -41,7 +46,8 @@ export function EmbedExtension(handler: TEmbedHandler | undefined) {
     },
 
     addNodeView() {
-      return ReactNodeViewRenderer(Embed);
+      const { renderComponent } = this.options;
+      return ReactNodeViewRenderer((props) => <Embed {...props} renderComponent={renderComponent} />);
     },
   });
 }

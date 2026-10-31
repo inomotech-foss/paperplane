@@ -14,8 +14,8 @@ type TPageAttachmentsOptions = {
   renderComponent: TPageAttachmentsHandler["renderComponent"] | undefined;
 };
 
-function PageAttachments(props: NodeViewProps) {
-  const { renderComponent } = props.extension.options as TPageAttachmentsOptions;
+function PageAttachments(props: NodeViewProps & TPageAttachmentsOptions) {
+  const { renderComponent } = props;
 
   return (
     <NodeViewWrapper className="page-attachments-component my-2 block">
@@ -38,7 +38,8 @@ export function PageAttachmentsExtension(handler: TPageAttachmentsHandler | unde
     },
 
     addNodeView() {
-      return ReactNodeViewRenderer(PageAttachments);
+      const { renderComponent } = this.options;
+      return ReactNodeViewRenderer((props) => <PageAttachments {...props} renderComponent={renderComponent} />);
     },
   });
 }

@@ -38,7 +38,7 @@ export type TDocumentEditorAdditionalExtensionsProps = Pick<
   | "extendedEditorProps"
 > & {
   isEditable: boolean;
-  provider?: HocuspocusProvider;
+  provider?: Pick<HocuspocusProvider, "awareness">;
   userDetails: TUserDetails;
 };
 

@@ -10,6 +10,8 @@ import type { Node, NodeType } from "@tiptap/pm/model";
 import type { EditorState } from "@tiptap/pm/state";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+// helpers
+import { isOneOf } from "@/helpers/narrow";
 
 const findListItemPos = (typeOrName: string | NodeType, state: EditorState) => {
   const { $from } = state.selection;
@@ -82,9 +84,7 @@ const getPrevListDepth = (typeOrName: string, state: EditorState) => {
   for (let d = resolvedPos.depth; d > 0; d--) {
     const node = resolvedPos.node(d);
     if (
-      [CORE_EXTENSIONS.BULLET_LIST, CORE_EXTENSIONS.ORDERED_LIST, CORE_EXTENSIONS.TASK_LIST].includes(
-        node.type.name as CORE_EXTENSIONS
-      )
+      isOneOf([CORE_EXTENSIONS.BULLET_LIST, CORE_EXTENSIONS.ORDERED_LIST, CORE_EXTENSIONS.TASK_LIST], node.type.name)
     ) {
       // Increment depth for each list ancestor found
       depth++;
@@ -323,7 +323,7 @@ const isCurrentParagraphASibling = (state: EditorState): boolean => {
   // Ensure we're in a paragraph and the parent is a list item.
   if (
     currentParagraphNode.type.name === CORE_EXTENSIONS.PARAGRAPH &&
-    [CORE_EXTENSIONS.LIST_ITEM, CORE_EXTENSIONS.TASK_ITEM].includes(listItemNode.type.name as CORE_EXTENSIONS)
+    isOneOf([CORE_EXTENSIONS.LIST_ITEM, CORE_EXTENSIONS.TASK_ITEM], listItemNode.type.name)
   ) {
     let paragraphNodesCount = 0;
     listItemNode.forEach((child) => {

@@ -10,6 +10,8 @@ import { NodeSelection } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+// helpers
+import { isOneOf } from "@/helpers/narrow";
 // extensions
 import type { SideMenuHandleOptions, SideMenuPluginProps } from "@/extensions";
 
@@ -38,7 +40,7 @@ const generalSelectors = [
 const maxScrollSpeed = 20;
 const acceleration = 0.5;
 
-const scrollParentCache = new WeakMap();
+const scrollParentCache = new WeakMap<HTMLElement | SVGElement, Element>();
 
 function easeOutQuadAnimation(t: number) {
   return t * (2 - t);
@@ -78,8 +80,9 @@ const isScrollable = (node: HTMLElement | SVGElement) => {
 };
 
 export const getScrollParent = (node: HTMLElement | SVGElement) => {
-  if (scrollParentCache.has(node)) {
-    return scrollParentCache.get(node);
+  const cachedParent = scrollParentCache.get(node);
+  if (cachedParent) {
+    return cachedParent;
   }
 
   let currentParent = node.parentElement;
@@ -162,7 +165,7 @@ export const DragHandlePlugin = (options: SideMenuPluginProps): SideMenuHandleOp
       return;
     }
 
-    const scrollableParent = getScrollParent(dragHandleElement!);
+    const scrollableParent = dragHandleElement && getScrollParent(dragHandleElement);
     if (!scrollableParent) return;
 
     const scrollRegionUp = options.scrollThreshold.up;
@@ -188,7 +191,7 @@ export const DragHandlePlugin = (options: SideMenuPluginProps): SideMenuHandleOp
       scrollableParent.scrollBy({ top: currentScrollSpeed });
     }
 
-    scrollAnimationFrame = requestAnimationFrame(scroll) as unknown as null;
+    scrollAnimationFrame = requestAnimationFrame(scroll);
   }
 
   const handleClick = (event: MouseEvent, view: EditorView) => {
@@ -406,10 +409,7 @@ const handleNodeSelection = (
     const $pos = view.state.doc.resolve(draggedNodePos);
 
     // If it's a nested list item or task item, move up to the item level
-    if (
-      [CORE_EXTENSIONS.LIST_ITEM, CORE_EXTENSIONS.TASK_ITEM].includes($pos.parent.type.name as CORE_EXTENSIONS) &&
-      $pos.depth > 1
-    ) {
+    if (isOneOf([CORE_EXTENSIONS.LIST_ITEM, CORE_EXTENSIONS.TASK_ITEM], $pos.parent.type.name) && $pos.depth > 1) {
       draggedNodePos = $pos.before($pos.depth);
     }
   }
@@ -427,9 +427,7 @@ const handleNodeSelection = (
     // Additional logic for drag start
     if (event instanceof DragEvent && !event.dataTransfer) return;
 
-    if (
-      [CORE_EXTENSIONS.LIST_ITEM, CORE_EXTENSIONS.TASK_ITEM].includes(nodeSelection.node.type.name as CORE_EXTENSIONS)
-    ) {
+    if (isOneOf([CORE_EXTENSIONS.LIST_ITEM, CORE_EXTENSIONS.TASK_ITEM], nodeSelection.node.type.name)) {
       listType = node.closest("ol, ul")?.tagName || "";
     }
 

@@ -11,11 +11,13 @@ import type { EditorState, Transaction } from "@tiptap/pm/state";
 import { CORE_EDITOR_META } from "@/constants/meta";
 // plane editor imports
 import { NODE_FILE_MAP } from "@/constants/utility";
+// helpers
+import { readString } from "@/helpers/narrow";
 // types
 import type { TFileHandler } from "@/types";
 // local imports
-import type { NodeFileMapType } from "../../constants/utility";
 import type { TFileNode } from "./types";
+import { getFileNodeType } from "./types";
 
 const DELETE_PLUGIN_KEY = new PluginKey("delete-utility");
 
@@ -24,19 +26,20 @@ export const TrackFileDeletionPlugin = (editor: Editor, deleteHandler: TFileHand
     key: DELETE_PLUGIN_KEY,
     appendTransaction: (transactions: readonly Transaction[], oldState: EditorState, newState: EditorState) => {
       const newFileSources: {
-        [nodeType: string]: Set<string> | undefined;
+        [nodeType: string]: Set<unknown> | undefined;
       } = {};
       if (!transactions.some((tr) => tr.docChanged)) return null;
       if (transactions.some((tr) => tr.getMeta(CORE_EDITOR_META.SKIP_FILE_DELETION))) return null;
 
       newState.doc.descendants((node) => {
-        const nodeType = node.type.name as keyof NodeFileMapType;
-        const nodeFileSetDetails = NODE_FILE_MAP[nodeType];
-        if (nodeFileSetDetails) {
+        const nodeType = getFileNodeType(node);
+        const nodeFileSetDetails = nodeType && NODE_FILE_MAP[nodeType];
+        if (nodeType && nodeFileSetDetails) {
+          const src: unknown = node.attrs.src;
           if (newFileSources[nodeType]) {
-            newFileSources[nodeType].add(node.attrs.src);
+            newFileSources[nodeType].add(src);
           } else {
-            newFileSources[nodeType] = new Set([node.attrs.src]);
+            newFileSources[nodeType] = new Set([src]);
           }
         }
       });
@@ -45,26 +48,24 @@ export const TrackFileDeletionPlugin = (editor: Editor, deleteHandler: TFileHand
 
       // iterate through all the nodes in the old state
       oldState.doc.descendants((node) => {
-        const nodeType = node.type.name as keyof NodeFileMapType;
-        const isAValidNode = NODE_FILE_MAP[nodeType];
+        const nodeType = getFileNodeType(node);
         // if the node doesn't match, then return as no point in checking
-        if (!isAValidNode) return;
+        if (!nodeType || !NODE_FILE_MAP[nodeType]) return;
+        const src: unknown = node.attrs.src;
         // Check if the node has been deleted or replaced
-        if (!newFileSources[nodeType]?.has(node.attrs.src)) {
-          removedFiles.push(node as TFileNode);
+        if (!newFileSources[nodeType]?.has(src) && typeof src === "string") {
+          removedFiles.push({ node, nodeType, src });
         }
       });
 
-      removedFiles.forEach(async (node) => {
-        const nodeType = node.type.name as keyof NodeFileMapType;
-        const src = node.attrs.src;
+      removedFiles.forEach(async ({ node, nodeType, src }) => {
         const nodeFileSetDetails = NODE_FILE_MAP[nodeType];
         if (!nodeFileSetDetails || !src) return;
         try {
           editor.storage[nodeType]?.[nodeFileSetDetails.fileSetName]?.set(src, true);
           // update assets list storage value
           editor.commands.updateAssetsList?.({
-            idToRemove: node.attrs.id,
+            idToRemove: readString(node.attrs, "id") ?? "",
           });
           await deleteHandler(src);
         } catch (error) {

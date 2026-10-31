@@ -243,7 +243,7 @@ export const findAllTables = (editor: Editor): TableInfo[] => {
           domTable = domTable.parentNode;
         }
 
-        while (domTable && domTable.parentNode && (domTable as HTMLElement).tagName !== "TABLE") {
+        while (domTable && domTable.parentNode && domTable.nodeName !== "TABLE") {
           domTable = domTable.parentNode;
         }
 

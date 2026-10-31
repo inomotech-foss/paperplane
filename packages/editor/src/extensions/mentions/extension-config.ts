@@ -12,8 +12,7 @@ import type { Node as NodeType } from "@tiptap/pm/model";
 // types
 import type { TMentionHandler } from "@/types";
 // local types
-import type { TMentionComponentAttributes } from "./types";
-import { EMentionComponentAttributeNames } from "./types";
+import { EMentionComponentAttributeNames, getMentionComponentAttributes } from "./types";
 
 export type TMentionExtensionOptions = MentionOptions & {
   renderComponent: TMentionHandler["renderComponent"];
@@ -72,7 +71,7 @@ export const CustomMentionExtensionConfig = Mention.extend<TMentionExtensionOpti
 });
 
 function getMentionDisplayText(options: TMentionExtensionOptions, node: NodeType): string {
-  const attrs = node.attrs as TMentionComponentAttributes;
+  const attrs = getMentionComponentAttributes(node.attrs);
   const mentionEntityId = attrs[EMentionComponentAttributeNames.ENTITY_IDENTIFIER];
   const mentionEntityDetails = options.getMentionedEntityDetails?.(mentionEntityId ?? "");
   return `@${mentionEntityDetails?.display_name ?? attrs[EMentionComponentAttributeNames.ID] ?? mentionEntityId}`;

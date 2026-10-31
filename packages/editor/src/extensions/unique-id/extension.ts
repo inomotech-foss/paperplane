@@ -89,12 +89,13 @@ export const UniqueID = Extension.create<UniqueIDOptions>({
             default: null,
             parseHTML: (element) => element.getAttribute(`data-${this.options.attributeName}`),
             renderHTML: (attributes) => {
-              if (!attributes[this.options.attributeName]) {
+              const value: unknown = attributes[this.options.attributeName];
+              if (!value) {
                 return {};
               }
 
               return {
-                [`data-${this.options.attributeName}`]: attributes[this.options.attributeName],
+                [`data-${this.options.attributeName}`]: value,
               };
             },
           },

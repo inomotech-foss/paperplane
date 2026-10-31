@@ -4,7 +4,21 @@
  * See the LICENSE file for details.
  */
 
-import type { DocumentCollaborativeEvents } from "@/constants/document-collaborative-events";
+import type {
+  ArchivedPayload,
+  DeletedPayload,
+  DocumentCollaborativeEvents,
+  DuplicatedPayload,
+  ErrorPayload,
+  LockedPayload,
+  MadePrivatePayload,
+  MadePublicPayload,
+  MovedPayload,
+  PropertyUpdatedPayload,
+  RestoredPayload,
+  UnarchivedPayload,
+  UnlockedPayload,
+} from "@/constants/document-collaborative-events";
 
 // Base type for all action payloads
 export type BaseActionPayload = {
@@ -26,9 +40,24 @@ export type TDocumentEventsServer = (typeof DocumentCollaborativeEvents)[TDocume
 // In this version, our union of all events (the client names) is:
 export type TAllEventTypes = TDocumentEventsClient;
 
+type TPayloadByEventKey = {
+  lock: LockedPayload;
+  unlock: UnlockedPayload;
+  archive: ArchivedPayload;
+  unarchive: UnarchivedPayload;
+  "make-public": MadePublicPayload;
+  "make-private": MadePrivatePayload;
+  delete: DeletedPayload;
+  move: MovedPayload;
+  duplicate: DuplicatedPayload;
+  property_update: PropertyUpdatedPayload;
+  restore: RestoredPayload;
+  error: ErrorPayload;
+};
+
 // Create a mapping from each client event to its payload type using key remapping.
 export type EventToPayloadMap = {
-  [K in keyof typeof DocumentCollaborativeEvents as (typeof DocumentCollaborativeEvents)[K]["client"]]: (typeof DocumentCollaborativeEvents)[K]["payloadType"];
+  [K in TDocumentEventKey as (typeof DocumentCollaborativeEvents)[K]["client"]]: TPayloadByEventKey[K];
 };
 
 // Common fields for every realtime event
