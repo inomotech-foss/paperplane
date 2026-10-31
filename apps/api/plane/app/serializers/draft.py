@@ -24,7 +24,9 @@ from plane.db.models import (
     Cycle,
     Module,
     EstimatePoint,
+    IssueType,
 )
+from plane.utils.issue_type import is_type_linked
 from plane.utils.content_validator import (
     validate_html_content,
     validate_binary_data,
@@ -39,6 +41,9 @@ class DraftIssueCreateSerializer(BaseSerializer):
     )
     parent_id = serializers.PrimaryKeyRelatedField(
         source="parent", queryset=Issue.objects.all(), required=False, allow_null=True
+    )
+    type_id = serializers.PrimaryKeyRelatedField(
+        source="type", queryset=IssueType.objects.all(), required=False, allow_null=True
     )
     label_ids = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(queryset=Label.objects.all()),
@@ -79,6 +84,10 @@ class DraftIssueCreateSerializer(BaseSerializer):
             and attrs.get("start_date", None) > attrs.get("target_date", None)
         ):
             raise serializers.ValidationError("Start date cannot exceed target date")
+
+        project_id = self.context.get("project_id")
+        if attrs.get("type") and (not project_id or not is_type_linked(attrs["type"].id, project_id)):
+            raise serializers.ValidationError({"type_id": "This work item type is not enabled for the project."})
 
         # Validate description content for security
         if "description_html" in attrs and attrs["description_html"]:
