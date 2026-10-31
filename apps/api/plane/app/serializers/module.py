@@ -252,6 +252,18 @@ class ModuleSerializer(DynamicBaseSerializer):
             "archived_at",
         ]
         read_only_fields = fields
+        # ModuleViewSet annotates these on every queryset it serializes.
+        response_required = (
+            "is_favorite",
+            "total_issues",
+            "cancelled_issues",
+            "completed_issues",
+            "started_issues",
+            "unstarted_issues",
+            "backlog_issues",
+            "total_estimate_points",
+            "completed_estimate_points",
+        )
 
 
 class ModuleDetailSerializer(ModuleSerializer):
@@ -271,6 +283,13 @@ class ModuleDetailSerializer(ModuleSerializer):
             "started_estimate_points",
             "cancelled_estimate_points",
         ]
+        response_required = ModuleSerializer.Meta.response_required + (
+            "sub_issues",
+            "backlog_estimate_points",
+            "unstarted_estimate_points",
+            "started_estimate_points",
+            "cancelled_estimate_points",
+        )
 
 
 class ModuleUserPropertiesSerializer(BaseSerializer):

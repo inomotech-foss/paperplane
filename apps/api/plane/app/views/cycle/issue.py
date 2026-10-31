@@ -16,9 +16,13 @@ from django.views.decorators.gzip import gzip_page
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 
 # Module imports
+from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.utils.openapi.serializers import MessageResponseSerializer
+from plane.app.serializers.response.issue import WorkItemListResponse
 from .. import BaseViewSet
 from plane.app.serializers import CycleIssueSerializer
 from plane.bgtasks.issue_activities_task import issue_activity
@@ -105,6 +109,7 @@ class CycleIssueViewSet(BaseViewSet):
             .prefetch_related("assignees", "labels", "issue_module__module", "issue_cycle__cycle")
         )
 
+    @extend_schema(parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: WorkItemListResponse})
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def list(self, request, slug, project_id, cycle_id):
@@ -225,6 +230,7 @@ class CycleIssueViewSet(BaseViewSet):
                 on_results=lambda issues: issue_on_results(group_by=group_by, issues=issues, sub_group_by=sub_group_by),
             )
 
+    @extend_schema(responses={201: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id, cycle_id):
         issues = request.data.get("issues", [])

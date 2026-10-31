@@ -1419,7 +1419,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_cycles_retrieve"];
+        get: operations["workspaces_cycles_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1851,7 +1851,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_modules_retrieve"];
+        get: operations["workspaces_modules_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5320,6 +5320,139 @@ export interface components {
         ArchivedAt: {
             archived_at: string;
         };
+        ArchivedCycleDetail: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspace_id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            description: string;
+            /** Format: date-time */
+            start_date: string | null;
+            /** Format: date-time */
+            end_date: string | null;
+            /** Format: uuid */
+            owned_by_id: string;
+            view_props: unknown;
+            /** Format: double */
+            sort_order: number;
+            external_source: string | null;
+            external_id: string | null;
+            progress_snapshot: unknown;
+            is_favorite: boolean;
+            total_issues: number;
+            completed_issues: number;
+            assignee_ids: string[];
+            /** @description CURRENT, UPCOMING, COMPLETED or DRAFT */
+            status: string;
+            cancelled_issues: number;
+            started_issues: number | null;
+            unstarted_issues: number | null;
+            backlog_issues: number | null;
+            /** Format: date-time */
+            archived_at: string;
+            sub_issues: number;
+            logo_props: unknown;
+            /** Format: double */
+            completed_estimate_points: number | null;
+            /** Format: double */
+            total_estimate_points: number | null;
+            /** Format: uuid */
+            created_by: string | null;
+            estimate_distribution: components["schemas"]["EstimateDistribution"];
+            distribution: components["schemas"]["Distribution"];
+        };
+        ArchivedCycleListItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspace_id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            description: string;
+            /** Format: date-time */
+            start_date: string | null;
+            /** Format: date-time */
+            end_date: string | null;
+            /** Format: uuid */
+            owned_by_id: string;
+            view_props: unknown;
+            /** Format: double */
+            sort_order: number;
+            external_source: string | null;
+            external_id: string | null;
+            progress_snapshot: unknown;
+            is_favorite: boolean;
+            total_issues: number;
+            completed_issues: number;
+            assignee_ids: string[];
+            /** @description CURRENT, UPCOMING, COMPLETED or DRAFT */
+            status: string;
+            cancelled_issues: number;
+            started_issues: number | null;
+            unstarted_issues: number | null;
+            backlog_issues: number | null;
+            /** Format: date-time */
+            archived_at: string;
+        };
+        ArchivedModuleListItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspace_id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            description: string;
+            description_text: unknown;
+            description_html: unknown;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            status: string;
+            /** Format: uuid */
+            lead_id: string | null;
+            member_ids: string[];
+            view_props: unknown;
+            /** Format: double */
+            sort_order: number;
+            external_source: string | null;
+            external_id: string | null;
+            is_favorite: boolean;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            total_issues: number | null;
+            cancelled_issues: number | null;
+            completed_issues: number | null;
+            started_issues: number | null;
+            unstarted_issues: number | null;
+            backlog_issues: number | null;
+            /** Format: date-time */
+            archived_at: string;
+        };
+        AssigneeDistribution: {
+            total_issues?: number;
+            completed_issues?: number;
+            pending_issues?: number;
+            /** Format: double */
+            total_estimates?: number | null;
+            /** Format: double */
+            completed_estimates?: number | null;
+            /** Format: double */
+            pending_estimates?: number | null;
+            /** Format: uuid */
+            assignee_id: string | null;
+            display_name: string | null;
+            avatar_url: string | null;
+            first_name?: string | null;
+            last_name?: string | null;
+        };
         /** @enum {unknown} */
         BlankEnum: "";
         BulkLabels: {
@@ -5532,6 +5665,44 @@ export interface components {
             readonly backlog_issues?: number;
             readonly status?: string;
         };
+        CycleDateCheck: {
+            /** @description False when another cycle overlaps the dates */
+            status: boolean;
+            error?: string;
+        };
+        CycleDetail: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspace_id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            description: string;
+            /** Format: date-time */
+            start_date: string | null;
+            /** Format: date-time */
+            end_date: string | null;
+            /** Format: uuid */
+            owned_by_id: string;
+            view_props: unknown;
+            /** Format: double */
+            sort_order: number;
+            external_source: string | null;
+            external_id: string | null;
+            progress_snapshot: unknown;
+            is_favorite: boolean;
+            total_issues: number;
+            completed_issues: number;
+            assignee_ids: string[];
+            /** @description CURRENT, UPCOMING, COMPLETED or DRAFT */
+            status: string;
+            logo_props: unknown;
+            version: number;
+            /** Format: uuid */
+            created_by: string | null;
+            sub_issues: number;
+        };
         CycleIssue: {
             /** Format: uuid */
             readonly id: string;
@@ -5574,6 +5745,123 @@ export interface components {
             updated_by?: string | null;
             /** Format: uuid */
             issue: string;
+        };
+        CycleListItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspace_id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            description: string;
+            /** Format: date-time */
+            start_date: string | null;
+            /** Format: date-time */
+            end_date: string | null;
+            /** Format: uuid */
+            owned_by_id: string;
+            view_props: unknown;
+            /** Format: double */
+            sort_order: number;
+            external_source: string | null;
+            external_id: string | null;
+            progress_snapshot: unknown;
+            is_favorite: boolean;
+            total_issues: number;
+            completed_issues: number;
+            assignee_ids: string[];
+            /** @description CURRENT, UPCOMING, COMPLETED or DRAFT */
+            status: string;
+            logo_props: unknown;
+            version: number;
+            /** Format: uuid */
+            created_by: string | null;
+            cancelled_issues: number;
+        };
+        CycleProgress: {
+            /** Format: double */
+            backlog_estimate_points: number;
+            /** Format: double */
+            unstarted_estimate_points: number;
+            /** Format: double */
+            started_estimate_points: number;
+            /** Format: double */
+            cancelled_estimate_points: number;
+            /** Format: double */
+            completed_estimate_points: number;
+            /** Format: double */
+            total_estimate_points: number;
+            backlog_issues: number;
+            total_issues: number;
+            completed_issues: number;
+            cancelled_issues: number;
+            started_issues: number;
+            unstarted_issues: number;
+        };
+        CycleSnapshot: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspace_id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            description: string;
+            /** Format: date-time */
+            start_date: string | null;
+            /** Format: date-time */
+            end_date: string | null;
+            /** Format: uuid */
+            owned_by_id: string;
+            view_props: unknown;
+            /** Format: double */
+            sort_order: number;
+            external_source: string | null;
+            external_id: string | null;
+            progress_snapshot: unknown;
+            is_favorite: boolean;
+            total_issues: number;
+            completed_issues: number;
+            assignee_ids: string[];
+            /** @description CURRENT, UPCOMING, COMPLETED or DRAFT */
+            status: string;
+            logo_props: unknown;
+            version: number;
+            /** Format: uuid */
+            created_by: string | null;
+        };
+        CycleUserProperties: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            filters: unknown;
+            display_filters: unknown;
+            display_properties: unknown;
+            rich_filters: unknown;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            readonly project: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly cycle: string;
+            /** Format: uuid */
+            readonly user: string;
         };
         Dashboard: {
             /** Format: uuid */
@@ -5734,6 +6022,14 @@ export interface components {
          * @enum {string}
          */
         DerivationEnum: "NONE" | "INHERIT" | "LOOKUP" | "ROLLUP";
+        Distribution: {
+            /** @description Pending work by date, null for future dates */
+            completion_chart: {
+                [key: string]: number | null;
+            };
+            assignees: components["schemas"]["AssigneeDistribution"][];
+            labels: components["schemas"]["LabelDistribution"][];
+        };
         DraftIssue: {
             /** Format: uuid */
             readonly id: string;
@@ -5891,6 +6187,14 @@ export interface components {
             readonly project: string;
             /** Format: uuid */
             readonly workspace: string;
+        };
+        EstimateDistribution: {
+            /** @description Pending work by date, null for future dates */
+            completion_chart?: {
+                [key: string]: number | null;
+            };
+            assignees?: components["schemas"]["AssigneeDistribution"][];
+            labels?: components["schemas"]["LabelDistribution"][];
         };
         EstimateRequest: {
             /** Format: date-time */
@@ -7230,6 +7534,21 @@ export interface components {
             /** Format: double */
             sort_order: number;
         };
+        LabelDistribution: {
+            total_issues?: number;
+            completed_issues?: number;
+            pending_issues?: number;
+            /** Format: double */
+            total_estimates?: number | null;
+            /** Format: double */
+            completed_estimates?: number | null;
+            /** Format: double */
+            pending_estimates?: number | null;
+            /** Format: uuid */
+            label_id: string | null;
+            label_name: string | null;
+            color: string | null;
+        };
         LabelLite: {
             /** Format: uuid */
             readonly id: string;
@@ -7287,16 +7606,16 @@ export interface components {
             readonly external_id: string | null;
             readonly logo_props: unknown;
             /** Format: double */
-            readonly total_estimate_points?: number;
+            readonly total_estimate_points: number;
             /** Format: double */
-            readonly completed_estimate_points?: number;
-            readonly is_favorite?: boolean;
-            readonly total_issues?: number;
-            readonly cancelled_issues?: number;
-            readonly completed_issues?: number;
-            readonly started_issues?: number;
-            readonly unstarted_issues?: number;
-            readonly backlog_issues?: number;
+            readonly completed_estimate_points: number;
+            readonly is_favorite: boolean;
+            readonly total_issues: number;
+            readonly cancelled_issues: number;
+            readonly completed_issues: number;
+            readonly started_issues: number;
+            readonly unstarted_issues: number;
+            readonly backlog_issues: number;
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -7306,6 +7625,68 @@ export interface components {
             readonly updated_at: string;
             /** Format: date-time */
             readonly archived_at: string | null;
+        };
+        ModuleDetailResponse: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly workspace_id: string;
+            /** Format: uuid */
+            readonly project_id: string;
+            /** Module Name */
+            readonly name: string;
+            /** Module Description */
+            readonly description: string;
+            /** Module Description RT */
+            readonly description_text: unknown;
+            /** Module Description HTML */
+            readonly description_html: unknown;
+            /** Format: date */
+            readonly start_date: string | null;
+            /** Format: date */
+            readonly target_date: string | null;
+            readonly status: components["schemas"]["ModuleStatusEnum"];
+            /** Format: uuid */
+            readonly lead_id: string | null;
+            member_ids: string[] | null;
+            readonly view_props: unknown;
+            /** Format: double */
+            readonly sort_order: number;
+            readonly external_source: string | null;
+            readonly external_id: string | null;
+            readonly logo_props: unknown;
+            /** Format: double */
+            readonly total_estimate_points: number;
+            /** Format: double */
+            readonly completed_estimate_points: number;
+            readonly is_favorite: boolean;
+            readonly total_issues: number;
+            readonly cancelled_issues: number;
+            readonly completed_issues: number;
+            readonly started_issues: number;
+            readonly unstarted_issues: number;
+            readonly backlog_issues: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            readonly archived_at: string | null;
+            readonly link_module: components["schemas"]["ModuleLink"][];
+            readonly sub_issues: number;
+            /** Format: double */
+            readonly backlog_estimate_points: number;
+            /** Format: double */
+            readonly unstarted_estimate_points: number;
+            /** Format: double */
+            readonly started_estimate_points: number;
+            /** Format: double */
+            readonly cancelled_estimate_points: number;
+            estimate_distribution: components["schemas"]["EstimateDistribution"];
+            distribution: components["schemas"]["Distribution"];
         };
         ModuleFlat: {
             /** Format: uuid */
@@ -7457,6 +7838,48 @@ export interface components {
             url: string;
             metadata?: unknown;
         };
+        ModuleListItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspace_id: string;
+            /** Format: uuid */
+            project_id: string;
+            name: string;
+            description: string;
+            description_text: unknown;
+            description_html: unknown;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            status: string;
+            /** Format: uuid */
+            lead_id: string | null;
+            member_ids: string[];
+            view_props: unknown;
+            /** Format: double */
+            sort_order: number;
+            external_source: string | null;
+            external_id: string | null;
+            is_favorite: boolean;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            logo_props: unknown;
+            /** Format: double */
+            completed_estimate_points: number;
+            /** Format: double */
+            total_estimate_points: number;
+            total_issues: number;
+            cancelled_issues: number;
+            completed_issues: number;
+            started_issues: number;
+            unstarted_issues: number;
+            backlog_issues: number;
+        };
+        ModuleListResponse: components["schemas"]["ModuleListItem"][] | components["schemas"]["Module"][];
         /**
          * @description * `backlog` - Backlog
          *     * `planned` - Planned
@@ -7467,6 +7890,38 @@ export interface components {
          * @enum {string}
          */
         ModuleStatusEnum: "backlog" | "planned" | "in-progress" | "paused" | "completed" | "cancelled";
+        ModuleUserProperties: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            filters: unknown;
+            display_filters: unknown;
+            display_properties: unknown;
+            rich_filters: unknown;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            readonly project: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly module: string;
+            /** Format: uuid */
+            readonly user: string;
+        };
         ModuleWrite: {
             /** Format: uuid */
             readonly id: string;
@@ -11087,6 +11542,56 @@ export interface components {
             /** Format: uuid */
             member: string;
         };
+        WorkspaceModule: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly workspace_id: string;
+            /** Format: uuid */
+            readonly project_id: string;
+            /** Module Name */
+            readonly name: string;
+            /** Module Description */
+            readonly description: string;
+            /** Module Description RT */
+            readonly description_text: unknown;
+            /** Module Description HTML */
+            readonly description_html: unknown;
+            /** Format: date */
+            readonly start_date: string | null;
+            /** Format: date */
+            readonly target_date: string | null;
+            readonly status: components["schemas"]["ModuleStatusEnum"];
+            /** Format: uuid */
+            readonly lead_id: string | null;
+            member_ids: string[] | null;
+            readonly view_props: unknown;
+            /** Format: double */
+            readonly sort_order: number;
+            readonly external_source: string | null;
+            readonly external_id: string | null;
+            readonly logo_props: unknown;
+            /** Format: double */
+            readonly total_estimate_points?: number;
+            /** Format: double */
+            readonly completed_estimate_points?: number;
+            readonly is_favorite?: boolean;
+            readonly total_issues: number;
+            readonly cancelled_issues: number;
+            readonly completed_issues: number;
+            readonly started_issues: number;
+            readonly unstarted_issues: number;
+            readonly backlog_issues: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            readonly archived_at: string | null;
+        };
         WorkspaceRecentVisit: {
             /** Format: uuid */
             readonly id: string;
@@ -14255,9 +14760,12 @@ export interface operations {
             };
         };
     };
-    workspaces_cycles_retrieve: {
+    workspaces_cycles_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -14266,12 +14774,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Cycle"][];
+                };
             };
         };
     };
@@ -15248,9 +15757,12 @@ export interface operations {
             };
         };
     };
-    workspaces_modules_retrieve: {
+    workspaces_modules_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -15259,12 +15771,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkspaceModule"][];
+                };
             };
         };
     };
@@ -15687,12 +16200,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ArchivedCycleListItem"][];
+                };
             };
         };
     };
@@ -15709,12 +16223,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ArchivedCycleDetail"];
+                };
             };
         };
     };
@@ -15757,12 +16272,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ArchivedModuleListItem"][];
+                };
             };
         };
     };
@@ -15779,12 +16295,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ModuleDetailResponse"];
+                };
             };
         };
     };
@@ -16194,7 +16711,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Cycle"][];
+                    "application/json": components["schemas"]["CycleListItem"][];
                 };
             };
         };
@@ -16216,7 +16733,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Cycle"];
+                    "application/json": components["schemas"]["CycleSnapshot"];
                 };
             };
         };
@@ -16234,12 +16751,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Distribution"];
+                };
             };
         };
     };
@@ -16256,12 +16774,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ArchivedAt"];
+                };
             };
         };
     };
@@ -16289,7 +16808,12 @@ export interface operations {
     };
     workspaces_projects_cycles_cycle_issues_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 cycle_id: string;
@@ -16305,7 +16829,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CycleIssue"][];
+                    "application/json": components["schemas"]["WorkItemListResponse"];
                 };
             };
         };
@@ -16334,7 +16858,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CycleIssue"];
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
         };
@@ -16459,12 +16983,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CycleProgress"];
+                };
             };
         };
     };
@@ -16481,12 +17006,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -16503,12 +17029,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CycleUserProperties"];
+                };
             };
         };
     };
@@ -16525,12 +17052,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CycleUserProperties"];
+                };
             };
         };
     };
@@ -16552,7 +17080,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Cycle"];
+                    "application/json": components["schemas"]["CycleDetail"];
                 };
             };
         };
@@ -16620,7 +17148,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Cycle"];
+                    "application/json": components["schemas"]["CycleSnapshot"];
                 };
             };
         };
@@ -16637,12 +17165,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CycleDateCheck"];
+                };
             };
         };
     };
@@ -19021,12 +19550,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ModuleIssue"];
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
         };
@@ -19876,7 +20405,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Module"][];
+                    "application/json": components["schemas"]["ModuleListResponse"];
                 };
             };
         };
@@ -19904,7 +20433,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ModuleWrite"];
+                    "application/json": components["schemas"]["ModuleListItem"];
                 };
             };
         };
@@ -19922,12 +20451,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ArchivedAt"];
+                };
             };
         };
     };
@@ -19955,7 +20485,12 @@ export interface operations {
     };
     workspaces_projects_modules_issues_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 module_id: string;
@@ -19971,7 +20506,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ModuleIssue"][];
+                    "application/json": components["schemas"]["WorkItemListResponse"];
                 };
             };
         };
@@ -19995,12 +20530,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ModuleIssue"];
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
         };
@@ -20287,12 +20822,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ModuleUserProperties"];
+                };
             };
         };
     };
@@ -20309,12 +20845,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ModuleUserProperties"];
+                };
             };
         };
     };
@@ -20336,7 +20873,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Module"];
+                    "application/json": components["schemas"]["ModuleDetailResponse"];
                 };
             };
         };
@@ -20416,7 +20953,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ModuleWrite"];
+                    "application/json": components["schemas"]["ModuleListItem"];
                 };
             };
         };
@@ -21674,8 +22211,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            201: {
+            /** @description Added to favorites */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -21738,8 +22275,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            201: {
+            /** @description Added to favorites */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };

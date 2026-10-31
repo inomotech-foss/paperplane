@@ -29,6 +29,10 @@ from django.utils import timezone
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
+from plane.utils.openapi.schema import DetailOrList
+from plane.app.serializers.response.cycle import ArchivedCycleDetailSerializer, ArchivedCycleListItemSerializer
+from plane.app.serializers.response.issue import ArchivedAtSerializer
 from plane.app.permissions import allow_permission, ROLE
 from plane.db.models import Cycle, UserFavorite, Issue, Label, User, Project
 from plane.utils.analytics_plot import burndown_plot
@@ -268,6 +272,11 @@ class CycleArchiveUnarchiveEndpoint(BaseAPIView):
             .distinct()
         )
 
+    @extend_schema(
+        responses={
+            200: DetailOrList(ArchivedCycleDetailSerializer, collection=ArchivedCycleListItemSerializer(many=True))
+        }
+    )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def get(self, request, slug, project_id, pk=None):
         if pk is None:
@@ -583,6 +592,7 @@ class CycleArchiveUnarchiveEndpoint(BaseAPIView):
 
             return Response(data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={200: ArchivedAtSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id, cycle_id):
         cycle = Cycle.objects.get(pk=cycle_id, project_id=project_id, workspace__slug=slug)

@@ -28,6 +28,10 @@ from django.db import models
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
+from plane.utils.openapi.schema import DetailOrList
+from plane.app.serializers.response.module import ArchivedModuleListItemSerializer, ModuleDetailResponseSerializer
+from plane.app.serializers.response.issue import ArchivedAtSerializer
 from plane.app.permissions import ProjectEntityPermission
 from plane.app.serializers import ModuleDetailSerializer
 from plane.db.models import Issue, Module, ModuleLink, UserFavorite, Project
@@ -255,6 +259,11 @@ class ModuleArchiveUnarchiveEndpoint(BaseAPIView):
             .order_by("-is_favorite", "-created_at")
         )
 
+    @extend_schema(
+        responses={
+            200: DetailOrList(ModuleDetailResponseSerializer, collection=ArchivedModuleListItemSerializer(many=True))
+        }
+    )
     def get(self, request, slug, project_id, pk=None):
         if pk is None:
             queryset = self.get_queryset()
@@ -541,6 +550,7 @@ class ModuleArchiveUnarchiveEndpoint(BaseAPIView):
 
             return Response(data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={200: ArchivedAtSerializer})
     def post(self, request, slug, project_id, module_id):
         module = Module.objects.get(pk=module_id, project_id=project_id, workspace__slug=slug)
         if module.status not in ["completed", "cancelled"]:

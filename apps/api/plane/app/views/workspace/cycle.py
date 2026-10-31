@@ -8,6 +8,7 @@ from django.db.models import Q, Count
 # Third party modules
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
 from plane.app.views.base import BaseAPIView
@@ -19,6 +20,7 @@ from plane.app.serializers.cycle import CycleSerializer
 class WorkspaceCyclesEndpoint(BaseAPIView):
     permission_classes = [WorkspaceViewerPermission]
 
+    @extend_schema(responses={200: CycleSerializer(many=True)})
     def get(self, request, slug):
         cycles = (
             Cycle.objects.filter(

@@ -3214,8 +3214,14 @@ paths:
           description: No response body
   /api/workspaces/{slug}/cycles/:
     get:
-      operationId: workspaces_cycles_retrieve
+      operationId: workspaces_cycles_list
       parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -3227,7 +3233,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cycle'
+          description: ''
   /api/workspaces/{slug}/dashboards/:
     get:
       operationId: workspaces_dashboards_list
@@ -4334,8 +4346,14 @@ paths:
           description: ''
   /api/workspaces/{slug}/modules/:
     get:
-      operationId: workspaces_modules_retrieve
+      operationId: workspaces_modules_list
       parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -4347,7 +4365,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkspaceModule'
+          description: ''
   /api/workspaces/{slug}/page-query/:
     get:
       operationId: workspaces_page_query_retrieve
@@ -4810,7 +4834,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArchivedCycleListItem'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/archived-cycles/{pk}/:
     get:
       operationId: workspaces_projects_archived_cycles_retrieve_2
@@ -4838,7 +4868,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchivedCycleDetail'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/archived-issues/:
     get:
       operationId: workspaces_projects_archived_issues_list
@@ -4906,7 +4940,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArchivedModuleListItem'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/archived-modules/{pk}/:
     get:
       operationId: workspaces_projects_archived_modules_retrieve_2
@@ -4934,7 +4974,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleDetailResponse'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/automations/:
     get:
       operationId: workspaces_projects_automations_retrieve
@@ -5463,7 +5507,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Cycle'
+                  $ref: '#/components/schemas/CycleListItem'
           description: ''
     post:
       operationId: workspaces_projects_cycles_create
@@ -5488,7 +5532,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Cycle'
+                $ref: '#/components/schemas/CycleSnapshot'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/analytics/:
     get:
@@ -5517,7 +5561,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Distribution'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/archive/:
     post:
       operationId: workspaces_projects_cycles_archive_create
@@ -5545,7 +5593,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchivedAt'
+          description: ''
     delete:
       operationId: workspaces_projects_cycles_archive_destroy
       parameters:
@@ -5577,12 +5629,32 @@ paths:
     get:
       operationId: workspaces_projects_cycles_cycle_issues_list
       parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Pagination cursor for getting next set of results
+        examples:
+          NextPageCursor:
+            value: '20:1:0'
+            summary: Next page cursor
+            description: 'Cursor format: ''page_size:page_number:offset'''
       - in: path
         name: cycle_id
         schema:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: 'Number of results per page (default: 20, max: 100)'
+        examples:
+          Default:
+            value: 20
+          Maximum:
+            value: 100
       - in: path
         name: project_id
         schema:
@@ -5603,9 +5675,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CycleIssue'
+                $ref: '#/components/schemas/WorkItemListResponse'
           description: ''
     post:
       operationId: workspaces_projects_cycles_cycle_issues_create
@@ -5648,7 +5718,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CycleIssue'
+                $ref: '#/components/schemas/MessageResponse'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/{issue_id}/:
     get:
@@ -5845,7 +5915,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CycleProgress'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/transfer-issues/:
     post:
       operationId: workspaces_projects_cycles_transfer_issues_create
@@ -5873,7 +5947,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/user-properties/:
     get:
       operationId: workspaces_projects_cycles_user_properties_retrieve
@@ -5901,7 +5979,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CycleUserProperties'
+          description: ''
     patch:
       operationId: workspaces_projects_cycles_user_properties_partial_update
       parameters:
@@ -5927,8 +6009,12 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CycleUserProperties'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/cycles/{pk}/:
     get:
       operationId: workspaces_projects_cycles_retrieve
@@ -5959,7 +6045,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Cycle'
+                $ref: '#/components/schemas/CycleDetail'
           description: ''
     put:
       operationId: workspaces_projects_cycles_update
@@ -6021,7 +6107,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Cycle'
+                $ref: '#/components/schemas/CycleSnapshot'
           description: ''
     delete:
       operationId: workspaces_projects_cycles_destroy
@@ -6071,7 +6157,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CycleDateCheck'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/deleted-issues/:
     get:
       operationId: workspaces_projects_deleted_issues_list
@@ -9406,11 +9496,11 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModuleIssue'
+                $ref: '#/components/schemas/MessageResponse'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/property-values/:
     get:
@@ -10577,9 +10667,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Module'
+                $ref: '#/components/schemas/ModuleListResponse'
           description: ''
     post:
       operationId: workspaces_projects_modules_create
@@ -10616,7 +10704,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModuleWrite'
+                $ref: '#/components/schemas/ModuleListItem'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/archive/:
     post:
@@ -10645,7 +10733,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchivedAt'
+          description: ''
     delete:
       operationId: workspaces_projects_modules_archive_destroy
       parameters:
@@ -10677,12 +10769,32 @@ paths:
     get:
       operationId: workspaces_projects_modules_issues_list
       parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Pagination cursor for getting next set of results
+        examples:
+          NextPageCursor:
+            value: '20:1:0'
+            summary: Next page cursor
+            description: 'Cursor format: ''page_size:page_number:offset'''
       - in: path
         name: module_id
         schema:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: 'Number of results per page (default: 20, max: 100)'
+        examples:
+          Default:
+            value: 20
+          Maximum:
+            value: 100
       - in: path
         name: project_id
         schema:
@@ -10703,9 +10815,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ModuleIssue'
+                $ref: '#/components/schemas/WorkItemListResponse'
           description: ''
     post:
       operationId: workspaces_projects_modules_issues_create
@@ -10744,11 +10854,11 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModuleIssue'
+                $ref: '#/components/schemas/MessageResponse'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/issues/{issue_id}/:
     get:
@@ -11196,7 +11306,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleUserProperties'
+          description: ''
     patch:
       operationId: workspaces_projects_modules_user_properties_partial_update
       parameters:
@@ -11222,8 +11336,12 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleUserProperties'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/modules/{pk}/:
     get:
       operationId: workspaces_projects_modules_retrieve
@@ -11254,7 +11372,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Module'
+                $ref: '#/components/schemas/ModuleDetailResponse'
           description: ''
     put:
       operationId: workspaces_projects_modules_update
@@ -11339,7 +11457,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModuleWrite'
+                $ref: '#/components/schemas/ModuleListItem'
           description: ''
     delete:
       operationId: workspaces_projects_modules_destroy
@@ -13091,8 +13209,8 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '201':
-          description: No response body
+        '204':
+          description: Added to favorites
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-cycles/{cycle_id}/:
     delete:
       operationId: workspaces_projects_user_favorite_cycles_destroy
@@ -13162,8 +13280,8 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '201':
-          description: No response body
+        '204':
+          description: Added to favorites
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-modules/{module_id}/:
     delete:
       operationId: workspaces_projects_user_favorite_modules_destroy
@@ -15921,6 +16039,358 @@ components:
           type: string
       required:
       - archived_at
+    ArchivedCycleDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+        owned_by_id:
+          type: string
+          format: uuid
+        view_props: {}
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+        external_id:
+          type: string
+          nullable: true
+        progress_snapshot: {}
+        is_favorite:
+          type: boolean
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status:
+          type: string
+          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+        cancelled_issues:
+          type: integer
+        started_issues:
+          type: integer
+          nullable: true
+        unstarted_issues:
+          type: integer
+          nullable: true
+        backlog_issues:
+          type: integer
+          nullable: true
+        archived_at:
+          type: string
+          format: date-time
+        sub_issues:
+          type: integer
+        logo_props: {}
+        completed_estimate_points:
+          type: number
+          format: double
+          nullable: true
+        total_estimate_points:
+          type: number
+          format: double
+          nullable: true
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        estimate_distribution:
+          $ref: '#/components/schemas/EstimateDistribution'
+        distribution:
+          $ref: '#/components/schemas/Distribution'
+      required:
+      - id
+      - workspace_id
+      - project_id
+      - name
+      - description
+      - start_date
+      - end_date
+      - owned_by_id
+      - view_props
+      - sort_order
+      - external_source
+      - external_id
+      - progress_snapshot
+      - is_favorite
+      - total_issues
+      - completed_issues
+      - assignee_ids
+      - status
+      - cancelled_issues
+      - started_issues
+      - unstarted_issues
+      - backlog_issues
+      - archived_at
+      - sub_issues
+      - logo_props
+      - completed_estimate_points
+      - total_estimate_points
+      - created_by
+      - estimate_distribution
+      - distribution
+    ArchivedCycleListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+        owned_by_id:
+          type: string
+          format: uuid
+        view_props: {}
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+        external_id:
+          type: string
+          nullable: true
+        progress_snapshot: {}
+        is_favorite:
+          type: boolean
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status:
+          type: string
+          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+        cancelled_issues:
+          type: integer
+        started_issues:
+          type: integer
+          nullable: true
+        unstarted_issues:
+          type: integer
+          nullable: true
+        backlog_issues:
+          type: integer
+          nullable: true
+        archived_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - workspace_id
+      - project_id
+      - name
+      - description
+      - start_date
+      - end_date
+      - owned_by_id
+      - view_props
+      - sort_order
+      - external_source
+      - external_id
+      - progress_snapshot
+      - is_favorite
+      - total_issues
+      - completed_issues
+      - assignee_ids
+      - status
+      - cancelled_issues
+      - started_issues
+      - unstarted_issues
+      - backlog_issues
+      - archived_at
+    ArchivedModuleListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        description_text:
+          nullable: true
+        description_html:
+          nullable: true
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+        lead_id:
+          type: string
+          format: uuid
+          nullable: true
+        member_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        view_props: {}
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+        external_id:
+          type: string
+          nullable: true
+        is_favorite:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        total_issues:
+          type: integer
+          nullable: true
+        cancelled_issues:
+          type: integer
+          nullable: true
+        completed_issues:
+          type: integer
+          nullable: true
+        started_issues:
+          type: integer
+          nullable: true
+        unstarted_issues:
+          type: integer
+          nullable: true
+        backlog_issues:
+          type: integer
+          nullable: true
+        archived_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - workspace_id
+      - project_id
+      - name
+      - description
+      - description_text
+      - description_html
+      - start_date
+      - target_date
+      - status
+      - lead_id
+      - member_ids
+      - view_props
+      - sort_order
+      - external_source
+      - external_id
+      - is_favorite
+      - created_at
+      - updated_at
+      - total_issues
+      - cancelled_issues
+      - completed_issues
+      - started_issues
+      - unstarted_issues
+      - backlog_issues
+      - archived_at
+    AssigneeDistribution:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        pending_issues:
+          type: integer
+        total_estimates:
+          type: number
+          format: double
+          nullable: true
+        completed_estimates:
+          type: number
+          format: double
+          nullable: true
+        pending_estimates:
+          type: number
+          format: double
+          nullable: true
+        assignee_id:
+          type: string
+          format: uuid
+          nullable: true
+        display_name:
+          type: string
+          nullable: true
+        avatar_url:
+          type: string
+          nullable: true
+        first_name:
+          type: string
+          nullable: true
+        last_name:
+          type: string
+          nullable: true
+      required:
+      - assignee_id
+      - display_name
+      - avatar_url
     BlankEnum:
       enum:
       - ''
@@ -16471,6 +16941,100 @@ components:
       - external_id
       - progress_snapshot
       - logo_props
+    CycleDateCheck:
+      type: object
+      properties:
+        status:
+          type: boolean
+          description: False when another cycle overlaps the dates
+        error:
+          type: string
+      required:
+      - status
+    CycleDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+        owned_by_id:
+          type: string
+          format: uuid
+        view_props: {}
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+        external_id:
+          type: string
+          nullable: true
+        progress_snapshot: {}
+        is_favorite:
+          type: boolean
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status:
+          type: string
+          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+        logo_props: {}
+        version:
+          type: integer
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        sub_issues:
+          type: integer
+      required:
+      - id
+      - workspace_id
+      - project_id
+      - name
+      - description
+      - start_date
+      - end_date
+      - owned_by_id
+      - view_props
+      - sort_order
+      - external_source
+      - external_id
+      - progress_snapshot
+      - is_favorite
+      - total_issues
+      - completed_issues
+      - assignee_ids
+      - status
+      - logo_props
+      - version
+      - created_by
+      - sub_issues
     CycleIssue:
       type: object
       properties:
@@ -16555,6 +17119,281 @@ components:
           format: uuid
       required:
       - issue
+    CycleListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+        owned_by_id:
+          type: string
+          format: uuid
+        view_props: {}
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+        external_id:
+          type: string
+          nullable: true
+        progress_snapshot: {}
+        is_favorite:
+          type: boolean
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status:
+          type: string
+          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+        logo_props: {}
+        version:
+          type: integer
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        cancelled_issues:
+          type: integer
+      required:
+      - id
+      - workspace_id
+      - project_id
+      - name
+      - description
+      - start_date
+      - end_date
+      - owned_by_id
+      - view_props
+      - sort_order
+      - external_source
+      - external_id
+      - progress_snapshot
+      - is_favorite
+      - total_issues
+      - completed_issues
+      - assignee_ids
+      - status
+      - logo_props
+      - version
+      - created_by
+      - cancelled_issues
+    CycleProgress:
+      type: object
+      properties:
+        backlog_estimate_points:
+          type: number
+          format: double
+        unstarted_estimate_points:
+          type: number
+          format: double
+        started_estimate_points:
+          type: number
+          format: double
+        cancelled_estimate_points:
+          type: number
+          format: double
+        completed_estimate_points:
+          type: number
+          format: double
+        total_estimate_points:
+          type: number
+          format: double
+        backlog_issues:
+          type: integer
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        cancelled_issues:
+          type: integer
+        started_issues:
+          type: integer
+        unstarted_issues:
+          type: integer
+      required:
+      - backlog_estimate_points
+      - unstarted_estimate_points
+      - started_estimate_points
+      - cancelled_estimate_points
+      - completed_estimate_points
+      - total_estimate_points
+      - backlog_issues
+      - total_issues
+      - completed_issues
+      - cancelled_issues
+      - started_issues
+      - unstarted_issues
+    CycleSnapshot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+        owned_by_id:
+          type: string
+          format: uuid
+        view_props: {}
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+        external_id:
+          type: string
+          nullable: true
+        progress_snapshot: {}
+        is_favorite:
+          type: boolean
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status:
+          type: string
+          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+        logo_props: {}
+        version:
+          type: integer
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - id
+      - workspace_id
+      - project_id
+      - name
+      - description
+      - start_date
+      - end_date
+      - owned_by_id
+      - view_props
+      - sort_order
+      - external_source
+      - external_id
+      - progress_snapshot
+      - is_favorite
+      - total_issues
+      - completed_issues
+      - assignee_ids
+      - status
+      - logo_props
+      - version
+      - created_by
+    CycleUserProperties:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        filters: {}
+        display_filters: {}
+        display_properties: {}
+        rich_filters: {}
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        cycle:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - id
+      - created_at
+      - updated_at
+      - deleted_at
+      - filters
+      - display_filters
+      - display_properties
+      - rich_filters
+      - created_by
+      - updated_by
+      - project
+      - workspace
+      - cycle
+      - user
     Dashboard:
       type: object
       properties:
@@ -16909,6 +17748,28 @@ components:
         * `INHERIT` - Inherit from parent
         * `LOOKUP` - From ancestor
         * `ROLLUP` - Roll up from children
+    Distribution:
+      type: object
+      properties:
+        completion_chart:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+            nullable: true
+          description: Pending work by date, null for future dates
+        assignees:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssigneeDistribution'
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabelDistribution'
+      required:
+      - completion_chart
+      - assignees
+      - labels
     DraftIssue:
       type: object
       properties:
@@ -17316,6 +18177,24 @@ components:
       - updated_by
       - project
       - workspace
+    EstimateDistribution:
+      type: object
+      properties:
+        completion_chart:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+            nullable: true
+          description: Pending work by date, null for future dates
+        assignees:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssigneeDistribution'
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabelDistribution'
     EstimateRequest:
       type: object
       properties:
@@ -20514,6 +21393,41 @@ components:
       - project_id
       - workspace_id
       - sort_order
+    LabelDistribution:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        pending_issues:
+          type: integer
+        total_estimates:
+          type: number
+          format: double
+          nullable: true
+        completed_estimates:
+          type: number
+          format: double
+          nullable: true
+        pending_estimates:
+          type: number
+          format: double
+          nullable: true
+        label_id:
+          type: string
+          format: uuid
+          nullable: true
+        label_name:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+      required:
+      - label_id
+      - label_name
+      - color
     LabelLite:
       type: object
       properties:
@@ -20720,9 +21634,199 @@ components:
       - external_source
       - external_id
       - logo_props
+      - total_estimate_points
+      - completed_estimate_points
+      - is_favorite
+      - total_issues
+      - cancelled_issues
+      - completed_issues
+      - started_issues
+      - unstarted_issues
+      - backlog_issues
       - created_at
       - updated_at
       - archived_at
+    ModuleDetailResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace_id:
+          type: string
+          format: uuid
+          readOnly: true
+        project_id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+          title: Module Name
+        description:
+          type: string
+          readOnly: true
+          title: Module Description
+        description_text:
+          readOnly: true
+          nullable: true
+          title: Module Description RT
+        description_html:
+          readOnly: true
+          nullable: true
+          title: Module Description HTML
+        start_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ModuleStatusEnum'
+          readOnly: true
+        lead_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        member_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+        view_props:
+          readOnly: true
+        sort_order:
+          type: number
+          format: double
+          readOnly: true
+        external_source:
+          type: string
+          readOnly: true
+          nullable: true
+        external_id:
+          type: string
+          readOnly: true
+          nullable: true
+        logo_props:
+          readOnly: true
+        total_estimate_points:
+          type: number
+          format: double
+          readOnly: true
+        completed_estimate_points:
+          type: number
+          format: double
+          readOnly: true
+        is_favorite:
+          type: boolean
+          readOnly: true
+        total_issues:
+          type: integer
+          readOnly: true
+        cancelled_issues:
+          type: integer
+          readOnly: true
+        completed_issues:
+          type: integer
+          readOnly: true
+        started_issues:
+          type: integer
+          readOnly: true
+        unstarted_issues:
+          type: integer
+          readOnly: true
+        backlog_issues:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        archived_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        link_module:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModuleLink'
+          readOnly: true
+        sub_issues:
+          type: integer
+          readOnly: true
+        backlog_estimate_points:
+          type: number
+          format: double
+          readOnly: true
+        unstarted_estimate_points:
+          type: number
+          format: double
+          readOnly: true
+        started_estimate_points:
+          type: number
+          format: double
+          readOnly: true
+        cancelled_estimate_points:
+          type: number
+          format: double
+          readOnly: true
+        estimate_distribution:
+          $ref: '#/components/schemas/EstimateDistribution'
+        distribution:
+          $ref: '#/components/schemas/Distribution'
+      required:
+      - id
+      - workspace_id
+      - project_id
+      - name
+      - description
+      - description_text
+      - description_html
+      - start_date
+      - target_date
+      - status
+      - lead_id
+      - member_ids
+      - view_props
+      - sort_order
+      - external_source
+      - external_id
+      - logo_props
+      - total_estimate_points
+      - completed_estimate_points
+      - is_favorite
+      - total_issues
+      - cancelled_issues
+      - completed_issues
+      - started_issues
+      - unstarted_issues
+      - backlog_issues
+      - created_at
+      - updated_at
+      - archived_at
+      - link_module
+      - sub_issues
+      - backlog_estimate_points
+      - unstarted_estimate_points
+      - started_estimate_points
+      - cancelled_estimate_points
+      - estimate_distribution
+      - distribution
     ModuleFlat:
       type: object
       properties:
@@ -21056,6 +22160,119 @@ components:
         metadata: {}
       required:
       - url
+    ModuleListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        description_text:
+          nullable: true
+        description_html:
+          nullable: true
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+        lead_id:
+          type: string
+          format: uuid
+          nullable: true
+        member_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        view_props: {}
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+        external_id:
+          type: string
+          nullable: true
+        is_favorite:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        logo_props: {}
+        completed_estimate_points:
+          type: number
+          format: double
+        total_estimate_points:
+          type: number
+          format: double
+        total_issues:
+          type: integer
+        cancelled_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        started_issues:
+          type: integer
+        unstarted_issues:
+          type: integer
+        backlog_issues:
+          type: integer
+      required:
+      - id
+      - workspace_id
+      - project_id
+      - name
+      - description
+      - description_text
+      - description_html
+      - start_date
+      - target_date
+      - status
+      - lead_id
+      - member_ids
+      - view_props
+      - sort_order
+      - external_source
+      - external_id
+      - is_favorite
+      - created_at
+      - updated_at
+      - logo_props
+      - completed_estimate_points
+      - total_estimate_points
+      - total_issues
+      - cancelled_issues
+      - completed_issues
+      - started_issues
+      - unstarted_issues
+      - backlog_issues
+    ModuleListResponse:
+      oneOf:
+      - type: array
+        items:
+          $ref: '#/components/schemas/ModuleListItem'
+      - type: array
+        items:
+          $ref: '#/components/schemas/Module'
     ModuleStatusEnum:
       enum:
       - backlog
@@ -21072,6 +22289,70 @@ components:
         * `paused` - Paused
         * `completed` - Completed
         * `cancelled` - Cancelled
+    ModuleUserProperties:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        filters: {}
+        display_filters: {}
+        display_properties: {}
+        rich_filters: {}
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        module:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - id
+      - created_at
+      - updated_at
+      - deleted_at
+      - filters
+      - display_filters
+      - display_properties
+      - rich_filters
+      - created_by
+      - updated_by
+      - project
+      - workspace
+      - module
+      - user
     ModuleWrite:
       type: object
       properties:
@@ -29369,6 +30650,148 @@ components:
       - updated_by
       - workspace
       - member
+    WorkspaceModule:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace_id:
+          type: string
+          format: uuid
+          readOnly: true
+        project_id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+          title: Module Name
+        description:
+          type: string
+          readOnly: true
+          title: Module Description
+        description_text:
+          readOnly: true
+          nullable: true
+          title: Module Description RT
+        description_html:
+          readOnly: true
+          nullable: true
+          title: Module Description HTML
+        start_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ModuleStatusEnum'
+          readOnly: true
+        lead_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        member_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+        view_props:
+          readOnly: true
+        sort_order:
+          type: number
+          format: double
+          readOnly: true
+        external_source:
+          type: string
+          readOnly: true
+          nullable: true
+        external_id:
+          type: string
+          readOnly: true
+          nullable: true
+        logo_props:
+          readOnly: true
+        total_estimate_points:
+          type: number
+          format: double
+          readOnly: true
+        completed_estimate_points:
+          type: number
+          format: double
+          readOnly: true
+        is_favorite:
+          type: boolean
+          readOnly: true
+        total_issues:
+          type: integer
+          readOnly: true
+        cancelled_issues:
+          type: integer
+          readOnly: true
+        completed_issues:
+          type: integer
+          readOnly: true
+        started_issues:
+          type: integer
+          readOnly: true
+        unstarted_issues:
+          type: integer
+          readOnly: true
+        backlog_issues:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        archived_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - id
+      - workspace_id
+      - project_id
+      - name
+      - description
+      - description_text
+      - description_html
+      - start_date
+      - target_date
+      - status
+      - lead_id
+      - member_ids
+      - view_props
+      - sort_order
+      - external_source
+      - external_id
+      - logo_props
+      - total_issues
+      - cancelled_issues
+      - completed_issues
+      - started_issues
+      - unstarted_issues
+      - backlog_issues
+      - created_at
+      - updated_at
+      - archived_at
     WorkspaceRecentVisit:
       type: object
       properties:
