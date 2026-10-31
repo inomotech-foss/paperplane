@@ -13180,15 +13180,15 @@ export interface components {
             module: boolean;
             cycle: boolean;
             issue_comment: boolean;
-            is_internal: boolean;
-            version: string;
+            readonly is_internal: boolean;
+            readonly version: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
         };

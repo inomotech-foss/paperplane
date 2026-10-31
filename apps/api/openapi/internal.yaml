@@ -37869,16 +37869,19 @@ components:
           type: boolean
         is_internal:
           type: boolean
+          readOnly: true
         version:
           type: string
-          maxLength: 50
+          readOnly: true
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         workspace:
