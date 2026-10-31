@@ -24,7 +24,12 @@ import { EIssuesStoreType } from "@plane/types";
 import { handleIssueQueryParamsByLayout, getDisplayFilterCorrections } from "@plane/utils";
 import { IssueFiltersService } from "@/services/issue_filter.service";
 import type { IBaseIssueFilterStore } from "../helpers/issue-filter-helper.store";
-import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
+import {
+  IssueFilterHelperStore,
+  toDisplayFilterChanges,
+  toDisplayPropertyChanges,
+  toKanbanFilterChanges,
+} from "../helpers/issue-filter-helper.store";
 // helpers
 // types
 import type { IIssueRootStore } from "../root.store";
@@ -214,14 +219,14 @@ export class ModuleIssuesFilter extends IssueFilterHelperStore implements IModul
 
       const _filters = {
         richFilters: this.filters[moduleId].richFilters,
-        displayFilters: this.filters[moduleId].displayFilters as IIssueDisplayFilterOptions,
-        displayProperties: this.filters[moduleId].displayProperties as IIssueDisplayProperties,
-        kanbanFilters: this.filters[moduleId].kanbanFilters as TIssueKanbanFilters,
+        displayFilters: this.filters[moduleId].displayFilters ?? {},
+        displayProperties: this.filters[moduleId].displayProperties ?? {},
+        kanbanFilters: this.filters[moduleId].kanbanFilters ?? { group_by: [], sub_group_by: [] },
       };
 
       switch (type) {
         case EIssueFilterType.DISPLAY_FILTERS: {
-          const changes = filters as IIssueDisplayFilterOptions;
+          const changes = toDisplayFilterChanges(filters);
           // calendar changes carry only the changed options
           const updatedDisplayFilters: IIssueDisplayFilterOptions = {
             ...changes,
@@ -234,12 +239,8 @@ export class ModuleIssuesFilter extends IssueFilterHelperStore implements IModul
           Object.assign(updatedDisplayFilters, corrections);
 
           runInAction(() => {
-            Object.keys(updatedDisplayFilters).forEach((_key) => {
-              set(
-                this.filters,
-                [moduleId, "displayFilters", _key],
-                updatedDisplayFilters[_key as keyof IIssueDisplayFilterOptions]
-              );
+            Object.entries(updatedDisplayFilters).forEach(([_key, value]) => {
+              set(this.filters, [moduleId, "displayFilters", _key], value);
             });
           });
 
@@ -263,16 +264,12 @@ export class ModuleIssuesFilter extends IssueFilterHelperStore implements IModul
           break;
         }
         case EIssueFilterType.DISPLAY_PROPERTIES: {
-          const updatedDisplayProperties = filters as IIssueDisplayProperties;
+          const updatedDisplayProperties = toDisplayPropertyChanges(filters);
           _filters.displayProperties = { ..._filters.displayProperties, ...updatedDisplayProperties };
 
           runInAction(() => {
-            Object.keys(updatedDisplayProperties).forEach((_key) => {
-              set(
-                this.filters,
-                [moduleId, "displayProperties", _key],
-                updatedDisplayProperties[_key as keyof IIssueDisplayProperties]
-              );
+            Object.entries(updatedDisplayProperties).forEach(([_key, value]) => {
+              set(this.filters, [moduleId, "displayProperties", _key], value);
             });
           });
 
@@ -283,7 +280,7 @@ export class ModuleIssuesFilter extends IssueFilterHelperStore implements IModul
         }
 
         case EIssueFilterType.KANBAN_FILTERS: {
-          const updatedKanbanFilters = filters as TIssueKanbanFilters;
+          const updatedKanbanFilters = toKanbanFilterChanges(filters);
           _filters.kanbanFilters = { ..._filters.kanbanFilters, ...updatedKanbanFilters };
 
           const currentUserId = this.rootIssueStore.currentUserId;
@@ -293,12 +290,8 @@ export class ModuleIssuesFilter extends IssueFilterHelperStore implements IModul
             });
 
           runInAction(() => {
-            Object.keys(updatedKanbanFilters).forEach((_key) => {
-              set(
-                this.filters,
-                [moduleId, "kanbanFilters", _key],
-                updatedKanbanFilters[_key as keyof TIssueKanbanFilters]
-              );
+            Object.entries(updatedKanbanFilters).forEach(([_key, value]) => {
+              set(this.filters, [moduleId, "kanbanFilters", _key], value);
             });
           });
 

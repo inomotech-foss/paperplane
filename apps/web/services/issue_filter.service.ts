@@ -4,86 +4,69 @@
  * See the LICENSE file for details.
  */
 
-// services
-import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
+import { parseIssueFiltersResponse } from "@plane/types";
 import type { IIssueFiltersResponse } from "@plane/types";
-import { APIService } from "@/services/api.service";
-// types
+import { apiClient } from "@/services/api-client";
 
-export class IssueFiltersService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+/** Omitted keys keep their stored value. */
+export type TIssueFiltersUpdate = Partial<IIssueFiltersResponse>;
 
-  // // workspace issue filters
-  // async fetchWorkspaceFilters(workspaceSlug: string): Promise<IIssueFiltersResponse> {
-  //   return this.get(`/api/workspaces/${workspaceSlug}/user-properties/`)
-  //     .then((response) => response?.data)
-  //     .catch((error) => {
-  //       throw error?.response?.data;
-  //     });
-  // }
-  // async patchWorkspaceFilters(
-  //   workspaceSlug: string,
-  //   data: Partial<IIssueFiltersResponse>
-  // ): Promise<IIssueFiltersResponse> {
-  //   return this.patch(`/api/workspaces/${workspaceSlug}/user-properties/`, data)
-  //     .then((response) => response?.data)
-  //     .catch((error) => {
-  //       throw error?.response?.data;
-  //     });
-  // }
-
-  // cycle issue filters
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class IssueFiltersService {
   async fetchCycleIssueFilters(
     workspaceSlug: string,
     projectId: string,
     cycleId: string
   ): Promise<IIssueFiltersResponse> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/user-properties/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const properties = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/user-properties/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, cycle_id: cycleId } },
+      })
+    );
+    return parseIssueFiltersResponse(properties);
   }
+
   async patchCycleIssueFilters(
     workspaceSlug: string,
     projectId: string,
     cycleId: string,
-    data: Partial<IIssueFiltersResponse>
-  ): Promise<any> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/user-properties/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    data: TIssueFiltersUpdate
+  ): Promise<IIssueFiltersResponse> {
+    const properties = await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/user-properties/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, cycle_id: cycleId } },
+        body: data,
+      })
+    );
+    return parseIssueFiltersResponse(properties);
   }
 
-  // module issue filters
   async fetchModuleIssueFilters(
     workspaceSlug: string,
     projectId: string,
     moduleId: string
   ): Promise<IIssueFiltersResponse> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/user-properties/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const properties = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/user-properties/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, module_id: moduleId } },
+      })
+    );
+    return parseIssueFiltersResponse(properties);
   }
+
   async patchModuleIssueFilters(
     workspaceSlug: string,
     projectId: string,
     moduleId: string,
-    data: Partial<IIssueFiltersResponse>
-  ): Promise<any> {
-    return this.patch(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/user-properties/`,
-      data
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    data: TIssueFiltersUpdate
+  ): Promise<IIssueFiltersResponse> {
+    const properties = await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/modules/{module_id}/user-properties/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, module_id: moduleId } },
+        body: data,
+      })
+    );
+    return parseIssueFiltersResponse(properties);
   }
 }
