@@ -44,7 +44,7 @@ export interface IUserStore {
   // actions
   fetchCurrentUser: () => Promise<IUser | undefined>;
   updateCurrentUser: (data: Partial<IUser>) => Promise<IUser | undefined>;
-  handleSetPassword: (csrfToken: string, data: { password: string }) => Promise<IUser | undefined>;
+  handleSetPassword: (csrfToken: string, data: { password: string }) => Promise<void>;
   deactivateAccount: () => Promise<void>;
   changePassword: (csrfToken: string, payload: TChangePasswordBody) => Promise<void>;
   reset: () => void;
@@ -176,15 +176,13 @@ export class UserStore implements IUserStore {
    * @param data
    * @returns {Promise<IUser>}
    */
-  handleSetPassword = async (csrfToken: string, data: { password: string }): Promise<IUser | undefined> => {
+  handleSetPassword = async (csrfToken: string, data: { password: string }): Promise<void> => {
     const currentUserData = cloneDeep(this.data);
     try {
       if (currentUserData && currentUserData.is_password_autoset && this.data) {
-        const user = await this.authService.setPassword(csrfToken, { password: data.password });
+        await this.authService.setPassword(csrfToken, { password: data.password });
         set(this.data, ["is_password_autoset"], false);
-        return user;
       }
-      return undefined;
     } catch (error) {
       if (this.data) set(this.data, ["is_password_autoset"], true);
       runInAction(() => {
