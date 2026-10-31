@@ -53,7 +53,7 @@ export class StickyStore implements IStickyStore {
   paginationInfo: TPaginationInfo | undefined = undefined;
 
   // services
-  stickyService;
+  stickyService: StickyService;
 
   constructor() {
     makeObservable(this, {
@@ -103,9 +103,10 @@ export class StickyStore implements IStickyStore {
 
   fetchRecentSticky = async (workspaceSlug: string) => {
     const response = await this.stickyService.getStickies(workspaceSlug, "1:0:0", undefined, 1);
+    const recent = response.results.at(0);
     runInAction(() => {
-      this.recentStickyId = response.results[0]?.id;
-      this.stickies[response.results[0]?.id] = response.results[0];
+      this.recentStickyId = recent?.id;
+      if (recent) this.stickies[recent.id] = recent;
     });
   };
   fetchNextWorkspaceStickies = async (workspaceSlug: string) => {
@@ -195,9 +196,8 @@ export class StickyStore implements IStickyStore {
     if (!sticky) return;
     try {
       runInAction(() => {
-        Object.keys(updates).forEach((key) => {
-          const currentStickyKey = key as keyof TSticky;
-          set(this.stickies[id], key, updates[currentStickyKey] || undefined);
+        Object.entries(updates).forEach(([key, value]) => {
+          set(this.stickies[id], key, value || undefined);
         });
       });
       this.recentStickyId = id;
