@@ -9,11 +9,12 @@ import { Avatar } from "@makeplane/propel/components/avatar";
 import { Logo } from "@plane/blocks/emoji-icon-picker";
 import { PagesOutline } from "@makeplane/propel/icons";
 // plane import
-import type { TActivityEntityData, TPageEntityData } from "@plane/types";
+import type { TActivityEntityData } from "@plane/types";
 import { calculateTimeAgo, getFileURL, getPageName } from "@plane/utils";
 import { ListItem } from "@/components/core/list";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
+import { isPageEntityData } from "./entity-data";
 
 type BlockProps = {
   activity: TActivityEntityData;
@@ -28,7 +29,7 @@ export function RecentPage(props: BlockProps) {
   // store hooks
   const { getUserDetails } = useMember();
   // derived values
-  const pageDetails = activity.entity_data as TPageEntityData;
+  const pageDetails = isPageEntityData(activity.entity_data) ? activity.entity_data : undefined;
 
   if (!pageDetails) return <></>;
 

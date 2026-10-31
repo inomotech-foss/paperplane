@@ -31,6 +31,7 @@ import { setToast } from "@plane/blocks/toast";
 import { EIssuesStoreType } from "@plane/types";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssues } from "@/hooks/store/use-issues";
+import { getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   isOpen: boolean;
@@ -80,11 +81,11 @@ export const TransferIssuesModal = observer(function TransferIssuesModal(props: 
       fetchActiveCycleProgress(workspaceSlug.toString(), projectId.toString(), cycleId),
       fetchActiveCycleProgress(workspaceSlug.toString(), projectId.toString(), newCycleId),
     ];
-    await Promise.all(cyclesFetch).catch((error) => {
+    await Promise.all(cyclesFetch).catch((error: unknown) => {
       setToast({
         type: "error",
         title: "Error",
-        message: error.error || "Unable to fetch cycle details",
+        message: getStringField(error, "error") || "Unable to fetch cycle details",
       });
     });
   };

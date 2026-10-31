@@ -10,7 +10,8 @@ import { observer } from "mobx-react";
 import { AddOutline } from "@makeplane/propel/icons";
 // ui
 import { Tooltip } from "@makeplane/propel/components/tooltip";
-import type { IBlockUpdateData, IGanttBlock } from "@plane/types";
+import type { IGanttBlock } from "@plane/types";
+import type { TGanttBlockUpdateHandler } from "@/components/gantt-chart/types";
 // helpers
 import { renderFormattedDate, renderFormattedPayloadDate } from "@plane/utils";
 // hooks
@@ -20,7 +21,7 @@ import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 
 type Props = {
   block: IGanttBlock;
-  blockUpdateHandler: (block: any, payload: IBlockUpdateData) => void;
+  blockUpdateHandler: TGanttBlockUpdateHandler;
 };
 
 export const ChartAddBlock = observer(function ChartAddBlock(props: Props) {

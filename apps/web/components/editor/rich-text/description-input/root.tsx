@@ -190,7 +190,7 @@ export const DescriptionInput = observer(function DescriptionInput(props: Props)
   const debouncedFormSave = useCallback(
     debounce(async () => {
       handleSubmit(handleDescriptionFormSubmit)()
-        .catch((error) => console.error(`Failed to save description for ${entityId}:`, error))
+        .catch((error: unknown) => console.error(`Failed to save description for ${entityId}:`, error))
         .finally(() => {
           setIsSubmitting("submitted");
           hasUnsavedChanges.current = false;
@@ -206,7 +206,7 @@ export const DescriptionInput = observer(function DescriptionInput(props: Props)
 
       if (hasUnsavedChanges.current) {
         handleSubmit(handleDescriptionFormSubmit)()
-          .catch((error) => {
+          .catch((error: unknown) => {
             console.error("Failed to save description on unmount:", error);
           })
           .finally(() => {

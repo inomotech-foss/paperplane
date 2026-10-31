@@ -6,26 +6,18 @@
 
 import { useParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
-import { WarningTriangleOutline } from "@makeplane/propel/icons";
 // Plane imports
 import { Field } from "@makeplane/propel/components/field";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { Button } from "@makeplane/propel/components/button";
 import { setToast } from "@plane/blocks/toast";
 import type { IProject } from "@plane/types";
-import {
-  Dialog,
-  DialogActions,
-  DialogBody,
-  DialogContent,
-  DialogHeader,
-  DialogHeading,
-  DialogMain,
-  DialogTitle,
-} from "@makeplane/propel/components/dialog";
+import { Dialog, DialogActions, DialogBody, DialogContent, DialogMain } from "@makeplane/propel/components/dialog";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useAppRouter } from "@/hooks/use-app-router";
+// local imports
+import { ProjectDangerDialogHeader } from "./danger-dialog-header";
 
 type DeleteProjectModal = {
   isOpen: boolean;
@@ -96,16 +88,7 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
       <DialogContent size="md">
         <form onSubmit={handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
           <DialogMain>
-            <DialogHeader>
-              <div className="flex w-full items-center justify-start gap-6">
-                <span className="place-items-center rounded-full bg-danger-subtle p-4">
-                  <WarningTriangleOutline className="h-6 w-6 text-danger-primary" aria-hidden="true" />
-                </span>
-                <DialogHeading>
-                  <DialogTitle>Delete project</DialogTitle>
-                </DialogHeading>
-              </div>
-            </DialogHeader>
+            <ProjectDangerDialogHeader title="Delete project" />
             <DialogBody>
               <div className="flex flex-col gap-6">
                 <p className="text-13 leading-7 text-secondary">

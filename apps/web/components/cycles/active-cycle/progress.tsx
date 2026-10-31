@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import { Fragment } from "react";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
 // plane imports
@@ -36,7 +37,7 @@ export const ActiveCycleProgress = observer(function ActiveCycleProgress(props: 
   const closedIssues = cycle ? cycle.completed_issues + cycle.cancelled_issues : 0;
   const closableIssues = cycle ? cycle.total_issues - cycle.cancelled_issues : 0;
   const progressValue = closableIssues > 0 ? (closedIssues / closableIssues) * 100 : 0;
-  const groupedIssues: any = cycle
+  const groupedIssues: Record<string, number> = cycle
     ? {
         completed: cycle?.completed_issues,
         started: cycle?.started_issues,
@@ -72,12 +73,13 @@ export const ActiveCycleProgress = observer(function ActiveCycleProgress(props: 
 
       {cycle.total_issues > 0 ? (
         <div className="flex flex-col gap-5">
-          {Object.keys(groupedIssues).map((group, index) => (
-            <>
-              {groupedIssues[group] > 0 && (
-                <div key={index}>
-                  <div
-                    className="flex cursor-pointer items-center justify-between gap-2 text-13"
+          {Object.entries(groupedIssues).map(([group, count], index) => (
+            <Fragment key={group}>
+              {count > 0 && (
+                <div>
+                  <button
+                    type="button"
+                    className="flex w-full cursor-pointer items-center justify-between gap-2 text-left text-13"
                     onClick={() => {
                       handleFiltersUpdate([{ property: "state_group", operator: "in", value: [group] }]);
                     }}
@@ -91,13 +93,11 @@ export const ActiveCycleProgress = observer(function ActiveCycleProgress(props: 
                       />
                       <span className="w-16 font-medium text-tertiary capitalize">{group}</span>
                     </div>
-                    <span className="text-tertiary">{`${groupedIssues[group]} ${
-                      groupedIssues[group] > 1 ? "Work items" : "Work item"
-                    }`}</span>
-                  </div>
+                    <span className="text-tertiary">{`${count} ${count > 1 ? "Work items" : "Work item"}`}</span>
+                  </button>
                 </div>
               )}
-            </>
+            </Fragment>
           ))}
           {cycle.cancelled_issues > 0 && (
             <span className="flex items-center gap-2 text-13 text-tertiary">

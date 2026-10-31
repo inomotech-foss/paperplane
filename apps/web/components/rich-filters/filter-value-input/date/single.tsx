@@ -8,7 +8,12 @@ import React from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { DateSelect } from "@plane/blocks/property-select";
-import type { TDateFilterFieldConfig, TFilterConditionNodeForDisplay, TFilterProperty } from "@plane/types";
+import type {
+  TDateFilterFieldConfig,
+  TFilterConditionNodeForDisplay,
+  TFilterProperty,
+  TFilterValue,
+} from "@plane/types";
 import { cn, getDate, renderFormattedPayloadDate } from "@plane/utils";
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
@@ -16,8 +21,8 @@ import { useUserProfile } from "@/hooks/store/user";
 import { COMMON_FILTER_ITEM_BORDER_CLASSNAME, EMPTY_FILTER_PLACEHOLDER_TEXT } from "../../shared";
 
 type TSingleDateFilterValueInputProps<P extends TFilterProperty> = {
-  config: TDateFilterFieldConfig<string>;
-  condition: TFilterConditionNodeForDisplay<P, string>;
+  config: TDateFilterFieldConfig<TFilterValue>;
+  condition: TFilterConditionNodeForDisplay<P, TFilterValue>;
   isDisabled?: boolean;
   onChange: (value: string | null | undefined) => void;
 };

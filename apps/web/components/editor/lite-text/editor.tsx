@@ -180,12 +180,7 @@ export const LiteTextEditor = observer(
           {isLiteVariant && editable && (
             <LiteToolbar
               executeCommand={(item) => {
-                // TODO: update this while toolbar homogenization
-                // @ts-expect-error type mismatch here
-                editorRef?.executeMenuItemCommand({
-                  itemKey: item.itemKey,
-                  ...item.extraProps,
-                });
+                editorRef?.executeToolbarItem(item);
               }}
               onSubmit={(e) => rest.onEnterKeyPress?.(e)}
               isSubmitting={isSubmitting}
@@ -205,12 +200,7 @@ export const LiteTextEditor = observer(
             <IssueCommentToolbar
               accessSpecifier={accessSpecifier}
               executeCommand={(item) => {
-                // TODO: update this while toolbar homogenization
-                // @ts-expect-error type mismatch here
-                editorRef?.executeMenuItemCommand({
-                  itemKey: item.itemKey,
-                  ...item.extraProps,
-                });
+                editorRef?.executeToolbarItem(item);
               }}
               handleAccessChange={handleAccessChange}
               handleSubmit={(e) => rest.onEnterKeyPress?.(e)}

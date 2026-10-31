@@ -15,7 +15,7 @@ import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/fi
 // constants
 
 type Props = {
-  appliedFilters: TCycleGroups[] | null;
+  appliedFilters: string[] | null;
   handleUpdate: (val: string) => void;
   searchQuery: string;
 };
@@ -27,6 +27,7 @@ export const FilterStatus = observer(function FilterStatus(props: Props) {
   //hooks
   const { t } = useTranslation();
   const appliedFiltersCount = appliedFilters?.length ?? 0;
+  const appliedFilterSet = new Set(appliedFilters);
   const filteredOptions = CYCLE_STATUS.filter((p) => p.value.includes(searchQuery.toLowerCase()));
 
   return (
@@ -42,7 +43,7 @@ export const FilterStatus = observer(function FilterStatus(props: Props) {
             filteredOptions.map((status) => (
               <FilterOption
                 key={status.value}
-                isChecked={appliedFilters?.includes(status.value) ? true : false}
+                isChecked={appliedFilterSet.has(status.value)}
                 onClick={() => handleUpdate(status.value)}
                 title={t(status.i18n_title)}
               />

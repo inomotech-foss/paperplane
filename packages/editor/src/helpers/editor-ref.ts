@@ -11,7 +11,13 @@ import * as Y from "yjs";
 // plane imports
 import { convertHTMLToMarkdown } from "@plane/utils";
 // components
-import { executeEditorMenuItem, getEditorMenuItems, isEditorMenuItemActive } from "@/components/menus";
+import {
+  executeEditorMenuItem,
+  executeToolbarMenuItem,
+  getEditorMenuItems,
+  isEditorMenuItemActive,
+  isToolbarMenuItemActive,
+} from "@/components/menus";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 import { CORE_EDITOR_META } from "@/constants/meta";
@@ -141,6 +147,11 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
         console.warn(`No command found for item: ${itemKey}`);
       }
     },
+    executeToolbarItem: (item) => {
+      if (!executeToolbarMenuItem(getEditorMenuItems(editor), item)) {
+        console.warn(`No command found for item: ${item.itemKey}`);
+      }
+    },
     focus: (position) => editor?.commands.focus(position),
     getCoordsFromPos: (pos) => editor?.view.coordsAtPos(pos ?? editor.state.selection.from),
     getCurrentCursorPosition: () => editor?.state.selection.from,
@@ -186,6 +197,7 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
     isMenuItemActive: (props) => {
       return isEditorMenuItemActive(getEditorMenuItems(editor), props.itemKey, props);
     },
+    isToolbarItemActive: (item) => isToolbarMenuItemActive(getEditorMenuItems(editor), item),
     isProviderDocumentEmpty: () => !provider?.document || isDocumentEditorYDocEmpty(provider.document),
     listenToRealTimeUpdate: () => provider && { on: provider.on.bind(provider), off: provider.off.bind(provider) },
     onDocumentInfoChange: (callback) => {

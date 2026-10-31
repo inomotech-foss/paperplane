@@ -9,7 +9,7 @@ import React from "react";
 type Props = {
   title: string;
   description?: React.ReactNode;
-  image: any;
+  image: string;
 };
 
 export function ProfileEmptyState({ title, description, image }: Props) {

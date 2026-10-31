@@ -13,6 +13,7 @@ import type { TAutomation } from "@plane/types";
 import { ConfirmDialog } from "@plane/blocks/dialog";
 // hooks
 import { useAutomation } from "@/hooks/store/use-automation";
+import { getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   isOpen: boolean;
@@ -44,7 +45,7 @@ export const AutomationDeleteModal = observer(function AutomationDeleteModal(pro
         type: "error",
         title: t("automations.toasts.delete.error.title"),
         // The API refuses to delete an enabled automation; surface that reason.
-        message: (error as { error?: string })?.error ?? t("automations.toasts.delete.error.message"),
+        message: getStringField(error, "error") ?? t("automations.toasts.delete.error.message"),
       });
     } finally {
       setIsDeleting(false);

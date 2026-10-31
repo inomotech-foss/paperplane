@@ -23,6 +23,8 @@ const issueTrashService = new IssueTrashService();
 
 const identifier = (issue: TTrashedIssue) => `${issue.project_identifier}-${issue.sequence_id}`;
 
+type TDeletedWorkItemsKey = [string, string, string, string | undefined];
+
 type Props = {
   workspaceSlug: string;
   projectId: string;
@@ -35,14 +37,15 @@ export const DeletedWorkItemsRoot = observer(function DeletedWorkItemsRoot(props
   const [isPurging, setIsPurging] = useState(false);
   const { allowPermissions } = useUserPermissions();
   const { t } = useTranslation();
-  const { data, error, size, setSize, isValidating, mutate } = useSWRInfinite(
-    (_: number, previous: TTrashedIssuePage | null) =>
-      previous && !previous.next_page_results
-        ? null
-        : ["DELETED_WORK_ITEMS", workspaceSlug, projectId, previous?.next_cursor],
-    ([, slug, project, cursor]: [string, string, string, string | undefined]) =>
-      issueTrashService.list(slug, project, cursor)
-  );
+  const getKey = (_: number, previous: TTrashedIssuePage | null): TDeletedWorkItemsKey | null =>
+    previous && !previous.next_page_results
+      ? null
+      : ["DELETED_WORK_ITEMS", workspaceSlug, projectId, previous?.next_cursor];
+  const { data, error, size, setSize, isValidating, mutate } = useSWRInfinite<
+    TTrashedIssuePage,
+    unknown,
+    typeof getKey
+  >(getKey, ([, slug, project, cursor]) => issueTrashService.list(slug, project, cursor));
   const issues = data?.flatMap((page) => page.results) ?? [];
   const hasMore = Boolean(data?.[data.length - 1]?.next_page_results);
   const canPurge = allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.PROJECT, workspaceSlug, projectId);

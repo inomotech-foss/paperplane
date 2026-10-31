@@ -24,6 +24,7 @@ import { WorkItemQueryHelp } from "./query-help";
 import { useValuesFor } from "./values";
 import { usePqlDialect } from "./use-pql-dialect";
 import { toVocabulary } from "./vocabulary";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 const workItemQueryService = new WorkItemQueryService();
 
@@ -151,7 +152,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
       await onApply(pql);
       setEdits(null);
     } catch (error) {
-      setRunError((error as { error?: string })?.error ?? t("work_item_query.invalid"));
+      setRunError(getApiErrorMessage(error) ?? t("work_item_query.invalid"));
     } finally {
       setIsRunning(false);
     }

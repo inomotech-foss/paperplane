@@ -18,6 +18,7 @@ import type { IState, TStateOperationsCallbacks } from "@plane/types";
 import { cn } from "@plane/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { getField } from "@/helpers/narrow.helper";
 
 type TStateDelete = {
   totalStates: number;
@@ -46,8 +47,7 @@ export const StateDelete = observer(function StateDelete(props: TStateDelete) {
       await deleteStateCallback(state.id);
       setIsDelete(false);
     } catch (error) {
-      const errorStatus = error as { status: number; data: { error: string } };
-      if (errorStatus.status === 400) {
+      if (getField(error, "status") === 400) {
         setToast({
           type: "error",
           title: "Error!",

@@ -6,7 +6,6 @@
 
 import { useState } from "react";
 import type { PageProps } from "@react-pdf/renderer";
-import { pdf } from "@react-pdf/renderer";
 import { Controller, useForm } from "react-hook-form";
 import { useParams } from "react-router";
 // plane editor
@@ -25,8 +24,6 @@ import {
 } from "@makeplane/propel/components/dialog";
 import { Select, SelectDropdownPlacementContext } from "@plane/blocks/select";
 import { setToast } from "@plane/blocks/toast";
-// components
-import { PDFDocument } from "@/components/editor/pdf";
 // hooks
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 
@@ -166,6 +163,10 @@ export function ExportPageModal(props: Props) {
         noAssets: selectedContentVariety === "no-assets",
       });
 
+      const [{ pdf }, { PDFDocument }] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/components/editor/pdf"),
+      ]);
       const blob = await pdf(<PDFDocument content={parsedPageContent} pageFormat={selectedPageFormat} />).toBlob();
       initiateDownload(blob, `${fileName}-${selectedPageFormat.toString().toLowerCase()}.pdf`);
     } catch (error) {
@@ -237,11 +238,7 @@ export function ExportPageModal(props: Props) {
                   control={control}
                   name="export_format"
                   render={({ field: { onChange, value } }) => (
-                    <ExportOptionSelect
-                      options={EXPORT_FORMATS}
-                      value={value}
-                      onChange={(val) => onChange(val as TExportFormats)}
-                    />
+                    <ExportOptionSelect options={EXPORT_FORMATS} value={value} onChange={onChange} />
                   )}
                 />
               </div>
@@ -251,11 +248,7 @@ export function ExportPageModal(props: Props) {
                   control={control}
                   name="content_variety"
                   render={({ field: { onChange, value } }) => (
-                    <ExportOptionSelect
-                      options={CONTENT_VARIETY}
-                      value={value}
-                      onChange={(val) => onChange(val as TContentVariety)}
-                    />
+                    <ExportOptionSelect options={CONTENT_VARIETY} value={value} onChange={onChange} />
                   )}
                 />
               </div>
@@ -266,11 +259,7 @@ export function ExportPageModal(props: Props) {
                     control={control}
                     name="page_format"
                     render={({ field: { onChange, value } }) => (
-                      <ExportOptionSelect
-                        options={PAGE_FORMATS}
-                        value={value}
-                        onChange={(val) => onChange(val as TPageFormats)}
-                      />
+                      <ExportOptionSelect options={PAGE_FORMATS} value={value} onChange={onChange} />
                     )}
                   />
                 </div>
@@ -297,8 +286,12 @@ export function ExportPageModal(props: Props) {
 type TExportOption<T> = { key: T; label: string };
 
 /** Borderless single-select for one export setting (legacy `CustomSelect` with `buttonClassName="border-none"`). */
-function ExportOptionSelect<T>(props: { options: TExportOption<T>[]; value: T; onChange: (value: string) => void }) {
+function ExportOptionSelect<T>(props: { options: TExportOption<T>[]; value: T; onChange: (value: T) => void }) {
   const { options, value, onChange } = props;
+  const handleChange = (id: string) => {
+    const next = options.find((option) => String(option.key) === id);
+    if (next) onChange(next.key);
+  };
   // derive the selection from the stored key, so an unknown key still renders instead of blanking
   const selected = options.find((option) => option.key === value) ?? { key: value, label: String(value) };
 
@@ -308,7 +301,7 @@ function ExportOptionSelect<T>(props: { options: TExportOption<T>[]; value: T; o
         <Select<TExportOption<T>>
           getValues={() => options}
           value={selected}
-          onChange={onChange}
+          onChange={handleChange}
           getOptionValue={(option) => String(option.key)}
           getOptionLabel={(option) => option.label}
           showSearch={false}

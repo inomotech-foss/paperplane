@@ -36,6 +36,10 @@ const FILTER_GROUP_CLASSNAME =
 const MEMBERS_FILTERS = new Set(["lead", "members"]);
 const DATE_FILTERS = new Set(["created_at"]);
 
+const FILTER_KEYS = ["access", "lead", "members", "created_at"] as const satisfies readonly (keyof TProjectFilters)[];
+
+const isProjectFilterKey = (key: string): key is keyof TProjectFilters => FILTER_KEYS.some((k) => k === key);
+
 export function ProjectAppliedFiltersList(props: Props) {
   const { t } = useTranslation();
   const {
@@ -58,9 +62,8 @@ export function ProjectAppliedFiltersList(props: Props) {
     <Header variant={EHeaderVariant.TERNARY}>
       <Header.LeftItem>
         {/* Applied filters */}
-        {Object.entries(appliedFilters ?? {}).map(([key, value]) => {
-          const filterKey = key as keyof TProjectFilters;
-
+        {Object.entries(appliedFilters ?? {}).map(([filterKey, value]) => {
+          if (!isProjectFilterKey(filterKey)) return;
           if (!value) return;
           if (Array.isArray(value) && value.length === 0) return;
 

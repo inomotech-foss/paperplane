@@ -123,7 +123,7 @@ const EndpointQuery = observer(function EndpointQuery(props: Props) {
     reverse: reverse ? "true" : undefined,
   };
 
-  const { data, isLoading, error } = useSWR(
+  const { data, isLoading, error } = useSWR<TPageQueryResult[], unknown>(
     slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
     slug ? () => pageQueryService.query(slug, params) : null
   );
@@ -170,7 +170,7 @@ const ContributorsQuery = observer(function ContributorsQuery(props: Props) {
   const slug = workspaceSlug?.toString();
   const params = { kind: "contributors", scope, project_id: page.project_ids?.[0], limit };
 
-  const { data, isLoading, error } = useSWR(
+  const { data, isLoading, error } = useSWR<TPageQueryContributor[], unknown>(
     slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
     slug ? () => pageQueryService.query<TPageQueryContributor>(slug, params) : null
   );
@@ -199,7 +199,7 @@ const LabelListQuery = observer(function LabelListQuery(props: Props) {
   const slug = workspaceSlug?.toString();
   const params = { kind: "label-list", scope, project_id: page.project_ids?.[0], limit };
 
-  const { data, isLoading, error } = useSWR(
+  const { data, isLoading, error } = useSWR<TPageQueryLabel[], unknown>(
     slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
     slug ? () => pageQueryService.query<TPageQueryLabel>(slug, params) : null
   );
@@ -260,7 +260,7 @@ const PagePropertiesQuery = observer(function PagePropertiesQuery(props: Props) 
     reverse: reverse ? "true" : undefined,
   };
 
-  const { data, isLoading, error } = useSWR(
+  const { data, isLoading, error } = useSWR<TPageQueryResult[], unknown>(
     slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
     slug ? () => pageQueryService.query(slug, params) : null
   );
@@ -368,7 +368,7 @@ const ReportQuery = observer(function ReportQuery(props: Props) {
     reverse: reverse ? "true" : undefined,
   };
 
-  const { data, isLoading, error } = useSWR(
+  const { data, isLoading, error } = useSWR<TPageQueryReportItem[], unknown>(
     slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
     slug ? () => pageQueryService.query<TPageQueryReportItem>(slug, params) : null
   );
@@ -391,32 +391,18 @@ const ReportQuery = observer(function ReportQuery(props: Props) {
   );
 });
 
-/**
- * A search box over pages. `page` scope searches the current page's subtree,
- * which the store can answer without a round trip because the project's pages
- * are already loaded; anything wider goes to the endpoint.
- */
-const SearchQuery = observer(function SearchQuery(props: Props) {
-  const { page, placeholder, rootPageId, scope, storeType } = props;
-  const { workspaceSlug } = useParams();
+/** Matches in the current page's subtree, answered by the store. */
+const SubtreeSearchResults = observer(function SubtreeSearchResults(props: {
+  query: string;
+  rootId: string | undefined;
+  storeType: EPageStoreType;
+}) {
+  const { query, rootId, storeType } = props;
   const { getChildPageIds, getPageById } = usePageStore(storeType);
   const { t } = useTranslation();
-  const [term, setTerm] = useState("");
 
-  const slug = workspaceSlug?.toString();
-  const query = term.trim();
-  const searchesSubtree = scope === "page";
-
-  const { data, isLoading, error } = useSWR(
-    slug && query && !searchesSubtree ? ["PAGE_QUERY_SEARCH", slug, scope, query] : null,
-    slug && query && !searchesSubtree
-      ? () => pageQueryService.query(slug, { kind: "search", scope, project_id: page.project_ids?.[0], search: query })
-      : null
-  );
-
-  const rootId = rootPageId ?? page.id;
   const subtreeMatches = useMemo(() => {
-    if (!searchesSubtree || !query || !rootId) return [];
+    if (!rootId) return [];
     const matches: string[] = [];
     const seen = new Set([rootId]);
     let frontier = [rootId];
@@ -435,48 +421,70 @@ const SearchQuery = observer(function SearchQuery(props: Props) {
       frontier = next;
     }
     return matches;
-  }, [getChildPageIds, getPageById, query, rootId, searchesSubtree]);
+  }, [getChildPageIds, getPageById, query, rootId]);
 
-  const input = (
-    <input
-      aria-label={placeholder ?? t("page_query_block.search_placeholder")}
-      className="w-full rounded-sm bg-transparent px-2 py-1.5 text-13 outline-none placeholder:text-tertiary"
-      placeholder={placeholder ?? t("page_query_block.search_placeholder")}
-      value={term}
-      onChange={(event) => setTerm(event.target.value)}
-    />
+  if (subtreeMatches.length === 0) return <Empty message={t("page_query_block.empty_state.search")} />;
+  return (
+    <div className="space-y-0.5">
+      {subtreeMatches.map((pageId) => (
+        <SubPageItem key={pageId} pageId={pageId} storeType={storeType} />
+      ))}
+    </div>
+  );
+});
+
+/** Matches from the query endpoint, for any scope wider than the page. */
+function EndpointSearchResults(props: { query: string; scope: Props["scope"]; projectId: string | undefined }) {
+  const { query, scope, projectId } = props;
+  const { workspaceSlug } = useParams();
+  const { t } = useTranslation();
+  const slug = workspaceSlug?.toString();
+
+  const { data, isLoading, error } = useSWR<TPageQueryResult[], unknown>(
+    slug ? ["PAGE_QUERY_SEARCH", slug, scope, query] : null,
+    slug ? () => pageQueryService.query(slug, { kind: "search", scope, project_id: projectId, search: query }) : null
   );
 
-  let results: React.ReactNode = null;
-  if (query && searchesSubtree) {
-    results =
-      subtreeMatches.length > 0 ? (
-        <div className="space-y-0.5">
-          {subtreeMatches.map((pageId) => (
-            <SubPageItem key={pageId} pageId={pageId} storeType={storeType} />
-          ))}
-        </div>
-      ) : (
-        <Empty message={t("page_query_block.empty_state.search")} />
-      );
-  } else if (query) {
-    if (isLoading) results = <Empty message={t("page_query_block.loading")} />;
-    else if (error) results = <Empty message={t("page_query_block.error")} />;
-    else if (!data || data.length === 0) results = <Empty message={t("page_query_block.empty_state.search")} />;
-    else
-      results = (
-        <div className="space-y-0.5">
-          {data.map((result) => (
-            <QueryResultItem key={result.id} result={result} workspaceSlug={slug ?? ""} />
-          ))}
-        </div>
-      );
-  }
+  if (isLoading) return <Empty message={t("page_query_block.loading")} />;
+  if (error) return <Empty message={t("page_query_block.error")} />;
+  if (!data || data.length === 0) return <Empty message={t("page_query_block.empty_state.search")} />;
+  return (
+    <div className="space-y-0.5">
+      {data.map((result) => (
+        <QueryResultItem key={result.id} result={result} workspaceSlug={slug ?? ""} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * A search box over pages. `page` scope searches the current page's subtree,
+ * which the store can answer without a round trip because the project's pages
+ * are already loaded; anything wider goes to the endpoint.
+ */
+const SearchQuery = observer(function SearchQuery(props: Props) {
+  const { page, placeholder, rootPageId, scope, storeType } = props;
+  const { t } = useTranslation();
+  const [term, setTerm] = useState("");
+
+  const query = term.trim();
+  const label = placeholder ?? t("page_query_block.search_placeholder");
 
   return (
     <Shell>
-      {input}
-      {results}
+      <input
+        aria-label={label}
+        className="w-full rounded-sm bg-transparent px-2 py-1.5 text-13 outline-none placeholder:text-tertiary"
+        placeholder={label}
+        value={term}
+        onChange={(event) => setTerm(event.target.value)}
+      />
+      {query &&
+        (scope === "page" ? (
+          <SubtreeSearchResults query={query} rootId={rootPageId ?? page.id} storeType={storeType} />
+        ) : (
+          <EndpointSearchResults query={query} scope={scope} projectId={page.project_ids?.[0]} />
+        ))}
     </Shell>
   );
 });

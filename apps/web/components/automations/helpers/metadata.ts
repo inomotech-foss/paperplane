@@ -7,6 +7,7 @@
 import useSWR from "swr";
 // plane imports
 import type {
+  TAutomation,
   TAutomationActionType,
   TAutomationChangeType,
   TAutomationConditionPropertyDefinition,
@@ -53,7 +54,7 @@ export const VALUELESS_OPERATORS: TAutomationOperator[] = ["is_empty", "is_not_e
 export const useAutomationMetadata = (workspaceSlug: string) => {
   const { metadata, fetchMetadata } = useAutomation();
 
-  const { isLoading, error } = useSWR(
+  const { isLoading, error } = useSWR<TAutomationMetadata | undefined, unknown>(
     workspaceSlug ? `AUTOMATION_METADATA_${workspaceSlug}` : null,
     workspaceSlug ? () => fetchMetadata(workspaceSlug) : null,
     { revalidateOnFocus: false, revalidateIfStale: false }
@@ -70,7 +71,7 @@ export const useAutomationDetails = (workspaceSlug: string, automationId: string
   const { getAutomationById, fetchAutomationDetails } = useAutomation();
   const automation = getAutomationById(automationId);
 
-  const { isLoading, error } = useSWR(
+  const { isLoading, error } = useSWR<TAutomation | undefined, unknown>(
     workspaceSlug && automationId ? `AUTOMATION_${automationId}` : null,
     workspaceSlug && automationId ? () => fetchAutomationDetails(workspaceSlug, automationId, projectId) : null
   );

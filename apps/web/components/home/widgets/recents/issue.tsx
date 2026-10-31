@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 import { PriorityIcon, StateGroupIcon } from "@plane/blocks/icons";
 import { WorkItemsOutline } from "@makeplane/propel/icons";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
-import type { TActivityEntityData, TIssueEntityData } from "@plane/types";
+import type { TActivityEntityData } from "@plane/types";
 // plane ui
 import { calculateTimeAgo, generateWorkItemLink } from "@plane/utils";
 // components
@@ -20,6 +20,7 @@ import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifi
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
+import { isIssueEntityData } from "./entity-data";
 
 type BlockProps = {
   activity: TActivityEntityData;
@@ -33,7 +34,7 @@ export const RecentIssue = observer(function RecentIssue(props: BlockProps) {
   const { setPeekIssue } = useIssueDetail();
   const { getProjectIdentifierById } = useProject();
   // derived values
-  const issueDetails: TIssueEntityData = activity.entity_data as TIssueEntityData;
+  const issueDetails = isIssueEntityData(activity.entity_data) ? activity.entity_data : undefined;
   const projectIdentifier = getProjectIdentifierById(issueDetails?.project_id);
 
   if (!issueDetails) return <></>;

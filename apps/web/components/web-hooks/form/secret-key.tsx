@@ -25,6 +25,7 @@ import { useWorkspace } from "@/hooks/store/use-workspace";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // utils
 import { getCurrentHookAsCSV } from "../utils";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 // hooks
 
 type Props = {
@@ -81,11 +82,11 @@ export const WebhookSecretKey = observer(function WebhookSecretKey(props: Props)
           csvDownload(csvData, `webhook-secret-key-${Date.now()}`);
         }
       })
-      .catch((err) =>
+      .catch((err: unknown) =>
         setToast({
           type: "error",
           title: `${t("error")}!`,
-          message: err?.error ?? t("something_went_wrong_please_try_again"),
+          message: getApiErrorMessage(err) ?? t("something_went_wrong_please_try_again"),
         })
       )
       .finally(() => setIsRegenerating(false));

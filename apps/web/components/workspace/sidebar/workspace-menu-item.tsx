@@ -25,7 +25,7 @@ export type SidebarWorkspaceMenuItemProps = {
     labelTranslationKey: string;
     key: string;
     href: string;
-    Icon: any;
+    Icon: React.ComponentType<{ className?: string }>;
     access: EUserWorkspaceRoles[];
   };
 };
@@ -49,7 +49,7 @@ export const SidebarWorkspaceMenuItem = observer(function SidebarWorkspaceMenuIt
     }
   };
 
-  if (!allowPermissions(item.access as any, EUserPermissionsLevel.WORKSPACE, workspaceSlug.toString())) {
+  if (!allowPermissions(item.access, EUserPermissionsLevel.WORKSPACE, workspaceSlug.toString())) {
     return null;
   }
 

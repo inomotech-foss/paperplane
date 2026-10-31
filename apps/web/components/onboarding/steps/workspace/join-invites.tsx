@@ -61,7 +61,7 @@ export function WorkspaceJoinInvitesStep(props: Props) {
       await fetchWorkspaces();
       await fetchCurrentUserSettings();
       await handleNextStep();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       setIsJoiningWorkspaces(false);
     }

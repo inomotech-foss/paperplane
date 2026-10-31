@@ -22,6 +22,14 @@ type Props = {
 
 const MEMBERS_FILTERS = new Set(["created_by"]);
 const DATE_FILTERS = ["created_at"];
+const PAGE_FILTER_KEYS: Record<keyof TPageFilterProps, true> = {
+  created_at: true,
+  created_by: true,
+  favorites: true,
+  labels: true,
+};
+
+const isPageFilterKey = (key: string): key is keyof TPageFilterProps => Object.hasOwn(PAGE_FILTER_KEYS, key);
 
 /**
  * Chrome shared by each applied-filter group and the "clear all" control. A filter group is a
@@ -41,9 +49,8 @@ export function PageAppliedFiltersList(props: Props) {
 
   return (
     <div className="flex flex-wrap items-stretch gap-2">
-      {Object.entries(appliedFilters).map(([key, value]) => {
-        const filterKey = key as keyof TPageFilterProps;
-
+      {Object.entries(appliedFilters).map(([filterKey, value]) => {
+        if (!isPageFilterKey(filterKey)) return;
         if (!value) return;
         if (Array.isArray(value) && value.length === 0) return;
 

@@ -16,6 +16,9 @@ import { convertMinutesToHoursMinutesString } from "@plane/utils";
 // components
 import { UpgradeBadge } from "@/components/workspace/upgrade-badge";
 import { RadioInput } from "../radio-select";
+import { isOneOf } from "@/helpers/narrow.helper";
+
+const ESTIMATE_SYSTEM_KEYS: TEstimateSystemKeys[] = Object.values(EEstimateSystem);
 
 type TEstimateCreateStageOne = {
   estimateSystem: TEstimateSystemKeys;
@@ -36,32 +39,29 @@ export function EstimateCreateStageOne(props: TEstimateCreateStageOne) {
     <div className="space-y-6">
       <div className="mb-2 gap-2 sm:flex sm:items-center sm:space-y-0 sm:space-x-10">
         <RadioInput
-          options={Object.keys(ESTIMATE_SYSTEMS)
-            .map((system) => {
-              const currentSystem = system as TEstimateSystemKeys;
-              const isEnabled = isEstimateSystemEnabled(currentSystem);
-              if (!isEnabled) return null;
-              return {
-                label: !ESTIMATE_SYSTEMS[currentSystem]?.is_available ? (
-                  <div className="relative flex cursor-no-drop items-center gap-2 text-tertiary">
-                    {t(ESTIMATE_SYSTEMS[currentSystem]?.i18n_name)}
-                    <Tooltip label={t("common.coming_soon")}>
-                      <InfoOutline width={12} height={12} />
-                    </Tooltip>
-                  </div>
-                ) : !isEnabled ? (
-                  <div className="relative flex cursor-no-drop items-center gap-2 text-tertiary">
-                    {t(ESTIMATE_SYSTEMS[currentSystem]?.i18n_name)}
-                    <UpgradeBadge />
-                  </div>
-                ) : (
-                  <div>{t(ESTIMATE_SYSTEMS[currentSystem]?.i18n_name)}</div>
-                ),
-                value: system,
-                disabled: !isEnabled,
-              };
-            })
-            .filter((option) => option !== null)}
+          options={ESTIMATE_SYSTEM_KEYS.map((currentSystem) => {
+            const isEnabled = isEstimateSystemEnabled(currentSystem);
+            if (!isEnabled) return null;
+            return {
+              label: !ESTIMATE_SYSTEMS[currentSystem]?.is_available ? (
+                <div className="relative flex cursor-no-drop items-center gap-2 text-tertiary">
+                  {t(ESTIMATE_SYSTEMS[currentSystem]?.i18n_name)}
+                  <Tooltip label={t("common.coming_soon")}>
+                    <InfoOutline width={12} height={12} />
+                  </Tooltip>
+                </div>
+              ) : !isEnabled ? (
+                <div className="relative flex cursor-no-drop items-center gap-2 text-tertiary">
+                  {t(ESTIMATE_SYSTEMS[currentSystem]?.i18n_name)}
+                  <UpgradeBadge />
+                </div>
+              ) : (
+                <div>{t(ESTIMATE_SYSTEMS[currentSystem]?.i18n_name)}</div>
+              ),
+              value: currentSystem,
+              disabled: !isEnabled,
+            };
+          }).filter((option) => option !== null)}
           name="estimate-radio-input"
           label={t("project_settings.estimates.create.choose_estimate_system")}
           labelClassName="text-13 font-medium text-secondary mb-1.5"
@@ -69,7 +69,9 @@ export function EstimateCreateStageOne(props: TEstimateCreateStageOne) {
           fieldClassName="relative flex items-center gap-1.5"
           buttonClassName="size-4"
           selected={estimateSystem}
-          onChange={(value) => handleEstimateSystem(value as TEstimateSystemKeys)}
+          onChange={(value) => {
+            if (isOneOf(ESTIMATE_SYSTEM_KEYS, value)) handleEstimateSystem(value);
+          }}
         />
       </div>
       {ESTIMATE_SYSTEMS[estimateSystem]?.is_available && !ESTIMATE_SYSTEMS[estimateSystem]?.is_ee && (

@@ -34,6 +34,16 @@ const DATE_FILTERS = ["start_date", "target_date"];
 const FILTER_GROUP_CLASSNAME =
   "my-auto flex min-h-9 cursor-pointer flex-wrap items-center gap-1.5 rounded-md border border-subtle p-1.5 text-11 text-tertiary capitalize hover:text-secondary";
 
+const FILTER_KEYS = [
+  "lead",
+  "members",
+  "start_date",
+  "status",
+  "target_date",
+] as const satisfies readonly (keyof TModuleFilters)[];
+
+const isFilterKey = (key: string): key is keyof TModuleFilters => FILTER_KEYS.some((k) => k === key);
+
 export function ModuleAppliedFiltersList(props: Props) {
   const {
     appliedFilters,
@@ -54,9 +64,8 @@ export function ModuleAppliedFiltersList(props: Props) {
   return (
     <Header variant={EHeaderVariant.TERNARY}>
       <div className="flex flex-wrap gap-2">
-        {Object.entries(appliedFilters).map(([key, value]) => {
-          const filterKey = key as keyof TModuleFilters;
-
+        {Object.entries(appliedFilters).map(([filterKey, value]) => {
+          if (!isFilterKey(filterKey)) return;
           if (!value) return;
           if (Array.isArray(value) && value.length === 0) return;
 

@@ -14,12 +14,14 @@ import type {
   TAutomationConditionGroup,
   TAutomationConditionLeaf,
   TAutomationConditionNode,
+  TAutomationConditionValue,
   TAutomationLogicalOperator,
   TAutomationMetadata,
   TAutomationOperator,
   TAutomationScope,
 } from "@plane/types";
 // local imports
+import { isConditionValue } from "../helpers/action-config";
 import { AutomationOptionSelect } from "../helpers/option-select";
 import {
   DAY_COUNT_OPERATORS,
@@ -65,15 +67,17 @@ const emptyLeaf = (): TAutomationConditionLeaf => ({
  *
  * Call this once when hydrating, never during render.
  */
-export const ensureConditionIds = (node: TAutomationConditionNode | null): TAutomationConditionNode | null => {
-  if (!node) return null;
+const withConditionIds = (node: TAutomationConditionNode): TAutomationConditionNode => {
   if (node.type === "condition") return { ...node, id: node.id ?? nextNodeId() };
   return {
     ...node,
     id: node.id ?? nextNodeId(),
-    children: (node.children ?? []).map((child) => ensureConditionIds(child) as TAutomationConditionNode),
+    children: (node.children ?? []).map(withConditionIds),
   };
 };
+
+export const ensureConditionIds = (node: TAutomationConditionNode | null): TAutomationConditionNode | null =>
+  node ? withConditionIds(node) : null;
 
 /** Whether the stored condition is already a group we can append to. */
 const asGroup = (condition: TAutomationConditionNode | null): TAutomationConditionGroup => {
@@ -88,7 +92,7 @@ const asGroup = (condition: TAutomationConditionNode | null): TAutomationConditi
  * Sensible starting value when the property or operator changes, so the row is
  * never left holding a value shape the new operator can't use.
  */
-const resetValueFor = (operator: TAutomationOperator, multiple: boolean): unknown => {
+const resetValueFor = (operator: TAutomationOperator, multiple: boolean): TAutomationConditionValue => {
   if (VALUELESS_OPERATORS.includes(operator)) return null;
   if (DAY_COUNT_OPERATORS.includes(operator)) return 1;
   if (operator === "in" || operator === "not_in" || operator === "contains" || operator === "not_contains") {
@@ -126,12 +130,12 @@ const ConditionRow = observer(function ConditionRow(props: LeafRowProps) {
 
   const handlePropertyChange = (propertyKey: string) => {
     const nextDefinition = findConditionProperty(metadata, propertyKey);
-    const nextOperator = (nextDefinition?.operators[0] ?? "in") as TAutomationOperator;
+    const nextOperator = nextDefinition?.operators[0] ?? "in";
     onChange({
       ...leaf,
       property: propertyKey,
       operator: nextOperator,
-      value: resetValueFor(nextOperator, nextDefinition?.kind === "multi_option") as never,
+      value: resetValueFor(nextOperator, nextDefinition?.kind === "multi_option"),
     });
   };
 
@@ -139,7 +143,7 @@ const ConditionRow = observer(function ConditionRow(props: LeafRowProps) {
     onChange({
       ...leaf,
       operator,
-      value: resetValueFor(operator, definition?.kind === "multi_option") as never,
+      value: resetValueFor(operator, definition?.kind === "multi_option"),
     });
   };
 
@@ -214,7 +218,7 @@ const ConditionRow = observer(function ConditionRow(props: LeafRowProps) {
             source={definition.source}
             multiple={acceptsMultiple}
             value={leaf.value}
-            onChange={(value) => onChange({ ...leaf, value: value as never })}
+            onChange={(value) => onChange({ ...leaf, value: isConditionValue(value) ? value : undefined })}
             disabled={disabled}
           />
         </div>

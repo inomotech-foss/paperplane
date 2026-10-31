@@ -29,27 +29,23 @@ export function CommandRenderer(props: Props) {
   // Translated once here rather than per badge, so rows don't each subscribe to i18n
   const keySequenceSeparator = t("power_k.shortcuts_modal.sequence_separator");
 
-  const commandsByGroup = commands.reduce(
-    (acc, command) => {
-      const group = command.group || "general";
-      if (!acc[group]) acc[group] = [];
-      acc[group].push(command);
-      return acc;
-    },
-    {} as Record<TPowerKCommandGroup, TPowerKCommandConfig[]>
-  );
+  const commandsByGroup = new Map<TPowerKCommandGroup, TPowerKCommandConfig[]>();
+  for (const command of commands) {
+    const group = command.group || "general";
+    const groupCommands = commandsByGroup.get(group) ?? [];
+    groupCommands.push(command);
+    commandsByGroup.set(group, groupCommands);
+  }
 
   // oxlint-disable-next-line unicorn/no-array-sort
-  const sortedGroups = Object.keys(commandsByGroup).sort((a, b) => {
-    const aPriority = POWER_K_GROUP_PRIORITY[a as TPowerKCommandGroup];
-    const bPriority = POWER_K_GROUP_PRIORITY[b as TPowerKCommandGroup];
-    return aPriority - bPriority;
-  }) as TPowerKCommandGroup[];
+  const sortedGroups = [...commandsByGroup.keys()].sort(
+    (a, b) => POWER_K_GROUP_PRIORITY[a] - POWER_K_GROUP_PRIORITY[b]
+  );
 
   return (
     <>
       {sortedGroups.map((groupKey) => {
-        const groupCommands = commandsByGroup[groupKey];
+        const groupCommands = commandsByGroup.get(groupKey);
         if (!groupCommands || groupCommands.length === 0) return null;
 
         const title =
@@ -59,7 +55,7 @@ export function CommandRenderer(props: Props) {
 
         return (
           <Command.Group key={groupKey} heading={title}>
-            {groupCommands.map((command) => (
+            {groupCommands?.map((command) => (
               <PowerKModalCommandItem
                 key={command.id}
                 icon={command.icon}

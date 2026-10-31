@@ -81,12 +81,7 @@ export function IssueCommentToolbar(props: Props) {
     Object.values(toolbarItems)
       .flat()
       .forEach((item) => {
-        // TODO: update this while toolbar homogenization
-        // @ts-expect-error type mismatch here
-        newActiveStates[item.renderKey] = editorRef.isMenuItemActive({
-          itemKey: item.itemKey,
-          ...item.extraProps,
-        });
+        newActiveStates[item.renderKey] = editorRef.isToolbarItemActive(item);
       });
     setActiveStates(newActiveStates);
   }, [editorRef]);

@@ -13,6 +13,7 @@ import type {
   TFilterProperty,
   TMultiSelectFilterFieldConfig,
   TFilterConditionNodeForDisplay,
+  TFilterValue,
 } from "@plane/types";
 import { useTranslation } from "@plane/i18n";
 import { Select } from "@plane/blocks/select";
@@ -23,10 +24,10 @@ import { SelectedOptionsDisplay } from "./selected-options-display";
 import { loadOptions } from "./shared";
 
 type TMultiSelectFilterValueInputProps<P extends TFilterProperty> = {
-  config: TMultiSelectFilterFieldConfig<string>;
-  condition: TFilterConditionNodeForDisplay<P, string>;
+  config: TMultiSelectFilterFieldConfig<TFilterValue>;
+  condition: TFilterConditionNodeForDisplay<P, TFilterValue>;
   isDisabled?: boolean;
-  onChange: (values: SingleOrArray<string>) => void;
+  onChange: (values: SingleOrArray<TFilterValue>) => void;
 };
 
 export const MultiSelectFilterValueInput = observer(function MultiSelectFilterValueInput<P extends TFilterProperty>(
@@ -36,7 +37,7 @@ export const MultiSelectFilterValueInput = observer(function MultiSelectFilterVa
   // plane hooks
   const { t } = useTranslation();
   // states
-  const [options, setOptions] = useState<IFilterOption<string>[]>([]);
+  const [options, setOptions] = useState<IFilterOption<TFilterValue>[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   // derived values
   const selectedValues = useMemo(() => toFilterArray(condition.value).map(String), [condition.value]);
@@ -51,14 +52,14 @@ export const MultiSelectFilterValueInput = observer(function MultiSelectFilterVa
 
   return (
     <div className={cn("flex min-w-0", !isDisabled && COMMON_FILTER_ITEM_BORDER_CLASSNAME)}>
-      <Select<IFilterOption<string>>
+      <Select<IFilterOption<TFilterValue>>
         multiple
         getValues={() => options}
         valueIds={selectedValues}
         // Ruling 46: a value whose option has not loaded yet survives `onChange` as a stand-in.
         getOptionPlaceholder={(id) => ({ id, label: id, value: id })}
         onChange={handleSelectChange}
-        getOptionValue={(option) => option.value}
+        getOptionValue={(option) => String(option.value)}
         getOptionLabel={(option) => option.label}
         getOptionIcon={(option) =>
           option.icon ? <span className={cn("shrink-0", option.iconClassName)}>{option.icon}</span> : undefined
@@ -71,7 +72,7 @@ export const MultiSelectFilterValueInput = observer(function MultiSelectFilterVa
       >
         {/* A flat segment of the filter chip, like the operator segment beside it. */}
         <Select.Trigger variant="select-ghost-md" appendIcon={null} className="h-full min-h-0 rounded-none">
-          <SelectedOptionsDisplay<string> selectedValue={condition.value} options={options} />
+          <SelectedOptionsDisplay<TFilterValue> selectedValue={condition.value} options={options} />
         </Select.Trigger>
       </Select>
     </div>

@@ -1,7 +1,6 @@
 /* eslint-disable no-extend-native -- jsdom has no layout engine; the tests stub element sizing */
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
-import type { TPageNavigationTabs } from "@plane/types";
 import type { TPageVisibleRow } from "@/store/pages/project-page.store";
 
 const TOTAL_PAGES = 5000;
@@ -57,7 +56,7 @@ beforeAll(() => {
     observe() {}
     unobserve() {}
     disconnect() {}
-  } as unknown as typeof ResizeObserver;
+  };
 
   // virtual-core measures via offsetWidth/offsetHeight, which jsdom reports as 0
   Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -77,9 +76,8 @@ beforeAll(() => {
 describe("PagesListRoot windowing", () => {
   it("renders only a viewport-sized window of rows for a huge page set", async () => {
     const { PagesListRoot } = await import("./root");
-    const { container } = render(
-      <PagesListRoot pageType={"public" as TPageNavigationTabs} storeType={mockStore as never} />
-    );
+    const { EPageStoreType } = await import("@/hooks/store");
+    const { container } = render(<PagesListRoot pageType="public" storeType={EPageStoreType.PROJECT} />);
 
     const renderedRows = container.querySelectorAll("[data-testid='page-row']").length;
 

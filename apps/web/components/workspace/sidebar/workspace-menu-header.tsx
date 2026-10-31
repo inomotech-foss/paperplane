@@ -32,9 +32,7 @@ export const SidebarWorkspaceMenuHeader = observer(function SidebarWorkspaceMenu
   const { allowPermissions } = useUserPermissions();
   const { t } = useTranslation();
 
-  // TODO: fix types
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const isAdmin = allowPermissions([EUserWorkspaceRoles.ADMIN] as any, EUserPermissionsLevel.WORKSPACE);
+  const isAdmin = allowPermissions([EUserWorkspaceRoles.ADMIN], EUserPermissionsLevel.WORKSPACE);
 
   return (
     <div

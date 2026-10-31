@@ -9,12 +9,7 @@ import useSWR from "swr";
 import { Pencil, RefreshCw, Trash2 } from "lucide-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
-import type {
-  TDashboardOptions,
-  TDashboardWidgetData,
-  TDashboardWidgetError,
-  TWorkspaceDashboardWidget,
-} from "@plane/types";
+import type { TDashboardOptions, TDashboardWidgetData, TWorkspaceDashboardWidget } from "@plane/types";
 import { Icon } from "@makeplane/propel/components/icon";
 import { IconButton } from "@makeplane/propel/components/icon-button";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/components/menu";
@@ -26,6 +21,7 @@ import { useWorkspaceDashboards } from "@/hooks/store/use-workspace-dashboards";
 // local imports
 import { buildDimensionChoices, dimensionLabel, isFullWidth, metricLabel } from "./utils";
 import { WidgetChart } from "./widget-chart";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type Props = {
   workspaceSlug: string;
@@ -45,7 +41,7 @@ export const WidgetCard = observer(function WidgetCard(props: Props) {
   const { t } = useTranslation();
   const { fetchWidgetData } = useWorkspaceDashboards();
 
-  const { data, error, isLoading, isValidating, mutate } = useSWR(
+  const { data, error, isLoading, isValidating, mutate } = useSWR<TDashboardWidgetData, unknown>(
     widgetDataKey(workspaceSlug, widget),
     () => fetchWidgetData(workspaceSlug, widget.dashboard, widget.id),
     { revalidateOnFocus: false, shouldRetryOnError: false }
@@ -78,7 +74,7 @@ export const WidgetCard = observer(function WidgetCard(props: Props) {
         <WidgetCardBody
           widget={widget}
           data={data}
-          error={error as TDashboardWidgetError | undefined}
+          error={error}
           isLoading={isLoading}
           metric={metric}
           dimension={dimension}
@@ -169,7 +165,7 @@ function WidgetCardMenu(props: { onEdit: () => void; onDelete: () => void }) {
 type TBodyProps = {
   widget: TWorkspaceDashboardWidget;
   data: TDashboardWidgetData | undefined;
-  error: TDashboardWidgetError | undefined;
+  error: unknown;
   isLoading: boolean;
   metric: string;
   dimension: string;
@@ -188,7 +184,7 @@ function WidgetCardBody(props: TBodyProps) {
   if (error) {
     return (
       <div className="grid h-full place-items-center px-2 text-center text-12 text-danger-primary">
-        {error.error ?? t("insight_dashboards.widget.load_error")}
+        {getApiErrorMessage(error) ?? t("insight_dashboards.widget.load_error")}
       </div>
     );
   }

@@ -31,14 +31,14 @@ export function DownloadActivityButton() {
 
     setIsDownloading(true);
 
-    const csv = await userService
+    const csv: unknown = await userService
       .downloadProfileActivity(workspaceSlug.toString(), userId.toString(), {
         date: today,
       })
       .finally(() => setIsDownloading(false));
 
     // create a Blob object
-    const blob = new Blob([csv], { type: "text/csv" });
+    const blob = new Blob([String(csv)], { type: "text/csv" });
 
     // create URL for the Blob object
     const url = window.URL.createObjectURL(blob);

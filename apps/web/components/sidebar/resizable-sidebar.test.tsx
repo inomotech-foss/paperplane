@@ -35,7 +35,7 @@ function renderSidebar() {
   };
 }
 
-const persisted = () => JSON.parse(localStorage.getItem(KEY) ?? "null");
+const persisted = (): unknown => JSON.parse(localStorage.getItem(KEY) ?? "null");
 
 // jsdom has no PointerEvent, so clientX and pointerId would be dropped
 class TestPointerEvent extends MouseEvent {

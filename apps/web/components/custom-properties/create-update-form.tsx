@@ -21,6 +21,8 @@ import { CustomPropertyIcon } from "@/components/issues/issue-detail/custom-prop
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { DerivationSettings } from "./derivation-settings";
 import { useDerivationDraft } from "./use-derivation-draft";
+import { getField, isOneOf } from "@/helpers/narrow.helper";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 export type TCustomPropertyOperationsCallbacks = {
   createProperty: (data: Partial<TIssueCustomProperty>) => Promise<TIssueCustomProperty>;
@@ -43,11 +45,9 @@ export const getPropertyTypeLabelKey = (propertyType: TIssueCustomPropertyType, 
 
 /** The API's reason a property could not be saved, e.g. a derivation that would form a cycle. */
 const getSaveErrorMessage = (error: unknown): string | undefined => {
-  const details = error as { error?: string; derivation_config?: string | string[] } | undefined;
-  const derivationError = Array.isArray(details?.derivation_config)
-    ? details.derivation_config[0]
-    : details?.derivation_config;
-  return derivationError ?? details?.error;
+  const derivationConfig = getField(error, "derivation_config");
+  const derivationError: unknown = Array.isArray(derivationConfig) ? derivationConfig[0] : derivationConfig;
+  return (typeof derivationError === "string" ? derivationError : undefined) ?? getApiErrorMessage(error);
 };
 
 export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCustomPropertyForm(
@@ -133,7 +133,7 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
           getValues={() => [...ISSUE_CUSTOM_PROPERTY_TYPES]}
           value={resolved.type}
           onChange={(value) => {
-            if (value) setPropertyType(value as TIssueCustomPropertyType);
+            if (isOneOf(ISSUE_CUSTOM_PROPERTY_TYPES, value)) setPropertyType(value);
           }}
           getOptionValue={(type) => type}
           getOptionLabel={(type) => t(getPropertyTypeLabelKey(type))}

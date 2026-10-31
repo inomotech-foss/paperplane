@@ -4,7 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { ChartDataType, IBlockUpdateData, IGanttBlock } from "@plane/types";
+import type { ChartDataType, IGanttBlock } from "@plane/types";
+import type { TGanttBlockUpdateHandler } from "@/components/gantt-chart/types";
 
 /** The row a block is nested under; null or undefined for a top-level row. Flat lists omit it. */
 export type TGetBlockParentId = (blockId: string) => string | null | undefined;
@@ -91,7 +92,7 @@ export const handleOrderChange = (
   dropAtEndOfList: boolean,
   blockIds: string[] | null,
   getBlockById: (id: string, currentViewData?: ChartDataType) => IGanttBlock,
-  blockUpdateHandler: (block: any, payload: IBlockUpdateData) => void,
+  blockUpdateHandler: TGanttBlockUpdateHandler,
   getParentId?: TGetBlockParentId
 ) => {
   if (!blockIds || !draggingBlockId || !droppedBlockId) return;

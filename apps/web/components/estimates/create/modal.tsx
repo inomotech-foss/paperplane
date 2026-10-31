@@ -83,7 +83,7 @@ export const CreateEstimateModal = observer(function CreateEstimateModal(props: 
     if (!estimatePointError) return estimateError;
 
     Object.keys(estimatePointError || {}).forEach((key) => {
-      const currentKey = key as unknown as number;
+      const currentKey = Number(key);
       if (
         estimatePointError[currentKey]?.oldValue != estimatePointError[currentKey]?.newValue ||
         estimatePointError[currentKey]?.newValue === "" ||
@@ -129,7 +129,7 @@ export const CreateEstimateModal = observer(function CreateEstimateModal(props: 
       setEstimatePointError((prev) => {
         const newError = { ...prev };
         Object.keys(newError || {}).forEach((key) => {
-          const currentKey = key as unknown as number;
+          const currentKey = Number(key);
           if (
             newError[currentKey]?.newValue != "" &&
             newError[currentKey]?.oldValue === newError[currentKey]?.newValue

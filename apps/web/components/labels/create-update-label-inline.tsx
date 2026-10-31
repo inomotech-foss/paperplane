@@ -18,6 +18,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@makeplane/propel/compo
 import { ColorSwatchPicker } from "@plane/blocks/common";
 import { setToast } from "@plane/blocks/toast";
 import type { IIssueLabel } from "@plane/types";
+import { errorFieldIncludes, getStringField } from "@/helpers/narrow.helper";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 // error codes
 const errorCodes = {
@@ -70,21 +72,18 @@ export const CreateUpdateLabelInline = observer(
       if (onClose) onClose();
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const getErrorMessage = (error: any, operation: "create" | "update"): string => {
-      const errorData = error ?? {};
-
-      const labelError = errorData.name?.includes(errorCodes.LABEL_NAME_ALREADY_EXISTS);
+    const getErrorMessage = (error: unknown, operation: "create" | "update"): string => {
+      const labelError = errorFieldIncludes(error, "name", errorCodes.LABEL_NAME_ALREADY_EXISTS);
       if (labelError) {
         return t("label.create.already_exists");
       }
 
       // Fallback to general error messages
       if (operation === "create") {
-        return errorData?.detail ?? errorData?.error ?? t("common.something_went_wrong");
+        return getStringField(error, "detail") ?? getApiErrorMessage(error) ?? t("common.something_went_wrong");
       }
 
-      return errorData?.error ?? t("project_settings.labels.toast.error");
+      return getApiErrorMessage(error) ?? t("project_settings.labels.toast.error");
     };
 
     const handleLabelCreate: SubmitHandler<IIssueLabel> = async (formData) => {

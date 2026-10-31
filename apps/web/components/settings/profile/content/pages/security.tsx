@@ -20,12 +20,14 @@ import { getPasswordStrength } from "@plane/utils";
 // components
 import { ProfileSettingsHeading } from "@/components/settings/profile/heading";
 // helpers
-import { authErrorHandler, EAuthenticationErrorCodes, passwordErrors } from "@/helpers/authentication.helper";
+import { authErrorHandler, passwordErrors } from "@/helpers/authentication.helper";
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 import { useUser } from "@/hooks/store/user";
 // services
 import { AuthService } from "@/services/auth.service";
+import { toAuthErrorCode } from "@/helpers/error.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 export interface FormValues {
   old_password: string;
@@ -97,9 +99,8 @@ export const SecurityProfileSettings = observer(function SecurityProfileSettings
         message: t("auth.common.password.toast.change_password.success.message"),
       });
     } catch (error: unknown) {
-      const err = error as Error & { error_code?: string };
-      const code = err.error_code?.toString();
-      const errorInfo = code ? authErrorHandler(code as EAuthenticationErrorCodes) : undefined;
+      const code = toAuthErrorCode(getField(error, "error_code"));
+      const errorInfo = code ? authErrorHandler(code) : undefined;
 
       setToast({
         type: "error",
@@ -110,7 +111,7 @@ export const SecurityProfileSettings = observer(function SecurityProfileSettings
             : t("auth.common.password.toast.change_password.error.message"),
       });
 
-      if (code && passwordErrors.includes(code as EAuthenticationErrorCodes)) {
+      if (code && passwordErrors.includes(code)) {
         setError("new_password", {
           type: "manual",
           message: errorInfo?.message?.toString() || t("auth.common.password.toast.change_password.error.message"),

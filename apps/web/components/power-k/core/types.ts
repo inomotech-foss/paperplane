@@ -118,7 +118,7 @@ export type TCommandPaletteState = {
   selectedCommand: TPowerKCommandConfig | null;
 };
 
-export type TSelectionPageProps<T = any> = {
+export type TSelectionPageProps<T = unknown> = {
   workspaceSlug: string;
   projectId?: string;
   searchTerm?: string;

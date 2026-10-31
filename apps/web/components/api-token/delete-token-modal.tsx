@@ -15,6 +15,7 @@ import type { IApiToken } from "@plane/types";
 import { ConfirmDialog } from "@plane/blocks/dialog";
 // fetch-keys
 import { API_TOKENS_LIST } from "@plane/constants";
+import { getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   isOpen: boolean;
@@ -57,11 +58,11 @@ export function DeleteApiTokenModal(props: Props) {
         handleClose();
         setDeleteLoading(false);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: t("workspace_settings.settings.api_tokens.delete.error.title"),
-          message: err?.message ?? t("workspace_settings.settings.api_tokens.delete.error.message"),
+          message: getStringField(err, "message") ?? t("workspace_settings.settings.api_tokens.delete.error.message"),
         });
         setDeleteLoading(false);
       });

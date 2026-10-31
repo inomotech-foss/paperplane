@@ -17,6 +17,7 @@ import { ConfirmDialog } from "@plane/blocks/dialog";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { getStringField } from "@/helpers/narrow.helper";
 
 interface ICycleDelete {
   cycle: ICycle;
@@ -53,8 +54,8 @@ export const CycleDeleteModal = observer(function CycleDeleteModal(props: ICycle
             message: "Cycle deleted successfully.",
           });
         })
-        .catch((errors) => {
-          const isPermissionError = errors?.error === "You don't have the required permissions.";
+        .catch((errors: unknown) => {
+          const isPermissionError = getStringField(errors, "error") === "You don't have the required permissions.";
           const currentError = isPermissionError
             ? PROJECT_ERROR_MESSAGES.permissionError
             : PROJECT_ERROR_MESSAGES.cycleDeleteError;

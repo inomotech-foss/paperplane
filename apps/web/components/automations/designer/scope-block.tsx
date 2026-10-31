@@ -10,6 +10,7 @@ import { Globe } from "lucide-react";
 import { useTranslation } from "@plane/i18n";
 import type { TAutomation } from "@plane/types";
 // local imports
+import { toStringArray } from "@/helpers/narrow.helper";
 import { AutomationValueInput } from "./value-input";
 
 type Props = {
@@ -80,7 +81,7 @@ export const AutomationScopeBlock = observer(function AutomationScopeBlock(props
               source="projects"
               multiple
               value={automation.projects}
-              onChange={(value) => onChange({ project_ids: value as string[] })}
+              onChange={(value) => onChange({ project_ids: toStringArray(value) })}
               disabled={disabled}
             />
           </div>

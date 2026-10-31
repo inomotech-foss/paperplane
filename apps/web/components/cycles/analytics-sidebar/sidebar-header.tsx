@@ -13,7 +13,7 @@ import { useTranslation } from "@plane/i18n";
 import { ChevronRightOutline } from "@makeplane/propel/icons";
 import { DateRangeSelect } from "@plane/blocks/property-select";
 import { setToast } from "@plane/blocks/toast";
-import type { ICycle } from "@plane/types";
+import type { CycleDateCheckData, ICycle } from "@plane/types";
 import { getDate, renderFormattedPayloadDate } from "@plane/utils";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
@@ -21,6 +21,7 @@ import { useUserPermissions, useUserProfile } from "@/hooks/store/user";
 import { useTimeZoneConverter } from "@/hooks/use-timezone-converter";
 // services
 import { CycleService } from "@/services/cycle.service";
+import { isRecord } from "@/helpers/narrow.helper";
 
 type Props = {
   workspaceSlug: string;
@@ -71,10 +72,10 @@ export const CycleSidebarHeader = observer(function CycleSidebarHeader(props: Pr
       });
   }, [cycleDetails, reset]);
 
-  const dateChecker = async (payload: any) => {
+  const dateChecker = async (payload: CycleDateCheckData) => {
     try {
-      const res = await cycleService.cycleDateCheck(workspaceSlug, projectId, payload);
-      return res.status;
+      const res: unknown = await cycleService.cycleDateCheck(workspaceSlug, projectId, payload);
+      return isRecord(res) && Boolean(res.status);
     } catch (_err) {
       return false;
     }
@@ -90,7 +91,8 @@ export const CycleSidebarHeader = observer(function CycleSidebarHeader(props: Pr
 
     if (payload?.start_date && payload.end_date) {
       isDateValid = await dateChecker({
-        ...payload,
+        start_date: payload.start_date,
+        end_date: payload.end_date,
         cycle_id: cycleDetails.id,
       });
     } else {

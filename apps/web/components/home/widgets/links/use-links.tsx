@@ -9,6 +9,8 @@ import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
 import type { TProjectLink } from "@plane/types";
 import { useHome } from "@/hooks/store/use-home";
+import { getApiErrorMessage } from "@/helpers/error.helper";
+import { getField } from "@/helpers/narrow.helper";
 
 export type TLinkOperations = {
   create: (data: Partial<TProjectLink>) => Promise<void>;
@@ -47,10 +49,10 @@ export const useLinks = (workspaceSlug: string) => {
             title: t("links.toasts.created.title"),
           });
           toggleLinkModal(false);
-        } catch (error: any) {
-          console.error("error", error?.data?.error);
+        } catch (error: unknown) {
+          console.error("error", getApiErrorMessage(getField(error, "data")));
           setToast({
-            message: error?.data?.error ?? t("links.toasts.not_created.message"),
+            message: getApiErrorMessage(getField(error, "data")) ?? t("links.toasts.not_created.message"),
             type: "error",
             title: t("links.toasts.not_created.title"),
           });
@@ -67,9 +69,9 @@ export const useLinks = (workspaceSlug: string) => {
             title: t("links.toasts.updated.title"),
           });
           toggleLinkModal(false);
-        } catch (error: any) {
+        } catch (error: unknown) {
           setToast({
-            message: error?.data?.error ?? t("links.toasts.not_updated.message"),
+            message: getApiErrorMessage(getField(error, "data")) ?? t("links.toasts.not_updated.message"),
             type: "error",
             title: t("links.toasts.not_updated.title"),
           });
@@ -85,9 +87,9 @@ export const useLinks = (workspaceSlug: string) => {
             type: "success",
             title: t("links.toasts.removed.message"),
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
           setToast({
-            message: error?.data?.error ?? t("links.toasts.not_removed.message"),
+            message: getApiErrorMessage(getField(error, "data")) ?? t("links.toasts.not_removed.message"),
             type: "error",
             title: t("links.toasts.not_removed.title"),
           });

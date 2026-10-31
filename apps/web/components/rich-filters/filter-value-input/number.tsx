@@ -7,13 +7,13 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
-import type { TFilterConditionNodeForDisplay, TFilterProperty } from "@plane/types";
+import type { TFilterConditionNodeForDisplay, TFilterProperty, TFilterValue } from "@plane/types";
 import { cn } from "@plane/utils";
 // local imports
 import { COMMON_FILTER_ITEM_BORDER_CLASSNAME, EMPTY_FILTER_PLACEHOLDER_TEXT } from "../shared";
 
 type TNumberFilterValueInputProps<P extends TFilterProperty> = {
-  condition: TFilterConditionNodeForDisplay<P, number>;
+  condition: TFilterConditionNodeForDisplay<P, TFilterValue>;
   isDisabled?: boolean;
   onChange: (value: number | null) => void;
 };
@@ -55,7 +55,7 @@ export const NumberFilterValueInput = observer(function NumberFilterValueInput<P
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           commit();
-          (e.target as HTMLInputElement).blur();
+          e.currentTarget.blur();
         }
       }}
     />

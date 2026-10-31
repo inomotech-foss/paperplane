@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TInboxIssueStatus } from "@plane/types";
+import type { TInboxIssueSortingOrderByKeys, TInboxIssueSortingSortByKeys, TInboxIssueStatus } from "@plane/types";
 import { EInboxIssueStatus } from "@plane/types";
 
 export const INBOX_STATUS: {
@@ -45,7 +45,7 @@ export const INBOX_STATUS: {
   },
 ];
 
-export const INBOX_ISSUE_ORDER_BY_OPTIONS = [
+export const INBOX_ISSUE_ORDER_BY_OPTIONS: { key: TInboxIssueSortingOrderByKeys; i18n_label: string }[] = [
   {
     key: "issue__created_at",
     i18n_label: "inbox_issue.order_by.created_at",
@@ -60,7 +60,7 @@ export const INBOX_ISSUE_ORDER_BY_OPTIONS = [
   },
 ];
 
-export const INBOX_ISSUE_SORT_BY_OPTIONS = [
+export const INBOX_ISSUE_SORT_BY_OPTIONS: { key: TInboxIssueSortingSortByKeys; i18n_label: string }[] = [
   {
     key: "asc",
     i18n_label: "common.sort.asc",

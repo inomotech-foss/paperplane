@@ -37,6 +37,7 @@ import { FileService } from "@/services/file.service";
 import { PageCommentStore } from "@/store/pages/page-comment.store";
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
+import { getCommentEventThreadId } from "@/components/pages/editor/comment-event";
 import { consumePendingCommentThread } from "./pending-thread";
 
 const fileService = new FileService();
@@ -458,7 +459,7 @@ export const PageNavigationPaneCommentsTabPanel = observer(function PageNavigati
     const initial = consumePendingCommentThread();
     if (initial) setPendingThreadId(initial);
     const onCreate = (event: Event) => {
-      const threadId = (event as CustomEvent).detail?.threadId;
+      const threadId = getCommentEventThreadId(event);
       if (threadId) setPendingThreadId(threadId);
     };
     document.addEventListener(EDITOR_COMMENT_CREATE_EVENT, onCreate);

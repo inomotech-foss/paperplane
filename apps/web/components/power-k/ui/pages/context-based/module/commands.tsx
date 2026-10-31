@@ -9,11 +9,11 @@ import { useParams } from "next/navigation";
 import { StarOff } from "lucide-react";
 import { LinkOutline, MembersOutline, StarOutline } from "@makeplane/propel/icons";
 // plane imports
-import { EUserPermissionsLevel } from "@plane/constants";
+import { EUserPermissionsLevel, MODULE_STATUS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { ModuleStatusIcon } from "@plane/blocks/icons";
 import { setToast } from "@plane/blocks/toast";
-import type { IModule, TModuleStatus } from "@plane/types";
+import type { IModule } from "@plane/types";
 import { EUserPermissions } from "@plane/types";
 import { copyTextToClipboard } from "@plane/utils";
 // components
@@ -21,6 +21,9 @@ import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
 import { useModule } from "@/hooks/store/use-module";
 import { useUser } from "@/hooks/store/user";
+import { isOneOf } from "@/helpers/narrow.helper";
+
+const MODULE_STATUS_VALUES = MODULE_STATUS.map((status) => status.value);
 
 export const usePowerKModuleContextBasedActions = (): TPowerKCommandConfig[] => {
   // navigation
@@ -110,7 +113,8 @@ export const usePowerKModuleContextBasedActions = (): TPowerKCommandConfig[] => 
       type: "change-page",
       page: "update-module-member",
       onSelect: (data) => {
-        const memberId = data as string;
+        if (typeof data !== "string") return;
+        const memberId = data;
         handleUpdateMember(memberId);
       },
       shortcut: "m",
@@ -127,7 +131,8 @@ export const usePowerKModuleContextBasedActions = (): TPowerKCommandConfig[] => 
       type: "change-page",
       page: "update-module-status",
       onSelect: (data) => {
-        const status = data as TModuleStatus;
+        if (!isOneOf(MODULE_STATUS_VALUES, data)) return;
+        const status = data;
         handleUpdateModule({ status });
       },
       shortcut: "s",

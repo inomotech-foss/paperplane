@@ -23,6 +23,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 import type { TProject } from "@plane/types";
 import { ProjectAttributes } from "./attributes";
 import { getProjectFormValues } from "./utils";
+import { errorFieldIncludes, getField } from "@/helpers/narrow.helper";
 
 export type TCreateProjectFormProps = {
   setToFavorite?: boolean;
@@ -112,14 +113,18 @@ export const CreateProjectForm = observer(function CreateProjectForm(props: TCre
         }
         return handleNextStep(res.id);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         try {
           // Handle the new error format where codes are nested in arrays under field names
-          const errorData = err?.data ?? {};
+          const errorData = getField(err, "data");
 
-          const nameError = errorData.name?.includes("PROJECT_NAME_ALREADY_EXIST");
-          const identifierError = errorData?.identifier?.includes("PROJECT_IDENTIFIER_ALREADY_EXIST");
-          const nameSpecialCharError = errorData?.name?.includes("PROJECT_NAME_CANNOT_CONTAIN_SPECIAL_CHARACTERS");
+          const nameError = errorFieldIncludes(errorData, "name", "PROJECT_NAME_ALREADY_EXIST");
+          const identifierError = errorFieldIncludes(errorData, "identifier", "PROJECT_IDENTIFIER_ALREADY_EXIST");
+          const nameSpecialCharError = errorFieldIncludes(
+            errorData,
+            "name",
+            "PROJECT_NAME_CANNOT_CONTAIN_SPECIAL_CHARACTERS"
+          );
 
           if (nameError || identifierError || nameSpecialCharError) {
             if (nameError) {

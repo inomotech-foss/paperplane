@@ -17,6 +17,7 @@ import { setToast } from "@plane/blocks/toast";
 import type { TAutomation } from "@plane/types";
 // hooks
 import { useAutomation } from "@/hooks/store/use-automation";
+import { getFirstStringField, getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   isOpen: boolean;
@@ -86,10 +87,9 @@ const AutomationForm = observer(function AutomationForm(props: Omit<Props, "isOp
       }
       onClose();
     } catch (submitError) {
-      const payload = submitError as { name?: string[] | string; error?: string };
       const message =
-        (Array.isArray(payload?.name) ? payload.name[0] : payload?.name) ??
-        payload?.error ??
+        getFirstStringField(submitError, "name") ??
+        getStringField(submitError, "error") ??
         t(automation ? "automations.toasts.update.error.message" : "automations.toasts.create.error.message");
       setError(message);
     } finally {

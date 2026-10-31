@@ -18,6 +18,7 @@ import { getTabIndex } from "@plane/utils";
 // components
 import { CoverImage } from "@/components/common/cover-image";
 import { ImagePickerPopover } from "@/components/core/image-picker-popover";
+import { getLogoPropsFromPicker } from "@/helpers/emoji.helper";
 
 type Props = {
   handleClose: () => void;
@@ -63,7 +64,6 @@ function ProjectCreateHeader(props: Props) {
                 onChange(data);
                 handleFormOnChange?.();
               }}
-              control={control}
               value={value ?? null}
               tabIndex={getIndex("cover_image")}
             />
@@ -86,19 +86,8 @@ function ProjectCreateHeader(props: Props) {
                   <Logo logo={value} size={20} />
                 </span>
               }
-              onChange={(val: any) => {
-                let logoValue = {};
-
-                if (val?.type === "emoji")
-                  logoValue = {
-                    value: val.value,
-                  };
-                else if (val?.type === "icon") logoValue = val.value;
-
-                const newLogoProps = {
-                  in_use: val?.type,
-                  [val?.type]: logoValue,
-                };
+              onChange={(val) => {
+                const newLogoProps = getLogoPropsFromPicker(val);
                 setValue("logo_props", newLogoProps, {
                   shouldDirty: true,
                 });

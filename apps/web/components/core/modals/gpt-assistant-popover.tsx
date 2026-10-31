@@ -22,14 +22,16 @@ import { cn } from "@plane/utils";
 import { RichTextEditor } from "@/components/editor/rich-text";
 // services
 import { AIService } from "@/services/ai.service";
+import { getApiErrorMessage } from "@/helpers/error.helper";
+import { getField, getStringField } from "@/helpers/narrow.helper";
 const aiService = new AIService();
 
 type Props = {
   isOpen: boolean;
   handleOpen: () => void;
   handleClose: () => void;
-  onResponse: (response: any) => void;
-  onError?: (error: any) => void;
+  onResponse: (response: string) => void;
+  onError?: (error: unknown) => void;
   placement?: TPopoverMenuPlacement;
   prompt?: string;
   /** Becomes the popover trigger, so it must be a button without its own toggle. */
@@ -89,10 +91,10 @@ export function GptAssistantPopover(props: Props) {
     reset();
   };
 
-  const handleServiceError = (err: any) => {
-    const error = err?.data?.error;
+  const handleServiceError = (err: unknown) => {
+    const error = getApiErrorMessage(getField(err, "data"));
     const errorMessage =
-      err?.status === 429
+      getField(err, "status") === 429
         ? error || "You have reached the maximum number of requests of 50 requests per month per user."
         : error || "Some error occurred. Please try again.";
 
@@ -107,16 +109,16 @@ export function GptAssistantPopover(props: Props) {
 
   const callAIService = async (formData: FormData) => {
     try {
-      const res = await aiService.createGptTask(workspaceSlug.toString(), {
+      const res: unknown = await aiService.createGptTask(workspaceSlug.toString(), {
         prompt: prompt || "",
         task: formData.task,
       });
 
-      setResponse(res.response_html);
+      setResponse(getStringField(res, "response_html") ?? "");
       setFocus("task");
 
-      setInvalidResponse(res.response === "");
-    } catch (err) {
+      setInvalidResponse(getStringField(res, "response") === "");
+    } catch (err: unknown) {
       handleServiceError(err);
     }
   };

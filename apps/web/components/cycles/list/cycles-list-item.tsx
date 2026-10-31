@@ -22,6 +22,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 // local imports
 import { CycleQuickActions } from "../quick-actions";
 import { CycleListItemAction } from "./cycle-list-item-action";
+import { getCycleGroup } from "@/components/cycles/cycle-group";
 
 type TCyclesListItem = {
   cycleId: string;
@@ -54,7 +55,7 @@ export const CyclesListItem = observer(function CyclesListItem(props: TCyclesLis
 
   // computed
   // TODO: change this logic once backend fix the response
-  const cycleStatus = cycleDetails.status ? (cycleDetails.status.toLocaleLowerCase() as TCycleGroups) : "draft";
+  const cycleStatus = getCycleGroup(cycleDetails.status);
   const isActive = cycleStatus === "current";
 
   // handlers

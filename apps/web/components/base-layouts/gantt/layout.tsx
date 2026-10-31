@@ -16,6 +16,7 @@ import type {
 import { cn } from "@plane/utils";
 import { TimeLineTypeContext } from "@/components/gantt-chart/contexts";
 import { GanttChartRoot } from "@/components/gantt-chart/root";
+import type { TGanttSidebarProps } from "@/components/gantt-chart/types";
 import { BaseGanttSidebar } from "./sidebar";
 
 export const BaseGanttLayout = observer(function BaseGanttLayout<T extends IBaseLayoutsGanttItem>(
@@ -74,20 +75,20 @@ export const BaseGanttLayout = observer(function BaseGanttLayout<T extends IBase
 
   // Sidebar renderer - uses custom or default
   const sidebarToRender = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (sidebarProps: any) => {
-      if (renderSidebar) {
-        // If custom sidebar renderer provided, use it
-        return (
-          <BaseGanttSidebar {...sidebarProps} items={items} renderItem={renderSidebar} loadMoreItems={loadMoreItems} />
-        );
-      }
-      // Otherwise use default sidebar
-      return (
-        <BaseGanttSidebar {...sidebarProps} items={items} renderItem={renderBlock} loadMoreItems={loadMoreItems} />
-      );
-    },
-    [renderSidebar, renderBlock, items, loadMoreItems]
+    (sidebarProps: TGanttSidebarProps) => (
+      <BaseGanttSidebar
+        blockIds={sidebarProps.blockIds}
+        ganttContainerRef={sidebarProps.ganttContainerRef}
+        canLoadMoreBlocks={sidebarProps.canLoadMoreBlocks}
+        showAllBlocks={sidebarProps.showAllBlocks}
+        enableReorder={Boolean(enableReorder)}
+        blockUpdateHandler={handleBlockUpdate}
+        items={items}
+        renderItem={renderSidebar ?? renderBlock}
+        loadMoreItems={loadMoreItems}
+      />
+    ),
+    [renderSidebar, renderBlock, items, loadMoreItems, enableReorder, handleBlockUpdate]
   );
 
   const timelineType = GANTT_TIMELINE_TYPE[timelineTypeKey];

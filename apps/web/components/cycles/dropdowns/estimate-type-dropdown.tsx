@@ -13,6 +13,9 @@ import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useCycle } from "@/hooks/store/use-cycle";
 // local imports
 import { cycleEstimateOptions } from "../analytics-sidebar/issue-progress";
+import { findLiteral } from "@/helpers/narrow.helper";
+
+const ESTIMATE_TYPES = ["issues", "points"] as const satisfies readonly TCycleEstimateType[];
 
 type TProps = {
   value: TCycleEstimateType;
@@ -33,7 +36,10 @@ export const EstimateTypeDropdown = observer(function EstimateTypeDropdown(props
       <Select<(typeof cycleEstimateOptions)[number]>
         getValues={() => cycleEstimateOptions}
         value={cycleEstimateOptions.find((v) => v.value === value) ?? null}
-        onChange={(next) => void onChange(next as TCycleEstimateType)}
+        onChange={(next) => {
+          const estimateType = findLiteral(ESTIMATE_TYPES, next);
+          if (estimateType) void onChange(estimateType);
+        }}
         getOptionValue={(option) => option.value}
         getOptionLabel={(option) => option.label}
         showSearch={false}

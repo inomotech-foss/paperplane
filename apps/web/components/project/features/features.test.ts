@@ -67,8 +67,7 @@ describe("getAvailableProjectFeatures", () => {
 
 describe("isProjectFeatureAllowed", () => {
   it("accepts roles sent as strings", () => {
-    const role = "15" as unknown as EUserPermissions;
-    expect(isProjectFeatureAllowed(getProjectFeature("cycles"), role)).toBe(true);
+    expect(isProjectFeatureAllowed(getProjectFeature("cycles"), "15")).toBe(true);
   });
 
   it("rejects a missing role", () => {

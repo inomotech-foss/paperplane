@@ -26,6 +26,7 @@ import { useAutomation } from "@/hooks/store/use-automation";
 // local imports
 import { allowedActions, findAction } from "../helpers/metadata";
 import { AutomationActionConfig } from "./action-config";
+import { getFirstStringField, getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   workspaceSlug: string;
@@ -75,7 +76,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
       setToast({
         type: "error",
         title: t("automations.toasts.action.update.error.title"),
-        message: (error as { config?: string })?.config ?? t("automations.toasts.action.update.error.message"),
+        message: getFirstStringField(error, "config") ?? t("automations.toasts.action.update.error.message"),
       });
     } finally {
       setIsSaving(false);
@@ -89,7 +90,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
       setToast({
         type: "error",
         title: t("common.errors.default.title"),
-        message: (error as { error?: string })?.error ?? t("automations.action.validation.delete_only_action"),
+        message: getStringField(error, "error") ?? t("automations.action.validation.delete_only_action"),
       });
     }
   };
@@ -156,7 +157,7 @@ export const AutomationActionsBlock = observer(function AutomationActionsBlock(p
       setToast({
         type: "error",
         title: t("automations.toasts.action.create.error.title"),
-        message: (error as { config?: string })?.config ?? t("automations.toasts.action.create.error.message"),
+        message: getFirstStringField(error, "config") ?? t("automations.toasts.action.create.error.message"),
       });
     } finally {
       setIsAdding(false);

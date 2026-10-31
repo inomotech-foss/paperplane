@@ -22,8 +22,10 @@ type TLayoutDropDown = {
   disabledLayouts?: EIssueLayoutTypes[];
 };
 
+const NO_DISABLED_LAYOUTS: EIssueLayoutTypes[] = [];
+
 export const LayoutDropDown = observer(function LayoutDropDown(props: TLayoutDropDown) {
-  const { onChange, value = EIssueLayoutTypes.LIST, disabledLayouts = [] } = props;
+  const { onChange, value = EIssueLayoutTypes.LIST, disabledLayouts = NO_DISABLED_LAYOUTS } = props;
   // plane i18n
   const { t } = useTranslation();
   // derived values
@@ -39,7 +41,10 @@ export const LayoutDropDown = observer(function LayoutDropDown(props: TLayoutDro
     <Select<TLayoutOption>
       getValues={() => options}
       value={selected}
-      onChange={(next) => onChange(next as EIssueLayoutTypes)}
+      onChange={(next) => {
+        const option = options.find((item) => item.key === next);
+        if (option) onChange(option.key);
+      }}
       getOptionValue={(option) => option.key}
       getOptionLabel={(option) => t(option.i18n_label)}
       getOptionIcon={(option) => <IssueLayoutIcon layout={option.key} className="size-4 shrink-0 text-primary" />}

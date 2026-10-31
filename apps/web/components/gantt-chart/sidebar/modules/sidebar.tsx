@@ -7,22 +7,18 @@
 import { observer } from "mobx-react";
 // ui
 import { GANTT_TIMELINE_TYPE } from "@plane/types";
-import type { IBlockUpdateData } from "@plane/types";
 import { Loader } from "@plane/blocks/skeleton";
 // components
 // hooks
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
+import type { TGanttSidebarProps } from "../../types";
+import { resolveGanttFlag } from "../../types";
 import { GanttDnDHOC } from "../gantt-dnd-HOC";
 import { handleOrderChange } from "../utils";
 import { ModulesSidebarBlock } from "./block";
 // types
 
-type Props = {
-  title: string;
-  blockUpdateHandler: (block: any, payload: IBlockUpdateData) => void;
-  blockIds: string[];
-  enableReorder: boolean;
-};
+type Props = Pick<TGanttSidebarProps, "title" | "blockUpdateHandler" | "blockIds" | "enableReorder">;
 
 export const ModuleGanttSidebar = observer(function ModuleGanttSidebar(props: Props) {
   const { blockUpdateHandler, blockIds, enableReorder } = props;
@@ -45,7 +41,7 @@ export const ModuleGanttSidebar = observer(function ModuleGanttSidebar(props: Pr
             key={blockId}
             id={blockId}
             isLastChild={index === blockIds.length - 1}
-            isDragEnabled={enableReorder}
+            isDragEnabled={resolveGanttFlag(enableReorder, blockId)}
             onDrop={handleOnDrop}
           >
             {(isDragging: boolean) => <ModulesSidebarBlock blockId={blockId} isDragging={isDragging} />}

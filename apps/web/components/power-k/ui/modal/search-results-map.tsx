@@ -19,6 +19,7 @@ import type {
   IWorkspacePageSearchResult,
   IWorkspaceProjectSearchResult,
   IWorkspaceSearchResult,
+  IWorkspaceSearchResults,
 } from "@plane/types";
 import { generateWorkItemLink } from "@plane/utils";
 // components
@@ -26,14 +27,28 @@ import type { TPowerKSearchResultsKeys } from "@/components/power-k/core/types";
 import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 import { getProjectUrl } from "@/components/project/features/features";
 
-export type TPowerKSearchResultGroupDetails = {
+export type TPowerKSearchResultItem<K extends TPowerKSearchResultsKeys> = IWorkspaceSearchResults["results"][K][number];
+
+export type TPowerKSearchResultGroupDetails<T> = {
   icon?: React.ComponentType<{ className?: string }>;
-  itemName: (item: any) => React.ReactNode;
-  path: (item: any, projectId: string | undefined) => string;
+  itemName: (item: T) => React.ReactNode;
+  path: (item: T, projectId: string | undefined) => string;
   title: string;
 };
 
-export const POWER_K_SEARCH_RESULTS_GROUPS_MAP: Record<TPowerKSearchResultsKeys, TPowerKSearchResultGroupDetails> = {
+export const POWER_K_SEARCH_RESULTS_KEYS: TPowerKSearchResultsKeys[] = [
+  "workspace",
+  "project",
+  "issue",
+  "cycle",
+  "module",
+  "issue_view",
+  "page",
+];
+
+export const POWER_K_SEARCH_RESULTS_GROUPS_MAP: {
+  [K in TPowerKSearchResultsKeys]: TPowerKSearchResultGroupDetails<TPowerKSearchResultItem<K>>;
+} = {
   cycle: {
     icon: CyclesOutline,
     itemName: (cycle: IWorkspaceDefaultSearchResult) => (

@@ -19,6 +19,7 @@ import { useWorkspace } from "@/hooks/store/use-workspace";
 // services
 import { FileService } from "@/services/file.service";
 import { ImageUploadActions, ImageUploadDropzone } from "./image-upload-dropzone";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type Props = {
   handleRemove: () => Promise<void>;
@@ -74,12 +75,12 @@ export const WorkspaceImageUploadModal = observer(function WorkspaceImageUploadM
       );
       updateWorkspaceLogo(workspaceSlug.toString(), asset_url);
       onSuccess(asset_url);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log("error", error);
       setToast({
         type: "error",
         title: "Error",
-        message: error.error || "Something went wrong",
+        message: getApiErrorMessage(error) || "Something went wrong",
       });
     } finally {
       setIsImageUploading(false);

@@ -36,7 +36,7 @@ import { validatePersonName, validateDisplayName } from "@plane/utils";
 type TUserProfileForm = {
   avatar_url: string;
   cover_image: string;
-  cover_image_asset: any;
+  cover_image_asset: string | null;
   cover_image_url: string;
   first_name: string;
   last_name: string;
@@ -161,15 +161,11 @@ export const GeneralProfileSettingsForm = observer(function GeneralProfileSettin
 
     const updatePromise = Promise.allSettled(promises)
       .then((results) => {
-        const rejectedResult = results.find((result) => result.status === "rejected") as
-          | PromiseRejectedResult
-          | undefined;
+        const rejectedResult = results.find((result): result is PromiseRejectedResult => result.status === "rejected");
         if (rejectedResult) {
           throw rejectedResult.reason ?? new Error("Failed to update profile");
         }
-        const values = results.map(
-          (result) => (result as PromiseFulfilledResult<IUser | TUserProfile | undefined>).value
-        );
+        const values = results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
         if (values.some((v) => v === undefined)) {
           throw new Error("Failed to update profile");
         }
@@ -249,7 +245,6 @@ export const GeneralProfileSettingsForm = observer(function GeneralProfileSettin
                 render={({ field: { value, onChange } }) => (
                   <ImagePickerPopover
                     label={t("change_cover")}
-                    control={control}
                     onChange={(imageUrl) => onChange(imageUrl)}
                     value={value}
                     isProfileCover

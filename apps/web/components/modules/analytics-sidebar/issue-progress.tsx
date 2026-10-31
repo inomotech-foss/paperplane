@@ -32,7 +32,7 @@ type TModuleAnalyticsProgress = {
   moduleId: string;
 };
 
-type PlotTypeOption = { value: string; i18n_label: string };
+type PlotTypeOption = { value: TModulePlotType; i18n_label: string };
 
 const moduleBurnDownChartOptions: PlotTypeOption[] = [
   { value: "burndown", i18n_label: "issues" },
@@ -159,7 +159,6 @@ export const ModuleAnalyticsProgress = observer(function ModuleAnalyticsProgress
             )}
             isEditable={Boolean(!peekModule) && moduleFilter !== undefined}
             moduleId={moduleId}
-            plotType={plotType}
             selectedFilters={{
               assignees: selectedAssignees,
               labels: selectedLabels,
@@ -193,7 +192,10 @@ export const ModuleAnalyticsProgress = observer(function ModuleAnalyticsProgress
                 <Select<PlotTypeOption>
                   getValues={() => moduleBurnDownChartOptions}
                   value={moduleBurnDownChartOptions.find((v) => v.value === plotType) ?? null}
-                  onChange={(val) => void onChange(val as TModulePlotType)}
+                  onChange={(val) => {
+                    const option = moduleBurnDownChartOptions.find((o) => o.value === val);
+                    if (option) void onChange(option.value);
+                  }}
                   getOptionValue={(option) => option.value}
                   getOptionLabel={(option) => t(option.i18n_label)}
                   showSearch={false}

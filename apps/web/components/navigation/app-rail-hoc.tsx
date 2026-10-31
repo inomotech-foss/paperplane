@@ -16,8 +16,8 @@ type WithDockItemsProps = {
   dockItems: (AppSidebarItemData & { shouldRender: boolean })[];
 };
 
-export function withDockItems<P extends WithDockItemsProps>(WrappedComponent: React.ComponentType<P>) {
-  const ComponentWithDockItems = observer(function ComponentWithDockItems(props: Omit<P, keyof WithDockItemsProps>) {
+export function withDockItems<P extends object>(WrappedComponent: React.ComponentType<P & WithDockItemsProps>) {
+  const ComponentWithDockItems = observer(function ComponentWithDockItems(props: P) {
     const { workspaceSlug } = useParams();
     const { isProjectsPath, isNotificationsPath } = useWorkspacePaths();
 
@@ -31,7 +31,7 @@ export function withDockItems<P extends WithDockItemsProps>(WrappedComponent: Re
       },
     ];
 
-    return <WrappedComponent {...(props as P)} dockItems={dockItems} />;
+    return <WrappedComponent {...props} dockItems={dockItems} />;
   });
 
   return ComponentWithDockItems;

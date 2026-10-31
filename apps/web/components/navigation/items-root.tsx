@@ -11,9 +11,12 @@ import type { AppSidebarItemData } from "@/components/sidebar/sidebar-item";
 import { AppSidebarItem } from "@/components/sidebar/sidebar-item";
 import { withDockItems } from "./app-rail-hoc";
 
-type Props = {
-  dockItems: (AppSidebarItemData & { shouldRender: boolean })[];
+type OwnProps = {
   showLabel?: boolean;
+};
+
+type Props = OwnProps & {
+  dockItems: (AppSidebarItemData & { shouldRender: boolean })[];
 };
 
 function Component({ dockItems, showLabel = true }: Props) {
@@ -28,4 +31,4 @@ function Component({ dockItems, showLabel = true }: Props) {
   );
 }
 
-export const AppSidebarItemsRoot = withDockItems(Component);
+export const AppSidebarItemsRoot = withDockItems<OwnProps>(Component);

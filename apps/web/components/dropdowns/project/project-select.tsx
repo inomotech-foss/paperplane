@@ -27,7 +27,6 @@ type ProjectSelectWebCommonProps = {
    * @default "joined"
    */
   projectList?: ProjectSelectList;
-  variant: SelectVariant;
   disabled?: boolean;
   placeholder?: string;
   onClose?: () => void;
@@ -52,8 +51,13 @@ type ProjectSelectWebCommonProps = {
 
 export type ProjectSelectWebProps = ProjectSelectWebCommonProps &
   (
-    | { multiple: true; value: string[]; onChange: (ids: string[]) => void }
-    | { multiple?: false; value: string | null; onChange: (id: string | null) => void }
+    | {
+        multiple: true;
+        value: string[];
+        onChange: (ids: string[]) => void;
+        variant: Exclude<SelectVariant, "breadcrumb">;
+      }
+    | { multiple?: false; value: string | null; onChange: (id: string | null) => void; variant: SelectVariant }
   );
 
 const toProjectOption = (project: TProject): ProjectOption => ({
@@ -164,7 +168,7 @@ export const ProjectSelect = observer(function ProjectSelect(props: ProjectSelec
         getValues={getValues}
         value={selected}
         onChange={props.onChange}
-        variant={variant as Exclude<SelectVariant, "breadcrumb">}
+        variant={props.variant}
         disabled={disabled}
         placeholder={placeholder}
         onClose={onClose}

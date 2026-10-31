@@ -42,7 +42,7 @@ export const INDIVIDUAL_WEBHOOK_OPTIONS: {
 ];
 
 type Props = {
-  control: Control<IWebhook, any>;
+  control: Control<IWebhook>;
 };
 
 export function WebhookIndividualEventOptions({ control }: Props) {

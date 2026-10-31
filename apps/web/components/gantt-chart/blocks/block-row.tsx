@@ -8,7 +8,8 @@ import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { ArrowNarrowRightOutline } from "@makeplane/propel/icons";
 // helpers
-import type { IBlockUpdateData, IGanttBlock } from "@plane/types";
+import type { IGanttBlock } from "@plane/types";
+import type { TGanttBlockUpdateHandler } from "@/components/gantt-chart/types";
 import { cn } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -23,7 +24,7 @@ import { isBlockOnChart } from "../views/helpers";
 type Props = {
   blockId: string;
   showAllBlocks: boolean;
-  blockUpdateHandler: (block: any, payload: IBlockUpdateData) => void;
+  blockUpdateHandler: TGanttBlockUpdateHandler;
   handleScrollToBlock: (block: IGanttBlock) => void;
   enableAddBlock: boolean;
   selectionHelpers: TSelectionHelper;

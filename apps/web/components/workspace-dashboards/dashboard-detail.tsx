@@ -50,7 +50,7 @@ export const WorkspaceDashboardDetail = observer(function WorkspaceDashboardDeta
   const isAdmin = allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.WORKSPACE);
   const canEdit = !!dashboard && (isAdmin || dashboard.is_owner);
 
-  const { isLoading, error } = useSWR(
+  const { isLoading, error } = useSWR<void, unknown>(
     `WORKSPACE_DASHBOARD_${workspaceSlug}_${dashboardId}`,
     () => fetchDashboard(workspaceSlug, dashboardId),
     { revalidateOnFocus: false, shouldRetryOnError: false }

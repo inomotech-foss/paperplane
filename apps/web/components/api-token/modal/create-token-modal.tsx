@@ -17,6 +17,7 @@ import { API_TOKENS_LIST } from "@plane/constants";
 // local imports
 import { CreateApiTokenForm } from "./form";
 import { GeneratedTokenDetails } from "./generated-token-details";
+import { getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   isOpen: boolean;
@@ -70,11 +71,11 @@ export function CreateApiTokenModal(props: Props) {
           false
         );
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setToast({
           type: "error",
           title: "Error!",
-          message: err.message || err.detail,
+          message: getStringField(err, "message") || getStringField(err, "detail"),
         });
 
         throw err;

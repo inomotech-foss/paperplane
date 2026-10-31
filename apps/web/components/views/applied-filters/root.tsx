@@ -7,13 +7,15 @@
 import { useTranslation } from "@plane/i18n";
 import { CloseOutline } from "@makeplane/propel/icons";
 // plane imports
-import type { EViewAccess, TViewFilterProps } from "@plane/types";
+import type { TViewFilterProps } from "@plane/types";
+import { EViewAccess } from "@plane/types";
 import { replaceUnderscoreIfSnakeCase } from "@plane/utils";
 // components
 import { AppliedDateFilters } from "@/components/common/applied-filters/date";
 import { AppliedMembersFilters } from "@/components/common/applied-filters/members";
 // local imports
 import { AppliedAccessFilters } from "./access";
+import { isOneOf } from "@/helpers/narrow.helper";
 
 type Props = {
   appliedFilters: TViewFilterProps;
@@ -30,6 +32,14 @@ const FILTER_GROUP_CLASSNAME =
 const MEMBERS_FILTERS = new Set(["owned_by"]);
 const DATE_FILTERS = new Set(["created_at"]);
 const VIEW_ACCESS_FILTERS = new Set(["view_type"]);
+const VIEW_FILTER_KEYS: (keyof TViewFilterProps)[] = ["created_at", "owned_by", "favorites", "view_type"];
+const VIEW_ACCESS_VALUES = [EViewAccess.PRIVATE, EViewAccess.PUBLIC];
+
+const toStringValues = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+
+const toViewAccessValues = (value: unknown): EViewAccess[] =>
+  Array.isArray(value) ? value.filter((item): item is EViewAccess => isOneOf(VIEW_ACCESS_VALUES, item)) : [];
 
 export function ViewAppliedFiltersList(props: Props) {
   const { appliedFilters, handleClearAllFilters, handleRemoveFilter, alwaysAllowEditing } = props;
@@ -42,8 +52,8 @@ export function ViewAppliedFiltersList(props: Props) {
 
   return (
     <div className="flex flex-wrap items-stretch gap-2 bg-surface-1">
-      {Object.entries(appliedFilters).map(([key, value]) => {
-        const filterKey = key as keyof TViewFilterProps;
+      {Object.entries(appliedFilters).map(([filterKey, value]) => {
+        if (!isOneOf(VIEW_FILTER_KEYS, filterKey)) return;
 
         if (!value) return;
         if (Array.isArray(value) && value.length === 0) return;
@@ -55,21 +65,21 @@ export function ViewAppliedFiltersList(props: Props) {
               <AppliedAccessFilters
                 editable={isEditingAllowed}
                 handleRemove={(val) => handleRemoveFilter(filterKey, val)}
-                values={Array.isArray(value) ? (value as EViewAccess[]) : []}
+                values={toViewAccessValues(value)}
               />
             )}
             {DATE_FILTERS.has(filterKey) && (
               <AppliedDateFilters
                 editable={isEditingAllowed}
                 handleRemove={(val) => handleRemoveFilter(filterKey, val)}
-                values={Array.isArray(value) ? (value as string[]) : []}
+                values={toStringValues(value)}
               />
             )}
             {MEMBERS_FILTERS.has(filterKey) && (
               <AppliedMembersFilters
                 editable={isEditingAllowed}
                 handleRemove={(val) => handleRemoveFilter(filterKey, val)}
-                values={Array.isArray(value) ? (value as string[]) : []}
+                values={toStringValues(value)}
               />
             )}
             {isEditingAllowed && (

@@ -23,7 +23,7 @@ type TPlansComparisonBaseProps = {
   setIsCompareAllFeaturesSectionOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export const shouldRenderPlanDetail = (planKey: TPlanePlans) => {
+export const shouldRenderPlanDetail = (planKey: string) => {
   // Free plan is not required to be shown in the comparison
   if (planKey === "free") return false;
   // Plane one plan is not longer available
@@ -35,9 +35,7 @@ export const PlansComparisonBase = observer(function PlansComparisonBase(props: 
   const { planeDetails, isSelfManaged, isCompareAllFeaturesSectionOpen, setIsCompareAllFeaturesSectionOpen } = props;
   // plan details
   const { planDetails, planHighlights, planComparison } = PLANE_PLANS;
-  const numberOfPlansToRender = Object.keys(planDetails).filter((planKey) =>
-    shouldRenderPlanDetail(planKey as TPlanePlans)
-  ).length;
+  const numberOfPlansToRender = Object.keys(planDetails).filter((planKey) => shouldRenderPlanDetail(planKey)).length;
 
   const getSubscriptionType = (planKey: TPlanePlans) => planDetails[planKey].id;
 
@@ -64,7 +62,7 @@ export const PlansComparisonBase = observer(function PlansComparisonBase(props: 
               <div className="col-span-1 p-3 text-body-sm-medium">Highlights</div>
               {Object.entries(planHighlights).map(
                 ([planKey, highlights]) =>
-                  shouldRenderPlanDetail(planKey as TPlanePlans) && (
+                  shouldRenderPlanDetail(planKey) && (
                     <div key={planKey} className="col-span-1 p-3">
                       <ul className="list-disc space-y-1 text-body-xs-regular">
                         {highlights.map((highlight, index) => (

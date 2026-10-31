@@ -18,6 +18,7 @@ import type {
 // local imports
 import { buildDimensionChoices, ESTIMATE_METRIC_FIELD, PROPERTY_PREFIX } from "./utils";
 import type { TDimensionChoice } from "./utils";
+import { isRecord } from "@/helpers/narrow.helper";
 
 export const NO_DIMENSION = "";
 const DEFAULT_BUCKET: TDashboardDateBucket = "month";
@@ -140,7 +141,7 @@ const firstError = (value: unknown): string | undefined => {
  * serializer, or `{error, field}` from evaluating the definition.
  */
 export const parseWidgetErrors = (error: unknown): TFieldErrors => {
-  const payload = (error ?? {}) as Record<string, unknown>;
+  const payload: Record<string, unknown> = isRecord(error) ? error : {};
   const errors: TFieldErrors = {};
   for (const field of FIELD_NAMES) {
     const message = firstError(payload[field]);

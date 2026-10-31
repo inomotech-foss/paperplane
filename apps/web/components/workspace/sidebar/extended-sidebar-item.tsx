@@ -28,6 +28,7 @@ import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { useWorkspaceNavigationPreferences } from "@/hooks/use-navigation-preferences";
 // local imports
 import { getSidebarNavigationItemIcon } from "./helper";
+import { getDragDataId } from "@/components/common/drag-target-data";
 
 type TExtendedSidebarItemProps = {
   item: IWorkspaceSidebarNavigationItem;
@@ -126,8 +127,8 @@ export const ExtendedSidebarItem = observer(function ExtendedSidebarItem(props: 
             : undefined;
           if (!currentInstruction) return;
 
-          const sourceId = source?.data?.id as string | undefined;
-          const destinationId = self?.data?.id as string | undefined;
+          const sourceId = getDragDataId(source.data);
+          const destinationId = getDragDataId(self.data);
 
           if (handleOnNavigationItemDrop)
             handleOnNavigationItemDrop(sourceId, destinationId, currentInstruction === "DRAG_BELOW");
@@ -152,7 +153,7 @@ export const ExtendedSidebarItem = observer(function ExtendedSidebarItem(props: 
 
   const icon = getSidebarNavigationItemIcon(item.key);
 
-  if (!allowPermissions(item.access as any, EUserPermissionsLevel.WORKSPACE, workspaceSlug.toString())) {
+  if (!allowPermissions(item.access, EUserPermissionsLevel.WORKSPACE, workspaceSlug.toString())) {
     return null;
   }
 

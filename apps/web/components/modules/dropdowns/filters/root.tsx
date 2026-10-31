@@ -59,7 +59,7 @@ export const ModuleFiltersSelection = observer(function ModuleFiltersSelection(p
         {!isArchived && (
           <div className="py-2">
             <FilterStatus
-              appliedFilters={(filters.status as TModuleStatus[]) ?? null}
+              appliedFilters={filters.status ?? null}
               handleUpdate={(val) => handleFiltersUpdate("status", val)}
               searchQuery={filtersSearchQuery}
             />

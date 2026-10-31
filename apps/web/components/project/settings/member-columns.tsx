@@ -17,15 +17,19 @@ import { Select } from "@plane/blocks/select";
 import { setToast } from "@plane/blocks/toast";
 import { ROLE, EUserPermissions } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
-import type { EUserProjectRoles, IUser, IWorkspaceMember, TProjectMembership } from "@plane/types";
+import { EUserProjectRoles } from "@plane/types";
+import type { IUser, IUserLite, TProjectMembership } from "@plane/types";
 import { getFileURL } from "@plane/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
+import { getFirstStringField } from "@/helpers/narrow.helper";
 
 export interface RowData extends Pick<TProjectMembership, "original_role"> {
-  member: IWorkspaceMember;
+  member: IUserLite;
 }
+
+const PROJECT_ROLES = [EUserProjectRoles.ADMIN, EUserProjectRoles.MEMBER, EUserProjectRoles.GUEST];
 
 type NameProps = {
   rowData: RowData;
@@ -146,10 +150,10 @@ export const AccountTypeColumn = observer(function AccountTypeColumn(props: Acco
     (isCurrentUserWorkspaceAdmin && isCurrentUser) ||
     (isCurrentUserProjectAdmin && !isRowDataWorkspaceAdmin && !isCurrentUser);
   const checkCurrentOptionWorkspaceRole = (value: string) => {
-    const currentMemberWorkspaceRole = getWorkspaceMemberDetails(value)?.role as EUserPermissions | undefined;
+    const currentMemberWorkspaceRole = getWorkspaceMemberDetails(value)?.role;
     if (!value || !currentMemberWorkspaceRole) return ROLE;
 
-    const isGuest = [EUserPermissions.GUEST].includes(currentMemberWorkspaceRole);
+    const isGuest = Number(currentMemberWorkspaceRole) === EUserPermissions.GUEST;
 
     return Object.fromEntries(
       Object.entries(ROLE).filter(([key]) => !isGuest || parseInt(key) === EUserPermissions.GUEST)
@@ -173,16 +177,16 @@ export const AccountTypeColumn = observer(function AccountTypeColumn(props: Acco
                   getValues={() => roleOptions}
                   value={roleOptions.find((option) => option.key === String(rowData.original_role)) ?? null}
                   onChange={(value) => {
-                    if (!workspaceSlug || !value) return;
+                    const role = PROJECT_ROLES.find((projectRole) => projectRole === Number(value));
+                    if (!workspaceSlug || !value || role === undefined) return;
                     void updateMemberRole(
                       workspaceSlug.toString(),
                       projectId.toString(),
                       rowData.member.id,
-                      Number(value) as EUserProjectRoles
-                    ).catch((err) => {
+                      role
+                    ).catch((err: unknown) => {
                       console.log(err, "err");
-                      const error = err.error;
-                      const errorString = Array.isArray(error) ? error[0] : error;
+                      const errorString = getFirstStringField(err, "error");
 
                       setToast({
                         type: "error",

@@ -115,12 +115,7 @@ export const StickyEditor = React.forwardRef(function StickyEditor(
         >
           <StickyEditorToolbar
             executeCommand={(item) => {
-              // TODO: update this while toolbar homogenization
-              // @ts-expect-error type mismatch here
-              editorRef?.executeMenuItemCommand({
-                itemKey: item.itemKey,
-                ...item.extraProps,
-              });
+              editorRef?.executeToolbarItem(item);
             }}
             handleDelete={handleDelete}
             handleColorChange={handleColorChange}

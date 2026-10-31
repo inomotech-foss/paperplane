@@ -38,23 +38,26 @@ const propertyIcon = (property: TIssueCustomProperty) => (
   />
 );
 
-type TPickOption = { value: string; label: string; icon?: React.ReactNode; description?: string };
+type TPickOption<T extends string> = { value: T; label: string; icon?: React.ReactNode; description?: string };
 
 /** A compact single select over a few fixed options, for the derivation settings. */
-function PickOne(props: {
-  options: TPickOption[];
-  value: string;
-  onChange: (value: string) => void;
+function PickOne<T extends string>(props: {
+  options: TPickOption<T>[];
+  value: T;
+  onChange: (value: T) => void;
   placeholder?: string;
   disabled?: boolean;
 }) {
   const { options, value, onChange, placeholder, disabled } = props;
   const selected = options.find((option) => option.value === value) ?? null;
   return (
-    <Select<TPickOption>
+    <Select<TPickOption<T>>
       getValues={() => options}
       value={selected}
-      onChange={onChange}
+      onChange={(id) => {
+        const option = options.find((item) => item.value === id);
+        if (option) onChange(option.value);
+      }}
       getOptionValue={(option) => option.value}
       getOptionLabel={(option) => option.label}
       getOptionIcon={(option) => option.icon}
@@ -140,7 +143,7 @@ export const DerivationSettings = observer(function DerivationSettings(props: TD
       <FieldLabel>{t("work_item_custom_properties.derivation.label")}</FieldLabel>
       <PickOne
         value={derivation}
-        onChange={(value) => setDerivation(value as TIssueCustomPropertyDerivation)}
+        onChange={setDerivation}
         options={ISSUE_CUSTOM_PROPERTY_DERIVATIONS.map((option) => ({
           value: option,
           label: t(`work_item_custom_properties.derivation.${option.toLowerCase()}`),
@@ -186,7 +189,7 @@ export const DerivationSettings = observer(function DerivationSettings(props: TD
         <>
           <PickOne
             value={rollup.function}
-            onChange={(value) => setRollup({ ...rollup, function: value as TIssueCustomPropertyRollupFunction })}
+            onChange={(value) => setRollup({ ...rollup, function: value })}
             options={rollupFunctions.map((fn) => ({
               value: fn,
               label: t(`work_item_custom_properties.derivation.functions.${fn}`),
@@ -220,7 +223,7 @@ export const DerivationSettings = observer(function DerivationSettings(props: TD
           )}
           <PickOne
             value={rollup.scope}
-            onChange={(value) => setRollup({ ...rollup, scope: value as TIssueCustomPropertyRollupConfig["scope"] })}
+            onChange={(value) => setRollup({ ...rollup, scope: value })}
             options={[
               { value: "descendants", label: t("work_item_custom_properties.derivation.scope_descendants") },
               { value: "children", label: t("work_item_custom_properties.derivation.scope_children") },

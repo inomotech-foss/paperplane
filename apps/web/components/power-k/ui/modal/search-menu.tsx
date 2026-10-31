@@ -56,8 +56,8 @@ export function PowerKModalSearchMenu(props: Props) {
         // oxlint-disable-next-line no-shadow oxlint-disable-next-line promise/always-return
         .then((results) => {
           setResults(results);
-          const count = Object.keys(results.results).reduce(
-            (accumulator, key) => results.results[key as keyof typeof results.results]?.length + accumulator,
+          const count = Object.values(results.results).reduce(
+            (accumulator, section) => section.length + accumulator,
             0
           );
           setResultsCount(count);

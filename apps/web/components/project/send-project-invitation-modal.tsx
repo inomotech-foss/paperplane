@@ -53,6 +53,8 @@ type TRoleOption = {
   label: string;
 };
 
+const USER_PERMISSIONS = [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST];
+
 const defaultValues: FormValues = {
   members: [
     {
@@ -110,7 +112,7 @@ export const SendProjectInvitationModal = observer(function SendProjectInvitatio
           message: "Members added successfully.",
         });
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error(error);
       })
       .finally(() => {
@@ -149,9 +151,9 @@ export const SendProjectInvitationModal = observer(function SendProjectInvitatio
     const currentMemberWorkspaceRole = getWorkspaceMemberDetails(value)?.role;
     if (!value || !currentMemberWorkspaceRole) return ROLE;
 
-    const isGuestOROwner = [EUserPermissions.ADMIN, EUserPermissions.GUEST].includes(
-      currentMemberWorkspaceRole as EUserPermissions
-    );
+    const isGuestOROwner =
+      Number(currentMemberWorkspaceRole) === EUserPermissions.ADMIN ||
+      Number(currentMemberWorkspaceRole) === EUserPermissions.GUEST;
 
     return Object.fromEntries(
       Object.entries(ROLE).filter(([key]) => !isGuestOROwner || [currentMemberWorkspaceRole].includes(parseInt(key)))
@@ -167,9 +169,9 @@ export const SendProjectInvitationModal = observer(function SendProjectInvitatio
     onChange(memberId);
     // Update the role to the workspace role when member ID changes
     const workspaceMemberDetails = getWorkspaceMemberDetails(memberId);
-    const workspaceRole = workspaceMemberDetails?.role ?? 5;
-    const newValue = ROLE[workspaceRole].toUpperCase();
-    setValue(`members.${index}.role`, EUserPermissions[newValue as keyof typeof EUserPermissions]);
+    const workspaceRole = Number(workspaceMemberDetails?.role ?? 5);
+    const newValue = USER_PERMISSIONS.find((role) => role === workspaceRole);
+    if (newValue !== undefined) setValue(`members.${index}.role`, newValue);
   };
 
   return (

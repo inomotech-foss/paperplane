@@ -25,7 +25,8 @@ export type TProjectFeatureFlag =
 
 export type TProjectFeatureProject = Pick<IPartialProject, TProjectFeatureFlag>;
 
-export type TProjectRole = EUserPermissions | EUserProjectRoles | undefined | null;
+// Roles can arrive as strings from the API.
+export type TProjectRole = EUserPermissions | EUserProjectRoles | string | undefined | null;
 
 export type TProjectFeature = {
   key: TProjectFeatureKey;
@@ -121,7 +122,6 @@ export const getProjectFeatureUrl = (feature: TProjectFeature, workspaceSlug: st
 export const isProjectFeatureEnabled = (feature: TProjectFeature, project: TProjectFeatureProject): boolean =>
   !!project[feature.flag] && (!feature.needsWorkItems || !!project.issue_view);
 
-// Roles can arrive as strings from the API.
 export const isProjectFeatureAllowed = (feature: TProjectFeature, role: TProjectRole): boolean =>
   !!role && feature.access.includes(Number(role));
 

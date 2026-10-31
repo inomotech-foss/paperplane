@@ -9,7 +9,7 @@ import { useParams } from "next/navigation";
 import useSWRInfinite from "swr/infinite";
 import { Button } from "@makeplane/propel/components/button";
 import { Select } from "@plane/blocks/select";
-import type { IGithubRepository, IWorkspaceIntegration } from "@plane/types";
+import type { GithubRepositoriesResponse, IGithubRepository, IWorkspaceIntegration } from "@plane/types";
 // helpers
 import { truncateText } from "@plane/utils";
 import { ProjectService } from "@/services/project";
@@ -17,9 +17,9 @@ import { ProjectService } from "@/services/project";
 
 type Props = {
   integration: IWorkspaceIntegration;
-  value: any;
+  value: string | null;
   label: string | React.ReactNode;
-  onChange: (repo: any) => void;
+  onChange: (repo: IGithubRepository | undefined) => void;
   characterLimit?: number;
 };
 
@@ -44,7 +44,12 @@ export function SelectRepository(props: Props) {
     return data;
   };
 
-  const { data: paginatedData, size, setSize, isValidating } = useSWRInfinite(getKey, fetchGithubRepos);
+  const {
+    data: paginatedData,
+    size,
+    setSize,
+    isValidating,
+  } = useSWRInfinite<GithubRepositoriesResponse, unknown, typeof getKey>(getKey, fetchGithubRepos);
 
   let userRepositories = (paginatedData ?? []).flatMap((data) => data.repositories);
   userRepositories = userRepositories.filter((data) => data?.id);

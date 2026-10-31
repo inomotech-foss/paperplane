@@ -14,6 +14,7 @@ import type { TIssueCustomProperty } from "@plane/types";
 import { ConfirmDialog } from "@plane/blocks/dialog";
 // hooks
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type TDeleteCustomPropertyModalProps = {
   isOpen: boolean;
@@ -45,7 +46,7 @@ export const DeleteCustomPropertyModal = observer(function DeleteCustomPropertyM
         type: "error",
         title: t("common.error.label"),
         // e.g. "Other properties are derived from this one: Total hours"
-        message: (error as { error?: string })?.error ?? t("work_item_custom_properties.settings.delete_error"),
+        message: getApiErrorMessage(error) ?? t("work_item_custom_properties.settings.delete_error"),
       });
     } finally {
       setIsSubmitting(false);

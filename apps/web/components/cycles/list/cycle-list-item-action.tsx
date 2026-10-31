@@ -41,6 +41,7 @@ import { useTimeZoneConverter } from "@/hooks/use-timezone-converter";
 // local imports
 import { CycleQuickActions } from "../quick-actions";
 import { TransferIssuesModal } from "../transfer-issues-modal";
+import { getCycleGroup } from "@/components/cycles/cycle-group";
 
 type Props = {
   workspaceSlug: string;
@@ -90,7 +91,7 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
   });
 
   // derived values
-  const cycleStatus = cycleDetails.status ? (cycleDetails.status.toLocaleLowerCase() as TCycleGroups) : "draft";
+  const cycleStatus = getCycleGroup(cycleDetails.status);
 
   const showIssueCount = useMemo(() => cycleStatus === "draft" || cycleStatus === "upcoming", [cycleStatus]);
 

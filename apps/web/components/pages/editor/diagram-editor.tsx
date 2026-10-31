@@ -3,13 +3,15 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import type { TDiagramEditorProps, TFileHandler } from "@plane/editor";
 import { useTranslation } from "@plane/i18n";
 import { Dialog, DialogContent } from "@makeplane/propel/components/dialog";
 import { setToast } from "@plane/blocks/toast";
+// helpers
+import { getStringField, isRecord } from "@/helpers/narrow.helper";
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 // services
@@ -42,6 +44,21 @@ type TEmbedMessage = {
   xml?: string;
   data?: string;
 };
+
+function parseEmbedMessage(raw: string): TEmbedMessage | undefined {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+  if (!isRecord(parsed)) return undefined;
+  return {
+    event: getStringField(parsed, "event"),
+    xml: getStringField(parsed, "xml"),
+    data: getStringField(parsed, "data"),
+  };
+}
 
 /** The embed hands back the preview as a base64 data URI. */
 function toPngFile(dataUri: string, name: string): File {
@@ -143,51 +160,48 @@ export const PageDiagramEditor = observer(function PageDiagramEditor(props: Prop
     };
   }, [assetId, onClose, pageId, projectId, t, workspaceSlug]);
 
+  const handleMessage = useEffectEvent((event: MessageEvent) => {
+    if (source === undefined || event.origin !== origin || typeof event.data !== "string") return;
+
+    const message = parseEmbedMessage(event.data);
+    if (!message) return;
+
+    if (message.event === "init") {
+      post({ action: "load", xml: source, autosave: 0 });
+      return;
+    }
+
+    if (message.event === "save" && message.xml) {
+      isSavingRef.current = true;
+      pendingXmlRef.current = message.xml;
+      post({ action: "export", format: "png", xml: message.xml, spinKey: "saving" });
+      return;
+    }
+
+    if (message.event === "export" && message.data) {
+      const xml = pendingXmlRef.current;
+      if (!xml) return;
+      pendingXmlRef.current = undefined;
+      store(xml, message.data).catch((error: unknown) => {
+        console.error("Error saving diagram:", error);
+        isSavingRef.current = false;
+        setToast({ type: "error", title: t("page_diagram.save_error") });
+      });
+      return;
+    }
+
+    if (message.event === "exit" && !isSavingRef.current) {
+      onClose();
+    }
+  });
+
+  const isSourceReady = source !== undefined;
   useEffect(() => {
-    if (source === undefined) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== origin || typeof event.data !== "string") return;
-
-      let message: TEmbedMessage;
-      try {
-        message = JSON.parse(event.data);
-      } catch {
-        return;
-      }
-
-      if (message.event === "init") {
-        post({ action: "load", xml: source, autosave: 0 });
-        return;
-      }
-
-      if (message.event === "save" && message.xml) {
-        isSavingRef.current = true;
-        pendingXmlRef.current = message.xml;
-        post({ action: "export", format: "png", xml: message.xml, spinKey: "saving" });
-        return;
-      }
-
-      if (message.event === "export" && message.data) {
-        const xml = pendingXmlRef.current;
-        if (!xml) return;
-        pendingXmlRef.current = undefined;
-        store(xml, message.data).catch((error) => {
-          console.error("Error saving diagram:", error);
-          isSavingRef.current = false;
-          setToast({ type: "error", title: t("page_diagram.save_error") });
-        });
-        return;
-      }
-
-      if (message.event === "exit" && !isSavingRef.current) {
-        onClose();
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [onClose, origin, post, source, store, t]);
+    if (!isSourceReady) return;
+    const listener = (event: MessageEvent) => handleMessage(event);
+    window.addEventListener("message", listener);
+    return () => window.removeEventListener("message", listener);
+  }, [isSourceReady]);
 
   return (
     <Dialog

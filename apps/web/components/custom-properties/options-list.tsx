@@ -12,6 +12,7 @@ import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
 import type { TIssueCustomPropertyOption } from "@plane/types";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 export type TCustomPropertyOptionOperationsCallbacks = {
   createOption: (propertyId: string, data: Partial<TIssueCustomPropertyOption>) => Promise<TIssueCustomPropertyOption>;
@@ -46,7 +47,7 @@ export const CustomPropertyOptionsList = observer(function CustomPropertyOptions
     setToast({
       type: "error",
       title: t("common.error.label"),
-      message: (error as { error?: string })?.error ?? t("work_item_custom_properties.settings.update_error"),
+      message: getApiErrorMessage(error) ?? t("work_item_custom_properties.settings.update_error"),
     });
   };
 

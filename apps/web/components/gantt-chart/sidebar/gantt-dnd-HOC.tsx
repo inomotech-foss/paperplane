@@ -13,6 +13,9 @@ import { useOutsideClickDetector } from "@plane/hooks";
 import { DropIndicator } from "@plane/blocks/common";
 import { HIGHLIGHT_WITH_LINE, highlightIssueOnDrop } from "@/components/issues/issue-layouts/utils";
 
+const getDragId = (data: Record<string | symbol, unknown> | undefined): string | undefined =>
+  typeof data?.id === "string" ? data.id : undefined;
+
 type Props = {
   id: string;
   isLastChild: boolean;
@@ -61,7 +64,7 @@ export const GanttDnDHOC = observer(function GanttDnDHOC(props: Props) {
       dropTargetForElements({
         element,
         canDrop: ({ source }) => {
-          const sourceId = source?.data?.id as string | undefined;
+          const sourceId = getDragId(source?.data);
           if (!sourceId || sourceId === id || source?.data?.dragInstanceId !== "GANTT_REORDER") return false;
           return isAllowed(sourceId, false) || (isLastChild && isAllowed(sourceId, true));
         },
@@ -78,15 +81,16 @@ export const GanttDnDHOC = observer(function GanttDnDHOC(props: Props) {
           });
         },
         onDrag: ({ self, source }) => {
-          setInstruction(getInstruction(self?.data, source?.data?.id as string));
+          const sourceId = getDragId(source?.data);
+          setInstruction(sourceId ? getInstruction(self?.data, sourceId) : undefined);
         },
         onDragLeave: () => {
           setInstruction(undefined);
         },
         onDrop: ({ self, source }) => {
           setInstruction(undefined);
-          const sourceId = source?.data?.id as string | undefined;
-          const destinationId = self?.data?.id as string | undefined;
+          const sourceId = getDragId(source?.data);
+          const destinationId = getDragId(self?.data);
           const currentInstruction = sourceId ? getInstruction(self?.data, sourceId) : undefined;
           if (!currentInstruction) return;
 

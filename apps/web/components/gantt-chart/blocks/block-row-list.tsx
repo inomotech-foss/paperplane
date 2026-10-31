@@ -5,7 +5,8 @@
  */
 
 // components
-import type { IBlockUpdateData, IGanttBlock } from "@plane/types";
+import type { IGanttBlock } from "@plane/types";
+import type { TGanttBlockUpdateHandler, TGanttEnableFlag } from "@/components/gantt-chart/types";
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 // hooks
 import { BlockRow } from "@/components/gantt-chart/blocks/block-row";
@@ -15,9 +16,9 @@ import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 
 export type GanttChartBlocksProps = {
   blockIds: string[];
-  blockUpdateHandler: (block: any, payload: IBlockUpdateData) => void;
+  blockUpdateHandler: TGanttBlockUpdateHandler;
   handleScrollToBlock: (block: IGanttBlock) => void;
-  enableAddBlock: boolean | ((blockId: string) => boolean);
+  enableAddBlock: TGanttEnableFlag;
   showAllBlocks: boolean;
   selectionHelpers: TSelectionHelper;
   ganttContainerRef: React.RefObject<HTMLDivElement | null>;

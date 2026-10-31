@@ -11,7 +11,7 @@ import { Button } from "@makeplane/propel/components/button";
 type Props = {
   title: string;
   description?: React.ReactNode;
-  image: any;
+  image: string;
   primaryButton?: {
     icon?: React.ReactNode;
     text: string;

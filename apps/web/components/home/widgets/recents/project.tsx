@@ -7,12 +7,13 @@
 import { useRouter } from "next/navigation";
 // plane types
 import { Logo } from "@plane/blocks/emoji-icon-picker";
-import type { TActivityEntityData, TProjectEntityData } from "@plane/types";
+import type { TActivityEntityData } from "@plane/types";
 import { calculateTimeAgo } from "@plane/utils";
 // components
 import { ListItem } from "@/components/core/list";
 import { MemberSelect } from "@/components/dropdowns/member/member-select";
 import { getProjectUrl } from "@/components/project/features/features";
+import { isProjectEntityData } from "./entity-data";
 // helpers
 
 type BlockProps = {
@@ -25,7 +26,7 @@ export function RecentProject(props: BlockProps) {
   // router
   const router = useRouter();
   // derived values
-  const projectDetails: TProjectEntityData = activity.entity_data as TProjectEntityData;
+  const projectDetails = isProjectEntityData(activity.entity_data) ? activity.entity_data : undefined;
 
   if (!projectDetails) return <></>;
 

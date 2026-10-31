@@ -12,13 +12,14 @@ import { HEADER_HEIGHT } from "@/components/gantt-chart/constants";
 // hooks
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 // types
-import type { IMonthView } from "../../views";
+import { isMonthView } from "../../views/guards";
 import { getNumberOfDaysBetweenTwoDates } from "../../views/helpers";
 
-export const MonthChartView = observer(function MonthChartView(_props: any) {
+export const MonthChartView = observer(function MonthChartView() {
   // chart hook
-  const { currentViewData, renderView } = useTimeLineChartStore();
-  const monthView: IMonthView = renderView;
+  const chartStore = useTimeLineChartStore();
+  const { currentViewData } = chartStore;
+  const monthView = isMonthView(chartStore.renderView) ? chartStore.renderView : undefined;
 
   if (!monthView) return <></>;
 

@@ -18,6 +18,7 @@ import { ConfirmDialog } from "@plane/blocks/dialog";
 // hooks
 import { useModule } from "@/hooks/store/use-module";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   data: IModule;
@@ -55,8 +56,7 @@ export const DeleteModuleModal = observer(function DeleteModuleModal(props: Prop
         message: "Module deleted successfully.",
       });
     } catch (errors) {
-      const isPermissionError =
-        (errors as { error?: string } | undefined)?.error === "You don't have the required permissions.";
+      const isPermissionError = getStringField(errors, "error") === "You don't have the required permissions.";
       const currentError = isPermissionError
         ? PROJECT_ERROR_MESSAGES.permissionError
         : PROJECT_ERROR_MESSAGES.moduleDeleteError;

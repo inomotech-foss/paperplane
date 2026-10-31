@@ -16,6 +16,7 @@ import { ConfirmDialog } from "@plane/blocks/dialog";
 // constants
 // hooks
 import { useProject } from "@/hooks/store/use-project";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type Props = {
   data: Partial<TIssue>;
@@ -53,8 +54,8 @@ export const DeleteInboxIssueModal = observer(function DeleteInboxIssueModal({
           message: `${t("inbox_issue.modals.delete.success")}`,
         });
       })
-      .catch((errors) => {
-        const isPermissionError = errors?.error === "Only admin or creator can delete the work item";
+      .catch((errors: unknown) => {
+        const isPermissionError = getApiErrorMessage(errors) === "Only admin or creator can delete the work item";
         const currentError = isPermissionError
           ? PROJECT_ERROR_MESSAGES.permissionError
           : PROJECT_ERROR_MESSAGES.issueDeleteError;

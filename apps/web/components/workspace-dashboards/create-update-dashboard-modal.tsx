@@ -18,6 +18,7 @@ import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { TextArea, TextAreaGroup } from "@makeplane/propel/components/text-area";
 // hooks
 import { useWorkspaceDashboards } from "@/hooks/store/use-workspace-dashboards";
+import { getApiErrorMessage } from "@/helpers/error.helper";
 
 type Props = {
   isOpen: boolean;
@@ -84,7 +85,7 @@ const DashboardForm = observer(function DashboardForm(props: TFormProps) {
       setToast({
         type: "error",
         title: t("common.error.label"),
-        message: (apiError as { error?: string })?.error ?? t("insight_dashboards.form.save_error"),
+        message: getApiErrorMessage(apiError) ?? t("insight_dashboards.form.save_error"),
       });
     } finally {
       setIsSubmitting(false);

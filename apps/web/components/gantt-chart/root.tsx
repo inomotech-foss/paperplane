@@ -7,19 +7,21 @@
 import { useEffect } from "react";
 import { observer } from "mobx-react";
 // components
-import type { IBlockUpdateData, IBlockUpdateDependencyData } from "@plane/types";
+import type { IBlockUpdateData, IBlockUpdateDependencyData, TGanttBlockData } from "@plane/types";
 // hooks
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 import { ChartViewRoot } from "./chart/root";
+import type { TGanttRenderBlockData, TGanttSidebarProps } from "./types";
 
 type GanttChartRootProps = {
   border?: boolean;
   title: string;
   loaderTitle: string;
   blockIds: string[];
-  blockUpdateHandler: (block: any, payload: IBlockUpdateData) => void;
-  blockToRender: (data: any) => React.ReactNode;
-  sidebarToRender: (props: any) => React.ReactNode;
+  // Method syntax lets callers type the block as their entity, which the store keeps behind TGanttBlockData.
+  blockUpdateHandler(block: TGanttBlockData, payload: IBlockUpdateData): void;
+  blockToRender(data: TGanttRenderBlockData): React.ReactNode;
+  sidebarToRender: (props: TGanttSidebarProps) => React.ReactNode;
   quickAdd?: React.ReactNode | undefined;
   canLoadMoreBlocks?: boolean;
   loadMoreBlocks?: () => void;
@@ -68,7 +70,7 @@ export const GanttChartRoot = observer(function GanttChartRoot(props: GanttChart
   // update the timeline store with updated blockIds
   useEffect(() => {
     setBlockIds(blockIds);
-  }, [blockIds]);
+  }, [blockIds, setBlockIds]);
 
   return (
     <ChartViewRoot

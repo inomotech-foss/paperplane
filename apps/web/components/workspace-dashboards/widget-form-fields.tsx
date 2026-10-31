@@ -33,7 +33,10 @@ function FieldSelect<V extends string>(props: {
     <Select<TFieldOption<V>>
       getValues={() => options}
       value={options.find((option) => option.value === value) ?? null}
-      onChange={(next) => onChange(next as V)}
+      onChange={(next) => {
+        const option = options.find((item) => item.value === next);
+        if (option) onChange(option.value);
+      }}
       getOptionValue={(option) => option.value}
       getOptionLabel={(option) => option.label}
       getOptionGroup={(option) => option.group}

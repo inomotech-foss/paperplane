@@ -4,12 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import type { RefObject } from "react";
 import { useState } from "react";
 import { observer } from "mobx-react";
 // ui
 import { GANTT_TIMELINE_TYPE } from "@plane/types";
-import type { IBlockUpdateData } from "@plane/types";
 import { Loader } from "@plane/blocks/skeleton";
 // components
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
@@ -21,19 +19,13 @@ import { useIssuesStore } from "@/hooks/use-issue-layout-store";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 // local imports
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
+import type { TGanttSidebarProps } from "../../types";
+import { resolveGanttFlag } from "../../types";
 import { GanttDnDHOC } from "../gantt-dnd-HOC";
 import { getSiblingDrop, handleOrderChange } from "../utils";
 import { IssuesSidebarBlock } from "./block";
 
-type Props = {
-  blockUpdateHandler: (block: any, payload: IBlockUpdateData) => void;
-  canLoadMoreBlocks?: boolean;
-  loadMoreBlocks?: () => void;
-  ganttContainerRef: RefObject<HTMLDivElement | null>;
-  blockIds: string[];
-  enableReorder: boolean;
-  enableSelection: boolean;
-  showAllBlocks?: boolean;
+type Props = Omit<TGanttSidebarProps, "title" | "selectionHelpers"> & {
   selectionHelpers?: TSelectionHelper;
 };
 
@@ -111,14 +103,14 @@ export const IssueGanttSidebar = observer(function IssueGanttSidebar(props: Prop
                 <GanttDnDHOC
                   id={block.id}
                   isLastChild={index === blockIds.length - 1}
-                  isDragEnabled={enableReorder}
+                  isDragEnabled={resolveGanttFlag(enableReorder, block.id)}
                   onDrop={handleOnDrop}
                   canDropBlock={canDropBlock}
                 >
                   {(isDragging: boolean) => (
                     <IssuesSidebarBlock
                       block={block}
-                      enableSelection={enableSelection}
+                      enableSelection={resolveGanttFlag(enableSelection, block.id)}
                       isDragging={isDragging}
                       selectionHelpers={selectionHelpers}
                     />

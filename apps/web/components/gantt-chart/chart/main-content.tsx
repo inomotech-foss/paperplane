@@ -8,13 +8,7 @@ import { useEffect, useRef } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
 import { observer } from "mobx-react";
-import type {
-  ChartDataType,
-  IBlockUpdateData,
-  IBlockUpdateDependencyData,
-  IGanttBlock,
-  TGanttViews,
-} from "@plane/types";
+import type { ChartDataType, IBlockUpdateDependencyData, IGanttBlock, TGanttViews } from "@plane/types";
 import { cn, getDate } from "@plane/utils";
 // components
 import { MultipleSelectGroup } from "@/components/core/multiple-select";
@@ -34,6 +28,7 @@ import {
   SIDEBAR_SIZE_PROPERTY,
   SIDEBAR_SIZE_VALUE,
 } from "../constants";
+import type { TGanttBlockUpdateHandler, TGanttEnableFlag, TGanttRenderBlockData, TGanttSidebarProps } from "../types";
 import { getBlockChartDates, getItemPositionWidth } from "../views/helpers";
 import { TimelineDragHelper } from "./timeline-drag-helper";
 
@@ -42,19 +37,19 @@ type Props = {
   canLoadMoreBlocks?: boolean;
   loadMoreBlocks?: () => void;
   updateBlockDates?: (updates: IBlockUpdateDependencyData[]) => Promise<void>;
-  blockToRender: (data: any) => React.ReactNode;
-  blockUpdateHandler: (block: any, payload: IBlockUpdateData) => void;
+  blockToRender: (data: TGanttRenderBlockData) => React.ReactNode;
+  blockUpdateHandler: TGanttBlockUpdateHandler;
   bottomSpacing: boolean;
-  enableBlockLeftResize: boolean | ((blockId: string) => boolean);
-  enableBlockMove: boolean | ((blockId: string) => boolean);
-  enableBlockRightResize: boolean | ((blockId: string) => boolean);
-  enableReorder: boolean | ((blockId: string) => boolean);
-  enableSelection: boolean | ((blockId: string) => boolean);
-  enableAddBlock: boolean | ((blockId: string) => boolean);
-  enableDependency: boolean | ((blockId: string) => boolean);
+  enableBlockLeftResize: TGanttEnableFlag;
+  enableBlockMove: TGanttEnableFlag;
+  enableBlockRightResize: TGanttEnableFlag;
+  enableReorder: TGanttEnableFlag;
+  enableSelection: TGanttEnableFlag;
+  enableAddBlock: TGanttEnableFlag;
+  enableDependency: TGanttEnableFlag;
   itemsContainerWidth: number;
   showAllBlocks: boolean;
-  sidebarToRender: (props: any) => React.ReactNode;
+  sidebarToRender: (props: TGanttSidebarProps) => React.ReactNode;
   title: string;
   updateCurrentViewRenderPayload: (
     direction: "left" | "right",
@@ -127,7 +122,7 @@ export const GanttChartMainContent = observer(function GanttChartMainContent(pro
   };
 
   const handleScrollToBlock = (block: IGanttBlock) => {
-    const scrollContainer = ganttContainerRef.current as HTMLDivElement;
+    const scrollContainer = ganttContainerRef.current;
     // scroll to the bar as drawn, which may take dates from the children
     const chartDates = getBlockChartDates(block);
     const scrollToEndDate = !chartDates.start_date && chartDates.target_date;
