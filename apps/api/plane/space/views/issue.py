@@ -32,9 +32,12 @@ from django.db.models.functions import Cast, Concat
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from drf_spectacular.utils import extend_schema
 
 
 # Module imports
+from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.app.serializers.response.public import PublicWorkItemListResponse, PublicWorkItemSerializer
 from .base import BaseAPIView, BaseViewSet
 
 # fetch the space app grouper function separately
@@ -106,6 +109,7 @@ def _public_comment_content(data):
 class ProjectIssuesPublicEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: PublicWorkItemListResponse})
     def get(self, request, anchor):
         filters = issue_filters(request.query_params, "GET")
         order_by_param = request.GET.get("order_by", "-created_at")
@@ -686,6 +690,7 @@ class IssueVotePublicViewSet(BaseViewSet):
 class IssueRetrievePublicEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: PublicWorkItemSerializer})
     def get(self, request, anchor, issue_id):
         deploy_board = DeployBoard.objects.get(anchor=anchor)
 

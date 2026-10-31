@@ -20,14 +20,22 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstanceInfoResponse'
+          description: ''
     patch:
       operationId: root_partial_update
       security:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instance'
+          description: ''
   /api/instances/admins/:
     get:
       operationId: admins_list
@@ -119,27 +127,53 @@ paths:
       - sessionAuth: []
       - {}
       responses:
-        '200':
-          description: No response body
+        '204':
+          description: Recorded
   /api/instances/configurations/:
     get:
-      operationId: configurations_retrieve
+      operationId: configurations_list
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       tags:
       - configurations
       security:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstanceConfiguration'
+          description: ''
     patch:
       operationId: configurations_partial_update
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       tags:
       - configurations
       security:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstanceConfiguration'
+          description: ''
   /api/instances/configurations/disable-email-feature/:
     delete:
       operationId: configurations_disable_email_feature_destroy
@@ -148,8 +182,8 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          description: Disabled, with an empty body
   /api/instances/email-credentials-check/:
     post:
       operationId: email_credentials_check_create
@@ -159,17 +193,34 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
   /api/instances/oauth-applications/:
     get:
-      operationId: oauth_applications_retrieve
+      operationId: oauth_applications_list
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       tags:
       - oauth-applications
       security:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OAuthApplication'
+          description: ''
     post:
       operationId: oauth_applications_create
       tags:
@@ -177,8 +228,12 @@ paths:
       security:
       - sessionAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedOAuthApplication'
+          description: ''
   /api/instances/oauth-applications/{pk}/:
     patch:
       operationId: oauth_applications_partial_update
@@ -194,7 +249,11 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthApplication'
+          description: ''
     delete:
       operationId: oauth_applications_destroy
       parameters:
@@ -500,6 +559,138 @@ paths:
           description: ''
 components:
   schemas:
+    CreatedOAuthApplication:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        client_id:
+          type: string
+        redirect_uris:
+          type: string
+          description: Space separated
+        installations:
+          type: integer
+        managed:
+          type: boolean
+          description: True when the Helm chart owns the application
+        created:
+          type: string
+          format: date-time
+        client_secret:
+          type: string
+          description: Shown once, it cannot be read again
+      required:
+      - id
+      - name
+      - client_id
+      - redirect_uris
+      - installations
+      - managed
+      - created
+      - client_secret
+    Instance:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        primary_owner_details:
+          allOf:
+          - $ref: '#/components/schemas/UserAdminLite'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        instance_name:
+          type: string
+          maxLength: 255
+        whitelist_emails:
+          type: string
+          nullable: true
+        instance_id:
+          type: string
+          maxLength: 255
+        current_version:
+          type: string
+          maxLength: 255
+        latest_version:
+          type: string
+          nullable: true
+          maxLength: 255
+        edition:
+          type: string
+          maxLength: 255
+        domain:
+          type: string
+        last_checked_at:
+          type: string
+          format: date-time
+          readOnly: true
+        namespace:
+          type: string
+          nullable: true
+          maxLength: 255
+        is_telemetry_enabled:
+          type: boolean
+        is_support_required:
+          type: boolean
+        is_setup_done:
+          type: boolean
+          readOnly: true
+        is_signup_screen_visited:
+          type: boolean
+        is_verified:
+          type: boolean
+        is_test:
+          type: boolean
+        is_current_version_deprecated:
+          type: boolean
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+      required:
+      - id
+      - created_at
+      - updated_at
+      - deleted_at
+      - instance_name
+      - whitelist_emails
+      - instance_id
+      - current_version
+      - latest_version
+      - edition
+      - domain
+      - last_checked_at
+      - namespace
+      - is_telemetry_enabled
+      - is_support_required
+      - is_setup_done
+      - is_signup_screen_visited
+      - is_verified
+      - is_test
+      - is_current_version_deprecated
+      - created_by
+      - updated_by
     InstanceAdmin:
       type: object
       properties:
@@ -645,6 +836,259 @@ components:
           description: Present when signed in as an instance admin
       required:
       - is_authenticated
+    InstanceConfig:
+      type: object
+      properties:
+        enable_signup:
+          type: boolean
+        is_workspace_creation_disabled:
+          type: boolean
+        is_google_enabled:
+          type: boolean
+        is_github_enabled:
+          type: boolean
+        is_gitlab_enabled:
+          type: boolean
+        is_gitea_enabled:
+          type: boolean
+        is_oidc_enabled:
+          type: boolean
+        oidc_provider_name:
+          type: string
+        is_magic_login_enabled:
+          type: boolean
+        is_email_password_enabled:
+          type: boolean
+        github_app_name:
+          type: string
+        slack_client_id:
+          type: string
+          nullable: true
+        has_unsplash_configured:
+          type: boolean
+        has_llm_configured:
+          type: boolean
+        file_size_limit:
+          type: number
+          format: double
+        is_smtp_configured:
+          type: boolean
+        admin_base_url:
+          type: string
+          nullable: true
+        space_base_url:
+          type: string
+          nullable: true
+        app_base_url:
+          type: string
+          nullable: true
+        instance_changelog_url:
+          type: string
+          nullable: true
+        diagram_embed_origin:
+          type: string
+          nullable: true
+        external_embed_allowed_origins:
+          type: array
+          items:
+            type: string
+        is_self_managed:
+          type: boolean
+      required:
+      - enable_signup
+      - is_workspace_creation_disabled
+      - is_google_enabled
+      - is_github_enabled
+      - is_gitlab_enabled
+      - is_gitea_enabled
+      - is_oidc_enabled
+      - oidc_provider_name
+      - is_magic_login_enabled
+      - is_email_password_enabled
+      - github_app_name
+      - slack_client_id
+      - has_unsplash_configured
+      - has_llm_configured
+      - file_size_limit
+      - is_smtp_configured
+      - admin_base_url
+      - space_base_url
+      - app_base_url
+      - instance_changelog_url
+      - diagram_embed_origin
+      - external_embed_allowed_origins
+      - is_self_managed
+    InstanceConfiguration:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        is_managed:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        key:
+          type: string
+          maxLength: 100
+        value:
+          type: string
+          nullable: true
+        category:
+          type: string
+        is_encrypted:
+          type: boolean
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+      required:
+      - id
+      - is_managed
+      - created_at
+      - updated_at
+      - deleted_at
+      - key
+      - value
+      - category
+      - is_encrypted
+      - created_by
+      - updated_by
+    InstanceDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        primary_owner_details:
+          allOf:
+          - $ref: '#/components/schemas/UserAdminLite'
+          readOnly: true
+        workspaces_exist:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        instance_name:
+          type: string
+          maxLength: 255
+        whitelist_emails:
+          type: string
+          nullable: true
+        instance_id:
+          type: string
+          maxLength: 255
+        current_version:
+          type: string
+          maxLength: 255
+        latest_version:
+          type: string
+          nullable: true
+          maxLength: 255
+        edition:
+          type: string
+          maxLength: 255
+        domain:
+          type: string
+        last_checked_at:
+          type: string
+          format: date-time
+          readOnly: true
+        namespace:
+          type: string
+          nullable: true
+          maxLength: 255
+        is_telemetry_enabled:
+          type: boolean
+        is_support_required:
+          type: boolean
+        is_setup_done:
+          type: boolean
+          readOnly: true
+        is_signup_screen_visited:
+          type: boolean
+        is_verified:
+          type: boolean
+        is_test:
+          type: boolean
+        is_current_version_deprecated:
+          type: boolean
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+      required:
+      - id
+      - workspaces_exist
+      - created_at
+      - updated_at
+      - deleted_at
+      - instance_name
+      - whitelist_emails
+      - instance_id
+      - current_version
+      - latest_version
+      - edition
+      - domain
+      - last_checked_at
+      - namespace
+      - is_telemetry_enabled
+      - is_support_required
+      - is_setup_done
+      - is_signup_screen_visited
+      - is_verified
+      - is_test
+      - is_current_version_deprecated
+      - created_by
+      - updated_by
+    InstanceInfo:
+      type: object
+      properties:
+        config:
+          $ref: '#/components/schemas/InstanceConfig'
+        instance:
+          $ref: '#/components/schemas/InstanceDetail'
+      required:
+      - config
+      - instance
+    InstanceInfoResponse:
+      oneOf:
+      - $ref: '#/components/schemas/InstanceInfo'
+      - $ref: '#/components/schemas/UnregisteredInstance'
     InstanceUser:
       type: object
       properties:
@@ -869,6 +1313,41 @@ components:
       required:
       - moved
       - dropped
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
+    OAuthApplication:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        client_id:
+          type: string
+        redirect_uris:
+          type: string
+          description: Space separated
+        installations:
+          type: integer
+        managed:
+          type: boolean
+          description: True when the Helm chart owns the application
+        created:
+          type: string
+          format: date-time
+      required:
+      - id
+      - name
+      - client_id
+      - redirect_uris
+      - installations
+      - managed
+      - created
     PaginatedInstanceUserList:
       type: object
       properties:
@@ -1863,6 +2342,16 @@ components:
         * `US/Mountain` - US/Mountain
         * `US/Pacific` - US/Pacific
         * `UTC` - UTC
+    UnregisteredInstance:
+      type: object
+      properties:
+        is_activated:
+          type: boolean
+        is_setup_done:
+          type: boolean
+      required:
+      - is_activated
+      - is_setup_done
     UserAdminLite:
       type: object
       properties:

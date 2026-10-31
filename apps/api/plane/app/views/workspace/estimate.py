@@ -5,6 +5,7 @@
 # Third party modules
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
 from plane.app.permissions import WorkspaceEntityPermission
@@ -18,6 +19,7 @@ class WorkspaceEstimatesEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
     use_read_replica = True
 
+    @extend_schema(responses={200: WorkspaceEstimateSerializer(many=True)})
     @cache_response(60 * 60 * 2)
     def get(self, request, slug):
         estimate_ids = Project.objects.filter(workspace__slug=slug, estimate__isnull=False).values_list(

@@ -13,8 +13,11 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 ## Module imports
+from plane.utils.openapi.serializers import MessageResponseSerializer
+from plane.app.serializers.response.auth import CSRFTokenSerializer
 from plane.app.serializers import UserSerializer
 from plane.authentication.utils.login import user_login
 from plane.authentication.utils.password import is_password_strong
@@ -40,6 +43,7 @@ def _password_auth_disabled():
 class CSRFTokenEndpoint(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: CSRFTokenSerializer})
     def get(self, request):
         # Generate a CSRF token
         csrf_token = get_token(request)
@@ -59,6 +63,7 @@ def csrf_failure(request, reason=""):
 class ChangePasswordEndpoint(APIView):
     throttle_classes = [AuthenticationThrottle]
 
+    @extend_schema(responses={200: MessageResponseSerializer})
     def post(self, request):
         if _password_auth_disabled():
             exc = AuthenticationException(
@@ -117,6 +122,7 @@ class ChangePasswordEndpoint(APIView):
 
 
 class SetUserPasswordEndpoint(APIView):
+    @extend_schema(responses={200: UserSerializer})
     @invalidate_cache("/api/users/me/")
     def post(self, request):
         if _password_auth_disabled():

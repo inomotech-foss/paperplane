@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
+from plane.app.serializers.response.asset import PageAttachmentUploadSerializer
 from plane.app.permissions import ProjectPagePermission
 from plane.app.serializers import PageAttachmentSerializer
 from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
@@ -49,6 +50,7 @@ class PageAttachmentEndpoint(BaseAPIView):
     def _queryset(self, slug, project_id, page_id):
         return page_attachments(slug, project_id, page_id)
 
+    @extend_schema(responses={200: PageAttachmentUploadSerializer})
     def post(self, request, slug, project_id, page_id):
         name = sanitize_filename(request.data.get("name")) or "unnamed"
         file_type = request.data.get("type", False)
@@ -90,6 +92,12 @@ class PageAttachmentEndpoint(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(PageAttachmentSerializer(many=True), description="Without pk"),
+            302: OpenApiResponse(description="With pk: redirect to a signed URL"),
+        }
+    )
     def get(self, request, slug, project_id, page_id, pk=None):
         if pk:
             asset = self._queryset(slug, project_id, page_id).filter(pk=pk).first()
@@ -113,6 +121,7 @@ class PageAttachmentEndpoint(BaseAPIView):
         attachments = self._queryset(slug, project_id, page_id).filter(is_uploaded=True)
         return Response(PageAttachmentSerializer(attachments, many=True).data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={204: OpenApiResponse(description="Done")})
     def patch(self, request, slug, project_id, page_id, pk):
         asset = self._queryset(slug, project_id, page_id).filter(pk=pk).first()
         if asset is None:

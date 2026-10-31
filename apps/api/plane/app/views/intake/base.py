@@ -17,8 +17,13 @@ from django.db.models.functions import Coalesce
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.response.issue import VersionRowSerializer
+from plane.utils.openapi import CURSOR_PARAMETER
+from plane.utils.openapi.pagination import cursor_paginated_response
+from plane.utils.openapi.schema import DetailOrList
 from ..base import BaseViewSet
 from plane.app.permissions import allow_permission, ROLE
 from plane.db.models import (
@@ -574,6 +579,15 @@ class IntakeWorkItemDescriptionVersionEndpoint(BaseAPIView):
 
         return paginated_data
 
+    @extend_schema(
+        parameters=[CURSOR_PARAMETER],
+        responses={
+            200: DetailOrList(
+                IssueDescriptionVersionDetailSerializer,
+                collection=cursor_paginated_response(VersionRowSerializer, name="IssueDescriptionVersion"),
+            )
+        },
+    )
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, work_item_id, pk=None):
         project = Project.objects.get(pk=project_id)

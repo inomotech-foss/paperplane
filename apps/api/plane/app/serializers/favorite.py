@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from uuid import UUID
+
 from django.db.models import Exists, OuterRef, Q
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field
 from rest_framework import serializers
 
 from plane.db.models import (
@@ -31,7 +34,7 @@ class PageFavoriteLiteSerializer(serializers.ModelSerializer):
         model = Page
         fields = ["id", "name", "logo_props", "project_id"]
 
-    def get_project_id(self, obj):
+    def get_project_id(self, obj) -> UUID | None:
         # A page can be linked to several projects; report the one the favorite was validated against
         return self.context.get("project_id")
 
@@ -118,6 +121,20 @@ class UserFavoriteSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["workspace", "created_by", "updated_by"]
 
+    @extend_schema_field(
+        PolymorphicProxySerializer(
+            component_name="FavoriteEntity",
+            serializers=[
+                ProjectFavoriteLiteSerializer,
+                CycleFavoriteLiteSerializer,
+                ModuleFavoriteLiteSerializer,
+                ViewFavoriteSerializer,
+                PageFavoriteLiteSerializer,
+            ],
+            resource_type_field_name=None,
+            allow_null=True,
+        )
+    )
     def get_entity_data(self, obj):
         entity_type = obj.entity_type
         entity_identifier = obj.entity_identifier

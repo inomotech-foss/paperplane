@@ -7,7 +7,13 @@
 from django.db.models import Count, Q
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
+from plane.app.serializers.response.dashboard import (
+    DashboardDetailSerializer,
+    DashboardOptionsSerializer,
+    WidgetDataSerializer,
+)
 from plane.app.permissions import ROLE, WorkspaceEntityPermission, allow_permission
 from plane.app.serializers import DashboardSerializer, DashboardWidgetSerializer
 from plane.db.models import (
@@ -70,6 +76,7 @@ class DashboardViewSet(BaseViewSet):
         serializer = DashboardSerializer(self.get_queryset(), many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: DashboardDetailSerializer})
     def retrieve(self, request, slug, pk):
         dashboard = self.get_queryset().get(pk=pk)
         data = DashboardSerializer(dashboard, context={"request": request}).data
@@ -173,6 +180,7 @@ class DashboardWidgetDataEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
     use_read_replica = True
 
+    @extend_schema(responses={200: WidgetDataSerializer})
     def get(self, request, slug, dashboard_id, pk):
         visible_dashboards(request.user, slug).get(pk=dashboard_id)
         widget = DashboardWidget.objects.get(workspace__slug=slug, dashboard_id=dashboard_id, pk=pk)
@@ -195,6 +203,7 @@ class DashboardWidgetPreviewEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
     use_read_replica = True
 
+    @extend_schema(responses={200: WidgetDataSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def post(self, request, slug):
         try:
@@ -210,6 +219,7 @@ class DashboardOptionsEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
     use_read_replica = True
 
+    @extend_schema(responses={200: DashboardOptionsSerializer})
     def get(self, request, slug):
         properties = [
             {

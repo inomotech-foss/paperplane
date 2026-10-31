@@ -13,10 +13,10 @@ from django.utils import timezone
 from django.core.serializers.json import DjangoJSONEncoder
 
 # Third party imports
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
-from drf_spectacular.utils import OpenApiResponse, OpenApiRequest, OpenApiParameter
+from drf_spectacular.utils import OpenApiResponse, OpenApiRequest, OpenApiParameter, inline_serializer
 from drf_spectacular.types import OpenApiTypes
 
 
@@ -722,6 +722,37 @@ class ProjectSummaryAPIEndpoint(BaseAPIView):
     permission_classes = [WorkSpaceAdminPermission]
     use_read_replica = True
 
+    @project_docs(
+        summary="Get project summary",
+        description="Get the name, identifier and entity counts of a project.",
+        parameters=[
+            PROJECT_ID_PARAMETER,
+            OpenApiParameter(
+                name="fields",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description=(
+                    "Comma-separated counts to return: " + ", ".join(ALLOWED_PROJECT_SUMMARY_FIELDS) + ". "
+                    "Unknown names are ignored. Defaults to all."
+                ),
+            ),
+        ],
+        responses={
+            200: inline_serializer(
+                name="ProjectSummary",
+                fields={
+                    "id": serializers.UUIDField(),
+                    "name": serializers.CharField(),
+                    "identifier": serializers.CharField(),
+                    "counts": serializers.DictField(
+                        child=serializers.IntegerField(allow_null=True),
+                        help_text="A count per requested field: " + ", ".join(ALLOWED_PROJECT_SUMMARY_FIELDS),
+                    ),
+                },
+            )
+        },
+    )
     def get(self, request, slug, project_id):
         """Get project summary
 

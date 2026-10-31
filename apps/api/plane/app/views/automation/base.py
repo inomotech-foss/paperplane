@@ -9,8 +9,14 @@ from django.db.models import Prefetch
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.utils.openapi.serializers import MessageResponseSerializer
+from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.utils.openapi.pagination import paginated_response
+from plane.utils.openapi.schema import DetailOrList
+from plane.app.serializers.response.automation import AutomationCatalogSerializer
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.serializers import (
     AutomationActionSerializer,
@@ -263,16 +269,19 @@ class AutomationBaseEndpoint(BaseAPIView):
 class ProjectAutomationEndpoint(AutomationBaseEndpoint):
     scope = AutomationScope.PROJECT
 
+    @extend_schema(responses={200: DetailOrList(AutomationSerializer)})
     @allow_permission([ROLE.ADMIN])
     def get(self, request, slug, project_id, pk=None):
         if pk is None:
             return self.list_automations(request, slug, project_id=project_id)
         return self.retrieve_automation(request, slug, pk, project_id=project_id)
 
+    @extend_schema(responses={201: AutomationSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         return self.create_automation(request, slug, project_id=project_id)
 
+    @extend_schema(responses={200: AutomationSerializer})
     @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, pk):
         return self.update_automation(request, slug, pk, project_id=project_id)
@@ -285,14 +294,17 @@ class ProjectAutomationEndpoint(AutomationBaseEndpoint):
 class ProjectAutomationActionEndpoint(AutomationBaseEndpoint):
     scope = AutomationScope.PROJECT
 
+    @extend_schema(responses={200: AutomationActionSerializer(many=True)})
     @allow_permission([ROLE.ADMIN])
     def get(self, request, slug, project_id, automation_id):
         return self.list_actions(request, slug, automation_id, project_id=project_id)
 
+    @extend_schema(responses={201: AutomationActionSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id, automation_id):
         return self.create_action(request, slug, automation_id, project_id=project_id)
 
+    @extend_schema(responses={200: AutomationActionSerializer})
     @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, automation_id, pk):
         return self.update_action(request, slug, automation_id, pk, project_id=project_id)
@@ -305,10 +317,14 @@ class ProjectAutomationActionEndpoint(AutomationBaseEndpoint):
 class ProjectAutomationRunEndpoint(AutomationBaseEndpoint):
     scope = AutomationScope.PROJECT
 
+    @extend_schema(
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: paginated_response(AutomationRunSerializer)}
+    )
     @allow_permission([ROLE.ADMIN])
     def get(self, request, slug, project_id, automation_id):
         return self.list_runs(request, slug, automation_id, project_id=project_id)
 
+    @extend_schema(request=None, responses={202: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id, automation_id):
         return self.trigger_run(request, slug, automation_id, project_id=project_id)
@@ -317,16 +333,19 @@ class ProjectAutomationRunEndpoint(AutomationBaseEndpoint):
 class WorkspaceAutomationEndpoint(AutomationBaseEndpoint):
     scope = AutomationScope.WORKSPACE
 
+    @extend_schema(responses={200: DetailOrList(AutomationSerializer)})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def get(self, request, slug, pk=None):
         if pk is None:
             return self.list_automations(request, slug)
         return self.retrieve_automation(request, slug, pk)
 
+    @extend_schema(responses={201: AutomationSerializer})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug):
         return self.create_automation(request, slug)
 
+    @extend_schema(responses={200: AutomationSerializer})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, pk):
         return self.update_automation(request, slug, pk)
@@ -339,14 +358,17 @@ class WorkspaceAutomationEndpoint(AutomationBaseEndpoint):
 class WorkspaceAutomationActionEndpoint(AutomationBaseEndpoint):
     scope = AutomationScope.WORKSPACE
 
+    @extend_schema(responses={200: AutomationActionSerializer(many=True)})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def get(self, request, slug, automation_id):
         return self.list_actions(request, slug, automation_id)
 
+    @extend_schema(responses={201: AutomationActionSerializer})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug, automation_id):
         return self.create_action(request, slug, automation_id)
 
+    @extend_schema(responses={200: AutomationActionSerializer})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, automation_id, pk):
         return self.update_action(request, slug, automation_id, pk)
@@ -359,10 +381,14 @@ class WorkspaceAutomationActionEndpoint(AutomationBaseEndpoint):
 class WorkspaceAutomationRunEndpoint(AutomationBaseEndpoint):
     scope = AutomationScope.WORKSPACE
 
+    @extend_schema(
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: paginated_response(AutomationRunSerializer)}
+    )
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def get(self, request, slug, automation_id):
         return self.list_runs(request, slug, automation_id)
 
+    @extend_schema(request=None, responses={202: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug, automation_id):
         return self.trigger_run(request, slug, automation_id)
@@ -375,6 +401,7 @@ class AutomationMetadataEndpoint(BaseAPIView):
     Static per deployment, so the client can cache it for the session.
     """
 
+    @extend_schema(responses={200: AutomationCatalogSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug):
         return Response(serialize_catalog(), status=status.HTTP_200_OK)

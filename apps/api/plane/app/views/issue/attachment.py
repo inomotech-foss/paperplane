@@ -16,8 +16,10 @@ from django.http import HttpResponseRedirect
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
+from plane.app.serializers.response.asset import IssueAttachmentUploadSerializer
 from .. import BaseAPIView
 from plane.app.serializers import IssueAttachmentSerializer
 from plane.db.models import FileAsset, Issue, Workspace
@@ -114,6 +116,7 @@ class IssueAttachmentV2Endpoint(BaseAPIView):
     serializer_class = IssueAttachmentSerializer
     model = FileAsset
 
+    @extend_schema(responses={200: IssueAttachmentUploadSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def post(self, request, slug, project_id, issue_id):
         # A restricted guest may only add attachments to issues they created,
@@ -194,6 +197,12 @@ class IssueAttachmentV2Endpoint(BaseAPIView):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(IssueAttachmentSerializer(many=True), description="Without pk"),
+            302: OpenApiResponse(description="With pk: redirect to a signed URL"),
+        }
+    )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, issue_id, pk=None):
         # A restricted guest may only see attachments of issues they created,
@@ -234,6 +243,7 @@ class IssueAttachmentV2Endpoint(BaseAPIView):
         serializer = IssueAttachmentSerializer(issue_attachments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={204: OpenApiResponse(description="Done")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id, issue_id, pk):
         # A restricted guest may only touch attachments of issues they created,

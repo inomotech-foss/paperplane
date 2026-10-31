@@ -12,7 +12,9 @@ from oauth2_provider.models import get_application_model
 from oauth2_provider.views import AuthorizationView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
+from plane.app.serializers.response.auth import AppInstallationSerializer
 from plane.api.middleware.oauth_authentication import OAuthBearerAuthentication
 from plane.authentication.utils.host import base_host
 from plane.db.models import ApplicationInstallation, Workspace
@@ -146,6 +148,7 @@ class AppInstallationEndpoint(APIView):
 
     authentication_classes = [OAuthBearerAuthentication]
 
+    @extend_schema(responses={200: AppInstallationSerializer(many=True)})
     def get(self, request):
         installations = (
             ApplicationInstallation.objects.filter(user=request.user, application_id=request.auth.application_id)

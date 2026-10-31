@@ -12,8 +12,11 @@ import requests
 
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from drf_spectacular.types import OpenApiTypes
 
 # Module import
+from plane.app.serializers.response.misc import AssistantReplySerializer, ProjectAssistantReplySerializer
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.serializers import ProjectLiteSerializer, WorkspaceLiteSerializer
 from plane.db.models import Project, Workspace
@@ -146,6 +149,7 @@ def get_llm_response(task, prompt, api_key: str, model: str, provider: str) -> T
 
 
 class GPTIntegrationEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ProjectAssistantReplySerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id):
         api_key, model, provider = get_llm_config()
@@ -182,6 +186,7 @@ class GPTIntegrationEndpoint(BaseAPIView):
 
 
 class WorkspaceGPTIntegrationEndpoint(BaseAPIView):
+    @extend_schema(responses={200: AssistantReplySerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def post(self, request, slug):
         api_key, model, provider = get_llm_config()
@@ -213,6 +218,9 @@ class WorkspaceGPTIntegrationEndpoint(BaseAPIView):
 
 
 class UnsplashEndpoint(BaseAPIView):
+    @extend_schema(
+        responses={200: OpenApiResponse(OpenApiTypes.ANY, description="The Unsplash API response, passed through")}
+    )
     def get(self, request):
         (UNSPLASH_ACCESS_KEY,) = get_configuration_value(
             [

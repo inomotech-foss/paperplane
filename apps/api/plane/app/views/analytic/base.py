@@ -16,6 +16,12 @@ from rest_framework import status
 from rest_framework.response import Response
 
 # Module imports
+from plane.utils.openapi.serializers import MessageResponseSerializer
+from plane.app.serializers.response.analytics import (
+    AnalyticsSerializer,
+    DefaultAnalyticsSerializer,
+    SavedAnalyticsSerializer,
+)
 from plane.app.permissions import WorkSpaceAdminPermission
 from plane.app.serializers import AnalyticViewSerializer
 from plane.app.serializers.response.project import ProjectStatsSerializer
@@ -38,6 +44,7 @@ from plane.app.permissions import allow_permission, ROLE
 
 
 class AnalyticsEndpoint(BaseAPIView):
+    @extend_schema(responses={200: AnalyticsSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug):
         x_axis = request.GET.get("x_axis", False)
@@ -196,6 +203,7 @@ class AnalyticViewViewset(BaseViewSet):
 
 
 class SavedAnalyticEndpoint(BaseAPIView):
+    @extend_schema(responses={200: SavedAnalyticsSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug, analytic_id):
         analytic_view = AnalyticView.objects.get(pk=analytic_id, workspace__slug=slug)
@@ -235,6 +243,7 @@ class SavedAnalyticEndpoint(BaseAPIView):
 
 
 class ExportAnalyticsEndpoint(BaseAPIView):
+    @extend_schema(responses={200: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def post(self, request, slug):
         x_axis = request.data.get("x_axis", False)
@@ -264,6 +273,7 @@ class ExportAnalyticsEndpoint(BaseAPIView):
 
 
 class DefaultAnalyticsEndpoint(BaseAPIView):
+    @extend_schema(responses={200: DefaultAnalyticsSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def get(self, request, slug):
         filters = issue_filters(request.GET, "GET")

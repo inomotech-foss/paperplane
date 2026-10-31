@@ -1438,9 +1438,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Get project summary
-         *
-         *     Get the summary of a project
+         * Get project summary
+         * @description Get the name, identifier and entity counts of a project.
          */
         get: operations["workspaces_projects_summary_retrieve"];
         put?: never;
@@ -4776,6 +4775,16 @@ export interface components {
             /** Format: uuid */
             member: string;
             role?: components["schemas"]["RoleEnum"];
+        };
+        ProjectSummary: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            identifier: string;
+            /** @description A count per requested field: members, states, labels, cycles, modules, issues, intakes, pages */
+            counts: {
+                [key: string]: number | null;
+            };
         };
         /**
          * @description * `TEXT` - Text
@@ -10775,13 +10784,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PageCommentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PageCommentRequest"];
-                "multipart/form-data": components["schemas"]["PageCommentRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -10807,12 +10810,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PageComment"];
+                };
             };
         };
     };
@@ -11503,18 +11507,45 @@ export interface operations {
     };
     workspaces_projects_summary_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Comma-separated counts to return: members, states, labels, cycles, modules, issues, intakes, pages. Unknown names are ignored. Defaults to all. */
+                fields?: string;
+            };
             header?: never;
             path: {
+                /** @description Project ID */
                 project_id: string;
+                /** @description Workspace slug */
                 slug: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectSummary"];
+                };
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -19,7 +19,7 @@ class InstanceConfigurationSerializer(BaseSerializer):
         model = InstanceConfiguration
         fields = "__all__"
 
-    def get_is_managed(self, instance):
+    def get_is_managed(self, instance) -> bool:
         return instance.key in get_managed_configuration_keys()
 
     def to_representation(self, instance):

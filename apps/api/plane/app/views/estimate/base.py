@@ -12,6 +12,7 @@ from django.utils import timezone
 # Third party imports
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
 from ..base import BaseViewSet, BaseAPIView
@@ -32,6 +33,7 @@ def generate_random_name(length=10):
 
 
 class ProjectEstimatePointEndpoint(BaseAPIView):
+    @extend_schema(responses={200: EstimatePointSerializer(many=True)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def get(self, request, slug, project_id):
         project = Project.objects.get(workspace__slug=slug, pk=project_id)
@@ -51,6 +53,7 @@ class BulkEstimatePointEndpoint(BaseViewSet):
     model = Estimate
     serializer_class = EstimateSerializer
 
+    @extend_schema(responses={200: EstimateReadSerializer(many=True)})
     def list(self, request, slug, project_id):
         estimates = (
             Estimate.objects.filter(workspace__slug=slug, project_id=project_id)
@@ -60,6 +63,7 @@ class BulkEstimatePointEndpoint(BaseViewSet):
         serializer = EstimateReadSerializer(estimates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: EstimateReadSerializer})
     @invalidate_cache(path="/api/workspaces/:slug/estimates/", url_params=True, user=False)
     def create(self, request, slug, project_id):
         estimate = request.data.get("estimate")
@@ -100,11 +104,13 @@ class BulkEstimatePointEndpoint(BaseViewSet):
         serializer = EstimateReadSerializer(estimate)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: EstimateReadSerializer})
     def retrieve(self, request, slug, project_id, estimate_id):
         estimate = Estimate.objects.get(pk=estimate_id, workspace__slug=slug, project_id=project_id)
         serializer = EstimateReadSerializer(estimate)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: EstimateReadSerializer})
     @invalidate_cache(path="/api/workspaces/:slug/estimates/", url_params=True, user=False)
     def partial_update(self, request, slug, project_id, estimate_id):
         if not len(request.data.get("estimate_points", [])):
@@ -151,6 +157,7 @@ class BulkEstimatePointEndpoint(BaseViewSet):
 
 
 class EstimatePointEndpoint(BaseViewSet):
+    @extend_schema(responses={200: EstimatePointSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id, estimate_id):
         #  TODO: add a key validation if the same key already exists
@@ -178,6 +185,7 @@ class EstimatePointEndpoint(BaseViewSet):
         serializer = EstimatePointSerializer(estimate_point).data
         return Response(serializer, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: EstimatePointSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def partial_update(self, request, slug, project_id, estimate_id, estimate_point_id):
         #  TODO: add a key validation if the same key already exists
@@ -193,6 +201,11 @@ class EstimatePointEndpoint(BaseViewSet):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(EstimatePointSerializer(many=True), description="The points whose key moved down")
+        }
+    )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def destroy(self, request, slug, project_id, estimate_id, estimate_point_id):
         new_estimate_id = request.data.get("new_estimate_id", None)

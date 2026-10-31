@@ -331,7 +331,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["public_anchor_cycles_retrieve"];
+        get: operations["public_anchor_cycles_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -507,7 +507,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["public_anchor_labels_retrieve"];
+        get: operations["public_anchor_labels_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -523,7 +523,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["public_anchor_members_retrieve"];
+        get: operations["public_anchor_members_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -555,7 +555,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["public_anchor_modules_retrieve"];
+        get: operations["public_anchor_modules_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -587,7 +587,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["public_anchor_states_retrieve"];
+        get: operations["public_anchor_states_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1243,7 +1243,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_advance_analytics_stats_retrieve"];
+        get: operations["workspaces_advance_analytics_stats_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1355,7 +1355,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_automations_actions_retrieve"];
+        get: operations["workspaces_automations_actions_list"];
         put?: never;
         post: operations["workspaces_automations_actions_create"];
         delete?: never;
@@ -1627,7 +1627,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_estimates_retrieve"];
+        get: operations["workspaces_estimates_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2011,7 +2011,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_advance_analytics_stats_retrieve"];
+        get: operations["workspaces_projects_advance_analytics_stats_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2155,7 +2155,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_automations_actions_retrieve"];
+        get: operations["workspaces_projects_automations_actions_list"];
         put?: never;
         post: operations["workspaces_projects_automations_actions_create"];
         delete?: never;
@@ -3963,7 +3963,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_project_estimates_retrieve"];
+        get: operations["workspaces_projects_project_estimates_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4555,7 +4555,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_user_favorites_retrieve"];
+        get: operations["workspaces_user_favorites_list"];
         put?: never;
         post: operations["workspaces_user_favorites_create"];
         delete?: never;
@@ -4587,7 +4587,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_user_favorites_group_retrieve"];
+        get: operations["workspaces_user_favorites_group_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4795,7 +4795,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_webhook_logs_retrieve"];
+        get: operations["workspaces_webhook_logs_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5083,7 +5083,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["auth_o_app_installation_retrieve"];
+        get: operations["auth_o_app_installation_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5271,6 +5271,11 @@ export interface components {
          * @enum {string}
          */
         AccountProviderEnum: "google" | "github" | "gitlab" | "gitea" | "oidc";
+        ActionType: {
+            key: string;
+            i18n_label: string;
+            requires_entity: boolean;
+        };
         ActivityCount: {
             /** Format: date */
             created_date: string;
@@ -5283,6 +5288,7 @@ export interface components {
             };
             sub_issues: components["schemas"]["Issue"][];
         };
+        AdvanceAnalyticsChartResponse: components["schemas"]["ChartPoint"][] | components["schemas"]["Chart"];
         AnalyticView: {
             /** Format: uuid */
             readonly id: string;
@@ -5322,6 +5328,34 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
+        };
+        Analytics: {
+            total: number;
+            /** @description Rows by x value. count for issue_count, estimate otherwise, segment with a segment. */
+            distribution: {
+                [key: string]: {
+                    dimension?: unknown;
+                    segment?: unknown;
+                    count?: number;
+                    estimate?: number | null;
+                }[];
+            };
+            /** @description Details for the axes that need them, empty objects otherwise */
+            extras: components["schemas"]["AnalyticsExtras"];
+        };
+        AnalyticsExtras: {
+            state_details: unknown;
+            assignee_details: unknown;
+            label_details: unknown;
+            cycle_details: unknown;
+            module_details: unknown;
+        };
+        AppInstallation: {
+            /** Format: uuid */
+            id: string;
+            /** @description OAuth application id */
+            application: string;
+            workspace_detail: components["schemas"]["ConnectedAppWorkspace"];
         };
         ArchivedAt: {
             archived_at: string;
@@ -5442,6 +5476,31 @@ export interface components {
             /** Format: date-time */
             archived_at: string;
         };
+        AssetExists: {
+            exists: boolean;
+        };
+        AssetUpload: {
+            /** @description Null when storage could not sign the upload */
+            upload_data: {
+                url: string;
+                /** @description Form fields to send with the file */
+                fields: {
+                    [key: string]: string;
+                };
+            } | null;
+            /** Format: uuid */
+            asset_id: string;
+            asset_url: string | null;
+        };
+        AssigneeCount: {
+            assignees__first_name: string | null;
+            assignees__last_name: string | null;
+            assignees__display_name: string | null;
+            /** Format: uuid */
+            assignees__id: string | null;
+            assignees__avatar_url: string | null;
+            count: number;
+        };
         AssigneeDistribution: {
             total_issues?: number;
             completed_issues?: number;
@@ -5459,10 +5518,141 @@ export interface components {
             first_name?: string | null;
             last_name?: string | null;
         };
+        AssigneeWorkItemStats: {
+            display_name: string | null;
+            /** Format: uuid */
+            assignee_id: string | null;
+            avatar_url: string | null;
+            cancelled_work_items: number;
+            completed_work_items: number;
+            backlog_work_items: number;
+            un_started_work_items: number;
+            started_work_items: number;
+        };
+        AssistantReply: {
+            response: string;
+            response_html: string;
+        };
+        Automation: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly project: string | null;
+            readonly scope: components["schemas"]["ScopeEnum"];
+            applies_to_all_projects: boolean;
+            readonly projects: string[];
+            name: string;
+            description: string;
+            trigger_type: string;
+            trigger_config: unknown;
+            condition: unknown;
+            is_enabled: boolean;
+            /** Format: date-time */
+            readonly next_run_at: string | null;
+            /** Format: date-time */
+            readonly last_run_at: string | null;
+            readonly last_run_status: (components["schemas"]["LastRunStatusEnum"] | components["schemas"]["NullEnum"]) | null;
+            readonly total_run_count: number;
+            readonly failed_run_count: number;
+            readonly average_duration_ms: number | null;
+            readonly schedule_summary: string | null;
+            /** Format: uuid */
+            readonly owned_by: string | null;
+            readonly actions: components["schemas"]["AutomationAction"][];
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+        };
+        AutomationAction: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly automation: string;
+            action_type: string;
+            config: unknown;
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: uuid */
+            readonly created_by: string | null;
+        };
+        AutomationCatalog: {
+            triggers: components["schemas"]["Trigger"][];
+            condition_properties: components["schemas"]["ConditionProperty"][];
+            mutable_properties: components["schemas"]["MutableProperty"][];
+            actions: components["schemas"]["ActionType"][];
+            notification_recipients: string[];
+            template_variables: string[];
+        };
+        AutomationRun: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly automation: string;
+            /** Format: uuid */
+            readonly project: string | null;
+            readonly status: components["schemas"]["Status75aEnum"];
+            readonly trigger_source: components["schemas"]["TriggerSourceEnum"];
+            readonly trigger_type: string;
+            readonly entity_type: string;
+            /** Format: uuid */
+            readonly entity_identifier: string | null;
+            /** Format: uuid */
+            readonly initiator: string | null;
+            /** Format: date-time */
+            readonly started_at: string;
+            /** Format: date-time */
+            readonly finished_at: string | null;
+            readonly duration_ms: number;
+            readonly processed_count: number;
+            readonly steps: unknown;
+            readonly error: string;
+        };
         /** @enum {unknown} */
         BlankEnum: "";
         BulkLabels: {
             labels: components["schemas"]["Label"][];
+        };
+        CSRFToken: {
+            csrf_token: string;
+        };
+        Chart: {
+            /** @description One row per x value, with a count per group */
+            data: ({
+                key: string;
+                name: string;
+                count: number;
+            } & {
+                [key: string]: number;
+            })[];
+            /** @description Group key to label */
+            schema: {
+                [key: string]: string;
+            };
+        };
+        ChartPoint: {
+            key: string;
+            name: string;
+            count: number;
         };
         /**
          * @description * `number` - Number
@@ -5517,6 +5707,13 @@ export interface components {
             week_in_month: number;
             completed_count: number;
         };
+        ConditionProperty: {
+            key: string;
+            i18n_label: string;
+            kind: string;
+            source: string | null;
+            operators: string[];
+        };
         ConnectedApp: {
             /** @description OAuth application id */
             id: number;
@@ -5533,6 +5730,9 @@ export interface components {
             id: string;
             name: string;
             slug: string;
+        };
+        Count: {
+            count: number;
         };
         CreatedWorkItem: {
             /** Format: uuid */
@@ -5604,6 +5804,15 @@ export interface components {
             readonly type: string;
             readonly assignees: string[];
             readonly labels: string[];
+        };
+        CreatorCount: {
+            created_by__first_name: string;
+            created_by__last_name: string;
+            created_by__display_name: string;
+            /** Format: uuid */
+            created_by__id: string;
+            created_by__avatar_url: string | null;
+            count: number;
         };
         CursorPaginatedIssueDescriptionVersionList: {
             prev_cursor: string;
@@ -5708,6 +5917,15 @@ export interface components {
             /** Format: uuid */
             created_by: string | null;
             sub_issues: number;
+        };
+        CycleFavoriteLite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Cycle Name */
+            name: string;
+            logo_props: unknown;
+            /** Format: uuid */
+            readonly project_id: string;
         };
         CycleIssue: {
             /** Format: uuid */
@@ -5873,7 +6091,7 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             readonly widget_count?: number;
-            readonly is_owner: string;
+            readonly is_owner: boolean;
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -5901,11 +6119,72 @@ export interface components {
             /** Format: uuid */
             readonly owned_by: string;
         };
+        DashboardDetail: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly widget_count?: number;
+            readonly is_owner: boolean;
+            widgets: components["schemas"]["DashboardWidget"][];
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            readonly deleted_at: string | null;
+            name: string;
+            description: string;
+            logo_props: unknown;
+            access: components["schemas"]["AccessEnum"];
+            /** Format: double */
+            readonly sort_order: number;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly owned_by: string;
+        };
+        DashboardOptions: {
+            chart_types: string[];
+            metric_functions: string[];
+            date_buckets: string[];
+            native_dimensions: string[];
+            date_dimensions: string[];
+            types: components["schemas"]["DashboardType"][];
+            properties: components["schemas"]["DashboardProperty"][];
+            metric_properties: components["schemas"]["DashboardProperty"][];
+        };
+        DashboardProperty: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            property_type: string;
+            is_multi: boolean;
+            /** Format: uuid */
+            project_id: string;
+            project_name: string;
+            /** Format: uuid */
+            issue_type_id: string | null;
+        };
         DashboardRequest: {
             name: string;
             description?: string;
             logo_props?: unknown;
             access?: components["schemas"]["AccessEnum"];
+        };
+        DashboardType: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            logo_props: unknown;
         };
         DashboardWidget: {
             /** Format: uuid */
@@ -5958,6 +6237,18 @@ export interface components {
             target_date: string | null;
             children_count: number;
             descendants_count: number;
+        };
+        DefaultAnalytics: {
+            total_issues: number;
+            total_issues_classified: components["schemas"]["StateGroupTotal"][];
+            open_issues: number;
+            open_issues_classified: components["schemas"]["StateGroupTotal"][];
+            issue_completed_month_wise: components["schemas"]["MonthCount"][];
+            most_issue_created_user: components["schemas"]["CreatorCount"][];
+            most_issue_closed_user: components["schemas"]["AssigneeCount"][];
+            pending_issue_user: components["schemas"]["AssigneeCount"][];
+            open_estimate_sum: number | null;
+            total_estimate_sum: number | null;
         };
         DeployBoard: {
             /** Format: uuid */
@@ -6028,6 +6319,12 @@ export interface components {
          * @enum {string}
          */
         DerivationEnum: "NONE" | "INHERIT" | "LOOKUP" | "ROLLUP";
+        /**
+         * @description * `INBOUND` - Inbound
+         *     * `OUTBOUND` - Outbound
+         * @enum {string}
+         */
+        DirectionEnum: "INBOUND" | "OUTBOUND";
         Distribution: {
             /** @description Pending work by date, null for future dates */
             completion_chart: {
@@ -6164,8 +6461,78 @@ export interface components {
             type_id: string | null;
             description_html: string;
         };
+        DuplicatedAsset: {
+            /** Format: uuid */
+            asset_id: string;
+        };
+        EmailCheck: {
+            existing: boolean;
+            /** @description MAGIC_CODE or CREDENTIAL */
+            status: string;
+        };
+        EmailReply: {
+            comment: components["schemas"]["IssueComment"];
+            email_message: components["schemas"]["IssueEmailMessage"];
+        };
         EmptyObject: Record<string, never>;
-        Estimate: {
+        EntitySearch: {
+            user_mention?: components["schemas"]["Mention"][];
+            project?: components["schemas"]["EntitySearchProject"][];
+            issue?: components["schemas"]["EntitySearchWorkItem"][];
+            cycle?: components["schemas"]["EntitySearchPlan"][];
+            module?: components["schemas"]["EntitySearchPlan"][];
+            page?: components["schemas"]["EntitySearchPage"][];
+        };
+        EntitySearchPage: {
+            name: string;
+            /** Format: uuid */
+            id: string;
+            logo_props: unknown;
+            /** Format: uuid */
+            projects__id: string | null;
+            workspace__slug: string;
+        };
+        EntitySearchPlan: {
+            name: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            project_id: string;
+            project__identifier: string;
+            status: string | null;
+            workspace__slug: string;
+        };
+        EntitySearchProject: {
+            name: string;
+            /** Format: uuid */
+            id: string;
+            identifier: string;
+            logo_props: unknown;
+            workspace__slug: string;
+        };
+        EntitySearchWorkItem: {
+            name: string;
+            /** Format: uuid */
+            id: string;
+            sequence_id: number;
+            project__identifier: string;
+            /** Format: uuid */
+            project_id: string;
+            priority: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: uuid */
+            type_id: string;
+        };
+        EstimateDistribution: {
+            /** @description Pending work by date, null for future dates */
+            completion_chart?: {
+                [key: string]: number | null;
+            };
+            assignees?: components["schemas"]["AssigneeDistribution"][];
+            labels?: components["schemas"]["LabelDistribution"][];
+        };
+        EstimatePoint: {
             /** Format: uuid */
             readonly id: string;
             /** Format: date-time */
@@ -6177,9 +6544,39 @@ export interface components {
             readonly updated_at: string;
             /** Format: date-time */
             deleted_at: string | null;
-            name: string;
-            /** Estimate Description */
+            key: number;
             description: string;
+            value: string;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            /** Format: uuid */
+            readonly project: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly estimate: string;
+        };
+        EstimateRead: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly points: components["schemas"]["EstimatePoint"][];
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            readonly name: string;
+            /** Estimate Description */
+            readonly description: string;
             type: components["schemas"]["TypeEnum"];
             last_used: boolean;
             /** Format: uuid */
@@ -6190,17 +6587,9 @@ export interface components {
              */
             updated_by: string | null;
             /** Format: uuid */
-            readonly project: string;
+            project: string;
             /** Format: uuid */
-            readonly workspace: string;
-        };
-        EstimateDistribution: {
-            /** @description Pending work by date, null for future dates */
-            completion_chart?: {
-                [key: string]: number | null;
-            };
-            assignees?: components["schemas"]["AssigneeDistribution"][];
-            labels?: components["schemas"]["LabelDistribution"][];
+            workspace: string;
         };
         EstimateRequest: {
             /** Format: date-time */
@@ -6280,6 +6669,75 @@ export interface components {
          * @enum {string}
          */
         ExporterHistoryStatusEnum: "queued" | "processing" | "completed" | "failed";
+        FavoriteEntity: components["schemas"]["ProjectFavoriteLite"] | components["schemas"]["CycleFavoriteLite"] | components["schemas"]["ModuleFavoriteLite"] | components["schemas"]["ViewFavorite"] | components["schemas"]["PageFavoriteLite"];
+        FileAsset: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            attributes: unknown;
+            /** Format: uri */
+            asset: string;
+            entity_type: string | null;
+            entity_identifier: string | null;
+            is_deleted: boolean;
+            is_archived: boolean;
+            external_id: string | null;
+            external_source: string | null;
+            /** Format: double */
+            size: number;
+            is_uploaded: boolean;
+            storage_metadata: unknown;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            /** Format: uuid */
+            user: string | null;
+            /** Format: uuid */
+            workspace: string | null;
+            /** Format: uuid */
+            draft_issue: string | null;
+            /** Format: uuid */
+            project: string | null;
+            /** Format: uuid */
+            issue: string | null;
+            /** Format: uuid */
+            comment: string | null;
+            /** Format: uuid */
+            page: string | null;
+            /** Format: uuid */
+            page_comment: string | null;
+        };
+        FileAssetLookup: {
+            /** @description False when no asset has the key */
+            status: boolean;
+            data?: components["schemas"]["FileAsset"][];
+            error?: string;
+        };
+        GlobalSearch: {
+            results: components["schemas"]["GlobalSearchResults"];
+        };
+        GlobalSearchResults: {
+            workspace?: components["schemas"]["SearchWorkspace"][];
+            project?: components["schemas"]["SearchProject"][];
+            issue?: components["schemas"]["SearchWorkItem"][];
+            cycle?: components["schemas"]["SearchProjectEntity"][];
+            module?: components["schemas"]["SearchProjectEntity"][];
+            issue_view?: components["schemas"]["SearchProjectEntity"][];
+            page?: components["schemas"]["SearchPage"][];
+            intake?: components["schemas"]["SearchWorkItem"][];
+        };
         /**
          * @description * `backlog` - Backlog
          *     * `unstarted` - Unstarted
@@ -6290,6 +6748,22 @@ export interface components {
          * @enum {string}
          */
         Group272Enum: "backlog" | "unstarted" | "started" | "completed" | "cancelled" | "triage";
+        GroupedPaginatedPublicWorkItemList: {
+            results: {
+                [key: string]: components["schemas"]["PublicWorkItemGroup"];
+            };
+            grouped_by: string;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
         GroupedPaginatedWorkItemList: {
             results: {
                 [key: string]: components["schemas"]["WorkItemGroup"];
@@ -6600,6 +7074,20 @@ export interface components {
             /** Format: uuid */
             page_comment?: string | null;
         };
+        IssueAttachmentUpload: {
+            /** @description Null when storage could not sign the upload */
+            upload_data: {
+                url: string;
+                /** @description Form fields to send with the file */
+                fields: {
+                    [key: string]: string;
+                };
+            } | null;
+            /** Format: uuid */
+            asset_id: string;
+            asset_url: string | null;
+            attachment: components["schemas"]["IssueAttachment"];
+        };
         IssueComment: {
             /** Format: uuid */
             readonly id: string;
@@ -6863,6 +7351,57 @@ export interface components {
             description_html: string;
             readonly is_subscribed?: boolean;
             readonly is_intake?: boolean;
+        };
+        IssueEmailMessage: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly thread: string;
+            readonly direction: components["schemas"]["DirectionEnum"];
+            readonly status: components["schemas"]["IssueEmailMessageStatusEnum"];
+            readonly from_email: string;
+            readonly to_emails: unknown;
+            readonly cc_emails: unknown;
+            readonly subject: string;
+            readonly body_text: string;
+            /** Format: uuid */
+            readonly comment: string | null;
+            readonly attachments: unknown;
+            readonly error: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        /**
+         * @description * `RECEIVED` - Received
+         *     * `PENDING` - Pending
+         *     * `SENT` - Sent
+         *     * `FAILED` - Failed
+         * @enum {string}
+         */
+        IssueEmailMessageStatusEnum: "RECEIVED" | "PENDING" | "SENT" | "FAILED";
+        IssueEmailThread: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly project: string;
+            /** Format: uuid */
+            readonly issue: string;
+            readonly mailbox_email: string;
+            readonly creator_email: string;
+            readonly creator_name: string;
+            readonly subject: string;
+            to_emails: unknown;
+            cc_emails: unknown;
+            readonly messages: components["schemas"]["IssueEmailMessage"][];
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
         };
         IssueFlat: {
             /** Format: uuid */
@@ -7573,12 +8112,31 @@ export interface components {
             /** Format: double */
             sort_order?: number;
         };
+        /**
+         * @description * `success` - Success
+         *     * `failed` - Failed
+         *     * `partial` - Partially completed
+         *     * `skipped` - Skipped
+         * @enum {string}
+         */
+        LastRunStatusEnum: "success" | "failed" | "partial" | "skipped";
         LastVisitedWorkspace: {
             /** @description An empty object when the user has no last workspace */
             workspace_details: components["schemas"]["LastVisitedWorkspaceDetails"];
             project_details: components["schemas"]["ProjectMember"][];
         };
         LastVisitedWorkspaceDetails: components["schemas"]["WorkSpace"] | components["schemas"]["EmptyObject"];
+        MagicKey: {
+            key: string;
+        };
+        Mention: {
+            member__avatar_url: string | null;
+            member__display_name: string;
+            /** Format: uuid */
+            member__id: string;
+            /** @description Present when project_id is given */
+            is_project_member?: boolean;
+        };
         MessageResponse: {
             message: string;
         };
@@ -7693,6 +8251,15 @@ export interface components {
             readonly cancelled_estimate_points: number;
             estimate_distribution: components["schemas"]["EstimateDistribution"];
             distribution: components["schemas"]["Distribution"];
+        };
+        ModuleFavoriteLite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Module Name */
+            name: string;
+            logo_props: unknown;
+            /** Format: uuid */
+            readonly project_id: string;
         };
         ModuleFlat: {
             /** Format: uuid */
@@ -8004,6 +8571,17 @@ export interface components {
             /** Format: uuid */
             lead?: string | null;
         };
+        MonthCount: {
+            month: number;
+            count: number;
+        };
+        MutableProperty: {
+            key: string;
+            i18n_label: string;
+            kind: string;
+            source: string | null;
+            change_types: string[];
+        };
         /**
          * @description * `ACCORDION` - Accordion
          *     * `TABBED` - Tabbed
@@ -8063,46 +8641,21 @@ export interface components {
             /** Format: uuid */
             receiver: string;
         };
-        NotificationRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
-            data?: unknown;
-            /** Format: uuid */
-            entity_identifier?: string | null;
-            entity_name: string;
-            title: string;
-            message?: unknown;
-            message_html?: string;
-            message_stripped?: string | null;
-            sender: string;
-            /** Format: date-time */
-            read_at?: string | null;
-            /** Format: date-time */
-            snoozed_till?: string | null;
-            /** Format: date-time */
-            archived_at?: string | null;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
-            /** Format: uuid */
-            workspace: string;
-            /** Format: uuid */
-            project?: string | null;
-            /** Format: uuid */
-            triggered_by?: string | null;
-            /** Format: uuid */
-            receiver: string;
-        };
+        NotificationListOrPage: components["schemas"]["Notification"][] | components["schemas"]["PaginatedNotificationList"];
         /**
          * @description * `full` - Full
          *     * `compact` - Compact
          * @enum {string}
          */
         NotificationViewModeEnum: "full" | "compact";
+        /**
+         * @description * `NONE` - None
+         *     * `ADMINS` - Admins
+         *     * `MEMBERS` - Members
+         *     * `CUSTOM` - Custom
+         * @enum {string}
+         */
+        NotifyModeEnum: "NONE" | "ADMINS" | "MEMBERS" | "CUSTOM";
         /** @enum {unknown} */
         NullEnum: null;
         OrderedState: {
@@ -8249,6 +8802,20 @@ export interface components {
             /** Format: uuid */
             page_comment?: string | null;
         };
+        PageAttachmentUpload: {
+            /** @description Null when storage could not sign the upload */
+            upload_data: {
+                url: string;
+                /** @description Form fields to send with the file */
+                fields: {
+                    [key: string]: string;
+                };
+            } | null;
+            /** Format: uuid */
+            asset_id: string;
+            asset_url: string | null;
+            attachment: components["schemas"]["PageAttachment"];
+        };
         PageComment: {
             /** Format: uuid */
             readonly id: string;
@@ -8374,6 +8941,14 @@ export interface components {
             label_ids?: string[];
             project_ids?: string[];
             description_html: string;
+        };
+        PageFavoriteLite: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            logo_props: unknown;
+            /** Format: uuid */
+            readonly project_id: string | null;
         };
         PageOrder: {
             /** Format: uuid */
@@ -8627,6 +9202,20 @@ export interface components {
             /** @description Work items the page mentions */
             issue_ids: string[];
         };
+        PaginatedAutomationRunList: {
+            results: components["schemas"]["AutomationRun"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
         PaginatedDraftIssueList: {
             results: components["schemas"]["DraftIssue"][];
             grouped_by: string | null;
@@ -8655,8 +9244,36 @@ export interface components {
             total_results: number;
             extra_stats: unknown;
         };
+        PaginatedNotificationList: {
+            results: components["schemas"]["Notification"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
         PaginatedProjectListList: {
             results: components["schemas"]["ProjectList"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
+        PaginatedPublicWorkItemList: {
+            results: components["schemas"]["PublicWorkItemListItem"][];
             grouped_by: string | null;
             sub_grouped_by: string | null;
             total_count: number;
@@ -9394,7 +10011,20 @@ export interface components {
         ProjectArchive: {
             archived_at: string;
         };
+        ProjectAssistantReply: {
+            response: string;
+            response_html: string;
+            project_detail: components["schemas"]["ProjectLite"];
+            workspace_detail: components["schemas"]["WorkspaceLite"];
+        };
         ProjectDeployBoardResponse: components["schemas"]["DeployBoard"] | components["schemas"]["UnpublishedDeployBoard"];
+        ProjectFavoriteLite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Project Name */
+            name: string;
+            logo_props: unknown;
+        };
         ProjectIdentifierCheck: {
             /** @description Number of matching identifiers */
             exists: number;
@@ -9868,6 +10498,16 @@ export interface components {
             /** Format: uuid */
             readonly user: string;
         };
+        ProjectWorkItemStats: {
+            /** Format: uuid */
+            project_id: string;
+            project__name: string;
+            cancelled_work_items: number;
+            completed_work_items: number;
+            backlog_work_items: number;
+            un_started_work_items: number;
+            started_work_items: number;
+        };
         /**
          * @description * `TEXT` - Text
          *     * `DECIMAL` - Decimal
@@ -9893,6 +10533,153 @@ export interface components {
                     [key: string]: string | null;
                 };
             };
+        };
+        PublicActor: {
+            /** Format: uuid */
+            id: string;
+            first_name: string;
+            last_name: string;
+            avatar: string | null;
+            avatar_url: string | null;
+            display_name: string;
+        };
+        PublicLabel: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            color: string;
+            /** Format: uuid */
+            parent: string | null;
+        };
+        PublicMember: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            member: string;
+            member__display_name: string;
+            member__avatar: string | null;
+        };
+        PublicNamed: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        PublicProjectMeta: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Project Identifier */
+            readonly identifier: string;
+            /** Project Name */
+            readonly name: string;
+            readonly cover_image: string | null;
+            readonly icon_prop: unknown;
+            readonly emoji: string | null;
+            /** Project Description */
+            readonly description: string;
+        };
+        PublicReaction: {
+            reaction: string;
+            actor_details: components["schemas"]["PublicActor"];
+        };
+        PublicState: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            group: string;
+            color: string;
+            /** Format: double */
+            sequence: number;
+        };
+        PublicVote: {
+            vote: number;
+            actor_details: components["schemas"]["PublicActor"];
+        };
+        PublicWorkItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: double */
+            sort_order: number;
+            description_json: unknown;
+            description_html: string;
+            description_stripped: string | null;
+            description_binary: string | null;
+            module_ids: string[];
+            label_ids: string[];
+            assignee_ids: string[];
+            /** Format: uuid */
+            estimate_point: string | null;
+            priority: string;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            sequence_id: number;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: uuid */
+            cycle_id: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            state__group: string | null;
+            vote_items: components["schemas"]["PublicVote"][] | null;
+            reaction_items: components["schemas"]["PublicReaction"][] | null;
+        };
+        PublicWorkItemGroup: {
+            results: components["schemas"]["PublicWorkItemListItem"][];
+            total_results: number | null;
+        };
+        PublicWorkItemListItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            state_id: string | null;
+            /** Format: double */
+            sort_order: number;
+            /** Format: uuid */
+            estimate_point: string | null;
+            priority: string;
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            sequence_id: number;
+            /** Format: uuid */
+            project_id: string;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: uuid */
+            cycle_id: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            state__group: string | null;
+            assignee_ids?: string[];
+            label_ids?: string[];
+            module_ids?: string[];
+            /** Format: uuid */
+            labels__id?: string | null;
+            /** Format: uuid */
+            assignees__id?: string | null;
+            /** Format: uuid */
+            issue_module__module_id?: string | null;
+            vote_items: components["schemas"]["PublicVote"][] | null;
+            reaction_items: components["schemas"]["PublicReaction"][] | null;
+        };
+        PublicWorkItemListResponse: components["schemas"]["PaginatedPublicWorkItemList"] | components["schemas"]["GroupedPaginatedPublicWorkItemList"] | components["schemas"]["SubGroupedPaginatedPublicWorkItemList"];
+        PublicWorkItemSubGroup: {
+            results: components["schemas"]["PublicWorkItemListItem"][];
+            total_results: number;
+        };
+        PublicWorkItemSubGroupedGroup: {
+            results: {
+                [key: string]: components["schemas"]["PublicWorkItemSubGroup"];
+            };
+            total_results: number;
         };
         QueryValidation: {
             valid: boolean;
@@ -9952,6 +10739,87 @@ export interface components {
          * @enum {integer}
          */
         RoleEnum: 20 | 15 | 5;
+        SavedAnalytics: {
+            total: number;
+            /** @description Rows by x value. count for issue_count, estimate otherwise, segment with a segment. */
+            distribution: {
+                [key: string]: {
+                    dimension?: unknown;
+                    segment?: unknown;
+                    count?: number;
+                    estimate?: number | null;
+                }[];
+            };
+        };
+        /**
+         * @description * `project` - Project
+         *     * `workspace` - Workspace
+         * @enum {string}
+         */
+        ScopeEnum: "project" | "workspace";
+        SearchPage: {
+            name: string;
+            /** Format: uuid */
+            id: string;
+            project_ids: string[] | null;
+            project_identifiers: string[] | null;
+            workspace__slug: string;
+        };
+        SearchProject: {
+            name: string;
+            /** Format: uuid */
+            id: string;
+            identifier: string;
+            workspace__slug: string;
+        };
+        SearchProjectEntity: {
+            name: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            project_id: string;
+            project__identifier: string;
+            workspace__slug: string;
+        };
+        SearchWorkItem: {
+            name: string;
+            /** Format: uuid */
+            id: string;
+            sequence_id: number;
+            project__identifier: string;
+            /** Format: uuid */
+            project_id: string;
+            workspace__slug: string;
+        };
+        SearchWorkspace: {
+            name: string;
+            /** Format: uuid */
+            id: string;
+            slug: string;
+        };
+        ServiceDeskConfig: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            readonly project: string;
+            mailbox_email: string;
+            is_enabled: boolean;
+            /** Format: uuid */
+            readonly issue_type_id: string | null;
+            notify_mode: components["schemas"]["NotifyModeEnum"];
+            notify_user_ids: unknown;
+            /** Format: date-time */
+            readonly last_synced_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+        };
         SlugAvailability: {
             /** @description True when the slug is free */
             status: boolean;
@@ -9968,6 +10836,10 @@ export interface components {
          */
         StartOfTheWeekEnum: 0 | 1 | 2 | 3 | 4 | 5 | 6;
         StateGroupCount: {
+            state_group: string | null;
+            state_count: number;
+        };
+        StateGroupTotal: {
             state_group: string | null;
             state_count: number;
         };
@@ -9991,6 +10863,14 @@ export interface components {
             /** Format: double */
             sequence?: number;
         };
+        /**
+         * @description * `success` - Success
+         *     * `failed` - Failed
+         *     * `partial` - Partially completed
+         *     * `skipped` - Skipped
+         * @enum {string}
+         */
+        Status75aEnum: "success" | "failed" | "partial" | "skipped";
         Sticky: {
             /** Format: uuid */
             readonly id: string;
@@ -10045,6 +10925,22 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
+        };
+        SubGroupedPaginatedPublicWorkItemList: {
+            results: {
+                [key: string]: components["schemas"]["PublicWorkItemSubGroupedGroup"];
+            };
+            grouped_by: string;
+            sub_grouped_by: string;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
         };
         SubGroupedPaginatedWorkItemList: {
             results: {
@@ -10117,6 +11013,12 @@ export interface components {
         SubWorkItemsResponse: components["schemas"]["SubWorkItemList"] | components["schemas"]["GroupedSubWorkItemList"];
         SubscriptionStatus: {
             subscribed: boolean;
+        };
+        Timezone: {
+            utc_offset: string;
+            gmt_offset: string;
+            value: string;
+            label: string;
         };
         /**
          * @description * `Africa/Abidjan` - Africa/Abidjan
@@ -10555,6 +11457,9 @@ export interface components {
          * @enum {string}
          */
         TimezoneEnum: "Africa/Abidjan" | "Africa/Accra" | "Africa/Addis_Ababa" | "Africa/Algiers" | "Africa/Asmara" | "Africa/Bamako" | "Africa/Bangui" | "Africa/Banjul" | "Africa/Bissau" | "Africa/Blantyre" | "Africa/Brazzaville" | "Africa/Bujumbura" | "Africa/Cairo" | "Africa/Casablanca" | "Africa/Ceuta" | "Africa/Conakry" | "Africa/Dakar" | "Africa/Dar_es_Salaam" | "Africa/Djibouti" | "Africa/Douala" | "Africa/El_Aaiun" | "Africa/Freetown" | "Africa/Gaborone" | "Africa/Harare" | "Africa/Johannesburg" | "Africa/Juba" | "Africa/Kampala" | "Africa/Khartoum" | "Africa/Kigali" | "Africa/Kinshasa" | "Africa/Lagos" | "Africa/Libreville" | "Africa/Lome" | "Africa/Luanda" | "Africa/Lubumbashi" | "Africa/Lusaka" | "Africa/Malabo" | "Africa/Maputo" | "Africa/Maseru" | "Africa/Mbabane" | "Africa/Mogadishu" | "Africa/Monrovia" | "Africa/Nairobi" | "Africa/Ndjamena" | "Africa/Niamey" | "Africa/Nouakchott" | "Africa/Ouagadougou" | "Africa/Porto-Novo" | "Africa/Sao_Tome" | "Africa/Tripoli" | "Africa/Tunis" | "Africa/Windhoek" | "America/Adak" | "America/Anchorage" | "America/Anguilla" | "America/Antigua" | "America/Araguaina" | "America/Argentina/Buenos_Aires" | "America/Argentina/Catamarca" | "America/Argentina/Cordoba" | "America/Argentina/Jujuy" | "America/Argentina/La_Rioja" | "America/Argentina/Mendoza" | "America/Argentina/Rio_Gallegos" | "America/Argentina/Salta" | "America/Argentina/San_Juan" | "America/Argentina/San_Luis" | "America/Argentina/Tucuman" | "America/Argentina/Ushuaia" | "America/Aruba" | "America/Asuncion" | "America/Atikokan" | "America/Bahia" | "America/Bahia_Banderas" | "America/Barbados" | "America/Belem" | "America/Belize" | "America/Blanc-Sablon" | "America/Boa_Vista" | "America/Bogota" | "America/Boise" | "America/Cambridge_Bay" | "America/Campo_Grande" | "America/Cancun" | "America/Caracas" | "America/Cayenne" | "America/Cayman" | "America/Chicago" | "America/Chihuahua" | "America/Ciudad_Juarez" | "America/Costa_Rica" | "America/Creston" | "America/Cuiaba" | "America/Curacao" | "America/Danmarkshavn" | "America/Dawson" | "America/Dawson_Creek" | "America/Denver" | "America/Detroit" | "America/Dominica" | "America/Edmonton" | "America/Eirunepe" | "America/El_Salvador" | "America/Fort_Nelson" | "America/Fortaleza" | "America/Glace_Bay" | "America/Goose_Bay" | "America/Grand_Turk" | "America/Grenada" | "America/Guadeloupe" | "America/Guatemala" | "America/Guayaquil" | "America/Guyana" | "America/Halifax" | "America/Havana" | "America/Hermosillo" | "America/Indiana/Indianapolis" | "America/Indiana/Knox" | "America/Indiana/Marengo" | "America/Indiana/Petersburg" | "America/Indiana/Tell_City" | "America/Indiana/Vevay" | "America/Indiana/Vincennes" | "America/Indiana/Winamac" | "America/Inuvik" | "America/Iqaluit" | "America/Jamaica" | "America/Juneau" | "America/Kentucky/Louisville" | "America/Kentucky/Monticello" | "America/Kralendijk" | "America/La_Paz" | "America/Lima" | "America/Los_Angeles" | "America/Lower_Princes" | "America/Maceio" | "America/Managua" | "America/Manaus" | "America/Marigot" | "America/Martinique" | "America/Matamoros" | "America/Mazatlan" | "America/Menominee" | "America/Merida" | "America/Metlakatla" | "America/Mexico_City" | "America/Miquelon" | "America/Moncton" | "America/Monterrey" | "America/Montevideo" | "America/Montserrat" | "America/Nassau" | "America/New_York" | "America/Nome" | "America/Noronha" | "America/North_Dakota/Beulah" | "America/North_Dakota/Center" | "America/North_Dakota/New_Salem" | "America/Nuuk" | "America/Ojinaga" | "America/Panama" | "America/Paramaribo" | "America/Phoenix" | "America/Port-au-Prince" | "America/Port_of_Spain" | "America/Porto_Velho" | "America/Puerto_Rico" | "America/Punta_Arenas" | "America/Rankin_Inlet" | "America/Recife" | "America/Regina" | "America/Resolute" | "America/Rio_Branco" | "America/Santarem" | "America/Santiago" | "America/Santo_Domingo" | "America/Sao_Paulo" | "America/Scoresbysund" | "America/Sitka" | "America/St_Barthelemy" | "America/St_Johns" | "America/St_Kitts" | "America/St_Lucia" | "America/St_Thomas" | "America/St_Vincent" | "America/Swift_Current" | "America/Tegucigalpa" | "America/Thule" | "America/Tijuana" | "America/Toronto" | "America/Tortola" | "America/Vancouver" | "America/Whitehorse" | "America/Winnipeg" | "America/Yakutat" | "Antarctica/Casey" | "Antarctica/Davis" | "Antarctica/DumontDUrville" | "Antarctica/Macquarie" | "Antarctica/Mawson" | "Antarctica/McMurdo" | "Antarctica/Palmer" | "Antarctica/Rothera" | "Antarctica/Syowa" | "Antarctica/Troll" | "Antarctica/Vostok" | "Arctic/Longyearbyen" | "Asia/Aden" | "Asia/Almaty" | "Asia/Amman" | "Asia/Anadyr" | "Asia/Aqtau" | "Asia/Aqtobe" | "Asia/Ashgabat" | "Asia/Atyrau" | "Asia/Baghdad" | "Asia/Bahrain" | "Asia/Baku" | "Asia/Bangkok" | "Asia/Barnaul" | "Asia/Beirut" | "Asia/Bishkek" | "Asia/Brunei" | "Asia/Chita" | "Asia/Choibalsan" | "Asia/Colombo" | "Asia/Damascus" | "Asia/Dhaka" | "Asia/Dili" | "Asia/Dubai" | "Asia/Dushanbe" | "Asia/Famagusta" | "Asia/Gaza" | "Asia/Hebron" | "Asia/Ho_Chi_Minh" | "Asia/Hong_Kong" | "Asia/Hovd" | "Asia/Irkutsk" | "Asia/Jakarta" | "Asia/Jayapura" | "Asia/Jerusalem" | "Asia/Kabul" | "Asia/Kamchatka" | "Asia/Karachi" | "Asia/Kathmandu" | "Asia/Khandyga" | "Asia/Kolkata" | "Asia/Krasnoyarsk" | "Asia/Kuala_Lumpur" | "Asia/Kuching" | "Asia/Kuwait" | "Asia/Macau" | "Asia/Magadan" | "Asia/Makassar" | "Asia/Manila" | "Asia/Muscat" | "Asia/Nicosia" | "Asia/Novokuznetsk" | "Asia/Novosibirsk" | "Asia/Omsk" | "Asia/Oral" | "Asia/Phnom_Penh" | "Asia/Pontianak" | "Asia/Pyongyang" | "Asia/Qatar" | "Asia/Qostanay" | "Asia/Qyzylorda" | "Asia/Riyadh" | "Asia/Sakhalin" | "Asia/Samarkand" | "Asia/Seoul" | "Asia/Shanghai" | "Asia/Singapore" | "Asia/Srednekolymsk" | "Asia/Taipei" | "Asia/Tashkent" | "Asia/Tbilisi" | "Asia/Tehran" | "Asia/Thimphu" | "Asia/Tokyo" | "Asia/Tomsk" | "Asia/Ulaanbaatar" | "Asia/Urumqi" | "Asia/Ust-Nera" | "Asia/Vientiane" | "Asia/Vladivostok" | "Asia/Yakutsk" | "Asia/Yangon" | "Asia/Yekaterinburg" | "Asia/Yerevan" | "Atlantic/Azores" | "Atlantic/Bermuda" | "Atlantic/Canary" | "Atlantic/Cape_Verde" | "Atlantic/Faroe" | "Atlantic/Madeira" | "Atlantic/Reykjavik" | "Atlantic/South_Georgia" | "Atlantic/St_Helena" | "Atlantic/Stanley" | "Australia/Adelaide" | "Australia/Brisbane" | "Australia/Broken_Hill" | "Australia/Darwin" | "Australia/Eucla" | "Australia/Hobart" | "Australia/Lindeman" | "Australia/Lord_Howe" | "Australia/Melbourne" | "Australia/Perth" | "Australia/Sydney" | "Canada/Atlantic" | "Canada/Central" | "Canada/Eastern" | "Canada/Mountain" | "Canada/Newfoundland" | "Canada/Pacific" | "Europe/Amsterdam" | "Europe/Andorra" | "Europe/Astrakhan" | "Europe/Athens" | "Europe/Belgrade" | "Europe/Berlin" | "Europe/Bratislava" | "Europe/Brussels" | "Europe/Bucharest" | "Europe/Budapest" | "Europe/Busingen" | "Europe/Chisinau" | "Europe/Copenhagen" | "Europe/Dublin" | "Europe/Gibraltar" | "Europe/Guernsey" | "Europe/Helsinki" | "Europe/Isle_of_Man" | "Europe/Istanbul" | "Europe/Jersey" | "Europe/Kaliningrad" | "Europe/Kirov" | "Europe/Kyiv" | "Europe/Lisbon" | "Europe/Ljubljana" | "Europe/London" | "Europe/Luxembourg" | "Europe/Madrid" | "Europe/Malta" | "Europe/Mariehamn" | "Europe/Minsk" | "Europe/Monaco" | "Europe/Moscow" | "Europe/Oslo" | "Europe/Paris" | "Europe/Podgorica" | "Europe/Prague" | "Europe/Riga" | "Europe/Rome" | "Europe/Samara" | "Europe/San_Marino" | "Europe/Sarajevo" | "Europe/Saratov" | "Europe/Simferopol" | "Europe/Skopje" | "Europe/Sofia" | "Europe/Stockholm" | "Europe/Tallinn" | "Europe/Tirane" | "Europe/Ulyanovsk" | "Europe/Vaduz" | "Europe/Vatican" | "Europe/Vienna" | "Europe/Vilnius" | "Europe/Volgograd" | "Europe/Warsaw" | "Europe/Zagreb" | "Europe/Zurich" | "GMT" | "Indian/Antananarivo" | "Indian/Chagos" | "Indian/Christmas" | "Indian/Cocos" | "Indian/Comoro" | "Indian/Kerguelen" | "Indian/Mahe" | "Indian/Maldives" | "Indian/Mauritius" | "Indian/Mayotte" | "Indian/Reunion" | "Pacific/Apia" | "Pacific/Auckland" | "Pacific/Bougainville" | "Pacific/Chatham" | "Pacific/Chuuk" | "Pacific/Easter" | "Pacific/Efate" | "Pacific/Fakaofo" | "Pacific/Fiji" | "Pacific/Funafuti" | "Pacific/Galapagos" | "Pacific/Gambier" | "Pacific/Guadalcanal" | "Pacific/Guam" | "Pacific/Honolulu" | "Pacific/Kanton" | "Pacific/Kiritimati" | "Pacific/Kosrae" | "Pacific/Kwajalein" | "Pacific/Majuro" | "Pacific/Marquesas" | "Pacific/Midway" | "Pacific/Nauru" | "Pacific/Niue" | "Pacific/Norfolk" | "Pacific/Noumea" | "Pacific/Pago_Pago" | "Pacific/Palau" | "Pacific/Pitcairn" | "Pacific/Pohnpei" | "Pacific/Port_Moresby" | "Pacific/Rarotonga" | "Pacific/Saipan" | "Pacific/Tahiti" | "Pacific/Tarawa" | "Pacific/Tongatapu" | "Pacific/Wake" | "Pacific/Wallis" | "US/Alaska" | "US/Arizona" | "US/Central" | "US/Eastern" | "US/Hawaii" | "US/Mountain" | "US/Pacific" | "UTC";
+        TimezoneList: {
+            timezones: components["schemas"]["Timezone"][];
+        };
         TrashedIssue: {
             /** Format: uuid */
             readonly id: string;
@@ -10577,6 +11482,21 @@ export interface components {
          * @enum {string}
          */
         TriageStateGroupEnum: "triage";
+        Trigger: {
+            key: string;
+            i18n_label: string;
+            group: string;
+            entity: string | null;
+            changed_field: string | null;
+            allowed_actions: string[];
+        };
+        /**
+         * @description * `event` - Event
+         *     * `schedule` - Schedule
+         *     * `manual` - Manual
+         * @enum {string}
+         */
+        TriggerSourceEnum: "event" | "schedule" | "manual";
         /**
          * @description * `categories` - Categories
          *     * `points` - Points
@@ -10704,6 +11624,24 @@ export interface components {
             cycle__id: string;
             /** Format: uuid */
             cycle__project_id: string;
+        };
+        UserFavorite: {
+            /** Format: uuid */
+            readonly id: string;
+            entity_type: string;
+            /** Format: uuid */
+            entity_identifier: string | null;
+            readonly entity_data: components["schemas"]["FavoriteEntity"] | null;
+            name: string | null;
+            is_folder: boolean;
+            /** Format: double */
+            sequence: number;
+            /** Format: uuid */
+            parent: string | null;
+            /** Format: uuid */
+            readonly workspace_id: string;
+            /** Format: uuid */
+            readonly project_id: string | null;
         };
         UserLite: {
             /** Format: uuid */
@@ -11312,6 +12250,15 @@ export interface components {
             /** Format: uuid */
             updated_by: string | null;
         };
+        ViewFavorite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** View Name */
+            name: string;
+            logo_props: unknown;
+            /** Format: uuid */
+            readonly project_id: string | null;
+        };
         ViewWorkItem: {
             /** Format: uuid */
             id: string;
@@ -11361,6 +12308,123 @@ export interface components {
          * @enum {integer}
          */
         VoteEnum: -1 | 1;
+        Webhook: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uri */
+            url: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            readonly deleted_at: string | null;
+            is_active: boolean;
+            readonly secret_key: string;
+            project: boolean;
+            issue: boolean;
+            module: boolean;
+            cycle: boolean;
+            issue_comment: boolean;
+            is_internal: boolean;
+            version: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            readonly workspace: string;
+        };
+        WebhookLog: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            /** Format: uuid */
+            readonly webhook: string;
+            event_type: string | null;
+            request_method: string | null;
+            request_headers: string | null;
+            request_body: string | null;
+            response_status: string | null;
+            response_headers: string | null;
+            response_body: string | null;
+            retry_count: number;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            readonly workspace: string;
+        };
+        WebhookWithoutSecret: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uri */
+            url: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            is_active: boolean;
+            project: boolean;
+            issue: boolean;
+            module: boolean;
+            cycle: boolean;
+            issue_comment: boolean;
+            is_internal: boolean;
+            version: string;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            workspace: string;
+        };
+        WidgetData: {
+            /** @description One row per dimension value, with a value per series */
+            data: ({
+                key: string;
+                name: string;
+                count: number | null;
+            } & {
+                [key: string]: number | null;
+            })[];
+            /** @description Series key to label */
+            schema: {
+                [key: string]: string;
+            };
+            /** Format: double */
+            total: number | null;
+            row_count: number;
+            metric: unknown;
+            dimension: unknown;
+            series: unknown;
+        };
         WorkItemDetailRow: {
             /** Format: uuid */
             id: string;
@@ -11664,6 +12728,26 @@ export interface components {
              */
             updated_by: string | null;
         };
+        WorkSpaceMemberInvitePublic: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly email: string;
+            readonly workspace: components["schemas"]["WorkspaceLite"];
+            readonly role: components["schemas"]["RoleEnum"];
+            readonly message: string | null;
+            readonly accepted: boolean;
+            /** Format: date-time */
+            readonly responded_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: uuid */
+            readonly created_by: string | null;
+        };
         WorkSpaceMemberInviteRequest: {
             /** Format: date-time */
             deleted_at?: string | null;
@@ -11688,6 +12772,36 @@ export interface components {
             pql_dialect?: components["schemas"]["PqlDialectEnum"];
             /** Format: uuid */
             logo_asset?: string | null;
+        };
+        WorkspaceEstimate: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly points: components["schemas"]["EstimatePoint"][];
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            readonly name: string;
+            /** Estimate Description */
+            readonly description: string;
+            type: components["schemas"]["TypeEnum"];
+            last_used: boolean;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            project: string;
+            /** Format: uuid */
+            workspace: string;
         };
         WorkspaceHomePreference: {
             key: string;
@@ -12010,8 +13124,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Redirect to a signed storage URL */
+            302: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12028,12 +13142,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AssetUpload"];
+                };
             };
         };
     };
@@ -12068,8 +13183,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12088,12 +13203,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AssetUpload"];
+                };
             };
         };
     };
@@ -12109,8 +13225,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Redirect to a signed storage URL */
+            302: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12151,8 +13267,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12172,12 +13288,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AssetExists"];
+                };
             };
         };
     };
@@ -12193,8 +13310,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Redirect to a signed storage URL */
+            302: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12214,12 +13331,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DuplicatedAsset"];
+                };
             };
         };
     };
@@ -12235,12 +13353,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AssetUpload"];
+                };
             };
         };
     };
@@ -12257,8 +13376,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12279,8 +13398,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Redirect to a signed storage URL */
+            302: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12323,8 +13442,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12345,8 +13464,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Redirect to a signed storage URL */
+            302: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12367,13 +13486,21 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Without pk */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueAttachment"];
+                    "application/json": components["schemas"]["IssueAttachment"][];
                 };
+            };
+            /** @description With pk: redirect to a signed URL */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -12401,7 +13528,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueAttachment"];
+                    "application/json": components["schemas"]["IssueAttachmentUpload"];
                 };
             };
         };
@@ -12420,13 +13547,21 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Without pk */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueAttachment"];
+                    "application/json": components["schemas"]["IssueAttachment"][];
                 };
+            };
+            /** @description With pk: redirect to a signed URL */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -12473,13 +13608,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["IssueAttachment"];
-                };
+                content?: never;
             };
         };
     };
@@ -12496,13 +13630,21 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Without pk */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PageAttachment"];
+                    "application/json": components["schemas"]["PageAttachment"][];
                 };
+            };
+            /** @description With pk: redirect to a signed URL */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -12530,7 +13672,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PageAttachment"];
+                    "application/json": components["schemas"]["PageAttachmentUpload"];
                 };
             };
         };
@@ -12549,13 +13691,21 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Without pk */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PageAttachment"];
+                    "application/json": components["schemas"]["PageAttachment"][];
                 };
+            };
+            /** @description With pk: redirect to a signed URL */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -12602,13 +13752,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["PageAttachment"];
-                };
+                content?: never;
             };
         };
     };
@@ -12649,8 +13798,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12733,9 +13882,12 @@ export interface operations {
             };
         };
     };
-    public_anchor_cycles_retrieve: {
+    public_anchor_cycles_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 anchor: string;
@@ -12744,12 +13896,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PublicNamed"][];
+                };
             };
         };
     };
@@ -12935,7 +14088,12 @@ export interface operations {
     };
     public_anchor_issues_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 anchor: string;
@@ -12944,12 +14102,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PublicWorkItemListResponse"];
+                };
             };
         };
     };
@@ -12965,12 +14124,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PublicWorkItem"];
+                };
             };
         };
     };
@@ -13244,9 +14404,12 @@ export interface operations {
             };
         };
     };
-    public_anchor_labels_retrieve: {
+    public_anchor_labels_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 anchor: string;
@@ -13255,18 +14418,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PublicLabel"][];
+                };
             };
         };
     };
-    public_anchor_members_retrieve: {
+    public_anchor_members_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 anchor: string;
@@ -13275,12 +14442,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PublicMember"][];
+                };
             };
         };
     };
@@ -13295,18 +14463,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PublicProjectMeta"];
+                };
             };
         };
     };
-    public_anchor_modules_retrieve: {
+    public_anchor_modules_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 anchor: string;
@@ -13315,12 +14487,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PublicNamed"][];
+                };
             };
         };
     };
@@ -13335,18 +14508,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DeployBoard"];
+                };
             };
         };
     };
-    public_anchor_states_retrieve: {
+    public_anchor_states_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 anchor: string;
@@ -13355,12 +14532,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PublicState"][];
+                };
             };
         };
     };
@@ -13375,12 +14553,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AssetUpload"];
+                };
             };
         };
     };
@@ -13396,8 +14575,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13417,8 +14596,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Redirect to a signed storage URL */
+            302: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13459,8 +14638,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13480,8 +14659,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13501,12 +14680,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DeployBoard"];
+                };
             };
         };
     };
@@ -13519,8 +14699,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
+            /** @description The validation token, on a subscription handshake */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Notification accepted */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13537,12 +14726,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["TimezoneList"];
+                };
             };
         };
     };
@@ -13555,12 +14745,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
+            /** @description The Unsplash API response, passed through */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": unknown;
+                };
             };
         };
     };
@@ -13715,12 +14907,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["FileAsset"];
+                };
             };
         };
     };
@@ -14339,13 +15532,12 @@ export interface operations {
             };
         };
         responses: {
-            201: {
+            /** @description Joined */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkSpaceMemberInvite"];
-                };
+                content?: never;
             };
         };
     };
@@ -14540,12 +15732,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: components["schemas"]["Count"];
+                    };
+                };
             };
         };
     };
@@ -14560,18 +15755,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdvanceAnalyticsChartResponse"];
+                };
             };
         };
     };
-    workspaces_advance_analytics_stats_retrieve: {
+    workspaces_advance_analytics_stats_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -14580,12 +15779,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectWorkItemStats"][];
+                };
             };
         };
     };
@@ -14600,12 +15800,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AssistantReply"];
+                };
             };
         };
     };
@@ -14742,12 +15943,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Analytics"];
+                };
             };
         };
     };
@@ -14762,12 +15964,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AutomationCatalog"];
+                };
             };
         };
     };
@@ -14782,12 +15985,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Automation"][];
+                };
             };
         };
     };
@@ -14802,18 +16006,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Automation"];
+                };
             };
         };
     };
-    workspaces_automations_actions_retrieve: {
+    workspaces_automations_actions_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 automation_id: string;
@@ -14823,12 +16031,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AutomationAction"][];
+                };
             };
         };
     };
@@ -14844,12 +16053,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AutomationAction"];
+                };
             };
         };
     };
@@ -14888,18 +16098,24 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AutomationAction"];
+                };
             };
         };
     };
     workspaces_automations_runs_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 automation_id: string;
@@ -14909,12 +16125,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PaginatedAutomationRunList"];
+                };
             };
         };
     };
@@ -14930,12 +16147,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -14951,12 +16169,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Automation"];
+                };
             };
         };
     };
@@ -14993,12 +16212,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Automation"];
+                };
             };
         };
     };
@@ -15217,12 +16437,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WidgetData"];
+                };
             };
         };
     };
@@ -15243,7 +16464,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Dashboard"];
+                    "application/json": components["schemas"]["DashboardDetail"];
                 };
             };
         };
@@ -15308,12 +16529,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DashboardOptions"];
+                };
             };
         };
     };
@@ -15328,12 +16550,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WidgetData"];
+                };
             };
         };
     };
@@ -15348,12 +16571,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DefaultAnalytics"];
+                };
             };
         };
     };
@@ -15503,18 +16727,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["EntitySearch"];
+                };
             };
         };
     };
-    workspaces_estimates_retrieve: {
+    workspaces_estimates_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -15523,12 +16751,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkspaceEstimate"][];
+                };
             };
         };
     };
@@ -15543,12 +16772,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -15605,12 +16835,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["FileAsset"];
+                };
             };
         };
     };
@@ -15704,12 +16935,12 @@ export interface operations {
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkSpaceMemberInvite"];
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
         };
@@ -15797,12 +17028,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WorkSpaceMemberInvitePublic"];
+                };
             };
         };
     };
@@ -15818,12 +17050,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -16316,12 +17549,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: components["schemas"]["Count"];
+                    };
+                };
             };
         };
     };
@@ -16337,18 +17573,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Chart"];
+                };
             };
         };
     };
-    workspaces_projects_advance_analytics_stats_retrieve: {
+    workspaces_projects_advance_analytics_stats_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -16358,12 +17598,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AssigneeWorkItemStats"][];
+                };
             };
         };
     };
@@ -16379,12 +17620,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProjectAssistantReply"];
+                };
             };
         };
     };
@@ -16560,12 +17802,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Automation"][];
+                };
             };
         };
     };
@@ -16581,18 +17824,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Automation"];
+                };
             };
         };
     };
-    workspaces_projects_automations_actions_retrieve: {
+    workspaces_projects_automations_actions_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 automation_id: string;
@@ -16603,12 +17850,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AutomationAction"][];
+                };
             };
         };
     };
@@ -16625,12 +17873,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AutomationAction"];
+                };
             };
         };
     };
@@ -16671,18 +17920,24 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AutomationAction"];
+                };
             };
         };
     };
     workspaces_projects_automations_runs_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
             header?: never;
             path: {
                 automation_id: string;
@@ -16693,12 +17948,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PaginatedAutomationRunList"];
+                };
             };
         };
     };
@@ -16715,12 +17971,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -16737,12 +17994,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Automation"];
+                };
             };
         };
     };
@@ -16781,12 +18039,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Automation"];
+                };
             };
         };
     };
@@ -17463,7 +18722,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Estimate"][];
+                    "application/json": components["schemas"]["EstimateRead"][];
                 };
             };
         };
@@ -17486,12 +18745,12 @@ export interface operations {
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Estimate"];
+                    "application/json": components["schemas"]["EstimateRead"];
                 };
             };
         };
@@ -17514,7 +18773,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Estimate"];
+                    "application/json": components["schemas"]["EstimateRead"];
                 };
             };
         };
@@ -17565,7 +18824,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Estimate"];
+                    "application/json": components["schemas"]["EstimateRead"];
                 };
             };
         };
@@ -17583,12 +18842,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["EstimatePoint"];
+                };
             };
         };
     };
@@ -17606,12 +18866,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            204: {
+            /** @description The points whose key moved down */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["EstimatePoint"][];
+                };
             };
         };
     };
@@ -17629,12 +18891,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["EstimatePoint"];
+                };
             };
         };
     };
@@ -18087,7 +19350,10 @@ export interface operations {
     };
     workspaces_projects_intake_work_items_description_versions_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -18098,18 +19364,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CursorPaginatedIssueDescriptionVersionList"];
+                };
             };
         };
     };
     workspaces_projects_intake_work_items_description_versions_retrieve_2: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+            };
             header?: never;
             path: {
                 pk: string;
@@ -18121,12 +19391,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["IssueDescriptionVersionDetail"];
+                };
             };
         };
     };
@@ -19300,12 +20571,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["EmailReply"];
+                };
             };
         };
     };
@@ -19322,12 +20594,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["IssueEmailThread"];
+                };
             };
         };
     };
@@ -19344,12 +20617,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["IssueEmailThread"];
+                };
             };
         };
     };
@@ -22057,9 +23331,12 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_project_estimates_retrieve: {
+    workspaces_projects_project_estimates_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -22069,12 +23346,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["EstimatePoint"][];
+                };
             };
         };
     };
@@ -22158,12 +23436,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ServiceDeskConfig"];
+                };
             };
         };
     };
@@ -22179,12 +23458,23 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
+            /** @description Updated */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ServiceDeskConfig"];
+                };
+            };
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceDeskConfig"];
+                };
             };
         };
     };
@@ -22569,8 +23859,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            201: {
+            /** @description Added to favorites */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -23059,12 +24349,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SavedAnalytics"];
+                };
             };
         };
     };
@@ -23079,12 +24370,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["GlobalSearch"];
+                };
             };
         };
     };
@@ -23393,9 +24685,12 @@ export interface operations {
             };
         };
     };
-    workspaces_user_favorites_retrieve: {
+    workspaces_user_favorites_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -23404,12 +24699,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserFavorite"][];
+                };
             };
         };
     };
@@ -23424,12 +24720,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserFavorite"];
+                };
             };
         };
     };
@@ -23466,18 +24763,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserFavorite"];
+                };
             };
         };
     };
-    workspaces_user_favorites_group_retrieve: {
+    workspaces_user_favorites_group_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 favorite_id: string;
@@ -23487,12 +24788,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserFavorite"][];
+                };
             };
         };
     };
@@ -23612,6 +24914,10 @@ export interface operations {
     workspaces_users_notifications_list: {
         parameters: {
             query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
                 /** @description A search term. */
                 search?: string;
             };
@@ -23628,7 +24934,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Notification"][];
+                    "application/json": components["schemas"]["NotificationListOrPage"];
                 };
             };
         };
@@ -23714,13 +25020,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["NotificationRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["NotificationRequest"];
-                "multipart/form-data": components["schemas"]["NotificationRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -23744,12 +25044,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Notification"];
+                };
             };
         };
     };
@@ -23763,13 +25064,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["NotificationRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["NotificationRequest"];
-                "multipart/form-data": components["schemas"]["NotificationRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -23793,12 +25088,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Notification"];
+                };
             };
         };
     };
@@ -23994,9 +25290,12 @@ export interface operations {
             };
         };
     };
-    workspaces_webhook_logs_retrieve: {
+    workspaces_webhook_logs_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
             header?: never;
             path: {
                 slug: string;
@@ -24006,12 +25305,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WebhookLog"][];
+                };
             };
         };
     };
@@ -24026,12 +25326,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WebhookWithoutSecret"][];
+                };
             };
         };
     };
@@ -24046,12 +25347,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
             };
         };
     };
@@ -24067,12 +25369,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WebhookWithoutSecret"];
+                };
             };
         };
     };
@@ -24109,12 +25412,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["WebhookWithoutSecret"];
+                };
             };
         };
     };
@@ -24130,12 +25434,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
             };
         };
     };
@@ -24434,12 +25739,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["FileAssetLookup"];
+                };
             };
         };
     };
@@ -24476,8 +25782,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
-            200: {
+            /** @description Done */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -24494,12 +25800,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -24512,12 +25819,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["EmailCheck"];
+                };
             };
         };
     };
@@ -24530,12 +25838,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -24548,12 +25857,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CSRFToken"];
+                };
             };
         };
     };
@@ -24566,16 +25876,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MagicKey"];
+                };
             };
         };
     };
-    auth_o_app_installation_retrieve: {
+    auth_o_app_installation_list: {
         parameters: {
             query?: never;
             header?: never;
@@ -24584,12 +25895,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AppInstallation"][];
+                };
             };
         };
     };
@@ -24602,12 +25914,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
             };
         };
     };
@@ -24620,12 +25933,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["EmailCheck"];
+                };
             };
         };
     };
@@ -24638,12 +25952,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
             };
         };
     };
@@ -24656,12 +25971,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MagicKey"];
+                };
             };
         };
     };

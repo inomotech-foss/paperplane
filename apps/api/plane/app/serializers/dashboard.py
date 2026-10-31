@@ -29,7 +29,7 @@ class DashboardSerializer(BaseSerializer):
             "deleted_at",
         ]
 
-    def get_is_owner(self, obj):
+    def get_is_owner(self, obj) -> bool:
         request = self.context.get("request")
         return bool(request and request.user and obj.owned_by_id == request.user.id)
 

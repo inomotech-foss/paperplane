@@ -102,7 +102,7 @@ class Automation(BaseModel):
         return f"{self.name} <{self.workspace_id}>"
 
     @property
-    def average_duration_ms(self):
+    def average_duration_ms(self) -> int | None:
         if not self.total_run_count:
             return None
         return int(self.total_duration_ms / self.total_run_count)

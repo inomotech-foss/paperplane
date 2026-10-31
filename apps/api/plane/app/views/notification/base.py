@@ -11,6 +11,8 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
+from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.utils.openapi.pagination import list_or_paginated
 from plane.app.serializers import (
     NotificationSerializer,
     UserNotificationPreferenceSerializer,
@@ -48,6 +50,9 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
             .select_related("workspace", "project", "triggered_by", "receiver")
         )
 
+    @extend_schema(
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: list_or_paginated(NotificationSerializer)}
+    )
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list(self, request, slug):
         # Get query parameters
@@ -168,6 +173,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(request=None, responses={200: NotificationSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def mark_read(self, request, slug, pk):
         notification = Notification.objects.get(receiver=request.user, workspace__slug=slug, pk=pk)
@@ -176,6 +182,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
         serializer = NotificationSerializer(notification)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={200: NotificationSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def mark_unread(self, request, slug, pk):
         notification = Notification.objects.get(receiver=request.user, workspace__slug=slug, pk=pk)
@@ -184,6 +191,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
         serializer = NotificationSerializer(notification)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={200: NotificationSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def archive(self, request, slug, pk):
         notification = Notification.objects.get(receiver=request.user, workspace__slug=slug, pk=pk)
@@ -192,6 +200,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
         serializer = NotificationSerializer(notification)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={200: NotificationSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def unarchive(self, request, slug, pk):
         notification = Notification.objects.get(receiver=request.user, workspace__slug=slug, pk=pk)

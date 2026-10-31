@@ -3,6 +3,8 @@
 # See the LICENSE file for details.
 
 # Python imports
+from drf_spectacular.utils import extend_schema
+from plane.app.serializers.response.misc import TimezoneListSerializer
 import pytz
 from datetime import datetime
 
@@ -20,6 +22,7 @@ from rest_framework.views import APIView
 class TimezoneEndpoint(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: TimezoneListSerializer})
     @method_decorator(cache_page(60 * 60 * 2))
     def get(self, request):
         timezone_locations = [

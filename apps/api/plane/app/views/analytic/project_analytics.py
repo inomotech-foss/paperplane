@@ -9,7 +9,9 @@ from django.db.models import QuerySet, Q, Count
 from django.http import HttpRequest
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from datetime import timedelta
+from plane.app.serializers.response.analytics import ANALYTICS_COUNTS, AssigneeWorkItemStatsSerializer, ChartSerializer
 from plane.app.views.base import BaseAPIView
 from plane.app.permissions import ROLE, allow_permission
 from plane.db.models import (
@@ -81,6 +83,7 @@ class ProjectAdvanceAnalyticsEndpoint(ProjectAdvanceAnalyticsBaseView):
             "completed_work_items": self.get_filtered_counts(base_queryset.filter(state__group="completed")),
         }
 
+    @extend_schema(responses={200: ANALYTICS_COUNTS})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def get(self, request: HttpRequest, slug: str, project_id: str) -> Response:
         self.initialize_workspace(slug, type="analytics")
@@ -162,6 +165,7 @@ class ProjectAdvanceAnalyticsStatsEndpoint(ProjectAdvanceAnalyticsBaseView):
             .order_by("display_name")
         )
 
+    @extend_schema(responses={200: AssigneeWorkItemStatsSerializer(many=True)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def get(self, request: HttpRequest, slug: str, project_id: str) -> Response:
         self.initialize_workspace(slug, type="chart")
@@ -314,6 +318,7 @@ class ProjectAdvanceAnalyticsChartEndpoint(ProjectAdvanceAnalyticsBaseView):
 
         return {"data": data, "schema": schema}
 
+    @extend_schema(responses={200: ChartSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request: HttpRequest, slug: str, project_id: str) -> Response:
         self.initialize_workspace(slug, type="chart")
