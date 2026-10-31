@@ -17998,7 +17998,8 @@ components:
     ClientJson:
       type: object
       additionalProperties: true
-      description: Stored as sent by the client. The backend does not validate it.
+      description: Owned by the client. The backend stores it without validating it,
+        as sent or shallow-merged into the stored value.
       x-client-owned: true
     CommentReaction:
       type: object

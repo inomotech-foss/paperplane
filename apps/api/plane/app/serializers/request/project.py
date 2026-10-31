@@ -12,10 +12,6 @@ class ProjectLinkReorderSerializer(serializers.Serializer):
     link_ids = serializers.ListField(child=serializers.UUIDField(), help_text="Every link of the project, in order")
 
 
-class ProjectIdentifierNameSerializer(serializers.Serializer):
-    name = serializers.CharField(help_text="The identifier to release")
-
-
 class ProjectMemberAddSerializer(serializers.Serializer):
     member_id = serializers.UUIDField()
     role = serializers.ChoiceField(choices=ROLE_CHOICES)

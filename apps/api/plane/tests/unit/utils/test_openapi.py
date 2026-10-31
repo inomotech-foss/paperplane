@@ -28,7 +28,7 @@ from plane.tests.openapi import strict
 from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated_response, paginated_union
 from plane.utils.openapi.hooks import is_callable
 from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, DetailOrList, _source_presence, single
-from plane.utils.openapi.fields import ClientJsonField, typed_json
+from plane.utils.openapi.fields import ClientJsonField, is_client_json, typed_json
 from plane.utils.openapi.serializers import DictOf, EmptyObjectSerializer
 from plane.utils.openapi.surfaces import SURFACES
 from plane.utils.paginator import BasePaginator, GroupedOffsetPaginator, SubGroupedOffsetPaginator
@@ -368,7 +368,19 @@ class TestResponseHelpers:
 
 @pytest.mark.unit
 class TestClientJson:
-    def test_named_json_columns_are_client_json(self):
+    def test_listed_fields_are_client_json(self):
+        from plane.app.serializers import ProfileSerializer, ProjectSerializer
+        from plane.app.serializers.project import ProjectUpdateSerializer
+
+        class ExportSerializer(serializers.Serializer):
+            filters = serializers.JSONField()
+
+        assert is_client_json(ProfileSerializer().fields["theme"])
+        assert is_client_json(ProjectUpdateSerializer().fields["logo_props"])
+        assert is_client_json(ProjectSerializer(many=True).child.fields["logo_props"])
+        assert not is_client_json(ExportSerializer().fields["filters"])
+
+    def test_client_json_fields_and_unlisted_json(self):
         class HolderSerializer(serializers.Serializer):
             view_props = serializers.JSONField()
             maybe = ClientJsonField(allow_null=True)
@@ -384,7 +396,7 @@ class TestClientJson:
         components = schema["components"]["schemas"]
         for name in ("Holder", "HolderRequest"):
             props = components[name]["properties"]
-            assert props["view_props"] == {"$ref": "#/components/schemas/ClientJson"}
+            assert props["view_props"] == {}
             assert props["maybe"] == {"allOf": [{"$ref": "#/components/schemas/ClientJson"}], "nullable": True}
             assert props["metadata"] == {}
             assert props["shaped"]["$ref"].startswith("#/components/schemas/PageItem")

@@ -5677,7 +5677,7 @@ export interface components {
          * @enum {string}
          */
         ChartTypeEnum: "number" | "bar" | "line" | "area" | "pie" | "donut" | "table";
-        /** @description Stored as sent by the client. The backend does not validate it. */
+        /** @description Owned by the client. The backend stores it without validating it, as sent or shallow-merged into the stored value. */
         ClientJson: {
             [key: string]: unknown;
         };

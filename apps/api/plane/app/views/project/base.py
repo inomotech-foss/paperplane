@@ -37,7 +37,6 @@ from plane.app.serializers.request.project import (
     PROJECT_IDENTIFIER_PARAMETERS,
     DeployBoardCreateSerializer,
     ProjectFavoriteSerializer,
-    ProjectIdentifierNameSerializer,
     ProjectIssueSequenceSerializer,
 )
 from plane.app.serializers.project import ProjectUpdateSerializer
@@ -514,7 +513,7 @@ class ProjectIdentifierEndpoint(BaseAPIView):
         return Response({"exists": len(exists), "identifiers": exists}, status=status.HTTP_200_OK)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
-    @extend_schema(request=ProjectIdentifierNameSerializer, responses={204: OpenApiResponse(description="Released")})
+    @extend_schema(responses={204: OpenApiResponse(description="Released")})
     def delete(self, request, slug):
         name = request.data.get("name", "").strip().upper()
 
