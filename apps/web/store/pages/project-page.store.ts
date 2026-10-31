@@ -97,7 +97,6 @@ export interface IProjectPageStore {
   ) => Promise<TPage | undefined>;
   createPage: (pageData: Partial<TPage>) => Promise<TPage | undefined>;
   removePage: (params: { pageId: string; shouldSync?: boolean }) => Promise<void>;
-  movePage: (workspaceSlug: string, projectId: string, pageId: string, newProjectId: string) => Promise<void>;
 }
 
 export class ProjectPageStore implements IProjectPageStore {
@@ -138,7 +137,6 @@ export class ProjectPageStore implements IProjectPageStore {
       fetchPageDetails: action,
       createPage: action,
       removePage: action,
-      movePage: action,
     });
     this.rootStore = store;
     // service
@@ -184,9 +182,7 @@ export class ProjectPageStore implements IProjectPageStore {
     let pagesByType = filterPagesByPageType(pageType, Object.values(this?.data || {}));
     pagesByType = pagesByType.filter((p) => p.project_ids?.includes(projectId));
 
-    const pages = (pagesByType.map((page) => page.id) as string[]) || undefined;
-
-    return pages ?? undefined;
+    return pagesByType.flatMap((page) => (page.id ? [page.id] : []));
   });
 
   /**
@@ -196,7 +192,7 @@ export class ProjectPageStore implements IProjectPageStore {
   getCurrentProjectPageIds = computedFn((projectId: string) => {
     if (!projectId) return [];
     const pages = Object.values(this?.data || {}).filter((page) => page.project_ids?.includes(projectId));
-    return pages.map((page) => page.id) as string[];
+    return pages.flatMap((page) => (page.id ? [page.id] : []));
   });
 
   /**
@@ -217,9 +213,7 @@ export class ProjectPageStore implements IProjectPageStore {
     );
     filteredPages = orderPages(filteredPages, this.filters.sortKey, this.filters.sortBy);
 
-    const pages = (filteredPages.map((page) => page.id) as string[]) || undefined;
-
-    return pages ?? undefined;
+    return filteredPages.flatMap((page) => (page.id ? [page.id] : []));
   });
 
   /**
@@ -555,25 +549,6 @@ export class ProjectPageStore implements IProjectPageStore {
           description: "Failed to delete a page, Please try again later.",
         };
       });
-      throw error;
-    }
-  };
-
-  /**
-   * @description move a page to a new project
-   * @param {string} workspaceSlug
-   * @param {string} projectId
-   * @param {string} pageId
-   * @param {string} newProjectId
-   */
-  movePage = async (workspaceSlug: string, projectId: string, pageId: string, newProjectId: string) => {
-    try {
-      await this.service.move(workspaceSlug, projectId, pageId, newProjectId);
-      runInAction(() => {
-        unset(this.data, [pageId]);
-      });
-    } catch (error) {
-      console.error("Unable to move page", error);
       throw error;
     }
   };

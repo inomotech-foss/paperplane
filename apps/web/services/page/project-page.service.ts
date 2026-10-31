@@ -4,65 +4,63 @@
  * See the LICENSE file for details.
  */
 
-// types
 import type { ApiSchema } from "@plane/api-types";
-import { API_BASE_URL } from "@plane/constants";
 import { unwrap } from "@plane/services";
 import type { TDocumentPayload, TPage } from "@plane/types";
-// helpers
-// services
 import { apiClient } from "@/services/api-client";
-import { APIService } from "@/services/api.service";
+import { toPage, toPageCreateBody, toPageUpdateBody } from "./page-convert";
 
 export type TPagePosition = ApiSchema<"PagePositionRequest">;
 export type TPageOrder = ApiSchema<"PageOrder">;
 
-export class ProjectPageService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
+const pagePath = (slug: string, project_id: string, page_id: string) => ({ path: { slug, project_id, page_id } });
 
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ProjectPageService {
   async fetchAll(workspaceSlug: string, projectId: string): Promise<TPage[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const pages = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/pages/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
+    return pages.map(toPage);
   }
 
   async fetchById(workspaceSlug: string, projectId: string, pageId: string, trackVisit: boolean): Promise<TPage> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/`, {
-      params: {
-        track_visit: trackVisit,
-      },
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const page = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/", {
+        params: { ...pagePath(workspaceSlug, projectId, pageId), query: { track_visit: trackVisit } },
+      })
+    );
+    return toPage(page);
   }
 
   async create(workspaceSlug: string, projectId: string, data: Partial<TPage>): Promise<TPage> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const page = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/pages/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: toPageCreateBody(data),
+      })
+    );
+    return toPage(page);
   }
 
   async update(workspaceSlug: string, projectId: string, pageId: string, data: Partial<TPage>): Promise<TPage> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const page = await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+        body: toPageUpdateBody(data),
+      })
+    );
+    return toPage(page);
   }
 
   /** Returns every page whose parent or sort order changed. */
   async position(workspaceSlug: string, projectId: string, pageId: string, data: TPagePosition): Promise<TPageOrder[]> {
     const response = await unwrap(
       apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/position/", {
-        params: { path: { slug: workspaceSlug, project_id: projectId, page_id: pageId } },
+        params: pagePath(workspaceSlug, projectId, pageId),
         body: data,
       })
     );
@@ -75,102 +73,62 @@ export class ProjectPageService extends APIService {
     pageId: string,
     data: Pick<TPage, "access">
   ): Promise<void> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/access/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/access/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+        body: { access: data.access },
+      })
+    );
   }
 
   async remove(workspaceSlug: string, projectId: string, pageId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+      })
+    );
   }
 
-  async fetchFavorites(workspaceSlug: string, projectId: string): Promise<TPage[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/favorite-pages/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async addToFavorites(workspaceSlug: string, projectId: string, pageId: string): Promise<void> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/favorite-pages/${pageId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async removeFromFavorites(workspaceSlug: string, projectId: string, pageId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/favorite-pages/${pageId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async fetchArchived(workspaceSlug: string, projectId: string): Promise<TPage[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/archived-pages/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async archive(
-    workspaceSlug: string,
-    projectId: string,
-    pageId: string
-  ): Promise<{
-    archived_at: string;
-  }> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/archive/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async archive(workspaceSlug: string, projectId: string, pageId: string): Promise<{ archived_at: string }> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/archive/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+      })
+    );
   }
 
   async restore(workspaceSlug: string, projectId: string, pageId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/archive/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/archive/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+      })
+    );
   }
 
   async lock(workspaceSlug: string, projectId: string, pageId: string): Promise<void> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/lock/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/lock/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+      })
+    );
   }
 
   async unlock(workspaceSlug: string, projectId: string, pageId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/lock/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/lock/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+      })
+    );
   }
 
-  async fetchDescriptionBinary(workspaceSlug: string, projectId: string, pageId: string): Promise<any> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/description/`, {
-      headers: {
-        "Content-Type": "application/octet-stream",
-      },
-      responseType: "arraybuffer",
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  /** The Yjs document of the page. Empty when the page has none. */
+  async fetchDescriptionBinary(workspaceSlug: string, projectId: string, pageId: string): Promise<ArrayBuffer> {
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/description/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+        parseAs: "arrayBuffer",
+      })
+    );
   }
 
   async updateDescription(
@@ -178,29 +136,21 @@ export class ProjectPageService extends APIService {
     projectId: string,
     pageId: string,
     data: TDocumentPayload
-  ): Promise<any> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/description/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error;
-      });
+  ): Promise<void> {
+    await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/description/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+        body: data,
+      })
+    );
   }
 
   async duplicate(workspaceSlug: string, projectId: string, pageId: string): Promise<TPage> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/duplicate/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async move(workspaceSlug: string, projectId: string, pageId: string, newProjectId: string): Promise<void> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/move/`, {
-      new_project_id: newProjectId,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const page = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/duplicate/", {
+        params: pagePath(workspaceSlug, projectId, pageId),
+      })
+    );
+    return toPage(page);
   }
 }

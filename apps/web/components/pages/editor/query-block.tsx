@@ -125,7 +125,7 @@ const EndpointQuery = observer(function EndpointQuery(props: Props) {
 
   const { data, isLoading, error } = useSWR<TPageQueryResult[], unknown>(
     slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
-    slug ? () => pageQueryService.query(slug, params) : null
+    slug ? () => pageQueryService.queryPages(slug, params) : null
   );
 
   if (isLoading) return <Empty message={t("page_query_block.loading")} />;
@@ -172,7 +172,7 @@ const ContributorsQuery = observer(function ContributorsQuery(props: Props) {
 
   const { data, isLoading, error } = useSWR<TPageQueryContributor[], unknown>(
     slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
-    slug ? () => pageQueryService.query<TPageQueryContributor>(slug, params) : null
+    slug ? () => pageQueryService.queryContributors(slug, params) : null
   );
 
   if (isLoading) return <Empty message={t("page_query_block.loading")} />;
@@ -201,7 +201,7 @@ const LabelListQuery = observer(function LabelListQuery(props: Props) {
 
   const { data, isLoading, error } = useSWR<TPageQueryLabel[], unknown>(
     slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
-    slug ? () => pageQueryService.query<TPageQueryLabel>(slug, params) : null
+    slug ? () => pageQueryService.queryLabels(slug, params) : null
   );
 
   if (isLoading) return <Empty message={t("page_query_block.loading")} />;
@@ -262,7 +262,7 @@ const PagePropertiesQuery = observer(function PagePropertiesQuery(props: Props) 
 
   const { data, isLoading, error } = useSWR<TPageQueryResult[], unknown>(
     slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
-    slug ? () => pageQueryService.query(slug, params) : null
+    slug ? () => pageQueryService.queryPages(slug, params) : null
   );
 
   if (isLoading) return <Empty message={t("page_query_block.loading")} />;
@@ -370,7 +370,7 @@ const ReportQuery = observer(function ReportQuery(props: Props) {
 
   const { data, isLoading, error } = useSWR<TPageQueryReportItem[], unknown>(
     slug ? ["PAGE_QUERY", slug, JSON.stringify(params)] : null,
-    slug ? () => pageQueryService.query<TPageQueryReportItem>(slug, params) : null
+    slug ? () => pageQueryService.queryReport(slug, params) : null
   );
 
   const emptyMessage =
@@ -442,7 +442,9 @@ function EndpointSearchResults(props: { query: string; scope: Props["scope"]; pr
 
   const { data, isLoading, error } = useSWR<TPageQueryResult[], unknown>(
     slug ? ["PAGE_QUERY_SEARCH", slug, scope, query] : null,
-    slug ? () => pageQueryService.query(slug, { kind: "search", scope, project_id: projectId, search: query }) : null
+    slug
+      ? () => pageQueryService.queryPages(slug, { kind: "search", scope, project_id: projectId, search: query })
+      : null
   );
 
   if (isLoading) return <Empty message={t("page_query_block.loading")} />;
