@@ -11,7 +11,6 @@ export * from "./auth";
 export * from "./dashboard";
 export * from "./instance";
 export * from "./user";
-export * from "./project";
 export * from "./workspace";
 export * from "./file";
 export * from "./helpers";
