@@ -10,10 +10,10 @@ import { StoreContext } from "@/lib/store-context";
 // mobx store
 import type { IEstimate } from "@/store/estimates/estimate";
 
-export const useEstimate = (estimateId: string | undefined): IEstimate => {
+export const useEstimate = (estimateId: string | undefined): IEstimate | undefined => {
   const context = useContext(StoreContext);
   if (context === undefined) throw new Error("useEstimate must be used within StoreProvider");
-  if (!estimateId) return {} as IEstimate;
+  if (!estimateId) return undefined;
 
-  return context.projectEstimate.estimates?.[estimateId] ?? {};
+  return context.projectEstimate.estimates[estimateId];
 };

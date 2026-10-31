@@ -15,7 +15,6 @@ import {
 } from "@/components/pages/navigation-pane";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useQueryParams } from "@/hooks/use-query-params";
-import type { TPageNavigationPaneTab } from "@/components/pages/navigation-pane/tab-panels";
 import type { INavigationPaneExtension } from "@/components/pages/navigation-pane";
 import type { TPageInstance } from "@/store/pages/base-page";
 
@@ -30,12 +29,10 @@ export const usePagesPaneExtensions = (_params: TPageExtensionHookParams) => {
   const searchParams = useSearchParams();
 
   // Generic navigation pane logic - hook manages feature-specific routing
-  const navigationPaneQueryParam = searchParams.get(
-    PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM
-  ) as TPageNavigationPaneTab | null;
+  const navigationPaneQueryParam = searchParams.get(PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM);
 
   const isNavigationPaneOpen =
-    !!navigationPaneQueryParam && PAGE_NAVIGATION_PANE_TAB_KEYS.includes(navigationPaneQueryParam);
+    !!navigationPaneQueryParam && PAGE_NAVIGATION_PANE_TAB_KEYS.some((key) => key === navigationPaneQueryParam);
 
   const handleOpenNavigationPane = useCallback(() => {
     const updatedRoute = updateQueryParams({

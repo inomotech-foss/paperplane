@@ -14,7 +14,7 @@ type ScriptProps = {
   onError?: () => void;
   children?: string;
   defer?: boolean;
-  [key: string]: any;
+  [key: string]: string | boolean | (() => void) | undefined;
 };
 
 // Minimal shim for next/script that creates a script tag
@@ -26,8 +26,8 @@ function Script({ src, id, strategy: _strategy, onLoad, onError, children, ...re
       script.src = src;
       if (onLoad) script.onload = onLoad;
       if (onError) script.onerror = onError;
-      Object.keys(rest).forEach((key) => {
-        script.setAttribute(key, rest[key]);
+      Object.entries(rest).forEach(([key, value]) => {
+        script.setAttribute(key, String(value));
       });
       document.body.appendChild(script);
 
@@ -40,8 +40,8 @@ function Script({ src, id, strategy: _strategy, onLoad, onError, children, ...re
       const script = document.createElement("script");
       if (id) script.id = id;
       script.textContent = children;
-      Object.keys(rest).forEach((key) => {
-        script.setAttribute(key, rest[key]);
+      Object.entries(rest).forEach(([key, value]) => {
+        script.setAttribute(key, String(value));
       });
       document.body.appendChild(script);
 

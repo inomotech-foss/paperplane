@@ -19,6 +19,11 @@ import { useProject } from "@/hooks/store/use-project";
 import { useProjectView } from "@/hooks/store/use-project-view";
 import type { Route } from "./+types/page";
 
+const removeFilterValue = <V, E extends null | undefined>(values: V[] | E, value: unknown): V[] | E => {
+  if (!Array.isArray(values)) return values;
+  return value ? values.filter((val) => val !== value) : [];
+};
+
 function ProjectViewsPage({ params }: Route.ComponentProps) {
   const { projectId } = params;
   // store
@@ -30,17 +35,12 @@ function ProjectViewsPage({ params }: Route.ComponentProps) {
 
   const handleRemoveFilter = useCallback(
     (key: keyof TViewFilterProps, value: string | EViewAccess | null) => {
-      let newValues = filters.filters?.[key];
+      const current = filters.filters;
 
-      if (key === "favorites") {
-        newValues = !!value;
-      }
-      if (Array.isArray(newValues)) {
-        if (!value) newValues = [];
-        else newValues = newValues.filter((val) => val !== value) as string[];
-      }
-
-      updateFilters("filters", { [key]: newValues });
+      if (key === "favorites") updateFilters("filters", { favorites: !!value });
+      else if (key === "view_type")
+        updateFilters("filters", { view_type: removeFilterValue(current?.view_type, value) });
+      else updateFilters("filters", { [key]: removeFilterValue(current?.[key], value) });
     },
     [filters.filters, updateFilters]
   );

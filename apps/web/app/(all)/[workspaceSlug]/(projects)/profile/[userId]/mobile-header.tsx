@@ -14,12 +14,7 @@ import { useTranslation } from "@plane/i18n";
 // icons
 import { ChevronDownOutline } from "@makeplane/propel/icons";
 // types
-import type {
-  IIssueDisplayFilterOptions,
-  IIssueDisplayProperties,
-  TIssueLayouts,
-  EIssueLayoutTypes,
-} from "@plane/types";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, EIssueLayoutTypes } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
 // ui
 import { Icon } from "@makeplane/propel/components/icon";
@@ -43,13 +38,13 @@ export const ProfileIssuesMobileHeader = observer(function ProfileIssuesMobileHe
   const activeLayout = issueFilters?.displayFilters?.layout;
 
   const handleLayoutChange = useCallback(
-    (layout: TIssueLayouts) => {
+    (layout: EIssueLayoutTypes) => {
       if (!workspaceSlug || !userId) return;
       updateFilters(
         workspaceSlug.toString(),
         undefined,
         EIssueFilterType.DISPLAY_FILTERS,
-        { layout: layout as EIssueLayoutTypes | undefined },
+        { layout },
         userId.toString()
       );
     },

@@ -5,31 +5,16 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { getValueFromLocalStorage as getStoredValue } from "@plane/hooks";
 
-export const getValueFromLocalStorage = (key: string, defaultValue: any) => {
-  if (typeof window === "undefined") return defaultValue;
-  try {
-    const item = window.localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
-  } catch (_error) {
-    window.localStorage.removeItem(key);
-    return defaultValue;
-  }
-};
+export { setValueIntoLocalStorage } from "@plane/hooks";
 
-export const setValueIntoLocalStorage = (key: string, value: any) => {
-  if (typeof window === "undefined") return false;
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch (_error) {
-    return false;
-  }
-};
+export const getValueFromLocalStorage = (key: string, defaultValue: unknown): unknown =>
+  getStoredValue(key, defaultValue);
 
 // TODO: Remove this once we migrate to the new hooks from plane/helpers
 const useLocalStorage = <T,>(key: string, initialValue: T) => {
-  const [storedValue, setStoredValue] = useState<T | null>(() => getValueFromLocalStorage(key, initialValue));
+  const [storedValue, setStoredValue] = useState<T | null>(() => getStoredValue(key, initialValue));
 
   const setValue = useCallback(
     (value: T) => {
@@ -47,7 +32,7 @@ const useLocalStorage = <T,>(key: string, initialValue: T) => {
   }, [key]);
 
   const reHydrate = useCallback(() => {
-    const data = getValueFromLocalStorage(key, initialValue);
+    const data = getStoredValue(key, initialValue);
     setStoredValue(data);
   }, [key, initialValue]);
 

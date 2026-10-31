@@ -291,7 +291,7 @@ const errorCodeMessages: {
   [EAuthenticationErrorCodes.OAUTH_EMAIL_CONFLICT]: {
     title: `Email belongs to another account`,
     message: (email, provider) =>
-      `The email ${email ? `${email} ` : ""}from your ${LOGIN_MEDIUM_LABELS[provider as keyof typeof LOGIN_MEDIUM_LABELS] || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
+      `The email ${email ? `${email} ` : ""}from your ${Object.entries(LOGIN_MEDIUM_LABELS).find(([medium]) => medium === provider)?.[1] || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
   },
 
   // Reset Password

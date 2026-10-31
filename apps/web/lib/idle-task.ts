@@ -8,19 +8,27 @@ export type IdleTaskHandle = {
   cancel: () => void;
 };
 
+const fallbackTimers = new Map<number, ReturnType<typeof globalThis.setTimeout>>();
+let lastFallbackId = 0;
+
 const requestIdleFallback = (callback: IdleRequestCallback, options?: IdleRequestOptions): number => {
   const start = Date.now();
+  const id = ++lastFallbackId;
 
-  return globalThis.setTimeout(() => {
+  const timer = globalThis.setTimeout(() => {
+    fallbackTimers.delete(id);
     callback({
       didTimeout: false,
       timeRemaining: () => Math.max(0, 50 - (Date.now() - start)),
     });
-  }, options?.timeout ?? 1) as unknown as number;
+  }, options?.timeout ?? 1);
+  fallbackTimers.set(id, timer);
+  return id;
 };
 
 const cancelIdleFallback = (id: number) => {
-  globalThis.clearTimeout(id);
+  globalThis.clearTimeout(fallbackTimers.get(id));
+  fallbackTimers.delete(id);
 };
 
 export const requestIdle = (callback: IdleRequestCallback, options?: IdleRequestOptions): number => {

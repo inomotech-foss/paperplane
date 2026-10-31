@@ -10,6 +10,7 @@ import type { SetToastProps } from "@plane/blocks/toast";
 import type { EIssuesStoreType, TIssue, TIssueGroupByOptions, TIssueOrderByOptions } from "@plane/types";
 import type { GroupDropLocation } from "@/components/issues/issue-layouts/utils";
 import { handleGroupDragDrop } from "@/components/issues/issue-layouts/utils";
+import { readString } from "@/helpers/guards";
 import { ISSUE_FILTER_DEFAULT_DATA } from "@/store/issue/helpers/base-issues.store";
 import { useIssueDetail } from "./store/use-issue-detail";
 import { useIssues } from "./store/use-issues";
@@ -115,11 +116,11 @@ export const useGroupIssuesDragNDrop = (
       groupBy,
       subGroupBy,
       orderBy !== "sort_order"
-    ).catch((err) => {
+    ).catch((err: unknown) => {
       setToast({
         title: "Error!",
         type: "error",
-        message: err?.detail ?? "Failed to perform this action",
+        message: readString(err, "detail") ?? "Failed to perform this action",
       });
     });
   };

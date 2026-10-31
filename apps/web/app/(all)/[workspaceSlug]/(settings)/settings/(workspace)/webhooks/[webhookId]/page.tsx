@@ -17,6 +17,7 @@ import { PageHead } from "@/components/core/page-title";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { DeleteWebhookModal, WebhookDeleteSection, WebhookForm } from "@/components/web-hooks";
 // hooks
+import { readString } from "@/helpers/guards";
 import { useWebhook } from "@/hooks/store/use-webhook";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -67,12 +68,11 @@ function WebhookDetailsPage({ params }: Route.ComponentProps) {
         title: "Success!",
         message: "Webhook updated successfully.",
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error) {
       setToast({
         type: "error",
         title: "Error!",
-        message: error?.error ?? "Something went wrong. Please try again.",
+        message: readString(error, "error") ?? "Something went wrong. Please try again.",
       });
     }
   };

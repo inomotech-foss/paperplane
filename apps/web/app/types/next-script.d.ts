@@ -7,7 +7,7 @@ declare module "next/script" {
     onError?: () => void;
     children?: string;
     defer?: boolean;
-    [key: string]: any;
+    [key: string]: string | boolean | (() => void) | undefined;
   };
 
   const Script: React.FC<ScriptProps>;

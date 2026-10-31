@@ -28,11 +28,11 @@ export const EstimateListItem = observer(function EstimateListItem(props: TEstim
   const { estimateId } = props;
   // store hooks
   const { estimateById } = useProjectEstimates();
-  const { estimatePointIds, estimatePointById } = useEstimate(estimateId);
+  const estimate = useEstimate(estimateId);
   const currentEstimate = estimateById(estimateId);
   // derived values
-  const estimatePointValues = estimatePointIds?.map((estimatePointId) => {
-    const estimatePoint = estimatePointById(estimatePointId);
+  const estimatePointValues = estimate?.estimatePointIds?.map((estimatePointId) => {
+    const estimatePoint = estimate.estimatePointById(estimatePointId);
     if (estimatePoint) return estimatePoint.value;
   });
 

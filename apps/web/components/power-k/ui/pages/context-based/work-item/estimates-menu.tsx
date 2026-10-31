@@ -30,7 +30,8 @@ export const PowerKWorkItemEstimatesMenu = observer(function PowerKWorkItemEstim
   const currentActiveEstimateId = workItemDetails.project_id
     ? currentActiveEstimateIdByProjectId(workItemDetails.project_id)
     : undefined;
-  const { estimatePointIds, estimatePointById } = useEstimate(currentActiveEstimateId);
+  const estimate = useEstimate(currentActiveEstimateId);
+  const estimatePointIds = estimate?.estimatePointIds;
   // derived values
   const currentActiveEstimate = currentActiveEstimateId ? getEstimateById(currentActiveEstimateId) : undefined;
   // translation
@@ -48,7 +49,7 @@ export const PowerKWorkItemEstimatesMenu = observer(function PowerKWorkItemEstim
       />
       {estimatePointIds.length > 0 ? (
         estimatePointIds.map((estimatePointId) => {
-          const estimatePoint = estimatePointById(estimatePointId);
+          const estimatePoint = estimate?.estimatePointById(estimatePointId);
           if (!estimatePoint) return null;
 
           return (

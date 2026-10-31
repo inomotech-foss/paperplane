@@ -10,7 +10,7 @@ import { Avatar } from "@makeplane/propel/components/avatar";
 import type { TMentionSection, TMentionSuggestion } from "@plane/editor";
 import { useTranslation } from "@plane/i18n";
 // plane types
-import type { TSearchEntities, TSearchEntityRequestPayload, TSearchResponse, TUserSearchResponse } from "@plane/types";
+import type { TSearchEntityRequestPayload, TSearchResponse } from "@plane/types";
 // helpers
 import { getFileURL } from "@plane/utils";
 // plane web hooks
@@ -41,32 +41,29 @@ export const useEditorMention = (args: TArgs) => {
         if (!res) {
           throw new Error("No response found");
         }
-        Object.keys(res).map((key) => {
-          const responseKey = key as TSearchEntities;
-          const response = res[responseKey];
-          if (responseKey === "user_mention" && response && response.length > 0) {
-            const items: TMentionSuggestion[] = (response as TUserSearchResponse[]).map((user) => ({
-              icon: (
-                <Avatar
-                  alt={user.member__display_name}
-                  fallback={user.member__display_name?.[0]?.toUpperCase()}
-                  src={getFileURL(user.member__avatar_url)}
-                  size="xs"
-                />
-              ),
-              id: user.member__id,
-              entity_identifier: user.member__id,
-              entity_name: "user_mention",
-              title: user.member__display_name,
-              hint: user.is_project_member === false ? t("mention_suggestions.not_in_project") : undefined,
-            }));
-            suggestionSections.push({
-              key: "users",
-              title: "Users",
-              items,
-            });
-          }
-        });
+        const userMentions = res.user_mention;
+        if (userMentions && userMentions.length > 0) {
+          const items: TMentionSuggestion[] = userMentions.map((user) => ({
+            icon: (
+              <Avatar
+                alt={user.member__display_name}
+                fallback={user.member__display_name?.[0]?.toUpperCase()}
+                src={getFileURL(user.member__avatar_url)}
+                size="xs"
+              />
+            ),
+            id: user.member__id,
+            entity_identifier: user.member__id,
+            entity_name: "user_mention",
+            title: user.member__display_name,
+            hint: user.is_project_member === false ? t("mention_suggestions.not_in_project") : undefined,
+          }));
+          suggestionSections.push({
+            key: "users",
+            title: "Users",
+            items,
+          });
+        }
         const { sections } = updateAdditionalSections({
           response: res,
         });

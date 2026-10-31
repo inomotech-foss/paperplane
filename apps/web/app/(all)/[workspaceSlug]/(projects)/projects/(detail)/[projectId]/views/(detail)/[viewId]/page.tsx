@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
+import type { IProjectView } from "@plane/types";
 // assets
 import emptyView from "@/app/assets/empty-state/view.svg?url";
 // components
@@ -30,7 +31,9 @@ function ProjectViewIssuesPage({ params }: Route.ComponentProps) {
   const project = getProjectById(projectId);
   const pageTitle = project?.name && projectView?.name ? `${project?.name} - ${projectView?.name}` : undefined;
 
-  const { error } = useSWR(`VIEW_DETAILS_${viewId}`, () => fetchViewDetails(workspaceSlug, projectId, viewId));
+  const { error } = useSWR<IProjectView, unknown>(`VIEW_DETAILS_${viewId}`, () =>
+    fetchViewDetails(workspaceSlug, projectId, viewId)
+  );
 
   if (error) {
     return (

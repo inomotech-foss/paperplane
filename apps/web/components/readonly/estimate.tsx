@@ -31,9 +31,9 @@ export const ReadonlyEstimate = observer(function ReadonlyEstimate(props: TReado
 
   const currentActiveEstimateId = projectId ? currentActiveEstimateIdByProjectId(projectId) : undefined;
   const currentActiveEstimate = currentActiveEstimateId ? getEstimateById(currentActiveEstimateId) : undefined;
-  const { estimatePointById } = useEstimate(currentActiveEstimateId);
+  const currentEstimate = useEstimate(currentActiveEstimateId);
 
-  const estimatePoint = value ? estimatePointById(value) : null;
+  const estimatePoint = value ? currentEstimate?.estimatePointById(value) : null;
 
   const displayValue = estimatePoint
     ? currentActiveEstimate?.type === EEstimateSystem.TIME
@@ -45,7 +45,7 @@ export const ReadonlyEstimate = observer(function ReadonlyEstimate(props: TReado
     if (projectId) {
       getProjectEstimates(workspaceSlug, projectId);
     }
-  }, [projectId, workspaceSlug]);
+  }, [getProjectEstimates, projectId, workspaceSlug]);
 
   return (
     <div className={cn("flex items-center gap-1 text-body-xs-regular", className)}>

@@ -67,7 +67,7 @@ export const useRealtimePageEvents = ({
   );
 
   const ACTION_HANDLERS = useMemo(
-    function ACTION_HANDLERS() {
+    function ACTION_HANDLERS(): TCustomEventHandlers {
       return {
         archived: ({ pageIds, data }: { pageIds: string[]; data: EventToPayloadMap["archived"] }) => {
           pageIds.forEach((pageId) => {
@@ -190,7 +190,7 @@ export const useRealtimePageEvents = ({
       if (normalizedPageIds.length === 0) return;
 
       // Get the handler for this message type
-      const handler = ACTION_HANDLERS[actionType] as PageUpdateHandler<T> | undefined;
+      const handler = ACTION_HANDLERS[actionType];
 
       if (handler) {
         // Now TypeScript knows that handler and data match in type

@@ -10,7 +10,7 @@ import Link from "next/link";
 import useSWR from "swr";
 // plane types
 import { Button } from "@makeplane/propel/elements/button";
-import type { TSearchEntityRequestPayload, TWebhookConnectionQueryParams } from "@plane/types";
+import type { TPage, TSearchEntityRequestPayload, TWebhookConnectionQueryParams } from "@plane/types";
 import { EFileAssetType } from "@plane/types";
 // plane ui
 // plane utils
@@ -65,7 +65,7 @@ function PageDetailsPage({ params }: Route.ComponentProps) {
   // editor config
   const { getEditorFileHandlers } = useEditorConfig();
   // fetch page details
-  const { error: pageDetailsError } = useSWR(
+  const { error: pageDetailsError } = useSWR<TPage | undefined, unknown>(
     `PAGE_DETAILS_${pageId}`,
     () => fetchPageDetails(workspaceSlug, projectId, pageId),
     {
@@ -81,8 +81,10 @@ function PageDetailsPage({ params }: Route.ComponentProps) {
       fetchAllVersions: async (pageId) =>
         await projectPageVersionService.fetchAllVersions(workspaceSlug, projectId, pageId),
       fetchDescriptionBinary: async () => {
-        if (!id) return;
-        return await projectPageService.fetchDescriptionBinary(workspaceSlug, projectId, id);
+        // an empty buffer takes the same path as no description
+        if (!id) return new ArrayBuffer(0);
+        const binary: unknown = await projectPageService.fetchDescriptionBinary(workspaceSlug, projectId, id);
+        return binary instanceof ArrayBuffer ? binary : new ArrayBuffer(0);
       },
       fetchEntity: fetchEntityCallback,
       fetchVersionDetails: async (pageId, versionId) =>

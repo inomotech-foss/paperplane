@@ -32,8 +32,8 @@ export const useCollaborativePageActions = (props: Props) => {
   // local action is basically the action performed by the current user to avoid double operations
   const [currentActionBeingProcessed, setCurrentActionBeingProcessed] = useState<TDocumentEventsClient | null>(null);
 
-  // @ts-expect-error - TODO: fix this
-  const actionHandlerMap: Record<TDocumentEventsClient, CollaborativeAction> = useMemo(
+  // Only these events run a page action, the rest are handled elsewhere.
+  const actionHandlerMap: Partial<Record<TDocumentEventsClient, CollaborativeAction>> = useMemo(
     () => ({
       [DocumentCollaborativeEvents.lock.client]: {
         execute: (shouldSync?: boolean, recursive?: boolean) => page.lock({ shouldSync, recursive }),
@@ -68,6 +68,7 @@ export const useCollaborativePageActions = (props: Props) => {
       const isPerformedByCurrentUser = event.type === "sendMessageToServer";
       const clientAction = isPerformedByCurrentUser ? DocumentCollaborativeEvents[event.message].client : event.message;
       const actionDetails = actionHandlerMap[clientAction];
+      if (!actionDetails) return;
       try {
         await actionDetails.execute(isPerformedByCurrentUser, isPerformedByCurrentUser ? event?.recursive : undefined);
         if (isPerformedByCurrentUser) {
@@ -77,7 +78,7 @@ export const useCollaborativePageActions = (props: Props) => {
           }
         }
       } catch {
-        if (actionDetails?.errorMessage) {
+        if (actionDetails.errorMessage) {
           setToast({
             type: "error",
             title: "Error!",
