@@ -78,3 +78,9 @@ class TestPublicBoard:
         )
         rows = documented(session_client.get(issue_url(board, "comments/")))
         assert rows[0]["comment_reactions"][0]["actor_detail"]["id"] == str(create_user.id)
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+def test_project_boards_route_is_gone(api_client, workspace):
+    assert api_client.get(f"/api/public/workspaces/{workspace.slug}/project-boards/").status_code == 404
