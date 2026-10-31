@@ -6,6 +6,7 @@
 
 import type { ICycle } from "./cycle";
 import type { TIssue } from "./issues/issue";
+import type { TLinkMetadata } from "./issues/issue_link";
 import type { IModule } from "./module";
 import type { IProjectLite } from "./project";
 import type { TStateGroups } from "./state";
@@ -50,7 +51,7 @@ export interface ILinkDetails {
   created_at: Date;
   created_by: string;
   id: string;
-  metadata: any;
+  metadata: TLinkMetadata;
   title: string;
   url: string;
 }
@@ -78,7 +79,7 @@ export interface IIssueActivity {
   access?: "EXTERNAL" | "INTERNAL";
   actor: string;
   actor_detail: IUserLite;
-  attachments: any[];
+  attachments: unknown[];
   comment?: string;
   comment_html?: string;
   comment_stripped?: string;

@@ -96,7 +96,8 @@ const PriorityChart = observer(function PriorityChart(props: Props) {
           key: "count",
           label: "Count",
           stackId: "bar-one",
-          fill: (payload) => generateBarColor(payload.key, { x_axis, y_axis, group_by }, chartPalette, workspaceStates),
+          fill: (payload) =>
+            generateBarColor(String(payload.key), { x_axis, y_axis, group_by }, chartPalette, workspaceStates),
           textClassName: "",
           showPercentage: false,
           showTopBorderRadius: () => true,
@@ -129,8 +130,8 @@ const PriorityChart = observer(function PriorityChart(props: Props) {
         fill: extendedColors[index],
         textClassName: "",
         showPercentage: false,
-        showTopBorderRadius: (value, payload: TChartDatum) => parsedExtremes[payload.key].top === value,
-        showBottomBorderRadius: (value, payload: TChartDatum) => parsedExtremes[payload.key].bottom === value,
+        showTopBorderRadius: (value, payload) => parsedExtremes[String(payload.key)].top === value,
+        showBottomBorderRadius: (value, payload) => parsedExtremes[String(payload.key)].bottom === value,
       }));
     } else {
       parsedBars = [];

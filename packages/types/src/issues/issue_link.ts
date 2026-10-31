@@ -9,10 +9,19 @@ export type TIssueLinkEditableFields = {
   url: string;
 };
 
+// Filled in by the server when it crawls the link.
+export type TLinkMetadata = {
+  title?: string | null;
+  favicon?: string | null;
+  favicon_url?: string | null;
+  url?: string;
+  error?: string;
+};
+
 export type TIssueLink = TIssueLinkEditableFields & {
   created_by_id: string;
   id: string;
-  metadata: any;
+  metadata: TLinkMetadata;
   issue_id: string;
 
   //need

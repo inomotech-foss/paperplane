@@ -302,6 +302,6 @@ export interface IssuePaginationOptions {
 export type TSpreadsheetColumn = React.FC<{
   issue: TIssue;
   onClose: () => void;
-  onChange: (issue: TIssue, data: Partial<TIssue>, updates: any) => void;
+  onChange: (issue: TIssue, data: Partial<TIssue>, updates: unknown) => void;
   disabled: boolean;
 }>;

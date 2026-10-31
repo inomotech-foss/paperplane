@@ -245,7 +245,7 @@ export class CycleStore implements ICycleStore {
   getIsPointsDataAvailable = computedFn((cycleId: string) => {
     const cycle = this.getCycleById(cycleId);
     if (!cycle) return false;
-    if (cycle.version === 2) return cycle.progress?.some((p) => p.total_estimate_points > 0);
+    if (cycle.version === 2) return cycle.progress?.some((p) => p.total_estimate_points > 0) ?? false;
     else if (cycle.version === 1) {
       const completionChart = cycle.estimate_distribution?.completion_chart || {};
       return !isEmpty(completionChart) && Object.keys(completionChart).some((p) => completionChart[p]! > 0);

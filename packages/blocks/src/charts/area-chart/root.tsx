@@ -13,6 +13,7 @@ import type { TAreaChartProps } from "@plane/types";
 import { getLegendProps } from "../components/legend";
 import { CustomXAxisTick, CustomYAxisTick } from "../components/tick";
 import { CustomTooltip } from "../components/tooltip";
+import { toChartNumber } from "../payload";
 
 export const AreaChart = React.memo(function AreaChart<K extends string, T extends string>(
   props: TAreaChartProps<K, T>
@@ -98,7 +99,7 @@ export const AreaChart = React.memo(function AreaChart<K extends string, T exten
       // calculate the y value for this point on the straight line
       // using linear interpolation between (0,0) and (last_x, last_y)
       const ratio = index / (data.length - 1);
-      const interpolatedValue = ratio * lastYValue;
+      const interpolatedValue = ratio * toChartNumber(lastYValue);
 
       return {
         [xAxis.key]: item[xAxis.key],

@@ -63,6 +63,24 @@ export type TCycleProgress = {
   cancelled: number;
 };
 
+// One day of cycle progress.
+export type TCycleProgressSnapshot = {
+  date: string;
+  progress_date?: string;
+  total_issues: number;
+  completed_issues: number;
+  backlog_issues: number;
+  started_issues: number;
+  unstarted_issues: number;
+  cancelled_issues: number;
+  total_estimate_points: number;
+  completed_estimate_points: number;
+  backlog_estimate_points: number;
+  started_estimate_points: number;
+  unstarted_estimate_points: number;
+  cancelled_estimate_points: number;
+};
+
 export type TProgressSnapshot = {
   total_issues: number;
   completed_issues: number;
@@ -109,7 +127,7 @@ export interface ICycle extends TProgressSnapshot {
   };
   workspace_id: string;
   project_detail: IProjectDetails;
-  progress: any[];
+  progress?: TCycleProgressSnapshot[];
   version: number;
 }
 

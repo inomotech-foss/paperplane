@@ -27,7 +27,7 @@ vi.mock("@/hooks/use-timeline-chart", () => ({
 vi.mock("@plane/blocks/toast", () => ({ setToast: vi.fn() }));
 
 const block: IGanttBlock = {
-  data: {},
+  data: { id: "block-1" },
   id: "block-1",
   name: "Block",
   position: { marginLeft: 0, width: 100 },

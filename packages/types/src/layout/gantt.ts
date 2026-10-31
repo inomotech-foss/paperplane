@@ -8,8 +8,13 @@ export enum EGanttBlockType {
   PROJECT = "project",
   ISSUE = "issue",
 }
+// The work item, module or project a block is drawn for.
+export type TGanttBlockData = {
+  id: string;
+};
+
 export interface IGanttBlock {
-  data: any;
+  data: TGanttBlockData;
   id: string;
   name: string;
   position?: {
@@ -19,7 +24,7 @@ export interface IGanttBlock {
   sort_order: number | undefined;
   start_date: string | undefined;
   target_date: string | undefined;
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
   /** Dates of the work items below this block, set when the chart rolls dates up. */
   rollup?: TGanttBlockRollup;
 }
@@ -58,14 +63,14 @@ export interface IBlockUpdateData {
   };
   start_date?: string;
   target_date?: string;
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 }
 
 export interface IBlockUpdateDependencyData {
   id: string;
   start_date?: string;
   target_date?: string;
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 }
 
 export type TGanttViews = "week" | "month" | "quarter";

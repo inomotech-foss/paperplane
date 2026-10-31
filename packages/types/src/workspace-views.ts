@@ -25,7 +25,7 @@ export interface IWorkspaceView {
   rich_filters: TWorkItemFilterExpression;
   display_filters: IIssueDisplayFilterOptions;
   display_properties: IIssueDisplayProperties;
-  query: any;
+  query: unknown;
   query_data: IWorkspaceViewProps;
   project: string;
   workspace: string;

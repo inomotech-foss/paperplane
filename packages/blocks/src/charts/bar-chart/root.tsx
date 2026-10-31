@@ -23,6 +23,7 @@ import type { TBarChartProps } from "@plane/types";
 import { getLegendProps } from "../components/legend";
 import { CustomXAxisTick, CustomYAxisTick } from "../components/tick";
 import { CustomTooltip } from "../components/tooltip";
+import { isChartPayload } from "../payload";
 import { barShapeVariants, DEFAULT_BAR_FILL_COLOR } from "./bar";
 
 export const BarChart = React.memo(function BarChart<K extends string, T extends string>(props: TBarChartProps<K, T>) {
@@ -62,15 +63,16 @@ export const BarChart = React.memo(function BarChart<K extends string, T extends
 
   // get bar color dynamically based on payload
   const getBarColor = useCallback(
-    (payload: Record<string, string>[], barKey: string) => {
+    (payload: readonly object[], barKey: string) => {
       const bar = bars.find((b) => b.key === barKey);
       if (!bar) return DEFAULT_BAR_FILL_COLOR;
 
       if (typeof bar.fill === "function") {
-        const payloadItem = payload?.find((item) => item.dataKey === barKey);
-        if (payloadItem?.payload) {
+        const payloadItem = payload?.find((item) => "dataKey" in item && item.dataKey === barKey);
+        const datum = payloadItem && "payload" in payloadItem ? payloadItem.payload : undefined;
+        if (isChartPayload(datum)) {
           try {
-            return bar.fill(payloadItem.payload);
+            return bar.fill(datum);
           } catch (error) {
             console.error(error);
             return DEFAULT_BAR_FILL_COLOR;
