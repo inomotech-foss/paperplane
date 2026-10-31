@@ -1,53 +1,45 @@
 /**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
+import type { AdminPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type { IOAuthApplication } from "@plane/types";
-import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
 
-export class InstanceOAuthApplicationService extends APIService {
+type TApplicationFields = Pick<IOAuthApplication, "name" | "redirect_uris">;
+
+/** Errors are thrown as `ApiError`. */
+export class InstanceOAuthApplicationService {
+  private readonly client: ApiClient<AdminPaths>;
+
   constructor(BASE_URL?: string) {
-    super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<AdminPaths>(BASE_URL || API_BASE_URL);
   }
 
   async list(): Promise<IOAuthApplication[]> {
-    return this.get("/api/instances/oauth-applications/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.GET("/api/instances/oauth-applications/"));
   }
 
-  /**
-   * The response carries client_secret, which is hashed on save and cannot be
-   * read back afterwards.
-   */
-  async create(data: Pick<IOAuthApplication, "name" | "redirect_uris">): Promise<IOAuthApplication> {
-    return this.post("/api/instances/oauth-applications/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async create(data: TApplicationFields): Promise<IOAuthApplication> {
+    return unwrap(this.client.POST("/api/instances/oauth-applications/", { body: data }));
   }
 
-  async update(
-    applicationId: number,
-    data: Partial<Pick<IOAuthApplication, "name" | "redirect_uris">>
-  ): Promise<IOAuthApplication> {
-    return this.patch(`/api/instances/oauth-applications/${applicationId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async update(applicationId: number, data: Partial<TApplicationFields>): Promise<IOAuthApplication> {
+    return unwrap(
+      this.client.PATCH("/api/instances/oauth-applications/{pk}/", {
+        params: { path: { pk: applicationId } },
+        body: data,
+      })
+    );
   }
 
   async destroy(applicationId: number): Promise<void> {
-    return this.delete(`/api/instances/oauth-applications/${applicationId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      this.client.DELETE("/api/instances/oauth-applications/{pk}/", { params: { path: { pk: applicationId } } })
+    );
   }
 }

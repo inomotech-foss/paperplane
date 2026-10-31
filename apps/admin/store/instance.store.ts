@@ -118,15 +118,16 @@ export class InstanceStore implements IInstanceStore {
     try {
       if (this.instance === undefined) this.isLoading = true;
       this.error = undefined;
-      const instanceInfo = await this.instanceService.info();
+      const response = await this.instanceService.info();
+      // An instance that is not registered sends only its activation flags.
+      const instanceInfo = "instance" in response ? response : undefined;
       // handling the new user popup toggle
-      if (this.instance === undefined && !instanceInfo?.instance?.workspaces_exist)
+      if (this.instance === undefined && !instanceInfo?.instance.workspaces_exist)
         this.store.theme.toggleNewUserPopup();
       runInAction(() => {
-        // console.log("instanceInfo: ", instanceInfo);
         this.isLoading = false;
-        this.instance = instanceInfo.instance;
-        this.config = instanceInfo.config;
+        this.instance = instanceInfo?.instance;
+        this.config = instanceInfo?.config;
       });
       return instanceInfo;
     } catch (error) {
