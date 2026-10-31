@@ -76,7 +76,7 @@ export type TIssueCommentIdMap = {
 };
 
 export interface ActorDetail {
-  avatar_url?: string | null;
+  avatar_url?: string;
   display_name?: string;
   first_name?: string;
   is_bot?: boolean;
