@@ -10579,24 +10579,14 @@ export interface components {
             sequence?: number;
         };
         PatchedStickyRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
             name?: string | null;
             description?: unknown;
             description_html?: string;
-            description_stripped?: string | null;
             logo_props?: components["schemas"]["ClientJson"];
             color?: string | null;
             background_color?: string | null;
             /** Format: double */
             sort_order?: number;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         PatchedUserNotificationPreferenceRequest: {
             property_change?: boolean;
@@ -11774,11 +11764,11 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: date-time */
-            deleted_at: string | null;
+            readonly deleted_at: string | null;
             name: string | null;
             description: unknown;
             description_html: string;
-            description_stripped: string | null;
+            readonly description_stripped: string | null;
             /** Format: byte */
             readonly description_binary: string | null;
             logo_props: components["schemas"]["ClientJson"];
@@ -11787,36 +11777,26 @@ export interface components {
             /** Format: double */
             sort_order: number;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: uuid */
             readonly owner: string;
         };
         StickyRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
             name?: string | null;
             description?: unknown;
             description_html?: string;
-            description_stripped?: string | null;
             logo_props?: components["schemas"]["ClientJson"];
             color?: string | null;
             background_color?: string | null;
             /** Format: double */
             sort_order?: number;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         SubGroupedPaginatedPublicWorkItemList: {
             results: {

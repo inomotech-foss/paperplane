@@ -31889,19 +31889,12 @@ components:
     PatchedStickyRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
         name:
           type: string
           nullable: true
         description: {}
         description_html:
           type: string
-        description_stripped:
-          type: string
-          nullable: true
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         color:
@@ -31915,15 +31908,6 @@ components:
         sort_order:
           type: number
           format: double
-        created_by:
-          type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
     PatchedUserNotificationPreferenceRequest:
       type: object
       properties:
@@ -34752,6 +34736,7 @@ components:
         deleted_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         name:
           type: string
@@ -34761,6 +34746,7 @@ components:
           type: string
         description_stripped:
           type: string
+          readOnly: true
           nullable: true
         description_binary:
           type: string
@@ -34783,10 +34769,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         workspace:
@@ -34818,19 +34806,12 @@ components:
     StickyRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
         name:
           type: string
           nullable: true
         description: {}
         description_html:
           type: string
-        description_stripped:
-          type: string
-          nullable: true
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         color:
@@ -34844,15 +34825,6 @@ components:
         sort_order:
           type: number
           format: double
-        created_by:
-          type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
     SubGroupedPaginatedPublicWorkItemList:
       type: object
       properties:
