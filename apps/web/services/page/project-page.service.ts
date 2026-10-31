@@ -123,12 +123,14 @@ export class ProjectPageService {
 
   /** The Yjs document of the page. Empty when the page has none. */
   async fetchDescriptionBinary(workspaceSlug: string, projectId: string, pageId: string): Promise<ArrayBuffer> {
-    return unwrap(
+    // openapi-fetch returns no data for an empty body with Content-Length 0.
+    const binary: ArrayBuffer | undefined = await unwrap(
       apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/description/", {
         params: pagePath(workspaceSlug, projectId, pageId),
         parseAs: "arrayBuffer",
       })
     );
+    return binary ?? new ArrayBuffer(0);
   }
 
   async updateDescription(
