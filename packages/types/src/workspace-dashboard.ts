@@ -17,7 +17,8 @@ export type TWorkspaceDashboard = {
   access: 0 | 1;
   owned_by: string;
   sort_order: number;
-  widget_count: number;
+  /** Sent by the list only. */
+  widget_count?: number;
   is_owner: boolean;
   created_at?: string;
   updated_at?: string;
@@ -83,7 +84,7 @@ export type TDashboardWidgetData = {
   data: TDashboardWidgetDatum[];
   /** Series keys to names, empty without a series. */
   schema: Record<string, string>;
-  total: number;
+  total: number | null;
   row_count: number;
   metric: TDashboardMetric;
   dimension: TDashboardDimension | Record<string, never>;
