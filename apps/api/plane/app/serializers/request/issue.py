@@ -184,6 +184,7 @@ class IssueRelationCreateSerializer(serializers.Serializer):
 
 class IssueRelationRemoveSerializer(serializers.Serializer):
     related_issue = serializers.UUIDField()
+    relation_type = serializers.ChoiceField(choices=RELATION_TYPES, help_text="Named in the activity of both items")
 
 
 class DraftIssueWriteSerializer(DraftIssueCreateSerializer):

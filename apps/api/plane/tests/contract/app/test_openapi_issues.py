@@ -3,6 +3,9 @@
 
 """The work item endpoints accept what the OpenAPI schema documents."""
 
+import json
+from unittest.mock import patch
+
 import jsonschema
 import pytest
 
@@ -84,8 +87,10 @@ class TestIssueRequests:
         assert session_client.post(url, body, format="json").status_code == 201
         assert IssueRelation.objects.filter(issue=child, related_issue=parent, relation_type="blocked_by").exists()
         route = BASE + "/issues/{issue_id}/remove-relation/"
-        url, body = sent(route, "post", {"related_issue": str(child.id)}, **ids)
-        assert_no_content(session_client.post(url, body, format="json"))
+        url, body = sent(route, "post", {"related_issue": str(child.id), "relation_type": "blocked_by"}, **ids)
+        with patch("plane.app.views.issue.relation.issue_activity.delay") as activity:
+            assert_no_content(session_client.post(url, body, format="json"))
+        assert json.loads(activity.call_args.kwargs["requested_data"])["relation_type"] == "blocked_by"
         route = BASE + "/issues/{issue_id}/sub-issues/"
         url, body = sent(route, "post", {"sub_issue_ids": [str(child.id)]}, **ids)
         documented(session_client.post(url, body, format="json"))

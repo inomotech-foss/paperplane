@@ -277,5 +277,7 @@ SPECTACULAR_SETTINGS = {
         "EmailCheckStatusEnum": "plane.app.serializers.response.auth.EMAIL_CHECK_STATUSES",
         "ExportProviderEnum": "plane.app.serializers.request.project.EXPORT_PROVIDERS",
         "EstimateTypeEnum": "plane.db.models.estimate.EstimateType",
+        "IssuePropertyRelationTypeEnum": "plane.db.models.issue_property.PropertyRelationTypeChoices",
+        "WorkItemRelationTypeEnum": "plane.app.serializers.request.issue.RELATION_TYPES",
     },
 }
