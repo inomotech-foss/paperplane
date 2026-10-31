@@ -12,12 +12,12 @@ export type TPageAttachment = {
     size: number;
     type?: string;
   };
-  asset_url: string;
-  page: string;
+  asset_url: string | null;
+  page: string | null;
   created_at: string;
-  created_by: string;
+  created_by: string | null;
   updated_at: string;
-  updated_by: string;
+  updated_by: string | null;
 };
 
 export type TPageAttachmentUploadResponse = TFileSignedURLResponse & {

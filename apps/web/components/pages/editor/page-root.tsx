@@ -38,7 +38,6 @@ export type TPageRootHandlers = {
   fetchAllVersions: (pageId: string) => Promise<TPageVersion[] | undefined>;
   fetchDescriptionBinary: () => Promise<ArrayBuffer>;
   fetchVersionDetails: (pageId: string, versionId: string) => Promise<TPageVersion | undefined>;
-  restoreVersion: (pageId: string, versionId: string) => Promise<void>;
   updateDescription: (document: TDocumentPayload) => Promise<void>;
 } & TEditorBodyHandlers;
 

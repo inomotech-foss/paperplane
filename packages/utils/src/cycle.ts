@@ -216,7 +216,7 @@ export const calculateCycleProgress = (
 ): number => {
   if (!cycle) return 0;
 
-  const progressSnapshot: TProgressSnapshot | undefined = cycle.progress_snapshot;
+  const progressSnapshot: Partial<TProgressSnapshot> | undefined = cycle.progress_snapshot;
   const cycleDetails = progressSnapshot && !isEmpty(progressSnapshot) ? progressSnapshot : cycle;
 
   let completed: number;

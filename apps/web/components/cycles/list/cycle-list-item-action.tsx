@@ -96,7 +96,7 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
   const showIssueCount = useMemo(() => cycleStatus === "draft" || cycleStatus === "upcoming", [cycleStatus]);
 
   const transferableIssuesCount = cycleDetails
-    ? cycleDetails.total_issues - (cycleDetails.cancelled_issues + cycleDetails.completed_issues)
+    ? (cycleDetails.total_issues ?? 0) - ((cycleDetails.cancelled_issues ?? 0) + (cycleDetails.completed_issues ?? 0))
     : 0;
 
   const showTransferIssues = routerProjectId && transferableIssuesCount > 0 && cycleStatus === "completed";

@@ -165,6 +165,7 @@ class ModuleLinkSerializer(BaseSerializer):
             "created_at",
             "updated_at",
             "module",
+            "deleted_at",
         ]
 
     def to_internal_value(self, data):

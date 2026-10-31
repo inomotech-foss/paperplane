@@ -178,7 +178,7 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
             if (moduleDetails.is_favorite) handleRemoveFromFavorites(e);
             else handleAddToFavorites(e);
           }}
-          selected={moduleDetails.is_favorite}
+          selected={moduleDetails.is_favorite ?? false}
         />
       )}
       {workspaceSlug && projectId && (

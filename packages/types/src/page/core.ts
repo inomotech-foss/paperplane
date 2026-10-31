@@ -12,10 +12,10 @@ export type TPage = {
   access: EPageAccess | undefined;
   archived_at: string | null | undefined;
   color: string | undefined;
-  created_at: Date | undefined;
-  created_by: string | undefined;
-  description_json: object | undefined;
-  description_html: string | undefined;
+  created_at: string | undefined;
+  created_by: string | null | undefined;
+  description_json?: object;
+  description_html?: string;
   id: string | undefined;
   is_favorite: boolean;
   is_locked: boolean;
@@ -25,11 +25,10 @@ export type TPage = {
   parent: string | null | undefined;
   sort_order: number;
   project_ids?: string[] | undefined;
-  updated_at: Date | undefined;
-  updated_by: string | undefined;
+  updated_at: string | undefined;
+  updated_by: string | null | undefined;
   workspace: string | undefined;
   logo_props: TLogoProps | undefined;
-  deleted_at: Date | undefined;
 } & TPageExtended;
 
 // page filters
@@ -57,8 +56,7 @@ export type TPageEmbedType = "mention" | "issue";
 
 export type TPageVersion = {
   created_at: string;
-  created_by: string;
-  deleted_at: string | null;
+  created_by: string | null;
   description_binary?: string | null;
   description_html?: string | null;
   description_json?: object;
@@ -67,7 +65,7 @@ export type TPageVersion = {
   owned_by: string;
   page: string;
   updated_at: string;
-  updated_by: string;
+  updated_by: string | null;
   workspace: string;
 };
 

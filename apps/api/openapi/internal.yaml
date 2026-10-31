@@ -648,13 +648,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageAttachmentRequest'
+              $ref: '#/components/schemas/AttachmentUploadRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PageAttachmentRequest'
+              $ref: '#/components/schemas/AttachmentUploadRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PageAttachmentRequest'
+              $ref: '#/components/schemas/AttachmentUploadRequest'
         required: true
       security:
       - sessionAuth: []
@@ -735,17 +735,6 @@ paths:
         required: true
       tags:
       - assets
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedPageAttachmentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedPageAttachmentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedPageAttachmentRequest'
       security:
       - sessionAuth: []
       responses:
@@ -3525,12 +3514,6 @@ paths:
     get:
       operationId: workspaces_cycles_list
       parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -4873,12 +4856,6 @@ paths:
     get:
       operationId: workspaces_modules_list
       parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -4901,11 +4878,95 @@ paths:
     get:
       operationId: workspaces_page_query_retrieve
       parameters:
+      - in: query
+        name: columns
+        schema:
+          type: string
+        description: Comma-separated property names, for page-properties
+      - in: query
+        name: depth
+        schema:
+          type: integer
+        description: Levels below root_page_id for tree, 1 to 20. 1 when omitted
+      - in: query
+        name: kind
+        schema:
+          type: string
+          enum:
+          - by-label
+          - contributors
+          - decision-report
+          - index
+          - label-list
+          - page-properties
+          - recent
+          - search
+          - task-report
+          - tree
+        description: The query to run. recent when omitted
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label names, for by-label, page-properties and
+          the reports
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Rows to return, 1 to 100. 20 when omitted
+      - in: query
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        description: The project of scope=project
+      - in: query
+        name: reverse
+        schema:
+          type: boolean
+        description: Reverse the order
+      - in: query
+        name: root_page_id
+        schema:
+          type: string
+          format: uuid
+        description: The page whose descendants tree and the reports list
+      - in: query
+        name: scope
+        schema:
+          type: string
+          enum:
+          - project
+        description: project limits the pages to project_id. The whole workspace when
+          omitted
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: The text a page name contains, for search
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: sort
+        schema:
+          type: string
+          enum:
+          - created
+          - modified
+          - title
+        description: The order of the pages
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - complete
+          - incomplete
+        description: Only complete or incomplete tasks, for task-report
       tags:
       - workspaces
       security:
@@ -6313,18 +6374,20 @@ paths:
     get:
       operationId: workspaces_projects_cycles_list
       parameters:
+      - in: query
+        name: cycle_view
+        schema:
+          type: string
+          enum:
+          - all
+          - current
+        description: current lists only the running cycle. All cycles when omitted
       - in: path
         name: project_id
         schema:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -6359,6 +6422,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CycleWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CycleWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CycleWriteRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -6389,6 +6464,14 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - issues
+          - points
+        description: Count work items or sum estimate points. issues when omitted
       tags:
       - workspaces
       security:
@@ -6464,6 +6547,16 @@ paths:
       operationId: workspaces_projects_cycles_cycle_issues_list
       parameters:
       - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
         name: cursor
         schema:
           type: string
@@ -6473,12 +6566,97 @@ paths:
             value: '20:1:0'
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
+      - in: query
+        name: cycle
+        schema:
+          type: string
+        description: Comma-separated cycle ids. Only work items that match one of
+          them.
       - in: path
         name: cycle_id
         schema:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: filters
+        schema:
+          type: string
+        description: JSON encoded filter expression with nested 'and' / 'or' / 'not'
+          groups. Mutually exclusive with 'pql'.
+        examples:
+          UrgentAndInProgress:
+            value: '{"and":[{"priority":"urgent"},{"state_group__in":["unstarted","started"]}]}'
+            summary: Urgent and in progress
+            description: Leaves are field comparisons with Django style lookups
+      - in: query
+        name: group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group the work items by this field
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label ids. Only work items that match one of
+          them.
+      - in: query
+        name: layout
+        schema:
+          type: string
+        description: The layout the list is for. Ignored by the backend
+      - in: query
+        name: mentions
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: module
+        schema:
+          type: string
+        description: Comma-separated module ids. Only work items that match one of
+          them.
+      - in: query
+        name: order_by
+        schema:
+          type: string
+        description: Field to order results by. Prefix with '-' for descending order
+        examples:
+          CreatedDateDescending:
+            value: -created_at
+            summary: Created date descending
+            description: Most recent items first
+          PriorityAscending:
+            value: priority
+            summary: Priority ascending
+            description: Order by priority (urgent, high, medium, low, none)
+          StateGroup:
+            value: state__group
+            summary: State group
+            description: Order by state group (backlog, unstarted, started, completed,
+              cancelled)
+          AssigneeName:
+            value: assignees__first_name
+            summary: Assignee name
+            description: Order by assignee first name
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Comma-separated work item ids. Only work items that match one
+          of them.
       - in: query
         name: per_page
         schema:
@@ -6489,6 +6667,36 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: pql
+        schema:
+          type: string
+        description: Plane Query Language expression. Human readable alternative to
+          'filters'; the two are mutually exclusive. Names resolve to ids (state =
+          "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches direct
+          children and descendantOf() every work item below one at any depth.
+        examples:
+          UrgentWorkItemsOfTheCaller:
+            value: priority = "urgent" AND assignee = currentUser()
+            summary: Urgent work items of the caller
+            description: Combine conditions with AND, OR, NOT and parentheses
+          PaidInvoicesOfACustomerDueThisYear:
+            value: descendantOf("CUST-1") AND type = "Invoice" AND state = "Paid"
+              AND cf["Due date"] >= "2026-01-01"
+            summary: Paid invoices of a customer due this year
+            description: Walk the hierarchy below a work item and filter by names
+              and custom properties
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma-separated priorities
+      - in: query
+        name: project
+        schema:
+          type: string
+        description: Comma-separated project ids. Only work items that match one of
+          them.
       - in: path
         name: project_id
         schema:
@@ -6500,6 +6708,55 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma-separated state ids. Only work items that match one of
+          them.
+      - in: query
+        name: state_group
+        schema:
+          type: string
+        description: Comma-separated state groups
+      - in: query
+        name: sub_group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group each group by this field. Requires group_by and must differ
+          from it
+      - in: query
+        name: sub_issue
+        schema:
+          type: boolean
+        description: Include work items that have a parent. True when omitted
+      - in: query
+        name: subscriber
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: target_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after,2026-02-01;before
       tags:
       - workspaces
       security:
@@ -6537,13 +6794,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CycleIssueRequest'
+              $ref: '#/components/schemas/CycleIssuesAddRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/CycleIssueRequest'
+              $ref: '#/components/schemas/CycleIssuesAddRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CycleIssueRequest'
+              $ref: '#/components/schemas/CycleIssuesAddRequest'
         required: true
       security:
       - sessionAuth: []
@@ -6777,6 +7034,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CycleTransferRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CycleTransferRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CycleTransferRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -6840,6 +7109,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueFiltersUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueFiltersUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueFiltersUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -6934,6 +7214,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCycleWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCycleWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCycleWriteRequest'
       security:
       - sessionAuth: []
       responses:
@@ -6987,6 +7278,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CycleDateCheckRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CycleDateCheckRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CycleDateCheckRequestRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -10959,14 +11262,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ModuleIssueRequest'
+              $ref: '#/components/schemas/IssueModulesUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ModuleIssueRequest'
+              $ref: '#/components/schemas/IssueModulesUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ModuleIssueRequest'
-        required: true
+              $ref: '#/components/schemas/IssueModulesUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -12245,18 +12547,26 @@ paths:
     get:
       operationId: workspaces_projects_modules_list
       parameters:
+      - in: query
+        name: fields
+        schema:
+          type: string
+        description: Comma-separated list of fields to include in response
+        examples:
+          BasicFields:
+            value: id,name,description
+            summary: Basic fields
+            description: Include only basic fields
+          WithRelations:
+            value: id,name,assignees,state
+            summary: With relations
+            description: Include fields with relationships
       - in: path
         name: project_id
         schema:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -12374,6 +12684,16 @@ paths:
       operationId: workspaces_projects_modules_issues_list
       parameters:
       - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
         name: cursor
         schema:
           type: string
@@ -12383,12 +12703,97 @@ paths:
             value: '20:1:0'
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
+      - in: query
+        name: cycle
+        schema:
+          type: string
+        description: Comma-separated cycle ids. Only work items that match one of
+          them.
+      - in: query
+        name: filters
+        schema:
+          type: string
+        description: JSON encoded filter expression with nested 'and' / 'or' / 'not'
+          groups. Mutually exclusive with 'pql'.
+        examples:
+          UrgentAndInProgress:
+            value: '{"and":[{"priority":"urgent"},{"state_group__in":["unstarted","started"]}]}'
+            summary: Urgent and in progress
+            description: Leaves are field comparisons with Django style lookups
+      - in: query
+        name: group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group the work items by this field
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label ids. Only work items that match one of
+          them.
+      - in: query
+        name: layout
+        schema:
+          type: string
+        description: The layout the list is for. Ignored by the backend
+      - in: query
+        name: mentions
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: module
+        schema:
+          type: string
+        description: Comma-separated module ids. Only work items that match one of
+          them.
       - in: path
         name: module_id
         schema:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: order_by
+        schema:
+          type: string
+        description: Field to order results by. Prefix with '-' for descending order
+        examples:
+          CreatedDateDescending:
+            value: -created_at
+            summary: Created date descending
+            description: Most recent items first
+          PriorityAscending:
+            value: priority
+            summary: Priority ascending
+            description: Order by priority (urgent, high, medium, low, none)
+          StateGroup:
+            value: state__group
+            summary: State group
+            description: Order by state group (backlog, unstarted, started, completed,
+              cancelled)
+          AssigneeName:
+            value: assignees__first_name
+            summary: Assignee name
+            description: Order by assignee first name
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Comma-separated work item ids. Only work items that match one
+          of them.
       - in: query
         name: per_page
         schema:
@@ -12399,6 +12804,36 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: pql
+        schema:
+          type: string
+        description: Plane Query Language expression. Human readable alternative to
+          'filters'; the two are mutually exclusive. Names resolve to ids (state =
+          "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches direct
+          children and descendantOf() every work item below one at any depth.
+        examples:
+          UrgentWorkItemsOfTheCaller:
+            value: priority = "urgent" AND assignee = currentUser()
+            summary: Urgent work items of the caller
+            description: Combine conditions with AND, OR, NOT and parentheses
+          PaidInvoicesOfACustomerDueThisYear:
+            value: descendantOf("CUST-1") AND type = "Invoice" AND state = "Paid"
+              AND cf["Due date"] >= "2026-01-01"
+            summary: Paid invoices of a customer due this year
+            description: Walk the hierarchy below a work item and filter by names
+              and custom properties
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma-separated priorities
+      - in: query
+        name: project
+        schema:
+          type: string
+        description: Comma-separated project ids. Only work items that match one of
+          them.
       - in: path
         name: project_id
         schema:
@@ -12410,6 +12845,55 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma-separated state ids. Only work items that match one of
+          them.
+      - in: query
+        name: state_group
+        schema:
+          type: string
+        description: Comma-separated state groups
+      - in: query
+        name: sub_group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group each group by this field. Requires group_by and must differ
+          from it
+      - in: query
+        name: sub_issue
+        schema:
+          type: boolean
+        description: Include work items that have a parent. True when omitted
+      - in: query
+        name: subscriber
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: target_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after,2026-02-01;before
       tags:
       - workspaces
       security:
@@ -12447,13 +12931,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ModuleIssueRequest'
+              $ref: '#/components/schemas/ModuleIssuesAddRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ModuleIssueRequest'
+              $ref: '#/components/schemas/ModuleIssuesAddRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ModuleIssueRequest'
+              $ref: '#/components/schemas/ModuleIssuesAddRequest'
         required: true
       security:
       - sessionAuth: []
@@ -12648,12 +13132,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -12937,6 +13415,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueFiltersUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueFiltersUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueFiltersUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -13100,12 +13589,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -13144,13 +13627,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageCreateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -13207,6 +13690,11 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: track_visit
+        schema:
+          type: boolean
+        description: Record the read as a recent visit. True when omitted
       tags:
       - workspaces
       security:
@@ -13244,13 +13732,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
+              $ref: '#/components/schemas/PatchedPageUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
+              $ref: '#/components/schemas/PatchedPageUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
+              $ref: '#/components/schemas/PatchedPageUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -13314,13 +13802,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageAccessRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageAccessRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageAccessRequest'
       security:
       - sessionAuth: []
       responses:
@@ -13558,13 +14046,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageCommentReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PageCommentReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PageCommentReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
         required: true
       security:
       - sessionAuth: []
@@ -13863,6 +14351,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPageBinaryUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPageBinaryUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPageBinaryUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -14870,7 +15369,7 @@ paths:
           description: Restored
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-cycles/:
     get:
-      operationId: workspaces_projects_user_favorite_cycles_retrieve
+      operationId: workspaces_projects_user_favorite_cycles_list
       parameters:
       - in: path
         name: project_id
@@ -14878,6 +15377,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -14889,7 +15394,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserFavorite'
+          description: ''
     post:
       operationId: workspaces_projects_user_favorite_cycles_create
       parameters:
@@ -14906,6 +15417,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CycleFavoriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CycleFavoriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CycleFavoriteRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -14941,7 +15464,7 @@ paths:
           description: No response body
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-modules/:
     get:
-      operationId: workspaces_projects_user_favorite_modules_retrieve
+      operationId: workspaces_projects_user_favorite_modules_list
       parameters:
       - in: path
         name: project_id
@@ -14949,6 +15472,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -14960,7 +15489,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserFavorite'
+          description: ''
     post:
       operationId: workspaces_projects_user_favorite_modules_create
       parameters:
@@ -14977,6 +15512,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModuleFavoriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ModuleFavoriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ModuleFavoriteRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -15012,7 +15559,7 @@ paths:
           description: No response body
   /api/workspaces/{slug}/projects/{project_id}/user-favorite-views/:
     get:
-      operationId: workspaces_projects_user_favorite_views_retrieve
+      operationId: workspaces_projects_user_favorite_views_list
       parameters:
       - in: path
         name: project_id
@@ -15020,6 +15567,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -15031,7 +15584,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserFavorite'
+          description: ''
     post:
       operationId: workspaces_projects_user_favorite_views_create
       parameters:
@@ -16087,8 +16646,14 @@ paths:
           description: CSV file
   /api/workspaces/{slug}/user-favorite-projects/:
     get:
-      operationId: workspaces_user_favorite_projects_retrieve
+      operationId: workspaces_user_favorite_projects_list
       parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       - in: path
         name: slug
         schema:
@@ -16100,7 +16665,13 @@ paths:
       - sessionAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserFavorite'
+          description: ''
     post:
       operationId: workspaces_user_favorite_projects_create
       parameters:
@@ -18037,14 +18608,6 @@ components:
       - updated_by
       - user
       - workspace
-    Access1f9Enum:
-      enum:
-      - 0
-      - 1
-      type: integer
-      description: |-
-        * `0` - Public
-        * `1` - Private
     AccessEe6Enum:
       enum:
       - INTERNAL
@@ -18375,7 +18938,8 @@ components:
         external_id:
           type: string
           nullable: true
-        progress_snapshot: {}
+        progress_snapshot:
+          $ref: '#/components/schemas/ProgressSnapshot'
         is_favorite:
           type: boolean
         total_issues:
@@ -18388,8 +18952,7 @@ components:
             type: string
             format: uuid
         status:
-          type: string
-          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+          $ref: '#/components/schemas/CycleStatusEnum'
         cancelled_issues:
           type: integer
         started_issues:
@@ -18493,7 +19056,8 @@ components:
         external_id:
           type: string
           nullable: true
-        progress_snapshot: {}
+        progress_snapshot:
+          $ref: '#/components/schemas/ProgressSnapshot'
         is_favorite:
           type: boolean
         total_issues:
@@ -18506,8 +19070,7 @@ components:
             type: string
             format: uuid
         status:
-          type: string
-          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+          $ref: '#/components/schemas/CycleStatusEnum'
         cancelled_issues:
           type: integer
         started_issues:
@@ -18575,7 +19138,7 @@ components:
           format: date
           nullable: true
         status:
-          type: string
+          $ref: '#/components/schemas/ModuleStatusEnum'
         lead_id:
           type: string
           format: uuid
@@ -18756,6 +19319,59 @@ components:
       - assignee_id
       - display_name
       - avatar_url
+    AssigneeDistributionRequest:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        pending_issues:
+          type: integer
+        total_estimates:
+          type: number
+          format: double
+          nullable: true
+        completed_estimates:
+          type: number
+          format: double
+          nullable: true
+        pending_estimates:
+          type: number
+          format: double
+          nullable: true
+        assignee_id:
+          type: string
+          format: uuid
+          nullable: true
+        display_name:
+          type: string
+          nullable: true
+          minLength: 1
+        avatar_url:
+          type: string
+          nullable: true
+          minLength: 1
+        first_name:
+          type: string
+          nullable: true
+          minLength: 1
+        last_name:
+          type: string
+          nullable: true
+          minLength: 1
+      required:
+      - assignee_id
+      - avatar_url
+      - completed_estimates
+      - completed_issues
+      - display_name
+      - first_name
+      - last_name
+      - pending_estimates
+      - pending_issues
+      - total_estimates
+      - total_issues
     AssigneeWorkItemStats:
       type: object
       properties:
@@ -19769,6 +20385,8 @@ components:
           readOnly: true
           nullable: true
         progress_snapshot:
+          allOf:
+          - $ref: '#/components/schemas/ProgressSnapshot'
           readOnly: true
         logo_props:
           allOf:
@@ -19796,7 +20414,8 @@ components:
           type: integer
           readOnly: true
         status:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/CycleStatusEnum'
           readOnly: true
       required:
       - id
@@ -19823,6 +20442,22 @@ components:
           type: string
       required:
       - status
+    CycleDateCheckRequestRequest:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        cycle_id:
+          type: string
+          format: uuid
+          description: The cycle being edited, which may overlap itself
+      required:
+      - end_date
+      - start_date
     CycleDetail:
       type: object
       properties:
@@ -19861,7 +20496,8 @@ components:
         external_id:
           type: string
           nullable: true
-        progress_snapshot: {}
+        progress_snapshot:
+          $ref: '#/components/schemas/ProgressSnapshot'
         is_favorite:
           type: boolean
         total_issues:
@@ -19874,8 +20510,7 @@ components:
             type: string
             format: uuid
         status:
-          type: string
-          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+          $ref: '#/components/schemas/CycleStatusEnum'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         version:
@@ -19909,28 +20544,14 @@ components:
       - version
       - created_by
       - sub_issues
-    CycleFavoriteLite:
+    CycleFavoriteRequest:
       type: object
       properties:
-        id:
+        cycle:
           type: string
           format: uuid
-          readOnly: true
-        name:
-          type: string
-          title: Cycle Name
-          maxLength: 255
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-        project_id:
-          type: string
-          format: uuid
-          readOnly: true
       required:
-      - id
-      - name
-      - logo_props
-      - project_id
+      - cycle
     CycleIssue:
       type: object
       properties:
@@ -20015,6 +20636,18 @@ components:
           format: uuid
       required:
       - issue
+    CycleIssuesAddRequest:
+      type: object
+      properties:
+        issues:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Work items of the project. Moves them out of their current
+            cycle
+      required:
+      - issues
     CycleListItem:
       type: object
       properties:
@@ -20053,7 +20686,8 @@ components:
         external_id:
           type: string
           nullable: true
-        progress_snapshot: {}
+        progress_snapshot:
+          $ref: '#/components/schemas/ProgressSnapshot'
         is_favorite:
           type: boolean
         total_issues:
@@ -20066,8 +20700,7 @@ components:
             type: string
             format: uuid
         status:
-          type: string
-          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+          $ref: '#/components/schemas/CycleStatusEnum'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         version:
@@ -20185,7 +20818,8 @@ components:
         external_id:
           type: string
           nullable: true
-        progress_snapshot: {}
+        progress_snapshot:
+          $ref: '#/components/schemas/ProgressSnapshot'
         is_favorite:
           type: boolean
         total_issues:
@@ -20198,8 +20832,7 @@ components:
             type: string
             format: uuid
         status:
-          type: string
-          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+          $ref: '#/components/schemas/CycleStatusEnum'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         version:
@@ -20230,6 +20863,27 @@ components:
       - logo_props
       - version
       - created_by
+    CycleStatusEnum:
+      enum:
+      - CURRENT
+      - UPCOMING
+      - COMPLETED
+      - DRAFT
+      type: string
+      description: |-
+        * `CURRENT` - CURRENT
+        * `UPCOMING` - UPCOMING
+        * `COMPLETED` - COMPLETED
+        * `DRAFT` - DRAFT
+    CycleTransferRequest:
+      type: object
+      properties:
+        new_cycle_id:
+          type: string
+          format: uuid
+          description: An active or upcoming cycle of the project
+      required:
+      - new_cycle_id
     CycleUserProperties:
       type: object
       properties:
@@ -20298,6 +20952,44 @@ components:
       - workspace
       - cycle
       - user
+    CycleWriteRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Cycle Name
+          maxLength: 255
+        description:
+          type: string
+          title: Cycle Description
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
+        timezone:
+          $ref: '#/components/schemas/TimezoneEnum'
+      required:
+      - name
     Dashboard:
       type: object
       properties:
@@ -20918,6 +21610,28 @@ components:
       required:
       - completion_chart
       - assignees
+      - labels
+    DistributionRequest:
+      type: object
+      properties:
+        completion_chart:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+            nullable: true
+          description: Pending work by date, null for future dates
+        assignees:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssigneeDistributionRequest'
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabelDistributionRequest'
+      required:
+      - assignees
+      - completion_chart
       - labels
     DraftIssue:
       type: object
@@ -21727,6 +22441,28 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LabelDistribution'
+    EstimateDistributionRequest:
+      type: object
+      properties:
+        completion_chart:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+            nullable: true
+          description: Pending work by date, null for future dates
+        assignees:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssigneeDistributionRequest'
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabelDistributionRequest'
+      required:
+      - assignees
+      - completion_chart
+      - labels
     EstimatePoint:
       type: object
       properties:
@@ -22241,12 +22977,23 @@ components:
         * `completed` - Completed
         * `failed` - Failed
     FavoriteEntity:
-      oneOf:
-      - $ref: '#/components/schemas/ProjectFavoriteLite'
-      - $ref: '#/components/schemas/CycleFavoriteLite'
-      - $ref: '#/components/schemas/ModuleFavoriteLite'
-      - $ref: '#/components/schemas/ViewFavorite'
-      - $ref: '#/components/schemas/PageFavoriteLite'
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
+        project_id:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - id
+      - name
+      - logo_props
     FileAsset:
       type: object
       properties:
@@ -24561,6 +25308,21 @@ components:
       - id
       - sequence_id
       - project_id
+    IssueModulesUpdateRequest:
+      type: object
+      properties:
+        modules:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Modules of the project to add the work item to
+        removed_modules:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Modules to remove the work item from
     IssueProperty:
       type: object
       properties:
@@ -26077,6 +26839,49 @@ components:
       - label_id
       - label_name
       - color
+    LabelDistributionRequest:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        pending_issues:
+          type: integer
+        total_estimates:
+          type: number
+          format: double
+          nullable: true
+        completed_estimates:
+          type: number
+          format: double
+          nullable: true
+        pending_estimates:
+          type: number
+          format: double
+          nullable: true
+        label_id:
+          type: string
+          format: uuid
+          nullable: true
+        label_name:
+          type: string
+          nullable: true
+          minLength: 1
+        color:
+          type: string
+          nullable: true
+          minLength: 1
+      required:
+      - color
+      - completed_estimates
+      - completed_issues
+      - label_id
+      - label_name
+      - pending_estimates
+      - pending_issues
+      - total_estimates
+      - total_issues
     LabelLite:
       type: object
       properties:
@@ -26547,28 +27352,14 @@ components:
       - cancelled_estimate_points
       - estimate_distribution
       - distribution
-    ModuleFavoriteLite:
+    ModuleFavoriteRequest:
       type: object
       properties:
-        id:
+        module:
           type: string
           format: uuid
-          readOnly: true
-        name:
-          type: string
-          title: Module Name
-          maxLength: 255
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-        project_id:
-          type: string
-          format: uuid
-          readOnly: true
       required:
-      - id
-      - name
-      - logo_props
-      - project_id
+      - module
     ModuleFlat:
       type: object
       properties:
@@ -26822,6 +27613,17 @@ components:
           format: uuid
       required:
       - issue
+    ModuleIssuesAddRequest:
+      type: object
+      properties:
+        issues:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Work items of the project
+      required:
+      - issues
     ModuleLink:
       type: object
       properties:
@@ -26841,6 +27643,7 @@ components:
         deleted_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         title:
           type: string
@@ -26890,10 +27693,6 @@ components:
     ModuleLinkRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
         title:
           type: string
           nullable: true
@@ -26935,7 +27734,7 @@ components:
           format: date
           nullable: true
         status:
-          type: string
+          $ref: '#/components/schemas/ModuleStatusEnum'
         lead_id:
           type: string
           format: uuid
@@ -27718,7 +28517,7 @@ components:
           readOnly: true
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -27739,6 +28538,7 @@ components:
         archived_at:
           type: string
           format: date
+          readOnly: true
           nullable: true
         workspace:
           type: string
@@ -27756,10 +28556,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         view_props:
@@ -27771,11 +28573,13 @@ components:
           items:
             type: string
             format: uuid
+          readOnly: true
         project_ids:
           type: array
           items:
             type: string
             format: uuid
+          readOnly: true
       required:
       - id
       - name
@@ -27793,6 +28597,25 @@ components:
       - updated_by
       - view_props
       - logo_props
+    PageAccessEnum:
+      enum:
+      - 0
+      - 1
+      type: integer
+      description: |-
+        * `0` - Public
+        * `1` - Private
+    PageAccessRequest:
+      type: object
+      properties:
+        access:
+          allOf:
+          - $ref: '#/components/schemas/PageAccessEnum'
+          description: |-
+            Public when omitted
+
+            * `1` - Private
+            * `0` - Public
     PageAttachment:
       type: object
       properties:
@@ -27804,6 +28627,8 @@ components:
           type: string
           readOnly: true
           nullable: true
+        attributes:
+          $ref: '#/components/schemas/AttachmentAttributes'
         created_at:
           type: string
           format: date-time
@@ -27817,7 +28642,6 @@ components:
           type: string
           format: date-time
           nullable: true
-        attributes: {}
         asset:
           type: string
           format: uri
@@ -27897,10 +28721,10 @@ components:
       required:
       - id
       - asset_url
+      - attributes
       - created_at
       - updated_at
       - deleted_at
-      - attributes
       - asset
       - entity_type
       - entity_identifier
@@ -27921,66 +28745,6 @@ components:
       - comment
       - page
       - page_comment
-    PageAttachmentRequest:
-      type: object
-      properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
-        attributes: {}
-        asset:
-          type: string
-          format: binary
-        entity_type:
-          type: string
-          nullable: true
-          maxLength: 255
-        entity_identifier:
-          type: string
-          nullable: true
-          maxLength: 255
-        is_deleted:
-          type: boolean
-        is_archived:
-          type: boolean
-        external_id:
-          type: string
-          nullable: true
-          maxLength: 255
-        external_source:
-          type: string
-          nullable: true
-          maxLength: 255
-        size:
-          type: number
-          format: double
-        is_uploaded:
-          type: boolean
-        storage_metadata:
-          nullable: true
-        user:
-          type: string
-          format: uuid
-          nullable: true
-        draft_issue:
-          type: string
-          format: uuid
-          nullable: true
-        issue:
-          type: string
-          format: uuid
-          nullable: true
-        comment:
-          type: string
-          format: uuid
-          nullable: true
-        page_comment:
-          type: string
-          format: uuid
-          nullable: true
-      required:
-      - asset
     PageAttachmentUpload:
       type: object
       properties:
@@ -28224,6 +28988,44 @@ components:
           type: string
           nullable: true
           maxLength: 255
+    PageCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        access:
+          allOf:
+          - $ref: '#/components/schemas/PageAccessEnum'
+          minimum: 0
+          maximum: 32767
+        color:
+          type: string
+          maxLength: 255
+        labels:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        sort_order:
+          type: number
+          format: double
+        is_locked:
+          type: boolean
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
+        description_html:
+          type: string
+          minLength: 1
+          description: <p></p> when omitted
+        description_json:
+          description: The editor document of description_html
     PageDetail:
       type: object
       properties:
@@ -28239,7 +29041,7 @@ components:
           readOnly: true
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -28260,6 +29062,7 @@ components:
         archived_at:
           type: string
           format: date
+          readOnly: true
           nullable: true
         workspace:
           type: string
@@ -28277,10 +29080,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         view_props:
@@ -28292,11 +29097,13 @@ components:
           items:
             type: string
             format: uuid
+          readOnly: true
         project_ids:
           type: array
           items:
             type: string
             format: uuid
+          readOnly: true
         description_html:
           type: string
       required:
@@ -28317,27 +29124,6 @@ components:
       - view_props
       - logo_props
       - description_html
-    PageFavoriteLite:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-        project_id:
-          type: string
-          format: uuid
-          nullable: true
-          readOnly: true
-      required:
-      - id
-      - name
-      - logo_props
-      - project_id
     PageOrder:
       type: object
       properties:
@@ -28574,61 +29360,6 @@ components:
       - project_id
       - owned_by
       - project_identifier
-    PageRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        access:
-          allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
-          minimum: 0
-          maximum: 32767
-        color:
-          type: string
-          maxLength: 255
-        labels:
-          type: array
-          items:
-            type: string
-            format: uuid
-          writeOnly: true
-        parent:
-          type: string
-          format: uuid
-          nullable: true
-        sort_order:
-          type: number
-          format: double
-        is_locked:
-          type: boolean
-        archived_at:
-          type: string
-          format: date
-          nullable: true
-        created_by:
-          type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
-        view_props:
-          $ref: '#/components/schemas/ClientJson'
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-        label_ids:
-          type: array
-          items:
-            type: string
-            format: uuid
-        project_ids:
-          type: array
-          items:
-            type: string
-            format: uuid
     PageSummary:
       type: object
       properties:
@@ -28657,7 +29388,7 @@ components:
           readOnly: true
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -28680,6 +29411,7 @@ components:
         archived_at:
           type: string
           format: date
+          readOnly: true
           nullable: true
         workspace:
           type: string
@@ -28697,10 +29429,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         view_props:
@@ -28712,11 +29446,13 @@ components:
           items:
             type: string
             format: uuid
+          readOnly: true
         project_ids:
           type: array
           items:
             type: string
             format: uuid
+          readOnly: true
         description_html:
           type: string
       required:
@@ -28861,7 +29597,7 @@ components:
           readOnly: true
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -28882,6 +29618,7 @@ components:
         archived_at:
           type: string
           format: date
+          readOnly: true
           nullable: true
         workspace:
           type: string
@@ -28899,10 +29636,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         view_props:
@@ -28914,11 +29653,13 @@ components:
           items:
             type: string
             format: uuid
+          readOnly: true
         project_ids:
           type: array
           items:
             type: string
             format: uuid
+          readOnly: true
         description_html:
           type: string
         issue_ids:
@@ -29562,6 +30303,42 @@ components:
         issue:
           type: string
           format: uuid
+    PatchedCycleWriteRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Cycle Name
+          maxLength: 255
+        description:
+          type: string
+          title: Cycle Description
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        sort_order:
+          type: number
+          format: double
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
+        timezone:
+          $ref: '#/components/schemas/TimezoneEnum'
     PatchedDashboardRequest:
       type: object
       properties:
@@ -29983,6 +30760,17 @@ components:
             type: string
             format: email
             minLength: 1
+    PatchedIssueFiltersUpdateRequest:
+      type: object
+      properties:
+        filters:
+          $ref: '#/components/schemas/ClientJson'
+        rich_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_filters:
+          $ref: '#/components/schemas/ClientJson'
+        display_properties:
+          $ref: '#/components/schemas/ClientJson'
     PatchedIssueLinkRequest:
       type: object
       properties:
@@ -30233,10 +31021,6 @@ components:
     PatchedModuleLinkRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
         title:
           type: string
           nullable: true
@@ -30311,63 +31095,14 @@ components:
           format: date-time
           nullable: true
           description: Null when omitted
-    PatchedPageAttachmentRequest:
+    PatchedPageBinaryUpdateRequest:
       type: object
       properties:
-        deleted_at:
+        description_binary:
           type: string
-          format: date-time
-          nullable: true
-        attributes: {}
-        asset:
+        description_html:
           type: string
-          format: binary
-        entity_type:
-          type: string
-          nullable: true
-          maxLength: 255
-        entity_identifier:
-          type: string
-          nullable: true
-          maxLength: 255
-        is_deleted:
-          type: boolean
-        is_archived:
-          type: boolean
-        external_id:
-          type: string
-          nullable: true
-          maxLength: 255
-        external_source:
-          type: string
-          nullable: true
-          maxLength: 255
-        size:
-          type: number
-          format: double
-        is_uploaded:
-          type: boolean
-        storage_metadata:
-          nullable: true
-        user:
-          type: string
-          format: uuid
-          nullable: true
-        draft_issue:
-          type: string
-          format: uuid
-          nullable: true
-        issue:
-          type: string
-          format: uuid
-          nullable: true
-        comment:
-          type: string
-          format: uuid
-          nullable: true
-        page_comment:
-          type: string
-          format: uuid
+        description_json:
           nullable: true
     PatchedPageCommentRequest:
       type: object
@@ -30391,14 +31126,14 @@ components:
           type: string
           nullable: true
           maxLength: 255
-    PatchedPageRequest:
+    PatchedPageUpdateRequest:
       type: object
       properties:
         name:
           type: string
         access:
           allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
+          - $ref: '#/components/schemas/PageAccessEnum'
           minimum: 0
           maximum: 32767
         color:
@@ -30410,42 +31145,15 @@ components:
             type: string
             format: uuid
           writeOnly: true
-        parent:
-          type: string
-          format: uuid
-          nullable: true
-        sort_order:
-          type: number
-          format: double
         is_locked:
           type: boolean
-        archived_at:
-          type: string
-          format: date
-          nullable: true
-        created_by:
-          type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
         view_props:
           $ref: '#/components/schemas/ClientJson'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
-        label_ids:
-          type: array
-          items:
-            type: string
-            format: uuid
-        project_ids:
-          type: array
-          items:
-            type: string
-            format: uuid
+        description_html:
+          type: string
+          minLength: 1
     PatchedProfileRequest:
       type: object
       properties:
@@ -31136,6 +31844,53 @@ components:
       - has_marketing_email_consent
       - is_subscribed_to_changelog
       - user
+    ProgressSnapshot:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        cancelled_issues:
+          type: integer
+        started_issues:
+          type: integer
+        unstarted_issues:
+          type: integer
+        backlog_issues:
+          type: integer
+        distribution:
+          $ref: '#/components/schemas/Distribution'
+        estimate_distribution:
+          $ref: '#/components/schemas/EstimateDistribution'
+    ProgressSnapshotRequest:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        cancelled_issues:
+          type: integer
+        started_issues:
+          type: integer
+        unstarted_issues:
+          type: integer
+        backlog_issues:
+          type: integer
+        distribution:
+          $ref: '#/components/schemas/DistributionRequest'
+        estimate_distribution:
+          $ref: '#/components/schemas/EstimateDistributionRequest'
+      required:
+      - backlog_issues
+      - cancelled_issues
+      - completed_issues
+      - distribution
+      - estimate_distribution
+      - started_issues
+      - total_issues
+      - unstarted_issues
     ProjectArchive:
       type: object
       properties:
@@ -31163,23 +31918,6 @@ components:
       oneOf:
       - $ref: '#/components/schemas/DeployBoard'
       - $ref: '#/components/schemas/UnpublishedDeployBoard'
-    ProjectFavoriteLite:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-          title: Project Name
-          maxLength: 255
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-      required:
-      - id
-      - name
-      - logo_props
     ProjectFavoriteRequest:
       type: object
       properties:
@@ -36489,29 +37227,6 @@ components:
       - updated_at
       - created_by
       - updated_by
-    ViewFavorite:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-          title: View Name
-          maxLength: 255
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
-        project_id:
-          type: string
-          format: uuid
-          nullable: true
-          readOnly: true
-      required:
-      - id
-      - name
-      - logo_props
-      - project_id
     ViewWorkItem:
       type: object
       properties:

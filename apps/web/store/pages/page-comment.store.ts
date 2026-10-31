@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import { sortBy } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import type { TPageComment, TPageCommentMap } from "@plane/types";
 // services
@@ -11,15 +12,9 @@ import { PageCommentService } from "@/services/page";
 
 export type TPageCommentLoader = "init" | "mutate" | undefined;
 
-// Array#toSorted is available at runtime but not in the web tsconfig lib
-// (ES2022), so type it locally to keep the immutable, copy-free sort.
-type Immutable<T> = { toSorted(compareFn: (a: T, b: T) => number): T[] };
-
 /** Return a new array of comments ordered oldest-first by creation time. */
 function byCreatedAtAsc(comments: TPageComment[]): TPageComment[] {
-  return (comments as unknown as Immutable<TPageComment>).toSorted(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
+  return sortBy(comments, (comment) => new Date(comment.created_at).getTime());
 }
 
 /**

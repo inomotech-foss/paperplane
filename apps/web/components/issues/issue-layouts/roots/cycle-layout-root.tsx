@@ -87,7 +87,7 @@ const useCycleTransferState = (cycleId: string | undefined) => {
   const isCompletedCycle = (cycleDetails?.status?.toLocaleLowerCase() ?? "draft") === "completed";
   const hasProgressSnapshot = !isEmpty(cycleDetails?.progress_snapshot);
   const transferableIssuesCount = cycleDetails
-    ? cycleDetails.backlog_issues + cycleDetails.unstarted_issues + cycleDetails.started_issues
+    ? (cycleDetails.backlog_issues ?? 0) + (cycleDetails.unstarted_issues ?? 0) + (cycleDetails.started_issues ?? 0)
     : 0;
   return {
     isCompletedCycle,

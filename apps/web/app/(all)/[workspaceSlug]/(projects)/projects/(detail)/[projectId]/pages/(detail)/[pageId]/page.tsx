@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import useSWR from "swr";
@@ -24,7 +24,6 @@ import { PageRoot } from "@/components/pages/editor/page-root";
 import { useEditorConfig } from "@/hooks/editor";
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 import { useWorkspace } from "@/hooks/store/use-workspace";
-import { useAppRouter } from "@/hooks/use-app-router";
 // plane web hooks
 import { EPageStoreType, usePage, usePageStore } from "@/hooks/store";
 // plane web services
@@ -39,8 +38,6 @@ const projectPageVersionService = new ProjectPageVersionService();
 const storeType = EPageStoreType.PROJECT;
 
 function PageDetailsPage({ params }: Route.ComponentProps) {
-  // router
-  const router = useAppRouter();
   const { workspaceSlug, projectId, pageId } = params;
   // store hooks
   const { createPage, fetchPageDetails } = usePageStore(storeType);
@@ -83,14 +80,11 @@ function PageDetailsPage({ params }: Route.ComponentProps) {
       fetchDescriptionBinary: async () => {
         // an empty buffer takes the same path as no description
         if (!id) return new ArrayBuffer(0);
-        const binary: unknown = await projectPageService.fetchDescriptionBinary(workspaceSlug, projectId, id);
-        return binary instanceof ArrayBuffer ? binary : new ArrayBuffer(0);
+        return await projectPageService.fetchDescriptionBinary(workspaceSlug, projectId, id);
       },
       fetchEntity: fetchEntityCallback,
       fetchVersionDetails: async (pageId, versionId) =>
         await projectPageVersionService.fetchVersionById(workspaceSlug, projectId, pageId, versionId),
-      restoreVersion: async (pageId, versionId) =>
-        await projectPageVersionService.restoreVersion(workspaceSlug, projectId, pageId, versionId),
       getRedirectionLink: (pageId) => {
         if (pageId) {
           return `/${workspaceSlug}/projects/${projectId}/pages/${pageId}`;
@@ -145,12 +139,6 @@ function PageDetailsPage({ params }: Route.ComponentProps) {
     }),
     [projectId, workspaceSlug]
   );
-
-  useEffect(() => {
-    if (page?.deleted_at && page?.id) {
-      router.push(pageRootHandlers.getRedirectionLink());
-    }
-  }, [page?.deleted_at, page?.id, router, pageRootHandlers]);
 
   if ((!page || !id) && !pageDetailsError)
     return (

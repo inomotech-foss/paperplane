@@ -8,7 +8,9 @@ import base64
 
 # Module imports
 from .base import BaseSerializer
+from .issue import AttachmentAttributesSerializer
 from .user import UserLiteSerializer
+from plane.utils.openapi.fields import typed_json
 from plane.utils.page_order import next_sort_order
 from plane.utils.content_validator import (
     validate_binary_data,
@@ -35,8 +37,8 @@ class PageSerializer(BaseSerializer):
         required=False,
     )
     # Many to many
-    label_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
-    project_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
+    label_ids = serializers.ListField(child=serializers.UUIDField(), read_only=True)
+    project_ids = serializers.ListField(child=serializers.UUIDField(), read_only=True)
 
     class Meta:
         model = Page
@@ -62,7 +64,7 @@ class PageSerializer(BaseSerializer):
             "label_ids",
             "project_ids",
         ]
-        read_only_fields = ["workspace", "owned_by"]
+        read_only_fields = ["workspace", "owned_by", "archived_at", "created_by", "updated_by"]
 
     def create(self, validated_data):
         labels = validated_data.pop("labels", None)
@@ -361,6 +363,7 @@ class PageCommentSerializer(BaseSerializer):
 
 class PageAttachmentSerializer(BaseSerializer):
     asset_url = serializers.CharField(read_only=True)
+    attributes = typed_json(AttachmentAttributesSerializer)(required=False)
 
     class Meta:
         model = FileAsset

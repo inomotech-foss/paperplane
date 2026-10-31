@@ -95,7 +95,6 @@ def _guard_rejected():
 # against it before trusting any entry here.
 GUARD_REJECTED_ROUTES = frozenset(
     {
-        ("CycleFavoriteViewSet", "get", "list"),
         ("CycleIssueViewSet", "get", "retrieve"),
         ("CycleIssueViewSet", "patch", "partial_update"),
         ("CycleIssueViewSet", "put", "update"),
@@ -103,7 +102,6 @@ GUARD_REJECTED_ROUTES = frozenset(
         ("IntakeViewSet", "get", "retrieve"),
         ("IntakeViewSet", "patch", "partial_update"),
         ("IssueCommentViewSet", "put", "update"),
-        ("IssueViewFavoriteViewSet", "get", "list"),
         ("IssueViewSet", "put", "update"),
         ("IssueViewViewSet", "put", "update"),
         ("ModuleIssueViewSet", "get", "retrieve"),
@@ -112,7 +110,6 @@ GUARD_REJECTED_ROUTES = frozenset(
         ("ModuleViewSet", "put", "update"),
         ("NotificationViewSet", "delete", "destroy"),
         ("NotificationViewSet", "get", "retrieve"),
-        ("ProjectFavoritesViewSet", "get", "list"),
         ("ProjectViewSet", "put", "update"),
         ("UserProjectInvitationsViewset", "get", "list"),
         ("WorkspaceStickyViewSet", "get", "retrieve"),

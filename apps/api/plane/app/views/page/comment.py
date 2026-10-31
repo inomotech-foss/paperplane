@@ -15,6 +15,7 @@ from drf_spectacular.utils import extend_schema
 # Module imports
 from .. import BaseViewSet
 from plane.app.serializers import PageCommentSerializer, PageCommentReactionSerializer
+from plane.app.serializers.request.issue_detail import ReactionCreateSerializer
 from plane.app.permissions import ROLE
 from plane.app.permissions.page import ProjectPageCommentPermission
 from plane.db.models import (
@@ -244,6 +245,7 @@ class PageCommentReactionViewSet(BaseViewSet):
             .distinct()
         )
 
+    @extend_schema(request=ReactionCreateSerializer)
     def create(self, request, slug, project_id, page_id, comment_id):
         if not PageComment.objects.filter(workspace__slug=slug, page_id=page_id, pk=comment_id).exists():
             return Response({"error": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
