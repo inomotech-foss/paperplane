@@ -332,5 +332,7 @@ class TestPublicV1:
         comment = PageComment.objects.create(page=page, comment_html="<p>c</p>", anchor_id="a1", actor=create_user)
         project_url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}"
         url = f"{project_url}/pages/{page.id}/comments/{comment.id}/resolve/"
-        assert documented(api_key_client.post(url), surface="v1")["is_resolved"] is True
-        assert documented(api_key_client.delete(url), surface="v1")["is_resolved"] is False
+        resolved = documented(api_key_client.post(url), surface="v1")
+        assert resolved["is_resolved"] is True
+        unresolved = documented(api_key_client.delete(url), surface="v1")
+        assert unresolved["is_resolved"] is False
