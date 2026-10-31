@@ -60,12 +60,13 @@ export function PrioritySelect(props: PrioritySelectProps) {
 
   // Priority titles are shipped as English strings; prefer the localized copy keyed off `key`.
   const labelOf = (option: PriorityOption) => t(option.key) || option.title;
+  const label = selected ? labelOf(selected) : placeholder;
 
   return (
     <Select<PriorityOption>
       getValues={() => ISSUE_PRIORITIES}
       value={selected}
-      onChange={(key) => onChange((key || "none") as TIssuePriorities)}
+      onChange={(key) => onChange(ISSUE_PRIORITIES.find((priority) => priority.key === key)?.key ?? "none")}
       disabled={disabled}
       placeholder={placeholder}
       showSearch={false}
@@ -75,24 +76,17 @@ export function PrioritySelect(props: PrioritySelectProps) {
       getOptionLabel={labelOf}
       getOptionIcon={(option) => <PriorityIcon priority={option.key} className="size-4" />}
     >
-      <Select.Trigger<PriorityOption>
+      <Select.Trigger
         disabled={disabled}
         variant={variant}
         tabIndex={tabIndex}
         className={className}
         data-testid={testId}
-        prependIcon={(priorities) => {
-          const priority = priorities[0]?.key ?? "none";
-          return <PriorityIcon priority={priority} />;
-        }}
-        label={(priorities) => (priorities[0] ? labelOf(priorities[0]) : placeholder)}
+        prependIcon={<PriorityIcon priority={selected?.key ?? "none"} />}
+        label={label}
         tooltip={tooltip}
       >
-        {(priorities) => {
-          const priority = priorities[0];
-          const label = priority ? labelOf(priority) : placeholder;
-          return (!!priority || !!placeholder) && <span className="min-w-0 grow truncate text-left">{label}</span>;
-        }}
+        {(!!selected || !!placeholder) && <span className="min-w-0 grow truncate text-left">{label}</span>}
       </Select.Trigger>
     </Select>
   );

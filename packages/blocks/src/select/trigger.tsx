@@ -29,7 +29,7 @@ const CHIPS_FRAME_CLASSNAME =
 const CHIP_CLASSNAME =
   "flex h-6 min-w-0 max-w-37.5 shrink-0 items-center gap-1 rounded-md bg-layer-3 px-2 py-1 text-body-xs-regular text-secondary outline-none hover:bg-layer-3-hover focus-visible:ring-2 focus-visible:ring-accent-strong [&_svg]:size-3.5";
 
-export function SelectTrigger<T>(props: SelectTriggerProps<T>) {
+export function SelectTrigger(props: SelectTriggerProps) {
   const {
     disabled,
     variant,
@@ -59,7 +59,7 @@ export function SelectTrigger<T>(props: SelectTriggerProps<T>) {
   const engine = useSelectEngine();
   // translation
   const { t } = useTranslation();
-  const selected = ctx.selected as T[];
+  const selected = ctx.selected;
   // Caller-supplied `isActive` (e.g. a focused table cell) wins; otherwise reflect the dropdown's own open state.
   const active = isActive ?? ctx.isOpen;
   // The root's `disabled` reaches a mounted trigger through base-ui, but not the resting button.

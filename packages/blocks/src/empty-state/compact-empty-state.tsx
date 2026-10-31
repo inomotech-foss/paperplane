@@ -38,7 +38,7 @@ export function EmptyStateCompact({
   customButton,
 }: EmptyStateCompactProps) {
   // Determine which asset to use: assetKey takes precedence, fallback to custom asset
-  const resolvedAsset = assetKey ? getCompactAsset(assetKey as CompactAssetType, assetClassName) : asset;
+  const resolvedAsset = assetKey ? getCompactAsset(assetKey, assetClassName) : asset;
 
   const rootAlignClasses = align === "center" ? "items-center" : "items-start";
   const containerAlignClasses = align === "center" ? "items-center text-center" : "items-start text-left";

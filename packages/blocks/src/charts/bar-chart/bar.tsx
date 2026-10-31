@@ -4,11 +4,10 @@
  * See the LICENSE file for details.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 // plane imports
-import type { TBarChartShapeVariant, TBarItem, TChartData } from "@plane/types";
-import { toChartNumber } from "../payload";
+import type { TBarChartShapeVariant, TBarItem, TChartPayload } from "@plane/types";
+import { isChartPayload, readField, toChartNumber } from "../payload";
 import { cn } from "@plane/utils";
 
 // Constants
@@ -26,9 +25,30 @@ interface TShapeProps {
   width: number;
   height: number;
   dataKey: string;
-  payload: any;
+  payload: TChartPayload;
   opacity?: number;
 }
+
+const readNumber = (source: unknown, key: string): number => {
+  const value = readField(source, key);
+  return typeof value === "number" ? value : 0;
+};
+
+/** Reads the shape props recharts passes to a custom bar shape. */
+export const toShapeProps = (props: unknown): TShapeProps => {
+  const payload = readField(props, "payload");
+  const dataKey = readField(props, "dataKey");
+  const opacity = readField(props, "opacity");
+  return {
+    x: readNumber(props, "x"),
+    y: readNumber(props, "y"),
+    width: readNumber(props, "width"),
+    height: readNumber(props, "height"),
+    dataKey: typeof dataKey === "string" ? dataKey : "",
+    payload: isChartPayload(payload) ? payload : {},
+    opacity: typeof opacity === "number" ? opacity : undefined,
+  };
+};
 
 interface TBarProps extends TShapeProps {
   fill: string;
@@ -41,11 +61,7 @@ interface TBarProps extends TShapeProps {
 }
 
 // Helper Functions
-const calculatePercentage = <K extends string, T extends string>(
-  data: TChartData<K, T>,
-  stackKeys: T[],
-  currentKey: T
-): number => {
+const calculatePercentage = (data: TChartPayload, stackKeys: string[], currentKey: string): number => {
   const total = stackKeys.reduce((sum, key) => sum + toChartNumber(data[key]), 0);
   return total === 0 ? 0 : Math.round((toChartNumber(data[currentKey]) / total) * 100);
 };

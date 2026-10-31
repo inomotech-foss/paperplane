@@ -27,6 +27,8 @@ export type TPopoverMenuPlacement =
   | "right-end";
 
 type TPopoverSide = "top" | "bottom" | "left" | "right";
+
+const POPOVER_SIDES: TPopoverSide[] = ["top", "bottom", "left", "right"];
 type TPopoverAlign = "start" | "center" | "end";
 
 /**
@@ -39,7 +41,8 @@ type TPopoverAlign = "start" | "center" | "end";
  * alignment: `auto-end` → `end`, and both `auto` and `auto-start` → `start`.
  */
 export function toSideAndAlign(placement: TPopoverMenuPlacement): { side: TPopoverSide; align: TPopoverAlign } {
-  const [base, variation] = placement.split("-") as [TPopoverSide | "auto", "start" | "end" | undefined];
+  const [base, variation] = placement.split("-");
   if (base === "auto") return { side: "bottom", align: variation === "end" ? "end" : "start" };
-  return { side: base, align: variation ?? "center" };
+  const side = POPOVER_SIDES.find((candidate) => candidate === base) ?? "bottom";
+  return { side, align: variation === "start" || variation === "end" ? variation : "center" };
 }

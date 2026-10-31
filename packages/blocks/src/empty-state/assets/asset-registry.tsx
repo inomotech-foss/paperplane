@@ -141,11 +141,18 @@ export const ILLUSTRATION_ASSETS: Record<IllustrationAssetType, LazyIllustration
   search: lazyIllustration(() => import("./illustration/search"), "SearchIllustration"),
 };
 
+const isRegistryKey = <K extends string>(registry: Record<K, LazyIllustration>, key: string): key is K =>
+  Object.hasOwn(registry, key);
+
+const lookup = <K extends string>(registry: Record<K, LazyIllustration>, key: string) =>
+  isRegistryKey(registry, key) ? registry[key] : undefined;
+
 // Helper functions to get assets
-export const getCompactAsset = (assetKey: CompactAssetType, className?: string): React.ReactNode => {
-  const AssetComponent =
-    HORIZONTAL_STACK_ASSETS[assetKey as HorizontalStackAssetType] ||
-    ILLUSTRATION_ASSETS[assetKey as IllustrationAssetType];
+export const getCompactAsset = (
+  assetKey: CompactAssetType | DetailedAssetType,
+  className?: string
+): React.ReactNode => {
+  const AssetComponent = lookup(HORIZONTAL_STACK_ASSETS, assetKey) || lookup(ILLUSTRATION_ASSETS, assetKey);
 
   if (!AssetComponent) {
     console.warn(`Asset "${assetKey}" not found in compact asset registry`);
@@ -155,9 +162,11 @@ export const getCompactAsset = (assetKey: CompactAssetType, className?: string):
   return <AssetComponent className={className} />;
 };
 
-export const getDetailedAsset = (assetKey: DetailedAssetType, className?: string): React.ReactNode => {
-  const AssetComponent =
-    VERTICAL_STACK_ASSETS[assetKey as VerticalStackAssetType] || ILLUSTRATION_ASSETS[assetKey as IllustrationAssetType];
+export const getDetailedAsset = (
+  assetKey: CompactAssetType | DetailedAssetType,
+  className?: string
+): React.ReactNode => {
+  const AssetComponent = lookup(VERTICAL_STACK_ASSETS, assetKey) || lookup(ILLUSTRATION_ASSETS, assetKey);
 
   if (!AssetComponent) {
     console.warn(`Asset "${assetKey}" not found in detailed asset registry`);

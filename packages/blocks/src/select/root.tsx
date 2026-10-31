@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { KeyboardEvent, ReactNode } from "react";
+import type { KeyboardEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "@plane/i18n";
 import { Combobox as BaseCombobox } from "@base-ui/react/combobox";
@@ -60,6 +60,8 @@ function useStableItems<T>(next: T[]): T[] {
   // oxlint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(() => next, [contentKey]);
 }
+
+const isOptionList = <T,>(value: T | T[] | null | undefined): value is T[] => Array.isArray(value);
 
 export function SelectRoot<T>(props: SelectProps<T>) {
   const {
@@ -163,9 +165,7 @@ export function SelectRoot<T>(props: SelectProps<T>) {
     return resolved;
   }, [valueIds, loadedOptions, getOptionValue, getOptionPlaceholder]);
 
-  const selected = useStableItems<T>(
-    resolvedFromIds ?? (multiple ? ((value as T[]) ?? []) : value ? [value as T] : [])
-  );
+  const selected = useStableItems<T>(resolvedFromIds ?? (isOptionList(value) ? value : value ? [value] : []));
 
   // Snapshot of the selection taken each time the dropdown opens. Pinning against this snapshot
   // (rather than live `value`) keeps options from jumping to the top mid-interaction — they reorder
@@ -366,23 +366,35 @@ export function SelectRoot<T>(props: SelectProps<T>) {
       if (highlightedIndexRef.current >= 0 && items.length > 0) return;
       event.preventDefault();
       event.stopPropagation();
-      (event as unknown as { preventBaseUIHandler?: () => void }).preventBaseUIHandler?.();
+      // base-ui adds this to the React event at runtime.
+      const preventBaseUIHandler: unknown = Reflect.get(event, "preventBaseUIHandler");
+      if (typeof preventBaseUIHandler === "function") Reflect.apply(preventBaseUIHandler, event, []);
       onSearchSubmit(submitted);
     },
     [onSearchSubmit, items.length]
   );
 
-  const ctxValue = useMemo<SelectContextValue<unknown>>(
-    () => ({
-      selected: selected as unknown[],
+  const ctxValue = useMemo<SelectContextValue<unknown>>(() => {
+    // The context is untyped, so readers hand back one of `selected` and get the typed option again.
+    const typed = (option: unknown): T | undefined => selected.find((item) => item === option);
+    const bind =
+      <R,>(fn: ((option: T) => R) | undefined) =>
+      (option: unknown): R | undefined => {
+        const item = typed(option);
+        return fn && item !== undefined ? fn(item) : undefined;
+      };
+    const optionValue = bind(getOptionValue);
+    const optionLabel = bind(labelOf);
+    return {
+      selected,
       multiple,
       isOpen,
       placeholder,
-      getOptionValue: getOptionValue as (o: unknown) => string,
-      getOptionLabel: labelOf as (o: unknown) => string,
-      getOptionIcon: getOptionIcon as ((o: unknown) => ReactNode) | undefined,
-      renderOption: renderOption as ((o: unknown) => ReactNode) | undefined,
-      renderChip: renderChip as ((o: unknown) => ReactNode) | undefined,
+      getOptionValue: (option) => optionValue(option) ?? "",
+      getOptionLabel: (option) => optionLabel(option) ?? "",
+      getOptionIcon: getOptionIcon && bind(getOptionIcon),
+      renderOption: renderOption && bind(renderOption),
+      renderChip: renderChip && bind(renderChip),
       search: {
         query,
         onChange: handleQueryChange,
@@ -390,25 +402,24 @@ export function SelectRoot<T>(props: SelectProps<T>) {
         onKeyDown: onSearchSubmit ? handleSearchKeyDown : undefined,
       },
       close,
-    }),
-    [
-      selected,
-      multiple,
-      isOpen,
-      placeholder,
-      getOptionValue,
-      labelOf,
-      getOptionIcon,
-      renderOption,
-      renderChip,
-      query,
-      handleQueryChange,
-      searchPlaceholder,
-      onSearchSubmit,
-      handleSearchKeyDown,
-      close,
-    ]
-  );
+    };
+  }, [
+    selected,
+    multiple,
+    isOpen,
+    placeholder,
+    getOptionValue,
+    labelOf,
+    getOptionIcon,
+    renderOption,
+    renderChip,
+    query,
+    handleQueryChange,
+    searchPlaceholder,
+    onSearchSubmit,
+    handleSearchKeyDown,
+    close,
+  ]);
 
   const mount = useCallback(() => setIsEngineMounted(true), []);
 

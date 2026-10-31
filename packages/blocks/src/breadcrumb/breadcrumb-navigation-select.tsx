@@ -249,11 +249,7 @@ export function BreadcrumbNavigationSelect(props: BreadcrumbNavigationSelectProp
         <BreadcrumbItemContext.Provider value>
           <Tooltip label={triggerLabel} side="bottom">
             <span className="flex h-full min-w-0 items-center">
-              <Select.Trigger<BreadcrumbNavigationItem>
-                variant="breadcrumb"
-                prependIcon={triggerIcon}
-                label={triggerLabel}
-              />
+              <Select.Trigger variant="breadcrumb" prependIcon={triggerIcon} label={triggerLabel} />
             </span>
           </Tooltip>
         </BreadcrumbItemContext.Provider>
@@ -262,7 +258,7 @@ export function BreadcrumbNavigationSelect(props: BreadcrumbNavigationSelectProp
           <Tooltip label={triggerLabel} side="bottom">
             <span className="flex h-full min-w-0 items-center">{navigation}</span>
           </Tooltip>
-          <Select.Trigger<BreadcrumbNavigationItem>
+          <Select.Trigger
             variant="icon-sm"
             className="group/breadcrumb-switcher size-6 rounded-md bg-transparent p-1 text-icon-secondary outline-none hover:bg-layer-transparent-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-strong focus-visible:outline-solid data-popup-open:bg-layer-transparent-hover data-popup-open:text-icon-primary"
             prependIcon={

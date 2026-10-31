@@ -80,16 +80,16 @@ export const IssueTypeDropdown = observer(function IssueTypeDropdown(props: Prop
       getOptionLabel={(type) => type.name}
       getOptionIcon={(type) => <Logo logo={type.logo_props} size={14} />}
     >
-      <Select.Trigger<TIssueType>
+      <Select.Trigger
         disabled={disabled}
         variant={variant}
         tabIndex={tabIndex}
         className={className}
-        prependIcon={(types) => (types[0] ? <Logo logo={types[0].logo_props} size={12} /> : undefined)}
-        label={(types) => types[0]?.name ?? resolvedPlaceholder}
+        prependIcon={selectedType ? <Logo logo={selectedType.logo_props} size={12} /> : undefined}
+        label={selectedType?.name ?? resolvedPlaceholder}
         tooltip={resolvedTooltip}
       >
-        {(types) => <span className="min-w-0 grow truncate text-left">{types[0]?.name ?? resolvedPlaceholder}</span>}
+        <span className="min-w-0 grow truncate text-left">{selectedType?.name ?? resolvedPlaceholder}</span>
       </Select.Trigger>
     </Select>
   );

@@ -197,7 +197,7 @@ export const AccountTypeColumn = observer(function AccountTypeColumn(props: Acco
                   showSearch={false}
                   pinSelected={false}
                 >
-                  <Select.Trigger<TRoleOption>
+                  <Select.Trigger
                     variant="select-ghost-md"
                     className={errors.role ? "border border-danger-strong" : undefined}
                   >

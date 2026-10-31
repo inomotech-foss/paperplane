@@ -6,40 +6,36 @@
 
 // Same entry point as `./draggable`: a monitor only sees drags registered on its own adapter instance.
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { isMatch } from "lodash-es";
 import React, { Fragment, useEffect, useEffectEvent, useId, useMemo } from "react";
 import { Draggable } from "./draggable";
 
-type TEnhancedData<T> = T & { __uuid__?: string };
+type TDragData = Record<string | symbol, unknown>;
 
 type Props<T> = {
-  data: TEnhancedData<T>[];
+  data: T[];
   render: (item: T, index: number) => React.ReactNode;
   onChange: (data: T[], movedItem?: T) => void;
   keyExtractor: (item: T, index: number) => string;
   containerClassName?: string;
   id?: string;
   allowExternalDrop?: boolean;
-  onExternalAdd?: (externalData: any, targetItem: T, position: "top" | "bottom") => void;
+  onExternalAdd?: (externalData: TDragData, targetItem: T, position: "top" | "bottom") => void;
 };
 
 const moveItem = <T,>(
-  data: TEnhancedData<T>[],
-  source: TEnhancedData<T>,
-  destination: TEnhancedData<T> & Record<symbol, string>,
-  keyExtractor: (item: T, index: number) => string
+  data: T[],
+  sourceIndex: number,
+  destinationIndex: number,
+  destination: TDragData
 ): {
   newData: T[];
   movedItem: T | undefined;
 } => {
-  const sourceIndex = data.findIndex((item, index) => keyExtractor(item, index) === keyExtractor(source, 0));
-  if (sourceIndex === -1) return { newData: data, movedItem: undefined };
-
-  const destinationIndex = data.findIndex((item, index) => keyExtractor(item, index) === keyExtractor(destination, 0));
-
-  if (destinationIndex === -1) return { newData: data, movedItem: undefined };
+  if (sourceIndex === -1 || destinationIndex === -1) return { newData: data, movedItem: undefined };
 
   const symbolKey = Reflect.ownKeys(destination).find((key) => key.toString() === "Symbol(closestEdge)");
-  const position = symbolKey ? destination[symbolKey as symbol] : "bottom"; // Add 'as symbol' to cast symbolKey to symbol
+  const position = symbolKey ? Reflect.get(destination, symbolKey) : "bottom";
 
   // Calculate final position before removing source item
   const finalIndex = position === "bottom" ? destinationIndex + 1 : destinationIndex;
@@ -54,14 +50,7 @@ const moveItem = <T,>(
   // Insert at the calculated position (bounds check is implicit in splice)
   newData.splice(adjustedDestinationIndex, 0, movedItem);
 
-  const { __uuid__: movedItemId, ...movedItemData } = movedItem;
-  return {
-    newData: newData.map((item) => {
-      const { __uuid__: uuid, ...rest } = item;
-      return rest as T;
-    }),
-    movedItem: movedItemData as T,
-  };
+  return { newData, movedItem };
 };
 
 export function Sortable<T>({
@@ -80,12 +69,17 @@ export function Sortable<T>({
 
   // Callers pass `keyExtractor` and `onChange` inline; the effect event reads the latest ones (and `data`) at drop time,
   // so the monitor is registered once per list instead of on every render.
-  const handleDrop = useEffectEvent(
-    (source: TEnhancedData<T>, destination: TEnhancedData<T> & Record<symbol, string>) => {
-      const { newData, movedItem } = moveItem(data, source, destination, keyExtractor);
-      onChange(newData, movedItem);
-    }
-  );
+  const handleDrop = useEffectEvent((source: TDragData, destination: TDragData) => {
+    // The drag data is a copy of the row, so the row is found by its fields.
+    const indexOf = (dragData: TDragData) => {
+      const dragged = data.find((item) => isMatch(dragData, { ...item, __uuid__: listId }));
+      if (dragged === undefined) return -1;
+      const draggedKey = keyExtractor(dragged, 0);
+      return data.findIndex((item, index) => keyExtractor(item, index) === draggedKey);
+    };
+    const { newData, movedItem } = moveItem(data, indexOf(source), indexOf(destination), destination);
+    onChange(newData, movedItem);
+  });
 
   useEffect(() => {
     const unsubscribe = monitorForElements({
@@ -100,7 +94,7 @@ export function Sortable<T>({
           return;
         }
 
-        handleDrop(source.data as TEnhancedData<T>, destination.data as TEnhancedData<T> & Record<symbol, string>);
+        handleDrop(source.data, destination.data);
       },
     });
 

@@ -91,7 +91,9 @@ describe("ConfirmDialog labels", () => {
   it("keeps the idle label in flight when no loading label is given", async () => {
     // The props type only lets a literal `isSubmitting={false}` omit `loading`; the runtime still
     // falls back to the idle label rather than rendering an empty button.
-    renderDialog({ isSubmitting: true, primaryButtonText: { default: "Move" } } as Partial<ConfirmDialogProps>);
+    const primaryButtonText = { default: "Move", loading: "" };
+    Reflect.deleteProperty(primaryButtonText, "loading");
+    renderDialog({ isSubmitting: true, primaryButtonText });
     const confirm = await confirmButton("Move");
     expect(confirm.getAttribute("aria-busy")).toBe("true");
   });

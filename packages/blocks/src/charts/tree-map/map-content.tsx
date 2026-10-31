@@ -152,11 +152,26 @@ const truncateText = (text: string | number, maxWidth: number, fontSize: number,
   return `${stringText.slice(0, maxChars - 3)}...`;
 };
 
+// Recharts fills these in from the node it draws.
+type TTreeMapContentProps = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  name?: string;
+  value?: number;
+  label?: string;
+  fillColor?: string;
+  fillClassName?: string;
+  textClassName?: string;
+  icon?: React.ReactElement<{ className?: string; "aria-hidden"?: boolean }>;
+};
+
 export function CustomTreeMapContent({
-  x,
-  y,
-  width,
-  height,
+  x = 0,
+  y = 0,
+  width = 0,
+  height = 0,
   name,
   value,
   label,
@@ -164,7 +179,7 @@ export function CustomTreeMapContent({
   fillClassName,
   textClassName,
   icon,
-}: any) {
+}: TTreeMapContentProps) {
   const dimensions = useMemo(() => {
     const pX = x + LAYOUT.PADDING;
     const pY = y + LAYOUT.PADDING;
@@ -174,7 +189,7 @@ export function CustomTreeMapContent({
   }, [x, y, width, height]);
 
   const visibility = useMemo(
-    () => calculateVisibility(width, height, !!icon, name, value, label),
+    () => calculateVisibility(width, height, !!icon, name ?? "", value, label),
     [width, height, icon, name, value, label]
   );
 

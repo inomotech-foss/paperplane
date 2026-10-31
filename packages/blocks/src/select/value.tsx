@@ -7,10 +7,10 @@
 import { useSelectContext } from "./context";
 import type { SelectValueProps } from "./types";
 
-export function SelectValue<T>({ placeholder, children }: SelectValueProps<T>) {
+export function SelectValue({ placeholder, children }: SelectValueProps) {
   const ctx = useSelectContext();
 
-  if (children) return <>{children(ctx.selected as T[])}</>;
+  if (children) return <>{children(ctx.selected)}</>;
 
   const placeholderText = placeholder ?? ctx.placeholder;
 

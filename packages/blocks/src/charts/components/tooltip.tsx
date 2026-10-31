@@ -8,11 +8,12 @@ import React from "react";
 import type { NameType, Payload, ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { cn } from "@plane/utils";
 import { Card } from "../../card/card";
+import { toChartText } from "../payload";
 
 type Props = {
   active: boolean | undefined;
   activeKey?: string | null;
-  label: string | undefined;
+  label: unknown;
   payload: Payload<ValueType, NameType>[] | undefined;
   itemKeys: string[];
   itemLabels: Record<string, string>;
@@ -31,7 +32,9 @@ export const CustomTooltip = React.memo(function CustomTooltip(props: Props) {
       className="vertical-scrollbar scrollbar-sm flex max-h-[40vh] w-[12rem] flex-col overflow-y-scroll"
       spacing="sm"
     >
-      <p className="flex-shrink-0 truncate border-b border-subtle pb-2 text-11 font-medium text-primary">{label}</p>
+      <p className="flex-shrink-0 truncate border-b border-subtle pb-2 text-11 font-medium text-primary">
+        {toChartText(label)}
+      </p>
       {filteredPayload.map((item) => {
         if (!item.dataKey) return null;
 

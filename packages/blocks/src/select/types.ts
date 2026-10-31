@@ -344,7 +344,7 @@ export type SelectTooltipOverride = {
  */
 export type SelectTooltip = SelectTooltipOverride | boolean;
 
-export type SelectTriggerProps<T> = {
+export type SelectTriggerProps = {
   /** Disables this trigger only. `SelectProps.disabled` already covers the whole control; pass this
    * when a hand-composed trigger has to go inert on its own. */
   disabled?: boolean;
@@ -361,22 +361,22 @@ export type SelectTriggerProps<T> = {
   /** Escape hatch merged onto the trigger button after the variant classes. */
   className?: string;
   /** Leading icon, size-cloned into the trigger's `PillButtonContent`. Element or a render-prop of the selection. */
-  prependIcon?: IconElement | ((selected: T[]) => IconElement | undefined);
+  prependIcon?: IconElement | ((selected: unknown[]) => IconElement | undefined);
   /**
    * Trailing icon, size-cloned into the trigger's `PillButtonContent`. Element or a render-prop of
    * the selection. Pass `null` (or a render-prop returning `null`) to suppress the trailing glyph
    * entirely on every variant that draws one — that is how the legacy `noChevron` sites drop the
    * `select-*` and `breadcrumb` chrome's own chevron, which `undefined` would leave in place.
    */
-  appendIcon?: IconElement | null | ((selected: T[]) => IconElement | null | undefined);
+  appendIcon?: IconElement | null | ((selected: unknown[]) => IconElement | null | undefined);
   /**
    * Truncated label text for the canonical `breadcrumb` chrome (icon + label + chevron), which the
    * trigger renders entirely on its own. Required for `variant="breadcrumb"`; every other variant
    * ignores it and renders `children` instead.
    */
-  label?: string | ((selected: T[]) => string);
-  /** Node, or a render-prop receiving the selected options (typed via `<Select.Trigger<T>>`). */
-  children?: ReactNode | ((selected: T[]) => ReactNode);
+  label?: string | ((selected: unknown[]) => string);
+  /** Node, or a render-prop receiving the selected options. */
+  children?: ReactNode | ((selected: unknown[]) => ReactNode);
   /** Opt-in hover tooltip on the trigger: heading + the selected value(s), comma-joined via `getOptionLabel`. */
   tooltip?: SelectTooltip;
   /**
@@ -397,9 +397,9 @@ export type SelectTriggerProps<T> = {
   [dataAttribute: `data-${string}`]: string | number | boolean | undefined;
 };
 
-export type SelectValueProps<T> = {
+export type SelectValueProps = {
   /** Overrides {@link SelectBaseProps.placeholder} for this `Select.Value` only. */
   placeholder?: string;
-  /** Override the default rendering of the selected value(s) (typed via `<Select.Value<T>>`). */
-  children?: (selected: T[]) => ReactNode;
+  /** Override the default rendering of the selected value(s). */
+  children?: (selected: unknown[]) => ReactNode;
 };

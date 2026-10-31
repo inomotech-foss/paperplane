@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useCallback, useMemo, useState } from "react";
 import {
   BarChart as CoreBarChart,
@@ -23,8 +22,8 @@ import type { TBarChartProps } from "@plane/types";
 import { getLegendProps } from "../components/legend";
 import { CustomXAxisTick, CustomYAxisTick } from "../components/tick";
 import { CustomTooltip } from "../components/tooltip";
-import { isChartPayload } from "../payload";
-import { barShapeVariants, DEFAULT_BAR_FILL_COLOR } from "./bar";
+import { isChartPayload, toChartKey, toChartLabel } from "../payload";
+import { barShapeVariants, DEFAULT_BAR_FILL_COLOR, toShapeProps } from "./bar";
 
 export const BarChart = React.memo(function BarChart<K extends string, T extends string>(props: TBarChartProps<K, T>) {
   const {
@@ -89,7 +88,7 @@ export const BarChart = React.memo(function BarChart<K extends string, T extends
 
   // get all bar colors
   const getAllBarColors = useCallback(
-    (payload: any[]) => {
+    (payload: readonly object[]) => {
       const colors: Record<string, string> = {};
       for (const bar of bars) {
         colors[bar.key] = getBarColor(payload, bar.key);
@@ -107,9 +106,9 @@ export const BarChart = React.memo(function BarChart<K extends string, T extends
           dataKey={bar.key}
           stackId={bar.stackId}
           opacity={!!activeLegend && activeLegend !== bar.key ? 0.1 : 1}
-          shape={(shapeProps: any) => {
+          shape={(shapeProps: unknown) => {
             const shapeVariant = barShapeVariants[bar.shapeVariant ?? "bar"];
-            const node = shapeVariant(shapeProps, bar, stackKeys);
+            const node = shapeVariant(toShapeProps(shapeProps), bar, stackKeys);
             return React.isValidElement(node) ? node : <>{node}</>;
           }}
           className="[&_path]:transition-opacity [&_path]:duration-200"
@@ -171,11 +170,10 @@ export const BarChart = React.memo(function BarChart<K extends string, T extends
             allowDecimals={!!yAxis.allowDecimals}
           />
           {legend && (
-            // @ts-expect-error recharts types are not up to date
             <Legend
-              onMouseEnter={(payload) => setActiveLegend(payload.value)}
+              onMouseEnter={(payload) => setActiveLegend(toChartKey(payload.value))}
               onMouseLeave={() => setActiveLegend(null)}
-              formatter={(value) => stackLabels[value]}
+              formatter={(value: unknown) => (typeof value === "string" ? stackLabels[value] : undefined)}
               {...getLegendProps(legend)}
             />
           )}
@@ -189,7 +187,7 @@ export const BarChart = React.memo(function BarChart<K extends string, T extends
                 pointerEvents: "auto",
               }}
               content={({ active, label, payload }) => {
-                if (customTooltipContent) return customTooltipContent({ active, label, payload });
+                if (customTooltipContent) return customTooltipContent({ active, label: toChartLabel(label), payload });
                 return (
                   <CustomTooltip
                     active={active}

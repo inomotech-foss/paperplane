@@ -110,7 +110,7 @@ export const InvitationFields = observer(function InvitationFields(props: TInvit
                       showSearch={false}
                       pinSelected={false}
                     >
-                      <Select.Trigger<TRoleOption> variant="select-2xl">
+                      <Select.Trigger variant="select-2xl">
                         <span className="min-w-0 flex-1 truncate text-left text-caption-sm-regular sm:text-body-xs-regular">
                           {ROLE[value]}
                         </span>

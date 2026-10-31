@@ -33,7 +33,7 @@ const VALUE_KEY = "count";
 /** The first (bottom) or last (top) series with a value in a stacked bar, for its rounded corners. */
 const outermostSeriesKey = (
   seriesKeys: string[],
-  payload: Record<string, number | string>,
+  payload: Record<string, unknown>,
   edge: "top" | "bottom"
 ): string | undefined => {
   const step = edge === "top" ? -1 : 1;
@@ -198,7 +198,7 @@ export function WidgetChart(props: Props) {
     fill:
       seriesKeys.length > 0 || isTimeSeries
         ? colors[index % colors.length]
-        : (payload: { key?: string }) =>
+        : (payload: Record<string, unknown>) =>
             colors[
               Math.max(
                 0,
@@ -207,9 +207,9 @@ export function WidgetChart(props: Props) {
             ],
     textClassName: "",
     showPercentage: false,
-    showTopBorderRadius: (barKey: string, payload: Record<string, number | string>) =>
+    showTopBorderRadius: (barKey: string, payload: Record<string, unknown>) =>
       seriesKeys.length === 0 || barKey === outermostSeriesKey(seriesKeys, payload, "top"),
-    showBottomBorderRadius: (barKey: string, payload: Record<string, number | string>) =>
+    showBottomBorderRadius: (barKey: string, payload: Record<string, unknown>) =>
       seriesKeys.length === 0 || barKey === outermostSeriesKey(seriesKeys, payload, "bottom"),
   }));
   return (

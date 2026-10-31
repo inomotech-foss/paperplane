@@ -99,6 +99,80 @@ function TriggerLogos({ selected }: { selected: ProjectOption[] }) {
   );
 }
 
+function SingleProjectTriggerContent(props: {
+  selected: ProjectOption | null;
+  label: string;
+  placeholder: string;
+  selectedDescription: React.ReactNode;
+  showChevron: boolean;
+}) {
+  const { selected, label, placeholder, selectedDescription, showChevron } = props;
+  return (
+    <>
+      {selectedDescription ? (
+        <span className="grid size-8 shrink-0 place-items-center rounded-md bg-layer-1">
+          {selected?.logo_props?.in_use ? (
+            <Logo logo={selected.logo_props} size={20} />
+          ) : (
+            <ProjectsOutline className="size-5" />
+          )}
+        </span>
+      ) : (
+        <TriggerLogos selected={selected ? [selected] : []} />
+      )}
+      {(!!selected || !!placeholder) &&
+        (selectedDescription ? (
+          <span className="flex min-w-0 grow flex-col items-start text-left">
+            <span className="w-full truncate text-body-sm-medium text-primary">{label}</span>
+            <span className="w-full truncate text-caption-md-regular text-tertiary">{selectedDescription}</span>
+          </span>
+        ) : (
+          <span className="min-w-0 grow truncate text-left">{label}</span>
+        ))}
+      {/* `select` and `select-ghost` chrome get their chevron from SelectContent's own default; pill/table-cell/breadcrumb need it here. */}
+      {selectedDescription ? (
+        <ChevronDownOutline className="size-4 shrink-0 text-tertiary" aria-hidden="true" />
+      ) : showChevron ? (
+        <ChevronDownOutline className="size-2.5 shrink-0 text-placeholder" aria-hidden="true" />
+      ) : null}
+    </>
+  );
+}
+
+function MultiProjectTriggerContent(props: {
+  projects: ProjectOption[];
+  isSelect: boolean;
+  showCountOnMultiple: boolean;
+  placeholder: string;
+}) {
+  const { projects, isSelect, showCountOnMultiple, placeholder } = props;
+  if (isSelect && projects.length > 0)
+    return (
+      <div className="flex min-w-0 grow flex-wrap items-center gap-1">
+        {projects.map((project) => (
+          <span
+            key={project.id}
+            className="flex h-5 max-w-full items-center gap-1 rounded-sm bg-layer-3 px-1.5 text-caption-md-medium text-secondary"
+          >
+            <ProjectLogo logoProps={project.logo_props} density="chip" />
+            <span className="truncate">{project.name}</span>
+          </span>
+        ))}
+      </div>
+    );
+  return (
+    <>
+      {/* `select` empty state is text-only (pills cover the non-empty case). */}
+      {!isSelect && <TriggerLogos selected={projects} />}
+      {(projects.length > 0 || !!placeholder) && (
+        <span className="min-w-0 grow truncate text-left">
+          {triggerLabel(projects, showCountOnMultiple, placeholder)}
+        </span>
+      )}
+    </>
+  );
+}
+
 /**
  * Presentational, data-source-agnostic project picker.
  * Pass `multiple={true}` for multi-select; omit or pass `multiple={false}` for single-select.
@@ -126,6 +200,8 @@ export function ProjectSelect(props: ProjectSelectProps) {
       selectedDescription,
       tabIndex,
     } = props;
+    const selected = value;
+    const label = value?.name ?? placeholder;
 
     return (
       <Select<ProjectOption>
@@ -141,51 +217,22 @@ export function ProjectSelect(props: ProjectSelectProps) {
         getOptionLabel={(project) => project.name}
         getOptionIcon={(project) => <ProjectLogo logoProps={project.logo_props} />}
       >
-        <Select.Trigger<ProjectOption>
+        <Select.Trigger
           disabled={disabled}
           variant={variant}
           tabIndex={tabIndex}
           className={cn(selectClassName, selectedDescription && "h-auto gap-2 rounded-lg px-2 py-1", className)}
           appendIcon={selectedDescription ? null : undefined}
-          label={(projects) => projects[0]?.name ?? placeholder}
+          label={label}
           tooltip={tooltip}
         >
-          {(projects) => {
-            const selected = projects[0];
-            const label = selected?.name ?? placeholder;
-            return (
-              <>
-                {selectedDescription ? (
-                  <span className="grid size-8 shrink-0 place-items-center rounded-md bg-layer-1">
-                    {selected?.logo_props?.in_use ? (
-                      <Logo logo={selected.logo_props} size={20} />
-                    ) : (
-                      <ProjectsOutline className="size-5" />
-                    )}
-                  </span>
-                ) : (
-                  <TriggerLogos selected={projects} />
-                )}
-                {(!!selected || !!placeholder) &&
-                  (selectedDescription ? (
-                    <span className="flex min-w-0 grow flex-col items-start text-left">
-                      <span className="w-full truncate text-body-sm-medium text-primary">{label}</span>
-                      <span className="w-full truncate text-caption-md-regular text-tertiary">
-                        {selectedDescription}
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="min-w-0 grow truncate text-left">{label}</span>
-                  ))}
-                {/* `select` and `select-ghost` chrome get their chevron from SelectContent's own default; pill/table-cell/breadcrumb need it here. */}
-                {selectedDescription ? (
-                  <ChevronDownOutline className="size-4 shrink-0 text-tertiary" aria-hidden="true" />
-                ) : !splitVariant.isSelectKind ? (
-                  <ChevronDownOutline className="size-2.5 shrink-0 text-placeholder" aria-hidden="true" />
-                ) : null}
-              </>
-            );
-          }}
+          <SingleProjectTriggerContent
+            selected={selected}
+            label={label}
+            placeholder={placeholder}
+            selectedDescription={selectedDescription}
+            showChevron={!splitVariant.isSelectKind}
+          />
         </Select.Trigger>
       </Select>
     );
@@ -203,6 +250,7 @@ export function ProjectSelect(props: ProjectSelectProps) {
     tooltip,
     tabIndex,
   } = props;
+  const projects = value;
 
   return (
     <Select<ProjectOption>
@@ -219,43 +267,19 @@ export function ProjectSelect(props: ProjectSelectProps) {
       getOptionLabel={(project) => project.name}
       getOptionIcon={(project) => <ProjectLogo logoProps={project.logo_props} />}
     >
-      <Select.Trigger<ProjectOption>
+      <Select.Trigger
         disabled={disabled}
         variant={variant}
         tabIndex={tabIndex}
         className={cn(selectClassName, className)}
         tooltip={tooltip}
       >
-        {(projects) => {
-          const showPills = isSelect && projects.length > 0;
-          return (
-            <>
-              {showPills ? (
-                <div className="flex min-w-0 grow flex-wrap items-center gap-1">
-                  {projects.map((project) => (
-                    <span
-                      key={project.id}
-                      className="flex h-5 max-w-full items-center gap-1 rounded-sm bg-layer-3 px-1.5 text-caption-md-medium text-secondary"
-                    >
-                      <ProjectLogo logoProps={project.logo_props} density="chip" />
-                      <span className="truncate">{project.name}</span>
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  {/* `select` empty state is text-only (pills cover the non-empty case). */}
-                  {!isSelect && <TriggerLogos selected={projects} />}
-                  {(projects.length > 0 || !!placeholder) && (
-                    <span className="min-w-0 grow truncate text-left">
-                      {triggerLabel(projects, showCountOnMultiple, placeholder)}
-                    </span>
-                  )}
-                </>
-              )}
-            </>
-          );
-        }}
+        <MultiProjectTriggerContent
+          projects={projects}
+          isSelect={isSelect}
+          showCountOnMultiple={showCountOnMultiple}
+          placeholder={placeholder}
+        />
       </Select.Trigger>
     </Select>
   );

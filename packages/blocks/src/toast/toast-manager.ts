@@ -7,6 +7,7 @@
 import { createToastManager } from "@makeplane/propel/components/toast";
 import type { ToastAction, ToastData, ToastVariant } from "@makeplane/propel/components/toast";
 import type { ReactNode } from "react";
+import { IS_DEV } from "../utils/is-dev";
 
 /**
  * The imperative toast API Plane has always used, re-homed on Propel's toast manager. The exported
@@ -80,12 +81,7 @@ const VARIANT_BY_TYPE: Record<ToastType, ToastVariant> = {
   "loading-toast": "neutral",
 };
 
-// Safely detects a non-production build without requiring @types/node. Evaluated once at module
-// load time; bundlers can tree-shake the dev blocks.
-const __DEV__ = (() => {
-  const proc = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process;
-  return proc ? proc.env?.NODE_ENV !== "production" : false;
-})();
+const __DEV__ = IS_DEV;
 
 /** Types that report work in flight: they stay up until `dismissToast` or an `updateToast`. */
 const PERSISTENT_TYPES: ReadonlySet<ToastType> = new Set<ToastType>(["loading", "loading-toast"]);
@@ -102,7 +98,7 @@ const PERSISTENT_TYPES: ReadonlySet<ToastType> = new Set<ToastType>(["loading", 
 const timeoutFor = (type: ToastType): { timeout?: 0 } => (PERSISTENT_TYPES.has(type) ? { timeout: 0 } : {});
 
 const isToastActionItem = (value: unknown): value is ToastActionItem =>
-  typeof value === "object" && value !== null && typeof (value as ToastActionItem).label === "string";
+  typeof value === "object" && value !== null && typeof Reflect.get(value, "label") === "string";
 
 const describeActionItems = (actionItems: unknown): string => {
   if (Array.isArray(actionItems)) return `an array of ${actionItems.length} non-action value(s)`;

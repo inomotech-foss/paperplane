@@ -18,9 +18,17 @@ export type TControlLink = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
 
 export const ControlLink = React.forwardRef(function ControlLink(
   props: TControlLink,
-  ref: React.ForwardedRef<HTMLAnchorElement>
+  ref: React.ForwardedRef<HTMLElement>
 ) {
   const { href, onClick, children, target = "_blank", disabled = false, className, draggable = false, ...rest } = props;
+  // The disabled form renders a span, so the forwarded ref is typed for any element.
+  const setRef = React.useCallback(
+    (node: HTMLElement | null) => {
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref]
+  );
   const LEFT_CLICK_EVENT_CODE = 0;
 
   const handleOnClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
@@ -36,7 +44,7 @@ export const ControlLink = React.forwardRef(function ControlLink(
   // plain HTMLElement behaviour (measuring, outside clicks, drag handles), which a span provides.
   if (disabled && (ref || className))
     return (
-      <span ref={ref as React.ForwardedRef<HTMLElement>} className={className}>
+      <span ref={setRef} className={className}>
         {children}
       </span>
     );
@@ -50,7 +58,7 @@ export const ControlLink = React.forwardRef(function ControlLink(
       target={target}
       onClick={handleOnClick}
       {...rest}
-      ref={ref}
+      ref={setRef}
       className={className}
       draggable={draggable}
     >

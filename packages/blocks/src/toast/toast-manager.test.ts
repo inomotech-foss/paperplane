@@ -37,7 +37,7 @@ vi.mock("@makeplane/propel/components/toast", () => ({
 }));
 
 import { dismissToast, setPromiseToast, setToast, toastManager, updateToast } from "./toast-manager";
-import type { ToastActionItem } from "./toast-manager";
+import { createElement } from "react";
 
 /**
  * Stands in for `console.warn`, silenced by default so the drop-path tests don't spam the reporter
@@ -159,9 +159,7 @@ describe("setToast", () => {
 
 describe("dropped action items", () => {
   // A JSX array is, at runtime, an array of React element objects — no `label` in sight.
-  const jsxActionItems = [
-    { type: "a", props: { href: "/p/1", children: "View duplicated page" }, key: null },
-  ] as unknown as ToastActionItem[];
+  const jsxActionItems = [createElement("a", { href: "/p/1" }, "View duplicated page")];
 
   it("warns once and drops the actions when `actionItems` is a JSX array", () => {
     setToast({ type: "success", title: "Page duplicated", actionItems: jsxActionItems });

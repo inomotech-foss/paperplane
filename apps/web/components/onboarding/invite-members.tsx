@@ -190,7 +190,7 @@ const InviteMemberInput = observer(function InviteMemberInput(props: InviteMembe
                   showSearch={false}
                   pinSelected={false}
                 >
-                  <Select.Trigger<TRoleOption> variant="select-2xl">
+                  <Select.Trigger variant="select-2xl">
                     <span
                       className={cn(
                         "min-w-0 flex-1 truncate text-left text-13",

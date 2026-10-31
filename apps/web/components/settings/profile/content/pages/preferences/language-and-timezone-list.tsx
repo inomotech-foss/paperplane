@@ -99,7 +99,7 @@ export const ProfileSettingsLanguageAndTimezonePreferencesList = observer(
               pinSelected={false}
               contentSizing="anchor"
             >
-              <Select.Trigger<LanguageOption> variant="select-md" className="w-42 max-w-full">
+              <Select.Trigger variant="select-md" className="w-42 max-w-full">
                 <span className="min-w-0 grow truncate text-left">
                   {profile?.language ? getLanguageLabel(profile.language) : "Select a language"}
                 </span>

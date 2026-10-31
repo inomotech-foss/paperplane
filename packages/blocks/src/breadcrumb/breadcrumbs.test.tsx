@@ -356,7 +356,8 @@ describe("Breadcrumb current-item state", () => {
         />
       </Breadcrumbs>
     );
-    const current = container.querySelector('[aria-current="page"]') as HTMLButtonElement;
+    const current = container.querySelector('[aria-current="page"]');
+    if (!current) throw new Error("No current crumb");
     expect(current.textContent).toBe("Current page");
     await user.click(current);
     expect(await screen.findByRole("option", { name: "Current page" })).toBeDefined();

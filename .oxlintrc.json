@@ -106,7 +106,6 @@
         "apps/admin/**",
         "apps/space/**",
         "apps/web/**",
-        "packages/blocks/**",
         "packages/editor/**",
         "packages/services/**"
       ],

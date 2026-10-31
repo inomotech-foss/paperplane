@@ -29,8 +29,8 @@ export type TChartData<K extends string, T extends string> = {
   [key in K]: TChartValue;
 } & Record<T, TChartValue>;
 
-// The datum of the hovered or drawn point.
-export type TChartPayload = TChartData<string, string>;
+// The datum of the hovered or drawn point, as recharts passes it on.
+export type TChartPayload = Record<string, unknown>;
 
 export type TBaseChartProps<K extends string, T extends string> = {
   data: TChartData<K, T>[];

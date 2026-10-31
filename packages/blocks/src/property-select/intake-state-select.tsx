@@ -67,27 +67,23 @@ export function IntakeStateSelect(props: IntakeStateSelectProps) {
         <IntakeStateGroupIcon stateGroup={state.group} color={state.color} className="size-4 shrink-0" />
       )}
     >
-      <Select.Trigger<IntakeStateOption>
+      <Select.Trigger
         disabled={disabled}
         variant={variant}
         tabIndex={tabIndex}
         className={className}
-        prependIcon={(states) => (
+        prependIcon={
           <IntakeStateGroupIcon
-            stateGroup={states[0]?.group ?? "triage"}
-            color={states[0]?.color ?? "currentColor"}
+            stateGroup={value?.group ?? "triage"}
+            color={value?.color ?? "currentColor"}
             size="md"
           />
-        )}
-        label={(states) => states[0]?.name ?? placeholder}
+        }
+        label={value?.name ?? placeholder}
       >
-        {(states) => {
-          const selected = states[0];
-          const label = selected?.name ?? placeholder;
-          return (
-            <>{(!!selected || !!placeholder) && <span className="min-w-0 grow truncate text-left">{label}</span>}</>
-          );
-        }}
+        {(!!value || !!placeholder) && (
+          <span className="min-w-0 grow truncate text-left">{value?.name ?? placeholder}</span>
+        )}
       </Select.Trigger>
     </Select>
   );

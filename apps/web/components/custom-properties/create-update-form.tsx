@@ -142,7 +142,7 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
           pinSelected={false}
           disabled={isUpdating || draft.isTypeDerived}
         >
-          <Select.Trigger<TIssueCustomPropertyType>
+          <Select.Trigger
             variant="select-md"
             className="w-auto"
             disabled={isUpdating || draft.isTypeDerived}
@@ -184,7 +184,7 @@ export const CreateUpdateCustomPropertyForm = observer(function CreateUpdateCust
             showSearch={false}
             pinSelected={false}
           >
-            <Select.Trigger<TIssueTypeOption>
+            <Select.Trigger
               variant="select-md"
               className="w-auto"
               prependIcon={selectedIssueType ? <Logo logo={selectedIssueType.logo_props} size={14} /> : undefined}

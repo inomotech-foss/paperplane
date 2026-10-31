@@ -22,6 +22,12 @@ const popup = () => within(document.body);
 /** react-day-picker names each day button by its full date ("Sunday, June 15th, 2025"). */
 const day = (name: string) => popup().getByRole("button", { name: new RegExp(name) });
 
+// Reads the day of month of one end of a range passed to onChange.
+const dayOf = (range: unknown, end: "from" | "to"): number | undefined => {
+  const date: unknown = typeof range === "object" && range !== null ? Reflect.get(range, end) : undefined;
+  return date instanceof Date ? date.getDate() : undefined;
+};
+
 describe("DateSelect", () => {
   it("opens the calendar and reports the picked day", async () => {
     const user = userEvent.setup();
@@ -40,7 +46,8 @@ describe("DateSelect", () => {
     await user.click(day("June 15th, 2025"));
 
     expect(onChange).toHaveBeenCalledTimes(1);
-    const picked = onChange.mock.calls[0]?.[0] as Date;
+    const picked: unknown = onChange.mock.calls[0]?.[0];
+    if (!(picked instanceof Date)) throw new Error("onChange did not receive a date");
     expect(picked.getFullYear()).toBe(2025);
     expect(picked.getMonth()).toBe(5);
     expect(picked.getDate()).toBe(15);
@@ -161,9 +168,9 @@ describe("DateRangeSelect", () => {
 
     await user.click(day("June 15th, 2025"));
     expect(onChange).toHaveBeenCalledTimes(1);
-    const range = onChange.mock.calls[0]?.[0] as DateRangeValue;
-    expect(range.from?.getDate()).toBe(12);
-    expect(range.to?.getDate()).toBe(15);
+    const range: unknown = onChange.mock.calls[0]?.[0];
+    expect(dayOf(range, "from")).toBe(12);
+    expect(dayOf(range, "to")).toBe(15);
   });
 
   it("merges a same-month range into one label", () => {
@@ -349,8 +356,8 @@ describe("DateRangeSelect", () => {
     await user.click(day("June 12th, 2025"));
     await user.click(day("June 15th, 2025"));
 
-    const last = onChange.mock.calls.at(-1)?.[0] as { from: Date | null; to: Date | null };
-    expect(last.from?.getDate()).toBe(12);
-    expect(last.to?.getDate()).toBe(15);
+    const last: unknown = onChange.mock.calls.at(-1)?.[0];
+    expect(dayOf(last, "from")).toBe(12);
+    expect(dayOf(last, "to")).toBe(15);
   });
 });

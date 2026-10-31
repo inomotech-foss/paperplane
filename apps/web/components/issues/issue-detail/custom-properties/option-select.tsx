@@ -33,6 +33,8 @@ export function CustomPropertyOptionSelect(props: TCustomPropertyOptionSelectPro
   const selectedIdSet = new Set(selectedIds);
   const selectedOptions = sortedOptions.filter((option) => selectedIdSet.has(option.id));
   const placeholder = t("work_item_custom_properties.select_option");
+  const shownOptions = multiple ? selectedOptions : selectedOptions.slice(0, 1);
+  const triggerLabel = shownOptions.length > 0 ? shownOptions.map((option) => option.name).join(", ") : placeholder;
 
   const commonProps = {
     getValues: () => sortedOptions,
@@ -46,17 +48,8 @@ export function CustomPropertyOptionSelect(props: TCustomPropertyOptionSelectPro
   };
 
   const trigger = (
-    <Select.Trigger<TIssueCustomPropertyOption>
-      disabled={disabled}
-      variant={variant}
-      className={className}
-      label={(options) => (options.length > 0 ? options.map((option) => option.name).join(", ") : placeholder)}
-    >
-      {(options) => (
-        <span className="min-w-0 grow truncate text-left">
-          {options.length > 0 ? options.map((option) => option.name).join(", ") : placeholder}
-        </span>
-      )}
+    <Select.Trigger disabled={disabled} variant={variant} className={className} label={triggerLabel}>
+      <span className="min-w-0 grow truncate text-left">{triggerLabel}</span>
     </Select.Trigger>
   );
 
