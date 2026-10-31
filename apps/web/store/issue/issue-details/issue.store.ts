@@ -40,6 +40,9 @@ export interface IIssueStore extends IIssueStoreActions {
   getIssueIdByIdentifier: (issueIdentifier: string) => string | undefined;
 }
 
+/** The detail page still renders when one of its side loads fails. */
+const logLoadError = (part: string) => (error: unknown) => console.error(`Failed to load the work item ${part}`, error);
+
 export class IssueStore implements IIssueStore {
   fetchingIssueDetails: string | undefined = undefined;
   // root store
@@ -82,24 +85,25 @@ export class IssueStore implements IIssueStore {
   fetchIssue = async (workspaceSlug: string, projectId: string, issueId: string) => {
     this.fetchingIssueDetails = issueId;
     const { issue, links } = await this.issueService.retrieveWithLinks(workspaceSlug, projectId, issueId);
-    this.addIssueToStore(issue);
+    const stored = this.addIssueToStore(issue);
     this.loadIssueRelatedData(workspaceSlug, projectId, issue, links);
-    return issue;
+    return stored;
   };
 
   /** Stores what the detail response embeds and fetches what it does not. */
-  private loadIssueRelatedData = (workspaceSlug: string, projectId: string, issue: TIssue, links: TIssueLink[]) => {
+  private loadIssueRelatedData = (workspaceSlug: string, projectId: string, issue: TIssueRow, links: TIssueLink[]) => {
     const detail = this.rootIssueDetailStore;
     const parent = issue.parent;
     if (parent?.id && parent.project_id) {
-      void this.issueService
+      this.issueService
         .retrieve(workspaceSlug, parent.project_id, parent.id)
-        .then((res) => detail.rootIssueStore.issues.addIssue([res]));
+        .then((res) => detail.rootIssueStore.issues.addIssue([res]))
+        .catch(logLoadError("parent"));
     }
     detail.addLinks(issue.id, links);
     detail.addSubscription(issue.id, issue.is_subscribed);
-    void detail.fetchReactions(workspaceSlug, projectId, issue.id);
-    void detail.fetchAttachments(workspaceSlug, projectId, issue.id);
+    detail.fetchReactions(workspaceSlug, projectId, issue.id).catch(logLoadError("reactions"));
+    detail.fetchAttachments(workspaceSlug, projectId, issue.id).catch(logLoadError("attachments"));
     void detail.activity.fetchActivities(workspaceSlug, projectId, issue.id);
     void detail.comment.fetchComments(workspaceSlug, projectId, issue.id);
     void detail.subIssues.fetchSubIssues(workspaceSlug, projectId, issue.id);
