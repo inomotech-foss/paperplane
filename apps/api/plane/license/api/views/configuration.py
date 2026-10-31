@@ -22,6 +22,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
+from plane.license.api.serializers.request import CONFIGURATION_VALUES_REQUEST, EmailCredentialCheckSerializer
 from plane.utils.openapi.serializers import MessageResponseSerializer
 from .base import BaseAPIView
 from plane.license.api.permissions import InstanceAdminPermission
@@ -39,14 +40,16 @@ from plane.utils.ms365_graph import MSGraphAuthError, MSGraphError, MSGraphMessa
 class InstanceConfigurationEndpoint(BaseAPIView):
     permission_classes = [InstanceAdminPermission]
 
-    @extend_schema(responses={200: InstanceConfigurationSerializer(many=True)})
+    @extend_schema(filters=False, responses={200: InstanceConfigurationSerializer(many=True)})
     @cache_response(60 * 60 * 2, user=False)
     def get(self, request):
         instance_configurations = InstanceConfiguration.objects.all()
         serializer = InstanceConfigurationSerializer(instance_configurations, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: InstanceConfigurationSerializer(many=True)})
+    @extend_schema(
+        request=CONFIGURATION_VALUES_REQUEST, filters=False, responses={200: InstanceConfigurationSerializer(many=True)}
+    )
     @invalidate_cache(path="/api/instances/configurations/", user=False)
     @invalidate_cache(path="/api/instances/", user=False)
     def patch(self, request):
@@ -121,7 +124,7 @@ def graph_error_message(error):
 
 
 class EmailCredentialCheckEndpoint(BaseAPIView):
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=EmailCredentialCheckSerializer, responses={200: MessageResponseSerializer})
     def post(self, request):
         receiver_email = request.data.get("receiver_email", False)
         if not receiver_email:

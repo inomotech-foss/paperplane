@@ -174,7 +174,7 @@ class InstanceEndpoint(BaseAPIView):
         response_data = {"config": data, "instance": instance_data}
         return Response(response_data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: InstanceSerializer})
+    @extend_schema(request=InstanceSerializer, responses={200: InstanceSerializer})
     @invalidate_cache(path="/api/instances/", user=False)
     def patch(self, request):
         # Get the instance

@@ -75,7 +75,7 @@ class InstanceAdminEndpoint(BaseAPIView):
         serializer = InstanceAdminSerializer(instance_admin)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @extend_schema(responses={200: InstanceAdminSerializer(many=True)})
+    @extend_schema(filters=False, responses={200: InstanceAdminSerializer(many=True)})
     @cache_response(60 * 60 * 2, user=False)
     def get(self, request):
         instance = Instance.objects.first()
