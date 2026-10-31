@@ -78,7 +78,7 @@ export interface ICycleStore {
     projectId: string,
     cycleId: string,
     analyticType: TCycleEstimateType
-  ) => Promise<TCycleDistribution | TCycleEstimateDistribution | undefined>;
+  ) => Promise<TCycleDistribution | TCycleEstimateDistribution>;
   // crud
   createCycle: (workspaceSlug: string, projectId: string, data: Partial<ICycle>) => Promise<ICycle>;
   updateCycleDetails: (

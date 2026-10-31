@@ -8,6 +8,7 @@ import {
   toCycleCreateBody,
   toCycleDistribution,
   toCycleEstimateDistribution,
+  toCycleEstimateSums,
   toCycleWriteBody,
   toProgressSnapshot,
 } from "./cycle-convert";
@@ -95,7 +96,7 @@ describe("distributions", () => {
   });
 
   it("reads the estimate sums, and nothing for an empty estimate distribution", () => {
-    expect(toCycleEstimateDistribution(distribution)?.labels[0]).toMatchObject({
+    expect(toCycleEstimateSums(distribution).labels[0]).toMatchObject({
       total_estimates: 3,
       pending_estimates: 0,
     });

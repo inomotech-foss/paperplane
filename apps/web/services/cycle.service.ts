@@ -19,7 +19,7 @@ import {
   toCycle,
   toCycleCreateBody,
   toCycleDistribution,
-  toCycleEstimateDistribution,
+  toCycleEstimateSums,
   toCycleProgress,
   toCycleWriteBody,
 } from "@/services/cycle-convert";
@@ -47,13 +47,12 @@ export class CycleService {
     return toCycleDistribution(await this.getAnalytics(workspaceSlug, projectId, cycleId, "issues"));
   }
 
-  /** Undefined when the project does not estimate in points. */
   async getCycleEstimateDistribution(
     workspaceSlug: string,
     projectId: string,
     cycleId: string
-  ): Promise<TCycleEstimateDistribution | undefined> {
-    return toCycleEstimateDistribution(await this.getAnalytics(workspaceSlug, projectId, cycleId, "points"));
+  ): Promise<TCycleEstimateDistribution> {
+    return toCycleEstimateSums(await this.getAnalytics(workspaceSlug, projectId, cycleId, "points"));
   }
 
   async getCycleProgress(workspaceSlug: string, projectId: string, cycleId: string): Promise<TProgressSnapshot> {

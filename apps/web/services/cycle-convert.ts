@@ -74,9 +74,19 @@ export const toCycleDistribution = (distribution: ApiSchema<"Distribution">): TC
   completion_chart: distribution.completion_chart,
 });
 
-/** The estimate sums per assignee, label and day. Undefined when the project does not estimate in points. */
+/** The estimate sums per assignee, label and day of the analytics endpoint. */
+export const toCycleEstimateSums = (distribution: ApiSchema<"Distribution">): TCycleEstimateDistribution => ({
+  assignees: distribution.assignees.map(assigneeEstimates),
+  labels: distribution.labels.map(labelEstimates),
+  completion_chart: distribution.completion_chart,
+});
+
+/**
+ * The estimate sums of a snapshot or a detail. The backend sends an empty object when the project does not estimate
+ * in points, which gives undefined.
+ */
 export const toCycleEstimateDistribution = (
-  distribution: ApiSchema<"Distribution"> | ApiSchema<"EstimateDistribution">
+  distribution: ApiSchema<"EstimateDistribution">
 ): TCycleEstimateDistribution | undefined => {
   if (!distribution.assignees && !distribution.labels && !distribution.completion_chart) return undefined;
   return {
