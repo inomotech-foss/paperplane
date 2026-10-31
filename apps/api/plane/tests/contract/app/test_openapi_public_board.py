@@ -17,6 +17,7 @@ from plane.db.models import (
 )
 from plane.tests.factories import ProjectFactory
 from plane.tests.openapi import documented, no_tasks  # noqa: F401
+from plane.tests.openapi import documented_request
 from plane.utils.issue_type import link_starter_type
 
 ISSUE = "/api/public/anchor/{anchor}/issues/{issue_id}/"
@@ -56,6 +57,11 @@ class TestPublicBoard:
         )
         rows = documented(session_client.get(issue_url(board, "reactions/")))
         assert [row["reaction"] for row in rows] == ["128077"]
+
+    def test_vote_body(self, session_client, workspace, board):
+        documented_request(ISSUE + "votes/", "post", {"vote": -1})
+        documented(session_client.post(issue_url(board, "votes/"), {"vote": -1}, format="json"), 201)
+        assert IssueVote.objects.get(issue=board["issue"]).vote == -1
 
     def test_votes_list(self, session_client, create_user, workspace, board):
         IssueVote.objects.create(

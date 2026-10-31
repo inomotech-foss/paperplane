@@ -37,6 +37,7 @@ from drf_spectacular.utils import extend_schema
 
 # Module imports
 from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.app.serializers.request.public import PublicVoteSerializer
 from plane.app.serializers.response.public import PublicWorkItemListResponse, PublicWorkItemSerializer
 from .base import BaseAPIView, BaseViewSet
 
@@ -620,6 +621,7 @@ class IssueVotePublicViewSet(BaseViewSet):
         except DeployBoard.DoesNotExist:
             return IssueVote.objects.none()
 
+    @extend_schema(request=PublicVoteSerializer, responses={201: IssueVoteSerializer})
     def create(self, request, anchor, issue_id):
         project_deploy_board = DeployBoard.objects.get(anchor=anchor, entity_name="project")
 

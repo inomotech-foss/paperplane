@@ -11522,6 +11522,15 @@ export interface components {
             vote: number;
             actor_details: components["schemas"]["PublicActor"];
         };
+        PublicVoteRequest: {
+            /**
+             * @description 1 when omitted
+             *
+             *     * `-1` - DOWNVOTE
+             *     * `1` - UPVOTE
+             */
+            vote?: components["schemas"]["VoteEnum"];
+        };
         PublicWorkItem: {
             /** Format: uuid */
             id: string;
@@ -15447,7 +15456,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PublicVoteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PublicVoteRequest"];
+                "multipart/form-data": components["schemas"]["PublicVoteRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
