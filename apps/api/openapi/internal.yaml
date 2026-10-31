@@ -18946,7 +18946,8 @@ components:
         external_id:
           type: string
           nullable: true
-        progress_snapshot: {}
+        progress_snapshot:
+          $ref: '#/components/schemas/ProgressSnapshot'
         is_favorite:
           type: boolean
         total_issues:
@@ -18959,8 +18960,7 @@ components:
             type: string
             format: uuid
         status:
-          type: string
-          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+          $ref: '#/components/schemas/Status6b0Enum'
         cancelled_issues:
           type: integer
         started_issues:
@@ -19064,7 +19064,8 @@ components:
         external_id:
           type: string
           nullable: true
-        progress_snapshot: {}
+        progress_snapshot:
+          $ref: '#/components/schemas/ProgressSnapshot'
         is_favorite:
           type: boolean
         total_issues:
@@ -19077,8 +19078,7 @@ components:
             type: string
             format: uuid
         status:
-          type: string
-          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+          $ref: '#/components/schemas/Status6b0Enum'
         cancelled_issues:
           type: integer
         started_issues:
@@ -19327,6 +19327,59 @@ components:
       - assignee_id
       - display_name
       - avatar_url
+    AssigneeDistributionRequest:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        pending_issues:
+          type: integer
+        total_estimates:
+          type: number
+          format: double
+          nullable: true
+        completed_estimates:
+          type: number
+          format: double
+          nullable: true
+        pending_estimates:
+          type: number
+          format: double
+          nullable: true
+        assignee_id:
+          type: string
+          format: uuid
+          nullable: true
+        display_name:
+          type: string
+          nullable: true
+          minLength: 1
+        avatar_url:
+          type: string
+          nullable: true
+          minLength: 1
+        first_name:
+          type: string
+          nullable: true
+          minLength: 1
+        last_name:
+          type: string
+          nullable: true
+          minLength: 1
+      required:
+      - assignee_id
+      - avatar_url
+      - completed_estimates
+      - completed_issues
+      - display_name
+      - first_name
+      - last_name
+      - pending_estimates
+      - pending_issues
+      - total_estimates
+      - total_issues
     AssigneeWorkItemStats:
       type: object
       properties:
@@ -20340,6 +20393,8 @@ components:
           readOnly: true
           nullable: true
         progress_snapshot:
+          allOf:
+          - $ref: '#/components/schemas/ProgressSnapshot'
           readOnly: true
         logo_props:
           allOf:
@@ -20367,7 +20422,8 @@ components:
           type: integer
           readOnly: true
         status:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/Status6b0Enum'
           readOnly: true
       required:
       - id
@@ -20448,7 +20504,8 @@ components:
         external_id:
           type: string
           nullable: true
-        progress_snapshot: {}
+        progress_snapshot:
+          $ref: '#/components/schemas/ProgressSnapshot'
         is_favorite:
           type: boolean
         total_issues:
@@ -20461,8 +20518,7 @@ components:
             type: string
             format: uuid
         status:
-          type: string
-          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+          $ref: '#/components/schemas/Status6b0Enum'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         version:
@@ -20638,7 +20694,8 @@ components:
         external_id:
           type: string
           nullable: true
-        progress_snapshot: {}
+        progress_snapshot:
+          $ref: '#/components/schemas/ProgressSnapshot'
         is_favorite:
           type: boolean
         total_issues:
@@ -20651,8 +20708,7 @@ components:
             type: string
             format: uuid
         status:
-          type: string
-          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+          $ref: '#/components/schemas/Status6b0Enum'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         version:
@@ -20770,7 +20826,8 @@ components:
         external_id:
           type: string
           nullable: true
-        progress_snapshot: {}
+        progress_snapshot:
+          $ref: '#/components/schemas/ProgressSnapshot'
         is_favorite:
           type: boolean
         total_issues:
@@ -20783,8 +20840,7 @@ components:
             type: string
             format: uuid
         status:
-          type: string
-          description: CURRENT, UPCOMING, COMPLETED or DRAFT
+          $ref: '#/components/schemas/Status6b0Enum'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
         version:
@@ -21548,6 +21604,28 @@ components:
       required:
       - completion_chart
       - assignees
+      - labels
+    DistributionRequest:
+      type: object
+      properties:
+        completion_chart:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+            nullable: true
+          description: Pending work by date, null for future dates
+        assignees:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssigneeDistributionRequest'
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabelDistributionRequest'
+      required:
+      - assignees
+      - completion_chart
       - labels
     DraftIssue:
       type: object
@@ -22357,6 +22435,28 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LabelDistribution'
+    EstimateDistributionRequest:
+      type: object
+      properties:
+        completion_chart:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+            nullable: true
+          description: Pending work by date, null for future dates
+        assignees:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssigneeDistributionRequest'
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabelDistributionRequest'
+      required:
+      - assignees
+      - completion_chart
+      - labels
     EstimatePoint:
       type: object
       properties:
@@ -26733,6 +26833,49 @@ components:
       - label_id
       - label_name
       - color
+    LabelDistributionRequest:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        pending_issues:
+          type: integer
+        total_estimates:
+          type: number
+          format: double
+          nullable: true
+        completed_estimates:
+          type: number
+          format: double
+          nullable: true
+        pending_estimates:
+          type: number
+          format: double
+          nullable: true
+        label_id:
+          type: string
+          format: uuid
+          nullable: true
+        label_name:
+          type: string
+          nullable: true
+          minLength: 1
+        color:
+          type: string
+          nullable: true
+          minLength: 1
+      required:
+      - color
+      - completed_estimates
+      - completed_issues
+      - label_id
+      - label_name
+      - pending_estimates
+      - pending_issues
+      - total_estimates
+      - total_issues
     LabelLite:
       type: object
       properties:
@@ -31684,6 +31827,53 @@ components:
       - has_marketing_email_consent
       - is_subscribed_to_changelog
       - user
+    ProgressSnapshot:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        cancelled_issues:
+          type: integer
+        started_issues:
+          type: integer
+        unstarted_issues:
+          type: integer
+        backlog_issues:
+          type: integer
+        distribution:
+          $ref: '#/components/schemas/Distribution'
+        estimate_distribution:
+          $ref: '#/components/schemas/EstimateDistribution'
+    ProgressSnapshotRequest:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        cancelled_issues:
+          type: integer
+        started_issues:
+          type: integer
+        unstarted_issues:
+          type: integer
+        backlog_issues:
+          type: integer
+        distribution:
+          $ref: '#/components/schemas/DistributionRequest'
+        estimate_distribution:
+          $ref: '#/components/schemas/EstimateDistributionRequest'
+      required:
+      - backlog_issues
+      - cancelled_issues
+      - completed_issues
+      - distribution
+      - estimate_distribution
+      - started_issues
+      - total_issues
+      - unstarted_issues
     ProjectArchive:
       type: object
       properties:
@@ -34014,6 +34204,18 @@ components:
       required:
       - color
       - name
+    Status6b0Enum:
+      enum:
+      - CURRENT
+      - UPCOMING
+      - COMPLETED
+      - DRAFT
+      type: string
+      description: |-
+        * `CURRENT` - CURRENT
+        * `UPCOMING` - UPCOMING
+        * `COMPLETED` - COMPLETED
+        * `DRAFT` - DRAFT
     Status75aEnum:
       enum:
       - success

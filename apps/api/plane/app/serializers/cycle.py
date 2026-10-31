@@ -8,6 +8,7 @@ from rest_framework import serializers
 # Module imports
 from .base import BaseSerializer
 from .issue import IssueStateSerializer
+from .response.cycle import CYCLE_STATUSES, ProgressSnapshotField
 from plane.db.models import Cycle, CycleIssue, CycleUserProperties
 from plane.utils.timezone_converter import convert_to_utc
 
@@ -65,8 +66,8 @@ class CycleSerializer(BaseSerializer):
     unstarted_issues = serializers.IntegerField(read_only=True)
     backlog_issues = serializers.IntegerField(read_only=True)
 
-    # active | draft | upcoming | completed
-    status = serializers.CharField(read_only=True)
+    status = serializers.ChoiceField(choices=CYCLE_STATUSES, read_only=True)
+    progress_snapshot = ProgressSnapshotField(read_only=True)
 
     class Meta:
         model = Cycle

@@ -155,6 +155,10 @@ class TestCycleResponses:
                 url(workspace, project, f"cycles/{plan['past'].id}/transfer-issues/"), body, format="json"
             )
         )
+        snapshot = documented(session_client.get(url(workspace, project, f"cycles/{plan['past'].id}/")))
+        assert snapshot["status"] == "COMPLETED"
+        assert snapshot["progress_snapshot"]["total_issues"] == 1
+        assert snapshot["progress_snapshot"]["distribution"]["assignees"]
 
 
 @pytest.mark.contract
