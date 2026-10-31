@@ -4,32 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 
-const useClipboardWritePermission = () => {
-  const [isClipboardWriteAllowed, setClipboardWriteAllowed] = useState(false);
+const subscribe = () => () => {};
+// `navigator.clipboard` is missing outside secure contexts.
+const getSnapshot = () => typeof navigator.clipboard?.writeText === "function";
+const getServerSnapshot = () => false;
 
-  useEffect(() => {
-    const checkClipboardWriteAccess = () => {
-      navigator.permissions
-
-        .query({ name: "clipboard-write" as PermissionName })
-        .then((result) => {
-          if (result.state === "granted") {
-            setClipboardWriteAllowed(true);
-          } else {
-            setClipboardWriteAllowed(false);
-          }
-        })
-        .catch(() => {
-          setClipboardWriteAllowed(false);
-        });
-    };
-
-    checkClipboardWriteAccess();
-  }, []);
-
-  return isClipboardWriteAllowed;
-};
+const useClipboardWritePermission = () => useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
 export default useClipboardWritePermission;

@@ -91,7 +91,10 @@ export const PeekOverviewHeader = observer(function PeekOverviewHeader(props: Pr
           <Select<TPeekModeOption>
             getValues={() => PEEK_MODES}
             value={selectedPeekMode}
-            onChange={(val) => setPeekMode(val as IPeekMode)}
+            onChange={(val) => {
+              const mode = PEEK_MODES.find((option) => option.key === val);
+              if (mode) setPeekMode(mode.key);
+            }}
             showSearch={false}
             pinSelected={false}
             getOptionValue={(mode) => mode.key}

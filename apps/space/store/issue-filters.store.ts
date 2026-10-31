@@ -76,16 +76,10 @@ export class IssueFilterStore implements IIssueFilterStore {
   computedFilter = (filters: TIssueQueryFilters, filteredParams: TIssueFilterKeys[]) => {
     const computedFilters: TIssueQueryFiltersParams = {};
 
-    Object.keys(filters).map((key) => {
-      const currentFilterKey = key as TIssueFilterKeys;
-      const filterValue = filters[currentFilterKey] as any;
-
-      if (filterValue !== undefined && filteredParams.includes(currentFilterKey)) {
-        if (Array.isArray(filterValue)) computedFilters[currentFilterKey] = filterValue.join(",");
-        else if (typeof filterValue === "string" || typeof filterValue === "boolean")
-          computedFilters[currentFilterKey] = filterValue.toString();
-      }
-    });
+    for (const key of filteredParams) {
+      const filterValue = filters[key];
+      if (filterValue !== undefined) computedFilters[key] = filterValue.join(",");
+    }
 
     return computedFilters;
   };

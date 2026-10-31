@@ -15,7 +15,7 @@ import { FilterState } from "./state";
 
 type Props = {
   filters: IIssueFilterOptions;
-  handleFilters: (key: keyof IIssueFilterOptions, value: string | string[]) => void;
+  handleFilters: (key: TIssueFilterKeys, value: string) => void;
   layoutDisplayFiltersOptions: TIssueFilterKeys[];
 };
 

@@ -58,14 +58,12 @@ export const IssuePeekOverview = observer(function IssuePeekOverview(props: TIss
     }
 
     setPeekId(null);
-    let queryParams: any = {
-      board,
-    };
-    if (priority && priority.length > 0) queryParams = { ...queryParams, priority: priority };
-    if (state && state.length > 0) queryParams = { ...queryParams, state: state };
-    if (labels && labels.length > 0) queryParams = { ...queryParams, labels: labels };
-    queryParams = new URLSearchParams(queryParams).toString();
-    router.push(`/issues/${anchor}?${queryParams}`);
+    const queryParams = new URLSearchParams();
+    if (board) queryParams.set("board", board);
+    if (priority) queryParams.set("priority", priority);
+    if (state) queryParams.set("state", state);
+    if (labels) queryParams.set("labels", labels);
+    router.push(`/issues/${anchor}?${queryParams.toString()}`);
   }, [anchor, board, handlePeekClose, labels, priority, router, setPeekId, state]);
 
   // Called from the document listeners below: always sees the latest `handleClose` without

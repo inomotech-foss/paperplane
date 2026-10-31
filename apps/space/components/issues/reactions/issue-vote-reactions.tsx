@@ -54,7 +54,7 @@ export const IssueVotes = observer(function IssueVotes(props: TIssueVotes) {
   const isUpVotedByUser = allUpVotes.some((vote) => vote.actor_details?.id === user?.id);
   const isDownVotedByUser = allDownVotes.some((vote) => vote.actor_details?.id === user?.id);
 
-  const handleVote = async (e: any, voteValue: 1 | -1) => {
+  const handleVote = async (voteValue: 1 | -1) => {
     if (!issueId) return;
 
     setIsSubmitting(true);
@@ -93,9 +93,9 @@ export const IssueVotes = observer(function IssueVotes(props: TIssueVotes) {
         <button
           type="button"
           disabled={isSubmitting}
-          onClick={(e) => {
+          onClick={() => {
             if (isInIframe) return;
-            if (user) handleVote(e, 1);
+            if (user) handleVote(1);
             else router.push(`/?next_path=${pathName}?${queryParam}`);
           }}
           className={cn(
@@ -128,9 +128,9 @@ export const IssueVotes = observer(function IssueVotes(props: TIssueVotes) {
         <button
           type="button"
           disabled={isSubmitting}
-          onClick={(e) => {
+          onClick={() => {
             if (isInIframe) return;
-            if (user) handleVote(e, -1);
+            if (user) handleVote(-1);
             else router.push(`/?next_path=${pathName}?${queryParam}`);
           }}
           className={cn(

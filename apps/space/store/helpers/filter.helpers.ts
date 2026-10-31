@@ -33,15 +33,12 @@ export const getPaginationParams = (
     per_page: options.perPageCount.toString(),
   };
 
-  // If group by is specifically sent through options, like that for calendar layout, use that to group
-  if (options.groupedBy) {
-    paginationParams.group_by = EIssueGroupByToServerOptions[options.groupedBy];
-  }
+  const groupBy = options.groupedBy ? EIssueGroupByToServerOptions[options.groupedBy] : undefined;
+  const subGroupBy = options.subGroupedBy ? EIssueGroupByToServerOptions[options.subGroupedBy] : undefined;
 
   // If group by is specifically sent through options, like that for calendar layout, use that to group
-  if (options.subGroupedBy) {
-    paginationParams.sub_group_by = EIssueGroupByToServerOptions[options.subGroupedBy];
-  }
+  if (groupBy) paginationParams.group_by = groupBy;
+  if (subGroupBy) paginationParams.sub_group_by = subGroupBy;
 
   // If group by is specifically sent through options, like that for calendar layout, use that to group
   if (options.orderBy) {
@@ -55,24 +52,14 @@ export const getPaginationParams = (
 
   // If groupId is passed down, add a filter param for that group Id
   if (groupId) {
-    const groupBy = paginationParams["group_by"] as EIssueGroupByToServerOptions | undefined;
     delete paginationParams["group_by"];
-
-    if (groupBy) {
-      const groupByFilterOption = EServerGroupByToFilterOptions[groupBy];
-      paginationParams[groupByFilterOption] = groupId;
-    }
+    if (groupBy) paginationParams[EServerGroupByToFilterOptions[groupBy]] = groupId;
   }
 
   // If subGroupId is passed down, add a filter param for that subGroup Id
   if (subGroupId) {
-    const subGroupBy = paginationParams["sub_group_by"] as EIssueGroupByToServerOptions | undefined;
     delete paginationParams["sub_group_by"];
-
-    if (subGroupBy) {
-      const subGroupByFilterOption = EServerGroupByToFilterOptions[subGroupBy];
-      paginationParams[subGroupByFilterOption] = subGroupId;
-    }
+    if (subGroupBy) paginationParams[EServerGroupByToFilterOptions[subGroupBy]] = subGroupId;
   }
 
   return paginationParams;

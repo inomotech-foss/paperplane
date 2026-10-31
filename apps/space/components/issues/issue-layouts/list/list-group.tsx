@@ -53,7 +53,7 @@ const ListLoaderItemRow = forwardRef(function ListLoaderItemRow(
         <span className={`h-5 w-52 animate-pulse rounded-sm bg-layer-1`} />
       </div>
       <div className="flex items-center gap-2">
-        {[...Array(6)].map((_, index) => (
+        {Array.from({ length: 6 }, (_, index) => (
           <Fragment key={index}>
             <span key={index} className="h-5 w-5 animate-pulse rounded-sm bg-layer-1" />
           </Fragment>

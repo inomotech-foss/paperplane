@@ -9,7 +9,6 @@ import { isNil } from "lodash-es";
 import { observer } from "mobx-react";
 // types
 import type {
-  GroupByColumnTypes,
   IGroupByColumn,
   TGroupedIssues,
   IIssueDisplayProperties,
@@ -69,7 +68,7 @@ export const KanBan = observer(function KanBan(props: IKanBan) {
   const modules = useModule();
   const state = useStates();
 
-  const groupList = getGroupByColumns(groupBy as GroupByColumnTypes, cycle, modules, label, state, member);
+  const groupList = getGroupByColumns(groupBy, cycle, modules, label, state, member);
 
   if (!groupList) return null;
 
@@ -102,7 +101,7 @@ export const KanBan = observer(function KanBan(props: IKanBan) {
               <div className="sticky top-0 z-2 w-full shrink-0 py-1">
                 <HeaderGroupByCard
                   groupBy={groupBy}
-                  icon={subList.icon as any}
+                  icon={subList.icon}
                   title={subList.name}
                   count={getGroupIssueCount(subList.id, undefined, false) ?? 0}
                 />

@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 // components
 import { IssueFiltersDropdown } from "@/components/issues/filters";
 // helpers
+import { filtersFromQuery, ISSUE_LAYOUTS } from "@/helpers/filter.helper";
 import { queryParamGenerator } from "@/helpers/query-param-generator";
 // hooks
 import { useIssueDetails } from "@/hooks/store/use-issue-details";
@@ -18,7 +19,7 @@ import useIsInIframe from "@/hooks/use-is-in-iframe";
 // store
 import type { PublishStore } from "@/store/publish/publish.store";
 // types
-import type { TIssueLayout } from "@/types/issue";
+import type { TIssueFilters, TIssueLayout } from "@/types/issue";
 // local imports
 import { IssuesLayoutSelection } from "./layout-selection";
 import { NavbarTheme } from "./theme";
@@ -52,34 +53,16 @@ export const NavbarControls = observer(function NavbarControls(props: NavbarCont
 
   useEffect(() => {
     if (anchor && workspace_detail) {
-      const viewsAcceptable: string[] = [];
-      let currentBoard: TIssueLayout | null = null;
-
-      if (view_props?.list) viewsAcceptable.push("list");
-      if (view_props?.kanban) viewsAcceptable.push("kanban");
-      if (view_props?.calendar) viewsAcceptable.push("calendar");
-      if (view_props?.gantt) viewsAcceptable.push("gantt");
-      if (view_props?.spreadsheet) viewsAcceptable.push("spreadsheet");
-
-      if (board) {
-        if (viewsAcceptable.includes(board.toString())) currentBoard = board.toString() as TIssueLayout;
-        else {
-          if (viewsAcceptable && viewsAcceptable.length > 0) currentBoard = viewsAcceptable[0] as TIssueLayout;
-        }
-      } else {
-        if (viewsAcceptable && viewsAcceptable.length > 0) currentBoard = viewsAcceptable[0] as TIssueLayout;
-      }
+      const viewsAcceptable = ISSUE_LAYOUTS.filter((layout) => view_props?.[layout]);
+      const currentBoard: TIssueLayout | undefined =
+        viewsAcceptable.find((layout) => layout === board) ?? viewsAcceptable[0];
 
       if (currentBoard) {
         if (activeLayout === undefined || activeLayout !== currentBoard) {
-          const { query, queryParam } = queryParamGenerator({ board: currentBoard, peekId, priority, state, labels });
-          const params: any = {
-            display_filters: { layout: (query?.board as string[])[0] },
-            filters: {
-              priority: query?.priority ?? undefined,
-              state: query?.state ?? undefined,
-              labels: query?.labels ?? undefined,
-            },
+          const { queryParam } = queryParamGenerator({ board: currentBoard, peekId, priority, state, labels });
+          const params: TIssueFilters = {
+            display_filters: { layout: currentBoard },
+            filters: filtersFromQuery({ priority, state, labels }),
           };
 
           if (!isIssueFiltersUpdated(anchor, params)) {

@@ -7,14 +7,7 @@
 import { useRef } from "react";
 import { observer } from "mobx-react";
 // types
-import type {
-  GroupByColumnTypes,
-  TGroupedIssues,
-  IIssueDisplayProperties,
-  TIssueGroupByOptions,
-  TPaginationData,
-  TLoader,
-} from "@plane/types";
+import type { TIssues, IIssueDisplayProperties, TIssueGroupByOptions, TPaginationData, TLoader } from "@plane/types";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useLabel } from "@/hooks/store/use-label";
@@ -22,11 +15,12 @@ import { useMember } from "@/hooks/store/use-member";
 import { useModule } from "@/hooks/store/use-module";
 import { useStates } from "@/hooks/store/use-state";
 //
+import { getGroupIssueIds } from "@/helpers/grouped-issues.helper";
 import { getGroupByColumns } from "../utils";
 import { ListGroup } from "./list-group";
 
 export interface IList {
-  groupedIssueIds: TGroupedIssues;
+  groupedIssueIds: TIssues;
   groupBy: TIssueGroupByOptions | undefined;
   displayProperties: IIssueDisplayProperties | undefined;
   showEmptyGroup?: boolean;
@@ -60,7 +54,7 @@ export const List = observer(function List(props: IList) {
   const modules = useModule();
   const state = useStates();
 
-  const groupList = getGroupByColumns(groupBy as GroupByColumnTypes, cycle, modules, label, state, member, true);
+  const groupList = getGroupByColumns(groupBy, cycle, modules, label, state, member, true);
 
   if (!groupList) return null;
 
@@ -75,7 +69,7 @@ export const List = observer(function List(props: IList) {
             {groupList.map((group) => (
               <ListGroup
                 key={group.id}
-                groupIssueIds={groupedIssueIds?.[group.id]}
+                groupIssueIds={getGroupIssueIds(groupedIssueIds, group.id)}
                 groupBy={groupBy}
                 group={group}
                 displayProperties={displayProperties}

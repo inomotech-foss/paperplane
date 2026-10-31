@@ -17,6 +17,8 @@ import type {
   TLoader,
 } from "@plane/types";
 import { cn } from "@plane/utils";
+// helpers
+import { getGroupIssueIds } from "@/helpers/grouped-issues.helper";
 // hooks
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 // local imports
@@ -85,9 +87,7 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
 
   const isSubGroup = !!subGroupId && subGroupId !== "null";
 
-  const issueIds = isSubGroup
-    ? ((groupedIssueIds as TSubGroupedIssues)?.[groupId]?.[subGroupId] ?? [])
-    : ((groupedIssueIds as TGroupedIssues)?.[groupId] ?? []);
+  const issueIds = getGroupIssueIds(groupedIssueIds, groupId, isSubGroup ? subGroupId : undefined);
 
   const groupIssueCount = getGroupIssueCount(groupId, subGroupId, false) ?? 0;
   const nextPageResults = getPaginationData(groupId, subGroupId)?.nextPageResults;
