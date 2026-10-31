@@ -8,7 +8,6 @@ export * from "./ai";
 export * from "./automation";
 export * from "./developer";
 export * from "./auth";
-export * from "./dashboard";
 export * from "./instance";
 export * from "./user";
 export * from "./workspace";
