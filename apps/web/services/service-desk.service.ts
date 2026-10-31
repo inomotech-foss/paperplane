@@ -1,73 +1,83 @@
-/**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
- * SPDX-License-Identifier: AGPL-3.0-only
- * See the LICENSE file for details.
- */
+// SPDX-License-Identifier: AGPL-3.0-only
+// See the LICENSE file for details.
 
-// helpers
-import { API_BASE_URL } from "@plane/constants";
-import type { TIssueComment, TIssueEmailMessage, TIssueEmailThread, TServiceDeskConfig } from "@plane/types";
-// services
-import { APIService } from "@/services/api.service";
+import type { ApiRequestBody, ApiSchema } from "@plane/api-types";
+import { unwrap } from "@plane/services";
+import type { TIssueEmailThread, TServiceDeskConfig } from "@plane/types";
+import { apiClient } from "@/services/api-client";
 
-export class ServiceDeskService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+export type TServiceDeskConfigBody = ApiRequestBody<
+  "/api/workspaces/{slug}/projects/{project_id}/service-desk/",
+  "post"
+>;
+export type TIssueEmailThreadBody = ApiRequestBody<
+  "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/email-thread/",
+  "patch"
+>;
+export type TIssueEmailReplyBody = ApiRequestBody<
+  "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/email-replies/",
+  "post"
+>;
 
+const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
+const issuePath = (slug: string, project_id: string, issue_id: string) => ({ path: { slug, project_id, issue_id } });
+
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ServiceDeskService {
   async getConfig(workspaceSlug: string, projectId: string): Promise<TServiceDeskConfig> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/service-desk/`)
-      .then((res) => res?.data)
-      .catch((err) => {
-        throw err?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/service-desk/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
   }
 
   async updateConfig(
     workspaceSlug: string,
     projectId: string,
-    payload: Partial<
-      Pick<TServiceDeskConfig, "mailbox_email" | "is_enabled" | "issue_type_id" | "notify_mode" | "notify_user_ids">
-    >
+    payload: TServiceDeskConfigBody
   ): Promise<TServiceDeskConfig> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/service-desk/`, payload)
-      .then((res) => res?.data)
-      .catch((err) => {
-        throw err?.response?.data;
-      });
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/service-desk/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: payload,
+      })
+    );
   }
 
   async getEmailThread(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueEmailThread> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issues/${issueId}/email-thread/`)
-      .then((res) => res?.data)
-      .catch((err) => {
-        throw err?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/email-thread/", {
+        params: issuePath(workspaceSlug, projectId, issueId),
+      })
+    );
   }
 
   async updateEmailThread(
     workspaceSlug: string,
     projectId: string,
     issueId: string,
-    payload: Partial<Pick<TIssueEmailThread, "to_emails" | "cc_emails">>
+    payload: TIssueEmailThreadBody
   ): Promise<TIssueEmailThread> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issues/${issueId}/email-thread/`, payload)
-      .then((res) => res?.data)
-      .catch((err) => {
-        throw err?.response?.data;
-      });
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/email-thread/", {
+        params: issuePath(workspaceSlug, projectId, issueId),
+        body: payload,
+      })
+    );
   }
 
   async sendEmailReply(
     workspaceSlug: string,
     projectId: string,
     issueId: string,
-    payload: { comment_html: string; attachment_asset_ids?: string[] }
-  ): Promise<{ comment: TIssueComment; email_message: TIssueEmailMessage }> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issues/${issueId}/email-replies/`, payload)
-      .then((res) => res?.data)
-      .catch((err) => {
-        throw err?.response?.data;
-      });
+    payload: TIssueEmailReplyBody
+  ): Promise<ApiSchema<"EmailReply">> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/email-replies/", {
+        params: issuePath(workspaceSlug, projectId, issueId),
+        body: payload,
+      })
+    );
   }
 }

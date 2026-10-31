@@ -15,6 +15,12 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import serializers
 
 # Module imports
+from plane.app.serializers.request.issue_detail import (
+    BULK_PROPERTY_VALUES_PARAMETERS,
+    PROPERTY_LIST_PARAMETERS,
+    PROPERTY_VALUES_REQUEST,
+)
+from plane.app.serializers.request.taxonomy import IssuePropertyCreateSerializer
 from plane.app.serializers.response.issue import PropertyValuesSerializer
 from .. import BaseViewSet, BaseAPIView
 from plane.app.permissions import ROLE, allow_permission, ProjectEntityPermission
@@ -71,6 +77,7 @@ class IssuePropertyViewSet(BaseViewSet):
             .order_by("sort_order")
         )
 
+    @extend_schema(parameters=PROPERTY_LIST_PARAMETERS)
     def list(self, request, slug, project_id):
         """List work item properties
 
@@ -90,6 +97,7 @@ class IssuePropertyViewSet(BaseViewSet):
         serializer = IssuePropertySerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=IssuePropertyCreateSerializer, responses={201: IssuePropertySerializer})
     @allow_permission([ROLE.ADMIN])
     def create(self, request, slug, project_id):
         options = request.data.get("options", [])
@@ -290,7 +298,7 @@ class IssuePropertyValueEndpoint(BaseAPIView):
             raise Issue.DoesNotExist()
         return Response(self.payload(issue), status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: PropertyValuesSerializer})
+    @extend_schema(request=PROPERTY_VALUES_REQUEST, responses={200: PropertyValuesSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def put(self, request, slug, project_id, issue_id):
         issue = Issue.objects.get(pk=issue_id, project_id=project_id, workspace__slug=slug)
@@ -321,7 +329,10 @@ class BulkIssuePropertyValueEndpoint(BaseAPIView):
     model = IssuePropertyValue
     permission_classes = [ProjectEntityPermission]
 
-    @extend_schema(responses={200: serializers.DictField(child=serializers.DictField(child=serializers.JSONField()))})
+    @extend_schema(
+        parameters=BULK_PROPERTY_VALUES_PARAMETERS,
+        responses={200: serializers.DictField(child=serializers.DictField(child=serializers.JSONField()))},
+    )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id):
         queryset = (

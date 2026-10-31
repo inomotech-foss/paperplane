@@ -4,18 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import type { JSONContent } from "../../editor";
-import type { EIssueCommentAccessSpecifier } from "../../enums";
+import type { ApiSchema } from "@plane/api-types";
 import type { TFileSignedURLResponse } from "../../file";
 import type { IUserLite } from "../../users";
 import type { IWorkspaceLite } from "../../workspace";
-import type { TIssueCommentReaction } from "./issue_comment_reaction";
-import type {
-  TIssueActivityWorkspaceDetail,
-  TIssueActivityProjectDetail,
-  TIssueActivityIssueDetail,
-  TIssueActivityUserDetail,
-} from "./base";
 
 export type TCommentReaction = {
   id: string;
@@ -23,30 +15,7 @@ export type TCommentReaction = {
   actor: string;
   actor_detail: IUserLite;
 };
-export type TIssueComment = {
-  id: string;
-  workspace: string;
-  workspace_detail: TIssueActivityWorkspaceDetail;
-  project: string;
-  project_detail: TIssueActivityProjectDetail;
-  issue: string;
-  issue_detail: TIssueActivityIssueDetail;
-  actor: string;
-  actor_detail: TIssueActivityUserDetail;
-  created_at: string;
-  edited_at?: string | undefined;
-  updated_at: string;
-  created_by: string | undefined;
-  updated_by: string | undefined;
-  attachments: unknown[];
-  comment_reactions: TIssueCommentReaction[];
-  comment_stripped: string;
-  comment_html: string;
-  comment_json: JSONContent;
-  external_id: string | undefined;
-  external_source: string | undefined;
-  access: EIssueCommentAccessSpecifier;
-};
+export type TIssueComment = ApiSchema<"IssueComment">;
 
 export type TCommentsOperations = {
   copyCommentLink: (commentId: string) => void;

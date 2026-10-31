@@ -16,6 +16,12 @@ import type {
 } from "@plane/types";
 // services
 import { IssueCustomPropertyService, IssueService } from "@/services/issue";
+import type {
+  TPropertyCreateBody,
+  TPropertyOptionCreateBody,
+  TPropertyOptionUpdateBody,
+  TPropertyUpdateBody,
+} from "@/services/issue";
 // store
 import type { CoreRootStore } from "./root.store";
 
@@ -55,27 +61,27 @@ export interface IIssueCustomPropertyStore {
   createProperty: (
     workspaceSlug: string,
     projectId: string,
-    data: Partial<TIssueCustomProperty> & { options?: Partial<TIssueCustomPropertyOption>[] }
+    data: TPropertyCreateBody
   ) => Promise<TIssueCustomProperty>;
   updateProperty: (
     workspaceSlug: string,
     projectId: string,
     propertyId: string,
-    data: Partial<TIssueCustomProperty>
+    data: TPropertyUpdateBody
   ) => Promise<TIssueCustomProperty>;
   deleteProperty: (workspaceSlug: string, projectId: string, propertyId: string) => Promise<void>;
   createOption: (
     workspaceSlug: string,
     projectId: string,
     propertyId: string,
-    data: Partial<TIssueCustomPropertyOption>
+    data: TPropertyOptionCreateBody
   ) => Promise<TIssueCustomPropertyOption>;
   updateOption: (
     workspaceSlug: string,
     projectId: string,
     propertyId: string,
     optionId: string,
-    data: Partial<TIssueCustomPropertyOption>
+    data: TPropertyOptionUpdateBody
   ) => Promise<TIssueCustomPropertyOption>;
   deleteOption: (workspaceSlug: string, projectId: string, propertyId: string, optionId: string) => Promise<void>;
   // value actions
@@ -254,11 +260,7 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
       });
     });
 
-  createProperty = async (
-    workspaceSlug: string,
-    projectId: string,
-    data: Partial<TIssueCustomProperty> & { options?: Partial<TIssueCustomPropertyOption>[] }
-  ) =>
+  createProperty = async (workspaceSlug: string, projectId: string, data: TPropertyCreateBody) =>
     await this.customPropertyService.createProperty(workspaceSlug, projectId, data).then((response) => {
       runInAction(() => {
         set(this.propertyMap, [response.id], response);
@@ -267,12 +269,7 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
       return response;
     });
 
-  updateProperty = async (
-    workspaceSlug: string,
-    projectId: string,
-    propertyId: string,
-    data: Partial<TIssueCustomProperty>
-  ) => {
+  updateProperty = async (workspaceSlug: string, projectId: string, propertyId: string, data: TPropertyUpdateBody) => {
     const originalProperty = this.propertyMap[propertyId];
     try {
       runInAction(() => {
@@ -306,7 +303,7 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
     workspaceSlug: string,
     projectId: string,
     propertyId: string,
-    data: Partial<TIssueCustomPropertyOption>
+    data: TPropertyOptionCreateBody
   ) =>
     await this.customPropertyService.createOption(workspaceSlug, projectId, propertyId, data).then((response) => {
       runInAction(() => {
@@ -321,7 +318,7 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
     projectId: string,
     propertyId: string,
     optionId: string,
-    data: Partial<TIssueCustomPropertyOption>
+    data: TPropertyOptionUpdateBody
   ) => {
     const property = this.propertyMap[propertyId];
     const originalOptions = property?.options;

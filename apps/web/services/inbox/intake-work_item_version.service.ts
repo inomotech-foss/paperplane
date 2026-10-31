@@ -4,30 +4,23 @@
  * See the LICENSE file for details.
  */
 
-// plane imports
-import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type { TDescriptionVersionsListResponse, TDescriptionVersionDetails } from "@plane/types";
-// helpers
-// services
-import { APIService } from "@/services/api.service";
+import { apiClient } from "@/services/api-client";
 
-export class IntakeWorkItemVersionService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
-
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class IntakeWorkItemVersionService {
   async listDescriptionVersions(
     workspaceSlug: string,
     projectId: string,
     intakeWorkItemId: string
   ): Promise<TDescriptionVersionsListResponse> {
-    return this.get(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/intake-work-items/${intakeWorkItemId}/description-versions/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET(
+        "/api/workspaces/{slug}/projects/{project_id}/intake-work-items/{work_item_id}/description-versions/",
+        { params: { path: { slug: workspaceSlug, project_id: projectId, work_item_id: intakeWorkItemId } } }
+      )
+    );
   }
 
   async retrieveDescriptionVersion(
@@ -36,12 +29,15 @@ export class IntakeWorkItemVersionService extends APIService {
     intakeWorkItemId: string,
     versionId: string
   ): Promise<TDescriptionVersionDetails> {
-    return this.get(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/intake-work-items/${intakeWorkItemId}/description-versions/${versionId}/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET(
+        "/api/workspaces/{slug}/projects/{project_id}/intake-work-items/{work_item_id}/description-versions/{pk}/",
+        {
+          params: {
+            path: { slug: workspaceSlug, project_id: projectId, work_item_id: intakeWorkItemId, pk: versionId },
+          },
+        }
+      )
+    );
   }
 }

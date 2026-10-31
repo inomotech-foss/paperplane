@@ -5,7 +5,6 @@
  */
 
 import type { ApiRequestBody, ApiSchema, TTimezone } from "@plane/api-types";
-import { API_BASE_URL } from "@plane/constants";
 import { unwrap } from "@plane/services";
 import { parseIssueFiltersResponse, parseLogoProps, parseProjectUserPreferences } from "@plane/types";
 import type {
@@ -20,7 +19,8 @@ import type {
 import { isTimezone } from "@/lib/timezone";
 // services
 import { apiClient } from "@/services/api-client";
-import { APIService } from "@/services/api.service";
+import { toIssueSearchQuery } from "@/services/issue/issue-query";
+import { toSearchIssue } from "@/services/issue/work-item";
 
 export type TProjectCreateBody = ApiRequestBody<"/api/workspaces/{slug}/projects/", "post">;
 export type TProjectUpdateBody = ApiRequestBody<"/api/workspaces/{slug}/projects/{pk}/", "patch">;
@@ -95,12 +95,8 @@ const toProjectUserProperties = (properties: ApiSchema<"ProjectUserProperty">): 
   preferences: parseProjectUserPreferences(properties.preferences),
 });
 
-/** Methods on the typed client throw `ApiError` from `@plane/services`. */
-export class ProjectService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
-
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ProjectService {
   async createProject(workspaceSlug: string, data: Partial<TProject>): Promise<TProject> {
     return toProject(
       await unwrap(
@@ -201,13 +197,12 @@ export class ProjectService extends APIService {
     projectId: string,
     params: TProjectIssuesSearchParams
   ): Promise<ISearchIssueResponse[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/search-issues/`, {
-      params,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const results = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/search-issues/", {
+        params: { ...projectPath(workspaceSlug, projectId), query: toIssueSearchQuery(params) },
+      })
+    );
+    return results.map(toSearchIssue);
   }
 
   async setIssueSequenceStart(workspaceSlug: string, projectId: string, start: number): Promise<TProjectIssueSequence> {

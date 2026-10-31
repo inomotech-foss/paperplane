@@ -7,7 +7,7 @@
 import { set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 // services
-import type { TIssueLink, TIssueLinkMap, TIssueLinkIdMap, TIssueServiceType } from "@plane/types";
+import type { TIssueLink, TIssueLinkMap, TIssueLinkIdMap } from "@plane/types";
 import { IssueService } from "@/services/issue";
 // types
 import type { IIssueDetail } from "./root.store";
@@ -50,9 +50,8 @@ export class IssueLinkStore implements IIssueLinkStore {
   rootIssueDetailStore: IIssueDetail;
   // services
   issueService;
-  serviceType;
 
-  constructor(rootStore: IIssueDetail, serviceType: TIssueServiceType) {
+  constructor(rootStore: IIssueDetail) {
     makeObservable(this, {
       // observables
       links: observable,
@@ -66,11 +65,10 @@ export class IssueLinkStore implements IIssueLinkStore {
       updateLink: action,
       removeLink: action,
     });
-    this.serviceType = serviceType;
     // root store
     this.rootIssueDetailStore = rootStore;
     // services
-    this.issueService = new IssueService(serviceType);
+    this.issueService = new IssueService();
   }
 
   // computed
@@ -130,8 +128,8 @@ export class IssueLinkStore implements IIssueLinkStore {
     const initialData = { ...this.linkMap[linkId] };
     try {
       runInAction(() => {
-        Object.keys(data).forEach((key) => {
-          set(this.linkMap, [linkId, key], data[key as keyof TIssueLink]);
+        Object.entries(data).forEach(([key, value]) => {
+          set(this.linkMap, [linkId, key], value);
         });
       });
 
@@ -143,8 +141,8 @@ export class IssueLinkStore implements IIssueLinkStore {
     } catch (error) {
       console.error("error", error);
       runInAction(() => {
-        Object.keys(initialData).forEach((key) => {
-          set(this.linkMap, [linkId, key], initialData[key as keyof TIssueLink]);
+        Object.entries(initialData).forEach(([key, value]) => {
+          set(this.linkMap, [linkId, key], value);
         });
       });
       throw error;

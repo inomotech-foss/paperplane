@@ -13,9 +13,9 @@ import type {
   TIssueSubIssues,
   TIssueSubIssuesStateDistributionMap,
   TIssueSubIssuesIdMap,
-  TSubIssuesStateDistribution,
-  TIssueServiceType,
   TLoader,
+  TStateGroups,
+  TSubIssuesStateDistribution,
 } from "@plane/types";
 // services
 import { IssueService } from "@/services/issue";
@@ -23,6 +23,12 @@ import { IssueService } from "@/services/issue";
 import type { IIssueDetail } from "./root.store";
 import type { IWorkItemSubIssueFiltersStore } from "./sub_issues_filter.store";
 import { WorkItemSubIssueFiltersStore } from "./sub_issues_filter.store";
+
+const STATE_GROUPS: TStateGroups[] = ["backlog", "unstarted", "started", "completed", "cancelled"];
+
+/** The projects of `issues` other than `projectId`. */
+const otherProjects = (issues: Pick<TIssue, "project_id">[], projectId: string): string[] =>
+  uniq(issues.map((issue) => issue.project_id).filter((id): id is string => !!id && id !== projectId));
 
 export interface IIssueSubIssuesStoreActions {
   fetchSubIssues: (workspaceSlug: string, projectId: string, parentIssueId: string) => Promise<TIssueSubIssues>;
@@ -74,10 +80,9 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
   // root store
   rootIssueDetailStore: IIssueDetail;
   // services
-  serviceType;
   issueService;
 
-  constructor(rootStore: IIssueDetail, serviceType: TIssueServiceType) {
+  constructor(rootStore: IIssueDetail) {
     makeObservable(this, {
       // observables
       subIssuesStateDistribution: observable,
@@ -97,8 +102,7 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
     // root store
     this.rootIssueDetailStore = rootStore;
     // services
-    this.serviceType = serviceType;
-    this.issueService = new IssueService(serviceType);
+    this.issueService = new IssueService();
   }
 
   // helper methods
@@ -129,17 +133,17 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
     this.loader = "init-loader";
     const response = await this.issueService.subIssues(workspaceSlug, projectId, parentIssueId);
 
-    const subIssuesStateDistribution = response?.state_distribution ?? {};
+    const subIssuesStateDistribution = response.state_distribution;
 
-    const issueList = (response.sub_issues ?? []) as TIssue[];
+    const issueList = Array.isArray(response.sub_issues)
+      ? response.sub_issues
+      : Object.values(response.sub_issues).flat();
 
     this.rootIssueDetailStore.rootIssueStore.issues.addIssue(issueList);
 
     // fetch other issues states and members when sub-issues are from different project
     if (issueList && issueList.length > 0) {
-      const otherProjectIds = uniq(
-        issueList.map((issue) => issue.project_id).filter((id) => !!id && id !== projectId)
-      ) as string[];
+      const otherProjectIds = otherProjects(issueList, projectId);
       this.fetchOtherProjectProperties(workspaceSlug, otherProjectIds);
     }
     if (issueList) {
@@ -162,40 +166,31 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
   };
 
   createSubIssues = async (workspaceSlug: string, projectId: string, parentIssueId: string, issueIds: string[]) => {
-    const response = await this.issueService.addSubIssues(workspaceSlug, projectId, parentIssueId, {
-      sub_issue_ids: issueIds,
-    });
+    const response = await this.issueService.addSubIssues(workspaceSlug, projectId, parentIssueId, issueIds);
     // values inherited from the new parent, or rolled up into it, change
     this.rootIssueDetailStore.rootIssueStore.rootStore.issueCustomProperty.refreshDerivedValues(
       workspaceSlug,
       projectId
     );
 
-    const subIssuesStateDistribution = response?.state_distribution ?? {};
-    const subIssues = Array.isArray(response?.sub_issues) ? response.sub_issues : [];
+    const subIssuesStateDistribution = response.state_distribution;
+    const subIssues = Array.isArray(response.sub_issues) ? response.sub_issues : [];
 
     // fetch other issues states and members when sub-issues are from different project
     if (subIssues && subIssues.length > 0) {
-      const otherProjectIds = uniq(
-        subIssues.map((issue) => issue.project_id).filter((id) => !!id && id !== projectId)
-      ) as string[];
+      const otherProjectIds = otherProjects(subIssues, projectId);
       this.fetchOtherProjectProperties(workspaceSlug, otherProjectIds);
     }
 
     runInAction(() => {
-      Object.keys(subIssuesStateDistribution).forEach((key) => {
-        const stateGroup = key as keyof TSubIssuesStateDistribution;
-        update(this.subIssuesStateDistribution, [parentIssueId, stateGroup], (stateDistribution) => {
-          if (!stateDistribution) return subIssuesStateDistribution[stateGroup];
-          return concat(stateDistribution, subIssuesStateDistribution[stateGroup]);
-        });
+      STATE_GROUPS.forEach((stateGroup) => {
+        this.updateStateDistribution(parentIssueId, stateGroup, (stateDistribution) =>
+          concat(stateDistribution ?? [], subIssuesStateDistribution[stateGroup])
+        );
       });
 
-      const issueIds = subIssues.map((issue) => issue.id);
-      update(this.subIssues, [parentIssueId], (issues) => {
-        if (!issues) return issueIds;
-        return concat(issues, issueIds);
-      });
+      const addedIds = subIssues.map((issue) => issue.id);
+      set(this.subIssues, [parentIssueId], concat(this.subIssues[parentIssueId] ?? [], addedIds));
     });
 
     this.rootIssueDetailStore.rootIssueStore.issues.addIssue(subIssues);
@@ -238,8 +233,8 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
 
     // state update
     if (issueData.hasOwnProperty("state_id") && issueData.state_id !== oldIssue.state_id) {
-      let oldIssueStateGroup: string | undefined = undefined;
-      let issueStateGroup: string | undefined = undefined;
+      let oldIssueStateGroup: TStateGroups | undefined = undefined;
+      let issueStateGroup: TStateGroups | undefined = undefined;
 
       if (oldIssue.state_id) {
         const state = this.rootIssueDetailStore.rootIssueStore.rootStore.state.getStateById(oldIssue.state_id);
@@ -254,16 +249,14 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
       if (oldIssueStateGroup && issueStateGroup && issueStateGroup !== oldIssueStateGroup) {
         runInAction(() => {
           if (oldIssueStateGroup)
-            update(this.subIssuesStateDistribution, [parentIssueId, oldIssueStateGroup], (stateDistribution) => {
-              if (!stateDistribution) return;
-              return pull(stateDistribution, issueId);
-            });
+            this.updateStateDistribution(parentIssueId, oldIssueStateGroup, (stateDistribution) =>
+              stateDistribution ? pull(stateDistribution, issueId) : undefined
+            );
 
           if (issueStateGroup)
-            update(this.subIssuesStateDistribution, [parentIssueId, issueStateGroup], (stateDistribution) => {
-              if (!stateDistribution) return [issueId];
-              return concat(stateDistribution, issueId);
-            });
+            this.updateStateDistribution(parentIssueId, issueStateGroup, (stateDistribution) =>
+              concat(stateDistribution ?? [], issueId)
+            );
         });
       }
     }
@@ -278,17 +271,16 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
 
     const issue = this.rootIssueDetailStore.issue.getIssueById(issueId);
     if (issue && issue.state_id) {
-      let issueStateGroup: string | undefined = undefined;
+      let issueStateGroup: TStateGroups | undefined = undefined;
       const state = this.rootIssueDetailStore.rootIssueStore.rootStore.state.getStateById(issue.state_id);
       if (state?.group) issueStateGroup = state.group;
 
       if (issueStateGroup) {
         runInAction(() => {
           if (issueStateGroup)
-            update(this.subIssuesStateDistribution, [parentIssueId, issueStateGroup], (stateDistribution) => {
-              if (!stateDistribution) return;
-              return pull(stateDistribution, issueId);
-            });
+            this.updateStateDistribution(parentIssueId, issueStateGroup, (stateDistribution) =>
+              stateDistribution ? pull(stateDistribution, issueId) : undefined
+            );
         });
       }
     }
@@ -311,17 +303,16 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
 
     const issue = this.rootIssueDetailStore.issue.getIssueById(issueId);
     if (issue && issue.state_id) {
-      let issueStateGroup: string | undefined = undefined;
+      let issueStateGroup: TStateGroups | undefined = undefined;
       const state = this.rootIssueDetailStore.rootIssueStore.rootStore.state.getStateById(issue.state_id);
       if (state?.group) issueStateGroup = state.group;
 
       if (issueStateGroup) {
         runInAction(() => {
           if (issueStateGroup)
-            update(this.subIssuesStateDistribution, [parentIssueId, issueStateGroup], (stateDistribution) => {
-              if (!stateDistribution) return;
-              return pull(stateDistribution, issueId);
-            });
+            this.updateStateDistribution(parentIssueId, issueStateGroup, (stateDistribution) =>
+              stateDistribution ? pull(stateDistribution, issueId) : undefined
+            );
         });
       }
     }
@@ -337,6 +328,15 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
     });
 
     return;
+  };
+
+  private updateStateDistribution = (
+    parentIssueId: string,
+    stateGroup: TStateGroups,
+    change: (issueIds: string[] | undefined) => string[] | undefined
+  ) => {
+    const next = change(this.subIssuesStateDistribution[parentIssueId]?.[stateGroup]);
+    if (next) set(this.subIssuesStateDistribution, [parentIssueId, stateGroup], next);
   };
 
   fetchOtherProjectProperties = async (workspaceSlug: string, projectIds: string[]) => {

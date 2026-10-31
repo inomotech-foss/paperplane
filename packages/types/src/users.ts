@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import type { TUserTimezone } from "@plane/api-types";
+import type { ApiSchema, TUserTimezone } from "@plane/api-types";
 import type { IUserTheme } from "./client-json";
 import type { TUserPermissions } from "./enums";
-import type { IIssueActivity, TIssuePriorities, TStateGroups } from ".";
+import type { TIssuePriorities, TStateGroups } from ".";
 
 /**
  * @description The start of the week for the user
@@ -116,17 +116,7 @@ export interface IUserStateDistribution {
   state_count: number;
 }
 
-export interface IUserActivityResponse {
-  count: number;
-  extra_stats: unknown;
-  next_cursor: string;
-  next_page_results: boolean;
-  prev_cursor: string;
-  prev_page_results: boolean;
-  results: IIssueActivity[];
-  total_pages: number;
-  total_results: number;
-}
+export type IUserActivityResponse = ApiSchema<"PaginatedIssueActivityList">;
 
 export type UserAuth = {
   isMember: boolean;

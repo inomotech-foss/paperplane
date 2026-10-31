@@ -12,7 +12,6 @@ import type { TSupportedFilterTypeForUpdate } from "@plane/constants";
 import { EIssueFilterType } from "@plane/constants";
 import type {
   IIssueDisplayFilterOptions,
-  IIssueDisplayProperties,
   TIssueKanbanFilters,
   IIssueFilters,
   IProjectUserPropertiesResponse,
@@ -30,7 +29,12 @@ import type { TViewIntent } from "@/lib/work-item-view-url/intent";
 import { getWorkItemPage } from "@/lib/work-item-view-url/pages";
 import { getViewRoute } from "@/lib/work-item-view-url/registry";
 import type { IBaseIssueFilterStore } from "../helpers/issue-filter-helper.store";
-import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
+import {
+  IssueFilterHelperStore,
+  toDisplayFilterChanges,
+  toDisplayPropertyChanges,
+  toKanbanFilterChanges,
+} from "../helpers/issue-filter-helper.store";
 // helpers
 // types
 import type { IIssueRootStore } from "../root.store";
@@ -292,17 +296,19 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
       case EIssueFilterType.DISPLAY_FILTERS:
         return this.changeView(workspaceSlug, projectId, {
           type: "displayFilters",
-          changes: filters as IIssueDisplayFilterOptions,
+          changes: toDisplayFilterChanges(filters),
         });
       case EIssueFilterType.DISPLAY_PROPERTIES:
         return this.changeView(workspaceSlug, projectId, {
           type: "displayProperties",
-          changes: filters as IIssueDisplayProperties,
+          changes: toDisplayPropertyChanges(filters),
         });
       case EIssueFilterType.KANBAN_FILTERS: {
-        const kanbanFilters = {
+        const kanbanFilters: TIssueKanbanFilters = {
+          group_by: [],
+          sub_group_by: [],
           ...this.getIssueFilters(projectId)?.kanbanFilters,
-          ...(filters as TIssueKanbanFilters),
+          ...toKanbanFilterChanges(filters),
         };
         const currentUserId = this.rootIssueStore.currentUserId;
         if (currentUserId)

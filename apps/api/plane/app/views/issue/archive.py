@@ -18,8 +18,17 @@ from rest_framework import status
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
-from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
-from plane.app.serializers.response.issue import ArchivedAtSerializer, WorkItemListResponse
+from plane.app.serializers.request.issue import (
+    EXPAND_ISSUE_PARAMETER,
+    GROUPED_ISSUE_LIST_PARAMETERS,
+    SHOW_SUB_ISSUES_PARAMETER,
+    IssueIdsSerializer,
+)
+from plane.app.serializers.response.issue import (
+    ArchivedAtSerializer,
+    ExpandedIssueDetailSerializer,
+    WorkItemListResponse,
+)
 from plane.app.permissions import ProjectEntityPermission
 from plane.app.serializers import (
     IssueFlatSerializer,
@@ -104,7 +113,9 @@ class IssueArchiveViewSet(BaseViewSet):
             .filter(workspace__slug=self.kwargs.get("slug"))
         )
 
-    @extend_schema(parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: WorkItemListResponse})
+    @extend_schema(
+        parameters=[*GROUPED_ISSUE_LIST_PARAMETERS, SHOW_SUB_ISSUES_PARAMETER], responses={200: WorkItemListResponse}
+    )
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def list(self, request, slug, project_id):
@@ -220,7 +231,7 @@ class IssueArchiveViewSet(BaseViewSet):
                 on_results=lambda issues: issue_on_results(group_by=group_by, issues=issues, sub_group_by=sub_group_by),
             )
 
-    @extend_schema(responses={200: IssueDetailSerializer})
+    @extend_schema(parameters=[EXPAND_ISSUE_PARAMETER], responses={200: ExpandedIssueDetailSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def retrieve(self, request, slug, project_id, pk=None):
         issue = (
@@ -309,7 +320,7 @@ class IssueArchiveViewSet(BaseViewSet):
 class BulkArchiveIssuesEndpoint(BaseAPIView):
     permission_classes = [ProjectEntityPermission]
 
-    @extend_schema(responses={200: ArchivedAtSerializer})
+    @extend_schema(request=IssueIdsSerializer, responses={200: ArchivedAtSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id):
         issue_ids = request.data.get("issue_ids", [])

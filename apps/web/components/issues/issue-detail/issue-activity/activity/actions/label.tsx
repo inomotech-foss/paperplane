@@ -10,7 +10,9 @@ import { LabelsOutline } from "@makeplane/propel/icons";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useLabel } from "@/hooks/store/use-label";
 // components
-import { IssueActivityBlockComponent, IssueLink, LabelActivityChip } from "./";
+import { IssueActivityBlockComponent } from "./helpers/activity-block";
+import { IssueLink } from "./helpers/issue-link";
+import { LabelActivityChip } from "./label-activity-chip";
 
 type TIssueLabelActivity = { activityId: string; showIssue?: boolean; ends: "top" | "bottom" | undefined };
 
@@ -36,7 +38,7 @@ export const IssueLabelActivity = observer(function IssueLabelActivity(props: TI
       <>
         {activity.old_value === "" ? `added a new label ` : `removed the label `}
         <LabelActivityChip
-          name={activity.old_value === "" ? activity.new_value : activity.old_value}
+          name={(activity.old_value === "" ? activity.new_value : activity.old_value) ?? undefined}
           color={activity.old_value === "" ? newLabelColor : oldLabelColor}
         />
         {showIssue && (activity.old_value === "" ? ` to ` : ` from `)}

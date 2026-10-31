@@ -68,7 +68,7 @@ export const IssueDetailsSidebar = observer(function IssueDetailsSidebar(props: 
   const issue = getIssueById(issueId);
   if (!issue) return <></>;
 
-  const createdByDetails = getUserDetails(issue.created_by);
+  const createdByDetails = issue.created_by ? getUserDetails(issue.created_by) : undefined;
 
   // derived values
   const projectDetails = getProjectById(issue.project_id);

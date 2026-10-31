@@ -7,7 +7,6 @@
 import { set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 // services
-import type { EIssueServiceType } from "@plane/types";
 import { IssueService } from "@/services/issue/issue.service";
 // types
 import type { IIssueDetail } from "./root.store";
@@ -33,7 +32,7 @@ export class IssueSubscriptionStore implements IIssueSubscriptionStore {
   // services
   issueService;
 
-  constructor(rootStore: IIssueDetail, serviceType: EIssueServiceType) {
+  constructor(rootStore: IIssueDetail) {
     makeObservable(this, {
       // observables
       subscriptionMap: observable,
@@ -46,7 +45,7 @@ export class IssueSubscriptionStore implements IIssueSubscriptionStore {
     // root store
     this.rootIssueDetail = rootStore;
     // services
-    this.issueService = new IssueService(serviceType);
+    this.issueService = new IssueService();
   }
 
   // helper methods

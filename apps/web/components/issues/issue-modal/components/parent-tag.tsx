@@ -44,7 +44,7 @@ export const IssueParentTag = observer(function IssueParentTag(props: TIssuePare
             <span
               className="block h-1.5 w-1.5 rounded-full"
               style={{
-                backgroundColor: selectedParentIssue.state__color,
+                backgroundColor: selectedParentIssue.state__color ?? undefined,
               }}
             />
             <span className="flex-shrink-0 text-secondary">

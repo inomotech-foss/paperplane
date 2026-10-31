@@ -157,7 +157,7 @@ export function ParentIssuesListModal({ isOpen, handleClose: onClose, value, onC
                               <span
                                 className="block h-1.5 w-1.5 shrink-0 rounded-full"
                                 style={{
-                                  backgroundColor: issue.state__color,
+                                  backgroundColor: issue.state__color ?? undefined,
                                 }}
                               />
                               <IssueIdentifier

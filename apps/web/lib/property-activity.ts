@@ -17,7 +17,7 @@ type TPropertyActivity = Pick<TIssueActivity, "old_identifier" | "new_identifier
  */
 export const describePropertyChange = (
   activity: TPropertyActivity,
-  nameOf: (propertyId: string | undefined) => string
+  nameOf: (propertyId: string | null) => string
 ): TPropertyChange => {
   const source = nameOf(activity.old_identifier);
   if (!activity.new_identifier) return { kind: "removed", property: source, value: activity.old_value ?? "" };

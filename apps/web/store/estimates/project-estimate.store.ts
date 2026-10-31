@@ -124,7 +124,7 @@ export class ProjectEstimateStore implements IProjectEstimateStore {
       ["created_at"],
       "desc"
     );
-    const archivedEstimateIds = archivedEstimates.map((p) => p.id) as string[];
+    const archivedEstimateIds = archivedEstimates.flatMap((p) => (p.id ? [p.id] : []));
     return archivedEstimateIds ?? undefined;
   }
 
@@ -145,9 +145,9 @@ export class ProjectEstimateStore implements IProjectEstimateStore {
    */
   estimateIdsByProjectId = computedFn((projectId: string) => {
     if (!projectId) return undefined;
-    const projectEstimatesIds = Object.values(this.estimates || {})
-      .filter((p) => p.project === projectId)
-      .map((p) => p.id) as string[];
+    const projectEstimatesIds = Object.values(this.estimates || {}).flatMap((p) =>
+      p.project === projectId && p.id ? [p.id] : []
+    );
     return projectEstimatesIds ?? undefined;
   });
 
@@ -190,12 +190,7 @@ export class ProjectEstimateStore implements IProjectEstimateStore {
       if (estimates && estimates.length > 0) {
         runInAction(() => {
           estimates.forEach((estimate) => {
-            if (estimate.id)
-              set(
-                this.estimates,
-                [estimate.id],
-                new Estimate(this.store, { ...estimate, type: estimate.type?.toLowerCase() as TEstimateSystemKeys })
-              );
+            if (estimate.id) set(this.estimates, [estimate.id], new Estimate(this.store, estimate));
           });
         });
       }
@@ -230,12 +225,7 @@ export class ProjectEstimateStore implements IProjectEstimateStore {
       if (estimates && estimates.length > 0) {
         runInAction(() => {
           estimates.forEach((estimate) => {
-            if (estimate.id)
-              set(
-                this.estimates,
-                [estimate.id],
-                new Estimate(this.store, { ...estimate, type: estimate.type?.toLowerCase() as TEstimateSystemKeys })
-              );
+            if (estimate.id) set(this.estimates, [estimate.id], new Estimate(this.store, estimate));
           });
         });
       }
@@ -279,12 +269,7 @@ export class ProjectEstimateStore implements IProjectEstimateStore {
         //   estimate: estimate.id,
         // });
         runInAction(() => {
-          if (estimate.id)
-            set(
-              this.estimates,
-              [estimate.id],
-              new Estimate(this.store, { ...estimate, type: estimate.type?.toLowerCase() as TEstimateSystemKeys })
-            );
+          if (estimate.id) set(this.estimates, [estimate.id], new Estimate(this.store, estimate));
         });
       }
 

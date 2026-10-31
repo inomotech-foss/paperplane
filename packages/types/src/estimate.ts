@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiSchema } from "@plane/api-types";
 import type { EEstimateSystem, EEstimateUpdateStages } from "./enums";
 
 export interface IEstimatePoint {
@@ -14,27 +15,30 @@ export interface IEstimatePoint {
   workspace: string | undefined;
   project: string | undefined;
   estimate: string | undefined;
-  created_at: Date | undefined;
-  updated_at: Date | undefined;
-  created_by: string | undefined;
-  updated_by: string | undefined;
+  created_at: string | undefined;
+  updated_at: string | undefined;
+  created_by: string | null | undefined;
+  updated_by: string | null | undefined;
 }
 
 export type TEstimateSystemKeys = EEstimateSystem.POINTS | EEstimateSystem.CATEGORIES | EEstimateSystem.TIME;
+
+/** The estimate types the API stores. */
+export type TEstimateType = ApiSchema<"EstimateTypeEnum">;
 
 export interface IEstimate {
   id: string | undefined;
   name: string | undefined;
   description: string | undefined;
-  type: TEstimateSystemKeys | undefined; // categories, points, time
+  type: TEstimateSystemKeys | undefined;
   points: IEstimatePoint[] | undefined;
   workspace: string | undefined;
   project: string | undefined;
   last_used: boolean | undefined;
-  created_at: Date | undefined;
-  updated_at: Date | undefined;
-  created_by: string | undefined;
-  updated_by: string | undefined;
+  created_at: string | undefined;
+  updated_at: string | undefined;
+  created_by: string | null | undefined;
+  updated_by: string | null | undefined;
 }
 
 export interface IEstimateFormData {

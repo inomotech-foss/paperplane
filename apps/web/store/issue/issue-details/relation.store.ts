@@ -8,7 +8,14 @@ import { uniq, get, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // plane imports
-import type { TIssueRelationIdMap, TIssueRelationMap, TIssueRelation, TIssue, TIssueRelationTypes } from "@plane/types";
+import type {
+  TIssue,
+  TIssueRelation,
+  TIssueRelationIdMap,
+  TIssueRelationMap,
+  TIssueRelationTypes,
+  TRelatedIssue,
+} from "@plane/types";
 // components
 import type { TRelationObject } from "@/components/issues/issue-detail-widgets/relations";
 import { REVERSE_RELATIONS } from "@plane/constants";
@@ -16,6 +23,16 @@ import { REVERSE_RELATIONS } from "@plane/constants";
 import { IssueRelationService } from "@/services/issue";
 // types
 import type { IIssueDetail } from "./root.store";
+
+type TRelationRootStore = {
+  peekIssue: IIssueDetail["peekIssue"];
+  issue: Pick<IIssueDetail["issue"], "getIssueById">;
+  activity: Pick<IIssueDetail["activity"], "fetchActivities">;
+  rootIssueStore: Pick<IIssueDetail["rootIssueStore"], "workspaceSlug"> & {
+    issues: Pick<IIssueDetail["rootIssueStore"]["issues"], "addPartialIssues">;
+  };
+};
+
 export interface IIssueRelationStoreActions {
   // actions
   fetchRelations: (workspaceSlug: string, projectId: string, issueId: string) => Promise<TIssueRelation>;
@@ -25,7 +42,7 @@ export interface IIssueRelationStoreActions {
     issueId: string,
     relationType: TIssueRelationTypes,
     issues: string[]
-  ) => Promise<TIssue[]>;
+  ) => Promise<TRelatedIssue[]>;
   removeRelation: (
     workspaceSlug: string,
     projectId: string,
@@ -48,19 +65,21 @@ export interface IIssueRelationStore extends IIssueRelationStoreActions {
     ISSUE_RELATION_OPTIONS: { [key in TIssueRelationTypes]?: TRelationObject }
   ) => number;
   getRelationByIssueIdRelationType: (issueId: string, relationType: TIssueRelationTypes) => string[] | undefined;
-  extractRelationsFromIssues: (issues: TIssue[]) => void;
+  extractRelationsFromIssues: (issues: Pick<TIssue, "id" | "issue_relation" | "issue_related">[]) => void;
   createCurrentRelation: (issueId: string, relationType: TIssueRelationTypes, relatedIssueId: string) => Promise<void>;
 }
+
+const RELATION_TYPES: TIssueRelationTypes[] = ["blocking", "blocked_by", "duplicate", "relates_to"];
 
 export class IssueRelationStore implements IIssueRelationStore {
   // observables
   relationMap: TIssueRelationMap = {};
   // root store
-  rootIssueDetailStore: IIssueDetail;
+  rootIssueDetailStore: TRelationRootStore;
   // services
   issueRelationService;
 
-  constructor(rootStore: IIssueDetail) {
+  constructor(rootStore: TRelationRootStore) {
     makeObservable(this, {
       // observables
       relationMap: observable,
@@ -96,9 +115,7 @@ export class IssueRelationStore implements IIssueRelationStore {
     (issueId: string, ISSUE_RELATION_OPTIONS: { [key in TIssueRelationTypes]?: TRelationObject }) => {
       const issueRelations = this.getRelationsByIssueId(issueId);
 
-      const issueRelationKeys = (Object.keys(issueRelations ?? {}) as TIssueRelationTypes[]).filter(
-        (relationKey) => !!ISSUE_RELATION_OPTIONS[relationKey]
-      );
+      const issueRelationKeys = RELATION_TYPES.filter((relationKey) => !!ISSUE_RELATION_OPTIONS[relationKey]);
 
       return issueRelationKeys.reduce((acc, curr) => acc + (issueRelations?.[curr]?.length ?? 0), 0);
     }
@@ -114,15 +131,13 @@ export class IssueRelationStore implements IIssueRelationStore {
     const response = await this.issueRelationService.listIssueRelations(workspaceSlug, projectId, issueId);
 
     runInAction(() => {
-      Object.keys(response).forEach((key) => {
-        const relation_key = key as TIssueRelationTypes;
-        const relation_issues = response[relation_key];
-        const issues = relation_issues.flat().map((issue) => issue);
-        if (issues && issues.length > 0) this.rootIssueDetailStore.rootIssueStore.issues.addIssue(issues);
+      RELATION_TYPES.forEach((relationType) => {
+        const issues = response[relationType];
+        if (issues.length > 0) this.rootIssueDetailStore.rootIssueStore.issues.addPartialIssues(issues);
         set(
           this.relationMap,
-          [issueId, relation_key],
-          issues && issues.length > 0 ? issues.map((issue) => issue.id) : []
+          [issueId, relationType],
+          issues.map((issue) => issue.id)
         );
       });
     });
@@ -150,7 +165,7 @@ export class IssueRelationStore implements IIssueRelationStore {
       runInAction(() => {
         response.forEach((issue) => {
           const issuesOfRelated = get(this.relationMap, [issue.id, reverseRelatedType]);
-          this.rootIssueDetailStore.rootIssueStore.issues.addIssue([issue]);
+          this.rootIssueDetailStore.rootIssueStore.issues.addPartialIssues([issue]);
           issuesOfRelation.push(issue.id);
 
           if (!issuesOfRelated) {
@@ -240,18 +255,21 @@ export class IssueRelationStore implements IIssueRelationStore {
         });
 
       if (!updateLocally) {
-        await this.issueRelationService.deleteIssueRelation(workspaceSlug, projectId, issueId, {
-          relation_type: relationType,
-          related_issue,
-        });
+        await this.issueRelationService.deleteIssueRelation(
+          workspaceSlug,
+          projectId,
+          issueId,
+          relationType,
+          related_issue
+        );
       }
 
       // While removing one relation, reverse of the relation should also be removed
       const reverseRelatedType = REVERSE_RELATIONS[relationType];
       const relatedIndex = this.relationMap[related_issue]?.[reverseRelatedType]?.findIndex(
-        (_issueId) => _issueId === related_issue
+        (_issueId) => _issueId === issueId
       );
-      if (relationIndex >= 0)
+      if (relatedIndex !== undefined && relatedIndex >= 0)
         runInAction(() => {
           this.relationMap[related_issue]?.[reverseRelatedType]?.splice(relatedIndex, 1);
         });
@@ -268,7 +286,7 @@ export class IssueRelationStore implements IIssueRelationStore {
    * Extract Relation from the issue Array objects and store it in this Store
    * @param issues
    */
-  extractRelationsFromIssues = (issues: TIssue[]) => {
+  extractRelationsFromIssues = (issues: Pick<TIssue, "id" | "issue_relation" | "issue_related">[]) => {
     try {
       runInAction(() => {
         for (const issue of issues) {

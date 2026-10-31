@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TIssue } from "./issue";
+import type { TIssue, TIssueRow } from "./issue";
 
 export type TSubIssuesStateDistribution = {
   backlog: string[];
@@ -19,7 +19,7 @@ export type TIssueSubIssues = {
   sub_issues: TSubIssueResponse;
 };
 
-export type TSubIssueResponse = TIssue[] | { [key: string]: TIssue[] };
+export type TSubIssueResponse = TIssueRow[] | { [key: string]: TIssueRow[] };
 
 export type TIssueSubIssuesStateDistributionMap = {
   [issue_id: string]: TSubIssuesStateDistribution;

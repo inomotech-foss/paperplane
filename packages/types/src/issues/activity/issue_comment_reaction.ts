@@ -4,19 +4,9 @@
  * See the LICENSE file for details.
  */
 
-export type TIssueCommentReaction = {
-  id: string;
-  comment: string;
-  actor: string;
-  reaction: string;
-  workspace: string;
-  project: string;
-  created_at: Date;
-  updated_at: Date;
-  created_by: string;
-  updated_by: string;
-  display_name: string;
-};
+import type { ApiSchema } from "@plane/api-types";
+
+export type TIssueCommentReaction = ApiSchema<"CommentReaction">;
 
 export type TIssueCommentReactionMap = {
   [reaction_id: string]: TIssueCommentReaction;

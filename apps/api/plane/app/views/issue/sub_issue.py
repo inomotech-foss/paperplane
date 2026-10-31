@@ -19,6 +19,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
+from plane.app.serializers.request.issue import SubIssuesAddSerializer
+
 # Module imports
 from plane.app.serializers.response.issue import AddedSubWorkItemsSerializer, SubWorkItemsResponse
 from .. import BaseAPIView
@@ -216,7 +218,7 @@ class SubIssuesEndpoint(BaseAPIView):
         )
 
     # Assign multiple sub issues
-    @extend_schema(responses={200: AddedSubWorkItemsSerializer})
+    @extend_schema(request=SubIssuesAddSerializer, responses={200: AddedSubWorkItemsSerializer})
     def post(self, request, slug, project_id, issue_id):
         # SECURITY: bind the parent issue to the URL workspace + project. A bare
         # pk lookup let any project member re-parent issues under a parent in a

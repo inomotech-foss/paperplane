@@ -20,9 +20,14 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.request.intake import (
+    INTAKE_ISSUE_LIST_PARAMETERS,
+    IntakeIssueCreateSerializer,
+    IntakeIssueUpdateSerializer,
+)
 from plane.app.serializers.response.issue import VersionRowSerializer
 from plane.utils.openapi import CURSOR_PARAMETER
-from plane.utils.openapi.pagination import cursor_paginated_response
+from plane.utils.openapi.pagination import cursor_paginated_response, paginated_response
 from plane.utils.openapi.schema import DetailOrList
 from ..base import BaseViewSet
 from plane.app.permissions import allow_permission, ROLE
@@ -177,6 +182,7 @@ class IntakeIssueViewSet(BaseViewSet):
             )
         ).distinct()
 
+    @extend_schema(parameters=INTAKE_ISSUE_LIST_PARAMETERS, responses={200: paginated_response(IntakeIssueSerializer)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def list(self, request, slug, project_id):
         intake = Intake.objects.filter(workspace__slug=slug, project_id=project_id).first()
@@ -228,6 +234,7 @@ class IntakeIssueViewSet(BaseViewSet):
             on_results=lambda intake_issues: IntakeIssueSerializer(intake_issues, many=True).data,
         )
 
+    @extend_schema(request=IntakeIssueCreateSerializer, responses={200: IntakeIssueDetailSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def create(self, request, slug, project_id):
         if not request.data.get("issue", {}).get("name", False):
@@ -333,10 +340,14 @@ class IntakeIssueViewSet(BaseViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(request=IntakeIssueUpdateSerializer, responses={200: IntakeIssueDetailSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN], creator=True, model=Issue)
     def partial_update(self, request, slug, project_id, pk):
         skip_activity = request.data.pop("skip_activity", False)
-        is_description_update = request.data.get("description_html") is not None
+        requested_issue = request.data.get("issue")
+        is_description_update = (
+            isinstance(requested_issue, dict) and requested_issue.get("description_html") is not None
+        )
 
         intake_id = Intake.objects.filter(workspace__slug=slug, project_id=project_id).first()
         intake_issue = IntakeIssue.objects.get(
@@ -503,6 +514,7 @@ class IntakeIssueViewSet(BaseViewSet):
         serializer = IntakeIssueDetailSerializer(intake_issue).data
         return Response(serializer, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: IntakeIssueDetailSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], creator=True, model=Issue)
     def retrieve(self, request, slug, project_id, pk):
         intake_id = Intake.objects.filter(workspace__slug=slug, project_id=project_id).first()
@@ -550,6 +562,7 @@ class IntakeIssueViewSet(BaseViewSet):
         issue = IntakeIssueDetailSerializer(intake_issue).data
         return Response(issue, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={204: None})
     @allow_permission(allowed_roles=[ROLE.ADMIN], creator=True, model=Issue)
     def destroy(self, request, slug, project_id, pk):
         intake_id = Intake.objects.filter(workspace__slug=slug, project_id=project_id).first()

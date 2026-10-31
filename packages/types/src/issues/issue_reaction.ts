@@ -4,15 +4,10 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiSchema } from "@plane/api-types";
 import type { IUserLite } from "../users";
 
-export type TIssueReaction = {
-  actor: string;
-  id: string;
-  issue: string;
-  reaction: string;
-  display_name: string;
-};
+export type TIssueReaction = ApiSchema<"IssueReaction">;
 
 export interface IIssuePublicReaction {
   actor_details: IUserLite;

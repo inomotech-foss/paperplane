@@ -112,7 +112,7 @@ export const DraftIssueBlock = observer(function DraftIssueBlock(props: Props) {
           setIssueToEdit(undefined);
           setMoveToIssue(false);
         }}
-        data={issueToEdit ?? duplicateIssuePayload}
+        data={{ ...(issueToEdit ?? duplicateIssuePayload), type_id: (issueToEdit ?? issue).type_id ?? undefined }}
         onSubmit={async (data) => {
           if (issueToEdit) await updateIssue(workspaceSlug, issueId, data);
         }}

@@ -17,6 +17,7 @@ import { cn } from "@plane/utils";
 // helpers
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";
+import { getReactionUserNames } from "./reaction-users";
 // types
 
 export type TIssueReaction = {
@@ -87,32 +88,19 @@ export const IssueReaction = observer(function IssueReaction(props: TIssueReacti
     [workspaceSlug, projectId, issueId, currentUser, createReaction, removeReaction, userReactions]
   );
 
-  const getReactionUsers = (reaction: string): string[] => {
-    const reactionUsers = (reactionIds?.[reaction] || [])
-      .map((reactionId) => {
-        const reactionDetails = getReactionById(reactionId);
-        return reactionDetails
-          ? getUserDetails(reactionDetails?.actor)?.display_name || reactionDetails?.display_name
-          : null;
-      })
-      .filter((displayName): displayName is string => !!displayName);
-
-    return reactionUsers;
-  };
-
   // Transform reactions data to Propel EmojiReactionType format
-  const reactions: EmojiReactionType[] = useMemo(() => {
-    if (!reactionIds) return [];
-
-    return Object.keys(reactionIds)
-      .filter((reaction) => reactionIds[reaction]?.length > 0)
-      .map((reaction) => ({
-        emoji: stringToEmoji(reaction),
-        count: reactionIds[reaction].length,
-        reacted: userReactions.includes(reaction),
-        users: getReactionUsers(reaction),
-      }));
-  }, [reactionIds, userReactions]);
+  const reactions: EmojiReactionType[] = Object.entries(reactionIds ?? {}).flatMap(([reaction, ids]) =>
+    ids.length > 0
+      ? [
+          {
+            emoji: stringToEmoji(reaction),
+            count: ids.length,
+            reacted: userReactions.includes(reaction),
+            users: getReactionUserNames(ids, getReactionById, (userId) => getUserDetails(userId)?.display_name),
+          },
+        ]
+      : []
+  );
 
   const handleReactionClick = (emoji: string) => {
     if (disabled) return;

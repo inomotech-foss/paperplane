@@ -18,6 +18,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
+from plane.app.serializers.request.issue import IssueRelationCreateSerializer, IssueRelationRemoveSerializer
+
 # Module imports
 from plane.app.serializers.response.issue import WorkItemRelationsSerializer
 from plane.utils.openapi.schema import single
@@ -248,7 +250,7 @@ class IssueRelationViewSet(BaseViewSet):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={201: IssueRelationSerializer(many=True)})
+    @extend_schema(request=IssueRelationCreateSerializer, responses={201: IssueRelationSerializer(many=True)})
     def create(self, request, slug, project_id, issue_id):
         relation_type = request.data.get("relation_type", None)
         if relation_type is None:
@@ -317,7 +319,7 @@ class IssueRelationViewSet(BaseViewSet):
                 status=status.HTTP_201_CREATED,
             )
 
-    @extend_schema(responses={204: OpenApiResponse(description="Removed")})
+    @extend_schema(request=IssueRelationRemoveSerializer, responses={204: OpenApiResponse(description="Removed")})
     def remove_relation(self, request, slug, project_id, issue_id):
         related_issue = request.data.get("related_issue", None)
 

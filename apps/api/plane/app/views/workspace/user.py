@@ -27,6 +27,8 @@ from django.utils import timezone
 
 # Third party modules
 from drf_spectacular.utils import extend_schema
+
+from plane.app.serializers.request.issue import ACTIVITY_PROJECT_PARAMETER, GROUPED_ISSUE_LIST_PARAMETERS
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -170,7 +172,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
             .prefetch_related("assignees", "labels", "issue_module__module")
         )
 
-    @extend_schema(parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: WorkItemListResponse})
+    @extend_schema(parameters=GROUPED_ISSUE_LIST_PARAMETERS, responses={200: WorkItemListResponse})
     def get(self, request, slug, user_id):
         filters = issue_filters(request.query_params, "GET")
 
@@ -435,7 +437,7 @@ class WorkspaceUserActivityEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
 
     @extend_schema(
-        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER],
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER, ACTIVITY_PROJECT_PARAMETER],
         responses={200: paginated_response(IssueActivitySerializer)},
     )
     def get(self, request, slug, user_id):

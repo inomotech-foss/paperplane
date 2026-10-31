@@ -12,6 +12,7 @@ import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import type { IEstimate, IEstimatePoint as IEstimatePointType } from "@plane/types";
 // plane web services
 import estimateService from "@/services/estimate.service";
+import type { TEstimatePointUpdateBody } from "@/services/estimate.service";
 // store
 import type { CoreRootStore } from "@/store/root.store";
 
@@ -31,7 +32,7 @@ export interface IEstimatePoint extends IEstimatePointType {
   updateEstimatePoint: (
     workspaceSlug: string,
     projectId: string,
-    payload: Partial<IEstimatePointType>
+    payload: TEstimatePointUpdateBody
   ) => Promise<IEstimatePointType | undefined>;
 }
 
@@ -44,10 +45,10 @@ export class EstimatePoint implements IEstimatePoint {
   workspace: string | undefined = undefined;
   project: string | undefined = undefined;
   estimate: string | undefined = undefined;
-  created_at: Date | undefined = undefined;
-  updated_at: Date | undefined = undefined;
-  created_by: string | undefined = undefined;
-  updated_by: string | undefined = undefined;
+  created_at: string | undefined = undefined;
+  updated_at: string | undefined = undefined;
+  created_by: string | null | undefined = undefined;
+  updated_by: string | null | undefined = undefined;
   // observables
   error: TErrorCodes | undefined = undefined;
 
@@ -113,22 +114,19 @@ export class EstimatePoint implements IEstimatePoint {
    * @returns { void }
    */
   updateEstimatePointObject = (estimatePoint: Partial<IEstimatePointType>) => {
-    Object.keys(estimatePoint).map((key) => {
-      const estimatePointKey = key as keyof IEstimatePointType;
-      set(this, estimatePointKey, estimatePoint[estimatePointKey]);
-    });
+    Object.entries(estimatePoint).forEach(([key, value]) => set(this, key, value));
   };
 
   // actions
   /**
    * @description updating an estimate point
-   * @param { Partial<IEstimatePointType> } payload
+   * @param { TEstimatePointUpdateBody } payload
    * @returns { IEstimatePointType | undefined }
    */
   updateEstimatePoint = async (
     workspaceSlug: string,
     projectId: string,
-    payload: Partial<IEstimatePointType>
+    payload: TEstimatePointUpdateBody
   ): Promise<IEstimatePointType | undefined> => {
     try {
       if (!this.projectEstimate?.id || !this.id || !payload) return undefined;
@@ -142,10 +140,8 @@ export class EstimatePoint implements IEstimatePoint {
       );
       if (estimatePoint) {
         runInAction(() => {
-          Object.keys(payload).map((key) => {
-            const estimatePointKey = key as keyof IEstimatePointType;
-            set(this, estimatePointKey, estimatePoint[estimatePointKey]);
-          });
+          for (const field of ["key", "value", "description"] as const)
+            if (field in payload) set(this, field, estimatePoint[field]);
         });
       }
 

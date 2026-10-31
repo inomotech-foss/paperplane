@@ -4,57 +4,46 @@
  * See the LICENSE file for details.
  */
 
-// plane types
-import { API_BASE_URL } from "@plane/constants";
-import type { TIssueComment, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
-// services
-import { APIService } from "@/services/api.service";
+import type { ApiRequestBody } from "@plane/api-types";
+import { unwrap } from "@plane/services";
+import type { TIssueComment } from "@plane/types";
+import { apiClient } from "@/services/api-client";
+import { fetchWorkItemHistory, isHistoryComment } from "./work-item-history";
 
-export class IssueCommentService extends APIService {
-  private serviceType: TIssueServiceType;
+export type TIssueCommentWriteBody = ApiRequestBody<
+  "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/",
+  "post"
+>;
 
-  constructor(serviceType: TIssueServiceType = EIssueServiceType.ISSUES) {
-    super(API_BASE_URL);
-    this.serviceType = serviceType;
-  }
+const issuePath = (slug: string, project_id: string, issue_id: string) => ({ path: { slug, project_id, issue_id } });
+const commentPath = (slug: string, project_id: string, issue_id: string, pk: string) => ({
+  path: { slug, project_id, issue_id, pk },
+});
 
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class IssueCommentService {
   async getIssueComments(
     workspaceSlug: string,
     projectId: string,
     issueId: string,
-    params:
-      | {
-          created_at__gt: string;
-        }
-      | object = {}
+    createdAfter?: string
   ): Promise<TIssueComment[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/history/`, {
-      params: {
-        activity_type: "issue-comment",
-        ...params,
-      },
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const entries = await fetchWorkItemHistory(workspaceSlug, projectId, issueId, "issue-comment", createdAfter);
+    return entries.filter(isHistoryComment);
   }
 
   async createIssueComment(
     workspaceSlug: string,
     projectId: string,
     issueId: string,
-    data: Partial<TIssueComment>
+    data: TIssueCommentWriteBody
   ): Promise<TIssueComment> {
-    return this.post(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/comments/`,
-      data
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/", {
+        params: issuePath(workspaceSlug, projectId, issueId),
+        body: data,
+      })
+    );
   }
 
   async patchIssueComment(
@@ -62,16 +51,14 @@ export class IssueCommentService extends APIService {
     projectId: string,
     issueId: string,
     commentId: string,
-    data: Partial<TIssueComment>
+    data: TIssueCommentWriteBody
   ): Promise<TIssueComment> {
-    return this.patch(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/comments/${commentId}/`,
-      data
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/{pk}/", {
+        params: commentPath(workspaceSlug, projectId, issueId, commentId),
+        body: data,
+      })
+    );
   }
 
   async deleteIssueComment(
@@ -80,12 +67,10 @@ export class IssueCommentService extends APIService {
     issueId: string,
     commentId: string
   ): Promise<void> {
-    return this.delete(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/comments/${commentId}/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/{pk}/", {
+        params: commentPath(workspaceSlug, projectId, issueId, commentId),
+      })
+    );
   }
 }

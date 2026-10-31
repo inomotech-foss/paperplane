@@ -289,7 +289,7 @@ export class LabelStore implements ILabelStore {
       data.sort_order = sortOrder;
     }
 
-    return this.updateLabel(workspaceSlug, projectId, draggingLabelId, data);
+    await this.updateLabel(workspaceSlug, projectId, draggingLabelId, data);
   };
 
   /**

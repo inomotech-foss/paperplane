@@ -461,13 +461,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IssueAttachmentRequest'
+              $ref: '#/components/schemas/AttachmentUploadRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IssueAttachmentRequest'
+              $ref: '#/components/schemas/AttachmentUploadRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IssueAttachmentRequest'
+              $ref: '#/components/schemas/AttachmentUploadRequest'
         required: true
       security:
       - sessionAuth: []
@@ -548,17 +548,6 @@ paths:
         required: true
       tags:
       - assets
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedIssueAttachmentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedIssueAttachmentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedIssueAttachmentRequest'
       security:
       - sessionAuth: []
       responses:
@@ -3971,6 +3960,16 @@ paths:
       operationId: workspaces_draft_issues_list
       parameters:
       - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
         name: cursor
         schema:
           type: string
@@ -3981,6 +3980,35 @@ paths:
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
       - in: query
+        name: cycle
+        schema:
+          type: string
+        description: Comma-separated cycle ids. Only work items that match one of
+          them.
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label ids. Only work items that match one of
+          them.
+      - in: query
+        name: mentions
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: module
+        schema:
+          type: string
+        description: Comma-separated module ids. Only work items that match one of
+          them.
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Comma-separated work item ids. Only work items that match one
+          of them.
+      - in: query
         name: per_page
         schema:
           type: integer
@@ -3990,6 +4018,17 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma-separated priorities
+      - in: query
+        name: project
+        schema:
+          type: string
+        description: Comma-separated project ids. Only work items that match one of
+          them.
       - name: search
         required: false
         in: query
@@ -4001,6 +4040,32 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma-separated state ids. Only work items that match one of
+          them.
+      - in: query
+        name: state_group
+        schema:
+          type: string
+        description: Comma-separated state groups
+      - in: query
+        name: subscriber
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: target_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after,2026-02-01;before
       tags:
       - workspaces
       security:
@@ -4022,6 +4087,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftIssueWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DraftIssueWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DraftIssueWriteRequest'
       security:
       - sessionAuth: []
       responses:
@@ -4073,6 +4149,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftIssueWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftIssueWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftIssueWriteRequest'
       security:
       - sessionAuth: []
       responses:
@@ -4116,6 +4203,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftToIssueRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DraftToIssueRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DraftToIssueRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -5352,6 +5451,16 @@ paths:
       operationId: workspaces_projects_archived_issues_list
       parameters:
       - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
         name: cursor
         schema:
           type: string
@@ -5362,6 +5471,91 @@ paths:
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
       - in: query
+        name: cycle
+        schema:
+          type: string
+        description: Comma-separated cycle ids. Only work items that match one of
+          them.
+      - in: query
+        name: filters
+        schema:
+          type: string
+        description: JSON encoded filter expression with nested 'and' / 'or' / 'not'
+          groups. Mutually exclusive with 'pql'.
+        examples:
+          UrgentAndInProgress:
+            value: '{"and":[{"priority":"urgent"},{"state_group__in":["unstarted","started"]}]}'
+            summary: Urgent and in progress
+            description: Leaves are field comparisons with Django style lookups
+      - in: query
+        name: group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group the work items by this field
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label ids. Only work items that match one of
+          them.
+      - in: query
+        name: layout
+        schema:
+          type: string
+        description: The layout the list is for. Ignored by the backend
+      - in: query
+        name: mentions
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: module
+        schema:
+          type: string
+        description: Comma-separated module ids. Only work items that match one of
+          them.
+      - in: query
+        name: order_by
+        schema:
+          type: string
+        description: Field to order results by. Prefix with '-' for descending order
+        examples:
+          CreatedDateDescending:
+            value: -created_at
+            summary: Created date descending
+            description: Most recent items first
+          PriorityAscending:
+            value: priority
+            summary: Priority ascending
+            description: Order by priority (urgent, high, medium, low, none)
+          StateGroup:
+            value: state__group
+            summary: State group
+            description: Order by state group (backlog, unstarted, started, completed,
+              cancelled)
+          AssigneeName:
+            value: assignees__first_name
+            summary: Assignee name
+            description: Order by assignee first name
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Comma-separated work item ids. Only work items that match one
+          of them.
+      - in: query
         name: per_page
         schema:
           type: integer
@@ -5371,17 +5565,82 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma-separated priorities
+      - in: query
+        name: project
+        schema:
+          type: string
+        description: Comma-separated project ids. Only work items that match one of
+          them.
       - in: path
         name: project_id
         schema:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: show_sub_issues
+        schema:
+          type: boolean
+        description: Include archived work items that have a parent. True when omitted
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma-separated state ids. Only work items that match one of
+          them.
+      - in: query
+        name: state_group
+        schema:
+          type: string
+        description: Comma-separated state groups
+      - in: query
+        name: sub_group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group each group by this field. Requires group_by and must differ
+          from it
+      - in: query
+        name: sub_issue
+        schema:
+          type: boolean
+        description: Include work items that have a parent. True when omitted
+      - in: query
+        name: subscriber
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: target_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after,2026-02-01;before
       tags:
       - workspaces
       security:
@@ -5838,6 +6097,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueIdsRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssueIdsRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IssueIdsRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -5864,6 +6135,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkLabelsCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BulkLabelsCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BulkLabelsCreateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -5890,6 +6172,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueIdsRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssueIdsRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IssueIdsRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -5965,13 +6259,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CommentReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/CommentReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CommentReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
         required: true
       security:
       - sessionAuth: []
@@ -6723,6 +7017,12 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: updated_at__gt
+        schema:
+          type: string
+          format: date-time
+        description: Only work items updated after this time
       tags:
       - workspaces
       security:
@@ -6791,13 +7091,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EstimateRequest'
+              $ref: '#/components/schemas/EstimateCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/EstimateRequest'
+              $ref: '#/components/schemas/EstimateCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/EstimateRequest'
+              $ref: '#/components/schemas/EstimateCreateRequest'
         required: true
       security:
       - sessionAuth: []
@@ -6866,13 +7166,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedEstimateRequest'
+              $ref: '#/components/schemas/EstimateUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedEstimateRequest'
+              $ref: '#/components/schemas/EstimateUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedEstimateRequest'
+              $ref: '#/components/schemas/EstimateUpdateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -6932,6 +7233,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstimatePointCreateOneRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EstimatePointCreateOneRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EstimatePointCreateOneRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -6969,6 +7282,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEstimatePointRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEstimatePointRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEstimatePointRequest'
       security:
       - sessionAuth: []
       responses:
@@ -7075,6 +7399,69 @@ paths:
     get:
       operationId: workspaces_projects_inbox_issues_list
       parameters:
+      - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma separated user ids
+      - in: query
+        name: created_at
+        schema:
+          type: string
+        description: Comma separated date filters, such as 2026-01-01;after or 1_weeks;before;fromnow
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma separated user ids
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Pagination cursor, per_page:page:offset
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma separated label ids
+      - in: query
+        name: order_by
+        schema:
+          type: string
+          enum:
+          - -created_at
+          - -issue__created_at
+          - -issue__priority
+          - -issue__sequence_id
+          - -issue__sort_order
+          - -issue__start_date
+          - -issue__state__name
+          - -issue__target_date
+          - -issue__updated_at
+          - -status
+          - -updated_at
+          - created_at
+          - issue__created_at
+          - issue__priority
+          - issue__sequence_id
+          - issue__sort_order
+          - issue__start_date
+          - issue__state__name
+          - issue__target_date
+          - issue__updated_at
+          - status
+          - updated_at
+        description: -issue__created_at when omitted
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: Results per page
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma separated priorities
       - in: path
         name: project_id
         schema:
@@ -7092,6 +7479,21 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma separated state ids
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Comma separated intake statuses, -2 (pending) when omitted
+      - in: query
+        name: updated_at
+        schema:
+          type: string
+        description: Comma separated date filters, such as 2026-01-01;after or 1_weeks;before;fromnow
       tags:
       - workspaces
       security:
@@ -7101,9 +7503,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/IntakeIssue'
+                $ref: '#/components/schemas/PaginatedIntakeIssueList'
           description: ''
     post:
       operationId: workspaces_projects_inbox_issues_create
@@ -7125,21 +7525,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IntakeIssueRequest'
+              $ref: '#/components/schemas/IntakeIssueCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IntakeIssueRequest'
+              $ref: '#/components/schemas/IntakeIssueCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IntakeIssueRequest'
+              $ref: '#/components/schemas/IntakeIssueCreateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
-        '201':
+        '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IntakeIssue'
+                $ref: '#/components/schemas/IntakeIssueDetail'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/inbox-issues/{pk}/:
     get:
@@ -7171,7 +7572,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IntakeIssue'
+                $ref: '#/components/schemas/IntakeIssueDetail'
           description: ''
     patch:
       operationId: workspaces_projects_inbox_issues_partial_update
@@ -7199,13 +7600,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedIntakeIssueRequest'
+              $ref: '#/components/schemas/PatchedIntakeIssueUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedIntakeIssueRequest'
+              $ref: '#/components/schemas/PatchedIntakeIssueUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedIntakeIssueRequest'
+              $ref: '#/components/schemas/PatchedIntakeIssueUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -7213,7 +7614,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IntakeIssue'
+                $ref: '#/components/schemas/IntakeIssueDetail'
           description: ''
     delete:
       operationId: workspaces_projects_inbox_issues_destroy
@@ -7416,6 +7817,69 @@ paths:
     get:
       operationId: workspaces_projects_intake_issues_list
       parameters:
+      - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma separated user ids
+      - in: query
+        name: created_at
+        schema:
+          type: string
+        description: Comma separated date filters, such as 2026-01-01;after or 1_weeks;before;fromnow
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma separated user ids
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Pagination cursor, per_page:page:offset
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma separated label ids
+      - in: query
+        name: order_by
+        schema:
+          type: string
+          enum:
+          - -created_at
+          - -issue__created_at
+          - -issue__priority
+          - -issue__sequence_id
+          - -issue__sort_order
+          - -issue__start_date
+          - -issue__state__name
+          - -issue__target_date
+          - -issue__updated_at
+          - -status
+          - -updated_at
+          - created_at
+          - issue__created_at
+          - issue__priority
+          - issue__sequence_id
+          - issue__sort_order
+          - issue__start_date
+          - issue__state__name
+          - issue__target_date
+          - issue__updated_at
+          - status
+          - updated_at
+        description: -issue__created_at when omitted
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: Results per page
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma separated priorities
       - in: path
         name: project_id
         schema:
@@ -7433,6 +7897,21 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma separated state ids
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Comma separated intake statuses, -2 (pending) when omitted
+      - in: query
+        name: updated_at
+        schema:
+          type: string
+        description: Comma separated date filters, such as 2026-01-01;after or 1_weeks;before;fromnow
       tags:
       - workspaces
       security:
@@ -7442,9 +7921,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/IntakeIssue'
+                $ref: '#/components/schemas/PaginatedIntakeIssueList'
           description: ''
     post:
       operationId: workspaces_projects_intake_issues_create
@@ -7466,21 +7943,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IntakeIssueRequest'
+              $ref: '#/components/schemas/IntakeIssueCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IntakeIssueRequest'
+              $ref: '#/components/schemas/IntakeIssueCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IntakeIssueRequest'
+              $ref: '#/components/schemas/IntakeIssueCreateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
-        '201':
+        '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IntakeIssue'
+                $ref: '#/components/schemas/IntakeIssueDetail'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/intake-issues/{pk}/:
     get:
@@ -7512,7 +7990,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IntakeIssue'
+                $ref: '#/components/schemas/IntakeIssueDetail'
           description: ''
     patch:
       operationId: workspaces_projects_intake_issues_partial_update
@@ -7540,13 +8018,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedIntakeIssueRequest'
+              $ref: '#/components/schemas/PatchedIntakeIssueUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedIntakeIssueRequest'
+              $ref: '#/components/schemas/PatchedIntakeIssueUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedIntakeIssueRequest'
+              $ref: '#/components/schemas/PatchedIntakeIssueUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -7554,7 +8032,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IntakeIssue'
+                $ref: '#/components/schemas/IntakeIssueDetail'
           description: ''
     delete:
       operationId: workspaces_projects_intake_issues_destroy
@@ -8003,6 +8481,11 @@ paths:
     get:
       operationId: workspaces_projects_issue_date_rollups_retrieve
       parameters:
+      - in: query
+        name: issue_ids
+        schema:
+          type: string
+        description: Comma-separated work item ids
       - in: path
         name: project_id
         schema:
@@ -8044,6 +8527,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueDatesUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssueDatesUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IssueDatesUpdateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -8272,6 +8767,12 @@ paths:
     get:
       operationId: workspaces_projects_issue_properties_list
       parameters:
+      - in: query
+        name: issue_type
+        schema:
+          type: string
+        description: A type id lists its properties and the unscoped ones. null lists
+          only the unscoped ones
       - in: path
         name: project_id
         schema:
@@ -8289,6 +8790,14 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: unscoped
+        schema:
+          type: string
+          enum:
+          - 'false'
+          - 'true'
+        description: true lists only the properties without a type
       tags:
       - workspaces
       security:
@@ -8322,13 +8831,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IssuePropertyRequest'
+              $ref: '#/components/schemas/IssuePropertyCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IssuePropertyRequest'
+              $ref: '#/components/schemas/IssuePropertyCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IssuePropertyRequest'
+              $ref: '#/components/schemas/IssuePropertyCreateRequest'
         required: true
       security:
       - sessionAuth: []
@@ -8646,6 +9155,12 @@ paths:
     get:
       operationId: workspaces_projects_issue_property_values_retrieve
       parameters:
+      - in: query
+        name: issue_ids
+        schema:
+          type: string
+        description: Comma separated work item ids, every work item of the project
+          when omitted
       - in: path
         name: project_id
         schema:
@@ -8962,6 +9477,16 @@ paths:
       operationId: workspaces_projects_issues_list
       parameters:
       - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
         name: cursor
         schema:
           type: string
@@ -8972,6 +9497,91 @@ paths:
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
       - in: query
+        name: cycle
+        schema:
+          type: string
+        description: Comma-separated cycle ids. Only work items that match one of
+          them.
+      - in: query
+        name: filters
+        schema:
+          type: string
+        description: JSON encoded filter expression with nested 'and' / 'or' / 'not'
+          groups. Mutually exclusive with 'pql'.
+        examples:
+          UrgentAndInProgress:
+            value: '{"and":[{"priority":"urgent"},{"state_group__in":["unstarted","started"]}]}'
+            summary: Urgent and in progress
+            description: Leaves are field comparisons with Django style lookups
+      - in: query
+        name: group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group the work items by this field
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label ids. Only work items that match one of
+          them.
+      - in: query
+        name: layout
+        schema:
+          type: string
+        description: The layout the list is for. Ignored by the backend
+      - in: query
+        name: mentions
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: module
+        schema:
+          type: string
+        description: Comma-separated module ids. Only work items that match one of
+          them.
+      - in: query
+        name: order_by
+        schema:
+          type: string
+        description: Field to order results by. Prefix with '-' for descending order
+        examples:
+          CreatedDateDescending:
+            value: -created_at
+            summary: Created date descending
+            description: Most recent items first
+          PriorityAscending:
+            value: priority
+            summary: Priority ascending
+            description: Order by priority (urgent, high, medium, low, none)
+          StateGroup:
+            value: state__group
+            summary: State group
+            description: Order by state group (backlog, unstarted, started, completed,
+              cancelled)
+          AssigneeName:
+            value: assignees__first_name
+            summary: Assignee name
+            description: Order by assignee first name
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Comma-separated work item ids. Only work items that match one
+          of them.
+      - in: query
         name: per_page
         schema:
           type: integer
@@ -8981,6 +9591,36 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: pql
+        schema:
+          type: string
+        description: Plane Query Language expression. Human readable alternative to
+          'filters'; the two are mutually exclusive. Names resolve to ids (state =
+          "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches direct
+          children and descendantOf() every work item below one at any depth.
+        examples:
+          UrgentWorkItemsOfTheCaller:
+            value: priority = "urgent" AND assignee = currentUser()
+            summary: Urgent work items of the caller
+            description: Combine conditions with AND, OR, NOT and parentheses
+          PaidInvoicesOfACustomerDueThisYear:
+            value: descendantOf("CUST-1") AND type = "Invoice" AND state = "Paid"
+              AND cf["Due date"] >= "2026-01-01"
+            summary: Paid invoices of a customer due this year
+            description: Walk the hierarchy below a work item and filter by names
+              and custom properties
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma-separated priorities
+      - in: query
+        name: project
+        schema:
+          type: string
+        description: Comma-separated project ids. Only work items that match one of
+          them.
       - in: path
         name: project_id
         schema:
@@ -8992,6 +9632,61 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma-separated state ids. Only work items that match one of
+          them.
+      - in: query
+        name: state_group
+        schema:
+          type: string
+        description: Comma-separated state groups
+      - in: query
+        name: sub_group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group each group by this field. Requires group_by and must differ
+          from it
+      - in: query
+        name: sub_issue
+        schema:
+          type: boolean
+        description: Include work items that have a parent. True when omitted
+      - in: query
+        name: subscriber
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: target_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after,2026-02-01;before
+      - in: query
+        name: updated_at__gt
+        schema:
+          type: string
+          format: date-time
+        description: Only work items updated after this time
       tags:
       - workspaces
       security:
@@ -9045,6 +9740,16 @@ paths:
       operationId: workspaces_projects_issues_detail_retrieve
       parameters:
       - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
         name: cursor
         schema:
           type: string
@@ -9055,6 +9760,94 @@ paths:
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
       - in: query
+        name: cycle
+        schema:
+          type: string
+        description: Comma-separated cycle ids. Only work items that match one of
+          them.
+      - in: query
+        name: expand
+        schema:
+          type: string
+        description: Comma-separated relations to include, such as issue_relation
+          and issue_related
+      - in: query
+        name: fields
+        schema:
+          type: string
+        description: Comma-separated list of fields to include in response
+        examples:
+          BasicFields:
+            value: id,name,description
+            summary: Basic fields
+            description: Include only basic fields
+          WithRelations:
+            value: id,name,assignees,state
+            summary: With relations
+            description: Include fields with relationships
+      - in: query
+        name: filters
+        schema:
+          type: string
+        description: JSON encoded filter expression with nested 'and' / 'or' / 'not'
+          groups. Mutually exclusive with 'pql'.
+        examples:
+          UrgentAndInProgress:
+            value: '{"and":[{"priority":"urgent"},{"state_group__in":["unstarted","started"]}]}'
+            summary: Urgent and in progress
+            description: Leaves are field comparisons with Django style lookups
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label ids. Only work items that match one of
+          them.
+      - in: query
+        name: layout
+        schema:
+          type: string
+        description: The layout the list is for. Ignored by the backend
+      - in: query
+        name: mentions
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: module
+        schema:
+          type: string
+        description: Comma-separated module ids. Only work items that match one of
+          them.
+      - in: query
+        name: order_by
+        schema:
+          type: string
+        description: Field to order results by. Prefix with '-' for descending order
+        examples:
+          CreatedDateDescending:
+            value: -created_at
+            summary: Created date descending
+            description: Most recent items first
+          PriorityAscending:
+            value: priority
+            summary: Priority ascending
+            description: Order by priority (urgent, high, medium, low, none)
+          StateGroup:
+            value: state__group
+            summary: State group
+            description: Order by state group (backlog, unstarted, started, completed,
+              cancelled)
+          AssigneeName:
+            value: assignees__first_name
+            summary: Assignee name
+            description: Order by assignee first name
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Comma-separated work item ids. Only work items that match one
+          of them.
+      - in: query
         name: per_page
         schema:
           type: integer
@@ -9064,6 +9857,17 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma-separated priorities
+      - in: query
+        name: project
+        schema:
+          type: string
+        description: Comma-separated project ids. Only work items that match one of
+          them.
       - in: path
         name: project_id
         schema:
@@ -9075,6 +9879,32 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma-separated state ids. Only work items that match one of
+          them.
+      - in: query
+        name: state_group
+        schema:
+          type: string
+        description: Comma-separated state groups
+      - in: query
+        name: subscriber
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: target_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after,2026-02-01;before
       tags:
       - workspaces
       security:
@@ -9152,13 +9982,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IssueCommentRequest'
+              $ref: '#/components/schemas/IssueCommentWriteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IssueCommentRequest'
+              $ref: '#/components/schemas/IssueCommentWriteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IssueCommentRequest'
+              $ref: '#/components/schemas/IssueCommentWriteRequest'
       security:
       - sessionAuth: []
       responses:
@@ -9286,13 +10116,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedIssueCommentRequest'
+              $ref: '#/components/schemas/PatchedIssueCommentWriteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedIssueCommentRequest'
+              $ref: '#/components/schemas/PatchedIssueCommentWriteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedIssueCommentRequest'
+              $ref: '#/components/schemas/PatchedIssueCommentWriteRequest'
       security:
       - sessionAuth: []
       responses:
@@ -9358,6 +10188,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueEmailReplyRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssueEmailReplyRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IssueEmailReplyRequest'
       security:
       - sessionAuth: []
       responses:
@@ -9421,6 +10262,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueEmailThreadUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueEmailThreadUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedIssueEmailThreadUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -9434,6 +10286,21 @@ paths:
     get:
       operationId: workspaces_projects_issues_history_list
       parameters:
+      - in: query
+        name: activity_type
+        schema:
+          type: string
+          enum:
+          - issue-comment
+          - issue-property
+        description: Only activities or only comments. Both, sorted by created_at,
+          when omitted
+      - in: query
+        name: created_at__gt
+        schema:
+          type: string
+          format: date-time
+        description: Only entries created after this time
       - in: path
         name: issue_id
         schema:
@@ -9897,13 +10764,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IssueRelationRequest'
+              $ref: '#/components/schemas/IssueRelationCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IssueRelationRequest'
+              $ref: '#/components/schemas/IssueRelationCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IssueRelationRequest'
+              $ref: '#/components/schemas/IssueRelationCreateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -10162,6 +11030,14 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: {}
+              description: Values by property id. Replaces the values of the listed
+                properties.
       security:
       - sessionAuth: []
       responses:
@@ -10237,13 +11113,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IssueReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IssueReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IssueReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
         required: true
       security:
       - sessionAuth: []
@@ -10314,13 +11190,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IssueRelationRequest'
+              $ref: '#/components/schemas/IssueRelationRemoveRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IssueRelationRequest'
+              $ref: '#/components/schemas/IssueRelationRemoveRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IssueRelationRequest'
+              $ref: '#/components/schemas/IssueRelationRemoveRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -10380,6 +11257,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubIssuesAddRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubIssuesAddRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubIssuesAddRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -10573,6 +11462,12 @@ paths:
     get:
       operationId: workspaces_projects_issues_retrieve
       parameters:
+      - in: query
+        name: expand
+        schema:
+          type: string
+        description: Comma-separated relations to include, such as issue_relation
+          and issue_related
       - in: path
         name: pk
         schema:
@@ -10599,7 +11494,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IssueDetail'
+                $ref: '#/components/schemas/ExpandedIssueDetail'
           description: ''
     put:
       operationId: workspaces_projects_issues_update
@@ -10670,13 +11565,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedIssueCreateRequest'
+              $ref: '#/components/schemas/PatchedIssueUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedIssueCreateRequest'
+              $ref: '#/components/schemas/PatchedIssueUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedIssueCreateRequest'
+              $ref: '#/components/schemas/PatchedIssueUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -10713,6 +11608,12 @@ paths:
     get:
       operationId: workspaces_projects_issues_archive_retrieve
       parameters:
+      - in: query
+        name: expand
+        schema:
+          type: string
+        description: Comma-separated relations to include, such as issue_relation
+          and issue_related
       - in: path
         name: pk
         schema:
@@ -10739,7 +11640,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IssueDetail'
+                $ref: '#/components/schemas/ExpandedIssueDetail'
           description: ''
     post:
       operationId: workspaces_projects_issues_archive_create
@@ -10803,6 +11704,55 @@ paths:
     get:
       operationId: workspaces_projects_issues_list_retrieve
       parameters:
+      - in: query
+        name: expand
+        schema:
+          type: string
+        description: Comma-separated relations to include, such as issue_relation
+          and issue_related
+      - in: query
+        name: fields
+        schema:
+          type: string
+        description: Comma-separated list of fields to include in response
+        examples:
+          BasicFields:
+            value: id,name,description
+            summary: Basic fields
+            description: Include only basic fields
+          WithRelations:
+            value: id,name,assignees,state
+            summary: With relations
+            description: Include fields with relationships
+      - in: query
+        name: issues
+        schema:
+          type: string
+        description: Comma-separated work item ids, a 400 when missing
+        required: true
+      - in: query
+        name: order_by
+        schema:
+          type: string
+        description: Field to order results by. Prefix with '-' for descending order
+        examples:
+          CreatedDateDescending:
+            value: -created_at
+            summary: Created date descending
+            description: Most recent items first
+          PriorityAscending:
+            value: priority
+            summary: Priority ascending
+            description: Order by priority (urgent, high, medium, low, none)
+          StateGroup:
+            value: state__group
+            summary: State group
+            description: Order by state group (backlog, unstarted, started, completed,
+              cancelled)
+          AssigneeName:
+            value: assignees__first_name
+            summary: Assignee name
+            description: Order by assignee first name
       - in: path
         name: project_id
         schema:
@@ -13590,6 +14540,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceDeskConfigUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceDeskConfigUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceDeskConfigUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -14196,6 +15157,11 @@ paths:
             value: '20:1:0'
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
+      - in: query
+        name: description
+        schema:
+          type: boolean
+        description: Include description_html. False when omitted
       - in: path
         name: project_id
         schema:
@@ -14213,6 +15179,12 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: updated_at__gt
+        schema:
+          type: string
+          format: date-time
+        description: Only work items updated after this time
       tags:
       - workspaces
       security:
@@ -15043,6 +16015,16 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: project
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Only activity in these projects. Repeat the parameter for more
+          than one
+        explode: true
       - in: path
         name: slug
         schema:
@@ -15301,6 +16283,16 @@ paths:
       operationId: workspaces_user_issues_retrieve
       parameters:
       - in: query
+        name: assignees
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: created_by
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
         name: cursor
         schema:
           type: string
@@ -15311,6 +16303,91 @@ paths:
             summary: Next page cursor
             description: 'Cursor format: ''page_size:page_number:offset'''
       - in: query
+        name: cycle
+        schema:
+          type: string
+        description: Comma-separated cycle ids. Only work items that match one of
+          them.
+      - in: query
+        name: filters
+        schema:
+          type: string
+        description: JSON encoded filter expression with nested 'and' / 'or' / 'not'
+          groups. Mutually exclusive with 'pql'.
+        examples:
+          UrgentAndInProgress:
+            value: '{"and":[{"priority":"urgent"},{"state_group__in":["unstarted","started"]}]}'
+            summary: Urgent and in progress
+            description: Leaves are field comparisons with Django style lookups
+      - in: query
+        name: group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group the work items by this field
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label ids. Only work items that match one of
+          them.
+      - in: query
+        name: layout
+        schema:
+          type: string
+        description: The layout the list is for. Ignored by the backend
+      - in: query
+        name: mentions
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: module
+        schema:
+          type: string
+        description: Comma-separated module ids. Only work items that match one of
+          them.
+      - in: query
+        name: order_by
+        schema:
+          type: string
+        description: Field to order results by. Prefix with '-' for descending order
+        examples:
+          CreatedDateDescending:
+            value: -created_at
+            summary: Created date descending
+            description: Most recent items first
+          PriorityAscending:
+            value: priority
+            summary: Priority ascending
+            description: Order by priority (urgent, high, medium, low, none)
+          StateGroup:
+            value: state__group
+            summary: State group
+            description: Order by state group (backlog, unstarted, started, completed,
+              cancelled)
+          AssigneeName:
+            value: assignees__first_name
+            summary: Assignee name
+            description: Order by assignee first name
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Comma-separated work item ids. Only work items that match one
+          of them.
+      - in: query
         name: per_page
         schema:
           type: integer
@@ -15320,11 +16397,71 @@ paths:
             value: 20
           Maximum:
             value: 100
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: Comma-separated priorities
+      - in: query
+        name: project
+        schema:
+          type: string
+        description: Comma-separated project ids. Only work items that match one of
+          them.
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: Comma-separated state ids. Only work items that match one of
+          them.
+      - in: query
+        name: state_group
+        schema:
+          type: string
+        description: Comma-separated state groups
+      - in: query
+        name: sub_group_by
+        schema:
+          type: string
+          enum:
+          - assignees__id
+          - created_by
+          - cycle_id
+          - issue_module__module_id
+          - labels__id
+          - priority
+          - project_id
+          - start_date
+          - state__group
+          - state_id
+          - target_date
+        description: Group each group by this field. Requires group_by and must differ
+          from it
+      - in: query
+        name: sub_issue
+        schema:
+          type: boolean
+        description: Include work items that have a parent. True when omitted
+      - in: query
+        name: subscriber
+        schema:
+          type: string
+        description: Comma-separated user ids. Only work items that match one of them.
+      - in: query
+        name: target_date
+        schema:
+          type: string
+        description: Comma-separated date filters such as 2026-01-01;after,2026-02-01;before
       - in: path
         name: user_id
         schema:
@@ -16148,6 +17285,10 @@ paths:
                           type: string
                         type:
                           type: string
+                          enum:
+                          - uuid
+                          - text
+                          - date
                         lookups:
                           type: array
                           items:
@@ -16194,6 +17335,10 @@ paths:
                           type: string
                         kind:
                           type: string
+                          enum:
+                          - condition
+                          - value
+                          - list
                         arguments:
                           type: integer
                       required:
@@ -16219,6 +17364,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemQueryValidateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WorkItemQueryValidateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WorkItemQueryValidateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -16232,6 +17389,12 @@ paths:
     get:
       operationId: workspaces_work_items___retrieve
       parameters:
+      - in: query
+        name: expand
+        schema:
+          type: string
+        description: Comma-separated relations to include, such as issue_relation
+          and issue_related
       - in: path
         name: issue_identifier
         schema:
@@ -16256,7 +17419,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IssueDetail'
+                $ref: '#/components/schemas/ExpandedIssueDetail'
           description: ''
   /api/workspaces/{slug}/workspace-members/me/:
     get:
@@ -16882,6 +18045,14 @@ components:
       description: |-
         * `0` - Public
         * `1` - Private
+    AccessEe6Enum:
+      enum:
+      - INTERNAL
+      - EXTERNAL
+      type: string
+      description: |-
+        * `INTERNAL` - INTERNAL
+        * `EXTERNAL` - EXTERNAL
     AccessEnum:
       enum:
       - 0
@@ -17627,6 +18798,52 @@ components:
       required:
       - response
       - response_html
+    AttachmentAttributes:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        size:
+          type: number
+          format: double
+          description: In bytes
+      required:
+      - name
+      - size
+    AttachmentAttributesRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          minLength: 1
+        size:
+          type: number
+          format: double
+          description: In bytes
+      required:
+      - name
+      - size
+    AttachmentUploadRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: unnamed when omitted
+        type:
+          type: string
+          minLength: 1
+          description: The MIME type, one the instance accepts
+        size:
+          type: integer
+          description: In bytes, capped at the instance limit
+      required:
+      - type
     Automation:
       type: object
       properties:
@@ -17907,6 +19124,16 @@ components:
     BlankEnum:
       enum:
       - ''
+    BulkLabelRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Migrated when omitted
+        description:
+          type: string
+          description: Migrated Issue when omitted
     BulkLabels:
       type: object
       properties:
@@ -17916,6 +19143,14 @@ components:
             $ref: '#/components/schemas/Label'
       required:
       - labels
+    BulkLabelsCreateRequest:
+      type: object
+      properties:
+        label_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkLabelRequest'
+          description: Labels with a taken name are skipped
     CSRFToken:
       type: object
       properties:
@@ -19925,6 +21160,200 @@ components:
       - updated_by
       - type_id
       - description_html
+    DraftIssueWriteRequest:
+      type: object
+      properties:
+        state_id:
+          type: string
+          format: uuid
+          nullable: true
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        type_id:
+          type: string
+          format: uuid
+          nullable: true
+        label_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        project_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: On update, the draft's own project or a 400
+        cycle_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: A cycle of the project
+        module_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Modules of the project
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        name:
+          type: string
+          nullable: true
+          title: Issue Name
+          maxLength: 255
+        description_json: {}
+        description_html:
+          type: string
+        description_stripped:
+          type: string
+          nullable: true
+        priority:
+          allOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          title: Issue Priority
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          nullable: true
+        sort_order:
+          type: number
+          format: double
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        state:
+          type: string
+          format: uuid
+          nullable: true
+        estimate_point:
+          type: string
+          format: uuid
+          nullable: true
+        type:
+          type: string
+          format: uuid
+          nullable: true
+    DraftToIssueRequest:
+      type: object
+      properties:
+        state_id:
+          type: string
+          format: uuid
+          nullable: true
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        type_id:
+          type: string
+          format: uuid
+        label_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        cycle_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: A cycle of the draft's project
+        module_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Modules of the draft's project
+        point:
+          type: integer
+          maximum: 12
+          minimum: 0
+          nullable: true
+        name:
+          type: string
+          minLength: 1
+          title: Issue Name
+          maxLength: 255
+        description_json: {}
+        description_html:
+          type: string
+        description_stripped:
+          type: string
+          nullable: true
+        priority:
+          allOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          title: Issue Priority
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          nullable: true
+        sort_order:
+          type: number
+          format: double
+        is_draft:
+          type: boolean
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        state:
+          type: string
+          format: uuid
+          nullable: true
+        estimate_point:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - name
+      - type_id
     DraftWorkItemSnapshot:
       type: object
       properties:
@@ -20035,6 +21464,27 @@ components:
           type: string
           format: uuid
       required:
+      - asset_id
+    EmailAttachmentRecord:
+      type: object
+      properties:
+        name:
+          type: string
+        content_type:
+          type: string
+        size:
+          type: integer
+        asset_id:
+          type: string
+          format: uuid
+          nullable: true
+        skipped:
+          type: string
+          description: Why the attachment was not stored
+      required:
+      - name
+      - content_type
+      - size
       - asset_id
     EmailCheck:
       type: object
@@ -20228,6 +21678,37 @@ components:
       - priority
       - state_id
       - type_id
+    EstimateCreateRequest:
+      type: object
+      properties:
+        estimate:
+          $ref: '#/components/schemas/EstimateDetailsRequest'
+        estimate_points:
+          type: array
+          items:
+            $ref: '#/components/schemas/EstimatePointCreateRequest'
+      required:
+      - estimate
+      - estimate_points
+    EstimateDetailsRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: A random name when omitted
+        type:
+          allOf:
+          - $ref: '#/components/schemas/EstimateTypeEnum'
+          description: |-
+            categories when omitted
+
+            * `categories` - Categories
+            * `points` - Points
+            * `time` - Time
+        last_used:
+          type: boolean
+          description: False when omitted
     EstimateDistribution:
       type: object
       properties:
@@ -20311,6 +21792,49 @@ components:
       - project
       - workspace
       - estimate
+    EstimatePointCreateOneRequest:
+      type: object
+      properties:
+        key:
+          type: integer
+          minimum: 1
+          description: A 400 when missing or 0
+        value:
+          type: string
+          minLength: 1
+          description: A 400 when missing or blank
+          maxLength: 255
+      required:
+      - key
+      - value
+    EstimatePointCreateRequest:
+      type: object
+      properties:
+        key:
+          type: integer
+          minimum: 0
+          description: 0 when omitted
+        value:
+          type: string
+          maxLength: 20
+        description:
+          type: string
+    EstimatePointUpdateRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Points of other estimates are ignored
+        key:
+          type: integer
+          minimum: 0
+        value:
+          type: string
+          minLength: 1
+          maxLength: 20
+      required:
+      - id
     EstimateRead:
       type: object
       properties:
@@ -20344,7 +21868,7 @@ components:
           readOnly: true
           title: Estimate Description
         type:
-          $ref: '#/components/schemas/TypeEnum'
+          $ref: '#/components/schemas/EstimateTypeEnum'
         last_used:
           type: boolean
         created_by:
@@ -20376,35 +21900,206 @@ components:
       - updated_by
       - project
       - workspace
-    EstimateRequest:
+    EstimateRenameRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
         name:
           type: string
           minLength: 1
-          maxLength: 255
-        description:
-          type: string
-          title: Estimate Description
         type:
-          $ref: '#/components/schemas/TypeEnum'
-        last_used:
-          type: boolean
+          $ref: '#/components/schemas/EstimateTypeEnum'
+    EstimateTypeEnum:
+      enum:
+      - categories
+      - points
+      - time
+      type: string
+      description: |-
+        * `categories` - Categories
+        * `points` - Points
+        * `time` - Time
+    EstimateUpdateRequest:
+      type: object
+      properties:
+        estimate:
+          $ref: '#/components/schemas/EstimateRenameRequest'
+        estimate_points:
+          type: array
+          items:
+            $ref: '#/components/schemas/EstimatePointUpdateRequest'
+          description: A 400 when empty
+      required:
+      - estimate_points
+    ExpandedIssueDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+          title: Issue Name
+        state_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        sort_order:
+          type: number
+          format: double
+          readOnly: true
+        completed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        estimate_point:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        priority:
+          allOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          readOnly: true
+          title: Issue Priority
+        start_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        sequence_id:
+          type: integer
+          readOnly: true
+          title: Issue Sequence ID
+        project_id:
+          type: string
+          format: uuid
+          readOnly: true
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        type_id:
+          type: string
+          format: uuid
+          readOnly: true
+        cycle_id:
+          type: string
+          readOnly: true
+          nullable: true
+        module_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        label_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        sub_issues_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
+        attachment_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        link_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        is_draft:
+          type: boolean
+          readOnly: true
+        archived_at:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        description_html:
+          type: string
+        is_subscribed:
+          type: boolean
+          readOnly: true
+        is_intake:
+          type: boolean
+          readOnly: true
+        parent:
+          allOf:
+          - $ref: '#/components/schemas/IssueLite'
+          nullable: true
+          description: Present with expand=parent
+        issue_reactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueReactionLite'
+          description: Present with expand=issue_reactions
+        issue_link:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueLinkLite'
+          description: Present with expand=issue_link
+        issue_attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueAttachmentLite'
+          description: Present with expand=issue_attachments
       required:
+      - id
       - name
+      - state_id
+      - sort_order
+      - completed_at
+      - estimate_point
+      - priority
+      - start_date
+      - target_date
+      - sequence_id
+      - project_id
+      - parent_id
+      - type_id
+      - created_at
+      - updated_at
+      - created_by
+      - updated_by
+      - is_draft
+      - archived_at
+      - description_html
     ExpandedRelation:
       type: object
       properties:
@@ -20969,8 +22664,8 @@ components:
           nullable: true
         source:
           type: string
+          readOnly: true
           nullable: true
-          maxLength: 255
         issue:
           allOf:
           - $ref: '#/components/schemas/IssueIntake'
@@ -20978,6 +22673,7 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
       required:
       - id
@@ -20987,6 +22683,56 @@ components:
       - source
       - issue
       - created_by
+    IntakeIssueCreateRequest:
+      type: object
+      properties:
+        issue:
+          allOf:
+          - $ref: '#/components/schemas/IssueCreateRequest'
+          description: The work item. Its state is always the triage state
+      required:
+      - issue
+    IntakeIssueDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/IntakeWorkItemStatusEnum'
+          minimum: -2147483648
+          maximum: 2147483647
+        duplicate_to:
+          type: string
+          format: uuid
+          nullable: true
+        snoozed_till:
+          type: string
+          format: date-time
+          nullable: true
+        duplicate_issue_detail:
+          allOf:
+          - $ref: '#/components/schemas/IssueIntake'
+          readOnly: true
+          nullable: true
+        source:
+          type: string
+          nullable: true
+          maxLength: 255
+        issue:
+          allOf:
+          - $ref: '#/components/schemas/IssueDetail'
+          readOnly: true
+      required:
+      - id
+      - status
+      - duplicate_to
+      - snoozed_till
+      - duplicate_issue_detail
+      - source
+      - issue
     IntakeIssueRequest:
       type: object
       properties:
@@ -21002,14 +22748,6 @@ components:
         snoozed_till:
           type: string
           format: date-time
-          nullable: true
-        source:
-          type: string
-          nullable: true
-          maxLength: 255
-        created_by:
-          type: string
-          format: uuid
           nullable: true
     IntakeRequest:
       type: object
@@ -21398,6 +23136,8 @@ components:
           type: string
           readOnly: true
           nullable: true
+        attributes:
+          $ref: '#/components/schemas/AttachmentAttributes'
         created_at:
           type: string
           format: date-time
@@ -21411,7 +23151,6 @@ components:
           type: string
           format: date-time
           nullable: true
-        attributes: {}
         asset:
           type: string
           format: uri
@@ -21491,10 +23230,10 @@ components:
       required:
       - id
       - asset_url
+      - attributes
       - created_at
       - updated_at
       - deleted_at
-      - attributes
       - asset
       - entity_type
       - entity_identifier
@@ -21515,14 +23254,57 @@ components:
       - comment
       - page
       - page_comment
+    IssueAttachmentLite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        asset:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        attributes:
+          readOnly: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        updated_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          title: Last Modified By
+        asset_url:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - id
+      - asset
+      - attributes
+      - created_by
+      - updated_at
+      - updated_by
+      - asset_url
     IssueAttachmentRequest:
       type: object
       properties:
+        attributes:
+          $ref: '#/components/schemas/AttachmentAttributesRequest'
         deleted_at:
           type: string
           format: date-time
           nullable: true
-        attributes: {}
         asset:
           type: string
           format: binary
@@ -21665,7 +23447,7 @@ components:
             maxLength: 200
           maxItems: 10
         access:
-          $ref: '#/components/schemas/IssueCommentAccessEnum'
+          $ref: '#/components/schemas/AccessEe6Enum'
         external_source:
           type: string
           nullable: true
@@ -21739,14 +23521,6 @@ components:
       - issue
       - actor
       - parent
-    IssueCommentAccessEnum:
-      enum:
-      - INTERNAL
-      - EXTERNAL
-      type: string
-      description: |-
-        * `INTERNAL` - INTERNAL
-        * `EXTERNAL` - EXTERNAL
     IssueCommentRequest:
       type: object
       properties:
@@ -21769,7 +23543,7 @@ components:
             maxLength: 200
           maxItems: 10
         access:
-          $ref: '#/components/schemas/IssueCommentAccessEnum'
+          $ref: '#/components/schemas/AccessEe6Enum'
         external_source:
           type: string
           nullable: true
@@ -21794,6 +23568,21 @@ components:
           type: string
           format: uuid
           nullable: true
+    IssueCommentWriteRequest:
+      type: object
+      properties:
+        comment_html:
+          type: string
+        comment_json:
+          description: The editor document of comment_html
+        access:
+          allOf:
+          - $ref: '#/components/schemas/AccessEe6Enum'
+          description: |-
+            INTERNAL when omitted
+
+            * `INTERNAL` - INTERNAL
+            * `EXTERNAL` - EXTERNAL
     IssueCreate:
       type: object
       properties:
@@ -22058,6 +23847,31 @@ components:
       required:
       - name
       - type_id
+    IssueDateUpdateRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - id
+    IssueDatesUpdateRequest:
+      type: object
+      properties:
+        updates:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueDateUpdateRequest'
+      required:
+      - updates
     IssueDescriptionVersionDetail:
       type: object
       properties:
@@ -22300,8 +24114,16 @@ components:
           type: string
           readOnly: true
         to_emails:
+          type: array
+          items:
+            type: string
+            format: email
           readOnly: true
         cc_emails:
+          type: array
+          items:
+            type: string
+            format: email
           readOnly: true
         subject:
           type: string
@@ -22315,6 +24137,9 @@ components:
           readOnly: true
           nullable: true
         attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAttachmentRecord'
           readOnly: true
         error:
           type: string
@@ -22350,6 +24175,19 @@ components:
         * `PENDING` - Pending
         * `SENT` - Sent
         * `FAILED` - Failed
+    IssueEmailReplyRequest:
+      type: object
+      properties:
+        comment_html:
+          type: string
+          minLength: 1
+          description: Required unless attachments are sent
+        attachment_asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Uploaded attachments of the work item to send with the reply
     IssueEmailThread:
       type: object
       properties:
@@ -22381,8 +24219,16 @@ components:
         subject:
           type: string
           readOnly: true
-        to_emails: {}
-        cc_emails: {}
+        to_emails:
+          type: array
+          items:
+            type: string
+            format: email
+        cc_emails:
+          type: array
+          items:
+            type: string
+            format: email
         messages:
           type: array
           items:
@@ -22509,6 +24355,16 @@ components:
           type: boolean
       required:
       - name
+    IssueIdsRequest:
+      type: object
+      properties:
+        issue_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - issue_ids
     IssueIntake:
       type: object
       properties:
@@ -22632,6 +24488,43 @@ components:
       - project
       - workspace
       - issue
+    IssueLinkLite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        issue_id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          nullable: true
+        url:
+          type: string
+          readOnly: true
+        metadata:
+          readOnly: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - issue_id
+      - title
+      - url
+      - metadata
+      - created_by_id
+      - created_at
     IssueLinkRequest:
       type: object
       properties:
@@ -22649,6 +24542,25 @@ components:
         metadata: {}
       required:
       - url
+    IssueLite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sequence_id:
+          type: integer
+          readOnly: true
+          title: Issue Sequence ID
+        project_id:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - id
+      - sequence_id
+      - project_id
     IssueProperty:
       type: object
       properties:
@@ -22688,7 +24600,7 @@ components:
         relation_type:
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/RelationTypeEnum'
+          - $ref: '#/components/schemas/IssuePropertyRelationTypeEnum'
           - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         is_active:
@@ -22759,6 +24671,59 @@ components:
       - project
       - workspace
       - issue_type
+    IssuePropertyCreateRequest:
+      type: object
+      properties:
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssuePropertyOptionRequest'
+          description: Only for option properties
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        property_type:
+          $ref: '#/components/schemas/PropertyTypeEnum'
+        is_multi:
+          type: boolean
+        relation_type:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/IssuePropertyRelationTypeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        is_active:
+          type: boolean
+        is_required:
+          type: boolean
+        sort_order:
+          type: number
+          format: double
+        settings: {}
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        derivation:
+          $ref: '#/components/schemas/DerivationEnum'
+        derivation_config: {}
+        issue_type:
+          type: string
+          format: uuid
+          nullable: true
+          description: The work item type this property is scoped to. NULL means the
+            property applies to every work item type in the project.
+      required:
+      - name
     IssuePropertyOption:
       type: object
       properties:
@@ -22856,54 +24821,14 @@ components:
           maxLength: 255
       required:
       - name
-    IssuePropertyRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 255
-        display_name:
-          type: string
-          minLength: 1
-          maxLength: 255
-        property_type:
-          $ref: '#/components/schemas/PropertyTypeEnum'
-        is_multi:
-          type: boolean
-        relation_type:
-          nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/RelationTypeEnum'
-          - $ref: '#/components/schemas/BlankEnum'
-          - $ref: '#/components/schemas/NullEnum'
-        is_active:
-          type: boolean
-        is_required:
-          type: boolean
-        sort_order:
-          type: number
-          format: double
-        settings: {}
-        external_source:
-          type: string
-          nullable: true
-          maxLength: 255
-        external_id:
-          type: string
-          nullable: true
-          maxLength: 255
-        derivation:
-          $ref: '#/components/schemas/DerivationEnum'
-        derivation_config: {}
-        issue_type:
-          type: string
-          format: uuid
-          nullable: true
-          description: The work item type this property is scoped to. NULL means the
-            property applies to every work item type in the project.
-      required:
-      - name
+    IssuePropertyRelationTypeEnum:
+      enum:
+      - USER
+      - ISSUE
+      type: string
+      description: |-
+        * `USER` - User
+        * `ISSUE` - Work item
     IssueReaction:
       type: object
       properties:
@@ -22969,6 +24894,30 @@ components:
       - workspace
       - actor
       - issue
+    IssueReactionLite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        actor:
+          type: string
+          format: uuid
+        issue:
+          type: string
+          format: uuid
+        reaction:
+          type: string
+        display_name:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - actor
+      - issue
+      - reaction
+      - display_name
     IssueReactionRequest:
       type: object
       properties:
@@ -23094,15 +25043,45 @@ components:
       - created_at
       - updated_at
       - updated_by
-    IssueRelationRequest:
+    IssueRelationCreateRequest:
       type: object
       properties:
-        assignee_ids:
+        relation_type:
+          $ref: '#/components/schemas/WorkItemRelationTypeEnum'
+        issues:
           type: array
           items:
             type: string
             format: uuid
-          writeOnly: true
+          description: Work items of the same workspace
+      required:
+      - issues
+      - relation_type
+    IssueRelationRemoveRequest:
+      type: object
+      properties:
+        related_issue:
+          type: string
+          format: uuid
+        relation_type:
+          allOf:
+          - $ref: '#/components/schemas/WorkItemRelationTypeEnum'
+          description: |-
+            Named in the activity of both items
+
+            * `blocking` - blocking
+            * `blocked_by` - blocked_by
+            * `duplicate` - duplicate
+            * `relates_to` - relates_to
+            * `start_before` - start_before
+            * `start_after` - start_after
+            * `finish_before` - finish_before
+            * `finish_after` - finish_after
+            * `implemented_by` - implemented_by
+            * `implements` - implements
+      required:
+      - related_issue
+      - relation_type
     IssueSequence:
       type: object
       properties:
@@ -27105,6 +29084,52 @@ components:
       - total_pages
       - total_results
       - extra_stats
+    PaginatedIntakeIssueList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntakeIssue'
+        grouped_by:
+          type: string
+          nullable: true
+          maxLength: 0
+        sub_grouped_by:
+          type: string
+          nullable: true
+          maxLength: 0
+        total_count:
+          type: integer
+        next_cursor:
+          type: string
+        prev_cursor:
+          type: string
+        next_page_results:
+          type: boolean
+        prev_page_results:
+          type: boolean
+        count:
+          type: integer
+        total_pages:
+          type: integer
+        total_results:
+          type: integer
+        extra_stats:
+          nullable: true
+      required:
+      - results
+      - grouped_by
+      - sub_grouped_by
+      - total_count
+      - next_cursor
+      - prev_cursor
+      - next_page_results
+      - prev_page_results
+      - count
+      - total_pages
+      - total_results
+      - extra_stats
     PaginatedIssueActivityList:
       type: object
       properties:
@@ -27606,33 +29631,124 @@ components:
           type: string
           format: uuid
           nullable: true
-    PatchedEstimateRequest:
+    PatchedDraftIssueWriteRequest:
       type: object
       properties:
+        state_id:
+          type: string
+          format: uuid
+          nullable: true
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        type_id:
+          type: string
+          format: uuid
+          nullable: true
+        label_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        project_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: On update, the draft's own project or a 400
+        cycle_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: A cycle of the project
+        module_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Modules of the project
         deleted_at:
           type: string
           format: date-time
           nullable: true
         name:
           type: string
-          minLength: 1
+          nullable: true
+          title: Issue Name
           maxLength: 255
+        description_json: {}
+        description_html:
+          type: string
+        description_stripped:
+          type: string
+          nullable: true
+        priority:
+          allOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          title: Issue Priority
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          nullable: true
+        sort_order:
+          type: number
+          format: double
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        state:
+          type: string
+          format: uuid
+          nullable: true
+        estimate_point:
+          type: string
+          format: uuid
+          nullable: true
+        type:
+          type: string
+          format: uuid
+          nullable: true
+    PatchedEstimatePointRequest:
+      type: object
+      properties:
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        key:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
         description:
           type: string
-          title: Estimate Description
-        type:
-          $ref: '#/components/schemas/TypeEnum'
-        last_used:
-          type: boolean
-        created_by:
+        value:
           type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
+          minLength: 1
+          maxLength: 255
     PatchedIntakeIssueRequest:
       type: object
       properties:
@@ -27649,14 +29765,39 @@ components:
           type: string
           format: date-time
           nullable: true
-        source:
-          type: string
-          nullable: true
-          maxLength: 255
-        created_by:
+    PatchedIntakeIssueUpdateRequest:
+      type: object
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/IntakeWorkItemStatusEnum'
+          description: |-
+            Admins only
+
+            * `-2` - Pending
+            * `-1` - Rejected
+            * `0` - Snoozed
+            * `1` - Accepted
+            * `2` - Duplicate
+        duplicate_to:
           type: string
           format: uuid
           nullable: true
+          description: Admins only
+        snoozed_till:
+          type: string
+          nullable: true
+          minLength: 1
+          description: Admins only. A YYYY-MM-DD day is read as the start of that
+            day in the project timezone
+        issue:
+          allOf:
+          - $ref: '#/components/schemas/PatchedIssueCreateRequest'
+          description: Guests may change only the name and the description
+        skip_activity:
+          type: boolean
+          description: With description_html, records no activity for a description
+            migration
     PatchedIntakeRequest:
       type: object
       properties:
@@ -27686,64 +29827,6 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-    PatchedIssueAttachmentRequest:
-      type: object
-      properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
-        attributes: {}
-        asset:
-          type: string
-          format: binary
-        entity_type:
-          type: string
-          nullable: true
-          maxLength: 255
-        entity_identifier:
-          type: string
-          nullable: true
-          maxLength: 255
-        is_deleted:
-          type: boolean
-        is_archived:
-          type: boolean
-        external_id:
-          type: string
-          nullable: true
-          maxLength: 255
-        external_source:
-          type: string
-          nullable: true
-          maxLength: 255
-        size:
-          type: number
-          format: double
-        is_uploaded:
-          type: boolean
-        storage_metadata:
-          nullable: true
-        user:
-          type: string
-          format: uuid
-          nullable: true
-        draft_issue:
-          type: string
-          format: uuid
-          nullable: true
-        comment:
-          type: string
-          format: uuid
-          nullable: true
-        page:
-          type: string
-          format: uuid
-          nullable: true
-        page_comment:
-          type: string
-          format: uuid
-          nullable: true
     PatchedIssueCommentRequest:
       type: object
       properties:
@@ -27766,7 +29849,7 @@ components:
             maxLength: 200
           maxItems: 10
         access:
-          $ref: '#/components/schemas/IssueCommentAccessEnum'
+          $ref: '#/components/schemas/AccessEe6Enum'
         external_source:
           type: string
           nullable: true
@@ -27791,6 +29874,21 @@ components:
           type: string
           format: uuid
           nullable: true
+    PatchedIssueCommentWriteRequest:
+      type: object
+      properties:
+        comment_html:
+          type: string
+        comment_json:
+          description: The editor document of comment_html
+        access:
+          allOf:
+          - $ref: '#/components/schemas/AccessEe6Enum'
+          description: |-
+            INTERNAL when omitted
+
+            * `INTERNAL` - INTERNAL
+            * `EXTERNAL` - EXTERNAL
     PatchedIssueCreateRequest:
       type: object
       properties:
@@ -27870,6 +29968,21 @@ components:
           type: string
           format: uuid
           nullable: true
+    PatchedIssueEmailThreadUpdateRequest:
+      type: object
+      properties:
+        to_emails:
+          type: array
+          items:
+            type: string
+            format: email
+            minLength: 1
+        cc_emails:
+          type: array
+          items:
+            type: string
+            format: email
+            minLength: 1
     PatchedIssueLinkRequest:
       type: object
       properties:
@@ -27923,7 +30036,7 @@ components:
         relation_type:
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/RelationTypeEnum'
+          - $ref: '#/components/schemas/IssuePropertyRelationTypeEnum'
           - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         is_active:
@@ -27975,6 +30088,89 @@ components:
           type: string
           nullable: true
           maxLength: 255
+    PatchedIssueUpdateRequest:
+      type: object
+      properties:
+        state_id:
+          type: string
+          format: uuid
+          nullable: true
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        type_id:
+          type: string
+          format: uuid
+        label_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        skip_activity:
+          type: boolean
+          writeOnly: true
+          description: With description_html, store the change without an activity
+        point:
+          type: integer
+          maximum: 12
+          minimum: 0
+          nullable: true
+        name:
+          type: string
+          minLength: 1
+          title: Issue Name
+          maxLength: 255
+        description_json: {}
+        description_html:
+          type: string
+        description_stripped:
+          type: string
+          nullable: true
+        priority:
+          allOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          title: Issue Priority
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          nullable: true
+        sort_order:
+          type: number
+          format: double
+        is_draft:
+          type: boolean
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        state:
+          type: string
+          format: uuid
+          nullable: true
+        estimate_point:
+          type: string
+          format: uuid
+          nullable: true
     PatchedIssueViewRequest:
       type: object
       properties:
@@ -30834,6 +33030,15 @@ components:
           nullable: true
       required:
       - valid
+    ReactionCreateRequest:
+      type: object
+      properties:
+        reaction:
+          type: string
+          minLength: 1
+          description: The emoji code point, such as 128077
+      required:
+      - reaction
     RecentVisitEntity:
       oneOf:
       - $ref: '#/components/schemas/IssueRecentVisit'
@@ -30906,14 +33111,6 @@ components:
       - created_by
       - updated_by
       - relation_type
-    RelationTypeEnum:
-      enum:
-      - USER
-      - ISSUE
-      type: string
-      description: |-
-        * `USER` - User
-        * `ISSUE` - Work item
     RemoveTypeEnum:
       enum:
       - unlink
@@ -31105,7 +33302,11 @@ components:
           nullable: true
         notify_mode:
           $ref: '#/components/schemas/NotifyModeEnum'
-        notify_user_ids: {}
+        notify_user_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
         last_synced_at:
           type: string
           format: date-time
@@ -31132,6 +33333,42 @@ components:
       - last_synced_at
       - created_at
       - updated_at
+    ServiceDeskConfigUpdateRequest:
+      type: object
+      properties:
+        mailbox_email:
+          description: Empty when omitted. Required to enable the service desk
+          oneOf:
+          - type: string
+            format: email
+          - type: string
+            maxLength: 0
+        is_enabled:
+          type: boolean
+          description: False when omitted
+        issue_type_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: The type of the work items created from mail. Required to enable.
+            Kept when omitted
+        notify_mode:
+          allOf:
+          - $ref: '#/components/schemas/NotifyModeEnum'
+          description: |-
+            Kept when omitted, NONE on create
+
+            * `NONE` - None
+            * `ADMINS` - Admins
+            * `MEMBERS` - Members
+            * `CUSTOM` - Custom
+        notify_user_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: With notify_mode CUSTOM. Ids that are not active project members
+            are dropped
     SlugAvailability:
       type: object
       properties:
@@ -31466,6 +33703,16 @@ components:
       - total_pages
       - total_results
       - extra_stats
+    SubIssuesAddRequest:
+      type: object
+      properties:
+        sub_issue_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - sub_issue_ids
     SubWorkItem:
       type: object
       properties:
@@ -32597,14 +34844,6 @@ components:
         * `event` - Event
         * `schedule` - Schedule
         * `manual` - Manual
-    TypeEnum:
-      enum:
-      - categories
-      - points
-      type: string
-      description: |-
-        * `categories` - Categories
-        * `points` - Points
     UnpublishedDeployBoard:
       type: object
       properties:
@@ -34960,6 +37199,43 @@ components:
       required:
       - sequence_id
       - project_identifier
+    WorkItemQueryValidateRequest:
+      type: object
+      properties:
+        pql:
+          type: string
+          description: valid is false when blank
+        project_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Resolves project-scoped names
+      required:
+      - pql
+    WorkItemRelationTypeEnum:
+      enum:
+      - blocking
+      - blocked_by
+      - duplicate
+      - relates_to
+      - start_before
+      - start_after
+      - finish_before
+      - finish_after
+      - implemented_by
+      - implements
+      type: string
+      description: |-
+        * `blocking` - blocking
+        * `blocked_by` - blocked_by
+        * `duplicate` - duplicate
+        * `relates_to` - relates_to
+        * `start_before` - start_before
+        * `start_after` - start_after
+        * `finish_before` - finish_before
+        * `finish_after` - finish_after
+        * `implemented_by` - implemented_by
+        * `implements` - implements
     WorkItemRelations:
       type: object
       properties:
@@ -35747,7 +38023,7 @@ components:
           readOnly: true
           title: Estimate Description
         type:
-          $ref: '#/components/schemas/TypeEnum'
+          $ref: '#/components/schemas/EstimateTypeEnum'
         last_used:
           type: boolean
         created_by:

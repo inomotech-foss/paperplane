@@ -4,40 +4,17 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
-import type { TIssueActivity, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
-import { APIService } from "@/services/api.service";
-// types
-// helper
+import type { TIssueActivity } from "@plane/types";
+import { fetchWorkItemHistory, isHistoryActivity } from "./work-item-history";
 
-export class IssueActivityService extends APIService {
-  private serviceType: TIssueServiceType;
-
-  constructor(serviceType: TIssueServiceType = EIssueServiceType.ISSUES) {
-    super(API_BASE_URL);
-    this.serviceType = serviceType;
-  }
-
+export class IssueActivityService {
   async getIssueActivities(
     workspaceSlug: string,
     projectId: string,
     issueId: string,
-    params:
-      | {
-          created_at__gt: string;
-        }
-      | object = {}
+    createdAfter?: string
   ): Promise<TIssueActivity[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/history/`, {
-      params: {
-        activity_type: "issue-property",
-        ...params,
-      },
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const entries = await fetchWorkItemHistory(workspaceSlug, projectId, issueId, "issue-property", createdAfter);
+    return entries.filter(isHistoryActivity);
   }
 }

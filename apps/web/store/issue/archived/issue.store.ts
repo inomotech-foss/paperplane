@@ -6,7 +6,7 @@
 
 import { action, makeObservable, runInAction } from "mobx";
 // base class
-import type { TLoader, IssuePaginationOptions, TIssuesResponse, ViewFlags, TBulkOperationsPayload } from "@plane/types";
+import type { TLoader, IssuePaginationOptions, TIssuesResponse, ViewFlags } from "@plane/types";
 // services
 // types
 import type { IBaseIssuesStore } from "../helpers/base-issues.store";
@@ -38,7 +38,6 @@ export interface IArchivedIssues extends IBaseIssuesStore {
 
   restoreIssue: (workspaceSlug: string, projectId: string, issueId: string) => Promise<void>;
   removeBulkIssues: (workspaceSlug: string, projectId: string, issueIds: string[]) => Promise<void>;
-  bulkUpdateProperties: (workspaceSlug: string, projectId: string, data: TBulkOperationsPayload) => Promise<void>;
 
   updateIssue: undefined;
   archiveIssue: undefined;

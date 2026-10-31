@@ -13,7 +13,6 @@ import { EDraftIssuePaginationType, EIssueFilterType } from "@plane/constants";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
-  TIssueKanbanFilters,
   IIssueFilters,
   TIssueParams,
   IssuePaginationOptions,
@@ -26,7 +25,11 @@ import { handleIssueQueryParamsByLayout, getDisplayFilterCorrections } from "@pl
 import { IssueFiltersService } from "@/services/issue_filter.service";
 // helpers
 import type { IBaseIssueFilterStore } from "../helpers/issue-filter-helper.store";
-import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
+import {
+  IssueFilterHelperStore,
+  toDisplayFilterChanges,
+  toDisplayPropertyChanges,
+} from "../helpers/issue-filter-helper.store";
 // types
 import type { IIssueRootStore } from "../root.store";
 import type { IWorkspaceDraftIssues } from "./issue.store";
@@ -205,14 +208,14 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
 
       const _filters = {
         richFilters: this.filters[workspaceSlug].richFilters,
-        displayFilters: this.filters[workspaceSlug].displayFilters as IIssueDisplayFilterOptions,
-        displayProperties: this.filters[workspaceSlug].displayProperties as IIssueDisplayProperties,
-        kanbanFilters: this.filters[workspaceSlug].kanbanFilters as TIssueKanbanFilters,
+        displayFilters: this.filters[workspaceSlug].displayFilters ?? {},
+        displayProperties: this.filters[workspaceSlug].displayProperties ?? {},
+        kanbanFilters: this.filters[workspaceSlug].kanbanFilters ?? { group_by: [], sub_group_by: [] },
       };
 
       switch (type) {
         case EIssueFilterType.DISPLAY_FILTERS: {
-          const changes = filters as IIssueDisplayFilterOptions;
+          const changes = toDisplayFilterChanges(filters);
           // calendar changes carry only the changed options
           const updatedDisplayFilters: IIssueDisplayFilterOptions = {
             ...changes,
@@ -225,12 +228,8 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
           Object.assign(updatedDisplayFilters, corrections);
 
           runInAction(() => {
-            Object.keys(updatedDisplayFilters).forEach((_key) => {
-              set(
-                this.filters,
-                [workspaceSlug, "displayFilters", _key],
-                updatedDisplayFilters[_key as keyof IIssueDisplayFilterOptions]
-              );
+            Object.entries(updatedDisplayFilters).forEach(([_key, value]) => {
+              set(this.filters, [workspaceSlug, "displayFilters", _key], value);
             });
           });
 
@@ -250,16 +249,12 @@ export class WorkspaceDraftIssuesFilter extends IssueFilterHelperStore implement
           break;
         }
         case EIssueFilterType.DISPLAY_PROPERTIES: {
-          const updatedDisplayProperties = filters as IIssueDisplayProperties;
+          const updatedDisplayProperties = toDisplayPropertyChanges(filters);
           _filters.displayProperties = { ..._filters.displayProperties, ...updatedDisplayProperties };
 
           runInAction(() => {
-            Object.keys(updatedDisplayProperties).forEach((_key) => {
-              set(
-                this.filters,
-                [workspaceSlug, "displayProperties", _key],
-                updatedDisplayProperties[_key as keyof IIssueDisplayProperties]
-              );
+            Object.entries(updatedDisplayProperties).forEach(([_key, value]) => {
+              set(this.filters, [workspaceSlug, "displayProperties", _key], value);
             });
           });
 

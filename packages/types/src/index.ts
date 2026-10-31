@@ -34,6 +34,7 @@ export * from "./issues/base"; // TODO: Remove this after development and the re
 export * from "./issues/issue-identifier";
 export * from "./issues/issue-property-values";
 export * from "./issues/issue-custom-property";
+export * from "./issues/issue-custom-property-parse";
 export * from "./issues/issue-type";
 export * from "./issues/work-item-query";
 export * from "./workspace-dashboard";

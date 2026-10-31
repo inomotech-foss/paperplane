@@ -10,14 +10,7 @@ import { computedFn } from "mobx-utils";
 // plane package imports
 import type { E_SORT_ORDER } from "@plane/constants";
 import { EActivityFilterType } from "@plane/constants";
-import type {
-  TIssueActivityComment,
-  TIssueActivity,
-  TIssueActivityMap,
-  TIssueActivityIdMap,
-  TIssueServiceType,
-} from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import type { TIssueActivityComment, TIssueActivity, TIssueActivityMap, TIssueActivityIdMap } from "@plane/types";
 // services
 import { IssueActivityService } from "@/services/issue";
 // store
@@ -52,13 +45,9 @@ export class IssueActivityStore implements IIssueActivityStore {
   activities: TIssueActivityIdMap = {};
   activityMap: TIssueActivityMap = {};
   // services
-  serviceType;
   issueActivityService;
 
-  constructor(
-    protected store: CoreRootStore,
-    serviceType: TIssueServiceType = EIssueServiceType.ISSUES
-  ) {
+  constructor(protected store: CoreRootStore) {
     makeObservable(this, {
       // observables
       loader: observable.ref,
@@ -67,9 +56,8 @@ export class IssueActivityStore implements IIssueActivityStore {
       // actions
       fetchActivities: action,
     });
-    this.serviceType = serviceType;
     // services
-    this.issueActivityService = new IssueActivityService(this.serviceType);
+    this.issueActivityService = new IssueActivityService();
   }
 
   // helper methods
@@ -146,20 +134,24 @@ export class IssueActivityStore implements IIssueActivityStore {
     try {
       this.loader = loaderType;
 
-      let props = {};
+      let createdAfter: string | undefined;
       const currentActivityIds = this.getActivitiesByIssueId(issueId);
       if (currentActivityIds && currentActivityIds.length > 0) {
-        const currentActivity = this.getActivityById(currentActivityIds[currentActivityIds.length - 1]);
-        if (currentActivity) props = { created_at__gt: currentActivity.created_at };
+        createdAfter = this.getActivityById(currentActivityIds[currentActivityIds.length - 1])?.created_at;
       }
 
-      const activities = await this.issueActivityService.getIssueActivities(workspaceSlug, projectId, issueId, props);
+      const activities = await this.issueActivityService.getIssueActivities(
+        workspaceSlug,
+        projectId,
+        issueId,
+        createdAfter
+      );
 
       const activityIds = activities.map((activity) => activity.id);
 
       runInAction(() => {
         // oxlint-disable-next-line no-shadow
-        update(this.activities, issueId, (currentActivityIds) => {
+        update(this.activities, issueId, (currentActivityIds: string[] | undefined) => {
           if (!currentActivityIds) return activityIds;
           return uniq(concat(currentActivityIds, activityIds));
         });

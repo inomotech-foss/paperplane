@@ -31,14 +31,18 @@ export enum EInboxIssueSource {
 }
 
 export type TInboxIssueStatus = EInboxIssueStatus;
+
+/** The list sends a few fields of the work item, the detail sends most of them. */
+export type TInboxIssueDetails = Partial<TIssue> & Pick<TIssue, "id">;
+
 export type TInboxIssue = {
   id: string;
   status: TInboxIssueStatus;
   snoozed_till: Date | null;
   duplicate_to: string | undefined;
   source: EInboxIssueSource | undefined;
-  issue: TIssue;
-  created_by: string;
+  issue: TInboxIssueDetails;
+  created_by: string | undefined;
   duplicate_issue_detail: TInboxDuplicateIssueDetails | undefined;
 };
 
@@ -94,7 +98,7 @@ export type TInboxIssuesQueryParams = {
 
 export type TInboxDuplicateIssueDetails = {
   id: string;
-  sequence_id: string;
+  sequence_id: number;
   name: string;
 };
 

@@ -18,7 +18,7 @@ export type TDescriptionVersion = {
 export type TDescriptionVersionDetails = TDescriptionVersion & {
   description_binary: string | null;
   description_html: string | null;
-  description_json: object | null;
+  description_json: unknown;
   description_stripped: string | null;
 };
 

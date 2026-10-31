@@ -9,14 +9,7 @@ import { action, observable, makeObservable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // plane imports
 import { ALL_ISSUES } from "@plane/constants";
-import type {
-  TIssue,
-  TLoader,
-  IssuePaginationOptions,
-  TIssuesResponse,
-  ViewFlags,
-  TBulkOperationsPayload,
-} from "@plane/types";
+import type { TIssue, TLoader, IssuePaginationOptions, TIssuesResponse, ViewFlags } from "@plane/types";
 // helpers
 import { getDistributionPathsPostUpdate } from "@plane/utils";
 //local
@@ -88,7 +81,6 @@ export interface ICycleIssues extends IBaseIssuesStore {
   ) => Promise<TIssue | undefined>;
   removeBulkIssues: (workspaceSlug: string, projectId: string, issueIds: string[]) => Promise<void>;
   archiveBulkIssues: (workspaceSlug: string, projectId: string, issueIds: string[]) => Promise<void>;
-  bulkUpdateProperties: (workspaceSlug: string, projectId: string, data: TBulkOperationsPayload) => Promise<void>;
 
   transferIssuesFromCycle: (
     workspaceSlug: string,

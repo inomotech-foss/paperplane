@@ -10,6 +10,8 @@ import uuid
 from rest_framework import status
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
+
+from plane.app.serializers.request.issue import ISSUE_IDS_ROLLUP_PARAMETER
 from rest_framework import serializers
 
 # Module imports
@@ -34,7 +36,9 @@ class IssueDateRollupEndpoint(BaseAPIView):
     do not count. A guest who only sees their own work items only gets dates from those.
     """
 
-    @extend_schema(responses={200: serializers.DictField(child=DateRollupSerializer())})
+    @extend_schema(
+        parameters=[ISSUE_IDS_ROLLUP_PARAMETER], responses={200: serializers.DictField(child=DateRollupSerializer())}
+    )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id):
         raw_ids = [raw.strip() for raw in request.GET.get("issue_ids", "").split(",") if raw.strip()]

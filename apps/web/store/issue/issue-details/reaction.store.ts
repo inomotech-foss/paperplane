@@ -7,25 +7,32 @@
 import { pull, find, concat, set, update } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 // Plane Imports
-import type { TIssueReaction, TIssueReactionMap, TIssueReactionIdMap, TIssueServiceType } from "@plane/types";
+import type { TIssueReaction, TIssueReactionMap, TIssueReactionIdMap } from "@plane/types";
 import { groupReactions } from "@plane/utils";
 // services
 import { IssueReactionService } from "@/services/issue";
 // types
-import type { IIssueDetail } from "./root.store";
+import type { IIssueActivityStore } from "./activity.store";
+
+type TReactionRootStore = { activity: Pick<IIssueActivityStore, "fetchActivities"> };
 
 export interface IIssueReactionStoreActions {
   // actions
   addReactions: (issueId: string, reactions: TIssueReaction[]) => void;
   fetchReactions: (workspaceSlug: string, projectId: string, issueId: string) => Promise<TIssueReaction[]>;
-  createReaction: (workspaceSlug: string, projectId: string, issueId: string, reaction: string) => Promise<any>;
+  createReaction: (
+    workspaceSlug: string,
+    projectId: string,
+    issueId: string,
+    reaction: string
+  ) => Promise<TIssueReaction>;
   removeReaction: (
     workspaceSlug: string,
     projectId: string,
     issueId: string,
     reaction: string,
     userId: string
-  ) => Promise<any>;
+  ) => Promise<void>;
 }
 
 export interface IIssueReactionStore extends IIssueReactionStoreActions {
@@ -43,12 +50,11 @@ export class IssueReactionStore implements IIssueReactionStore {
   reactions: TIssueReactionIdMap = {};
   reactionMap: TIssueReactionMap = {};
   // root store
-  rootIssueDetailStore: IIssueDetail;
+  rootIssueDetailStore: TReactionRootStore;
   // services
   issueReactionService;
-  serviceType;
 
-  constructor(rootStore: IIssueDetail, serviceType: TIssueServiceType) {
+  constructor(rootStore: TReactionRootStore) {
     makeObservable(this, {
       // observables
       reactions: observable,
@@ -59,11 +65,10 @@ export class IssueReactionStore implements IIssueReactionStore {
       createReaction: action,
       removeReaction: action,
     });
-    this.serviceType = serviceType;
     // root store
     this.rootIssueDetailStore = rootStore;
     // services
-    this.issueReactionService = new IssueReactionService(serviceType);
+    this.issueReactionService = new IssueReactionService();
   }
 
   // helper methods
@@ -119,14 +124,12 @@ export class IssueReactionStore implements IIssueReactionStore {
   };
 
   createReaction = async (workspaceSlug: string, projectId: string, issueId: string, reaction: string) => {
-    const response = await this.issueReactionService.createIssueReaction(workspaceSlug, projectId, issueId, {
-      reaction,
-    });
+    const response = await this.issueReactionService.createIssueReaction(workspaceSlug, projectId, issueId, reaction);
 
     runInAction(() => {
-      update(this.reactions, [issueId, reaction], (reactionId) => {
-        if (!reactionId) return [response.id];
-        return concat(reactionId, response.id);
+      update(this.reactions, [issueId, reaction], (reactionIds: string[] | undefined) => {
+        if (!reactionIds) return [response.id];
+        return concat(reactionIds, response.id);
       });
       set(this.reactionMap, response.id, response);
     });
@@ -149,14 +152,13 @@ export class IssueReactionStore implements IIssueReactionStore {
     if (currentReaction && currentReaction.id) {
       runInAction(() => {
         pull(this.reactions[issueId][reaction], currentReaction.id);
-        delete this.reactionMap[reaction];
+        delete this.reactionMap[currentReaction.id];
       });
     }
 
-    const response = await this.issueReactionService.deleteIssueReaction(workspaceSlug, projectId, issueId, reaction);
+    await this.issueReactionService.deleteIssueReaction(workspaceSlug, projectId, issueId, reaction);
 
     // fetching activity
     this.rootIssueDetailStore.activity.fetchActivities(workspaceSlug, projectId, issueId);
-    return response;
   };
 }

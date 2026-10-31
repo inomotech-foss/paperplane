@@ -69,8 +69,8 @@ export type TBaseIssue = {
   completed_at: string | null;
   archived_at: string | null;
 
-  created_by: string;
-  updated_by: string;
+  created_by: string | null;
+  updated_by: string | null;
 
   is_draft: boolean;
   is_intake?: boolean;
@@ -104,15 +104,28 @@ export type TIssueMap = {
   [issue_id: string]: TIssue;
 };
 
+/** Columns some endpoints leave out. */
+export type TIssueOptionalColumn =
+  | "cycle_id"
+  | "label_ids"
+  | "assignee_ids"
+  | "module_ids"
+  | "sub_issues_count"
+  | "attachment_count"
+  | "link_count";
+
+/** A work item as an endpoint sends it. A store merges it into what it holds. */
+export type TIssueRow = Omit<TIssue, TIssueOptionalColumn> & Partial<Pick<TIssue, TIssueOptionalColumn>>;
+
 export type TIssueResponseResults =
-  | TBaseIssue[]
+  | TIssueRow[]
   | {
       [key: string]: {
         results:
-          | TBaseIssue[]
+          | TIssueRow[]
           | {
               [key: string]: {
-                results: TBaseIssue[];
+                results: TIssueRow[];
                 total_results: number;
               };
             };
@@ -121,7 +134,7 @@ export type TIssueResponseResults =
     };
 
 export type TIssuesResponse = {
-  grouped_by: string;
+  grouped_by: string | null;
   next_cursor: string;
   prev_cursor: string;
   next_page_results: boolean;
@@ -129,7 +142,6 @@ export type TIssuesResponse = {
   total_count: number;
   count: number;
   total_pages: number;
-  extra_stats: null;
   results: TIssueResponseResults;
   total_results: number;
 };

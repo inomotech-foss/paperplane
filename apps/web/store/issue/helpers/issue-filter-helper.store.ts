@@ -19,11 +19,13 @@ import type {
   IIssueFilterOptions,
   IIssueFilters,
   IssuePaginationOptions,
+  TIssueKanbanFilters,
   TIssueParams,
   TStaticViewTypes,
+  TSupportedFilterForUpdate,
   TWorkItemFilterExpression,
 } from "@plane/types";
-import { EIssueLayoutTypes } from "@plane/types";
+import { EIssueLayoutTypes, parseDisplayFilters, parseDisplayProperties } from "@plane/types";
 // helpers
 import { getComputedDisplayFilters, getComputedDisplayProperties } from "@plane/utils";
 // lib
@@ -31,6 +33,31 @@ import { storage } from "@/lib/local-storage";
 import { getWorkItemOrderBy } from "@/store/timeline-order";
 import type { ILocalStoreIssueFilters, TLocalIssueFilters } from "./local-issue-filters";
 import { parseLocalIssueFilters } from "./local-issue-filters";
+
+const GROUP_FILTER_OPTIONS = Object.entries(EServerGroupByToFilterOptions);
+
+/** The legacy filter param that selects one group of a server group_by value. */
+export const toGroupFilterOption = (groupBy: unknown): EServerGroupByToFilterOptions | undefined =>
+  GROUP_FILTER_OPTIONS.find(([serverGroupBy]) => serverGroupBy === groupBy)?.[1];
+
+/** The display filter keys of an update, checked like stored display filters. */
+export const toDisplayFilterChanges = (changes: TSupportedFilterForUpdate): IIssueDisplayFilterOptions =>
+  parseDisplayFilters(changes);
+
+/** The display property keys of an update, checked like stored display properties. */
+export const toDisplayPropertyChanges = (changes: TSupportedFilterForUpdate): IIssueDisplayProperties =>
+  parseDisplayProperties(changes);
+
+const isStringList = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "string");
+
+/** The collapsed kanban groups of an update. Display filters share the group_by key, but as a single value. */
+export const toKanbanFilterChanges = (changes: TSupportedFilterForUpdate): Partial<TIssueKanbanFilters> => {
+  const result: Partial<TIssueKanbanFilters> = {};
+  if ("group_by" in changes && isStringList(changes.group_by)) result.group_by = changes.group_by;
+  if ("sub_group_by" in changes && isStringList(changes.sub_group_by)) result.sub_group_by = changes.sub_group_by;
+  return result;
+};
 
 const LOCAL_ISSUE_FILTERS_KEY = "issue_local_filters";
 
@@ -102,26 +129,21 @@ export class IssueFilterHelperStore implements IIssueFilterHelperStore {
     acceptableParamsByLayout: TIssueParams[]
   ): Partial<Record<TIssueParams, string | boolean>> => {
     const pql = displayFilters?.pql?.trim() || undefined;
-    const computedDisplayFilters: Partial<Record<TIssueParams, undefined | string[] | boolean | string>> = {
-      group_by: displayFilters?.group_by ? EIssueGroupByToServerOptions[displayFilters.group_by] : undefined,
-      sub_group_by: displayFilters?.sub_group_by
-        ? EIssueGroupByToServerOptions[displayFilters.sub_group_by]
-        : undefined,
-      order_by: getWorkItemOrderBy(displayFilters),
+    const computedDisplayFilters: [TIssueParams, string | boolean | undefined][] = [
+      ["group_by", displayFilters?.group_by ? EIssueGroupByToServerOptions[displayFilters.group_by] : undefined],
+      [
+        "sub_group_by",
+        displayFilters?.sub_group_by ? EIssueGroupByToServerOptions[displayFilters.sub_group_by] : undefined,
+      ],
+      ["order_by", getWorkItemOrderBy(displayFilters)],
       // A query decides which work items match; hiding nested matches would
       // make "all invoices of a customer" return nothing.
-      sub_issue: pql ? true : (displayFilters?.sub_issue ?? true),
-    };
+      ["sub_issue", pql ? true : (displayFilters?.sub_issue ?? true)],
+    ];
 
     const issueFiltersParams: Partial<Record<TIssueParams, boolean | string>> = {};
-    Object.keys(computedDisplayFilters).forEach((key) => {
-      const _key = key as TIssueParams;
-      const _value: string | boolean | string[] | undefined = computedDisplayFilters[_key];
-      const nonEmptyArrayValue = Array.isArray(_value) && _value.length === 0 ? undefined : _value;
-      if (nonEmptyArrayValue != undefined && acceptableParamsByLayout.includes(_key))
-        issueFiltersParams[_key] = Array.isArray(nonEmptyArrayValue)
-          ? nonEmptyArrayValue.join(",")
-          : nonEmptyArrayValue;
+    computedDisplayFilters.forEach(([key, value]) => {
+      if (value !== undefined && acceptableParamsByLayout.includes(key)) issueFiltersParams[key] = value;
     });
 
     // work item filters
@@ -309,24 +331,18 @@ export class IssueFilterHelperStore implements IIssueFilterHelperStore {
 
     // If groupId is passed down, add a filter param for that group Id
     if (groupId) {
-      const groupBy = paginationParams["group_by"] as EIssueGroupByToServerOptions | undefined;
+      const groupByFilterOption = toGroupFilterOption(paginationParams["group_by"]);
       delete paginationParams["group_by"];
 
-      if (groupBy) {
-        const groupByFilterOption = EServerGroupByToFilterOptions[groupBy];
-        paginationParams[groupByFilterOption] = groupId;
-      }
+      if (groupByFilterOption) paginationParams[groupByFilterOption] = groupId;
     }
 
     // If subGroupId is passed down, add a filter param for that subGroup Id
     if (subGroupId) {
-      const subGroupBy = paginationParams["sub_group_by"] as EIssueGroupByToServerOptions | undefined;
+      const subGroupByFilterOption = toGroupFilterOption(paginationParams["sub_group_by"]);
       delete paginationParams["sub_group_by"];
 
-      if (subGroupBy) {
-        const subGroupByFilterOption = EServerGroupByToFilterOptions[subGroupBy];
-        paginationParams[subGroupByFilterOption] = subGroupId;
-      }
+      if (subGroupByFilterOption) paginationParams[subGroupByFilterOption] = subGroupId;
     }
 
     return paginationParams;

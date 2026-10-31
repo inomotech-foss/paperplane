@@ -67,6 +67,9 @@ type TChipsFieldConfig = {
   getValues?: (params: SelectPaginationParams) => Promise<TPaginatedResponse<Option[]>>;
 };
 
+/** The suite fakes setTimeout, so user-event must not wait between keystrokes. */
+const setupUser = () => userEvent.setup({ delay: null, advanceTimers: vi.advanceTimersByTime });
+
 async function openSelect(user: ReturnType<typeof userEvent.setup>, name?: string) {
   await user.click(trigger(name));
   await popup().findByRole("combobox", { name: /search options/i });
@@ -89,7 +92,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("opens, filters by search, and selects", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { onChange } = renderSelect();
 
     await openSelect(user);
@@ -100,7 +103,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("virtualizes long lists", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect();
 
     await openSelect(user);
@@ -109,7 +112,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("shows the empty message when nothing matches", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({ emptyMessage: "Nothing here" });
 
     await openSelect(user);
@@ -119,7 +122,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("selects a row the keyboard walked past the rendered window", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { onChange } = renderSelect();
 
     await openSelect(user);
@@ -130,10 +133,10 @@ describe("Select on Propel combobox", () => {
     await user.keyboard("{Enter}");
 
     expect(onChange).toHaveBeenCalledWith("id-24");
-  });
+  }, 15_000);
 
   it("selects the last row after End", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { onChange } = renderSelect();
 
     await openSelect(user);
@@ -145,7 +148,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("closes on Escape", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect();
 
     await openSelect(user);
@@ -155,7 +158,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("emits every selected id in multi-select", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { onChange } = renderSelect({ multiple: true, value: [options[1]] });
 
     await openSelect(user, `${TRIGGER_NAME}, Option 1`);
@@ -165,7 +168,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("pins header items above the list", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const headerItems: Option[] = [{ id: "none", name: "No option" }];
     renderSelect({ headerItems });
 
@@ -177,7 +180,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("pins the selected option to the top on open", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({ value: options[150] });
 
     await openSelect(user, `${TRIGGER_NAME}, Option 150`);
@@ -186,7 +189,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("does not reorder the list when pinSelected is off", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({ value: options[150], pinSelected: false });
 
     await openSelect(user, `${TRIGGER_NAME}, Option 150`);
@@ -195,7 +198,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("resets the query and the loaded pages on close", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const getValues = vi.fn().mockResolvedValue({ results: options.slice(0, 5), next_page_results: false });
     const onClose = vi.fn();
     renderSelect({ infinite: true, getValues, onClose });
@@ -216,7 +219,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("loads exactly one more page when the sentinel is visible", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const getValues = vi
       .fn()
       .mockResolvedValueOnce({ results: options.slice(0, 20), next_cursor: "20:1:0", next_page_results: true })
@@ -231,7 +234,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps paging when a page is too short to push the sentinel out of view", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     // Three short pages: the sentinel stays intersecting throughout, so each append has to re-arm
     // the observer. Two pages would pass even unarmed — the first `hasMore` flip arms it once.
     const page = (start: number, hasNext: boolean) => ({
@@ -254,7 +257,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("shows the loading row while an appended page is in flight", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     // oxlint-disable-next-line unicorn/consistent-function-scoping -- no-op until the pending promise installs its resolver
     let releaseSecondPage: () => void = () => {};
     const secondPage = new Promise((resolve) => {
@@ -277,7 +280,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("opens a heading row whenever the option group changes", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const grouped: Option[] = [
       { id: "a-1", name: "Alpha one" },
       { id: "a-2", name: "Alpha two" },
@@ -294,7 +297,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("closes the open section for an option with no group, and repeats a group name safely", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     // "Beta" reappears after "Alpha" — a name-keyed heading row would collide with the first one —
     // and the loose option belongs to no section at all.
     const grouped: Option[] = [
@@ -317,7 +320,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("selects a grouped row the keyboard walked past the rendered window", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     // Headings shift every row below them, so an untranslated option index would scroll to the
     // wrong row — and Enter would find no element for the highlighted one.
     const { onChange } = renderSelect({
@@ -330,10 +333,10 @@ describe("Select on Propel combobox", () => {
     await user.keyboard("{Enter}");
 
     expect(onChange).toHaveBeenCalledWith("id-24");
-  });
+  }, 15_000);
 
   it("keeps selecting the right option once headings shift the rows", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const grouped: Option[] = [
       { id: "a-1", name: "Alpha one" },
       { id: "b-1", name: "Beta one" },
@@ -350,7 +353,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("renders the footer slot below the list", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({ footer: <span data-testid="select-footer">Berries only</span> });
 
     await openSelect(user);
@@ -361,7 +364,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("reaches the footer slot's chrome with Tab, with the panel still open", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({
       footer: (
         <button type="button" data-testid="select-footer-action">
@@ -380,7 +383,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("renders the header slot above the list", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({ header: <span data-testid="select-header">AM / PM</span> });
 
     await openSelect(user);
@@ -395,7 +398,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps the header slot through a search that matches nothing", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({ header: <span data-testid="select-header">AM / PM</span>, emptyMessage: "Nothing here" });
 
     await openSelect(user);
@@ -406,7 +409,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("renders the header slot with the search field turned off", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({ header: <span data-testid="select-header">AM / PM</span>, showSearch: false });
 
     await user.click(trigger());
@@ -416,7 +419,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("reaches the header slot's chrome with Tab, with the panel still open", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({
       header: (
         <button type="button" data-testid="select-header-toggle">
@@ -435,7 +438,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("calls onSearchSubmit on Enter when the query matches options but none is highlighted", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onSearchSubmit = vi.fn();
     const { onChange } = renderSelect({ onSearchSubmit });
 
@@ -453,7 +456,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("calls onSearchSubmit on Enter when the query matches no option", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onSearchSubmit = vi.fn();
     renderSelect({ onSearchSubmit });
 
@@ -466,7 +469,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("selects the highlighted row instead of calling onSearchSubmit", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onSearchSubmit = vi.fn();
     const { onChange } = renderSelect({ onSearchSubmit });
 
@@ -480,7 +483,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("ignores an empty query on Enter", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onSearchSubmit = vi.fn();
     renderSelect({ onSearchSubmit });
 
@@ -492,7 +495,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps the dropdown open and the query intact after onSearchSubmit", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onSearchSubmit = vi.fn();
     renderSelect({ onSearchSubmit });
 
@@ -508,7 +511,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("calls onSearchSubmit on Enter from the search-input chips field too", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onSearchSubmit = vi.fn();
     const onChange = vi.fn();
     render(
@@ -589,7 +592,7 @@ describe("Select on Propel combobox", () => {
   }
 
   it("mounts a search-input field without `lazyMount={false}`", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     // The chips field is a base-ui part with no resting form; under the default lazy mount it used
     // to render outside any Root and throw.
     const { onChange, field } = renderChipsField({});
@@ -602,7 +605,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps the first character typed into a closed search-input field", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { field } = renderChipsField();
 
     await closeWithFocusInField(user, field);
@@ -618,7 +621,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps the first character typed into a closed single-select search-input field", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { field } = renderChipsField({ lazyMount: false, single: true });
 
     await closeWithFocusInField(user, field);
@@ -630,7 +633,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("sends the first character typed into a closed search-input field to the server search", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const getValues = vi.fn(
       (_params: SelectPaginationParams): Promise<TPaginatedResponse<Option[]>> =>
         Promise.resolve({ results: options.slice(0, 5), next_page_results: false })
@@ -647,7 +650,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("puts the caller's tab index on the trigger, resting and mounted alike", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({}, { tabIndex: FORM_TAB_INDEX });
 
     expect(trigger().getAttribute("tabindex")).toBe(String(FORM_TAB_INDEX));
@@ -672,7 +675,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("raises the popup positioner to the given z-index", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({ positionerZIndex: 120 });
 
     await openSelect(user);
@@ -681,7 +684,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("shows the error row and retries the fetch when an infinite load fails", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const getValues = vi
       .fn()
       .mockRejectedValueOnce(new Error("boom"))
@@ -700,7 +703,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("renders the caller's error copy", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const getValues = vi.fn().mockRejectedValue(new Error("nope"));
     renderSelect({
       infinite: true,
@@ -713,7 +716,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("shows the searching line while a search fetch is in flight", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     // oxlint-disable-next-line unicorn/consistent-function-scoping -- no-op until the pending promise installs its resolver
     let releaseSearch: () => void = () => {};
     const getValues = vi
@@ -737,7 +740,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("says it is searching while the first page loads behind header rows", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     // oxlint-disable-next-line unicorn/consistent-function-scoping -- no-op until the pending promise installs its resolver
     let releaseFirstPage: () => void = () => {};
     const getValues = vi.fn().mockReturnValueOnce(
@@ -760,7 +763,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("says it is searching over the previous results while a cleared query reloads", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     // oxlint-disable-next-line unicorn/consistent-function-scoping -- no-op until the pending promise installs its resolver
     let releaseReload: () => void = () => {};
     const getValues = vi
@@ -792,7 +795,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("opens from a controlled `open` and reports the user's close", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onOpenChange = vi.fn();
 
     function Controlled() {
@@ -835,7 +838,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps an unresolved selected id in the payload (Ruling 46)", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onChange = vi.fn();
     // "ghost" is selected but is not in the list — the option has not paged in, or was deactivated.
     const loaded = options.slice(0, 3);
@@ -867,7 +870,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("dims a disabled row and refuses to select it", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { onChange } = renderSelect({
       getValues: () => options.slice(0, 3),
       getOptionDisabled: (o: Option) => o.id === "id-1",
@@ -893,7 +896,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("announces a disabled row as aria-disabled", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({
       getValues: () => options.slice(0, 3),
       getOptionDisabled: (o: Option) => o.id === "id-1",
@@ -905,7 +908,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("walks the keyboard highlight past disabled rows", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { onChange } = renderSelect({
       getValues: () => options.slice(0, 5),
       getOptionDisabled: (o: Option) => o.id === "id-1" || o.id === "id-2",
@@ -923,7 +926,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("walks back up past disabled rows", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { onChange } = renderSelect({
       getValues: () => options.slice(0, 5),
       getOptionDisabled: (o: Option) => o.id === "id-1" || o.id === "id-2",
@@ -943,7 +946,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("carries End inwards when the last row is disabled", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { onChange } = renderSelect({
       getValues: () => options.slice(0, 5),
       getOptionDisabled: (o: Option) => o.id === "id-4",
@@ -960,7 +963,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("stops walking when every row is disabled", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const { onChange } = renderSelect({
       getValues: () => options.slice(0, 3),
       getOptionDisabled: () => true,
@@ -996,7 +999,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps header items visible while the query filters everything else", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const allProjects = { id: "all", name: "All projects" };
     renderSelect({ getValues: () => options.slice(0, 5), headerItems: [allProjects] });
 
@@ -1007,7 +1010,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("filters header items too when asked", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const allProjects = { id: "all", name: "All projects" };
     renderSelect({ getValues: () => options.slice(0, 5), headerItems: [allProjects], filterHeaderItems: true });
 
@@ -1021,7 +1024,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("resolves valueIds against the loaded options and keeps the unresolved ones (Ruling 46)", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onChange = vi.fn();
     const loaded = options.slice(0, 3);
     render(
@@ -1051,7 +1054,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps an unresolved id in the payload even with no placeholder to draw", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onChange = vi.fn();
     const loaded = options.slice(0, 3);
     render(
@@ -1110,7 +1113,7 @@ describe("Select on Propel combobox", () => {
   }
 
   it("keeps naming an infinite ids-in selection after the close empties the list", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const loaded = options.slice(0, 3);
     const getValues = vi.fn().mockResolvedValue({ results: loaded, next_page_results: false });
     render(<InfiniteIdsIn getValues={getValues} />);
@@ -1126,7 +1129,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps an infinite ids-in chip labelled after the close empties the list", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const loaded = options.slice(0, 3);
     const getValues = vi.fn().mockResolvedValue({ results: loaded, next_page_results: false });
     render(<InfiniteIdsIn getValues={getValues} chips />);
@@ -1140,7 +1143,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps a multi-select's query through a pick", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     // Base UI empties the in-popup search field after every multi-select pick
     // (`input-clear`), which would otherwise read as the user clearing the query.
     const getValues = vi.fn(
@@ -1185,7 +1188,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("replaces the loaded list with the error row when a search fails", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const getValues = vi
       .fn()
       .mockResolvedValueOnce({ results: options.slice(0, 3), next_cursor: null, next_page_results: false })
@@ -1202,7 +1205,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("keeps the loaded pages when appending the next one fails, and retries that page", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const getValues = vi
       .fn<(params: SelectPaginationParams) => Promise<TPaginatedResponse<Option[]>>>()
       .mockResolvedValueOnce({ results: options.slice(0, 3), next_cursor: "page-2", next_page_results: true })
@@ -1231,7 +1234,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("reports a base-ui open while `open` is controlled, and leaves a refused close alone", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const onOpenChange = vi.fn();
     const onClose = vi.fn();
     const getValues = vi.fn().mockResolvedValue({ results: options.slice(0, 3), next_page_results: false });
@@ -1303,7 +1306,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("sizes the panel from contentSizing", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({ contentSizing: "anchor" });
 
     await openSelect(user);
@@ -1311,7 +1314,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("defaults the panel to the content-hugging auto sizing", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect();
 
     await openSelect(user);
@@ -1360,7 +1363,7 @@ describe("Select on Propel combobox", () => {
   });
 
   it("forwards the trigger id and data attributes for the label to point at", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderSelect({}, { id: "fruit-picker", "data-tour": "fruit", "data-testid": "fruit-trigger" });
 
     const resting = trigger();
@@ -1376,7 +1379,7 @@ describe("Select on Propel combobox", () => {
 
   describe("standard option row", () => {
     it("marks a single selection with the trailing check only on the selected row", async () => {
-      const user = userEvent.setup();
+      const user = setupUser();
       renderSelect({ value: options[1] });
 
       await openSelect(user, `${TRIGGER_NAME}, Option 1`);
@@ -1395,7 +1398,7 @@ describe("Select on Propel combobox", () => {
     });
 
     it("gives every multi-select row a leading checkbox, filled for the selection", async () => {
-      const user = userEvent.setup();
+      const user = setupUser();
       renderSelect({ multiple: true, value: [options[1]] });
 
       await openSelect(user, `${TRIGGER_NAME}, Option 1`);
@@ -1409,7 +1412,7 @@ describe("Select on Propel combobox", () => {
     });
 
     it("renders the icon, trailing and description slots around the label", async () => {
-      const user = userEvent.setup();
+      const user = setupUser();
       renderSelect({
         getOptionIcon: (o: Option) => <span data-testid={`icon-${o.id}`} />,
         getOptionTrailing: (o: Option) => (o.id === "id-0" ? <span>trailing-0</span> : undefined),
@@ -1424,7 +1427,7 @@ describe("Select on Propel combobox", () => {
     });
 
     it("keeps an href row a single anchor option", async () => {
-      const user = userEvent.setup();
+      const user = setupUser();
       renderSelect({ getOptionHref: (o: Option) => (o.id === "id-0" ? "/somewhere" : undefined) });
 
       await openSelect(user);
@@ -1443,7 +1446,7 @@ describe("Select on Propel combobox", () => {
     });
 
     it("still draws a deprecated renderOption row by hand, with no mark added", async () => {
-      const user = userEvent.setup();
+      const user = setupUser();
       renderSelect({ value: options[1], renderOption: (o: Option) => <span data-testid="legacy">{o.name}</span> });
 
       await openSelect(user, `${TRIGGER_NAME}, Option 1`);

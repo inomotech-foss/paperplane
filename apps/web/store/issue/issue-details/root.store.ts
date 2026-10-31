@@ -205,15 +205,15 @@ export class IssueDetail implements IIssueDetail {
     // store
     this.serviceType = serviceType;
     this.rootIssueStore = rootStore;
-    this.issue = new IssueStore(this, serviceType);
-    this.reaction = new IssueReactionStore(this, serviceType);
-    this.attachment = new IssueAttachmentStore(rootStore, serviceType);
-    this.activity = new IssueActivityStore(rootStore.rootStore, serviceType);
-    this.comment = new IssueCommentStore(this, serviceType);
-    this.commentReaction = new IssueCommentReactionStore(this);
-    this.subIssues = new IssueSubIssuesStore(this, serviceType);
-    this.link = new IssueLinkStore(this, serviceType);
-    this.subscription = new IssueSubscriptionStore(this, serviceType);
+    this.issue = new IssueStore(this);
+    this.reaction = new IssueReactionStore(this);
+    this.attachment = new IssueAttachmentStore(rootStore);
+    this.activity = new IssueActivityStore(rootStore.rootStore);
+    this.comment = new IssueCommentStore(this);
+    this.commentReaction = new IssueCommentReactionStore();
+    this.subIssues = new IssueSubIssuesStore(this);
+    this.link = new IssueLinkStore(this);
+    this.subscription = new IssueSubscriptionStore(this);
     this.relation = new IssueRelationStore(this);
   }
 

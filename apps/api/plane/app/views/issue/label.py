@@ -16,6 +16,7 @@ from rest_framework import status
 # Module imports
 from .. import BaseViewSet, BaseAPIView
 from plane.app.serializers import LabelSerializer
+from plane.app.serializers.request.taxonomy import BulkLabelsCreateSerializer
 from plane.app.serializers.response.project import BulkLabelsSerializer
 from plane.app.permissions import allow_permission, ProjectBasePermission, ROLE
 from plane.db.models import Project, Label
@@ -90,7 +91,7 @@ class LabelViewSet(BaseViewSet):
 
 
 class BulkCreateIssueLabelsEndpoint(BaseAPIView):
-    @extend_schema(responses={201: BulkLabelsSerializer})
+    @extend_schema(request=BulkLabelsCreateSerializer, responses={201: BulkLabelsSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         label_data = request.data.get("label_data", [])

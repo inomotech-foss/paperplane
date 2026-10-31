@@ -13,7 +13,6 @@ import { EIssueFilterType } from "@plane/constants";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
-  TIssueKanbanFilters,
   IIssueFilters,
   TIssueParams,
   IssuePaginationOptions,
@@ -24,7 +23,12 @@ import { EIssuesStoreType } from "@plane/types";
 import { handleIssueQueryParamsByLayout, getDisplayFilterCorrections } from "@plane/utils";
 import { IssueFiltersService } from "@/services/issue_filter.service";
 import type { IBaseIssueFilterStore } from "../helpers/issue-filter-helper.store";
-import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
+import {
+  IssueFilterHelperStore,
+  toDisplayFilterChanges,
+  toDisplayPropertyChanges,
+  toKanbanFilterChanges,
+} from "../helpers/issue-filter-helper.store";
 // helpers
 // types
 import type { IIssueRootStore } from "../root.store";
@@ -190,14 +194,14 @@ export class ProfileIssuesFilter extends IssueFilterHelperStore implements IProf
 
       const _filters = {
         richFilters: this.filters[userId].richFilters,
-        displayFilters: this.filters[userId].displayFilters as IIssueDisplayFilterOptions,
-        displayProperties: this.filters[userId].displayProperties as IIssueDisplayProperties,
-        kanbanFilters: this.filters[userId].kanbanFilters as TIssueKanbanFilters,
+        displayFilters: this.filters[userId].displayFilters ?? {},
+        displayProperties: this.filters[userId].displayProperties ?? {},
+        kanbanFilters: this.filters[userId].kanbanFilters ?? { group_by: [], sub_group_by: [] },
       };
 
       switch (type) {
         case EIssueFilterType.DISPLAY_FILTERS: {
-          const changes = filters as IIssueDisplayFilterOptions;
+          const changes = toDisplayFilterChanges(filters);
           // calendar changes carry only the changed options
           const updatedDisplayFilters: IIssueDisplayFilterOptions = {
             ...changes,
@@ -210,12 +214,8 @@ export class ProfileIssuesFilter extends IssueFilterHelperStore implements IProf
           Object.assign(updatedDisplayFilters, corrections);
 
           runInAction(() => {
-            Object.keys(updatedDisplayFilters).forEach((_key) => {
-              set(
-                this.filters,
-                [userId, "displayFilters", _key],
-                updatedDisplayFilters[_key as keyof IIssueDisplayFilterOptions]
-              );
+            Object.entries(updatedDisplayFilters).forEach(([_key, value]) => {
+              set(this.filters, [userId, "displayFilters", _key], value);
             });
           });
 
@@ -228,16 +228,12 @@ export class ProfileIssuesFilter extends IssueFilterHelperStore implements IProf
           break;
         }
         case EIssueFilterType.DISPLAY_PROPERTIES: {
-          const updatedDisplayProperties = filters as IIssueDisplayProperties;
+          const updatedDisplayProperties = toDisplayPropertyChanges(filters);
           _filters.displayProperties = { ..._filters.displayProperties, ...updatedDisplayProperties };
 
           runInAction(() => {
-            Object.keys(updatedDisplayProperties).forEach((_key) => {
-              set(
-                this.filters,
-                [userId, "displayProperties", _key],
-                updatedDisplayProperties[_key as keyof IIssueDisplayProperties]
-              );
+            Object.entries(updatedDisplayProperties).forEach(([_key, value]) => {
+              set(this.filters, [userId, "displayProperties", _key], value);
             });
           });
 
@@ -248,7 +244,7 @@ export class ProfileIssuesFilter extends IssueFilterHelperStore implements IProf
         }
 
         case EIssueFilterType.KANBAN_FILTERS: {
-          const updatedKanbanFilters = filters as TIssueKanbanFilters;
+          const updatedKanbanFilters = toKanbanFilterChanges(filters);
           _filters.kanbanFilters = { ..._filters.kanbanFilters, ...updatedKanbanFilters };
 
           const currentUserId = this.rootIssueStore.currentUserId;
@@ -258,12 +254,8 @@ export class ProfileIssuesFilter extends IssueFilterHelperStore implements IProf
             });
 
           runInAction(() => {
-            Object.keys(updatedKanbanFilters).forEach((_key) => {
-              set(
-                this.filters,
-                [userId, "kanbanFilters", _key],
-                updatedKanbanFilters[_key as keyof TIssueKanbanFilters]
-              );
+            Object.entries(updatedKanbanFilters).forEach(([_key, value]) => {
+              set(this.filters, [userId, "kanbanFilters", _key], value);
             });
           });
 

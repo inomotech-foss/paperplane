@@ -12,10 +12,12 @@ from django.core.serializers.json import DjangoJSONEncoder
 # Third Party imports
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
 
 # Module imports
 from .. import BaseViewSet
 from plane.app.serializers import IssueReactionSerializer
+from plane.app.serializers.request.issue_detail import ReactionCreateSerializer
 from plane.app.permissions import allow_permission, issue_hidden_from_guest, ROLE
 from plane.db.models import Issue, IssueReaction
 from plane.bgtasks.issue_activities_task import issue_activity
@@ -32,10 +34,10 @@ class IssueReactionViewSet(BaseViewSet):
             .filter(workspace__slug=self.kwargs.get("slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(issue_id=self.kwargs.get("issue_id"))
+            # Like the work item detail, the reactions stay readable in an archived project.
             .filter(
                 project__project_projectmember__member=self.request.user,
                 project__project_projectmember__is_active=True,
-                project__archived_at__isnull=True,
             )
             .order_by("-created_at")
             .distinct()
@@ -52,6 +54,7 @@ class IssueReactionViewSet(BaseViewSet):
             )
         return super().list(request, slug, project_id, issue_id)
 
+    @extend_schema(request=ReactionCreateSerializer, responses={201: IssueReactionSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def create(self, request, slug, project_id, issue_id):
         # The URL issue must belong to the URL workspace + project (404 otherwise).
