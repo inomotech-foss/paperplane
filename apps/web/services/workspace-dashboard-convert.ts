@@ -72,13 +72,15 @@ export const toWidget = (row: ApiSchema<"DashboardWidget">): TWorkspaceDashboard
   updated_at: row.updated_at,
 });
 
-type TWidgetRow = ApiSchema<"WidgetData">["data"][number];
+type TWidgetRow = { key: string; name: string; count: number | null } & Record<string, unknown>;
 
 /** A bucket of widget data. An aggregate over no values is null, which the charts draw as 0. */
 export function toWidgetDatum(row: TWidgetRow): TDashboardWidgetDatum {
-  const datum: TDashboardWidgetDatum = { ...row, key: row.key, name: row.name, count: row.count ?? 0 };
+  const datum: TDashboardWidgetDatum = { key: row.key, name: row.name, count: row.count ?? 0 };
   for (const [key, value] of Object.entries(row)) {
-    if (value === null) datum[key] = 0;
+    if (key === "key" || key === "name" || key === "count") continue;
+    if (typeof value === "number" || typeof value === "string") datum[key] = value;
+    else if (value === null) datum[key] = 0;
   }
   return datum;
 }
