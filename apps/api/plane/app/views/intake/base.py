@@ -336,7 +336,10 @@ class IntakeIssueViewSet(BaseViewSet):
     @allow_permission(allowed_roles=[ROLE.ADMIN], creator=True, model=Issue)
     def partial_update(self, request, slug, project_id, pk):
         skip_activity = request.data.pop("skip_activity", False)
-        is_description_update = request.data.get("description_html") is not None
+        requested_issue = request.data.get("issue")
+        is_description_update = (
+            isinstance(requested_issue, dict) and requested_issue.get("description_html") is not None
+        )
 
         intake_id = Intake.objects.filter(workspace__slug=slug, project_id=project_id).first()
         intake_issue = IntakeIssue.objects.get(
