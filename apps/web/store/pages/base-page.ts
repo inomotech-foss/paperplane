@@ -280,10 +280,9 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       runInAction(() => this.mutateProperties(pageData));
       return await this.services.update(pageData);
     } catch (error) {
+      const previous: Record<string, unknown> = currentPage;
       runInAction(() => {
-        Object.entries(currentPage).forEach(([key, value]) => {
-          if (key in pageData) set(this, key, value);
-        });
+        Object.keys(pageData).forEach((key) => set(this, key, previous[key]));
       });
       throw error;
     }
