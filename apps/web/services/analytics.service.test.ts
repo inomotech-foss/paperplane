@@ -38,8 +38,10 @@ describe("toInsightRow", () => {
 describe("toAxis", () => {
   it("keeps the axes the backend reads", () => {
     expect(toAxis(ChartXAxisProperty.PRIORITY)).toBe("PRIORITY");
-    expect(toAxis(ChartXAxisProperty.WORK_ITEM_TYPES)).toBeUndefined();
-    expect(toAxis(undefined)).toBeUndefined();
+  });
+
+  it("throws for an axis the backend would draw as priority", () => {
+    expect(() => toAxis(ChartXAxisProperty.WORK_ITEM_TYPES)).toThrow();
   });
 });
 

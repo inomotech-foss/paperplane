@@ -81,9 +81,12 @@ export const toInsightRow = (
   return columns;
 };
 
-/** The chart axes the backend reads. An axis it does not know is left out. */
-export const toAxis = (axis: ChartXAxisProperty | undefined): TChartAxis | undefined =>
-  axis === undefined ? undefined : findLiteral(CHART_AXES, axis);
+/** A chart axis the backend reads. The backend would draw an unknown axis as PRIORITY, so it is an error. */
+export function toAxis(axis: ChartXAxisProperty): TChartAxis {
+  const known = findLiteral(CHART_AXES, axis);
+  if (!known) throw new Error(`The backend cannot chart the axis ${axis}`);
+  return known;
+}
 
 /** Errors are thrown as `ApiError` from `@plane/services`. A peek view reads the project of `project_ids`. */
 export class AnalyticsService {
@@ -147,12 +150,12 @@ export class AnalyticsService {
     return this.getChart(workspaceSlug, { type: "work-items" }, params, isPeekView);
   }
 
-  /** The work items counted by an axis, split by a second axis when given. */
+  /** The work items counted by an axis, split by a second axis when given. Throws for an axis the backend cannot chart. */
   async getCustomChart(workspaceSlug: string, params: TCustomChartParams, isPeekView?: boolean): Promise<TChart> {
     const axes = {
       type: "custom-work-items" as const,
       x_axis: toAxis(params.x_axis),
-      group_by: toAxis(params.group_by),
+      group_by: params.group_by === undefined ? undefined : toAxis(params.group_by),
     };
     return this.getChart(workspaceSlug, axes, params, isPeekView);
   }
