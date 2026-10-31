@@ -14,7 +14,7 @@ import { setToast } from "@plane/blocks/toast";
 import { EFileAssetType } from "@plane/types";
 import { getAssetIdFromUrl, checkURLValidity } from "@plane/utils";
 // services
-import { FileService } from "@/services/file.service";
+import { FileService, getUploadedAssetUrl } from "@/services/file.service";
 import { ImageUploadActions, ImageUploadDropzone } from "./image-upload-dropzone";
 const fileService = new FileService();
 
@@ -53,14 +53,14 @@ export const UserImageUploadModal = observer(function UserImageUploadModal(props
     setIsImageUploading(true);
 
     try {
-      const { asset_url } = await fileService.uploadUserAsset(
+      const upload = await fileService.uploadUserAsset(
         {
           entity_identifier: "",
           entity_type: EFileAssetType.USER_AVATAR,
         },
         image
       );
-      onSuccess(asset_url);
+      onSuccess(getUploadedAssetUrl(upload));
       setImage(null);
     } catch (error) {
       setToast({

@@ -70,10 +70,6 @@ export const CommentCreate = observer(function CommentCreate(props: TCommentCrea
           await fileService.updateBulkProjectAssetsUploadStatus(workspaceSlug, projectId.toString(), entityId, {
             asset_ids: uploadedAssetIds,
           });
-        } else {
-          await fileService.updateBulkWorkspaceAssetsUploadStatus(workspaceSlug, entityId, {
-            asset_ids: uploadedAssetIds,
-          });
         }
         setUploadedAssetIds([]);
       }

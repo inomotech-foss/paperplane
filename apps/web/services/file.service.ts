@@ -4,65 +4,91 @@
  * See the LICENSE file for details.
  */
 
-// plane types
-import { API_BASE_URL } from "@plane/constants";
-import { getFileMetaDataForUpload, uploadToPresignedPost } from "@plane/services";
+import type { ApiSchema } from "@plane/api-types";
+import { getFileMetaDataForUpload, unwrap, uploadToPresignedPost } from "@plane/services";
 import type { UploadProgressHandler } from "@plane/services";
 import type { EFileAssetType, TFileEntityInfo, TFileSignedURLResponse } from "@plane/types";
 import { getAssetIdFromUrl } from "@plane/utils";
-// helpers
-// services
-import { APIService } from "@/services/api.service";
+import { findLiteral, getField, isRecord, isString } from "@/helpers/narrow.helper";
+import { apiClient } from "@/services/api-client";
 
-export interface UnSplashImage {
+export type UnSplashImage = {
   id: string;
-  created_at: Date;
-  updated_at: Date;
-  promoted_at: Date;
-  width: number;
-  height: number;
-  color: string;
-  blur_hash: string;
-  description: null;
-  alt_description: string;
-  urls: UnSplashImageUrls;
-  [key: string]: any;
+  alt_description: string | undefined;
+  urls: { regular: string; small: string };
+};
+
+type TEntityType = ApiSchema<"FileAssetEntityTypeEnum">;
+
+const ENTITY_TYPES: readonly TEntityType[] = [
+  "ISSUE_ATTACHMENT",
+  "ISSUE_DESCRIPTION",
+  "COMMENT_DESCRIPTION",
+  "PAGE_DESCRIPTION",
+  "PAGE_ATTACHMENT",
+  "PAGE_COMMENT_DESCRIPTION",
+  "USER_COVER",
+  "USER_AVATAR",
+  "WORKSPACE_LOGO",
+  "PROJECT_COVER",
+  "DRAFT_ISSUE_ATTACHMENT",
+  "DRAFT_ISSUE_DESCRIPTION",
+];
+
+/** The asset entity types the API stores. The others belong to features this instance does not have. */
+export function toEntityType(type: EFileAssetType): TEntityType {
+  const known = findLiteral(ENTITY_TYPES, type);
+  if (!known) throw new Error(`The API does not store assets of type ${type}`);
+  return known;
 }
 
-export interface UnSplashImageUrls {
-  raw: string;
-  full: string;
-  regular: string;
-  small: string;
-  thumb: string;
-  small_s3: string;
+const toUnsplashImage = (value: unknown): UnSplashImage | undefined => {
+  const urls = getField(value, "urls");
+  const id = getField(value, "id");
+  const regular = getField(urls, "regular");
+  const small = getField(urls, "small");
+  if (!isString(id) || !isString(regular) || !isString(small)) return undefined;
+  const alt = getField(value, "alt_description");
+  return { id, alt_description: isString(alt) ? alt : undefined, urls: { regular, small } };
+};
+
+/** The Unsplash response is passed through: a search wraps the photos in `results`, the photo list does not. */
+export function parseUnsplashImages(data: unknown): UnSplashImage[] {
+  const results = isRecord(data) && !Array.isArray(data) ? getField(data, "results") : data;
+  if (!Array.isArray(results)) return [];
+  return results.flatMap((item: unknown) => {
+    const image = toUnsplashImage(item);
+    return image ? [image] : [];
+  });
 }
 
-export enum TFileAssetType {
-  COMMENT_DESCRIPTION = "COMMENT_DESCRIPTION",
-  ISSUE_ATTACHMENT = "ISSUE_ATTACHMENT",
-  ISSUE_DESCRIPTION = "ISSUE_DESCRIPTION",
-  PAGE_DESCRIPTION = "PAGE_DESCRIPTION",
-  PROJECT_COVER = "PROJECT_COVER",
-  USER_AVATAR = "USER_AVATAR",
-  USER_COVER = "USER_COVER",
-  WORKSPACE_LOGO = "WORKSPACE_LOGO",
+/** The presigned upload of an asset. The API returns no upload form when storage could not sign one. */
+function toSignedUpload(upload: ApiSchema<"AssetUpload">): TFileSignedURLResponse {
+  if (!upload.upload_data) throw new Error("The storage did not return an upload URL");
+  return { asset_id: upload.asset_id, asset_url: upload.asset_url, upload_data: upload.upload_data };
 }
 
-export class FileService extends APIService {
+/** The URL of an uploaded image. Images always get one, so a missing URL is an error. */
+export function getUploadedAssetUrl(upload: TFileSignedURLResponse): string {
+  if (!upload.asset_url) throw new Error("The API returned no URL for the uploaded image");
+  return upload.asset_url;
+}
+
+const toUploadBody = async (data: TFileEntityInfo, file: File) => ({
+  ...(await getFileMetaDataForUpload(file)),
+  entity_identifier: data.entity_identifier,
+  entity_type: toEntityType(data.entity_type),
+});
+
+const workspacePath = (slug: string) => ({ path: { slug } });
+const workspaceAssetPath = (slug: string, asset_id: string) => ({ path: { slug, asset_id } });
+
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class FileService {
   private uploadController = new AbortController();
 
   constructor() {
-    super(API_BASE_URL);
     this.cancelUpload = this.cancelUpload.bind(this);
-  }
-
-  private async updateWorkspaceAssetUploadStatus(workspaceSlug: string, assetId: string): Promise<void> {
-    return this.patch(`/api/assets/v2/workspaces/${workspaceSlug}/${assetId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
   }
 
   async uploadWorkspaceAsset(
@@ -71,72 +97,46 @@ export class FileService extends APIService {
     file: File,
     uploadProgressHandler?: UploadProgressHandler
   ): Promise<TFileSignedURLResponse> {
-    const fileMetaData = await getFileMetaDataForUpload(file);
-    return this.post(`/api/assets/v2/workspaces/${workspaceSlug}/`, {
-      ...data,
-      ...fileMetaData,
-    })
-      .then(async (response) => {
-        const signedURLResponse: TFileSignedURLResponse = response?.data;
-        await uploadToPresignedPost(signedURLResponse, file, {
-          onProgress: uploadProgressHandler,
-          signal: this.uploadController.signal,
-        });
-        await this.updateWorkspaceAssetUploadStatus(workspaceSlug.toString(), signedURLResponse.asset_id);
-        return signedURLResponse;
+    const upload = toSignedUpload(
+      await unwrap(
+        apiClient.POST("/api/assets/v2/workspaces/{slug}/", {
+          params: workspacePath(workspaceSlug),
+          body: await toUploadBody(data, file),
+        })
+      )
+    );
+    await uploadToPresignedPost(upload, file, {
+      onProgress: uploadProgressHandler,
+      signal: this.uploadController.signal,
+    });
+    await unwrap(
+      apiClient.PATCH("/api/assets/v2/workspaces/{slug}/{asset_id}/", {
+        params: workspaceAssetPath(workspaceSlug, upload.asset_id),
       })
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    );
+    return upload;
   }
 
   async deleteWorkspaceAsset(workspaceSlug: string, assetId: string): Promise<void> {
-    return this.delete(`/api/assets/v2/workspaces/${workspaceSlug}/${assetId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  private async updateProjectAssetUploadStatus(
-    workspaceSlug: string,
-    projectId: string,
-    assetId: string
-  ): Promise<void> {
-    return this.patch(`/api/assets/v2/workspaces/${workspaceSlug}/projects/${projectId}/${assetId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async updateBulkWorkspaceAssetsUploadStatus(
-    workspaceSlug: string,
-    entityId: string,
-    data: {
-      asset_ids: string[];
-    }
-  ): Promise<void> {
-    return this.post(`/api/assets/v2/workspaces/${workspaceSlug}/${entityId}/bulk/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.DELETE("/api/assets/v2/workspaces/{slug}/{asset_id}/", {
+        params: workspaceAssetPath(workspaceSlug, assetId),
+      })
+    );
   }
 
   async updateBulkProjectAssetsUploadStatus(
     workspaceSlug: string,
     projectId: string,
     entityId: string,
-    data: {
-      asset_ids: string[];
-    }
+    data: { asset_ids: string[] }
   ): Promise<void> {
-    return this.post(`/api/assets/v2/workspaces/${workspaceSlug}/projects/${projectId}/${entityId}/bulk/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.POST("/api/assets/v2/workspaces/{slug}/projects/{project_id}/{entity_id}/bulk/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, entity_id: entityId } },
+        body: data,
+      })
+    );
   }
 
   async uploadProjectAsset(
@@ -146,114 +146,93 @@ export class FileService extends APIService {
     file: File,
     uploadProgressHandler?: UploadProgressHandler
   ): Promise<TFileSignedURLResponse> {
-    const fileMetaData = await getFileMetaDataForUpload(file);
-    return this.post(`/api/assets/v2/workspaces/${workspaceSlug}/projects/${projectId}/`, {
-      ...data,
-      ...fileMetaData,
-    })
-      .then(async (response) => {
-        const signedURLResponse: TFileSignedURLResponse = response?.data;
-        await uploadToPresignedPost(signedURLResponse, file, {
-          onProgress: uploadProgressHandler,
-          signal: this.uploadController.signal,
-        });
-        await this.updateProjectAssetUploadStatus(workspaceSlug, projectId, signedURLResponse.asset_id);
-        return signedURLResponse;
+    const upload = toSignedUpload(
+      await unwrap(
+        apiClient.POST("/api/assets/v2/workspaces/{slug}/projects/{project_id}/", {
+          params: { path: { slug: workspaceSlug, project_id: projectId } },
+          body: await toUploadBody(data, file),
+        })
+      )
+    );
+    await uploadToPresignedPost(upload, file, {
+      onProgress: uploadProgressHandler,
+      signal: this.uploadController.signal,
+    });
+    await unwrap(
+      apiClient.PATCH("/api/assets/v2/workspaces/{slug}/projects/{project_id}/{pk}/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, pk: upload.asset_id } },
       })
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  private async updateUserAssetUploadStatus(assetId: string): Promise<void> {
-    return this.patch(`/api/assets/v2/user-assets/${assetId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    );
+    return upload;
   }
 
   async uploadUserAsset(data: TFileEntityInfo, file: File): Promise<TFileSignedURLResponse> {
-    const fileMetaData = await getFileMetaDataForUpload(file);
-    return this.post(`/api/assets/v2/user-assets/`, {
-      ...data,
-      ...fileMetaData,
-    })
-      .then(async (response) => {
-        const signedURLResponse: TFileSignedURLResponse = response?.data;
-        await uploadToPresignedPost(signedURLResponse, file, { signal: this.uploadController.signal });
-        await this.updateUserAssetUploadStatus(signedURLResponse.asset_id);
-        return signedURLResponse;
-      })
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const upload = toSignedUpload(
+      await unwrap(apiClient.POST("/api/assets/v2/user-assets/", { body: await toUploadBody(data, file) }))
+    );
+    await uploadToPresignedPost(upload, file, { signal: this.uploadController.signal });
+    await unwrap(
+      apiClient.PATCH("/api/assets/v2/user-assets/{asset_id}/", { params: { path: { asset_id: upload.asset_id } } })
+    );
+    return upload;
   }
 
   async deleteUserAsset(assetId: string): Promise<void> {
-    return this.delete(`/api/assets/v2/user-assets/${assetId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.DELETE("/api/assets/v2/user-assets/{asset_id}/", { params: { path: { asset_id: assetId } } })
+    );
   }
 
-  async deleteNewAsset(assetPath: string): Promise<void> {
-    return this.delete(assetPath)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  /** Deletes an editor asset, which is a project asset when the editor belongs to a project. */
+  async deleteEditorAsset(workspaceSlug: string, projectId: string | undefined, assetId: string): Promise<void> {
+    if (projectId) {
+      return unwrap(
+        apiClient.DELETE("/api/assets/v2/workspaces/{slug}/projects/{project_id}/{pk}/", {
+          params: { path: { slug: workspaceSlug, project_id: projectId, pk: assetId } },
+        })
+      );
+    }
+    return this.deleteWorkspaceAsset(workspaceSlug, assetId);
   }
 
-  async deleteOldWorkspaceAsset(workspaceId: string, src: string): Promise<any> {
-    const assetKey = getAssetIdFromUrl(src);
-    return this.delete(`/api/workspaces/file-assets/${workspaceId}/${assetKey}/`)
-      .then((response) => response?.status)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteOldWorkspaceAsset(workspaceId: string, src: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/file-assets/{workspace_id}/{asset_key}/", {
+        params: { path: { workspace_id: workspaceId, asset_key: getAssetIdFromUrl(src) } },
+      })
+    );
   }
 
-  async deleteOldUserAsset(src: string): Promise<any> {
-    const assetKey = getAssetIdFromUrl(src);
-    return this.delete(`/api/users/file-assets/${assetKey}/`)
-      .then((response) => response?.status)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteOldUserAsset(src: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/users/file-assets/{asset_key}/", {
+        params: { path: { asset_key: getAssetIdFromUrl(src) } },
+      })
+    );
   }
 
   async restoreNewAsset(workspaceSlug: string, src: string): Promise<void> {
-    // remove the last slash and get the asset id
-    const assetId = getAssetIdFromUrl(src);
-    return this.post(`/api/assets/v2/workspaces/${workspaceSlug}/restore/${assetId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.POST("/api/assets/v2/workspaces/{slug}/restore/{asset_id}/", {
+        params: workspaceAssetPath(workspaceSlug, getAssetIdFromUrl(src)),
+      })
+    );
   }
 
-  async checkIfAssetExists(
-    workspaceSlug: string,
-    assetId: string
-  ): Promise<{
-    exists: boolean;
-  }> {
-    return this.get(`/api/assets/v2/workspaces/${workspaceSlug}/check/${assetId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async checkIfAssetExists(workspaceSlug: string, assetId: string): Promise<{ exists: boolean }> {
+    return unwrap(
+      apiClient.GET("/api/assets/v2/workspaces/{slug}/check/{asset_id}/", {
+        params: workspaceAssetPath(workspaceSlug, assetId),
+      })
+    );
   }
 
   async restoreOldEditorAsset(workspaceId: string, src: string): Promise<void> {
-    const assetKey = getAssetIdFromUrl(src);
-    return this.post(`/api/workspaces/file-assets/${workspaceId}/${assetKey}/restore/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.POST("/api/workspaces/file-assets/{workspace_id}/{asset_key}/restore/", {
+        params: { path: { workspace_id: workspaceId, asset_key: getAssetIdFromUrl(src) } },
+      })
+    );
   }
 
   cancelUpload() {
@@ -262,30 +241,20 @@ export class FileService extends APIService {
   }
 
   async getUnsplashImages(query?: string): Promise<UnSplashImage[]> {
-    return this.get(`/api/unsplash/`, {
-      params: {
-        query,
-      },
-    })
-      .then((res) => res?.data?.results ?? res?.data)
-      .catch((err) => {
-        throw err?.response?.data;
-      });
+    const data: unknown = await unwrap(apiClient.GET("/api/unsplash/", { params: { query: { query } } }));
+    return parseUnsplashImages(data);
   }
 
   async duplicateAsset(
     workspaceSlug: string,
     assetId: string,
-    data: {
-      entity_id?: string;
-      entity_type: EFileAssetType;
-      project_id?: string;
-    }
+    data: { entity_id?: string; entity_type: EFileAssetType; project_id?: string }
   ): Promise<{ asset_id: string }> {
-    return this.post(`/api/assets/v2/workspaces/${workspaceSlug}/duplicate-assets/${assetId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.POST("/api/assets/v2/workspaces/{slug}/duplicate-assets/{asset_id}/", {
+        params: workspaceAssetPath(workspaceSlug, assetId),
+        body: { ...data, entity_type: toEntityType(data.entity_type) },
+      })
+    );
   }
 }

@@ -17,7 +17,7 @@ import { getAssetIdFromUrl, checkURLValidity } from "@plane/utils";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 // services
-import { FileService } from "@/services/file.service";
+import { FileService, getUploadedAssetUrl } from "@/services/file.service";
 import { ImageUploadActions, ImageUploadDropzone } from "./image-upload-dropzone";
 import { getApiErrorMessage } from "@/helpers/error.helper";
 
@@ -65,7 +65,7 @@ export const WorkspaceImageUploadModal = observer(function WorkspaceImageUploadM
     setIsImageUploading(true);
 
     try {
-      const { asset_url } = await fileService.uploadWorkspaceAsset(
+      const upload = await fileService.uploadWorkspaceAsset(
         workspaceSlug.toString(),
         {
           entity_identifier: currentWorkspace.id,
@@ -73,8 +73,9 @@ export const WorkspaceImageUploadModal = observer(function WorkspaceImageUploadM
         },
         image
       );
-      updateWorkspaceLogo(workspaceSlug.toString(), asset_url);
-      onSuccess(asset_url);
+      const assetUrl = getUploadedAssetUrl(upload);
+      updateWorkspaceLogo(workspaceSlug.toString(), assetUrl);
+      onSuccess(assetUrl);
     } catch (error: unknown) {
       console.log("error", error);
       setToast({
