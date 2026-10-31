@@ -9950,6 +9950,20 @@ export interface components {
             total_results: number;
             extra_stats: unknown;
         };
+        PaginatedStickyList: {
+            results: components["schemas"]["Sticky"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
         PaginatedTrashedIssueList: {
             results: components["schemas"]["TrashedIssue"][];
             grouped_by: string | null;
@@ -26160,8 +26174,12 @@ export interface operations {
     workspaces_stickies_list: {
         parameters: {
             query?: {
-                /** @description A search term. */
-                search?: string;
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+                /** @description Only stickies whose text contains this. Every sticky when omitted */
+                query?: string;
             };
             header?: never;
             path: {
@@ -26176,7 +26194,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Sticky"][];
+                    "application/json": components["schemas"]["PaginatedStickyList"];
                 };
             };
         };

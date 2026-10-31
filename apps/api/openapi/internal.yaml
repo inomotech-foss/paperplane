@@ -16786,12 +16786,31 @@ paths:
     get:
       operationId: workspaces_stickies_list
       parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
+      - in: query
+        name: cursor
         schema:
           type: string
+        description: Pagination cursor for getting next set of results
+        examples:
+          NextPageCursor:
+            value: '20:1:0'
+            summary: Next page cursor
+            description: 'Cursor format: ''page_size:page_number:offset'''
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: 'Number of results per page (default: 20, max: 100)'
+        examples:
+          Default:
+            value: 20
+          Maximum:
+            value: 100
+      - in: query
+        name: query
+        schema:
+          type: string
+        description: Only stickies whose text contains this. Every sticky when omitted
       - in: path
         name: slug
         schema:
@@ -16806,9 +16825,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Sticky'
+                $ref: '#/components/schemas/PaginatedStickyList'
           description: ''
     post:
       operationId: workspaces_stickies_create
@@ -30479,6 +30496,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PublicWorkItemListItem'
+        grouped_by:
+          type: string
+          nullable: true
+          maxLength: 0
+        sub_grouped_by:
+          type: string
+          nullable: true
+          maxLength: 0
+        total_count:
+          type: integer
+        next_cursor:
+          type: string
+        prev_cursor:
+          type: string
+        next_page_results:
+          type: boolean
+        prev_page_results:
+          type: boolean
+        count:
+          type: integer
+        total_pages:
+          type: integer
+        total_results:
+          type: integer
+        extra_stats:
+          nullable: true
+      required:
+      - results
+      - grouped_by
+      - sub_grouped_by
+      - total_count
+      - next_cursor
+      - prev_cursor
+      - next_page_results
+      - prev_page_results
+      - count
+      - total_pages
+      - total_results
+      - extra_stats
+    PaginatedStickyList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sticky'
         grouped_by:
           type: string
           nullable: true
