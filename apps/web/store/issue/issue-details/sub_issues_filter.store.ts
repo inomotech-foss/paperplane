@@ -7,16 +7,9 @@
 import { set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-import type { EIssueFilterType } from "@plane/constants";
-import type {
-  IIssueDisplayFilterOptions,
-  IIssueDisplayProperties,
-  IIssueFilterOptions,
-  ISubWorkItemFilters,
-  TGroupedIssues,
-  TIssue,
-} from "@plane/types";
+import type { IIssueFilterOptions, ISubWorkItemFilters, TGroupedIssues, TIssue } from "@plane/types";
 import { getFilteredWorkItems, getGroupedWorkItemIds, updateSubWorkItemFilters } from "../helpers/base-issues-utils";
+import type { TSubWorkItemFilterUpdate } from "../helpers/base-issues-utils";
 import type { IssueSubIssuesStore } from "./sub_issues.store";
 
 export const DEFAULT_DISPLAY_PROPERTIES = {
@@ -32,11 +25,7 @@ export const DEFAULT_DISPLAY_PROPERTIES = {
 export interface IWorkItemSubIssueFiltersStore {
   subIssueFilters: Record<string, Partial<ISubWorkItemFilters>>;
   // helpers methods
-  updateSubWorkItemFilters: (
-    filterType: EIssueFilterType,
-    filters: IIssueDisplayFilterOptions | IIssueDisplayProperties | IIssueFilterOptions,
-    workItemId: string
-  ) => void;
+  updateSubWorkItemFilters: (filterUpdate: TSubWorkItemFilterUpdate, workItemId: string) => void;
   getGroupedSubWorkItems: (workItemId: string) => TGroupedIssues;
   getFilteredSubWorkItems: (workItemId: string, filters: IIssueFilterOptions) => TIssue[];
   getSubIssueFilters: (workItemId: string) => Partial<ISubWorkItemFilters>;
@@ -88,13 +77,9 @@ export class WorkItemSubIssueFiltersStore implements IWorkItemSubIssueFiltersSto
    * @param filterType
    * @param filters
    */
-  updateSubWorkItemFilters = (
-    filterType: EIssueFilterType,
-    filters: IIssueDisplayFilterOptions | IIssueDisplayProperties | IIssueFilterOptions,
-    workItemId: string
-  ) => {
+  updateSubWorkItemFilters = (filterUpdate: TSubWorkItemFilterUpdate, workItemId: string) => {
     runInAction(() => {
-      updateSubWorkItemFilters(this.subIssueFilters, filterType, filters, workItemId);
+      updateSubWorkItemFilters(this.subIssueFilters, filterUpdate, workItemId);
     });
   };
 

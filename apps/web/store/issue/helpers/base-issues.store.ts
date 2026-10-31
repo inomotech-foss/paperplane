@@ -23,10 +23,9 @@ import type {
   TIssuePaginationData,
   TGroupedIssueCount,
   TPaginationData,
-  TBulkOperationsPayload,
   IBlockUpdateDependencyData,
 } from "@plane/types";
-import { EIssueServiceType, EIssueLayoutTypes } from "@plane/types";
+import { EIssueLayoutTypes } from "@plane/types";
 // helpers
 import { convertToISODateString } from "@plane/utils";
 // plane web imports
@@ -116,6 +115,18 @@ export interface IBaseIssuesStore {
 }
 
 // This constant maps the group by keys to the respective issue property that the key relies on
+/** The value of the work item field a list groups by, as group ids. */
+export const getGroupKeyValue = (
+  issue: Partial<TIssue> | undefined,
+  key: keyof TIssue | undefined
+): string | string[] | null | undefined => {
+  if (!issue || !key) return undefined;
+  const value = issue[key];
+  if (typeof value === "string" || value === null || value === undefined) return value;
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
+  return undefined;
+};
+
 export const ISSUE_GROUP_BY_KEY: Record<TIssueDisplayFilterOptions, keyof TIssue> = {
   project: "project_id",
   state: "state_id",
@@ -199,12 +210,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
   // API Abort controller
   controller: AbortController;
 
-  constructor(
-    _rootStore: IIssueRootStore,
-    issueFilterStore: IBaseIssueFilterStore,
-    isArchived = false,
-    serviceType = EIssueServiceType.ISSUES
-  ) {
+  constructor(_rootStore: IIssueRootStore, issueFilterStore: IBaseIssueFilterStore, isArchived = false) {
     makeObservable(this, {
       // observable
       loader: observable,
@@ -240,7 +246,6 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       issueArchive: action.bound,
       removeBulkIssues: action.bound,
       bulkArchiveIssues: action.bound,
-      bulkUpdateProperties: action.bound,
 
       addIssueToCycle: action.bound,
       removeIssueFromCycle: action.bound,
@@ -256,7 +261,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
 
     this.isArchived = isArchived;
 
-    this.issueService = new IssueService(serviceType);
+    this.issueService = new IssueService();
     this.issueArchiveService = new IssueArchiveService();
     this.moduleService = new ModuleService();
     this.cycleService = new CycleService();
@@ -324,7 +329,8 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     }
 
     if (this.groupBy && this.subGroupBy && groupId && subGroupId) {
-      return (groupedIssueIds as TSubGroupedIssues)[groupId]?.[subGroupId] ?? [];
+      const group = groupedIssueIds[groupId];
+      return group && !Array.isArray(group) ? (group[subGroupId] ?? []) : [];
     }
 
     return undefined;
@@ -578,19 +584,17 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
   ) {
     // Store Before state of the issue
     const issueBeforeUpdate = clone(this.rootIssueStore.issues.getIssueById(issueId));
+    const issueAfterUpdate = issueBeforeUpdate ? { ...issueBeforeUpdate, ...data } : undefined;
     try {
       // Update the Respective Stores
       this.rootIssueStore.issues.updateIssue(issueId, data);
-      this.updateIssueList({ ...issueBeforeUpdate, ...data } as TIssue, issueBeforeUpdate);
+      this.updateIssueList(issueAfterUpdate, issueBeforeUpdate);
 
       // Check if should Sync
       if (!shouldSync) return;
 
       // update parent stats optimistically
-      this.updateParentStats(issueBeforeUpdate, {
-        ...issueBeforeUpdate,
-        ...data,
-      } as TIssue);
+      this.updateParentStats(issueBeforeUpdate, issueAfterUpdate);
 
       // call API to update the issue
       await this.issueService.patchIssue(workspaceSlug, projectId, issueId, data);
@@ -601,7 +605,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     } catch (error) {
       // If errored out update store again to revert the change
       this.rootIssueStore.issues.updateIssue(issueId, issueBeforeUpdate ?? {});
-      this.updateIssueList(issueBeforeUpdate, { ...issueBeforeUpdate, ...data } as TIssue);
+      this.updateIssueList(issueBeforeUpdate, issueAfterUpdate);
       throw error;
     }
   }
@@ -697,7 +701,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
    */
   async removeBulkIssues(workspaceSlug: string, projectId: string, issueIds: string[]) {
     // Make API call to bulk delete issues
-    const response = await this.issueService.bulkDeleteIssues(workspaceSlug, projectId, { issue_ids: issueIds });
+    const response = await this.issueService.bulkDeleteIssues(workspaceSlug, projectId, issueIds);
     // call fetch parent stats
     this.fetchParentStats(workspaceSlug, projectId);
     // Remove issues from the store
@@ -717,7 +721,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
    * @param issueIds
    */
   bulkArchiveIssues = async (workspaceSlug: string, projectId: string, issueIds: string[]) => {
-    const response = await this.issueService.bulkArchiveIssues(workspaceSlug, projectId, { issue_ids: issueIds });
+    const response = await this.issueService.bulkArchiveIssues(workspaceSlug, projectId, issueIds);
 
     runInAction(() => {
       issueIds.forEach((issueId) => {
@@ -731,44 +735,6 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
           false
         );
         this.removeIssueFromList(issueId);
-      });
-    });
-  };
-
-  /**
-   * @description bulk update properties of selected issues
-   * @param {TBulkOperationsPayload} data
-   */
-  bulkUpdateProperties = async (workspaceSlug: string, projectId: string, data: TBulkOperationsPayload) => {
-    const issueIds = data.issue_ids;
-    // make request to update issue properties
-    await this.issueService.bulkOperations(workspaceSlug, projectId, data);
-    // update issues in the store
-    runInAction(() => {
-      issueIds.forEach((issueId) => {
-        const issueBeforeUpdate = clone(this.rootIssueStore.issues.getIssueById(issueId));
-        if (!issueBeforeUpdate) throw new Error("Work item not found");
-        Object.keys(data.properties).forEach((key) => {
-          const property = key as keyof TBulkOperationsPayload["properties"];
-          const propertyValue = data.properties[property];
-          // update root issue map properties
-          if (Array.isArray(propertyValue)) {
-            // if property value is array, append it to the existing values
-            const existingValue = issueBeforeUpdate[property];
-            // convert existing value to an array
-            const newExistingValue = Array.isArray(existingValue) ? existingValue : [];
-            this.rootIssueStore.issues.updateIssue(issueId, {
-              [property]: uniq([...newExistingValue, ...propertyValue]),
-            });
-          } else {
-            // if property value is not an array, simply update the value
-            this.rootIssueStore.issues.updateIssue(issueId, {
-              [property]: propertyValue,
-            });
-          }
-        });
-        const issueDetails = this.rootIssueStore.issues.getIssueById(issueId);
-        this.updateIssueList(issueDetails, issueBeforeUpdate);
       });
     });
   };
@@ -837,9 +803,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     fetchAddedIssues = true
   ) {
     // Perform an APi call to add issue to cycle
-    await this.issueService.addIssueToCycle(workspaceSlug, projectId, cycleId, {
-      issues: issueIds,
-    });
+    await this.cycleService.addIssuesToCycle(workspaceSlug, projectId, cycleId, issueIds);
 
     // if cycle Id is the current Cycle Id then call fetch parent stats
     if (this.cycleId === cycleId) this.fetchParentStats(workspaceSlug, projectId);
@@ -875,7 +839,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     if (this.cycleId === cycleId) this.updateParentStats(issueBeforeRemoval, undefined, cycleId);
 
     // Perform an APi call to remove issue from cycle
-    await this.issueService.removeIssueFromCycle(workspaceSlug, projectId, cycleId, issueId);
+    await this.cycleService.removeIssueFromCycle(workspaceSlug, projectId, cycleId, issueId);
 
     // if cycle Id is the current Cycle Id then call fetch parent stats
     if (this.cycleId === cycleId) this.fetchParentStats(workspaceSlug, projectId, cycleId);
@@ -922,9 +886,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       if (this.cycleId === cycleId || this.cycleId === issueCycleId)
         this.updateParentStats(issueBeforeUpdate, issueAfterUpdate, this.cycleId);
 
-      await this.issueService.addIssueToCycle(workspaceSlug, projectId, cycleId, {
-        issues: [issueId],
-      });
+      await this.cycleService.addIssuesToCycle(workspaceSlug, projectId, cycleId, [issueId]);
 
       // if cycle Id is the current Cycle Id then call fetch parent stats
       if (this.cycleId === cycleId || this.cycleId === issueCycleId)
@@ -967,7 +929,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       if (this.cycleId === issueCycleId) this.updateParentStats(issueBeforeRemoval, undefined, issueCycleId);
 
       // make API call
-      await this.issueService.removeIssueFromCycle(workspaceSlug, projectId, issueCycleId, issueId);
+      await this.cycleService.removeIssueFromCycle(workspaceSlug, projectId, issueCycleId, issueId);
 
       // if cycle Id is the current Cycle Id then call fetch parent stats
       if (this.cycleId === issueCycleId) this.fetchParentStats(workspaceSlug, projectId, issueCycleId);
@@ -1416,15 +1378,16 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       // update the groupId's issue count
       set(this.groupedIssueCount, [groupId], issueGroupCount);
 
-      // This updates the group issue list in the store, if the issueGroup is a string
-      const storeUpdated = this.updateIssueGroup(issueGroup, [groupId]);
-      // if issueGroup is indeed a string, continue
-      if (storeUpdated) continue;
+      // This updates the group issue list in the store, if the issueGroup is a list
+      if (!issueGroup || Array.isArray(issueGroup)) {
+        this.updateIssueGroup(issueGroup, [groupId]);
+        continue;
+      }
 
-      // if issueGroup is not a string, loop through the sub group Issues
+      // if issueGroup is not a list, loop through the sub group Issues
       // oxlint-disable-next-line no-shadow
       for (const subGroupId in issueGroup) {
-        const issueSubGroup = (issueGroup as TGroupedIssues)[subGroupId];
+        const issueSubGroup = issueGroup[subGroupId];
         const issueSubGroupCount = groupedIssueCount[getGroupKey(groupId, subGroupId)];
 
         // update the subGroupId's issue count
@@ -1557,8 +1520,8 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     // if unGrouped, then return the path as ALL_ISSUES along with orderByUpdates
     if (!this.issueGroupKey) return action ? [{ path: [ALL_ISSUES], action }, ...orderByUpdates] : orderByUpdates;
 
-    const issueGroupKeyValue = issue?.[this.issueGroupKey] as string | string[] | null | undefined;
-    const issueBeforeUpdateGroupKey = issueBeforeUpdate?.[this.issueGroupKey] as string | string[] | null | undefined;
+    const issueGroupKeyValue = getGroupKeyValue(issue, this.issueGroupKey);
+    const issueBeforeUpdateGroupKey = getGroupKeyValue(issueBeforeUpdate, this.issueGroupKey);
     // if grouped, the get the Difference between the two issue properties (this.issueGroupKey) on which groupBy is performed
     const groupActionsArray = getDifference(
       this.getArrayStringArray(issue, issueGroupKeyValue, this.groupBy),
@@ -1576,12 +1539,8 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
         ...orderByUpdates,
       ];
 
-    const issueSubGroupKey = issue?.[this.issueSubGroupKey] as string | string[] | null | undefined;
-    const issueBeforeUpdateSubGroupKey = issueBeforeUpdate?.[this.issueSubGroupKey] as
-      | string
-      | string[]
-      | null
-      | undefined;
+    const issueSubGroupKey = getGroupKeyValue(issue, this.issueSubGroupKey);
+    const issueBeforeUpdateSubGroupKey = getGroupKeyValue(issueBeforeUpdate, this.issueSubGroupKey);
     // if subGrouped, the get the Difference between the two issue properties (this.issueGroupKey) on which subGroupBy is performed
     const subGroupActionsArray = getDifference(
       this.getArrayStringArray(issue, issueSubGroupKey, this.subGroupBy),
@@ -1625,7 +1584,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     // if they are not equal and issues are not grouped then, provide path as ALL_ISSUES
     if (!this.issueGroupKey) return [{ path: [ALL_ISSUES], action: EIssueGroupedAction.REORDER }];
 
-    const issueGroupKey = issue?.[this.issueGroupKey] as string | string[] | null | undefined;
+    const issueGroupKey = getGroupKeyValue(issue, this.issueGroupKey);
     // if they are grouped then identify the paths based on props on which group by is dependent on
     const issueKeyActions: { path: string[]; action: EIssueGroupedAction.REORDER }[] = [];
     const groupByValues = this.getArrayStringArray(issue, issueGroupKey);
@@ -1639,7 +1598,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       return issueKeyActions;
     }
 
-    const issueSubGroupKey = issue?.[this.issueSubGroupKey] as string | string[] | null | undefined;
+    const issueSubGroupKey = getGroupKeyValue(issue, this.issueSubGroupKey);
     // if they are grouped then identify the paths based on props on which sub group by is dependent on
     const subGroupByValues = this.getArrayStringArray(issue, issueSubGroupKey);
 
@@ -1772,7 +1731,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
         // If Estimate is not available, then return
         if (!estimate) break;
         // Get Estimate Value
-        const estimateKey = estimate?.estimatePointById(dataIds as string)?.key;
+        const estimateKey = typeof dataIds === "string" ? estimate.estimatePointById(dataIds)?.key : undefined;
 
         // If Value string i not available or empty then return
         if (estimateKey === undefined) break;

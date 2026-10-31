@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { clone, update, unset, orderBy, set } from "lodash-es";
+import { clone, unset, orderBy, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // plane imports
@@ -20,7 +20,6 @@ import type {
   TSubGroupedIssues,
   ViewFlags,
   TIssue,
-  TBulkOperationsPayload,
 } from "@plane/types";
 import { getCurrentDateTimeInISO, convertToISODateString } from "@plane/utils";
 // services
@@ -58,19 +57,11 @@ export interface IWorkspaceDraftIssues {
     workspaceSlug: string,
     issueId: string,
     payload: Partial<TWorkspaceDraftIssue | TIssue>
-  ) => Promise<TWorkspaceDraftIssue | undefined>;
+  ) => Promise<void>;
   deleteIssue: (workspaceSlug: string, issueId: string) => Promise<void>;
   moveIssue: (workspaceSlug: string, issueId: string, payload: Partial<TWorkspaceDraftIssue>) => Promise<TIssue>;
-  addCycleToIssue: (
-    workspaceSlug: string,
-    issueId: string,
-    cycleId: string
-  ) => Promise<TWorkspaceDraftIssue | undefined>;
-  addModulesToIssue: (
-    workspaceSlug: string,
-    issueId: string,
-    moduleIds: string[]
-  ) => Promise<TWorkspaceDraftIssue | undefined>;
+  addCycleToIssue: (workspaceSlug: string, issueId: string, cycleId: string) => Promise<void>;
+  addModulesToIssue: (workspaceSlug: string, issueId: string, moduleIds: string[]) => Promise<void>;
 
   // dummies
   viewFlags: ViewFlags;
@@ -109,7 +100,6 @@ export interface IWorkspaceDraftIssues {
   archiveIssue: (workspaceSlug: string, projectId: string, issueId: string) => Promise<void>;
   archiveBulkIssues: (workspaceSlug: string, projectId: string, issueIds: string[]) => Promise<void>;
   removeBulkIssues: (workspaceSlug: string, projectId: string, issueIds: string[]) => Promise<void>;
-  bulkUpdateProperties: (workspaceSlug: string, projectId: string, data: TBulkOperationsPayload) => Promise<void>;
 }
 
 export class WorkspaceDraftIssues implements IWorkspaceDraftIssues {
@@ -167,8 +157,8 @@ export class WorkspaceDraftIssues implements IWorkspaceDraftIssues {
     if (issues && issues.length <= 0) return;
     runInAction(() => {
       issues.forEach((issue) => {
-        if (!this.issuesMap[issue.id]) set(this.issuesMap, issue.id, issue);
-        else update(this.issuesMap, issue.id, (prevIssue) => ({ ...prevIssue, ...issue }));
+        const known = this.issuesMap[issue.id];
+        set(this.issuesMap, issue.id, known ? { ...known, ...issue } : issue);
       });
     });
   };
@@ -177,8 +167,8 @@ export class WorkspaceDraftIssues implements IWorkspaceDraftIssues {
     if (!issue || !issueId || !this.issuesMap[issueId]) return;
     runInAction(() => {
       set(this.issuesMap, [issueId, "updated_at"], getCurrentDateTimeInISO());
-      Object.keys(issue).forEach((key) => {
-        set(this.issuesMap, [issueId, key], issue[key as keyof TWorkspaceDraftIssue]);
+      Object.entries(issue).forEach(([key, value]) => {
+        set(this.issuesMap, [issueId, key], value);
       });
     });
   };
@@ -237,7 +227,7 @@ export class WorkspaceDraftIssues implements IWorkspaceDraftIssues {
           const newIssueIds = issueIds.filter((issueId) => !existingIssueIds.includes(issueId));
           this.addIssue(results);
           // issue map update
-          update(this.issueMapIds, [workspaceSlug], (existingIssueIds = []) => [...newIssueIds, ...existingIssueIds]);
+          set(this.issueMapIds, [workspaceSlug], [...newIssueIds, ...existingIssueIds]);
           this.loader = undefined;
         } else {
           this.loader = "empty-state";
@@ -263,7 +253,7 @@ export class WorkspaceDraftIssues implements IWorkspaceDraftIssues {
       if (response) {
         runInAction(() => {
           this.addIssue([response]);
-          update(this.issueMapIds, [workspaceSlug], (existingIssueIds = []) => [response.id, ...existingIssueIds]);
+          set(this.issueMapIds, [workspaceSlug], [response.id, ...(this.issueMapIds[workspaceSlug] ?? [])]);
           // increase the count of issues in the pagination info
           if (this.paginationInfo?.total_count) {
             set(this, "paginationInfo", {
@@ -425,5 +415,4 @@ export class WorkspaceDraftIssues implements IWorkspaceDraftIssues {
   archiveIssue = async (_workspaceSlug: string, _projectId: string, _issueId: string) => {};
   archiveBulkIssues = async (_workspaceSlug: string, _projectId: string, _issueIds: string[]) => {};
   removeBulkIssues = async (_workspaceSlug: string, _projectId: string, _issueIds: string[]) => {};
-  bulkUpdateProperties = async (_workspaceSlug: string, _projectId: string, _data: TBulkOperationsPayload) => {};
 }

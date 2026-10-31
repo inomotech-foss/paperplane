@@ -5,7 +5,7 @@
  */
 
 import { uniq, orderBy, isEmpty, indexOf, groupBy, cloneDeep, set } from "lodash-es";
-import { ALL_ISSUES, EIssueFilterType, FILTER_TO_ISSUE_MAP, ISSUE_PRIORITIES } from "@plane/constants";
+import { ALL_ISSUES, EIssueFilterType, ISSUE_PRIORITIES } from "@plane/constants";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
@@ -178,8 +178,8 @@ export const getDifference = (
  * @param object any object in which the key's value is to be checked
  * @returns 1 if empty, 0 if not empty
  */
-export const getSortOrderToFilterEmptyValues = (key: string, object: any) => {
-  const value = object?.[key];
+export const getSortOrderToFilterEmptyValues = (key: keyof TIssue, object: TIssue) => {
+  const value = object[key];
 
   if (typeof value !== "number" && isEmpty(value)) return 1;
 
@@ -234,6 +234,34 @@ export const getPreviousIssuesState = (issues: TIssue[]) => {
   return issuesPreviousState;
 };
 
+/** The work item value a filter compares against, or false for a filter without one. */
+const getFilteredValue = (workItem: TIssue, filterKey: string): string | string[] | null | undefined | false => {
+  switch (filterKey) {
+    case "assignees":
+      return workItem.assignee_ids;
+    case "created_by":
+      return workItem.created_by;
+    case "labels":
+      return workItem.label_ids;
+    case "priority":
+      return workItem.priority;
+    case "cycle":
+      return workItem.cycle_id;
+    case "module":
+      return workItem.module_ids;
+    case "project":
+      return workItem.project_id;
+    case "state":
+      return workItem.state_id;
+    case "issue_type":
+      return workItem.type_id;
+    case "state_group":
+      return workItem.state__group;
+    default:
+      return false;
+  }
+};
+
 /**
  * Filters the given work items based on the provided filters and display filters.
  * @param work items - The array of work items to be filtered.
@@ -244,7 +272,9 @@ export const getPreviousIssuesState = (issues: TIssue[]) => {
 export const getFilteredWorkItems = (workItems: TIssue[], filters: IIssueFilterOptions | undefined): TIssue[] => {
   if (!filters) return workItems;
   // Get all active filters
-  const activeFilters = Object.entries(filters).filter(([, value]) => value && value.length > 0);
+  const activeFilters = Object.entries(filters).filter(
+    (entry): entry is [string, string[]] => Array.isArray(entry[1]) && entry[1].length > 0
+  );
   // If no active filters, return all issues
   if (activeFilters.length === 0) {
     return workItems;
@@ -255,18 +285,13 @@ export const getFilteredWorkItems = (workItems: TIssue[], filters: IIssueFilterO
     activeFilters.every(([filterKey, filterValues]) => {
       // Handle date filters separately
       if (filterKey === "start_date" || filterKey === "target_date") {
-        return checkIssueDateFilter(workItem, filterKey, filterValues as string[]);
+        return checkIssueDateFilter(workItem, filterKey, filterValues);
       }
-      // Handle regular filters
-      const issueKey = FILTER_TO_ISSUE_MAP[filterKey as keyof IIssueFilterOptions];
-      if (!issueKey) return true; // Skip if no mapping exists
-      const issueValue = workItem[issueKey];
+      const issueValue = getFilteredValue(workItem, filterKey);
+      if (issueValue === false) return true; // Skip if no mapping exists
       // Handle array-based properties vs single value properties
-      if (Array.isArray(issueValue)) {
-        return filterValues!.some((filterValue: any) => issueValue.includes(filterValue));
-      } else {
-        return filterValues!.includes(issueValue as string);
-      }
+      if (Array.isArray(issueValue)) return filterValues.some((filterValue) => issueValue.includes(filterValue));
+      return typeof issueValue === "string" && filterValues.includes(issueValue);
     })
   );
 };
@@ -357,10 +382,14 @@ export const getGroupedWorkItemIds = (
  * @param filters - The filters to update.
  * @param workItemId - The ID of the work item to update.
  */
+export type TSubWorkItemFilterUpdate =
+  | { type: EIssueFilterType.FILTERS; filters: IIssueFilterOptions }
+  | { type: EIssueFilterType.DISPLAY_FILTERS; filters: IIssueDisplayFilterOptions }
+  | { type: EIssueFilterType.DISPLAY_PROPERTIES; filters: IIssueDisplayProperties };
+
 export const updateSubWorkItemFilters = (
   filtersMap: Record<string, Partial<ISubWorkItemFilters>>,
-  filterType: EIssueFilterType,
-  filters: IIssueDisplayFilterOptions | IIssueDisplayProperties | IIssueFilterOptions,
+  filterUpdate: TSubWorkItemFilterUpdate,
   workItemId: string
 ) => {
   const existingFilters = filtersMap[workItemId] ?? {};
@@ -370,21 +399,17 @@ export const updateSubWorkItemFilters = (
     displayProperties: existingFilters.displayProperties,
   };
 
-  switch (filterType) {
-    case EIssueFilterType.FILTERS: {
-      const updatedFilters = filters as IIssueFilterOptions;
-      _filters.filters = { ..._filters.filters, ...updatedFilters };
-      set(filtersMap, [workItemId, "filters"], { ..._filters.filters, ...updatedFilters });
+  switch (filterUpdate.type) {
+    case EIssueFilterType.FILTERS:
+      set(filtersMap, [workItemId, "filters"], { ..._filters.filters, ...filterUpdate.filters });
       break;
-    }
-    case EIssueFilterType.DISPLAY_FILTERS: {
-      set(filtersMap, [workItemId, "displayFilters"], { ..._filters.displayFilters, ...filters });
+    case EIssueFilterType.DISPLAY_FILTERS:
+      set(filtersMap, [workItemId, "displayFilters"], { ..._filters.displayFilters, ...filterUpdate.filters });
       break;
-    }
     case EIssueFilterType.DISPLAY_PROPERTIES:
       set(filtersMap, [workItemId, "displayProperties"], {
         ..._filters.displayProperties,
-        ...filters,
+        ...filterUpdate.filters,
       });
       break;
   }

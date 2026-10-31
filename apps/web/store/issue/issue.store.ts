@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-import { set, update } from "lodash-es";
+import { set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { TIssue } from "@plane/types";
+import type { TIssue, TRelatedIssue } from "@plane/types";
 // helpers
 import { getCurrentDateTimeInISO } from "@plane/utils";
 import { rootStore } from "@/lib/store-context";
@@ -22,6 +22,7 @@ export type IIssueStore = {
   // actions
   getIssues(workspaceSlug: string, projectId: string, issueIds: string[]): Promise<TIssue[]>;
   addIssue(issues: TIssue[]): void;
+  addPartialIssues(issues: TRelatedIssue[]): void;
   addIssueIdentifier(issueIdentifier: string, issueId: string): void;
   updateIssue(issueId: string, issue: Partial<TIssue>): void;
   removeIssue(issueId: string): void;
@@ -30,6 +31,36 @@ export type IIssueStore = {
   getIssueIdByIdentifier(issueIdentifier: string): undefined | string;
   getIssuesByIds(issueIds: string[], type: "archived" | "un-archived"): TIssue[]; // Record defines issue_id as key and TIssue as value
 };
+
+/** A work item with every field unknown, for rows that carry only some fields. */
+export const emptyIssue = (id: string): TIssue => ({
+  id,
+  name: "",
+  sequence_id: 0,
+  sort_order: 0,
+  state_id: null,
+  priority: null,
+  label_ids: [],
+  assignee_ids: [],
+  estimate_point: null,
+  sub_issues_count: 0,
+  attachment_count: 0,
+  link_count: 0,
+  project_id: null,
+  parent_id: null,
+  cycle_id: null,
+  module_ids: null,
+  type_id: "",
+  created_at: "",
+  updated_at: "",
+  start_date: null,
+  target_date: null,
+  completed_at: null,
+  archived_at: null,
+  created_by: null,
+  updated_by: null,
+  is_draft: false,
+});
 
 export class IssueStore implements IIssueStore {
   // observables
@@ -45,6 +76,7 @@ export class IssueStore implements IIssueStore {
       issuesIdentifierMap: observable,
       // actions
       addIssue: action,
+      addPartialIssues: action,
       addIssueIdentifier: action,
       updateIssue: action,
       removeIssue: action,
@@ -68,8 +100,22 @@ export class IssueStore implements IIssueStore {
         const issueIdentifier = `${projectIdentifier}-${workItemSequenceId}`;
         set(this.issuesIdentifierMap, issueIdentifier, issue.id);
 
-        if (!this.issuesMap[issue.id]) set(this.issuesMap, issue.id, issue);
-        else update(this.issuesMap, issue.id, (prevIssue) => ({ ...prevIssue, ...issue }));
+        const known = this.issuesMap[issue.id];
+        set(this.issuesMap, issue.id, known ? { ...known, ...issue } : issue);
+      });
+    });
+  };
+
+  /** Merges rows that carry some work item fields, such as relations. Unknown work items get defaults for the rest. */
+  addPartialIssues = (issues: TRelatedIssue[]) => {
+    runInAction(() => {
+      issues.forEach((issue) => {
+        if (issue.project_id && issue.sequence_id !== undefined) {
+          const projectIdentifier = rootStore.projectRoot.project.getProjectIdentifierById(issue.project_id);
+          set(this.issuesIdentifierMap, `${projectIdentifier}-${issue.sequence_id}`, issue.id);
+        }
+        const known = this.issuesMap[issue.id];
+        set(this.issuesMap, issue.id, { ...(known ?? emptyIssue(issue.id)), ...issue });
       });
     });
   };
@@ -109,8 +155,8 @@ export class IssueStore implements IIssueStore {
     if (!issue || !issueId || !this.issuesMap[issueId]) return;
     runInAction(() => {
       set(this.issuesMap, [issueId, "updated_at"], getCurrentDateTimeInISO());
-      Object.keys(issue).forEach((key) => {
-        set(this.issuesMap, [issueId, key], issue[key as keyof TIssue]);
+      Object.entries(issue).forEach(([key, value]) => {
+        set(this.issuesMap, [issueId, key], value);
       });
     });
   };
