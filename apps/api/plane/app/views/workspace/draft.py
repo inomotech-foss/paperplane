@@ -21,8 +21,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
+from plane.app.serializers.request.issue import (
+    DRAFT_LIST_PARAMETERS,
+    DraftIssueWriteSerializer,
+    DraftToIssueSerializer,
+)
+
 # Module imports
-from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
 from plane.utils.openapi.pagination import paginated_response
 from plane.app.serializers.response.issue import CreatedWorkItemSerializer, DraftWorkItemSnapshotSerializer
 from plane.app.permissions import allow_permission, ROLE
@@ -118,9 +123,7 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
             )
         ).distinct()
 
-    @extend_schema(
-        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: paginated_response(DraftIssueSerializer)}
-    )
+    @extend_schema(parameters=DRAFT_LIST_PARAMETERS, responses={200: paginated_response(DraftIssueSerializer)})
     @method_decorator(gzip_page)
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list(self, request, slug):
@@ -135,7 +138,7 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
             on_results=lambda issues: DraftIssueSerializer(issues, many=True).data,
         )
 
-    @extend_schema(responses={201: DraftWorkItemSnapshotSerializer})
+    @extend_schema(request=DraftIssueWriteSerializer, responses={201: DraftWorkItemSnapshotSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def create(self, request, slug):
         workspace = Workspace.objects.get(slug=slug)
@@ -188,7 +191,7 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
             return Response(issue, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(responses={204: OpenApiResponse(description="Updated")})
+    @extend_schema(request=DraftIssueWriteSerializer, responses={204: OpenApiResponse(description="Updated")})
     @allow_permission(
         allowed_roles=[ROLE.ADMIN, ROLE.MEMBER],
         creator=True,
@@ -248,7 +251,7 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
         draft_issue.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @extend_schema(responses={201: CreatedWorkItemSerializer})
+    @extend_schema(request=DraftToIssueSerializer, responses={201: CreatedWorkItemSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def create_draft_to_issue(self, request, slug, draft_id):
         # Drafts are private to their creator; scope the lookup to the owner so a

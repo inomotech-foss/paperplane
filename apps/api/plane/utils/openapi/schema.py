@@ -86,6 +86,12 @@ def _guessed_presence(serializer, field):
     return _source_presence(model, field.source)
 
 
+def delete_body(handler):
+    """Documents the request body of a DELETE handler, which drf-spectacular drops otherwise. Apply it outermost."""
+    handler.reads_delete_body = True
+    return handler
+
+
 def single(serializer):
     """One object from a viewset's list action, which drf-spectacular would document as an array."""
     return set_override(force_instance(serializer), "many", False)
@@ -126,6 +132,16 @@ class AutoSchema(SpectacularAutoSchema):
         ):
             field = as_client_json(field)
         return super()._map_serializer_field(field, direction, bypass_extensions)
+
+    def _get_request_body(self, direction="request"):
+        handler = getattr(self.view, getattr(self.view, "action", None) or self.method.lower(), None)
+        if self.method != "DELETE" or not getattr(handler, "reads_delete_body", False):
+            return super()._get_request_body(direction)
+        self.method = "POST"
+        try:
+            return super()._get_request_body(direction)
+        finally:
+            self.method = "DELETE"
 
     def _get_request_for_media_type(self, serializer, direction="request"):
         # A view that reads request.data by hand requires the same keys on PATCH as on POST.

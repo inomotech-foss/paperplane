@@ -42,6 +42,7 @@ from plane.app.serializers import (
     ProjectUserPropertySerializer,
 )
 from plane.app.serializers.response.issue import (
+    ExpandedIssueDetailSerializer,
     WorkItemDetailRowSerializer,
     WorkItemListResponse,
     WorkItemMetaSerializer,
@@ -49,8 +50,21 @@ from plane.app.serializers.response.issue import (
     WorkItemSnapshotSerializer,
     WorkItemSyncItemSerializer,
 )
-from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.app.serializers.request.issue import (
+    DESCRIPTION_PARAMETER,
+    EXPAND_ISSUE_PARAMETER,
+    ISSUE_DETAIL_LIST_PARAMETERS,
+    ISSUE_IDS_PARAMETER,
+    ISSUE_LIST_PARAMETERS,
+    UPDATED_AFTER_PARAMETER,
+    IssueDatesUpdateSerializer,
+    IssueIdsSerializer,
+    IssueUpdateSerializer,
+)
+from plane.utils.openapi import CURSOR_PARAMETER
+from plane.utils.openapi.parameters import FIELDS_PARAMETER, ORDER_BY_PARAMETER
 from plane.utils.openapi.pagination import cursor_paginated_response, paginated_response
+from plane.utils.openapi.schema import delete_body
 from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.bgtasks.issue_description_version_task import issue_description_version_task
@@ -96,7 +110,10 @@ class IssueListEndpoint(BaseAPIView):
     filter_backends = (IssueComplexFilterBackend,)
     filterset_class = IssueFilterSet
 
-    @extend_schema(responses={200: WorkItemsByIdResponse})
+    @extend_schema(
+        parameters=[ISSUE_IDS_PARAMETER, FIELDS_PARAMETER, EXPAND_ISSUE_PARAMETER, ORDER_BY_PARAMETER],
+        responses={200: WorkItemsByIdResponse},
+    )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id):
         issue_ids = request.GET.get("issues", False)
@@ -296,7 +313,7 @@ class IssueViewSet(BaseViewSet):
 
         return issues
 
-    @extend_schema(parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: WorkItemListResponse})
+    @extend_schema(parameters=ISSUE_LIST_PARAMETERS, responses={200: WorkItemListResponse})
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def list(self, request, slug, project_id):
@@ -450,7 +467,7 @@ class IssueViewSet(BaseViewSet):
             )
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
-    @extend_schema(responses={201: WorkItemSnapshotSerializer})
+    @extend_schema(request=IssueCreateSerializer, responses={201: WorkItemSnapshotSerializer})
     def create(self, request, slug, project_id):
         project = Project.objects.get(pk=project_id)
 
@@ -538,7 +555,7 @@ class IssueViewSet(BaseViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], creator=True, model=Issue)
-    @extend_schema(responses={200: IssueDetailSerializer})
+    @extend_schema(parameters=[EXPAND_ISSUE_PARAMETER], responses={200: ExpandedIssueDetailSerializer})
     def retrieve(self, request, slug, project_id, pk=None):
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
 
@@ -673,7 +690,7 @@ class IssueViewSet(BaseViewSet):
         serializer = IssueDetailSerializer(issue, expand=self.expand)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={204: OpenApiResponse(description="Updated")})
+    @extend_schema(request=IssueUpdateSerializer, responses={204: OpenApiResponse(description="Updated")})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], creator=True, model=Issue)
     def partial_update(self, request, slug, project_id, pk=None):
         queryset = self.get_queryset()
@@ -792,7 +809,8 @@ class ProjectUserDisplayPropertyEndpoint(BaseAPIView):
 
 
 class BulkDeleteIssuesEndpoint(BaseAPIView):
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @delete_body
+    @extend_schema(request=IssueIdsSerializer, responses={200: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def delete(self, request, slug, project_id):
         issue_ids = request.data.get("issue_ids", [])
@@ -815,7 +833,10 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
 
 
 class DeletedIssuesListViewSet(BaseAPIView):
-    @extend_schema(responses={200: serializers.ListSerializer(child=serializers.UUIDField())})
+    @extend_schema(
+        parameters=[UPDATED_AFTER_PARAMETER],
+        responses={200: serializers.ListSerializer(child=serializers.UUIDField())},
+    )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id):
         filters = {}
@@ -880,7 +901,7 @@ class IssuePaginatedViewSet(BaseViewSet):
         return paginated_data
 
     @extend_schema(
-        parameters=[CURSOR_PARAMETER],
+        parameters=[CURSOR_PARAMETER, DESCRIPTION_PARAMETER, UPDATED_AFTER_PARAMETER],
         responses={200: cursor_paginated_response(WorkItemSyncItemSerializer, name="WorkItemSync")},
     )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
@@ -1048,7 +1069,7 @@ class IssueDetailEndpoint(BaseAPIView):
         )
 
     @extend_schema(
-        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER],
+        parameters=ISSUE_DETAIL_LIST_PARAMETERS,
         responses={200: paginated_response(WorkItemDetailRowSerializer)},
     )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
@@ -1150,7 +1171,7 @@ class IssueBulkUpdateDateEndpoint(BaseAPIView):
             return False
         return True
 
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=IssueDatesUpdateSerializer, responses={200: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id):
         updates = request.data.get("updates", [])
@@ -1234,7 +1255,7 @@ class IssueDetailIdentifierEndpoint(BaseAPIView):
             raise ValueError("Invalid integer string")
         return int(s)
 
-    @extend_schema(responses={200: IssueDetailSerializer})
+    @extend_schema(parameters=[EXPAND_ISSUE_PARAMETER], responses={200: ExpandedIssueDetailSerializer})
     def get(self, request, slug, project_identifier, issue_identifier):
         # Check if the issue identifier is a valid integer
         try:

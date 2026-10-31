@@ -8,8 +8,13 @@ from rest_framework import serializers
 
 from plane.app.serializers import (
     IssueActivitySerializer,
+    IssueAttachmentLiteSerializer,
     IssueCommentSerializer,
     IssueCreateSerializer,
+    IssueDetailSerializer,
+    IssueLinkLiteSerializer,
+    IssueLiteSerializer,
+    IssueReactionLiteSerializer,
     IssueSerializer,
 )
 from plane.utils.openapi.pagination import paginated_union
@@ -254,7 +259,7 @@ QUERY_VOCABULARY_SCHEMA = build_object_type(
             build_object_type(
                 properties={
                     "name": build_basic_type(OpenApiTypes.STR),
-                    "type": build_basic_type(OpenApiTypes.STR),
+                    "type": {"type": "string", "enum": ["uuid", "text", "date"]},
                     "lookups": _strings(),
                     "operators": _strings(),
                     "people": build_basic_type(OpenApiTypes.BOOL),
@@ -272,7 +277,7 @@ QUERY_VOCABULARY_SCHEMA = build_object_type(
             build_object_type(
                 properties={
                     "name": build_basic_type(OpenApiTypes.STR),
-                    "kind": build_basic_type(OpenApiTypes.STR),
+                    "kind": {"type": "string", "enum": ["condition", "value", "list"]},
                     "arguments": build_basic_type(OpenApiTypes.INT),
                 },
                 required=["name", "kind", "arguments"],
@@ -352,3 +357,17 @@ class CreatedWorkItemSerializer(IssueCreateSerializer):
 
     label_ids = serializers.ListField(child=serializers.UUIDField())
     assignee_ids = serializers.ListField(child=serializers.UUIDField())
+
+
+class ExpandedIssueDetailSerializer(IssueDetailSerializer):
+    """IssueDetailSerializer with the relations the web app expands."""
+
+    parent = IssueLiteSerializer(allow_null=True, help_text="Present with expand=parent")
+    issue_reactions = IssueReactionLiteSerializer(many=True, help_text="Present with expand=issue_reactions")
+    issue_link = IssueLinkLiteSerializer(many=True, help_text="Present with expand=issue_link")
+    issue_attachments = IssueAttachmentLiteSerializer(many=True, help_text="Present with expand=issue_attachments")
+
+    class Meta(IssueDetailSerializer.Meta):
+        fields = IssueDetailSerializer.Meta.fields + ["parent", "issue_reactions", "issue_link", "issue_attachments"]
+        read_only_fields = fields
+        response_optional = ("parent", "issue_reactions", "issue_link", "issue_attachments")
