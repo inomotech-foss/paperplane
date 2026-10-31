@@ -71,21 +71,17 @@ export class WorkspaceNotificationService {
   }
 
   /**
-   * Updates when a notification is snoozed till. The API updates no other field and clears it when it is missing.
+   * Sets or clears when a notification is snoozed till, the only field the API updates.
    * @param {string} workspaceSlug - The unique identifier for the workspace
    * @param {string} notificationId - The unique identifier for the notification
-   * @param {Partial<Pick<TNotification, "snoozed_till">>} data - The new snooze time
+   * @param {string | null} snoozedTill - The new snooze time, null to clear it
    * @returns {Promise<TNotification>} The updated notification
    */
-  async update(
-    workspaceSlug: string,
-    notificationId: string,
-    data: Partial<Pick<TNotification, "snoozed_till">>
-  ): Promise<TNotification> {
+  async snooze(workspaceSlug: string, notificationId: string, snoozedTill: string | null): Promise<TNotification> {
     return unwrap(
       this.client.PATCH("/api/workspaces/{slug}/users/notifications/{pk}/", {
         params: notificationPath(workspaceSlug, notificationId),
-        body: { snoozed_till: data.snoozed_till },
+        body: { snoozed_till: snoozedTill },
       })
     );
   }

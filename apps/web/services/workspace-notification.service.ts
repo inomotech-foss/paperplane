@@ -52,16 +52,16 @@ export class WorkspaceNotificationService {
     return Array.isArray(data) ? undefined : data;
   }
 
-  /** The API only updates `snoozed_till`, and clears it when it is missing. */
-  async updateNotificationById(
+  /** Sets or clears the snooze, the only field the API updates. */
+  async snoozeNotificationById(
     workspaceSlug: string,
     notificationId: string,
-    payload: Partial<Pick<TNotification, "snoozed_till">>
+    snoozedTill: string | null
   ): Promise<TNotification> {
     return unwrap(
       apiClient.PATCH("/api/workspaces/{slug}/users/notifications/{pk}/", {
         params: notificationPath(workspaceSlug, notificationId),
-        body: { snoozed_till: payload.snoozed_till },
+        body: { snoozed_till: snoozedTill },
       })
     );
   }

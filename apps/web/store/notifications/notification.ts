@@ -21,7 +21,7 @@ export interface INotification extends TNotification {
   // helper functions
   mutateNotification: (notification: Partial<TNotification>) => void;
   // actions
-  updateNotification: (workspaceSlug: string, payload: Partial<TNotification>) => Promise<TNotification | undefined>;
+  updateNotification: (workspaceSlug: string, snoozedTill: string | null) => Promise<TNotification | undefined>;
   markNotificationAsRead: (workspaceSlug: string) => Promise<TNotification | undefined>;
   markNotificationAsUnRead: (workspaceSlug: string) => Promise<TNotification | undefined>;
   archiveNotification: (workspaceSlug: string) => Promise<TNotification | undefined>;
@@ -166,17 +166,21 @@ export class Notification implements INotification {
 
   // actions
   /**
-   * @description update notification
+   * @description sets or clears the snooze, the only field the API updates
    * @param { string } workspaceSlug
-   * @param { Partial<TNotification> } payload
+   * @param { string | null } snoozedTill
    * @returns { TNotification | undefined }
    */
   updateNotification = async (
     workspaceSlug: string,
-    payload: Partial<TNotification>
+    snoozedTill: string | null
   ): Promise<TNotification | undefined> => {
     try {
-      const notification = await workspaceNotificationService.updateNotificationById(workspaceSlug, this.id, payload);
+      const notification = await workspaceNotificationService.snoozeNotificationById(
+        workspaceSlug,
+        this.id,
+        snoozedTill
+      );
       if (notification) {
         runInAction(() => this.mutateNotification(notification));
       }
@@ -291,11 +295,13 @@ export class Notification implements INotification {
   snoozeNotification = async (workspaceSlug: string, snoozeTill: Date): Promise<TNotification | undefined> => {
     const currentNotificationSnoozeTill = this.snoozed_till;
     try {
-      const payload: Partial<TNotification> = {
-        snoozed_till: snoozeTill.toISOString(),
-      };
-      runInAction(() => this.mutateNotification(payload));
-      const notification = await workspaceNotificationService.updateNotificationById(workspaceSlug, this.id, payload);
+      const snoozedTill = snoozeTill.toISOString();
+      runInAction(() => this.mutateNotification({ snoozed_till: snoozedTill }));
+      const notification = await workspaceNotificationService.snoozeNotificationById(
+        workspaceSlug,
+        this.id,
+        snoozedTill
+      );
       return notification;
     } catch (error) {
       runInAction(() => this.mutateNotification({ snoozed_till: currentNotificationSnoozeTill }));
@@ -311,11 +317,8 @@ export class Notification implements INotification {
   unSnoozeNotification = async (workspaceSlug: string): Promise<TNotification | undefined> => {
     const currentNotificationSnoozeTill = this.snoozed_till;
     try {
-      const payload: Partial<TNotification> = {
-        snoozed_till: undefined,
-      };
-      runInAction(() => this.mutateNotification(payload));
-      const notification = await workspaceNotificationService.updateNotificationById(workspaceSlug, this.id, payload);
+      runInAction(() => this.mutateNotification({ snoozed_till: undefined }));
+      const notification = await workspaceNotificationService.snoozeNotificationById(workspaceSlug, this.id, null);
       return notification;
     } catch (error) {
       runInAction(() => this.mutateNotification({ snoozed_till: currentNotificationSnoozeTill }));
