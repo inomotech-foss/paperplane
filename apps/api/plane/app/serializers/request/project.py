@@ -25,6 +25,15 @@ class ProjectMembersAddSerializer(serializers.Serializer):
     members = ProjectMemberAddSerializer(many=True)
 
 
+class ProjectInviteEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    role = serializers.ChoiceField(choices=ROLE_CHOICES, required=False, help_text="Guest when omitted")
+
+
+class ProjectInviteSerializer(serializers.Serializer):
+    emails = ProjectInviteEmailSerializer(many=True)
+
+
 class ProjectInvitationJoinSerializer(serializers.Serializer):
     token = serializers.CharField(help_text="The token from the invitation email")
     accepted = serializers.BooleanField(required=False, help_text="False when omitted, which declines")
@@ -55,8 +64,11 @@ class DeployBoardCreateSerializer(serializers.Serializer):
     views = DeployBoardViewPropsSerializer(required=False, help_text="Every layout when omitted")
 
 
+EXPORT_PROVIDERS = ["csv", "xlsx", "json"]
+
+
 class IssueExportSerializer(serializers.Serializer):
-    provider = serializers.ChoiceField(choices=["csv", "xlsx", "json"])
+    provider = serializers.ChoiceField(choices=EXPORT_PROVIDERS)
     project = serializers.ListField(
         child=serializers.UUIDField(), required=False, help_text="Every project of the caller when omitted"
     )

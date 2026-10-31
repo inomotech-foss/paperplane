@@ -34,7 +34,7 @@ from plane.app.serializers.request.workspace import (
 )
 from plane.app.views.base import BaseAPIView
 from plane.bgtasks.workspace_invitation_task import workspace_invitation
-from plane.db.models import User, Workspace, WorkspaceMember, WorkspaceMemberInvite
+from plane.db.models import Profile, User, Workspace, WorkspaceMember, WorkspaceMemberInvite
 from plane.utils.cache import invalidate_cache, invalidate_cache_directly
 from plane.utils.host import base_host
 from plane.utils.openapi.serializers import MessageResponseSerializer
@@ -235,9 +235,7 @@ class WorkspaceJoinEndpoint(BaseAPIView):
                             role=workspace_invite.role,
                         )
 
-                    # Set the user last_workspace_id to the accepted workspace
-                    user.last_workspace_id = workspace_invite.workspace.id
-                    user.save()
+                    Profile.objects.filter(user=user).update(last_workspace_id=workspace_invite.workspace.id)
 
                     # Delete the invitation
                     workspace_invite.delete()

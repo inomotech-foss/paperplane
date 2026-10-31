@@ -55,9 +55,9 @@ from plane.db.models import (
     FileAsset,
     IssueLink,
     IssueSubscriber,
+    Profile,
     Project,
     ProjectMember,
-    User,
     Workspace,
     WorkspaceMember,
     WorkspaceUserProperties,
@@ -96,21 +96,30 @@ def _visible_issues_q(user, prefix=""):
 class UserLastProjectWithWorkspaceEndpoint(BaseAPIView):
     @extend_schema(responses={200: LastVisitedWorkspaceSerializer})
     def get(self, request):
-        user = User.objects.get(pk=request.user.id)
+        last_workspace_id = (
+            Profile.objects.filter(user=request.user).values_list("last_workspace_id", flat=True).first()
+        )
+        workspace = (
+            Workspace.objects.filter(
+                pk=last_workspace_id,
+                workspace_member__member=request.user,
+                workspace_member__is_active=True,
+                workspace_member__deleted_at__isnull=True,
+            ).first()
+            if last_workspace_id is not None
+            else None
+        )
 
-        last_workspace_id = user.last_workspace_id
-
-        if last_workspace_id is None:
+        if workspace is None:
             return Response(
                 {"project_details": [], "workspace_details": {}},
                 status=status.HTTP_200_OK,
             )
 
-        workspace = Workspace.objects.get(pk=last_workspace_id)
         workspace_serializer = WorkSpaceSerializer(workspace)
 
         project_member = ProjectMember.objects.filter(
-            workspace_id=last_workspace_id, member=request.user
+            workspace_id=workspace.id, member=request.user, is_active=True
         ).select_related("workspace", "project", "member", "workspace__owner")
 
         project_member_serializer = ProjectMemberSerializer(project_member, many=True)

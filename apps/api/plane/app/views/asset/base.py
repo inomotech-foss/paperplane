@@ -84,10 +84,11 @@ class FileAssetViewSet(BaseViewSet):
 class UserAssetsEndpoint(BaseAPIView):
     parser_classes = (MultiPartParser, FormParser)
 
+    @extend_schema(responses={200: FileAssetLookupSerializer})
     def get(self, request, asset_key):
         files = FileAsset.objects.filter(asset=asset_key, created_by=request.user)
         if files.exists():
-            serializer = FileAssetSerializer(files, context={"request": request})
+            serializer = FileAssetSerializer(files, context={"request": request}, many=True)
             return Response({"data": serializer.data, "status": True}, status=status.HTTP_200_OK)
         else:
             return Response(
