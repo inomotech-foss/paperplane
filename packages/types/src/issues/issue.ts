@@ -69,8 +69,8 @@ export type TBaseIssue = {
   completed_at: string | null;
   archived_at: string | null;
 
-  created_by: string;
-  updated_by: string;
+  created_by: string | null;
+  updated_by: string | null;
 
   is_draft: boolean;
   is_intake?: boolean;
@@ -121,7 +121,7 @@ export type TIssueResponseResults =
     };
 
 export type TIssuesResponse = {
-  grouped_by: string;
+  grouped_by: string | null;
   next_cursor: string;
   prev_cursor: string;
   next_page_results: boolean;
@@ -129,7 +129,6 @@ export type TIssuesResponse = {
   total_count: number;
   count: number;
   total_pages: number;
-  extra_stats: null;
   results: TIssueResponseResults;
   total_results: number;
 };

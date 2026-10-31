@@ -5,7 +5,7 @@
  */
 
 export type TIssueLinkEditableFields = {
-  title: string;
+  title: string | null;
   url: string;
 };
 
@@ -19,13 +19,11 @@ export type TLinkMetadata = {
 };
 
 export type TIssueLink = TIssueLinkEditableFields & {
-  created_by_id: string;
+  created_by_id: string | null;
   id: string;
   metadata: TLinkMetadata;
   issue_id: string;
-
-  //need
-  created_at: Date;
+  created_at: string;
 };
 
 export type TIssueLinkMap = {

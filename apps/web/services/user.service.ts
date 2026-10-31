@@ -4,10 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { AxiosRequestConfig } from "axios";
 // services
 import type { ApiRequestBody, ApiResponse, ApiSchema } from "@plane/api-types";
-import { API_BASE_URL } from "@plane/constants";
 import { toUserProfile, unwrap, userUpdateBody } from "@plane/services";
 import type { TUserUpdateResponse } from "@plane/services";
 import type {
@@ -18,14 +16,16 @@ import type {
   IUserProfileProjectSegregation,
   IUserSettings,
   IUserEmailNotificationSettings,
-  TIssueParams,
   TIssuesResponse,
   TUserProfile,
   TStateGroups,
   IEmailCheckResponse,
 } from "@plane/types";
 import { apiClient, apiClientWithoutRedirect } from "@/services/api-client";
-import { APIService } from "@/services/api.service";
+import { toIssueListQuery } from "@/services/issue/issue-query";
+import type { TIssueParamsRecord } from "@/services/issue/issue-query";
+import type { TRequestOptions } from "@/services/issue/issue.service";
+import { toIssuesResponse } from "@/services/issue/work-item";
 
 export type TUserAccount = ApiResponse<"/api/users/me/accounts/", "get">[number];
 export type TEmailNotificationSettingsBody = ApiRequestBody<"/api/users/me/notification-preferences/", "patch">;
@@ -39,12 +39,8 @@ type TStateGroupCount = ApiSchema<"StateGroupCount">;
 export const hasChartStateGroup = (row: TStateGroupCount): row is TStateGroupCount & { state_group: TStateGroups } =>
   row.state_group !== null && row.state_group !== "triage";
 
-/** Methods on the typed client throw `ApiError` from `@plane/services`. */
-export class UserService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
-
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class UserService {
   /** Resolves to `undefined` for any error status and never redirects to sign in. */
   async currentUser(): Promise<IUser | undefined> {
     const { data } = await apiClientWithoutRedirect.GET("/api/users/me/");
@@ -119,18 +115,13 @@ export class UserService extends APIService {
   async getUserProfileActivity(
     workspaceSlug: string,
     userId: string,
-    params: {
-      per_page: number;
-      cursor?: string;
-    }
+    params: { per_page: number; cursor?: string }
   ): Promise<IUserActivityResponse> {
-    return this.get(`/api/workspaces/${workspaceSlug}/user-activity/${userId}/`, {
-      params,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/user-activity/{user_id}/", {
+        params: { ...userPath(workspaceSlug, userId), query: params },
+      })
+    );
   }
 
   async downloadProfileActivity(
@@ -152,20 +143,16 @@ export class UserService extends APIService {
   async getUserProfileIssues(
     workspaceSlug: string,
     userId: string,
-    params: Partial<Record<TIssueParams, string | boolean>>,
-    config: AxiosRequestConfig = {}
+    params: TIssueParamsRecord,
+    options: TRequestOptions = {}
   ): Promise<TIssuesResponse> {
-    return this.get(
-      `/api/workspaces/${workspaceSlug}/user-issues/${userId}/`,
-      {
-        params,
-      },
-      config
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const page = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/user-issues/{user_id}/", {
+        params: { ...userPath(workspaceSlug, userId), query: toIssueListQuery(params) },
+        ...options,
+      })
+    );
+    return toIssuesResponse(page);
   }
 
   async deactivateAccount(): Promise<void> {

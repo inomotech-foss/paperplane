@@ -28,12 +28,13 @@ export type TWorkspaceDraftIssue = {
 
   created_at: string;
   updated_at: string;
-  created_by: string;
-  updated_by: string;
+  created_by: string | null;
+  updated_by: string | null;
 
   is_draft: boolean;
 
-  type_id: string;
+  type_id: string | null;
+  description_html?: string;
 };
 
 export type TWorkspaceDraftPaginationInfo<T> = {
@@ -46,7 +47,6 @@ export type TWorkspaceDraftPaginationInfo<T> = {
   total_count: number | undefined; // total available results count
   total_results: number | undefined;
   results: T[] | undefined;
-  extra_stats: string | undefined;
   grouped_by: string | undefined;
   sub_grouped_by: string | undefined;
 };

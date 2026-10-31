@@ -1,134 +1,128 @@
-/**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
- * SPDX-License-Identifier: AGPL-3.0-only
- * See the LICENSE file for details.
- */
+// SPDX-License-Identifier: AGPL-3.0-only
+// See the LICENSE file for details.
 
-// plane imports
-import { API_BASE_URL } from "@plane/constants";
-import { EIssueServiceType } from "@plane/types";
+import type { ApiRequestBody, ApiSchema } from "@plane/api-types";
+import { unwrap } from "@plane/services";
 import type {
-  TIssueParams,
-  IIssueDisplayProperties,
-  TBulkOperationsPayload,
   TGanttDateRollup,
   TIssue,
-  TIssueActivity,
   TIssueLink,
-  TIssueServiceType,
   TIssuesResponse,
   TIssueSubIssues,
+  TSubIssuesStateDistribution,
 } from "@plane/types";
-// services
-import { APIService } from "@/services/api.service";
+import { apiClient } from "@/services/api-client";
+import { toIssueListQuery, wantsRelations } from "./issue-query";
+import type { TIssueParamsRecord } from "./issue-query";
+import { toBaseIssue, toIssue, toIssueCreateBody, toIssueLink, toIssuesResponse, toIssueWriteBody } from "./work-item";
 
-export class IssueService extends APIService {
-  private serviceType: TIssueServiceType;
+export type TIssueLinkUpdateBody = ApiRequestBody<
+  "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-links/{pk}/",
+  "patch"
+>;
+export type TIssueDateUpdate = ApiSchema<"IssueDateUpdateRequest">;
+export type TIssueMeta = ApiSchema<"WorkItemMeta">;
 
-  constructor(serviceType: TIssueServiceType = EIssueServiceType.ISSUES) {
-    super(API_BASE_URL);
-    this.serviceType = serviceType;
-  }
+/** Abort options of a list request. */
+export type TRequestOptions = { signal?: AbortSignal };
 
+/** A work item with the links that the detail endpoints embed. */
+export type TIssueWithLinks = { issue: TIssue; links: TIssueLink[] };
+
+const DETAIL_EXPAND = "issue_link,parent";
+
+const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
+const issuePath = (slug: string, project_id: string, pk: string) => ({ path: { slug, project_id, pk } });
+const subPath = (slug: string, project_id: string, issue_id: string) => ({ path: { slug, project_id, issue_id } });
+
+const STATE_GROUPS = ["backlog", "unstarted", "started", "completed", "cancelled"] as const;
+
+export const toStateDistribution = (distribution: Record<string, string[]>): TSubIssuesStateDistribution => {
+  const result: TSubIssuesStateDistribution = { backlog: [], unstarted: [], started: [], completed: [], cancelled: [] };
+  for (const group of STATE_GROUPS) result[group] = distribution[group] ?? [];
+  return result;
+};
+
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class IssueService {
   async createIssue(workspaceSlug: string, projectId: string, data: Partial<TIssue>): Promise<TIssue> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async getIssuesFromServer(
-    workspaceSlug: string,
-    projectId: string,
-    queries?: any,
-    config = {}
-  ): Promise<TIssuesResponse> {
-    const path =
-      (queries.expand as string)?.includes("issue_relation") && !queries.group_by
-        ? `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}-detail/`
-        : `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/`;
-    return this.get(
-      path,
-      {
-        params: queries,
-      },
-      config
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async getIssuesForSync(
-    workspaceSlug: string,
-    projectId: string,
-    queries?: any,
-    config = {}
-  ): Promise<TIssuesResponse> {
-    return this.get(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/v2/${this.serviceType}/`,
-      { params: queries },
-      config
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const created = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issues/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: toIssueCreateBody(data),
+      })
+    );
+    return toBaseIssue(created);
   }
 
   async getIssues(
     workspaceSlug: string,
     projectId: string,
-    queries?: Partial<Record<TIssueParams, string | boolean>>,
-    config = {}
+    queries?: TIssueParamsRecord,
+    options: TRequestOptions = {}
   ): Promise<TIssuesResponse> {
-    return this.getIssuesFromServer(workspaceSlug, projectId, queries, config);
+    const query = toIssueListQuery(queries);
+    if (wantsRelations(queries)) {
+      const expand = typeof queries?.expand === "string" ? queries.expand : undefined;
+      const page = await unwrap(
+        apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues-detail/", {
+          params: { ...projectPath(workspaceSlug, projectId), query: { ...query, expand } },
+          ...options,
+        })
+      );
+      return toIssuesResponse(page);
+    }
+    const page = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/", {
+        params: { ...projectPath(workspaceSlug, projectId), query },
+        ...options,
+      })
+    );
+    return toIssuesResponse(page);
   }
 
-  async getDeletedIssues(workspaceSlug: string, projectId: string, queries?: any): Promise<TIssuesResponse> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/deleted-issues/`, {
-      params: queries,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async retrieve(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssue> {
+    const detail = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{pk}/", {
+        params: issuePath(workspaceSlug, projectId, issueId),
+      })
+    );
+    return toIssue(detail);
   }
 
-  async getIssuesWithParams(
+  /** The work item with its parent and links, for the detail page. */
+  async retrieveWithLinks(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueWithLinks> {
+    const detail = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{pk}/", {
+        params: { ...issuePath(workspaceSlug, projectId, issueId), query: { expand: DETAIL_EXPAND } },
+      })
+    );
+    return { issue: toIssue(detail), links: (detail.issue_link ?? []).map(toIssueLink) };
+  }
+
+  async retrieveWithIdentifier(
     workspaceSlug: string,
-    projectId: string,
-    queries?: any
-  ): Promise<TIssue[] | { [key: string]: TIssue[] }> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/`, {
-      params: queries,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async retrieve(workspaceSlug: string, projectId: string, issueId: string, queries?: any): Promise<TIssue> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/`, {
-      params: queries,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    projectIdentifier: string,
+    issueSequence: string
+  ): Promise<TIssueWithLinks> {
+    const detail = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/work-items/{project_identifier}-{issue_identifier}/", {
+        params: {
+          path: { slug: workspaceSlug, project_identifier: projectIdentifier, issue_identifier: issueSequence },
+          query: { expand: DETAIL_EXPAND },
+        },
+      })
+    );
+    return { issue: toIssue(detail), links: (detail.issue_link ?? []).map(toIssueLink) };
   }
 
   async retrieveIssues(workspaceSlug: string, projectId: string, issueIds: string[]): Promise<TIssue[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/list/`, {
-      params: { issues: issueIds.join(",") },
-    })
-      .then(async (response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const issues = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/list/", {
+        params: { ...projectPath(workspaceSlug, projectId), query: { issues: issueIds.join(",") } },
+      })
+    );
+    return issues.map(toBaseIssue);
   }
 
   /**
@@ -140,170 +134,78 @@ export class IssueService extends APIService {
     projectId: string,
     issueIds: string[]
   ): Promise<Record<string, TGanttDateRollup>> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-date-rollups/`, {
-      params: { issue_ids: issueIds.join(",") },
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issue-date-rollups/", {
+        params: { ...projectPath(workspaceSlug, projectId), query: { issue_ids: issueIds.join(",") } },
+      })
+    );
   }
 
-  async getIssueActivities(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueActivity[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/history/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async patchIssue(workspaceSlug: string, projectId: string, issueId: string, data: Partial<TIssue>): Promise<void> {
+    return unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/issues/{pk}/", {
+        params: issuePath(workspaceSlug, projectId, issueId),
+        body: toIssueWriteBody(data),
+      })
+    );
   }
 
-  async addIssueToCycle(
-    workspaceSlug: string,
-    projectId: string,
-    cycleId: string,
-    data: {
-      issues: string[];
-    }
-  ) {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteIssue(workspaceSlug: string, projectId: string, issueId: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/issues/{pk}/", {
+        params: issuePath(workspaceSlug, projectId, issueId),
+      })
+    );
   }
 
-  async removeIssueFromCycle(workspaceSlug: string, projectId: string, cycleId: string, bridgeId: string) {
-    return this.delete(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/${bridgeId}/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async updateIssueDates(workspaceSlug: string, projectId: string, updates: TIssueDateUpdate[]): Promise<void> {
+    await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issue-dates/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: { updates },
+      })
+    );
   }
 
-  async createIssueRelation(
-    workspaceSlug: string,
-    projectId: string,
-    issueId: string,
-    data: {
-      related_list: Array<{
-        relation_type: "duplicate" | "relates_to" | "blocked_by";
-        related_issue: string;
-      }>;
-      relation?: "blocking" | null;
-    }
-  ) {
-    return this.post(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/issue-relation/`,
-      data
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
-  }
-
-  async deleteIssueRelation(workspaceSlug: string, projectId: string, issueId: string, relationId: string) {
-    return this.delete(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/issue-relation/${relationId}/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
-  }
-
-  async getIssueDisplayProperties(workspaceSlug: string, projectId: string): Promise<any> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-display-properties/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async updateIssueDisplayProperties(
-    workspaceSlug: string,
-    projectId: string,
-    data: IIssueDisplayProperties
-  ): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-display-properties/`, {
-      properties: data,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async patchIssue(workspaceSlug: string, projectId: string, issueId: string, data: Partial<TIssue>): Promise<any> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async deleteIssue(workspaceSlug: string, projectId: string, issuesId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issuesId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async updateIssueDates(
-    workspaceSlug: string,
-    projectId: string,
-    updates: { id: string; start_date?: string; target_date?: string }[]
-  ): Promise<void> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issue-dates/`, { updates })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async subIssues(
-    workspaceSlug: string,
-    projectId: string,
-    issueId: string,
-    queries?: Partial<Record<TIssueParams, string | boolean>>
-  ): Promise<TIssueSubIssues> {
-    return this.get(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/sub-issues/`,
-      { params: queries }
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async subIssues(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueSubIssues> {
+    const response = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/sub-issues/", {
+        params: subPath(workspaceSlug, projectId, issueId),
+      })
+    );
+    const subIssues = Array.isArray(response.sub_issues)
+      ? response.sub_issues.map(toBaseIssue)
+      : Object.fromEntries(
+          Object.entries(response.sub_issues).map(([group, issues]) => [group, issues.map(toBaseIssue)])
+        );
+    return { state_distribution: toStateDistribution(response.state_distribution), sub_issues: subIssues };
   }
 
   async addSubIssues(
     workspaceSlug: string,
     projectId: string,
     issueId: string,
-    data: { sub_issue_ids: string[] }
+    subIssueIds: string[]
   ): Promise<TIssueSubIssues> {
-    return this.post(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/sub-issues/`,
-      data
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const response = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/sub-issues/", {
+        params: subPath(workspaceSlug, projectId, issueId),
+        body: { sub_issue_ids: subIssueIds },
+      })
+    );
+    return {
+      state_distribution: toStateDistribution(response.state_distribution),
+      sub_issues: response.sub_issues.map(toBaseIssue),
+    };
   }
 
   async fetchIssueLinks(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueLink[]> {
-    return this.get(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/issue-links/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    const links = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-links/", {
+        params: subPath(workspaceSlug, projectId, issueId),
+      })
+    );
+    return links.map(toIssueLink);
   }
 
   async createIssueLink(
@@ -312,14 +214,15 @@ export class IssueService extends APIService {
     issueId: string,
     data: Partial<TIssueLink>
   ): Promise<TIssueLink> {
-    return this.post(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/issue-links/`,
-      data
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    const { url, title } = data;
+    if (!url) throw new Error("A link needs a URL");
+    const link = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-links/", {
+        params: subPath(workspaceSlug, projectId, issueId),
+        body: title === undefined ? { url } : { url, title },
+      })
+    );
+    return toIssueLink(link);
   }
 
   async updateIssueLink(
@@ -329,138 +232,81 @@ export class IssueService extends APIService {
     linkId: string,
     data: Partial<TIssueLink>
   ): Promise<TIssueLink> {
-    return this.patch(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/issue-links/${linkId}/`,
-      data
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    const body: TIssueLinkUpdateBody = {};
+    if (data.url !== undefined) body.url = data.url;
+    if (data.title !== undefined) body.title = data.title;
+    const link = await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-links/{pk}/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, issue_id: issueId, pk: linkId } },
+        body,
+      })
+    );
+    return toIssueLink(link);
   }
 
-  async deleteIssueLink(workspaceSlug: string, projectId: string, issueId: string, linkId: string): Promise<any> {
-    return this.delete(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/issue-links/${linkId}/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteIssueLink(workspaceSlug: string, projectId: string, issueId: string, linkId: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-links/{pk}/", {
+        params: { path: { slug: workspaceSlug, project_id: projectId, issue_id: issueId, pk: linkId } },
+      })
+    );
   }
 
-  async bulkOperations(workspaceSlug: string, projectId: string, data: TBulkOperationsPayload): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/bulk-operation-issues/`, data)
-      .then(async (response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async bulkDeleteIssues(
-    workspaceSlug: string,
-    projectId: string,
-    data: {
-      issue_ids: string[];
-    }
-  ): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/bulk-delete-issues/`, data)
-      .then(async (response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async bulkDeleteIssues(workspaceSlug: string, projectId: string, issueIds: string[]): Promise<void> {
+    await unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/bulk-delete-issues/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: { issue_ids: issueIds },
+      })
+    );
   }
 
   async bulkArchiveIssues(
     workspaceSlug: string,
     projectId: string,
-    data: {
-      issue_ids: string[];
-    }
-  ): Promise<{
-    archived_at: string;
-  }> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/bulk-archive-issues/`, data)
-      .then(async (response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    issueIds: string[]
+  ): Promise<{ archived_at: string }> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/bulk-archive-issues/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: { issue_ids: issueIds },
+      })
+    );
   }
 
-  // issue subscriptions
   async getIssueNotificationSubscriptionStatus(
     workspaceSlug: string,
     projectId: string,
     issueId: string
-  ): Promise<{
-    subscribed: boolean;
-  }> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/subscribe/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  ): Promise<{ subscribed: boolean }> {
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/subscribe/", {
+        params: subPath(workspaceSlug, projectId, issueId),
+      })
+    );
   }
 
-  async unsubscribeFromIssueNotifications(workspaceSlug: string, projectId: string, issueId: string): Promise<any> {
-    return this.delete(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/subscribe/`
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async unsubscribeFromIssueNotifications(workspaceSlug: string, projectId: string, issueId: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/subscribe/", {
+        params: subPath(workspaceSlug, projectId, issueId),
+      })
+    );
   }
 
-  async subscribeToIssueNotifications(workspaceSlug: string, projectId: string, issueId: string): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/subscribe/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async subscribeToIssueNotifications(workspaceSlug: string, projectId: string, issueId: string): Promise<void> {
+    await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/subscribe/", {
+        params: subPath(workspaceSlug, projectId, issueId),
+      })
+    );
   }
 
-  async bulkSubscribeIssues(
-    workspaceSlug: string,
-    projectId: string,
-    data: {
-      issue_ids: string[];
-    }
-  ): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/bulk-subscribe-issues/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async getIssueMetaFromURL(
-    workspaceSlug: string,
-    projectId: string,
-    issueId: string
-  ): Promise<{
-    project_identifier: string;
-    sequence_id: string;
-  }> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issues/${issueId}/meta/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async retrieveWithIdentifier(
-    workspaceSlug: string,
-    project_identifier: string,
-    issue_sequence: string,
-    queries?: any
-  ): Promise<TIssue> {
-    return this.get(`/api/workspaces/${workspaceSlug}/work-items/${project_identifier}-${issue_sequence}/`, {
-      params: queries,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async getIssueMetaFromURL(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueMeta> {
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/meta/", {
+        params: subPath(workspaceSlug, projectId, issueId),
+      })
+    );
   }
 }

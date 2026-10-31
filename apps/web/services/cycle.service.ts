@@ -5,6 +5,7 @@
  */
 
 // services
+import { isAxiosError } from "axios";
 import { API_BASE_URL } from "@plane/constants";
 import type {
   CycleDateCheckData,
@@ -185,6 +186,27 @@ export class CycleService extends APIService {
       .catch((error) => {
         throw error?.response?.data;
       });
+  }
+
+  async addIssuesToCycle(workspaceSlug: string, projectId: string, cycleId: string, issueIds: string[]): Promise<void> {
+    await this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/`, {
+      issues: issueIds,
+    }).catch((error: unknown) => {
+      throw isAxiosError(error) ? error.response?.data : error;
+    });
+  }
+
+  async removeIssueFromCycle(
+    workspaceSlug: string,
+    projectId: string,
+    cycleId: string,
+    issueId: string
+  ): Promise<void> {
+    await this.delete(
+      `/api/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/${issueId}/`
+    ).catch((error: unknown) => {
+      throw isAxiosError(error) ? error.response?.data : error;
+    });
   }
 
   async removeCycleFromFavorites(workspaceSlug: string, projectId: string, cycleId: string): Promise<any> {

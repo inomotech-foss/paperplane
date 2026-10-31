@@ -6,7 +6,10 @@
 
 import type { TIssue } from "./issue";
 
-export type TIssueRelation = Record<TIssueRelationTypes, TIssue[]>;
+/** The fields of a work item that a relation row carries. */
+export type TRelatedIssue = Partial<TIssue> & Pick<TIssue, "id">;
+
+export type TIssueRelation = Record<TIssueRelationTypes, TRelatedIssue[]>;
 
 export type TIssueRelationMap = {
   [issue_id: string]: Record<TIssueRelationTypes, string[]>;
