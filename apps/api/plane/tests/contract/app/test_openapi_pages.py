@@ -58,11 +58,12 @@ class TestPageResponses:
         documented(session_client.post(url(workspace, project, f"pages/{page.id}/duplicate/")), 201)
 
     def test_page_state(self, session_client, workspace, project, page):
-        assert session_client.post(url(workspace, project, f"pages/{page.id}/lock/")).status_code == 204
-        assert session_client.delete(url(workspace, project, f"pages/{page.id}/lock/")).status_code == 204
-        assert (
-            session_client.post(url(workspace, project, f"pages/{page.id}/access/"), {"access": 1}).status_code == 204
-        )
+        locked = session_client.post(url(workspace, project, f"pages/{page.id}/lock/"))
+        assert locked.status_code == 204
+        unlocked = session_client.delete(url(workspace, project, f"pages/{page.id}/lock/"))
+        assert unlocked.status_code == 204
+        access = session_client.post(url(workspace, project, f"pages/{page.id}/access/"), {"access": 1})
+        assert access.status_code == 204
         documented(session_client.post(url(workspace, project, f"pages/{page.id}/archive/")))
 
     def test_description_and_versions(self, session_client, workspace, project, page):
