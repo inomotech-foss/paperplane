@@ -41,4 +41,11 @@ export type TPublicCommentReaction = z.infer<typeof commentReactionSchema>;
 
 export const parsePublicComment = (data: unknown): TPublicComment => publicCommentSchema.parse(data);
 
-export const parsePublicComments = (data: unknown): TPublicComment[] => z.array(publicCommentSchema).parse(data);
+/** Parses each comment on its own and drops invalid ones, so one bad comment does not hide the rest. */
+export const parsePublicComments = (data: unknown): TPublicComment[] => {
+  if (!Array.isArray(data)) return [];
+  return data.flatMap((item: unknown) => {
+    const result = publicCommentSchema.safeParse(item);
+    return result.success ? [result.data] : [];
+  });
+};

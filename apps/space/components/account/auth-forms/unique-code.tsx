@@ -68,7 +68,10 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
 
   useEffect(() => {
     if (csrfToken === undefined)
-      authService.requestCSRFToken().then((data) => data?.csrf_token && setCsrfToken(data.csrf_token));
+      authService
+        .requestCSRFToken()
+        .then((data) => data?.csrf_token && setCsrfToken(data.csrf_token))
+        .catch(() => {});
   }, [csrfToken]);
 
   const isRequestNewCodeDisabled = isRequestingNewCode || resendTimerCode > 0;

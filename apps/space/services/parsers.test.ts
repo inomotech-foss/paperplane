@@ -41,6 +41,13 @@ describe("parsePublicComment", () => {
   it("rejects a comment without reactions", () => {
     expect(() => parsePublicComment({ ...comment, comment_reactions: undefined })).toThrow();
   });
+
+  it("drops invalid comments and keeps the rest", () => {
+    const parsed = parsePublicComments([{ ...comment, id: 1 }, comment, null]);
+
+    expect(parsed.map((item) => item.id)).toEqual(["c1"]);
+    expect(parsePublicComments({ results: [] })).toEqual([]);
+  });
 });
 
 describe("parseEmailCheck", () => {

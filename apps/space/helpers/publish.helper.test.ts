@@ -60,9 +60,16 @@ describe("toPublishSettings", () => {
 });
 
 describe("parseViewProps", () => {
-  it("returns undefined for an invalid value", () => {
-    expect(parseViewProps({ list: "yes" })).toBeUndefined();
+  it("keeps the valid flags when one is invalid", () => {
+    expect(parseViewProps({ list: "yes", kanban: true, gantt: false, other: true })).toEqual({
+      kanban: true,
+      gantt: false,
+    });
+  });
+
+  it("returns undefined when the value is not an object", () => {
     expect(parseViewProps(null)).toBeUndefined();
+    expect(parseViewProps([true])).toBeUndefined();
   });
 });
 

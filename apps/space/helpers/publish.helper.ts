@@ -6,14 +6,7 @@
 import { z } from "zod";
 import type { TLogoProps, TProjectDetails, TProjectPublishSettings, TProjectPublishViewProps } from "@plane/types";
 import type { TPublishSettingsResponse } from "@/services/project.service";
-
-const viewPropsSchema = z.object({
-  calendar: z.boolean().optional(),
-  gantt: z.boolean().optional(),
-  kanban: z.boolean().optional(),
-  list: z.boolean().optional(),
-  spreadsheet: z.boolean().optional(),
-});
+import { isRecord } from "./narrow.helper";
 
 const logoPropsSchema = z.object({
   in_use: z.enum(["emoji", "icon"]),
@@ -25,9 +18,17 @@ const logoPropsSchema = z.object({
 
 const EMPTY_LOGO: TLogoProps = { in_use: "emoji" };
 
+const VIEW_PROP_KEYS = ["calendar", "gantt", "kanban", "list", "spreadsheet"] as const;
+
+/** Reads each layout flag on its own. A flag that is not a boolean is left out. */
 export const parseViewProps = (value: unknown): TProjectPublishViewProps | undefined => {
-  const result = viewPropsSchema.safeParse(value);
-  return result.success ? result.data : undefined;
+  if (!isRecord(value)) return undefined;
+  const viewProps: TProjectPublishViewProps = {};
+  for (const key of VIEW_PROP_KEYS) {
+    const flag = value[key];
+    if (typeof flag === "boolean") viewProps[key] = flag;
+  }
+  return viewProps;
 };
 
 /** Parses the stored logo. An invalid logo renders as no logo. */
