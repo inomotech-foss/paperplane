@@ -4,10 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import { uniq, update, isEmpty, omit, set } from "lodash-es";
+import { uniq, isEmpty, omit, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-import type { EPastDurationFilters } from "@plane/constants";
 // types
 import type {
   TInboxIssue,
@@ -16,17 +15,16 @@ import type {
   TInboxIssueFilter,
   TInboxIssueSorting,
   TInboxIssuePaginationInfo,
-  TInboxIssueSortingOrderByQueryParam,
 } from "@plane/types";
 import { EInboxIssueCurrentTab, EInboxIssueStatus } from "@plane/types";
-import { getCustomDates } from "@plane/utils";
-// helpers
 // services
 import { InboxIssueService } from "@/services/inbox";
+import type { TInboxIssueListQuery } from "@/services/inbox/inbox-issue.service";
 // root store
 import type { IInboxIssueStore } from "@/store/inbox/inbox-issue.store";
 import { InboxIssueStore } from "@/store/inbox/inbox-issue.store";
 import type { CoreRootStore } from "../root.store";
+import { countAppliedInboxFilters, inboxIssueQuery } from "./inbox-query";
 
 type TLoader =
   | "init-loading"
@@ -60,7 +58,7 @@ export interface IProjectInboxStore {
     inboxSorting: Partial<TInboxIssueSorting>,
     pagePerCount: number,
     paginationCursor: string
-  ) => Partial<Record<keyof TInboxIssueFilter, string>>;
+  ) => TInboxIssueListQuery;
   createOrUpdateInboxIssue: (inboxIssues: TInboxIssue[], workspaceSlug: string, projectId: string) => void;
   initializeDefaultFilters: (projectId: string, tab: TInboxIssueCurrentTab) => void;
   // actions
@@ -131,28 +129,21 @@ export class ProjectInboxStore implements IProjectInboxStore {
   /**
    * @description computed project inbox filters
    */
-  get inboxFilters() {
-    if (!this.currentInboxProjectId) return {} as TInboxIssueFilter;
-    return this.filtersMap?.[this.currentInboxProjectId];
+  get inboxFilters(): Partial<TInboxIssueFilter> {
+    if (!this.currentInboxProjectId) return {};
+    return this.filtersMap[this.currentInboxProjectId] ?? {};
   }
 
   /**
    * @description computed project inbox sorting
    */
-  get inboxSorting() {
-    if (!this.currentInboxProjectId) return {} as TInboxIssueSorting;
-    return this.sortingMap?.[this.currentInboxProjectId];
+  get inboxSorting(): Partial<TInboxIssueSorting> {
+    if (!this.currentInboxProjectId) return {};
+    return this.sortingMap[this.currentInboxProjectId] ?? {};
   }
 
   get getAppliedFiltersCount() {
-    let count = 0;
-    this.inboxFilters != undefined &&
-      Object.keys(this.inboxFilters).forEach((key) => {
-        const filterKey = key as keyof TInboxIssueFilter;
-        if (this.inboxFilters[filterKey] && this.inboxFilters?.[filterKey])
-          count = count + (this.inboxFilters?.[filterKey]?.length ?? 0);
-      });
-    return count;
+    return countAppliedInboxFilters(this.inboxFilters);
   }
 
   get filteredInboxIssueIds() {
@@ -193,53 +184,7 @@ export class ProjectInboxStore implements IProjectInboxStore {
     inboxSorting: Partial<TInboxIssueSorting>,
     pagePerCount: number,
     paginationCursor: string
-  ) => {
-    const filters: Partial<Record<keyof TInboxIssueFilter, string>> = {};
-    !isEmpty(inboxFilters) &&
-      Object.keys(inboxFilters).forEach((key) => {
-        const filterKey = key as keyof TInboxIssueFilter;
-        if (inboxFilters[filterKey] && inboxFilters[filterKey]?.length) {
-          if (["created_at", "updated_at"].includes(filterKey) && (inboxFilters[filterKey] || [])?.length > 0) {
-            const appliedDateFilters: string[] = [];
-            inboxFilters[filterKey]?.forEach((value) => {
-              const dateValue = value as EPastDurationFilters;
-              appliedDateFilters.push(getCustomDates(dateValue));
-            });
-            filters[filterKey] = appliedDateFilters?.join(",");
-          } else filters[filterKey] = inboxFilters[filterKey]?.join(",");
-        }
-      });
-
-    const sorting: TInboxIssueSortingOrderByQueryParam = {
-      order_by: "-issue__created_at",
-    };
-    if (inboxSorting?.order_by && inboxSorting?.sort_by) {
-      switch (inboxSorting.order_by) {
-        case "issue__created_at":
-          if (inboxSorting.sort_by === "desc") sorting.order_by = `-issue__created_at`;
-          else sorting.order_by = "issue__created_at";
-          break;
-        case "issue__updated_at":
-          if (inboxSorting.sort_by === "desc") sorting.order_by = `-issue__updated_at`;
-          else sorting.order_by = "issue__updated_at";
-          break;
-        case "issue__sequence_id":
-          if (inboxSorting.sort_by === "desc") sorting.order_by = `-issue__sequence_id`;
-          else sorting.order_by = "issue__sequence_id";
-          break;
-        default:
-          sorting.order_by = "-issue__created_at";
-          break;
-      }
-    }
-
-    return {
-      ...filters,
-      ...sorting,
-      per_page: pagePerCount,
-      cursor: paginationCursor,
-    };
-  };
+  ) => inboxIssueQuery(inboxFilters, inboxSorting, pagePerCount, paginationCursor);
 
   createOrUpdateInboxIssue = (inboxIssues: TInboxIssue[], workspaceSlug: string, projectId: string) => {
     if (inboxIssues && inboxIssues.length > 0) {
@@ -356,7 +301,7 @@ export class ProjectInboxStore implements IProjectInboxStore {
         this.loader = undefined;
         set(this, "inboxIssuePaginationInfo", paginationInfo);
         if (results) {
-          const issueIds = results.map((value) => value?.issue?.id);
+          const issueIds = results.map((value) => value.issue.id);
           set(this, ["inboxIssueIds"], issueIds);
           this.createOrUpdateInboxIssue(results, workspaceSlug, projectId);
         }
@@ -396,8 +341,8 @@ export class ProjectInboxStore implements IProjectInboxStore {
         runInAction(() => {
           set(this, "inboxIssuePaginationInfo", paginationInfo);
           if (results && results.length > 0) {
-            const issueIds = results.map((value) => value?.issue?.id);
-            update(this, ["inboxIssueIds"], (ids) => uniq([...ids, ...issueIds]));
+            const issueIds = results.map((value) => value.issue.id);
+            this.inboxIssueIds = uniq([...this.inboxIssueIds, ...issueIds]);
             this.createOrUpdateInboxIssue(results, workspaceSlug, projectId);
           }
         });
@@ -466,7 +411,7 @@ export class ProjectInboxStore implements IProjectInboxStore {
         this.store.issueType.rememberIssueType(workspaceSlug, projectId, data.type_id).catch(() => undefined);
       if (inboxIssueResponse)
         runInAction(() => {
-          update(this, ["inboxIssueIds"], (ids) => [...ids, inboxIssueResponse?.issue?.id]);
+          this.inboxIssueIds = [...this.inboxIssueIds, inboxIssueResponse.issue.id];
           set(
             this.inboxIssues,
             [inboxIssueResponse?.issue?.id],
@@ -501,25 +446,24 @@ export class ProjectInboxStore implements IProjectInboxStore {
     const wasPending = currentIssue?.status === EInboxIssueStatus.PENDING;
     try {
       if (!currentIssue) return;
-      await this.inboxIssueService.destroy(workspaceSlug, projectId, inboxIssueId).then(() => {
-        runInAction(() => {
-          set(
-            this,
-            ["inboxIssuePaginationInfo", "total_results"],
-            (this.inboxIssuePaginationInfo?.total_results || 0) - 1
-          );
-          set(this, "inboxIssues", omit(this.inboxIssues, inboxIssueId));
-          set(
-            this,
-            ["inboxIssueIds"],
-            this.inboxIssueIds.filter((id) => id !== inboxIssueId)
-          );
-          // Decrement intake_count if the deleted issue was PENDING
-          if (wasPending) {
-            const currentCount = this.store.projectRoot.project.projectMap[projectId]?.intake_count ?? 0;
-            set(this.store.projectRoot.project.projectMap, [projectId, "intake_count"], Math.max(0, currentCount - 1));
-          }
-        });
+      await this.inboxIssueService.destroy(workspaceSlug, projectId, inboxIssueId);
+      runInAction(() => {
+        set(
+          this,
+          ["inboxIssuePaginationInfo", "total_results"],
+          (this.inboxIssuePaginationInfo?.total_results || 0) - 1
+        );
+        set(this, "inboxIssues", omit(this.inboxIssues, inboxIssueId));
+        set(
+          this,
+          ["inboxIssueIds"],
+          this.inboxIssueIds.filter((id) => id !== inboxIssueId)
+        );
+        // Decrement intake_count if the deleted issue was PENDING
+        if (wasPending) {
+          const currentCount = this.store.projectRoot.project.projectMap[projectId]?.intake_count ?? 0;
+          set(this.store.projectRoot.project.projectMap, [projectId, "intake_count"], Math.max(0, currentCount - 1));
+        }
       });
     } catch (error) {
       console.error("Error removing the intake issue");
