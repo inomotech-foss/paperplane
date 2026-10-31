@@ -49,7 +49,7 @@ class IntakeIssueSerializer(BaseSerializer):
             "issue",
             "created_by",
         ]
-        read_only_fields = ["project", "workspace"]
+        read_only_fields = ["project", "workspace", "source", "created_by"]
 
     def validate(self, attrs):
         """
