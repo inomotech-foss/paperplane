@@ -648,13 +648,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageAttachmentRequest'
+              $ref: '#/components/schemas/AttachmentUploadRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PageAttachmentRequest'
+              $ref: '#/components/schemas/AttachmentUploadRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PageAttachmentRequest'
+              $ref: '#/components/schemas/AttachmentUploadRequest'
         required: true
       security:
       - sessionAuth: []
@@ -735,17 +735,6 @@ paths:
         required: true
       tags:
       - assets
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedPageAttachmentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedPageAttachmentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedPageAttachmentRequest'
       security:
       - sessionAuth: []
       responses:
@@ -4889,11 +4878,95 @@ paths:
     get:
       operationId: workspaces_page_query_retrieve
       parameters:
+      - in: query
+        name: columns
+        schema:
+          type: string
+        description: Comma-separated property names, for page-properties
+      - in: query
+        name: depth
+        schema:
+          type: integer
+        description: Levels below root_page_id for tree, 1 to 20. 1 when omitted
+      - in: query
+        name: kind
+        schema:
+          type: string
+          enum:
+          - by-label
+          - contributors
+          - decision-report
+          - index
+          - label-list
+          - page-properties
+          - recent
+          - search
+          - task-report
+          - tree
+        description: The query to run. recent when omitted
+      - in: query
+        name: labels
+        schema:
+          type: string
+        description: Comma-separated label names, for by-label, page-properties and
+          the reports
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Rows to return, 1 to 100. 20 when omitted
+      - in: query
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        description: The project of scope=project
+      - in: query
+        name: reverse
+        schema:
+          type: boolean
+        description: Reverse the order
+      - in: query
+        name: root_page_id
+        schema:
+          type: string
+          format: uuid
+        description: The page whose descendants tree and the reports list
+      - in: query
+        name: scope
+        schema:
+          type: string
+          enum:
+          - project
+        description: project limits the pages to project_id. The whole workspace when
+          omitted
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: The text a page name contains, for search
       - in: path
         name: slug
         schema:
           type: string
         required: true
+      - in: query
+        name: sort
+        schema:
+          type: string
+          enum:
+          - created
+          - modified
+          - title
+        description: The order of the pages
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - complete
+          - incomplete
+        description: Only complete or incomplete tasks, for task-report
       tags:
       - workspaces
       security:
@@ -13516,12 +13589,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -13560,13 +13627,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageCreateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -13623,6 +13690,11 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: track_visit
+        schema:
+          type: boolean
+        description: Record the read as a recent visit. True when omitted
       tags:
       - workspaces
       security:
@@ -13660,13 +13732,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
+              $ref: '#/components/schemas/PatchedPageUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
+              $ref: '#/components/schemas/PatchedPageUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
+              $ref: '#/components/schemas/PatchedPageUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -13730,13 +13802,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageAccessRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageAccessRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/PageAccessRequest'
       security:
       - sessionAuth: []
       responses:
@@ -13974,13 +14046,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageCommentReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PageCommentReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PageCommentReactionRequest'
+              $ref: '#/components/schemas/ReactionCreateRequest'
         required: true
       security:
       - sessionAuth: []
@@ -14279,6 +14351,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPageBinaryUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPageBinaryUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPageBinaryUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -28365,6 +28448,17 @@ components:
       - updated_by
       - view_props
       - logo_props
+    PageAccessRequest:
+      type: object
+      properties:
+        access:
+          allOf:
+          - $ref: '#/components/schemas/Access1f9Enum'
+          description: |-
+            Public when omitted
+
+            * `1` - Private
+            * `0` - Public
     PageAttachment:
       type: object
       properties:
@@ -28493,66 +28587,6 @@ components:
       - comment
       - page
       - page_comment
-    PageAttachmentRequest:
-      type: object
-      properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
-        attributes: {}
-        asset:
-          type: string
-          format: binary
-        entity_type:
-          type: string
-          nullable: true
-          maxLength: 255
-        entity_identifier:
-          type: string
-          nullable: true
-          maxLength: 255
-        is_deleted:
-          type: boolean
-        is_archived:
-          type: boolean
-        external_id:
-          type: string
-          nullable: true
-          maxLength: 255
-        external_source:
-          type: string
-          nullable: true
-          maxLength: 255
-        size:
-          type: number
-          format: double
-        is_uploaded:
-          type: boolean
-        storage_metadata:
-          nullable: true
-        user:
-          type: string
-          format: uuid
-          nullable: true
-        draft_issue:
-          type: string
-          format: uuid
-          nullable: true
-        issue:
-          type: string
-          format: uuid
-          nullable: true
-        comment:
-          type: string
-          format: uuid
-          nullable: true
-        page_comment:
-          type: string
-          format: uuid
-          nullable: true
-      required:
-      - asset
     PageAttachmentUpload:
       type: object
       properties:
@@ -28796,6 +28830,44 @@ components:
           type: string
           nullable: true
           maxLength: 255
+    PageCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        access:
+          allOf:
+          - $ref: '#/components/schemas/Access1f9Enum'
+          minimum: 0
+          maximum: 32767
+        color:
+          type: string
+          maxLength: 255
+        labels:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        sort_order:
+          type: number
+          format: double
+        is_locked:
+          type: boolean
+        view_props:
+          $ref: '#/components/schemas/ClientJson'
+        logo_props:
+          $ref: '#/components/schemas/ClientJson'
+        description_html:
+          type: string
+          minLength: 1
+          description: <p></p> when omitted
+        description_json:
+          description: The editor document of description_html
     PageDetail:
       type: object
       properties:
@@ -29130,38 +29202,6 @@ components:
       - project_id
       - owned_by
       - project_identifier
-    PageRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        access:
-          allOf:
-          - $ref: '#/components/schemas/Access1f9Enum'
-          minimum: 0
-          maximum: 32767
-        color:
-          type: string
-          maxLength: 255
-        labels:
-          type: array
-          items:
-            type: string
-            format: uuid
-          writeOnly: true
-        parent:
-          type: string
-          format: uuid
-          nullable: true
-        sort_order:
-          type: number
-          format: double
-        is_locked:
-          type: boolean
-        view_props:
-          $ref: '#/components/schemas/ClientJson'
-        logo_props:
-          $ref: '#/components/schemas/ClientJson'
     PageSummary:
       type: object
       properties:
@@ -30895,63 +30935,14 @@ components:
           format: date-time
           nullable: true
           description: Null when omitted
-    PatchedPageAttachmentRequest:
+    PatchedPageBinaryUpdateRequest:
       type: object
       properties:
-        deleted_at:
+        description_binary:
           type: string
-          format: date-time
-          nullable: true
-        attributes: {}
-        asset:
+        description_html:
           type: string
-          format: binary
-        entity_type:
-          type: string
-          nullable: true
-          maxLength: 255
-        entity_identifier:
-          type: string
-          nullable: true
-          maxLength: 255
-        is_deleted:
-          type: boolean
-        is_archived:
-          type: boolean
-        external_id:
-          type: string
-          nullable: true
-          maxLength: 255
-        external_source:
-          type: string
-          nullable: true
-          maxLength: 255
-        size:
-          type: number
-          format: double
-        is_uploaded:
-          type: boolean
-        storage_metadata:
-          nullable: true
-        user:
-          type: string
-          format: uuid
-          nullable: true
-        draft_issue:
-          type: string
-          format: uuid
-          nullable: true
-        issue:
-          type: string
-          format: uuid
-          nullable: true
-        comment:
-          type: string
-          format: uuid
-          nullable: true
-        page_comment:
-          type: string
-          format: uuid
+        description_json:
           nullable: true
     PatchedPageCommentRequest:
       type: object
@@ -30975,7 +30966,7 @@ components:
           type: string
           nullable: true
           maxLength: 255
-    PatchedPageRequest:
+    PatchedPageUpdateRequest:
       type: object
       properties:
         name:
@@ -30994,19 +30985,15 @@ components:
             type: string
             format: uuid
           writeOnly: true
-        parent:
-          type: string
-          format: uuid
-          nullable: true
-        sort_order:
-          type: number
-          format: double
         is_locked:
           type: boolean
         view_props:
           $ref: '#/components/schemas/ClientJson'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
+        description_html:
+          type: string
+          minLength: 1
     PatchedProfileRequest:
       type: object
       properties:

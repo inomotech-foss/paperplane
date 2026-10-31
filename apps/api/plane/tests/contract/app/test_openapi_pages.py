@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-"""The page endpoints return what the OpenAPI schema documents."""
+"""The page endpoints accept and return what the OpenAPI schema documents."""
 
+import jsonschema
 import pytest
 
 from plane.db.models import (
@@ -17,6 +18,7 @@ from plane.db.models import (
 )
 from plane.tests.factories import ProjectFactory
 from plane.tests.openapi import documented, no_tasks  # noqa: F401
+from plane.tests.openapi import assert_no_content, documented_query, documented_request
 
 
 @pytest.fixture
@@ -101,4 +103,64 @@ class TestPageResponses:
 
     def test_query_tree(self, session_client, workspace, page):
         params = {"kind": "tree", "root_page_id": str(page.id)}
+        assert documented(session_client.get(f"/api/workspaces/{workspace.slug}/page-query/", params))["results"]
+
+
+BASE = "/api/workspaces/{slug}/projects/{project_id}"
+
+
+def sent(route, method, body, **params):
+    """The path for `route` after checking `body` against its documented request body."""
+    documented_request(route, method, body)
+    return route.format(**params), body
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+@pytest.mark.usefixtures("no_tasks")
+class TestPageRequests:
+    def test_create_and_update(self, session_client, workspace, project, page):
+        ids = {"slug": workspace.slug, "project_id": project.id}
+        body = {"name": "New", "access": 1, "parent": str(page.id), "description_html": "<p>hi</p>"}
+        url, body = sent(BASE + "/pages/", "post", body, **ids)
+        created = documented(session_client.post(url, body, format="json"), 201)
+        assert (created["parent"], created["description_html"]) == (str(page.id), "<p>hi</p>")
+        route = BASE + "/pages/{page_id}/"
+        body = {"name": "Renamed", "logo_props": {"in_use": "emoji"}}
+        url, body = sent(route, "patch", body, page_id=created["id"], **ids)
+        assert documented(session_client.patch(url, body, format="json"))["name"] == "Renamed"
+        with pytest.raises(jsonschema.ValidationError):
+            documented_request(route, "patch", {"parent": None})
+
+    def test_access_and_description(self, session_client, workspace, project, page):
+        ids = {"slug": workspace.slug, "project_id": project.id, "page_id": page.id}
+        url, body = sent(BASE + "/pages/{page_id}/access/", "post", {"access": 1}, **ids)
+        assert_no_content(session_client.post(url, body, format="json"))
+        assert Page.objects.get(pk=page.id).access == 1
+        body = {"description_html": "<p>x</p>", "description_json": {"type": "doc"}}
+        url, body = sent(BASE + "/pages/{page_id}/description/", "patch", body, **ids)
+        documented(session_client.patch(url, body, format="json"))
+
+    def test_attachment_upload_body(self):
+        route = "/api/assets/v2/workspaces/{slug}/projects/{project_id}/pages/{page_id}/attachments/"
+        documented_request(route, "post", {"name": "a.png", "type": "image/png", "size": 10})
+        with pytest.raises(jsonschema.ValidationError):
+            documented_request(route, "post", {"asset": "a.png"})
+
+    def test_query_parameters(self, session_client, workspace, project, page):
+        assert documented_query(BASE + "/pages/", "get") == set()
+        assert documented_query(BASE + "/pages/{page_id}/", "get") == {"track_visit"}
+        url = (BASE + "/pages/{page_id}/").format(slug=workspace.slug, project_id=project.id, page_id=page.id)
+        documented(session_client.get(url, {"track_visit": "false"}))
+        expected = {"kind", "scope", "project_id", "root_page_id", "depth", "limit", "sort", "reverse", "search"}
+        assert expected | {"labels", "columns", "status"} == documented_query(
+            "/api/workspaces/{slug}/page-query/", "get"
+        )
+        params = {
+            "kind": "index",
+            "scope": "project",
+            "project_id": str(project.id),
+            "sort": "title",
+            "reverse": "true",
+        }
         assert documented(session_client.get(f"/api/workspaces/{workspace.slug}/page-query/", params))["results"]

@@ -9291,6 +9291,15 @@ export interface components {
             readonly label_ids?: string[];
             readonly project_ids?: string[];
         };
+        PageAccessRequest: {
+            /**
+             * @description Public when omitted
+             *
+             *     * `1` - Private
+             *     * `0` - Public
+             */
+            access?: components["schemas"]["Access1f9Enum"];
+        };
         PageAttachment: {
             /** Format: uuid */
             readonly id: string;
@@ -9340,33 +9349,6 @@ export interface components {
             readonly page: string | null;
             /** Format: uuid */
             page_comment: string | null;
-        };
-        PageAttachmentRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
-            attributes?: unknown;
-            /** Format: binary */
-            asset: string;
-            entity_type?: string | null;
-            entity_identifier?: string | null;
-            is_deleted?: boolean;
-            is_archived?: boolean;
-            external_id?: string | null;
-            external_source?: string | null;
-            /** Format: double */
-            size?: number;
-            is_uploaded?: boolean;
-            storage_metadata?: unknown;
-            /** Format: uuid */
-            user?: string | null;
-            /** Format: uuid */
-            draft_issue?: string | null;
-            /** Format: uuid */
-            issue?: string | null;
-            /** Format: uuid */
-            comment?: string | null;
-            /** Format: uuid */
-            page_comment?: string | null;
         };
         PageAttachmentUpload: {
             /** @description Null when storage could not sign the upload */
@@ -9469,6 +9451,23 @@ export interface components {
             comment_json?: unknown;
             external_id?: string | null;
             external_source?: string | null;
+        };
+        PageCreateRequest: {
+            name?: string;
+            access?: components["schemas"]["Access1f9Enum"];
+            color?: string;
+            labels?: string[];
+            /** Format: uuid */
+            parent?: string | null;
+            /** Format: double */
+            sort_order?: number;
+            is_locked?: boolean;
+            view_props?: components["schemas"]["ClientJson"];
+            logo_props?: components["schemas"]["ClientJson"];
+            /** @description <p></p> when omitted */
+            description_html?: string;
+            /** @description The editor document of description_html */
+            description_json?: unknown;
         };
         PageDetail: {
             /** Format: uuid */
@@ -9607,19 +9606,6 @@ export interface components {
             /** Format: uuid */
             owned_by: string;
             readonly project_identifier: string | null;
-        };
-        PageRequest: {
-            name?: string;
-            access?: components["schemas"]["Access1f9Enum"];
-            color?: string;
-            labels?: string[];
-            /** Format: uuid */
-            parent?: string | null;
-            /** Format: double */
-            sort_order?: number;
-            is_locked?: boolean;
-            view_props?: components["schemas"]["ClientJson"];
-            logo_props?: components["schemas"]["ClientJson"];
         };
         PageSummary: {
             public_pages: number;
@@ -10351,32 +10337,10 @@ export interface components {
              */
             snoozed_till?: string | null;
         };
-        PatchedPageAttachmentRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
-            attributes?: unknown;
-            /** Format: binary */
-            asset?: string;
-            entity_type?: string | null;
-            entity_identifier?: string | null;
-            is_deleted?: boolean;
-            is_archived?: boolean;
-            external_id?: string | null;
-            external_source?: string | null;
-            /** Format: double */
-            size?: number;
-            is_uploaded?: boolean;
-            storage_metadata?: unknown;
-            /** Format: uuid */
-            user?: string | null;
-            /** Format: uuid */
-            draft_issue?: string | null;
-            /** Format: uuid */
-            issue?: string | null;
-            /** Format: uuid */
-            comment?: string | null;
-            /** Format: uuid */
-            page_comment?: string | null;
+        PatchedPageBinaryUpdateRequest: {
+            description_binary?: string;
+            description_html?: string;
+            description_json?: unknown;
         };
         PatchedPageCommentRequest: {
             /** Format: uuid */
@@ -10387,18 +10351,15 @@ export interface components {
             external_id?: string | null;
             external_source?: string | null;
         };
-        PatchedPageRequest: {
+        PatchedPageUpdateRequest: {
             name?: string;
             access?: components["schemas"]["Access1f9Enum"];
             color?: string;
             labels?: string[];
-            /** Format: uuid */
-            parent?: string | null;
-            /** Format: double */
-            sort_order?: number;
             is_locked?: boolean;
             view_props?: components["schemas"]["ClientJson"];
             logo_props?: components["schemas"]["ClientJson"];
+            description_html?: string;
         };
         PatchedProfileRequest: {
             onboarding_step?: components["schemas"]["OnboardingStepRequest"];
@@ -14511,9 +14472,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PageAttachmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PageAttachmentRequest"];
-                "multipart/form-data": components["schemas"]["PageAttachmentRequest"];
+                "application/json": components["schemas"]["AttachmentUploadRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AttachmentUploadRequest"];
+                "multipart/form-data": components["schemas"]["AttachmentUploadRequest"];
             };
         };
         responses: {
@@ -14594,13 +14555,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedPageAttachmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedPageAttachmentRequest"];
-                "multipart/form-data": components["schemas"]["PatchedPageAttachmentRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Done */
             204: {
@@ -18206,7 +18161,32 @@ export interface operations {
     };
     workspaces_page_query_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Comma-separated property names, for page-properties */
+                columns?: string;
+                /** @description Levels below root_page_id for tree, 1 to 20. 1 when omitted */
+                depth?: number;
+                /** @description The query to run. recent when omitted */
+                kind?: "by-label" | "contributors" | "decision-report" | "index" | "label-list" | "page-properties" | "recent" | "search" | "task-report" | "tree";
+                /** @description Comma-separated label names, for by-label, page-properties and the reports */
+                labels?: string;
+                /** @description Rows to return, 1 to 100. 20 when omitted */
+                limit?: number;
+                /** @description The project of scope=project */
+                project_id?: string;
+                /** @description Reverse the order */
+                reverse?: boolean;
+                /** @description The page whose descendants tree and the reports list */
+                root_page_id?: string;
+                /** @description project limits the pages to project_id. The whole workspace when omitted */
+                scope?: "project";
+                /** @description The text a page name contains, for search */
+                search?: string;
+                /** @description The order of the pages */
+                sort?: "created" | "modified" | "title";
+                /** @description Only complete or incomplete tasks, for task-report */
+                status?: "complete" | "incomplete";
+            };
             header?: never;
             path: {
                 slug: string;
@@ -23841,10 +23821,7 @@ export interface operations {
     };
     workspaces_projects_pages_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 project_id: string;
@@ -23876,9 +23853,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PageRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PageRequest"];
-                "multipart/form-data": components["schemas"]["PageRequest"];
+                "application/json": components["schemas"]["PageCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PageCreateRequest"];
+                "multipart/form-data": components["schemas"]["PageCreateRequest"];
             };
         };
         responses: {
@@ -23916,7 +23893,10 @@ export interface operations {
     };
     workspaces_projects_pages_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Record the read as a recent visit. True when omitted */
+                track_visit?: boolean;
+            };
             header?: never;
             path: {
                 page_id: string;
@@ -23972,9 +23952,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedPageRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedPageRequest"];
-                "multipart/form-data": components["schemas"]["PatchedPageRequest"];
+                "application/json": components["schemas"]["PatchedPageUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedPageUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedPageUpdateRequest"];
             };
         };
         responses: {
@@ -24001,9 +23981,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PageRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PageRequest"];
-                "multipart/form-data": components["schemas"]["PageRequest"];
+                "application/json": components["schemas"]["PageAccessRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PageAccessRequest"];
+                "multipart/form-data": components["schemas"]["PageAccessRequest"];
             };
         };
         responses: {
@@ -24160,9 +24140,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PageCommentReactionRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PageCommentReactionRequest"];
-                "multipart/form-data": components["schemas"]["PageCommentReactionRequest"];
+                "application/json": components["schemas"]["ReactionCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ReactionCreateRequest"];
+                "multipart/form-data": components["schemas"]["ReactionCreateRequest"];
             };
         };
         responses: {
@@ -24360,7 +24340,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedPageBinaryUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedPageBinaryUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedPageBinaryUpdateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -27540,6 +27526,10 @@ type ReadonlyArray<T> = [
 ] extends [
     unknown[]
 ] ? Readonly<Exclude<T, undefined>> : Readonly<Exclude<T, undefined>[]>;
+export const pathsApiWorkspacesSlugPageQueryGetParametersQueryKindValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["kind"]> = ["by-label", "contributors", "decision-report", "index", "label-list", "page-properties", "recent", "search", "task-report", "tree"];
+export const pathsApiWorkspacesSlugPageQueryGetParametersQueryScopeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["scope"]> = ["project"];
+export const pathsApiWorkspacesSlugPageQueryGetParametersQuerySortValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["sort"]> = ["created", "modified", "title"];
+export const pathsApiWorkspacesSlugPageQueryGetParametersQueryStatusValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["status"]> = ["complete", "incomplete"];
 export const pathsApiWorkspacesSlugProjectsProject_idArchivedIssuesGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/archived-issues/"]["get"]["parameters"]["query"]["group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idArchivedIssuesGetParametersQuerySub_group_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/archived-issues/"]["get"]["parameters"]["query"]["sub_group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idCyclesGetParametersQueryCycle_viewValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/cycles/"]["get"]["parameters"]["query"]["cycle_view"]> = ["all", "current"];
