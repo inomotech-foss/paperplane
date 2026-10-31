@@ -9,7 +9,7 @@ from django.db import connection
 
 from plane.db.models import Workspace, WorkspaceUserProperties
 from plane.importers.plane.copier import MissingTableError, copy_table
-from plane.importers.plane.tables import TableSpec
+from plane.importers.plane.tables import TABLES, TableSpec
 
 from .fakes import FakeSource
 
@@ -32,11 +32,14 @@ def workspace_row(owner, name="Imported"):
     }
 
 
+WORKSPACES = next(s for s in TABLES if s.name == "workspaces")
+
+
 @pytest.mark.django_db
 def test_copy_keeps_id_and_timestamps(create_user):
     source = FakeSource({"workspaces": [workspace_row(create_user)]})
     with connection.cursor() as cursor:
-        assert copy_table(source, TableSpec("workspaces"), cursor) == 1
+        assert copy_table(source, WORKSPACES, cursor) == 1
     workspace = Workspace.objects.get(id=WORKSPACE_ID)
     assert workspace.created_at == CREATED
     assert workspace.created_by_id is None
@@ -46,9 +49,9 @@ def test_copy_keeps_id_and_timestamps(create_user):
 def test_copy_twice_updates_in_place(create_user):
     source = FakeSource({"workspaces": [workspace_row(create_user)]})
     with connection.cursor() as cursor:
-        copy_table(source, TableSpec("workspaces"), cursor)
+        copy_table(source, WORKSPACES, cursor)
         source.tables["workspaces"] = [workspace_row(create_user, name="Renamed")]
-        copy_table(source, TableSpec("workspaces"), cursor)
+        copy_table(source, WORKSPACES, cursor)
     assert Workspace.objects.filter(id=WORKSPACE_ID).count() == 1
     assert Workspace.objects.get(id=WORKSPACE_ID).name == "Renamed"
 

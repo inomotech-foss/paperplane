@@ -29,7 +29,7 @@ RELATION_TYPE = (
 TABLES = (
     TableSpec("users"),
     TableSpec("profiles"),
-    TableSpec("workspaces"),
+    TableSpec("workspaces", defaults={"pql_dialect": "'plane'"}),
     TableSpec("workspace_members"),
     TableSpec("workspace_member_invites"),
     TableSpec("workspace_user_properties"),

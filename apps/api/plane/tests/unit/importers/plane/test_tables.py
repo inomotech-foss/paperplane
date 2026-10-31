@@ -32,3 +32,8 @@ def test_every_listed_table_is_copied_or_skipped_once():
 
 def test_plan_columns_quotes_reserved_words():
     assert plan_columns({"group": "text"}, {"group"}, TableSpec("states")) == ['"group" AS "group"']
+
+
+def test_imported_workspaces_default_to_plane_dialect():
+    spec = next(s for s in TABLES if s.name == "workspaces")
+    assert "'plane' AS \"pql_dialect\"" in plan_columns({"id": "uuid"}, {"id", "pql_dialect"}, spec)
