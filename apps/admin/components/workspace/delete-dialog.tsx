@@ -9,6 +9,8 @@ import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { ConfirmDialog } from "@plane/blocks/dialog";
 import { setToast } from "@plane/blocks/toast";
 import type { IWorkspace } from "@plane/types";
+// helpers
+import { getApiErrorMessage } from "@/helpers/error";
 // hooks
 import { useWorkspace } from "@/hooks/store";
 
@@ -32,7 +34,7 @@ export function DeleteWorkspaceDialog(props: Props) {
       setToast({ type: "success", title: "Deleted", message: `${workspace.name} is gone for its members.` });
       handleClose();
     } catch (caught) {
-      setError((caught as { error?: string })?.error ?? "The workspace was not deleted.");
+      setError(getApiErrorMessage(caught) ?? "The workspace was not deleted.");
     } finally {
       setIsSubmitting(false);
     }

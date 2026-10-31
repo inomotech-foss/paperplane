@@ -20,6 +20,8 @@ import { setToast } from "@plane/blocks/toast";
 import type { IInstanceUser, IWorkspace } from "@plane/types";
 // components
 import { UserPicker } from "@/components/users/user-picker";
+// helpers
+import { getApiErrorMessage } from "@/helpers/error";
 // hooks
 import { useWorkspace } from "@/hooks/store";
 
@@ -45,7 +47,7 @@ export function TransferOwnerDialog(props: Props) {
       setToast({ type: "success", title: "Owner changed", message: `${owner.email} now owns ${workspace.name}.` });
       handleClose();
     } catch (caught) {
-      setError((caught as { error?: string })?.error ?? "The owner was not changed.");
+      setError(getApiErrorMessage(caught) ?? "The owner was not changed.");
     } finally {
       setIsSubmitting(false);
     }

@@ -5,6 +5,7 @@
  */
 
 import { enableStaticRendering } from "mobx-react";
+import type { IInstanceInfo, IUser, IWorkspace } from "@plane/types";
 // stores
 import type { IInstanceStore } from "./instance.store";
 import { InstanceStore } from "./instance.store";
@@ -20,6 +21,13 @@ import type { IWorkspaceStore } from "./workspace.store";
 import { WorkspaceStore } from "./workspace.store";
 
 enableStaticRendering(typeof window === "undefined");
+
+export type TRootStoreInitialData = {
+  theme?: string;
+  instance?: IInstanceInfo;
+  user?: IUser;
+  workspace?: Record<string, IWorkspace>;
+};
 
 export class RootStore {
   theme: IThemeStore;
@@ -38,7 +46,7 @@ export class RootStore {
     this.instanceUser = new InstanceUserStore(this);
   }
 
-  hydrate(initialData: any) {
+  hydrate(initialData: TRootStoreInitialData) {
     this.theme.hydrate(initialData.theme);
     this.instance.hydrate(initialData.instance);
     this.user.hydrate(initialData.user);

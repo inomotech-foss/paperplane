@@ -20,7 +20,7 @@ export interface IWorkspaceStore {
   // computed
   workspaceIds: string[];
   // helper actions
-  hydrate: (data: Record<string, IWorkspace>) => void;
+  hydrate: (data: Record<string, IWorkspace> | undefined) => void;
   getWorkspaceById: (workspaceId: string) => IWorkspace | undefined;
   // fetch actions
   fetchWorkspaces: () => Promise<IWorkspace[]>;
@@ -71,7 +71,7 @@ export class WorkspaceStore implements IWorkspaceStore {
    * @description Hydrates the workspaces
    * @param data - Record<string, IWorkspace>
    */
-  hydrate = (data: Record<string, IWorkspace>) => {
+  hydrate = (data: Record<string, IWorkspace> | undefined) => {
     if (data) this.workspaces = data;
   };
 

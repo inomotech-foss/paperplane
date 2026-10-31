@@ -51,7 +51,7 @@ export const GeneralConfigurationForm = observer(function GeneralConfigurationFo
           message: "Settings updated successfully",
         })
       )
-      .catch((err) => console.error(err));
+      .catch((err: unknown) => console.error(err));
   };
 
   return (

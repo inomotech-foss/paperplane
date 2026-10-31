@@ -65,7 +65,7 @@ const InstanceGithubAuthenticationPage = observer(function InstanceGithubAuthent
       .then(() => {
         setIsSubmitting(false);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
         setIsSubmitting(false);
       });

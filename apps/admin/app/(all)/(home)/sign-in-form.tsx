@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
 import { HideOutline, ShowOutline } from "@makeplane/propel/icons";
 // plane internal packages
-import type { EAdminAuthErrorCodes, TAdminAuthErrorInfo } from "@plane/constants";
+import type { TAdminAuthErrorInfo } from "@plane/constants";
 import { API_BASE_URL } from "@plane/constants";
 import { Button } from "@makeplane/propel/components/button";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
@@ -110,7 +110,7 @@ export const InstanceSignInForm = observer(function InstanceSignInForm() {
 
   useEffect(() => {
     if (errorCode) {
-      const errorDetail = authErrorHandler(errorCode?.toString() as EAdminAuthErrorCodes, emailParam, providerParam);
+      const errorDetail = authErrorHandler(errorCode, emailParam, providerParam);
       if (errorDetail) {
         setErrorInfo(errorDetail);
       }

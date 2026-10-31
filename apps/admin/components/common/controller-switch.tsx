@@ -37,7 +37,7 @@ export function ControllerSwitch<T extends FieldValues>(props: Props<T>) {
       <div className="relative">
         <Controller
           control={control}
-          name={name as FieldPath<T>}
+          name={name}
           render={({ field: { value, onChange } }) => {
             const parsedValue = Number.parseInt(typeof value === "string" ? value : String(value ?? "0"), 10);
             const isOn = !Number.isNaN(parsedValue) && parsedValue !== 0;

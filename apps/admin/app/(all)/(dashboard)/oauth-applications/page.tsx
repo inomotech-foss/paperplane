@@ -14,6 +14,8 @@ import type { IOAuthApplication } from "@plane/types";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 import { Skeleton } from "@/components/common/skeleton";
+// helpers
+import { getApiErrorMessage } from "@/helpers/error";
 // hooks
 import { useOAuthApplication } from "@/hooks/store";
 // types
@@ -52,7 +54,7 @@ const OAuthApplicationsPage = observer(function OAuthApplicationsPage(_props: Ro
       });
       setRevoking(undefined);
     } catch (error) {
-      const message = (error as { error?: string })?.error ?? "The application was not revoked.";
+      const message = getApiErrorMessage(error) ?? "The application was not revoked.";
       setToast({ type: "error", title: "That did not work", message });
     } finally {
       setIsRevoking(false);

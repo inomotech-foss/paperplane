@@ -59,7 +59,7 @@ const InstanceGoogleAuthenticationPage = observer(function InstanceGoogleAuthent
       .then(() => {
         setIsSubmitting(false);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
         setIsSubmitting(false);
       });

@@ -21,10 +21,12 @@ import type {
 // root store
 import type { RootStore } from "@/store/root.store";
 
+export type TInstanceStoreError = { message: string };
+
 export interface IInstanceStore {
   // issues
   isLoading: boolean;
-  error: any;
+  error: TInstanceStoreError | undefined;
   instanceStatus: TInstanceStatus | undefined;
   instance: IInstance | undefined;
   config: IInstanceConfig | undefined;
@@ -34,7 +36,7 @@ export interface IInstanceStore {
   formattedConfig: IFormattedInstanceConfiguration | undefined;
   managedConfigurationKeys: Set<string>;
   // action
-  hydrate: (data: IInstanceInfo) => void;
+  hydrate: (data: IInstanceInfo | undefined) => void;
   fetchInstanceInfo: () => Promise<IInstanceInfo | undefined>;
   updateInstanceInfo: (data: Partial<IInstance>) => Promise<IInstance | undefined>;
   fetchInstanceAdmins: () => Promise<IInstanceAdmin[] | undefined>;
@@ -45,7 +47,7 @@ export interface IInstanceStore {
 
 export class InstanceStore implements IInstanceStore {
   isLoading: boolean = true;
-  error: any = undefined;
+  error: TInstanceStoreError | undefined = undefined;
   instanceStatus: TInstanceStatus | undefined = undefined;
   instance: IInstance | undefined = undefined;
   config: IInstanceConfig | undefined = undefined;
@@ -78,7 +80,7 @@ export class InstanceStore implements IInstanceStore {
     this.instanceService = new InstanceService();
   }
 
-  hydrate = (data: IInstanceInfo) => {
+  hydrate = (data: IInstanceInfo | undefined) => {
     if (data) {
       this.instance = data.instance;
       this.config = data.config;
@@ -91,10 +93,9 @@ export class InstanceStore implements IInstanceStore {
    */
   get formattedConfig() {
     if (!this.instanceConfigurations) return undefined;
-    return this.instanceConfigurations?.reduce((formData: IFormattedInstanceConfiguration, config) => {
-      formData[config.key] = config.value;
-      return formData;
-    }, {} as IFormattedInstanceConfiguration);
+    const formData: IFormattedInstanceConfiguration = {};
+    for (const config of this.instanceConfigurations) formData[config.key] = config.value;
+    return formData;
   }
 
   /**
@@ -198,8 +199,8 @@ export class InstanceStore implements IInstanceStore {
       const response = await this.instanceService.updateConfigurations(data);
       runInAction(() => {
         this.instanceConfigurations = this.instanceConfigurations?.map((config) => {
-          const item = response.find((item) => item.key === config.key);
-          if (item) return item;
+          const updated = response.find((item) => item.key === config.key);
+          if (updated) return updated;
           return config;
         });
       });

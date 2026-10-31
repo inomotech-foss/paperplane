@@ -155,7 +155,7 @@ export function InstanceEmailForm(props: IInstanceEmailForm) {
           message: "Email Settings updated successfully",
         })
       )
-      .catch((err) => console.error(err));
+      .catch((err: unknown) => console.error(err));
   };
 
   const useTLSValue = watch("EMAIL_USE_TLS");

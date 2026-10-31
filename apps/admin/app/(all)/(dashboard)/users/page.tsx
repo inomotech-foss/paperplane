@@ -11,7 +11,7 @@ import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { Switch } from "@makeplane/propel/components/switch";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@makeplane/propel/components/table";
 import { setToast } from "@plane/blocks/toast";
-import type { IInstanceUser, TInstanceUserError } from "@plane/types";
+import type { IInstanceUser } from "@plane/types";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 import { Skeleton } from "@/components/common/skeleton";
@@ -21,6 +21,8 @@ import { findPossibleDuplicates } from "@/components/users/duplicates";
 import { MergeUserDialog } from "@/components/users/merge-dialog";
 import { UserRow } from "@/components/users/user-row";
 import type { TUserRowAction } from "@/components/users/user-row";
+// helpers
+import { getApiErrorMessage } from "@/helpers/error";
 // hooks
 import { useInstanceUser } from "@/hooks/store";
 // types
@@ -65,7 +67,7 @@ const UsersPage = observer(function UsersPage(_props: Route.ComponentProps) {
       setToast({
         type: "error",
         title: "That did not work",
-        message: (error as TInstanceUserError)?.error ?? "The user was not reactivated.",
+        message: getApiErrorMessage(error) ?? "The user was not reactivated.",
       });
     }
   };

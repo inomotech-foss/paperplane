@@ -91,7 +91,7 @@ export function InstanceRateLimitForm(props: Props) {
     const payload: Partial<RateLimitFormValues> = {};
     let hasInvalid = false;
     for (const field of rateLimitFormFields) {
-      const key = field.key as TInstanceRateLimitConfigurationKeys;
+      const key = field.key;
       const value = formData[key].trim();
       if (!RATE_PATTERN.test(value)) {
         setError(key, { message: "Use the format count/period, e.g. 60/minute." });
@@ -117,7 +117,7 @@ export function InstanceRateLimitForm(props: Props) {
           message: "Rate limits updated successfully. Changes apply within a few seconds.",
         })
       )
-      .catch((err) => console.error(err));
+      .catch((err: unknown) => console.error(err));
   };
 
   return (
@@ -135,7 +135,7 @@ export function InstanceRateLimitForm(props: Props) {
             type={field.type}
             name={field.key}
             label={field.label}
-            description={errors[field.key as TInstanceRateLimitConfigurationKeys]?.message ?? field.description}
+            description={errors[field.key]?.message ?? field.description}
             placeholder={field.placeholder}
             error={field.error}
             required={field.required}

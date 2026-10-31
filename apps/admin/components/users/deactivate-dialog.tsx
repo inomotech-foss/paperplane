@@ -7,7 +7,9 @@ import { useState } from "react";
 // plane imports
 import { ConfirmDialog } from "@plane/blocks/dialog";
 import { setToast } from "@plane/blocks/toast";
-import type { IInstanceUser, TInstanceUserError } from "@plane/types";
+import type { IInstanceUser } from "@plane/types";
+// helpers
+import { getApiErrorMessage } from "@/helpers/error";
 // hooks
 import { useInstanceUser } from "@/hooks/store";
 
@@ -42,7 +44,7 @@ export function DeactivateUserDialog(props: Props) {
       });
       handleClose();
     } catch (caught) {
-      setError((caught as TInstanceUserError)?.error ?? "The user was not deactivated.");
+      setError(getApiErrorMessage(caught) ?? "The user was not deactivated.");
     } finally {
       setIsSubmitting(false);
     }

@@ -19,6 +19,8 @@ import {
 } from "@makeplane/propel/components/dialog";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { InstanceService } from "@plane/services";
+// helpers
+import { getApiErrorMessage } from "@/helpers/error";
 
 type Props = {
   isOpen: boolean;
@@ -60,8 +62,8 @@ export function SendTestEmailModal(props: Props) {
         setSendEmailStep(ESendEmailSteps.SUCCESS);
         return;
       })
-      .catch((err) => {
-        setError(err?.error || "Failed to send email");
+      .catch((err: unknown) => {
+        setError(getApiErrorMessage(err) || "Failed to send email");
         setSendEmailStep(ESendEmailSteps.FAILED);
       })
       .finally(() => {

@@ -22,6 +22,8 @@ import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { TextArea, TextAreaGroup } from "@makeplane/propel/components/text-area";
 import { setToast } from "@plane/blocks/toast";
 import type { IOAuthApplication } from "@plane/types";
+// helpers
+import { getApiErrorMessage } from "@/helpers/error";
 // hooks
 import { useOAuthApplication } from "@/hooks/store";
 
@@ -67,7 +69,7 @@ export function OAuthApplicationForm(props: Props) {
         onCreated(await createApplication(payload));
       }
     } catch (error) {
-      const message = (error as { error?: string })?.error ?? "Check the name and redirect URIs and try again.";
+      const message = getApiErrorMessage(error) ?? "Check the name and redirect URIs and try again.";
       setToast({ type: "error", title: "That did not work", message });
     }
   };

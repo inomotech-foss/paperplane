@@ -17,6 +17,8 @@ import type { IWorkspace } from "@plane/types";
 import { validateSlug, validateWorkspaceName } from "@plane/utils";
 // components
 import { setToast } from "@plane/blocks/toast";
+// helpers
+import { isRecord } from "@/helpers/error";
 // hooks
 import { useWorkspace } from "@/hooks/store";
 
@@ -54,8 +56,8 @@ export function WorkspaceCreateForm() {
   const handleCreateWorkspace = async (formData: IWorkspace) => {
     await instanceWorkspaceService
       .slugCheck(formData.slug)
-      .then(async (res) => {
-        if (res.status === true && !RESTRICTED_URLS.includes(formData.slug)) {
+      .then(async (res: unknown) => {
+        if (isRecord(res) && res.status === true && !RESTRICTED_URLS.includes(formData.slug)) {
           setSlugError(false);
           await createWorkspace(formData)
             .then(async () => {

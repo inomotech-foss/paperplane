@@ -9,6 +9,11 @@ import Link from "next/link";
 import type { TAdminAuthErrorInfo } from "@plane/constants";
 import { SUPPORT_EMAIL, EAdminAuthErrorCodes, LOGIN_MEDIUM_LABELS } from "@plane/constants";
 
+const loginMediumLabels: Partial<Record<string, string>> = LOGIN_MEDIUM_LABELS;
+
+const isAdminAuthErrorCode = (code: string): code is EAdminAuthErrorCodes =>
+  Object.values<string>(EAdminAuthErrorCodes).includes(code);
+
 export enum EErrorAlertType {
   BANNER_ALERT = "BANNER_ALERT",
   INLINE_FIRST_NAME = "INLINE_FIRST_NAME",
@@ -76,15 +81,16 @@ const errorCodeMessages: {
   [EAdminAuthErrorCodes.OAUTH_EMAIL_CONFLICT]: {
     title: `Email belongs to another account`,
     message: (email, provider) =>
-      `The email ${email ? `${email} ` : ""}from your ${LOGIN_MEDIUM_LABELS[provider as keyof typeof LOGIN_MEDIUM_LABELS] || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
+      `The email ${email ? `${email} ` : ""}from your ${(provider && loginMediumLabels[provider]) || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
   },
 };
 
 export const authErrorHandler = (
-  errorCode: EAdminAuthErrorCodes,
+  errorCode: string,
   email?: string,
   provider?: string
 ): TAdminAuthErrorInfo | undefined => {
+  if (!isAdminAuthErrorCode(errorCode)) return undefined;
   const bannerAlertErrorCodes = [
     EAdminAuthErrorCodes.ADMIN_ALREADY_EXIST,
     EAdminAuthErrorCodes.REQUIRED_ADMIN_EMAIL_PASSWORD_FIRST_NAME,

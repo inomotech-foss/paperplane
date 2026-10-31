@@ -18,7 +18,9 @@ import {
   DialogTitle,
 } from "@makeplane/propel/components/dialog";
 import { setToast } from "@plane/blocks/toast";
-import type { IInstanceUser, TInstanceUserError, TInstanceUserMergeResult } from "@plane/types";
+import type { IInstanceUser, TInstanceUserMergeResult } from "@plane/types";
+// helpers
+import { getApiErrorMessage } from "@/helpers/error";
 // hooks
 import { useInstanceUser } from "@/hooks/store";
 // local
@@ -55,7 +57,7 @@ export function MergeUserDialog(props: Props) {
     try {
       setRun({ isBusy: false, preview: await previewMerge(survivor.id, request) });
     } catch (caught) {
-      setRun({ isBusy: false, error: (caught as TInstanceUserError)?.error ?? "The preview failed." });
+      setRun({ isBusy: false, error: getApiErrorMessage(caught) ?? "The preview failed." });
     }
   };
 
@@ -73,7 +75,7 @@ export function MergeUserDialog(props: Props) {
     } catch (caught) {
       setRun({
         isBusy: false,
-        error: (caught as TInstanceUserError)?.error ?? "The merge failed, nothing was changed.",
+        error: getApiErrorMessage(caught) ?? "The merge failed, nothing was changed.",
       });
     }
   };

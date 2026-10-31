@@ -15,7 +15,7 @@ export interface IThemeStore {
   theme: string | undefined;
   isSidebarCollapsed: boolean | undefined;
   // actions
-  hydrate: (data: any) => void;
+  hydrate: (data: string | undefined) => void;
   toggleNewUserPopup: () => void;
   toggleSidebar: (collapsed: boolean) => void;
   setTheme: (currentTheme: TTheme) => void;
@@ -40,7 +40,7 @@ export class ThemeStore implements IThemeStore {
     });
   }
 
-  hydrate = (data: any) => {
+  hydrate = (data: string | undefined) => {
     if (data) this.theme = data;
   };
 
