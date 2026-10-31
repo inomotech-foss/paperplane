@@ -23,7 +23,7 @@ export interface IEstimatePoint {
 
 export type TEstimateSystemKeys = EEstimateSystem.POINTS | EEstimateSystem.CATEGORIES | EEstimateSystem.TIME;
 
-/** The estimate systems the API stores. */
+/** The estimate types the API stores. */
 export type TEstimateType = ApiSchema<"EstimateTypeEnum">;
 
 export interface IEstimate {

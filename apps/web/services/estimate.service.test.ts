@@ -3,23 +3,18 @@
 
 import { describe, expect, it } from "vitest";
 import { EEstimateSystem } from "@plane/types";
-import { estimateCreateBody, toEstimateSystem, toEstimateType } from "./estimate.service";
+import { estimateCreateBody, toEstimateSystem } from "./estimate.service";
 
-describe("estimate type mapping", () => {
-  it("maps the stored systems both ways", () => {
-    expect(toEstimateType(EEstimateSystem.POINTS)).toBe("points");
-    expect(toEstimateType(EEstimateSystem.CATEGORIES)).toBe("categories");
+describe("toEstimateSystem", () => {
+  it("keeps every stored type, time included", () => {
     expect(toEstimateSystem("points")).toBe(EEstimateSystem.POINTS);
     expect(toEstimateSystem("categories")).toBe(EEstimateSystem.CATEGORIES);
-  });
-
-  it("has no API type for time estimates", () => {
-    expect(toEstimateType(EEstimateSystem.TIME)).toBeUndefined();
+    expect(toEstimateSystem("time")).toBe(EEstimateSystem.TIME);
   });
 });
 
 describe("estimateCreateBody", () => {
-  it("sends a stored type and drops the point ids", () => {
+  it("sends the type and drops the point ids", () => {
     expect(
       estimateCreateBody({
         estimate: { name: "Points", type: "points", last_used: true },
@@ -31,11 +26,12 @@ describe("estimateCreateBody", () => {
     });
   });
 
-  it("leaves out a type the API does not store and an absent estimate", () => {
-    expect(estimateCreateBody({ estimate: { type: "time" }, estimate_points: [] })).toEqual({
-      estimate: {},
-      estimate_points: [],
-    });
+  it("sends a time estimate as time", () => {
+    expect(estimateCreateBody({ estimate: { type: "time" }, estimate_points: [] }).estimate).toEqual({ type: "time" });
+  });
+
+  it("leaves out an unknown type and an absent estimate", () => {
+    expect(estimateCreateBody({ estimate: { type: "hours" }, estimate_points: [] }).estimate).toEqual({});
     expect(estimateCreateBody({ estimate_points: [] }).estimate).toEqual({});
   });
 });

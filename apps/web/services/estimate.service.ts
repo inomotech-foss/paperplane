@@ -20,21 +20,12 @@ export type TEstimatePointUpdateBody = ApiRequestBody<
   "patch"
 >;
 
-/** The API stores no time estimates. */
-export const toEstimateType = (system: TEstimateSystemKeys): TEstimateType | undefined => {
-  switch (system) {
-    case EEstimateSystem.POINTS:
-      return "points";
-    case EEstimateSystem.CATEGORIES:
-      return "categories";
-    default:
-      return undefined;
-  }
-};
+const ESTIMATE_TYPES: readonly TEstimateType[] = ["categories", "points", "time"];
 
-const isEstimateType = (type: string | undefined): type is TEstimateType => type === "points" || type === "categories";
+const isEstimateType = (type: string | undefined): type is TEstimateType =>
+  ESTIMATE_TYPES.some((estimateType) => estimateType === type);
 
-/** The create body. A type the API does not store falls back to the API default. */
+/** The create body. Without a type the API creates categories. */
 export const estimateCreateBody = (data: IEstimateFormData): TEstimateCreateBody => {
   const { type, ...estimate } = data.estimate ?? {};
   return {
@@ -43,8 +34,16 @@ export const estimateCreateBody = (data: IEstimateFormData): TEstimateCreateBody
   };
 };
 
-export const toEstimateSystem = (type: TEstimateType): TEstimateSystemKeys =>
-  type === "points" ? EEstimateSystem.POINTS : EEstimateSystem.CATEGORIES;
+export const toEstimateSystem = (type: TEstimateType): TEstimateSystemKeys => {
+  switch (type) {
+    case "points":
+      return EEstimateSystem.POINTS;
+    case "time":
+      return EEstimateSystem.TIME;
+    case "categories":
+      return EEstimateSystem.CATEGORIES;
+  }
+};
 
 const toEstimate = (estimate: ApiSchema<"EstimateRead">): IEstimate => ({
   ...estimate,
