@@ -3,7 +3,7 @@
 
 import { z } from "zod";
 import { displayFiltersSchema, displayPropertiesSchema, filterExpressionSchema } from "./issue-filters";
-import { parseClientJson } from "./parse";
+import { parseClientObject } from "./parse";
 
 /** The layout a member last used, stored on the membership as `view_props` and `default_props`. */
 export const workspaceViewPropsSchema = z.object({
@@ -17,7 +17,7 @@ export type IWorkspaceViewProps = z.infer<typeof workspaceViewPropsSchema>;
 export const DEFAULT_WORKSPACE_VIEW_PROPS: IWorkspaceViewProps = { rich_filters: {}, display_properties: {} };
 
 export const parseWorkspaceViewProps = (value: unknown): IWorkspaceViewProps =>
-  parseClientJson("view_props", workspaceViewPropsSchema, value, DEFAULT_WORKSPACE_VIEW_PROPS);
+  parseClientObject("view_props", workspaceViewPropsSchema.shape, value, DEFAULT_WORKSPACE_VIEW_PROPS);
 
 export const projectMemberNavigationPreferencesSchema = z.object({
   default_tab: z.string(),
@@ -42,4 +42,4 @@ export const DEFAULT_PROJECT_USER_PREFERENCES: TProjectUserPreferences = {
 };
 
 export const parseProjectUserPreferences = (value: unknown): TProjectUserPreferences =>
-  parseClientJson("preferences", projectUserPreferencesSchema, value, DEFAULT_PROJECT_USER_PREFERENCES);
+  parseClientObject("preferences", projectUserPreferencesSchema.shape, value, DEFAULT_PROJECT_USER_PREFERENCES);

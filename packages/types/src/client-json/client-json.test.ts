@@ -48,10 +48,15 @@ describe("parseLogoProps", () => {
     expect(parseLogoProps(logo)).toEqual(logo);
   });
 
-  it("drops keys it does not know", () => {
-    expect(parseLogoProps({ in_use: "emoji", emoji: { value: "1f600" }, legacy: true })).toEqual({
+  it("keeps keys it does not know", () => {
+    const logo = { in_use: "emoji", emoji: { value: "1f600" }, legacy: true };
+    expect(parseLogoProps(logo)).toEqual(logo);
+  });
+
+  it("falls back per field", () => {
+    expect(parseLogoProps({ in_use: "sticker", icon: { name: "home" } })).toEqual({
       in_use: "emoji",
-      emoji: { value: "1f600" },
+      icon: { name: "home" },
     });
   });
 
@@ -66,9 +71,13 @@ describe("parseDisplayFilters", () => {
     expect(parseDisplayFilters(filters)).toEqual(filters);
   });
 
-  it("drops the legacy keys of the backend default", () => {
+  it("keeps the legacy keys of the backend default", () => {
     const legacy = { type: null, layout: "list", group_by: null, sub_issue: true, calendar_date_range: "" };
-    expect(parseDisplayFilters(legacy)).toEqual({ layout: "list", group_by: null, sub_issue: true });
+    expect(parseDisplayFilters(legacy)).toEqual(legacy);
+  });
+
+  it("drops only the field that does not parse", () => {
+    expect(parseDisplayFilters({ layout: "board", group_by: "state" })).toEqual({ group_by: "state" });
   });
 
   it("falls back to no display filters for garbage", () => {
@@ -83,8 +92,11 @@ describe("parseDisplayProperties", () => {
     expect(parseDisplayProperties(properties)).toEqual(properties);
   });
 
-  it("drops unknown keys and non-boolean custom properties", () => {
-    expect(parseDisplayProperties({ key: true, colour: true, custom_property_x: "yes" })).toEqual({ key: true });
+  it("keeps unknown keys and drops non-boolean custom properties", () => {
+    expect(parseDisplayProperties({ key: true, colour: true, custom_property_x: "yes" })).toEqual({
+      key: true,
+      colour: true,
+    });
   });
 
   it("falls back for garbage", () => {
@@ -113,6 +125,13 @@ describe("parseRichFilters", () => {
     expect(parseRichFilters({})).toEqual({});
   });
 
+  it("drops only the conditions it does not know", () => {
+    expect(parseRichFilters({ and: [{ priority__in: "high" }, { colour__exact: "red" }] })).toEqual({
+      and: [{ priority__in: "high" }, {}],
+    });
+    expect(parseRichFilters({ priority__in: "high", colour__exact: "red" })).toEqual({ priority__in: "high" });
+  });
+
   it("falls back to no filter for unknown properties, operators and shapes", () => {
     expect(parseRichFilters({ colour__exact: "red" })).toEqual({});
     expect(parseRichFilters({ priority__near: "high" })).toEqual({});
@@ -128,6 +147,7 @@ describe("parseWorkspaceViewProps", () => {
       display_properties: { key: true },
     };
     expect(parseWorkspaceViewProps(legacy)).toEqual({
+      filters: { priority: null },
       rich_filters: {},
       display_filters: { layout: "list" },
       display_properties: { key: true },
@@ -150,14 +170,25 @@ describe("parseProjectUserPreferences", () => {
   it("falls back for garbage", () => {
     expect(parseProjectUserPreferences({ navigation: "pages" })).toEqual(DEFAULT_PROJECT_USER_PREFERENCES);
   });
+
+  it("keeps the valid fields and unknown keys when one field is malformed", () => {
+    const stored = {
+      navigation: { default_tab: "pages", hide_in_more_menu: ["cycles"] },
+      work_items: { last_type_id: 7 },
+      future: { x: 1 },
+    };
+    expect(parseProjectUserPreferences(stored)).toEqual({
+      pages: { block_display: true },
+      navigation: { default_tab: "pages", hide_in_more_menu: ["cycles"] },
+      future: { x: 1 },
+    });
+  });
 });
 
 describe("parseUserTheme", () => {
-  it("keeps the known keys of a theme", () => {
-    expect(parseUserTheme({ theme: "custom", primary: "#000", sidebarText: "#fff" })).toEqual({
-      theme: "custom",
-      primary: "#000",
-    });
+  it("keeps the keys of a theme, known or not", () => {
+    const theme = { theme: "custom", primary: "#000", sidebarText: "#fff" };
+    expect(parseUserTheme(theme)).toEqual(theme);
   });
 
   it("falls back for garbage", () => {

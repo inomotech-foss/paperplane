@@ -5,7 +5,7 @@ import { z } from "zod";
 import { EIssueLayoutTypes } from "../issues/issue";
 import { CORE_OPERATORS, EXTENDED_OPERATORS, LOGICAL_OPERATOR } from "../rich-filters/operators";
 import { WORK_ITEM_FILTER_PROPERTY_KEYS } from "../view-props";
-import { parseClientJson } from "./parse";
+import { isPlainObject, parseClientObject, warnClientJson } from "./parse";
 
 export const issueGroupBySchema = z
   .enum([
@@ -185,16 +185,53 @@ export const filterExpressionSchema: z.ZodType<TWorkItemFilterExpressionData> = 
 export type TWorkItemFilterExpression = z.infer<typeof filterExpressionSchema>;
 
 export const parseDisplayFilters = (value: unknown): IIssueDisplayFilterOptions =>
-  parseClientJson("display_filters", displayFiltersSchema, value, {});
+  parseClientObject("display_filters", displayFiltersSchema.shape, value, {});
 
-export const parseDisplayProperties = (value: unknown): IIssueDisplayProperties =>
-  parseClientJson("display_properties", displayPropertiesSchema, value, {});
+/** Keeps the custom property keys, which are outside the fixed shape. */
+export const parseDisplayProperties = (value: unknown): IIssueDisplayProperties => {
+  const properties: IIssueDisplayProperties = parseClientObject(
+    "display_properties",
+    fixedDisplayPropertiesSchema.shape,
+    value,
+    {}
+  );
+  for (const key of Object.keys(properties)) {
+    if (isCustomPropertyDisplayKey(key) && typeof properties[key] !== "boolean") delete properties[key];
+  }
+  return properties;
+};
 
 export const parseIssueFilters = (value: unknown): IIssueFilterOptions =>
-  parseClientJson("filters", issueFiltersSchema, value, {});
+  parseClientObject("filters", issueFiltersSchema.shape, value, {});
 
-export const parseRichFilters = (value: unknown): TWorkItemFilterExpression =>
-  parseClientJson("rich_filters", filterExpressionSchema, value, {});
+/** Drops the conditions and groups that do not parse, and keeps the rest of the expression. */
+const parseExpression = (value: unknown): TWorkItemFilterExpressionData | undefined => {
+  if (!isPlainObject(value)) return undefined;
+  const and = value[LOGICAL_OPERATOR.AND];
+  if (and !== undefined) {
+    const children = Array.isArray(and) ? and.map(parseExpression) : [];
+    return { [LOGICAL_OPERATOR.AND]: children.filter((child) => child !== undefined) };
+  }
+  const not = value[LOGICAL_OPERATOR.NOT];
+  if (not !== undefined) {
+    const child = parseExpression(not);
+    return child && { [LOGICAL_OPERATOR.NOT]: child };
+  }
+  const condition: TWorkItemFilterConditionData = {};
+  for (const [key, operand] of Object.entries(value)) {
+    const result = filterConditionSchema.safeParse({ [key]: operand });
+    if (result.success) Object.assign(condition, result.data);
+  }
+  return condition;
+};
+
+export const parseRichFilters = (value: unknown): TWorkItemFilterExpression => {
+  const result = filterExpressionSchema.safeParse(value);
+  if (result.success) return result.data;
+  const parsed = parseExpression(value) ?? {};
+  if (value !== null && value !== undefined) warnClientJson("rich_filters", result.error.issues);
+  return parsed;
+};
 
 /** The `rich_filters`, `display_filters` and `display_properties` of a user properties response. */
 export const parseIssueFiltersResponse = (value: {

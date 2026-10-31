@@ -2,7 +2,7 @@
 // See the LICENSE file for details.
 
 import { z } from "zod";
-import { parseClientJson } from "./parse";
+import { parseClientObject } from "./parse";
 
 export const userThemeSchema = z.object({
   /** "light", "dark", "custom" and so on. */
@@ -14,4 +14,5 @@ export const userThemeSchema = z.object({
 
 export type IUserTheme = z.infer<typeof userThemeSchema>;
 
-export const parseUserTheme = (value: unknown): IUserTheme => parseClientJson("theme", userThemeSchema, value, {});
+export const parseUserTheme = (value: unknown): IUserTheme =>
+  parseClientObject("theme", userThemeSchema.shape, value, {});
