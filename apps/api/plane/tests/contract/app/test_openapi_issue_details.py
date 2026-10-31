@@ -154,3 +154,11 @@ class TestTaxonomyRequests:
             **ids,
         )
         assert documented(session_client.patch(url, body, format="json"))["value"] == "8"
+
+    def test_time_estimate_keeps_its_type(self, session_client, ids):
+        body = {"estimate": {"name": "Time", "type": "time"}, "estimate_points": [{"key": 1, "value": "60"}]}
+        url, body = sent(BASE + "/estimates/", "post", body, **ids)
+        estimate = documented(session_client.post(url, body, format="json"))
+        assert estimate["type"] == "time"
+        listed = documented(session_client.get(url))
+        assert [item["type"] for item in listed] == ["time"]

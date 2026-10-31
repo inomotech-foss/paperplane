@@ -14,6 +14,7 @@ from .project import ProjectBaseModel
 class EstimateType(models.TextChoices):
     CATEGORIES = "categories", "Categories"
     POINTS = "points", "Points"
+    TIME = "time", "Time"
 
 
 class Estimate(ProjectBaseModel):
