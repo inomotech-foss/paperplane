@@ -21,7 +21,6 @@ import { useUserPermissions, useUserProfile } from "@/hooks/store/user";
 import { useTimeZoneConverter } from "@/hooks/use-timezone-converter";
 // services
 import { CycleService } from "@/services/cycle.service";
-import { isRecord } from "@/helpers/narrow.helper";
 
 type Props = {
   workspaceSlug: string;
@@ -74,8 +73,8 @@ export const CycleSidebarHeader = observer(function CycleSidebarHeader(props: Pr
 
   const dateChecker = async (payload: CycleDateCheckData) => {
     try {
-      const res: unknown = await cycleService.cycleDateCheck(workspaceSlug, projectId, payload);
-      return isRecord(res) && Boolean(res.status);
+      const res = await cycleService.cycleDateCheck(workspaceSlug, projectId, payload);
+      return res.status;
     } catch (_err) {
       return false;
     }
