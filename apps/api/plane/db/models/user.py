@@ -150,7 +150,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{self.username} <{self.email}>"
 
     @property
-    def avatar_url(self):
+    def avatar_url(self) -> str | None:
         # Return the logo asset url if it exists
         if self.avatar_asset:
             return self.avatar_asset.asset_url
@@ -161,7 +161,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return None
 
     @property
-    def cover_image_url(self):
+    def cover_image_url(self) -> str | None:
         # Return the logo asset url if it exists
         if self.cover_image_asset:
             return self.cover_image_asset.asset_url

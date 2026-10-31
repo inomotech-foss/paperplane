@@ -246,6 +246,7 @@ class WorkspaceMemberUserEndpoint(BaseAPIView):
             .first()
         )
 
+    @extend_schema(responses={200: WorkspaceMemberMeSerializer})
     def get(self, request, slug):
         serializer = WorkspaceMemberMeSerializer(self._membership(request, slug))
         return Response(serializer.data, status=status.HTTP_200_OK)

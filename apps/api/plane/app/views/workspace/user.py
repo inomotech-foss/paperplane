@@ -26,6 +26,7 @@ from django.db.models.functions import Cast, ExtractWeek
 from django.utils import timezone
 
 # Third party modules
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -37,6 +38,13 @@ from plane.app.serializers import (
     ProjectMemberSerializer,
     WorkSpaceSerializer,
     WorkspaceUserPropertiesSerializer,
+)
+from plane.app.serializers.response.user import LastVisitedWorkspaceSerializer
+from plane.app.serializers.response.workspace import (
+    ActivityCountSerializer,
+    CompletedIssueWeekSerializer,
+    WorkspaceUserProfileSerializer,
+    WorkspaceUserStatsSerializer,
 )
 from plane.app.views.base import BaseAPIView
 from plane.db.models import (
@@ -60,6 +68,8 @@ from plane.utils.grouper import (
 )
 from plane.utils.issue_filters import issue_filters
 from plane.utils.order_queryset import ACTIVITY_ORDER_BY_ALLOWLIST, order_issue_queryset, sanitize_order_by
+from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.utils.openapi.pagination import paginated_response
 from plane.utils.paginator import GroupedOffsetPaginator, SubGroupedOffsetPaginator
 from plane.utils.filters import IssueComplexFilterBackend
 from plane.utils.filters import IssueFilterSet
@@ -83,6 +93,7 @@ def _visible_issues_q(user, prefix=""):
 
 
 class UserLastProjectWithWorkspaceEndpoint(BaseAPIView):
+    @extend_schema(responses={200: LastVisitedWorkspaceSerializer})
     def get(self, request):
         user = User.objects.get(pk=request.user.id)
 
@@ -271,6 +282,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
 class WorkspaceUserPropertiesEndpoint(BaseAPIView):
     permission_classes = [WorkspaceViewerPermission]
 
+    @extend_schema(responses={200: WorkspaceUserPropertiesSerializer})
     def patch(self, request, slug):
         workspace = Workspace.objects.get(slug=slug)
 
@@ -285,6 +297,7 @@ class WorkspaceUserPropertiesEndpoint(BaseAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses={200: WorkspaceUserPropertiesSerializer})
     def get(self, request, slug):
         workspace = Workspace.objects.get(slug=slug)
 
@@ -297,6 +310,7 @@ class WorkspaceUserPropertiesEndpoint(BaseAPIView):
 
 
 class WorkspaceUserProfileEndpoint(BaseAPIView):
+    @extend_schema(responses={200: WorkspaceUserProfileSerializer})
     def get(self, request, slug, user_id):
         requesting_workspace_member = WorkspaceMember.objects.get(
             workspace__slug=slug, member=request.user, is_active=True
@@ -409,6 +423,10 @@ class WorkspaceUserProfileEndpoint(BaseAPIView):
 class WorkspaceUserActivityEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
 
+    @extend_schema(
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER],
+        responses={200: paginated_response(IssueActivitySerializer)},
+    )
     def get(self, request, slug, user_id):
         projects = request.query_params.getlist("project", [])
 
@@ -438,6 +456,7 @@ class WorkspaceUserActivityEndpoint(BaseAPIView):
 class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
     permission_classes = [WorkspaceViewerPermission]
 
+    @extend_schema(responses={200: WorkspaceUserStatsSerializer})
     def get(self, request, slug, user_id):
         filters = issue_filters(request.query_params, "GET")
 
@@ -563,6 +582,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
 
 class UserActivityGraphEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ActivityCountSerializer(many=True)})
     def get(self, request, slug):
         issue_activities = (
             IssueActivity.objects.filter(
@@ -580,6 +600,7 @@ class UserActivityGraphEndpoint(BaseAPIView):
 
 
 class UserIssueCompletedGraphEndpoint(BaseAPIView):
+    @extend_schema(responses={200: CompletedIssueWeekSerializer(many=True)})
     def get(self, request, slug):
         month = request.GET.get("month", 1)
 

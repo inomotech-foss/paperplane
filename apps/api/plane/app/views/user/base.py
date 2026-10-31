@@ -19,6 +19,7 @@ from django.core.validators import validate_email
 from django.core.cache import cache
 
 # Third party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -32,6 +33,7 @@ from plane.app.serializers import (
     UserMeSettingsSerializer,
     UserSerializer,
 )
+from plane.app.serializers.response.user import InstanceAdminStatusSerializer, UserSessionSerializer
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.db.models import (
     Account,
@@ -44,6 +46,10 @@ from plane.db.models import (
     Session,
 )
 from plane.license.models import Instance, InstanceAdmin
+from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.utils.openapi.pagination import paginated_response
+from plane.utils.openapi.schema import DetailOrList
+from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.utils.paginator import BasePaginator
 from plane.utils.order_queryset import ACTIVITY_ORDER_BY_ALLOWLIST, sanitize_order_by
 from plane.authentication.utils.host import user_ip
@@ -79,18 +85,21 @@ class UserEndpoint(BaseViewSet):
             return [AuthenticationThrottle()]
         return super().get_throttles()
 
+    @extend_schema(responses={200: UserMeSerializer})
     @method_decorator(cache_control(private=True, max_age=12))
     @method_decorator(vary_on_cookie)
     def retrieve(self, request):
         serialized_data = UserMeSerializer(request.user).data
         return Response(serialized_data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: UserMeSettingsSerializer})
     @method_decorator(cache_control(private=True, max_age=12))
     @method_decorator(vary_on_cookie)
     def retrieve_user_settings(self, request):
         serialized_data = UserMeSettingsSerializer(request.user).data
         return Response(serialized_data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: InstanceAdminStatusSerializer})
     def retrieve_instance_admin(self, request):
         instance = Instance.objects.first()
         is_admin = InstanceAdmin.objects.filter(instance=instance, user=request.user).exists()
@@ -141,6 +150,7 @@ class UserEndpoint(BaseViewSet):
 
         return None
 
+    @extend_schema(responses={200: MessageResponseSerializer})
     def generate_email_verification_code(self, request):
         """
         Generate and send a magic code to the new email address for verification.
@@ -188,6 +198,7 @@ class UserEndpoint(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    @extend_schema(responses={200: UserMeSerializer})
     def update_email(self, request):
         """
         Verify the magic code and update the user's email address.
@@ -377,6 +388,7 @@ class UserEndpoint(BaseViewSet):
 class UserSessionEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: UserSessionSerializer})
     def get(self, request):
         if request.user.is_authenticated:
             user = User.objects.get(pk=request.user.id)
@@ -389,6 +401,7 @@ class UserSessionEndpoint(BaseAPIView):
 
 
 class UpdateUserOnBoardedEndpoint(BaseAPIView):
+    @extend_schema(responses={200: MessageResponseSerializer})
     def patch(self, request):
         profile = Profile.objects.get(user_id=request.user.id)
         profile.is_onboarded = request.data.get("is_onboarded", False)
@@ -397,6 +410,7 @@ class UpdateUserOnBoardedEndpoint(BaseAPIView):
 
 
 class UpdateUserTourCompletedEndpoint(BaseAPIView):
+    @extend_schema(responses={200: MessageResponseSerializer})
     def patch(self, request):
         profile = Profile.objects.get(user_id=request.user.id)
         profile.is_tour_completed = request.data.get("is_tour_completed", False)
@@ -405,6 +419,10 @@ class UpdateUserTourCompletedEndpoint(BaseAPIView):
 
 
 class UserActivityEndpoint(BaseAPIView, BasePaginator):
+    @extend_schema(
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER],
+        responses={200: paginated_response(IssueActivitySerializer)},
+    )
     def get(self, request):
         queryset = IssueActivity.objects.filter(actor=request.user).select_related(
             "actor", "workspace", "issue", "project"
@@ -423,6 +441,7 @@ class UserActivityEndpoint(BaseAPIView, BasePaginator):
 
 
 class AccountEndpoint(BaseAPIView):
+    @extend_schema(responses={200: DetailOrList(AccountSerializer)})
     def get(self, request, pk=None):
         if pk:
             account = Account.objects.get(pk=pk, user=request.user)
@@ -440,6 +459,7 @@ class AccountEndpoint(BaseAPIView):
 
 
 class ProfileEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ProfileSerializer})
     @method_decorator(cache_control(private=True, max_age=12))
     @method_decorator(vary_on_cookie)
     def get(self, request):
@@ -447,6 +467,7 @@ class ProfileEndpoint(BaseAPIView):
         serializer = ProfileSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: ProfileSerializer})
     def patch(self, request):
         profile = Profile.objects.get(user=request.user)
         serializer = ProfileSerializer(profile, data=request.data, partial=True)

@@ -7,6 +7,7 @@ from uuid import uuid4
 from typing import Optional
 
 # Third party
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
@@ -15,9 +16,11 @@ from rest_framework import status
 from .base import BaseAPIView
 from plane.db.models import APIToken
 from plane.app.serializers import APITokenSerializer, APITokenReadSerializer
+from plane.utils.openapi.schema import DetailOrList
 
 
 class ApiTokenEndpoint(BaseAPIView):
+    @extend_schema(responses={201: APITokenSerializer})
     def post(self, request: Request) -> Response:
         label = request.data.get("label", str(uuid4().hex))
         description = request.data.get("description", "")
@@ -38,6 +41,7 @@ class ApiTokenEndpoint(BaseAPIView):
         # Token will be only visible while creating
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(responses={200: DetailOrList(APITokenReadSerializer)})
     def get(self, request: Request, pk: Optional[str] = None) -> Response:
         if pk is None:
             api_tokens = APIToken.objects.filter(user=request.user)
@@ -53,6 +57,7 @@ class ApiTokenEndpoint(BaseAPIView):
         api_token.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(responses={200: APITokenSerializer})
     def patch(self, request: Request, pk: str) -> Response:
         api_token = APIToken.objects.get(user=request.user, pk=pk)
         serializer = APITokenSerializer(api_token, data=request.data, partial=True)

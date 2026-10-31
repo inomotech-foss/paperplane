@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import types
+import typing
+
+import uritemplate
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import OneToOneRel
 from drf_spectacular.openapi import AutoSchema as SpectacularAutoSchema
@@ -13,6 +17,13 @@ from .hooks import V1_PATH_PREFIX
 ALWAYS = (True, False)
 MAYBE_NULL = (True, True)
 OMITTED = (False, False)
+
+
+def _returns_none(attribute):
+    """Whether a property's return annotation admits None."""
+    function = attribute.fget if isinstance(attribute, property) else attribute
+    hint = typing.get_type_hints(function).get("return") if callable(function) else None
+    return typing.get_origin(hint) in (typing.Union, types.UnionType) and type(None) in typing.get_args(hint)
 
 
 def _source_presence(model, source):
@@ -28,10 +39,10 @@ def _source_presence(model, source):
         try:
             field = model._meta.get_field(part)
         except FieldDoesNotExist:
-            # Properties and methods: assume they return a value.
+            # Properties and methods: trust the return annotation, else assume a value.
             if not hasattr(model, part):
                 return OMITTED
-            return MAYBE_NULL if nullable else ALWAYS
+            return MAYBE_NULL if nullable or _returns_none(getattr(model, part)) else ALWAYS
         if isinstance(field, OneToOneRel):
             nullable = True
         elif field.concrete and field.null:
@@ -59,11 +70,33 @@ def serialized_presence(serializer, field):
     return _source_presence(model, field.source)
 
 
+class DetailOrList:
+    """Response of an APIView routed on a list and a detail path.
+
+    One `serializer` when the path has `kwarg`, a list of them otherwise. Use it as a value of the responses dict.
+    """
+
+    def __init__(self, serializer, kwarg="pk"):
+        self.serializer = serializer
+        self.kwarg = kwarg
+
+    def resolve(self, path):
+        serializer = force_instance(self.serializer)
+        if self.kwarg in uritemplate.variables(path):
+            return serializer
+        return serializers.ListSerializer(child=serializer)
+
+
 class AutoSchema(SpectacularAutoSchema):
     """Marks response fields as required when DRF always emits them, and nullable when the source can be null.
 
     The public v1 schema keeps the stock behaviour.
     """
+
+    def _get_response_for_code(self, serializer, status_code, media_types=None, direction="response"):
+        if isinstance(serializer, DetailOrList):
+            serializer = serializer.resolve(self.path)
+        return super()._get_response_for_code(serializer, status_code, media_types, direction)
 
     def _map_basic_serializer(self, serializer, direction):
         schema = super()._map_basic_serializer(serializer, direction)
@@ -73,7 +106,7 @@ class AutoSchema(SpectacularAutoSchema):
         serializer = force_instance(serializer)
         fields = serializer.fields
         required = []
-        for name, prop in schema["properties"].items():
+        for name, prop in schema.get("properties", {}).items():
             always, nullable = serialized_presence(serializer, fields[name])
             if always:
                 required.append(name)

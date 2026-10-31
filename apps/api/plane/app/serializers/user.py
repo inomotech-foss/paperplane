@@ -3,6 +3,7 @@
 # See the LICENSE file for details.
 
 # Third party imports
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 # Module import
@@ -101,6 +102,16 @@ class UserMeSerializer(BaseSerializer):
         read_only_fields = fields
 
 
+class UserWorkspaceSettingsSerializer(serializers.Serializer):
+    last_workspace_id = serializers.UUIDField(allow_null=True)
+    last_workspace_slug = serializers.CharField(allow_null=True)
+    last_workspace_name = serializers.CharField(required=False, help_text="Present when there is a last workspace")
+    last_workspace_logo = serializers.CharField(required=False, help_text="Present when there is a last workspace")
+    fallback_workspace_id = serializers.UUIDField(allow_null=True)
+    fallback_workspace_slug = serializers.CharField(allow_null=True)
+    invites = serializers.IntegerField()
+
+
 class UserMeSettingsSerializer(BaseSerializer):
     workspace = serializers.SerializerMethodField()
 
@@ -109,6 +120,7 @@ class UserMeSettingsSerializer(BaseSerializer):
         fields = ["id", "email", "workspace"]
         read_only_fields = fields
 
+    @extend_schema_field(UserWorkspaceSettingsSerializer)
     def get_workspace(self, obj):
         workspace_invites = WorkspaceMemberInvite.objects.filter(email=obj.email).count()
 

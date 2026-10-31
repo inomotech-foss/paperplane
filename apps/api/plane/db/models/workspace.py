@@ -146,7 +146,7 @@ class Workspace(BaseModel):
         return self.name
 
     @property
-    def logo_url(self):
+    def logo_url(self) -> str | None:
         # Return the logo asset url if it exists
         if self.logo_asset:
             return self.logo_asset.asset_url
