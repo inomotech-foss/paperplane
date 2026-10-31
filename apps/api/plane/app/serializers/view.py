@@ -70,6 +70,8 @@ class IssueViewSerializer(DynamicBaseSerializer):
             "is_locked",
             "created_by",
             "updated_by",
+            "deleted_at",
+            "archived_at",
         ]
 
     def create(self, validated_data):

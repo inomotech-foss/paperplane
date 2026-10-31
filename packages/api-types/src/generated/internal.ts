@@ -8571,7 +8571,7 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: date-time */
-            deleted_at: string | null;
+            readonly deleted_at: string | null;
             /** View Name */
             name: string;
             /** View Description */
@@ -8588,7 +8588,7 @@ export interface components {
             logo_props: components["schemas"]["ClientJson"];
             readonly is_locked: boolean;
             /** Format: date-time */
-            archived_at: string | null;
+            readonly archived_at: string | null;
             /** Format: uuid */
             readonly created_by: string | null;
             /**
@@ -8604,8 +8604,6 @@ export interface components {
             readonly owned_by: string;
         };
         IssueViewRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
             /** View Name */
             name: string;
             /** View Description */
@@ -8617,8 +8615,6 @@ export interface components {
             /** Format: double */
             sort_order?: number;
             logo_props?: components["schemas"]["ClientJson"];
-            /** Format: date-time */
-            archived_at?: string | null;
         };
         IssueVote: {
             /** Format: uuid */
@@ -10384,8 +10380,6 @@ export interface components {
             estimate_point?: string | null;
         };
         PatchedIssueViewRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
             /** View Name */
             name?: string;
             /** View Description */
@@ -10397,8 +10391,6 @@ export interface components {
             /** Format: double */
             sort_order?: number;
             logo_props?: components["schemas"]["ClientJson"];
-            /** Format: date-time */
-            archived_at?: string | null;
         };
         PatchedLabelRequest: {
             /** Format: uuid */

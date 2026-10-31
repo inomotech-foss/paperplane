@@ -27098,6 +27098,7 @@ components:
         deleted_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         name:
           type: string
@@ -27132,6 +27133,7 @@ components:
         archived_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         created_by:
           type: string
@@ -27182,10 +27184,6 @@ components:
     IssueViewRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
         name:
           type: string
           minLength: 1
@@ -27207,10 +27205,6 @@ components:
           format: double
         logo_props:
           $ref: '#/components/schemas/ClientJson'
-        archived_at:
-          type: string
-          format: date-time
-          nullable: true
       required:
       - name
     IssueVote:
@@ -31506,10 +31500,6 @@ components:
     PatchedIssueViewRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
         name:
           type: string
           minLength: 1
@@ -31531,10 +31521,6 @@ components:
           format: double
         logo_props:
           $ref: '#/components/schemas/ClientJson'
-        archived_at:
-          type: string
-          format: date-time
-          nullable: true
     PatchedLabelRequest:
       type: object
       properties:
