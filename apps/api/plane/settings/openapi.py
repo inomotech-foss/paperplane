@@ -281,5 +281,8 @@ SPECTACULAR_SETTINGS = {
         "WorkItemRelationTypeEnum": "plane.app.serializers.request.issue.RELATION_TYPES",
         "CycleStatusEnum": "plane.app.serializers.response.cycle.CYCLE_STATUSES",
         "PageAccessEnum": "plane.db.models.page.Page.ACCESS_CHOICES",
+        "DashboardChartTypeEnum": "plane.db.models.dashboard.DashboardWidget.ChartType",
+        "DashboardMetricFunctionEnum": "plane.utils.dashboard_widgets.METRIC_FUNCTIONS",
+        "DashboardDateBucketEnum": "plane.utils.dashboard_widgets.DATE_BUCKETS",
     },
 }

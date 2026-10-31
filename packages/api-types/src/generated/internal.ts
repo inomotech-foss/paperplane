@@ -5717,17 +5717,6 @@ export interface components {
             name: string;
             count: number;
         };
-        /**
-         * @description * `number` - Number
-         *     * `bar` - Bar
-         *     * `line` - Line
-         *     * `area` - Area
-         *     * `pie` - Pie
-         *     * `donut` - Donut
-         *     * `table` - Table
-         * @enum {string}
-         */
-        ChartTypeEnum: "number" | "bar" | "line" | "area" | "pie" | "donut" | "table";
         /** @description Owned by the client. The backend stores it without validating it, as sent or shallow-merged into the stored value. */
         ClientJson: {
             [key: string]: unknown;
@@ -6225,6 +6214,26 @@ export interface components {
             /** Format: uuid */
             readonly owned_by: string;
         };
+        /**
+         * @description * `number` - Number
+         *     * `bar` - Bar
+         *     * `line` - Line
+         *     * `area` - Area
+         *     * `pie` - Pie
+         *     * `donut` - Donut
+         *     * `table` - Table
+         * @enum {string}
+         */
+        DashboardChartTypeEnum: "number" | "bar" | "line" | "area" | "pie" | "donut" | "table";
+        /**
+         * @description * `day` - day
+         *     * `week` - week
+         *     * `month` - month
+         *     * `quarter` - quarter
+         *     * `year` - year
+         * @enum {string}
+         */
+        DashboardDateBucketEnum: "day" | "week" | "month" | "quarter" | "year";
         DashboardDetail: {
             /** Format: uuid */
             readonly id: string;
@@ -6258,10 +6267,19 @@ export interface components {
             /** Format: uuid */
             readonly owned_by: string;
         };
+        /**
+         * @description * `count` - count
+         *     * `sum` - sum
+         *     * `avg` - avg
+         *     * `min` - min
+         *     * `max` - max
+         * @enum {string}
+         */
+        DashboardMetricFunctionEnum: "count" | "sum" | "avg" | "min" | "max";
         DashboardOptions: {
-            chart_types: string[];
-            metric_functions: string[];
-            date_buckets: string[];
+            chart_types: components["schemas"]["DashboardChartTypeEnum"][];
+            metric_functions: components["schemas"]["DashboardMetricFunctionEnum"][];
+            date_buckets: components["schemas"]["DashboardDateBucketEnum"][];
             native_dimensions: string[];
             date_dimensions: string[];
             types: components["schemas"]["DashboardType"][];
@@ -6272,7 +6290,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
-            property_type: string;
+            property_type: components["schemas"]["PropertyTypeEnum"];
             is_multi: boolean;
             /** Format: uuid */
             project_id: string;
@@ -6295,6 +6313,9 @@ export interface components {
         DashboardWidget: {
             /** Format: uuid */
             readonly id: string;
+            metric: components["schemas"]["WidgetMetric"];
+            dimension: components["schemas"]["WidgetDimension"];
+            series: components["schemas"]["WidgetDimension"];
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -6307,11 +6328,8 @@ export interface components {
             title: string;
             description: string;
             query: string;
-            chart_type: components["schemas"]["ChartTypeEnum"];
-            metric: unknown;
-            dimension: unknown;
-            series: unknown;
-            config: unknown;
+            chart_type: components["schemas"]["DashboardChartTypeEnum"];
+            config: components["schemas"]["ClientJson"];
             /** Format: double */
             readonly sort_order: number;
             /** Format: uuid */
@@ -6327,14 +6345,14 @@ export interface components {
             readonly workspace: string;
         };
         DashboardWidgetRequest: {
+            metric?: components["schemas"]["WidgetMetricRequest"];
+            dimension?: components["schemas"]["WidgetDimensionRequest"];
+            series?: components["schemas"]["WidgetDimensionRequest"];
             title: string;
             description?: string;
             query?: string;
-            chart_type?: components["schemas"]["ChartTypeEnum"];
-            metric?: unknown;
-            dimension?: unknown;
-            series?: unknown;
-            config?: unknown;
+            chart_type?: components["schemas"]["DashboardChartTypeEnum"];
+            config?: components["schemas"]["ClientJson"];
         };
         DateRollup: {
             /** Format: date */
@@ -10052,14 +10070,14 @@ export interface components {
             access?: components["schemas"]["AccessEnum"];
         };
         PatchedDashboardWidgetRequest: {
+            metric?: components["schemas"]["WidgetMetricRequest"];
+            dimension?: components["schemas"]["WidgetDimensionRequest"];
+            series?: components["schemas"]["WidgetDimensionRequest"];
             title?: string;
             description?: string;
             query?: string;
-            chart_type?: components["schemas"]["ChartTypeEnum"];
-            metric?: unknown;
-            dimension?: unknown;
-            series?: unknown;
-            config?: unknown;
+            chart_type?: components["schemas"]["DashboardChartTypeEnum"];
+            config?: components["schemas"]["ClientJson"];
         };
         PatchedDeployBoardRequest: {
             view_props?: components["schemas"]["DeployBoardViewPropsRequest"];
@@ -13254,9 +13272,66 @@ export interface components {
             /** Format: double */
             total: number | null;
             row_count: number;
-            metric: unknown;
-            dimension: unknown;
-            series: unknown;
+            metric: components["schemas"]["WidgetMetric"];
+            dimension: components["schemas"]["WidgetDimension"];
+            series: components["schemas"]["WidgetDimension"];
+        };
+        WidgetDefinitionRequest: {
+            /**
+             * @description bar when omitted
+             *
+             *     * `number` - Number
+             *     * `bar` - Bar
+             *     * `line` - Line
+             *     * `area` - Area
+             *     * `pie` - Pie
+             *     * `donut` - Donut
+             *     * `table` - Table
+             */
+            chart_type?: components["schemas"]["DashboardChartTypeEnum"];
+            /** @description A PQL filter. Every work item when empty */
+            query?: string;
+            metric?: components["schemas"]["WidgetMetricRequest"];
+            dimension?: components["schemas"]["WidgetDimensionRequest"];
+            series?: components["schemas"]["WidgetDimensionRequest"];
+        };
+        WidgetDimension: {
+            /** @description A native field, a date field, property:<id> or ancestor:<type id> */
+            field?: string;
+            /**
+             * @description Set for a date field
+             *
+             *     * `day` - day
+             *     * `week` - week
+             *     * `month` - month
+             *     * `quarter` - quarter
+             *     * `year` - year
+             */
+            bucket?: components["schemas"]["DashboardDateBucketEnum"];
+        };
+        WidgetDimensionRequest: {
+            /** @description A native field, a date field, property:<id> or ancestor:<type id> */
+            field?: string;
+            /**
+             * @description Set for a date field
+             *
+             *     * `day` - day
+             *     * `week` - week
+             *     * `month` - month
+             *     * `quarter` - quarter
+             *     * `year` - year
+             */
+            bucket?: components["schemas"]["DashboardDateBucketEnum"];
+        };
+        WidgetMetric: {
+            function: components["schemas"]["DashboardMetricFunctionEnum"];
+            /** @description property:<id> or estimate_points. Absent for count */
+            field?: string;
+        };
+        WidgetMetricRequest: {
+            function: components["schemas"]["DashboardMetricFunctionEnum"];
+            /** @description property:<id> or estimate_points. Absent for count */
+            field?: string;
         };
         WorkItemDetailRow: {
             /** Format: uuid */
@@ -17216,10 +17291,7 @@ export interface operations {
     };
     workspaces_dashboards_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 slug: string;
@@ -17267,10 +17339,7 @@ export interface operations {
     };
     workspaces_dashboards_widgets_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 dashboard_id: string;
@@ -17516,7 +17585,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WidgetDefinitionRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WidgetDefinitionRequest"];
+                "multipart/form-data": components["schemas"]["WidgetDefinitionRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -27785,8 +27860,10 @@ export const accessEe6EnumValues: ReadonlyArray<FlattenedDeepRequired<components
 export const accessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccessEnum"]> = [0, 1];
 export const accountProviderEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccountProviderEnum"]> = ["google", "github", "gitlab", "gitea", "oidc"];
 export const blankEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["BlankEnum"]> = [""];
-export const chartTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ChartTypeEnum"]> = ["number", "bar", "line", "area", "pie", "donut", "table"];
 export const cycleStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["CycleStatusEnum"]> = ["CURRENT", "UPCOMING", "COMPLETED", "DRAFT"];
+export const dashboardChartTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DashboardChartTypeEnum"]> = ["number", "bar", "line", "area", "pie", "donut", "table"];
+export const dashboardDateBucketEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DashboardDateBucketEnum"]> = ["day", "week", "month", "quarter", "year"];
+export const dashboardMetricFunctionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DashboardMetricFunctionEnum"]> = ["count", "sum", "avg", "min", "max"];
 export const derivationEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DerivationEnum"]> = ["NONE", "INHERIT", "LOOKUP", "ROLLUP"];
 export const directionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DirectionEnum"]> = ["INBOUND", "OUTBOUND"];
 export const emailCheckStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["EmailCheckStatusEnum"]> = ["MAGIC_CODE", "CREDENTIAL"];

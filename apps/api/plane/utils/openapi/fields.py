@@ -28,6 +28,7 @@ CLIENT_JSON_FIELDS = {
         "rich_filters",
     },
     "plane.app.serializers.dashboard.DashboardSerializer": {"logo_props"},
+    "plane.app.serializers.dashboard.DashboardWidgetSerializer": {"config"},
     "plane.app.serializers.favorite.CycleFavoriteLiteSerializer": {"logo_props"},
     "plane.app.serializers.favorite.ModuleFavoriteLiteSerializer": {"logo_props"},
     "plane.app.serializers.favorite.PageFavoriteLiteSerializer": {"logo_props"},

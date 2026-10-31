@@ -3637,12 +3637,6 @@ paths:
     get:
       operationId: workspaces_dashboards_list
       parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -3702,12 +3696,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -4010,6 +3998,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WidgetDefinitionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WidgetDefinitionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WidgetDefinitionRequest'
       security:
       - sessionAuth: []
       responses:
@@ -20207,24 +20206,6 @@ components:
       - key
       - name
       - count
-    ChartTypeEnum:
-      enum:
-      - number
-      - bar
-      - line
-      - area
-      - pie
-      - donut
-      - table
-      type: string
-      description: |-
-        * `number` - Number
-        * `bar` - Bar
-        * `line` - Line
-        * `area` - Area
-        * `pie` - Pie
-        * `donut` - Donut
-        * `table` - Table
     ClientJson:
       type: object
       additionalProperties: true
@@ -21446,6 +21427,38 @@ components:
       - updated_by
       - workspace
       - owned_by
+    DashboardChartTypeEnum:
+      enum:
+      - number
+      - bar
+      - line
+      - area
+      - pie
+      - donut
+      - table
+      type: string
+      description: |-
+        * `number` - Number
+        * `bar` - Bar
+        * `line` - Line
+        * `area` - Area
+        * `pie` - Pie
+        * `donut` - Donut
+        * `table` - Table
+    DashboardDateBucketEnum:
+      enum:
+      - day
+      - week
+      - month
+      - quarter
+      - year
+      type: string
+      description: |-
+        * `day` - day
+        * `week` - week
+        * `month` - month
+        * `quarter` - quarter
+        * `year` - year
     DashboardDetail:
       type: object
       properties:
@@ -21528,21 +21541,35 @@ components:
       - updated_by
       - workspace
       - owned_by
+    DashboardMetricFunctionEnum:
+      enum:
+      - count
+      - sum
+      - avg
+      - min
+      - max
+      type: string
+      description: |-
+        * `count` - count
+        * `sum` - sum
+        * `avg` - avg
+        * `min` - min
+        * `max` - max
     DashboardOptions:
       type: object
       properties:
         chart_types:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/DashboardChartTypeEnum'
         metric_functions:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/DashboardMetricFunctionEnum'
         date_buckets:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/DashboardDateBucketEnum'
         native_dimensions:
           type: array
           items:
@@ -21581,7 +21608,7 @@ components:
         name:
           type: string
         property_type:
-          type: string
+          $ref: '#/components/schemas/PropertyTypeEnum'
         is_multi:
           type: boolean
         project_id:
@@ -21640,6 +21667,12 @@ components:
           type: string
           format: uuid
           readOnly: true
+        metric:
+          $ref: '#/components/schemas/WidgetMetric'
+        dimension:
+          $ref: '#/components/schemas/WidgetDimension'
+        series:
+          $ref: '#/components/schemas/WidgetDimension'
         created_at:
           type: string
           format: date-time
@@ -21662,11 +21695,9 @@ components:
         query:
           type: string
         chart_type:
-          $ref: '#/components/schemas/ChartTypeEnum'
-        metric: {}
-        dimension: {}
-        series: {}
-        config: {}
+          $ref: '#/components/schemas/DashboardChartTypeEnum'
+        config:
+          $ref: '#/components/schemas/ClientJson'
         sort_order:
           type: number
           format: double
@@ -21692,6 +21723,9 @@ components:
           readOnly: true
       required:
       - id
+      - metric
+      - dimension
+      - series
       - created_at
       - updated_at
       - deleted_at
@@ -21699,9 +21733,6 @@ components:
       - description
       - query
       - chart_type
-      - metric
-      - dimension
-      - series
       - config
       - sort_order
       - created_by
@@ -21711,6 +21742,12 @@ components:
     DashboardWidgetRequest:
       type: object
       properties:
+        metric:
+          $ref: '#/components/schemas/WidgetMetricRequest'
+        dimension:
+          $ref: '#/components/schemas/WidgetDimensionRequest'
+        series:
+          $ref: '#/components/schemas/WidgetDimensionRequest'
         title:
           type: string
           minLength: 1
@@ -21720,11 +21757,9 @@ components:
         query:
           type: string
         chart_type:
-          $ref: '#/components/schemas/ChartTypeEnum'
-        metric: {}
-        dimension: {}
-        series: {}
-        config: {}
+          $ref: '#/components/schemas/DashboardChartTypeEnum'
+        config:
+          $ref: '#/components/schemas/ClientJson'
       required:
       - title
     DateRollup:
@@ -30769,6 +30804,12 @@ components:
     PatchedDashboardWidgetRequest:
       type: object
       properties:
+        metric:
+          $ref: '#/components/schemas/WidgetMetricRequest'
+        dimension:
+          $ref: '#/components/schemas/WidgetDimensionRequest'
+        series:
+          $ref: '#/components/schemas/WidgetDimensionRequest'
         title:
           type: string
           minLength: 1
@@ -30778,11 +30819,9 @@ components:
         query:
           type: string
         chart_type:
-          $ref: '#/components/schemas/ChartTypeEnum'
-        metric: {}
-        dimension: {}
-        series: {}
-        config: {}
+          $ref: '#/components/schemas/DashboardChartTypeEnum'
+        config:
+          $ref: '#/components/schemas/ClientJson'
     PatchedDeployBoardRequest:
       type: object
       properties:
@@ -38048,9 +38087,12 @@ components:
           nullable: true
         row_count:
           type: integer
-        metric: {}
-        dimension: {}
-        series: {}
+        metric:
+          $ref: '#/components/schemas/WidgetMetric'
+        dimension:
+          $ref: '#/components/schemas/WidgetDimension'
+        series:
+          $ref: '#/components/schemas/WidgetDimension'
       required:
       - data
       - schema
@@ -38059,6 +38101,89 @@ components:
       - metric
       - dimension
       - series
+    WidgetDefinitionRequest:
+      type: object
+      properties:
+        chart_type:
+          allOf:
+          - $ref: '#/components/schemas/DashboardChartTypeEnum'
+          description: |-
+            bar when omitted
+
+            * `number` - Number
+            * `bar` - Bar
+            * `line` - Line
+            * `area` - Area
+            * `pie` - Pie
+            * `donut` - Donut
+            * `table` - Table
+        query:
+          type: string
+          description: A PQL filter. Every work item when empty
+        metric:
+          $ref: '#/components/schemas/WidgetMetricRequest'
+        dimension:
+          $ref: '#/components/schemas/WidgetDimensionRequest'
+        series:
+          $ref: '#/components/schemas/WidgetDimensionRequest'
+    WidgetDimension:
+      type: object
+      properties:
+        field:
+          type: string
+          description: A native field, a date field, property:<id> or ancestor:<type
+            id>
+        bucket:
+          allOf:
+          - $ref: '#/components/schemas/DashboardDateBucketEnum'
+          description: |-
+            Set for a date field
+
+            * `day` - day
+            * `week` - week
+            * `month` - month
+            * `quarter` - quarter
+            * `year` - year
+    WidgetDimensionRequest:
+      type: object
+      properties:
+        field:
+          type: string
+          minLength: 1
+          description: A native field, a date field, property:<id> or ancestor:<type
+            id>
+        bucket:
+          allOf:
+          - $ref: '#/components/schemas/DashboardDateBucketEnum'
+          description: |-
+            Set for a date field
+
+            * `day` - day
+            * `week` - week
+            * `month` - month
+            * `quarter` - quarter
+            * `year` - year
+    WidgetMetric:
+      type: object
+      properties:
+        function:
+          $ref: '#/components/schemas/DashboardMetricFunctionEnum'
+        field:
+          type: string
+          description: property:<id> or estimate_points. Absent for count
+      required:
+      - function
+    WidgetMetricRequest:
+      type: object
+      properties:
+        function:
+          $ref: '#/components/schemas/DashboardMetricFunctionEnum'
+        field:
+          type: string
+          minLength: 1
+          description: property:<id> or estimate_points. Absent for count
+      required:
+      - function
     WorkItemDetailRow:
       type: object
       properties:
