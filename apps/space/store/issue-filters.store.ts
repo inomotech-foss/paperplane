@@ -20,6 +20,7 @@ import type {
   TIssueQueryFiltersParams,
   TIssueFilterKeys,
 } from "@/types/issue";
+import { toFilterQueryParams } from "@/helpers/filter.helper";
 import { getPaginationParams } from "./helpers/filter.helpers";
 
 export interface IIssueFilterStore {
@@ -73,16 +74,8 @@ export class IssueFilterStore implements IIssueFilterStore {
   }
 
   // helper methods
-  computedFilter = (filters: TIssueQueryFilters, filteredParams: TIssueFilterKeys[]) => {
-    const computedFilters: TIssueQueryFiltersParams = {};
-
-    for (const key of filteredParams) {
-      const filterValue = filters[key];
-      if (filterValue !== undefined) computedFilters[key] = filterValue.join(",");
-    }
-
-    return computedFilters;
-  };
+  computedFilter = (filters: TIssueQueryFilters, filteredParams: TIssueFilterKeys[]) =>
+    toFilterQueryParams(filters, filteredParams);
 
   // computed
   getIssueFilters = computedFn((anchor: string) => {

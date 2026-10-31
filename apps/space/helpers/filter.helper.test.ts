@@ -4,7 +4,14 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { filtersFromQuery, hasAppliedFilters, splitQueryParam, toggleFilterValue } from "./filter.helper";
+import { getPaginationParams } from "@/store/helpers/filter.helpers";
+import {
+  filtersFromQuery,
+  hasAppliedFilters,
+  splitQueryParam,
+  toFilterQueryParams,
+  toggleFilterValue,
+} from "./filter.helper";
 import { getGroupIssueIds } from "./grouped-issues.helper";
 import { isIssuePriority, isStateGroup } from "./narrow.helper";
 import { toPublicState } from "./state.helper";
@@ -32,6 +39,31 @@ describe("filter helpers", () => {
     expect(hasAppliedFilters({ priority: [], state: [], labels: [] })).toBe(false);
     expect(hasAppliedFilters({ labels: ["l1"] })).toBe(true);
     expect(hasAppliedFilters(undefined)).toBe(false);
+  });
+});
+
+describe("toFilterQueryParams", () => {
+  const keys = ["priority", "state", "labels"] as const;
+
+  it("leaves out empty filters", () => {
+    expect(toFilterQueryParams(filtersFromQuery({}), keys)).toEqual({});
+    expect(toFilterQueryParams({ priority: [], state: undefined, labels: [] }, keys)).toEqual({});
+  });
+
+  it("joins the enabled filters that have values", () => {
+    expect(toFilterQueryParams({ priority: ["high", "low"], labels: ["l1"] }, ["priority", "state"])).toEqual({
+      priority: "high,low",
+    });
+  });
+
+  it("builds a list query without filter keys when no filter is set", () => {
+    const params = getPaginationParams(
+      toFilterQueryParams(filtersFromQuery({}), keys),
+      { perPageCount: 50, canGroup: true },
+      undefined
+    );
+
+    expect(params).toEqual({ cursor: "50:0:0", per_page: "50" });
   });
 });
 

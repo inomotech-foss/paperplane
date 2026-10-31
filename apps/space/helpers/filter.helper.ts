@@ -3,7 +3,13 @@
  * See the LICENSE file for details.
  */
 
-import type { TFilters, TIssueFilterKeys, TIssueLayout } from "@/types/issue";
+import type {
+  TFilters,
+  TIssueFilterKeys,
+  TIssueLayout,
+  TIssueQueryFilters,
+  TIssueQueryFiltersParams,
+} from "@/types/issue";
 import { isIssuePriority } from "./narrow.helper";
 
 export const ISSUE_FILTER_KEYS: TIssueFilterKeys[] = ["priority", "state", "labels"];
@@ -27,3 +33,16 @@ export const filtersFromQuery = (query: { priority?: string; state?: string; lab
 
 export const hasAppliedFilters = (filters: Partial<TFilters> | undefined): boolean =>
   ISSUE_FILTER_KEYS.some((key) => (filters?.[key]?.length ?? 0) > 0);
+
+/** Joins the enabled filters into query params. An empty param still makes the API run that filter, so it is left out. */
+export const toFilterQueryParams = (
+  filters: TIssueQueryFilters,
+  enabledKeys: readonly TIssueFilterKeys[]
+): TIssueQueryFiltersParams => {
+  const params: TIssueQueryFiltersParams = {};
+  for (const key of enabledKeys) {
+    const values = filters[key];
+    if (values && values.length > 0) params[key] = values.join(",");
+  }
+  return params;
+};
