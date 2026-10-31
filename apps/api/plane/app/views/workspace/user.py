@@ -30,6 +30,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
+from plane.app.serializers.response.issue import WorkItemListResponse
 from plane.app.permissions import ROLE, WorkspaceEntityPermission, WorkspaceViewerPermission
 
 # Module imports
@@ -160,6 +161,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
             .prefetch_related("assignees", "labels", "issue_module__module")
         )
 
+    @extend_schema(parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: WorkItemListResponse})
     def get(self, request, slug, user_id):
         filters = issue_filters(request.query_params, "GET")
 

@@ -18,7 +18,9 @@ query bar its inline feedback (syntax errors with a position, unknown names).
 
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
+from plane.app.serializers.response.issue import QUERY_VOCABULARY_SCHEMA, QueryValidationSerializer
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.views.base import BaseAPIView
 from plane.utils.pql import PQLSyntaxError, WorkItemFilterError, compile_pql, parse_pql
@@ -77,6 +79,7 @@ class WorkItemQueryValidateEndpoint(BaseAPIView):
     invalid choice, carry the `position` and `token` of that field or value.
     """
 
+    @extend_schema(responses={200: QueryValidationSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def post(self, request, slug):
         source = request.data.get("pql")
@@ -102,6 +105,7 @@ def _function_entry(name):
 class WorkItemQueryFieldsEndpoint(BaseAPIView):
     """The vocabulary of PQL, for the query bar's hints and completion."""
 
+    @extend_schema(responses={200: QUERY_VOCABULARY_SCHEMA})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def get(self, request, slug):
         fields = [

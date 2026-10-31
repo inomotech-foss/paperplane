@@ -21,10 +21,14 @@ from django.db import transaction
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.utils.openapi.pagination import paginated_response
 from plane.app.permissions import allow_permission, ROLE
 from plane.app.serializers import IssueViewSerializer, ViewIssueListSerializer
+from plane.app.serializers.response.issue import ViewWorkItemSerializer
 from plane.app.serializers.favorite import get_favorite_entities
 from plane.db.models import (
     Issue,
@@ -248,6 +252,9 @@ class WorkspaceViewIssuesViewSet(BaseViewSet):
     def get_queryset(self):
         return Issue.issue_objects.filter(workspace__slug=self.kwargs.get("slug"))
 
+    @extend_schema(
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: paginated_response(ViewWorkItemSerializer)}
+    )
     @method_decorator(gzip_page)
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list(self, request, slug):

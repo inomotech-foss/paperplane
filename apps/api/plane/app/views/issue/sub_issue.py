@@ -17,8 +17,10 @@ from django.db.models.functions import Coalesce
 # Third Party imports
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.response.issue import AddedSubWorkItemsSerializer, SubWorkItemsResponse
 from .. import BaseAPIView
 from plane.app.serializers import IssueSerializer
 from plane.app.permissions import ProjectEntityPermission, issue_hidden_from_guest, visible_issue_q
@@ -33,6 +35,7 @@ from plane.utils.derived_properties import schedule_derived_refresh
 class SubIssuesEndpoint(BaseAPIView):
     permission_classes = [ProjectEntityPermission]
 
+    @extend_schema(responses={200: SubWorkItemsResponse})
     @method_decorator(gzip_page)
     def get(self, request, slug, project_id, issue_id):
         # SECURITY: scope the parent lookup to the URL project. ProjectEntityPermission
@@ -213,6 +216,7 @@ class SubIssuesEndpoint(BaseAPIView):
         )
 
     # Assign multiple sub issues
+    @extend_schema(responses={200: AddedSubWorkItemsSerializer})
     def post(self, request, slug, project_id, issue_id):
         # SECURITY: bind the parent issue to the URL workspace + project. A bare
         # pk lookup let any project member re-parent issues under a parent in a

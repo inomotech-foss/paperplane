@@ -849,6 +849,8 @@ class IssueSerializer(DynamicBaseSerializer):
             "archived_at",
         ]
         read_only_fields = fields
+        # Queryset annotations: absent when the view does not add them, null when the subquery finds no row.
+        response_nullable = ("cycle_id", "sub_issues_count", "attachment_count", "link_count")
 
     def validate(self, data):
         if (

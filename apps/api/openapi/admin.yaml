@@ -879,9 +879,11 @@ components:
         grouped_by:
           type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
           type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:
@@ -923,9 +925,11 @@ components:
         grouped_by:
           type: string
           nullable: true
+          maxLength: 0
         sub_grouped_by:
           type: string
           nullable: true
+          maxLength: 0
         total_count:
           type: integer
         next_cursor:

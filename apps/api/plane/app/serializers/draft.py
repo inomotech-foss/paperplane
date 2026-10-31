@@ -360,6 +360,7 @@ class DraftIssueSerializer(BaseSerializer):
             "description_html",
         ]
         read_only_fields = fields
+        response_nullable = ("cycle_id",)
 
 
 class DraftIssueDetailSerializer(DraftIssueSerializer):
