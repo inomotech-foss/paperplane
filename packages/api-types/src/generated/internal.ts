@@ -5481,8 +5481,45 @@ export interface components {
             /** Format: date-time */
             archived_at: string;
         };
+        AssetCreateRequest: {
+            /** @description unnamed when omitted */
+            name?: string;
+            /** @description The MIME type, one the instance accepts */
+            type: string;
+            /** @description In bytes, capped at the instance limit */
+            size?: number;
+            /**
+             * @description Each endpoint accepts a subset
+             *
+             *     * `ISSUE_ATTACHMENT` - Issue Attachment
+             *     * `ISSUE_DESCRIPTION` - Issue Description
+             *     * `COMMENT_DESCRIPTION` - Comment Description
+             *     * `PAGE_DESCRIPTION` - Page Description
+             *     * `PAGE_ATTACHMENT` - Page Attachment
+             *     * `PAGE_COMMENT_DESCRIPTION` - Page Comment Description
+             *     * `USER_COVER` - User Cover
+             *     * `USER_AVATAR` - User Avatar
+             *     * `WORKSPACE_LOGO` - Workspace Logo
+             *     * `PROJECT_COVER` - Project Cover
+             *     * `DRAFT_ISSUE_ATTACHMENT` - Draft Issue Attachment
+             *     * `DRAFT_ISSUE_DESCRIPTION` - Draft Issue Description
+             */
+            entity_type: components["schemas"]["FileAssetEntityTypeEnum"];
+            /** @description The entity the asset belongs to, if it exists */
+            entity_identifier?: string | null;
+        };
+        AssetDuplicateRequest: {
+            entity_type: components["schemas"]["FileAssetEntityTypeEnum"];
+            /** Format: uuid */
+            entity_id?: string | null;
+            /** Format: uuid */
+            project_id?: string | null;
+        };
         AssetExists: {
             exists: boolean;
+        };
+        AssetIdsRequest: {
+            asset_ids: string[];
         };
         AssetUpload: {
             /** @description Null when storage could not sign the upload */
@@ -7127,6 +7164,22 @@ export interface components {
             /** Format: uuid */
             page_comment: string | null;
         };
+        /**
+         * @description * `ISSUE_ATTACHMENT` - Issue Attachment
+         *     * `ISSUE_DESCRIPTION` - Issue Description
+         *     * `COMMENT_DESCRIPTION` - Comment Description
+         *     * `PAGE_DESCRIPTION` - Page Description
+         *     * `PAGE_ATTACHMENT` - Page Attachment
+         *     * `PAGE_COMMENT_DESCRIPTION` - Page Comment Description
+         *     * `USER_COVER` - User Cover
+         *     * `USER_AVATAR` - User Avatar
+         *     * `WORKSPACE_LOGO` - Workspace Logo
+         *     * `PROJECT_COVER` - Project Cover
+         *     * `DRAFT_ISSUE_ATTACHMENT` - Draft Issue Attachment
+         *     * `DRAFT_ISSUE_DESCRIPTION` - Draft Issue Description
+         * @enum {string}
+         */
+        FileAssetEntityTypeEnum: "ISSUE_ATTACHMENT" | "ISSUE_DESCRIPTION" | "COMMENT_DESCRIPTION" | "PAGE_DESCRIPTION" | "PAGE_ATTACHMENT" | "PAGE_COMMENT_DESCRIPTION" | "USER_COVER" | "USER_AVATAR" | "WORKSPACE_LOGO" | "PROJECT_COVER" | "DRAFT_ISSUE_ATTACHMENT" | "DRAFT_ISSUE_DESCRIPTION";
         FileAssetLookup: {
             /** @description False when no asset has the key */
             status: boolean;
@@ -10042,6 +10095,10 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
+        };
+        PatchedAssetAttributesRequest: {
+            /** @description Replaces the stored attributes when sent */
+            attributes?: unknown;
         };
         PatchedCycleIssueRequest: {
             /** Format: date-time */
@@ -14237,7 +14294,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AssetCreateRequest"];
+                "multipart/form-data": components["schemas"]["AssetCreateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -14278,7 +14341,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAssetAttributesRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAssetAttributesRequest"];
+                "multipart/form-data": components["schemas"]["PatchedAssetAttributesRequest"];
+            };
+        };
         responses: {
             /** @description Done */
             204: {
@@ -14298,7 +14367,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AssetCreateRequest"];
+                "multipart/form-data": components["schemas"]["AssetCreateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -14362,7 +14437,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAssetAttributesRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAssetAttributesRequest"];
+                "multipart/form-data": components["schemas"]["PatchedAssetAttributesRequest"];
+            };
+        };
         responses: {
             /** @description Done */
             204: {
@@ -14426,7 +14507,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetDuplicateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AssetDuplicateRequest"];
+                "multipart/form-data": components["schemas"]["AssetDuplicateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -14448,7 +14535,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AssetCreateRequest"];
+                "multipart/form-data": components["schemas"]["AssetCreateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -14471,7 +14564,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetIdsRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AssetIdsRequest"];
+                "multipart/form-data": components["schemas"]["AssetIdsRequest"];
+            };
+        };
         responses: {
             /** @description Done */
             204: {
@@ -14537,7 +14636,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAssetAttributesRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAssetAttributesRequest"];
+                "multipart/form-data": components["schemas"]["PatchedAssetAttributesRequest"];
+            };
+        };
         responses: {
             /** @description Done */
             204: {
@@ -15642,7 +15747,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AssetCreateRequest"];
+                "multipart/form-data": components["schemas"]["AssetCreateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -15664,7 +15775,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetIdsRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AssetIdsRequest"];
+                "multipart/form-data": components["schemas"]["AssetIdsRequest"];
+            };
+        };
         responses: {
             /** @description Done */
             204: {
@@ -15727,7 +15844,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAssetAttributesRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAssetAttributesRequest"];
+                "multipart/form-data": components["schemas"]["PatchedAssetAttributesRequest"];
+            };
+        };
         responses: {
             /** @description Done */
             204: {
@@ -15829,7 +15952,14 @@ export interface operations {
     };
     unsplash_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 1 when omitted */
+                page?: number;
+                /** @description 20 when omitted */
+                per_page?: number;
+                /** @description Search for this. The latest photos when omitted */
+                query?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -28020,6 +28150,7 @@ export const emailCheckStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<com
 export const estimateTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["EstimateTypeEnum"]> = ["categories", "points", "time"];
 export const exportProviderEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ExportProviderEnum"]> = ["json", "csv", "xlsx"];
 export const exporterHistoryStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ExporterHistoryStatusEnum"]> = ["queued", "processing", "completed", "failed"];
+export const fileAssetEntityTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["FileAssetEntityTypeEnum"]> = ["ISSUE_ATTACHMENT", "ISSUE_DESCRIPTION", "COMMENT_DESCRIPTION", "PAGE_DESCRIPTION", "PAGE_ATTACHMENT", "PAGE_COMMENT_DESCRIPTION", "USER_COVER", "USER_AVATAR", "WORKSPACE_LOGO", "PROJECT_COVER", "DRAFT_ISSUE_ATTACHMENT", "DRAFT_ISSUE_DESCRIPTION"];
 export const group272EnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Group272Enum"]> = ["backlog", "unstarted", "started", "completed", "cancelled", "triage"];
 export const homeWidgetKeyEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["HomeWidgetKeyEnum"]> = ["quick_links", "recents", "my_stickies", "new_at_plane", "quick_tutorial"];
 export const intakeWorkItemStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IntakeWorkItemStatusEnum"]> = [-2, -1, 0, 1, 2];

@@ -16,6 +16,7 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from drf_spectacular.types import OpenApiTypes
 
 # Module import
+from plane.app.serializers.request.asset import UNSPLASH_PARAMETERS
 from plane.app.serializers.response.misc import AssistantReplySerializer, ProjectAssistantReplySerializer
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.serializers import ProjectLiteSerializer, WorkspaceLiteSerializer
@@ -219,7 +220,8 @@ class WorkspaceGPTIntegrationEndpoint(BaseAPIView):
 
 class UnsplashEndpoint(BaseAPIView):
     @extend_schema(
-        responses={200: OpenApiResponse(OpenApiTypes.ANY, description="The Unsplash API response, passed through")}
+        parameters=UNSPLASH_PARAMETERS,
+        responses={200: OpenApiResponse(OpenApiTypes.ANY, description="The Unsplash API response, passed through")},
     )
     def get(self, request):
         (UNSPLASH_ACCESS_KEY,) = get_configuration_value(

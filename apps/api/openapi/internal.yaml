@@ -35,6 +35,18 @@ paths:
       operationId: assets_v2_user_assets_create
       tags:
       - assets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -56,6 +68,17 @@ paths:
         required: true
       tags:
       - assets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
       security:
       - sessionAuth: []
       responses:
@@ -88,6 +111,18 @@ paths:
         required: true
       tags:
       - assets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -135,6 +170,17 @@ paths:
         required: true
       tags:
       - assets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
       security:
       - sessionAuth: []
       responses:
@@ -226,6 +272,18 @@ paths:
         required: true
       tags:
       - assets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetDuplicateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssetDuplicateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssetDuplicateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -252,6 +310,18 @@ paths:
         required: true
       tags:
       - assets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -284,6 +354,18 @@ paths:
         required: true
       tags:
       - assets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetIdsRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssetIdsRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssetIdsRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -339,6 +421,17 @@ paths:
         required: true
       tags:
       - assets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
       security:
       - sessionAuth: []
       responses:
@@ -1801,6 +1894,18 @@ paths:
         required: true
       tags:
       - public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -1827,6 +1932,18 @@ paths:
         required: true
       tags:
       - public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetIdsRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssetIdsRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssetIdsRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -1871,6 +1988,17 @@ paths:
         required: true
       tags:
       - public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetAttributesRequest'
       security:
       - sessionAuth: []
       responses:
@@ -1980,6 +2108,22 @@ paths:
   /api/unsplash/:
     get:
       operationId: unsplash_retrieve
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: 1 when omitted
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: 20 when omitted
+      - in: query
+        name: query
+        schema:
+          type: string
+        description: Search for this. The latest photos when omitted
       tags:
       - unsplash
       security:
@@ -19710,6 +19854,60 @@ components:
       - unstarted_issues
       - backlog_issues
       - archived_at
+    AssetCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: unnamed when omitted
+        type:
+          type: string
+          minLength: 1
+          description: The MIME type, one the instance accepts
+        size:
+          type: integer
+          description: In bytes, capped at the instance limit
+        entity_type:
+          allOf:
+          - $ref: '#/components/schemas/FileAssetEntityTypeEnum'
+          description: |-
+            Each endpoint accepts a subset
+
+            * `ISSUE_ATTACHMENT` - Issue Attachment
+            * `ISSUE_DESCRIPTION` - Issue Description
+            * `COMMENT_DESCRIPTION` - Comment Description
+            * `PAGE_DESCRIPTION` - Page Description
+            * `PAGE_ATTACHMENT` - Page Attachment
+            * `PAGE_COMMENT_DESCRIPTION` - Page Comment Description
+            * `USER_COVER` - User Cover
+            * `USER_AVATAR` - User Avatar
+            * `WORKSPACE_LOGO` - Workspace Logo
+            * `PROJECT_COVER` - Project Cover
+            * `DRAFT_ISSUE_ATTACHMENT` - Draft Issue Attachment
+            * `DRAFT_ISSUE_DESCRIPTION` - Draft Issue Description
+        entity_identifier:
+          type: string
+          nullable: true
+          description: The entity the asset belongs to, if it exists
+      required:
+      - entity_type
+      - type
+    AssetDuplicateRequest:
+      type: object
+      properties:
+        entity_type:
+          $ref: '#/components/schemas/FileAssetEntityTypeEnum'
+        entity_id:
+          type: string
+          format: uuid
+          nullable: true
+        project_id:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - entity_type
     AssetExists:
       type: object
       properties:
@@ -19717,6 +19915,16 @@ components:
           type: boolean
       required:
       - exists
+    AssetIdsRequest:
+      type: object
+      properties:
+        asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - asset_ids
     AssetUpload:
       type: object
       properties:
@@ -23677,6 +23885,34 @@ components:
       - comment
       - page
       - page_comment
+    FileAssetEntityTypeEnum:
+      enum:
+      - ISSUE_ATTACHMENT
+      - ISSUE_DESCRIPTION
+      - COMMENT_DESCRIPTION
+      - PAGE_DESCRIPTION
+      - PAGE_ATTACHMENT
+      - PAGE_COMMENT_DESCRIPTION
+      - USER_COVER
+      - USER_AVATAR
+      - WORKSPACE_LOGO
+      - PROJECT_COVER
+      - DRAFT_ISSUE_ATTACHMENT
+      - DRAFT_ISSUE_DESCRIPTION
+      type: string
+      description: |-
+        * `ISSUE_ATTACHMENT` - Issue Attachment
+        * `ISSUE_DESCRIPTION` - Issue Description
+        * `COMMENT_DESCRIPTION` - Comment Description
+        * `PAGE_DESCRIPTION` - Page Description
+        * `PAGE_ATTACHMENT` - Page Attachment
+        * `PAGE_COMMENT_DESCRIPTION` - Page Comment Description
+        * `USER_COVER` - User Cover
+        * `USER_AVATAR` - User Avatar
+        * `WORKSPACE_LOGO` - Workspace Logo
+        * `PROJECT_COVER` - Project Cover
+        * `DRAFT_ISSUE_ATTACHMENT` - Draft Issue Attachment
+        * `DRAFT_ISSUE_DESCRIPTION` - Draft Issue Description
     FileAssetLookup:
       type: object
       properties:
@@ -30887,6 +31123,11 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
+    PatchedAssetAttributesRequest:
+      type: object
+      properties:
+        attributes:
+          description: Replaces the stored attributes when sent
     PatchedCycleIssueRequest:
       type: object
       properties:
