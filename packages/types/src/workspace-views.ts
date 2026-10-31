@@ -4,38 +4,26 @@
  * See the LICENSE file for details.
  */
 
-import type {
-  IWorkspaceViewProps,
-  IIssueDisplayFilterOptions,
-  IIssueDisplayProperties,
-  TWorkItemFilterExpression,
-} from "./client-json";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, TWorkItemFilterExpression } from "./client-json";
 import type { EViewAccess } from "./views";
 
 export interface IWorkspaceView {
   id: string;
   access: EViewAccess;
-  created_at: Date;
-  updated_at: Date;
-  is_favorite: boolean;
-  created_by: string;
-  updated_by: string;
+  created_at: string;
+  updated_at: string;
+  is_favorite?: boolean;
+  created_by: string | null;
+  updated_by: string | null;
   name: string;
   description: string;
   rich_filters: TWorkItemFilterExpression;
   display_filters: IIssueDisplayFilterOptions;
   display_properties: IIssueDisplayProperties;
-  query: unknown;
-  query_data: IWorkspaceViewProps;
-  project: string;
+  project: string | null;
   workspace: string;
   is_locked: boolean;
   owned_by: string;
-  workspace_detail?: {
-    id: string;
-    name: string;
-    slug: string;
-  };
 }
 
 export const STATIC_VIEW_TYPES = ["all-issues", "assigned", "created", "subscribed"];

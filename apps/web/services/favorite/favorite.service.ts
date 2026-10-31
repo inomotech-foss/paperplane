@@ -4,59 +4,57 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type { IFavorite } from "@plane/types";
-// helpers
-// services
-import { APIService } from "@/services/api.service";
-// types
+import { apiClient } from "@/services/api-client";
+import { toFavorite, toFavoriteCreateBody, toFavoriteUpdateBody } from "./favorite-convert";
 
-export class FavoriteService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+const workspacePath = (slug: string) => ({ path: { slug } });
+const favoritePath = (slug: string, favorite_id: string) => ({ path: { slug, favorite_id } });
 
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class FavoriteService {
   async addFavorite(workspaceSlug: string, data: Partial<IFavorite>): Promise<IFavorite> {
-    return this.post(`/api/workspaces/${workspaceSlug}/user-favorites/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    const favorite = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/user-favorites/", {
+        params: workspacePath(workspaceSlug),
+        body: toFavoriteCreateBody(data),
+      })
+    );
+    return toFavorite(favorite);
   }
 
   async updateFavorite(workspaceSlug: string, favoriteId: string, data: Partial<IFavorite>): Promise<IFavorite> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/user-favorites/${favoriteId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    const favorite = await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/user-favorites/{favorite_id}/", {
+        params: favoritePath(workspaceSlug, favoriteId),
+        body: toFavoriteUpdateBody(data),
+      })
+    );
+    return toFavorite(favorite);
   }
 
   async deleteFavorite(workspaceSlug: string, favoriteId: string): Promise<void> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/user-favorites/${favoriteId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/user-favorites/{favorite_id}/", {
+        params: favoritePath(workspaceSlug, favoriteId),
+      })
+    );
   }
 
   async getFavorites(workspaceSlug: string): Promise<IFavorite[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/user-favorites/`, {
-      params: {
-        all: true,
-      },
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const favorites = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/user-favorites/", { params: workspacePath(workspaceSlug) })
+    );
+    return favorites.map(toFavorite);
   }
 
   async getGroupedFavorites(workspaceSlug: string, favoriteId: string): Promise<IFavorite[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/user-favorites/${favoriteId}/group/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const favorites = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/user-favorites/{favorite_id}/group/", {
+        params: favoritePath(workspaceSlug, favoriteId),
+      })
+    );
+    return favorites.map(toFavorite);
   }
 }

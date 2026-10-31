@@ -5717,17 +5717,6 @@ export interface components {
             name: string;
             count: number;
         };
-        /**
-         * @description * `number` - Number
-         *     * `bar` - Bar
-         *     * `line` - Line
-         *     * `area` - Area
-         *     * `pie` - Pie
-         *     * `donut` - Donut
-         *     * `table` - Table
-         * @enum {string}
-         */
-        ChartTypeEnum: "number" | "bar" | "line" | "area" | "pie" | "donut" | "table";
         /** @description Owned by the client. The backend stores it without validating it, as sent or shallow-merged into the stored value. */
         ClientJson: {
             [key: string]: unknown;
@@ -6225,6 +6214,26 @@ export interface components {
             /** Format: uuid */
             readonly owned_by: string;
         };
+        /**
+         * @description * `number` - Number
+         *     * `bar` - Bar
+         *     * `line` - Line
+         *     * `area` - Area
+         *     * `pie` - Pie
+         *     * `donut` - Donut
+         *     * `table` - Table
+         * @enum {string}
+         */
+        DashboardChartTypeEnum: "number" | "bar" | "line" | "area" | "pie" | "donut" | "table";
+        /**
+         * @description * `day` - day
+         *     * `week` - week
+         *     * `month` - month
+         *     * `quarter` - quarter
+         *     * `year` - year
+         * @enum {string}
+         */
+        DashboardDateBucketEnum: "day" | "week" | "month" | "quarter" | "year";
         DashboardDetail: {
             /** Format: uuid */
             readonly id: string;
@@ -6258,10 +6267,19 @@ export interface components {
             /** Format: uuid */
             readonly owned_by: string;
         };
+        /**
+         * @description * `count` - count
+         *     * `sum` - sum
+         *     * `avg` - avg
+         *     * `min` - min
+         *     * `max` - max
+         * @enum {string}
+         */
+        DashboardMetricFunctionEnum: "count" | "sum" | "avg" | "min" | "max";
         DashboardOptions: {
-            chart_types: string[];
-            metric_functions: string[];
-            date_buckets: string[];
+            chart_types: components["schemas"]["DashboardChartTypeEnum"][];
+            metric_functions: components["schemas"]["DashboardMetricFunctionEnum"][];
+            date_buckets: components["schemas"]["DashboardDateBucketEnum"][];
             native_dimensions: string[];
             date_dimensions: string[];
             types: components["schemas"]["DashboardType"][];
@@ -6272,7 +6290,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
-            property_type: string;
+            property_type: components["schemas"]["PropertyTypeEnum"];
             is_multi: boolean;
             /** Format: uuid */
             project_id: string;
@@ -6295,6 +6313,9 @@ export interface components {
         DashboardWidget: {
             /** Format: uuid */
             readonly id: string;
+            metric: components["schemas"]["WidgetMetric"];
+            dimension: components["schemas"]["WidgetDimension"];
+            series: components["schemas"]["WidgetDimension"];
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -6307,11 +6328,8 @@ export interface components {
             title: string;
             description: string;
             query: string;
-            chart_type: components["schemas"]["ChartTypeEnum"];
-            metric: unknown;
-            dimension: unknown;
-            series: unknown;
-            config: unknown;
+            chart_type: components["schemas"]["DashboardChartTypeEnum"];
+            config: components["schemas"]["ClientJson"];
             /** Format: double */
             readonly sort_order: number;
             /** Format: uuid */
@@ -6327,14 +6345,14 @@ export interface components {
             readonly workspace: string;
         };
         DashboardWidgetRequest: {
+            metric?: components["schemas"]["WidgetMetricRequest"];
+            dimension?: components["schemas"]["WidgetDimensionRequest"];
+            series?: components["schemas"]["WidgetDimensionRequest"];
             title: string;
             description?: string;
             query?: string;
-            chart_type?: components["schemas"]["ChartTypeEnum"];
-            metric?: unknown;
-            dimension?: unknown;
-            series?: unknown;
-            config?: unknown;
+            chart_type?: components["schemas"]["DashboardChartTypeEnum"];
+            config?: components["schemas"]["ClientJson"];
         };
         DateRollup: {
             /** Format: date */
@@ -7029,6 +7047,29 @@ export interface components {
          * @enum {string}
          */
         ExporterHistoryStatusEnum: "queued" | "processing" | "completed" | "failed";
+        FavoriteCreateRequest: {
+            name?: string | null;
+            /** Format: double */
+            sequence?: number;
+            /**
+             * Format: uuid
+             * @description The folder that holds the favorite
+             */
+            parent?: string | null;
+            /** @description project, cycle, module, view, page or folder */
+            entity_type: string;
+            /**
+             * Format: uuid
+             * @description The favorited entity. Omitted for a folder
+             */
+            entity_identifier?: string | null;
+            is_folder?: boolean;
+            /**
+             * Format: uuid
+             * @description The project of the entity. Null for workspace views and folders
+             */
+            project_id?: string | null;
+        };
         FavoriteEntity: {
             /** Format: uuid */
             id: string;
@@ -8530,7 +8571,7 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: date-time */
-            deleted_at: string | null;
+            readonly deleted_at: string | null;
             /** View Name */
             name: string;
             /** View Description */
@@ -8547,7 +8588,7 @@ export interface components {
             logo_props: components["schemas"]["ClientJson"];
             readonly is_locked: boolean;
             /** Format: date-time */
-            archived_at: string | null;
+            readonly archived_at: string | null;
             /** Format: uuid */
             readonly created_by: string | null;
             /**
@@ -8563,8 +8604,6 @@ export interface components {
             readonly owned_by: string;
         };
         IssueViewRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
             /** View Name */
             name: string;
             /** View Description */
@@ -8576,8 +8615,6 @@ export interface components {
             /** Format: double */
             sort_order?: number;
             logo_props?: components["schemas"]["ClientJson"];
-            /** Format: date-time */
-            archived_at?: string | null;
         };
         IssueVote: {
             /** Format: uuid */
@@ -9909,6 +9946,20 @@ export interface components {
             total_results: number;
             extra_stats: unknown;
         };
+        PaginatedStickyList: {
+            results: components["schemas"]["Sticky"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
         PaginatedTrashedIssueList: {
             results: components["schemas"]["TrashedIssue"][];
             grouped_by: string | null;
@@ -10029,14 +10080,14 @@ export interface components {
             access?: components["schemas"]["AccessEnum"];
         };
         PatchedDashboardWidgetRequest: {
+            metric?: components["schemas"]["WidgetMetricRequest"];
+            dimension?: components["schemas"]["WidgetDimensionRequest"];
+            series?: components["schemas"]["WidgetDimensionRequest"];
             title?: string;
             description?: string;
             query?: string;
-            chart_type?: components["schemas"]["ChartTypeEnum"];
-            metric?: unknown;
-            dimension?: unknown;
-            series?: unknown;
-            config?: unknown;
+            chart_type?: components["schemas"]["DashboardChartTypeEnum"];
+            config?: components["schemas"]["ClientJson"];
         };
         PatchedDeployBoardRequest: {
             view_props?: components["schemas"]["DeployBoardViewPropsRequest"];
@@ -10114,6 +10165,16 @@ export interface components {
             key?: number;
             description?: string;
             value?: string;
+        };
+        PatchedFavoriteUpdateRequest: {
+            name?: string | null;
+            /** Format: double */
+            sequence?: number;
+            /**
+             * Format: uuid
+             * @description The folder that holds the favorite
+             */
+            parent?: string | null;
         };
         PatchedIntakeIssueRequest: {
             status?: components["schemas"]["IntakeWorkItemStatusEnum"];
@@ -10319,8 +10380,6 @@ export interface components {
             estimate_point?: string | null;
         };
         PatchedIssueViewRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
             /** View Name */
             name?: string;
             /** View Description */
@@ -10332,8 +10391,6 @@ export interface components {
             /** Format: double */
             sort_order?: number;
             logo_props?: components["schemas"]["ClientJson"];
-            /** Format: date-time */
-            archived_at?: string | null;
         };
         PatchedLabelRequest: {
             /** Format: uuid */
@@ -10528,24 +10585,14 @@ export interface components {
             sequence?: number;
         };
         PatchedStickyRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
             name?: string | null;
             description?: unknown;
             description_html?: string;
-            description_stripped?: string | null;
             logo_props?: components["schemas"]["ClientJson"];
             color?: string | null;
             background_color?: string | null;
             /** Format: double */
             sort_order?: number;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         PatchedUserNotificationPreferenceRequest: {
             property_change?: boolean;
@@ -10585,6 +10632,16 @@ export interface components {
         PatchedUserTourCompletedRequest: {
             /** @description False when omitted */
             is_tour_completed?: boolean;
+        };
+        PatchedWebhookRequest: {
+            /** Format: uri */
+            url?: string;
+            is_active?: boolean;
+            project?: boolean;
+            issue?: boolean;
+            module?: boolean;
+            cycle?: boolean;
+            issue_comment?: boolean;
         };
         PatchedWorkSpaceRequest: {
             /** Workspace Name */
@@ -11713,11 +11770,11 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: date-time */
-            deleted_at: string | null;
+            readonly deleted_at: string | null;
             name: string | null;
             description: unknown;
             description_html: string;
-            description_stripped: string | null;
+            readonly description_stripped: string | null;
             /** Format: byte */
             readonly description_binary: string | null;
             logo_props: components["schemas"]["ClientJson"];
@@ -11726,36 +11783,26 @@ export interface components {
             /** Format: double */
             sort_order: number;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: uuid */
             readonly owner: string;
         };
         StickyRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
             name?: string | null;
             description?: unknown;
             description_html?: string;
-            description_stripped?: string | null;
             logo_props?: components["schemas"]["ClientJson"];
             color?: string | null;
             background_color?: string | null;
             /** Format: double */
             sort_order?: number;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         SubGroupedPaginatedPublicWorkItemList: {
             results: {
@@ -13053,6 +13100,10 @@ export interface components {
             /** Format: uuid */
             updated_by: string | null;
         };
+        ViewFavoriteRequest: {
+            /** Format: uuid */
+            view: string;
+        };
         ViewWorkItem: {
             /** Format: uuid */
             id: string;
@@ -13075,6 +13126,8 @@ export interface components {
             project_id: string;
             /** Format: uuid */
             parent_id: string | null;
+            /** Format: uuid */
+            type_id: string;
             /** Format: uuid */
             cycle_id: string | null;
             module_ids: string[];
@@ -13123,15 +13176,15 @@ export interface components {
             module: boolean;
             cycle: boolean;
             issue_comment: boolean;
-            is_internal: boolean;
-            version: string;
+            readonly is_internal: boolean;
+            readonly version: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
         };
@@ -13166,6 +13219,16 @@ export interface components {
             updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
+        };
+        WebhookRequest: {
+            /** Format: uri */
+            url: string;
+            is_active?: boolean;
+            project?: boolean;
+            issue?: boolean;
+            module?: boolean;
+            cycle?: boolean;
+            issue_comment?: boolean;
         };
         WebhookWithoutSecret: {
             /** Format: uuid */
@@ -13215,9 +13278,66 @@ export interface components {
             /** Format: double */
             total: number | null;
             row_count: number;
-            metric: unknown;
-            dimension: unknown;
-            series: unknown;
+            metric: components["schemas"]["WidgetMetric"];
+            dimension: components["schemas"]["WidgetDimension"];
+            series: components["schemas"]["WidgetDimension"];
+        };
+        WidgetDefinitionRequest: {
+            /**
+             * @description bar when omitted
+             *
+             *     * `number` - Number
+             *     * `bar` - Bar
+             *     * `line` - Line
+             *     * `area` - Area
+             *     * `pie` - Pie
+             *     * `donut` - Donut
+             *     * `table` - Table
+             */
+            chart_type?: components["schemas"]["DashboardChartTypeEnum"];
+            /** @description A PQL filter. Every work item when empty */
+            query?: string;
+            metric?: components["schemas"]["WidgetMetricRequest"];
+            dimension?: components["schemas"]["WidgetDimensionRequest"];
+            series?: components["schemas"]["WidgetDimensionRequest"];
+        };
+        WidgetDimension: {
+            /** @description A native field, a date field, property:<id> or ancestor:<type id> */
+            field?: string;
+            /**
+             * @description Set for a date field
+             *
+             *     * `day` - day
+             *     * `week` - week
+             *     * `month` - month
+             *     * `quarter` - quarter
+             *     * `year` - year
+             */
+            bucket?: components["schemas"]["DashboardDateBucketEnum"];
+        };
+        WidgetDimensionRequest: {
+            /** @description A native field, a date field, property:<id> or ancestor:<type id> */
+            field?: string;
+            /**
+             * @description Set for a date field
+             *
+             *     * `day` - day
+             *     * `week` - week
+             *     * `month` - month
+             *     * `quarter` - quarter
+             *     * `year` - year
+             */
+            bucket?: components["schemas"]["DashboardDateBucketEnum"];
+        };
+        WidgetMetric: {
+            function: components["schemas"]["DashboardMetricFunctionEnum"];
+            /** @description property:<id> or estimate_points. Absent for count */
+            field?: string;
+        };
+        WidgetMetricRequest: {
+            function: components["schemas"]["DashboardMetricFunctionEnum"];
+            /** @description property:<id> or estimate_points. Absent for count */
+            field?: string;
         };
         WorkItemDetailRow: {
             /** Format: uuid */
@@ -16633,7 +16753,14 @@ export interface operations {
     };
     workspaces_advance_analytics_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+                /** @description Which counts to return. overview when omitted */
+                tab?: "overview" | "work-items";
+            };
             header?: never;
             path: {
                 slug: string;
@@ -16656,7 +16783,18 @@ export interface operations {
     };
     workspaces_advance_analytics_charts_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Split each bar of a custom-work-items chart by this field */
+                group_by?: "ASSIGNEES" | "COMPLETED_AT" | "CREATED_AT" | "CREATED_BY" | "CYCLES" | "ESTIMATE_POINTS" | "LABELS" | "MODULES" | "PRIORITY" | "START_DATE" | "STATES" | "STATE_GROUPS" | "TARGET_DATE";
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+                /** @description The chart. projects when omitted */
+                type?: "custom-work-items" | "projects" | "work-items";
+                /** @description The axis of a custom-work-items chart. PRIORITY when omitted */
+                x_axis?: "ASSIGNEES" | "COMPLETED_AT" | "CREATED_AT" | "CREATED_BY" | "CYCLES" | "ESTIMATE_POINTS" | "LABELS" | "MODULES" | "PRIORITY" | "START_DATE" | "STATES" | "STATE_GROUPS" | "TARGET_DATE";
+            };
             header?: never;
             path: {
                 slug: string;
@@ -16678,8 +16816,12 @@ export interface operations {
     workspaces_advance_analytics_stats_list: {
         parameters: {
             query?: {
-                /** @description A search term. */
-                search?: string;
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+                /** @description The only supported value. work-items when omitted */
+                type?: "work-items";
             };
             header?: never;
             path: {
@@ -17155,10 +17297,7 @@ export interface operations {
     };
     workspaces_dashboards_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 slug: string;
@@ -17206,10 +17345,7 @@ export interface operations {
     };
     workspaces_dashboards_widgets_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 dashboard_id: string;
@@ -17455,7 +17591,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WidgetDefinitionRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WidgetDefinitionRequest"];
+                "multipart/form-data": components["schemas"]["WidgetDefinitionRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -18047,10 +18189,48 @@ export interface operations {
     workspaces_issues_list: {
         parameters: {
             query?: {
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                assignees?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                created_by?: string;
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Comma-separated cycle ids. Only work items that match one of them. */
+                cycle?: string;
+                /** @description JSON encoded filter expression with nested 'and' / 'or' / 'not' groups. Mutually exclusive with 'pql'. */
+                filters?: string;
+                /** @description Comma-separated label ids. Only work items that match one of them. */
+                labels?: string;
+                /** @description The layout the list is for. Ignored by the backend */
+                layout?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                mentions?: string;
+                /** @description Comma-separated module ids. Only work items that match one of them. */
+                module?: string;
+                /** @description Field to order results by. Prefix with '-' for descending order */
+                order_by?: string;
+                /** @description Comma-separated work item ids. Only work items that match one of them. */
+                parent?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Plane Query Language expression. Human readable alternative to 'filters'; the two are mutually exclusive. Names resolve to ids (state = "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches direct children and descendantOf() every work item below one at any depth. */
+                pql?: string;
+                /** @description Comma-separated priorities */
+                priority?: string;
+                /** @description Comma-separated project ids. Only work items that match one of them. */
+                project?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after */
+                start_date?: string;
+                /** @description Comma-separated state ids. Only work items that match one of them. */
+                state?: string;
+                /** @description Comma-separated state groups */
+                state_group?: string;
+                /** @description Include work items that have a parent. True when omitted */
+                sub_issue?: boolean;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                subscriber?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after,2026-02-01;before */
+                target_date?: string;
             };
             header?: never;
             path: {
@@ -18545,7 +18725,16 @@ export interface operations {
     };
     workspaces_projects_advance_analytics_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only the work items of this cycle */
+                cycle_id?: string;
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Only the work items of this module */
+                module_id?: string;
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -18569,7 +18758,22 @@ export interface operations {
     };
     workspaces_projects_advance_analytics_charts_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only the work items of this cycle */
+                cycle_id?: string;
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Split each bar of a custom-work-items chart by this field */
+                group_by?: "ASSIGNEES" | "COMPLETED_AT" | "CREATED_AT" | "CREATED_BY" | "CYCLES" | "ESTIMATE_POINTS" | "LABELS" | "MODULES" | "PRIORITY" | "START_DATE" | "STATES" | "STATE_GROUPS" | "TARGET_DATE";
+                /** @description Only the work items of this module */
+                module_id?: string;
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+                /** @description The chart */
+                type?: "custom-work-items" | "work-items";
+                /** @description The axis of a custom-work-items chart. PRIORITY when omitted */
+                x_axis?: "ASSIGNEES" | "COMPLETED_AT" | "CREATED_AT" | "CREATED_BY" | "CYCLES" | "ESTIMATE_POINTS" | "LABELS" | "MODULES" | "PRIORITY" | "START_DATE" | "STATES" | "STATE_GROUPS" | "TARGET_DATE";
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -18592,8 +18796,16 @@ export interface operations {
     workspaces_projects_advance_analytics_stats_list: {
         parameters: {
             query?: {
-                /** @description A search term. */
-                search?: string;
+                /** @description Only the work items of this cycle */
+                cycle_id?: string;
+                /** @description Limit the counts to a period. Every work item when omitted */
+                date_filter?: "last_30_days" | "last_3_months" | "last_7_days" | "yesterday";
+                /** @description Only the work items of this module */
+                module_id?: string;
+                /** @description Comma-separated project ids. Every project of the user when omitted */
+                project_ids?: string;
+                /** @description The only supported value. work-items when omitted */
+                type?: "work-items";
             };
             header?: never;
             path: {
@@ -25332,7 +25544,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewFavoriteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ViewFavoriteRequest"];
+                "multipart/form-data": components["schemas"]["ViewFavoriteRequest"];
+            };
+        };
         responses: {
             /** @description Added to favorites */
             204: {
@@ -25448,10 +25666,7 @@ export interface operations {
     };
     workspaces_projects_views_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 project_id: string;
@@ -25951,8 +26166,12 @@ export interface operations {
     workspaces_stickies_list: {
         parameters: {
             query?: {
-                /** @description A search term. */
-                search?: string;
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+                /** @description Only stickies whose text contains this. Every sticky when omitted */
+                query?: string;
             };
             header?: never;
             path: {
@@ -25967,7 +26186,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Sticky"][];
+                    "application/json": components["schemas"]["PaginatedStickyList"];
                 };
             };
         };
@@ -26201,10 +26420,7 @@ export interface operations {
     };
     workspaces_user_favorites_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 slug: string;
@@ -26232,7 +26448,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FavoriteCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["FavoriteCreateRequest"];
+                "multipart/form-data": components["schemas"]["FavoriteCreateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -26275,7 +26497,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedFavoriteUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedFavoriteUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedFavoriteUpdateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -26289,10 +26517,7 @@ export interface operations {
     };
     workspaces_user_favorites_group_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 favorite_id: string;
@@ -26720,10 +26945,7 @@ export interface operations {
     };
     workspaces_views_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 slug: string;
@@ -26870,10 +27092,7 @@ export interface operations {
     };
     workspaces_webhook_logs_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 slug: string;
@@ -26923,7 +27142,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WebhookRequest"];
+                "multipart/form-data": components["schemas"]["WebhookRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -26988,7 +27213,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedWebhookRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedWebhookRequest"];
+                "multipart/form-data": components["schemas"]["PatchedWebhookRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -27597,10 +27828,25 @@ type ReadonlyArray<T> = [
 ] extends [
     unknown[]
 ] ? Readonly<Exclude<T, undefined>> : Readonly<Exclude<T, undefined>[]>;
+export const pathsApiWorkspacesSlugAdvanceAnalyticsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsGetParametersQueryTabValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics/"]["get"]["parameters"]["query"]["tab"]> = ["overview", "work-items"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsChartsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-charts/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsChartsGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-charts/"]["get"]["parameters"]["query"]["group_by"]> = ["ASSIGNEES", "COMPLETED_AT", "CREATED_AT", "CREATED_BY", "CYCLES", "ESTIMATE_POINTS", "LABELS", "MODULES", "PRIORITY", "START_DATE", "STATES", "STATE_GROUPS", "TARGET_DATE"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsChartsGetParametersQueryTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-charts/"]["get"]["parameters"]["query"]["type"]> = ["custom-work-items", "projects", "work-items"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsChartsGetParametersQueryX_axisValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-charts/"]["get"]["parameters"]["query"]["x_axis"]> = ["ASSIGNEES", "COMPLETED_AT", "CREATED_AT", "CREATED_BY", "CYCLES", "ESTIMATE_POINTS", "LABELS", "MODULES", "PRIORITY", "START_DATE", "STATES", "STATE_GROUPS", "TARGET_DATE"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsStatsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-stats/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugAdvanceAnalyticsStatsGetParametersQueryTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/advance-analytics-stats/"]["get"]["parameters"]["query"]["type"]> = ["work-items"];
 export const pathsApiWorkspacesSlugPageQueryGetParametersQueryKindValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["kind"]> = ["by-label", "contributors", "decision-report", "index", "label-list", "page-properties", "recent", "search", "task-report", "tree"];
 export const pathsApiWorkspacesSlugPageQueryGetParametersQueryScopeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["scope"]> = ["project"];
 export const pathsApiWorkspacesSlugPageQueryGetParametersQuerySortValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["sort"]> = ["created", "modified", "title"];
 export const pathsApiWorkspacesSlugPageQueryGetParametersQueryStatusValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/page-query/"]["get"]["parameters"]["query"]["status"]> = ["complete", "incomplete"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsChartsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-charts/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsChartsGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-charts/"]["get"]["parameters"]["query"]["group_by"]> = ["ASSIGNEES", "COMPLETED_AT", "CREATED_AT", "CREATED_BY", "CYCLES", "ESTIMATE_POINTS", "LABELS", "MODULES", "PRIORITY", "START_DATE", "STATES", "STATE_GROUPS", "TARGET_DATE"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsChartsGetParametersQueryTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-charts/"]["get"]["parameters"]["query"]["type"]> = ["custom-work-items", "work-items"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsChartsGetParametersQueryX_axisValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-charts/"]["get"]["parameters"]["query"]["x_axis"]> = ["ASSIGNEES", "COMPLETED_AT", "CREATED_AT", "CREATED_BY", "CYCLES", "ESTIMATE_POINTS", "LABELS", "MODULES", "PRIORITY", "START_DATE", "STATES", "STATE_GROUPS", "TARGET_DATE"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsStatsGetParametersQueryDate_filterValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-stats/"]["get"]["parameters"]["query"]["date_filter"]> = ["last_30_days", "last_3_months", "last_7_days", "yesterday"];
+export const pathsApiWorkspacesSlugProjectsProject_idAdvanceAnalyticsStatsGetParametersQueryTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/advance-analytics-stats/"]["get"]["parameters"]["query"]["type"]> = ["work-items"];
 export const pathsApiWorkspacesSlugProjectsProject_idArchivedIssuesGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/archived-issues/"]["get"]["parameters"]["query"]["group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idArchivedIssuesGetParametersQuerySub_group_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/archived-issues/"]["get"]["parameters"]["query"]["sub_group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugProjectsProject_idCyclesGetParametersQueryCycle_viewValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/cycles/"]["get"]["parameters"]["query"]["cycle_view"]> = ["all", "current"];
@@ -27633,8 +27879,10 @@ export const accessEe6EnumValues: ReadonlyArray<FlattenedDeepRequired<components
 export const accessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccessEnum"]> = [0, 1];
 export const accountProviderEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccountProviderEnum"]> = ["google", "github", "gitlab", "gitea", "oidc"];
 export const blankEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["BlankEnum"]> = [""];
-export const chartTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ChartTypeEnum"]> = ["number", "bar", "line", "area", "pie", "donut", "table"];
 export const cycleStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["CycleStatusEnum"]> = ["CURRENT", "UPCOMING", "COMPLETED", "DRAFT"];
+export const dashboardChartTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DashboardChartTypeEnum"]> = ["number", "bar", "line", "area", "pie", "donut", "table"];
+export const dashboardDateBucketEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DashboardDateBucketEnum"]> = ["day", "week", "month", "quarter", "year"];
+export const dashboardMetricFunctionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DashboardMetricFunctionEnum"]> = ["count", "sum", "avg", "min", "max"];
 export const derivationEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DerivationEnum"]> = ["NONE", "INHERIT", "LOOKUP", "ROLLUP"];
 export const directionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DirectionEnum"]> = ["INBOUND", "OUTBOUND"];
 export const emailCheckStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["EmailCheckStatusEnum"]> = ["MAGIC_CODE", "CREDENTIAL"];

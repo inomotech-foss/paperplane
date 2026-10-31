@@ -50,9 +50,8 @@ const WorkItemsInsightTable = observer(function WorkItemsInsightTable() {
   const { data: workItemsData, isLoading } = useSWR(
     `insights-table-work-items-${workspaceSlug}-${selectedDuration}-${selectedProjects}-${selectedCycle}-${selectedModule}-${isPeekView}`,
     () =>
-      analyticsService.getAdvanceAnalyticsStats<WorkItemInsightColumns[]>(
+      analyticsService.getWorkItemStats(
         workspaceSlug,
-        "work-items",
         {
           // date_filter: selectedDuration,
           ...(selectedProjects?.length > 0 ? { project_ids: selectedProjects.join(",") } : {}),

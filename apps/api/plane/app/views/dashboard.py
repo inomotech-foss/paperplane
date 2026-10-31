@@ -16,6 +16,7 @@ from plane.app.serializers.response.dashboard import (
 )
 from plane.app.permissions import ROLE, WorkspaceEntityPermission, allow_permission
 from plane.app.serializers import DashboardSerializer, DashboardWidgetSerializer
+from plane.app.serializers.dashboard import WidgetDefinitionSerializer
 from plane.db.models import (
     Dashboard,
     DashboardWidget,
@@ -72,6 +73,7 @@ class DashboardViewSet(BaseViewSet):
     def get_queryset(self):
         return visible_dashboards(self.request.user, self.kwargs.get("slug"))
 
+    @extend_schema(filters=False)
     def list(self, request, slug):
         serializer = DashboardSerializer(self.get_queryset(), many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -132,6 +134,7 @@ class DashboardWidgetViewSet(BaseViewSet):
     def context(self, slug):
         return {"slug": slug, "request": self.request}
 
+    @extend_schema(filters=False)
     def list(self, request, slug, dashboard_id):
         self.dashboard()
         serializer = DashboardWidgetSerializer(self.get_queryset(), many=True, context=self.context(slug))
@@ -203,7 +206,7 @@ class DashboardWidgetPreviewEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
     use_read_replica = True
 
-    @extend_schema(responses={200: WidgetDataSerializer})
+    @extend_schema(request=WidgetDefinitionSerializer, responses={200: WidgetDataSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def post(self, request, slug):
         try:

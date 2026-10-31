@@ -30,8 +30,6 @@ import type { ICycleStore } from "./cycle.store";
 import { CycleStore } from "./cycle.store";
 import type { ICycleFilterStore } from "./cycle_filter.store";
 import { CycleFilterStore } from "./cycle_filter.store";
-import type { IDashboardStore } from "./dashboard.store";
-import { DashboardStore } from "./dashboard.store";
 import type { IEditorAssetStore } from "./editor/asset.store";
 import { EditorAssetStore } from "./editor/asset.store";
 import type { IProjectEstimateStore } from "./estimates/project-estimate.store";
@@ -95,7 +93,6 @@ export class CoreRootStore {
   label: ILabelStore;
   issueCustomProperty: IIssueCustomPropertyStore;
   issueType: IIssueTypeStore;
-  dashboard: IDashboardStore;
   analytics: IAnalyticsStore;
   workspaceDashboards: IWorkspaceDashboardStore;
   projectPages: IProjectPageStore;
@@ -136,7 +133,6 @@ export class CoreRootStore {
     this.label = new LabelStore(this);
     this.issueCustomProperty = new IssueCustomPropertyStore(this);
     this.issueType = new IssueTypeStore(this);
-    this.dashboard = new DashboardStore(this);
     this.multipleSelect = new MultipleSelectStore();
     this.projectInbox = new ProjectInboxStore(this);
     this.projectPages = new ProjectPageStore(this);
@@ -175,7 +171,6 @@ export class CoreRootStore {
     this.label = new LabelStore(this);
     this.issueCustomProperty = new IssueCustomPropertyStore(this);
     this.issueType = new IssueTypeStore(this);
-    this.dashboard = new DashboardStore(this);
     this.projectInbox = new ProjectInboxStore(this);
     this.projectPages = new ProjectPageStore(this);
     this.multipleSelect = new MultipleSelectStore();

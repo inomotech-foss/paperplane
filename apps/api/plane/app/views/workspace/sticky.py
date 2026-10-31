@@ -3,6 +3,8 @@
 # See the LICENSE file for details.
 
 # Third party imports
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -11,6 +13,16 @@ from plane.app.views.base import BaseViewSet
 from plane.app.permissions import ROLE, allow_permission
 from plane.db.models import Sticky, Workspace
 from plane.app.serializers import StickySerializer
+from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
+from plane.utils.openapi.pagination import paginated_response
+
+STICKY_QUERY_PARAMETER = OpenApiParameter(
+    name="query",
+    description="Only stickies whose text contains this. Every sticky when omitted",
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.QUERY,
+    required=False,
+)
 
 
 class WorkspaceStickyViewSet(BaseViewSet):
@@ -37,6 +49,11 @@ class WorkspaceStickyViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER, STICKY_QUERY_PARAMETER],
+        filters=False,
+        responses={200: paginated_response(StickySerializer)},
+    )
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list(self, request, slug):
         query = request.query_params.get("query", False)

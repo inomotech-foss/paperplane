@@ -20,18 +20,16 @@ export enum EViewAccess {
 export interface IProjectView {
   id: string;
   access: EViewAccess;
-  created_at: Date;
-  updated_at: Date;
-  is_favorite: boolean;
-  created_by: string;
-  updated_by: string;
+  created_at: string;
+  updated_at: string;
+  is_favorite?: boolean;
+  created_by: string | null;
+  updated_by: string | null;
   name: string;
   description: string;
   rich_filters: TWorkItemFilterExpression;
   display_filters: IIssueDisplayFilterOptions;
   display_properties: IIssueDisplayProperties;
-  query: IIssueFilterOptions;
-  query_data: IIssueFilterOptions;
   project: string;
   workspace: string;
   logo_props: TLogoProps | undefined;

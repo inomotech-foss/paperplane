@@ -92,7 +92,15 @@ class WebhookSerializer(DynamicBaseSerializer):
     class Meta:
         model = Webhook
         fields = "__all__"
-        read_only_fields = ["workspace", "secret_key", "deleted_at"]
+        read_only_fields = [
+            "workspace",
+            "secret_key",
+            "deleted_at",
+            "is_internal",
+            "version",
+            "created_by",
+            "updated_by",
+        ]
 
 
 class WebhookLogSerializer(DynamicBaseSerializer):

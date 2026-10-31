@@ -135,8 +135,11 @@ export function toIssueLink(row: TLinkRow): TIssueLink {
   };
 }
 
-type TListRow = ApiSchema<"WorkItemListItem"> | ApiSchema<"WorkItemDetailRow">;
-type TListPage = ApiSchema<"WorkItemListResponse"> | ApiSchema<"PaginatedWorkItemDetailRowList">;
+type TListRow = ApiSchema<"WorkItemListItem"> | ApiSchema<"WorkItemDetailRow"> | ApiSchema<"ViewWorkItem">;
+type TListPage =
+  | ApiSchema<"WorkItemListResponse">
+  | ApiSchema<"PaginatedWorkItemDetailRowList">
+  | ApiSchema<"PaginatedViewWorkItemList">;
 
 const RELATION_TYPES: readonly TIssueRelationTypes[] = ["blocking", "blocked_by", "duplicate", "relates_to"];
 const isRelationType = (value: string): value is TIssueRelationTypes =>

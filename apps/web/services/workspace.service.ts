@@ -5,7 +5,6 @@
  */
 
 import type { ApiRequestBody, ApiResponse, ApiSchema } from "@plane/api-types";
-import { API_BASE_URL } from "@plane/constants";
 import { toWorkspaceMemberMe, toWorkspaceSearchResults, unwrap, workspaceSearchQuery } from "@plane/services";
 import type { TWorkspaceMemberMeUpdateBody, TWorkspaceSearchParams } from "@plane/services";
 import { RECENT_ENTITY_NAMES, parseIssueFiltersResponse, parseLogoProps } from "@plane/types";
@@ -33,7 +32,11 @@ import type {
 // services
 import { isOneOf } from "@/helpers/narrow.helper";
 import { apiClient } from "@/services/api-client";
-import { APIService } from "@/services/api.service";
+import type { TRequestOptions } from "@/services/issue/issue.service";
+import { toWorkspaceIssueListQuery } from "@/services/issue/issue-query";
+import type { TIssueParamsRecord } from "@/services/issue/issue-query";
+import { toIssuesResponse } from "@/services/issue/work-item";
+import { toViewCreateBody, toViewUpdateBody, toWorkspaceView } from "@/services/view-convert";
 
 export type TLastVisitedWorkspace = ApiResponse<"/api/users/last-visited-workspace/", "get">;
 export type TWorkspaceCreateBody = ApiRequestBody<"/api/workspaces/", "post">;
@@ -79,12 +82,8 @@ export const toRecentVisits = (visits: ApiSchema<"WorkspaceRecentVisit">[]): TAc
 const workspacePath = (slug: string) => ({ path: { slug } });
 const workspaceItemPath = (slug: string, pk: string) => ({ path: { slug, pk } });
 
-/** Methods on the typed client throw `ApiError` from `@plane/services`. */
-export class WorkspaceService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
-
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class WorkspaceService {
   async userWorkspaces(): Promise<IWorkspace[]> {
     return unwrap(apiClient.GET("/api/users/me/workspaces/"));
   }
@@ -239,60 +238,60 @@ export class WorkspaceService extends APIService {
   }
 
   async createView(workspaceSlug: string, data: Partial<IWorkspaceView>): Promise<IWorkspaceView> {
-    return this.post(`/api/workspaces/${workspaceSlug}/views/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return toWorkspaceView(
+      await unwrap(
+        apiClient.POST("/api/workspaces/{slug}/views/", {
+          params: workspacePath(workspaceSlug),
+          body: toViewCreateBody(data),
+        })
+      )
+    );
   }
 
   async updateView(workspaceSlug: string, viewId: string, data: Partial<IWorkspaceView>): Promise<IWorkspaceView> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/views/${viewId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return toWorkspaceView(
+      await unwrap(
+        apiClient.PATCH("/api/workspaces/{slug}/views/{pk}/", {
+          params: workspaceItemPath(workspaceSlug, viewId),
+          body: toViewUpdateBody(data),
+        })
+      )
+    );
   }
 
-  async deleteView(workspaceSlug: string, viewId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/views/${viewId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteView(workspaceSlug: string, viewId: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/views/{pk}/", { params: workspaceItemPath(workspaceSlug, viewId) })
+    );
   }
 
   async getAllViews(workspaceSlug: string): Promise<IWorkspaceView[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/views/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const views = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/views/", { params: workspacePath(workspaceSlug) })
+    );
+    return views.map(toWorkspaceView);
   }
 
   async getViewDetails(workspaceSlug: string, viewId: string): Promise<IWorkspaceView> {
-    return this.get(`/api/workspaces/${workspaceSlug}/views/${viewId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return toWorkspaceView(
+      await unwrap(
+        apiClient.GET("/api/workspaces/{slug}/views/{pk}/", { params: workspaceItemPath(workspaceSlug, viewId) })
+      )
+    );
   }
 
-  async getViewIssues(workspaceSlug: string, params: any, config = {}): Promise<TIssuesResponse> {
-    const path = params.expand?.includes("issue_relation")
-      ? `/api/workspaces/${workspaceSlug}/issues-detail/`
-      : `/api/workspaces/${workspaceSlug}/issues/`;
-    return this.get(
-      path,
-      {
-        params,
-      },
-      config
-    )
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async getViewIssues(
+    workspaceSlug: string,
+    params: TIssueParamsRecord | undefined,
+    options: TRequestOptions = {}
+  ): Promise<TIssuesResponse> {
+    const page = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/issues/", {
+        params: { path: { slug: workspaceSlug }, query: toWorkspaceIssueListQuery(params) },
+        ...options,
+      })
+    );
+    return toIssuesResponse(page);
   }
 
   async getWorkspaceUserProjectsRole(workspaceSlug: string): Promise<IUserProjectsRole> {

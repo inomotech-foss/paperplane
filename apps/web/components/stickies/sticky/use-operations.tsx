@@ -15,8 +15,8 @@ import { isCommentEmpty } from "@plane/utils";
 import { STICKY_COLORS_LIST } from "@/components/editor/sticky-editor/color-palette";
 // hooks
 import { useSticky } from "@/hooks/use-stickies";
-import { getApiErrorMessage } from "@/helpers/error.helper";
-import { getField } from "@/helpers/narrow.helper";
+import { getApiErrorBody } from "@/helpers/error.helper";
+import { getFirstStringField } from "@/helpers/narrow.helper";
 
 export type TOperations = {
   create: (data?: Partial<TSticky>) => Promise<void>;
@@ -92,7 +92,7 @@ export const useStickyOperations = (props: TProps) => {
           setToast({
             type: "error",
             title: t("stickies.toasts.not_created.title"),
-            message: getApiErrorMessage(getField(error, "data")) ?? t("stickies.toasts.not_created.message"),
+            message: getFirstStringField(getApiErrorBody(error), "error") ?? t("stickies.toasts.not_created.message"),
           });
         }
       },

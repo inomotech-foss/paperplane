@@ -21,7 +21,7 @@ from plane.app.serializers import WebhookSerializer, WebhookLogSerializer
 
 
 class WebhookEndpoint(BaseAPIView):
-    @extend_schema(responses={201: WebhookSerializer})
+    @extend_schema(request=WebhookSerializer, responses={201: WebhookSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug):
         workspace = Workspace.objects.get(slug=slug)
@@ -83,7 +83,7 @@ class WebhookEndpoint(BaseAPIView):
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: WebhookWithoutSecretSerializer})
+    @extend_schema(request=WebhookSerializer, responses={200: WebhookWithoutSecretSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, pk):
         webhook = Webhook.objects.get(workspace__slug=slug, pk=pk)
@@ -129,7 +129,7 @@ class WebhookSecretRegenerateEndpoint(BaseAPIView):
 
 
 class WebhookLogsEndpoint(BaseAPIView):
-    @extend_schema(responses={200: WebhookLogSerializer(many=True)})
+    @extend_schema(filters=False, responses={200: WebhookLogSerializer(many=True)})
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def get(self, request, slug, webhook_id):
         webhook_logs = WebhookLog.objects.filter(workspace__slug=slug, webhook=webhook_id)

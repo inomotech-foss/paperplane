@@ -4,84 +4,64 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type { IProjectView } from "@plane/types";
-import { APIService } from "@/services/api.service";
-// types
-// helpers
+import { apiClient } from "@/services/api-client";
+import { toProjectView, toViewCreateBody, toViewUpdateBody } from "@/services/view-convert";
 
-export class ViewService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
+const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
+const viewPath = (slug: string, project_id: string, pk: string) => ({ path: { slug, project_id, pk } });
+
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class ViewService {
+  async createView(workspaceSlug: string, projectId: string, data: Partial<IProjectView>): Promise<IProjectView> {
+    const view = await unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/views/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: toViewCreateBody(data),
+      })
+    );
+    return toProjectView(view, projectId);
   }
 
-  async createView(workspaceSlug: string, projectId: string, data: Partial<IProjectView>): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/views/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async patchView(
+    workspaceSlug: string,
+    projectId: string,
+    viewId: string,
+    data: Partial<IProjectView>
+  ): Promise<IProjectView> {
+    const view = await unwrap(
+      apiClient.PATCH("/api/workspaces/{slug}/projects/{project_id}/views/{pk}/", {
+        params: viewPath(workspaceSlug, projectId, viewId),
+        body: toViewUpdateBody(data),
+      })
+    );
+    return toProjectView(view, projectId);
   }
 
-  async patchView(workspaceSlug: string, projectId: string, viewId: string, data: Partial<IProjectView>): Promise<any> {
-    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/views/${viewId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async deleteView(workspaceSlug: string, projectId: string, viewId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/views/${viewId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async deleteView(workspaceSlug: string, projectId: string, viewId: string): Promise<void> {
+    return unwrap(
+      apiClient.DELETE("/api/workspaces/{slug}/projects/{project_id}/views/{pk}/", {
+        params: viewPath(workspaceSlug, projectId, viewId),
+      })
+    );
   }
 
   async getViews(workspaceSlug: string, projectId: string): Promise<IProjectView[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/views/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const views = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/views/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
+    return views.map((view) => toProjectView(view, projectId));
   }
 
   async getViewDetails(workspaceSlug: string, projectId: string, viewId: string): Promise<IProjectView> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/views/${viewId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async getViewIssues(workspaceSlug: string, projectId: string, viewId: string): Promise<any> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/views/${viewId}/issues/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async addViewToFavorites(
-    workspaceSlug: string,
-    projectId: string,
-    data: {
-      view: string;
-    }
-  ): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/user-favorite-views/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async removeViewFromFavorites(workspaceSlug: string, projectId: string, viewId: string): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/user-favorite-views/${viewId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const view = await unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/views/{pk}/", {
+        params: viewPath(workspaceSlug, projectId, viewId),
+      })
+    );
+    return toProjectView(view, projectId);
   }
 }

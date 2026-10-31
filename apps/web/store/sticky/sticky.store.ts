@@ -53,7 +53,7 @@ export class StickyStore implements IStickyStore {
   paginationInfo: TPaginationInfo | undefined = undefined;
 
   // services
-  stickyService;
+  stickyService: StickyService;
 
   constructor() {
     makeObservable(this, {
@@ -103,9 +103,10 @@ export class StickyStore implements IStickyStore {
 
   fetchRecentSticky = async (workspaceSlug: string) => {
     const response = await this.stickyService.getStickies(workspaceSlug, "1:0:0", undefined, 1);
+    const recent = response.results.at(0);
     runInAction(() => {
-      this.recentStickyId = response.results[0]?.id;
-      this.stickies[response.results[0]?.id] = response.results[0];
+      this.recentStickyId = recent?.id;
+      if (recent) this.stickies[recent.id] = recent;
     });
   };
   fetchNextWorkspaceStickies = async (workspaceSlug: string) => {
@@ -193,18 +194,20 @@ export class StickyStore implements IStickyStore {
   updateSticky = async (workspaceSlug: string, id: string, updates: Partial<TSticky>) => {
     const sticky = this.stickies[id];
     if (!sticky) return;
+    const previous = { ...sticky };
     try {
       runInAction(() => {
-        Object.keys(updates).forEach((key) => {
-          const currentStickyKey = key as keyof TSticky;
-          set(this.stickies[id], key, updates[currentStickyKey] || undefined);
+        Object.entries(updates).forEach(([key, value]) => {
+          set(this.stickies[id], key, value || undefined);
         });
       });
       this.recentStickyId = id;
       await this.stickyService.updateSticky(workspaceSlug, id, updates);
     } catch (error) {
       console.error("Error in updating sticky:", error);
-      this.stickies[id] = sticky;
+      runInAction(() => {
+        this.stickies[id] = previous;
+      });
       throw new Error("Failed to update sticky", { cause: error });
     }
   };
@@ -212,17 +215,21 @@ export class StickyStore implements IStickyStore {
   deleteSticky = async (workspaceSlug: string, id: string) => {
     const sticky = this.stickies[id];
     if (!sticky) return;
+    const previousIds = this.workspaceStickies[workspaceSlug];
+    const previousRecentId = this.recentStickyId;
     try {
-      this.workspaceStickies[workspaceSlug] = this.workspaceStickies[workspaceSlug].filter(
-        (stickyId) => stickyId !== id
-      );
+      this.workspaceStickies[workspaceSlug] = (previousIds ?? []).filter((stickyId) => stickyId !== id);
       if (this.activeStickyId === id) this.activeStickyId = undefined;
       delete this.stickies[id];
       this.recentStickyId = this.workspaceStickies[workspaceSlug][0];
       await this.stickyService.deleteSticky(workspaceSlug, id);
     } catch (e) {
       console.log(e);
-      this.stickies[id] = sticky;
+      runInAction(() => {
+        this.stickies[id] = sticky;
+        if (previousIds) this.workspaceStickies[workspaceSlug] = previousIds;
+        this.recentStickyId = previousRecentId;
+      });
     }
   };
 

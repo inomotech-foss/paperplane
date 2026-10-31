@@ -73,13 +73,7 @@ export const CreateUpdateWorkspaceViewModal = observer(function CreateUpdateWork
     if (!workspaceSlug || !data) return;
 
     try {
-      const payloadData: Partial<IWorkspaceView> = {
-        ...payload,
-        query: {
-          ...payload?.rich_filters,
-        },
-      };
-      const res = await updateGlobalView(workspaceSlug, data.id, payloadData);
+      const res = await updateGlobalView(workspaceSlug, data.id, payload);
       if (res) {
         resetExpression(EIssuesStoreType.GLOBAL, data.id, res.rich_filters);
         setToast({

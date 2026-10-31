@@ -13,6 +13,7 @@ import { setToast } from "@plane/blocks/toast";
 import type { TDashboardOptions, TDashboardWidgetData, TWorkspaceDashboardWidget } from "@plane/types";
 import { Dialog, DialogBody, DialogContent } from "@makeplane/propel/components/dialog";
 // hooks
+import { getApiErrorBody } from "@/helpers/error.helper";
 import { useWorkspaceDashboards } from "@/hooks/store/use-workspace-dashboards";
 // local imports
 import type { TFieldErrors, TWidgetForm } from "./use-widget-form";
@@ -77,7 +78,7 @@ const WidgetEditorForm = observer(function WidgetEditorForm(props: TFormProps) {
       setPreview(await previewWidget(workspaceSlug, form.definition));
     } catch (error) {
       setPreview(null);
-      setErrors(parseWidgetErrors(error));
+      setErrors(parseWidgetErrors(getApiErrorBody(error)));
     } finally {
       setIsPreviewing(false);
     }
@@ -100,7 +101,7 @@ const WidgetEditorForm = observer(function WidgetEditorForm(props: TFormProps) {
       else await createWidget(workspaceSlug, dashboardId, payload);
       onClose();
     } catch (error) {
-      const parsed = parseWidgetErrors(error);
+      const parsed = parseWidgetErrors(getApiErrorBody(error));
       setErrors(parsed);
       if (Object.keys(parsed).length === 0) {
         setToast({

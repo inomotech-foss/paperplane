@@ -45,9 +45,9 @@ export class WebhookStore implements IWebhookStore {
   webhooks: Record<string, IWebhook> | null = null;
   webhookSecretKey: string | null = null;
   // services
-  webhookService;
+  webhookService: WebhookService;
   // root store
-  rootStore;
+  rootStore: CoreRootStore;
 
   constructor(_rootStore: CoreRootStore) {
     makeObservable(this, {

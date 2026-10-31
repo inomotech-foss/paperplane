@@ -34,6 +34,7 @@ class ViewIssueListSerializer(serializers.Serializer):
             "target_date": instance.target_date,
             "sequence_id": instance.sequence_id,
             "project_id": instance.project_id,
+            "type_id": instance.type_id,
             "parent_id": instance.parent_id,
             "cycle_id": instance.cycle_id,
             "sub_issues_count": instance.sub_issues_count,
@@ -69,6 +70,8 @@ class IssueViewSerializer(DynamicBaseSerializer):
             "is_locked",
             "created_by",
             "updated_by",
+            "deleted_at",
+            "archived_at",
         ]
 
     def create(self, validated_data):

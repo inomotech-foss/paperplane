@@ -4,7 +4,14 @@
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from plane.app.serializers.dashboard import DashboardSerializer, DashboardWidgetSerializer
+from plane.app.serializers.dashboard import (
+    DashboardSerializer,
+    DashboardWidgetSerializer,
+    WidgetDimensionJSONField,
+    WidgetMetricJSONField,
+)
+from plane.db.models import DashboardWidget, PropertyTypeChoices
+from plane.utils.dashboard_widgets import DATE_BUCKETS, METRIC_FUNCTIONS
 
 
 class DashboardDetailSerializer(DashboardSerializer):
@@ -36,9 +43,9 @@ class WidgetDataSerializer(serializers.Serializer):
     schema = serializers.DictField(child=serializers.CharField(), help_text="Series key to label")
     total = serializers.FloatField(allow_null=True)
     row_count = serializers.IntegerField()
-    metric = serializers.JSONField()
-    dimension = serializers.JSONField()
-    series = serializers.JSONField()
+    metric = WidgetMetricJSONField()
+    dimension = WidgetDimensionJSONField()
+    series = WidgetDimensionJSONField()
 
 
 class DashboardTypeSerializer(serializers.Serializer):
@@ -50,7 +57,7 @@ class DashboardTypeSerializer(serializers.Serializer):
 class DashboardPropertySerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
-    property_type = serializers.CharField()
+    property_type = serializers.ChoiceField(choices=PropertyTypeChoices.choices)
     is_multi = serializers.BooleanField()
     project_id = serializers.UUIDField()
     project_name = serializers.CharField()
@@ -58,9 +65,9 @@ class DashboardPropertySerializer(serializers.Serializer):
 
 
 class DashboardOptionsSerializer(serializers.Serializer):
-    chart_types = serializers.ListField(child=serializers.CharField())
-    metric_functions = serializers.ListField(child=serializers.CharField())
-    date_buckets = serializers.ListField(child=serializers.CharField())
+    chart_types = serializers.ListField(child=serializers.ChoiceField(choices=DashboardWidget.ChartType.choices))
+    metric_functions = serializers.ListField(child=serializers.ChoiceField(choices=METRIC_FUNCTIONS))
+    date_buckets = serializers.ListField(child=serializers.ChoiceField(choices=DATE_BUCKETS))
     native_dimensions = serializers.ListField(child=serializers.CharField())
     date_dimensions = serializers.ListField(child=serializers.CharField())
     types = DashboardTypeSerializer(many=True)

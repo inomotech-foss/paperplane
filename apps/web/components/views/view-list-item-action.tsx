@@ -119,7 +119,7 @@ export const ViewListItemAction = observer(function ViewListItemAction(props: Pr
             if (view.is_favorite) handleRemoveFromFavorites();
             else handleAddToFavorites();
           }}
-          selected={view.is_favorite}
+          selected={!!view.is_favorite}
         />
       )}
       {projectId && workspaceSlug && (

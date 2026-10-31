@@ -12,7 +12,7 @@ import useSWR from "swr";
 import { useTranslation } from "@plane/i18n";
 import { AreaChart } from "@plane/blocks/charts/area-chart";
 import { EmptyStateCompact } from "@plane/blocks/empty-state";
-import type { IChartResponse, TChartData } from "@plane/types";
+import type { TChartData } from "@plane/types";
 import { renderFormattedDate } from "@plane/utils";
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
@@ -32,9 +32,8 @@ const CreatedVsResolved = observer(function CreatedVsResolved() {
   const { data: createdVsResolvedData, isLoading: isCreatedVsResolvedLoading } = useSWR(
     `created-vs-resolved-${workspaceSlug}-${selectedDuration}-${selectedProjects}-${selectedCycle}-${selectedModule}-${isPeekView}`,
     () =>
-      analyticsService.getAdvanceAnalyticsCharts<IChartResponse>(
+      analyticsService.getWorkItemsChart(
         workspaceSlug,
-        "work-items",
         {
           // date_filter: selectedDuration,
           ...(selectedProjects?.length > 0 && { project_ids: selectedProjects?.join(",") }),

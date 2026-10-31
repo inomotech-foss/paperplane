@@ -27,7 +27,12 @@ import { handleIssueQueryParamsByLayout, getDisplayFilterCorrections } from "@pl
 import { WorkspaceService } from "@/services/workspace.service";
 // local imports
 import type { IBaseIssueFilterStore, IIssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
-import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
+import {
+  IssueFilterHelperStore,
+  toDisplayFilterChanges,
+  toDisplayPropertyChanges,
+  toKanbanFilterChanges,
+} from "../helpers/issue-filter-helper.store";
 import type { IIssueRootStore } from "../root.store";
 
 type TWorkspaceFilters = TStaticViewTypes;
@@ -61,7 +66,7 @@ export class WorkspaceIssuesFilter extends IssueFilterHelperStore implements IWo
   // observables
   filters: { [viewId: string]: IIssueFilters } = {};
   // root store
-  rootIssueStore;
+  rootIssueStore: IIssueRootStore;
   // services
   issueFilterService;
 
@@ -219,14 +224,14 @@ export class WorkspaceIssuesFilter extends IssueFilterHelperStore implements IWo
 
       const _filters = {
         richFilters: issueFilters.richFilters,
-        displayFilters: issueFilters.displayFilters as IIssueDisplayFilterOptions,
-        displayProperties: issueFilters.displayProperties as IIssueDisplayProperties,
-        kanbanFilters: issueFilters.kanbanFilters as TIssueKanbanFilters,
+        displayFilters: issueFilters.displayFilters ?? {},
+        displayProperties: issueFilters.displayProperties ?? {},
+        kanbanFilters: issueFilters.kanbanFilters ?? { group_by: [], sub_group_by: [] },
       };
 
       switch (type) {
         case EIssueFilterType.DISPLAY_FILTERS: {
-          const changes = filters as IIssueDisplayFilterOptions;
+          const changes = toDisplayFilterChanges(filters);
           // calendar changes carry only the changed options
           const updatedDisplayFilters: IIssueDisplayFilterOptions = {
             ...changes,
@@ -239,12 +244,8 @@ export class WorkspaceIssuesFilter extends IssueFilterHelperStore implements IWo
           Object.assign(updatedDisplayFilters, corrections);
 
           runInAction(() => {
-            Object.keys(updatedDisplayFilters).forEach((_key) => {
-              set(
-                this.filters,
-                [viewId, "displayFilters", _key],
-                updatedDisplayFilters[_key as keyof IIssueDisplayFilterOptions]
-              );
+            Object.entries(updatedDisplayFilters).forEach(([_key, value]) => {
+              set(this.filters, [viewId, "displayFilters", _key], value);
             });
           });
 
@@ -257,16 +258,12 @@ export class WorkspaceIssuesFilter extends IssueFilterHelperStore implements IWo
           break;
         }
         case EIssueFilterType.DISPLAY_PROPERTIES: {
-          const updatedDisplayProperties = filters as IIssueDisplayProperties;
+          const updatedDisplayProperties = toDisplayPropertyChanges(filters);
           _filters.displayProperties = { ..._filters.displayProperties, ...updatedDisplayProperties };
 
           runInAction(() => {
-            Object.keys(updatedDisplayProperties).forEach((_key) => {
-              set(
-                this.filters,
-                [viewId, "displayProperties", _key],
-                updatedDisplayProperties[_key as keyof IIssueDisplayProperties]
-              );
+            Object.entries(updatedDisplayProperties).forEach(([_key, value]) => {
+              set(this.filters, [viewId, "displayProperties", _key], value);
             });
             if (["all-issues", "assigned", "created", "subscribed"].includes(viewId))
               this.handleIssuesLocalFilters.set(EIssuesStoreType.GLOBAL, type, workspaceSlug, undefined, viewId, {
@@ -277,7 +274,7 @@ export class WorkspaceIssuesFilter extends IssueFilterHelperStore implements IWo
         }
 
         case EIssueFilterType.KANBAN_FILTERS: {
-          const updatedKanbanFilters = filters as TIssueKanbanFilters;
+          const updatedKanbanFilters = toKanbanFilterChanges(filters);
           _filters.kanbanFilters = { ..._filters.kanbanFilters, ...updatedKanbanFilters };
 
           const currentUserId = this.rootIssueStore.currentUserId;
@@ -287,12 +284,8 @@ export class WorkspaceIssuesFilter extends IssueFilterHelperStore implements IWo
             });
 
           runInAction(() => {
-            Object.keys(updatedKanbanFilters).forEach((_key) => {
-              set(
-                this.filters,
-                [viewId, "kanbanFilters", _key],
-                updatedKanbanFilters[_key as keyof TIssueKanbanFilters]
-              );
+            Object.entries(updatedKanbanFilters).forEach(([_key, value]) => {
+              set(this.filters, [viewId, "kanbanFilters", _key], value);
             });
           });
 

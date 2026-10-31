@@ -59,9 +59,8 @@ class WorkItemSnapshotSerializer(WorkItemValuesSerializer):
 
 
 class ViewWorkItemSerializer(WorkItemValuesSerializer):
-    """What ViewIssueListSerializer emits: no type_id."""
+    """What ViewIssueListSerializer emits."""
 
-    type_id = None
     state__group = serializers.CharField(allow_null=True)
 
 

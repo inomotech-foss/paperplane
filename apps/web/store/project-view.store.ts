@@ -41,12 +41,12 @@ export interface IProjectViewStore {
     viewId: string,
     data: Partial<IProjectView>
   ) => Promise<IProjectView>;
-  deleteView: (workspaceSlug: string, projectId: string, viewId: string) => Promise<any>;
+  deleteView: (workspaceSlug: string, projectId: string, viewId: string) => Promise<void>;
   updateFilters: <T extends keyof TViewFilters>(filterKey: T, filterValue: TViewFilters[T]) => void;
   clearAllFilters: () => void;
   // favorites actions
-  addViewToFavorites: (workspaceSlug: string, projectId: string, viewId: string) => Promise<any>;
-  removeViewFromFavorites: (workspaceSlug: string, projectId: string, viewId: string) => Promise<any>;
+  addViewToFavorites: (workspaceSlug: string, projectId: string, viewId: string) => Promise<void>;
+  removeViewFromFavorites: (workspaceSlug: string, projectId: string, viewId: string) => Promise<void>;
 }
 
 export class ProjectViewStore implements IProjectViewStore {
@@ -57,9 +57,9 @@ export class ProjectViewStore implements IProjectViewStore {
   fetchedMap: Record<string, boolean> = {};
   filters: TViewFilters = { searchQuery: "", sortBy: "desc", sortKey: "updated_at" };
   // root store
-  rootStore;
+  rootStore: CoreRootStore;
   // services
-  viewService;
+  viewService: ViewService;
 
   constructor(_rootStore: CoreRootStore) {
     makeObservable(this, {
@@ -245,7 +245,7 @@ export class ProjectViewStore implements IProjectViewStore {
    * @param viewId
    * @returns
    */
-  deleteView = async (workspaceSlug: string, projectId: string, viewId: string): Promise<any> => {
+  deleteView = async (workspaceSlug: string, projectId: string, viewId: string): Promise<void> => {
     await this.viewService.deleteView(workspaceSlug, projectId, viewId).then(() => {
       runInAction(() => {
         delete this.viewMap[viewId];

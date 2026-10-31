@@ -61,19 +61,23 @@ const PriorityChart = observer(function PriorityChart(props: Props) {
   const params = useParams();
   const workspaceSlug = params.workspaceSlug.toString();
 
-  const { data: priorityChartData, isLoading: priorityChartLoading } = useSWR(
+  const {
+    data: priorityChartData,
+    isLoading: priorityChartLoading,
+    error: priorityChartError,
+  } = useSWR<TChart, unknown>(
     `customized-insights-chart-${workspaceSlug}-${selectedDuration}-
     ${selectedProjects}-${selectedCycle}-${selectedModule}-${props.x_axis}-${props.y_axis}-${props.group_by}-${isPeekView}`,
     () =>
-      analyticsService.getAdvanceAnalyticsCharts<TChart>(
+      analyticsService.getCustomChart(
         workspaceSlug,
-        "custom-work-items",
         {
           // date_filter: selectedDuration,
           ...(selectedProjects?.length > 0 && { project_ids: selectedProjects?.join(",") }),
           ...(selectedCycle ? { cycle_id: selectedCycle } : {}),
           ...(selectedModule ? { module_id: selectedModule } : {}),
-          ...props,
+          x_axis,
+          group_by,
         },
         isPeekView
       )
@@ -200,6 +204,13 @@ const PriorityChart = observer(function PriorityChart(props: Props) {
     <div className="flex flex-col gap-12">
       {priorityChartLoading ? (
         <ChartLoader />
+      ) : priorityChartError ? (
+        <EmptyStateCompact
+          assetKey="unknown"
+          assetClassName="size-20"
+          rootClassName="border border-subtle px-5 py-10 md:py-20 md:px-20"
+          title={t("something_went_wrong_please_try_again")}
+        />
       ) : parsedData?.data && parsedData.data.length > 0 ? (
         <>
           <BarChart
