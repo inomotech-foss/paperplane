@@ -9355,6 +9355,7 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             readonly asset_url: string | null;
+            attributes: components["schemas"]["AttachmentAttributes"];
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -9364,7 +9365,6 @@ export interface components {
             readonly updated_at: string;
             /** Format: date-time */
             deleted_at: string | null;
-            attributes: unknown;
             /** Format: uri */
             asset: string;
             entity_type: string | null;

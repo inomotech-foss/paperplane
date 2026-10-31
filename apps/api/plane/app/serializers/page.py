@@ -8,7 +8,9 @@ import base64
 
 # Module imports
 from .base import BaseSerializer
+from .issue import AttachmentAttributesSerializer
 from .user import UserLiteSerializer
+from plane.utils.openapi.fields import typed_json
 from plane.utils.page_order import next_sort_order
 from plane.utils.content_validator import (
     validate_binary_data,
@@ -361,6 +363,7 @@ class PageCommentSerializer(BaseSerializer):
 
 class PageAttachmentSerializer(BaseSerializer):
     asset_url = serializers.CharField(read_only=True)
+    attributes = typed_json(AttachmentAttributesSerializer)(required=False)
 
     class Meta:
         model = FileAsset
