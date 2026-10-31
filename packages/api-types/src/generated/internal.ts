@@ -10637,6 +10637,16 @@ export interface components {
             /** @description False when omitted */
             is_tour_completed?: boolean;
         };
+        PatchedWebhookRequest: {
+            /** Format: uri */
+            url?: string;
+            is_active?: boolean;
+            project?: boolean;
+            issue?: boolean;
+            module?: boolean;
+            cycle?: boolean;
+            issue_comment?: boolean;
+        };
         PatchedWorkSpaceRequest: {
             /** Workspace Name */
             name?: string;
@@ -13223,6 +13233,16 @@ export interface components {
             updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
+        };
+        WebhookRequest: {
+            /** Format: uri */
+            url: string;
+            is_active?: boolean;
+            project?: boolean;
+            issue?: boolean;
+            module?: boolean;
+            cycle?: boolean;
+            issue_comment?: boolean;
         };
         WebhookWithoutSecret: {
             /** Format: uuid */
@@ -27082,10 +27102,7 @@ export interface operations {
     };
     workspaces_webhook_logs_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 slug: string;
@@ -27135,7 +27152,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WebhookRequest"];
+                "multipart/form-data": components["schemas"]["WebhookRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -27200,7 +27223,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedWebhookRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedWebhookRequest"];
+                "multipart/form-data": components["schemas"]["PatchedWebhookRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {

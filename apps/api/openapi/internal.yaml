@@ -18036,12 +18036,6 @@ paths:
     get:
       operationId: workspaces_webhook_logs_list
       parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -18098,6 +18092,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -18149,6 +18155,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWebhookRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWebhookRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWebhookRequest'
       security:
       - sessionAuth: []
       responses:
@@ -31991,6 +32008,25 @@ components:
         is_tour_completed:
           type: boolean
           description: False when omitted
+    PatchedWebhookRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          minLength: 1
+        is_active:
+          type: boolean
+        project:
+          type: boolean
+        issue:
+          type: boolean
+        module:
+          type: boolean
+        cycle:
+          type: boolean
+        issue_comment:
+          type: boolean
     PatchedWorkSpaceRequest:
       type: object
       properties:
@@ -37987,6 +38023,27 @@ components:
       - created_by
       - updated_by
       - workspace
+    WebhookRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          minLength: 1
+        is_active:
+          type: boolean
+        project:
+          type: boolean
+        issue:
+          type: boolean
+        module:
+          type: boolean
+        cycle:
+          type: boolean
+        issue_comment:
+          type: boolean
+      required:
+      - url
     WebhookWithoutSecret:
       type: object
       properties:
