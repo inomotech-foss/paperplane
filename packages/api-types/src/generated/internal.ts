@@ -13080,6 +13080,8 @@ export interface components {
             /** Format: uuid */
             parent_id: string | null;
             /** Format: uuid */
+            type_id: string;
+            /** Format: uuid */
             cycle_id: string | null;
             module_ids: string[];
             label_ids: string[];

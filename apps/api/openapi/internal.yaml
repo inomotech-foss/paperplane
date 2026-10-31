@@ -37416,6 +37416,9 @@ components:
           type: string
           format: uuid
           nullable: true
+        type_id:
+          type: string
+          format: uuid
         cycle_id:
           type: string
           format: uuid
@@ -37477,6 +37480,7 @@ components:
       - sequence_id
       - project_id
       - parent_id
+      - type_id
       - cycle_id
       - module_ids
       - label_ids

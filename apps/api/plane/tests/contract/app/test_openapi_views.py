@@ -77,3 +77,8 @@ class TestViewRequests:
         )
         params = {"per_page": 10, "order_by": "-created_at", "sub_issue": "false", "priority": "none"}
         assert documented(session_client.get(BASE.format(slug=workspace.slug) + "/issues/", params))["results"]
+
+    def test_workspace_issues_carry_the_type(self, session_client, workspace, project):
+        issue = Issue.objects.create(name="a", project=project, workspace=workspace, type=link_starter_type(project))
+        rows = documented(session_client.get(BASE.format(slug=workspace.slug) + "/issues/"))["results"]
+        assert rows[0]["type_id"] == str(issue.type_id)
