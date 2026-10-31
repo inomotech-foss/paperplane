@@ -16,6 +16,7 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
 # Module imports
+from plane.app.serializers.request.issue_detail import WORK_ITEM_HISTORY_PARAMETERS
 from plane.app.serializers.response.issue import WorkItemHistoryEntry
 from .. import BaseAPIView
 from .relation import issue_in_project
@@ -28,7 +29,7 @@ class IssueActivityEndpoint(BaseAPIView):
     permission_classes = [ProjectEntityPermission]
     use_read_replica = True
 
-    @extend_schema(responses={200: WorkItemHistoryEntry})
+    @extend_schema(parameters=WORK_ITEM_HISTORY_PARAMETERS, responses={200: WorkItemHistoryEntry})
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, issue_id):

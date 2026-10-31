@@ -14,10 +14,12 @@ from django.db import IntegrityError
 # Third Party imports
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
 
 # Module imports
 from .. import BaseViewSet
 from plane.app.serializers import IssueCommentSerializer, CommentReactionSerializer
+from plane.app.serializers.request.issue_detail import IssueCommentWriteSerializer, ReactionCreateSerializer
 from plane.app.permissions import allow_permission, issue_hidden_from_guest, ROLE
 from plane.db.models import IssueComment, ProjectMember, CommentReaction, Project, Issue
 from plane.bgtasks.issue_activities_task import issue_activity
@@ -89,6 +91,7 @@ class IssueCommentViewSet(BaseViewSet):
             )
         return super().retrieve(request, slug, project_id, issue_id, pk)
 
+    @extend_schema(request=IssueCommentWriteSerializer, responses={201: IssueCommentSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def create(self, request, slug, project_id, issue_id):
         project = Project.objects.get(pk=project_id)
@@ -141,6 +144,7 @@ class IssueCommentViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(request=IssueCommentWriteSerializer, responses={200: IssueCommentSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN], creator=True, model=IssueComment)
     def partial_update(self, request, slug, project_id, issue_id, pk):
         issue_comment = IssueComment.objects.get(
@@ -237,6 +241,7 @@ class CommentReactionViewSet(BaseViewSet):
             )
         return super().list(request, slug, project_id, comment_id)
 
+    @extend_schema(request=ReactionCreateSerializer, responses={201: CommentReactionSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def create(self, request, slug, project_id, comment_id):
         if self._comment_issue_hidden_from_guest(request, slug, project_id, comment_id):

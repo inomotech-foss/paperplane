@@ -20,6 +20,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
+from plane.app.serializers.request.issue_detail import WorkItemQueryValidateSerializer
 from plane.app.serializers.response.issue import QUERY_VOCABULARY_SCHEMA, QueryValidationSerializer
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.views.base import BaseAPIView
@@ -79,7 +80,7 @@ class WorkItemQueryValidateEndpoint(BaseAPIView):
     invalid choice, carry the `position` and `token` of that field or value.
     """
 
-    @extend_schema(responses={200: QueryValidationSerializer})
+    @extend_schema(request=WorkItemQueryValidateSerializer, responses={200: QueryValidationSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def post(self, request, slug):
         source = request.data.get("pql")

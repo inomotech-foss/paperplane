@@ -19,6 +19,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
+from plane.app.serializers.request.issue_detail import AttachmentUploadSerializer
 from plane.app.serializers.response.asset import IssueAttachmentUploadSerializer
 from .. import BaseAPIView
 from plane.app.serializers import IssueAttachmentSerializer
@@ -116,7 +117,7 @@ class IssueAttachmentV2Endpoint(BaseAPIView):
     serializer_class = IssueAttachmentSerializer
     model = FileAsset
 
-    @extend_schema(responses={200: IssueAttachmentUploadSerializer})
+    @extend_schema(request=AttachmentUploadSerializer, responses={200: IssueAttachmentUploadSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def post(self, request, slug, project_id, issue_id):
         # A restricted guest may only add attachments to issues they created,
@@ -243,7 +244,7 @@ class IssueAttachmentV2Endpoint(BaseAPIView):
         serializer = IssueAttachmentSerializer(issue_attachments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={204: OpenApiResponse(description="Done")})
+    @extend_schema(request=None, responses={204: OpenApiResponse(description="Done")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id, issue_id, pk):
         # A restricted guest may only touch attachments of issues they created,

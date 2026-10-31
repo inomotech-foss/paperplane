@@ -23,6 +23,11 @@ from plane.app.serializers import (
     EstimatePointSerializer,
     EstimateReadSerializer,
 )
+from plane.app.serializers.request.taxonomy import (
+    EstimateCreateSerializer,
+    EstimatePointCreateOneSerializer,
+    EstimateUpdateSerializer,
+)
 from plane.utils.cache import invalidate_cache
 from plane.bgtasks.issue_activities_task import issue_activity
 
@@ -63,7 +68,7 @@ class BulkEstimatePointEndpoint(BaseViewSet):
         serializer = EstimateReadSerializer(estimates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: EstimateReadSerializer})
+    @extend_schema(request=EstimateCreateSerializer, responses={200: EstimateReadSerializer})
     @invalidate_cache(path="/api/workspaces/:slug/estimates/", url_params=True, user=False)
     def create(self, request, slug, project_id):
         estimate = request.data.get("estimate")
@@ -110,7 +115,7 @@ class BulkEstimatePointEndpoint(BaseViewSet):
         serializer = EstimateReadSerializer(estimate)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: EstimateReadSerializer})
+    @extend_schema(request=EstimateUpdateSerializer, responses={200: EstimateReadSerializer})
     @invalidate_cache(path="/api/workspaces/:slug/estimates/", url_params=True, user=False)
     def partial_update(self, request, slug, project_id, estimate_id):
         if not len(request.data.get("estimate_points", [])):
@@ -157,7 +162,7 @@ class BulkEstimatePointEndpoint(BaseViewSet):
 
 
 class EstimatePointEndpoint(BaseViewSet):
-    @extend_schema(responses={200: EstimatePointSerializer})
+    @extend_schema(request=EstimatePointCreateOneSerializer, responses={200: EstimatePointSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id, estimate_id):
         #  TODO: add a key validation if the same key already exists
@@ -185,7 +190,7 @@ class EstimatePointEndpoint(BaseViewSet):
         serializer = EstimatePointSerializer(estimate_point).data
         return Response(serializer, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: EstimatePointSerializer})
+    @extend_schema(request=EstimatePointSerializer, responses={200: EstimatePointSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def partial_update(self, request, slug, project_id, estimate_id, estimate_point_id):
         #  TODO: add a key validation if the same key already exists

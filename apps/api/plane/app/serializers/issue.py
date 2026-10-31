@@ -50,6 +50,7 @@ from plane.utils.content_validator import (
     validate_binary_data,
 )
 from plane.utils.issue_type import is_type_linked
+from plane.utils.openapi.fields import typed_json
 from plane.utils.issue_type_migration import type_change_error
 
 
@@ -650,8 +651,15 @@ class IssueLinkLiteSerializer(BaseSerializer):
         read_only_fields = fields
 
 
+class AttachmentAttributesSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    type = serializers.CharField(required=False)
+    size = serializers.FloatField(help_text="In bytes")
+
+
 class IssueAttachmentSerializer(BaseSerializer):
     asset_url = serializers.CharField(read_only=True)
+    attributes = typed_json(AttachmentAttributesSerializer)(required=False)
 
     class Meta:
         model = FileAsset
