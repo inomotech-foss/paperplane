@@ -39,11 +39,17 @@ export class IssueRelationService {
     return relations.map(toRelatedIssue);
   }
 
-  async deleteIssueRelation(workspaceSlug: string, projectId: string, issueId: string, relatedIssueId: string) {
+  async deleteIssueRelation(
+    workspaceSlug: string,
+    projectId: string,
+    issueId: string,
+    relationType: TIssueRelationTypes,
+    relatedIssueId: string
+  ) {
     return unwrap(
       apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/remove-relation/", {
         params: issuePath(workspaceSlug, projectId, issueId),
-        body: { related_issue: relatedIssueId },
+        body: { related_issue: relatedIssueId, relation_type: relationType },
       })
     );
   }

@@ -23,6 +23,16 @@ import { REVERSE_RELATIONS } from "@plane/constants";
 import { IssueRelationService } from "@/services/issue";
 // types
 import type { IIssueDetail } from "./root.store";
+
+type TRelationRootStore = {
+  peekIssue: IIssueDetail["peekIssue"];
+  issue: Pick<IIssueDetail["issue"], "getIssueById">;
+  activity: Pick<IIssueDetail["activity"], "fetchActivities">;
+  rootIssueStore: Pick<IIssueDetail["rootIssueStore"], "workspaceSlug"> & {
+    issues: Pick<IIssueDetail["rootIssueStore"]["issues"], "addPartialIssues">;
+  };
+};
+
 export interface IIssueRelationStoreActions {
   // actions
   fetchRelations: (workspaceSlug: string, projectId: string, issueId: string) => Promise<TIssueRelation>;
@@ -65,11 +75,11 @@ export class IssueRelationStore implements IIssueRelationStore {
   // observables
   relationMap: TIssueRelationMap = {};
   // root store
-  rootIssueDetailStore: IIssueDetail;
+  rootIssueDetailStore: TRelationRootStore;
   // services
   issueRelationService;
 
-  constructor(rootStore: IIssueDetail) {
+  constructor(rootStore: TRelationRootStore) {
     makeObservable(this, {
       // observables
       relationMap: observable,
@@ -245,7 +255,13 @@ export class IssueRelationStore implements IIssueRelationStore {
         });
 
       if (!updateLocally) {
-        await this.issueRelationService.deleteIssueRelation(workspaceSlug, projectId, issueId, related_issue);
+        await this.issueRelationService.deleteIssueRelation(
+          workspaceSlug,
+          projectId,
+          issueId,
+          relationType,
+          related_issue
+        );
       }
 
       // While removing one relation, reverse of the relation should also be removed
