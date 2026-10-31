@@ -68,9 +68,9 @@ export const Exporter = observer(function Exporter(props: Props) {
   const [multiple, setMultiple] = useState<boolean>(false);
 
   async function ExportCSVToMail() {
-    setExportLoading(true);
     const exportProvider = typeof provider === "string" ? findLiteral(exportProviderEnumValues, provider) : undefined;
     if (workspaceSlug && user && exportProvider) {
+      setExportLoading(true);
       const payload = {
         provider: exportProvider,
         project: value,

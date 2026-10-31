@@ -94,9 +94,9 @@ export const ExportForm = observer(function ExportForm(props: Props) {
 
   // handlers
   async function ExportCSVToMail(formData: FormData) {
-    setExportLoading(true);
     const provider = findLiteral(exportProviderEnumValues, formData.provider.provider);
     if (workspaceSlug && user && provider) {
+      setExportLoading(true);
       const payload = {
         provider,
         project: formData.project,
@@ -128,8 +128,6 @@ export const ExportForm = observer(function ExportForm(props: Props) {
           message: t("workspace_settings.settings.exports.modal.toasts.error.message"),
         });
       }
-    } else {
-      setExportLoading(false);
     }
   }
 
