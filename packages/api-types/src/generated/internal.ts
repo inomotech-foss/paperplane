@@ -8832,7 +8832,7 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: date-time */
-            deleted_at: string | null;
+            readonly deleted_at: string | null;
             title: string | null;
             /** Format: uri */
             url: string;
@@ -8852,8 +8852,6 @@ export interface components {
             readonly module: string;
         };
         ModuleLinkRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
             title?: string | null;
             /** Format: uri */
             url: string;
@@ -9214,7 +9212,7 @@ export interface components {
             readonly is_favorite?: boolean;
             is_locked: boolean;
             /** Format: date */
-            archived_at: string | null;
+            readonly archived_at: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: date-time */
@@ -9225,16 +9223,16 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             view_props: components["schemas"]["ClientJson"];
             logo_props: components["schemas"]["ClientJson"];
-            label_ids?: string[];
-            project_ids?: string[];
+            readonly label_ids?: string[];
+            readonly project_ids?: string[];
         };
         PageAttachment: {
             /** Format: uuid */
@@ -9430,7 +9428,7 @@ export interface components {
             readonly is_favorite?: boolean;
             is_locked: boolean;
             /** Format: date */
-            archived_at: string | null;
+            readonly archived_at: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: date-time */
@@ -9441,16 +9439,16 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             view_props: components["schemas"]["ClientJson"];
             logo_props: components["schemas"]["ClientJson"];
-            label_ids?: string[];
-            project_ids?: string[];
+            readonly label_ids?: string[];
+            readonly project_ids?: string[];
             description_html: string;
         };
         PageOrder: {
@@ -9563,19 +9561,8 @@ export interface components {
             /** Format: double */
             sort_order?: number;
             is_locked?: boolean;
-            /** Format: date */
-            archived_at?: string | null;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
             view_props?: components["schemas"]["ClientJson"];
             logo_props?: components["schemas"]["ClientJson"];
-            label_ids?: string[];
-            project_ids?: string[];
         };
         PageSummary: {
             public_pages: number;
@@ -9597,7 +9584,7 @@ export interface components {
             readonly is_favorite?: boolean;
             is_locked: boolean;
             /** Format: date */
-            archived_at: string | null;
+            readonly archived_at: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: date-time */
@@ -9608,16 +9595,16 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             view_props: components["schemas"]["ClientJson"];
             logo_props: components["schemas"]["ClientJson"];
-            label_ids?: string[];
-            project_ids?: string[];
+            readonly label_ids?: string[];
+            readonly project_ids?: string[];
             description_html: string;
         };
         PageVersion: {
@@ -9691,7 +9678,7 @@ export interface components {
             readonly is_favorite?: boolean;
             is_locked: boolean;
             /** Format: date */
-            archived_at: string | null;
+            readonly archived_at: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: date-time */
@@ -9702,16 +9689,16 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             view_props: components["schemas"]["ClientJson"];
             logo_props: components["schemas"]["ClientJson"];
-            label_ids?: string[];
-            project_ids?: string[];
+            readonly label_ids?: string[];
+            readonly project_ids?: string[];
             description_html: string;
             /** @description Work items the page mentions */
             issue_ids: string[];
@@ -10246,8 +10233,6 @@ export interface components {
             issue?: string;
         };
         PatchedModuleLinkRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
             title?: string | null;
             /** Format: uri */
             url?: string;
@@ -10332,19 +10317,8 @@ export interface components {
             /** Format: double */
             sort_order?: number;
             is_locked?: boolean;
-            /** Format: date */
-            archived_at?: string | null;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
             view_props?: components["schemas"]["ClientJson"];
             logo_props?: components["schemas"]["ClientJson"];
-            label_ids?: string[];
-            project_ids?: string[];
         };
         PatchedProfileRequest: {
             onboarding_step?: components["schemas"]["OnboardingStepRequest"];

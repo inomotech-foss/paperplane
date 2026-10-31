@@ -48,6 +48,9 @@ class CycleWriteSerializer(BaseSerializer):
             "archived_at",
             "created_by",
             "updated_by",
+            "deleted_at",
+            "progress_snapshot",
+            "version",
         ]
 
 

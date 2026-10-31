@@ -26856,6 +26856,7 @@ components:
         deleted_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         title:
           type: string
@@ -26905,10 +26906,6 @@ components:
     ModuleLinkRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
         title:
           type: string
           nullable: true
@@ -27754,6 +27751,7 @@ components:
         archived_at:
           type: string
           format: date
+          readOnly: true
           nullable: true
         workspace:
           type: string
@@ -27771,10 +27769,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         view_props:
@@ -27786,11 +27786,13 @@ components:
           items:
             type: string
             format: uuid
+          readOnly: true
         project_ids:
           type: array
           items:
             type: string
             format: uuid
+          readOnly: true
       required:
       - id
       - name
@@ -28275,6 +28277,7 @@ components:
         archived_at:
           type: string
           format: date
+          readOnly: true
           nullable: true
         workspace:
           type: string
@@ -28292,10 +28295,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         view_props:
@@ -28307,11 +28312,13 @@ components:
           items:
             type: string
             format: uuid
+          readOnly: true
         project_ids:
           type: array
           items:
             type: string
             format: uuid
+          readOnly: true
         description_html:
           type: string
       required:
@@ -28596,33 +28603,10 @@ components:
           format: double
         is_locked:
           type: boolean
-        archived_at:
-          type: string
-          format: date
-          nullable: true
-        created_by:
-          type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
         view_props:
           $ref: '#/components/schemas/ClientJson'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
-        label_ids:
-          type: array
-          items:
-            type: string
-            format: uuid
-        project_ids:
-          type: array
-          items:
-            type: string
-            format: uuid
     PageSummary:
       type: object
       properties:
@@ -28674,6 +28658,7 @@ components:
         archived_at:
           type: string
           format: date
+          readOnly: true
           nullable: true
         workspace:
           type: string
@@ -28691,10 +28676,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         view_props:
@@ -28706,11 +28693,13 @@ components:
           items:
             type: string
             format: uuid
+          readOnly: true
         project_ids:
           type: array
           items:
             type: string
             format: uuid
+          readOnly: true
         description_html:
           type: string
       required:
@@ -28876,6 +28865,7 @@ components:
         archived_at:
           type: string
           format: date
+          readOnly: true
           nullable: true
         workspace:
           type: string
@@ -28893,10 +28883,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         view_props:
@@ -28908,11 +28900,13 @@ components:
           items:
             type: string
             format: uuid
+          readOnly: true
         project_ids:
           type: array
           items:
             type: string
             format: uuid
+          readOnly: true
         description_html:
           type: string
         issue_ids:
@@ -30227,10 +30221,6 @@ components:
     PatchedModuleLinkRequest:
       type: object
       properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
         title:
           type: string
           nullable: true
@@ -30413,33 +30403,10 @@ components:
           format: double
         is_locked:
           type: boolean
-        archived_at:
-          type: string
-          format: date
-          nullable: true
-        created_by:
-          type: string
-          format: uuid
-          nullable: true
-        updated_by:
-          type: string
-          format: uuid
-          nullable: true
-          title: Last Modified By
         view_props:
           $ref: '#/components/schemas/ClientJson'
         logo_props:
           $ref: '#/components/schemas/ClientJson'
-        label_ids:
-          type: array
-          items:
-            type: string
-            format: uuid
-        project_ids:
-          type: array
-          items:
-            type: string
-            format: uuid
     PatchedProfileRequest:
       type: object
       properties:
