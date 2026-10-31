@@ -22,6 +22,8 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views import View
 from drf_spectacular.utils import extend_schema
 
+from plane.app.serializers.request.user import AuthEmailSerializer
+
 # Module imports
 from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.bgtasks.forgot_password_task import forgot_password
@@ -50,7 +52,7 @@ class ForgotPasswordEndpoint(APIView):
 
     throttle_classes = [AuthenticationThrottle]
 
-    @extend_schema(responses={200: MessageResponseSerializer})
+    @extend_schema(request=AuthEmailSerializer, responses={200: MessageResponseSerializer})
     def post(self, request):
         email = request.data.get("email")
 

@@ -17,7 +17,7 @@ from drf_spectacular.utils import extend_schema
 
 ## Module imports
 from plane.utils.openapi.serializers import MessageResponseSerializer
-from plane.app.serializers.request.user import ChangePasswordSerializer
+from plane.app.serializers.request.user import ChangePasswordSerializer, SetPasswordSerializer
 from plane.app.serializers.response.auth import CSRFTokenSerializer
 from plane.app.serializers import UserSerializer
 from plane.authentication.utils.login import user_login
@@ -123,7 +123,7 @@ class ChangePasswordEndpoint(APIView):
 
 
 class SetUserPasswordEndpoint(APIView):
-    @extend_schema(responses={200: UserSerializer})
+    @extend_schema(request=SetPasswordSerializer, responses={200: UserSerializer})
     @invalidate_cache("/api/users/me/")
     def post(self, request):
         if _password_auth_disabled():

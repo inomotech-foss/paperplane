@@ -15,6 +15,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 
+from plane.app.serializers.request.user import AuthEmailSerializer
+
 # Module imports
 from plane.app.serializers.response.auth import MagicKeySerializer
 from plane.authentication.provider.credentials.magic_code import MagicCodeProvider
@@ -39,7 +41,7 @@ class MagicGenerateSpaceEndpoint(APIView):
 
     throttle_classes = [AuthenticationThrottle]
 
-    @extend_schema(responses={200: MagicKeySerializer})
+    @extend_schema(request=AuthEmailSerializer, responses={200: MagicKeySerializer})
     def post(self, request):
         # Check if instance is configured
         instance = Instance.objects.first()

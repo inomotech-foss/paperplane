@@ -5581,6 +5581,10 @@ export interface components {
             /** @description In bytes, capped at the instance limit */
             size?: number;
         };
+        AuthEmailRequest: {
+            /** Format: email */
+            email: string;
+        };
         Automation: {
             /** Format: uuid */
             readonly id: string;
@@ -6711,10 +6715,6 @@ export interface components {
         EmailCheck: {
             existing: boolean;
             status: components["schemas"]["EmailCheckStatusEnum"];
-        };
-        EmailCheckRequestRequest: {
-            /** Format: email */
-            email: string;
         };
         /**
          * @description * `MAGIC_CODE` - MAGIC_CODE
@@ -11697,6 +11697,10 @@ export interface components {
             notify_mode?: components["schemas"]["NotifyModeEnum"];
             /** @description With notify_mode CUSTOM. Ids that are not active project members are dropped */
             notify_user_ids?: string[];
+        };
+        SetPasswordRequest: {
+            /** @description Must pass the password strength check */
+            password: string;
         };
         SlugAvailability: {
             /** @description True when the slug is free */
@@ -27651,9 +27655,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["EmailCheckRequestRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["EmailCheckRequestRequest"];
-                "multipart/form-data": components["schemas"]["EmailCheckRequestRequest"];
+                "application/json": components["schemas"]["AuthEmailRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AuthEmailRequest"];
+                "multipart/form-data": components["schemas"]["AuthEmailRequest"];
             };
         };
         responses: {
@@ -27674,7 +27678,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthEmailRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AuthEmailRequest"];
+                "multipart/form-data": components["schemas"]["AuthEmailRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -27712,7 +27722,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthEmailRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AuthEmailRequest"];
+                "multipart/form-data": components["schemas"]["AuthEmailRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -27750,7 +27766,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPasswordRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["SetPasswordRequest"];
+                "multipart/form-data": components["schemas"]["SetPasswordRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -27769,7 +27791,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthEmailRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AuthEmailRequest"];
+                "multipart/form-data": components["schemas"]["AuthEmailRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -27788,7 +27816,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthEmailRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AuthEmailRequest"];
+                "multipart/form-data": components["schemas"]["AuthEmailRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -27807,7 +27841,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthEmailRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AuthEmailRequest"];
+                "multipart/form-data": components["schemas"]["AuthEmailRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {

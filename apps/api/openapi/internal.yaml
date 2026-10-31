@@ -18729,13 +18729,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmailCheckRequestRequest'
+              $ref: '#/components/schemas/AuthEmailRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/EmailCheckRequestRequest'
+              $ref: '#/components/schemas/AuthEmailRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/EmailCheckRequestRequest'
+              $ref: '#/components/schemas/AuthEmailRequest'
         required: true
       security:
       - cookieAuth: []
@@ -18752,6 +18752,18 @@ paths:
       operationId: auth_forgot_password_create
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+        required: true
       security:
       - cookieAuth: []
       - {}
@@ -18782,6 +18794,18 @@ paths:
       operationId: auth_magic_generate_create
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+        required: true
       security:
       - cookieAuth: []
       - {}
@@ -18813,6 +18837,18 @@ paths:
       operationId: auth_set_password_create
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRequest'
+        required: true
       security:
       - cookieAuth: []
       responses:
@@ -18827,6 +18863,18 @@ paths:
       operationId: auth_spaces_email_check_create
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+        required: true
       security:
       - cookieAuth: []
       - {}
@@ -18842,6 +18890,18 @@ paths:
       operationId: auth_spaces_forgot_password_create
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+        required: true
       security:
       - cookieAuth: []
       - {}
@@ -18857,6 +18917,18 @@ paths:
       operationId: auth_spaces_magic_generate_create
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthEmailRequest'
+        required: true
       security:
       - cookieAuth: []
       - {}
@@ -19872,6 +19944,15 @@ components:
           description: In bytes, capped at the instance limit
       required:
       - type
+    AuthEmailRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+      required:
+      - email
     Automation:
       type: object
       properties:
@@ -22658,15 +22739,6 @@ components:
       required:
       - existing
       - status
-    EmailCheckRequestRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          minLength: 1
-      required:
-      - email
     EmailCheckStatusEnum:
       enum:
       - MAGIC_CODE
@@ -34640,6 +34712,15 @@ components:
             format: uuid
           description: With notify_mode CUSTOM. Ids that are not active project members
             are dropped
+    SetPasswordRequest:
+      type: object
+      properties:
+        password:
+          type: string
+          minLength: 1
+          description: Must pass the password strength check
+      required:
+      - password
     SlugAvailability:
       type: object
       properties:
