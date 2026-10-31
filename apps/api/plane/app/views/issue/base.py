@@ -28,6 +28,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.gzip import gzip_page
 
 # Third Party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -753,6 +754,7 @@ class IssueViewSet(BaseViewSet):
 
 
 class ProjectUserDisplayPropertyEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ProjectUserPropertySerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id):
         try:
@@ -765,6 +767,7 @@ class ProjectUserDisplayPropertyEndpoint(BaseAPIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses={200: ProjectUserPropertySerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id):
         issue_property, _ = ProjectUserProperty.objects.get_or_create(user=request.user, project_id=project_id)

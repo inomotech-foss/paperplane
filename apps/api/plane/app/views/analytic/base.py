@@ -11,12 +11,14 @@ from django.db.models import Case, When, Value, OuterRef, Func
 from django.db import models
 
 # Third party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
 # Module imports
 from plane.app.permissions import WorkSpaceAdminPermission
 from plane.app.serializers import AnalyticViewSerializer
+from plane.app.serializers.response.project import ProjectStatsSerializer
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.bgtasks.analytic_plot_export import analytic_export_task
 from plane.db.models import (
@@ -408,6 +410,7 @@ class DefaultAnalyticsEndpoint(BaseAPIView):
 
 
 class ProjectStatsEndpoint(BaseAPIView):
+    @extend_schema(responses={200: ProjectStatsSerializer(many=True)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def get(self, request, slug):
         fields = request.GET.get("fields", "").split(",")

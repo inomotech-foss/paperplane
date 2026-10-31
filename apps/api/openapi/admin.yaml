@@ -15,9 +15,6 @@ paths:
   /api/instances/:
     get:
       operationId: root_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       security:
       - sessionAuth: []
       - {}
@@ -26,9 +23,6 @@ paths:
           description: No response body
     patch:
       operationId: root_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       security:
       - sessionAuth: []
       responses:
@@ -37,9 +31,6 @@ paths:
   /api/instances/admins/:
     get:
       operationId: admins_list
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - name: search
         required: false
@@ -62,9 +53,6 @@ paths:
           description: ''
     post:
       operationId: admins_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - admins
       security:
@@ -79,9 +67,6 @@ paths:
   /api/instances/admins/{pk}/:
     delete:
       operationId: admins_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -99,9 +84,6 @@ paths:
   /api/instances/admins/me/:
     get:
       operationId: admins_me_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - admins
       security:
@@ -116,9 +98,6 @@ paths:
   /api/instances/admins/session/:
     get:
       operationId: admins_session_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - admins
       security:
@@ -134,9 +113,6 @@ paths:
   /api/instances/admins/sign-up-screen-visited/:
     post:
       operationId: admins_sign_up_screen_visited_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - admins
       security:
@@ -148,9 +124,6 @@ paths:
   /api/instances/configurations/:
     get:
       operationId: configurations_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - configurations
       security:
@@ -160,9 +133,6 @@ paths:
           description: No response body
     patch:
       operationId: configurations_partial_update
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - configurations
       security:
@@ -173,9 +143,6 @@ paths:
   /api/instances/configurations/disable-email-feature/:
     delete:
       operationId: configurations_disable_email_feature_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - configurations
       security:
@@ -186,9 +153,6 @@ paths:
   /api/instances/email-credentials-check/:
     post:
       operationId: email_credentials_check_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - email-credentials-check
       security:
@@ -199,11 +163,6 @@ paths:
   /api/instances/oauth-applications/:
     get:
       operationId: oauth_applications_retrieve
-      description: |-
-        Register OAuth clients such as the MCP server.
-
-        Client secrets are hashed on save, so the secret is returned once at
-        creation and cannot be recovered afterwards.
       tags:
       - oauth-applications
       security:
@@ -213,11 +172,6 @@ paths:
           description: No response body
     post:
       operationId: oauth_applications_create
-      description: |-
-        Register OAuth clients such as the MCP server.
-
-        Client secrets are hashed on save, so the secret is returned once at
-        creation and cannot be recovered afterwards.
       tags:
       - oauth-applications
       security:
@@ -228,11 +182,6 @@ paths:
   /api/instances/oauth-applications/{pk}/:
     patch:
       operationId: oauth_applications_partial_update
-      description: |-
-        Register OAuth clients such as the MCP server.
-
-        Client secrets are hashed on save, so the secret is returned once at
-        creation and cannot be recovered afterwards.
       parameters:
       - in: path
         name: pk
@@ -248,11 +197,6 @@ paths:
           description: No response body
     delete:
       operationId: oauth_applications_destroy
-      description: |-
-        Register OAuth clients such as the MCP server.
-
-        Client secrets are hashed on save, so the secret is returned once at
-        creation and cannot be recovered afterwards.
       parameters:
       - in: path
         name: pk
@@ -269,9 +213,6 @@ paths:
   /api/instances/users/:
     get:
       operationId: users_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: query
         name: cursor
@@ -307,9 +248,6 @@ paths:
   /api/instances/users/{pk}/:
     get:
       operationId: users_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -330,9 +268,6 @@ paths:
           description: ''
     delete:
       operationId: users_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -350,9 +285,6 @@ paths:
   /api/instances/users/{pk}/deactivate/:
     post:
       operationId: users_deactivate_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -374,9 +306,6 @@ paths:
   /api/instances/users/{pk}/merge/:
     post:
       operationId: users_merge_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -398,9 +327,6 @@ paths:
   /api/instances/users/{pk}/merge/preview/:
     post:
       operationId: users_merge_preview_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -422,9 +348,6 @@ paths:
   /api/instances/users/{pk}/reactivate/:
     post:
       operationId: users_reactivate_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -446,9 +369,6 @@ paths:
   /api/instances/workspace-slug-check/:
     get:
       operationId: workspace_slug_check_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - workspace-slug-check
       security:
@@ -463,9 +383,6 @@ paths:
   /api/instances/workspaces/:
     get:
       operationId: workspaces_retrieve
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: query
         name: cursor
@@ -500,9 +417,6 @@ paths:
           description: ''
     post:
       operationId: workspaces_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       tags:
       - workspaces
       requestBody:
@@ -529,9 +443,6 @@ paths:
   /api/instances/workspaces/{pk}/:
     get:
       operationId: workspaces_retrieve_2
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -552,9 +463,6 @@ paths:
           description: ''
     delete:
       operationId: workspaces_destroy
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk
@@ -572,9 +480,6 @@ paths:
   /api/instances/workspaces/{pk}/transfer-owner/:
     post:
       operationId: workspaces_transfer_owner_create
-      description: |-
-        This enables timezone conversion according
-        to the user set timezone
       parameters:
       - in: path
         name: pk

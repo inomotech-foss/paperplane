@@ -3,6 +3,7 @@
 # See the LICENSE file for details.
 
 # Third party modules
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -18,6 +19,7 @@ class WorkspaceLabelsEndpoint(BaseAPIView):
     permission_classes = [WorkspaceViewerPermission]
     use_read_replica = True
 
+    @extend_schema(responses={200: LabelSerializer(many=True)})
     @cache_response(60 * 60 * 2)
     def get(self, request, slug):
         labels = Label.objects.filter(

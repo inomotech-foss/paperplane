@@ -5,9 +5,11 @@
 
 import re
 from functools import cache
+from unittest.mock import patch
 from pathlib import Path
 
 import jsonschema
+import pytest
 import yaml
 from django.conf import settings
 
@@ -49,3 +51,17 @@ def assert_matches_schema(response, surface="internal"):
     assert "application/json" in content, f"{method.upper()} {route} {response.status_code} documents no JSON body"
     body = {**content["application/json"]["schema"], "components": schema["components"]}
     jsonschema.validate(response.json(), strict(body))
+
+
+def documented(response, status=200, surface="internal"):
+    """Assert the status, check the body against the schema and return it."""
+    assert response.status_code == status, response.content
+    assert_matches_schema(response, surface)
+    return response.json()
+
+
+@pytest.fixture
+def no_tasks():
+    """Swallow Celery dispatches, the tests have no broker."""
+    with patch("celery.app.task.Task.delay"), patch("celery.app.task.Task.apply_async"):
+        yield

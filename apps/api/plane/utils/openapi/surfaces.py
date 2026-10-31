@@ -13,6 +13,8 @@ _SESSION_SURFACE = {
         "TriageStateGroupEnum": "plane.app.serializers.state.TRIAGE_STATE_GROUP_CHOICES",
     },
     "AUTHENTICATION_WHITELIST": None,
+    # Docstrings here are notes for maintainers, not API documentation.
+    "DISABLE_DOCSTRING_DESCRIPTIONS": True,
     "SERVERS": [],
     "TAGS": [],
 }

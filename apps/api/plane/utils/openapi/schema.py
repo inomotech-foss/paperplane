@@ -58,8 +58,20 @@ def _source_presence(model, source):
 def serialized_presence(serializer, field):
     """(always emitted, may be null) for a field in to_representation().
 
-    DRF skips a field whose attribute is missing unless it is required, has a default or allows null.
+    Meta.response_required and Meta.response_optional override the guess for fields a view adds or drops,
+    such as queryset annotations.
     """
+    always, nullable = _guessed_presence(serializer, field)
+    meta = getattr(serializer, "Meta", None)
+    if field.field_name in getattr(meta, "response_required", ()):
+        always = True
+    if field.field_name in getattr(meta, "response_optional", ()):
+        always = False
+    return always, nullable
+
+
+def _guessed_presence(serializer, field):
+    """DRF skips a field whose attribute is missing unless it is required, has a default or allows null."""
     if field.required or field.default is not empty or field.allow_null:
         return ALWAYS
     if isinstance(field, serializers.SerializerMethodField) or field.source == "*":

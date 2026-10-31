@@ -13,6 +13,7 @@ from django.conf import settings
 from django.utils import timezone
 
 # Third Party imports
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -24,6 +25,7 @@ from plane.app.serializers import (
     ProjectMemberInvitePublicSerializer,
 )
 from plane.app.permissions import allow_permission, ROLE
+from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.db.models import (
     ProjectMember,
     Workspace,
@@ -66,6 +68,7 @@ class ProjectInvitationsViewset(BaseViewSet):
     def destroy(self, request, slug, project_id, pk):
         return super().destroy(request)
 
+    @extend_schema(responses={200: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN])
     def create(self, request, slug, project_id):
         emails = request.data.get("emails", [])
@@ -141,6 +144,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
             .select_related("workspace", "workspace__owner", "project")
         )
 
+    @extend_schema(responses={201: MessageResponseSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def create(self, request, slug):
         project_ids = request.data.get("project_ids", [])
@@ -193,6 +197,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
 class ProjectJoinEndpoint(BaseAPIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: MessageResponseSerializer})
     def post(self, request, slug, project_id, pk):
         project_invite = ProjectMemberInvite.objects.get(pk=pk, project_id=project_id, workspace__slug=slug)
 
@@ -288,6 +293,7 @@ class ProjectJoinEndpoint(BaseAPIView):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    @extend_schema(responses={200: ProjectMemberInvitePublicSerializer})
     def get(self, request, slug, project_id, pk):
         project_invitation = ProjectMemberInvite.objects.get(workspace__slug=slug, project_id=project_id, pk=pk)
         serializer = ProjectMemberInvitePublicSerializer(project_invitation)

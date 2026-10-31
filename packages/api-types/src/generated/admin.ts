@@ -11,20 +11,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["root_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["root_partial_update"];
         trace?: never;
     };
@@ -35,16 +27,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["admins_list"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["admins_create"];
         delete?: never;
         options?: never;
@@ -62,10 +46,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["admins_destroy"];
         options?: never;
         head?: never;
@@ -79,10 +59,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["admins_me_retrieve"];
         put?: never;
         post?: never;
@@ -99,10 +75,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["admins_session_retrieve"];
         put?: never;
         post?: never;
@@ -121,10 +93,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["admins_sign_up_screen_visited_create"];
         delete?: never;
         options?: never;
@@ -139,20 +107,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["configurations_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         patch: operations["configurations_partial_update"];
         trace?: never;
     };
@@ -166,10 +126,6 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["configurations_disable_email_feature_destroy"];
         options?: never;
         head?: never;
@@ -185,10 +141,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["email_credentials_check_create"];
         delete?: never;
         options?: never;
@@ -203,20 +155,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Register OAuth clients such as the MCP server.
-         *
-         *     Client secrets are hashed on save, so the secret is returned once at
-         *     creation and cannot be recovered afterwards.
-         */
         get: operations["oauth_applications_retrieve"];
         put?: never;
-        /**
-         * @description Register OAuth clients such as the MCP server.
-         *
-         *     Client secrets are hashed on save, so the secret is returned once at
-         *     creation and cannot be recovered afterwards.
-         */
         post: operations["oauth_applications_create"];
         delete?: never;
         options?: never;
@@ -234,21 +174,9 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * @description Register OAuth clients such as the MCP server.
-         *
-         *     Client secrets are hashed on save, so the secret is returned once at
-         *     creation and cannot be recovered afterwards.
-         */
         delete: operations["oauth_applications_destroy"];
         options?: never;
         head?: never;
-        /**
-         * @description Register OAuth clients such as the MCP server.
-         *
-         *     Client secrets are hashed on save, so the secret is returned once at
-         *     creation and cannot be recovered afterwards.
-         */
         patch: operations["oauth_applications_partial_update"];
         trace?: never;
     };
@@ -259,10 +187,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_retrieve"];
         put?: never;
         post?: never;
@@ -279,17 +203,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["users_retrieve_2"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["users_destroy"];
         options?: never;
         head?: never;
@@ -305,10 +221,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["users_deactivate_create"];
         delete?: never;
         options?: never;
@@ -325,10 +237,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["users_merge_create"];
         delete?: never;
         options?: never;
@@ -345,10 +253,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["users_merge_preview_create"];
         delete?: never;
         options?: never;
@@ -365,10 +269,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["users_reactivate_create"];
         delete?: never;
         options?: never;
@@ -383,10 +283,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspace_slug_check_retrieve"];
         put?: never;
         post?: never;
@@ -403,16 +299,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_retrieve"];
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_create"];
         delete?: never;
         options?: never;
@@ -427,17 +315,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         get: operations["workspaces_retrieve_2"];
         put?: never;
         post?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         delete: operations["workspaces_destroy"];
         options?: never;
         head?: never;
@@ -453,10 +333,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * @description This enables timezone conversion according
-         *     to the user set timezone
-         */
         post: operations["workspaces_transfer_owner_create"];
         delete?: never;
         options?: never;
