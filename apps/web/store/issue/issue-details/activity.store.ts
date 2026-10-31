@@ -10,14 +10,7 @@ import { computedFn } from "mobx-utils";
 // plane package imports
 import type { E_SORT_ORDER } from "@plane/constants";
 import { EActivityFilterType } from "@plane/constants";
-import type {
-  TIssueActivityComment,
-  TIssueActivity,
-  TIssueActivityMap,
-  TIssueActivityIdMap,
-  TIssueServiceType,
-} from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import type { TIssueActivityComment, TIssueActivity, TIssueActivityMap, TIssueActivityIdMap } from "@plane/types";
 // services
 import { IssueActivityService } from "@/services/issue";
 // store
@@ -52,13 +45,9 @@ export class IssueActivityStore implements IIssueActivityStore {
   activities: TIssueActivityIdMap = {};
   activityMap: TIssueActivityMap = {};
   // services
-  serviceType;
   issueActivityService;
 
-  constructor(
-    protected store: CoreRootStore,
-    serviceType: TIssueServiceType = EIssueServiceType.ISSUES
-  ) {
+  constructor(protected store: CoreRootStore) {
     makeObservable(this, {
       // observables
       loader: observable.ref,
@@ -67,7 +56,6 @@ export class IssueActivityStore implements IIssueActivityStore {
       // actions
       fetchActivities: action,
     });
-    this.serviceType = serviceType;
     // services
     this.issueActivityService = new IssueActivityService();
   }

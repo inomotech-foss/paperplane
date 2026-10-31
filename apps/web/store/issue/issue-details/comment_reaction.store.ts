@@ -53,7 +53,7 @@ export class IssueCommentReactionStore implements IIssueCommentReactionStore {
   // services
   issueReactionService;
 
-  constructor(_rootStore?: object) {
+  constructor() {
     makeObservable(this, {
       // observables
       commentReactions: observable,

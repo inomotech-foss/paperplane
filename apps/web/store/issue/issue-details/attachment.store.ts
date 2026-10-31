@@ -9,7 +9,7 @@ import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { computedFn } from "mobx-utils";
 import { v4 as uuidv4 } from "uuid";
 // types
-import type { TIssueAttachment, TIssueAttachmentMap, TIssueAttachmentIdMap, TIssueServiceType } from "@plane/types";
+import type { TIssueAttachment, TIssueAttachmentMap, TIssueAttachmentIdMap } from "@plane/types";
 // services
 import { IssueAttachmentService } from "@/services/issue";
 import type { IIssueRootStore } from "../root.store";
@@ -61,7 +61,7 @@ export class IssueAttachmentStore implements IIssueAttachmentStore {
   // services
   issueAttachmentService;
 
-  constructor(rootStore: IIssueRootStore, _serviceType?: TIssueServiceType) {
+  constructor(rootStore: IIssueRootStore) {
     makeObservable(this, {
       // observables
       attachments: observable,

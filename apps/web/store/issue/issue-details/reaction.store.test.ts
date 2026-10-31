@@ -2,7 +2,6 @@
 // See the LICENSE file for details.
 
 import { describe, expect, it, vi } from "vitest";
-import { EIssueServiceType } from "@plane/types";
 import type { TIssueCommentReaction, TIssueReaction } from "@plane/types";
 import { IssueCommentReactionStore } from "./comment_reaction.store";
 import { IssueReactionStore } from "./reaction.store";
@@ -58,7 +57,7 @@ const commentReaction: TIssueCommentReaction = {
 
 describe("removing a reaction", () => {
   it("drops the reaction by id from an issue", async () => {
-    const store = new IssueReactionStore(rootStore, EIssueServiceType.ISSUES);
+    const store = new IssueReactionStore(rootStore);
     store.addReactions("i1", [issueReaction]);
     await store.removeReaction("ws", "p1", "i1", "128077", "u1");
     expect(store.reactionMap).toEqual({});
