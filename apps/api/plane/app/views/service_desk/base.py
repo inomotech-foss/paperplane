@@ -24,6 +24,11 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from drf_spectacular.types import OpenApiTypes
 
 # Module imports
+from plane.app.serializers.request.intake import (
+    IssueEmailReplySerializer,
+    IssueEmailThreadUpdateSerializer,
+    ServiceDeskConfigUpdateSerializer,
+)
 from plane.app.serializers.response.misc import EmailReplySerializer
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.serializers import (
@@ -84,10 +89,11 @@ class ServiceDeskConfigEndpoint(BaseAPIView):
         return Response(ServiceDeskConfigSerializer(config).data, status=status.HTTP_200_OK)
 
     @extend_schema(
+        request=ServiceDeskConfigUpdateSerializer,
         responses={
             200: OpenApiResponse(ServiceDeskConfigSerializer, description="Updated"),
             201: OpenApiResponse(ServiceDeskConfigSerializer, description="Created"),
-        }
+        },
     )
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
@@ -247,7 +253,7 @@ class IssueEmailThreadEndpoint(BaseAPIView):
             )
         return Response(IssueEmailThreadSerializer(thread).data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: IssueEmailThreadSerializer})
+    @extend_schema(request=IssueEmailThreadUpdateSerializer, responses={200: IssueEmailThreadSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def patch(self, request, slug, project_id, issue_id):
         thread = self._get_thread(slug, project_id, issue_id)
@@ -278,7 +284,7 @@ class IssueEmailThreadEndpoint(BaseAPIView):
 
 
 class IssueEmailReplyEndpoint(BaseAPIView):
-    @extend_schema(responses={201: EmailReplySerializer})
+    @extend_schema(request=IssueEmailReplySerializer, responses={201: EmailReplySerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id, issue_id):
         thread = IssueEmailThread.objects.filter(workspace__slug=slug, project_id=project_id, issue_id=issue_id).first()

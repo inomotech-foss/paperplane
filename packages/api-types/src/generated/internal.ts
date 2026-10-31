@@ -5232,6 +5232,12 @@ export interface components {
          */
         Access1f9Enum: 0 | 1;
         /**
+         * @description * `INTERNAL` - INTERNAL
+         *     * `EXTERNAL` - EXTERNAL
+         * @enum {string}
+         */
+        AccessEe6Enum: "INTERNAL" | "EXTERNAL";
+        /**
          * @description * `0` - Private
          *     * `1` - Public
          * @enum {integer}
@@ -5540,6 +5546,32 @@ export interface components {
             response: string;
             response_html: string;
         };
+        AttachmentAttributes: {
+            name: string;
+            type?: string;
+            /**
+             * Format: double
+             * @description In bytes
+             */
+            size: number;
+        };
+        AttachmentAttributesRequest: {
+            name: string;
+            type?: string;
+            /**
+             * Format: double
+             * @description In bytes
+             */
+            size: number;
+        };
+        AttachmentUploadRequest: {
+            /** @description unnamed when omitted */
+            name?: string;
+            /** @description The MIME type, one the instance accepts */
+            type: string;
+            /** @description In bytes, capped at the instance limit */
+            size?: number;
+        };
         Automation: {
             /** Format: uuid */
             readonly id: string;
@@ -5636,8 +5668,18 @@ export interface components {
         };
         /** @enum {unknown} */
         BlankEnum: "";
+        BulkLabelRequest: {
+            /** @description Migrated when omitted */
+            name?: string;
+            /** @description Migrated Issue when omitted */
+            description?: string;
+        };
         BulkLabels: {
             labels: components["schemas"]["Label"][];
+        };
+        BulkLabelsCreateRequest: {
+            /** @description Labels with a taken name are skipped */
+            label_data?: components["schemas"]["BulkLabelRequest"][];
         };
         CSRFToken: {
             csrf_token: string;
@@ -6452,6 +6494,92 @@ export interface components {
             readonly type_id: string | null;
             description_html: string;
         };
+        DraftIssueWriteRequest: {
+            /** Format: uuid */
+            state_id?: string | null;
+            /** Format: uuid */
+            parent_id?: string | null;
+            /** Format: uuid */
+            type_id?: string | null;
+            label_ids?: string[];
+            assignee_ids?: string[];
+            /** Format: uuid */
+            project_id?: string | null;
+            /**
+             * Format: uuid
+             * @description A cycle of the project
+             */
+            cycle_id?: string | null;
+            /** @description Modules of the project */
+            module_ids?: string[];
+            /** Format: date-time */
+            deleted_at?: string | null;
+            /** Issue Name */
+            name?: string | null;
+            description_json?: unknown;
+            description_html?: string;
+            description_stripped?: string | null;
+            /** Issue Priority */
+            priority?: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            start_date?: string | null;
+            /** Format: date */
+            target_date?: string | null;
+            /** Format: double */
+            sort_order?: number;
+            /** Format: date-time */
+            completed_at?: string | null;
+            external_source?: string | null;
+            external_id?: string | null;
+            /** Format: uuid */
+            parent?: string | null;
+            /** Format: uuid */
+            state?: string | null;
+            /** Format: uuid */
+            estimate_point?: string | null;
+            /** Format: uuid */
+            type?: string | null;
+        };
+        DraftToIssueRequest: {
+            /** Format: uuid */
+            state_id?: string | null;
+            /** Format: uuid */
+            parent_id?: string | null;
+            /** Format: uuid */
+            type_id: string;
+            label_ids?: string[];
+            assignee_ids?: string[];
+            /**
+             * Format: uuid
+             * @description A cycle of the draft's project
+             */
+            cycle_id?: string | null;
+            /** @description Modules of the draft's project */
+            module_ids?: string[];
+            point?: number | null;
+            /** Issue Name */
+            name: string;
+            description_json?: unknown;
+            description_html?: string;
+            description_stripped?: string | null;
+            /** Issue Priority */
+            priority?: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            start_date?: string | null;
+            /** Format: date */
+            target_date?: string | null;
+            /** Format: double */
+            sort_order?: number;
+            is_draft?: boolean;
+            external_source?: string | null;
+            external_id?: string | null;
+            /** Format: uuid */
+            parent?: string | null;
+            /** Format: uuid */
+            state?: string | null;
+            /** Format: uuid */
+            estimate_point?: string | null;
+        };
         DraftWorkItemSnapshot: {
             /** Format: uuid */
             id: string;
@@ -6493,6 +6621,15 @@ export interface components {
         DuplicatedAsset: {
             /** Format: uuid */
             asset_id: string;
+        };
+        EmailAttachmentRecord: {
+            name: string;
+            content_type: string;
+            size: number;
+            /** Format: uuid */
+            asset_id: string | null;
+            /** @description Why the attachment was not stored */
+            skipped?: string;
         };
         EmailCheck: {
             existing: boolean;
@@ -6578,6 +6715,23 @@ export interface components {
             /** Format: uuid */
             type_id: string;
         };
+        EstimateCreateRequest: {
+            estimate: components["schemas"]["EstimateDetailsRequest"];
+            estimate_points: components["schemas"]["EstimatePointCreateRequest"][];
+        };
+        EstimateDetailsRequest: {
+            /** @description A random name when omitted */
+            name?: string;
+            /**
+             * @description categories when omitted
+             *
+             *     * `categories` - Categories
+             *     * `points` - Points
+             */
+            type?: components["schemas"]["EstimateTypeEnum"];
+            /** @description False when omitted */
+            last_used?: boolean;
+        };
         EstimateDistribution: {
             /** @description Pending work by date, null for future dates */
             completion_chart?: {
@@ -6615,6 +6769,27 @@ export interface components {
             /** Format: uuid */
             readonly estimate: string;
         };
+        EstimatePointCreateOneRequest: {
+            /** @description A 400 when missing or 0 */
+            key: number;
+            /** @description A 400 when missing or blank */
+            value: string;
+        };
+        EstimatePointCreateRequest: {
+            /** @description 0 when omitted */
+            key?: number;
+            value?: string;
+            description?: string;
+        };
+        EstimatePointUpdateRequest: {
+            /**
+             * Format: uuid
+             * @description Points of other estimates are ignored
+             */
+            id: string;
+            key?: number;
+            value?: string;
+        };
         EstimateRead: {
             /** Format: uuid */
             readonly id: string;
@@ -6631,7 +6806,7 @@ export interface components {
             readonly name: string;
             /** Estimate Description */
             readonly description: string;
-            type: components["schemas"]["TypeEnum"];
+            type: components["schemas"]["EstimateTypeEnum"];
             last_used: boolean;
             /** Format: uuid */
             created_by: string | null;
@@ -6645,21 +6820,83 @@ export interface components {
             /** Format: uuid */
             workspace: string;
         };
-        EstimateRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
-            name: string;
-            /** Estimate Description */
-            description?: string;
-            type?: components["schemas"]["TypeEnum"];
-            last_used?: boolean;
+        EstimateRenameRequest: {
+            name?: string;
+            type?: components["schemas"]["EstimateTypeEnum"];
+        };
+        /**
+         * @description * `categories` - Categories
+         *     * `points` - Points
+         * @enum {string}
+         */
+        EstimateTypeEnum: "categories" | "points";
+        EstimateUpdateRequest: {
+            estimate?: components["schemas"]["EstimateRenameRequest"];
+            /** @description A 400 when empty */
+            estimate_points: components["schemas"]["EstimatePointUpdateRequest"][];
+        };
+        ExpandedIssueDetail: {
             /** Format: uuid */
-            created_by?: string | null;
+            readonly id: string;
+            /** Issue Name */
+            readonly name: string;
+            /** Format: uuid */
+            readonly state_id: string | null;
+            /** Format: double */
+            readonly sort_order: number;
+            /** Format: date-time */
+            readonly completed_at: string | null;
+            /** Format: uuid */
+            readonly estimate_point: string | null;
+            /** Issue Priority */
+            readonly priority: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            readonly start_date: string | null;
+            /** Format: date */
+            readonly target_date: string | null;
+            /** Issue Sequence ID */
+            readonly sequence_id: number;
+            /** Format: uuid */
+            readonly project_id: string;
+            /** Format: uuid */
+            readonly parent_id: string | null;
+            /** Format: uuid */
+            readonly type_id: string;
+            readonly cycle_id?: string | null;
+            module_ids?: string[];
+            label_ids?: string[];
+            assignee_ids?: string[];
+            readonly sub_issues_count?: number | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: uuid */
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by?: string | null;
+            readonly updated_by: string | null;
+            readonly attachment_count?: number | null;
+            readonly link_count?: number | null;
+            readonly is_draft: boolean;
+            /** Format: date */
+            readonly archived_at: string | null;
+            description_html: string;
+            readonly is_subscribed?: boolean;
+            readonly is_intake?: boolean;
+            /** @description Present with expand=parent */
+            parent?: components["schemas"]["IssueLite"] | null;
+            /** @description Present with expand=issue_reactions */
+            issue_reactions?: components["schemas"]["IssueReactionLite"][];
+            /** @description Present with expand=issue_link */
+            issue_link?: components["schemas"]["IssueLinkLite"][];
+            /** @description Present with expand=issue_attachments */
+            issue_attachments?: components["schemas"]["IssueAttachmentLite"][];
         };
         ExpandedRelation: {
             /** Format: uuid */
@@ -6896,10 +7133,26 @@ export interface components {
             duplicate_to: string | null;
             /** Format: date-time */
             snoozed_till: string | null;
-            source: string | null;
+            readonly source: string | null;
             readonly issue: components["schemas"]["IssueIntake"];
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
+        };
+        IntakeIssueCreateRequest: {
+            /** @description The work item. Its state is always the triage state */
+            issue: components["schemas"]["IssueCreateRequest"];
+        };
+        IntakeIssueDetail: {
+            /** Format: uuid */
+            readonly id: string;
+            status: components["schemas"]["IntakeWorkItemStatusEnum"];
+            /** Format: uuid */
+            duplicate_to: string | null;
+            /** Format: date-time */
+            snoozed_till: string | null;
+            readonly duplicate_issue_detail: components["schemas"]["IssueIntake"] | null;
+            source: string | null;
+            readonly issue: components["schemas"]["IssueDetail"];
         };
         IntakeIssueRequest: {
             status?: components["schemas"]["IntakeWorkItemStatusEnum"];
@@ -6907,9 +7160,6 @@ export interface components {
             duplicate_to?: string | null;
             /** Format: date-time */
             snoozed_till?: string | null;
-            source?: string | null;
-            /** Format: uuid */
-            created_by?: string | null;
         };
         IntakeRequest: {
             /** Format: date-time */
@@ -7064,6 +7314,7 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             readonly asset_url: string | null;
+            attributes: components["schemas"]["AttachmentAttributes"];
             /** Format: date-time */
             readonly created_at: string;
             /**
@@ -7073,7 +7324,6 @@ export interface components {
             readonly updated_at: string;
             /** Format: date-time */
             deleted_at: string | null;
-            attributes: unknown;
             /** Format: uri */
             asset: string;
             entity_type: string | null;
@@ -7110,10 +7360,30 @@ export interface components {
             /** Format: uuid */
             page_comment: string | null;
         };
+        IssueAttachmentLite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uri */
+            readonly asset: string | null;
+            readonly attributes: unknown;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            readonly asset_url: string | null;
+        };
         IssueAttachmentRequest: {
+            attributes?: components["schemas"]["AttachmentAttributesRequest"];
             /** Format: date-time */
             deleted_at?: string | null;
-            attributes?: unknown;
             /** Format: binary */
             asset: string;
             entity_type?: string | null;
@@ -7174,7 +7444,7 @@ export interface components {
             comment_json: unknown;
             comment_html: string;
             attachments: string[];
-            access: components["schemas"]["IssueCommentAccessEnum"];
+            access: components["schemas"]["AccessEe6Enum"];
             external_source: string | null;
             external_id: string | null;
             /** Format: date-time */
@@ -7199,12 +7469,6 @@ export interface components {
             /** Format: uuid */
             parent: string | null;
         };
-        /**
-         * @description * `INTERNAL` - INTERNAL
-         *     * `EXTERNAL` - EXTERNAL
-         * @enum {string}
-         */
-        IssueCommentAccessEnum: "INTERNAL" | "EXTERNAL";
         IssueCommentRequest: {
             /** Format: date-time */
             deleted_at?: string | null;
@@ -7213,7 +7477,7 @@ export interface components {
             comment_json?: unknown;
             comment_html?: string;
             attachments?: string[];
-            access?: components["schemas"]["IssueCommentAccessEnum"];
+            access?: components["schemas"]["AccessEe6Enum"];
             external_source?: string | null;
             external_id?: string | null;
             /** Format: date-time */
@@ -7224,6 +7488,18 @@ export interface components {
             actor?: string | null;
             /** Format: uuid */
             parent?: string | null;
+        };
+        IssueCommentWriteRequest: {
+            comment_html?: string;
+            /** @description The editor document of comment_html */
+            comment_json?: unknown;
+            /**
+             * @description INTERNAL when omitted
+             *
+             *     * `INTERNAL` - INTERNAL
+             *     * `EXTERNAL` - EXTERNAL
+             */
+            access?: components["schemas"]["AccessEe6Enum"];
         };
         IssueCreate: {
             /** Format: uuid */
@@ -7327,6 +7603,17 @@ export interface components {
             /** Format: uuid */
             estimate_point?: string | null;
         };
+        IssueDateUpdateRequest: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            start_date?: string | null;
+            /** Format: date */
+            target_date?: string | null;
+        };
+        IssueDatesUpdateRequest: {
+            updates: components["schemas"]["IssueDateUpdateRequest"][];
+        };
         IssueDescriptionVersionDetail: {
             /** Format: uuid */
             readonly id: string;
@@ -7423,13 +7710,13 @@ export interface components {
             readonly direction: components["schemas"]["DirectionEnum"];
             readonly status: components["schemas"]["IssueEmailMessageStatusEnum"];
             readonly from_email: string;
-            readonly to_emails: unknown;
-            readonly cc_emails: unknown;
+            readonly to_emails: string[];
+            readonly cc_emails: string[];
             readonly subject: string;
             readonly body_text: string;
             /** Format: uuid */
             readonly comment: string | null;
-            readonly attachments: unknown;
+            readonly attachments: components["schemas"]["EmailAttachmentRecord"][];
             readonly error: string | null;
             /** Format: date-time */
             readonly created_at: string;
@@ -7442,6 +7729,12 @@ export interface components {
          * @enum {string}
          */
         IssueEmailMessageStatusEnum: "RECEIVED" | "PENDING" | "SENT" | "FAILED";
+        IssueEmailReplyRequest: {
+            /** @description Required unless attachments are sent */
+            comment_html?: string;
+            /** @description Uploaded attachments of the work item to send with the reply */
+            attachment_asset_ids?: string[];
+        };
         IssueEmailThread: {
             /** Format: uuid */
             readonly id: string;
@@ -7455,8 +7748,8 @@ export interface components {
             readonly creator_email: string;
             readonly creator_name: string;
             readonly subject: string;
-            to_emails: unknown;
-            cc_emails: unknown;
+            to_emails: string[];
+            cc_emails: string[];
             readonly messages: components["schemas"]["IssueEmailMessage"][];
             /** Format: date-time */
             readonly created_at: string;
@@ -7509,6 +7802,9 @@ export interface components {
             sort_order?: number;
             is_draft?: boolean;
         };
+        IssueIdsRequest: {
+            issue_ids: string[];
+        };
         IssueIntake: {
             /** Format: uuid */
             readonly id: string;
@@ -7559,12 +7855,33 @@ export interface components {
             /** Format: uuid */
             readonly issue: string;
         };
+        IssueLinkLite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly issue_id: string;
+            readonly title: string | null;
+            readonly url: string;
+            readonly metadata: unknown;
+            /** Format: uuid */
+            readonly created_by_id: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
         IssueLinkRequest: {
             /** Format: date-time */
             deleted_at?: string | null;
             title?: string | null;
             url: string;
             metadata?: unknown;
+        };
+        IssueLite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Issue Sequence ID */
+            readonly sequence_id: number;
+            /** Format: uuid */
+            readonly project_id: string;
         };
         IssueProperty: {
             /** Format: uuid */
@@ -7583,7 +7900,7 @@ export interface components {
             display_name: string;
             property_type: components["schemas"]["PropertyTypeEnum"];
             is_multi: boolean;
-            relation_type: (components["schemas"]["RelationTypeEnum"] | components["schemas"]["BlankEnum"] | components["schemas"]["NullEnum"]) | null;
+            relation_type: (components["schemas"]["RelationType9a3Enum"] | components["schemas"]["BlankEnum"] | components["schemas"]["NullEnum"]) | null;
             is_active: boolean;
             is_required: boolean;
             /** Format: double */
@@ -7609,6 +7926,29 @@ export interface components {
              * @description The work item type this property is scoped to. NULL means the property applies to every work item type in the project.
              */
             issue_type: string | null;
+        };
+        IssuePropertyCreateRequest: {
+            /** @description Only for option properties */
+            options?: components["schemas"]["IssuePropertyOptionRequest"][];
+            name: string;
+            display_name?: string;
+            property_type?: components["schemas"]["PropertyTypeEnum"];
+            is_multi?: boolean;
+            relation_type?: (components["schemas"]["RelationType9a3Enum"] | components["schemas"]["BlankEnum"] | components["schemas"]["NullEnum"]) | null;
+            is_active?: boolean;
+            is_required?: boolean;
+            /** Format: double */
+            sort_order?: number;
+            settings?: unknown;
+            external_source?: string | null;
+            external_id?: string | null;
+            derivation?: components["schemas"]["DerivationEnum"];
+            derivation_config?: unknown;
+            /**
+             * Format: uuid
+             * @description The work item type this property is scoped to. NULL means the property applies to every work item type in the project.
+             */
+            issue_type?: string | null;
         };
         IssuePropertyOption: {
             /** Format: uuid */
@@ -7650,27 +7990,6 @@ export interface components {
             external_source?: string | null;
             external_id?: string | null;
         };
-        IssuePropertyRequest: {
-            name: string;
-            display_name?: string;
-            property_type?: components["schemas"]["PropertyTypeEnum"];
-            is_multi?: boolean;
-            relation_type?: (components["schemas"]["RelationTypeEnum"] | components["schemas"]["BlankEnum"] | components["schemas"]["NullEnum"]) | null;
-            is_active?: boolean;
-            is_required?: boolean;
-            /** Format: double */
-            sort_order?: number;
-            settings?: unknown;
-            external_source?: string | null;
-            external_id?: string | null;
-            derivation?: components["schemas"]["DerivationEnum"];
-            derivation_config?: unknown;
-            /**
-             * Format: uuid
-             * @description The work item type this property is scoped to. NULL means the property applies to every work item type in the project.
-             */
-            issue_type?: string | null;
-        };
         IssueReaction: {
             /** Format: uuid */
             readonly id: string;
@@ -7700,6 +8019,16 @@ export interface components {
             readonly actor: string;
             /** Format: uuid */
             readonly issue: string;
+        };
+        IssueReactionLite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            actor: string;
+            /** Format: uuid */
+            issue: string;
+            reaction: string;
+            readonly display_name: string;
         };
         IssueReactionRequest: {
             reaction: string;
@@ -7755,8 +8084,28 @@ export interface components {
              */
             readonly updated_by: string | null;
         };
-        IssueRelationRequest: {
-            assignee_ids?: string[];
+        /**
+         * @description * `blocking` - blocking
+         *     * `blocked_by` - blocked_by
+         *     * `duplicate` - duplicate
+         *     * `relates_to` - relates_to
+         *     * `start_before` - start_before
+         *     * `start_after` - start_after
+         *     * `finish_before` - finish_before
+         *     * `finish_after` - finish_after
+         *     * `implemented_by` - implemented_by
+         *     * `implements` - implements
+         * @enum {string}
+         */
+        IssueRelationCreateRelationTypeEnum: "blocking" | "blocked_by" | "duplicate" | "relates_to" | "start_before" | "start_after" | "finish_before" | "finish_after" | "implemented_by" | "implements";
+        IssueRelationCreateRequest: {
+            relation_type: components["schemas"]["IssueRelationCreateRelationTypeEnum"];
+            /** @description Work items of the same workspace */
+            issues: string[];
+        };
+        IssueRelationRemoveRequest: {
+            /** Format: uuid */
+            related_issue: string;
         };
         IssueSequence: {
             last_sequence: number;
@@ -9416,6 +9765,20 @@ export interface components {
             total_results: number;
             extra_stats: unknown;
         };
+        PaginatedIntakeIssueList: {
+            results: components["schemas"]["IntakeIssue"][];
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: unknown;
+        };
         PaginatedIssueActivityList: {
             results: components["schemas"]["IssueActivity"][];
             grouped_by: string | null;
@@ -9605,21 +9968,58 @@ export interface components {
             /** Format: uuid */
             intake_issue_type?: string | null;
         };
-        PatchedEstimateRequest: {
+        PatchedDraftIssueWriteRequest: {
+            /** Format: uuid */
+            state_id?: string | null;
+            /** Format: uuid */
+            parent_id?: string | null;
+            /** Format: uuid */
+            type_id?: string | null;
+            label_ids?: string[];
+            assignee_ids?: string[];
+            /** Format: uuid */
+            project_id?: string | null;
+            /**
+             * Format: uuid
+             * @description A cycle of the project
+             */
+            cycle_id?: string | null;
+            /** @description Modules of the project */
+            module_ids?: string[];
             /** Format: date-time */
             deleted_at?: string | null;
-            name?: string;
-            /** Estimate Description */
-            description?: string;
-            type?: components["schemas"]["TypeEnum"];
-            last_used?: boolean;
+            /** Issue Name */
+            name?: string | null;
+            description_json?: unknown;
+            description_html?: string;
+            description_stripped?: string | null;
+            /** Issue Priority */
+            priority?: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            start_date?: string | null;
+            /** Format: date */
+            target_date?: string | null;
+            /** Format: double */
+            sort_order?: number;
+            /** Format: date-time */
+            completed_at?: string | null;
+            external_source?: string | null;
+            external_id?: string | null;
             /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
+            parent?: string | null;
+            /** Format: uuid */
+            state?: string | null;
+            /** Format: uuid */
+            estimate_point?: string | null;
+            /** Format: uuid */
+            type?: string | null;
+        };
+        PatchedEstimatePointRequest: {
+            /** Format: date-time */
+            deleted_at?: string | null;
+            key?: number;
+            description?: string;
+            value?: string;
         };
         PatchedIntakeIssueRequest: {
             status?: components["schemas"]["IntakeWorkItemStatusEnum"];
@@ -9627,9 +10027,29 @@ export interface components {
             duplicate_to?: string | null;
             /** Format: date-time */
             snoozed_till?: string | null;
-            source?: string | null;
-            /** Format: uuid */
-            created_by?: string | null;
+        };
+        PatchedIntakeIssueUpdateRequest: {
+            /**
+             * @description Admins only
+             *
+             *     * `-2` - Pending
+             *     * `-1` - Rejected
+             *     * `0` - Snoozed
+             *     * `1` - Accepted
+             *     * `2` - Duplicate
+             */
+            status?: components["schemas"]["IntakeWorkItemStatusEnum"];
+            /**
+             * Format: uuid
+             * @description Admins only
+             */
+            duplicate_to?: string | null;
+            /** @description Admins only. A YYYY-MM-DD day is read as the start of that day in the project timezone */
+            snoozed_till?: string | null;
+            /** @description Guests may change only the name and the description */
+            issue?: components["schemas"]["PatchedIssueCreateRequest"];
+            /** @description With description_html, records no activity for a description migration */
+            skip_activity?: boolean;
         };
         PatchedIntakeRequest: {
             /** Format: date-time */
@@ -9648,33 +10068,6 @@ export interface components {
              */
             updated_by?: string | null;
         };
-        PatchedIssueAttachmentRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
-            attributes?: unknown;
-            /** Format: binary */
-            asset?: string;
-            entity_type?: string | null;
-            entity_identifier?: string | null;
-            is_deleted?: boolean;
-            is_archived?: boolean;
-            external_id?: string | null;
-            external_source?: string | null;
-            /** Format: double */
-            size?: number;
-            is_uploaded?: boolean;
-            storage_metadata?: unknown;
-            /** Format: uuid */
-            user?: string | null;
-            /** Format: uuid */
-            draft_issue?: string | null;
-            /** Format: uuid */
-            comment?: string | null;
-            /** Format: uuid */
-            page?: string | null;
-            /** Format: uuid */
-            page_comment?: string | null;
-        };
         PatchedIssueCommentRequest: {
             /** Format: date-time */
             deleted_at?: string | null;
@@ -9683,7 +10076,7 @@ export interface components {
             comment_json?: unknown;
             comment_html?: string;
             attachments?: string[];
-            access?: components["schemas"]["IssueCommentAccessEnum"];
+            access?: components["schemas"]["AccessEe6Enum"];
             external_source?: string | null;
             external_id?: string | null;
             /** Format: date-time */
@@ -9694,6 +10087,18 @@ export interface components {
             actor?: string | null;
             /** Format: uuid */
             parent?: string | null;
+        };
+        PatchedIssueCommentWriteRequest: {
+            comment_html?: string;
+            /** @description The editor document of comment_html */
+            comment_json?: unknown;
+            /**
+             * @description INTERNAL when omitted
+             *
+             *     * `INTERNAL` - INTERNAL
+             *     * `EXTERNAL` - EXTERNAL
+             */
+            access?: components["schemas"]["AccessEe6Enum"];
         };
         PatchedIssueCreateRequest: {
             /** Format: uuid */
@@ -9728,6 +10133,10 @@ export interface components {
             /** Format: uuid */
             estimate_point?: string | null;
         };
+        PatchedIssueEmailThreadUpdateRequest: {
+            to_emails?: string[];
+            cc_emails?: string[];
+        };
         PatchedIssueLinkRequest: {
             /** Format: date-time */
             deleted_at?: string | null;
@@ -9748,7 +10157,7 @@ export interface components {
             display_name?: string;
             property_type?: components["schemas"]["PropertyTypeEnum"];
             is_multi?: boolean;
-            relation_type?: (components["schemas"]["RelationTypeEnum"] | components["schemas"]["BlankEnum"] | components["schemas"]["NullEnum"]) | null;
+            relation_type?: (components["schemas"]["RelationType9a3Enum"] | components["schemas"]["BlankEnum"] | components["schemas"]["NullEnum"]) | null;
             is_active?: boolean;
             is_required?: boolean;
             /** Format: double */
@@ -9773,6 +10182,41 @@ export interface components {
             level?: number;
             external_source?: string | null;
             external_id?: string | null;
+        };
+        PatchedIssueUpdateRequest: {
+            /** Format: uuid */
+            state_id?: string | null;
+            /** Format: uuid */
+            parent_id?: string | null;
+            /** Format: uuid */
+            type_id?: string;
+            label_ids?: string[];
+            assignee_ids?: string[];
+            /** @description With description_html, store the change without an activity */
+            skip_activity?: boolean;
+            point?: number | null;
+            /** Issue Name */
+            name?: string;
+            description_json?: unknown;
+            description_html?: string;
+            description_stripped?: string | null;
+            /** Issue Priority */
+            priority?: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            start_date?: string | null;
+            /** Format: date */
+            target_date?: string | null;
+            /** Format: double */
+            sort_order?: number;
+            is_draft?: boolean;
+            external_source?: string | null;
+            external_id?: string | null;
+            /** Format: uuid */
+            parent?: string | null;
+            /** Format: uuid */
+            state?: string | null;
+            /** Format: uuid */
+            estimate_point?: string | null;
         };
         PatchedIssueViewRequest: {
             /** Format: date-time */
@@ -10970,6 +11414,10 @@ export interface components {
             field?: string | null;
             lookup?: string | null;
         };
+        ReactionCreateRequest: {
+            /** @description The emoji code point, such as 128077 */
+            reaction: string;
+        };
         RecentVisitEntity: components["schemas"]["IssueRecentVisit"] | components["schemas"]["PageRecentVisit"] | components["schemas"]["ProjectRecentVisit"];
         RelatedWorkItem: {
             /** Format: uuid */
@@ -11002,7 +11450,7 @@ export interface components {
          *     * `ISSUE` - Work item
          * @enum {string}
          */
-        RelationTypeEnum: "USER" | "ISSUE";
+        RelationType9a3Enum: "USER" | "ISSUE";
         /**
          * @description * `unlink` - unlink
          *     * `delete` - delete
@@ -11091,7 +11539,7 @@ export interface components {
             /** Format: uuid */
             readonly issue_type_id: string | null;
             notify_mode: components["schemas"]["NotifyModeEnum"];
-            notify_user_ids: unknown;
+            notify_user_ids: string[];
             /** Format: date-time */
             readonly last_synced_at: string | null;
             /** Format: date-time */
@@ -11101,6 +11549,28 @@ export interface components {
              * Format: date-time
              */
             readonly updated_at: string;
+        };
+        ServiceDeskConfigUpdateRequest: {
+            /** @description Empty when omitted. Required to enable the service desk */
+            mailbox_email?: string;
+            /** @description False when omitted */
+            is_enabled?: boolean;
+            /**
+             * Format: uuid
+             * @description The type of the work items created from mail. Required to enable. Kept when omitted
+             */
+            issue_type_id?: string | null;
+            /**
+             * @description Kept when omitted, NONE on create
+             *
+             *     * `NONE` - None
+             *     * `ADMINS` - Admins
+             *     * `MEMBERS` - Members
+             *     * `CUSTOM` - Custom
+             */
+            notify_mode?: components["schemas"]["NotifyModeEnum"];
+            /** @description With notify_mode CUSTOM. Ids that are not active project members are dropped */
+            notify_user_ids?: string[];
         };
         SlugAvailability: {
             /** @description True when the slug is free */
@@ -11249,6 +11719,9 @@ export interface components {
             total_pages: number;
             total_results: number;
             extra_stats: unknown;
+        };
+        SubIssuesAddRequest: {
+            sub_issue_ids: string[];
         };
         SubWorkItem: {
             /** Format: uuid */
@@ -11789,12 +12262,6 @@ export interface components {
          * @enum {string}
          */
         TriggerSourceEnum: "event" | "schedule" | "manual";
-        /**
-         * @description * `categories` - Categories
-         *     * `points` - Points
-         * @enum {string}
-         */
-        TypeEnum: "categories" | "points";
         UnpublishedDeployBoard: {
             /** Format: date-time */
             deleted_at: string | null;
@@ -12801,6 +13268,15 @@ export interface components {
             sequence_id: number;
             project_identifier: string;
         };
+        WorkItemQueryValidateRequest: {
+            /** @description valid is false when blank */
+            pql: string;
+            /**
+             * Format: uuid
+             * @description Resolves project-scoped names
+             */
+            project_id?: string | null;
+        };
         WorkItemRelations: {
             blocking: components["schemas"]["RelatedWorkItem"][];
             blocked_by: components["schemas"]["RelatedWorkItem"][];
@@ -13092,7 +13568,7 @@ export interface components {
             readonly name: string;
             /** Estimate Description */
             readonly description: string;
-            type: components["schemas"]["TypeEnum"];
+            type: components["schemas"]["EstimateTypeEnum"];
             last_used: boolean;
             /** Format: uuid */
             created_by: string | null;
@@ -13855,9 +14331,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["IssueAttachmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueAttachmentRequest"];
-                "multipart/form-data": components["schemas"]["IssueAttachmentRequest"];
+                "application/json": components["schemas"]["AttachmentUploadRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AttachmentUploadRequest"];
+                "multipart/form-data": components["schemas"]["AttachmentUploadRequest"];
             };
         };
         responses: {
@@ -13938,13 +14414,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedIssueAttachmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedIssueAttachmentRequest"];
-                "multipart/form-data": components["schemas"]["PatchedIssueAttachmentRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Done */
             204: {
@@ -16956,12 +17426,40 @@ export interface operations {
     workspaces_draft_issues_list: {
         parameters: {
             query?: {
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                assignees?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                created_by?: string;
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Comma-separated cycle ids. Only work items that match one of them. */
+                cycle?: string;
+                /** @description Comma-separated label ids. Only work items that match one of them. */
+                labels?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                mentions?: string;
+                /** @description Comma-separated module ids. Only work items that match one of them. */
+                module?: string;
+                /** @description Comma-separated work item ids. Only work items that match one of them. */
+                parent?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Comma-separated priorities */
+                priority?: string;
+                /** @description Comma-separated project ids. Only work items that match one of them. */
+                project?: string;
                 /** @description A search term. */
                 search?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after */
+                start_date?: string;
+                /** @description Comma-separated state ids. Only work items that match one of them. */
+                state?: string;
+                /** @description Comma-separated state groups */
+                state_group?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                subscriber?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after,2026-02-01;before */
+                target_date?: string;
             };
             header?: never;
             path: {
@@ -16990,7 +17488,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DraftIssueWriteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["DraftIssueWriteRequest"];
+                "multipart/form-data": components["schemas"]["DraftIssueWriteRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -17055,7 +17559,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedDraftIssueWriteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedDraftIssueWriteRequest"];
+                "multipart/form-data": components["schemas"]["PatchedDraftIssueWriteRequest"];
+            };
+        };
         responses: {
             /** @description Updated */
             204: {
@@ -17076,7 +17586,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftToIssueRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["DraftToIssueRequest"];
+                "multipart/form-data": components["schemas"]["DraftToIssueRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -18124,10 +18640,52 @@ export interface operations {
     workspaces_projects_archived_issues_list: {
         parameters: {
             query?: {
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                assignees?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                created_by?: string;
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Comma-separated cycle ids. Only work items that match one of them. */
+                cycle?: string;
+                /** @description JSON encoded filter expression with nested 'and' / 'or' / 'not' groups. Mutually exclusive with 'pql'. */
+                filters?: string;
+                /** @description Group the work items by this field */
+                group_by?: "assignees__id" | "created_by" | "cycle_id" | "issue_module__module_id" | "labels__id" | "priority" | "project_id" | "start_date" | "state__group" | "state_id" | "target_date";
+                /** @description Comma-separated label ids. Only work items that match one of them. */
+                labels?: string;
+                /** @description The layout the list is for. Ignored by the backend */
+                layout?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                mentions?: string;
+                /** @description Comma-separated module ids. Only work items that match one of them. */
+                module?: string;
+                /** @description Field to order results by. Prefix with '-' for descending order */
+                order_by?: string;
+                /** @description Comma-separated work item ids. Only work items that match one of them. */
+                parent?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Comma-separated priorities */
+                priority?: string;
+                /** @description Comma-separated project ids. Only work items that match one of them. */
+                project?: string;
+                /** @description Include archived work items that have a parent. True when omitted */
+                show_sub_issues?: boolean;
+                /** @description Comma-separated date filters such as 2026-01-01;after */
+                start_date?: string;
+                /** @description Comma-separated state ids. Only work items that match one of them. */
+                state?: string;
+                /** @description Comma-separated state groups */
+                state_group?: string;
+                /** @description Group each group by this field. Requires group_by and must differ from it */
+                sub_group_by?: "assignees__id" | "created_by" | "cycle_id" | "issue_module__module_id" | "labels__id" | "priority" | "project_id" | "start_date" | "state__group" | "state_id" | "target_date";
+                /** @description Include work items that have a parent. True when omitted */
+                sub_issue?: boolean;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                subscriber?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after,2026-02-01;before */
+                target_date?: string;
             };
             header?: never;
             path: {
@@ -18462,7 +19020,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueIdsRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueIdsRequest"];
+                "multipart/form-data": components["schemas"]["IssueIdsRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -18484,7 +19048,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BulkLabelsCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BulkLabelsCreateRequest"];
+                "multipart/form-data": components["schemas"]["BulkLabelsCreateRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -18506,7 +19076,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueIdsRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueIdsRequest"];
+                "multipart/form-data": components["schemas"]["IssueIdsRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -18557,9 +19133,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CommentReactionRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["CommentReactionRequest"];
-                "multipart/form-data": components["schemas"]["CommentReactionRequest"];
+                "application/json": components["schemas"]["ReactionCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ReactionCreateRequest"];
+                "multipart/form-data": components["schemas"]["ReactionCreateRequest"];
             };
         };
         responses: {
@@ -19085,6 +19661,8 @@ export interface operations {
             query?: {
                 /** @description A search term. */
                 search?: string;
+                /** @description Only work items updated after this time */
+                updated_at__gt?: string;
             };
             header?: never;
             path: {
@@ -19142,9 +19720,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["EstimateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["EstimateRequest"];
-                "multipart/form-data": components["schemas"]["EstimateRequest"];
+                "application/json": components["schemas"]["EstimateCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["EstimateCreateRequest"];
+                "multipart/form-data": components["schemas"]["EstimateCreateRequest"];
             };
         };
         responses: {
@@ -19214,11 +19792,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["PatchedEstimateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedEstimateRequest"];
-                "multipart/form-data": components["schemas"]["PatchedEstimateRequest"];
+                "application/json": components["schemas"]["EstimateUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["EstimateUpdateRequest"];
+                "multipart/form-data": components["schemas"]["EstimateUpdateRequest"];
             };
         };
         responses: {
@@ -19243,7 +19821,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EstimatePointCreateOneRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["EstimatePointCreateOneRequest"];
+                "multipart/form-data": components["schemas"]["EstimatePointCreateOneRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -19292,7 +19876,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedEstimatePointRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedEstimatePointRequest"];
+                "multipart/form-data": components["schemas"]["PatchedEstimatePointRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -19351,8 +19941,30 @@ export interface operations {
     workspaces_projects_inbox_issues_list: {
         parameters: {
             query?: {
+                /** @description Comma separated user ids */
+                assignees?: string;
+                /** @description Comma separated date filters, such as 2026-01-01;after or 1_weeks;before;fromnow */
+                created_at?: string;
+                /** @description Comma separated user ids */
+                created_by?: string;
+                /** @description Pagination cursor, per_page:page:offset */
+                cursor?: string;
+                /** @description Comma separated label ids */
+                labels?: string;
+                /** @description -issue__created_at when omitted */
+                order_by?: "-created_at" | "-issue__created_at" | "-issue__priority" | "-issue__sequence_id" | "-issue__sort_order" | "-issue__start_date" | "-issue__state__name" | "-issue__target_date" | "-issue__updated_at" | "-status" | "-updated_at" | "created_at" | "issue__created_at" | "issue__priority" | "issue__sequence_id" | "issue__sort_order" | "issue__start_date" | "issue__state__name" | "issue__target_date" | "issue__updated_at" | "status" | "updated_at";
+                /** @description Results per page */
+                per_page?: number;
+                /** @description Comma separated priorities */
+                priority?: string;
                 /** @description A search term. */
                 search?: string;
+                /** @description Comma separated state ids */
+                state?: string;
+                /** @description Comma separated intake statuses, -2 (pending) when omitted */
+                status?: string;
+                /** @description Comma separated date filters, such as 2026-01-01;after or 1_weeks;before;fromnow */
+                updated_at?: string;
             };
             header?: never;
             path: {
@@ -19368,7 +19980,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IntakeIssue"][];
+                    "application/json": components["schemas"]["PaginatedIntakeIssueList"];
                 };
             };
         };
@@ -19383,20 +19995,20 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["IntakeIssueRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IntakeIssueRequest"];
-                "multipart/form-data": components["schemas"]["IntakeIssueRequest"];
+                "application/json": components["schemas"]["IntakeIssueCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IntakeIssueCreateRequest"];
+                "multipart/form-data": components["schemas"]["IntakeIssueCreateRequest"];
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IntakeIssue"];
+                    "application/json": components["schemas"]["IntakeIssueDetail"];
                 };
             };
         };
@@ -19419,7 +20031,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IntakeIssue"];
+                    "application/json": components["schemas"]["IntakeIssueDetail"];
                 };
             };
         };
@@ -19459,9 +20071,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedIntakeIssueRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedIntakeIssueRequest"];
-                "multipart/form-data": components["schemas"]["PatchedIntakeIssueRequest"];
+                "application/json": components["schemas"]["PatchedIntakeIssueUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedIntakeIssueUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedIntakeIssueUpdateRequest"];
             };
         };
         responses: {
@@ -19470,7 +20082,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IntakeIssue"];
+                    "application/json": components["schemas"]["IntakeIssueDetail"];
                 };
             };
         };
@@ -19605,8 +20217,30 @@ export interface operations {
     workspaces_projects_intake_issues_list: {
         parameters: {
             query?: {
+                /** @description Comma separated user ids */
+                assignees?: string;
+                /** @description Comma separated date filters, such as 2026-01-01;after or 1_weeks;before;fromnow */
+                created_at?: string;
+                /** @description Comma separated user ids */
+                created_by?: string;
+                /** @description Pagination cursor, per_page:page:offset */
+                cursor?: string;
+                /** @description Comma separated label ids */
+                labels?: string;
+                /** @description -issue__created_at when omitted */
+                order_by?: "-created_at" | "-issue__created_at" | "-issue__priority" | "-issue__sequence_id" | "-issue__sort_order" | "-issue__start_date" | "-issue__state__name" | "-issue__target_date" | "-issue__updated_at" | "-status" | "-updated_at" | "created_at" | "issue__created_at" | "issue__priority" | "issue__sequence_id" | "issue__sort_order" | "issue__start_date" | "issue__state__name" | "issue__target_date" | "issue__updated_at" | "status" | "updated_at";
+                /** @description Results per page */
+                per_page?: number;
+                /** @description Comma separated priorities */
+                priority?: string;
                 /** @description A search term. */
                 search?: string;
+                /** @description Comma separated state ids */
+                state?: string;
+                /** @description Comma separated intake statuses, -2 (pending) when omitted */
+                status?: string;
+                /** @description Comma separated date filters, such as 2026-01-01;after or 1_weeks;before;fromnow */
+                updated_at?: string;
             };
             header?: never;
             path: {
@@ -19622,7 +20256,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IntakeIssue"][];
+                    "application/json": components["schemas"]["PaginatedIntakeIssueList"];
                 };
             };
         };
@@ -19637,20 +20271,20 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["IntakeIssueRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IntakeIssueRequest"];
-                "multipart/form-data": components["schemas"]["IntakeIssueRequest"];
+                "application/json": components["schemas"]["IntakeIssueCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IntakeIssueCreateRequest"];
+                "multipart/form-data": components["schemas"]["IntakeIssueCreateRequest"];
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IntakeIssue"];
+                    "application/json": components["schemas"]["IntakeIssueDetail"];
                 };
             };
         };
@@ -19673,7 +20307,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IntakeIssue"];
+                    "application/json": components["schemas"]["IntakeIssueDetail"];
                 };
             };
         };
@@ -19713,9 +20347,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedIntakeIssueRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedIntakeIssueRequest"];
-                "multipart/form-data": components["schemas"]["PatchedIntakeIssueRequest"];
+                "application/json": components["schemas"]["PatchedIntakeIssueUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedIntakeIssueUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedIntakeIssueUpdateRequest"];
             };
         };
         responses: {
@@ -19724,7 +20358,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IntakeIssue"];
+                    "application/json": components["schemas"]["IntakeIssueDetail"];
                 };
             };
         };
@@ -20031,7 +20665,10 @@ export interface operations {
     };
     workspaces_projects_issue_date_rollups_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Comma-separated work item ids */
+                issue_ids?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -20063,7 +20700,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueDatesUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueDatesUpdateRequest"];
+                "multipart/form-data": components["schemas"]["IssueDatesUpdateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -20234,8 +20877,12 @@ export interface operations {
     workspaces_projects_issue_properties_list: {
         parameters: {
             query?: {
+                /** @description A type id lists its properties and the unscoped ones. null lists only the unscoped ones */
+                issue_type?: string;
                 /** @description A search term. */
                 search?: string;
+                /** @description true lists only the properties without a type */
+                unscoped?: "false" | "true";
             };
             header?: never;
             path: {
@@ -20268,9 +20915,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["IssuePropertyRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssuePropertyRequest"];
-                "multipart/form-data": components["schemas"]["IssuePropertyRequest"];
+                "application/json": components["schemas"]["IssuePropertyCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssuePropertyCreateRequest"];
+                "multipart/form-data": components["schemas"]["IssuePropertyCreateRequest"];
             };
         };
         responses: {
@@ -20492,7 +21139,10 @@ export interface operations {
     };
     workspaces_projects_issue_property_values_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Comma separated work item ids, every work item of the project when omitted */
+                issue_ids?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -20726,10 +21376,54 @@ export interface operations {
     workspaces_projects_issues_list: {
         parameters: {
             query?: {
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                assignees?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                created_by?: string;
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Comma-separated cycle ids. Only work items that match one of them. */
+                cycle?: string;
+                /** @description JSON encoded filter expression with nested 'and' / 'or' / 'not' groups. Mutually exclusive with 'pql'. */
+                filters?: string;
+                /** @description Group the work items by this field */
+                group_by?: "assignees__id" | "created_by" | "cycle_id" | "issue_module__module_id" | "labels__id" | "priority" | "project_id" | "start_date" | "state__group" | "state_id" | "target_date";
+                /** @description Comma-separated label ids. Only work items that match one of them. */
+                labels?: string;
+                /** @description The layout the list is for. Ignored by the backend */
+                layout?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                mentions?: string;
+                /** @description Comma-separated module ids. Only work items that match one of them. */
+                module?: string;
+                /** @description Field to order results by. Prefix with '-' for descending order */
+                order_by?: string;
+                /** @description Comma-separated work item ids. Only work items that match one of them. */
+                parent?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Plane Query Language expression. Human readable alternative to 'filters'; the two are mutually exclusive. Names resolve to ids (state = "Paid", type = "Invoice", cf["Amount"] > 1000), childOf() matches direct children and descendantOf() every work item below one at any depth. */
+                pql?: string;
+                /** @description Comma-separated priorities */
+                priority?: string;
+                /** @description Comma-separated project ids. Only work items that match one of them. */
+                project?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after */
+                start_date?: string;
+                /** @description Comma-separated state ids. Only work items that match one of them. */
+                state?: string;
+                /** @description Comma-separated state groups */
+                state_group?: string;
+                /** @description Group each group by this field. Requires group_by and must differ from it */
+                sub_group_by?: "assignees__id" | "created_by" | "cycle_id" | "issue_module__module_id" | "labels__id" | "priority" | "project_id" | "start_date" | "state__group" | "state_id" | "target_date";
+                /** @description Include work items that have a parent. True when omitted */
+                sub_issue?: boolean;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                subscriber?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after,2026-02-01;before */
+                target_date?: string;
+                /** @description Only work items updated after this time */
+                updated_at__gt?: string;
             };
             header?: never;
             path: {
@@ -20781,10 +21475,48 @@ export interface operations {
     workspaces_projects_issues_detail_retrieve: {
         parameters: {
             query?: {
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                assignees?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                created_by?: string;
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Comma-separated cycle ids. Only work items that match one of them. */
+                cycle?: string;
+                /** @description Comma-separated relations to include, such as issue_relation and issue_related */
+                expand?: string;
+                /** @description Comma-separated list of fields to include in response */
+                fields?: string;
+                /** @description JSON encoded filter expression with nested 'and' / 'or' / 'not' groups. Mutually exclusive with 'pql'. */
+                filters?: string;
+                /** @description Comma-separated label ids. Only work items that match one of them. */
+                labels?: string;
+                /** @description The layout the list is for. Ignored by the backend */
+                layout?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                mentions?: string;
+                /** @description Comma-separated module ids. Only work items that match one of them. */
+                module?: string;
+                /** @description Field to order results by. Prefix with '-' for descending order */
+                order_by?: string;
+                /** @description Comma-separated work item ids. Only work items that match one of them. */
+                parent?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Comma-separated priorities */
+                priority?: string;
+                /** @description Comma-separated project ids. Only work items that match one of them. */
+                project?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after */
+                start_date?: string;
+                /** @description Comma-separated state ids. Only work items that match one of them. */
+                state?: string;
+                /** @description Comma-separated state groups */
+                state_group?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                subscriber?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after,2026-02-01;before */
+                target_date?: string;
             };
             header?: never;
             path: {
@@ -20844,9 +21576,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["IssueCommentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueCommentRequest"];
-                "multipart/form-data": components["schemas"]["IssueCommentRequest"];
+                "application/json": components["schemas"]["IssueCommentWriteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueCommentWriteRequest"];
+                "multipart/form-data": components["schemas"]["IssueCommentWriteRequest"];
             };
         };
         responses: {
@@ -20951,9 +21683,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedIssueCommentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedIssueCommentRequest"];
-                "multipart/form-data": components["schemas"]["PatchedIssueCommentRequest"];
+                "application/json": components["schemas"]["PatchedIssueCommentWriteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedIssueCommentWriteRequest"];
+                "multipart/form-data": components["schemas"]["PatchedIssueCommentWriteRequest"];
             };
         };
         responses: {
@@ -20978,7 +21710,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["IssueEmailReplyRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueEmailReplyRequest"];
+                "multipart/form-data": components["schemas"]["IssueEmailReplyRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -21024,7 +21762,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedIssueEmailThreadUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedIssueEmailThreadUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedIssueEmailThreadUpdateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -21039,6 +21783,10 @@ export interface operations {
     workspaces_projects_issues_history_list: {
         parameters: {
             query?: {
+                /** @description Only activities or only comments. Both, sorted by created_at, when omitted */
+                activity_type?: "issue-comment" | "issue-property";
+                /** @description Only entries created after this time */
+                created_at__gt?: string;
                 /** @description A search term. */
                 search?: string;
             };
@@ -21338,11 +22086,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["IssueRelationRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueRelationRequest"];
-                "multipart/form-data": components["schemas"]["IssueRelationRequest"];
+                "application/json": components["schemas"]["IssueRelationCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueRelationCreateRequest"];
+                "multipart/form-data": components["schemas"]["IssueRelationCreateRequest"];
             };
         };
         responses: {
@@ -21520,7 +22268,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -21571,9 +22325,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["IssueReactionRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueReactionRequest"];
-                "multipart/form-data": components["schemas"]["IssueReactionRequest"];
+                "application/json": components["schemas"]["ReactionCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ReactionCreateRequest"];
+                "multipart/form-data": components["schemas"]["ReactionCreateRequest"];
             };
         };
         responses: {
@@ -21621,11 +22375,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["IssueRelationRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueRelationRequest"];
-                "multipart/form-data": components["schemas"]["IssueRelationRequest"];
+                "application/json": components["schemas"]["IssueRelationRemoveRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IssueRelationRemoveRequest"];
+                "multipart/form-data": components["schemas"]["IssueRelationRemoveRequest"];
             };
         };
         responses: {
@@ -21672,7 +22426,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubIssuesAddRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["SubIssuesAddRequest"];
+                "multipart/form-data": components["schemas"]["SubIssuesAddRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -21807,7 +22567,10 @@ export interface operations {
     };
     workspaces_projects_issues_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Comma-separated relations to include, such as issue_relation and issue_related */
+                expand?: string;
+            };
             header?: never;
             path: {
                 pk: string;
@@ -21823,7 +22586,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueDetail"];
+                    "application/json": components["schemas"]["ExpandedIssueDetail"];
                 };
             };
         };
@@ -21892,9 +22655,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedIssueCreateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedIssueCreateRequest"];
-                "multipart/form-data": components["schemas"]["PatchedIssueCreateRequest"];
+                "application/json": components["schemas"]["PatchedIssueUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedIssueUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedIssueUpdateRequest"];
             };
         };
         responses: {
@@ -21909,7 +22672,10 @@ export interface operations {
     };
     workspaces_projects_issues_archive_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Comma-separated relations to include, such as issue_relation and issue_related */
+                expand?: string;
+            };
             header?: never;
             path: {
                 pk: string;
@@ -21925,7 +22691,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueDetail"];
+                    "application/json": components["schemas"]["ExpandedIssueDetail"];
                 };
             };
         };
@@ -21977,7 +22743,16 @@ export interface operations {
     };
     workspaces_projects_issues_list_retrieve: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description Comma-separated relations to include, such as issue_relation and issue_related */
+                expand?: string;
+                /** @description Comma-separated list of fields to include in response */
+                fields?: string;
+                /** @description Comma-separated work item ids, a 400 when missing */
+                issues: string;
+                /** @description Field to order results by. Prefix with '-' for descending order */
+                order_by?: string;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -23913,7 +24688,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ServiceDeskConfigUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ServiceDeskConfigUpdateRequest"];
+                "multipart/form-data": components["schemas"]["ServiceDeskConfigUpdateRequest"];
+            };
+        };
         responses: {
             /** @description Updated */
             200: {
@@ -24402,8 +25183,12 @@ export interface operations {
             query?: {
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Include description_html. False when omitted */
+                description?: boolean;
                 /** @description A search term. */
                 search?: string;
+                /** @description Only work items updated after this time */
+                updated_at__gt?: string;
             };
             header?: never;
             path: {
@@ -25055,6 +25840,8 @@ export interface operations {
                 cursor?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Only activity in these projects. Repeat the parameter for more than one */
+                project?: string[];
             };
             header?: never;
             path: {
@@ -25287,10 +26074,50 @@ export interface operations {
     workspaces_user_issues_retrieve: {
         parameters: {
             query?: {
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                assignees?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                created_by?: string;
                 /** @description Pagination cursor for getting next set of results */
                 cursor?: string;
+                /** @description Comma-separated cycle ids. Only work items that match one of them. */
+                cycle?: string;
+                /** @description JSON encoded filter expression with nested 'and' / 'or' / 'not' groups. Mutually exclusive with 'pql'. */
+                filters?: string;
+                /** @description Group the work items by this field */
+                group_by?: "assignees__id" | "created_by" | "cycle_id" | "issue_module__module_id" | "labels__id" | "priority" | "project_id" | "start_date" | "state__group" | "state_id" | "target_date";
+                /** @description Comma-separated label ids. Only work items that match one of them. */
+                labels?: string;
+                /** @description The layout the list is for. Ignored by the backend */
+                layout?: string;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                mentions?: string;
+                /** @description Comma-separated module ids. Only work items that match one of them. */
+                module?: string;
+                /** @description Field to order results by. Prefix with '-' for descending order */
+                order_by?: string;
+                /** @description Comma-separated work item ids. Only work items that match one of them. */
+                parent?: string;
                 /** @description Number of results per page (default: 20, max: 100) */
                 per_page?: number;
+                /** @description Comma-separated priorities */
+                priority?: string;
+                /** @description Comma-separated project ids. Only work items that match one of them. */
+                project?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after */
+                start_date?: string;
+                /** @description Comma-separated state ids. Only work items that match one of them. */
+                state?: string;
+                /** @description Comma-separated state groups */
+                state_group?: string;
+                /** @description Group each group by this field. Requires group_by and must differ from it */
+                sub_group_by?: "assignees__id" | "created_by" | "cycle_id" | "issue_module__module_id" | "labels__id" | "priority" | "project_id" | "start_date" | "state__group" | "state_id" | "target_date";
+                /** @description Include work items that have a parent. True when omitted */
+                sub_issue?: boolean;
+                /** @description Comma-separated user ids. Only work items that match one of them. */
+                subscriber?: string;
+                /** @description Comma-separated date filters such as 2026-01-01;after,2026-02-01;before */
+                target_date?: string;
             };
             header?: never;
             path: {
@@ -25973,7 +26800,8 @@ export interface operations {
                     "application/json": {
                         fields: {
                             name: string;
-                            type: string;
+                            /** @enum {string} */
+                            type: "uuid" | "text" | "date";
                             lookups: string[];
                             operators: string[];
                             people: boolean;
@@ -25987,7 +26815,8 @@ export interface operations {
                         };
                         functions: {
                             name: string;
-                            kind: string;
+                            /** @enum {string} */
+                            kind: "condition" | "value" | "list";
                             arguments: number;
                         }[];
                         custom_property_syntax: string;
@@ -26005,7 +26834,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkItemQueryValidateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WorkItemQueryValidateRequest"];
+                "multipart/form-data": components["schemas"]["WorkItemQueryValidateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -26019,7 +26854,10 @@ export interface operations {
     };
     workspaces_work_items___retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Comma-separated relations to include, such as issue_relation and issue_related */
+                expand?: string;
+            };
             header?: never;
             path: {
                 issue_identifier: string;
@@ -26035,7 +26873,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueDetail"];
+                    "application/json": components["schemas"]["ExpandedIssueDetail"];
                 };
             };
         };
@@ -26518,6 +27356,14 @@ type ReadonlyArray<T> = [
 ] extends [
     unknown[]
 ] ? Readonly<Exclude<T, undefined>> : Readonly<Exclude<T, undefined>[]>;
+export const pathsApiWorkspacesSlugProjectsProject_idArchivedIssuesGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/archived-issues/"]["get"]["parameters"]["query"]["group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
+export const pathsApiWorkspacesSlugProjectsProject_idArchivedIssuesGetParametersQuerySub_group_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/archived-issues/"]["get"]["parameters"]["query"]["sub_group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
+export const pathsApiWorkspacesSlugProjectsProject_idInboxIssuesGetParametersQueryOrder_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/inbox-issues/"]["get"]["parameters"]["query"]["order_by"]> = ["-created_at", "-issue__created_at", "-issue__priority", "-issue__sequence_id", "-issue__sort_order", "-issue__start_date", "-issue__state__name", "-issue__target_date", "-issue__updated_at", "-status", "-updated_at", "created_at", "issue__created_at", "issue__priority", "issue__sequence_id", "issue__sort_order", "issue__start_date", "issue__state__name", "issue__target_date", "issue__updated_at", "status", "updated_at"];
+export const pathsApiWorkspacesSlugProjectsProject_idIntakeIssuesGetParametersQueryOrder_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/intake-issues/"]["get"]["parameters"]["query"]["order_by"]> = ["-created_at", "-issue__created_at", "-issue__priority", "-issue__sequence_id", "-issue__sort_order", "-issue__start_date", "-issue__state__name", "-issue__target_date", "-issue__updated_at", "-status", "-updated_at", "created_at", "issue__created_at", "issue__priority", "issue__sequence_id", "issue__sort_order", "issue__start_date", "issue__state__name", "issue__target_date", "issue__updated_at", "status", "updated_at"];
+export const pathsApiWorkspacesSlugProjectsProject_idIssuePropertiesGetParametersQueryUnscopedValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/issue-properties/"]["get"]["parameters"]["query"]["unscoped"]> = ["false", "true"];
+export const pathsApiWorkspacesSlugProjectsProject_idIssuesGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/issues/"]["get"]["parameters"]["query"]["group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
+export const pathsApiWorkspacesSlugProjectsProject_idIssuesGetParametersQuerySub_group_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/issues/"]["get"]["parameters"]["query"]["sub_group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
+export const pathsApiWorkspacesSlugProjectsProject_idIssuesIssue_idHistoryGetParametersQueryActivity_typeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/history/"]["get"]["parameters"]["query"]["activity_type"]> = ["issue-comment", "issue-property"];
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQueryCycleValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["cycle"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQueryHas_childrenValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["has_children"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQueryIssue_relationValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["issue_relation"]> = ["false", "true"];
@@ -26525,10 +27371,15 @@ export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQu
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQuerySub_issueValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["sub_issue"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugProjectsProject_idSearchIssuesGetParametersQueryWorkspace_searchValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/projects/{project_id}/search-issues/"]["get"]["parameters"]["query"]["workspace_search"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugSearchGetParametersQueryWorkspace_searchValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/search/"]["get"]["parameters"]["query"]["workspace_search"]> = ["false", "true"];
+export const pathsApiWorkspacesSlugUserIssuesUser_idGetParametersQueryGroup_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/user-issues/{user_id}/"]["get"]["parameters"]["query"]["group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
+export const pathsApiWorkspacesSlugUserIssuesUser_idGetParametersQuerySub_group_byValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/user-issues/{user_id}/"]["get"]["parameters"]["query"]["sub_group_by"]> = ["assignees__id", "created_by", "cycle_id", "issue_module__module_id", "labels__id", "priority", "project_id", "start_date", "state__group", "state_id", "target_date"];
 export const pathsApiWorkspacesSlugUsersNotificationsGetParametersQueryArchivedValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/users/notifications/"]["get"]["parameters"]["query"]["archived"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugUsersNotificationsGetParametersQueryReadValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/users/notifications/"]["get"]["parameters"]["query"]["read"]> = ["false", "true"];
 export const pathsApiWorkspacesSlugUsersNotificationsGetParametersQuerySnoozedValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/users/notifications/"]["get"]["parameters"]["query"]["snoozed"]> = ["false", "true"];
+export const pathsApiWorkspacesSlugWorkItemQueryFieldsGetResponses200ContentApplicationJsonFieldsTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/work-item-query/fields/"]["get"]["responses"]["200"]["content"]["application/json"]["fields"]["type"]> = ["uuid", "text", "date"];
+export const pathsApiWorkspacesSlugWorkItemQueryFieldsGetResponses200ContentApplicationJsonFunctionsKindValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api/workspaces/{slug}/work-item-query/fields/"]["get"]["responses"]["200"]["content"]["application/json"]["functions"]["kind"]> = ["condition", "value", "list"];
 export const access1f9EnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Access1f9Enum"]> = [0, 1];
+export const accessEe6EnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccessEe6Enum"]> = ["INTERNAL", "EXTERNAL"];
 export const accessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccessEnum"]> = [0, 1];
 export const accountProviderEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccountProviderEnum"]> = ["google", "github", "gitlab", "gitea", "oidc"];
 export const blankEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["BlankEnum"]> = [""];
@@ -26536,13 +27387,14 @@ export const chartTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components
 export const derivationEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DerivationEnum"]> = ["NONE", "INHERIT", "LOOKUP", "ROLLUP"];
 export const directionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DirectionEnum"]> = ["INBOUND", "OUTBOUND"];
 export const emailCheckStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["EmailCheckStatusEnum"]> = ["MAGIC_CODE", "CREDENTIAL"];
+export const estimateTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["EstimateTypeEnum"]> = ["categories", "points"];
 export const exportProviderEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ExportProviderEnum"]> = ["json", "csv", "xlsx"];
 export const exporterHistoryStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ExporterHistoryStatusEnum"]> = ["queued", "processing", "completed", "failed"];
 export const group272EnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Group272Enum"]> = ["backlog", "unstarted", "started", "completed", "cancelled", "triage"];
 export const homeWidgetKeyEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["HomeWidgetKeyEnum"]> = ["quick_links", "recents", "my_stickies", "new_at_plane", "quick_tutorial"];
 export const intakeWorkItemStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IntakeWorkItemStatusEnum"]> = [-2, -1, 0, 1, 2];
-export const issueCommentAccessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IssueCommentAccessEnum"]> = ["INTERNAL", "EXTERNAL"];
 export const issueEmailMessageStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IssueEmailMessageStatusEnum"]> = ["RECEIVED", "PENDING", "SENT", "FAILED"];
+export const issueRelationCreateRelationTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IssueRelationCreateRelationTypeEnum"]> = ["blocking", "blocked_by", "duplicate", "relates_to", "start_before", "start_after", "finish_before", "finish_after", "implemented_by", "implements"];
 export const lastRunStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LastRunStatusEnum"]> = ["success", "failed", "partial", "skipped"];
 export const moduleStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ModuleStatusEnum"]> = ["backlog", "planned", "in-progress", "paused", "completed", "cancelled"];
 export const navigationControlPreferenceEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NavigationControlPreferenceEnum"]> = ["ACCORDION", "TABBED"];
@@ -26553,7 +27405,7 @@ export const pqlDialectEnumValues: ReadonlyArray<FlattenedDeepRequired<component
 export const priorityEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PriorityEnum"]> = ["urgent", "high", "medium", "low", "none"];
 export const projectStateGroupEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ProjectStateGroupEnum"]> = ["backlog", "unstarted", "started", "completed", "cancelled"];
 export const propertyTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PropertyTypeEnum"]> = ["TEXT", "DECIMAL", "OPTION", "DATETIME", "BOOLEAN", "RELATION"];
-export const relationTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RelationTypeEnum"]> = ["USER", "ISSUE"];
+export const relationType9a3EnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RelationType9a3Enum"]> = ["USER", "ISSUE"];
 export const removeTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RemoveTypeEnum"]> = ["unlink", "delete"];
 export const roleEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RoleEnum"]> = [20, 15, 5];
 export const scopeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ScopeEnum"]> = ["project", "workspace"];
@@ -26563,7 +27415,6 @@ export const status75aEnumValues: ReadonlyArray<FlattenedDeepRequired<components
 export const timezoneEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["TimezoneEnum"]> = ["Africa/Abidjan", "Africa/Accra", "Africa/Addis_Ababa", "Africa/Algiers", "Africa/Asmara", "Africa/Bamako", "Africa/Bangui", "Africa/Banjul", "Africa/Bissau", "Africa/Blantyre", "Africa/Brazzaville", "Africa/Bujumbura", "Africa/Cairo", "Africa/Casablanca", "Africa/Ceuta", "Africa/Conakry", "Africa/Dakar", "Africa/Dar_es_Salaam", "Africa/Djibouti", "Africa/Douala", "Africa/El_Aaiun", "Africa/Freetown", "Africa/Gaborone", "Africa/Harare", "Africa/Johannesburg", "Africa/Juba", "Africa/Kampala", "Africa/Khartoum", "Africa/Kigali", "Africa/Kinshasa", "Africa/Lagos", "Africa/Libreville", "Africa/Lome", "Africa/Luanda", "Africa/Lubumbashi", "Africa/Lusaka", "Africa/Malabo", "Africa/Maputo", "Africa/Maseru", "Africa/Mbabane", "Africa/Mogadishu", "Africa/Monrovia", "Africa/Nairobi", "Africa/Ndjamena", "Africa/Niamey", "Africa/Nouakchott", "Africa/Ouagadougou", "Africa/Porto-Novo", "Africa/Sao_Tome", "Africa/Tripoli", "Africa/Tunis", "Africa/Windhoek", "America/Adak", "America/Anchorage", "America/Anguilla", "America/Antigua", "America/Araguaina", "America/Argentina/Buenos_Aires", "America/Argentina/Catamarca", "America/Argentina/Cordoba", "America/Argentina/Jujuy", "America/Argentina/La_Rioja", "America/Argentina/Mendoza", "America/Argentina/Rio_Gallegos", "America/Argentina/Salta", "America/Argentina/San_Juan", "America/Argentina/San_Luis", "America/Argentina/Tucuman", "America/Argentina/Ushuaia", "America/Aruba", "America/Asuncion", "America/Atikokan", "America/Bahia", "America/Bahia_Banderas", "America/Barbados", "America/Belem", "America/Belize", "America/Blanc-Sablon", "America/Boa_Vista", "America/Bogota", "America/Boise", "America/Cambridge_Bay", "America/Campo_Grande", "America/Cancun", "America/Caracas", "America/Cayenne", "America/Cayman", "America/Chicago", "America/Chihuahua", "America/Ciudad_Juarez", "America/Costa_Rica", "America/Creston", "America/Cuiaba", "America/Curacao", "America/Danmarkshavn", "America/Dawson", "America/Dawson_Creek", "America/Denver", "America/Detroit", "America/Dominica", "America/Edmonton", "America/Eirunepe", "America/El_Salvador", "America/Fort_Nelson", "America/Fortaleza", "America/Glace_Bay", "America/Goose_Bay", "America/Grand_Turk", "America/Grenada", "America/Guadeloupe", "America/Guatemala", "America/Guayaquil", "America/Guyana", "America/Halifax", "America/Havana", "America/Hermosillo", "America/Indiana/Indianapolis", "America/Indiana/Knox", "America/Indiana/Marengo", "America/Indiana/Petersburg", "America/Indiana/Tell_City", "America/Indiana/Vevay", "America/Indiana/Vincennes", "America/Indiana/Winamac", "America/Inuvik", "America/Iqaluit", "America/Jamaica", "America/Juneau", "America/Kentucky/Louisville", "America/Kentucky/Monticello", "America/Kralendijk", "America/La_Paz", "America/Lima", "America/Los_Angeles", "America/Lower_Princes", "America/Maceio", "America/Managua", "America/Manaus", "America/Marigot", "America/Martinique", "America/Matamoros", "America/Mazatlan", "America/Menominee", "America/Merida", "America/Metlakatla", "America/Mexico_City", "America/Miquelon", "America/Moncton", "America/Monterrey", "America/Montevideo", "America/Montserrat", "America/Nassau", "America/New_York", "America/Nome", "America/Noronha", "America/North_Dakota/Beulah", "America/North_Dakota/Center", "America/North_Dakota/New_Salem", "America/Nuuk", "America/Ojinaga", "America/Panama", "America/Paramaribo", "America/Phoenix", "America/Port-au-Prince", "America/Port_of_Spain", "America/Porto_Velho", "America/Puerto_Rico", "America/Punta_Arenas", "America/Rankin_Inlet", "America/Recife", "America/Regina", "America/Resolute", "America/Rio_Branco", "America/Santarem", "America/Santiago", "America/Santo_Domingo", "America/Sao_Paulo", "America/Scoresbysund", "America/Sitka", "America/St_Barthelemy", "America/St_Johns", "America/St_Kitts", "America/St_Lucia", "America/St_Thomas", "America/St_Vincent", "America/Swift_Current", "America/Tegucigalpa", "America/Thule", "America/Tijuana", "America/Toronto", "America/Tortola", "America/Vancouver", "America/Whitehorse", "America/Winnipeg", "America/Yakutat", "Antarctica/Casey", "Antarctica/Davis", "Antarctica/DumontDUrville", "Antarctica/Macquarie", "Antarctica/Mawson", "Antarctica/McMurdo", "Antarctica/Palmer", "Antarctica/Rothera", "Antarctica/Syowa", "Antarctica/Troll", "Antarctica/Vostok", "Arctic/Longyearbyen", "Asia/Aden", "Asia/Almaty", "Asia/Amman", "Asia/Anadyr", "Asia/Aqtau", "Asia/Aqtobe", "Asia/Ashgabat", "Asia/Atyrau", "Asia/Baghdad", "Asia/Bahrain", "Asia/Baku", "Asia/Bangkok", "Asia/Barnaul", "Asia/Beirut", "Asia/Bishkek", "Asia/Brunei", "Asia/Chita", "Asia/Choibalsan", "Asia/Colombo", "Asia/Damascus", "Asia/Dhaka", "Asia/Dili", "Asia/Dubai", "Asia/Dushanbe", "Asia/Famagusta", "Asia/Gaza", "Asia/Hebron", "Asia/Ho_Chi_Minh", "Asia/Hong_Kong", "Asia/Hovd", "Asia/Irkutsk", "Asia/Jakarta", "Asia/Jayapura", "Asia/Jerusalem", "Asia/Kabul", "Asia/Kamchatka", "Asia/Karachi", "Asia/Kathmandu", "Asia/Khandyga", "Asia/Kolkata", "Asia/Krasnoyarsk", "Asia/Kuala_Lumpur", "Asia/Kuching", "Asia/Kuwait", "Asia/Macau", "Asia/Magadan", "Asia/Makassar", "Asia/Manila", "Asia/Muscat", "Asia/Nicosia", "Asia/Novokuznetsk", "Asia/Novosibirsk", "Asia/Omsk", "Asia/Oral", "Asia/Phnom_Penh", "Asia/Pontianak", "Asia/Pyongyang", "Asia/Qatar", "Asia/Qostanay", "Asia/Qyzylorda", "Asia/Riyadh", "Asia/Sakhalin", "Asia/Samarkand", "Asia/Seoul", "Asia/Shanghai", "Asia/Singapore", "Asia/Srednekolymsk", "Asia/Taipei", "Asia/Tashkent", "Asia/Tbilisi", "Asia/Tehran", "Asia/Thimphu", "Asia/Tokyo", "Asia/Tomsk", "Asia/Ulaanbaatar", "Asia/Urumqi", "Asia/Ust-Nera", "Asia/Vientiane", "Asia/Vladivostok", "Asia/Yakutsk", "Asia/Yangon", "Asia/Yekaterinburg", "Asia/Yerevan", "Atlantic/Azores", "Atlantic/Bermuda", "Atlantic/Canary", "Atlantic/Cape_Verde", "Atlantic/Faroe", "Atlantic/Madeira", "Atlantic/Reykjavik", "Atlantic/South_Georgia", "Atlantic/St_Helena", "Atlantic/Stanley", "Australia/Adelaide", "Australia/Brisbane", "Australia/Broken_Hill", "Australia/Darwin", "Australia/Eucla", "Australia/Hobart", "Australia/Lindeman", "Australia/Lord_Howe", "Australia/Melbourne", "Australia/Perth", "Australia/Sydney", "Canada/Atlantic", "Canada/Central", "Canada/Eastern", "Canada/Mountain", "Canada/Newfoundland", "Canada/Pacific", "Europe/Amsterdam", "Europe/Andorra", "Europe/Astrakhan", "Europe/Athens", "Europe/Belgrade", "Europe/Berlin", "Europe/Bratislava", "Europe/Brussels", "Europe/Bucharest", "Europe/Budapest", "Europe/Busingen", "Europe/Chisinau", "Europe/Copenhagen", "Europe/Dublin", "Europe/Gibraltar", "Europe/Guernsey", "Europe/Helsinki", "Europe/Isle_of_Man", "Europe/Istanbul", "Europe/Jersey", "Europe/Kaliningrad", "Europe/Kirov", "Europe/Kyiv", "Europe/Lisbon", "Europe/Ljubljana", "Europe/London", "Europe/Luxembourg", "Europe/Madrid", "Europe/Malta", "Europe/Mariehamn", "Europe/Minsk", "Europe/Monaco", "Europe/Moscow", "Europe/Oslo", "Europe/Paris", "Europe/Podgorica", "Europe/Prague", "Europe/Riga", "Europe/Rome", "Europe/Samara", "Europe/San_Marino", "Europe/Sarajevo", "Europe/Saratov", "Europe/Simferopol", "Europe/Skopje", "Europe/Sofia", "Europe/Stockholm", "Europe/Tallinn", "Europe/Tirane", "Europe/Ulyanovsk", "Europe/Vaduz", "Europe/Vatican", "Europe/Vienna", "Europe/Vilnius", "Europe/Volgograd", "Europe/Warsaw", "Europe/Zagreb", "Europe/Zurich", "GMT", "Indian/Antananarivo", "Indian/Chagos", "Indian/Christmas", "Indian/Cocos", "Indian/Comoro", "Indian/Kerguelen", "Indian/Mahe", "Indian/Maldives", "Indian/Mauritius", "Indian/Mayotte", "Indian/Reunion", "Pacific/Apia", "Pacific/Auckland", "Pacific/Bougainville", "Pacific/Chatham", "Pacific/Chuuk", "Pacific/Easter", "Pacific/Efate", "Pacific/Fakaofo", "Pacific/Fiji", "Pacific/Funafuti", "Pacific/Galapagos", "Pacific/Gambier", "Pacific/Guadalcanal", "Pacific/Guam", "Pacific/Honolulu", "Pacific/Kanton", "Pacific/Kiritimati", "Pacific/Kosrae", "Pacific/Kwajalein", "Pacific/Majuro", "Pacific/Marquesas", "Pacific/Midway", "Pacific/Nauru", "Pacific/Niue", "Pacific/Norfolk", "Pacific/Noumea", "Pacific/Pago_Pago", "Pacific/Palau", "Pacific/Pitcairn", "Pacific/Pohnpei", "Pacific/Port_Moresby", "Pacific/Rarotonga", "Pacific/Saipan", "Pacific/Tahiti", "Pacific/Tarawa", "Pacific/Tongatapu", "Pacific/Wake", "Pacific/Wallis", "US/Alaska", "US/Arizona", "US/Central", "US/Eastern", "US/Hawaii", "US/Mountain", "US/Pacific", "UTC"];
 export const triageStateGroupEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["TriageStateGroupEnum"]> = ["triage"];
 export const triggerSourceEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["TriggerSourceEnum"]> = ["event", "schedule", "manual"];
-export const typeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["TypeEnum"]> = ["categories", "points"];
 export const userTimezoneEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["UserTimezoneEnum"]> = ["Africa/Abidjan", "Africa/Accra", "Africa/Addis_Ababa", "Africa/Algiers", "Africa/Asmara", "Africa/Bamako", "Africa/Bangui", "Africa/Banjul", "Africa/Bissau", "Africa/Blantyre", "Africa/Brazzaville", "Africa/Bujumbura", "Africa/Cairo", "Africa/Casablanca", "Africa/Ceuta", "Africa/Conakry", "Africa/Dakar", "Africa/Dar_es_Salaam", "Africa/Djibouti", "Africa/Douala", "Africa/El_Aaiun", "Africa/Freetown", "Africa/Gaborone", "Africa/Harare", "Africa/Johannesburg", "Africa/Juba", "Africa/Kampala", "Africa/Khartoum", "Africa/Kigali", "Africa/Kinshasa", "Africa/Lagos", "Africa/Libreville", "Africa/Lome", "Africa/Luanda", "Africa/Lubumbashi", "Africa/Lusaka", "Africa/Malabo", "Africa/Maputo", "Africa/Maseru", "Africa/Mbabane", "Africa/Mogadishu", "Africa/Monrovia", "Africa/Nairobi", "Africa/Ndjamena", "Africa/Niamey", "Africa/Nouakchott", "Africa/Ouagadougou", "Africa/Porto-Novo", "Africa/Sao_Tome", "Africa/Tripoli", "Africa/Tunis", "Africa/Windhoek", "America/Adak", "America/Anchorage", "America/Anguilla", "America/Antigua", "America/Araguaina", "America/Argentina/Buenos_Aires", "America/Argentina/Catamarca", "America/Argentina/Cordoba", "America/Argentina/Jujuy", "America/Argentina/La_Rioja", "America/Argentina/Mendoza", "America/Argentina/Rio_Gallegos", "America/Argentina/Salta", "America/Argentina/San_Juan", "America/Argentina/San_Luis", "America/Argentina/Tucuman", "America/Argentina/Ushuaia", "America/Aruba", "America/Asuncion", "America/Atikokan", "America/Bahia", "America/Bahia_Banderas", "America/Barbados", "America/Belem", "America/Belize", "America/Blanc-Sablon", "America/Boa_Vista", "America/Bogota", "America/Boise", "America/Cambridge_Bay", "America/Campo_Grande", "America/Cancun", "America/Caracas", "America/Cayenne", "America/Cayman", "America/Chicago", "America/Chihuahua", "America/Ciudad_Juarez", "America/Costa_Rica", "America/Creston", "America/Cuiaba", "America/Curacao", "America/Danmarkshavn", "America/Dawson", "America/Dawson_Creek", "America/Denver", "America/Detroit", "America/Dominica", "America/Edmonton", "America/Eirunepe", "America/El_Salvador", "America/Fort_Nelson", "America/Fortaleza", "America/Glace_Bay", "America/Goose_Bay", "America/Grand_Turk", "America/Grenada", "America/Guadeloupe", "America/Guatemala", "America/Guayaquil", "America/Guyana", "America/Halifax", "America/Havana", "America/Hermosillo", "America/Indiana/Indianapolis", "America/Indiana/Knox", "America/Indiana/Marengo", "America/Indiana/Petersburg", "America/Indiana/Tell_City", "America/Indiana/Vevay", "America/Indiana/Vincennes", "America/Indiana/Winamac", "America/Inuvik", "America/Iqaluit", "America/Jamaica", "America/Juneau", "America/Kentucky/Louisville", "America/Kentucky/Monticello", "America/Kralendijk", "America/La_Paz", "America/Lima", "America/Los_Angeles", "America/Lower_Princes", "America/Maceio", "America/Managua", "America/Manaus", "America/Marigot", "America/Martinique", "America/Matamoros", "America/Mazatlan", "America/Menominee", "America/Merida", "America/Metlakatla", "America/Mexico_City", "America/Miquelon", "America/Moncton", "America/Monterrey", "America/Montevideo", "America/Montserrat", "America/Nassau", "America/New_York", "America/Nome", "America/Noronha", "America/North_Dakota/Beulah", "America/North_Dakota/Center", "America/North_Dakota/New_Salem", "America/Nuuk", "America/Ojinaga", "America/Panama", "America/Paramaribo", "America/Phoenix", "America/Port-au-Prince", "America/Port_of_Spain", "America/Porto_Velho", "America/Puerto_Rico", "America/Punta_Arenas", "America/Rankin_Inlet", "America/Recife", "America/Regina", "America/Resolute", "America/Rio_Branco", "America/Santarem", "America/Santiago", "America/Santo_Domingo", "America/Sao_Paulo", "America/Scoresbysund", "America/Sitka", "America/St_Barthelemy", "America/St_Johns", "America/St_Kitts", "America/St_Lucia", "America/St_Thomas", "America/St_Vincent", "America/Swift_Current", "America/Tegucigalpa", "America/Thule", "America/Tijuana", "America/Toronto", "America/Tortola", "America/Vancouver", "America/Whitehorse", "America/Winnipeg", "America/Yakutat", "Antarctica/Casey", "Antarctica/Davis", "Antarctica/DumontDUrville", "Antarctica/Macquarie", "Antarctica/Mawson", "Antarctica/McMurdo", "Antarctica/Palmer", "Antarctica/Rothera", "Antarctica/Syowa", "Antarctica/Troll", "Antarctica/Vostok", "Arctic/Longyearbyen", "Asia/Aden", "Asia/Almaty", "Asia/Amman", "Asia/Anadyr", "Asia/Aqtau", "Asia/Aqtobe", "Asia/Ashgabat", "Asia/Atyrau", "Asia/Baghdad", "Asia/Bahrain", "Asia/Baku", "Asia/Bangkok", "Asia/Barnaul", "Asia/Beirut", "Asia/Bishkek", "Asia/Brunei", "Asia/Chita", "Asia/Choibalsan", "Asia/Colombo", "Asia/Damascus", "Asia/Dhaka", "Asia/Dili", "Asia/Dubai", "Asia/Dushanbe", "Asia/Famagusta", "Asia/Gaza", "Asia/Hebron", "Asia/Ho_Chi_Minh", "Asia/Hong_Kong", "Asia/Hovd", "Asia/Irkutsk", "Asia/Jakarta", "Asia/Jayapura", "Asia/Jerusalem", "Asia/Kabul", "Asia/Kamchatka", "Asia/Karachi", "Asia/Kathmandu", "Asia/Khandyga", "Asia/Kolkata", "Asia/Krasnoyarsk", "Asia/Kuala_Lumpur", "Asia/Kuching", "Asia/Kuwait", "Asia/Macau", "Asia/Magadan", "Asia/Makassar", "Asia/Manila", "Asia/Muscat", "Asia/Nicosia", "Asia/Novokuznetsk", "Asia/Novosibirsk", "Asia/Omsk", "Asia/Oral", "Asia/Phnom_Penh", "Asia/Pontianak", "Asia/Pyongyang", "Asia/Qatar", "Asia/Qostanay", "Asia/Qyzylorda", "Asia/Riyadh", "Asia/Sakhalin", "Asia/Samarkand", "Asia/Seoul", "Asia/Shanghai", "Asia/Singapore", "Asia/Srednekolymsk", "Asia/Taipei", "Asia/Tashkent", "Asia/Tbilisi", "Asia/Tehran", "Asia/Thimphu", "Asia/Tokyo", "Asia/Tomsk", "Asia/Ulaanbaatar", "Asia/Urumqi", "Asia/Ust-Nera", "Asia/Vientiane", "Asia/Vladivostok", "Asia/Yakutsk", "Asia/Yangon", "Asia/Yekaterinburg", "Asia/Yerevan", "Atlantic/Azores", "Atlantic/Bermuda", "Atlantic/Canary", "Atlantic/Cape_Verde", "Atlantic/Faroe", "Atlantic/Madeira", "Atlantic/Reykjavik", "Atlantic/South_Georgia", "Atlantic/St_Helena", "Atlantic/Stanley", "Australia/Adelaide", "Australia/Brisbane", "Australia/Broken_Hill", "Australia/Darwin", "Australia/Eucla", "Australia/Hobart", "Australia/Lindeman", "Australia/Lord_Howe", "Australia/Melbourne", "Australia/Perth", "Australia/Sydney", "Canada/Atlantic", "Canada/Central", "Canada/Eastern", "Canada/Mountain", "Canada/Newfoundland", "Canada/Pacific", "Europe/Amsterdam", "Europe/Andorra", "Europe/Astrakhan", "Europe/Athens", "Europe/Belgrade", "Europe/Berlin", "Europe/Bratislava", "Europe/Brussels", "Europe/Bucharest", "Europe/Budapest", "Europe/Busingen", "Europe/Chisinau", "Europe/Copenhagen", "Europe/Dublin", "Europe/Gibraltar", "Europe/Guernsey", "Europe/Helsinki", "Europe/Isle_of_Man", "Europe/Istanbul", "Europe/Jersey", "Europe/Kaliningrad", "Europe/Kirov", "Europe/Kyiv", "Europe/Lisbon", "Europe/Ljubljana", "Europe/London", "Europe/Luxembourg", "Europe/Madrid", "Europe/Malta", "Europe/Mariehamn", "Europe/Minsk", "Europe/Monaco", "Europe/Moscow", "Europe/Oslo", "Europe/Paris", "Europe/Podgorica", "Europe/Prague", "Europe/Riga", "Europe/Rome", "Europe/Samara", "Europe/San_Marino", "Europe/Sarajevo", "Europe/Saratov", "Europe/Simferopol", "Europe/Skopje", "Europe/Sofia", "Europe/Stockholm", "Europe/Tallinn", "Europe/Tirane", "Europe/Ulyanovsk", "Europe/Vaduz", "Europe/Vatican", "Europe/Vienna", "Europe/Vilnius", "Europe/Volgograd", "Europe/Warsaw", "Europe/Zagreb", "Europe/Zurich", "GMT", "Indian/Antananarivo", "Indian/Chagos", "Indian/Christmas", "Indian/Cocos", "Indian/Comoro", "Indian/Kerguelen", "Indian/Mahe", "Indian/Maldives", "Indian/Mauritius", "Indian/Mayotte", "Indian/Reunion", "Pacific/Apia", "Pacific/Auckland", "Pacific/Bougainville", "Pacific/Chatham", "Pacific/Chuuk", "Pacific/Easter", "Pacific/Efate", "Pacific/Fakaofo", "Pacific/Fiji", "Pacific/Funafuti", "Pacific/Galapagos", "Pacific/Gambier", "Pacific/Guadalcanal", "Pacific/Guam", "Pacific/Honolulu", "Pacific/Kanton", "Pacific/Kiritimati", "Pacific/Kosrae", "Pacific/Kwajalein", "Pacific/Majuro", "Pacific/Marquesas", "Pacific/Midway", "Pacific/Nauru", "Pacific/Niue", "Pacific/Norfolk", "Pacific/Noumea", "Pacific/Pago_Pago", "Pacific/Palau", "Pacific/Pitcairn", "Pacific/Pohnpei", "Pacific/Port_Moresby", "Pacific/Rarotonga", "Pacific/Saipan", "Pacific/Tahiti", "Pacific/Tarawa", "Pacific/Tongatapu", "Pacific/Wake", "Pacific/Wallis", "US/Alaska", "US/Arizona", "US/Central", "US/Eastern", "US/Hawaii", "US/Mountain", "US/Pacific", "UTC"];
 export const userTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["UserTypeEnum"]> = [0, 1];
 export const voteEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["VoteEnum"]> = [-1, 1];
