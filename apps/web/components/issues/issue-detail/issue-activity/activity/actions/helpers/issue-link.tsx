@@ -30,7 +30,7 @@ export function IssueLink(props: TIssueLink) {
     projectId: activity.project,
     issueId: activity.issue,
     projectIdentifier: activity.project_detail.identifier,
-    sequenceId: activity.issue_detail.sequence_id,
+    sequenceId: activity.issue_detail?.sequence_id,
   });
   return (
     <Tooltip
