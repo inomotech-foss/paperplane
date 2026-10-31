@@ -42,7 +42,7 @@ export function IssueLinkDetail(props: TIssueLinkDetail) {
     setIssueLinkData(linkDetail);
   };
 
-  const createdByDetails = getUserDetails(linkDetail.created_by_id);
+  const createdByDetails = linkDetail.created_by_id ? getUserDetails(linkDetail.created_by_id) : undefined;
 
   return (
     <div key={linkId}>

@@ -32,7 +32,7 @@ export const BulkDeleteIssuesModalItem = observer(function BulkDeleteIssuesModal
           <span
             className="block h-1.5 w-1.5 flex-shrink-0 rounded-full"
             style={{
-              backgroundColor: color,
+              backgroundColor: color ?? undefined,
             }}
           />
           <IssueIdentifier

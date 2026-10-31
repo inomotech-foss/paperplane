@@ -48,14 +48,17 @@ export const SubWorkItemTitleActions = observer(function SubWorkItemTitleActions
 
   const handleDisplayFilters = useCallback(
     (updatedDisplayFilter: Partial<IIssueDisplayFilterOptions>) => {
-      updateSubWorkItemFilters(EIssueFilterType.DISPLAY_FILTERS, updatedDisplayFilter, parentId);
+      updateSubWorkItemFilters({ type: EIssueFilterType.DISPLAY_FILTERS, filters: updatedDisplayFilter }, parentId);
     },
     [updateSubWorkItemFilters, parentId]
   );
 
   const handleDisplayPropertiesUpdate = useCallback(
     (updatedDisplayProperties: Partial<IIssueDisplayProperties>) => {
-      updateSubWorkItemFilters(EIssueFilterType.DISPLAY_PROPERTIES, updatedDisplayProperties, parentId);
+      updateSubWorkItemFilters(
+        { type: EIssueFilterType.DISPLAY_PROPERTIES, filters: updatedDisplayProperties },
+        parentId
+      );
     },
     [updateSubWorkItemFilters, parentId]
   );
@@ -74,7 +77,7 @@ export const SubWorkItemTitleActions = observer(function SubWorkItemTitleActions
         if (subIssueFilters?.filters?.[key]?.includes(value)) newValues.splice(newValues.indexOf(value), 1);
         else newValues.push(value);
       }
-      updateSubWorkItemFilters(EIssueFilterType.FILTERS, { [key]: newValues }, parentId);
+      updateSubWorkItemFilters({ type: EIssueFilterType.FILTERS, filters: { [key]: newValues } }, parentId);
     },
     [subIssueFilters?.filters, updateSubWorkItemFilters, parentId]
   );

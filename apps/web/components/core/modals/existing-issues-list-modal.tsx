@@ -286,7 +286,7 @@ export function ExistingIssuesListModal(props: Props) {
                               <span
                                 className="block h-1.5 w-1.5 flex-shrink-0 rounded-full"
                                 style={{
-                                  backgroundColor: issue.state__color,
+                                  backgroundColor: issue.state__color ?? undefined,
                                 }}
                               />
                               <IssueIdentifier
