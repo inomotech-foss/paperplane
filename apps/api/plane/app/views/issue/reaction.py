@@ -34,10 +34,10 @@ class IssueReactionViewSet(BaseViewSet):
             .filter(workspace__slug=self.kwargs.get("slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(issue_id=self.kwargs.get("issue_id"))
+            # Like the work item detail, the reactions stay readable in an archived project.
             .filter(
                 project__project_projectmember__member=self.request.user,
                 project__project_projectmember__is_active=True,
-                project__archived_at__isnull=True,
             )
             .order_by("-created_at")
             .distinct()
