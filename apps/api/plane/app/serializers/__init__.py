@@ -66,6 +66,7 @@ from .issue import (
     IssueCreateSerializer,
     IssueActivitySerializer,
     IssueCommentSerializer,
+    PublicIssueCommentSerializer,
     ProjectUserPropertySerializer,
     IssueAssigneeSerializer,
     LabelSerializer,

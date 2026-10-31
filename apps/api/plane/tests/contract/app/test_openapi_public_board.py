@@ -6,8 +6,10 @@
 import pytest
 
 from plane.db.models import (
+    CommentReaction,
     DeployBoard,
     Issue,
+    IssueComment,
     IssueReaction,
     IssueVote,
     ProjectMember,
@@ -61,3 +63,18 @@ class TestPublicBoard:
         )
         rows = documented(session_client.get(issue_url(board, "votes/")))
         assert [row["vote"] for row in rows] == [-1]
+
+    def test_comment_reactions_carry_the_actor(self, session_client, create_user, workspace, board):
+        comment = IssueComment.objects.create(
+            issue=board["issue"],
+            project=board["project"],
+            workspace=workspace,
+            actor=create_user,
+            access="EXTERNAL",
+            comment_html="<p>hi</p>",
+        )
+        CommentReaction.objects.create(
+            comment=comment, project=board["project"], workspace=workspace, actor=create_user, reaction="128077"
+        )
+        rows = documented(session_client.get(issue_url(board, "comments/")))
+        assert rows[0]["comment_reactions"][0]["actor_detail"]["id"] == str(create_user.id)

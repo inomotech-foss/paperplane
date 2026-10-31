@@ -52,7 +52,7 @@ from plane.utils.order_queryset import order_issue_queryset
 from plane.utils.paginator import GroupedOffsetPaginator, SubGroupedOffsetPaginator
 from plane.app.serializers import (
     CommentReactionSerializer,
-    IssueCommentSerializer,
+    PublicIssueCommentSerializer,
     IssueReactionSerializer,
     IssueVoteSerializer,
 )
@@ -249,7 +249,7 @@ class ProjectIssuesPublicEndpoint(BaseAPIView):
 
 
 class IssueCommentPublicViewSet(BaseViewSet):
-    serializer_class = IssueCommentSerializer
+    serializer_class = PublicIssueCommentSerializer
     model = IssueComment
 
     filterset_fields = ["issue__id", "workspace__id"]
@@ -305,7 +305,7 @@ class IssueCommentPublicViewSet(BaseViewSet):
         if not _issue_in_board_scope(issue_id, project_deploy_board):
             return Response({"error": "Issue not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = IssueCommentSerializer(data=_public_comment_content(request.data))
+        serializer = PublicIssueCommentSerializer(data=_public_comment_content(request.data))
         if serializer.is_valid():
             serializer.save(
                 project_id=project_deploy_board.project_id,
@@ -353,8 +353,8 @@ class IssueCommentPublicViewSet(BaseViewSet):
             actor=request.user,
         )
         data = _public_comment_content(request.data)
-        current_instance = json.dumps(IssueCommentSerializer(comment).data, cls=DjangoJSONEncoder)
-        serializer = IssueCommentSerializer(comment, data=data, partial=True)
+        current_instance = json.dumps(PublicIssueCommentSerializer(comment).data, cls=DjangoJSONEncoder)
+        serializer = PublicIssueCommentSerializer(comment, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             issue_activity.delay(
@@ -392,7 +392,7 @@ class IssueCommentPublicViewSet(BaseViewSet):
             actor_id=str(request.user.id),
             issue_id=str(issue_id),
             project_id=str(project_deploy_board.project_id),
-            current_instance=json.dumps(IssueCommentSerializer(comment).data, cls=DjangoJSONEncoder),
+            current_instance=json.dumps(PublicIssueCommentSerializer(comment).data, cls=DjangoJSONEncoder),
             epoch=int(timezone.now().timestamp()),
         )
         comment.delete()

@@ -10223,26 +10223,6 @@ export interface components {
              */
             updated_by?: string | null;
         };
-        PatchedIssueCommentRequest: {
-            /** Format: date-time */
-            deleted_at?: string | null;
-            /** Comment */
-            comment_stripped?: string;
-            comment_json?: unknown;
-            comment_html?: string;
-            attachments?: string[];
-            access?: components["schemas"]["AccessEe6Enum"];
-            external_source?: string | null;
-            external_id?: string | null;
-            /** Format: date-time */
-            edited_at?: string | null;
-            /** Format: uuid */
-            description?: string | null;
-            /** Format: uuid */
-            actor?: string | null;
-            /** Format: uuid */
-            parent?: string | null;
-        };
         PatchedIssueCommentWriteRequest: {
             comment_html?: string;
             /** @description The editor document of comment_html */
@@ -10572,6 +10552,26 @@ export interface components {
              * Format: uuid
              */
             updated_by?: string | null;
+        };
+        PatchedPublicIssueCommentRequest: {
+            /** Format: date-time */
+            deleted_at?: string | null;
+            /** Comment */
+            comment_stripped?: string;
+            comment_json?: unknown;
+            comment_html?: string;
+            attachments?: string[];
+            access?: components["schemas"]["AccessEe6Enum"];
+            external_source?: string | null;
+            external_id?: string | null;
+            /** Format: date-time */
+            edited_at?: string | null;
+            /** Format: uuid */
+            description?: string | null;
+            /** Format: uuid */
+            actor?: string | null;
+            /** Format: uuid */
+            parent?: string | null;
         };
         PatchedStateRequest: {
             /** State Name */
@@ -11394,6 +11394,82 @@ export interface components {
             avatar: string | null;
             avatar_url: string | null;
             display_name: string;
+        };
+        PublicCommentReaction: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly comment: string;
+            readonly reaction: string;
+            readonly actor_detail: components["schemas"]["UserLite"];
+        };
+        PublicIssueComment: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly actor_detail: components["schemas"]["UserLite"] | null;
+            readonly issue_detail: components["schemas"]["IssueFlat"];
+            readonly project_detail: components["schemas"]["ProjectLite"];
+            readonly workspace_detail: components["schemas"]["WorkspaceLite"];
+            readonly comment_reactions: components["schemas"]["PublicCommentReaction"][];
+            readonly is_member?: boolean;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            /** Comment */
+            comment_stripped: string;
+            comment_json: unknown;
+            comment_html: string;
+            attachments: string[];
+            access: components["schemas"]["AccessEe6Enum"];
+            external_source: string | null;
+            external_id: string | null;
+            /** Format: date-time */
+            edited_at: string | null;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            /** Format: uuid */
+            readonly project: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            description: string | null;
+            /** Format: uuid */
+            readonly issue: string;
+            /** Format: uuid */
+            actor: string | null;
+            /** Format: uuid */
+            parent: string | null;
+        };
+        PublicIssueCommentRequest: {
+            /** Format: date-time */
+            deleted_at?: string | null;
+            /** Comment */
+            comment_stripped?: string;
+            comment_json?: unknown;
+            comment_html?: string;
+            attachments?: string[];
+            access?: components["schemas"]["AccessEe6Enum"];
+            external_source?: string | null;
+            external_id?: string | null;
+            /** Format: date-time */
+            edited_at?: string | null;
+            /** Format: uuid */
+            description?: string | null;
+            /** Format: uuid */
+            actor?: string | null;
+            /** Format: uuid */
+            parent?: string | null;
         };
         PublicLabel: {
             /** Format: uuid */
@@ -15154,7 +15230,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueComment"][];
+                    "application/json": components["schemas"]["PublicIssueComment"][];
                 };
             };
         };
@@ -15171,9 +15247,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["IssueCommentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["IssueCommentRequest"];
-                "multipart/form-data": components["schemas"]["IssueCommentRequest"];
+                "application/json": components["schemas"]["PublicIssueCommentRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PublicIssueCommentRequest"];
+                "multipart/form-data": components["schemas"]["PublicIssueCommentRequest"];
             };
         };
         responses: {
@@ -15182,7 +15258,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueComment"];
+                    "application/json": components["schemas"]["PublicIssueComment"];
                 };
             };
         };
@@ -15205,7 +15281,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueComment"];
+                    "application/json": components["schemas"]["PublicIssueComment"];
                 };
             };
         };
@@ -15245,9 +15321,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedIssueCommentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedIssueCommentRequest"];
-                "multipart/form-data": components["schemas"]["PatchedIssueCommentRequest"];
+                "application/json": components["schemas"]["PatchedPublicIssueCommentRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedPublicIssueCommentRequest"];
+                "multipart/form-data": components["schemas"]["PatchedPublicIssueCommentRequest"];
             };
         };
         responses: {
@@ -15256,7 +15332,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueComment"];
+                    "application/json": components["schemas"]["PublicIssueComment"];
                 };
             };
         };

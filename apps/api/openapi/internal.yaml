@@ -1303,7 +1303,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/IssueComment'
+                  $ref: '#/components/schemas/PublicIssueComment'
           description: ''
     post:
       operationId: public_anchor_issues_comments_create
@@ -1325,13 +1325,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IssueCommentRequest'
+              $ref: '#/components/schemas/PublicIssueCommentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IssueCommentRequest'
+              $ref: '#/components/schemas/PublicIssueCommentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IssueCommentRequest'
+              $ref: '#/components/schemas/PublicIssueCommentRequest'
       security:
       - sessionAuth: []
       responses:
@@ -1339,7 +1339,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IssueComment'
+                $ref: '#/components/schemas/PublicIssueComment'
           description: ''
   /api/public/anchor/{anchor}/issues/{issue_id}/comments/{pk}/:
     get:
@@ -1372,7 +1372,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IssueComment'
+                $ref: '#/components/schemas/PublicIssueComment'
           description: ''
     patch:
       operationId: public_anchor_issues_comments_partial_update
@@ -1400,13 +1400,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedIssueCommentRequest'
+              $ref: '#/components/schemas/PatchedPublicIssueCommentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedIssueCommentRequest'
+              $ref: '#/components/schemas/PatchedPublicIssueCommentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedIssueCommentRequest'
+              $ref: '#/components/schemas/PatchedPublicIssueCommentRequest'
       security:
       - sessionAuth: []
       responses:
@@ -1414,7 +1414,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IssueComment'
+                $ref: '#/components/schemas/PublicIssueComment'
           description: ''
     delete:
       operationId: public_anchor_issues_comments_destroy
@@ -31214,53 +31214,6 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
-    PatchedIssueCommentRequest:
-      type: object
-      properties:
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
-        comment_stripped:
-          type: string
-          title: Comment
-        comment_json: {}
-        comment_html:
-          type: string
-        attachments:
-          type: array
-          items:
-            type: string
-            format: uri
-            minLength: 1
-            maxLength: 200
-          maxItems: 10
-        access:
-          $ref: '#/components/schemas/AccessEe6Enum'
-        external_source:
-          type: string
-          nullable: true
-          maxLength: 255
-        external_id:
-          type: string
-          nullable: true
-          maxLength: 255
-        edited_at:
-          type: string
-          format: date-time
-          nullable: true
-        description:
-          type: string
-          format: uuid
-          nullable: true
-        actor:
-          type: string
-          format: uuid
-          nullable: true
-        parent:
-          type: string
-          format: uuid
-          nullable: true
     PatchedIssueCommentWriteRequest:
       type: object
       properties:
@@ -31986,6 +31939,53 @@ components:
           format: uuid
           nullable: true
           title: Last Modified By
+    PatchedPublicIssueCommentRequest:
+      type: object
+      properties:
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        comment_stripped:
+          type: string
+          title: Comment
+        comment_json: {}
+        comment_html:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uri
+            minLength: 1
+            maxLength: 200
+          maxItems: 10
+        access:
+          $ref: '#/components/schemas/AccessEe6Enum'
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        edited_at:
+          type: string
+          format: date-time
+          nullable: true
+        description:
+          type: string
+          format: uuid
+          nullable: true
+        actor:
+          type: string
+          format: uuid
+          nullable: true
+        parent:
+          type: string
+          format: uuid
+          nullable: true
     PatchedStateRequest:
       type: object
       properties:
@@ -33960,6 +33960,209 @@ components:
       - avatar
       - avatar_url
       - display_name
+    PublicCommentReaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        comment:
+          type: string
+          format: uuid
+          readOnly: true
+        reaction:
+          type: string
+          readOnly: true
+        actor_detail:
+          allOf:
+          - $ref: '#/components/schemas/UserLite'
+          readOnly: true
+      required:
+      - id
+      - comment
+      - reaction
+      - actor_detail
+    PublicIssueComment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        actor_detail:
+          allOf:
+          - $ref: '#/components/schemas/UserLite'
+          readOnly: true
+          nullable: true
+        issue_detail:
+          allOf:
+          - $ref: '#/components/schemas/IssueFlat'
+          readOnly: true
+        project_detail:
+          allOf:
+          - $ref: '#/components/schemas/ProjectLite'
+          readOnly: true
+        workspace_detail:
+          allOf:
+          - $ref: '#/components/schemas/WorkspaceLite'
+          readOnly: true
+        comment_reactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicCommentReaction'
+          readOnly: true
+        is_member:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        comment_stripped:
+          type: string
+          title: Comment
+        comment_json: {}
+        comment_html:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uri
+            maxLength: 200
+          maxItems: 10
+        access:
+          $ref: '#/components/schemas/AccessEe6Enum'
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        edited_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          title: Last Modified By
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        description:
+          type: string
+          format: uuid
+          nullable: true
+        issue:
+          type: string
+          format: uuid
+          readOnly: true
+        actor:
+          type: string
+          format: uuid
+          nullable: true
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - id
+      - actor_detail
+      - issue_detail
+      - project_detail
+      - workspace_detail
+      - comment_reactions
+      - created_at
+      - updated_at
+      - deleted_at
+      - comment_stripped
+      - comment_json
+      - comment_html
+      - attachments
+      - access
+      - external_source
+      - external_id
+      - edited_at
+      - created_by
+      - updated_by
+      - project
+      - workspace
+      - description
+      - issue
+      - actor
+      - parent
+    PublicIssueCommentRequest:
+      type: object
+      properties:
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        comment_stripped:
+          type: string
+          title: Comment
+        comment_json: {}
+        comment_html:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uri
+            minLength: 1
+            maxLength: 200
+          maxItems: 10
+        access:
+          $ref: '#/components/schemas/AccessEe6Enum'
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        edited_at:
+          type: string
+          format: date-time
+          nullable: true
+        description:
+          type: string
+          format: uuid
+          nullable: true
+        actor:
+          type: string
+          format: uuid
+          nullable: true
+        parent:
+          type: string
+          format: uuid
+          nullable: true
     PublicLabel:
       type: object
       properties:
