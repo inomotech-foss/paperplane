@@ -15,12 +15,12 @@ import { Button } from "@makeplane/propel/components/button";
 import { Icon } from "@makeplane/propel/components/icon";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/components/menu";
 import { LogOutOutline } from "@makeplane/propel/icons";
-import { AuthService } from "@plane/services";
 import { getFileURL } from "@plane/utils";
 // helpers
 import { queryParamGenerator } from "@/helpers/query-param-generator";
 // hooks
 import { useUser } from "@/hooks/store/use-user";
+import { AuthService } from "@/services/auth.service";
 
 const authService = new AuthService();
 
@@ -52,11 +52,8 @@ export const UserAvatar = observer(function UserAvatar() {
 
   // derived values
   const { queryParam } = queryParamGenerator({ peekId, board, state, priority, labels });
-  const displayName =
-    currentUser?.display_name ||
-    `${currentUser?.first_name} ${currentUser?.first_name}` ||
-    currentUser?.email ||
-    "User";
+  const fullName = [currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(" ");
+  const displayName = currentUser?.display_name || fullName || currentUser?.email || "User";
 
   return (
     <div className="relative mr-2">
@@ -84,7 +81,7 @@ export const UserAvatar = observer(function UserAvatar() {
                   icon={
                     <Avatar
                       size="2xs"
-                      src={getFileURL(currentUser?.avatar_url)}
+                      src={getFileURL(currentUser?.avatar_url ?? "")}
                       alt={currentUser?.display_name}
                       fallback={currentUser?.display_name?.[0]?.toUpperCase()}
                     />

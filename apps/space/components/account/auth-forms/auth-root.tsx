@@ -8,15 +8,21 @@ import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
 // plane imports
-import { SitesAuthService } from "@plane/services";
-import type { IEmailCheckData } from "@plane/types";
 import { OAuthOptions } from "@plane/blocks/auth";
 // helpers
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
-import { EErrorAlertType, authErrorHandler, EAuthenticationErrorCodes } from "@/helpers/authentication.helper";
+import {
+  EErrorAlertType,
+  EAuthenticationErrorCodes,
+  authErrorHandler,
+  getAuthErrorInfo,
+} from "@/helpers/authentication.helper";
+import { getApiErrorField } from "@/helpers/error.helper";
 // hooks
 import { useOAuthConfig } from "@/hooks/oauth";
 import { useInstance } from "@/hooks/store/use-instance";
+// services
+import { AuthService } from "@/services/auth.service";
 // types
 import { EAuthModes, EAuthSteps } from "@/types/auth";
 // local imports
@@ -26,7 +32,7 @@ import { AuthEmailForm } from "./email";
 import { AuthPasswordForm } from "./password";
 import { AuthUniqueCodeForm } from "./unique-code";
 
-const authService = new SitesAuthService();
+const authService = new AuthService();
 
 export const AuthRoot = observer(function AuthRoot() {
   // router params
@@ -46,11 +52,7 @@ export const AuthRoot = observer(function AuthRoot() {
 
   useEffect(() => {
     if (error_code) {
-      const errorhandler = authErrorHandler(
-        error_code?.toString() as EAuthenticationErrorCodes,
-        emailParam,
-        providerParam
-      );
+      const errorhandler = getAuthErrorInfo(error_code, emailParam, providerParam);
       if (errorhandler) {
         if (errorhandler.code === EAuthenticationErrorCodes.AUTHENTICATION_FAILED_SIGN_IN) {
           setAuthMode(EAuthModes.SIGN_IN);
@@ -92,7 +94,7 @@ export const AuthRoot = observer(function AuthRoot() {
   const { isOAuthEnabled, oAuthOptions } = useOAuthConfig(oAuthActionText);
 
   // submit handler- email verification
-  const handleEmailVerification = async (data: IEmailCheckData) => {
+  const handleEmailVerification = async (data: { email: string }) => {
     setEmail(data.email);
 
     await authService
@@ -115,7 +117,7 @@ export const AuthRoot = observer(function AuthRoot() {
             setIsPasswordAutoset(false);
             setAuthStep(EAuthSteps.PASSWORD);
           } else {
-            const errorhandler = authErrorHandler("5005" as EAuthenticationErrorCodes);
+            const errorhandler = authErrorHandler(EAuthenticationErrorCodes.INVALID_EMAIL);
             setErrorInfo(errorhandler);
           }
         } else {
@@ -125,14 +127,14 @@ export const AuthRoot = observer(function AuthRoot() {
           } else if (isEmailPasswordEnabled) {
             setAuthStep(EAuthSteps.PASSWORD);
           } else {
-            const errorhandler = authErrorHandler("5006" as EAuthenticationErrorCodes);
+            const errorhandler = authErrorHandler(EAuthenticationErrorCodes.SIGNUP_DISABLED);
             setErrorInfo(errorhandler);
           }
         }
         return;
       })
-      .catch((error) => {
-        const errorhandler = authErrorHandler(error?.error_code?.toString(), data?.email || undefined);
+      .catch((error: unknown) => {
+        const errorhandler = getAuthErrorInfo(getApiErrorField(error, "error_code"), data.email || undefined);
         if (errorhandler?.type) setErrorInfo(errorhandler);
       });
   };
@@ -143,8 +145,8 @@ export const AuthRoot = observer(function AuthRoot() {
     return await authService
       .generateUniqueCode(payload)
       .then(() => ({ code: "" }))
-      .catch((error) => {
-        const errorhandler = authErrorHandler(error?.error_code.toString());
+      .catch((error: unknown) => {
+        const errorhandler = getAuthErrorInfo(getApiErrorField(error, "error_code"));
         if (errorhandler?.type) setErrorInfo(errorhandler);
         throw error;
       });

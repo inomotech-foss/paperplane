@@ -4,12 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import { AxiosError } from "axios";
-import { set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 // plane imports
-import { UserService } from "@plane/services";
-import type { ActorDetail, IUser } from "@plane/types";
+import { isApiError } from "@plane/services";
+import type { ActorDetail } from "@plane/types";
+// services
+import { UserService } from "@/services/user.service";
+import type { TCurrentUser } from "@/services/user.service";
 // store types
 import type { IProfileStore } from "@/store/profile.store";
 import { ProfileStore } from "@/store/profile.store";
@@ -26,15 +27,13 @@ export interface IUserStore {
   isAuthenticated: boolean;
   isInitializing: boolean;
   error: TUserErrorStatus | undefined;
-  data: IUser | undefined;
+  data: TCurrentUser | undefined;
   // store observables
   profile: IProfileStore;
   // computed
   currentActor: ActorDetail;
   // actions
-  fetchCurrentUser: () => Promise<IUser | undefined>;
-  updateCurrentUser: (data: Partial<IUser>) => Promise<IUser | undefined>;
-  hydrate: (data: IUser | undefined) => void;
+  fetchCurrentUser: () => Promise<TCurrentUser | undefined>;
   reset: () => void;
   signOut: () => Promise<void>;
 }
@@ -44,7 +43,7 @@ export class UserStore implements IUserStore {
   isAuthenticated: boolean = false;
   isInitializing: boolean = true;
   error: TUserErrorStatus | undefined = undefined;
-  data: IUser | undefined = undefined;
+  data: TCurrentUser | undefined = undefined;
   // store observables
   profile: IProfileStore;
   // service
@@ -68,7 +67,6 @@ export class UserStore implements IUserStore {
       currentActor: computed,
       // actions
       fetchCurrentUser: action,
-      updateCurrentUser: action,
       reset: action,
       signOut: action,
     });
@@ -89,9 +87,9 @@ export class UserStore implements IUserStore {
   // actions
   /**
    * @description fetches the current user
-   * @returns {Promise<IUser>}
+   * @returns {Promise<TCurrentUser>}
    */
-  fetchCurrentUser = async (): Promise<IUser> => {
+  fetchCurrentUser = async (): Promise<TCurrentUser> => {
     try {
       runInAction(() => {
         if (this.data === undefined && !this.error) this.isInitializing = true;
@@ -120,50 +118,12 @@ export class UserStore implements IUserStore {
           status: "user-fetch-error",
           message: "Failed to fetch current user",
         };
-        if (error instanceof AxiosError && error.status === 401) {
+        if (isApiError(error) && error.status === 401) {
           this.data = undefined;
         }
       });
       throw error;
     }
-  };
-
-  /**
-   * @description updates the current user
-   * @param data
-   * @returns {Promise<IUser>}
-   */
-  updateCurrentUser = async (data: Partial<IUser>): Promise<IUser> => {
-    const currentUserData = this.data;
-    try {
-      if (currentUserData) {
-        Object.keys(data).forEach((key: string) => {
-          const userKey: keyof IUser = key as keyof IUser;
-          if (this.data) set(this.data, userKey, data[userKey]);
-        });
-      }
-      const user = await this.userService.update(data);
-      return user;
-    } catch (error) {
-      if (currentUserData) {
-        Object.keys(currentUserData).forEach((key: string) => {
-          const userKey: keyof IUser = key as keyof IUser;
-          if (this.data) set(this.data, userKey, currentUserData[userKey]);
-        });
-      }
-      runInAction(() => {
-        this.error = {
-          status: "user-update-error",
-          message: "Failed to update current user",
-        };
-      });
-      throw error;
-    }
-  };
-
-  hydrate = (data: IUser | undefined): void => {
-    if (!data) return;
-    this.data = { ...this.data, ...data };
   };
 
   /**

@@ -5,9 +5,19 @@
  */
 
 import { STATE_GROUPS } from "@plane/constants";
-import type { IState } from "@plane/types";
+import type { TStateGroups } from "@plane/types";
+import type { TPublicStateResponse } from "@/services/project.service";
+import { isStateGroup } from "./narrow.helper";
 
-export const sortStates = (states: IState[]) => {
+export type TPublicState = Omit<TPublicStateResponse, "group"> & { group: TStateGroups };
+
+/** Narrows the state group. An unknown group falls back to backlog. */
+export const toPublicState = (state: TPublicStateResponse): TPublicState => ({
+  ...state,
+  group: isStateGroup(state.group) ? state.group : "backlog",
+});
+
+export const sortStates = (states: TPublicState[]) => {
   if (!states || states.length === 0) return;
 
   return states.sort((stateA, stateB) => {

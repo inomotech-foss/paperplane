@@ -5,14 +5,14 @@
  */
 
 import { redirect } from "react-router";
-// plane imports
-import { SitesProjectPublishService } from "@plane/services";
-import type { TProjectPublishSettings } from "@plane/types";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
+// services
+import { PublicProjectService } from "@/services/project.service";
+import type { TPublishSettingsResponse } from "@/services/project.service";
 import type { Route } from "./+types/page";
 
-const publishService = new SitesProjectPublishService();
+const publishService = new PublicProjectService();
 
 export const clientLoader = async ({ params, request }: Route.ClientLoaderArgs) => {
   const { workspaceSlug, projectId } = params;
@@ -27,7 +27,7 @@ export const clientLoader = async ({ params, request }: Route.ClientLoaderArgs) 
   const board = url.searchParams.get("board");
   const peekId = url.searchParams.get("peekId");
 
-  let response: TProjectPublishSettings | undefined = undefined;
+  let response: TPublishSettingsResponse | undefined = undefined;
 
   try {
     response = await publishService.retrieveSettingsByProjectId(workspaceSlug, projectId);

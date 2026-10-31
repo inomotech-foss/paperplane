@@ -4,13 +4,16 @@
  * See the LICENSE file for details.
  */
 
-import { set } from "lodash-es";
 import { observable, action, makeObservable, runInAction } from "mobx";
-// plane imports
-import { InstanceService } from "@plane/services";
-import type { IInstance, IInstanceConfig } from "@plane/types";
+// services
+import { InstanceService } from "@/services/instance.service";
+import type { TInstanceInfoResponse } from "@/services/instance.service";
 // store
 import type { RootStore } from "@/store/root.store";
+
+type TInstanceInfo = Extract<TInstanceInfoResponse, { instance: unknown }>;
+type TInstance = TInstanceInfo["instance"];
+type TInstanceConfig = TInstanceInfo["config"];
 
 type TError = {
   status: string;
@@ -24,18 +27,17 @@ type TError = {
 export interface IInstanceStore {
   // observables
   isLoading: boolean;
-  instance: IInstance | undefined;
-  config: IInstanceConfig | undefined;
+  instance: TInstance | undefined;
+  config: TInstanceConfig | undefined;
   error: TError | undefined;
   // action
   fetchInstanceInfo: () => Promise<void>;
-  hydrate: (data: IInstance) => void;
 }
 
 export class InstanceStore implements IInstanceStore {
   isLoading: boolean = true;
-  instance: IInstance | undefined = undefined;
-  config: IInstanceConfig | undefined = undefined;
+  instance: TInstance | undefined = undefined;
+  config: TInstanceConfig | undefined = undefined;
   error: TError | undefined = undefined;
   // services
   instanceService;
@@ -49,13 +51,10 @@ export class InstanceStore implements IInstanceStore {
       error: observable,
       // actions
       fetchInstanceInfo: action,
-      hydrate: action,
     });
     // services
     this.instanceService = new InstanceService();
   }
-
-  hydrate = (data: IInstance) => set(this, "instance", data);
 
   /**
    * @description fetching instance information
@@ -67,8 +66,12 @@ export class InstanceStore implements IInstanceStore {
       const instanceInfo = await this.instanceService.info();
       runInAction(() => {
         this.isLoading = false;
-        this.instance = instanceInfo.instance;
-        this.config = instanceInfo.config;
+        if ("instance" in instanceInfo) {
+          this.instance = instanceInfo.instance;
+          this.config = instanceInfo.config;
+        } else {
+          this.error = { status: "error", message: "Instance is not registered", data: instanceInfo };
+        }
       });
     } catch (_error) {
       runInAction(() => {

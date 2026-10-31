@@ -7,10 +7,11 @@
 // plane imports
 import { MAX_FILE_SIZE } from "@plane/constants";
 import type { TFileHandler } from "@plane/editor";
-import { SitesFileService } from "@plane/services";
 import { getFileURL } from "@plane/utils";
 // services
-const sitesFileService = new SitesFileService();
+import { PublicFileService } from "@/services/file.service";
+
+const sitesFileService = new PublicFileService();
 
 /**
  * @description generate the file source using assetId
@@ -53,7 +54,7 @@ export const getEditorFileHandlers = (args: TArgs): TFileHandler => {
       if (src?.startsWith("http")) {
         await sitesFileService.deleteOldEditorAsset(workspaceId, src);
       } else {
-        await sitesFileService.deleteNewAsset(getEditorAssetSrc(anchor, src) ?? "");
+        await sitesFileService.deleteNewAsset(anchor, src);
       }
     },
     cancel: sitesFileService.cancelUpload,

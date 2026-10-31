@@ -44,7 +44,7 @@ export const ButtonAvatars = observer(function ButtonAvatars(props: AvatarProps)
           {resolvedMembers.map((member) => (
             <Avatar
               key={member.id}
-              src={member.member__avatar}
+              src={member.member__avatar ?? undefined}
               alt={member.member__display_name}
               fallback={member.member__display_name?.[0]?.toUpperCase()}
               tooltip={!showTooltip}
@@ -56,7 +56,7 @@ export const ButtonAvatars = observer(function ButtonAvatars(props: AvatarProps)
       return (
         <Avatar
           size="xs"
-          src={members[0].member__avatar}
+          src={members[0].member__avatar ?? undefined}
           alt={members[0].member__display_name}
           fallback={members[0].member__display_name?.[0]?.toUpperCase()}
           tooltip={!showTooltip}

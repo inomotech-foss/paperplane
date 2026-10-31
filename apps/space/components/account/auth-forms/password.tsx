@@ -11,11 +11,11 @@ import { CloseCircleOutline, HideOutline, ShowOutline } from "@makeplane/propel/
 import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@plane/constants";
 import { Button } from "@makeplane/propel/components/button";
 import { Input } from "@makeplane/propel/components/input";
-import { AuthService } from "@plane/services";
 import { PasswordStrengthIndicator } from "@plane/blocks/auth";
 import { getPasswordStrength } from "@plane/utils";
 // types
 import { EAuthModes, EAuthSteps } from "@/types/auth";
+import { AuthService } from "@/services/auth.service";
 
 type Props = {
   email: string;

@@ -6,9 +6,9 @@
 
 import { action, makeObservable, runInAction } from "mobx";
 // plane imports
-import { SitesIssueService } from "@plane/services";
 import type { IssuePaginationOptions, TLoader } from "@plane/types";
 // store
+import { PublicIssueService } from "@/services/issue.service";
 import type { RootStore } from "@/store/root.store";
 // types
 import { BaseIssuesStore } from "./helpers/base-issues.store";
@@ -30,7 +30,7 @@ export class IssueStore extends BaseIssuesStore implements IIssueStore {
   // root store
   rootStore: RootStore;
   // services
-  issueService: SitesIssueService;
+  issueService: PublicIssueService;
 
   constructor(_rootStore: RootStore) {
     super(_rootStore);
@@ -42,7 +42,7 @@ export class IssueStore extends BaseIssuesStore implements IIssueStore {
     });
 
     this.rootStore = _rootStore;
-    this.issueService = new SitesIssueService();
+    this.issueService = new PublicIssueService();
   }
 
   /**

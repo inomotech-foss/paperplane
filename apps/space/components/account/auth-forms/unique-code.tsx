@@ -9,12 +9,12 @@ import { CloseCircleOutline, TickCircleOutline } from "@makeplane/propel/icons";
 // plane imports
 import { API_BASE_URL } from "@plane/constants";
 import { Button } from "@makeplane/propel/components/button";
-import { AuthService } from "@plane/services";
 import { Input } from "@makeplane/propel/components/input";
 // hooks
 import useTimer from "@/hooks/use-timer";
 // types
 import { EAuthModes } from "@/types/auth";
+import { AuthService } from "@/services/auth.service";
 
 // services
 const authService = new AuthService();

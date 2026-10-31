@@ -7,21 +7,6 @@
 import { format, isValid } from "date-fns";
 import { isNumber } from "lodash-es";
 
-export const timeAgo = (time: any) => {
-  switch (typeof time) {
-    case "number":
-      break;
-    case "string":
-      time = +new Date(time);
-      break;
-    case "object":
-      if (time.constructor === Date) time = time.getTime();
-      break;
-    default:
-      time = +new Date();
-  }
-};
-
 /**
  * This method returns a date from string of type yyyy-mm-dd
  * This method is recommended to use instead of new Date() as this does not introduce any timezone offsets

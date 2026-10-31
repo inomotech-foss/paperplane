@@ -9,7 +9,6 @@ import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // plane imports
 import { ALL_ISSUES } from "@plane/constants";
-import { SitesIssueService } from "@plane/services";
 import type {
   TIssueGroupByOptions,
   TGroupedIssues,
@@ -22,10 +21,11 @@ import type {
   TPaginationData,
 } from "@plane/types";
 // types
-import type { IIssue, TIssuesResponse } from "@/types/issue";
+import { toIssue } from "@/helpers/public-issue.helper";
+import { PublicIssueService } from "@/services/issue.service";
+import type { TPublicIssueList } from "@/services/issue.service";
+import type { IIssue } from "@/types/issue";
 import type { RootStore } from "../root.store";
-// constants
-// helpers
 
 export type TIssueDisplayFilterOptions = Exclude<TIssueGroupByOptions, null | "team_project"> | "target_date";
 
@@ -55,19 +55,6 @@ export interface IBaseIssuesStore {
     isSubGroupCumulative: boolean
   ) => number | undefined;
 }
-
-export const ISSUE_FILTER_DEFAULT_DATA: Record<TIssueDisplayFilterOptions, keyof IIssue> = {
-  project: "project_id",
-  cycle: "cycle_id",
-  module: "module_ids",
-  state: "state_id",
-  "state_detail.group": "state_group" as keyof IIssue, // state_detail.group is only being used for state_group display,
-  priority: "priority",
-  labels: "label_ids",
-  created_by: "created_by",
-  assignees: "assignee_ids",
-  target_date: "target_date",
-};
 
 export abstract class BaseIssuesStore implements IBaseIssuesStore {
   loader: Record<string, TLoader> = {};
@@ -99,7 +86,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       setLoader: action.bound,
     });
     this.rootIssueStore = _rootStore;
-    this.issueService = new SitesIssueService();
+    this.issueService = new PublicIssueService();
   }
 
   getIssueIds = (groupId?: string, subGroupId?: string) => {
@@ -116,8 +103,9 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       return groupedIssueIds[groupId] ?? [];
     }
 
-    if (groupId && subGroupId) {
-      return (groupedIssueIds as TSubGroupedIssues)[groupId]?.[subGroupId] ?? [];
+    const group = groupId ? groupedIssueIds[groupId] : undefined;
+    if (group && subGroupId && !Array.isArray(group)) {
+      return group[subGroupId] ?? [];
     }
 
     return undefined;
@@ -224,7 +212,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
    * @param projectId
    * @param id Id can be anything from cycleId, moduleId, viewId or userId based on the store
    */
-  onfetchIssues(issuesResponse: TIssuesResponse, options: IssuePaginationOptions) {
+  onfetchIssues(issuesResponse: TPublicIssueList, options: IssuePaginationOptions) {
     // Process the Issue Response to get the following data from it
     const { issueList, groupedIssues, groupedIssueCount } = this.processIssueResponse(issuesResponse);
 
@@ -249,7 +237,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
    * @param groupId
    * @param subGroupId
    */
-  onfetchNexIssues(issuesResponse: TIssuesResponse, groupId?: string, subGroupId?: string) {
+  onfetchNexIssues(issuesResponse: TPublicIssueList, groupId?: string, subGroupId?: string) {
     // Process the Issue Response to get the following data from it
     const { issueList, groupedIssues, groupedIssueCount } = this.processIssueResponse(issuesResponse);
 
@@ -287,7 +275,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
    * @returns groupedIssues, grouped issue Ids
    * @returns groupedIssueCount, object containing issue counts of individual groups
    */
-  processIssueResponse(issueResponse: TIssuesResponse): {
+  processIssueResponse(issueResponse: TPublicIssueList): {
     issueList: IIssue[];
     groupedIssues: TIssues;
     groupedIssueCount: TGroupedIssueCount;
@@ -305,7 +293,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
     //if is an array then it's an ungrouped response. return values with groupId as ALL_ISSUES
     if (Array.isArray(issueResult)) {
       return {
-        issueList: issueResult,
+        issueList: issueResult.map(toIssue),
         groupedIssues: {
           [ALL_ISSUES]: issueResult.map((issue) => issue.id),
         },
@@ -331,12 +319,12 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       if (!groupIssueResult) continue;
 
       // set grouped Issue count of the current groupId
-      set(groupedIssueCount, [groupId], groupIssuesObject.total_results);
+      set(groupedIssueCount, [groupId], groupIssuesObject.total_results ?? 0);
 
       // if groupIssueResult, the it is not subGrouped
       if (Array.isArray(groupIssueResult)) {
         // add the result to issueList
-        issueList.push(...groupIssueResult);
+        issueList.push(...groupIssueResult.map(toIssue));
         // set the issue Ids to the groupId path
         set(
           groupedIssues,
@@ -359,7 +347,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
 
         if (Array.isArray(subGroupIssueResult)) {
           // add the result to issueList
-          issueList.push(...subGroupIssueResult);
+          issueList.push(...subGroupIssueResult.map(toIssue));
           // set the issue Ids to the [groupId, subGroupId] path
           set(
             groupedIssues,
@@ -419,14 +407,15 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
       // update the groupId's issue count
       set(this.groupedIssueCount, [groupId], issueGroupCount);
 
-      // This updates the group issue list in the store, if the issueGroup is a string
-      const storeUpdated = this.updateIssueGroup(issueGroup, [groupId]);
-      // if issueGroup is indeed a string, continue
-      if (storeUpdated) continue;
+      if (!issueGroup) continue;
+      if (Array.isArray(issueGroup)) {
+        this.updateIssueGroup(issueGroup, [groupId]);
+        continue;
+      }
 
-      // if issueGroup is not a string, loop through the sub group Issues
+      // a sub grouped response, loop through the sub group Issues
       for (const subGroupId in issueGroup) {
-        const issueSubGroup = (issueGroup as TGroupedIssues)[subGroupId];
+        const issueSubGroup = issueGroup[subGroupId];
         const issueSubGroupCount = groupedIssueCount[this.getGroupKey(groupId, subGroupId)];
 
         // update the subGroupId's issue count
@@ -486,7 +475,7 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
    * @param subGroupId
    */
   storePreviousPaginationValues = (
-    issuesResponse: TIssuesResponse,
+    issuesResponse: TPublicIssueList,
     options?: IssuePaginationOptions,
     groupId?: string,
     subGroupId?: string

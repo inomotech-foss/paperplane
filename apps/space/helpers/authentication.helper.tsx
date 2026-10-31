@@ -268,7 +268,7 @@ const errorCodeMessages: {
   [EAuthenticationErrorCodes.OAUTH_EMAIL_CONFLICT]: {
     title: `Email belongs to another account`,
     message: (email, provider) =>
-      `The email ${email ? `${email} ` : ""}from your ${LOGIN_MEDIUM_LABELS[provider as keyof typeof LOGIN_MEDIUM_LABELS] || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
+      `The email ${email ? `${email} ` : ""}from your ${Object.entries(LOGIN_MEDIUM_LABELS).find(([medium]) => medium === provider)?.[1] || "SSO"} sign-in already belongs to another account. An administrator needs to merge the two accounts before you can sign in this way.`,
   },
 
   // Reset Password
@@ -418,4 +418,23 @@ export const authErrorHandler = (
     };
 
   return undefined;
+};
+
+const AUTH_ERROR_CODES = Object.values(EAuthenticationErrorCodes);
+
+/** Maps an untyped error code (string or number) to its auth error code. */
+export const toAuthErrorCode = (code: unknown): EAuthenticationErrorCodes | undefined => {
+  if (typeof code !== "string" && typeof code !== "number") return undefined;
+  const value = code.toString();
+  return AUTH_ERROR_CODES.find((errorCode) => errorCode === value);
+};
+
+/** Runs `authErrorHandler` for an untyped error code. Unknown codes give `undefined`. */
+export const getAuthErrorInfo = (
+  code: unknown,
+  email?: string | null,
+  provider?: string | null
+): TAuthErrorInfo | undefined => {
+  const errorCode = toAuthErrorCode(code);
+  return errorCode ? authErrorHandler(errorCode, email, provider) : undefined;
 };

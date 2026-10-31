@@ -9,17 +9,25 @@ import { makeObservable, observable, action, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 import { v4 as uuidv4 } from "uuid";
 // plane imports
-import { SitesFileService, SitesIssueService } from "@plane/services";
-import type { TFileSignedURLResponse, TIssuePublicComment } from "@plane/types";
 import { EFileAssetType } from "@plane/types";
+// helpers
+import { toIssue } from "@/helpers/public-issue.helper";
+// services
+import { PublicFileService } from "@/services/file.service";
+import type { TAssetUpload } from "@/services/file.service";
+import { PublicIssueService } from "@/services/issue.service";
+import type { TPublicCommentBody } from "@/services/issue.service";
+import type { TPublicComment, TPublicCommentReaction } from "@/services/public-comment";
 // store
 import type { RootStore } from "@/store/root.store";
 // types
 import type { IIssue, IPeekMode, IVote } from "@/types/issue";
 
+export type TCommentUpdate = { comment_html: string };
+
 export interface IIssueDetailStore {
   loader: boolean;
-  error: any;
+  error: unknown;
   // observables
   peekId: string | null;
   peekMode: IPeekMode;
@@ -35,11 +43,11 @@ export interface IIssueDetailStore {
   // issue actions
   fetchIssueDetails: (anchor: string, issueID: string) => void;
   // comment actions
-  addIssueComment: (anchor: string, issueID: string, data: any) => Promise<TIssuePublicComment>;
-  updateIssueComment: (anchor: string, issueID: string, commentID: string, data: any) => Promise<any>;
+  addIssueComment: (anchor: string, issueID: string, data: TPublicCommentBody) => Promise<TPublicComment>;
+  updateIssueComment: (anchor: string, issueID: string, commentID: string, data: TCommentUpdate) => Promise<void>;
   deleteIssueComment: (anchor: string, issueID: string, commentID: string) => void;
-  uploadCommentAsset: (file: File, anchor: string, commentID?: string) => Promise<TFileSignedURLResponse>;
-  uploadIssueAsset: (file: File, anchor: string, commentID?: string) => Promise<TFileSignedURLResponse>;
+  uploadCommentAsset: (file: File, anchor: string, commentID?: string) => Promise<TAssetUpload>;
+  uploadIssueAsset: (file: File, anchor: string, commentID?: string) => Promise<TAssetUpload>;
   addCommentReaction: (anchor: string, issueID: string, commentID: string, reactionHex: string) => void;
   removeCommentReaction: (anchor: string, issueID: string, commentID: string, reactionHex: string) => void;
   // reaction actions
@@ -52,7 +60,7 @@ export interface IIssueDetailStore {
 
 export class IssueDetailStore implements IIssueDetailStore {
   loader: boolean = false;
-  error: any = null;
+  error: unknown = null;
   // observables
   peekId: string | null = null;
   peekMode: IPeekMode = "side";
@@ -62,8 +70,8 @@ export class IssueDetailStore implements IIssueDetailStore {
   // root store
   rootStore: RootStore;
   // services
-  issueService: SitesIssueService;
-  fileService: SitesFileService;
+  issueService: PublicIssueService;
+  fileService: PublicFileService;
 
   constructor(_rootStore: RootStore) {
     makeObservable(this, {
@@ -94,8 +102,8 @@ export class IssueDetailStore implements IIssueDetailStore {
       removeIssueVote: action,
     });
     this.rootStore = _rootStore;
-    this.issueService = new SitesIssueService();
-    this.fileService = new SitesFileService();
+    this.issueService = new PublicIssueService();
+    this.fileService = new PublicFileService();
   }
 
   setPeekId = (issueID: string | null) => {
@@ -126,7 +134,7 @@ export class IssueDetailStore implements IIssueDetailStore {
    */
   fetchIssueById = async (anchorId: string, issueId: string) => {
     try {
-      const issueDetails = await this.issueService.retrieve(anchorId, issueId);
+      const issueDetails = toIssue(await this.issueService.retrieve(anchorId, issueId));
 
       runInAction(() => {
         set(this.details, [issueId], issueDetails);
@@ -162,13 +170,16 @@ export class IssueDetailStore implements IIssueDetailStore {
           };
         });
       }
+      runInAction(() => {
+        this.loader = false;
+      });
     } catch (error) {
       this.loader = false;
       this.error = error;
     }
   };
 
-  addIssueComment = async (anchor: string, issueID: string, data: any) => {
+  addIssueComment = async (anchor: string, issueID: string, data: TPublicCommentBody) => {
     try {
       const issueDetails = this.getIssueById(issueID);
       const issueCommentResponse = await this.issueService.addComment(anchor, issueID, data);
@@ -184,17 +195,14 @@ export class IssueDetailStore implements IIssueDetailStore {
     }
   };
 
-  updateIssueComment = async (anchor: string, issueID: string, commentID: string, data: any) => {
+  updateIssueComment = async (anchor: string, issueID: string, commentID: string, data: TCommentUpdate) => {
     try {
       runInAction(() => {
         this.details = {
           ...this.details,
           [issueID]: {
             ...this.details[issueID],
-            comments: this.details[issueID].comments.map((c) => ({
-              ...c,
-              ...(c.id === commentID ? data : {}),
-            })),
+            comments: this.details[issueID].comments?.map((c) => (c.id === commentID ? { ...c, ...data } : c)),
           },
         };
       });
@@ -218,7 +226,7 @@ export class IssueDetailStore implements IIssueDetailStore {
   deleteIssueComment = async (anchor: string, issueID: string, commentID: string) => {
     try {
       await this.issueService.removeComment(anchor, issueID, commentID);
-      const remainingComments = this.details[issueID].comments.filter((c) => c.id != commentID);
+      const remainingComments = this.details[issueID].comments?.filter((c) => c.id != commentID);
       runInAction(() => {
         this.details = {
           ...this.details,
@@ -229,7 +237,7 @@ export class IssueDetailStore implements IIssueDetailStore {
         };
       });
     } catch (_error) {
-      console.log("Failed to add issue vote");
+      console.log("Failed to delete issue comment");
     }
   };
 
@@ -268,13 +276,13 @@ export class IssueDetailStore implements IIssueDetailStore {
   };
 
   addCommentReaction = async (anchor: string, issueID: string, commentID: string, reactionHex: string) => {
-    const newReaction = {
+    const newReaction: TPublicCommentReaction = {
       id: uuidv4(),
       comment: commentID,
       reaction: reactionHex,
       actor_detail: this.rootStore.user.currentActor,
     };
-    const newComments = this.details[issueID].comments.map((comment) => ({
+    const newComments = (this.details[issueID].comments ?? []).map((comment) => ({
       ...comment,
       comment_reactions:
         comment.id === commentID ? [...comment.comment_reactions, newReaction] : comment.comment_reactions,
@@ -311,7 +319,7 @@ export class IssueDetailStore implements IIssueDetailStore {
 
   removeCommentReaction = async (anchor: string, issueID: string, commentID: string, reactionHex: string) => {
     try {
-      const comment = this.details[issueID].comments.find((c) => c.id === commentID);
+      const comment = this.details[issueID].comments?.find((c) => c.id === commentID);
       const newCommentReactions = comment?.comment_reactions.filter((r) => r.reaction !== reactionHex) ?? [];
 
       runInAction(() => {
@@ -319,7 +327,7 @@ export class IssueDetailStore implements IIssueDetailStore {
           ...this.details,
           [issueID]: {
             ...this.details[issueID],
-            comments: this.details[issueID].comments.map((c) => ({
+            comments: this.details[issueID].comments?.map((c) => ({
               ...c,
               comment_reactions: c.id === commentID ? newCommentReactions : c.comment_reactions,
             })),
@@ -343,6 +351,15 @@ export class IssueDetailStore implements IIssueDetailStore {
     }
   };
 
+  /** Restores the reactions and votes from the server after a failed optimistic update. */
+  refetchIssueFeedback = async (anchor: string, issueID: string) => {
+    const issue = toIssue(await this.issueService.retrieve(anchor, issueID));
+    runInAction(() => {
+      set(this.details, [issueID, "reaction_items"], issue.reaction_items);
+      set(this.details, [issueID, "vote_items"], issue.vote_items);
+    });
+  };
+
   addIssueReaction = async (anchor: string, issueID: string, reactionHex: string) => {
     try {
       runInAction(() => {
@@ -363,11 +380,8 @@ export class IssueDetailStore implements IIssueDetailStore {
         reaction: reactionHex,
       });
     } catch (_error) {
-      console.log("Failed to add issue vote");
-      const issueReactions = await this.issueService.listReactions(anchor, issueID);
-      runInAction(() => {
-        set(this.details, [issueID, "reaction_items"], issueReactions);
-      });
+      console.log("Failed to add issue reaction");
+      await this.refetchIssueFeedback(anchor, issueID);
     }
   };
 
@@ -384,10 +398,7 @@ export class IssueDetailStore implements IIssueDetailStore {
       await this.issueService.removeReaction(anchor, issueID, reactionHex);
     } catch (_error) {
       console.log("Failed to remove issue reaction");
-      const reactions = await this.issueService.listReactions(anchor, issueID);
-      runInAction(() => {
-        set(this.details, [issueID, "reaction_items"], reactions);
-      });
+      await this.refetchIssueFeedback(anchor, issueID);
     }
   };
 
@@ -408,19 +419,13 @@ export class IssueDetailStore implements IIssueDetailStore {
 
     try {
       runInAction(() => {
-        runInAction(() => {
-          set(this.details, [issueID, "vote_items"], [...filteredVotes, newVote]);
-        });
+        set(this.details, [issueID, "vote_items"], [...filteredVotes, newVote]);
       });
 
       await this.issueService.addVote(anchor, issueID, data);
     } catch (_error) {
       console.log("Failed to add issue vote");
-      const issueVotes = await this.issueService.listVotes(anchor, issueID);
-
-      runInAction(() => {
-        set(this.details, [issueID, "vote_items"], issueVotes);
-      });
+      await this.refetchIssueFeedback(anchor, issueID);
     }
   };
 
@@ -437,11 +442,7 @@ export class IssueDetailStore implements IIssueDetailStore {
       await this.issueService.removeVote(anchor, issueID);
     } catch (_error) {
       console.log("Failed to remove issue vote");
-      const issueVotes = await this.issueService.listVotes(anchor, issueID);
-
-      runInAction(() => {
-        set(this.details, [issueID, "vote_items"], issueVotes);
-      });
+      await this.refetchIssueFeedback(anchor, issueID);
     }
   };
 }

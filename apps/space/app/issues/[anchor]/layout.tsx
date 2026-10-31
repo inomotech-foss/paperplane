@@ -8,6 +8,8 @@ import { observer } from "mobx-react";
 import { Outlet } from "react-router";
 import type { ShouldRevalidateFunctionArgs } from "react-router";
 import useSWR from "swr";
+import type { InternalPaths } from "@plane/api-types";
+import { createApiClient, isApiError } from "@plane/services";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 import { PoweredBy } from "@/components/common/powered-by";
@@ -22,12 +24,6 @@ import type { Route } from "./+types/layout";
 const DEFAULT_TITLE = "Plane";
 const DEFAULT_DESCRIPTION = "Made with Plane, an AI-powered work management platform with publishing capabilities.";
 
-interface IssueMetadata {
-  name?: string;
-  description?: string;
-  cover_image?: string;
-}
-
 // Loader function runs on the server and fetches metadata
 export async function loader({ params }: Route.LoaderArgs) {
   const { anchor } = params;
@@ -39,14 +35,9 @@ export async function loader({ params }: Route.LoaderArgs) {
   }
 
   try {
-    const response = await fetch(`${process.env.VITE_API_BASE_URL}/api/public/anchor/${anchor}/meta/`);
-
-    if (!response.ok) {
-      return { metadata: null };
-    }
-
-    const metadata: IssueMetadata = await response.json();
-    return { metadata };
+    const client = createApiClient<InternalPaths>(process.env.VITE_API_BASE_URL ?? "");
+    const { data } = await client.GET("/api/public/anchor/{anchor}/meta/", { params: { path: { anchor } } });
+    return { metadata: data ?? null };
   } catch (error) {
     console.error("Error fetching issue metadata:", error);
     return { metadata: null };
@@ -100,7 +91,7 @@ function IssuesLayout(props: Route.ComponentProps) {
   const publishSettings = usePublish(anchor);
   const { updateLayoutOptions } = useIssueFilter();
   // fetch publish settings
-  const { error } = useSWR(
+  const { error } = useSWR<void, unknown>(
     anchor ? `PUBLISH_SETTINGS_${anchor}` : null,
     anchor
       ? async () => {
@@ -126,7 +117,7 @@ function IssuesLayout(props: Route.ComponentProps) {
     );
   }
 
-  if (error?.status === 404) return <PageNotFound />;
+  if (isApiError(error) && error.status === 404) return <PageNotFound />;
 
   if (error) return <SomethingWentWrongError />;
 

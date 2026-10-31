@@ -7,8 +7,11 @@
 import { set } from "lodash-es";
 import { makeObservable, observable, runInAction, action } from "mobx";
 // plane imports
-import { SitesProjectPublishService } from "@plane/services";
 import type { TProjectPublishSettings } from "@plane/types";
+// helpers
+import { toPublishSettings } from "@/helpers/publish.helper";
+// services
+import { PublicProjectService } from "@/services/project.service";
 // store
 import { PublishStore } from "@/store/publish/publish.store";
 import type { RootStore } from "@/store/root.store";
@@ -17,7 +20,7 @@ export interface IPublishListStore {
   // observables
   publishMap: Record<string, PublishStore>; // anchor => PublishStore
   // actions
-  fetchPublishSettings: (pageId: string) => Promise<TProjectPublishSettings>;
+  fetchPublishSettings: (anchor: string) => Promise<TProjectPublishSettings>;
 }
 
 export class PublishListStore implements IPublishListStore {
@@ -34,7 +37,7 @@ export class PublishListStore implements IPublishListStore {
       fetchPublishSettings: action,
     });
     // services
-    this.publishService = new SitesProjectPublishService();
+    this.publishService = new PublicProjectService();
   }
 
   /**
@@ -42,7 +45,7 @@ export class PublishListStore implements IPublishListStore {
    * @param {string} anchor
    */
   fetchPublishSettings = async (anchor: string) => {
-    const response = await this.publishService.retrieveSettingsByAnchor(anchor);
+    const response = toPublishSettings(await this.publishService.retrieveSettingsByAnchor(anchor));
     runInAction(() => {
       if (response.anchor) {
         set(this.publishMap, [response.anchor], new PublishStore(this.rootStore, response));
