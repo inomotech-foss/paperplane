@@ -31,7 +31,7 @@ export const ModulesLinksListItem = observer(function ModulesLinksListItem(props
   // store hooks
   const { getUserDetails } = useMember();
   // derived values
-  const createdByDetails = getUserDetails(link.created_by);
+  const createdByDetails = link.created_by ? getUserDetails(link.created_by) : undefined;
   // platform os
   const { isMobile } = usePlatformOS();
 

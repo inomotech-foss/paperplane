@@ -90,7 +90,7 @@ export function CreateUpdateModuleLinkModal(props: Props) {
   useEffect(() => {
     reset({
       ...defaultValues,
-      ...data,
+      ...(data && { title: data.title ?? "", url: data.url }),
     });
   }, [data, isOpen, reset]);
 

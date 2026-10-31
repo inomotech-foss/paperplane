@@ -6,7 +6,7 @@
 
 import type { ILinkDetails } from "../issues";
 import type { TIssue } from "../issues/issue";
-import type { IIssueFilterOptions } from "../client-json";
+import type { TLogoProps } from "../client-json";
 
 export type TModuleStatus = "backlog" | "planned" | "in-progress" | "paused" | "completed" | "cancelled";
 
@@ -52,7 +52,29 @@ export type TModuleEstimateDistribution = {
   labels: (TModuleLabelsDistribution & TModuleEstimateDistributionBase)[];
 };
 
+/** A module as the stores keep it. Fields that only some endpoints send are optional. */
 export interface IModule {
+  id: string;
+  workspace_id: string;
+  project_id: string;
+  name: string;
+  description: string;
+  description_text?: unknown;
+  description_html?: unknown;
+  lead_id: string | null;
+  member_ids: string[];
+  sort_order: number;
+  start_date: string | null;
+  target_date: string | null;
+  created_at: string;
+  updated_at: string;
+  status?: TModuleStatus;
+  is_favorite?: boolean;
+  archived_at?: string | null;
+  logo_props?: TLogoProps;
+  link_module?: ILinkDetails[];
+  sub_issues?: number;
+
   total_issues: number;
   completed_issues: number;
   backlog_issues: number;
@@ -61,37 +83,12 @@ export interface IModule {
   cancelled_issues: number;
   total_estimate_points?: number;
   completed_estimate_points?: number;
-  backlog_estimate_points: number;
-  started_estimate_points: number;
-  unstarted_estimate_points: number;
-  cancelled_estimate_points: number;
+  backlog_estimate_points?: number;
+  started_estimate_points?: number;
+  unstarted_estimate_points?: number;
+  cancelled_estimate_points?: number;
   distribution?: TModuleDistribution;
   estimate_distribution?: TModuleEstimateDistribution;
-
-  id: string;
-  name: string;
-  description: string;
-  description_text: unknown;
-  description_html: unknown;
-  workspace_id: string;
-  project_id: string;
-  lead_id: string | null;
-  member_ids: string[];
-  link_module?: ILinkDetails[];
-  sub_issues?: number;
-  is_favorite: boolean;
-  sort_order: number;
-  view_props: {
-    filters: IIssueFilterOptions;
-  };
-  status?: TModuleStatus;
-  archived_at: string | null;
-  start_date: string | null;
-  target_date: string | null;
-  created_at: string;
-  updated_at: string;
-  created_by?: string;
-  updated_by?: string;
 }
 
 export interface ModuleIssueResponse {
