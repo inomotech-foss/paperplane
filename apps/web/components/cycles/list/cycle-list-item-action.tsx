@@ -242,7 +242,7 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
           <>
             <DateRangeSelect
               variant="select-ghost-md"
-              className="flex h-6 w-full cursor-auto items-center gap-1.5 rounded-sm p-0 text-11 text-tertiary [&>div]:hover:bg-transparent"
+              className="flex h-6 cursor-auto items-center gap-1.5 rounded-sm p-0 text-11 text-tertiary [&>div]:hover:bg-transparent"
               minDate={new Date()}
               value={{
                 from: getDate(cycleDetails.start_date) ?? null,
