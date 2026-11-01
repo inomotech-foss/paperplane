@@ -29,12 +29,26 @@ import { ProjectService } from "@/services/project";
 // store
 import type { CoreRootStore } from "./root.store";
 
+export type TCycleRootStore = {
+  router: Pick<CoreRootStore["router"], "projectId">;
+  cycleFilter: Pick<
+    CoreRootStore["cycleFilter"],
+    "archivedCyclesSearchQuery" | "getArchivedFiltersByProjectId" | "getFiltersByProjectId" | "searchQuery"
+  >;
+  favorite: Pick<
+    CoreRootStore["favorite"],
+    "addFavorite" | "entityMap" | "removeFavoriteEntity" | "removeFavoriteFromStore"
+  >;
+  projectEstimate: Pick<CoreRootStore["projectEstimate"], "areEstimateEnabledByProjectId">;
+};
+
 export interface ICycleStore {
   // loaders
   loader: boolean;
   progressLoader: boolean;
   // observables
   fetchedMap: Record<string, boolean>;
+  archivedFetchedMap: Record<string, boolean>;
   cycleMap: Record<string, ICycle>;
   plotType: Record<string, TCyclePlotType>;
   estimatedType: Record<string, TCycleEstimateType>;
@@ -106,6 +120,7 @@ export class CycleStore implements ICycleStore {
   activeCycleIdMap: Record<string, boolean> = {};
   //loaders
   fetchedMap: Record<string, boolean> = {};
+  archivedFetchedMap: Record<string, boolean> = {};
   // root store
   rootStore;
   // services
@@ -114,7 +129,7 @@ export class CycleStore implements ICycleStore {
   cycleService;
   cycleArchiveService;
 
-  constructor(_rootStore: CoreRootStore) {
+  constructor(_rootStore: TCycleRootStore) {
     makeObservable(this, {
       // observables
       loader: observable.ref,
@@ -124,6 +139,7 @@ export class CycleStore implements ICycleStore {
       estimatedType: observable,
       activeCycleIdMap: observable,
       fetchedMap: observable,
+      archivedFetchedMap: observable,
       // computed
       currentProjectCycleIds: computed,
       currentProjectCompletedCycleIds: computed,
@@ -228,7 +244,7 @@ export class CycleStore implements ICycleStore {
    */
   get currentProjectArchivedCycleIds() {
     const projectId = this.rootStore.router.projectId;
-    if (!projectId || !this.fetchedMap[projectId]) return null;
+    if (!projectId || !this.archivedFetchedMap[projectId]) return null;
     let archivedCycles = Object.values(this.cycleMap ?? {}).filter(
       (c) => c.project_id === projectId && !!c.archived_at
     );
@@ -306,7 +322,7 @@ export class CycleStore implements ICycleStore {
   getFilteredArchivedCycleIds = computedFn((projectId: string) => {
     const filters = this.rootStore.cycleFilter.getArchivedFiltersByProjectId(projectId);
     const searchQuery = this.rootStore.cycleFilter.archivedCyclesSearchQuery;
-    if (!this.fetchedMap[projectId]) return null;
+    if (!this.archivedFetchedMap[projectId]) return null;
     let cycles = Object.values(this.cycleMap ?? {}).filter(
       (c) =>
         c.project_id === projectId &&
@@ -449,6 +465,7 @@ export class CycleStore implements ICycleStore {
           response.forEach((cycle) => {
             set(this.cycleMap, [cycle.id], cycle);
           });
+          set(this.archivedFetchedMap, projectId, true);
           this.loader = false;
         });
         return response;
