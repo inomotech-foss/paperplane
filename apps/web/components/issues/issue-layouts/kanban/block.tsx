@@ -13,6 +13,7 @@ import { useParams } from "next/navigation";
 // plane helpers
 import { MoreHorizontalOutline } from "@makeplane/propel/icons";
 import { useOutsideClickDetector } from "@plane/hooks";
+import { useTranslation } from "@plane/i18n";
 // types
 import { setToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
@@ -70,6 +71,7 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
   const [isMenuActive, setIsMenuActive] = useState(false);
   // hooks
   const { isMobile } = usePlatformOS();
+  const { t } = useTranslation();
 
   const customActionButton = (
     // The quick-action menu grafts its trigger behaviour (and accessible name) onto this element via
@@ -77,6 +79,7 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
     <button
       type="button"
       ref={menuActionRef}
+      aria-label={t("aria_labels.common.more_actions")}
       className={`flex h-full w-full cursor-pointer items-center rounded-sm p-1 text-placeholder hover:bg-layer-1 ${
         isMenuActive ? "bg-layer-1 text-primary" : "text-secondary"
       }`}
