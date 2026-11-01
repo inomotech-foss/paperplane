@@ -267,7 +267,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
         id={`issue-${issueId}`}
         ref={cellRef}
         tabIndex={0}
-        className="group/list-block relative left-0 isolate z-10 max-w-lg bg-surface-1 md:sticky"
+        className="group/list-block relative left-0 z-10 max-w-lg bg-surface-1 md:sticky"
       >
         <Row
           className={cn(
