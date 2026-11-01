@@ -171,6 +171,10 @@ export function hasTextSelection(): boolean {
   return !!selection && !selection.isCollapsed;
 }
 
+/** Cmd/Ctrl+Backspace or Delete, which deletes the entity in context */
+const isDeleteKey = (e: KeyboardEvent): boolean =>
+  (e.metaKey || e.ctrlKey) && (e.key === "Backspace" || e.key === "Delete");
+
 /** Whether any registered sequence starts with `prefix` (equality included) */
 const hasSequencePrefix = (sequenceMap: ReadonlyMap<string, string>, prefix: string): boolean => {
   for (const sequence of sequenceMap.keys()) {
@@ -248,15 +252,18 @@ export class ShortcutHandler {
       return;
     }
 
-    // Keys typed into inputs, widgets and editors (read-only ones included) never trigger
-    // shortcuts, nor continue a sequence
-    if (isTypingInInput(e.target) || isTypingInInput(document.activeElement) || isSelectionInEditor()) {
+    // Keys typed into inputs, widgets and focused editors never trigger shortcuts, nor continue
+    // a sequence
+    if (isTypingInInput(e.target) || isTypingInInput(document.activeElement)) {
       this.resetSequence();
       return;
     }
 
-    // Without Cmd, Ctrl or Alt the key types a character, so it must not act on selected text
-    if (!e.metaKey && !e.ctrlKey && !e.altKey && hasTextSelection()) {
+    // A key that types a character must not act on the page while the user reads or selects
+    // content: a caret in an editor (a read-only one never takes focus) or any selected text
+    const typesCharacter = !e.metaKey && !e.ctrlKey && !e.altKey;
+    const caretInEditor = isSelectionInEditor();
+    if ((typesCharacter && (caretInEditor || hasTextSelection())) || (caretInEditor && isDeleteKey(e))) {
       this.resetSequence();
       return;
     }

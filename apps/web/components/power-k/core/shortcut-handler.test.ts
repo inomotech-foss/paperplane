@@ -26,6 +26,7 @@ const setup = () => {
   const lock = vi.fn();
   const create = vi.fn();
   const sidebar = vi.fn();
+  const remove = vi.fn();
   const registry = new PowerKCommandRegistry();
   registry.registerMultiple([
     {
@@ -62,6 +63,18 @@ const setup = () => {
       isVisible: () => true,
       closeOnSelect: true,
     },
+    {
+      id: "remove",
+      i18n_title: "remove",
+      group: "contextual",
+      contextType: "page",
+      type: "action",
+      action: remove,
+      modifierShortcut: "cmd+backspace",
+      isEnabled: () => true,
+      isVisible: () => true,
+      closeOnSelect: true,
+    },
   ]);
   const handler = new ShortcutHandler(registry, () => context, noop, noop);
   const press = (target: EventTarget, init: KeyboardEventInit) => {
@@ -69,7 +82,7 @@ const setup = () => {
     target.dispatchEvent(event);
     handler.handleKeyDown(event);
   };
-  return { lock, create, sidebar, press, handler };
+  return { lock, create, sidebar, remove, press, handler };
 };
 
 const shiftL: KeyboardEventInit = { key: "L", code: "KeyL", shiftKey: true };
@@ -102,19 +115,43 @@ describe("ShortcutHandler", () => {
     expect(create).toHaveBeenCalledTimes(1);
   });
 
-  it("ignores keys while the caret sits in a read-only editor", () => {
+  it("ignores typed characters and delete while the caret sits in a read-only editor", () => {
     document.body.innerHTML = '<div class="ProseMirror" contenteditable="false"><p>Locked text</p></div>';
     const text = document.querySelector("p")?.firstChild;
     if (!text) throw new Error("missing text node");
     placeCaret(text, 3);
 
-    const { lock, create, sidebar, press } = setup();
+    const { lock, create, remove, press } = setup();
     press(document.body, shiftL);
     press(document.body, plainC);
-    press(document.body, { key: "b", code: "KeyB", metaKey: true });
+    press(document.body, { key: "Backspace", code: "Backspace", metaKey: true });
     expect(lock).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
-    expect(sidebar).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  it("keeps modifier shortcuts working with the caret in a read-only editor", () => {
+    document.body.innerHTML = '<div class="ProseMirror" contenteditable="false"><p>Locked text</p></div>';
+    const text = document.querySelector("p")?.firstChild;
+    if (!text) throw new Error("missing text node");
+    placeCaret(text, 3);
+
+    const { sidebar, press } = setup();
+    press(document.body, { key: "b", code: "KeyB", metaKey: true });
+    expect(sidebar).toHaveBeenCalledTimes(1);
+  });
+
+  it("fires a plain key with a collapsed caret outside an editor", () => {
+    document.body.innerHTML = "<p>Some page text</p>";
+    const text = document.querySelector("p")?.firstChild;
+    if (!text) throw new Error("missing text node");
+    placeCaret(text, 2);
+
+    const { create, remove, press } = setup();
+    press(document.body, plainC);
+    press(document.body, { key: "Backspace", code: "Backspace", metaKey: true });
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(remove).toHaveBeenCalledTimes(1);
   });
 
   it("ignores character keys while text is selected anywhere", () => {
