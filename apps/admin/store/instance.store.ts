@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import { set } from "lodash-es";
 import { observable, action, computed, makeObservable, runInAction } from "mobx";
 // plane internal packages
 import type { TInstanceStatus } from "@plane/constants";
@@ -149,11 +148,10 @@ export class InstanceStore implements IInstanceStore {
   updateInstanceInfo = async (data: Partial<IInstance>) => {
     try {
       const instanceResponse = await this.instanceService.update(data);
-      if (instanceResponse) {
-        runInAction(() => {
-          if (this.instance) set(this.instance, "instance", instanceResponse);
-        });
-      }
+      runInAction(() => {
+        // The update does not send workspaces_exist, so the stored value is kept.
+        this.instance = { ...this.instance, ...instanceResponse };
+      });
       return instanceResponse;
     } catch (error) {
       console.error("Error updating the instance info");
