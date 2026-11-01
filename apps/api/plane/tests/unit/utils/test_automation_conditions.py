@@ -11,7 +11,15 @@ import pytest
 
 from plane.automation import conditions
 from plane.automation.context import changes_from_activities
-from plane.automation.validators import action_error, condition_error, trigger_error
+from plane.automation.validators import (
+    action_config_shape_error,
+    action_error,
+    condition_error,
+    incomplete_actions,
+    trigger_config_shape_error,
+    trigger_error,
+    trigger_type_error,
+)
 
 TYPE_ID = "11111111-1111-4111-8111-111111111111"
 
@@ -297,6 +305,16 @@ class TestTriggerValidation:
         assert trigger_error("schedule", {"mode": "fixed", "frequency": "daily", "hour": 9, "minute": 0}) is None
         assert trigger_error("schedule", {"mode": "cron", "cron": "nope"}) is not None
 
+    def test_a_config_that_is_not_an_object_is_rejected(self):
+        assert trigger_error("schedule", ["x"]) == "The trigger configuration must be an object."
+        assert trigger_config_shape_error(["x"]) == "The trigger configuration must be an object."
+        assert trigger_config_shape_error({}) is None
+
+    def test_only_an_unknown_type_is_a_type_error(self):
+        assert trigger_type_error("") is None
+        assert trigger_type_error("schedule") is None
+        assert trigger_type_error("work_item.exploded") == "That isn't a supported trigger."
+
     def test_schedule_message_does_not_leak_the_parser_text(self):
         # The celery parser says things like "Invalid end range: 7 > 6"; that is
         # third-party text on a path that ends in an API response.
@@ -344,3 +362,20 @@ class TestActionValidation:
             "The chosen type isn't a valid id."
         )
         assert action_error("create_work_item", {"name": "Follow up", "type_id": TYPE_ID}) is None
+
+    def test_a_config_that_is_not_an_object_is_a_shape_error(self):
+        assert action_config_shape_error(["x"]) == "Action configuration must be an object."
+        assert action_config_shape_error(None) is None
+        assert action_config_shape_error({}) is None
+
+    def test_incomplete_actions_maps_ids_to_reasons(self):
+        class Row:
+            def __init__(self, action_type, config):
+                self.id = uuid.uuid4()
+                self.action_type = action_type
+                self.config = config
+
+        complete = Row("archive_work_item", {})
+        empty = Row("add_comment", {"comment_html": ""})
+
+        assert incomplete_actions([complete, empty]) == {str(empty.id): "The comment body is empty."}

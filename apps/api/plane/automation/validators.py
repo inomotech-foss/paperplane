@@ -3,11 +3,12 @@
 # See the LICENSE file for details.
 
 """
-Structural validation for the JSON blobs an automation stores.
+Validation for the JSON blobs an automation stores.
 
-The engine already fails closed on nonsense, but rejecting it at save time is
-what turns "my automation silently does nothing" into an error message next to
-the field that caused it.
+A disabled automation may hold an incomplete trigger or action. The serializers
+report it next to the field instead of rejecting the write. Enabling the
+automation requires every part to be complete, and the engine refuses to run
+one that isn't.
 
 Every check **returns** a message rather than raising. The serializer feeds these
 straight into an API response, so the text has to be a literal authored here —
@@ -34,13 +35,27 @@ from plane.automation.scheduling import schedule_error
 MAX_CONDITION_DEPTH = 6
 
 
-def trigger_error(trigger_type: str, trigger_config: dict) -> str | None:
-    """Why this trigger can't be saved, or ``None`` when it's fine."""
-    if not trigger_type:
-        # An unfinished draft is allowed; enabling it is what requires a trigger.
-        return None
-    if trigger_type not in {str(value) for value in TriggerType}:
+def trigger_type_error(trigger_type: str) -> str | None:
+    """Why this trigger type can't be stored at all, or ``None``. An empty type is a draft."""
+    if trigger_type and trigger_type not in {str(value) for value in TriggerType}:
         return "That isn't a supported trigger."
+    return None
+
+
+def trigger_config_shape_error(trigger_config) -> str | None:
+    """Why this trigger config can't be stored at all, or ``None``."""
+    if trigger_config is not None and not isinstance(trigger_config, dict):
+        return "The trigger configuration must be an object."
+    return None
+
+
+def trigger_error(trigger_type: str, trigger_config) -> str | None:
+    """Why this trigger can't run, or ``None`` when it's complete. An empty type is reported elsewhere."""
+    if not trigger_type:
+        return None
+    message = trigger_type_error(trigger_type) or trigger_config_shape_error(trigger_config)
+    if message:
+        return message
     if trigger_type == TriggerType.SCHEDULE:
         return schedule_error(trigger_config or {})
     return None
@@ -166,8 +181,15 @@ def _webhook_error(config: dict) -> str | None:
     return None
 
 
+def action_config_shape_error(config) -> str | None:
+    """Why this action config can't be stored at all, or ``None``."""
+    if config is not None and not isinstance(config, dict):
+        return "Action configuration must be an object."
+    return None
+
+
 def action_error(action_type: str, config) -> str | None:
-    """Why this action can't be saved, or ``None`` when it's fine."""
+    """Why this action can't run, or ``None`` when it's complete."""
     if action_type not in ACTIONS:
         return "That isn't a supported action."
     if config is None:
@@ -187,3 +209,13 @@ def action_error(action_type: str, config) -> str | None:
         return _webhook_error(config)
     # archive_work_item takes no configuration.
     return None
+
+
+def incomplete_actions(actions) -> dict[str, str]:
+    """Maps the id of every incomplete action to the reason."""
+    errors = {}
+    for action in actions:
+        message = action_error(action.action_type, action.config)
+        if message:
+            errors[str(action.id)] = message
+    return errors

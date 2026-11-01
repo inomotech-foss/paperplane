@@ -8,7 +8,7 @@ from rest_framework import serializers
 
 # Module imports
 from plane.automation import validators
-from plane.automation.registry import ActionType, TriggerType
+from plane.automation.registry import ACTIONS, ActionType, TriggerType
 from plane.automation.sanitize import sanitize_action_config
 from plane.automation.scheduling import describe as describe_schedule
 from plane.db.models import Automation, AutomationAction, AutomationRun, AutomationScope
@@ -27,7 +27,16 @@ class ActionTypeField(serializers.CharField):
 
 
 class AutomationActionSerializer(BaseSerializer):
+    """
+    While the automation is disabled an action may be incomplete. It is stored
+    and `config_error` says what is missing. Writes to an enabled automation
+    must be complete.
+
+    Pass the parent automation as `context["automation"]` when creating.
+    """
+
     action_type = ActionTypeField(max_length=127)
+    config_error = serializers.SerializerMethodField(help_text="Why the action can't run yet. Null when it is complete")
 
     class Meta:
         model = AutomationAction
@@ -36,6 +45,7 @@ class AutomationActionSerializer(BaseSerializer):
             "automation",
             "action_type",
             "config",
+            "config_error",
             "sort_order",
             "created_at",
             "updated_at",
@@ -43,21 +53,35 @@ class AutomationActionSerializer(BaseSerializer):
         ]
         read_only_fields = ["id", "automation", "created_at", "updated_at", "created_by"]
 
+    def get_config_error(self, obj) -> str | None:
+        return validators.action_error(obj.action_type, obj.config)
+
+    def validate_action_type(self, value):
+        if value not in ACTIONS:
+            raise serializers.ValidationError("That isn't a supported action.")
+        return value
+
     def validate(self, attrs):
         action_type = attrs.get("action_type", getattr(self.instance, "action_type", None))
         # A PATCH that only sends `config` still has to validate against the
         # action type already stored.
         config = attrs.get("config", getattr(self.instance, "config", {}))
+        shape_message = validators.action_config_shape_error(config)
+        if shape_message:
+            raise serializers.ValidationError({"config": shape_message})
         if "config" in attrs or "action_type" in attrs:
             config = sanitize_action_config(action_type, config)
             if config is None:
                 raise serializers.ValidationError({"config": "The HTML template is not valid."})
             attrs["config"] = config
-        # `action_error` returns a literal message rather than raising, so nothing
-        # exception-derived is ever echoed back to the caller.
-        message = validators.action_error(action_type, config)
-        if message:
-            raise serializers.ValidationError({"config": message})
+
+        automation = self.instance.automation if self.instance is not None else self.context.get("automation")
+        if automation is None or automation.is_enabled:
+            # `action_error` returns a literal message rather than raising, so nothing
+            # exception-derived is ever echoed back to the caller.
+            message = validators.action_error(action_type, config)
+            if message:
+                raise serializers.ValidationError({"config": message})
         return attrs
 
 
@@ -91,6 +115,9 @@ class AutomationSerializer(BaseSerializer):
     projects = serializers.SerializerMethodField()
     average_duration_ms = serializers.IntegerField(read_only=True)
     schedule_summary = serializers.SerializerMethodField()
+    trigger_config_error = serializers.SerializerMethodField(
+        help_text="Why the trigger can't run yet. Null when it is complete or not chosen yet"
+    )
 
     class Meta:
         model = Automation
@@ -106,6 +133,7 @@ class AutomationSerializer(BaseSerializer):
             "description",
             "trigger_type",
             "trigger_config",
+            "trigger_config_error",
             "condition",
             "is_enabled",
             "next_run_at",
@@ -145,15 +173,38 @@ class AutomationSerializer(BaseSerializer):
         return [str(link.project_id) for link in obj.automation_projects.all()]
 
     def get_schedule_summary(self, obj) -> str | None:
-        if obj.trigger_type != TriggerType.SCHEDULE:
+        if obj.trigger_type != TriggerType.SCHEDULE or validators.trigger_error(obj.trigger_type, obj.trigger_config):
             return None
         return describe_schedule(obj.trigger_config)
+
+    def get_trigger_config_error(self, obj) -> str | None:
+        return validators.trigger_error(obj.trigger_type, obj.trigger_config)
 
     def validate_name(self, value):
         value = (value or "").strip()
         if not value:
             raise serializers.ValidationError("Give the automation a name.")
         return value
+
+    def _enable_errors(self, trigger_type, trigger_config, enabling) -> dict:
+        """
+        Everything that keeps the automation from running. The actions are only
+        checked when it is being enabled, since writes to an enabled automation's
+        actions are already checked one by one.
+        """
+        instance = self.instance
+        actions = list(instance.actions.all()) if instance is not None else []
+        errors = {}
+        if not trigger_type or not actions:
+            errors["is_enabled"] = ["An automation needs a trigger and at least one action before it can be enabled."]
+        trigger_message = validators.trigger_error(trigger_type, trigger_config)
+        if trigger_message:
+            errors["trigger_config"] = [trigger_message]
+        if enabling:
+            incomplete = validators.incomplete_actions(actions)
+            if incomplete:
+                errors["actions"] = {action_id: {"config": [message]} for action_id, message in incomplete.items()}
+        return errors
 
     def validate(self, attrs):
         instance = self.instance
@@ -170,9 +221,12 @@ class AutomationSerializer(BaseSerializer):
                     {"trigger_type": "You can't change the trigger type once the automation is created."}
                 )
 
-        trigger_message = validators.trigger_error(trigger_type, trigger_config)
-        if trigger_message:
-            raise serializers.ValidationError({"trigger_config": trigger_message})
+        hard_trigger_message = validators.trigger_type_error(trigger_type)
+        if hard_trigger_message:
+            raise serializers.ValidationError({"trigger_type": hard_trigger_message})
+        shape_message = validators.trigger_config_shape_error(trigger_config)
+        if shape_message:
+            raise serializers.ValidationError({"trigger_config": shape_message})
 
         condition_message = validators.condition_error(condition)
         if condition_message:
@@ -195,12 +249,11 @@ class AutomationSerializer(BaseSerializer):
 
         is_enabled = attrs.get("is_enabled", getattr(instance, "is_enabled", False))
         if is_enabled:
-            has_actions = instance is not None and instance.actions.exists()
-            if not trigger_type or not has_actions:
-                raise serializers.ValidationError(
-                    {"is_enabled": "An automation needs a trigger and at least one action before it can be enabled."}
-                )
+            enabling = not getattr(instance, "is_enabled", False)
+            errors = self._enable_errors(trigger_type, trigger_config, enabling=enabling)
             if not targets_projects:
-                raise serializers.ValidationError({"project_ids": "Select the projects this automation should run on."})
+                errors["project_ids"] = ["Select the projects this automation should run on."]
+            if errors:
+                raise serializers.ValidationError(errors)
 
         return attrs

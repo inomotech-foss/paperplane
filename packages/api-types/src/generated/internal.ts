@@ -5271,6 +5271,9 @@ export interface components {
          * @enum {string}
          */
         AccountProviderEnum: "google" | "github" | "gitlab" | "gitea" | "oidc";
+        ActionConfigError: {
+            config: string[];
+        };
         ActionType: {
             key: components["schemas"]["AutomationActionTypeEnum"];
             i18n_label: string;
@@ -5616,6 +5619,8 @@ export interface components {
             /** @description Empty for a draft */
             trigger_type: components["schemas"]["AutomationTriggerTypeEnum"] | components["schemas"]["BlankEnum"];
             trigger_config: unknown;
+            /** @description Why the trigger can't run yet. Null when it is complete or not chosen yet */
+            readonly trigger_config_error: string | null;
             condition: unknown;
             is_enabled: boolean;
             /** Format: date-time */
@@ -5652,6 +5657,8 @@ export interface components {
             readonly automation: string;
             action_type: components["schemas"]["AutomationActionTypeEnum"];
             config: unknown;
+            /** @description Why the action can't run yet. Null when it is complete */
+            readonly config_error: string | null;
             /** Format: double */
             sort_order: number;
             /** Format: date-time */
@@ -5680,6 +5687,11 @@ export interface components {
          * @enum {string}
          */
         AutomationActionTypeEnum: "change_property" | "add_comment" | "send_notification" | "create_work_item" | "archive_work_item" | "call_webhook";
+        AutomationActionValidationError: {
+            action_type?: string[];
+            config?: string[];
+            sort_order?: string[];
+        };
         AutomationCatalog: {
             triggers: components["schemas"]["Trigger"][];
             condition_properties: components["schemas"]["ConditionProperty"][];
@@ -5795,6 +5807,18 @@ export interface components {
         AutomationTriggerGroupEnum: "plane_events" | "time_based";
         /** @enum {string} */
         AutomationTriggerTypeEnum: "work_item.created" | "work_item.updated" | "work_item.deleted" | "work_item.state_changed" | "work_item.priority_changed" | "work_item.assignees_changed" | "work_item.labels_changed" | "work_item.target_date_changed" | "work_item.parent_changed" | "work_item.comment_created" | "work_item.added_to_cycle" | "work_item.added_to_module" | "schedule";
+        AutomationValidationError: {
+            name?: string[];
+            trigger_type?: string[];
+            trigger_config?: string[];
+            condition?: string[];
+            project_ids?: string[];
+            is_enabled?: string[];
+            /** @description Incomplete actions, keyed by action id */
+            actions?: {
+                [key: string]: components["schemas"]["ActionConfigError"];
+            };
+        };
         /**
          * @description * `states` - states
          *     * `state_groups` - state_groups
@@ -17062,6 +17086,14 @@ export interface operations {
                     "application/json": components["schemas"]["AutomationAction"];
                 };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationActionValidationError"];
+                };
+            };
         };
     };
     workspaces_automations_actions_destroy: {
@@ -17111,6 +17143,14 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AutomationAction"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationActionValidationError"];
                 };
             };
         };
@@ -17233,6 +17273,14 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Automation"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationValidationError"];
                 };
             };
         };
@@ -19063,6 +19111,14 @@ export interface operations {
                     "application/json": components["schemas"]["AutomationAction"];
                 };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationActionValidationError"];
+                };
+            };
         };
     };
     workspaces_projects_automations_actions_destroy: {
@@ -19114,6 +19170,14 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AutomationAction"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationActionValidationError"];
                 };
             };
         };
@@ -19241,6 +19305,14 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Automation"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationValidationError"];
                 };
             };
         };

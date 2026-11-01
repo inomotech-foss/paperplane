@@ -21,7 +21,7 @@ from django.db import transaction
 from django.utils import timezone
 
 # Module imports
-from plane.automation import conditions
+from plane.automation import conditions, validators
 from plane.automation.actions import ActionError, get_handler
 from plane.automation.registry import ACTIONS, allowed_actions_for_trigger
 from plane.db.models import AutomationRun, AutomationRunStatus, AutomationRunTriggerSource
@@ -76,6 +76,36 @@ def _executable_actions(automation):
     return [action for action in automation.actions.all().order_by("sort_order") if action.action_type in allowed]
 
 
+def incomplete_run(automation) -> tuple[str, list] | None:
+    """
+    The run error and failed steps for an automation that is not complete, or
+    ``None`` when it may run. Enabling already requires completeness, so this
+    only catches rows that got past it.
+    """
+    if automation.trigger_type:
+        trigger_message = validators.trigger_error(automation.trigger_type, automation.trigger_config)
+    else:
+        trigger_message = "No trigger is chosen."
+    steps = []
+    for action in automation.actions.all().order_by("sort_order"):
+        message = validators.action_error(action.action_type, action.config)
+        if message:
+            steps.append(
+                {
+                    "action_id": str(action.id),
+                    "action_type": action.action_type,
+                    "status": "failed",
+                    "detail": "",
+                    "error": message,
+                }
+            )
+    if trigger_message:
+        return f"The trigger is incomplete, so no action ran: {trigger_message}", steps
+    if steps:
+        return "Some actions are incomplete, so no action ran.", steps
+    return None
+
+
 def execute(
     automation,
     context,
@@ -115,6 +145,23 @@ def execute(
     actions = _executable_actions(automation)
     if not actions:
         return None
+
+    incomplete = incomplete_run(automation)
+    if incomplete is not None:
+        error, steps = incomplete
+        logger.warning("Automation %s is incomplete and did not run: %s", automation.id, error)
+        return _persist_run(
+            automation=automation,
+            context=context,
+            trigger_source=trigger_source,
+            initiator_id=initiator_id,
+            status=AutomationRunStatus.FAILED,
+            steps=steps,
+            error=error,
+            started_at=timezone.now(),
+            duration_ms=0,
+            processed_count=0,
+        )
 
     run = RunHandle(
         automation=automation,

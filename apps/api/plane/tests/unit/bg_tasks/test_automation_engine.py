@@ -11,7 +11,7 @@ import pytest
 from django.utils import timezone
 
 from plane.automation import engine
-from plane.automation.actions import ActionError
+from plane.automation.actions import ActionError, get_handler
 from plane.automation.context import AutomationContext
 from plane.automation.registry import ActionType, TriggerType
 from plane.db.models import (
@@ -126,6 +126,13 @@ def add_action(automation, action_type, config, sort_order=10000):
         config=config,
         sort_order=sort_order,
     )
+
+
+def run_handler(action, work_item, project):
+    """Runs one handler directly, past the engine's completeness guard."""
+    automation = action.automation
+    run = engine.RunHandle(automation=automation, actor_id=automation.owned_by_id)
+    return get_handler(action.action_type)(action, context_for(work_item, project, automation), run)
 
 
 def context_for(work_item, project, automation, changes=None, actor_id=None):
@@ -371,12 +378,10 @@ class TestChangeProperty:
 
     def test_unknown_property_fails_the_step(self, project, create_user, work_item):
         automation = make_automation(project, create_user)
-        add_action(automation, ActionType.CHANGE_PROPERTY, {"change_type": "set", "value": "x"})
+        action = add_action(automation, ActionType.CHANGE_PROPERTY, {"change_type": "set", "value": "x"})
 
-        run = engine.execute(automation, context_for(work_item, project, automation))
-
-        assert run.status == AutomationRunStatus.FAILED
-        assert "No property selected" in run.steps[0]["error"]
+        with pytest.raises(ActionError, match="No property selected"):
+            run_handler(action, work_item, project)
 
     def test_estimate_uses_the_activity_key_the_tracker_expects(self, project, create_user, work_item, mocker):
         # `update_issue_activity` dispatches on `estimate_point`, not the
@@ -571,12 +576,10 @@ class TestSendNotification:
 
     def test_unknown_recipient_group_fails(self, project, create_user, work_item):
         automation = make_automation(project, create_user)
-        add_action(automation, ActionType.SEND_NOTIFICATION, {"recipients": ["everyone"], "title": "Hi"})
+        action = add_action(automation, ActionType.SEND_NOTIFICATION, {"recipients": ["everyone"], "title": "Hi"})
 
-        run = engine.execute(automation, context_for(work_item, project, automation))
-
-        assert run.status == AutomationRunStatus.FAILED
-        assert "Unknown recipient" in run.steps[0]["error"]
+        with pytest.raises(ActionError, match="Unknown recipient"):
+            run_handler(action, work_item, project)
 
 
 class TestCreateWorkItem:
@@ -661,7 +664,7 @@ class TestCreateWorkItem:
         add_action(
             automation,
             ActionType.CREATE_WORK_ITEM,
-            {"name": "Nope", "project_id": str(foreign_project.id)},
+            {"name": "Nope", "project_id": str(foreign_project.id), "type_id": str(link_starter_type(project).id)},
         )
 
         run = engine.execute(automation, context_for(work_item, project, automation))
@@ -974,7 +977,7 @@ class TestRunBookkeeping:
 
     def test_one_failing_action_does_not_stop_the_rest(self, project, create_user, work_item):
         automation = make_automation(project, create_user)
-        add_action(automation, ActionType.ADD_COMMENT, {"comment_html": ""}, sort_order=10000)
+        add_action(automation, ActionType.ADD_COMMENT, {"comment_html": "<script>alert(1)</script>"}, sort_order=10000)
         add_action(
             automation,
             ActionType.CHANGE_PROPERTY,
@@ -987,6 +990,65 @@ class TestRunBookkeeping:
         work_item.refresh_from_db()
         assert work_item.priority == "high"
         assert run.status == AutomationRunStatus.PARTIAL
+
+
+class TestIncompleteGuard:
+    def test_an_incomplete_action_fails_the_run_before_any_action(self, project, create_user, work_item):
+        automation = make_automation(project, create_user)
+        add_action(
+            automation,
+            ActionType.CHANGE_PROPERTY,
+            {"property": "priority", "change_type": "set", "value": "high"},
+            sort_order=10000,
+        )
+        incomplete = add_action(automation, ActionType.ADD_COMMENT, {"comment_html": ""}, sort_order=20000)
+
+        run = engine.execute(automation, context_for(work_item, project, automation))
+
+        work_item.refresh_from_db()
+        assert work_item.priority == "none"
+        assert run.status == AutomationRunStatus.FAILED
+        assert run.error == "Some actions are incomplete, so no action ran."
+        assert run.steps == [
+            {
+                "action_id": str(incomplete.id),
+                "action_type": ActionType.ADD_COMMENT,
+                "status": "failed",
+                "detail": "",
+                "error": "The comment body is empty.",
+            }
+        ]
+        automation.refresh_from_db()
+        assert automation.failed_run_count == 1
+
+    def test_an_incomplete_schedule_fails_the_run(self, project, create_user):
+        automation = make_automation(
+            project,
+            create_user,
+            trigger_type=TriggerType.SCHEDULE,
+            trigger_config={"mode": "cron", "cron": "0 9"},
+        )
+        add_action(
+            automation, ActionType.CREATE_WORK_ITEM, {"name": "Never", "type_id": str(link_starter_type(project).id)}
+        )
+
+        context = AutomationContext(project=project, automation=automation, trigger_type=TriggerType.SCHEDULE)
+        run = engine.execute(automation, context, trigger_source=AutomationRunTriggerSource.SCHEDULE)
+
+        assert run.status == AutomationRunStatus.FAILED
+        assert run.error.startswith("The trigger is incomplete, so no action ran: A cron expression needs")
+        assert not Issue.objects.filter(name="Never").exists()
+
+    def test_a_missing_trigger_fails_the_run(self, project, create_user, work_item):
+        automation = make_automation(project, create_user, trigger_type="")
+        add_action(automation, ActionType.ARCHIVE_WORK_ITEM, {})
+
+        run = engine.execute(automation, context_for(work_item, project, automation))
+
+        work_item.refresh_from_db()
+        assert work_item.archived_at is None
+        assert run.status == AutomationRunStatus.FAILED
+        assert "No trigger is chosen." in run.error
 
 
 class TestTriggerActionCompatibility:

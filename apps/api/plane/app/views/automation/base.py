@@ -17,7 +17,11 @@ from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
 from plane.utils.openapi.pagination import paginated_response
 from plane.utils.openapi.schema import DetailOrList
-from plane.app.serializers.response.automation import AutomationCatalogSerializer
+from plane.app.serializers.response.automation import (
+    AutomationActionValidationErrorSerializer,
+    AutomationCatalogSerializer,
+    AutomationValidationErrorSerializer,
+)
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.serializers import (
     AutomationActionSerializer,
@@ -200,7 +204,7 @@ class AutomationBaseEndpoint(BaseAPIView):
         if automation is None:
             return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = AutomationActionSerializer(data=request.data)
+        serializer = AutomationActionSerializer(data=request.data, context={"automation": automation})
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -292,7 +296,10 @@ class ProjectAutomationEndpoint(AutomationBaseEndpoint):
     def post(self, request, slug, project_id):
         return self.create_automation(request, slug, project_id=project_id)
 
-    @extend_schema(request=AutomationSerializer, responses={200: AutomationSerializer})
+    @extend_schema(
+        request=AutomationSerializer,
+        responses={200: AutomationSerializer, 400: AutomationValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, pk):
         return self.update_automation(request, slug, pk, project_id=project_id)
@@ -310,12 +317,18 @@ class ProjectAutomationActionEndpoint(AutomationBaseEndpoint):
     def get(self, request, slug, project_id, automation_id):
         return self.list_actions(request, slug, automation_id, project_id=project_id)
 
-    @extend_schema(request=AutomationActionSerializer, responses={201: AutomationActionSerializer})
+    @extend_schema(
+        request=AutomationActionSerializer,
+        responses={201: AutomationActionSerializer, 400: AutomationActionValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id, automation_id):
         return self.create_action(request, slug, automation_id, project_id=project_id)
 
-    @extend_schema(request=AutomationActionSerializer, responses={200: AutomationActionSerializer})
+    @extend_schema(
+        request=AutomationActionSerializer,
+        responses={200: AutomationActionSerializer, 400: AutomationActionValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, automation_id, pk):
         return self.update_action(request, slug, automation_id, pk, project_id=project_id)
@@ -357,7 +370,10 @@ class WorkspaceAutomationEndpoint(AutomationBaseEndpoint):
     def post(self, request, slug):
         return self.create_automation(request, slug)
 
-    @extend_schema(request=AutomationSerializer, responses={200: AutomationSerializer})
+    @extend_schema(
+        request=AutomationSerializer,
+        responses={200: AutomationSerializer, 400: AutomationValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, pk):
         return self.update_automation(request, slug, pk)
@@ -375,12 +391,18 @@ class WorkspaceAutomationActionEndpoint(AutomationBaseEndpoint):
     def get(self, request, slug, automation_id):
         return self.list_actions(request, slug, automation_id)
 
-    @extend_schema(request=AutomationActionSerializer, responses={201: AutomationActionSerializer})
+    @extend_schema(
+        request=AutomationActionSerializer,
+        responses={201: AutomationActionSerializer, 400: AutomationActionValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug, automation_id):
         return self.create_action(request, slug, automation_id)
 
-    @extend_schema(request=AutomationActionSerializer, responses={200: AutomationActionSerializer})
+    @extend_schema(
+        request=AutomationActionSerializer,
+        responses={200: AutomationActionSerializer, 400: AutomationActionValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, automation_id, pk):
         return self.update_action(request, slug, automation_id, pk)
