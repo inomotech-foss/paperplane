@@ -3,8 +3,7 @@
  * See the LICENSE file for details.
  */
 
-const readField = (source: unknown, key: string): unknown =>
-  typeof source === "object" && source !== null ? Reflect.get(source, key) : undefined;
+import { readField } from "@plane/types";
 
 // Detects a non-production build without requiring @types/node. Evaluated once at module load.
 export const IS_DEV = (() => {

@@ -7,7 +7,8 @@
 import React from "react";
 // plane imports
 import { Card } from "../../card/card";
-import { readField, toChartText } from "../payload";
+import { readField } from "@plane/types";
+import { toChartText } from "../payload";
 
 interface TreeMapTooltipProps {
   active: boolean | undefined;

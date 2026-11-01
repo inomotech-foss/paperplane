@@ -3,14 +3,11 @@
  * See the LICENSE file for details.
  */
 
+import { isRecord } from "@plane/types";
 import type { TChartPayload } from "@plane/types";
 
 // Recharts hands the drawn datum to its callbacks without a type.
-export const isChartPayload = (value: unknown): value is TChartPayload =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-export const readField = (source: unknown, key: string): unknown =>
-  typeof source === "object" && source !== null ? Reflect.get(source, key) : undefined;
+export const isChartPayload = (value: unknown): value is TChartPayload => isRecord(value);
 
 export const toChartNumber = (value: unknown): number => Number(value);
 

@@ -10,7 +10,8 @@ import type { LegendProps } from "recharts";
 import type { TChartLegend } from "@plane/types";
 import { cn } from "@plane/utils";
 // local imports
-import { readField, toChartText } from "../payload";
+import { readField } from "@plane/types";
+import { toChartText } from "../payload";
 
 export const getLegendProps = (args: TChartLegend): Omit<LegendProps, "ref"> => {
   const { align, layout, verticalAlign } = args;

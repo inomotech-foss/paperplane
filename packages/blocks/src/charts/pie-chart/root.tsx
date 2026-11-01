@@ -11,7 +11,8 @@ import type { PieLabelRenderProps } from "recharts";
 import type { TPieChartProps } from "@plane/types";
 // local components
 import { getLegendProps } from "../components/legend";
-import { isChartPayload, readField, toChartKey, toChartText, toDominantBaseline, toTextAnchor } from "../payload";
+import { readField } from "@plane/types";
+import { isChartPayload, toChartKey, toChartText, toDominantBaseline, toTextAnchor } from "../payload";
 import { CustomActiveShape } from "./active-shape";
 import { CustomPieChartTooltip } from "./tooltip";
 
