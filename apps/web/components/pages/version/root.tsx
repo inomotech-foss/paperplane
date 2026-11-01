@@ -15,7 +15,11 @@ import { useQueryParams } from "@/hooks/use-query-params";
 // plane web imports
 import type { EPageStoreType } from "@/hooks/store";
 // local imports
-import { PAGE_NAVIGATION_PANE_VERSION_QUERY_PARAM, PAGE_NAVIGATION_PANE_WIDTH } from "../navigation-pane";
+import {
+  PAGE_NAVIGATION_PANE_VERSION_QUERY_PARAM,
+  PAGE_NAVIGATION_PANE_WIDTH,
+  getPaneCssWidth,
+} from "../navigation-pane";
 import type { TVersionEditorProps } from "./editor";
 import { PageVersionsMainContent } from "./main-content";
 
@@ -57,7 +61,7 @@ export const PageVersionsOverlay = observer(function PageVersionsOverlay(props: 
         }
       )}
       style={{
-        width: `calc(100% - ${PAGE_NAVIGATION_PANE_WIDTH}px)`,
+        width: `calc(100% - ${getPaneCssWidth(PAGE_NAVIGATION_PANE_WIDTH)})`,
       }}
     >
       <PageVersionsMainContent
