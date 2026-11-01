@@ -78,7 +78,7 @@ from plane.db.models import (
 )
 from plane.utils.analytics_plot import burndown_plot
 from plane.bgtasks.recent_visited_task import recent_visited_task
-from plane.utils.cycle_estimates import cycle_estimate_points
+from plane.utils.cycle_estimates import ESTIMATE_POINT_KEYS, cycle_estimate_points
 from plane.utils.cycle_transfer_issues import transfer_cycle_issues
 from .. import BaseAPIView, BaseViewSet
 from plane.bgtasks.webhook_task import model_activity
@@ -694,9 +694,10 @@ class CycleProgressEndpoint(BaseAPIView):
         cycle = Cycle.objects.filter(workspace__slug=slug, project_id=project_id, id=cycle_id).first()
         if not cycle:
             return Response({"error": "Cycle not found"}, status=status.HTTP_404_NOT_FOUND)
-        estimate_points = cycle_estimate_points(slug, project_id, cycle_id)
         if "total_estimate_points" in cycle.progress_snapshot:
-            estimate_points = {key: cycle.progress_snapshot.get(key, 0) for key in estimate_points}
+            estimate_points = {key: cycle.progress_snapshot.get(key, 0) for key in ESTIMATE_POINT_KEYS}
+        else:
+            estimate_points = cycle_estimate_points(slug, project_id, cycle_id)
         if cycle.progress_snapshot:
             backlog_issues = cycle.progress_snapshot.get("backlog_issues", 0)
             unstarted_issues = cycle.progress_snapshot.get("unstarted_issues", 0)

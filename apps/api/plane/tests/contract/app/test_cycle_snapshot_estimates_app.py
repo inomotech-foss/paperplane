@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from unittest.mock import patch
+
 import pytest
 from django.utils import timezone
 from rest_framework import status
@@ -70,7 +72,9 @@ def test_transfer_snapshot_keeps_estimate_points(session_client, workspace, proj
     assert snapshot["completed_estimate_points"] == 3
     assert snapshot["unstarted_estimate_points"] == 5
 
-    progress = session_client.get(f"{base}/progress/")
+    with patch("plane.app.views.cycle.base.cycle_estimate_points") as live_points:
+        progress = session_client.get(f"{base}/progress/")
+    live_points.assert_not_called()
     assert progress.status_code == status.HTTP_200_OK
     assert progress.data["total_estimate_points"] == 8
     assert progress.data["unstarted_estimate_points"] == 5

@@ -7,6 +7,7 @@ from django.db.models.functions import Cast
 from plane.db.models import Issue
 
 STATE_GROUPS = ("backlog", "unstarted", "started", "cancelled", "completed")
+ESTIMATE_POINT_KEYS = (*(f"{group}_estimate_points" for group in STATE_GROUPS), "total_estimate_points")
 
 
 def cycle_estimate_points(slug, project_id, cycle_id):
