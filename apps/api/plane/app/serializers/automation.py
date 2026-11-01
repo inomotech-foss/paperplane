@@ -63,6 +63,10 @@ class AutomationActionSerializer(BaseSerializer):
         return value
 
     def validate(self, attrs):
+        # A legacy row may hold a config that is no longer valid. It is only
+        # checked when the request changes it, so moving the action still works.
+        if "config" not in attrs and "action_type" not in attrs:
+            return attrs
         action_type = attrs.get("action_type", getattr(self.instance, "action_type", None))
         # A PATCH that only sends `config` still has to validate against the
         # action type already stored.
@@ -70,11 +74,10 @@ class AutomationActionSerializer(BaseSerializer):
         shape_message = validators.action_config_shape_error(action_type, config)
         if shape_message:
             raise serializers.ValidationError({"config": shape_message})
-        if "config" in attrs or "action_type" in attrs:
-            config = sanitize_action_config(action_type, config)
-            if config is None:
-                raise serializers.ValidationError({"config": "The HTML template is not valid."})
-            attrs["config"] = config
+        config = sanitize_action_config(action_type, config)
+        if config is None:
+            raise serializers.ValidationError({"config": "The HTML template is not valid."})
+        attrs["config"] = config
 
         automation = self.context.get("automation") or getattr(self.instance, "automation", None)
         if automation is None or automation.is_enabled:

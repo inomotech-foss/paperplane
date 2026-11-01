@@ -21,13 +21,13 @@ import calendar
 import datetime
 
 # Third party imports
-from celery.schedules import crontab
+from celery.schedules import ParseException, crontab
 
 # Django imports
 from django.utils import timezone
 
 # Module imports
-from plane.automation.context import resolve_timezone
+from plane.automation.context import load_timezone, resolve_timezone
 
 FREQUENCY_DAILY = "daily"
 FREQUENCY_WEEKLY = "weekly"
@@ -94,7 +94,7 @@ def _parse_cron(expression: str) -> tuple[crontab | None, str | None]:
             month_of_year=month_of_year,
             day_of_week=_normalize_day_of_week(day_of_week),
         )
-    except (ValueError, KeyError):
+    except (ValueError, KeyError, ParseException):
         # Deliberately not surfacing the parser's own message: it is third party
         # text on a path that ends in an API response.
         return None, "That cron expression isn't valid. Check each field's range, for example '0 9 * * 1-5'."
@@ -279,6 +279,9 @@ def schedule_error(trigger_config: dict) -> str | None:
     schedule, error = _build_crontab(trigger_config)
     if error is not None:
         return error
+    timezone_name = (trigger_config or {}).get("timezone")
+    if timezone_name and load_timezone(timezone_name) is None:
+        return "That isn't a known timezone."
     if _first_occurrence(schedule, (trigger_config or {}).get("timezone"), None) is None:
         return "This schedule never comes around. Check the day and month."
     return None

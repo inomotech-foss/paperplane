@@ -178,8 +178,9 @@ class AutomationBaseEndpoint(BaseAPIView):
         automation.refresh_from_db()
         return Response(AutomationSerializer(automation).data, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def destroy_automation(self, request, slug, pk, project_id=None):
-        automation = self.get_queryset(slug, project_id).filter(pk=pk).first()
+        automation = self._lock_automation(slug, pk, project_id)
         if automation is None:
             return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
         if automation.is_enabled:
@@ -197,7 +198,12 @@ class AutomationBaseEndpoint(BaseAPIView):
 
     def _lock_automation(self, slug, automation_id, project_id=None):
         """The automation, locked until the surrounding transaction ends."""
-        return self.get_queryset(slug, project_id).select_for_update(of=("self",)).filter(pk=automation_id).first()
+        return (
+            self.get_queryset(slug, project_id)
+            .select_for_update(of=("self",), no_key=True)
+            .filter(pk=automation_id)
+            .first()
+        )
 
     def list_actions(self, request, slug, automation_id, project_id=None):
         automation = self._get_automation(slug, automation_id, project_id)

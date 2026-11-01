@@ -728,6 +728,59 @@ class TestMalformedValues:
         assert "trigger_config" in enabled.json()
 
 
+class TestUnparseableSchedules:
+    @pytest.mark.parametrize(
+        ("trigger_config", "message"),
+        [
+            ({"mode": "cron", "cron": "0 9 * * 1,"}, "That cron expression isn't valid"),
+            ({"mode": "cron", "cron": "0, 9 * * *"}, "That cron expression isn't valid"),
+            ({"mode": "cron", "cron": "*/ 9 * * *"}, "That cron expression isn't valid"),
+            ({"mode": "cron", "cron": "0 9 * * -1"}, "That cron expression isn't valid"),
+            ({"timezone": "A" * 5000}, "That isn't a known timezone."),
+        ],
+        ids=["trailing-comma", "leading-comma", "empty-step", "negative", "long-timezone"],
+    )
+    def test_a_draft_is_stored_and_reported_on_write_read_list_and_enable(
+        self, session_client, base_url, trigger_config, message
+    ):
+        created = create_automation_via_api(
+            session_client, base_url, trigger_type="schedule", trigger_config=trigger_config
+        )
+        assert created.status_code == status.HTTP_201_CREATED
+        assert created.json()["trigger_config_error"].startswith(message)
+        automation_id = created.json()["id"]
+        session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": "archive_work_item", "config": {}}, format="json"
+        )
+
+        detail = session_client.get(f"{base_url}{automation_id}/")
+        listed = session_client.get(base_url)
+        enabled = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert detail.status_code == status.HTTP_200_OK
+        assert detail.json()["trigger_config_error"].startswith(message)
+        assert listed.status_code == status.HTTP_200_OK
+        assert enabled.status_code == status.HTTP_400_BAD_REQUEST
+        assert enabled.json()["trigger_config"][0].startswith(message)
+
+
+class TestLegacyRowEdits:
+    def test_moving_a_legacy_malformed_action_works(self, session_client, base_url):
+        automation_id = create_automation_via_api(session_client, base_url).json()["id"]
+        actions_url = f"{base_url}{automation_id}/actions/"
+        action_id = session_client.post(
+            actions_url, {"action_type": "archive_work_item", "config": {}}, format="json"
+        ).json()["id"]
+        enable_via_api(session_client, base_url, automation_id)
+        AutomationAction.objects.filter(pk=action_id).update(action_type="add_comment", config={"comment_html": 5})
+
+        response = session_client.patch(f"{actions_url}{action_id}/", {"sort_order": 5}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["sort_order"] == 5
+        assert "wrong type" in response.json()["config_error"]
+
+
 class TestDisablingAlwaysWorks:
     @pytest.mark.parametrize(
         "stored",
@@ -764,7 +817,7 @@ class TestDisablingAlwaysWorks:
 
 
 class TestLocking:
-    @pytest.mark.parametrize("method", ["post_action", "patch_action", "patch_automation"])
+    @pytest.mark.parametrize("method", ["post_action", "patch_action", "patch_automation", "delete_automation"])
     def test_writes_lock_the_automation_row(self, session_client, base_url, method):
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
@@ -780,11 +833,14 @@ class TestLocking:
                 session_client.post(actions_url, {"action_type": "archive_work_item", "config": {}}, format="json")
             elif method == "patch_action":
                 session_client.patch(f"{actions_url}{action_id}/", {"config": {}}, format="json")
-            else:
+            elif method == "patch_automation":
                 session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+            else:
+                session_client.delete(f"{base_url}{automation_id}/")
 
         assert any(
-            'FROM "automations"' in query["sql"] and "FOR UPDATE" in query["sql"] for query in queries.captured_queries
+            'FROM "automations"' in query["sql"] and "FOR NO KEY UPDATE" in query["sql"]
+            for query in queries.captured_queries
         )
 
 

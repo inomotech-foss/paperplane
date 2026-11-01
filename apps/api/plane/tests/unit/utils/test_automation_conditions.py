@@ -318,6 +318,15 @@ class TestTriggerValidation:
         assert trigger_config_shape_error("schedule", config) is not None
         assert "wrong type" in trigger_error("schedule", config)
 
+    @pytest.mark.parametrize("cron", ["0 9 * * 1,", "0, 9 * * *", "*/ 9 * * *", "0 9 * * -1"])
+    def test_a_cron_the_parser_rejects_is_reported(self, cron):
+        assert trigger_error("schedule", {"mode": "cron", "cron": cron}).startswith("That cron expression isn't valid")
+
+    def test_an_unloadable_timezone_is_reported(self):
+        assert trigger_error("schedule", {"timezone": "A" * 5000}) == "That isn't a known timezone."
+        assert trigger_error("schedule", {"timezone": "Mars/Olympus"}) == "That isn't a known timezone."
+        assert trigger_error("schedule", {"timezone": "Europe/Berlin"}) is None
+
     def test_event_triggers_ignore_schedule_keys(self):
         assert trigger_config_shape_error("work_item.created", {"timezone": 5}) is None
 

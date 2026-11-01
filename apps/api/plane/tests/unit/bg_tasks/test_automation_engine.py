@@ -1105,6 +1105,16 @@ class TestIncompleteGuardPerRun:
 
         assert IssueComment.objects.filter(issue__in=work_items).count() == 3
 
+    def test_an_incomplete_automation_whose_condition_does_not_match_records_nothing(
+        self, project, create_user, work_item
+    ):
+        condition = {"type": "condition", "property": "priority", "operator": "in", "value": ["urgent"]}
+        automation = make_automation(project, create_user, condition=condition)
+        add_action(automation, ActionType.ADD_COMMENT, {"comment_html": ""})
+
+        assert engine.execute(automation, context_for(work_item, project, automation)) is None
+        assert not AutomationRun.objects.filter(automation=automation).exists()
+
     def test_an_invalid_stored_condition_fails_the_run(self, project, create_user, work_item):
         automation = make_automation(project, create_user, condition={"type": "condition", "property": []})
         add_action(automation, ActionType.ARCHIVE_WORK_ITEM, {})

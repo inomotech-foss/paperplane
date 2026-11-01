@@ -163,13 +163,11 @@ def execute(
         logger.info("Skipping automation %s: %s", automation.id, skip_reason)
         return None
 
-    if checked_actions is None:
-        all_actions = load_actions(automation)
-        failed_run = record_if_incomplete(automation, all_actions, context, trigger_source, initiator_id)
-        if failed_run is not None:
-            return failed_run
-    else:
-        all_actions = checked_actions
+    all_actions = checked_actions if checked_actions is not None else load_actions(automation)
+    # A broken condition can't be evaluated, so it fails the run before matching. Anything
+    # else incomplete only fails a run the condition accepts.
+    if checked_actions is None and validators.condition_error(automation.condition):
+        return record_if_incomplete(automation, all_actions, context, trigger_source, initiator_id)
 
     if not matches(automation, context):
         if not record_skips:
@@ -190,6 +188,11 @@ def execute(
     actions = _executable_actions(automation, all_actions)
     if not actions:
         return None
+
+    if checked_actions is None:
+        failed_run = record_if_incomplete(automation, all_actions, context, trigger_source, initiator_id)
+        if failed_run is not None:
+            return failed_run
 
     run = RunHandle(
         automation=automation,
