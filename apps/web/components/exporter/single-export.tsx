@@ -73,7 +73,7 @@ export function SingleExport({ service, refreshing }: Props) {
                 label={downloadLabel}
                 nativeButton={false}
                 render={
-                  <a target="_blank" href={service?.url} rel="noopener noreferrer">
+                  <a target="_blank" href={service?.url ?? undefined} rel="noopener noreferrer">
                     {downloadLabel}
                   </a>
                 }

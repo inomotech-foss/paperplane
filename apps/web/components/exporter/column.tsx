@@ -54,7 +54,7 @@ export const useExportColumns = () => {
     {
       key: "Exported projects",
       content: "Exported projects",
-      tdRender: (rowData: RowData) => <div className="text-13">{rowData.project.length} project(s)</div>,
+      tdRender: (rowData: RowData) => <div className="text-13">{rowData.project?.length ?? 0} project(s)</div>,
     },
     {
       key: "Format",
@@ -101,7 +101,7 @@ export const useExportColumns = () => {
             {rowData.status == "completed" ? (
               <a
                 target="_blank"
-                href={rowData?.url}
+                href={rowData?.url ?? undefined}
                 rel="noopener noreferrer"
                 className="flex w-full items-center gap-1 font-medium text-accent-primary"
               >
