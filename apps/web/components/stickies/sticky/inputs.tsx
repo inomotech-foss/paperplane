@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 // plane imports
@@ -57,15 +57,13 @@ export function StickyInput(props: TProps) {
     },
     [handleUpdate]
   );
-  // Drop the focus request if the editor never takes focus or this sticky goes away
+  // A sticky created by "Add sticky" focuses its editor once, when it mounts
+  const [autofocus] = useState(() => !!stickyId && stickyId === focusStickyId);
   useEffect(() => {
-    if (!stickyId || stickyId !== focusStickyId) return;
-    const timer = window.setTimeout(() => clearStickyFocus(stickyId), 1000);
-    return () => {
-      window.clearTimeout(timer);
-      clearStickyFocus(stickyId);
-    };
-  }, [stickyId, focusStickyId, clearStickyFocus]);
+    if (!autofocus || !stickyId) return;
+    clearStickyFocus(stickyId);
+    return () => clearStickyFocus(stickyId);
+  }, [autofocus, stickyId, clearStickyFocus]);
   // reset form values
   useEffect(() => {
     if (!stickyId) return;
@@ -109,8 +107,7 @@ export function StickyInput(props: TProps) {
             handleDelete={handleDelete}
             handleColorChange={handleChange}
             ref={editorRef}
-            autofocus={!!stickyId && stickyId === focusStickyId}
-            onEditorFocus={() => stickyId && clearStickyFocus(stickyId)}
+            autofocus={autofocus}
           />
         )}
       />
