@@ -9,7 +9,8 @@ import { getFileMetaDataForUpload, unwrap, uploadToPresignedPost } from "@plane/
 import type { UploadProgressHandler } from "@plane/services";
 import type { EFileAssetType, TFileEntityInfo, TFileSignedURLResponse } from "@plane/types";
 import { getAssetIdFromUrl } from "@plane/utils";
-import { findLiteral, getField, isRecord, isString } from "@/helpers/narrow.helper";
+import { findLiteral, isRecord, readField } from "@plane/types";
+import { isString } from "@/helpers/narrow.helper";
 import { apiClient } from "@/services/api-client";
 
 export type UnSplashImage = {
@@ -43,18 +44,18 @@ export function toEntityType(type: EFileAssetType): TEntityType {
 }
 
 const toUnsplashImage = (value: unknown): UnSplashImage | undefined => {
-  const urls = getField(value, "urls");
-  const id = getField(value, "id");
-  const regular = getField(urls, "regular");
-  const small = getField(urls, "small");
+  const urls = readField(value, "urls");
+  const id = readField(value, "id");
+  const regular = readField(urls, "regular");
+  const small = readField(urls, "small");
   if (!isString(id) || !isString(regular) || !isString(small)) return undefined;
-  const alt = getField(value, "alt_description");
+  const alt = readField(value, "alt_description");
   return { id, alt_description: isString(alt) ? alt : undefined, urls: { regular, small } };
 };
 
 /** The Unsplash response is passed through: a search wraps the photos in `results`, the photo list does not. */
 export function parseUnsplashImages(data: unknown): UnSplashImage[] {
-  const results = isRecord(data) && !Array.isArray(data) ? getField(data, "results") : data;
+  const results = isRecord(data) ? readField(data, "results") : data;
   if (!Array.isArray(results)) return [];
   return results.flatMap((item: unknown) => {
     const image = toUnsplashImage(item);

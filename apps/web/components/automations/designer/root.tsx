@@ -19,7 +19,8 @@ import { Loader } from "@plane/blocks/skeleton";
 // hooks
 import { useAutomation } from "@/hooks/store/use-automation";
 import { getApiErrorBody } from "@/helpers/error.helper";
-import { getFirstStringField, getStringField, isRecord, isString } from "@/helpers/narrow.helper";
+import { isObject, readString } from "@plane/types";
+import { getFirstStringField, isString } from "@/helpers/narrow.helper";
 import type { IAutomationStore } from "@/store/automation.store";
 // local imports
 import { useAutomationDetails, useAutomationMetadata } from "../helpers/metadata";
@@ -90,7 +91,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
   const reportError = useCallback(
     (error: unknown) => {
       const body = getApiErrorBody(error);
-      const firstDetail = isRecord(body) ? Object.values(body).flat().find(isString) : undefined;
+      const firstDetail = isObject(body) ? Object.values(body).flat().find(isString) : undefined;
       setToast({
         type: "error",
         title: t("automations.toasts.update.error.title"),
@@ -195,7 +196,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
       setToast({
         type: "error",
         title: t("automations.toasts.run_now.error.title"),
-        message: getStringField(getApiErrorBody(error), "error") ?? t("automations.toasts.run_now.error.message"),
+        message: readString(getApiErrorBody(error), "error") ?? t("automations.toasts.run_now.error.message"),
       });
     }
   };

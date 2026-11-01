@@ -11,7 +11,7 @@ import type { EditorView } from "@tiptap/pm/view";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
-import { isOneOf } from "@/helpers/narrow";
+import { isOneOf } from "@plane/types";
 // extensions
 import type { SideMenuHandleOptions, SideMenuPluginProps } from "@/extensions";
 

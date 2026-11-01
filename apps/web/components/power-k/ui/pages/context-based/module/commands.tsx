@@ -14,14 +14,13 @@ import { useTranslation } from "@plane/i18n";
 import { ModuleStatusIcon } from "@plane/blocks/icons";
 import { setToast } from "@plane/blocks/toast";
 import type { IModule } from "@plane/types";
-import { EUserPermissions } from "@plane/types";
+import { EUserPermissions, isOneOf } from "@plane/types";
 import { copyTextToClipboard } from "@plane/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
 import { useModule } from "@/hooks/store/use-module";
 import { useUser } from "@/hooks/store/user";
-import { isOneOf } from "@/helpers/narrow.helper";
 
 const MODULE_STATUS_VALUES = MODULE_STATUS.map((status) => status.value);
 

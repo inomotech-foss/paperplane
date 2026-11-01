@@ -8,7 +8,7 @@ import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 // plane imports
 import { CORE_EXTENSIONS } from "@plane/utils";
 // helpers
-import { isOneOf } from "@/helpers/narrow";
+import { isOneOf } from "@plane/types";
 // local imports
 import type { NodeFileMapType } from "../../constants/utility";
 

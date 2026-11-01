@@ -2,14 +2,12 @@
 // See the LICENSE file for details.
 
 import { z } from "zod";
+import { isRecord } from "../narrow";
 
 const warned = new Set<string>();
 
-export const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
 const isUnset = (value: unknown) =>
-  value === null || value === undefined || (isPlainObject(value) && !Object.keys(value).length);
+  value === null || value === undefined || (isRecord(value) && !Object.keys(value).length);
 
 /** Logs the first problem of each `name` once. */
 export function warnClientJson(name: string, details: unknown): void {
@@ -47,7 +45,7 @@ export function parseClientObject<Shape extends z.ZodRawShape>(
   fallback: z.output<z.ZodObject<Shape>>
 ): z.output<z.ZodObject<Shape>> {
   if (isUnset(value)) return fallback;
-  if (!isPlainObject(value)) {
+  if (!isRecord(value)) {
     warnClientJson(name, value);
     return fallback;
   }

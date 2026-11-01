@@ -13,7 +13,7 @@ import { setToast } from "@plane/blocks/toast";
 import type { IState } from "@plane/types";
 // hooks
 import { useProjectState } from "@/hooks/store/use-project-state";
-import { getField } from "@/helpers/narrow.helper";
+import { readField } from "@plane/types";
 
 type TStateDeleteModal = {
   isOpen: boolean;
@@ -43,7 +43,7 @@ export const StateDeleteModal = observer(function StateDeleteModal(props: TState
       await deleteState(workspaceSlug.toString(), data.project_id, data.id);
       handleClose();
     } catch (err) {
-      if (getField(err, "status") === 400)
+      if (readField(err, "status") === 400)
         setToast({
           type: "error",
           title: "Error!",

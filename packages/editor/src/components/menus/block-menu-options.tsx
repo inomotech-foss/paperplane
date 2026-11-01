@@ -11,7 +11,7 @@ import { DragDropOutline } from "@makeplane/propel/icons";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
-import { readNumber } from "@/helpers/narrow";
+import { readNumber } from "@plane/types";
 // types
 import type { BlockMenuOption } from "./block-menu";
 

@@ -31,7 +31,7 @@ import { useUser } from "@/hooks/store/user";
 import { AuthService } from "@/services/auth.service";
 import userService from "@/services/user.service";
 import { getApiErrorBody, getAuthErrorInfo } from "@/helpers/error.helper";
-import { getField, getStringField } from "@/helpers/narrow.helper";
+import { readField, readString } from "@plane/types";
 
 type Props = { isOpen: boolean; onClose: () => void };
 
@@ -122,14 +122,14 @@ export const ChangeEmailModal = observer(function ChangeEmailModal(props: Props)
       setCurrentStep("UNIQUE_CODE");
     } catch (error: unknown) {
       const body = getApiErrorBody(error);
-      const errorInfo = getAuthErrorInfo(getField(body, "error_code"));
+      const errorInfo = getAuthErrorInfo(readField(body, "error_code"));
 
       // Get error message from handler or fallback
       const errorMessage = errorInfo
         ? typeof errorInfo.message === "string"
           ? errorInfo.message
           : String(errorInfo.message)
-        : getStringField(body, "error_message") || changeEmailT("form.email.errors.validation_failed");
+        : readString(body, "error_message") || changeEmailT("form.email.errors.validation_failed");
 
       setError("email", { type: "custom", message: errorMessage });
     }

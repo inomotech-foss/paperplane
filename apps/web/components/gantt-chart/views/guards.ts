@@ -4,7 +4,7 @@
  */
 
 import type { TGanttViews } from "@plane/types";
-import { isRecord } from "@/helpers/narrow.helper";
+import { isRecord } from "@plane/types";
 import type { IMonthBlock, IMonthView } from "./month-view";
 import { monthView } from "./month-view";
 import { quarterView } from "./quarter-view";

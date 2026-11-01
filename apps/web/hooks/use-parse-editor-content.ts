@@ -14,7 +14,7 @@ import type { TCustomComponentsMetaData } from "@plane/utils";
 import { useMember } from "@/hooks/store/use-member";
 // plane web hooks
 import { useAdditionalEditorMention } from "@/hooks/use-additional-editor-mention";
-import { isOneOf } from "@/helpers/guards";
+import { isOneOf } from "@plane/types";
 
 const SEARCH_ENTITIES: readonly TSearchEntities[] = ["user_mention", "issue", "project", "cycle", "module", "page"];
 

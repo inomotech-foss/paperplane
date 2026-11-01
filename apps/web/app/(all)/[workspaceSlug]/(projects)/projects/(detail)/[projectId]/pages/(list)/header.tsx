@@ -20,7 +20,7 @@ import { Header } from "@plane/blocks/layout";
 // helpers
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 // hooks
-import { isRecord, readString } from "@/helpers/guards";
+import { isRecord, readString } from "@plane/types";
 import { useProject } from "@/hooks/store/use-project";
 // plane web imports
 import { CommonProjectBreadcrumbs } from "@/components/breadcrumbs/common";

@@ -7,7 +7,7 @@
 import type { ApiRequestBody, ApiSchema } from "@plane/api-types";
 import { unwrap } from "@plane/services";
 import type { TProjectPublishSettings, TPublishEntityType } from "@plane/types";
-import { isOneOf } from "@/helpers/narrow.helper";
+import { isOneOf } from "@plane/types";
 import { apiClient } from "@/services/api-client";
 
 type TPublishCreateBody = ApiRequestBody<"/api/workspaces/{slug}/projects/{project_id}/project-deploy-boards/", "post">;

@@ -20,8 +20,7 @@ import type {
   TWorkspaceDraftIssue,
   TWorkspaceDraftPaginationInfo,
 } from "@plane/types";
-import { EIssuesStoreType } from "@plane/types";
-import { isOneOf } from "@/helpers/guards";
+import { EIssuesStoreType, isOneOf } from "@plane/types";
 import { useIssues } from "./store/use-issues";
 
 const PROFILE_VIEWS: readonly TProfileViews[] = ["assigned", "created", "subscribed"];

@@ -7,7 +7,7 @@ import { mergeAttributes, Node } from "@tiptap/core";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
-import { readString } from "@/helpers/narrow";
+import { readString } from "@plane/types";
 
 /**
  * An invisible in-page jump target, as produced by Confluence's anchor macro.

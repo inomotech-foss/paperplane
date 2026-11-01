@@ -21,7 +21,7 @@ import type {
   TWorkItemFilterExpressionData,
   TWorkItemFilterProperty,
 } from "@plane/types";
-import { EIssueLayoutTypes, LOGICAL_OPERATOR, WORK_ITEM_FILTER_PROPERTY_KEYS } from "@plane/types";
+import { EIssueLayoutTypes, isRecord, LOGICAL_OPERATOR, WORK_ITEM_FILTER_PROPERTY_KEYS } from "@plane/types";
 import { deepCompareFilterExpressions } from "@plane/utils";
 import { CUSTOM_DISPLAY_PROPERTY_PREFIX } from "./types";
 import type { TBuiltInDisplayProperty, TCustomDisplayProperty, TDisplayPropertyKey, TPeekRef } from "./types";
@@ -396,11 +396,8 @@ const toConditionData = ({ property, operator, value }: TCondition): TWorkItemFi
   return { [key]: value };
 };
 
-const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
 const conditionFromData = (data: unknown): TCondition | undefined => {
-  if (!isPlainObject(data)) return undefined;
+  if (!isRecord(data)) return undefined;
   const entries = Object.entries(data);
   if (entries.length !== 1) return undefined;
   const [key, value] = entries[0];
@@ -411,7 +408,7 @@ const conditionFromData = (data: unknown): TCondition | undefined => {
 
 /** A canonical copy of an expression the API and the filter UI accept; undefined if invalid. */
 const canonicalExpression = (value: unknown, depth = 1): TWorkItemFilterExpressionData | undefined => {
-  if (depth > MAX_FILTER_DEPTH || !isPlainObject(value)) return undefined;
+  if (depth > MAX_FILTER_DEPTH || !isRecord(value)) return undefined;
   const keys = Object.keys(value);
   if (keys.length !== 1) return undefined;
   const inner = value[keys[0]];

@@ -4,8 +4,7 @@
 import type { ApiRequestBody, ApiSchema, InternalPaths } from "@plane/api-types";
 import { unwrap } from "@plane/services";
 import type { TInboxIssue, TInboxIssueWithPagination, TIssue, TIssueRow } from "@plane/types";
-import { EInboxIssueSource, EInboxIssueStatus } from "@plane/types";
-import { findLiteral, getField } from "@/helpers/narrow.helper";
+import { EInboxIssueSource, EInboxIssueStatus, findLiteral, readField } from "@plane/types";
 import { apiClient } from "@/services/api-client";
 import { toBaseIssue } from "@/services/issue/work-item";
 
@@ -91,7 +90,7 @@ export const inboxIssueCreateBody = (data: Partial<TIssue>): TInboxIssueCreateBo
  * `issue`.
  */
 export const inboxIssueUpdateBody = (data: Partial<TIssue>): TInboxIssueUpdateBody => {
-  const skipActivity = getField(data, "skip_activity");
+  const skipActivity = readField(data, "skip_activity");
   return {
     issue: issueFields(data),
     ...(skipActivity === true || skipActivity === "true" ? { skip_activity: true } : {}),

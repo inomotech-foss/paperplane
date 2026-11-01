@@ -8,7 +8,8 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { Workflow } from "lucide-react";
 // helpers
-import { readNumber, readString, readText } from "@/helpers/narrow";
+import { readNumber, readString } from "@plane/types";
+import { readText } from "@/helpers/narrow";
 // types
 import type { TDiagramHandler, TDiagramSaveProps, TFileHandler } from "@/types";
 // local imports

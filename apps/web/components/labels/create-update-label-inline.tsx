@@ -18,7 +18,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@makeplane/propel/compo
 import { ColorSwatchPicker } from "@plane/blocks/common";
 import { setToast } from "@plane/blocks/toast";
 import type { IIssueLabel } from "@plane/types";
-import { errorFieldIncludes, getStringField } from "@/helpers/narrow.helper";
+import { readString } from "@plane/types";
+import { errorFieldIncludes } from "@/helpers/narrow.helper";
 import { getApiErrorBody, getApiErrorMessage } from "@/helpers/error.helper";
 
 // error codes
@@ -80,7 +81,7 @@ export const CreateUpdateLabelInline = observer(
 
       // Fallback to general error messages
       if (operation === "create") {
-        return getStringField(error, "detail") ?? getApiErrorMessage(error) ?? t("common.something_went_wrong");
+        return readString(error, "detail") ?? getApiErrorMessage(error) ?? t("common.something_went_wrong");
       }
 
       return getApiErrorMessage(error) ?? t("project_settings.labels.toast.error");

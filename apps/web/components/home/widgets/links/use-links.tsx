@@ -10,7 +10,7 @@ import { setToast } from "@plane/blocks/toast";
 import type { TLinkEditableFields } from "@plane/types";
 import { useHome } from "@/hooks/store/use-home";
 import { getApiErrorMessage } from "@/helpers/error.helper";
-import { getField } from "@/helpers/narrow.helper";
+import { readField } from "@plane/types";
 
 export type TLinkOperations = {
   create: (data: TLinkEditableFields) => Promise<void>;
@@ -50,9 +50,9 @@ export const useLinks = (workspaceSlug: string) => {
           });
           toggleLinkModal(false);
         } catch (error: unknown) {
-          console.error("error", getApiErrorMessage(getField(error, "data")));
+          console.error("error", getApiErrorMessage(readField(error, "data")));
           setToast({
-            message: getApiErrorMessage(getField(error, "data")) ?? t("links.toasts.not_created.message"),
+            message: getApiErrorMessage(readField(error, "data")) ?? t("links.toasts.not_created.message"),
             type: "error",
             title: t("links.toasts.not_created.title"),
           });
@@ -71,7 +71,7 @@ export const useLinks = (workspaceSlug: string) => {
           toggleLinkModal(false);
         } catch (error: unknown) {
           setToast({
-            message: getApiErrorMessage(getField(error, "data")) ?? t("links.toasts.not_updated.message"),
+            message: getApiErrorMessage(readField(error, "data")) ?? t("links.toasts.not_updated.message"),
             type: "error",
             title: t("links.toasts.not_updated.title"),
           });
@@ -89,7 +89,7 @@ export const useLinks = (workspaceSlug: string) => {
           });
         } catch (error: unknown) {
           setToast({
-            message: getApiErrorMessage(getField(error, "data")) ?? t("links.toasts.not_removed.message"),
+            message: getApiErrorMessage(readField(error, "data")) ?? t("links.toasts.not_removed.message"),
             type: "error",
             title: t("links.toasts.not_removed.title"),
           });

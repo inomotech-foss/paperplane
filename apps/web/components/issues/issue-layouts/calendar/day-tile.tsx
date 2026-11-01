@@ -16,7 +16,7 @@ import type { TGroupedIssues, TIssue, TIssueMap, TPaginationData, ICalendarDate 
 // components
 import { cn, renderFormattedPayloadDate } from "@plane/utils";
 import { highlightIssueOnDrop } from "@/components/issues/issue-layouts/utils";
-import { getStringField } from "@/components/issues/narrow";
+import { readString } from "@plane/types";
 // helpers
 import { MONTHS_LIST } from "@plane/constants";
 // helpers
@@ -120,9 +120,9 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
         },
         onDrop: ({ source, self }) => {
           setIsDraggingOver(false);
-          const destinationDate = getStringField(self.data, "date");
+          const destinationDate = readString(self.data, "date");
           if (!destinationDate) return;
-          const sourceData = { id: getStringField(source.data, "id"), date: getStringField(source.data, "date") };
+          const sourceData = { id: readString(source.data, "id"), date: readString(source.data, "date") };
 
           if (!handleDrop(sourceData, destinationDate)) return;
           highlightIssueOnDrop(source?.element?.id, false);

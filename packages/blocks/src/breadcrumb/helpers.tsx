@@ -5,6 +5,7 @@
  */
 
 import * as React from "react";
+import { readField } from "@plane/types";
 
 /** What the overflow menu needs to render a collapsed crumb as a real menu row. */
 export type TCollapsedCrumb = {
@@ -94,9 +95,6 @@ function getSelectedNavigationItem(props: CrumbProps): { label?: unknown; href?:
   const item = items.find((candidate) => readField(candidate, "key") === props.selectedItemKey);
   return item === undefined ? undefined : { label: readField(item, "label"), href: readField(item, "href") };
 }
-
-const readField = (source: unknown, key: string): unknown =>
-  typeof source === "object" && source !== null ? Reflect.get(source, key) : undefined;
 
 function getProps(node: React.ReactNode): CrumbProps | undefined {
   return React.isValidElement<CrumbProps>(node) ? node.props : undefined;

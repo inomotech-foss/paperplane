@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { LinkViewProps } from "@/components/links";
 import { LinkView } from "@/components/links";
 // helpers
-import { readString } from "@/helpers/narrow";
+import { readString } from "@plane/types";
 
 type Props = {
   editor: Editor;

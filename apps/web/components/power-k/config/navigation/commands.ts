@@ -21,7 +21,7 @@ import {
 } from "@makeplane/propel/icons";
 // plane imports
 import { EUserPermissionsLevel } from "@plane/constants";
-import { EUserProjectRoles, EUserWorkspaceRoles } from "@plane/types";
+import { EUserProjectRoles, EUserWorkspaceRoles, readString } from "@plane/types";
 // components
 import type { TPowerKCommandConfig, TPowerKContext } from "@/components/power-k/core/types";
 import { handlePowerKNavigate } from "@/components/power-k/utils/navigation";
@@ -30,7 +30,6 @@ import { isProjectFeatureEnabled } from "@/components/settings/project/work-item
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
 import { getProjectUrl } from "@/components/project/features/features";
-import { getStringField } from "@/helpers/narrow.helper";
 
 export type TPowerKNavigationCommandKeys =
   | "open_workspace"
@@ -101,7 +100,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "ow",
       page: "open-workspace",
       onSelect: (data, ctx) => {
-        const workspaceSlug = getStringField(data, "slug");
+        const workspaceSlug = readString(data, "slug");
         if (!workspaceSlug) return;
         handlePowerKNavigate(ctx, [workspaceSlug]);
       },
@@ -165,7 +164,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "op",
       page: "open-project",
       onSelect: (data, ctx) => {
-        const projectId = getStringField(data, "id");
+        const projectId = readString(data, "id");
         const workspaceSlug = ctx.params.workspaceSlug?.toString();
         if (workspaceSlug && projectId) ctx.router.push(getProjectUrl(workspaceSlug, projectId));
       },
@@ -325,7 +324,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "oc",
       page: "open-project-cycle",
       onSelect: (data, ctx) => {
-        const cycleDetailsId = getStringField(data, "id");
+        const cycleDetailsId = readString(data, "id");
         if (!cycleDetailsId) return;
         handlePowerKNavigate(ctx, [
           ctx.params.workspaceSlug?.toString(),
@@ -378,7 +377,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "om",
       page: "open-project-module",
       onSelect: (data, ctx) => {
-        const moduleDetailsId = getStringField(data, "id");
+        const moduleDetailsId = readString(data, "id");
         if (!moduleDetailsId) return;
         handlePowerKNavigate(ctx, [
           ctx.params.workspaceSlug?.toString(),
@@ -431,7 +430,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
       keySequence: "ov",
       page: "open-project-view",
       onSelect: (data, ctx) => {
-        const viewDetailsId = getStringField(data, "id");
+        const viewDetailsId = readString(data, "id");
         if (!viewDetailsId) return;
         handlePowerKNavigate(ctx, [
           ctx.params.workspaceSlug?.toString(),

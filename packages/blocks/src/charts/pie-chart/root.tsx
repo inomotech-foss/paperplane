@@ -8,10 +8,11 @@ import React, { useMemo, useState } from "react";
 import { Cell, PieChart as CorePieChart, Label, Legend, Pie, ResponsiveContainer, Tooltip } from "recharts";
 import type { PieLabelRenderProps } from "recharts";
 // plane imports
+import { readField } from "@plane/types";
 import type { TPieChartProps } from "@plane/types";
 // local components
 import { getLegendProps } from "../components/legend";
-import { isChartPayload, readField, toChartKey, toChartText, toDominantBaseline, toTextAnchor } from "../payload";
+import { isChartPayload, toChartKey, toChartText, toDominantBaseline, toTextAnchor } from "../payload";
 import { CustomActiveShape } from "./active-shape";
 import { CustomPieChartTooltip } from "./tooltip";
 

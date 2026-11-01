@@ -2,7 +2,7 @@
 // See the LICENSE file for details.
 
 import type { ApiRequestBody, ApiSchema } from "@plane/api-types";
-import { isPlainObject, parseLogoProps } from "@plane/types";
+import { isRecord, parseLogoProps } from "@plane/types";
 import type {
   TDashboardDimension,
   TDashboardMetric,
@@ -66,7 +66,7 @@ export const toWidget = (row: ApiSchema<"DashboardWidget">): TWorkspaceDashboard
   metric: toMetric(row.metric),
   dimension: toDimension(row.dimension),
   series: toDimension(row.series),
-  config: isPlainObject(row.config) ? row.config : {},
+  config: isRecord(row.config) ? row.config : {},
   sort_order: row.sort_order,
   created_at: row.created_at,
   updated_at: row.updated_at,

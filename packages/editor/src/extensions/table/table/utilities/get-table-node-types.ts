@@ -7,7 +7,7 @@
 import { NodeType } from "@tiptap/pm/model";
 import type { Schema } from "@tiptap/pm/model";
 // helpers
-import { isRecord } from "@/helpers/narrow";
+import { isRecord } from "@plane/types";
 
 const isNodeTypeRecord = (value: unknown): value is { [key: string]: NodeType } =>
   isRecord(value) && Object.values(value).every((item) => item instanceof NodeType);

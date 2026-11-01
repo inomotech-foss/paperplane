@@ -3,7 +3,7 @@
 
 import type { ApiSchema } from "@plane/api-types";
 import { z } from "zod";
-import { isPlainObject } from "../client-json/parse";
+import { isRecord, isStringArray } from "../narrow";
 import type {
   TBulkIssueCustomPropertyValues,
   TIssueCustomProperty,
@@ -41,11 +41,11 @@ export const isIssueCustomPropertyValue = (value: unknown): value is TIssueCusto
   typeof value === "string" ||
   typeof value === "number" ||
   typeof value === "boolean" ||
-  (Array.isArray(value) && value.every((item) => typeof item === "string"));
+  isStringArray(value);
 
 /** Keeps the entries whose value has a shape the client can show. */
 export function parsePropertyValueMap(value: unknown): TIssueCustomPropertyValueMap {
-  if (!isPlainObject(value)) return {};
+  if (!isRecord(value)) return {};
   const map: TIssueCustomPropertyValueMap = {};
   for (const [key, entry] of Object.entries(value)) if (isIssueCustomPropertyValue(entry)) map[key] = entry;
   return map;
@@ -55,7 +55,7 @@ export function parseIssueCustomProperty(property: ApiSchema<"IssueProperty">): 
   return {
     ...property,
     relation_type: property.relation_type || null,
-    settings: isPlainObject(property.settings) ? property.settings : {},
+    settings: isRecord(property.settings) ? property.settings : {},
     derivation_config: parseDerivationConfig(property.derivation_config),
   };
 }

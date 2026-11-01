@@ -15,13 +15,13 @@ import type { EditorRefApi } from "@plane/editor";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
 import type { TIssue } from "@plane/types";
-import { EFileAssetType } from "@plane/types";
+import { EFileAssetType, isRecord } from "@plane/types";
 import { Loader } from "@plane/blocks/skeleton";
 import { getDescriptionPlaceholderI18n, getTabIndex } from "@plane/utils";
 // components
 import { GptAssistantPopover } from "@/components/core/modals/gpt-assistant-popover";
 import { RichTextEditor } from "@/components/editor/rich-text";
-import { getStringProp, isRecord } from "@/components/issues/narrow";
+import { getStringProp } from "@/components/issues/narrow";
 // helpers
 // hooks
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";

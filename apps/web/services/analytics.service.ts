@@ -15,7 +15,7 @@ import type {
   TChartData,
   WorkItemInsightColumns,
 } from "@plane/types";
-import { findLiteral } from "@/helpers/narrow.helper";
+import { findLiteral } from "@plane/types";
 import { apiClient } from "@/services/api-client";
 
 export type TCustomChartParams = TAnalyticsFilterParams & {

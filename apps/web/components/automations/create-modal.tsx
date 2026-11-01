@@ -18,7 +18,8 @@ import type { TAutomation } from "@plane/types";
 // hooks
 import { useAutomation } from "@/hooks/store/use-automation";
 import { getApiErrorBody } from "@/helpers/error.helper";
-import { getFirstStringField, getStringField } from "@/helpers/narrow.helper";
+import { readString } from "@plane/types";
+import { getFirstStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   isOpen: boolean;
@@ -91,7 +92,7 @@ const AutomationForm = observer(function AutomationForm(props: Omit<Props, "isOp
       const body = getApiErrorBody(submitError);
       const message =
         getFirstStringField(body, "name") ??
-        getStringField(body, "error") ??
+        readString(body, "error") ??
         t(automation ? "automations.toasts.update.error.message" : "automations.toasts.create.error.message");
       setError(message);
     } finally {

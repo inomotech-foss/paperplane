@@ -8,6 +8,7 @@ import { useEffect, useEffectEvent, useState } from "react";
 
 // plane imports
 import { useTranslation } from "@plane/i18n";
+import { readField, readString } from "@plane/types";
 import { AddOutline, LoadingOutline } from "@makeplane/propel/icons";
 import { setToast } from "../../toast/toast-manager";
 import { cn } from "@plane/utils";
@@ -26,18 +27,12 @@ type CreateLabelEmptyStateProps = {
 };
 
 function isDuplicateNameError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "name" in error &&
-    Array.isArray(error.name) &&
-    error.name.includes("LABEL_NAME_ALREADY_EXISTS")
-  );
+  const name = readField(error, "name");
+  return Array.isArray(name) && name.includes("LABEL_NAME_ALREADY_EXISTS");
 }
 
 function apiErrorMessage(error: unknown): string | undefined {
-  if (typeof error !== "object" || error === null || !("error" in error)) return undefined;
-  return typeof error.error === "string" ? error.error : undefined;
+  return readString(error, "error");
 }
 
 /**

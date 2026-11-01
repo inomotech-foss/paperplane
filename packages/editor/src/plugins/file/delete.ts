@@ -12,7 +12,7 @@ import { CORE_EDITOR_META } from "@/constants/meta";
 // plane editor imports
 import { NODE_FILE_MAP } from "@/constants/utility";
 // helpers
-import { readString } from "@/helpers/narrow";
+import { readString } from "@plane/types";
 // types
 import type { TFileHandler } from "@/types";
 // local imports

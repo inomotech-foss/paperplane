@@ -7,6 +7,7 @@
 import { createToastManager } from "@makeplane/propel/components/toast";
 import type { ToastAction, ToastData, ToastVariant } from "@makeplane/propel/components/toast";
 import type { ReactNode } from "react";
+import { isRecord } from "@plane/types";
 import { IS_DEV } from "../utils/is-dev";
 
 /**
@@ -98,7 +99,7 @@ const PERSISTENT_TYPES: ReadonlySet<ToastType> = new Set<ToastType>(["loading", 
 const timeoutFor = (type: ToastType): { timeout?: 0 } => (PERSISTENT_TYPES.has(type) ? { timeout: 0 } : {});
 
 const isToastActionItem = (value: unknown): value is ToastActionItem =>
-  typeof value === "object" && value !== null && typeof Reflect.get(value, "label") === "string";
+  isRecord(value) && typeof value.label === "string";
 
 const describeActionItems = (actionItems: unknown): string => {
   if (Array.isArray(actionItems)) return `an array of ${actionItems.length} non-action value(s)`;

@@ -10,7 +10,7 @@ import { Button as ButtonElement } from "@makeplane/propel/elements/button";
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@makeplane/propel/components/menu";
 import { ChevronDownOutline, SortDescendingOutline, SortAscendingOutline } from "@makeplane/propel/icons";
 import type { TModuleOrderByOptions } from "@plane/types";
-import { findLiteral } from "@/helpers/narrow.helper";
+import { findLiteral } from "@plane/types";
 
 const ORDER_BY_VALUES = [
   "name",

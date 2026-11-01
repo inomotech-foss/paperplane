@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-function bodyString(data: unknown, key: string): string | undefined {
-  if (typeof data !== "object" || data === null || Array.isArray(data)) return undefined;
-  const value: unknown = Reflect.get(data, key);
-  return typeof value === "string" ? value : undefined;
-}
+import { readString } from "@plane/types";
 
 /**
  * A non-2xx API response. `status` and `data` match what services threw as `error.response` with axios.
@@ -23,15 +19,15 @@ export class ApiError<TData = unknown> extends Error {
   readonly code: string | undefined;
 
   constructor(response: Response, data: TData | undefined) {
-    super(bodyString(data, "message") ?? `API request failed with status ${response.status}`);
+    super(readString(data, "message") ?? `API request failed with status ${response.status}`);
     this.name = "ApiError";
     this.status = response.status;
     // openapi-fetch returns "" or undefined for an empty body, depending on the headers.
     this.data = data === "" ? undefined : data;
     this.response = response;
-    this.error = bodyString(data, "error");
-    this.detail = bodyString(data, "detail");
-    this.code = bodyString(data, "code");
+    this.error = readString(data, "error");
+    this.detail = readString(data, "detail");
+    this.code = readString(data, "code");
   }
 }
 

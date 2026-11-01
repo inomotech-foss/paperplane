@@ -8,8 +8,9 @@ import { Image, Link, Text, View } from "@react-pdf/renderer";
 import type { Style } from "@react-pdf/types";
 import type { ReactElement } from "react";
 import { CORE_EXTENSIONS } from "@plane/editor";
+import { readNumber, readString } from "@plane/types";
 import { isKeyOf } from "@/lib/is-key-of";
-import { attrNumber, attrNumberArray, attrString } from "./attrs";
+import { attrNumberArray } from "./attrs";
 import { BACKGROUND_COLORS, EDITOR_BACKGROUND_COLORS, resolveColorForPdf, TEXT_COLORS } from "./colors";
 import { CheckIcon, ClipboardIcon, DocumentIcon, GlobeIcon, LightbulbIcon, LinkIcon } from "./icons";
 import { applyMarks } from "./mark-renderers";
@@ -17,12 +18,12 @@ import { pdfStyles } from "./styles";
 import type { KeyGenerator, NodeRendererRegistry, PDFExportMetadata, PDFRenderContext, TipTapNode } from "./types";
 
 const getCalloutIcon = (node: TipTapNode, color: string): ReactElement => {
-  const logoInUse = attrString(node.attrs, "data-logo-in-use");
-  const iconName = attrString(node.attrs, "data-icon-name");
-  const iconColor = attrString(node.attrs, "data-icon-color") || color;
+  const logoInUse = readString(node.attrs, "data-logo-in-use");
+  const iconName = readString(node.attrs, "data-icon-name");
+  const iconColor = readString(node.attrs, "data-icon-color") || color;
 
   if (logoInUse === "emoji") {
-    const emojiUnicode = attrString(node.attrs, "data-emoji-unicode");
+    const emojiUnicode = readString(node.attrs, "data-emoji-unicode");
     if (emojiUnicode) {
       return <Text style={{ fontSize: 14 }}>{emojiUnicode}</Text>;
     }
@@ -61,7 +62,7 @@ const renderTextWithMarks = (node: TipTapNode, getKey: KeyGenerator): ReactEleme
   const hasLink = node.marks?.find((m) => m.type === "link");
 
   if (hasLink) {
-    const href = attrString(hasLink.attrs, "href") || "#";
+    const href = readString(hasLink.attrs, "href") || "#";
     return (
       <Link key={getKey()} src={href} style={{ ...pdfStyles.link, ...style }}>
         {node.text || ""}
@@ -102,8 +103,8 @@ export const nodeRenderers: NodeRendererRegistry = {
     renderTextWithMarks(node, ctx.getKey),
 
   paragraph: (node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const textAlign = attrString(node.attrs, "textAlign");
-    const background = attrString(node.attrs, "backgroundColor");
+    const textAlign = readString(node.attrs, "textAlign");
+    const background = readString(node.attrs, "backgroundColor");
     const alignStyle = getTextAlignStyle(textAlign);
     const flexStyle = getFlexAlignStyle(textAlign);
     const resolvedBgColor =
@@ -118,10 +119,10 @@ export const nodeRenderers: NodeRendererRegistry = {
   },
 
   heading: (node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const level = attrNumber(node.attrs, "level") || 1;
+    const level = readNumber(node.attrs, "level") || 1;
     const styleKey = `heading${level}`;
     const style = isKeyOf(pdfStyles, styleKey) ? pdfStyles[styleKey] : pdfStyles.heading1;
-    const textAlign = attrString(node.attrs, "textAlign");
+    const textAlign = readString(node.attrs, "textAlign");
     const alignStyle = getTextAlignStyle(textAlign);
     const flexStyle = getFlexAlignStyle(textAlign);
 
@@ -148,7 +149,7 @@ export const nodeRenderers: NodeRendererRegistry = {
   },
 
   bulletList: (node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const nestingLevel = attrNumber(node.attrs, "_nestingLevel") || 0;
+    const nestingLevel = readNumber(node.attrs, "_nestingLevel") || 0;
     const indentStyle = nestingLevel > 0 ? { marginLeft: 18 } : {};
     return (
       <View key={ctx.getKey()} style={[pdfStyles.bulletList, indentStyle]}>
@@ -158,7 +159,7 @@ export const nodeRenderers: NodeRendererRegistry = {
   },
 
   orderedList: (node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const nestingLevel = attrNumber(node.attrs, "_nestingLevel") || 0;
+    const nestingLevel = readNumber(node.attrs, "_nestingLevel") || 0;
     const indentStyle = nestingLevel > 0 ? { marginLeft: 18 } : {};
     return (
       <View key={ctx.getKey()} style={[pdfStyles.orderedList, indentStyle]}>
@@ -169,11 +170,11 @@ export const nodeRenderers: NodeRendererRegistry = {
 
   listItem: (node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
     const isOrdered = node.attrs?._parentType === "orderedList";
-    const index = attrNumber(node.attrs, "_listItemIndex") || 0;
+    const index = readNumber(node.attrs, "_listItemIndex") || 0;
 
     const bullet = isOrdered ? `${index}.` : "•";
 
-    const textAlign = attrString(node.attrs, "_textAlign");
+    const textAlign = readString(node.attrs, "_textAlign");
     const flexStyle = getFlexAlignStyle(textAlign);
 
     return (
@@ -221,7 +222,7 @@ export const nodeRenderers: NodeRendererRegistry = {
 
   tableHeader: (node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
     const colwidth = attrNumberArray(node.attrs, "colwidth");
-    const background = attrString(node.attrs, "background");
+    const background = readString(node.attrs, "background");
     const width = colwidth?.[0];
     const widthStyle = width ? { width, flex: undefined } : {};
     const resolvedBgColor = background ? resolveColorForPdf(background, "background") : null;
@@ -236,7 +237,7 @@ export const nodeRenderers: NodeRendererRegistry = {
 
   tableCell: (node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
     const colwidth = attrNumberArray(node.attrs, "colwidth");
-    const background = attrString(node.attrs, "background");
+    const background = readString(node.attrs, "background");
     const width = colwidth?.[0];
     const widthStyle = width ? { width, flex: undefined } : {};
     const resolvedBgColor = background ? resolveColorForPdf(background, "background") : null;
@@ -262,9 +263,9 @@ export const nodeRenderers: NodeRendererRegistry = {
       return <View key={ctx.getKey()} />;
     }
 
-    const src = attrString(node.attrs, "src") || "";
-    const width = attrNumber(node.attrs, "width");
-    const alignment = attrString(node.attrs, "alignment") || "left";
+    const src = readString(node.attrs, "src") || "";
+    const width = readNumber(node.attrs, "width");
+    const alignment = readString(node.attrs, "alignment") || "left";
 
     if (!src) {
       return <View key={ctx.getKey()} />;
@@ -292,11 +293,11 @@ export const nodeRenderers: NodeRendererRegistry = {
       return <View key={ctx.getKey()} />;
     }
 
-    const assetId = attrString(node.attrs, "src") || "";
+    const assetId = readString(node.attrs, "src") || "";
     const rawWidth = node.attrs?.width;
     const width =
       typeof rawWidth === "string" ? parseInt(rawWidth, 10) : typeof rawWidth === "number" ? rawWidth : undefined;
-    const alignment = attrString(node.attrs, "alignment") || "left";
+    const alignment = readString(node.attrs, "alignment") || "left";
 
     if (!assetId) {
       return <View key={ctx.getKey()} />;
@@ -332,7 +333,7 @@ export const nodeRenderers: NodeRendererRegistry = {
   },
 
   calloutComponent: (node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const backgroundKey = attrString(node.attrs, "data-background") || "gray";
+    const backgroundKey = readString(node.attrs, "data-background") || "gray";
     const backgroundColor =
       (isKeyOf(EDITOR_BACKGROUND_COLORS, backgroundKey) && EDITOR_BACKGROUND_COLORS[backgroundKey]) ||
       BACKGROUND_COLORS.layer3;
@@ -352,7 +353,7 @@ export const nodeRenderers: NodeRendererRegistry = {
   ),
 
   columnComponent: (node: TipTapNode, children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const weight = attrNumber(node.attrs, "_columnWeight") || 1;
+    const weight = readNumber(node.attrs, "_columnWeight") || 1;
     return (
       <View key={ctx.getKey()} style={[pdfStyles.column, { flex: weight }]}>
         {children}
@@ -361,7 +362,7 @@ export const nodeRenderers: NodeRendererRegistry = {
   },
 
   embedComponent: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const url = attrString(node.attrs, "url") || "";
+    const url = readString(node.attrs, "url") || "";
 
     if (!url) {
       return <View key={ctx.getKey()} />;
@@ -379,7 +380,7 @@ export const nodeRenderers: NodeRendererRegistry = {
   },
 
   mathInlineComponent: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const latex = attrString(node.attrs, "latex") || "";
+    const latex = readString(node.attrs, "latex") || "";
     // There is no browser to run KaTeX in a PDF, so render the LaTeX source
     // itself as monospace text, the same fallback the codeBlock renderer uses.
     return (
@@ -390,7 +391,7 @@ export const nodeRenderers: NodeRendererRegistry = {
   },
 
   mathBlockComponent: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const latex = attrString(node.attrs, "latex") || "";
+    const latex = readString(node.attrs, "latex") || "";
     return (
       <View key={ctx.getKey()} style={pdfStyles.mathBlock} wrap={false}>
         <Text>{latex}</Text>
@@ -399,8 +400,8 @@ export const nodeRenderers: NodeRendererRegistry = {
   },
 
   "query-block-component": (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const kind = attrString(node.attrs, "kind") || "recent";
-    const labels = attrString(node.attrs, "labels") || "";
+    const kind = readString(node.attrs, "kind") || "recent";
+    const labels = readString(node.attrs, "labels") || "";
 
     // The query runs against live data, which a PDF has none of, so name the
     // listing rather than leaving a blank where a block used to be.
@@ -412,7 +413,7 @@ export const nodeRenderers: NodeRendererRegistry = {
   },
 
   "issue-embed-component": (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const workItemId = attrString(node.attrs, "entity_identifier") || "";
+    const workItemId = readString(node.attrs, "entity_identifier") || "";
 
     // The card is built from live work item data, which a PDF has none of, so
     // name the embed rather than leaving a blank where a block used to be.
@@ -424,9 +425,9 @@ export const nodeRenderers: NodeRendererRegistry = {
   },
 
   mention: (node: TipTapNode, _children: ReactElement[], ctx: PDFRenderContext): ReactElement => {
-    const id = attrString(node.attrs, "id") || "";
-    const entityIdentifier = attrString(node.attrs, "entity_identifier") || "";
-    const entityName = attrString(node.attrs, "entity_name") || "";
+    const id = readString(node.attrs, "id") || "";
+    const entityIdentifier = readString(node.attrs, "entity_identifier") || "";
+    const entityName = readString(node.attrs, "entity_name") || "";
 
     let displayText = entityName || id || entityIdentifier;
 
@@ -477,7 +478,7 @@ const renderNodeWithContext = (node: TipTapNode, context: InternalRenderContext)
   const isColumnsContainer = node.type === CORE_EXTENSIONS.COLUMNS;
 
   let childTextAlign = textAlign;
-  const paragraphAlign = attrString(node.attrs, "textAlign");
+  const paragraphAlign = readString(node.attrs, "textAlign");
   if (node.type === CORE_EXTENSIONS.PARAGRAPH && paragraphAlign) {
     childTextAlign = paragraphAlign;
   }

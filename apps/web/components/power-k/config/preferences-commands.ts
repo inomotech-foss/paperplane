@@ -12,12 +12,11 @@ import { CalendarOutline, GlobeOutline, PaletteOutline } from "@makeplane/propel
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
 import type { TUserProfile } from "@plane/types";
-import { EStartOfTheWeek } from "@plane/types";
+import { EStartOfTheWeek, isOneOf } from "@plane/types";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
 import { useUser, useUserProfile } from "@/hooks/store/user";
-import { isOneOf } from "@/helpers/narrow.helper";
 import { isUserTimezone } from "@/lib/timezone";
 
 /**

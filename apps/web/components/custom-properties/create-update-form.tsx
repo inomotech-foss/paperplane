@@ -15,13 +15,12 @@ import { Logo } from "@plane/blocks/emoji-icon-picker";
 import { Select } from "@plane/blocks/select";
 import { setToast } from "@plane/blocks/toast";
 import type { TIssueCustomProperty, TIssueCustomPropertyType, TLogoProps } from "@plane/types";
-import { ISSUE_CUSTOM_PROPERTY_TYPES } from "@plane/types";
+import { isOneOf, ISSUE_CUSTOM_PROPERTY_TYPES, readField } from "@plane/types";
 // local imports
 import { CustomPropertyIcon } from "@/components/issues/issue-detail/custom-properties/property-icon";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { DerivationSettings } from "./derivation-settings";
 import { useDerivationDraft } from "./use-derivation-draft";
-import { getField, isOneOf } from "@/helpers/narrow.helper";
 import { getApiErrorBody, getApiErrorMessage } from "@/helpers/error.helper";
 import type { TPropertyCreateBody, TPropertyUpdateBody } from "@/services/issue";
 
@@ -46,7 +45,7 @@ export const getPropertyTypeLabelKey = (propertyType: TIssueCustomPropertyType, 
 
 /** The API's reason a property could not be saved, e.g. a derivation that would form a cycle. */
 const getSaveErrorMessage = (error: unknown): string | undefined => {
-  const derivationConfig = getField(getApiErrorBody(error), "derivation_config");
+  const derivationConfig = readField(getApiErrorBody(error), "derivation_config");
   const derivationError: unknown = Array.isArray(derivationConfig) ? derivationConfig[0] : derivationConfig;
   return (typeof derivationError === "string" ? derivationError : undefined) ?? getApiErrorMessage(error);
 };

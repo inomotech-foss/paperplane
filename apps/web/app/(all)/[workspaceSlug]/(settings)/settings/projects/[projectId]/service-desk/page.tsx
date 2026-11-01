@@ -26,7 +26,7 @@ import { MemberSelect } from "@/components/dropdowns/member/member-select";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
 // hooks
-import { readString } from "@/helpers/guards";
+import { readString } from "@plane/types";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";

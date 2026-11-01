@@ -8,7 +8,7 @@ import { getAttributes } from "@tiptap/core";
 import type { MarkType } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 // helpers
-import { readString } from "@/helpers/narrow";
+import { readString } from "@plane/types";
 
 type ClickHandlerOptions = {
   type: MarkType;

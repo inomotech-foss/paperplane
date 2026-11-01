@@ -8,7 +8,7 @@ import type { Editor } from "@tiptap/core";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
-import { isOneOf, readString } from "@/helpers/narrow";
+import { isOneOf, readString } from "@plane/types";
 // types
 import type { TFileHandler } from "@/types";
 

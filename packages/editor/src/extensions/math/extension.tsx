@@ -9,7 +9,7 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { renderToString } from "katex";
 // helpers
-import { readString } from "@/helpers/narrow";
+import { readString } from "@plane/types";
 // local imports
 import { MathBlockExtensionConfig, MathInlineExtensionConfig } from "./extension-config";
 

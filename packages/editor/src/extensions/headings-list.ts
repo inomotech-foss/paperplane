@@ -9,7 +9,7 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
-import { readNumber } from "@/helpers/narrow";
+import { readNumber } from "@plane/types";
 // types
 import type { IMarking } from "@/types";
 

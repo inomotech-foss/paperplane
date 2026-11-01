@@ -11,7 +11,7 @@ import type { EditorState } from "@tiptap/pm/state";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
-import { isOneOf } from "@/helpers/narrow";
+import { isOneOf } from "@plane/types";
 
 const findListItemPos = (typeOrName: string | NodeType, state: EditorState) => {
   const { $from } = state.selection;

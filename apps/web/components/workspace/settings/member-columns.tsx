@@ -24,7 +24,7 @@ import { getFileURL } from "@plane/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
-import { getField } from "@/helpers/narrow.helper";
+import { readField } from "@plane/types";
 
 // admins get the member's last login medium as well
 export type RowData = Omit<IWorkspaceMember, "member"> & {
@@ -159,7 +159,7 @@ export const AccountTypeColumn = observer(function AccountTypeColumn(props: Acco
                   updateMember(workspaceSlug.toString(), rowData.member.id, {
                     role: Number(val) as EUserPermissions,
                   }).catch((err: unknown) => {
-                    const errorField = getField(err, "error");
+                    const errorField = readField(err, "error");
                     const firstError: unknown = Array.isArray(errorField) ? errorField[0] : errorField;
                     const errorString = typeof firstError === "string" ? firstError : undefined;
 

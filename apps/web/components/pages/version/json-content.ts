@@ -4,21 +4,28 @@
  */
 
 import type { JSONContent } from "@plane/types";
-import { isRecord } from "@/helpers/narrow.helper";
+import { isObject } from "@plane/types";
 
 const isOptionalString = (value: unknown): boolean => value === undefined || typeof value === "string";
-const isOptionalRecord = (value: unknown): boolean => value === undefined || isRecord(value);
+const isOptionalRecord = (value: unknown): boolean => value === undefined || isObject(value);
+
+const fieldOf = (value: object, key: string): unknown => Reflect.get(value, key);
 
 const isMark = (value: unknown): boolean =>
-  isRecord(value) && typeof value.type === "string" && isOptionalRecord(value.attrs);
+  isObject(value) && typeof fieldOf(value, "type") === "string" && isOptionalRecord(fieldOf(value, "attrs"));
 
-export const isJSONContent = (value: unknown): value is JSONContent =>
-  isRecord(value) &&
-  isOptionalString(value.type) &&
-  isOptionalString(value.text) &&
-  isOptionalRecord(value.attrs) &&
-  (value.content === undefined || (Array.isArray(value.content) && value.content.every(isJSONContent))) &&
-  (value.marks === undefined || (Array.isArray(value.marks) && value.marks.every(isMark)));
+export const isJSONContent = (value: unknown): value is JSONContent => {
+  if (!isObject(value)) return false;
+  const content = fieldOf(value, "content");
+  const marks = fieldOf(value, "marks");
+  return (
+    isOptionalString(fieldOf(value, "type")) &&
+    isOptionalString(fieldOf(value, "text")) &&
+    isOptionalRecord(fieldOf(value, "attrs")) &&
+    (content === undefined || (Array.isArray(content) && content.every(isJSONContent))) &&
+    (marks === undefined || (Array.isArray(marks) && marks.every(isMark)))
+  );
+};
 
 /** A stored version body as editor JSON, or `undefined` when it is missing or malformed. */
 export const toJSONContent = (value: unknown): JSONContent | undefined => (isJSONContent(value) ? value : undefined);

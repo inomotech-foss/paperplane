@@ -6,6 +6,7 @@
 
 import { cva } from "class-variance-authority";
 import { getPillButtonClassName } from "../pill-button/helper";
+import { isOneOf } from "@plane/types";
 import { cn } from "@plane/utils";
 import type { SelectChromeSize, SelectTriggerSize, SelectTriggerVariant } from "./types";
 
@@ -22,10 +23,6 @@ const CHROME_SIZES: SelectChromeSize[] = ["md", "lg", "xl", "2xl"];
 const TRIGGER_SIZES: SelectTriggerSize[] = ["sm", "md", "lg"];
 // Short-form variants (no size suffix) always resolve to "md".
 const SHORT_FORM_VARIANTS = ["table-cell", "breadcrumb", "search-input"] as const;
-
-function isOneOf<T extends string>(list: readonly T[], value: string): value is T {
-  return (list as readonly string[]).includes(value);
-}
 
 // `outline-none` drops the UA focus ring, so the keyboard indicator has to be drawn back: an
 // icon-only trigger has no text or border of its own to show focus with, and the chrome is shared

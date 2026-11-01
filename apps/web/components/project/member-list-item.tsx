@@ -13,7 +13,7 @@ import { DataTable } from "@/components/common/data-table";
 import { useMember } from "@/hooks/store/use-member";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { getStringField } from "@/helpers/narrow.helper";
+import { readString } from "@plane/types";
 // plane web imports
 import { useProjectColumns } from "@/components/projects/settings/useProjectColumns";
 import type { RowData } from "@/components/projects/settings/useProjectColumns";
@@ -57,7 +57,7 @@ export const ProjectMemberListItem = observer(function ProjectMemberListItem(pro
           setToast({
             type: "error",
             title: "You can’t leave this project yet.",
-            message: getStringField(err, "error") || "Something went wrong. Please try again.",
+            message: readString(err, "error") || "Something went wrong. Please try again.",
           });
         });
     } else
@@ -65,7 +65,7 @@ export const ProjectMemberListItem = observer(function ProjectMemberListItem(pro
         setToast({
           type: "error",
           title: "You can't remove the member from this project yet.",
-          message: getStringField(err, "error") || "Something went wrong. Please try again.",
+          message: readString(err, "error") || "Something went wrong. Please try again.",
         })
       );
   };

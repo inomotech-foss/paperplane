@@ -26,7 +26,7 @@ import { useMember } from "@/hooks/store/use-member";
 import { useModule } from "@/hooks/store/use-module";
 import { useUserPermissions, useUserProfile } from "@/hooks/store/user";
 import { ButtonAvatars } from "../dropdowns/member/avatar";
-import { getStringField } from "@/helpers/narrow.helper";
+import { readString } from "@plane/types";
 
 type Props = {
   moduleId: string;
@@ -123,7 +123,7 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
         setToast({
           type: "error",
           title: "Error!",
-          message: getStringField(err, "detail") ?? "Module could not be updated. Please try again.",
+          message: readString(err, "detail") ?? "Module could not be updated. Please try again.",
         });
       });
   };

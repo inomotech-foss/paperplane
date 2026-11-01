@@ -9,7 +9,8 @@ import type { Attrs } from "@tiptap/pm/model";
 import type { TLogoProps } from "@plane/types";
 import { sanitizeHTML } from "@plane/utils";
 // helpers
-import { isOneOf, readProperty, readString, readText } from "@/helpers/narrow";
+import { isOneOf, readField, readString } from "@plane/types";
+import { readText } from "@/helpers/narrow";
 // types
 import type { TCalloutBlockAttributes, TCalloutBlockEmojiAttributes, TCalloutBlockIconAttributes } from "./types";
 import { ECalloutAttributeNames } from "./types";
@@ -66,7 +67,7 @@ export const getStoredLogo = (): TStoredLogoValue => {
         return fallBackValues;
       }
       const inUse = readString(parsedData, "in_use");
-      const emoji = readProperty(parsedData, "emoji");
+      const emoji = readField(parsedData, "emoji");
       const emojiValue = readString(emoji, "value");
       if (inUse === "emoji" && emojiValue) {
         return {
@@ -76,7 +77,7 @@ export const getStoredLogo = (): TStoredLogoValue => {
             readString(emoji, "url") || DEFAULT_CALLOUT_BLOCK_ATTRIBUTES[ECalloutAttributeNames.EMOJI_URL],
         };
       }
-      const icon = readProperty(parsedData, "icon");
+      const icon = readField(parsedData, "icon");
       const iconName = readString(icon, "name");
       if (inUse === "icon" && iconName) {
         return {

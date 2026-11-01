@@ -15,7 +15,7 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
 import { isValidHttpUrl } from "@/helpers/common";
 import { setLinkEditor, unsetLinkEditor } from "@/helpers/editor-commands";
-import { readString } from "@/helpers/narrow";
+import { readString } from "@plane/types";
 import { FloatingMenuRoot } from "../floating-menu/root";
 import { useFloatingMenu } from "../floating-menu/use-floating-menu";
 

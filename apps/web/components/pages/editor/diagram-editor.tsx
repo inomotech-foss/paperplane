@@ -11,7 +11,7 @@ import { useTranslation } from "@plane/i18n";
 import { Dialog, DialogContent } from "@makeplane/propel/components/dialog";
 import { setToast } from "@plane/blocks/toast";
 // helpers
-import { getStringField, isRecord } from "@/helpers/narrow.helper";
+import { isRecord, readString } from "@plane/types";
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 // services
@@ -54,9 +54,9 @@ function parseEmbedMessage(raw: string): TEmbedMessage | undefined {
   }
   if (!isRecord(parsed)) return undefined;
   return {
-    event: getStringField(parsed, "event"),
-    xml: getStringField(parsed, "xml"),
-    data: getStringField(parsed, "data"),
+    event: readString(parsed, "event"),
+    xml: readString(parsed, "xml"),
+    data: readString(parsed, "data"),
   };
 }
 

@@ -21,7 +21,7 @@ import {
 import { InputField } from "@makeplane/propel/components/input-field";
 import { setToast } from "@plane/blocks/toast";
 import type { ILinkDetails, ModuleLink } from "@plane/types";
-import { getStringField, isRecord } from "@/helpers/narrow.helper";
+import { isRecord, readString } from "@plane/types";
 
 type Props = {
   createLink: (formData: ModuleLink) => Promise<void>;
@@ -81,8 +81,7 @@ export function CreateUpdateModuleLinkModal(props: Props) {
         type: "error",
         title: "Error!",
         message:
-          (isRecord(error) ? getStringField(error.data, "error") : undefined) ??
-          "Some error occurred. Please try again.",
+          (isRecord(error) ? readString(error.data, "error") : undefined) ?? "Some error occurred. Please try again.",
       });
     }
   };

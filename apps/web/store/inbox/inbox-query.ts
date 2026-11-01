@@ -4,7 +4,7 @@
 import { EPastDurationFilters } from "@plane/constants";
 import type { TInboxIssueFilter, TInboxIssueSorting, TInboxIssueSortingOrderByQueryParamKeys } from "@plane/types";
 import { getCustomDates } from "@plane/utils";
-import { findLiteral } from "@/helpers/narrow.helper";
+import { findLiteral } from "@plane/types";
 import type { TInboxIssueListQuery } from "@/services/inbox/inbox-issue.service";
 
 export const INBOX_FILTER_KEYS: (keyof TInboxIssueFilter)[] = [

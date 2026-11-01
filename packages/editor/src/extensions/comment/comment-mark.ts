@@ -9,7 +9,7 @@ import type { CommandProps } from "@tiptap/core";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
-import { readProperty, readString } from "@/helpers/narrow";
+import { readField, readString } from "@plane/types";
 
 /** DOM attribute that carries the comment thread id on a highlighted range. */
 export const COMMENT_MARK_DATA_ATTRIBUTE = "data-comment-thread-id";
@@ -143,7 +143,7 @@ export const CommentMark = Mark.create<TCommentMarkOptions, TCommentMarkStorage>
       const detail: unknown = event.detail;
       const threadId = readString(detail, "threadId");
       if (threadId !== undefined) {
-        this.editor.commands.setCommentThreadResolved(threadId, Boolean(readProperty(detail, "resolved")));
+        this.editor.commands.setCommentThreadResolved(threadId, Boolean(readField(detail, "resolved")));
       }
     };
     const onUnset = (event: Event) => {

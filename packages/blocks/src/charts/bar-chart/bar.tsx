@@ -7,7 +7,8 @@
 import React from "react";
 // plane imports
 import type { TBarChartShapeVariant, TBarItem, TChartPayload } from "@plane/types";
-import { isChartPayload, readField, toChartNumber } from "../payload";
+import { readField, readNumber } from "@plane/types";
+import { isChartPayload, toChartNumber } from "../payload";
 import { cn } from "@plane/utils";
 
 // Constants
@@ -29,21 +30,16 @@ interface TShapeProps {
   opacity?: number;
 }
 
-const readNumber = (source: unknown, key: string): number => {
-  const value = readField(source, key);
-  return typeof value === "number" ? value : 0;
-};
-
 /** Reads the shape props recharts passes to a custom bar shape. */
 export const toShapeProps = (props: unknown): TShapeProps => {
   const payload = readField(props, "payload");
   const dataKey = readField(props, "dataKey");
   const opacity = readField(props, "opacity");
   return {
-    x: readNumber(props, "x"),
-    y: readNumber(props, "y"),
-    width: readNumber(props, "width"),
-    height: readNumber(props, "height"),
+    x: readNumber(props, "x") ?? 0,
+    y: readNumber(props, "y") ?? 0,
+    width: readNumber(props, "width") ?? 0,
+    height: readNumber(props, "height") ?? 0,
     dataKey: typeof dataKey === "string" ? dataKey : "",
     payload: isChartPayload(payload) ? payload : {},
     opacity: typeof opacity === "number" ? opacity : undefined,

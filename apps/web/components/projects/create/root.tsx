@@ -10,7 +10,7 @@ import { FormProvider, useForm } from "react-hook-form";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import { EFileAssetType } from "@plane/types";
+import { EFileAssetType, readField } from "@plane/types";
 // components
 import ProjectCommonAttributes from "@/components/project/create/common-attributes";
 import ProjectCreateHeader from "@/components/project/create/header";
@@ -23,7 +23,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 import type { TProject } from "@plane/types";
 import { ProjectAttributes } from "./attributes";
 import { getProjectFormValues } from "./utils";
-import { errorFieldIncludes, getField } from "@/helpers/narrow.helper";
+import { errorFieldIncludes } from "@/helpers/narrow.helper";
 
 export type TCreateProjectFormProps = {
   setToFavorite?: boolean;
@@ -116,7 +116,7 @@ export const CreateProjectForm = observer(function CreateProjectForm(props: TCre
       .catch((err: unknown) => {
         try {
           // Handle the new error format where codes are nested in arrays under field names
-          const errorData = getField(err, "data");
+          const errorData = readField(err, "data");
 
           const nameError = errorFieldIncludes(errorData, "name", "PROJECT_NAME_ALREADY_EXIST");
           const identifierError = errorFieldIncludes(errorData, "identifier", "PROJECT_IDENTIFIER_ALREADY_EXIST");

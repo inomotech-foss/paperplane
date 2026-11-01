@@ -15,7 +15,7 @@ import { DEFAULT_DISPLAY_CONFIG } from "@/constants/config";
 import { CollaborationProvider, useCollaboration } from "@/contexts/collaboration-context";
 // helpers
 import { getEditorClassNames } from "@/helpers/common";
-import { readProperty, readString } from "@/helpers/narrow";
+import { readField, readString } from "@plane/types";
 // hooks
 import { useCollaborativeEditor } from "@/hooks/use-collaborative-editor";
 // types
@@ -75,7 +75,7 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
     const updateCollaborators = () => {
       const peersById = new Map<string, TAwarenessUser>();
       awareness.getStates().forEach((awarenessState) => {
-        const peer = readProperty(awarenessState, "user");
+        const peer = readField(awarenessState, "user");
         const peerId = readString(peer, "id");
         if (peerId && peerId !== user.id) {
           peersById.set(peerId, {
