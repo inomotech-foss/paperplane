@@ -1774,9 +1774,6 @@ importers:
       '@plane/types':
         specifier: workspace:*
         version: link:../types
-      axios:
-        specifier: 1.20.0
-        version: 1.20.0(supports-color@10.2.2)
       file-type:
         specifier: 'catalog:'
         version: 21.3.3(supports-color@10.2.2)
