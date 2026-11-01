@@ -4,6 +4,7 @@
 """The public board reaction, vote and comment endpoints return what the OpenAPI schema documents."""
 
 import pytest
+from django.utils import timezone
 
 from plane.db.models import (
     CommentReaction,
@@ -90,3 +91,64 @@ class TestPublicBoard:
 @pytest.mark.django_db
 def test_project_boards_route_is_gone(api_client, workspace):
     assert api_client.get(f"/api/public/workspaces/{workspace.slug}/project-boards/").status_code == 404
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestPublicBoardScope:
+    """The reactions, votes and comments lists show only what the board shows."""
+
+    @pytest.fixture
+    def activity(self, create_user, workspace, board):
+        def add(issue):
+            IssueReaction.objects.create(
+                issue=issue, project=issue.project, workspace=workspace, actor=create_user, reaction="128077"
+            )
+            IssueVote.objects.create(issue=issue, project=issue.project, workspace=workspace, actor=create_user, vote=1)
+            IssueComment.objects.create(
+                issue=issue,
+                project=issue.project,
+                workspace=workspace,
+                actor=create_user,
+                access="EXTERNAL",
+                comment_html="<p>c</p>",
+            )
+
+        return add
+
+    @staticmethod
+    def lists(client, anchor, issue_id):
+        return [
+            client.get(ISSUE.format(anchor=anchor, issue_id=issue_id) + path).json()
+            for path in ("reactions/", "votes/", "comments/")
+        ]
+
+    def test_visible_issue(self, session_client, board, activity):
+        activity(board["issue"])
+        assert all(self.lists(session_client, board["board"].anchor, board["issue"].id))
+
+    def test_issue_the_board_does_not_show(self, session_client, workspace, board, activity):
+        hidden = Issue.objects.create(
+            name="archived",
+            project=board["project"],
+            workspace=workspace,
+            state=board["issue"].state,
+            type=board["issue"].type,
+            archived_at=timezone.now(),
+        )
+        activity(hidden)
+        assert self.lists(session_client, board["board"].anchor, hidden.id) == [[], [], []]
+
+    def test_issue_of_another_board(self, session_client, create_user, workspace, board, activity):
+        other = ProjectFactory(workspace=workspace, identifier="OB")
+        ProjectMember.objects.create(project=other, member=create_user, role=20)
+        issue = Issue.objects.create(name="o", project=other, workspace=workspace, type=link_starter_type(other))
+        activity(issue)
+        assert self.lists(session_client, board["board"].anchor, issue.id) == [[], [], []]
+
+    def test_disabled_board(self, session_client, board, activity):
+        activity(board["issue"])
+        DeployBoard.objects.filter(pk=board["board"].pk).update(
+            is_comments_enabled=False, is_reactions_enabled=False, is_votes_enabled=False
+        )
+        assert self.lists(session_client, board["board"].anchor, board["issue"].id) == [[], [], []]

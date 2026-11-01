@@ -266,7 +266,10 @@ class IssueCommentPublicViewSet(BaseViewSet):
     def get_queryset(self):
         try:
             project_deploy_board = DeployBoard.objects.get(anchor=self.kwargs.get("anchor"), entity_name="project")
-            if project_deploy_board.is_comments_enabled:
+            # Only the comments of an issue the board shows, as for writes.
+            if project_deploy_board.is_comments_enabled and _issue_in_board_scope(
+                self.kwargs.get("issue_id"), project_deploy_board
+            ):
                 return self.filter_queryset(
                     super()
                     .get_queryset()
@@ -407,7 +410,9 @@ class IssueReactionPublicViewSet(BaseViewSet):
     def get_queryset(self):
         try:
             project_deploy_board = DeployBoard.objects.get(anchor=self.kwargs.get("anchor"), entity_name="project")
-            if project_deploy_board.is_reactions_enabled:
+            if project_deploy_board.is_reactions_enabled and _issue_in_board_scope(
+                self.kwargs.get("issue_id"), project_deploy_board
+            ):
                 return (
                     super()
                     .get_queryset()
@@ -609,7 +614,9 @@ class IssueVotePublicViewSet(BaseViewSet):
     def get_queryset(self):
         try:
             project_deploy_board = DeployBoard.objects.get(anchor=self.kwargs.get("anchor"), entity_name="project")
-            if project_deploy_board.is_votes_enabled:
+            if project_deploy_board.is_votes_enabled and _issue_in_board_scope(
+                self.kwargs.get("issue_id"), project_deploy_board
+            ):
                 return (
                     super()
                     .get_queryset()
