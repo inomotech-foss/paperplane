@@ -166,5 +166,28 @@
         "label": "Benutzerdefiniertes Theme"
       }
     }
+  },
+  "instance_ai": {
+    "title": "KI-Anbieter",
+    "description": "Der KI-Schreibassistent in Seiten und Arbeitselementen sendet Text an diesen Anbieter.",
+    "provider": {
+      "label": "Anbieter",
+      "description": "Beim Wechsel des Anbieters wird das Modell zurückgesetzt, da sich die Modellnamen zwischen Anbietern unterscheiden."
+    },
+    "model": {
+      "label": "Modell",
+      "description": "Leer lassen, um das Standardmodell des Anbieters zu verwenden. Jedes Modell Ihres Anbieters funktioniert.",
+      "placeholder": "Standard des Anbieters"
+    },
+    "api_key": {
+      "label": "API-Schlüssel",
+      "description": "Erstellen Sie einen Schlüssel in der Konsole Ihres Anbieters."
+    },
+    "save": "Änderungen speichern",
+    "saving": "Wird gespeichert",
+    "toast": {
+      "success_title": "Erfolg",
+      "success_message": "KI-Einstellungen gespeichert."
+    }
   }
 }

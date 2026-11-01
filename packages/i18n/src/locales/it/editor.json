@@ -66,6 +66,7 @@
     "not_in_project": "Non nel progetto"
   },
   "ai_writing": {
+    "label": "IA",
     "actions": {
       "rephrase": "Riformula",
       "simplify": "Semplifica",
@@ -80,26 +81,28 @@
       "friendly": "Cordiale",
       "confident": "Sicuro"
     },
-    "instruction_placeholder": "Dica all'AI cosa fare...",
+    "instruction_placeholder": "Dica all'IA cosa fare...",
     "send": "Invia",
-    "generating": "L'AI sta scrivendo...",
+    "generating": "L'IA sta scrivendo...",
     "result": {
       "replace": "Sostituisci selezione",
       "insert_below": "Inserisci sotto",
       "try_again": "Riprova",
-      "discard": "Scarta"
+      "discard": "Scarta",
+      "replace_unavailable": "La selezione contiene menzioni, immagini o contenuti incorporati che la sostituzione rimuoverebbe. Inserisca invece il risultato sotto."
     },
-    "consent": "Il testo viene inviato a un fornitore di AI di terze parti.",
+    "consent": "Il testo viene inviato a un fornitore di IA di terze parti.",
     "draft_description": "Crea bozza della descrizione",
     "drafting": "Creazione bozza in corso...",
     "errors": {
-      "not_configured": "Nessun fornitore di AI configurato per questa istanza.",
-      "provider_auth": "Il fornitore di AI ha rifiutato la chiave API. Chieda all'amministratore dell'istanza di verificarla.",
-      "provider_model": "Il fornitore di AI non offre il modello configurato. Chieda all'amministratore dell'istanza di verificare l'impostazione.",
+      "not_configured": "Nessun fornitore di IA configurato per questa istanza.",
+      "provider_auth": "Il fornitore di IA ha rifiutato la chiave API. Chieda all'amministratore dell'istanza di verificarla.",
+      "provider_model": "Il fornitore di IA non offre il modello configurato. Chieda all'amministratore dell'istanza di verificare l'impostazione.",
       "rate_limited": "Troppe richieste. Attenda un momento e riprovi.",
-      "empty_response": "Il fornitore di AI non ha restituito alcun testo. Riprovi.",
+      "empty_response": "Il fornitore di IA non ha restituito alcun testo. Riprovi.",
       "too_long": "Il testo è troppo lungo. Selezioni meno testo e riprovi.",
-      "generic": "Si è verificato un errore. Riprovi."
+      "generic": "Si è verificato un errore. Riprovi.",
+      "empty_text": "La selezione non contiene testo da elaborare."
     }
   }
 }

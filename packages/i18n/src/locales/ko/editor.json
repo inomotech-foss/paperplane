@@ -66,6 +66,7 @@
     "not_in_project": "프로젝트 미참여"
   },
   "ai_writing": {
+    "label": "AI",
     "actions": {
       "rephrase": "다시 표현",
       "simplify": "간결하게",
@@ -87,7 +88,8 @@
       "replace": "선택 영역 바꾸기",
       "insert_below": "아래에 삽입",
       "try_again": "다시 시도",
-      "discard": "폐기"
+      "discard": "폐기",
+      "replace_unavailable": "선택 영역에 바꾸면 삭제되는 멘션, 이미지 또는 임베드가 있습니다. 대신 결과를 아래에 삽입하세요."
     },
     "consent": "텍스트가 외부 AI 제공업체로 전송됩니다.",
     "draft_description": "설명 초안 작성",
@@ -99,7 +101,8 @@
       "rate_limited": "요청이 너무 많습니다. 잠시 후 다시 시도하세요.",
       "empty_response": "AI 제공업체가 텍스트를 반환하지 않았습니다. 다시 시도하세요.",
       "too_long": "텍스트가 너무 깁니다. 더 적은 텍스트를 선택한 후 다시 시도하세요.",
-      "generic": "문제가 발생했습니다. 다시 시도하세요."
+      "generic": "문제가 발생했습니다. 다시 시도하세요.",
+      "empty_text": "선택 영역에 처리할 텍스트가 없습니다."
     }
   }
 }

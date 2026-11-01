@@ -166,5 +166,28 @@
         "label": "Temă personalizată"
       }
     }
+  },
+  "instance_ai": {
+    "title": "Furnizor AI",
+    "description": "Asistentul de scriere AI din pagini și activități trimite text acestui furnizor.",
+    "provider": {
+      "label": "Furnizor",
+      "description": "Schimbarea furnizorului golește modelul, deoarece numele modelelor diferă între furnizori."
+    },
+    "model": {
+      "label": "Model",
+      "description": "Lăsați gol pentru a folosi modelul implicit al furnizorului. Funcționează orice model oferit de furnizor.",
+      "placeholder": "Modelul implicit al furnizorului"
+    },
+    "api_key": {
+      "label": "Cheie API",
+      "description": "Creați o cheie în consola furnizorului."
+    },
+    "save": "Salvează modificările",
+    "saving": "Se salvează",
+    "toast": {
+      "success_title": "Succes",
+      "success_message": "Setările AI au fost salvate."
+    }
   }
 }

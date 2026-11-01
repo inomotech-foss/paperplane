@@ -166,5 +166,28 @@
         "label": "Tema personalizado"
       }
     }
+  },
+  "instance_ai": {
+    "title": "Proveedor de IA",
+    "description": "El asistente de escritura con IA de las páginas y los elementos de trabajo envía texto a este proveedor.",
+    "provider": {
+      "label": "Proveedor",
+      "description": "Al cambiar de proveedor se borra el modelo, porque los nombres de los modelos varían entre proveedores."
+    },
+    "model": {
+      "label": "Modelo",
+      "description": "Déjelo vacío para usar el modelo predeterminado del proveedor. Funciona cualquier modelo que ofrezca su proveedor.",
+      "placeholder": "Predeterminado del proveedor"
+    },
+    "api_key": {
+      "label": "Clave de API",
+      "description": "Cree una clave en la consola de su proveedor."
+    },
+    "save": "Guardar cambios",
+    "saving": "Guardando",
+    "toast": {
+      "success_title": "Éxito",
+      "success_message": "Configuración de IA guardada."
+    }
   }
 }

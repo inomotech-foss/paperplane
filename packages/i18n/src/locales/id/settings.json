@@ -166,5 +166,28 @@
         "label": "Tema kustom"
       }
     }
+  },
+  "instance_ai": {
+    "title": "Penyedia AI",
+    "description": "Asisten penulisan AI di halaman dan item kerja mengirim teks ke penyedia ini.",
+    "provider": {
+      "label": "Penyedia",
+      "description": "Mengganti penyedia akan mengosongkan model, karena nama model berbeda antarpenyedia."
+    },
+    "model": {
+      "label": "Model",
+      "description": "Biarkan kosong untuk memakai model bawaan penyedia. Model apa pun yang ditawarkan penyedia Anda dapat digunakan.",
+      "placeholder": "Bawaan penyedia"
+    },
+    "api_key": {
+      "label": "Kunci API",
+      "description": "Buat kunci di konsol penyedia Anda."
+    },
+    "save": "Simpan perubahan",
+    "saving": "Menyimpan",
+    "toast": {
+      "success_title": "Sukses",
+      "success_message": "Pengaturan AI disimpan."
+    }
   }
 }

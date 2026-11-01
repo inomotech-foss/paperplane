@@ -66,6 +66,7 @@
     "not_in_project": "Nu este în proiect"
   },
   "ai_writing": {
+    "label": "AI",
     "actions": {
       "rephrase": "Reformulează",
       "simplify": "Simplifică",
@@ -87,7 +88,8 @@
       "replace": "Înlocuiește selecția",
       "insert_below": "Inserează dedesubt",
       "try_again": "Încearcă din nou",
-      "discard": "Renunță"
+      "discard": "Renunță",
+      "replace_unavailable": "Selecția conține mențiuni, imagini sau conținut încorporat pe care înlocuirea le-ar elimina. Inserați rezultatul dedesubt."
     },
     "consent": "Textul dumneavoastră este trimis unui furnizor AI terț.",
     "draft_description": "Creează o ciornă de descriere",
@@ -99,7 +101,8 @@
       "rate_limited": "Prea multe solicitări. Așteptați puțin și încercați din nou.",
       "empty_response": "Furnizorul AI nu a returnat niciun text. Încercați din nou.",
       "too_long": "Textul este prea lung. Selectați mai puțin text și încercați din nou.",
-      "generic": "A apărut o eroare. Încercați din nou."
+      "generic": "A apărut o eroare. Încercați din nou.",
+      "empty_text": "Selecția nu conține text de prelucrat."
     }
   }
 }

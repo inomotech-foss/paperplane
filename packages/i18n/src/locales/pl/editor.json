@@ -66,6 +66,7 @@
     "not_in_project": "Poza projektem"
   },
   "ai_writing": {
+    "label": "AI",
     "actions": {
       "rephrase": "Przeformułuj",
       "simplify": "Uprość",
@@ -87,7 +88,8 @@
       "replace": "Zastąp zaznaczenie",
       "insert_below": "Wstaw poniżej",
       "try_again": "Spróbuj ponownie",
-      "discard": "Odrzuć"
+      "discard": "Odrzuć",
+      "replace_unavailable": "Zaznaczenie zawiera wzmianki, obrazy lub osadzone elementy, które zastąpienie by usunęło. Zamiast tego wstaw wynik poniżej."
     },
     "consent": "Tekst jest wysyłany do zewnętrznego dostawcy AI.",
     "draft_description": "Utwórz szkic opisu",
@@ -99,7 +101,8 @@
       "rate_limited": "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
       "empty_response": "Dostawca AI nie zwrócił żadnego tekstu. Spróbuj ponownie.",
       "too_long": "Tekst jest za długi. Zaznacz mniej tekstu i spróbuj ponownie.",
-      "generic": "Coś poszło nie tak. Spróbuj ponownie."
+      "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+      "empty_text": "Zaznaczenie nie zawiera tekstu do przetworzenia."
     }
   }
 }

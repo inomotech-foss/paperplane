@@ -66,6 +66,7 @@
     "not_in_project": "Projede değil"
   },
   "ai_writing": {
+    "label": "AI",
     "actions": {
       "rephrase": "Yeniden ifade et",
       "simplify": "Sadeleştir",
@@ -87,7 +88,8 @@
       "replace": "Seçimi değiştir",
       "insert_below": "Altına ekle",
       "try_again": "Tekrar dene",
-      "discard": "Vazgeç"
+      "discard": "Vazgeç",
+      "replace_unavailable": "Seçim, değiştirme işleminin kaldıracağı bahsetmeler, görseller veya gömülü öğeler içeriyor. Bunun yerine sonucu altına ekleyin."
     },
     "consent": "Metniniz üçüncü taraf bir AI sağlayıcısına gönderilir.",
     "draft_description": "Açıklama taslağı oluştur",
@@ -99,7 +101,8 @@
       "rate_limited": "Çok fazla istek. Biraz bekleyip tekrar deneyin.",
       "empty_response": "AI sağlayıcısı metin döndürmedi. Tekrar deneyin.",
       "too_long": "Metin çok uzun. Daha az metin seçip tekrar deneyin.",
-      "generic": "Bir sorun oluştu. Tekrar deneyin."
+      "generic": "Bir sorun oluştu. Tekrar deneyin.",
+      "empty_text": "Seçimde işlenecek metin yok."
     }
   }
 }

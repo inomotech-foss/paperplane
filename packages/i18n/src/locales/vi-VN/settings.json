@@ -166,5 +166,28 @@
         "label": "Chủ đề tùy chỉnh"
       }
     }
+  },
+  "instance_ai": {
+    "title": "Nhà cung cấp AI",
+    "description": "Trợ lý viết AI trong trang và mục công việc gửi văn bản đến nhà cung cấp này.",
+    "provider": {
+      "label": "Nhà cung cấp",
+      "description": "Khi đổi nhà cung cấp, mô hình sẽ bị xóa vì tên mô hình khác nhau giữa các nhà cung cấp."
+    },
+    "model": {
+      "label": "Mô hình",
+      "description": "Để trống để dùng mô hình mặc định của nhà cung cấp. Mọi mô hình mà nhà cung cấp của bạn hỗ trợ đều dùng được.",
+      "placeholder": "Mặc định của nhà cung cấp"
+    },
+    "api_key": {
+      "label": "Khóa API",
+      "description": "Tạo khóa trong bảng điều khiển của nhà cung cấp."
+    },
+    "save": "Lưu thay đổi",
+    "saving": "Đang lưu",
+    "toast": {
+      "success_title": "Thành công",
+      "success_message": "Đã lưu cài đặt AI."
+    }
   }
 }

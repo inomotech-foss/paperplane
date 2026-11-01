@@ -66,6 +66,7 @@
     "not_in_project": "Not in project"
   },
   "ai_writing": {
+    "label": "AI",
     "actions": {
       "rephrase": "Rephrase",
       "simplify": "Simplify",
@@ -87,7 +88,8 @@
       "replace": "Replace selection",
       "insert_below": "Insert below",
       "try_again": "Try again",
-      "discard": "Discard"
+      "discard": "Discard",
+      "replace_unavailable": "The selection has mentions, images or embeds that a replace would remove. Insert the result below instead."
     },
     "consent": "Your text is sent to a third-party AI provider.",
     "draft_description": "Draft description",
@@ -99,7 +101,8 @@
       "rate_limited": "Too many requests. Wait a moment and try again.",
       "empty_response": "The AI provider returned no text. Try again.",
       "too_long": "The text is too long. Select less text and try again.",
-      "generic": "Something went wrong. Try again."
+      "generic": "Something went wrong. Try again.",
+      "empty_text": "The selection has no text to work on."
     }
   }
 }

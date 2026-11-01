@@ -66,6 +66,7 @@
     "not_in_project": "Pas dans le projet"
   },
   "ai_writing": {
+    "label": "IA",
     "actions": {
       "rephrase": "Reformuler",
       "simplify": "Simplifier",
@@ -80,26 +81,28 @@
       "friendly": "Amical",
       "confident": "Assuré"
     },
-    "instruction_placeholder": "Donnez une consigne à l'AI...",
+    "instruction_placeholder": "Donnez une consigne à l'IA...",
     "send": "Envoyer",
-    "generating": "L'AI rédige...",
+    "generating": "L'IA rédige...",
     "result": {
       "replace": "Remplacer la sélection",
       "insert_below": "Insérer en dessous",
       "try_again": "Réessayer",
-      "discard": "Abandonner"
+      "discard": "Abandonner",
+      "replace_unavailable": "La sélection contient des mentions, des images ou des contenus intégrés que le remplacement supprimerait. Insérez plutôt le résultat en dessous."
     },
-    "consent": "Votre texte est envoyé à un fournisseur d'AI tiers.",
+    "consent": "Votre texte est envoyé à un fournisseur d'IA tiers.",
     "draft_description": "Rédiger une description",
     "drafting": "Rédaction...",
     "errors": {
-      "not_configured": "Aucun fournisseur d'AI n'est configuré pour cette instance.",
-      "provider_auth": "Le fournisseur d'AI a refusé la clé API. Demandez à l'administrateur de votre instance de la vérifier.",
-      "provider_model": "Le fournisseur d'AI ne propose pas le modèle configuré. Demandez à l'administrateur de votre instance de vérifier le paramètre.",
+      "not_configured": "Aucun fournisseur d'IA n'est configuré pour cette instance.",
+      "provider_auth": "Le fournisseur d'IA a refusé la clé API. Demandez à l'administrateur de votre instance de la vérifier.",
+      "provider_model": "Le fournisseur d'IA ne propose pas le modèle configuré. Demandez à l'administrateur de votre instance de vérifier le paramètre.",
       "rate_limited": "Trop de requêtes. Patientez un instant, puis réessayez.",
-      "empty_response": "Le fournisseur d'AI n'a renvoyé aucun texte. Réessayez.",
+      "empty_response": "Le fournisseur d'IA n'a renvoyé aucun texte. Réessayez.",
       "too_long": "Le texte est trop long. Sélectionnez moins de texte, puis réessayez.",
-      "generic": "Une erreur s'est produite. Réessayez."
+      "generic": "Une erreur s'est produite. Réessayez.",
+      "empty_text": "La sélection ne contient aucun texte à traiter."
     }
   }
 }

@@ -66,6 +66,7 @@
     "not_in_project": "Tidak ada di proyek"
   },
   "ai_writing": {
+    "label": "AI",
     "actions": {
       "rephrase": "Parafrasekan",
       "simplify": "Sederhanakan",
@@ -87,7 +88,8 @@
       "replace": "Ganti pilihan",
       "insert_below": "Sisipkan di bawah",
       "try_again": "Coba lagi",
-      "discard": "Buang"
+      "discard": "Buang",
+      "replace_unavailable": "Pilihan berisi sebutan, gambar, atau sematan yang akan terhapus jika diganti. Sisipkan hasilnya di bawah."
     },
     "consent": "Teks Anda dikirim ke penyedia AI pihak ketiga.",
     "draft_description": "Buat draf deskripsi",
@@ -99,7 +101,8 @@
       "rate_limited": "Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.",
       "empty_response": "Penyedia AI tidak mengembalikan teks. Coba lagi.",
       "too_long": "Teks terlalu panjang. Pilih lebih sedikit teks lalu coba lagi.",
-      "generic": "Terjadi kesalahan. Coba lagi."
+      "generic": "Terjadi kesalahan. Coba lagi.",
+      "empty_text": "Pilihan tidak berisi teks untuk diproses."
     }
   }
 }

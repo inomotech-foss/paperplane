@@ -66,6 +66,7 @@
     "not_in_project": "Niet in project"
   },
   "ai_writing": {
+    "label": "AI",
     "actions": {
       "rephrase": "Herformuleren",
       "simplify": "Vereenvoudigen",
@@ -87,7 +88,8 @@
       "replace": "Selectie vervangen",
       "insert_below": "Hieronder invoegen",
       "try_again": "Opnieuw proberen",
-      "discard": "Verwerpen"
+      "discard": "Verwerpen",
+      "replace_unavailable": "De selectie bevat vermeldingen, afbeeldingen of ingesloten inhoud die bij vervangen verdwijnen. Voeg het resultaat in plaats daarvan hieronder in."
     },
     "consent": "Je tekst wordt naar een externe AI-provider verzonden.",
     "draft_description": "Beschrijving opstellen",
@@ -99,7 +101,8 @@
       "rate_limited": "Te veel verzoeken. Wacht even en probeer het opnieuw.",
       "empty_response": "De AI-provider heeft geen tekst teruggegeven. Probeer het opnieuw.",
       "too_long": "De tekst is te lang. Selecteer minder tekst en probeer het opnieuw.",
-      "generic": "Er is iets misgegaan. Probeer het opnieuw."
+      "generic": "Er is iets misgegaan. Probeer het opnieuw.",
+      "empty_text": "De selectie bevat geen tekst om mee te werken."
     }
   }
 }

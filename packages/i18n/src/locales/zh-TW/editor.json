@@ -66,6 +66,7 @@
     "not_in_project": "不在專案中"
   },
   "ai_writing": {
+    "label": "AI",
     "actions": {
       "rephrase": "改寫",
       "simplify": "簡化",
@@ -87,7 +88,8 @@
       "replace": "取代所選內容",
       "insert_below": "插入至下方",
       "try_again": "重試",
-      "discard": "捨棄"
+      "discard": "捨棄",
+      "replace_unavailable": "所選內容包含提及、圖片或嵌入內容，取代會將其移除。請改為在下方插入結果。"
     },
     "consent": "您的文字將傳送給第三方 AI 供應商。",
     "draft_description": "草擬描述",
@@ -99,7 +101,8 @@
       "rate_limited": "要求過多。請稍候再試。",
       "empty_response": "AI 供應商未傳回任何文字。請重試。",
       "too_long": "文字過長。請減少所選文字後重試。",
-      "generic": "發生錯誤。請重試。"
+      "generic": "發生錯誤。請重試。",
+      "empty_text": "所選內容中沒有可處理的文字。"
     }
   }
 }

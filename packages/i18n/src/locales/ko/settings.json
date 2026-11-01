@@ -166,5 +166,28 @@
         "label": "사용자 정의 테마"
       }
     }
+  },
+  "instance_ai": {
+    "title": "AI 제공업체",
+    "description": "페이지와 작업 항목의 AI 글쓰기 도우미가 이 제공업체로 텍스트를 보냅니다.",
+    "provider": {
+      "label": "제공업체",
+      "description": "제공업체마다 모델 이름이 다르므로 제공업체를 변경하면 모델이 초기화됩니다."
+    },
+    "model": {
+      "label": "모델",
+      "description": "비워 두면 제공업체의 기본 모델을 사용합니다. 제공업체가 제공하는 모든 모델을 사용할 수 있습니다.",
+      "placeholder": "제공업체 기본값"
+    },
+    "api_key": {
+      "label": "API 키",
+      "description": "제공업체 콘솔에서 키를 만드세요."
+    },
+    "save": "변경 사항 저장",
+    "saving": "저장 중",
+    "toast": {
+      "success_title": "성공",
+      "success_message": "AI 설정이 저장되었습니다."
+    }
   }
 }

@@ -166,5 +166,28 @@
         "label": "Aangepast thema"
       }
     }
+  },
+  "instance_ai": {
+    "title": "AI-provider",
+    "description": "De AI-schrijfassistent in pagina's en werkitems stuurt tekst naar deze provider.",
+    "provider": {
+      "label": "Provider",
+      "description": "Als je de provider wijzigt, wordt het model gewist, omdat modelnamen per provider verschillen."
+    },
+    "model": {
+      "label": "Model",
+      "description": "Laat leeg om het standaardmodel van de provider te gebruiken. Elk model dat je provider aanbiedt, werkt.",
+      "placeholder": "Standaard van provider"
+    },
+    "api_key": {
+      "label": "API-sleutel",
+      "description": "Maak een sleutel aan in de console van je provider."
+    },
+    "save": "Wijzigingen opslaan",
+    "saving": "Opslaan",
+    "toast": {
+      "success_title": "Gelukt",
+      "success_message": "AI-instellingen opgeslagen."
+    }
   }
 }

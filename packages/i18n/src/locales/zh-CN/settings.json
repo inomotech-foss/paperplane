@@ -166,5 +166,28 @@
         "label": "自定义主题"
       }
     }
+  },
+  "instance_ai": {
+    "title": "AI 提供商",
+    "description": "页面和工作项中的 AI 写作助手会将文本发送给此提供商。",
+    "provider": {
+      "label": "提供商",
+      "description": "更换提供商会清空模型，因为不同提供商的模型名称不同。"
+    },
+    "model": {
+      "label": "模型",
+      "description": "留空则使用提供商的默认模型。您的提供商提供的任何模型均可使用。",
+      "placeholder": "提供商默认"
+    },
+    "api_key": {
+      "label": "API 密钥",
+      "description": "请在提供商的控制台中创建密钥。"
+    },
+    "save": "保存更改",
+    "saving": "保存中",
+    "toast": {
+      "success_title": "成功",
+      "success_message": "AI 设置已保存。"
+    }
   }
 }

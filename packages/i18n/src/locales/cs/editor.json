@@ -66,6 +66,7 @@
     "not_in_project": "Není v projektu"
   },
   "ai_writing": {
+    "label": "AI",
     "actions": {
       "rephrase": "Přeformulovat",
       "simplify": "Zjednodušit",
@@ -87,7 +88,8 @@
       "replace": "Nahradit výběr",
       "insert_below": "Vložit pod",
       "try_again": "Zkusit znovu",
-      "discard": "Zahodit"
+      "discard": "Zahodit",
+      "replace_unavailable": "Výběr obsahuje zmínky, obrázky nebo vložený obsah, které by nahrazení odstranilo. Vložte výsledek raději pod něj."
     },
     "consent": "Váš text se odesílá externímu poskytovateli AI.",
     "draft_description": "Navrhnout popis",
@@ -99,7 +101,8 @@
       "rate_limited": "Příliš mnoho požadavků. Chvíli počkejte a zkuste to znovu.",
       "empty_response": "Poskytovatel AI nevrátil žádný text. Zkuste to znovu.",
       "too_long": "Text je příliš dlouhý. Vyberte méně textu a zkuste to znovu.",
-      "generic": "Něco se pokazilo. Zkuste to znovu."
+      "generic": "Něco se pokazilo. Zkuste to znovu.",
+      "empty_text": "Výběr neobsahuje žádný text ke zpracování."
     }
   }
 }
