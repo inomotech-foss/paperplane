@@ -89,40 +89,26 @@ vi.mock("@/hooks/store/use-module", () => ({
   }),
 }));
 
-const renderCommands = () => renderHook(() => useProjectsAppPowerKCommands()).result.current;
-
 describe("Power K shortcut policy", () => {
-  it("binds state-changing commands only to chords", () => {
-    const violations = renderCommands()
-      .filter((command) => command.type === "action" && command.changesState)
-      .filter((command) => command.shortcut !== undefined || command.keySequence !== undefined)
-      .map((command) => command.id);
-
-    expect(violations).toEqual([]);
-  });
-
-  it("uses Cmd/Ctrl or Alt for every modifier shortcut", () => {
-    const shiftOnly = renderCommands()
-      .filter((command) => command.modifierShortcut && !/^(cmd|alt)\+/.test(command.modifierShortcut))
-      .map((command) => command.id);
-
-    expect(shiftOnly).toEqual([]);
-  });
-
-  it("marks toggles, subscriptions and deletes as state-changing", () => {
+  it("marks toggles, subscriptions, deletes and sign-out as state-changing", () => {
     const stateChanging = new Set(
-      renderCommands()
-        .filter((command) => command.type === "action" && command.changesState)
+      renderHook(() => useProjectsAppPowerKCommands())
+        .result.current.filter((command) => command.changesState)
         .map((command) => command.id)
     );
 
     for (const id of [
+      "toggle_page_lock",
+      "toggle_page_access",
+      "toggle_page_archive",
       "toggle_page_favorite",
       "toggle_cycle_favorite",
       "toggle_module_favorite",
       "subscribe_work_item",
       "assign_work_item_to_me",
       "delete_work_item",
+      "toggle_app_sidebar",
+      "sign_out",
     ]) {
       expect(stateChanging).toContain(id);
     }

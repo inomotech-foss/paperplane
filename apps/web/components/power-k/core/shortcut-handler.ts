@@ -171,6 +171,13 @@ export function hasTextSelection(): boolean {
   return !!selection && !selection.isCollapsed;
 }
 
+/**
+ * AltGr types a character (reported as Ctrl+Alt on Windows), so it neither types a shortcut
+ * key nor forms a chord
+ */
+const isAltGraph = (e: KeyboardEvent): boolean =>
+  e.getModifierState("AltGraph") || (e.ctrlKey && e.altKey && !e.metaKey);
+
 /** Cmd/Ctrl or Alt held. Shift alone only changes the typed character. */
 const isChord = (e: KeyboardEvent): boolean => e.metaKey || e.ctrlKey || e.altKey;
 
@@ -238,6 +245,11 @@ export class ShortcutHandler {
     // Auto-repeat must neither re-fire a shortcut nor touch the sequence buffer
     if (e.repeat) return;
 
+    if (isAltGraph(e)) {
+      this.resetSequence();
+      return;
+    }
+
     // Cmd+K toggles the palette from anywhere, including inputs. It runs before the
     // `defaultPrevented` check because the palette itself prevents the default to keep
     // cmdk's Ctrl+K vim binding from moving the selection.
@@ -299,7 +311,8 @@ export class ShortcutHandler {
    * Handle typed-key shortcuts (s, shift+e) or build sequences (gm, op, etc.)
    */
   private handleTypedKey(e: KeyboardEvent): void {
-    // Non-printable keys (Escape, Tab, Enter, arrows, ...) cancel a pending sequence
+    // Non-printable keys (Escape, Tab, Enter, arrows, ...) cancel a pending sequence. Shift with
+    // a named key is not bindable on purpose.
     if (e.key.length !== 1) {
       this.resetSequence();
       return;

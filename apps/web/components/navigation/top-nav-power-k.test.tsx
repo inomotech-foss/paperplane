@@ -29,6 +29,7 @@ vi.mock("@/components/power-k/ui/modal/commands-list", () => {
     i18n_title: "power_k.navigation_actions.open_project",
     group: "navigation",
     type: "change-page",
+    changesState: false,
     page: "open-project",
     onSelect: () => {},
     closeOnSelect: true,

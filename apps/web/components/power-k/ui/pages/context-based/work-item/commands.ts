@@ -194,6 +194,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-state",
       onSelect: (data) => {
         if (typeof data !== "string") return;
@@ -215,6 +216,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-priority",
       onSelect: (data) => {
         if (!isOneOf(PRIORITY_VALUES, data)) return;
@@ -236,6 +238,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-assignee",
       onSelect: (data) => {
         if (typeof data !== "string") return;
@@ -272,6 +275,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-estimate",
       onSelect: (data) => {
         const estimatePointId = typeof data === "string" ? data : null;
@@ -292,6 +296,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-cycle",
       onSelect: (data) => {
         const cycleId = readString(data, "id");
@@ -328,6 +333,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-module",
       onSelect: (data) => {
         const moduleId = readString(data, "id");
@@ -359,6 +365,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-labels",
       onSelect: (data) => {
         const labelId = readString(data, "id");

@@ -63,8 +63,77 @@ export type TPowerKCommandGroup =
   | "miscellaneous"
   | "preferences";
 
-/** A Cmd/Ctrl or Alt chord. Shift alone types a character, so it belongs in `shortcut`. */
-export type TPowerKChordShortcut = `cmd+${string}` | `alt+${string}`;
+/** The unshifted characters `resolveShortcutKey` returns for printable keys */
+export type TPowerKPrintableKey =
+  | "a"
+  | "b"
+  | "c"
+  | "d"
+  | "e"
+  | "f"
+  | "g"
+  | "h"
+  | "i"
+  | "j"
+  | "k"
+  | "l"
+  | "m"
+  | "n"
+  | "o"
+  | "p"
+  | "q"
+  | "r"
+  | "s"
+  | "t"
+  | "u"
+  | "v"
+  | "w"
+  | "x"
+  | "y"
+  | "z"
+  | "0"
+  | "1"
+  | "2"
+  | "3"
+  | "4"
+  | "5"
+  | "6"
+  | "7"
+  | "8"
+  | "9"
+  | "`"
+  | "-"
+  | "="
+  | "["
+  | "]"
+  | "\\"
+  | ";"
+  | "'"
+  | ","
+  | "."
+  | "/";
+
+type TPowerKNamedKey =
+  | "space"
+  | "backspace"
+  | "delete"
+  | "enter"
+  | "escape"
+  | "tab"
+  | "arrowup"
+  | "arrowdown"
+  | "arrowleft"
+  | "arrowright";
+
+/** A bare key or Shift+key, matched on the typed-key path */
+export type TPowerKTypedShortcut = TPowerKPrintableKey | `shift+${TPowerKPrintableKey}`;
+
+type TPowerKChordKey = TPowerKPrintableKey | TPowerKNamedKey;
+
+/** A Cmd/Ctrl or Alt chord, in the order `formatModifierShortcut` builds it */
+export type TPowerKChordShortcut =
+  | `cmd+${"" | "alt+"}${"" | "shift+"}${TPowerKChordKey}`
+  | `alt+${"" | "shift+"}${TPowerKChordKey}`;
 
 export type TPowerKCommandConfig = {
   // Identity
@@ -75,7 +144,7 @@ export type TPowerKCommandConfig = {
   iconNode?: React.ReactNode;
 
   // Shortcuts (ONE of these)
-  shortcut?: string; // Typed key: "c", "p", "shift+e"
+  shortcut?: TPowerKTypedShortcut; // "c", "p", "shift+e"
   keySequence?: string; // Sequence: "gm", "op", "oc"
   modifierShortcut?: TPowerKChordShortcut; // "cmd+k", "cmd+delete", "cmd+shift+,"
 
@@ -103,20 +172,21 @@ export type TPowerKCommandConfig = {
         page: TPowerKPageType; // Opens selection page
         onSelect: (data: unknown, ctx: TPowerKContext) => void | Promise<void>; // Called after page selection
       }
-    | ({
+    | {
         type: "action";
         action: (ctx: TPowerKContext) => void | Promise<void>; // Direct action
-      } & (
-        | {
-            // Typed keys fire by accident, so state changes need a chord or the palette
-            changesState: true;
-            shortcut?: never;
-            keySequence?: never;
-          }
-        | {
-            changesState: false;
-          }
-      ))
+      }
+  ) &
+  (
+    | {
+        // Typed keys fire by accident, so state changes need a chord or the palette
+        changesState: true;
+        shortcut?: never;
+        keySequence?: never;
+      }
+    | {
+        changesState: false;
+      }
   );
 
 // ============================================================================

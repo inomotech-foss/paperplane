@@ -94,6 +94,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     open_workspace: {
       id: "open_workspace",
       type: "change-page",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.open_workspace",
       icon: ProjectsOutline,
@@ -162,6 +163,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     open_project: {
       id: "open_project",
       type: "change-page",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.open_project",
       icon: ProjectsOutline,
@@ -283,6 +285,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     open_workspace_setting: {
       id: "open_workspace_setting",
       type: "change-page",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.open_workspace_setting",
       icon: SettingsOutline,
@@ -332,6 +335,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     open_project_cycle: {
       id: "open_project_cycle",
       type: "change-page",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.open_project_cycle",
       icon: CyclesOutline,
@@ -386,6 +390,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     open_project_module: {
       id: "open_project_module",
       type: "change-page",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.open_project_module",
       icon: ModuleOutline,
@@ -440,6 +445,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     open_project_view: {
       id: "open_project_view",
       type: "change-page",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.open_project_view",
       icon: WorkItemsOutline,
@@ -544,6 +550,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     open_project_setting: {
       id: "open_project_setting",
       type: "change-page",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.open_project_setting",
       icon: SettingsOutline,
