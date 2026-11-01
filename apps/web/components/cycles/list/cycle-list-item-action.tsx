@@ -201,16 +201,16 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
         </div>
       )}
       {showTransferIssues && (
-        // oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions
-        <div
-          className="flex h-6 cursor-pointer items-center gap-1 px-2 text-accent-secondary"
+        <button
+          type="button"
+          className="flex h-6 flex-shrink-0 cursor-pointer items-center gap-1 px-2 text-11 whitespace-nowrap text-accent-secondary"
           onClick={() => {
             setTransferIssuesModal(true);
           }}
         >
-          <TransferWorkItemOutline className="w-4 fill-accent-primary" />
+          <TransferWorkItemOutline className="w-4 flex-shrink-0 fill-accent-primary" />
           <span>{t("project_cycles.transfer_work_items", { count: transferableIssuesCount })}</span>
-        </div>
+        </button>
       )}
       {isActive ? (
         <>
