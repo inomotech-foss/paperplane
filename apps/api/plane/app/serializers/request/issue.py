@@ -9,7 +9,6 @@ from plane.app.serializers.draft import DraftIssueCreateSerializer
 from plane.app.serializers.issue import IssueCreateSerializer
 from plane.utils.openapi.parameters import (
     CURSOR_PARAMETER,
-    FIELDS_PARAMETER,
     FILTERS_PARAMETER,
     ORDER_BY_PARAMETER,
     PER_PAGE_PARAMETER,
@@ -110,7 +109,6 @@ ISSUE_DETAIL_LIST_PARAMETERS = [
     FILTERS_PARAMETER,
     LAYOUT_PARAMETER,
     EXPAND_ISSUE_PARAMETER,
-    FIELDS_PARAMETER,
     *LEGACY_FILTER_PARAMETERS,
 ]
 

@@ -62,7 +62,7 @@ from plane.app.serializers.request.issue import (
     IssueUpdateSerializer,
 )
 from plane.utils.openapi import CURSOR_PARAMETER
-from plane.utils.openapi.parameters import FIELDS_PARAMETER, ORDER_BY_PARAMETER
+from plane.utils.openapi.parameters import ORDER_BY_PARAMETER
 from plane.utils.openapi.pagination import cursor_paginated_response, paginated_response
 from plane.utils.openapi.schema import delete_body
 from plane.utils.openapi.serializers import MessageResponseSerializer
@@ -111,7 +111,7 @@ class IssueListEndpoint(BaseAPIView):
     filterset_class = IssueFilterSet
 
     @extend_schema(
-        parameters=[ISSUE_IDS_PARAMETER, FIELDS_PARAMETER, EXPAND_ISSUE_PARAMETER, ORDER_BY_PARAMETER],
+        parameters=[ISSUE_IDS_PARAMETER, EXPAND_ISSUE_PARAMETER, ORDER_BY_PARAMETER],
         responses={200: WorkItemsByIdResponse},
     )
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
@@ -146,8 +146,7 @@ class IssueListEndpoint(BaseAPIView):
         issue_queryset = queryset.filter(**filters)
         issue_queryset = issue_queryset.filter(state__deleted_at__isnull=True)
 
-        # Add select_related, prefetch_related if fields or expand is not None
-        if self.fields or self.expand:
+        if self.expand:
             issue_queryset = issue_queryset.select_related("workspace", "project", "state", "parent").prefetch_related(
                 "assignees", "labels", "issue_module__module"
             )
@@ -202,8 +201,8 @@ class IssueListEndpoint(BaseAPIView):
             user_id=request.user.id,
         )
 
-        if self.fields or self.expand:
-            issues = IssueSerializer(issue_queryset, many=True, fields=self.fields, expand=self.expand).data
+        if self.expand:
+            issues = IssueSerializer(issue_queryset, many=True, expand=self.expand).data
         else:
             issues = issue_queryset.values(
                 "id",
@@ -1145,9 +1144,7 @@ class IssueDetailEndpoint(BaseAPIView):
             order_by=order_by_param,
             queryset=issue,
             total_count_queryset=total_issue_queryset,
-            on_results=lambda issue: (
-                IssueListDetailSerializer(issue, many=True, fields=self.fields, expand=self.expand).data
-            ),
+            on_results=lambda issue: IssueListDetailSerializer(issue, many=True, expand=self.expand).data,
         )
 
 

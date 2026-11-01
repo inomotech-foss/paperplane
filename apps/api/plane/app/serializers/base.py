@@ -30,7 +30,7 @@ MANY_EXPANSION_FIELDS = frozenset(
 def get_expansion_mapper():
     """Return the ``expand`` key -> serializer mapping.
 
-    Shared by ``_filter_fields`` and ``to_representation`` so the two cannot drift
+    Shared by ``_add_expansion_fields`` and ``to_representation`` so the two cannot drift
     apart -- keeping two copies is how ``updated_by`` came to be added to the
     ``/api/v1/`` mapper and to neither of these (makeplane/plane#4639).
 
@@ -90,55 +90,17 @@ class BaseSerializer(serializers.ModelSerializer):
 
 class DynamicBaseSerializer(BaseSerializer):
     def __init__(self, *args, **kwargs):
-        # If 'fields' is provided in the arguments, remove it and store it separately.
-        # This is done so as not to pass this custom argument up to the superclass.
-        fields = kwargs.pop("fields", [])
         self.expand = kwargs.pop("expand", []) or []
-        fields = self.expand
-
-        # Call the initialization of the superclass.
         super().__init__(*args, **kwargs)
-        # If 'fields' was provided, filter the fields of the serializer accordingly.
-        if fields is not None:
-            self.fields = self._filter_fields(fields)
+        if self.expand:
+            self._add_expansion_fields()
 
-    def _filter_fields(self, fields):
-        """
-        Adjust the serializer's fields based on the provided 'fields' list.
-
-        :param fields: List or dictionary specifying which fields to include in the serializer.
-        :return: The updated fields for the serializer.
-        """
-        # Check each field_name in the provided fields.
-        for field_name in fields:
-            # If the field is a dictionary (indicating nested fields),
-            # loop through its keys and values.
-            if isinstance(field_name, dict):
-                for key, value in field_name.items():
-                    # If the value of this nested field is a list,
-                    # perform a recursive filter on it.
-                    if isinstance(value, list):
-                        self._filter_fields(self.fields[key], value)
-
-        # Create a list to store allowed fields.
-        allowed = []
-        for item in fields:
-            # If the item is a string, it directly represents a field's name.
-            if isinstance(item, str):
-                allowed.append(item)
-            # If the item is a dictionary, it represents a nested field.
-            # Add the key of this dictionary to the allowed list.
-            elif isinstance(item, dict):
-                allowed.append(list(item.keys())[0])
-
-        missing = [field for field in allowed if field not in self.fields]
-        if missing:
-            expansion = get_expansion_mapper()
-            for field in missing:
-                if field in expansion:
-                    self.fields[field] = expansion[field](many=field in MANY_EXPANSION_FIELDS)
-
-        return self.fields
+    def _add_expansion_fields(self):
+        """Declare a nested serializer for each expanded relation that is not a field yet."""
+        expansion = get_expansion_mapper()
+        for name in self.expand:
+            if name in expansion and name not in self.fields:
+                self.fields[name] = expansion[name](many=name in MANY_EXPANSION_FIELDS)
 
     def to_representation(self, instance):
         response = super().to_representation(instance)

@@ -47,64 +47,18 @@ class WebhookEndpoint(BaseAPIView):
     def get(self, request, slug, pk=None):
         if pk is None:
             webhooks = Webhook.objects.filter(workspace__slug=slug)
-            serializer = WebhookSerializer(
-                webhooks,
-                fields=(
-                    "id",
-                    "url",
-                    "is_active",
-                    "created_at",
-                    "updated_at",
-                    "project",
-                    "issue",
-                    "cycle",
-                    "module",
-                    "issue_comment",
-                ),
-                many=True,
-            )
+            serializer = WebhookSerializer(webhooks, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             webhook = Webhook.objects.get(workspace__slug=slug, pk=pk)
-            serializer = WebhookSerializer(
-                webhook,
-                fields=(
-                    "id",
-                    "url",
-                    "is_active",
-                    "created_at",
-                    "updated_at",
-                    "project",
-                    "issue",
-                    "cycle",
-                    "module",
-                    "issue_comment",
-                ),
-            )
+            serializer = WebhookSerializer(webhook)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(request=WebhookSerializer, responses={200: WebhookWithoutSecretSerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, pk):
         webhook = Webhook.objects.get(workspace__slug=slug, pk=pk)
-        serializer = WebhookSerializer(
-            webhook,
-            data=request.data,
-            context={"request": request},
-            partial=True,
-            fields=(
-                "id",
-                "url",
-                "is_active",
-                "created_at",
-                "updated_at",
-                "project",
-                "issue",
-                "cycle",
-                "module",
-                "issue_comment",
-            ),
-        )
+        serializer = WebhookSerializer(webhook, data=request.data, context={"request": request}, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

@@ -888,8 +888,6 @@ class IssueListDetailSerializer(serializers.Serializer):
     def __init__(self, *args, **kwargs):
         # Extract expand parameter and store it as instance variable
         self.expand = kwargs.pop("expand", []) or []
-        # Extract fields parameter and store it as instance variable
-        self.fields = kwargs.pop("fields", []) or []
         super().__init__(*args, **kwargs)
 
     def get_module_ids(self, obj):

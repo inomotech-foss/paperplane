@@ -10346,20 +10346,6 @@ paths:
         description: Comma-separated relations to include, such as issue_relation
           and issue_related
       - in: query
-        name: fields
-        schema:
-          type: string
-        description: Comma-separated list of fields to include in response
-        examples:
-          BasicFields:
-            value: id,name,description
-            summary: Basic fields
-            description: Include only basic fields
-          WithRelations:
-            value: id,name,assignees,state
-            summary: With relations
-            description: Include fields with relationships
-      - in: query
         name: filters
         schema:
           type: string
@@ -12193,20 +12179,6 @@ paths:
         description: Comma-separated relations to include, such as issue_relation
           and issue_related
       - in: query
-        name: fields
-        schema:
-          type: string
-        description: Comma-separated list of fields to include in response
-        examples:
-          BasicFields:
-            value: id,name,description
-            summary: Basic fields
-            description: Include only basic fields
-          WithRelations:
-            value: id,name,assignees,state
-            summary: With relations
-            description: Include fields with relationships
-      - in: query
         name: issues
         schema:
           type: string
@@ -12727,20 +12699,6 @@ paths:
     get:
       operationId: workspaces_projects_modules_list
       parameters:
-      - in: query
-        name: fields
-        schema:
-          type: string
-        description: Comma-separated list of fields to include in response
-        examples:
-          BasicFields:
-            value: id,name,description
-            summary: Basic fields
-            description: Include only basic fields
-          WithRelations:
-            value: id,name,assignees,state
-            summary: With relations
-            description: Include fields with relationships
       - in: path
         name: project_id
         schema:
@@ -12761,7 +12719,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModuleListResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModuleListItem'
           description: ''
     post:
       operationId: workspaces_projects_modules_create
@@ -26637,155 +26597,6 @@ components:
       - profile_complete
       - workspace_create
       - workspace_join
-    Module:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        workspace_id:
-          type: string
-          format: uuid
-          readOnly: true
-        project_id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-          readOnly: true
-          title: Module Name
-        description:
-          type: string
-          readOnly: true
-          title: Module Description
-        description_text:
-          readOnly: true
-          nullable: true
-          title: Module Description RT
-        description_html:
-          readOnly: true
-          nullable: true
-          title: Module Description HTML
-        start_date:
-          type: string
-          format: date
-          readOnly: true
-          nullable: true
-        target_date:
-          type: string
-          format: date
-          readOnly: true
-          nullable: true
-        status:
-          allOf:
-          - $ref: '#/components/schemas/ModuleStatusEnum'
-          readOnly: true
-        lead_id:
-          type: string
-          format: uuid
-          nullable: true
-          readOnly: true
-        member_ids:
-          type: array
-          items:
-            type: string
-            format: uuid
-          nullable: true
-        view_props:
-          allOf:
-          - $ref: '#/components/schemas/ClientJson'
-          readOnly: true
-        sort_order:
-          type: number
-          format: double
-          readOnly: true
-        external_source:
-          type: string
-          readOnly: true
-          nullable: true
-        external_id:
-          type: string
-          readOnly: true
-          nullable: true
-        logo_props:
-          allOf:
-          - $ref: '#/components/schemas/ClientJson'
-          readOnly: true
-        total_estimate_points:
-          type: number
-          format: double
-          readOnly: true
-        completed_estimate_points:
-          type: number
-          format: double
-          readOnly: true
-        is_favorite:
-          type: boolean
-          readOnly: true
-        total_issues:
-          type: integer
-          readOnly: true
-        cancelled_issues:
-          type: integer
-          readOnly: true
-        completed_issues:
-          type: integer
-          readOnly: true
-        started_issues:
-          type: integer
-          readOnly: true
-        unstarted_issues:
-          type: integer
-          readOnly: true
-        backlog_issues:
-          type: integer
-          readOnly: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-          title: Last Modified At
-        archived_at:
-          type: string
-          format: date-time
-          readOnly: true
-          nullable: true
-      required:
-      - id
-      - workspace_id
-      - project_id
-      - name
-      - description
-      - description_text
-      - description_html
-      - start_date
-      - target_date
-      - status
-      - lead_id
-      - member_ids
-      - view_props
-      - sort_order
-      - external_source
-      - external_id
-      - logo_props
-      - total_estimate_points
-      - completed_estimate_points
-      - is_favorite
-      - total_issues
-      - cancelled_issues
-      - completed_issues
-      - started_issues
-      - unstarted_issues
-      - backlog_issues
-      - created_at
-      - updated_at
-      - archived_at
     ModuleDetailResponse:
       type: object
       properties:
@@ -27178,14 +26989,6 @@ components:
       - started_issues
       - unstarted_issues
       - backlog_issues
-    ModuleListResponse:
-      oneOf:
-      - type: array
-        items:
-          $ref: '#/components/schemas/ModuleListItem'
-      - type: array
-        items:
-          $ref: '#/components/schemas/Module'
     ModuleStatusEnum:
       enum:
       - backlog

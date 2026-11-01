@@ -8607,56 +8607,6 @@ export interface components {
             workspace_create: boolean;
             workspace_join: boolean;
         };
-        Module: {
-            /** Format: uuid */
-            readonly id: string;
-            /** Format: uuid */
-            readonly workspace_id: string;
-            /** Format: uuid */
-            readonly project_id: string;
-            /** Module Name */
-            readonly name: string;
-            /** Module Description */
-            readonly description: string;
-            /** Module Description RT */
-            readonly description_text: unknown;
-            /** Module Description HTML */
-            readonly description_html: unknown;
-            /** Format: date */
-            readonly start_date: string | null;
-            /** Format: date */
-            readonly target_date: string | null;
-            readonly status: components["schemas"]["ModuleStatusEnum"];
-            /** Format: uuid */
-            readonly lead_id: string | null;
-            member_ids: string[] | null;
-            readonly view_props: components["schemas"]["ClientJson"];
-            /** Format: double */
-            readonly sort_order: number;
-            readonly external_source: string | null;
-            readonly external_id: string | null;
-            readonly logo_props: components["schemas"]["ClientJson"];
-            /** Format: double */
-            readonly total_estimate_points: number;
-            /** Format: double */
-            readonly completed_estimate_points: number;
-            readonly is_favorite: boolean;
-            readonly total_issues: number;
-            readonly cancelled_issues: number;
-            readonly completed_issues: number;
-            readonly started_issues: number;
-            readonly unstarted_issues: number;
-            readonly backlog_issues: number;
-            /** Format: date-time */
-            readonly created_at: string;
-            /**
-             * Last Modified At
-             * Format: date-time
-             */
-            readonly updated_at: string;
-            /** Format: date-time */
-            readonly archived_at: string | null;
-        };
         ModuleDetailResponse: {
             /** Format: uuid */
             readonly id: string;
@@ -8804,7 +8754,6 @@ export interface components {
             unstarted_issues: number;
             backlog_issues: number;
         };
-        ModuleListResponse: components["schemas"]["ModuleListItem"][] | components["schemas"]["Module"][];
         /**
          * @description * `backlog` - Backlog
          *     * `planned` - Planned
@@ -21461,8 +21410,6 @@ export interface operations {
                 cycle?: string;
                 /** @description Comma-separated relations to include, such as issue_relation and issue_related */
                 expand?: string;
-                /** @description Comma-separated list of fields to include in response */
-                fields?: string;
                 /** @description JSON encoded filter expression with nested 'and' / 'or' / 'not' groups. Mutually exclusive with 'pql'. */
                 filters?: string;
                 /** @description Comma-separated label ids. Only work items that match one of them. */
@@ -22663,8 +22610,6 @@ export interface operations {
             query: {
                 /** @description Comma-separated relations to include, such as issue_relation and issue_related */
                 expand?: string;
-                /** @description Comma-separated list of fields to include in response */
-                fields?: string;
                 /** @description Comma-separated work item ids, a 400 when missing */
                 issues: string;
                 /** @description Field to order results by. Prefix with '-' for descending order */
@@ -23029,10 +22974,7 @@ export interface operations {
     };
     workspaces_projects_modules_list: {
         parameters: {
-            query?: {
-                /** @description Comma-separated list of fields to include in response */
-                fields?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 project_id: string;
@@ -23047,7 +22989,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ModuleListResponse"];
+                    "application/json": components["schemas"]["ModuleListItem"][];
                 };
             };
         };

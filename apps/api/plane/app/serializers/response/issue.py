@@ -102,7 +102,7 @@ WorkItemsByIdResponse = PolymorphicProxySerializer(
     serializers=[WorkItemSnapshotSerializer(many=True), IssueSerializer(many=True)],
     resource_type_field_name=None,
     many=False,
-    help_text="Full issues when fields or expand is given",
+    help_text="Full issues when expand is given",
 )
 
 

@@ -172,7 +172,7 @@ class TestAppAPIExpand:
         assert data["members"] == []
 
     def test_mapper_is_shared_by_both_call_sites(self):
-        """_filter_fields and to_representation had drifted apart, which is how
+        """_add_expansion_fields and to_representation had drifted apart, which is how
         updated_by ended up in one mapper and not the other."""
         mapper = get_expansion_mapper()
 

@@ -153,7 +153,7 @@ class TestIssueRequests:
         url = route.format(slug=workspace.slug, project_id=project.id)
         params = {"group_by": "priority", "order_by": "-created_at", "sub_issue": "false", "per_page": 10}
         assert documented(session_client.get(url, {**params, "cursor": "10:1:0", "priority": "none"}))
-        assert {"issues", "fields", "expand"} <= documented_query(BASE + "/issues/list/", "get")
+        assert {"issues", "expand"} <= documented_query(BASE + "/issues/list/", "get")
         assert {"issue_ids"} <= documented_query(BASE + "/issue-date-rollups/", "get")
         assert {"updated_at__gt"} <= documented_query(BASE + "/deleted-issues/", "get")
         assert {"expand"} <= documented_query(BASE + "/issues/{pk}/", "get")

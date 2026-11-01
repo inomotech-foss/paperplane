@@ -97,10 +97,5 @@ class TestWebhookSecretKeyScope:
         webhook = _make_webhook(workspace)
 
         assert "secret_key" not in WebhookSerializer(webhook).data
-        # An explicit fields= request must not re-open the leak either: enforcement
-        # lives in to_representation, not the (currently no-op) DynamicBaseSerializer
-        # field allowlist. Pins the enforcement point so a future _filter_fields fix
-        # can't silently re-expose the key.
-        assert "secret_key" not in WebhookSerializer(webhook, fields=("secret_key",)).data
         revealed = WebhookSerializer(webhook, context={"show_secret_key": True}).data
         assert revealed["secret_key"] == webhook.secret_key

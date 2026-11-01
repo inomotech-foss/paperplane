@@ -8,7 +8,6 @@ import { toCycleDistribution, toCycleEstimateDistribution } from "@/services/cyc
 import { toLinkMetadata } from "@/services/issue/work-item";
 
 type TModuleRow =
-  | ApiSchema<"Module">
   | ApiSchema<"ModuleListItem">
   | ApiSchema<"ModuleDetailResponse">
   | ApiSchema<"ArchivedModuleListItem">

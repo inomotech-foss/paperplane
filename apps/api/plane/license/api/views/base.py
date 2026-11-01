@@ -109,11 +109,6 @@ class BaseAPIView(TimezoneMixin, APIView, BasePaginator):
             return response
 
     @property
-    def fields(self):
-        fields = [field for field in self.request.GET.get("fields", "").split(",") if field]
-        return fields if fields else None
-
-    @property
     def expand(self):
         expand = [expand for expand in self.request.GET.get("expand", "").split(",") if expand]
         return expand if expand else None

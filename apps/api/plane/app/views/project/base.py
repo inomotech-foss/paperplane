@@ -131,7 +131,6 @@ class ProjectViewSet(BaseViewSet):
     @extend_schema(responses={200: ProjectListDetailResponse})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list_detail(self, request, slug):
-        fields = [field for field in request.GET.get("fields", "").split(",") if field]
         projects = self.get_queryset().order_by("sort_order", "name")
         if WorkspaceMember.objects.filter(
             member=request.user,
@@ -170,7 +169,7 @@ class ProjectViewSet(BaseViewSet):
                 on_results=lambda projects: ProjectListSerializer(projects, many=True).data,
             )
 
-        projects = ProjectListSerializer(projects, many=True, fields=fields if fields else None).data
+        projects = ProjectListSerializer(projects, many=True).data
         return Response(projects, status=status.HTTP_200_OK)
 
     @extend_schema(responses={200: ProjectListItemSerializer(many=True)})

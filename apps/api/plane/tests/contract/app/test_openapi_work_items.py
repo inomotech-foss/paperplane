@@ -89,8 +89,6 @@ class TestWorkItemLists:
     def test_lists_by_id(self, session_client, workspace, project, issues):
         ids = ",".join(str(issue.id) for issue in issues)
         assert documented(session_client.get(url(workspace, project, "issues/list/"), {"issues": ids}))
-        expanded = {"issues": ids, "fields": "id"}
-        assert documented(session_client.get(url(workspace, project, "issues/list/"), expanded))
         assert documented(session_client.get(url(workspace, project, "issues-detail/")))["results"]
         parent, child = issues
         IssueRelation.objects.create(

@@ -70,9 +70,9 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         # Get all active workspace members
         workspace_members = self.get_queryset()
         if workspace_member.role > 5:
-            serializer = WorkspaceMemberAdminSerializer(workspace_members, fields=("id", "member", "role"), many=True)
+            serializer = WorkspaceMemberAdminSerializer(workspace_members, many=True)
         else:
-            serializer = WorkSpaceMemberSerializer(workspace_members, fields=("id", "member", "role"), many=True)
+            serializer = WorkSpaceMemberSerializer(workspace_members, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(responses={200: workspace_member_row()})
@@ -90,9 +90,9 @@ class WorkSpaceMemberViewSet(BaseViewSet):
             )
 
         if workspace_member.role > ROLE.GUEST.value:
-            serializer = WorkspaceMemberAdminSerializer(member, fields=("id", "member", "role"))
+            serializer = WorkspaceMemberAdminSerializer(member)
         else:
-            serializer = WorkSpaceMemberSerializer(member, fields=("id", "member", "role"))
+            serializer = WorkSpaceMemberSerializer(member)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(request=RoleUpdateSerializer, responses={200: WorkSpaceMemberSerializer})

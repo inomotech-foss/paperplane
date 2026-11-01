@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-from drf_spectacular.utils import PolymorphicProxySerializer
 from rest_framework import serializers
 
 from plane.app.serializers import ModuleDetailSerializer, ModuleSerializer
@@ -52,15 +51,6 @@ class ArchivedModuleListItemSerializer(_ModuleValuesSerializer):
     unstarted_issues = serializers.IntegerField(allow_null=True)
     backlog_issues = serializers.IntegerField(allow_null=True)
     archived_at = serializers.DateTimeField()
-
-
-ModuleListResponse = PolymorphicProxySerializer(
-    component_name="ModuleListResponse",
-    serializers=[ModuleListItemSerializer(many=True), ModuleSerializer(many=True)],
-    resource_type_field_name=None,
-    many=False,
-    help_text="Full modules when fields is given",
-)
 
 
 class ModuleDetailResponseSerializer(ModuleDetailSerializer):

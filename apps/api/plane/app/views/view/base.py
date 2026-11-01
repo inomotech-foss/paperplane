@@ -95,10 +95,9 @@ class WorkspaceViewViewSet(BaseViewSet):
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def list(self, request, slug):
         queryset = self.get_queryset()
-        fields = [field for field in request.GET.get("fields", "").split(",") if field]
         if WorkspaceMember.objects.filter(workspace__slug=slug, member=request.user, role=5, is_active=True).exists():
             queryset = queryset.filter(owned_by=request.user)
-        views = IssueViewSerializer(queryset, many=True, fields=fields if fields else None).data
+        views = IssueViewSerializer(queryset, many=True).data
         return Response(views, status=status.HTTP_200_OK)
 
     @allow_permission(allowed_roles=[], level="WORKSPACE", creator=True, model=IssueView)
@@ -363,8 +362,7 @@ class IssueViewViewSet(BaseViewSet):
             and not project.guest_view_all_features
         ):
             queryset = queryset.filter(owned_by=request.user)
-        fields = [field for field in request.GET.get("fields", "").split(",") if field]
-        views = IssueViewSerializer(queryset, many=True, fields=fields if fields else None).data
+        views = IssueViewSerializer(queryset, many=True).data
         return Response(views, status=status.HTTP_200_OK)
 
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
