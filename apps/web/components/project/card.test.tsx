@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import { EUserPermissions } from "@plane/constants";
 import type { IProject } from "@plane/types";
 import { findNestedInteractive } from "@/lib/testing/nested-interactive";
+import { findLinkOffsetParents, findStackingTraps } from "@/lib/testing/stacking";
 import { ProjectCard } from "./card";
 
 vi.mock("next/navigation", () => ({ useParams: () => ({ workspaceSlug: "ws" }) }));
@@ -78,27 +79,43 @@ describe("ProjectCard", () => {
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
-  it("opens the join modal instead of navigating for a non-member", () => {
-    renderCard({ member_role: null });
+  it("links the card to the project for a member", () => {
+    renderCard({ member_role: EUserPermissions.MEMBER });
     expect(fireEvent.click(screen.getByRole("link", { name: "Demo" }))).toBe(false);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("gives a non-member no project link and opens the join modal from the card", () => {
+    const { container } = renderCard({ member_role: null });
+    expect(screen.queryByRole("link", { name: "Demo" })).toBeNull();
+    const cardTarget = container.querySelector("button[aria-hidden='true']");
+    expect(cardTarget?.getAttribute("tabindex")).toBe("-1");
+    if (cardTarget) fireEvent.click(cardTarget);
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
-  it("keeps the archived card actions above the card link", () => {
+  it("keeps the archived card link from navigating", () => {
     renderCard({ member_role: EUserPermissions.ADMIN, archived_at: "2026-02-01T00:00:00Z" });
-    const cardLink = screen.getByRole("link", { name: "Demo" });
-    const card = cardLink.parentElement;
-    // Any of these on an ancestor starts a stacking context that traps the actions below the link
-    const trapsStacking = /(^|\s)(opacity-\d+|transform|filter|blur-\S+|isolate|z-\S+)(\s|$)/;
-    for (const name of ["Restore", "Delete"]) {
-      const action = screen.getByRole("button", { name });
-      const raised = action.closest(".z-\\[2\\]");
+    expect(fireEvent.click(screen.getByRole("link", { name: "Demo" }))).toBe(false);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it.each([
+    ["admin", { member_role: EUserPermissions.ADMIN }, ["Copy link"]],
+    ["non-member", { member_role: null }, ["Join"]],
+    ["archived", { member_role: EUserPermissions.ADMIN, archived_at: "2026-02-01T00:00:00Z" }, ["Restore", "Delete"]],
+  ])("keeps the %s card actions above the card link", (_, overrides, actions) => {
+    renderCard(overrides);
+    const card = screen.getByRole("button", { name: actions[0] }).closest(".isolate");
+    expect(card?.classList.contains("isolate")).toBe(true);
+    for (const name of actions) {
+      const raised = screen.getByRole("button", { name }).closest(".z-\\[2\\]");
       expect(raised).not.toBeNull();
-      const traps: string[] = [];
-      for (let node = raised?.parentElement; node && node !== card; node = node.parentElement) {
-        if (trapsStacking.test(node.className)) traps.push(node.className);
-      }
-      expect(traps).toEqual([]);
+      expect(card?.contains(raised)).toBe(true);
+    }
+    if (card) {
+      expect(findStackingTraps(card)).toEqual([]);
+      expect(findLinkOffsetParents(card)).toEqual([]);
     }
   });
 });

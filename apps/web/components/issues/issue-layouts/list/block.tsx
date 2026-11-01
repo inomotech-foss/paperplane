@@ -16,7 +16,7 @@ import { setToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { TIssue, IIssueDisplayProperties, TIssueMap } from "@plane/types";
 // ui
-import { ControlLink, Row } from "@plane/blocks/layout";
+import { ClickableCard, ClickableCardLink, clickableCardRaisedClassName } from "@plane/blocks/clickable-card";
 import { Spinner } from "@plane/blocks/spinner";
 import { cn, generateWorkItemLink } from "@plane/utils";
 // components
@@ -161,11 +161,11 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
     isArchived: !!issue?.archived_at,
   });
   return (
-    <Row
+    <ClickableCard
       ref={issueRef}
       data-issue-row={issue.id}
       className={cn(
-        "group/list-block relative flex min-h-11 w-full cursor-pointer flex-col gap-3 bg-layer-transparent py-3 text-13 transition-colors hover:bg-layer-transparent-hover",
+        "group/list-block flex min-h-11 w-full cursor-pointer flex-col gap-3 bg-layer-transparent px-page-x py-3 text-13 transition-colors hover:bg-layer-transparent-hover",
         {
           "border-accent-strong": getIsIssuePeeked(issue.id) && peekIssue?.nestingLevel === nestingLevel,
           "border-strong-1": isIssueActive,
@@ -198,7 +198,12 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
                 layout="stacked"
                 disabled={issue.project_id === projectId}
               >
-                <div className="absolute left-1 z-[1] grid w-3.5 flex-shrink-0 place-items-center">
+                <div
+                  className={cn(
+                    clickableCardRaisedClassName,
+                    "absolute left-1 grid w-3.5 flex-shrink-0 place-items-center"
+                  )}
+                >
                   <MultipleSelectEntityAction
                     className={cn(
                       "pointer-events-none opacity-0 transition-opacity group-hover/list-block:pointer-events-auto group-hover/list-block:opacity-100",
@@ -233,7 +238,10 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
               {subIssuesCount > 0 && (
                 <button
                   type="button"
-                  className="relative z-[1] grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
+                  className={cn(
+                    clickableCardRaisedClassName,
+                    "grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
+                  )}
                   onClick={handleToggleExpand}
                 >
                   <ChevronRightOutline
@@ -250,21 +258,26 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
             )}
           </div>
 
-          <ControlLink
+          <ClickableCardLink
             id={`issue-${issue.id}`}
             href={workItemLink}
-            onClick={() => handleIssuePeekOverview(issue)}
-            className="truncate after:absolute after:inset-0"
+            onClick={(e) => {
+              e.preventDefault();
+              handleIssuePeekOverview(issue);
+            }}
+            className="truncate"
             disabled={!!issue?.tempId || issue?.is_draft}
           >
             <Tooltip label={issue.name} layout="stacked" align="start" disabled={isCurrentBlockDragging || isMobile}>
-              <span className="relative z-[1] truncate text-body-xs-medium text-primary">{issue.name}</span>
+              <span className={cn(clickableCardRaisedClassName, "truncate text-body-xs-medium text-primary")}>
+                {issue.name}
+              </span>
             </Tooltip>
-          </ControlLink>
+          </ClickableCardLink>
         </div>
         {!issue?.tempId && (
           <div
-            className={cn("relative z-[1] block rounded-sm border border-strong", {
+            className={cn(clickableCardRaisedClassName, "block rounded-sm border border-strong", {
               "md:hidden": isSidebarCollapsed,
               "lg:hidden": !isSidebarCollapsed,
             })}
@@ -280,7 +293,11 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
         {!issue?.tempId ? (
           <>
             <IssueProperties
-              className={`pointer-events-none relative z-[1] flex flex-wrap *:pointer-events-auto ${isSidebarCollapsed ? "md:flex-shrink-0 md:flex-grow" : "lg:flex-shrink-0 lg:flex-grow"} items-center gap-2 whitespace-nowrap`}
+              className={cn(
+                clickableCardRaisedClassName,
+                "pointer-events-none flex flex-wrap items-center gap-2 whitespace-nowrap *:pointer-events-auto",
+                isSidebarCollapsed ? "md:flex-shrink-0 md:flex-grow" : "lg:flex-shrink-0 lg:flex-grow"
+              )}
               issue={issue}
               isReadOnly={!canEditIssueProperties}
               updateIssue={updateIssue}
@@ -288,7 +305,7 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
               activeLayout="List"
             />
             <div
-              className={cn("relative z-[1] hidden", {
+              className={cn(clickableCardRaisedClassName, "hidden", {
                 "md:flex": isSidebarCollapsed,
                 "lg:flex": !isSidebarCollapsed,
               })}
@@ -305,6 +322,6 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
           </div>
         )}
       </div>
-    </Row>
+    </ClickableCard>
   );
 });

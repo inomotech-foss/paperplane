@@ -13,7 +13,7 @@ import { useOutsideClickDetector } from "@plane/hooks";
 import { useTranslation } from "@plane/i18n";
 import { Popover, PopoverContent, PopoverTrigger } from "@makeplane/propel/components/popover";
 import type { TIssue } from "@plane/types";
-import { ControlLink } from "@plane/blocks/layout";
+import { ClickableCard, ClickableCardLink, clickableCardRaisedClassName } from "@plane/blocks/clickable-card";
 import { cn, generateWorkItemLink } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -97,11 +97,11 @@ export const CalendarIssueBlock = observer(
 
     return (
       <Popover>
-        <div
+        <ClickableCard
           id={`calendar-issue-${issue.id}`}
           data-issue-row={issue.id}
           ref={ref}
-          className="relative block w-full rounded-sm border-b border-subtle text-13 text-primary hover:border-subtle-1 md:border-[1px]"
+          className="block w-full rounded-sm border-b border-subtle text-13 text-primary hover:border-subtle-1 md:border-[1px]"
         >
           {issue?.tempId !== undefined && (
             <div className="absolute top-0 left-0 z-[99999] h-full w-full animate-pulse bg-surface-1/20" />
@@ -139,23 +139,26 @@ export const CalendarIssueBlock = observer(
                 delay={100}
                 nativeButton={false}
                 render={
-                  <ControlLink
+                  <ClickableCardLink
                     id={`issue-${issue.id}`}
                     // the trigger defaults to a button role, the anchor must stay a link
                     // oxlint-disable-next-line jsx_a11y/prefer-tag-over-role
                     role="link"
                     href={workItemLink}
-                    onClick={() => handleIssuePeekOverview(issue)}
-                    className="truncate text-13 font-medium after:absolute after:inset-0 md:text-11 md:font-regular"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleIssuePeekOverview(issue);
+                    }}
+                    className="truncate text-13 font-medium md:text-11 md:font-regular"
                     disabled={!!issue?.tempId || isMobile}
                   >
                     {issue.name}
-                  </ControlLink>
+                  </ClickableCardLink>
                 }
               />
             </div>
             <div
-              className={cn("relative z-[1] size-5 flex-shrink-0", {
+              className={cn(clickableCardRaisedClassName, "size-5 flex-shrink-0", {
                 "hidden group-hover/calendar-block:block": !isMobile,
                 block: isMenuActive,
               })}
@@ -168,7 +171,7 @@ export const CalendarIssueBlock = observer(
               })}
             </div>
           </div>
-        </div>
+        </ClickableCard>
         <PopoverContent side="bottom" align="start" sideOffset={8} anchor={blockRef}>
           {issue.project_id && (
             <WorkItemPreviewCard

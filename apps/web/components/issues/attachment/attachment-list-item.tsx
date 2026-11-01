@@ -9,6 +9,12 @@ import { observer } from "mobx-react";
 import { useTranslation } from "@plane/i18n";
 import { DeleteOutline, MoreHorizontalOutline } from "@makeplane/propel/icons";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
+import {
+  ClickableCard,
+  ClickableCardLink,
+  ClickableCardRaised,
+  clickableCardRaisedClassName,
+} from "@plane/blocks/clickable-card";
 // ui
 import { Icon } from "@makeplane/propel/components/icon";
 import { IconButton } from "@makeplane/propel/components/icon-button";
@@ -52,24 +58,25 @@ export const IssueAttachmentsListItem = observer(function IssueAttachmentsListIt
 
   return (
     <>
-      <div className="group relative flex h-11 items-center justify-between gap-3 px-3 hover:bg-surface-2">
+      <ClickableCard className="group flex h-11 items-center justify-between gap-3 px-3 hover:bg-surface-2">
         <div className="flex items-center gap-3 truncate text-13">
           <div className="flex items-center gap-3">{fileIcon}</div>
-          <a
-            href={fileURL}
+          <ClickableCardLink
+            href={fileURL ?? ""}
+            disabled={!fileURL}
             target="_blank"
             rel="noopener noreferrer"
-            className="truncate font-medium text-secondary after:absolute after:inset-0"
+            className="truncate font-medium text-secondary"
           >
             <Tooltip label={`${fileName}.${fileExtension}`} layout="stacked" disabled={isMobile}>
-              <span className="relative z-[1]">{`${fileName}.${fileExtension}`}</span>
+              <span className={clickableCardRaisedClassName}>{`${fileName}.${fileExtension}`}</span>
             </Tooltip>
-          </a>
+          </ClickableCardLink>
           <span className="flex size-1.5 rounded-full bg-layer-1" />
           <span className="shrink-0 text-placeholder">{convertBytesToSize(attachment.attributes.size)}</span>
         </div>
 
-        <div className="relative z-[1] flex items-center gap-3">
+        <ClickableCardRaised className="flex items-center gap-3">
           {attachment?.created_by && (
             <>
               <Tooltip
@@ -111,8 +118,8 @@ export const IssueAttachmentsListItem = observer(function IssueAttachmentsListIt
               </MenuContent>
             </Menu>
           </div>
-        </div>
-      </div>
+        </ClickableCardRaised>
+      </ClickableCard>
     </>
   );
 });

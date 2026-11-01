@@ -21,7 +21,12 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/comp
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { TIssue, TSubIssueOperations } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
-import { ControlLink } from "@plane/blocks/layout";
+import {
+  ClickableCard,
+  ClickableCardLink,
+  ClickableCardRaised,
+  clickableCardRaisedClassName,
+} from "@plane/blocks/clickable-card";
 import { cn, generateWorkItemLink } from "@plane/utils";
 // helpers
 import { useSubIssueOperations } from "@/components/issues/issue-detail-widgets/sub-issues/helper";
@@ -113,9 +118,9 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
   return (
     <div key={issueId}>
       {issue && (
-        <div
+        <ClickableCard
           data-issue-row={issue.id}
-          className="group relative flex h-full min-h-11 w-full items-center py-1 pr-2 transition-all hover:bg-surface-2"
+          className="group flex h-full min-h-11 w-full items-center py-1 pr-2 transition-all hover:bg-surface-2"
           style={{ paddingLeft: `${spacingLeft}px` }}
         >
           <div className="flex size-5 flex-shrink-0 items-center justify-center">
@@ -123,12 +128,15 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
             {subIssueCount > 0 && !isCurrentIssueRoot && (
               <>
                 {subIssueHelpers.preview_loader.includes(issue.id) ? (
-                  <div className="relative z-[1] flex h-full w-full cursor-not-allowed items-center justify-center rounded-xs bg-layer-1 transition-all">
+                  <ClickableCardRaised className="flex h-full w-full cursor-not-allowed items-center justify-center rounded-xs bg-layer-1 transition-all">
                     <LinkOutline width={14} height={14} className="animate-spin" />
-                  </div>
+                  </ClickableCardRaised>
                 ) : (
                   <div
-                    className="relative z-[1] flex h-full w-full cursor-pointer items-center justify-center text-placeholder hover:text-tertiary"
+                    className={cn(
+                      clickableCardRaisedClassName,
+                      "flex h-full w-full cursor-pointer items-center justify-center text-placeholder hover:text-tertiary"
+                    )}
                     onClick={async (e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -166,19 +174,22 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
                 )}
               </div>
             </WithDisplayPropertiesHOC>
-            <ControlLink
+            <ClickableCardLink
               id={`issue-${issue.id}`}
               href={workItemLink}
-              onClick={() => handleIssuePeekOverview(issue)}
-              className="w-0 flex-1 truncate text-13 text-primary after:absolute after:inset-0"
+              onClick={(e) => {
+                e.preventDefault();
+                handleIssuePeekOverview(issue);
+              }}
+              className="w-0 flex-1 truncate text-13 text-primary"
             >
               <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
-                <span className="relative z-[1]">{issue.name}</span>
+                <span className={clickableCardRaisedClassName}>{issue.name}</span>
               </Tooltip>
-            </ControlLink>
+            </ClickableCardLink>
           </div>
 
-          <div className="relative z-[1] flex-shrink-0 text-13">
+          <ClickableCardRaised className="flex-shrink-0 text-13">
             <SubIssuesListItemProperties
               workspaceSlug={workspaceSlug}
               parentIssueId={parentIssueId}
@@ -188,8 +199,8 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
               displayProperties={displayProperties}
               issue={issue}
             />
-          </div>
-          <div className="relative z-[1] flex-shrink-0 text-13">
+          </ClickableCardRaised>
+          <ClickableCardRaised className="flex-shrink-0 text-13">
             <Menu>
               <MenuTrigger
                 render={
@@ -241,8 +252,8 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
                 )}
               </MenuContent>
             </Menu>
-          </div>
-        </div>
+          </ClickableCardRaised>
+        </ClickableCard>
       )}
 
       {/* should not expand the current issue if it is also the root issue*/}

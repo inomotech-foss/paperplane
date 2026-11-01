@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@makeplane/propel/compo
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { ChevronRightOutline } from "@makeplane/propel/icons";
 import { Logo } from "@plane/blocks/emoji-icon-picker";
-import { ControlLink } from "@plane/blocks/layout";
+import { ClickableCard, ClickableCardLink, clickableCardRaisedClassName } from "@plane/blocks/clickable-card";
 import { Spinner } from "@plane/blocks/spinner";
 import { useTranslation } from "@plane/i18n";
 import { GANTT_TIMELINE_TYPE } from "@plane/types";
@@ -189,7 +189,10 @@ const GanttRowToggle = observer(function GanttRowToggle(props: TGanttRowTogglePr
     content = (
       <button
         type="button"
-        className="relative z-[1] grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
+        className={cn(
+          clickableCardRaisedClassName,
+          "grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
+        )}
         onClick={handleClick}
         aria-expanded={rowState.isExpanded}
         aria-label={t(rowState.isExpanded ? "timeline_hierarchy.collapse" : "timeline_hierarchy.expand")}
@@ -249,9 +252,9 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
   });
 
   return (
-    <div
+    <ClickableCard
       data-issue-row={issueId}
-      className="relative flex h-full w-full cursor-pointer items-center gap-2 text-13 text-primary"
+      className="flex h-full w-full cursor-pointer items-center gap-2 text-13 text-primary"
     >
       {nestingDepth > 0 && <span aria-hidden className="flex-shrink-0" style={{ width: `${nestingDepth * 16}px` }} />}
       {hierarchy && <GanttRowToggle rowState={rowState} onToggle={() => hierarchy.toggleRow(issueId)} />}
@@ -269,24 +272,29 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
           <Logo logo={issueType.logo_props} size={14} />
         </span>
       )}
-      <ControlLink
+      <ClickableCardLink
         id={`issue-${issueId}`}
         href={workItemLink}
         onClick={handleIssuePeekOverview}
-        className="flex-grow truncate font-medium after:absolute after:inset-0"
+        className="flex-grow truncate font-medium"
         disabled={!!issueDetails?.tempId}
       >
         <Tooltip label={issueDetails?.name ?? ""} layout="stacked" disabled={isMobile}>
-          <span className="relative z-[1]">{issueDetails?.name}</span>
+          <span className={clickableCardRaisedClassName}>{issueDetails?.name}</span>
         </Tooltip>
-      </ControlLink>
+      </ClickableCardLink>
       {!!rowState?.hasChildren && !rowState.isExpanded && rowState.hiddenCount > 0 && (
         <Tooltip label={t("timeline_hierarchy.hidden_children", { count: rowState.hiddenCount })} disabled={isMobile}>
-          <span className="relative z-[1] flex-shrink-0 rounded-sm bg-layer-2 px-1 text-11 text-tertiary">
+          <span
+            className={cn(
+              clickableCardRaisedClassName,
+              "flex-shrink-0 rounded-sm bg-layer-2 px-1 text-11 text-tertiary"
+            )}
+          >
             {rowState.hiddenCount}
           </span>
         </Tooltip>
       )}
-    </div>
+    </ClickableCard>
   );
 });

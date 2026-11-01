@@ -7,6 +7,12 @@
 import React, { useRef } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
+import {
+  ClickableCard,
+  ClickableCardLink,
+  ClickableCardRaised,
+  clickableCardRaisedClassName,
+} from "@plane/blocks/clickable-card";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { CalendarOutline, InfoOutline, UserAltOutline, WorkItemsOutline } from "@makeplane/propel/icons";
 // plane package imports
@@ -19,7 +25,7 @@ import type { IModule } from "@plane/types";
 import { Card } from "@plane/blocks/card";
 import { FavoriteStar } from "@plane/blocks/common";
 import { DateRangeSelect } from "@plane/blocks/property-select";
-import { getDate, renderFormattedPayloadDate, generateQueryParams } from "@plane/utils";
+import { cn, getDate, renderFormattedPayloadDate, generateQueryParams } from "@plane/utils";
 // components
 import { ButtonAvatars } from "@/components/dropdowns/member/avatar";
 import { ModuleQuickActions } from "@/components/modules";
@@ -169,19 +175,20 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
   const progressValue = moduleTotalIssues > 0 ? (moduleCompletedIssues / moduleTotalIssues) * 100 : 0;
 
   return (
-    <div ref={parentRef} className="relative" data-prevent-progress>
+    <ClickableCard ref={parentRef} data-prevent-progress>
       <Card>
         <div>
           <div className="flex items-center justify-between gap-2">
-            <Link
+            <ClickableCardLink
               href={`/${workspaceSlug}/projects/${moduleDetails.project_id}/modules/${moduleDetails.id}`}
-              className="truncate after:absolute after:inset-0"
+              render={(linkProps) => <Link {...linkProps} />}
+              className="truncate"
             >
               <Tooltip label={moduleDetails.name} layout="stacked" disabled={isMobile}>
-                <span className="relative z-[1] text-14 font-medium">{moduleDetails.name}</span>
+                <span className={cn(clickableCardRaisedClassName, "text-14 font-medium")}>{moduleDetails.name}</span>
               </Tooltip>
-            </Link>
-            <div className="relative z-[1] flex items-center gap-2">
+            </ClickableCardLink>
+            <ClickableCardRaised className="flex items-center gap-2">
               {moduleStatus && (
                 <ModuleStatusDropdown
                   isDisabled={isDisabled}
@@ -192,7 +199,7 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
               <button type="button" aria-label="Module details" onClick={openModuleOverview}>
                 <InfoOutline className="h-4 w-4 text-placeholder" />
               </button>
-            </div>
+            </ClickableCardRaised>
           </div>
         </div>
         <div className="flex flex-col gap-3">
@@ -207,7 +214,7 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
               </span>
             ) : (
               <Tooltip label="No lead">
-                <UserAltOutline className="relative z-[1] mx-1 h-4 w-4 text-tertiary" />
+                <UserAltOutline className={cn(clickableCardRaisedClassName, "mx-1 h-4 w-4 text-tertiary")} />
               </Tooltip>
             )}
           </div>
@@ -218,7 +225,7 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
             showValue={false}
             aria-label="Module progress"
           />
-          <div className="relative z-[1] flex items-center justify-between py-0.5">
+          <ClickableCardRaised className="flex items-center justify-between py-0.5">
             <DateRangeSelect
               variant="select-ghost-md"
               className={`h-6 w-full gap-1.5 rounded-sm border-[0.5px] border-strong text-11 text-tertiary ${
@@ -239,10 +246,10 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
               disabled={isDisabled}
               icon={renderIcon ? undefined : <CalendarOutline aria-hidden="true" />}
             />
-          </div>
+          </ClickableCardRaised>
         </div>
       </Card>
-      <div className="absolute right-4 bottom-[18px] z-[1] flex items-center gap-1.5">
+      <ClickableCardRaised className="absolute right-4 bottom-[18px] flex items-center gap-1.5">
         {isEditingAllowed && (
           <FavoriteStar
             onClick={(e) => {
@@ -260,7 +267,7 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
             workspaceSlug={workspaceSlug.toString()}
           />
         )}
-      </div>
-    </div>
+      </ClickableCardRaised>
+    </ClickableCard>
   );
 });
