@@ -4,6 +4,7 @@
  */
 
 import type * as React from "react";
+import { createRef } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -132,6 +133,51 @@ describe("ClickableCard", () => {
     const link = screen.getByRole("link", { name: "Roadmap" });
     expect(link.hasAttribute("data-router")).toBe(true);
     expect(link.getAttribute("href")).toBe("/ws/items/1");
+  });
+
+  it("runs the link handler on an Alt click", () => {
+    const onLinkClick = vi.fn((event: React.MouseEvent) => event.preventDefault());
+    renderCard(onLinkClick);
+    const notPrevented = fireEvent.click(screen.getByRole("link", { name: "Roadmap" }), { altKey: true });
+    expect(onLinkClick).toHaveBeenCalledTimes(1);
+    expect(notPrevented).toBe(false);
+  });
+
+  it("forwards the ref and props to the span when disabled", () => {
+    const ref = createRef<HTMLElement>();
+    const onMouseEnter = vi.fn();
+    render(
+      <ClickableCardLink
+        ref={ref}
+        href="/ws/items/1"
+        id="item-1"
+        data-state="closed"
+        onMouseEnter={onMouseEnter}
+        target="_blank"
+        disabled
+      >
+        Roadmap
+      </ClickableCardLink>
+    );
+    const span = screen.getByText("Roadmap");
+    expect(ref.current).toBe(span);
+    expect(span.tagName).toBe("SPAN");
+    expect(span.id).toBe("item-1");
+    expect(span.getAttribute("data-state")).toBe("closed");
+    expect(span.hasAttribute("href")).toBe(false);
+    expect(span.hasAttribute("target")).toBe(false);
+    fireEvent.mouseEnter(span);
+    expect(onMouseEnter).toHaveBeenCalledTimes(1);
+  });
+
+  it("forwards the ref to the link", () => {
+    const ref = createRef<HTMLElement>();
+    render(
+      <ClickableCardLink ref={ref} href="/ws/items/1">
+        Roadmap
+      </ClickableCardLink>
+    );
+    expect(ref.current).toBe(screen.getByRole("link", { name: "Roadmap" }));
   });
 
   it("renders plain text when disabled", () => {
