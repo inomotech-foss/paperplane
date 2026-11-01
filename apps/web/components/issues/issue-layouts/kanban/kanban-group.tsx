@@ -261,7 +261,7 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
   ) : (
     // oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions
     <div
-      className="sticky bottom-0 w-full cursor-pointer p-3 text-13 font-medium text-accent-primary hover:text-accent-secondary hover:underline"
+      className="sticky bottom-0 z-[1] w-full cursor-pointer bg-surface-2 p-3 text-13 font-medium text-accent-primary hover:text-accent-secondary hover:underline"
       onClick={loadMoreIssuesInThisGroup}
     >
       {t("common.load_more")} &darr;
@@ -325,7 +325,7 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
       {enableQuickIssueCreate &&
         !disableIssueCreation &&
         !getIsWorkflowWorkItemCreationDisabled(groupId, sub_group_id) && (
-          <div className="sticky bottom-0 w-full bg-surface-2 py-0.5">
+          <div className="sticky bottom-0 z-[1] w-full bg-surface-2 py-0.5">
             <QuickAddIssueRoot
               layout={EIssueLayoutTypes.KANBAN}
               QuickAddButton={KanbanQuickAddIssueButton}
