@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Button } from "@makeplane/propel/components/button";
 import { Select, SelectContent, SelectItem, SelectList, SelectTrigger } from "@makeplane/propel/components/select";
 import { useTranslation } from "@plane/i18n";
@@ -46,7 +46,6 @@ export function InstanceAIForm(props: IInstanceAIForm) {
     handleSubmit,
     control,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<AIFormValues>({
     defaultValues: {
@@ -56,7 +55,7 @@ export function InstanceAIForm(props: IInstanceAIForm) {
     },
   });
 
-  const provider = watch("LLM_PROVIDER");
+  const selectedProvider = useWatch({ control, name: "LLM_PROVIDER" });
 
   const aiFormFields: TControllerInputFormField<AIFormValues>[] = [
     {
@@ -73,7 +72,7 @@ export function InstanceAIForm(props: IInstanceAIForm) {
       type: "password",
       label: t("instance_ai.api_key.label"),
       description: t("instance_ai.api_key.description"),
-      placeholder: API_KEY_PLACEHOLDERS[isLLMProvider(provider) ? provider : "openai"],
+      placeholder: API_KEY_PLACEHOLDERS[isLLMProvider(selectedProvider) ? selectedProvider : "openai"],
       error: Boolean(errors.LLM_API_KEY),
       required: false,
     },
