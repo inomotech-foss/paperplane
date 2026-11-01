@@ -6,7 +6,7 @@
 import { z } from "zod";
 import type { TLogoProps, TProjectDetails, TProjectPublishSettings, TProjectPublishViewProps } from "@plane/types";
 import type { TPublishSettingsResponse } from "@/services/project.service";
-import { isRecord } from "./narrow.helper";
+import { isRecord } from "@plane/types";
 
 const logoPropsSchema = z.object({
   in_use: z.enum(["emoji", "icon"]),
