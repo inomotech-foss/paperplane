@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
@@ -71,6 +71,7 @@ export const IssueDescriptionEditor = observer(function IssueDescriptionEditor(p
   const { t } = useTranslation();
   // states
   const [isDrafting, setIsDrafting] = useState(false);
+  const draftControllerRef = useRef<AbortController | null>(null);
   // store hooks
   const { getWorkspaceBySlug } = useWorkspace();
   const workspaceId = getWorkspaceBySlug(workspaceSlug?.toString())?.id ?? "";
@@ -101,17 +102,24 @@ export const IssueDescriptionEditor = observer(function IssueDescriptionEditor(p
 
   useKeypress("Escape", handleKeyDown);
 
+  useEffect(() => () => draftControllerRef.current?.abort(), []);
+
   const handleDraftDescription = async () => {
     if (!workspaceSlug || !projectId) return;
+    draftControllerRef.current?.abort();
+    const controller = new AbortController();
+    draftControllerRef.current = controller;
     setIsDrafting(true);
     const task: TWritingTask = { action: "draft_description", text: issueName };
     try {
-      const html = await aiService.runWritingTask(workspaceSlug, task);
-      editorRef.current?.setEditorValueAtCursorPosition(html);
+      const html = await aiService.runWritingTask(workspaceSlug, task, controller.signal);
+      if (!controller.signal.aborted && editorRef.current?.isWritable())
+        editorRef.current.setEditorValueAtCursorPosition(html);
     } catch (error) {
-      setToast({ type: "error", title: t("toast.error"), message: t(getWritingErrorKey(error, task)) });
+      if (!controller.signal.aborted)
+        setToast({ type: "error", title: t("toast.error"), message: t(getWritingErrorKey(error, task)) });
     } finally {
-      setIsDrafting(false);
+      if (!controller.signal.aborted) setIsDrafting(false);
     }
   };
 
