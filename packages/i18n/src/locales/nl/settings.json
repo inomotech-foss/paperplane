@@ -172,7 +172,7 @@
     "description": "De AI-schrijfassistent in pagina's en werkitems stuurt tekst naar deze provider.",
     "provider": {
       "label": "Provider",
-      "description": "Als je de provider wijzigt, wordt het model gewist, omdat modelnamen per provider verschillen."
+      "description": "Als je de provider wijzigt, worden het model en de API-sleutel gewist, omdat geen van beide werkt met een andere provider."
     },
     "model": {
       "label": "Model",

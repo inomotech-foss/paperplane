@@ -172,7 +172,7 @@
     "description": "Asistent písania s AI na stránkach a v pracovných položkách odosiela text tomuto poskytovateľovi.",
     "provider": {
       "label": "Poskytovateľ",
-      "description": "Zmena poskytovateľa vymaže model, pretože názvy modelov sa u poskytovateľov líšia."
+      "description": "Zmena poskytovateľa vymaže model aj kľúč API, pretože ani jedno nefunguje u iného poskytovateľa."
     },
     "model": {
       "label": "Model",

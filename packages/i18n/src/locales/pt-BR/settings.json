@@ -172,7 +172,7 @@
     "description": "O assistente de escrita com IA em páginas e itens de trabalho envia texto para este provedor.",
     "provider": {
       "label": "Provedor",
-      "description": "Trocar o provedor limpa o modelo, pois os nomes dos modelos variam entre provedores."
+      "description": "Trocar o provedor limpa o modelo e a chave de API, pois nenhum dos dois funciona com outro provedor."
     },
     "model": {
       "label": "Modelo",

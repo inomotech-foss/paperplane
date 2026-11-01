@@ -172,7 +172,7 @@
     "description": "L'assistente di scrittura IA in pagine ed elementi di lavoro invia il testo a questo fornitore.",
     "provider": {
       "label": "Fornitore",
-      "description": "Cambiando fornitore il modello viene cancellato, perché i nomi dei modelli variano tra fornitori."
+      "description": "Cambiando fornitore vengono cancellati il modello e la chiave API, perché nessuno dei due funziona con un altro fornitore."
     },
     "model": {
       "label": "Modello",

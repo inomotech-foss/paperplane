@@ -172,7 +172,7 @@
     "description": "Trợ lý viết AI trong trang và mục công việc gửi văn bản đến nhà cung cấp này.",
     "provider": {
       "label": "Nhà cung cấp",
-      "description": "Khi đổi nhà cung cấp, mô hình sẽ bị xóa vì tên mô hình khác nhau giữa các nhà cung cấp."
+      "description": "Khi đổi nhà cung cấp, mô hình và khóa API sẽ bị xóa vì cả hai đều không dùng được với nhà cung cấp khác."
     },
     "model": {
       "label": "Mô hình",

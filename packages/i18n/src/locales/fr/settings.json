@@ -172,7 +172,7 @@
     "description": "L'assistant de rédaction IA des pages et des éléments de travail envoie du texte à ce fournisseur.",
     "provider": {
       "label": "Fournisseur",
-      "description": "Changer de fournisseur efface le modèle, car les noms de modèles diffèrent d'un fournisseur à l'autre."
+      "description": "Changer de fournisseur efface le modèle et la clé API, car aucun des deux ne fonctionne avec un autre fournisseur."
     },
     "model": {
       "label": "Modèle",

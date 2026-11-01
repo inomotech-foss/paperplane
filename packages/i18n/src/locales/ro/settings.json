@@ -172,7 +172,7 @@
     "description": "Asistentul de scriere AI din pagini și activități trimite text acestui furnizor.",
     "provider": {
       "label": "Furnizor",
-      "description": "Schimbarea furnizorului golește modelul, deoarece numele modelelor diferă între furnizori."
+      "description": "Schimbarea furnizorului golește modelul și cheia API, deoarece niciunul nu funcționează cu alt furnizor."
     },
     "model": {
       "label": "Model",

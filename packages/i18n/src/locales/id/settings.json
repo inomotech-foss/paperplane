@@ -172,7 +172,7 @@
     "description": "Asisten penulisan AI di halaman dan item kerja mengirim teks ke penyedia ini.",
     "provider": {
       "label": "Penyedia",
-      "description": "Mengganti penyedia akan mengosongkan model, karena nama model berbeda antarpenyedia."
+      "description": "Mengganti penyedia akan mengosongkan model dan kunci API, karena keduanya tidak berfungsi dengan penyedia lain."
     },
     "model": {
       "label": "Model",

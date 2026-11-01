@@ -172,7 +172,7 @@
     "description": "页面和工作项中的 AI 写作助手会将文本发送给此提供商。",
     "provider": {
       "label": "提供商",
-      "description": "更换提供商会清空模型，因为不同提供商的模型名称不同。"
+      "description": "更换提供商会清空模型和 API 密钥，因为二者都无法用于其他提供商。"
     },
     "model": {
       "label": "模型",

@@ -172,7 +172,7 @@
     "description": "Der KI-Schreibassistent in Seiten und Arbeitselementen sendet Text an diesen Anbieter.",
     "provider": {
       "label": "Anbieter",
-      "description": "Beim Wechsel des Anbieters wird das Modell zurückgesetzt, da sich die Modellnamen zwischen Anbietern unterscheiden."
+      "description": "Beim Wechsel des Anbieters werden das Modell und der API-Schlüssel zurückgesetzt, da beide bei einem anderen Anbieter nicht funktionieren."
     },
     "model": {
       "label": "Modell",

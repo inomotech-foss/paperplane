@@ -172,7 +172,7 @@
     "description": "Asystent pisania AI na stronach i w elementach pracy wysyła tekst do tego dostawcy.",
     "provider": {
       "label": "Dostawca",
-      "description": "Zmiana dostawcy czyści model, ponieważ nazwy modeli różnią się u poszczególnych dostawców."
+      "description": "Zmiana dostawcy czyści model i klucz API, ponieważ żadne z nich nie działa u innego dostawcy."
     },
     "model": {
       "label": "Model",

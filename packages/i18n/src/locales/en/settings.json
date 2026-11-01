@@ -172,7 +172,7 @@
     "description": "The AI writing assistant in pages and work items sends text to this provider.",
     "provider": {
       "label": "Provider",
-      "description": "Changing the provider clears the model, because model names differ between providers."
+      "description": "Changing the provider clears the model and the API key, because neither works with another provider."
     },
     "model": {
       "label": "Model",

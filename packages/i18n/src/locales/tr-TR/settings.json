@@ -172,7 +172,7 @@
     "description": "Sayfalardaki ve iş öğelerindeki AI yazma asistanı metni bu sağlayıcıya gönderir.",
     "provider": {
       "label": "Sağlayıcı",
-      "description": "Sağlayıcıyı değiştirmek modeli temizler, çünkü model adları sağlayıcılar arasında farklıdır."
+      "description": "Sağlayıcıyı değiştirmek modeli ve API anahtarını temizler, çünkü ikisi de başka bir sağlayıcıyla çalışmaz."
     },
     "model": {
       "label": "Model",

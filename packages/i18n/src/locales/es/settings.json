@@ -172,7 +172,7 @@
     "description": "El asistente de escritura con IA de las páginas y los elementos de trabajo envía texto a este proveedor.",
     "provider": {
       "label": "Proveedor",
-      "description": "Al cambiar de proveedor se borra el modelo, porque los nombres de los modelos varían entre proveedores."
+      "description": "Al cambiar de proveedor se borran el modelo y la clave de API, porque ninguno de los dos funciona con otro proveedor."
     },
     "model": {
       "label": "Modelo",
