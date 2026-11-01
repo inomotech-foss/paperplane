@@ -30,21 +30,19 @@ export interface IInstance {
   instance_name: string | undefined;
   whitelist_emails: string | undefined;
   instance_id: string | undefined;
-  license_key: string | undefined;
   current_version: string | undefined;
   latest_version: string | undefined;
   last_checked_at: string | undefined;
   namespace: string | undefined;
   is_telemetry_enabled: boolean;
   is_support_required: boolean;
-  is_activated: boolean;
   is_setup_done: boolean;
   is_signup_screen_visited: boolean;
-  user_count: number | undefined;
   is_verified: boolean;
   created_by: string | undefined;
   updated_by: string | undefined;
-  workspaces_exist: boolean;
+  /** Sent by the instance info only. */
+  workspaces_exist?: boolean;
 }
 
 export interface IInstanceConfig {
@@ -77,14 +75,14 @@ export interface IInstanceConfig {
 
 export interface IInstanceAdmin {
   created_at: string;
-  created_by: string;
+  created_by: string | null;
   id: string;
   instance: string;
-  role: string;
+  role: number;
   updated_at: string;
-  updated_by: string;
-  user: string;
-  user_detail: IUserLite;
+  updated_by: string | null;
+  user: string | null;
+  user_detail: Pick<IUserLite, "id" | "first_name" | "last_name" | "display_name" | "avatar_url" | "email"> | null;
 }
 
 export type TInstanceConfigurationKeys =
@@ -101,7 +99,8 @@ export interface IInstanceConfiguration {
   id: string;
   created_at: string;
   updated_at: string;
-  key: TInstanceConfigurationKeys;
+  /** A known key, or one this client does not know yet. */
+  key: string;
   value: string;
   // True when the key is reconciled by the Helm chart; the UI shows it read-only.
   is_managed: boolean;
@@ -109,8 +108,8 @@ export interface IInstanceConfiguration {
   updated_by: string | null;
 }
 
-export type IFormattedInstanceConfiguration = {
-  [key in TInstanceConfigurationKeys]?: string;
-};
+/** Values by configuration key. Keys this client does not know yet stay readable. */
+export type IFormattedInstanceConfiguration = Partial<Record<TInstanceConfigurationKeys, string>> &
+  Record<string, string | undefined>;
 
 export type TLoginMediums = TCoreLoginMediums | TExtendedLoginMediums;

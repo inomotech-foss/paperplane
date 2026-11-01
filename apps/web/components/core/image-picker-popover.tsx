@@ -25,7 +25,7 @@ import { STATIC_COVER_IMAGES, getCoverImageDisplayURL } from "@/helpers/cover-im
 import { useInstance } from "@/hooks/store/use-instance";
 // services
 import type { UnSplashImage } from "@/services/file.service";
-import { FileService } from "@/services/file.service";
+import { FileService, getUploadedAssetUrl } from "@/services/file.service";
 // local imports
 import { useObjectUrl } from "./use-object-url";
 import { getApiErrorMessage } from "@/helpers/error.helper";
@@ -136,7 +136,7 @@ export const ImagePickerPopover = observer(function ImagePickerPopover(props: Pr
           },
           image
         )
-        .then((res) => uploadCallback(res.asset_url))
+        .then((res) => uploadCallback(getUploadedAssetUrl(res)))
         .catch((error: unknown) => {
           console.error("Error uploading user cover image:", error);
           setIsImageUploading(false);
@@ -157,7 +157,7 @@ export const ImagePickerPopover = observer(function ImagePickerPopover(props: Pr
           },
           image
         )
-        .then((res) => uploadCallback(res.asset_url))
+        .then((res) => uploadCallback(getUploadedAssetUrl(res)))
         .catch((error: unknown) => {
           console.error("Error uploading project cover image:", error);
           setIsImageUploading(false);

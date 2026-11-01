@@ -11,6 +11,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
+from plane.license.api.serializers.request import OAuthApplicationCreateSerializer, OAuthApplicationUpdateSerializer
 from plane.license.api.serializers.response import CreatedOAuthApplicationSerializer, OAuthApplicationSerializer
 from plane.license.api.permissions import InstanceAdminPermission
 
@@ -57,14 +58,14 @@ class InstanceOAuthApplicationEndpoint(BaseAPIView):
 
     permission_classes = [InstanceAdminPermission]
 
-    @extend_schema(responses={200: OAuthApplicationSerializer(many=True)})
+    @extend_schema(filters=False, responses={200: OAuthApplicationSerializer(many=True)})
     def get(self, request):
         return Response(
             [serialize(application) for application in applications().order_by("name")],
             status=status.HTTP_200_OK,
         )
 
-    @extend_schema(responses={201: CreatedOAuthApplicationSerializer})
+    @extend_schema(request=OAuthApplicationCreateSerializer, responses={201: CreatedOAuthApplicationSerializer})
     def post(self, request):
         name = (request.data.get("name") or "").strip()
         redirect_uris = (request.data.get("redirect_uris") or "").strip()
@@ -94,7 +95,7 @@ class InstanceOAuthApplicationEndpoint(BaseAPIView):
             status=status.HTTP_201_CREATED,
         )
 
-    @extend_schema(responses={200: OAuthApplicationSerializer})
+    @extend_schema(request=OAuthApplicationUpdateSerializer, responses={200: OAuthApplicationSerializer})
     def patch(self, request, pk):
         # Only the two fields an admin can sensibly change. client_id stays put,
         # so renaming or adding a redirect URI does not break a deployed client.

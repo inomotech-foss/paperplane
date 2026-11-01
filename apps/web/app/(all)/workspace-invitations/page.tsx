@@ -21,6 +21,7 @@ import { useAppRouter } from "@/hooks/use-app-router";
 // wrappers
 import { AuthenticationWrapper } from "@/lib/wrappers/authentication-wrapper";
 import { WorkspaceService } from "@/services/workspace.service";
+import type { TWorkspaceInvitationPublic } from "@/services/workspace.service";
 // services
 
 // service initialization
@@ -37,7 +38,7 @@ function WorkspaceInvitationPage() {
   // store hooks
   const { data: currentUser } = useUser();
 
-  const { data: invitationDetail, error } = useSWR(
+  const { data: invitationDetail, error } = useSWR<TWorkspaceInvitationPublic, unknown>(
     invitation_id && slug && WORKSPACE_INVITATION(invitation_id.toString()),
     invitation_id && slug
       ? () => workspaceService.getWorkspaceInvitation(slug.toString(), invitation_id.toString())

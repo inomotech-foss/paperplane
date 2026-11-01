@@ -27,6 +27,17 @@ paths:
           description: ''
     patch:
       operationId: root_partial_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedInstanceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedInstanceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedInstanceRequest'
       security:
       - sessionAuth: []
       responses:
@@ -39,13 +50,6 @@ paths:
   /api/instances/admins/:
     get:
       operationId: admins_list
-      parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       tags:
       - admins
       security:
@@ -132,13 +136,6 @@ paths:
   /api/instances/configurations/:
     get:
       operationId: configurations_list
-      parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       tags:
       - configurations
       security:
@@ -154,15 +151,17 @@ paths:
           description: ''
     patch:
       operationId: configurations_partial_update
-      parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       tags:
       - configurations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: string
+                nullable: true
+              description: Configuration values by key. Null stores an empty value
       security:
       - sessionAuth: []
       responses:
@@ -189,6 +188,18 @@ paths:
       operationId: email_credentials_check_create
       tags:
       - email-credentials-check
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailCredentialCheckRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EmailCredentialCheckRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EmailCredentialCheckRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -201,13 +212,6 @@ paths:
   /api/instances/oauth-applications/:
     get:
       operationId: oauth_applications_list
-      parameters:
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       tags:
       - oauth-applications
       security:
@@ -225,6 +229,18 @@ paths:
       operationId: oauth_applications_create
       tags:
       - oauth-applications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OAuthApplicationCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OAuthApplicationCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OAuthApplicationCreateRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -245,6 +261,17 @@ paths:
         required: true
       tags:
       - oauth-applications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOAuthApplicationUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOAuthApplicationUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOAuthApplicationUpdateRequest'
       security:
       - sessionAuth: []
       responses:
@@ -654,6 +681,16 @@ components:
       - managed
       - created
       - client_secret
+    EmailCredentialCheckRequest:
+      type: object
+      properties:
+        receiver_email:
+          type: string
+          format: email
+          minLength: 1
+          description: The address the test email goes to
+      required:
+      - receiver_email
     Instance:
       type: object
       properties:
@@ -677,6 +714,7 @@ components:
         deleted_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         instance_name:
           type: string
@@ -686,17 +724,17 @@ components:
           nullable: true
         instance_id:
           type: string
-          maxLength: 255
+          readOnly: true
         current_version:
           type: string
-          maxLength: 255
+          readOnly: true
         latest_version:
           type: string
+          readOnly: true
           nullable: true
-          maxLength: 255
         edition:
           type: string
-          maxLength: 255
+          readOnly: true
         domain:
           type: string
         last_checked_at:
@@ -705,8 +743,8 @@ components:
           readOnly: true
         namespace:
           type: string
+          readOnly: true
           nullable: true
-          maxLength: 255
         is_telemetry_enabled:
           type: boolean
         is_support_required:
@@ -716,19 +754,25 @@ components:
           readOnly: true
         is_signup_screen_visited:
           type: boolean
+          readOnly: true
         is_verified:
           type: boolean
+          readOnly: true
         is_test:
           type: boolean
+          readOnly: true
         is_current_version_deprecated:
           type: boolean
+          readOnly: true
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
       required:
@@ -1060,6 +1104,7 @@ components:
         deleted_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         instance_name:
           type: string
@@ -1069,17 +1114,17 @@ components:
           nullable: true
         instance_id:
           type: string
-          maxLength: 255
+          readOnly: true
         current_version:
           type: string
-          maxLength: 255
+          readOnly: true
         latest_version:
           type: string
+          readOnly: true
           nullable: true
-          maxLength: 255
         edition:
           type: string
-          maxLength: 255
+          readOnly: true
         domain:
           type: string
         last_checked_at:
@@ -1088,8 +1133,8 @@ components:
           readOnly: true
         namespace:
           type: string
+          readOnly: true
           nullable: true
-          maxLength: 255
         is_telemetry_enabled:
           type: boolean
         is_support_required:
@@ -1099,19 +1144,25 @@ components:
           readOnly: true
         is_signup_screen_visited:
           type: boolean
+          readOnly: true
         is_verified:
           type: boolean
+          readOnly: true
         is_test:
           type: boolean
+          readOnly: true
         is_current_version_deprecated:
           type: boolean
+          readOnly: true
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
       required:
@@ -1432,6 +1483,19 @@ components:
       - installations
       - managed
       - created
+    OAuthApplicationCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        redirect_uris:
+          type: string
+          minLength: 1
+          description: Space-separated redirect URIs
+      required:
+      - name
+      - redirect_uris
     PaginatedInstanceUserList:
       type: object
       properties:
@@ -1524,6 +1588,32 @@ components:
       - total_pages
       - total_results
       - extra_stats
+    PatchedInstanceRequest:
+      type: object
+      properties:
+        instance_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        whitelist_emails:
+          type: string
+          nullable: true
+        domain:
+          type: string
+        is_telemetry_enabled:
+          type: boolean
+        is_support_required:
+          type: boolean
+    PatchedOAuthApplicationUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        redirect_uris:
+          type: string
+          minLength: 1
+          description: Space-separated redirect URIs
     PqlDialectEnum:
       enum:
       - jql
@@ -2478,6 +2568,29 @@ components:
       - display_name
       - email
       - last_login_medium
+    UserAdminLiteRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          maxLength: 255
+        last_name:
+          type: string
+          maxLength: 255
+        avatar:
+          type: string
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          nullable: true
+          maxLength: 255
+        last_login_medium:
+          type: string
+          minLength: 1
+          maxLength: 20
     UserLite:
       type: object
       properties:

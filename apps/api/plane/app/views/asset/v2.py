@@ -19,6 +19,12 @@ from rest_framework.permissions import AllowAny
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 # Module imports
+from plane.app.serializers.request.asset import (
+    AssetAttributesSerializer,
+    AssetCreateSerializer,
+    AssetDuplicateSerializer,
+    AssetIdsSerializer,
+)
 from plane.app.serializers.response.asset import (
     REDIRECT,
     AssetExistsSerializer,
@@ -155,7 +161,7 @@ class UserAssetsV2Endpoint(BaseAPIView):
             return
         return
 
-    @extend_schema(responses={200: AssetUploadSerializer})
+    @extend_schema(request=AssetCreateSerializer, responses={200: AssetUploadSerializer})
     def post(self, request):
         # get the asset key
         name = sanitize_filename(request.data.get("name")) or "unnamed"
@@ -217,7 +223,7 @@ class UserAssetsV2Endpoint(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
-    @extend_schema(responses={204: OpenApiResponse(description="Done")})
+    @extend_schema(request=AssetAttributesSerializer, responses={204: OpenApiResponse(description="Done")})
     def patch(self, request, asset_id):
         # get the asset id
         asset = FileAsset.objects.get(id=asset_id, user_id=request.user.id)
@@ -366,7 +372,7 @@ class WorkspaceFileAssetEndpoint(BaseAPIView):
         else:
             return
 
-    @extend_schema(responses={200: AssetUploadSerializer})
+    @extend_schema(request=AssetCreateSerializer, responses={200: AssetUploadSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def post(self, request, slug):
         name = sanitize_filename(request.data.get("name")) or "unnamed"
@@ -444,7 +450,7 @@ class WorkspaceFileAssetEndpoint(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
-    @extend_schema(responses={204: OpenApiResponse(description="Done")})
+    @extend_schema(request=AssetAttributesSerializer, responses={204: OpenApiResponse(description="Done")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def patch(self, request, slug, asset_id):
         # get the asset id
@@ -626,7 +632,7 @@ class ProjectAssetEndpoint(BaseAPIView):
             return {"draft_issue_id": entity_id}
         return {}
 
-    @extend_schema(responses={200: AssetUploadSerializer})
+    @extend_schema(request=AssetCreateSerializer, responses={200: AssetUploadSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def post(self, request, slug, project_id):
         name = sanitize_filename(request.data.get("name")) or "unnamed"
@@ -694,7 +700,7 @@ class ProjectAssetEndpoint(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
-    @extend_schema(responses={204: OpenApiResponse(description="Done")})
+    @extend_schema(request=AssetAttributesSerializer, responses={204: OpenApiResponse(description="Done")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def patch(self, request, slug, project_id, pk):
         # get the asset id
@@ -763,7 +769,7 @@ class ProjectBulkAssetEndpoint(BaseAPIView):
         project.cover_image_asset_id = asset.id
         project.save()
 
-    @extend_schema(responses={204: OpenApiResponse(description="Done")})
+    @extend_schema(request=AssetIdsSerializer, responses={204: OpenApiResponse(description="Done")})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def post(self, request, slug, project_id, entity_id):
         asset_ids = request.data.get("asset_ids", [])
@@ -892,7 +898,7 @@ class DuplicateAssetEndpoint(BaseAPIView):
 
         return {}
 
-    @extend_schema(responses={200: DuplicatedAssetSerializer})
+    @extend_schema(request=AssetDuplicateSerializer, responses={200: DuplicatedAssetSerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
     def post(self, request, slug, asset_id):
         project_id = request.data.get("project_id", None)

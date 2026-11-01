@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { Link } from "react-router";
 import { debounce } from "lodash-es";
-import { ArrowLeft, Filter, Play } from "lucide-react";
+import { ArrowLeft, Play } from "lucide-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
@@ -18,13 +18,15 @@ import type { TAutomationConditionNode, TAutomationScheduleConfig, TAutomationTr
 import { Loader } from "@plane/blocks/skeleton";
 // hooks
 import { useAutomation } from "@/hooks/store/use-automation";
+import { getApiErrorBody } from "@/helpers/error.helper";
 import { getFirstStringField, getStringField, isRecord, isString } from "@/helpers/narrow.helper";
 import type { IAutomationStore } from "@/store/automation.store";
 // local imports
 import { useAutomationDetails, useAutomationMetadata } from "../helpers/metadata";
 import { isScheduleConfig } from "../helpers/trigger-config";
 import { AutomationActionsBlock } from "./actions-block";
-import { AutomationConditionBuilder, ensureConditionIds } from "./condition-builder";
+import { ensureConditionIds } from "./condition-builder";
+import { AutomationConditionSection } from "./condition-section";
 import { AutomationRunHistory } from "./run-history";
 import { AutomationScopeBlock } from "./scope-block";
 import { AutomationTriggerBlock } from "./trigger-block";
@@ -87,7 +89,8 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
 
   const reportError = useCallback(
     (error: unknown) => {
-      const firstDetail = isRecord(error) ? Object.values(error).flat().find(isString) : undefined;
+      const body = getApiErrorBody(error);
+      const firstDetail = isRecord(body) ? Object.values(body).flat().find(isString) : undefined;
       setToast({
         type: "error",
         title: t("automations.toasts.update.error.title"),
@@ -172,7 +175,8 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
       setToast({
         type: "error",
         title: t("automations.toasts.enable.error.title"),
-        message: getFirstStringField(error, "is_enabled") ?? t("automations.enable.validation.required"),
+        message:
+          getFirstStringField(getApiErrorBody(error), "is_enabled") ?? t("automations.enable.validation.required"),
       });
     } finally {
       setIsTogglingEnabled(false);
@@ -191,7 +195,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
       setToast({
         type: "error",
         title: t("automations.toasts.run_now.error.title"),
-        message: getStringField(error, "error") ?? t("automations.toasts.run_now.error.message"),
+        message: getStringField(getApiErrorBody(error), "error") ?? t("automations.toasts.run_now.error.message"),
       });
     }
   };
@@ -274,26 +278,14 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
         disabled={disabled}
       />
 
-      <section className="rounded-lg border border-subtle bg-layer-2 p-4">
-        <header className="mb-3 flex items-center gap-2">
-          <div className="grid size-7 shrink-0 place-items-center rounded-sm bg-layer-3">
-            <Filter className="size-4 text-accent-primary" />
-          </div>
-          <h3 className="text-body-sm-semibold">{t("automations.condition.label")}</h3>
-        </header>
-        {!condition && <p className="mb-2 text-13 text-tertiary">{t("automations.designer.no_conditions")}</p>}
-        {automation.scope === "workspace" && (
-          <p className="mb-2 text-11 text-tertiary">{t("automations.designer.workspace_scope_note")}</p>
-        )}
-        <AutomationConditionBuilder
-          projectId={projectId}
-          scope={automation.scope}
-          metadata={metadata}
-          condition={condition}
-          onChange={handleConditionChange}
-          disabled={disabled}
-        />
-      </section>
+      <AutomationConditionSection
+        projectId={projectId}
+        automation={automation}
+        metadata={metadata}
+        condition={condition}
+        onChange={handleConditionChange}
+        disabled={disabled}
+      />
 
       <AutomationActionsBlock
         workspaceSlug={workspaceSlug}

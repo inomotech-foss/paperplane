@@ -3,25 +3,27 @@
  * See the LICENSE file for details.
  */
 
-import { z } from "zod";
+import type { ApiSchema } from "@plane/api-types";
 import { getAssetIdFromUrl, getFileMetaDataForUpload, unwrap, uploadForm } from "@plane/services";
+import { EFileAssetType } from "@plane/types";
 import type { TFileEntityInfo } from "@plane/types";
 import { apiClient } from "@/services/api-client";
-import { sendJson } from "@/services/send-json";
 
-const assetUploadSchema = z.object({
-  asset_id: z.string(),
-  asset_url: z.string().nullable(),
-  upload_data: z.object({
-    url: z.string(),
-    fields: z.record(z.string(), z.string()),
-  }),
-});
+type TUploadData = NonNullable<ApiSchema<"AssetUpload">["upload_data"]>;
+export type TAssetUpload = Omit<ApiSchema<"AssetUpload">, "upload_data"> & { upload_data: TUploadData };
 
-export type TAssetUpload = z.infer<typeof assetUploadSchema>;
+/** The public board stores comment images only. */
+export function toEntityType(type: EFileAssetType): "COMMENT_DESCRIPTION" {
+  if (type !== EFileAssetType.COMMENT_DESCRIPTION)
+    throw new Error(`The public board does not store assets of type ${type}`);
+  return "COMMENT_DESCRIPTION";
+}
 
-/** Parses the presigned upload the API returns for a new asset. */
-export const parseAssetUpload = (data: unknown): TAssetUpload => assetUploadSchema.parse(data);
+/** The presigned upload of a new asset. The API returns no upload form when storage could not sign one. */
+export function toAssetUpload(upload: ApiSchema<"AssetUpload">): TAssetUpload {
+  if (!upload.upload_data) throw new Error("The storage did not return an upload URL");
+  return { ...upload, upload_data: upload.upload_data };
+}
 
 export const buildUploadForm = (upload: TAssetUpload, file: File): FormData => {
   const form = new FormData();
@@ -41,9 +43,17 @@ export class PublicFileService {
   /** Creates the asset, uploads the file to storage and marks the asset as uploaded. */
   async uploadAsset(anchor: string, data: TFileEntityInfo, file: File): Promise<TAssetUpload> {
     const fileMetaData = await getFileMetaDataForUpload(file);
-    // The schema has no request body for this operation.
-    const upload = parseAssetUpload(
-      await sendJson(`/api/public/assets/v2/anchor/${anchor}/`, { ...data, ...fileMetaData })
+    const upload = toAssetUpload(
+      await unwrap(
+        apiClient.POST("/api/public/assets/v2/anchor/{anchor}/", {
+          params: { path: { anchor } },
+          body: {
+            ...fileMetaData,
+            entity_identifier: data.entity_identifier,
+            entity_type: toEntityType(data.entity_type),
+          },
+        })
+      )
     );
     await uploadForm(upload.upload_data.url, buildUploadForm(upload, file), {
       signal: this.uploadController.signal,
@@ -56,9 +66,13 @@ export class PublicFileService {
     return upload;
   }
 
-  /** The schema has no request body for this operation. */
   async updateBulkAssetsUploadStatus(anchor: string, entityId: string, data: { asset_ids: string[] }): Promise<void> {
-    await sendJson(`/api/public/assets/v2/anchor/${anchor}/${entityId}/bulk/`, data);
+    await unwrap(
+      apiClient.POST("/api/public/assets/v2/anchor/{anchor}/{entity_id}/bulk/", {
+        params: { path: { anchor, entity_id: entityId } },
+        body: data,
+      })
+    );
   }
 
   async deleteNewAsset(anchor: string, assetId: string): Promise<void> {

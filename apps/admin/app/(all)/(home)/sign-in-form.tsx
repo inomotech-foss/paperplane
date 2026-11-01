@@ -13,10 +13,10 @@ import type { TAdminAuthErrorInfo } from "@plane/constants";
 import { API_BASE_URL } from "@plane/constants";
 import { Button } from "@makeplane/propel/components/button";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
-import { AuthService } from "@plane/services";
 // components
 import { Banner } from "@/components/common/banner";
 // hooks
+import { loadCsrfToken } from "@/helpers/csrf";
 import { useInstance } from "@/hooks/store/use-instance";
 // local components
 import { FormHeader } from "@/components/instance/form-header";
@@ -25,7 +25,6 @@ import { AuthHeader } from "./auth-header";
 import { authErrorHandler } from "./auth-helpers";
 
 // service initialization
-const authService = new AuthService();
 
 // error codes
 enum EErrorCodes {
@@ -72,8 +71,7 @@ export const InstanceSignInForm = observer(function InstanceSignInForm() {
     setFormData((prev) => ({ ...prev, [key]: value }));
 
   useEffect(() => {
-    if (csrfToken === undefined)
-      authService.requestCSRFToken().then((data) => data?.csrf_token && setCsrfToken(data.csrf_token));
+    if (csrfToken === undefined) loadCsrfToken(setCsrfToken);
   }, [csrfToken]);
 
   useEffect(() => {

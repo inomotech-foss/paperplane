@@ -7,17 +7,22 @@ import type { TWorkItemFilterExpression } from "@plane/types";
 import { EIssueLayoutTypes } from "@plane/types";
 import { ArchivedIssuesFilter } from "./archived/filter.store";
 import { ProjectViewIssuesFilter } from "./project-views/filter.store";
-import type { IIssueRootStore } from "./root.store";
 
-const makeRootStore = () =>
-  ({
-    projectIssues: { clear: vi.fn(), fetchIssuesWithExistingPagination: vi.fn() },
-    projectViewIssues: { clear: vi.fn(), fetchIssuesWithExistingPagination: vi.fn() },
-    archivedIssues: { clear: vi.fn(), fetchIssuesWithExistingPagination: vi.fn() },
-  }) as unknown as IIssueRootStore;
+const issues = () => ({ clear: vi.fn(), fetchIssuesWithExistingPagination: vi.fn(async () => undefined) });
+
+const makeRootStore = () => ({
+  projectId: "p1",
+  viewId: "v1",
+  currentUserId: "u1",
+  archivedIssues: issues(),
+  projectIssues: issues(),
+  projectViewIssues: issues(),
+  rootStore: { projectView: { getViewById: vi.fn() } },
+});
 
 afterEach(() => {
   localStorage.clear();
+  vi.restoreAllMocks();
 });
 
 describe("ArchivedIssuesFilter", () => {

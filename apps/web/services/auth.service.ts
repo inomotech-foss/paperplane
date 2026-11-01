@@ -4,65 +4,34 @@
  * See the LICENSE file for details.
  */
 
-// types
-import { API_BASE_URL } from "@plane/constants";
+import { unwrap } from "@plane/services";
 import type { ICsrfTokenData, IEmailCheckData, IEmailCheckResponse } from "@plane/types";
-// helpers
-// services
-import { APIService } from "@/services/api.service";
+import { apiClient } from "@/services/api-client";
 
-export class AuthService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
-
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class AuthService {
   async requestCSRFToken(): Promise<ICsrfTokenData> {
-    return this.get("/auth/get-csrf-token/")
-      .then((response) => response.data)
-      .catch((error) => {
-        throw error;
-      });
+    return unwrap(apiClient.GET("/auth/get-csrf-token/"));
   }
 
   emailCheck = async (data: IEmailCheckData): Promise<IEmailCheckResponse> =>
-    this.post("/auth/email-check/", data, { headers: {} })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    unwrap(apiClient.POST("/auth/email-check/", { body: data }));
 
-  async sendResetPasswordLink(data: { email: string }): Promise<any> {
-    return this.post(`/auth/forgot-password/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
+  async sendResetPasswordLink(data: { email: string }): Promise<void> {
+    await unwrap(apiClient.POST("/auth/forgot-password/", { body: data }));
   }
 
-  async setPassword(token: string, data: { password: string }): Promise<any> {
-    return this.post(`/auth/set-password/`, data, {
-      headers: {
-        "X-CSRFTOKEN": token,
-      },
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async setPassword(token: string, data: { password: string }): Promise<void> {
+    await unwrap(apiClient.POST("/auth/set-password/", { body: data, headers: { "X-CSRFTOKEN": token } }));
   }
 
-  async generateUniqueCode(data: { email: string }): Promise<any> {
-    return this.post("/auth/magic-generate/", data, { headers: {} })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async generateUniqueCode(data: { email: string }): Promise<void> {
+    await unwrap(apiClient.POST("/auth/magic-generate/", { body: data }));
   }
 
-  async signOut(baseUrl: string): Promise<any> {
-    const data = await this.requestCSRFToken();
-    const csrfToken = data?.csrf_token;
-
+  /** Signs out with a form post, so the browser follows the redirect the API answers with. */
+  async signOut(baseUrl: string): Promise<void> {
+    const { csrf_token: csrfToken } = await this.requestCSRFToken();
     if (!csrfToken) throw Error("CSRF token not found");
 
     const form = document.createElement("form");

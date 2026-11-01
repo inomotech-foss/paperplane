@@ -3,17 +3,31 @@
 # See the LICENSE file for details.
 
 # Third party imports
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 # Module imports
 from plane.automation import validators
-from plane.automation.registry import TriggerType
+from plane.automation.registry import ActionType, TriggerType
 from plane.automation.scheduling import describe as describe_schedule
 from plane.db.models import Automation, AutomationAction, AutomationRun, AutomationScope
 from .base import BaseSerializer
 
 
+# `validate` checks these against the registry, so the schema can promise the registry values.
+@extend_schema_field({"type": "string", "enum": [*TriggerType, ""], "description": "Empty for a draft"})
+class TriggerTypeField(serializers.CharField):
+    pass
+
+
+@extend_schema_field({"type": "string", "enum": list(ActionType)})
+class ActionTypeField(serializers.CharField):
+    pass
+
+
 class AutomationActionSerializer(BaseSerializer):
+    action_type = ActionTypeField(max_length=127)
+
     class Meta:
         model = AutomationAction
         fields = [
@@ -65,6 +79,7 @@ class AutomationRunSerializer(BaseSerializer):
 
 
 class AutomationSerializer(BaseSerializer):
+    trigger_type = TriggerTypeField(max_length=127, required=False, allow_blank=True)
     actions = AutomationActionSerializer(many=True, read_only=True)
     project_ids = serializers.ListField(child=serializers.UUIDField(), required=False, write_only=True)
     projects = serializers.SerializerMethodField()

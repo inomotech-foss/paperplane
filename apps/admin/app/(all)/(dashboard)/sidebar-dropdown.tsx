@@ -21,13 +21,12 @@ import { WorkspaceAvatar } from "@makeplane/propel/components/workspace-avatar";
 import { AccessAndRolesOutline, LogOutOutline, PaletteOutline } from "@makeplane/propel/icons";
 // plane internal packages
 import { API_BASE_URL } from "@plane/constants";
-import { AuthService } from "@plane/services";
 import { getFileURL, cn } from "@plane/utils";
 // hooks
 import { useTheme, useUser } from "@/hooks/store";
+import { loadCsrfToken } from "@/helpers/csrf";
 
 // service initialization
-const authService = new AuthService();
 
 export const AdminSidebarDropdown = observer(function AdminSidebarDropdown() {
   // store hooks
@@ -71,8 +70,7 @@ export const AdminSidebarDropdown = observer(function AdminSidebarDropdown() {
   );
 
   useEffect(() => {
-    if (csrfToken === undefined)
-      void authService.requestCSRFToken().then((data) => data?.csrf_token && setCsrfToken(data.csrf_token));
+    if (csrfToken === undefined) loadCsrfToken(setCsrfToken);
   }, [csrfToken]);
 
   return (

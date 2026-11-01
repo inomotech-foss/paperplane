@@ -770,6 +770,21 @@ class IssueCommentSerializer(BaseSerializer):
         return attrs
 
 
+class PublicCommentReactionSerializer(BaseSerializer):
+    """A comment reaction as the public board shows it, with the actor it names."""
+
+    actor_detail = UserLiteSerializer(read_only=True, source="actor")
+
+    class Meta:
+        model = CommentReaction
+        fields = ["id", "comment", "reaction", "actor_detail"]
+        read_only_fields = fields
+
+
+class PublicIssueCommentSerializer(IssueCommentSerializer):
+    comment_reactions = PublicCommentReactionSerializer(read_only=True, many=True)
+
+
 class IssueStateFlatSerializer(BaseSerializer):
     state_detail = StateLiteSerializer(read_only=True, source="state")
     project_detail = ProjectLiteSerializer(read_only=True, source="project")

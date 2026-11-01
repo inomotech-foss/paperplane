@@ -44,7 +44,7 @@ export interface IBaseTimelineStore {
   currentView: TGanttViews;
   currentViewData: ChartDataType | undefined;
   activeBlockId: string | null;
-  renderView: any;
+  renderView: unknown;
   isDragging: boolean;
   isDependencyEnabled: boolean;
   //
@@ -57,7 +57,7 @@ export interface IBaseTimelineStore {
   updateCurrentView: (view: TGanttViews) => void;
   updateCurrentViewData: (data: ChartDataType | undefined) => void;
   updateActiveBlockId: (blockId: string | null) => void;
-  updateRenderView: (data: any) => void;
+  updateRenderView: (data: unknown) => void;
   updateAllBlocksOnChartChangeWhileDragging: (addedWidth: number) => void;
   getUpdatedPositionAfterDrag: (
     id: string,
@@ -81,7 +81,7 @@ export class BaseTimeLineStore implements IBaseTimelineStore {
   currentView: TGanttViews = "week";
   currentViewData: ChartDataType | undefined = undefined;
   activeBlockId: string | null = null;
-  renderView: any = [];
+  renderView: unknown = [];
 
   rootStore: RootStore;
 
@@ -164,9 +164,9 @@ export class BaseTimeLineStore implements IBaseTimelineStore {
 
   /**
    * @description update render view
-   * @param {any[]} data
+   * @param data the render payload of the current view
    */
-  updateRenderView = (data: any[]) => {
+  updateRenderView = (data: unknown) => {
     this.renderView = data;
   };
 
@@ -214,7 +214,7 @@ export class BaseTimeLineStore implements IBaseTimelineStore {
   ) {
     if (!this.blockIds || !Array.isArray(this.blockIds) || this.isDragging) return true;
 
-    const updatedBlockMaps: { path: string[]; value: any }[] = [];
+    const updatedBlockMaps: { path: string[]; value: unknown }[] = [];
     const newBlocks: IGanttBlock[] = [];
 
     // Loop through blockIds to generate blocks Data
@@ -252,10 +252,9 @@ export class BaseTimeLineStore implements IBaseTimelineStore {
 
       // create block updates if the block already exists, or push them to newBlocks
       if (this.blocksMap[blockId]) {
-        for (const key of Object.keys(block)) {
-          const currValue = this.blocksMap[blockId][key as keyof IGanttBlock];
-          const nextValue = block[key as keyof IGanttBlock];
-          if (!isEqual(currValue, nextValue)) {
+        const current: Record<string, unknown> = { ...this.blocksMap[blockId] };
+        for (const [key, nextValue] of Object.entries(block)) {
+          if (!isEqual(current[key], nextValue)) {
             updatedBlockMaps.push({ path: [blockId, key], value: nextValue });
           }
         }

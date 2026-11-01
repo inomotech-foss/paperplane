@@ -322,7 +322,7 @@ export class ProjectStore implements IProjectStore {
       const projectsResponse = await this.projectService.getProjectsLite(workspaceSlug);
       runInAction(() => {
         projectsResponse.forEach((project) => {
-          update(this.projectMap, [project.id], (p) => ({ ...p, ...project }));
+          update(this.projectMap, [project.id], (p: TProject | undefined) => ({ ...p, ...project }));
         });
         this.loader = "loaded";
         if (!this.fetchStatus) this.fetchStatus = "partial";
@@ -351,7 +351,7 @@ export class ProjectStore implements IProjectStore {
       const projectsResponse = await this.projectService.getProjects(workspaceSlug);
       runInAction(() => {
         projectsResponse.forEach((project) => {
-          update(this.projectMap, [project.id], (p) => ({ ...p, ...project }));
+          update(this.projectMap, [project.id], (p: TProject | undefined) => ({ ...p, ...project }));
         });
         this.loader = "loaded";
         this.fetchStatus = "complete";
@@ -374,7 +374,7 @@ export class ProjectStore implements IProjectStore {
     try {
       const response = await this.projectService.getProject(workspaceSlug, projectId);
       runInAction(() => {
-        update(this.projectMap, [projectId], (p) => ({ ...p, ...response }));
+        update(this.projectMap, [projectId], (p: TProject | undefined) => ({ ...p, ...response }));
       });
       return response;
     } catch (error) {
@@ -613,7 +613,7 @@ export class ProjectStore implements IProjectStore {
           this.rootStore.favorite.removeFavoriteFromStore(projectId);
         });
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.log("Failed to archive project from project store");
         throw error;
       });
@@ -634,7 +634,7 @@ export class ProjectStore implements IProjectStore {
         });
         void this.rootStore.projectRoot.link.fetchProjectLinks(workspaceSlug, projectId);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.log("Failed to restore project from project store");
         throw error;
       });

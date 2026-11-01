@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-// plane imports
+import type { AdminPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
 import type {
   IFormattedInstanceConfiguration,
@@ -12,133 +12,53 @@ import type {
   IInstanceAdmin,
   IInstanceConfiguration,
   IInstanceInfo,
-  TPage,
 } from "@plane/types";
-// api service
-import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
+import { toInstance, toInstanceConfiguration, toInstanceInfo } from "./instance-convert";
+import type { TUnregisteredInstance } from "./instance-convert";
 
-/**
- * Service class for managing instance-related operations
- * Handles retrieval of instance information and changelog
- * @extends {APIService}
- */
-export class InstanceService extends APIService {
-  /**
-   * Creates an instance of InstanceService
-   * Initializes the service with the base API URL
-   */
-  constructor() {
-    super(API_BASE_URL);
+type TInstanceUpdate = Partial<Pick<IInstance, "instance_name" | "is_telemetry_enabled" | "is_support_required">>;
+
+/** Errors are thrown as `ApiError`. */
+export class InstanceService {
+  private readonly client: ApiClient<AdminPaths>;
+
+  constructor(BASE_URL?: string) {
+    this.client = createApiClient<AdminPaths>(BASE_URL || API_BASE_URL);
   }
 
-  /**
-   * Retrieves information about the current instance
-   * @returns {Promise<IInstanceInfo>} Promise resolving to instance information
-   * @throws {Error} If the API request fails
-   * @remarks This method uses the validateStatus: null option to bypass interceptors for unauthorized errors.
-   */
-  async info(): Promise<IInstanceInfo> {
-    return this.get("/api/instances/", { validateStatus: null })
-      .then((response) => response.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async info(): Promise<IInstanceInfo | TUnregisteredInstance> {
+    return toInstanceInfo(await unwrap(this.client.GET("/api/instances/")));
   }
 
-  /**
-   * Fetches the changelog for the current instance
-   * @returns {Promise<TPage>} Promise resolving to the changelog page data
-   * @throws {Error} If the API request fails
-   */
-  async changelog(): Promise<TPage> {
-    return this.get("/api/instances/changelog/")
-      .then((response) => response.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  /**
-   * Fetches the list of instance admins
-   * @returns {Promise<IInstanceAdmin[]>} Promise resolving to an array of instance admins
-   * @throws {Error} If the API request fails
-   * @remarks This method uses the validateStatus: null option to bypass interceptors for unauthorized errors.
-   */
   async admins(): Promise<IInstanceAdmin[]> {
-    return this.get("/api/instances/admins/", { validateStatus: null })
-      .then((response) => response.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(this.client.GET("/api/instances/admins/"));
   }
 
-  /**
-   * Updates the instance information
-   * @param {Partial<IInstance>} data Data to update the instance with
-   * @returns {Promise<IInstance>} Promise resolving to the updated instance information
-   * @throws {Error} If the API request fails
-   */
-  async update(data: Partial<IInstance>): Promise<IInstance> {
-    return this.patch("/api/instances/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+  async update(data: TInstanceUpdate): Promise<IInstance> {
+    return toInstance(await unwrap(this.client.PATCH("/api/instances/", { body: data })));
   }
 
-  /**
-   * Fetches the list of instance configurations
-   * @returns {Promise<IInstanceConfiguration[]>} Promise resolving to an array of instance configurations
-   * @throws {Error} If the API request fails
-   */
   async configurations(): Promise<IInstanceConfiguration[]> {
-    return this.get("/api/instances/configurations/")
-      .then((response) => response.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const rows = await unwrap(this.client.GET("/api/instances/configurations/"));
+    return rows.map(toInstanceConfiguration);
   }
 
-  /**
-   * Updates the instance configurations
-   * @param {Partial<IFormattedInstanceConfiguration>} data Data to update the instance configurations with
-   * @returns {Promise<IInstanceConfiguration[]>} The updated instance configurations
-   * @throws {Error} If the API request fails
-   */
   async updateConfigurations(data: Partial<IFormattedInstanceConfiguration>): Promise<IInstanceConfiguration[]> {
-    return this.patch("/api/instances/configurations/", data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const body: Record<string, string> = {};
+    for (const [key, value] of Object.entries(data)) if (value !== undefined) body[key] = value;
+    const rows = await unwrap(this.client.PATCH("/api/instances/configurations/", { body }));
+    return rows.map(toInstanceConfiguration);
   }
 
-  /**
-   * Sends a test email to the specified receiver to test SMTP configuration
-   * @param {string} receiverEmail Email address to send the test email to
-   * @returns {Promise<void>} Promise resolving to void
-   * @throws {Error} If the API request fails
-   */
   async sendTestEmail(receiverEmail: string): Promise<void> {
-    return this.post("/api/instances/email-credentials-check/", {
-      receiver_email: receiverEmail,
-    })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(
+      this.client.POST("/api/instances/email-credentials-check/", { body: { receiver_email: receiverEmail } })
+    );
   }
 
-  /**
-   * Disables the email configuration
-   * @returns {Promise<void>} Promise resolving to void
-   * @throws {Error} If the API request fails
-   */
   async disableEmail(): Promise<void> {
-    return this.delete("/api/instances/configurations/disable-email-feature/")
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    await unwrap(this.client.DELETE("/api/instances/configurations/disable-email-feature/"));
   }
 }

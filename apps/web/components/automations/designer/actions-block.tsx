@@ -26,6 +26,8 @@ import { useAutomation } from "@/hooks/store/use-automation";
 // local imports
 import { allowedActions, findAction } from "../helpers/metadata";
 import { AutomationActionConfig } from "./action-config";
+import { RawAutomationValue } from "./raw-value";
+import { getApiErrorBody } from "@/helpers/error.helper";
 import { getFirstStringField, getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
@@ -76,7 +78,8 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
       setToast({
         type: "error",
         title: t("automations.toasts.action.update.error.title"),
-        message: getFirstStringField(error, "config") ?? t("automations.toasts.action.update.error.message"),
+        message:
+          getFirstStringField(getApiErrorBody(error), "config") ?? t("automations.toasts.action.update.error.message"),
       });
     } finally {
       setIsSaving(false);
@@ -90,7 +93,8 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
       setToast({
         type: "error",
         title: t("common.errors.default.title"),
-        message: getStringField(error, "error") ?? t("automations.action.validation.delete_only_action"),
+        message:
+          getStringField(getApiErrorBody(error), "error") ?? t("automations.action.validation.delete_only_action"),
       });
     }
   };
@@ -116,15 +120,19 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
         </button>
       </div>
 
-      <AutomationActionConfig
-        projectId={projectId}
-        scope={automation.scope}
-        metadata={metadata}
-        actionType={action.action_type}
-        config={action.config}
-        onChange={handleConfigChange}
-        disabled={disabled}
-      />
+      {action.raw_config === undefined ? (
+        <AutomationActionConfig
+          projectId={projectId}
+          scope={automation.scope}
+          metadata={metadata}
+          actionType={action.action_type}
+          config={action.config}
+          onChange={handleConfigChange}
+          disabled={disabled}
+        />
+      ) : (
+        <RawAutomationValue value={action.raw_config} />
+      )}
     </div>
   );
 });
@@ -157,7 +165,8 @@ export const AutomationActionsBlock = observer(function AutomationActionsBlock(p
       setToast({
         type: "error",
         title: t("automations.toasts.action.create.error.title"),
-        message: getFirstStringField(error, "config") ?? t("automations.toasts.action.create.error.message"),
+        message:
+          getFirstStringField(getApiErrorBody(error), "config") ?? t("automations.toasts.action.create.error.message"),
       });
     } finally {
       setIsAdding(false);

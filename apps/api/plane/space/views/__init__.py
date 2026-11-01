@@ -4,7 +4,6 @@
 
 from .project import (
     ProjectDeployBoardPublicSettingsEndpoint,
-    WorkspaceProjectDeployBoardEndpoint,
     WorkspaceProjectAnchorEndpoint,
     ProjectMembersEndpoint,
 )

@@ -102,7 +102,6 @@ catalog:
   "@vitest/coverage-v8": "^4.1.11"
   "ast-types": "0.14.2"
   "autoprefixer": "^10.4.19"
-  "axios": "1.20.0"
   "buffer": "^6.0.3"
   "chroma-js": "^3.2.0"
   "class-variance-authority": "0.7.1"
@@ -284,9 +283,6 @@ overrides:
   # No 6.x fix for CVE-2026-104844 (fixed 7.1.6). @tailwindcss/typography pins 6.0.10 but
   # only uses parser()/selector(); 7.0.0's sole break is safe insertion during iteration.
   postcss-selector-parser: 7.1.6
-  axios: "catalog:"
-  # EXACT pin, bump the number. CVE-2026-111755 / CVE-2026-111756 fixed in 1.16.1.
-  follow-redirects: 1.16.1
   uuid: "catalog:"
   # EXACT pin: bump the number, never widen -- 4.x breaks ajv's ^3.0.1 (the only
   # consumer here). Floor is 3.1.8, not 3.1.7: it also fixes GHSA-hrr3-gc8f-f4qj,

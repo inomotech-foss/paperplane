@@ -35,7 +35,7 @@ export class InstanceStore implements IInstanceStore {
   config: IInstanceConfig | undefined = undefined;
   error: TError | undefined = undefined;
   // services
-  instanceService;
+  instanceService: InstanceService;
 
   constructor() {
     makeObservable(this, {
@@ -61,8 +61,12 @@ export class InstanceStore implements IInstanceStore {
       const instanceInfo = await this.instanceService.getInstanceInfo();
       runInAction(() => {
         this.isLoading = false;
-        this.instance = instanceInfo.instance;
-        this.config = instanceInfo.config;
+        if ("instance" in instanceInfo) {
+          this.instance = instanceInfo.instance;
+          this.config = instanceInfo.config;
+        } else {
+          this.error = { status: "error", message: "Instance is not registered", data: instanceInfo };
+        }
       });
     } catch (error) {
       runInAction(() => {

@@ -37,7 +37,7 @@ import CoverImage7 from "@/app/assets/cover-images/image_7.jpg?url";
 import CoverImage8 from "@/app/assets/cover-images/image_8.jpg?url";
 import CoverImage9 from "@/app/assets/cover-images/image_9.jpg?url";
 
-import { FileService } from "@/services/file.service";
+import { FileService, getUploadedAssetUrl } from "@/services/file.service";
 
 const fileService = new FileService();
 
@@ -233,7 +233,7 @@ export const uploadCoverImage = async (
       },
       file
     );
-    return uploadResult.asset_url;
+    return getUploadedAssetUrl(uploadResult);
   } else {
     if (!workspaceSlug) {
       throw new Error("Workspace slug is required for workspace asset upload");
@@ -247,7 +247,7 @@ export const uploadCoverImage = async (
       },
       file
     );
-    return uploadResult.asset_url;
+    return getUploadedAssetUrl(uploadResult);
   }
 };
 

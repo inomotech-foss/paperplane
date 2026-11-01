@@ -16,8 +16,6 @@ import type {
 import { API_BASE_URL } from "@plane/constants";
 import { parseUserTheme } from "@plane/types";
 import type { IUser, TUserProfile } from "@plane/types";
-// api service
-import { APIService } from "../api.service";
 import type { ApiClient } from "../client";
 import { createApiClient, unwrap } from "../client";
 
@@ -43,10 +41,9 @@ export const userUpdateBody = (data: Partial<IUser>): TUserUpdateBody => ({
 /**
  * Service class for managing user operations
  * Handles operations for retrieving the current user's details and perform CRUD operations
- * @extends {APIService}
  * @remarks Methods on the typed client throw `ApiError`.
  */
-export class UserService extends APIService {
+export class UserService {
   private readonly client: ApiClient<InternalPaths>;
   private readonly adminClient: ApiClient<AdminPaths>;
 
@@ -55,7 +52,6 @@ export class UserService extends APIService {
    * @param BASE_URL - Base URL for API requests
    */
   constructor(BASE_URL?: string) {
-    super(BASE_URL || API_BASE_URL);
     this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
     this.adminClient = createApiClient<AdminPaths>(BASE_URL || API_BASE_URL);
   }

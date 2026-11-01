@@ -4,31 +4,15 @@
  * See the LICENSE file for details.
  */
 
-// types
-import { API_BASE_URL } from "@plane/constants";
+import { toInstanceInfo, unwrap } from "@plane/services";
+import type { TUnregisteredInstance } from "@plane/services";
 import type { IInstanceInfo } from "@plane/types";
-// helpers
-// services
-import { APIService } from "@/services/api.service";
+import { adminApiClient } from "@/services/api-client";
 
-export class InstanceService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
-
-  async requestCSRFToken(): Promise<{ csrf_token: string }> {
-    return this.get("/auth/get-csrf-token/")
-      .then((response) => response.data)
-      .catch((error) => {
-        throw error;
-      });
-  }
-
-  async getInstanceInfo(): Promise<IInstanceInfo> {
-    return this.get("/api/instances/")
-      .then((response) => response.data)
-      .catch((error) => {
-        throw error;
-      });
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class InstanceService {
+  /** The instance info, or only its activation flags while the instance is not registered. */
+  async getInstanceInfo(): Promise<IInstanceInfo | TUnregisteredInstance> {
+    return toInstanceInfo(await unwrap(adminApiClient.GET("/api/instances/")));
   }
 }

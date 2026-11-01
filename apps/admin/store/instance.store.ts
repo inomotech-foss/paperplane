@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import { set } from "lodash-es";
 import { observable, action, computed, makeObservable, runInAction } from "mobx";
 // plane internal packages
 import type { TInstanceStatus } from "@plane/constants";
@@ -118,15 +117,16 @@ export class InstanceStore implements IInstanceStore {
     try {
       if (this.instance === undefined) this.isLoading = true;
       this.error = undefined;
-      const instanceInfo = await this.instanceService.info();
+      const response = await this.instanceService.info();
+      // An instance that is not registered sends only its activation flags.
+      const instanceInfo = "instance" in response ? response : undefined;
       // handling the new user popup toggle
-      if (this.instance === undefined && !instanceInfo?.instance?.workspaces_exist)
+      if (this.instance === undefined && !instanceInfo?.instance.workspaces_exist)
         this.store.theme.toggleNewUserPopup();
       runInAction(() => {
-        // console.log("instanceInfo: ", instanceInfo);
         this.isLoading = false;
-        this.instance = instanceInfo.instance;
-        this.config = instanceInfo.config;
+        this.instance = instanceInfo?.instance;
+        this.config = instanceInfo?.config;
       });
       return instanceInfo;
     } catch (error) {
@@ -148,11 +148,10 @@ export class InstanceStore implements IInstanceStore {
   updateInstanceInfo = async (data: Partial<IInstance>) => {
     try {
       const instanceResponse = await this.instanceService.update(data);
-      if (instanceResponse) {
-        runInAction(() => {
-          if (this.instance) set(this.instance, "instance", instanceResponse);
-        });
-      }
+      runInAction(() => {
+        // The update does not send workspaces_exist, so the stored value is kept.
+        this.instance = { ...this.instance, ...instanceResponse };
+      });
       return instanceResponse;
     } catch (error) {
       console.error("Error updating the instance info");

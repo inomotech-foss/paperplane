@@ -42,5 +42,9 @@ class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField()
 
 
-class EmailCheckRequestSerializer(serializers.Serializer):
+class AuthEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+
+class SetPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(help_text="Must pass the password strength check")

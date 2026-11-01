@@ -61,15 +61,20 @@ export interface IArchivedIssuesFilter extends IBaseIssueFilterStore {
   ) => Promise<void>;
 }
 
+/** What the filter store reads from the issue root store. */
+export type TArchivedIssuesFilterRoot = Pick<IIssueRootStore, "projectId" | "currentUserId"> & {
+  archivedIssues: Pick<IIssueRootStore["archivedIssues"], "clear" | "fetchIssuesWithExistingPagination">;
+};
+
 export class ArchivedIssuesFilter extends IssueFilterHelperStore implements IArchivedIssuesFilter {
   // observables
   filters: { [projectId: string]: IIssueFilters } = {};
   // root store
-  rootIssueStore;
+  rootIssueStore: TArchivedIssuesFilterRoot;
   // services
   issueFilterService;
 
-  constructor(_rootStore: IIssueRootStore) {
+  constructor(_rootStore: TArchivedIssuesFilterRoot) {
     super();
     makeObservable(this, {
       // observables

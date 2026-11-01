@@ -32,3 +32,27 @@ INSTANCE_USER_LIST_PARAMETERS = [
     _flag("is_bot", "true or false, both when omitted"),
     _flag("include_deleted", "true lists deleted users too"),
 ]
+
+
+class EmailCredentialCheckSerializer(serializers.Serializer):
+    receiver_email = serializers.EmailField(help_text="The address the test email goes to")
+
+
+class OAuthApplicationUpdateSerializer(serializers.Serializer):
+    name = serializers.CharField(required=False)
+    redirect_uris = serializers.CharField(required=False, help_text="Space-separated redirect URIs")
+
+
+class OAuthApplicationCreateSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    redirect_uris = serializers.CharField(help_text="Space-separated redirect URIs")
+
+
+# A body keyed by configuration key. Unknown and chart-managed keys are ignored.
+CONFIGURATION_VALUES_REQUEST = {
+    "application/json": {
+        "type": "object",
+        "additionalProperties": {"type": "string", "nullable": True},
+        "description": "Configuration values by key. Null stores an empty value",
+    }
+}

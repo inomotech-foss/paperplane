@@ -16,6 +16,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
+from plane.app.serializers.request.asset import AssetAttributesSerializer, AssetCreateSerializer, AssetIdsSerializer
 from plane.app.serializers.response.asset import REDIRECT, AssetUploadSerializer
 from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
 from plane.db.models import DeployBoard, FileAsset, IssueComment
@@ -87,7 +88,7 @@ class EntityAssetEndpoint(BaseAPIView):
         # Redirect to the signed URL
         return HttpResponseRedirect(signed_url)
 
-    @extend_schema(responses={200: AssetUploadSerializer})
+    @extend_schema(request=AssetCreateSerializer, responses={200: AssetUploadSerializer})
     def post(self, request, anchor):
         # Get the deploy board
         deploy_board = DeployBoard.objects.filter(anchor=anchor).first()
@@ -178,7 +179,7 @@ class EntityAssetEndpoint(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
-    @extend_schema(responses={204: OpenApiResponse(description="Done")})
+    @extend_schema(request=AssetAttributesSerializer, responses={204: OpenApiResponse(description="Done")})
     def patch(self, request, anchor, pk):
         # Get the deploy board
         deploy_board = DeployBoard.objects.filter(anchor=anchor).first()
@@ -259,7 +260,7 @@ class AssetRestoreEndpoint(BaseAPIView):
 class EntityBulkAssetEndpoint(BaseAPIView):
     """Endpoint to bulk update assets."""
 
-    @extend_schema(responses={204: OpenApiResponse(description="Done")})
+    @extend_schema(request=AssetIdsSerializer, responses={204: OpenApiResponse(description="Done")})
     def post(self, request, anchor, entity_id):
         # Get the deploy board
         deploy_board = DeployBoard.objects.filter(anchor=anchor, entity_name="project").first()

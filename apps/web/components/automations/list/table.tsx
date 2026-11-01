@@ -25,6 +25,7 @@ import { useProject } from "@/hooks/store/use-project";
 import { AutomationCreateModal } from "../create-modal";
 import { AutomationDeleteModal } from "../delete-modal";
 import { findTrigger, useAutomationMetadata } from "../helpers/metadata";
+import { getApiErrorBody } from "@/helpers/error.helper";
 import { getFirstStringField } from "@/helpers/narrow.helper";
 
 type Props = {
@@ -68,7 +69,8 @@ const AutomationRow = observer(function AutomationRow(props: {
       setToast({
         type: "error",
         title: t("automations.toasts.enable.error.title"),
-        message: getFirstStringField(error, "is_enabled") ?? t("automations.enable.validation.required"),
+        message:
+          getFirstStringField(getApiErrorBody(error), "is_enabled") ?? t("automations.enable.validation.required"),
       });
     }
   };

@@ -20,11 +20,11 @@ import { ImportExportSettingsLoader } from "@/components/ui/loader/settings/impo
 // constants
 import { EXPORT_SERVICES_LIST } from "@plane/constants";
 // services
-import { IntegrationService } from "@/services/integrations";
+import { ProjectExportService } from "@/services/project/project-export.service";
 // local imports
 import { useExportColumns } from "./column";
 
-const integrationService = new IntegrationService();
+const projectExportService = new ProjectExportService();
 
 type Props = {
   workspaceSlug: string;
@@ -44,7 +44,7 @@ export const PrevExports = observer(function PrevExports(props: Props) {
 
   const { data: exporterServices } = useSWR(
     workspaceSlug && cursor ? EXPORT_SERVICES_LIST(workspaceSlug, cursor, `${per_page}`) : null,
-    workspaceSlug && cursor ? () => integrationService.getExportsServicesList(workspaceSlug, cursor, per_page) : null
+    workspaceSlug && cursor ? () => projectExportService.getExports(workspaceSlug, cursor, per_page) : null
   );
 
   const handleRefresh = useCallback(async () => {

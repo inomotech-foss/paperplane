@@ -67,15 +67,21 @@ export interface IProjectViewIssuesFilter extends IBaseIssueFilterStore {
   resetFilters: (workspaceSlug: string, viewId: string) => void;
 }
 
+/** What the filter store reads from the issue root store. */
+export type TProjectViewIssuesFilterRoot = Pick<IIssueRootStore, "viewId" | "currentUserId"> & {
+  projectViewIssues: Pick<IIssueRootStore["projectViewIssues"], "clear" | "fetchIssuesWithExistingPagination">;
+  rootStore: { projectView: Pick<IIssueRootStore["rootStore"]["projectView"], "getViewById"> };
+};
+
 export class ProjectViewIssuesFilter extends IssueFilterHelperStore implements IProjectViewIssuesFilter {
   // observables
   filters: { [viewId: string]: IIssueFilters } = {};
   // root store
-  rootIssueStore: IIssueRootStore;
+  rootIssueStore: TProjectViewIssuesFilterRoot;
   // services
   issueFilterService;
 
-  constructor(_rootStore: IIssueRootStore) {
+  constructor(_rootStore: TProjectViewIssuesFilterRoot) {
     super();
     makeObservable(this, {
       // observables

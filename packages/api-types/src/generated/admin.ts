@@ -358,6 +358,13 @@ export interface components {
             /** @description Shown once, it cannot be read again */
             client_secret: string;
         };
+        EmailCredentialCheckRequest: {
+            /**
+             * Format: email
+             * @description The address the test email goes to
+             */
+            receiver_email: string;
+        };
         Instance: {
             /** Format: uuid */
             readonly id: string;
@@ -370,31 +377,31 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: date-time */
-            deleted_at: string | null;
+            readonly deleted_at: string | null;
             instance_name: string;
             whitelist_emails: string | null;
-            instance_id: string;
-            current_version: string;
-            latest_version: string | null;
-            edition: string;
+            readonly instance_id: string;
+            readonly current_version: string;
+            readonly latest_version: string | null;
+            readonly edition: string;
             domain: string;
             /** Format: date-time */
             readonly last_checked_at: string;
-            namespace: string | null;
+            readonly namespace: string | null;
             is_telemetry_enabled: boolean;
             is_support_required: boolean;
             readonly is_setup_done: boolean;
-            is_signup_screen_visited: boolean;
-            is_verified: boolean;
-            is_test: boolean;
-            is_current_version_deprecated: boolean;
+            readonly is_signup_screen_visited: boolean;
+            readonly is_verified: boolean;
+            readonly is_test: boolean;
+            readonly is_current_version_deprecated: boolean;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         InstanceAdmin: {
             /** Format: uuid */
@@ -515,31 +522,31 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: date-time */
-            deleted_at: string | null;
+            readonly deleted_at: string | null;
             instance_name: string;
             whitelist_emails: string | null;
-            instance_id: string;
-            current_version: string;
-            latest_version: string | null;
-            edition: string;
+            readonly instance_id: string;
+            readonly current_version: string;
+            readonly latest_version: string | null;
+            readonly edition: string;
             domain: string;
             /** Format: date-time */
             readonly last_checked_at: string;
-            namespace: string | null;
+            readonly namespace: string | null;
             is_telemetry_enabled: boolean;
             is_support_required: boolean;
             readonly is_setup_done: boolean;
-            is_signup_screen_visited: boolean;
-            is_verified: boolean;
-            is_test: boolean;
-            is_current_version_deprecated: boolean;
+            readonly is_signup_screen_visited: boolean;
+            readonly is_verified: boolean;
+            readonly is_test: boolean;
+            readonly is_current_version_deprecated: boolean;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         InstanceInfo: {
             config: components["schemas"]["InstanceConfig"];
@@ -667,6 +674,11 @@ export interface components {
             /** Format: date-time */
             created: string;
         };
+        OAuthApplicationCreateRequest: {
+            name: string;
+            /** @description Space-separated redirect URIs */
+            redirect_uris: string;
+        };
         PaginatedInstanceUserList: {
             results: components["schemas"]["InstanceUser"][];
             grouped_by: string | null;
@@ -694,6 +706,18 @@ export interface components {
             total_pages: number;
             total_results: number;
             extra_stats: unknown;
+        };
+        PatchedInstanceRequest: {
+            instance_name?: string;
+            whitelist_emails?: string | null;
+            domain?: string;
+            is_telemetry_enabled?: boolean;
+            is_support_required?: boolean;
+        };
+        PatchedOAuthApplicationUpdateRequest: {
+            name?: string;
+            /** @description Space-separated redirect URIs */
+            redirect_uris?: string;
         };
         /**
          * @description * `jql` - JQL
@@ -1167,6 +1191,14 @@ export interface components {
             display_name: string;
             email: string | null;
             last_login_medium: string;
+        };
+        UserAdminLiteRequest: {
+            first_name?: string;
+            last_name?: string;
+            avatar?: string;
+            display_name?: string;
+            email?: string | null;
+            last_login_medium?: string;
         };
         UserLite: {
             /** Format: uuid */
@@ -1700,7 +1732,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedInstanceRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedInstanceRequest"];
+                "multipart/form-data": components["schemas"]["PatchedInstanceRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -1714,10 +1752,7 @@ export interface operations {
     };
     admins_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -1831,10 +1866,7 @@ export interface operations {
     };
     configurations_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -1853,15 +1885,18 @@ export interface operations {
     };
     configurations_partial_update: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: string | null;
+                };
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -1898,7 +1933,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailCredentialCheckRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["EmailCredentialCheckRequest"];
+                "multipart/form-data": components["schemas"]["EmailCredentialCheckRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -1912,10 +1953,7 @@ export interface operations {
     };
     oauth_applications_list: {
         parameters: {
-            query?: {
-                /** @description A search term. */
-                search?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -1939,7 +1977,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OAuthApplicationCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OAuthApplicationCreateRequest"];
+                "multipart/form-data": components["schemas"]["OAuthApplicationCreateRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -1980,7 +2024,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedOAuthApplicationUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedOAuthApplicationUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedOAuthApplicationUpdateRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {

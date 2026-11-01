@@ -8,3 +8,4 @@ export * from "./instance.service";
 export * from "./oauth-application.service";
 export * from "./user.service";
 export * from "./user-error";
+export * from "./instance-convert";

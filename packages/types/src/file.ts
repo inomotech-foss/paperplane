@@ -22,18 +22,11 @@ export type TFileMetaData = TFileMetaDataLite & TFileEntityInfo;
 
 export type TFileSignedURLResponse = {
   asset_id: string;
-  asset_url: string;
+  /** Null for the entity types the API serves through another URL. */
+  asset_url: string | null;
   upload_data: {
     url: string;
-    fields: {
-      "Content-Type": string;
-      key: string;
-      "x-amz-algorithm": string;
-      "x-amz-credential": string;
-      "x-amz-date": string;
-      policy: string;
-      "x-amz-signature": string;
-    };
+    fields: Record<string, string>;
   };
 };
 

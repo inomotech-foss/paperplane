@@ -9,6 +9,7 @@ from typing import List, Dict, Tuple
 # Third party import
 from openai import OpenAI
 import requests
+from urllib.parse import quote
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -16,6 +17,8 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from drf_spectacular.types import OpenApiTypes
 
 # Module import
+from plane.app.serializers.request.ai import AssistantTaskSerializer
+from plane.app.serializers.request.asset import UNSPLASH_PARAMETERS
 from plane.app.serializers.response.misc import AssistantReplySerializer, ProjectAssistantReplySerializer
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.serializers import ProjectLiteSerializer, WorkspaceLiteSerializer
@@ -149,7 +152,7 @@ def get_llm_response(task, prompt, api_key: str, model: str, provider: str) -> T
 
 
 class GPTIntegrationEndpoint(BaseAPIView):
-    @extend_schema(responses={200: ProjectAssistantReplySerializer})
+    @extend_schema(request=AssistantTaskSerializer, responses={200: ProjectAssistantReplySerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id):
         api_key, model, provider = get_llm_config()
@@ -186,7 +189,7 @@ class GPTIntegrationEndpoint(BaseAPIView):
 
 
 class WorkspaceGPTIntegrationEndpoint(BaseAPIView):
-    @extend_schema(responses={200: AssistantReplySerializer})
+    @extend_schema(request=AssistantTaskSerializer, responses={200: AssistantReplySerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def post(self, request, slug):
         api_key, model, provider = get_llm_config()
@@ -219,7 +222,8 @@ class WorkspaceGPTIntegrationEndpoint(BaseAPIView):
 
 class UnsplashEndpoint(BaseAPIView):
     @extend_schema(
-        responses={200: OpenApiResponse(OpenApiTypes.ANY, description="The Unsplash API response, passed through")}
+        parameters=UNSPLASH_PARAMETERS,
+        responses={200: OpenApiResponse(OpenApiTypes.ANY, description="The Unsplash API response, passed through")},
     )
     def get(self, request):
         (UNSPLASH_ACCESS_KEY,) = get_configuration_value(
@@ -240,7 +244,7 @@ class UnsplashEndpoint(BaseAPIView):
         per_page = request.GET.get("per_page", 20)
 
         url = (
-            f"https://api.unsplash.com/search/photos/?client_id={UNSPLASH_ACCESS_KEY}&query={query}&page=${page}&per_page={per_page}"
+            f"https://api.unsplash.com/search/photos/?client_id={UNSPLASH_ACCESS_KEY}&query={quote(query)}&page={page}&per_page={per_page}"
             if query
             else f"https://api.unsplash.com/photos/?client_id={UNSPLASH_ACCESS_KEY}&page={page}&per_page={per_page}"
         )

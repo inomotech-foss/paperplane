@@ -47,13 +47,7 @@ export const useEditorConfig = () => {
           if (src?.startsWith("http")) {
             await fileService.deleteOldWorkspaceAsset(workspaceId, src);
           } else {
-            await fileService.deleteNewAsset(
-              getEditorAssetSrc({
-                assetId: src,
-                projectId,
-                workspaceSlug,
-              }) ?? ""
-            );
+            await fileService.deleteEditorAsset(workspaceSlug, projectId, src);
           }
         },
         getAssetDownloadSrc: async (path) => {

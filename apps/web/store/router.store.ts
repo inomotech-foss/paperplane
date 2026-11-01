@@ -8,6 +8,10 @@ import type { ParsedUrlQuery } from "node:querystring";
 import { action, makeObservable, observable, computed, runInAction } from "mobx";
 
 import type { TProfileViews } from "@plane/types";
+import { isOneOf } from "@/helpers/narrow.helper";
+
+const PROFILE_VIEWS: readonly TProfileViews[] = ["assigned", "created", "subscribed"];
+
 export interface IRouterStore {
   // observables
   query: ParsedUrlQuery;
@@ -126,8 +130,9 @@ export class RouterStore implements IRouterStore {
    * Returns the profile view id from the query
    * @returns string|undefined
    */
-  get profileViewId() {
-    return this.query?.profileViewId?.toString() as TProfileViews;
+  get profileViewId(): TProfileViews | undefined {
+    const view = this.query?.profileViewId?.toString();
+    return isOneOf(PROFILE_VIEWS, view) ? view : undefined;
   }
 
   /**

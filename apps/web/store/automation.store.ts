@@ -12,6 +12,7 @@ import { AutomationService } from "@plane/services";
 import type {
   TAutomation,
   TAutomationAction,
+  TAutomationActionCreatePayload,
   TAutomationActionPayload,
   TAutomationMetadata,
   TAutomationPayload,
@@ -58,7 +59,7 @@ export interface IAutomationStore {
   createAction: (
     workspaceSlug: string,
     automationId: string,
-    data: TAutomationActionPayload,
+    data: TAutomationActionCreatePayload,
     projectId?: string
   ) => Promise<TAutomationAction>;
   updateAction: (
@@ -225,7 +226,7 @@ export class AutomationStore implements IAutomationStore {
   createAction = async (
     workspaceSlug: string,
     automationId: string,
-    data: TAutomationActionPayload,
+    data: TAutomationActionCreatePayload,
     projectId?: string
   ) => {
     const created = await this.automationService.createAction(workspaceSlug, automationId, data, projectId);

@@ -4,9 +4,6 @@
  * See the LICENSE file for details.
  */
 
-export * from "./github-importer";
-export * from "./jira-importer";
-
 import type { IProjectLite } from "../project";
 // types
 import type { IUserLite } from "../users";
@@ -43,18 +40,18 @@ export interface IExportData {
   id: string;
   created_at: string;
   updated_at: string;
-  project: string[];
-  provider: string;
-  status: string;
-  url: string;
+  project: string[] | null;
+  provider: "csv" | "json" | "xlsx";
+  status: "queued" | "processing" | "completed" | "failed" | "expired";
+  url: string | null;
   token: string;
-  created_by: string;
-  updated_by: string;
+  created_by: string | null;
+  updated_by: string | null;
   initiated_by_detail: IUserLite;
 }
 export interface IExportServiceResponse {
   count: number;
-  extra_stats: null;
+  extra_stats: unknown;
   next_cursor: string;
   next_page_results: boolean;
   prev_cursor: string;

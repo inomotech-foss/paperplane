@@ -9,7 +9,8 @@ from django.db.models import Prefetch
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 
 # Module imports
 from plane.utils.openapi.serializers import MessageResponseSerializer
@@ -35,6 +36,16 @@ from plane.db.models import (
     Workspace,
 )
 from ..base import BaseAPIView
+
+
+RUN_STATUS_PARAMETER = OpenApiParameter(
+    name="status",
+    description="Only runs with this status. Every run when omitted",
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.QUERY,
+    required=False,
+    enum=("success", "failed", "partial", "skipped"),
+)
 
 
 class AutomationBaseEndpoint(BaseAPIView):
@@ -276,12 +287,12 @@ class ProjectAutomationEndpoint(AutomationBaseEndpoint):
             return self.list_automations(request, slug, project_id=project_id)
         return self.retrieve_automation(request, slug, pk, project_id=project_id)
 
-    @extend_schema(responses={201: AutomationSerializer})
+    @extend_schema(request=AutomationSerializer, responses={201: AutomationSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id):
         return self.create_automation(request, slug, project_id=project_id)
 
-    @extend_schema(responses={200: AutomationSerializer})
+    @extend_schema(request=AutomationSerializer, responses={200: AutomationSerializer})
     @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, pk):
         return self.update_automation(request, slug, pk, project_id=project_id)
@@ -294,17 +305,17 @@ class ProjectAutomationEndpoint(AutomationBaseEndpoint):
 class ProjectAutomationActionEndpoint(AutomationBaseEndpoint):
     scope = AutomationScope.PROJECT
 
-    @extend_schema(responses={200: AutomationActionSerializer(many=True)})
+    @extend_schema(filters=False, responses={200: AutomationActionSerializer(many=True)})
     @allow_permission([ROLE.ADMIN])
     def get(self, request, slug, project_id, automation_id):
         return self.list_actions(request, slug, automation_id, project_id=project_id)
 
-    @extend_schema(responses={201: AutomationActionSerializer})
+    @extend_schema(request=AutomationActionSerializer, responses={201: AutomationActionSerializer})
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id, automation_id):
         return self.create_action(request, slug, automation_id, project_id=project_id)
 
-    @extend_schema(responses={200: AutomationActionSerializer})
+    @extend_schema(request=AutomationActionSerializer, responses={200: AutomationActionSerializer})
     @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, automation_id, pk):
         return self.update_action(request, slug, automation_id, pk, project_id=project_id)
@@ -318,7 +329,8 @@ class ProjectAutomationRunEndpoint(AutomationBaseEndpoint):
     scope = AutomationScope.PROJECT
 
     @extend_schema(
-        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: paginated_response(AutomationRunSerializer)}
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER, RUN_STATUS_PARAMETER],
+        responses={200: paginated_response(AutomationRunSerializer)},
     )
     @allow_permission([ROLE.ADMIN])
     def get(self, request, slug, project_id, automation_id):
@@ -340,12 +352,12 @@ class WorkspaceAutomationEndpoint(AutomationBaseEndpoint):
             return self.list_automations(request, slug)
         return self.retrieve_automation(request, slug, pk)
 
-    @extend_schema(responses={201: AutomationSerializer})
+    @extend_schema(request=AutomationSerializer, responses={201: AutomationSerializer})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug):
         return self.create_automation(request, slug)
 
-    @extend_schema(responses={200: AutomationSerializer})
+    @extend_schema(request=AutomationSerializer, responses={200: AutomationSerializer})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, pk):
         return self.update_automation(request, slug, pk)
@@ -358,17 +370,17 @@ class WorkspaceAutomationEndpoint(AutomationBaseEndpoint):
 class WorkspaceAutomationActionEndpoint(AutomationBaseEndpoint):
     scope = AutomationScope.WORKSPACE
 
-    @extend_schema(responses={200: AutomationActionSerializer(many=True)})
+    @extend_schema(filters=False, responses={200: AutomationActionSerializer(many=True)})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def get(self, request, slug, automation_id):
         return self.list_actions(request, slug, automation_id)
 
-    @extend_schema(responses={201: AutomationActionSerializer})
+    @extend_schema(request=AutomationActionSerializer, responses={201: AutomationActionSerializer})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug, automation_id):
         return self.create_action(request, slug, automation_id)
 
-    @extend_schema(responses={200: AutomationActionSerializer})
+    @extend_schema(request=AutomationActionSerializer, responses={200: AutomationActionSerializer})
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, automation_id, pk):
         return self.update_action(request, slug, automation_id, pk)
@@ -382,7 +394,8 @@ class WorkspaceAutomationRunEndpoint(AutomationBaseEndpoint):
     scope = AutomationScope.WORKSPACE
 
     @extend_schema(
-        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER], responses={200: paginated_response(AutomationRunSerializer)}
+        parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER, RUN_STATUS_PARAMETER],
+        responses={200: paginated_response(AutomationRunSerializer)},
     )
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def get(self, request, slug, automation_id):

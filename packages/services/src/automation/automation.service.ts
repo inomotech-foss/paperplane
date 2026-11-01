@@ -4,18 +4,27 @@
  * See the LICENSE file for details.
  */
 
+import type { ApiSchema, InternalPaths } from "@plane/api-types";
 import { API_BASE_URL } from "@plane/constants";
+import {
+  parseAutomationActionConfig,
+  parseAutomationCondition,
+  parseAutomationRunSteps,
+  parseAutomationTriggerConfig,
+} from "@plane/types";
 import type {
   TAutomation,
   TAutomationAction,
+  TAutomationActionCreatePayload,
   TAutomationActionPayload,
   TAutomationMetadata,
   TAutomationPayload,
   TAutomationRun,
 } from "@plane/types";
-import { APIService } from "../api.service";
+import type { ApiClient } from "../client";
+import { createApiClient, unwrap } from "../client";
 
-type TPaginatedRuns = {
+export type TPaginatedRuns = {
   count: number;
   total_count: number;
   next_cursor: string;
@@ -23,61 +32,128 @@ type TPaginatedRuns = {
   results: TAutomationRun[];
 };
 
-/**
- * Service for the automation designer.
- *
- * Automations exist at two scopes and the REST paths differ only by whether a
- * project id is present, so every method takes an optional `projectId`: pass it
- * for project-scoped rules, omit it for workspace-scoped (global) ones.
- */
-export class AutomationService extends APIService {
+/** An action. A config the client cannot read stays in `raw_config`, so it is never written back reset. */
+export function toAutomationAction(row: ApiSchema<"AutomationAction">): TAutomationAction {
+  const config = parseAutomationActionConfig(row.action_type, row.config);
+  return {
+    id: row.id,
+    automation: row.automation,
+    action_type: row.action_type,
+    config: config ?? {},
+    ...(config === undefined ? { raw_config: row.config } : {}),
+    sort_order: row.sort_order,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    created_by: row.created_by,
+  };
+}
+
+/** An automation. A condition the client cannot read stays in `raw_condition`, so it is never written back reset. */
+export function toAutomation(row: ApiSchema<"Automation">): TAutomation {
+  const condition = parseAutomationCondition(row.condition);
+  return {
+    id: row.id,
+    workspace: row.workspace,
+    project: row.project,
+    scope: row.scope,
+    applies_to_all_projects: row.applies_to_all_projects,
+    projects: row.projects,
+    name: row.name,
+    description: row.description,
+    trigger_type: row.trigger_type,
+    trigger_config: parseAutomationTriggerConfig(row.trigger_config),
+    condition: condition ?? null,
+    ...(condition === undefined ? { raw_condition: row.condition } : {}),
+    is_enabled: row.is_enabled,
+    next_run_at: row.next_run_at,
+    last_run_at: row.last_run_at,
+    last_run_status: row.last_run_status,
+    total_run_count: row.total_run_count,
+    failed_run_count: row.failed_run_count,
+    average_duration_ms: row.average_duration_ms,
+    schedule_summary: row.schedule_summary,
+    owned_by: row.owned_by,
+    actions: row.actions.map(toAutomationAction),
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    created_by: row.created_by,
+    updated_by: row.updated_by,
+  };
+}
+
+export const toAutomationRun = (row: ApiSchema<"AutomationRun">): TAutomationRun => ({
+  id: row.id,
+  automation: row.automation,
+  project: row.project,
+  status: row.status,
+  trigger_source: row.trigger_source,
+  trigger_type: row.trigger_type,
+  entity_type: row.entity_type,
+  entity_identifier: row.entity_identifier,
+  initiator: row.initiator,
+  started_at: row.started_at,
+  finished_at: row.finished_at,
+  duration_ms: row.duration_ms,
+  processed_count: row.processed_count,
+  steps: parseAutomationRunSteps(row.steps),
+  error: row.error,
+});
+
+/** Errors are thrown as `ApiError`. Each method addresses the project automations when `projectId` is given. */
+export class AutomationService {
+  private readonly client: ApiClient<InternalPaths>;
+
   constructor(BASE_URL?: string) {
-    super(BASE_URL || API_BASE_URL);
+    this.client = createApiClient<InternalPaths>(BASE_URL || API_BASE_URL);
   }
 
-  /**
-   * Builds the collection URL for the requested scope.
-   */
-  private basePath(workspaceSlug: string, projectId?: string): string {
-    return projectId
-      ? `/api/workspaces/${workspaceSlug}/projects/${projectId}/automations/`
-      : `/api/workspaces/${workspaceSlug}/automations/`;
-  }
-
-  /**
-   * The trigger, condition and action vocabulary the designer renders from.
-   * Static per deployment, so it is safe to fetch once per session.
-   */
   async metadata(workspaceSlug: string): Promise<TAutomationMetadata> {
-    return this.get(`/api/workspaces/${workspaceSlug}/automation-metadata/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    return unwrap(
+      this.client.GET("/api/workspaces/{slug}/automation-metadata/", { params: { path: { slug: workspaceSlug } } })
+    );
   }
 
   async list(workspaceSlug: string, projectId?: string): Promise<TAutomation[]> {
-    return this.get(this.basePath(workspaceSlug, projectId))
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const rows = projectId
+      ? await unwrap(
+          this.client.GET("/api/workspaces/{slug}/projects/{project_id}/automations/", {
+            params: { path: { slug: workspaceSlug, project_id: projectId } },
+          })
+        )
+      : await unwrap(
+          this.client.GET("/api/workspaces/{slug}/automations/", { params: { path: { slug: workspaceSlug } } })
+        );
+    return rows.map(toAutomation);
   }
 
   async retrieve(workspaceSlug: string, automationId: string, projectId?: string): Promise<TAutomation> {
-    return this.get(`${this.basePath(workspaceSlug, projectId)}${automationId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const row = projectId
+      ? await unwrap(
+          this.client.GET("/api/workspaces/{slug}/projects/{project_id}/automations/{pk}/", {
+            params: { path: { slug: workspaceSlug, project_id: projectId, pk: automationId } },
+          })
+        )
+      : await unwrap(
+          this.client.GET("/api/workspaces/{slug}/automations/{pk}/", {
+            params: { path: { slug: workspaceSlug, pk: automationId } },
+          })
+        );
+    return toAutomation(row);
   }
 
   async create(workspaceSlug: string, data: TAutomationPayload, projectId?: string): Promise<TAutomation> {
-    return this.post(this.basePath(workspaceSlug, projectId), data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const body = { ...data, name: data.name ?? "" };
+    const row = projectId
+      ? await unwrap(
+          this.client.POST("/api/workspaces/{slug}/projects/{project_id}/automations/", {
+            params: { path: { slug: workspaceSlug, project_id: projectId } },
+            body,
+          })
+        )
+      : await unwrap(
+          this.client.POST("/api/workspaces/{slug}/automations/", { params: { path: { slug: workspaceSlug } }, body })
+        );
+    return toAutomation(row);
   }
 
   async update(
@@ -86,44 +162,57 @@ export class AutomationService extends APIService {
     data: TAutomationPayload,
     projectId?: string
   ): Promise<TAutomation> {
-    return this.patch(`${this.basePath(workspaceSlug, projectId)}${automationId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const row = projectId
+      ? await unwrap(
+          this.client.PATCH("/api/workspaces/{slug}/projects/{project_id}/automations/{pk}/", {
+            params: { path: { slug: workspaceSlug, project_id: projectId, pk: automationId } },
+            body: data,
+          })
+        )
+      : await unwrap(
+          this.client.PATCH("/api/workspaces/{slug}/automations/{pk}/", {
+            params: { path: { slug: workspaceSlug, pk: automationId } },
+            body: data,
+          })
+        );
+    return toAutomation(row);
   }
 
-  /**
-   * Deleting requires the automation to be disabled first; the API answers 400
-   * with an `error` message when it is not.
-   */
   async destroy(workspaceSlug: string, automationId: string, projectId?: string): Promise<void> {
-    return this.delete(`${this.basePath(workspaceSlug, projectId)}${automationId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
-  }
-
-  async listActions(workspaceSlug: string, automationId: string, projectId?: string): Promise<TAutomationAction[]> {
-    return this.get(`${this.basePath(workspaceSlug, projectId)}${automationId}/actions/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    if (projectId) {
+      return unwrap(
+        this.client.DELETE("/api/workspaces/{slug}/projects/{project_id}/automations/{pk}/", {
+          params: { path: { slug: workspaceSlug, project_id: projectId, pk: automationId } },
+        })
+      );
+    }
+    return unwrap(
+      this.client.DELETE("/api/workspaces/{slug}/automations/{pk}/", {
+        params: { path: { slug: workspaceSlug, pk: automationId } },
+      })
+    );
   }
 
   async createAction(
     workspaceSlug: string,
     automationId: string,
-    data: TAutomationActionPayload,
+    body: TAutomationActionCreatePayload,
     projectId?: string
   ): Promise<TAutomationAction> {
-    return this.post(`${this.basePath(workspaceSlug, projectId)}${automationId}/actions/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const row = projectId
+      ? await unwrap(
+          this.client.POST("/api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/", {
+            params: { path: { slug: workspaceSlug, project_id: projectId, automation_id: automationId } },
+            body,
+          })
+        )
+      : await unwrap(
+          this.client.POST("/api/workspaces/{slug}/automations/{automation_id}/actions/", {
+            params: { path: { slug: workspaceSlug, automation_id: automationId } },
+            body,
+          })
+        );
+    return toAutomationAction(row);
   }
 
   async updateAction(
@@ -133,11 +222,20 @@ export class AutomationService extends APIService {
     data: TAutomationActionPayload,
     projectId?: string
   ): Promise<TAutomationAction> {
-    return this.patch(`${this.basePath(workspaceSlug, projectId)}${automationId}/actions/${actionId}/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const row = projectId
+      ? await unwrap(
+          this.client.PATCH("/api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/{pk}/", {
+            params: { path: { slug: workspaceSlug, project_id: projectId, automation_id: automationId, pk: actionId } },
+            body: data,
+          })
+        )
+      : await unwrap(
+          this.client.PATCH("/api/workspaces/{slug}/automations/{automation_id}/actions/{pk}/", {
+            params: { path: { slug: workspaceSlug, automation_id: automationId, pk: actionId } },
+            body: data,
+          })
+        );
+    return toAutomationAction(row);
   }
 
   async destroyAction(
@@ -146,34 +244,61 @@ export class AutomationService extends APIService {
     actionId: string,
     projectId?: string
   ): Promise<void> {
-    return this.delete(`${this.basePath(workspaceSlug, projectId)}${automationId}/actions/${actionId}/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    if (projectId) {
+      return unwrap(
+        this.client.DELETE("/api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/actions/{pk}/", {
+          params: { path: { slug: workspaceSlug, project_id: projectId, automation_id: automationId, pk: actionId } },
+        })
+      );
+    }
+    return unwrap(
+      this.client.DELETE("/api/workspaces/{slug}/automations/{automation_id}/actions/{pk}/", {
+        params: { path: { slug: workspaceSlug, automation_id: automationId, pk: actionId } },
+      })
+    );
   }
 
   async listRuns(
     workspaceSlug: string,
     automationId: string,
     projectId?: string,
-    params?: { cursor?: string; status?: string }
+    params?: { cursor?: string; status?: TAutomationRun["status"] }
   ): Promise<TPaginatedRuns> {
-    return this.get(`${this.basePath(workspaceSlug, projectId)}${automationId}/runs/`, { params })
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    const page = projectId
+      ? await unwrap(
+          this.client.GET("/api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/runs/", {
+            params: {
+              path: { slug: workspaceSlug, project_id: projectId, automation_id: automationId },
+              query: params,
+            },
+          })
+        )
+      : await unwrap(
+          this.client.GET("/api/workspaces/{slug}/automations/{automation_id}/runs/", {
+            params: { path: { slug: workspaceSlug, automation_id: automationId }, query: params },
+          })
+        );
+    return {
+      count: page.count,
+      total_count: page.total_count,
+      next_cursor: page.next_cursor,
+      next_page_results: page.next_page_results,
+      results: page.results.map(toAutomationRun),
+    };
   }
 
-  /**
-   * Queues an immediate run. The automation must be enabled.
-   */
   async runNow(workspaceSlug: string, automationId: string, projectId?: string): Promise<{ message: string }> {
-    return this.post(`${this.basePath(workspaceSlug, projectId)}${automationId}/runs/`)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    if (projectId) {
+      return unwrap(
+        this.client.POST("/api/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/runs/", {
+          params: { path: { slug: workspaceSlug, project_id: projectId, automation_id: automationId } },
+        })
+      );
+    }
+    return unwrap(
+      this.client.POST("/api/workspaces/{slug}/automations/{automation_id}/runs/", {
+        params: { path: { slug: workspaceSlug, automation_id: automationId } },
+      })
+    );
   }
 }

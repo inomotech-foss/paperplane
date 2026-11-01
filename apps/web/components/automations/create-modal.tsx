@@ -17,6 +17,7 @@ import { setToast } from "@plane/blocks/toast";
 import type { TAutomation } from "@plane/types";
 // hooks
 import { useAutomation } from "@/hooks/store/use-automation";
+import { getApiErrorBody } from "@/helpers/error.helper";
 import { getFirstStringField, getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
@@ -87,9 +88,10 @@ const AutomationForm = observer(function AutomationForm(props: Omit<Props, "isOp
       }
       onClose();
     } catch (submitError) {
+      const body = getApiErrorBody(submitError);
       const message =
-        getFirstStringField(submitError, "name") ??
-        getStringField(submitError, "error") ??
+        getFirstStringField(body, "name") ??
+        getStringField(body, "error") ??
         t(automation ? "automations.toasts.update.error.message" : "automations.toasts.create.error.message");
       setError(message);
     } finally {
