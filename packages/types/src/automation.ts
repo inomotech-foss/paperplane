@@ -92,15 +92,15 @@ export type TAutomationConditionValue = string | number | boolean | string[] | n
 export type TAutomationConditionLeaf = {
   type: "condition";
   /** Client-side identity for list rendering; the API ignores it. */
-  id?: string;
+  id?: string | undefined;
   property: string;
   operator: TAutomationOperator;
-  value?: TAutomationConditionValue;
+  value?: TAutomationConditionValue | undefined;
 };
 
 export type TAutomationConditionGroup = {
   type: "group";
-  id?: string;
+  id?: string | undefined;
   logical_operator: TAutomationLogicalOperator;
   children: TAutomationConditionNode[];
 };
@@ -122,15 +122,15 @@ export type TAutomationScheduledTarget = "project" | "work_items";
 
 export type TAutomationScheduleConfig = {
   mode: TAutomationScheduleMode;
-  frequency?: TAutomationScheduleFrequency;
+  frequency?: TAutomationScheduleFrequency | undefined;
   /** Cron day numbering: 0 is Sunday through 6 for Saturday. */
-  days_of_week?: number[];
-  day_of_month?: number;
-  hour?: number;
-  minute?: number;
-  timezone?: string;
-  cron?: string;
-  scheduled_target?: TAutomationScheduledTarget;
+  days_of_week?: number[] | undefined;
+  day_of_month?: number | undefined;
+  hour?: number | undefined;
+  minute?: number | undefined;
+  timezone?: string | undefined;
+  cron?: string | undefined;
+  scheduled_target?: TAutomationScheduledTarget | undefined;
 };
 
 export type TAutomationTriggerConfig = TAutomationScheduleConfig | Record<string, unknown>;
@@ -143,7 +143,7 @@ export type TAutomationDateValue = string | { mode: "relative"; days: number };
 export type TChangePropertyConfig = {
   property: string;
   change_type: TAutomationChangeType;
-  value?: TAutomationConditionValue | TAutomationDateValue;
+  value?: TAutomationConditionValue | TAutomationDateValue | undefined;
 };
 
 export type TAddCommentConfig = {
@@ -160,29 +160,29 @@ export type TAutomationNotificationRecipient =
 
 export type TSendNotificationConfig = {
   recipients: TAutomationNotificationRecipient[];
-  member_ids?: string[];
-  title?: string;
-  message?: string;
+  member_ids?: string[] | undefined;
+  title?: string | undefined;
+  message?: string | undefined;
 };
 
 export type TCreateWorkItemConfig = {
   name: string;
-  description_html?: string;
-  project_id?: string;
-  type_id?: string;
-  state_id?: string;
-  priority?: string;
-  assignee_ids?: string[];
-  label_ids?: string[];
-  target_date?: TAutomationDateValue;
-  link_to_trigger_work_item?: boolean;
+  description_html?: string | undefined;
+  project_id?: string | undefined;
+  type_id?: string | undefined;
+  state_id?: string | undefined;
+  priority?: string | undefined;
+  assignee_ids?: string[] | undefined;
+  label_ids?: string[] | undefined;
+  target_date?: TAutomationDateValue | undefined;
+  link_to_trigger_work_item?: boolean | undefined;
 };
 
 export type TCallWebhookConfig = {
   url: string;
-  method?: "POST" | "PUT" | "PATCH";
-  headers?: Record<string, string>;
-  payload?: string;
+  method?: "POST" | "PUT" | "PATCH" | undefined;
+  headers?: Record<string, string> | undefined;
+  payload?: string | undefined;
 };
 
 export type TAutomationActionConfig =
@@ -268,13 +268,15 @@ export type TAutomationPayload = Partial<
     "name" | "description" | "trigger_type" | "trigger_config" | "condition" | "is_enabled" | "applies_to_all_projects"
   >
 > & {
-  project_ids?: string[];
+  project_ids?: string[] | undefined;
 };
 
+export type TAutomationActionCreatePayload = TAutomationActionPayload & { action_type: TAutomationActionType };
+
 export type TAutomationActionPayload = {
-  action_type?: TAutomationActionType;
-  config?: TAutomationActionConfig;
-  sort_order?: number;
+  action_type?: TAutomationActionType | undefined;
+  config?: TAutomationActionConfig | undefined;
+  sort_order?: number | undefined;
 };
 
 // -- metadata catalog -------------------------------------------------------
