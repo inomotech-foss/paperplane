@@ -7,7 +7,8 @@
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 // helpers
-import { readString, readText } from "@/helpers/narrow";
+import { readString } from "@plane/types";
+import { readText } from "@/helpers/narrow";
 // types
 import type { TWorkItemEmbedHandler } from "@/types";
 // local imports

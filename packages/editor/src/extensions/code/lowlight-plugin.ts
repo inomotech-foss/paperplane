@@ -11,7 +11,7 @@ import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import highlight from "highlight.js/lib/core";
 import type { createLowlight } from "lowlight";
 // helpers
-import { readNumber } from "@/helpers/narrow";
+import { readNumber } from "@plane/types";
 
 export type Lowlight = ReturnType<typeof createLowlight>;
 type HighlightNode = ReturnType<Lowlight["highlight"]>["children"][number];

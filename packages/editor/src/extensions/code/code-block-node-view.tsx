@@ -15,7 +15,7 @@ import { Tooltip } from "@makeplane/propel/components/tooltip";
 // plane utils
 import { cn } from "@plane/utils";
 // helpers
-import { readString } from "@/helpers/narrow";
+import { readString } from "@plane/types";
 // types
 import { ECodeBlockAttributeNames } from "./types";
 

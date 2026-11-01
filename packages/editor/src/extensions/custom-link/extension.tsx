@@ -12,7 +12,7 @@ import { find, registerCustomProtocol } from "linkifyjs";
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
 import { isValidHttpUrl } from "@/helpers/common";
-import { readProperty, readString } from "@/helpers/narrow";
+import { readField, readString } from "@plane/types";
 // local imports
 import { autolink } from "./helpers/autolink";
 import { clickHandler } from "./helpers/clickHandler";
@@ -257,7 +257,7 @@ export const CustomLinkExtension = Mark.create<LinkOptions, CustomLinkStorage>({
         },
         type: this.type,
         getAttributes: (match) => ({
-          href: readProperty(match.data, "href"),
+          href: readField(match.data, "href"),
         }),
       }),
     ];

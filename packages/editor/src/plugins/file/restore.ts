@@ -11,7 +11,7 @@ import type { EditorState, Transaction } from "@tiptap/pm/state";
 import { CORE_EXTENSIONS } from "@plane/utils";
 // helpers
 import { CORE_ASSETS_META_DATA_RECORD } from "@/helpers/assets";
-import { readString } from "@/helpers/narrow";
+import { readString } from "@plane/types";
 // plane editor imports
 import { NODE_FILE_MAP } from "@/constants/utility";
 // types

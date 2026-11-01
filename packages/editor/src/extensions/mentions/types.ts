@@ -8,7 +8,7 @@ import type { Attrs } from "@tiptap/pm/model";
 // plane types
 import type { TSearchEntities } from "@plane/types";
 // helpers
-import { isOneOf, readString } from "@/helpers/narrow";
+import { isOneOf, readString } from "@plane/types";
 
 export enum EMentionComponentAttributeNames {
   ID = "id",

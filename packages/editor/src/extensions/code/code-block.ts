@@ -9,7 +9,7 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
-import { readProperty } from "@/helpers/narrow";
+import { readField } from "@plane/types";
 
 export type CodeBlockOptions = {
   /**
@@ -304,7 +304,7 @@ export const CodeBlock = Node.create<CodeBlockOptions>({
               const text = event.clipboardData.getData("text/plain");
               const vscode = event.clipboardData.getData("vscode-editor-data");
               const vscodeData: unknown = vscode ? JSON.parse(vscode) : undefined;
-              const language = readProperty(vscodeData, "mode");
+              const language = readField(vscodeData, "mode");
 
               if (vscodeData && language) {
                 const { tr } = view.state;

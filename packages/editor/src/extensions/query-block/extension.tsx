@@ -6,7 +6,7 @@
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 // helpers
-import { isOneOf } from "@/helpers/narrow";
+import { isOneOf } from "@plane/types";
 // types
 import type { TQueryBlockHandler, TQueryBlockHandlerProps } from "@/types";
 // local imports

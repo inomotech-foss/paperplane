@@ -9,7 +9,7 @@ import type { Attrs } from "@tiptap/pm/model";
 import { AlignCenterOutline, AlignLeftOutline, AlignRightOutline } from "@makeplane/propel/icons";
 import type { ComponentType, SVGProps } from "react";
 // helpers
-import { isOneOf, readNumber, readString } from "@/helpers/narrow";
+import { isOneOf, readNumber, readString } from "@plane/types";
 // local imports
 import { ECustomImageAttributeNames, ECustomImageStatus } from "./types";
 import type { TCustomImageAlignment, Pixel, PixelAttribute, TCustomImageAttributes } from "./types";

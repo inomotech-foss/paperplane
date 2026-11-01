@@ -7,7 +7,7 @@
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 // helpers
-import { readProperty } from "@/helpers/narrow";
+import { readField } from "@plane/types";
 
 type NodeHighlightState = {
   highlightedNodeId: string | null;
@@ -70,7 +70,7 @@ export const NodeHighlightPlugin = () =>
         let shouldRecalculate = tr.docChanged;
 
         if (meta) {
-          const nodeId = readProperty(meta, "nodeId");
+          const nodeId = readField(meta, "nodeId");
           if (nodeId !== undefined) {
             highlightedNodeId = typeof nodeId === "string" && nodeId.length > 0 ? nodeId : null;
             shouldRecalculate = true;
