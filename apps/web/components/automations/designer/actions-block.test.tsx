@@ -58,7 +58,7 @@ const makeAutomation = (actions: TAutomationAction[]): TAutomation => ({
   applies_to_all_projects: false,
   name: "Rule",
   description: "",
-  trigger_type: "work_item_created",
+  trigger_type: "work_item.created",
   trigger_config: {},
   condition: null,
   is_enabled: false,
@@ -76,14 +76,6 @@ const makeAutomation = (actions: TAutomationAction[]): TAutomation => ({
   created_by: null,
   updated_by: null,
 });
-
-const deferred = <T,>() => {
-  let resolve: (value: T) => void = () => {};
-  const promise = new Promise<T>((done) => {
-    resolve = done;
-  });
-  return { promise, resolve };
-};
 
 const renderBlock = (actions: TAutomationAction[]) => {
   const view = render(
@@ -130,8 +122,12 @@ describe("AutomationActionsBlock", () => {
 
   it("deletes a new action whose create was still in flight", async () => {
     const created = makeAction("a2", "add_comment", 100);
-    const creating = deferred<TAutomationAction>();
-    store.createAction.mockReturnValueOnce(creating.promise);
+    let resolveCreate: ((action: TAutomationAction) => void) | undefined;
+    store.createAction.mockReturnValueOnce(
+      new Promise<TAutomationAction>((resolve) => {
+        resolveCreate = resolve;
+      })
+    );
     store.deleteAction.mockResolvedValueOnce(undefined);
     const { rerender } = renderBlock([]);
 
@@ -141,7 +137,7 @@ describe("AutomationActionsBlock", () => {
     expect(store.deleteAction).not.toHaveBeenCalled();
 
     await act(async () => {
-      creating.resolve(created);
+      resolveCreate?.(created);
     });
     rerender([]);
 
