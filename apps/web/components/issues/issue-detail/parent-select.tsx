@@ -77,7 +77,7 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
       />
       <div
         className={cn(
-          "group relative flex items-center justify-between gap-2 rounded-sm px-2 py-0.5",
+          "group relative isolate flex items-center justify-between gap-2 rounded-sm px-2 py-0.5",
           {
             "hover:bg-layer-transparent-hover": !disabled,
             "bg-layer-transparent-selected": isParentIssueModalOpen,

@@ -8,6 +8,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { TIssue } from "@plane/types";
 import { findNestedInteractive } from "@/lib/testing/nested-interactive";
+import { findStackingTraps } from "@/lib/testing/stacking";
 import { KanbanIssueBlock } from "./block";
 
 const handleRedirection = vi.fn();
@@ -89,5 +90,16 @@ describe("KanbanIssueBlock", () => {
     expect(link.getAttribute("href")).toBe("/ws/browse/DEMO-1/");
     fireEvent.click(link);
     expect(handleRedirection).toHaveBeenCalledWith("ws", issue, false);
+  });
+
+  it("keeps the controls above the card link", () => {
+    renderBlock();
+    const card = screen.getByRole("link", { name: "Fix the login page" }).closest(".isolate");
+    expect(card).not.toBeNull();
+    const menuButton = screen.getAllByRole("button").find((button) => button.textContent === "");
+    const raised = menuButton?.closest(".z-\\[2\\]");
+    expect(raised).toBeTruthy();
+    expect(card?.contains(raised ?? null)).toBe(true);
+    if (card) expect(findStackingTraps(card)).toEqual([]);
   });
 });

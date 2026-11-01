@@ -93,7 +93,7 @@ export const IssueRelationSelect = observer(function IssueRelationSelect(props: 
 
       <div
         className={cn(
-          "group relative flex items-center gap-2 rounded-sm px-2 py-0.5",
+          "group relative isolate flex items-center gap-2 rounded-sm px-2 py-0.5",
           {
             "hover:bg-layer-1": !disabled,
             "bg-layer-1": isRelationKeyModalActive,

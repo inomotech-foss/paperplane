@@ -18,7 +18,7 @@ import { setToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { TIssue, IIssueDisplayProperties, IIssueMap } from "@plane/types";
 // ui
-import { ControlLink } from "@plane/blocks/layout";
+import { ClickableCard, ClickableCardLink, clickableCardRaisedClassName } from "@plane/blocks/clickable-card";
 import { DropIndicator } from "@plane/blocks/common";
 import { cn, generateWorkItemLink } from "@plane/utils";
 // components
@@ -101,7 +101,7 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
           />
         )}
         <div
-          className={cn("absolute -top-1 right-0 z-[1]", {
+          className={cn(clickableCardRaisedClassName, "absolute -top-1 right-0", {
             "hidden group-hover/kanban-block:block": !isMobile,
             "!block": isMenuActive,
           })}
@@ -114,19 +114,25 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
         </div>
       </div>
 
-      <ControlLink
+      <ClickableCardLink
         href={workItemLink}
-        onClick={onLinkClick}
-        className="line-clamp-1 w-full text-body-sm-medium text-primary after:absolute after:inset-0"
+        onClick={(e) => {
+          e.preventDefault();
+          onLinkClick();
+        }}
+        className="line-clamp-1 w-full text-body-sm-medium text-primary"
         disabled={!!issue.tempId}
       >
         <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
-          <span className="relative z-[1]">{issue.name}</span>
+          <span className={clickableCardRaisedClassName}>{issue.name}</span>
         </Tooltip>
-      </ControlLink>
+      </ClickableCardLink>
 
       <IssueProperties
-        className="pointer-events-none relative z-[1] flex flex-wrap items-center gap-2 pt-1.5 whitespace-nowrap text-tertiary *:pointer-events-auto"
+        className={cn(
+          clickableCardRaisedClassName,
+          "pointer-events-none flex flex-wrap items-center gap-2 pt-1.5 whitespace-nowrap text-tertiary *:pointer-events-auto"
+        )}
         issue={issue}
         displayProperties={displayProperties}
         activeLayout="Kanban"
@@ -254,11 +260,11 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
           }
         }}
       >
-        <div
+        <ClickableCard
           id={getIssueBlockId(issueId, groupId, subGroupId)}
           ref={cardRef}
           className={cn(
-            "relative isolate block w-full rounded-lg border border-subtle bg-layer-2 p-3 text-13 shadow-raised-100 outline-[0.5px] outline-transparent transition-all hover:border-strong hover:shadow-raised-200",
+            "block w-full rounded-lg border border-subtle bg-layer-2 p-3 text-13 shadow-raised-100 outline-[0.5px] outline-transparent transition-all hover:border-strong hover:shadow-raised-200",
             { "hover:cursor-pointer": isDragAllowed },
             { "border border-accent-strong hover:border-accent-strong": getIsIssuePeeked(issue.id) },
             { "z-[100] bg-layer-1": isCurrentBlockDragging }
@@ -283,7 +289,7 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
               isReadOnly={!canEditIssueProperties}
             />
           </RenderIfVisible>
-        </div>
+        </ClickableCard>
       </div>
     </>
   );

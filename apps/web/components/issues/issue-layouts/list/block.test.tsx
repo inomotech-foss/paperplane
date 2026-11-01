@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { TIssue } from "@plane/types";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 import { findNestedInteractive } from "@/lib/testing/nested-interactive";
+import { findStackingTraps } from "@/lib/testing/stacking";
 import { IssueBlock } from "./block";
 
 const setPeekIssue = vi.fn();
@@ -121,5 +122,15 @@ describe("IssueBlock", () => {
     if (chevron) fireEvent.click(chevron);
     expect(setExpanded).toHaveBeenCalled();
     expect(setPeekIssue).not.toHaveBeenCalled();
+  });
+
+  it("keeps the controls above the card link", () => {
+    renderBlock();
+    const card = screen.getByRole("link", { name: "Fix the login page" }).closest(".isolate");
+    expect(card).not.toBeNull();
+    const raised = screen.getByRole("checkbox", { name: "Select" }).closest(".z-\\[2\\]");
+    expect(raised).not.toBeNull();
+    expect(card?.contains(raised)).toBe(true);
+    if (card) expect(findStackingTraps(card)).toEqual([]);
   });
 });

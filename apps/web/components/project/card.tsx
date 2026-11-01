@@ -32,6 +32,12 @@ import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { IProject } from "@plane/types";
 import type { TContextMenuItem } from "@plane/blocks/context-menu";
 import { ContextMenu } from "@plane/blocks/context-menu";
+import {
+  ClickableCard,
+  ClickableCardLink,
+  ClickableCardRaised,
+  clickableCardRaisedClassName,
+} from "@plane/blocks/clickable-card";
 import { FavoriteStar } from "@plane/blocks/common";
 import { copyUrlToClipboard, cn, getFileURL, renderFormattedDate } from "@plane/utils";
 // components
@@ -213,13 +219,14 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
           archive={false}
         />
       )}
-      <div
+      <ClickableCard
         ref={projectCardRef}
-        className="group/project-card relative isolate flex w-full flex-col justify-between overflow-hidden rounded-lg border border-subtle bg-layer-2 transition-all duration-300 hover:border-strong hover:shadow-raised-200"
+        className="group/project-card flex w-full flex-col justify-between overflow-hidden rounded-lg border border-subtle bg-layer-2 transition-all duration-300 hover:border-strong hover:shadow-raised-200"
       >
         <ContextMenu parentRef={projectCardRef} items={MENU_ITEMS} />
-        <Link
+        <ClickableCardLink
           href={projectLink}
+          render={(linkProps) => <Link {...linkProps} />}
           aria-label={project.name}
           onClick={(e) => {
             if (!isMemberOfProject || isArchived) {
@@ -228,7 +235,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
             }
           }}
           data-prevent-progress={!isMemberOfProject || isArchived}
-          className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-strong"
+          className="after:rounded-lg"
         />
         <div className="relative h-[118px] w-full rounded-t">
           <CoverImage
@@ -254,7 +261,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
             </div>
 
             {!isArchived && (
-              <div className="relative z-[2] flex h-full flex-shrink-0 items-center gap-2">
+              <ClickableCardRaised className="flex h-full flex-shrink-0 items-center gap-2">
                 <button
                   type="button"
                   aria-label="Copy link"
@@ -276,7 +283,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                     selected={!!project.is_favorite}
                   />
                 )}
-              </div>
+              </ClickableCardRaised>
             )}
           </div>
         </div>
@@ -295,7 +302,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                 disabled={isMobile}
               >
                 {projectMembers.length > 0 ? (
-                  <div className="relative z-[2] flex cursor-pointer items-center gap-2 text-secondary">
+                  <ClickableCardRaised className="flex cursor-pointer items-center gap-2 text-secondary">
                     <AvatarGroup size="xs" max={2}>
                       {projectMembers.map((member) => (
                         <Avatar
@@ -306,7 +313,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                         />
                       ))}
                     </AvatarGroup>
-                  </div>
+                  </ClickableCardRaised>
                 ) : (
                   <span className="text-13 text-placeholder italic">No Member Yet</span>
                 )}
@@ -315,7 +322,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
             </div>
             {isArchived ? (
               hasAdminRole && (
-                <div className="relative z-[2] flex items-center justify-center gap-2">
+                <ClickableCardRaised className="flex items-center justify-center gap-2">
                   <Button
                     variant="ghost"
                     size="xs"
@@ -331,14 +338,17 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                     icon={<Icon icon={DeleteOutline} />}
                     onClick={() => setDeleteProjectModal(true)}
                   />
-                </div>
+                </ClickableCardRaised>
               )
             ) : (
               <>
                 {isMemberOfProject &&
                   (hasAdminRole || hasMemberRole ? (
                     <Link
-                      className="relative z-[2] flex items-center justify-center rounded-sm p-1 text-placeholder hover:bg-layer-1 hover:text-secondary"
+                      className={cn(
+                        clickableCardRaisedClassName,
+                        "flex items-center justify-center rounded-sm p-1 text-placeholder hover:bg-layer-1 hover:text-secondary"
+                      )}
                       aria-label="Settings"
                       href={`/${workspaceSlug}/settings/projects/${project.id}`}
                     >
@@ -351,7 +361,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                     </span>
                   ))}
                 {!isMemberOfProject && (
-                  <div className="relative z-[2] flex items-center">
+                  <ClickableCardRaised className="flex items-center">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -359,13 +369,13 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                       label="Join"
                       onClick={() => setJoinProjectModal(true)}
                     />
-                  </div>
+                  </ClickableCardRaised>
                 )}
               </>
             )}
           </div>
         </div>
-      </div>
+      </ClickableCard>
     </>
   );
 });

@@ -9,10 +9,11 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { DownloadOutline } from "@makeplane/propel/icons";
 // plane imports
+import { ClickableCard, ClickableCardLink, clickableCardRaisedClassName } from "@plane/blocks/clickable-card";
 import { CORE_EXTENSIONS } from "@plane/editor";
 import type { TEditorAsset } from "@plane/editor";
 import { useTranslation } from "@plane/i18n";
-import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@plane/utils";
+import { cn, getEditorAssetDownloadSrc, getEditorAssetSrc } from "@plane/utils";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
@@ -69,7 +70,7 @@ const AssetItem = observer(function AssetItem(props: AssetItemProps) {
 
   if ([CORE_EXTENSIONS.IMAGE, CORE_EXTENSIONS.CUSTOM_IMAGE].includes(asset.type as CORE_EXTENSIONS))
     return (
-      <div className="group/asset-item relative flex h-12 items-center gap-2 rounded-sm border border-subtle pr-2 transition-colors hover:bg-layer-1">
+      <ClickableCard className="group/asset-item flex h-12 items-center gap-2 rounded-sm border border-subtle pr-2 transition-colors hover:bg-layer-1">
         <div
           className="h-12 w-11 flex-shrink-0 rounded-l-sm bg-cover bg-center bg-no-repeat"
           style={{
@@ -77,23 +78,26 @@ const AssetItem = observer(function AssetItem(props: AssetItemProps) {
           }}
         />
         <div className="flex-1 space-y-0.5 truncate">
-          <a href={asset.href} className="block truncate text-13 font-medium after:absolute after:inset-0">
+          <ClickableCardLink href={asset.href} className="block truncate text-13 font-medium">
             {asset.name}
-          </a>
+          </ClickableCardLink>
           <div className="flex items-end justify-between gap-2">
             <p className="shrink-0 text-11 text-secondary" />
             <a
               href={assetDownloadSrc}
               target="_blank"
               rel="noreferrer noopener"
-              className="pointer-events-none relative z-[1] flex shrink-0 items-center gap-1 rounded-sm px-1 py-0.5 text-secondary opacity-0 transition-opacity group-hover/asset-item:pointer-events-auto group-hover/asset-item:opacity-100 hover:text-primary"
+              className={cn(
+                clickableCardRaisedClassName,
+                "pointer-events-none flex shrink-0 items-center gap-1 rounded-sm px-1 py-0.5 text-secondary opacity-0 transition-opacity group-hover/asset-item:pointer-events-auto group-hover/asset-item:opacity-100 hover:text-primary"
+              )}
             >
               <DownloadOutline className="size-3 shrink-0" />
               <span className="text-11 font-medium">{t("page_navigation_pane.tabs.assets.download_button")}</span>
             </a>
           </div>
         </div>
-      </div>
+      </ClickableCard>
     );
 
   return null;

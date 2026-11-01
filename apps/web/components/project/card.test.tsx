@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import { EUserPermissions } from "@plane/constants";
 import type { IProject } from "@plane/types";
 import { findNestedInteractive } from "@/lib/testing/nested-interactive";
+import { findStackingTraps } from "@/lib/testing/stacking";
 import { ProjectCard } from "./card";
 
 vi.mock("next/navigation", () => ({ useParams: () => ({ workspaceSlug: "ws" }) }));
@@ -84,21 +85,19 @@ describe("ProjectCard", () => {
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
-  it("keeps the archived card actions above the card link", () => {
-    renderCard({ member_role: EUserPermissions.ADMIN, archived_at: "2026-02-01T00:00:00Z" });
-    const cardLink = screen.getByRole("link", { name: "Demo" });
-    const card = cardLink.parentElement;
-    // Any of these on an ancestor starts a stacking context that traps the actions below the link
-    const trapsStacking = /(^|\s)(opacity-\d+|transform|filter|blur-\S+|isolate|z-\S+)(\s|$)/;
-    for (const name of ["Restore", "Delete"]) {
-      const action = screen.getByRole("button", { name });
-      const raised = action.closest(".z-\\[2\\]");
+  it.each([
+    ["admin", { member_role: EUserPermissions.ADMIN }, ["Copy link"]],
+    ["non-member", { member_role: null }, ["Join"]],
+    ["archived", { member_role: EUserPermissions.ADMIN, archived_at: "2026-02-01T00:00:00Z" }, ["Restore", "Delete"]],
+  ])("keeps the %s card actions above the card link", (_, overrides, actions) => {
+    renderCard(overrides);
+    const card = screen.getByRole("link", { name: "Demo" }).parentElement;
+    expect(card?.classList.contains("isolate")).toBe(true);
+    for (const name of actions) {
+      const raised = screen.getByRole("button", { name }).closest(".z-\\[2\\]");
       expect(raised).not.toBeNull();
-      const traps: string[] = [];
-      for (let node = raised?.parentElement; node && node !== card; node = node.parentElement) {
-        if (trapsStacking.test(node.className)) traps.push(node.className);
-      }
-      expect(traps).toEqual([]);
+      expect(card?.contains(raised)).toBe(true);
     }
+    if (card) expect(findStackingTraps(card)).toEqual([]);
   });
 });

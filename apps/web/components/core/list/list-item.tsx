@@ -4,14 +4,19 @@
  * See the LICENSE file for details.
  */
 
-import React from "react";
+import type React from "react";
+import Link from "next/link";
 // ui
 import { Tooltip } from "@makeplane/propel/components/tooltip";
-import { ControlLink, Row } from "@plane/blocks/layout";
+import {
+  ClickableCard,
+  ClickableCardLink,
+  ClickableCardRaised,
+  clickableCardRaisedClassName,
+} from "@plane/blocks/clickable-card";
+import { Row } from "@plane/blocks/layout";
 // helpers
 import { cn } from "@plane/utils";
-// hooks
-import { useAppRouter } from "@/hooks/use-app-router";
 
 interface IListItemProps {
   id?: string;
@@ -56,15 +61,6 @@ export function ListItem(props: IListItemProps) {
     rightElementClassName = "",
   } = props;
 
-  // router
-  const router = useAppRouter();
-
-  // handlers
-  const handleControlLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (onItemClick) onItemClick(e);
-    else router.push(itemLink);
-  };
-
   return (
     <div ref={parentRef} className="relative">
       <Row
@@ -75,31 +71,36 @@ export function ListItem(props: IListItemProps) {
         )}
       >
         <div className={cn("relative flex w-full items-center justify-between gap-3 truncate", itemClassName)}>
-          <div className="relative flex w-full items-center gap-3 overflow-hidden">
+          <ClickableCard className="flex w-full items-center gap-3 overflow-hidden">
             <div className={cn("flex items-center gap-4 truncate", leftElementClassName)}>
               {prependTitleElement && (
-                <span className="relative z-[1] flex flex-shrink-0 items-center">{prependTitleElement}</span>
+                <ClickableCardRaised render={<span />} className="flex flex-shrink-0 items-center">
+                  {prependTitleElement}
+                </ClickableCardRaised>
               )}
-              <ControlLink
+              <ClickableCardLink
                 id={id}
-                className={cn("truncate", { "after:absolute after:inset-0": !disableLink })}
+                className="truncate"
                 href={itemLink}
-                target="_self"
-                onClick={handleControlLinkClick}
+                render={(linkProps) => <Link {...linkProps} />}
+                onClick={onItemClick}
                 disabled={disableLink}
                 data-prevent-progress={preventDefaultProgress}
               >
                 <Tooltip label={title} layout="stacked" disabled={isMobile}>
-                  <span className="relative z-[1] truncate text-13">{title}</span>
+                  <span className={cn(clickableCardRaisedClassName, "truncate text-13")}>{title}</span>
                 </Tooltip>
-              </ControlLink>
+              </ClickableCardLink>
             </div>
             {appendTitleElement && (
-              <span className={cn("relative z-[1] flex flex-shrink-0 items-center", rightElementClassName)}>
+              <ClickableCardRaised
+                render={<span />}
+                className={cn("flex flex-shrink-0 items-center", rightElementClassName)}
+              >
                 {appendTitleElement}
-              </span>
+              </ClickableCardRaised>
             )}
-          </div>
+          </ClickableCard>
           {quickActionElement}
         </div>
         {actionableItems && (

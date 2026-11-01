@@ -16,7 +16,8 @@ import { useOutsideClickDetector } from "@plane/hooks";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { IIssueDisplayProperties, TIssue } from "@plane/types";
 // ui
-import { ControlLink, Row } from "@plane/blocks/layout";
+import { ClickableCardLink, clickableCardRaisedClassName } from "@plane/blocks/clickable-card";
+import { Row } from "@plane/blocks/layout";
 import { cn, generateWorkItemLink } from "@plane/utils";
 // components
 import { MultipleSelectEntityAction } from "@/components/core/multiple-select";
@@ -199,7 +200,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
   // states
   const [isMenuActive, setIsMenuActive] = useState(false);
   // refs
-  const cellRef = useRef(null);
+  const cellRef = useRef<HTMLTableCellElement>(null);
   const menuActionRef = useRef<HTMLButtonElement | null>(null);
   // router
   const { workspaceSlug, projectId } = useParams();
@@ -266,7 +267,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
         id={`issue-${issueId}`}
         ref={cellRef}
         tabIndex={0}
-        className="group/list-block relative left-0 z-10 max-w-lg bg-surface-1 md:sticky"
+        className="group/list-block relative left-0 isolate z-10 max-w-lg bg-surface-1 md:sticky"
       >
         <Row
           className={cn(
@@ -310,7 +311,12 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
                 layout="stacked"
                 disabled={issueDetail.project_id === projectId}
               >
-                <div className="absolute left-1 z-[1] mr-1 grid w-3.5 flex-shrink-0 place-items-center">
+                <div
+                  className={cn(
+                    clickableCardRaisedClassName,
+                    "absolute left-1 mr-1 grid w-3.5 flex-shrink-0 place-items-center"
+                  )}
+                >
                   <MultipleSelectEntityAction
                     className={cn(
                       "pointer-events-none opacity-0 transition-opacity group-hover/list-block:pointer-events-auto group-hover/list-block:opacity-100",
@@ -335,7 +341,10 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
               {hasChildren && (
                 <button
                   type="button"
-                  className="relative z-[1] grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
+                  className={cn(
+                    clickableCardRaisedClassName,
+                    "grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
+                  )}
                   onClick={handleToggleExpand}
                 >
                   <ChevronRightOutline
@@ -349,21 +358,31 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
 
             <div className="my-auto flex h-full w-full items-center justify-between gap-2 truncate">
               <div className="line-clamp-1 w-full text-14 text-primary">
-                <ControlLink
+                <ClickableCardLink
                   href={workItemLink}
-                  onClick={() => handleIssuePeekOverview(issueDetail)}
-                  className="clickable block w-full overflow-hidden outline-none after:absolute after:inset-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleIssuePeekOverview(issueDetail);
+                  }}
+                  className="clickable block w-full overflow-hidden"
                   disabled={!!issueDetail?.tempId}
                 >
                   <Tooltip label={issueDetail.name} layout="stacked" disabled={isMobile}>
-                    <div className="relative z-[1] h-full w-full cursor-pointer truncate pr-4 text-left text-13 text-primary">
+                    <div
+                      className={cn(
+                        clickableCardRaisedClassName,
+                        "h-full w-full cursor-pointer truncate pr-4 text-left text-13 text-primary"
+                      )}
+                    >
                       {issueDetail.name}
                     </div>
                   </Tooltip>
-                </ControlLink>
+                </ClickableCardLink>
               </div>
               <div
-                className={`relative z-[1] opacity-0 transition-opacity group-hover:opacity-100 ${isMenuActive ? "!opacity-100" : ""}`}
+                className={cn(clickableCardRaisedClassName, "opacity-0 transition-opacity group-hover:opacity-100", {
+                  "!opacity-100": isMenuActive,
+                })}
               >
                 {quickActions({
                   issue: issueDetail,

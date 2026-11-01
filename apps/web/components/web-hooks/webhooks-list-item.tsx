@@ -7,6 +7,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 // Plane imports
+import { ClickableCard, ClickableCardLink, ClickableCardRaised } from "@plane/blocks/clickable-card";
 import type { IWebhook } from "@plane/types";
 import { Switch } from "@makeplane/propel/components/switch";
 // hooks
@@ -29,14 +30,15 @@ export function WebhooksListItem(props: IWebhookListItem) {
   };
 
   return (
-    <div className="relative flex items-center justify-between gap-4 rounded-lg border border-subtle bg-layer-2 px-4 py-3">
-      <Link
+    <ClickableCard className="flex items-center justify-between gap-4 rounded-lg border border-subtle bg-layer-2 px-4 py-3">
+      <ClickableCardLink
         href={`/${workspaceSlug}/settings/webhooks/${webhook?.id}`}
-        className="truncate after:absolute after:inset-0"
+        render={(linkProps) => <Link {...linkProps} />}
+        className="truncate"
       >
         <h5 className="truncate text-body-sm-medium">{webhook.url}</h5>
-      </Link>
-      <div className="relative z-[1] shrink-0">
+      </ClickableCardLink>
+      <ClickableCardRaised className="shrink-0">
         <Switch
           size="sm"
           checked={webhook.is_active}
@@ -45,7 +47,7 @@ export function WebhooksListItem(props: IWebhookListItem) {
           }}
           aria-label="Toggle webhook"
         />
-      </div>
-    </div>
+      </ClickableCardRaised>
+    </ClickableCard>
   );
 }

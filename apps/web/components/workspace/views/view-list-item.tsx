@@ -14,6 +14,7 @@ import { IconButton } from "@makeplane/propel/components/icon-button";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/components/menu";
 import { DeleteOutline, EditOutline, MoreHorizontalOutline } from "@makeplane/propel/icons";
 import { useTranslation } from "@plane/i18n";
+import { ClickableCard, ClickableCardLink, ClickableCardRaised } from "@plane/blocks/clickable-card";
 import { truncateText } from "@plane/utils";
 // hooks
 import { useGlobalView } from "@/hooks/store/use-global-view";
@@ -44,20 +45,21 @@ export const GlobalViewListItem = observer(function GlobalViewListItem(props: Pr
       <CreateUpdateWorkspaceViewModal data={view} isOpen={updateViewModal} onClose={() => setUpdateViewModal(false)} />
       <DeleteGlobalViewModal data={view} isOpen={deleteViewModal} onClose={() => setDeleteViewModal(false)} />
       <div className="group border-b border-subtle hover:bg-surface-2">
-        <div className="relative flex h-[52px] w-full items-center justify-between rounded-sm p-4">
+        <ClickableCard className="flex h-[52px] w-full items-center justify-between rounded-sm p-4">
           <div className="flex w-full items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex flex-col">
-                <Link
+                <ClickableCardLink
                   href={`/${workspaceSlug}/workspace-views/${view.id}`}
-                  className="truncate text-13 leading-4 font-medium after:absolute after:inset-0"
+                  render={(linkProps) => <Link {...linkProps} />}
+                  className="truncate text-13 leading-4 font-medium"
                 >
                   {truncateText(view.name, 75)}
-                </Link>
+                </ClickableCardLink>
                 {view?.description && <p className="text-11 text-secondary">{view.description}</p>}
               </div>
             </div>
-            <div className="relative z-[1] ml-2 flex flex-shrink-0">
+            <ClickableCardRaised className="ml-2 flex flex-shrink-0">
               <div className="flex items-center gap-4">
                 <Menu>
                   <MenuTrigger
@@ -84,9 +86,9 @@ export const GlobalViewListItem = observer(function GlobalViewListItem(props: Pr
                   </MenuContent>
                 </Menu>
               </div>
-            </div>
+            </ClickableCardRaised>
           </div>
-        </div>
+        </ClickableCard>
       </div>
     </>
   );

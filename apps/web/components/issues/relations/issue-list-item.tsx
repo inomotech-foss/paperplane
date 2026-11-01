@@ -15,7 +15,12 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/comp
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { TIssueRelationTypes } from "@plane/types";
 import type { TIssue } from "@plane/types";
-import { ControlLink } from "@plane/blocks/layout";
+import {
+  ClickableCard,
+  ClickableCardLink,
+  ClickableCardRaised,
+  clickableCardRaisedClassName,
+} from "@plane/blocks/clickable-card";
 import { generateWorkItemLink } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -109,9 +114,9 @@ export const RelationIssueListItem = observer(function RelationIssueListItem(pro
   return (
     <div key={relationIssueId}>
       {issue && (
-        <div
+        <ClickableCard
           data-issue-row={issue.id}
-          className="group relative flex h-full min-h-11 w-full items-center px-1.5 py-1 transition-all hover:bg-surface-2"
+          className="group flex h-full min-h-11 w-full items-center px-1.5 py-1 transition-all hover:bg-surface-2"
         >
           <span className="size-5 flex-shrink-0" />
           <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
@@ -128,26 +133,29 @@ export const RelationIssueListItem = observer(function RelationIssueListItem(pro
               )}
             </div>
 
-            <ControlLink
+            <ClickableCardLink
               id={`issue-${issue.id}`}
               href={workItemLink}
-              onClick={() => handleIssuePeekOverview(issue)}
-              className="w-0 flex-1 truncate text-13 text-primary after:absolute after:inset-0"
+              onClick={(e) => {
+                e.preventDefault();
+                handleIssuePeekOverview(issue);
+              }}
+              className="w-0 flex-1 truncate text-13 text-primary"
             >
               <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
-                <span className="relative z-[1]">{issue.name}</span>
+                <span className={clickableCardRaisedClassName}>{issue.name}</span>
               </Tooltip>
-            </ControlLink>
+            </ClickableCardLink>
           </div>
-          <div className="relative z-[1] flex-shrink-0 text-13">
+          <ClickableCardRaised className="flex-shrink-0 text-13">
             <RelationIssueProperty
               workspaceSlug={workspaceSlug}
               issueId={relationIssueId}
               disabled={disabled}
               issueOperations={issueOperations}
             />
-          </div>
-          <div className="relative z-[1] flex-shrink-0 pl-2 text-13">
+          </ClickableCardRaised>
+          <ClickableCardRaised className="flex-shrink-0 pl-2 text-13">
             <Menu>
               {/* Icon-only trigger, so it needs an explicit accessible name. */}
               <MenuTrigger
@@ -189,8 +197,8 @@ export const RelationIssueListItem = observer(function RelationIssueListItem(pro
                 )}
               </MenuContent>
             </Menu>
-          </div>
-        </div>
+          </ClickableCardRaised>
+        </ClickableCard>
       )}
     </div>
   );

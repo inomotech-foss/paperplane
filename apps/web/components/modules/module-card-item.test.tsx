@@ -7,6 +7,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import { findNestedInteractive } from "@/lib/testing/nested-interactive";
+import { findStackingTraps } from "@/lib/testing/stacking";
 import { ModuleCardItem } from "./module-card-item";
 
 const push = vi.fn();
@@ -69,5 +70,15 @@ describe("ModuleCardItem", () => {
     expect(screen.getByRole("link", { name: "Launch" }).getAttribute("href")).toBe("/ws/projects/p1/modules/m1/");
     fireEvent.click(screen.getByRole("button", { name: "Module details" }));
     expect(push).toHaveBeenCalledWith("/ws/projects/p1/modules?peekModule=m1");
+  });
+
+  it("keeps the controls above the card link", () => {
+    renderCard();
+    const card = screen.getByRole("link", { name: "Launch" }).closest(".isolate");
+    expect(card).not.toBeNull();
+    const raised = screen.getByRole("button", { name: "Module details" }).closest(".z-\\[2\\]");
+    expect(raised).not.toBeNull();
+    expect(card?.contains(raised)).toBe(true);
+    if (card) expect(findStackingTraps(card)).toEqual([]);
   });
 });
