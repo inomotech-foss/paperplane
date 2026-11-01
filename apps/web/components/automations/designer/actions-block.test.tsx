@@ -5,8 +5,10 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TAutomation, TAutomationAction, TAutomationActionConfig } from "@plane/types";
 import { AutomationActionsBlock } from "./actions-block";
+import type { TRefusedActionEdit } from "./use-refused-action-edits";
 
-const store = vi.hoisted(() => ({ createAction: vi.fn(), updateAction: vi.fn(), deleteAction: vi.fn() }));
+const store = vi.hoisted(() => ({ createAction: vi.fn(), deleteAction: vi.fn() }));
+const onSaveConfig = vi.fn<(actionId: string, config: TAutomationActionConfig) => Promise<boolean>>();
 
 vi.mock("@plane/i18n", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock("@plane/blocks/toast", () => ({ setToast: vi.fn() }));
@@ -85,23 +87,24 @@ const makeAutomation = (actions: TAutomationAction[], is_enabled = false): TAuto
   updated_by: null,
 });
 
-type TRenderOptions = { isEnabled?: boolean; enableErrors?: Record<string, string> };
+type TRenderOptions = {
+  isEnabled?: boolean;
+  enableErrors?: Record<string, string>;
+  refusals?: Record<string, TRefusedActionEdit>;
+};
 
-const renderBlock = (actions: TAutomationAction[], options: TRenderOptions = {}) => {
-  const element = (next: TAutomationAction[], isEnabled = options.isEnabled) => (
+const renderBlock = (actions: TAutomationAction[], options: TRenderOptions = {}) =>
+  render(
     <AutomationActionsBlock
       workspaceSlug="ws"
       projectId="p1"
-      automation={makeAutomation(next, isEnabled)}
+      automation={makeAutomation(actions, options.isEnabled)}
       metadata={undefined}
       enableErrors={options.enableErrors}
+      refusals={options.refusals}
+      onSaveConfig={onSaveConfig}
     />
   );
-  const view = render(element(actions));
-  return {
-    rerender: (next: TAutomationAction[], isEnabled?: boolean) => view.rerender(element(next, isEnabled)),
-  };
-};
 
 const titles = () => screen.queryAllByRole("heading", { level: 4 }).map((heading) => heading.textContent);
 
@@ -138,71 +141,42 @@ describe("AutomationActionsBlock", () => {
     expect(screen.getByText("The comment body is empty.")).toBeTruthy();
   });
 
-  it("saves an edit through the store", async () => {
-    store.updateAction.mockResolvedValueOnce(makeAction("a1", "add_comment", 100));
+  it("hands an edit to the save callback", async () => {
+    onSaveConfig.mockResolvedValueOnce(true);
     renderBlock([makeAction("a1", "add_comment", 100)]);
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "fill" }));
     });
 
-    expect(store.updateAction).toHaveBeenCalledExactlyOnceWith(
-      "ws",
-      "rule-1",
-      "a1",
-      { config: { comment_html: "" } },
-      "p1"
-    );
+    expect(onSaveConfig).toHaveBeenCalledExactlyOnceWith("a1", { comment_html: "" });
   });
 
-  it("keeps a refused edit on screen with the server's reason", async () => {
-    store.updateAction.mockRejectedValueOnce({ config: ["The comment body is empty."] });
+  it("shows a refused edit with the server's reason", () => {
     renderBlock([{ ...makeAction("a1", "add_comment", 100), config: { comment_html: "<p>Hi</p>" } }], {
       isEnabled: true,
+      refusals: { a1: { config: { comment_html: "" }, message: "The comment body is empty." } },
     });
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "fill" }));
-    });
-
-    expect(screen.getByText("The comment body is empty.")).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toBe("The comment body is empty.");
     expect(screen.getByRole("status").textContent).toBe(JSON.stringify({ comment_html: "" }));
   });
 
-  it("saves a refused edit again as a draft once the automation is disabled", async () => {
-    const stored = { ...makeAction("a1", "add_comment", 100), config: { comment_html: "<p>Hi</p>" } };
-    store.updateAction.mockRejectedValueOnce({ config: ["The comment body is empty."] });
-    store.updateAction.mockResolvedValueOnce({ ...stored, config: { comment_html: "" } });
-    const { rerender } = renderBlock([stored], { isEnabled: true });
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "fill" }));
-    });
-    await act(async () => {
-      rerender([stored], false);
-    });
-
-    expect(store.updateAction).toHaveBeenCalledTimes(2);
-    expect(store.updateAction).toHaveBeenLastCalledWith("ws", "rule-1", "a1", { config: { comment_html: "" } }, "p1");
-    expect(screen.queryByRole("alert")).toBeNull();
-  });
-
   it("shows saving instead of the stored reason while a save is in flight", async () => {
-    let resolveUpdate: ((action: TAutomationAction) => void) | undefined;
-    store.updateAction.mockReturnValueOnce(
-      new Promise<TAutomationAction>((resolve) => {
-        resolveUpdate = resolve;
+    let resolveSave: ((saved: boolean) => void) | undefined;
+    onSaveConfig.mockReturnValueOnce(
+      new Promise<boolean>((resolve) => {
+        resolveSave = resolve;
       })
     );
-    const stored = { ...makeAction("a1", "add_comment", 100), config_error: "The comment body is empty." };
-    renderBlock([stored]);
+    renderBlock([{ ...makeAction("a1", "add_comment", 100), config_error: "The comment body is empty." }]);
 
     fireEvent.click(screen.getByRole("button", { name: "fill" }));
 
     expect(screen.getByText("common.saving")).toBeTruthy();
     expect(screen.queryByRole("alert")).toBeNull();
     await act(async () => {
-      resolveUpdate?.(stored);
+      resolveSave?.(true);
     });
     expect(screen.getByRole("alert").textContent).toBe("The comment body is empty.");
   });

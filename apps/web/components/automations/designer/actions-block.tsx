@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { observer } from "mobx-react";
 import { orderBy } from "lodash-es";
 import { Plus, Trash2, Wand2 } from "lucide-react";
@@ -27,6 +27,7 @@ import { useAutomation } from "@/hooks/store/use-automation";
 import { allowedActions, findAction } from "../helpers/metadata";
 import { AutomationActionConfig } from "./action-config";
 import { RawAutomationValue } from "./raw-value";
+import type { TRefusedActionEdit } from "./use-refused-action-edits";
 import { getApiErrorBody } from "@/helpers/error.helper";
 import { readString } from "@plane/types";
 import { getFirstStringField } from "@/helpers/narrow.helper";
@@ -40,7 +41,10 @@ type Props = {
   disabled?: boolean;
   /** Reasons from the last refused enable, keyed by action id. */
   enableErrors?: Record<string, string>;
-  onActionEdited?: (actionId: string) => void;
+  /** Edits the enabled automation refused, keyed by action id. */
+  refusals?: Record<string, TRefusedActionEdit>;
+  /** Resolves to whether the save succeeded. */
+  onSaveConfig: (actionId: string, config: TAutomationActionConfig) => Promise<boolean>;
 };
 
 /** Starting config for a freshly added action. The server stores it and reports what is still missing. */
@@ -61,59 +65,30 @@ const initialConfigFor = (actionType: TAutomationActionType): TAutomationActionC
   }
 };
 
-type ActionCardProps = Omit<Props, "enableErrors"> & {
+type ActionCardProps = Omit<Props, "enableErrors" | "refusals"> & {
   action: TAutomationAction;
   index: number;
   enableError: string | undefined;
+  refusal: TRefusedActionEdit | undefined;
 };
 
 const ActionCard = observer(function ActionCard(props: ActionCardProps) {
-  const { workspaceSlug, projectId, automation, metadata, action, index, disabled, enableError, onActionEdited } =
-    props;
+  const { workspaceSlug, projectId, automation, metadata, action, index, disabled, enableError, refusal } = props;
+  const { onSaveConfig } = props;
   const { t } = useTranslation();
-  const { updateAction, deleteAction } = useAutomation();
-  // An enabled automation refuses incomplete edits. The refused config stays on screen so it is not lost.
-  const [rejected, setRejected] = useState<{ config: TAutomationActionConfig; message: string } | null>(null);
+  const { deleteAction } = useAutomation();
   const [savingCount, setSavingCount] = useState(0);
-  const latestEdit = useRef(0);
 
   const definition = findAction(metadata, action.action_type);
 
   const handleChange = async (config: TAutomationActionConfig): Promise<boolean> => {
-    latestEdit.current += 1;
-    const edit = latestEdit.current;
-    setRejected(null);
     setSavingCount((count) => count + 1);
-    onActionEdited?.(action.id);
     try {
-      await updateAction(workspaceSlug, automation.id, action.id, { config }, projectId);
-      return true;
-    } catch (error) {
-      if (latestEdit.current === edit) {
-        setRejected({
-          config,
-          message:
-            getFirstStringField(getApiErrorBody(error), "config") ??
-            t("automations.toasts.action.update.error.message"),
-        });
-      }
-      return false;
+      return await onSaveConfig(action.id, config);
     } finally {
       setSavingCount((count) => count - 1);
     }
   };
-
-  // Once the automation is disabled, a refused edit is saved again, now as a draft. A ref stands in for
-  // `useEffectEvent`, which React 19.2 never updates inside `observer`'s memo.
-  const resubmitRejected = useRef<() => void>(() => undefined);
-  useEffect(() => {
-    resubmitRejected.current = () => {
-      if (rejected) void handleChange(rejected.config);
-    };
-  });
-  useEffect(() => {
-    if (!automation.is_enabled) resubmitRejected.current();
-  }, [automation.is_enabled]);
 
   const handleDelete = async () => {
     try {
@@ -129,7 +104,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
 
   const isSaving = savingCount > 0;
   // The stored reason describes the config before the edit, so it is hidden until the save returns.
-  const error = isSaving ? undefined : (rejected?.message ?? action.config_error ?? enableError);
+  const error = isSaving ? undefined : (refusal?.message ?? action.config_error ?? enableError);
 
   return (
     <div className="rounded-md border border-subtle bg-layer-2 p-4">
@@ -158,7 +133,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
           scope={automation.scope}
           metadata={metadata}
           actionType={action.action_type}
-          config={rejected?.config ?? action.config}
+          config={refusal?.config ?? action.config}
           onChange={handleChange}
           disabled={disabled}
         />
@@ -179,7 +154,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
  * mistake in one action never blocks editing another.
  */
 export const AutomationActionsBlock = observer(function AutomationActionsBlock(props: Props) {
-  const { workspaceSlug, projectId, automation, metadata, disabled, enableErrors } = props;
+  const { workspaceSlug, projectId, automation, metadata, disabled, enableErrors, refusals } = props;
   const { t } = useTranslation();
   const { createAction } = useAutomation();
   const [isAdding, setIsAdding] = useState(false);
@@ -229,6 +204,7 @@ export const AutomationActionsBlock = observer(function AutomationActionsBlock(p
             action={action}
             index={index}
             enableError={enableErrors?.[action.id]}
+            refusal={refusals?.[action.id]}
           />
         ))}
 

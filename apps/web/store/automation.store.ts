@@ -285,6 +285,8 @@ export class AutomationStore implements IAutomationStore {
 
   deleteAction = async (workspaceSlug: string, automationId: string, actionId: string, projectId?: string) => {
     await this.automationService.destroyAction(workspaceSlug, automationId, actionId, projectId);
+    delete this.confirmedActions[actionId];
+    delete this.pendingActionRequests[actionId];
     runInAction(() => {
       const automation = this.automationMap[automationId];
       if (automation) {

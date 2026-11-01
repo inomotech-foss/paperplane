@@ -33,6 +33,7 @@ import { AutomationConditionSection } from "./condition-section";
 import { AutomationRunHistory } from "./run-history";
 import { AutomationScopeBlock } from "./scope-block";
 import { AutomationTriggerBlock } from "./trigger-block";
+import { useRefusedActionEdits } from "./use-refused-action-edits";
 
 type Props = {
   workspaceSlug: string;
@@ -71,7 +72,7 @@ const makePersist = () =>
 export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(props: Props) {
   const { workspaceSlug, projectId, automationId, disabled } = props;
   const { t } = useTranslation();
-  const { updateAutomation, runNow } = useAutomation();
+  const { updateAutomation, updateAction, getAutomationById, runNow } = useAutomation();
   const { metadata, isLoading: isMetadataLoading } = useAutomationMetadata(workspaceSlug);
   const { automation, isLoading } = useAutomationDetails(workspaceSlug, automationId, projectId);
 
@@ -79,8 +80,11 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
   // so typing a cron expression doesn't fire a request per keystroke.
   const [condition, setCondition] = useState<TAutomationConditionNode | null>(null);
   const [scheduleConfig, setScheduleConfig] = useState<TAutomationScheduleConfig>({ mode: "fixed" });
+  // The latest schedule for handlers that settle after further edits.
+  const latestSchedule = useRef<TAutomationScheduleConfig>({ mode: "fixed" });
   // An enabled automation refuses an incomplete schedule. The reason is shown on the trigger card.
-  const [scheduleRejection, setScheduleRejection] = useState<string | null>(null);
+  const [scheduleRejection, setScheduleRejectionState] = useState<string | null>(null);
+  const hasScheduleRejection = useRef(false);
   const [enableErrors, setEnableErrors] = useState<TAutomationEnableErrors | null>(null);
   const [isTogglingEnabled, setIsTogglingEnabled] = useState(false);
   const hydratedFor = useRef<string | null>(null);
@@ -91,8 +95,14 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
     if (!automation || hydratedFor.current === automation.id) return;
     hydratedFor.current = automation.id;
     setCondition(ensureConditionIds(automation.condition));
-    setScheduleConfig(isScheduleConfig(automation.trigger_config) ? automation.trigger_config : { mode: "fixed" });
+    const hydrated = isScheduleConfig(automation.trigger_config)
+      ? automation.trigger_config
+      : { mode: "fixed" as const };
+    latestSchedule.current = hydrated;
+    setScheduleConfig(hydrated);
   }, [automation]);
+
+  const isStoredEnabled = () => getAutomationById(automationId)?.is_enabled ?? false;
 
   const reportError = useCallback(
     (error: unknown) => {
@@ -121,32 +131,47 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
     persist(workspaceSlug, projectId, automationId, { condition: next }, updateAutomation, reportError);
   };
 
-  const handleScheduleError = (error: unknown) => {
-    const message = getFirstStringField(getApiErrorBody(error), "trigger_config");
-    if (message) setScheduleRejection(message);
-    else reportError(error);
+  const setScheduleRejection = (message: string | null) => {
+    hasScheduleRejection.current = message !== null;
+    setScheduleRejectionState(message);
   };
 
-  const handleScheduleChange = (next: TAutomationScheduleConfig) => {
-    setScheduleConfig(next);
-    setEnableErrors((current) => current && { ...current, trigger: undefined });
-    persist(
-      workspaceSlug,
-      projectId,
-      automationId,
-      { trigger_config: next },
-      updateAutomation,
-      handleScheduleError,
-      () => setScheduleRejection(null)
+  const persistSchedule = (next: TAutomationScheduleConfig, isRetry = false) => {
+    const onError = (error: unknown) => {
+      const message = getFirstStringField(getApiErrorBody(error), "trigger_config");
+      if (!message) return reportError(error);
+      // Disabled while the request was in flight, so the newest schedule now saves as a draft.
+      if (!isRetry && !isStoredEnabled() && latestSchedule.current === next) return persistSchedule(next, true);
+      if (latestSchedule.current === next) setScheduleRejection(message);
+    };
+    persist(workspaceSlug, projectId, automationId, { trigger_config: next }, updateAutomation, onError, () =>
+      setScheduleRejection(null)
     );
   };
 
-  const handleActionEdited = (actionId: string) =>
+  const handleScheduleChange = (next: TAutomationScheduleConfig) => {
+    latestSchedule.current = next;
+    setScheduleConfig(next);
+    setEnableErrors((current) => current && { ...current, trigger: undefined });
+    persistSchedule(next);
+  };
+
+  const clearActionEnableError = (actionId: string) =>
     setEnableErrors((current) => {
       if (!current?.actions[actionId]) return current;
       const { [actionId]: _resolved, ...actions } = current.actions;
       return { ...current, actions };
     });
+
+  const actionEdits = useRefusedActionEdits({
+    save: (actionId, config) => {
+      clearActionEnableError(actionId);
+      return updateAction(workspaceSlug, automationId, actionId, { config }, projectId);
+    },
+    isEnabled: isStoredEnabled,
+    describeError: (error) =>
+      getFirstStringField(getApiErrorBody(error), "config") ?? t("automations.toasts.action.update.error.message"),
+  });
 
   const handleScopeChange = async (payload: { applies_to_all_projects?: boolean; project_ids?: string[] }) => {
     try {
@@ -163,6 +188,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
         // Without it the server infers the target from the actions, which the picker can't show.
         const initial: TAutomationScheduleConfig = { mode: "fixed", scheduled_target: "work_items" };
         payload.trigger_config = initial;
+        latestSchedule.current = initial;
         setScheduleConfig(initial);
       }
       await updateAutomation(workspaceSlug, automationId, payload, projectId);
@@ -181,10 +207,14 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
       persist.flush();
       await updateAutomation(workspaceSlug, automationId, { is_enabled: enabling }, projectId);
       setEnableErrors(null);
-      if (!enabling && scheduleRejection !== null) {
-        // The refused schedule now saves as a draft.
-        handleScheduleChange(scheduleConfig);
-        persist.flush();
+      if (!enabling) {
+        // Refused edits now save as drafts. The newest schedule is read here, so an edit made
+        // while the request was in flight is not overwritten.
+        if (hasScheduleRejection.current) {
+          persistSchedule(latestSchedule.current);
+          persist.flush();
+        }
+        actionEdits.resubmitAll();
       }
       setToast({
         type: "success",
@@ -328,7 +358,8 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
         metadata={metadata}
         disabled={disabled}
         enableErrors={enableErrors?.actions}
-        onActionEdited={handleActionEdited}
+        refusals={actionEdits.refusals}
+        onSaveConfig={actionEdits.saveConfig}
       />
 
       <AutomationRunHistory workspaceSlug={workspaceSlug} projectId={projectId} automationId={automationId} />
