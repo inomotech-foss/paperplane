@@ -26,6 +26,7 @@ import { useAutomationDetails, useAutomationMetadata } from "../helpers/metadata
 import { isScheduleConfig } from "../helpers/trigger-config";
 import { AutomationActionsBlock } from "./actions-block";
 import { AutomationConditionBuilder, ensureConditionIds } from "./condition-builder";
+import { RawAutomationValue } from "./raw-value";
 import { AutomationRunHistory } from "./run-history";
 import { AutomationScopeBlock } from "./scope-block";
 import { AutomationTriggerBlock } from "./trigger-block";
@@ -88,7 +89,8 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
 
   const reportError = useCallback(
     (error: unknown) => {
-      const firstDetail = isRecord(error) ? Object.values(error).flat().find(isString) : undefined;
+      const body = getApiErrorBody(error);
+      const firstDetail = isRecord(body) ? Object.values(body).flat().find(isString) : undefined;
       setToast({
         type: "error",
         title: t("automations.toasts.update.error.title"),
@@ -287,14 +289,18 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
         {automation.scope === "workspace" && (
           <p className="mb-2 text-11 text-tertiary">{t("automations.designer.workspace_scope_note")}</p>
         )}
-        <AutomationConditionBuilder
-          projectId={projectId}
-          scope={automation.scope}
-          metadata={metadata}
-          condition={condition}
-          onChange={handleConditionChange}
-          disabled={disabled}
-        />
+        {automation.raw_condition === undefined ? (
+          <AutomationConditionBuilder
+            projectId={projectId}
+            scope={automation.scope}
+            metadata={metadata}
+            condition={condition}
+            onChange={handleConditionChange}
+            disabled={disabled}
+          />
+        ) : (
+          <RawAutomationValue value={automation.raw_condition} />
+        )}
       </section>
 
       <AutomationActionsBlock

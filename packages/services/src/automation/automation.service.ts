@@ -32,44 +32,54 @@ export type TPaginatedRuns = {
   results: TAutomationRun[];
 };
 
-export const toAutomationAction = (row: ApiSchema<"AutomationAction">): TAutomationAction => ({
-  id: row.id,
-  automation: row.automation,
-  action_type: row.action_type,
-  config: parseAutomationActionConfig(row.action_type, row.config),
-  sort_order: row.sort_order,
-  created_at: row.created_at,
-  updated_at: row.updated_at,
-  created_by: row.created_by,
-});
+/** An action. A config the client cannot read stays in `raw_config`, so it is never written back reset. */
+export function toAutomationAction(row: ApiSchema<"AutomationAction">): TAutomationAction {
+  const config = parseAutomationActionConfig(row.action_type, row.config);
+  return {
+    id: row.id,
+    automation: row.automation,
+    action_type: row.action_type,
+    config: config ?? {},
+    ...(config === undefined ? { raw_config: row.config } : {}),
+    sort_order: row.sort_order,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    created_by: row.created_by,
+  };
+}
 
-export const toAutomation = (row: ApiSchema<"Automation">): TAutomation => ({
-  id: row.id,
-  workspace: row.workspace,
-  project: row.project,
-  scope: row.scope,
-  applies_to_all_projects: row.applies_to_all_projects,
-  projects: row.projects,
-  name: row.name,
-  description: row.description,
-  trigger_type: row.trigger_type,
-  trigger_config: parseAutomationTriggerConfig(row.trigger_config),
-  condition: parseAutomationCondition(row.condition),
-  is_enabled: row.is_enabled,
-  next_run_at: row.next_run_at,
-  last_run_at: row.last_run_at,
-  last_run_status: row.last_run_status,
-  total_run_count: row.total_run_count,
-  failed_run_count: row.failed_run_count,
-  average_duration_ms: row.average_duration_ms,
-  schedule_summary: row.schedule_summary,
-  owned_by: row.owned_by,
-  actions: row.actions.map(toAutomationAction),
-  created_at: row.created_at,
-  updated_at: row.updated_at,
-  created_by: row.created_by,
-  updated_by: row.updated_by,
-});
+/** An automation. A condition the client cannot read stays in `raw_condition`, so it is never written back reset. */
+export function toAutomation(row: ApiSchema<"Automation">): TAutomation {
+  const condition = parseAutomationCondition(row.condition);
+  return {
+    id: row.id,
+    workspace: row.workspace,
+    project: row.project,
+    scope: row.scope,
+    applies_to_all_projects: row.applies_to_all_projects,
+    projects: row.projects,
+    name: row.name,
+    description: row.description,
+    trigger_type: row.trigger_type,
+    trigger_config: parseAutomationTriggerConfig(row.trigger_config),
+    condition: condition ?? null,
+    ...(condition === undefined ? { raw_condition: row.condition } : {}),
+    is_enabled: row.is_enabled,
+    next_run_at: row.next_run_at,
+    last_run_at: row.last_run_at,
+    last_run_status: row.last_run_status,
+    total_run_count: row.total_run_count,
+    failed_run_count: row.failed_run_count,
+    average_duration_ms: row.average_duration_ms,
+    schedule_summary: row.schedule_summary,
+    owned_by: row.owned_by,
+    actions: row.actions.map(toAutomationAction),
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    created_by: row.created_by,
+    updated_by: row.updated_by,
+  };
+}
 
 export const toAutomationRun = (row: ApiSchema<"AutomationRun">): TAutomationRun => ({
   id: row.id,

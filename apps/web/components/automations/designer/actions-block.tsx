@@ -26,6 +26,7 @@ import { useAutomation } from "@/hooks/store/use-automation";
 // local imports
 import { allowedActions, findAction } from "../helpers/metadata";
 import { AutomationActionConfig } from "./action-config";
+import { RawAutomationValue } from "./raw-value";
 import { getApiErrorBody } from "@/helpers/error.helper";
 import { getFirstStringField, getStringField } from "@/helpers/narrow.helper";
 
@@ -119,15 +120,19 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
         </button>
       </div>
 
-      <AutomationActionConfig
-        projectId={projectId}
-        scope={automation.scope}
-        metadata={metadata}
-        actionType={action.action_type}
-        config={action.config}
-        onChange={handleConfigChange}
-        disabled={disabled}
-      />
+      {action.raw_config === undefined ? (
+        <AutomationActionConfig
+          projectId={projectId}
+          scope={automation.scope}
+          metadata={metadata}
+          actionType={action.action_type}
+          config={action.config}
+          onChange={handleConfigChange}
+          disabled={disabled}
+        />
+      ) : (
+        <RawAutomationValue value={action.raw_config} />
+      )}
     </div>
   );
 });

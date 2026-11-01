@@ -53,6 +53,19 @@ describe("toAutomation", () => {
   });
 });
 
+describe("unreadable values", () => {
+  it("keeps the raw condition and action config instead of resetting them", () => {
+    const condition = { type: "condition", property: "priority", operator: "eq", value: { a: 1 } };
+    const config = { url: "https://a.example", headers: { n: 1 } };
+    const action = { ...automation.actions[0], action_type: "call_webhook" as const, config };
+    const result = toAutomation({ ...automation, condition, actions: [action] });
+    expect(result.condition).toBeNull();
+    expect(result.raw_condition).toEqual(condition);
+    expect(result.actions[0]?.raw_config).toEqual(config);
+    expect(toAutomation(automation).actions[0]).not.toHaveProperty("raw_config");
+  });
+});
+
 describe("toAutomationRun", () => {
   it("parses the steps", () => {
     const run = toAutomationRun({

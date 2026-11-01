@@ -200,6 +200,8 @@ export type TAutomationAction = {
   automation: string;
   action_type: TAutomationActionType;
   config: TAutomationActionConfig;
+  /** The stored config when the client cannot read it. The designer then shows the action read-only. */
+  raw_config?: unknown;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -245,6 +247,8 @@ export type TAutomation = {
   trigger_type: TAutomationTriggerType | "";
   trigger_config: TAutomationTriggerConfig;
   condition: TAutomationConditionNode | null;
+  /** The stored condition when the client cannot read it. The designer then shows it read-only. */
+  raw_condition?: unknown;
   is_enabled: boolean;
   next_run_at: string | null;
   last_run_at: string | null;

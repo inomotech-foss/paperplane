@@ -1,19 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   parseAutomationActionConfig,
   parseAutomationCondition,
   parseAutomationRunSteps,
   parseAutomationTriggerConfig,
 } from "./automation-parse";
-import { resetClientJsonWarnings } from "./client-json/parse";
-
-beforeEach(() => {
-  resetClientJsonWarnings();
-  vi.spyOn(console, "warn").mockImplementation(() => undefined);
-});
 
 describe("parseAutomationCondition", () => {
   it("keeps a valid tree and the keys it does not know", () => {
@@ -25,9 +19,23 @@ describe("parseAutomationCondition", () => {
     expect(parseAutomationCondition(tree)).toEqual(tree);
   });
 
-  it("gives null for no condition and for a tree it cannot read", () => {
+  it("reads what the backend accepts: no type, no children and an upper-case operator", () => {
+    expect(parseAutomationCondition({ logical_operator: "AND" })).toEqual({
+      type: "group",
+      logical_operator: "and",
+      children: [],
+    });
+  });
+
+  it("gives null for no condition", () => {
     expect(parseAutomationCondition(null)).toBeNull();
-    expect(parseAutomationCondition({ type: "condition", property: "p", operator: "like" })).toBeNull();
+  });
+
+  it("gives undefined for a tree it cannot edit, so the caller keeps the raw value", () => {
+    const leaf = { type: "condition", property: "priority", operator: "eq" };
+    expect(parseAutomationCondition({ ...leaf, value: { nested: true } })).toBeUndefined();
+    expect(parseAutomationCondition({ ...leaf, value: ["a", 1] })).toBeUndefined();
+    expect(parseAutomationCondition({ children: [{ ...leaf, operator: "like" }] })).toBeUndefined();
   });
 });
 
@@ -42,15 +50,40 @@ describe("parseAutomationTriggerConfig", () => {
 });
 
 describe("parseAutomationActionConfig", () => {
-  it("reads the config of its action type", () => {
-    expect(parseAutomationActionConfig("add_comment", { comment_html: "<p>hi</p>" })).toEqual({
-      comment_html: "<p>hi</p>",
+  it("defaults the change type to set, as the backend does", () => {
+    expect(parseAutomationActionConfig("change_property", { property: "priority", value: "high", note: 1 })).toEqual({
+      property: "priority",
+      change_type: "set",
+      value: "high",
+      note: 1,
     });
-    expect(parseAutomationActionConfig("archive_work_item", null)).toEqual({});
   });
 
-  it("gives an empty config when it cannot read it", () => {
-    expect(parseAutomationActionConfig("call_webhook", { method: "GET" })).toEqual({});
+  it("reads a lower-case webhook method and keeps the headers and payload", () => {
+    const config = { url: "https://a.example", method: "post", headers: { "X-A": "1" }, payload: "{}", retry: 2 };
+    expect(parseAutomationActionConfig("call_webhook", config)).toEqual({ ...config, method: "POST" });
+  });
+
+  it("leaves a webhook with a non-string header value to the raw value", () => {
+    expect(
+      parseAutomationActionConfig("call_webhook", { url: "https://a.example", headers: { n: 1 } })
+    ).toBeUndefined();
+  });
+
+  it("reads a null title or message as absent", () => {
+    expect(
+      parseAutomationActionConfig("send_notification", { recipients: ["assignees"], title: null, message: "Hi" })
+    ).toEqual({ recipients: ["assignees"], message: "Hi" });
+  });
+
+  it("keeps an empty archive config and leaves one with keys to the raw value", () => {
+    expect(parseAutomationActionConfig("archive_work_item", null)).toEqual({});
+    expect(parseAutomationActionConfig("archive_work_item", { reason: "done" })).toBeUndefined();
+  });
+
+  it("gives undefined for a config it cannot read", () => {
+    expect(parseAutomationActionConfig("add_comment", "text")).toBeUndefined();
+    expect(parseAutomationActionConfig("change_property", { property: "p", change_type: "swap" })).toBeUndefined();
   });
 });
 

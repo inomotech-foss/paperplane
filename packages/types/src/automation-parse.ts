@@ -1,20 +1,25 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { z } from "zod";
 import type {
   TAutomationActionConfig,
   TAutomationActionType,
+  TAutomationChangeType,
   TAutomationConditionNode,
+  TAutomationConditionValue,
+  TAutomationDateValue,
+  TAutomationNotificationRecipient,
+  TAutomationOperator,
   TAutomationRunStep,
   TAutomationTriggerConfig,
 } from "./automation";
-import { isPlainObject, warnClientJson } from "./client-json/parse";
+import { isPlainObject } from "./client-json/parse";
 
-// The API validates these JSON fields against its automation registry before it stores them. The parsers narrow what
-// it sends back and skip the parts this client does not understand, so a newer backend does not break the designer.
+// The API checks these JSON fields with `plane/automation/validators.py` before it stores them. The parsers accept what
+// those validators accept and keep the keys they do not know. A value they still cannot read gives `undefined`, so the
+// caller can keep the raw value and show it read-only instead of writing back a reset.
 
-const OPERATORS = [
+const OPERATORS: readonly TAutomationOperator[] = [
   "eq",
   "neq",
   "in",
@@ -33,117 +38,259 @@ const OPERATORS = [
   "due_in_days",
   "overdue_by_days",
   "older_than_days",
-] as const;
+];
 
-const conditionValueSchema = z.union([
-  z.string(),
-  z.number(),
-  z.boolean(),
-  z.array(z.string()),
-  z.array(z.number()),
-  z.null(),
-]);
+const CHANGE_TYPES: readonly TAutomationChangeType[] = ["set", "add", "remove", "clear", "shift_days"];
 
-const conditionNodeSchema: z.ZodType<TAutomationConditionNode> = z.lazy(() =>
-  z.union([
-    z.looseObject({
-      type: z.literal("condition"),
-      id: z.string().optional(),
-      property: z.string(),
-      operator: z.enum(OPERATORS),
-      value: conditionValueSchema.optional(),
-    }),
-    z.looseObject({
-      type: z.literal("group"),
-      id: z.string().optional(),
-      logical_operator: z.enum(["and", "or"]),
-      children: z.array(conditionNodeSchema),
-    }),
-  ])
-);
+const RECIPIENTS: readonly TAutomationNotificationRecipient[] = [
+  "assignees",
+  "created_by",
+  "actor",
+  "subscribers",
+  "project_admins",
+  "specific_members",
+];
 
-/** The condition tree of an automation, or null when it has none or the client cannot read it. */
-export function parseAutomationCondition(value: unknown): TAutomationConditionNode | null {
+const WEBHOOK_METHODS = ["POST", "PUT", "PATCH"] as const;
+
+/** The same nesting limit as the backend. */
+const MAX_CONDITION_DEPTH = 6;
+
+const findIn = <T extends string>(values: readonly T[], value: unknown): T | undefined =>
+  values.find((item) => item === value);
+
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "string");
+
+const isNumberArray = (value: unknown): value is number[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "number");
+
+const isConditionValue = (value: unknown): value is TAutomationConditionValue =>
+  value === null ||
+  typeof value === "string" ||
+  typeof value === "number" ||
+  typeof value === "boolean" ||
+  isStringArray(value) ||
+  isNumberArray(value);
+
+const isDateValue = (value: unknown): value is TAutomationDateValue =>
+  typeof value === "string" || (isPlainObject(value) && value.mode === "relative" && typeof value.days === "number");
+
+/** An optional string field. Null and absent both read as absent, as the backend treats them. */
+const optionalString = (value: unknown): { ok: boolean; value?: string } => {
+  if (value === undefined || value === null) return { ok: true };
+  return typeof value === "string" ? { ok: true, value } : { ok: false };
+};
+
+const optionalStrings = (value: unknown): { ok: boolean; value?: string[] } => {
+  if (value === undefined || value === null) return { ok: true };
+  return isStringArray(value) ? { ok: true, value } : { ok: false };
+};
+
+function parseNode(value: unknown, depth: number): TAutomationConditionNode | undefined {
+  if (!isPlainObject(value) || depth > MAX_CONDITION_DEPTH) return undefined;
+  const type = value.type ?? "group";
+  if (type === "group") {
+    const logicalOperator = findIn(["and", "or"], String(value.logical_operator ?? "and").toLowerCase());
+    const rawChildren = value.children ?? [];
+    if (!logicalOperator || !Array.isArray(rawChildren)) return undefined;
+    const children: TAutomationConditionNode[] = [];
+    for (const child of rawChildren) {
+      const node = parseNode(child, depth + 1);
+      if (!node) return undefined;
+      children.push(node);
+    }
+    const id = optionalString(value.id);
+    if (!id.ok) return undefined;
+    return {
+      ...value,
+      type: "group",
+      ...(id.value === undefined ? {} : { id: id.value }),
+      logical_operator: logicalOperator,
+      children,
+    };
+  }
+  if (type !== "condition") return undefined;
+  const operator = findIn(OPERATORS, value.operator);
+  const id = optionalString(value.id);
+  if (typeof value.property !== "string" || !operator || !id.ok) return undefined;
+  if (value.value !== undefined && !isConditionValue(value.value)) return undefined;
+  return {
+    ...value,
+    type: "condition",
+    ...(id.value === undefined ? {} : { id: id.value }),
+    property: value.property,
+    operator,
+    ...(value.value === undefined ? {} : { value: value.value }),
+  };
+}
+
+/** The condition tree of an automation: null for none, undefined when the client cannot read it. */
+export function parseAutomationCondition(value: unknown): TAutomationConditionNode | null | undefined {
   if (value === null || value === undefined) return null;
-  const result = conditionNodeSchema.safeParse(value);
-  if (result.success) return result.data;
-  warnClientJson("automation condition", result.error.issues);
-  return null;
+  return parseNode(value, 0);
 }
 
 /** The trigger configuration. Its keys depend on the trigger, so any object is kept as it is. */
 export const parseAutomationTriggerConfig = (value: unknown): TAutomationTriggerConfig =>
   isPlainObject(value) ? value : {};
 
-const dateValueSchema = z.union([z.string(), z.looseObject({ mode: z.literal("relative"), days: z.number() })]);
+function parseChangeProperty(config: Record<string, unknown>): TAutomationActionConfig | undefined {
+  const changeType = findIn(CHANGE_TYPES, config.change_type ?? "set");
+  if (typeof config.property !== "string" || !changeType) return undefined;
+  const value = config.value;
+  if (value !== undefined && !isConditionValue(value) && !isDateValue(value)) return undefined;
+  return {
+    ...config,
+    property: config.property,
+    change_type: changeType,
+    ...(value === undefined ? {} : { value }),
+  };
+}
 
-const ACTION_CONFIG_SCHEMAS: Record<TAutomationActionType, z.ZodType<TAutomationActionConfig>> = {
-  change_property: z.looseObject({
-    property: z.string(),
-    change_type: z.enum(["set", "add", "remove", "clear", "shift_days"]),
-    value: z.union([conditionValueSchema, dateValueSchema]).optional(),
-  }),
-  add_comment: z.looseObject({ comment_html: z.string() }),
-  send_notification: z.looseObject({
-    recipients: z.array(
-      z.enum(["assignees", "created_by", "actor", "subscribers", "project_admins", "specific_members"])
-    ),
-    member_ids: z.array(z.string()).optional(),
-    title: z.string().optional(),
-    message: z.string().optional(),
-  }),
-  create_work_item: z.looseObject({
-    name: z.string(),
-    description_html: z.string().optional(),
-    project_id: z.string().optional(),
-    type_id: z.string().optional(),
-    state_id: z.string().optional(),
-    priority: z.string().optional(),
-    assignee_ids: z.array(z.string()).optional(),
-    label_ids: z.array(z.string()).optional(),
-    target_date: dateValueSchema.optional(),
-    link_to_trigger_work_item: z.boolean().optional(),
-  }),
-  archive_work_item: z.object({}).transform((): Record<string, never> => ({})),
-  call_webhook: z.looseObject({
-    url: z.string(),
-    method: z.enum(["POST", "PUT", "PATCH"]).optional(),
-    headers: z.record(z.string(), z.string()).optional(),
-    payload: z.string().optional(),
-  }),
-};
+function parseAddComment(config: Record<string, unknown>): TAutomationActionConfig | undefined {
+  const comment = optionalString(config.comment_html);
+  return comment.ok ? { ...config, comment_html: comment.value ?? "" } : undefined;
+}
 
-/** The configuration of an action. A configuration the client cannot read is empty, as for a new action. */
+function parseNotification(config: Record<string, unknown>): TAutomationActionConfig | undefined {
+  const rawRecipients = config.recipients ?? [];
+  if (!Array.isArray(rawRecipients)) return undefined;
+  const recipients: TAutomationNotificationRecipient[] = [];
+  for (const item of rawRecipients) {
+    const recipient = findIn(RECIPIENTS, item);
+    if (!recipient) return undefined;
+    recipients.push(recipient);
+  }
+  const memberIds = optionalStrings(config.member_ids);
+  const title = optionalString(config.title);
+  const message = optionalString(config.message);
+  if (!memberIds.ok || !title.ok || !message.ok) return undefined;
+  const { member_ids: _memberIds, title: _title, message: _message, ...rest } = config;
+  return {
+    ...rest,
+    recipients,
+    ...(memberIds.value === undefined ? {} : { member_ids: memberIds.value }),
+    ...(title.value === undefined ? {} : { title: title.value }),
+    ...(message.value === undefined ? {} : { message: message.value }),
+  };
+}
+
+function parseCreateWorkItem(config: Record<string, unknown>): TAutomationActionConfig | undefined {
+  const strings = ["name", "description_html", "project_id", "type_id", "state_id", "priority"] as const;
+  const parsed: Record<string, unknown> = { ...config };
+  for (const key of strings) {
+    const field = optionalString(config[key]);
+    if (!field.ok) return undefined;
+    if (field.value === undefined) delete parsed[key];
+    else parsed[key] = field.value;
+  }
+  for (const key of ["assignee_ids", "label_ids"] as const) {
+    const field = optionalStrings(config[key]);
+    if (!field.ok) return undefined;
+    if (field.value === undefined) delete parsed[key];
+  }
+  const targetDate = config.target_date;
+  if (targetDate !== undefined && targetDate !== null && !isDateValue(targetDate)) return undefined;
+  if (targetDate === null) delete parsed.target_date;
+  const link = config.link_to_trigger_work_item;
+  if (link !== undefined && link !== null && typeof link !== "boolean") return undefined;
+  if (link === null) delete parsed.link_to_trigger_work_item;
+  const assigneeIds = optionalStrings(config.assignee_ids).value;
+  const labelIds = optionalStrings(config.label_ids).value;
+  const name = optionalString(config.name).value ?? "";
+  return {
+    ...parsed,
+    name,
+    ...(assigneeIds === undefined ? {} : { assignee_ids: assigneeIds }),
+    ...(labelIds === undefined ? {} : { label_ids: labelIds }),
+    ...(isDateValue(targetDate) ? { target_date: targetDate } : {}),
+    ...(typeof link === "boolean" ? { link_to_trigger_work_item: link } : {}),
+  };
+}
+
+function parseWebhook(config: Record<string, unknown>): TAutomationActionConfig | undefined {
+  const url = optionalString(config.url);
+  const payload = optionalString(config.payload);
+  const rawMethod = config.method;
+  const method =
+    rawMethod === undefined || rawMethod === null
+      ? undefined
+      : typeof rawMethod === "string"
+        ? findIn(WEBHOOK_METHODS, rawMethod.toUpperCase())
+        : undefined;
+  const rawHeaders = config.headers;
+  if (!url.ok || !payload.ok) return undefined;
+  if (rawMethod !== undefined && rawMethod !== null && !method) return undefined;
+  if (rawHeaders !== undefined && rawHeaders !== null && !isPlainObject(rawHeaders)) return undefined;
+  const headers: Record<string, string> = {};
+  for (const [key, value] of Object.entries(isPlainObject(rawHeaders) ? rawHeaders : {})) {
+    // The designer edits header values as text, so a stored number or object stays read-only.
+    if (typeof value !== "string") return undefined;
+    headers[key] = value;
+  }
+  const { method: _method, headers: _headers, payload: _payload, ...rest } = config;
+  return {
+    ...rest,
+    url: url.value ?? "",
+    ...(method === undefined ? {} : { method }),
+    ...(isPlainObject(rawHeaders) ? { headers } : {}),
+    ...(payload.value === undefined ? {} : { payload: payload.value }),
+  };
+}
+
+/**
+ * The configuration of an action, or undefined when the client cannot read it. An archive action takes no
+ * configuration, so one that has keys is left to the raw value too.
+ */
 export function parseAutomationActionConfig(
   actionType: TAutomationActionType,
   value: unknown
-): TAutomationActionConfig {
-  const result = ACTION_CONFIG_SCHEMAS[actionType].safeParse(value ?? {});
-  if (result.success) return result.data;
-  warnClientJson(`${actionType} action config`, result.error.issues);
-  return {};
+): TAutomationActionConfig | undefined {
+  const config = value === null || value === undefined ? {} : value;
+  if (!isPlainObject(config)) return undefined;
+  switch (actionType) {
+    case "change_property":
+      return parseChangeProperty(config);
+    case "add_comment":
+      return parseAddComment(config);
+    case "send_notification":
+      return parseNotification(config);
+    case "create_work_item":
+      return parseCreateWorkItem(config);
+    case "call_webhook":
+      return parseWebhook(config);
+    case "archive_work_item":
+      return Object.keys(config).length === 0 ? {} : undefined;
+  }
 }
 
-const runStepSchema = z.looseObject({
-  action_id: z.string(),
-  action_type: z.enum([
-    "change_property",
-    "add_comment",
-    "send_notification",
-    "create_work_item",
-    "archive_work_item",
-    "call_webhook",
-  ]),
-  status: z.enum(["success", "failed", "skipped"]),
-  detail: z.string().catch(""),
-  error: z.string().catch(""),
-});
+const RUN_STATUSES = ["success", "failed", "skipped"] as const;
+const ACTION_TYPES: readonly TAutomationActionType[] = [
+  "change_property",
+  "add_comment",
+  "send_notification",
+  "create_work_item",
+  "archive_work_item",
+  "call_webhook",
+];
 
-/** The steps of a run. A step the client cannot read is left out. */
+/** The steps of a run. A step the client cannot read is left out, as runs are never written back. */
 export function parseAutomationRunSteps(value: unknown): TAutomationRunStep[] {
   if (!Array.isArray(value)) return [];
-  return value.flatMap((item: unknown) => {
-    const result = runStepSchema.safeParse(item);
-    return result.success ? [result.data] : [];
+  return value.flatMap((item: unknown): TAutomationRunStep[] => {
+    if (!isPlainObject(item) || typeof item.action_id !== "string") return [];
+    const actionType = findIn(ACTION_TYPES, item.action_type);
+    const status = findIn(RUN_STATUSES, item.status);
+    if (!actionType || !status) return [];
+    return [
+      {
+        action_id: item.action_id,
+        action_type: actionType,
+        status,
+        detail: typeof item.detail === "string" ? item.detail : "",
+        error: typeof item.error === "string" ? item.error : "",
+      },
+    ];
   });
 }
