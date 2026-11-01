@@ -26,7 +26,9 @@ from plane.db.models import Issue, IssueRelation, Notification, Project, State, 
 from plane.tests.factories import ProjectFactory, WorkspaceFactory
 from plane.tests.openapi import strict
 from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated_response, paginated_union
-from plane.utils.openapi.hooks import is_callable
+from plane.app.permissions import ProjectEntityPermission
+from plane.app.views.base import BaseViewSet
+from plane.utils.openapi.hooks import is_callable, is_refused
 from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, DetailOrList, _source_presence, single
 from plane.utils.openapi.fields import ClientJsonField, is_client_json, typed_json
 from plane.utils.openapi.serializers import DictOf, EmptyObjectSerializer
@@ -248,6 +250,38 @@ class TestIsCallable:
     def test_kwargs_handler_takes_any_path(self):
         view = ItemViewSet.as_view({"patch": "update_item"})
         assert is_callable("/items/{pk}/", "PATCH", view)
+
+
+class ListOnlyViewSet(BaseViewSet):
+    def list(self, request):
+        pass
+
+
+class GuardedViewSet(BaseViewSet):
+    permission_classes = [ProjectEntityPermission]
+
+
+@pytest.mark.unit
+class TestIsRefused:
+    def test_mixin_actions_without_our_code_are_refused(self):
+        view = ListOnlyViewSet.as_view({"get": "list", "put": "update", "patch": "partial_update"})
+        assert not is_refused("GET", view)
+        assert is_refused("PUT", view)
+        assert is_refused("PATCH", view)
+
+    def test_restrictive_permission_authorizes_mixin_actions(self):
+        assert not is_refused("PUT", GuardedViewSet.as_view({"put": "update"}))
+
+    def test_other_views_are_kept(self):
+        assert not is_refused("PUT", ItemView.as_view())
+
+    def test_internal_schema_drops_refused_operations(self):
+        paths = generate_schema("internal")[0]["paths"]
+        cycle = paths["/api/workspaces/{slug}/projects/{project_id}/cycles/{pk}/"]
+        assert "put" not in cycle
+        assert "patch" in cycle
+        cycle_issue = paths["/api/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/{issue_id}/"]
+        assert set(cycle_issue) - {"parameters"} == {"delete"}
 
 
 def _schema(*patterns):

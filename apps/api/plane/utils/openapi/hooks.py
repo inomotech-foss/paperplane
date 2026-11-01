@@ -22,7 +22,12 @@ def preprocess_filter_api_v1_paths(endpoints):
     filtered = []
     for path, path_regex, method, callback in endpoints:
         # Only include paths that start with /api/v1/ and exclude PUT methods
-        if path.startswith("/api/v1/") and method.upper() != "PUT" and "server" not in path.lower():
+        if (
+            path.startswith("/api/v1/")
+            and method.upper() != "PUT"
+            and "server" not in path.lower()
+            and not is_refused(method, callback)
+        ):
             filtered.append((path, path_regex, method, callback))
     return filtered
 
@@ -55,12 +60,29 @@ def is_callable(path, method, callback):
     return variables <= accepted and required <= variables
 
 
+def is_refused(method, callback):
+    """True when BaseViewSet answers every call with 405 because no code of ours authorizes the action."""
+    # Imported here because the views import this module through the schema class.
+    from plane.app.views.base import BaseViewSet
+
+    actions = getattr(callback, "actions", None)
+    if not actions or not issubclass(callback.cls, BaseViewSet):
+        return False
+    view = callback.cls(**callback.initkwargs)
+    view.action = actions[method.lower()]
+    view.request = None
+    view.kwargs = {}
+    return not view._resolved_action_is_authorized()
+
+
 def preprocess_filter_internal_paths(endpoints):
     """Keep the session-authenticated paths the web and space apps call."""
     return [
         (path, path_regex, method, callback)
         for path, path_regex, method, callback in endpoints
-        if not path.startswith((V1_PATH_PREFIX, ADMIN_PATH_PREFIX)) and is_callable(path, method, callback)
+        if not path.startswith((V1_PATH_PREFIX, ADMIN_PATH_PREFIX))
+        and is_callable(path, method, callback)
+        and not is_refused(method, callback)
     ]
 
 
@@ -69,7 +91,9 @@ def preprocess_filter_admin_paths(endpoints):
     return [
         (path, path_regex, method, callback)
         for path, path_regex, method, callback in endpoints
-        if path.startswith(ADMIN_PATH_PREFIX) and is_callable(path, method, callback)
+        if path.startswith(ADMIN_PATH_PREFIX)
+        and is_callable(path, method, callback)
+        and not is_refused(method, callback)
     ]
 
 

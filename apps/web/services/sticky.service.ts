@@ -77,12 +77,6 @@ export class StickyService {
     };
   }
 
-  async getSticky(workspaceSlug: string, id: string): Promise<TSticky> {
-    return toSticky(
-      await unwrap(apiClient.GET("/api/workspaces/{slug}/stickies/{pk}/", { params: stickyPath(workspaceSlug, id) }))
-    );
-  }
-
   async updateSticky(workspaceSlug: string, id: string, data: Partial<TSticky>): Promise<TSticky> {
     return toSticky(
       await unwrap(
