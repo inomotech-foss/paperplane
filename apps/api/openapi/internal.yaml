@@ -14499,7 +14499,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UserLite'
+                  $ref: '#/components/schemas/PageMentionUser'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/position/:
     post:
@@ -28370,6 +28370,21 @@ components:
       - view_props
       - logo_props
       - description_html
+    PageMentionUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+        avatar_url:
+          type: string
+          nullable: true
+      required:
+      - id
+      - display_name
+      - avatar_url
     PageOrder:
       type: object
       properties:

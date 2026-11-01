@@ -3,23 +3,24 @@
 
 import uuid
 
+from bs4 import BeautifulSoup
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
 from plane.app.permissions import ProjectPagePermission
-from plane.app.serializers import UserLiteSerializer
-from plane.bgtasks.page_transaction_task import extract_all_components
-from plane.db.models import Page, User
+from plane.app.serializers.response.page import PageMentionUserSerializer
+from plane.db.models import Page, User, WorkspaceMember
 
 from ..base import BaseAPIView
 
 
 def mentioned_user_ids(description_html):
     ids = set()
-    for mention in extract_all_components(description_html)["mention-component"]:
-        if mention.get("entity_name") != "user_mention":
-            continue
+    if not description_html:
+        return ids
+    soup = BeautifulSoup(description_html, "html.parser")
+    for mention in soup.find_all("mention-component", attrs={"entity_name": "user_mention"}):
         try:
             ids.add(uuid.UUID(str(mention.get("entity_identifier"))))
         except ValueError:
@@ -30,7 +31,7 @@ def mentioned_user_ids(description_html):
 class PageMentionEndpoint(BaseAPIView):
     permission_classes = [ProjectPagePermission]
 
-    @extend_schema(responses={200: UserLiteSerializer(many=True)})
+    @extend_schema(responses={200: PageMentionUserSerializer(many=True)})
     def get(self, request, slug, project_id, page_id):
         page = Page.objects.get(
             pk=page_id,
@@ -38,8 +39,6 @@ class PageMentionEndpoint(BaseAPIView):
             projects__id=project_id,
             project_pages__deleted_at__isnull=True,
         )
-        users = User.objects.filter(
-            pk__in=mentioned_user_ids(page.description_html),
-            member_workspace__workspace_id=page.workspace_id,
-        ).distinct()
-        return Response(UserLiteSerializer(users, many=True).data, status=status.HTTP_200_OK)
+        members = WorkspaceMember.objects.filter(workspace_id=page.workspace_id, is_active=True).values("member_id")
+        users = User.objects.filter(pk__in=mentioned_user_ids(page.description_html)).filter(pk__in=members)
+        return Response(PageMentionUserSerializer(users, many=True).data, status=status.HTTP_200_OK)

@@ -9312,6 +9312,12 @@ export interface components {
             readonly project_ids?: string[];
             description_html: string;
         };
+        PageMentionUser: {
+            /** Format: uuid */
+            id: string;
+            display_name: string;
+            avatar_url: string | null;
+        };
         PageOrder: {
             /** Format: uuid */
             readonly id: string;
@@ -24153,7 +24159,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserLite"][];
+                    "application/json": components["schemas"]["PageMentionUser"][];
                 };
             };
         };
