@@ -24,7 +24,7 @@ import { Avatar } from "@makeplane/propel/components/avatar";
 import { AvatarGroup } from "@makeplane/propel/components/avatar-group";
 import { setPromiseToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
-import type { ICycle, TCycleGroups } from "@plane/types";
+import type { ICycle } from "@plane/types";
 import { FavoriteStar } from "@plane/blocks/common";
 import { DateRangeSelect } from "@plane/blocks/property-select";
 import { getDate, getFileURL, generateQueryParams } from "@plane/utils";
@@ -201,16 +201,16 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
         </div>
       )}
       {showTransferIssues && (
-        // oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions
-        <div
-          className="flex h-6 cursor-pointer items-center gap-1 px-2 text-accent-secondary"
+        <button
+          type="button"
+          className="flex h-6 flex-shrink-0 cursor-pointer items-center gap-1 px-2 text-11 whitespace-nowrap text-accent-secondary"
           onClick={() => {
             setTransferIssuesModal(true);
           }}
         >
-          <TransferWorkItemOutline className="w-4 fill-accent-primary" />
+          <TransferWorkItemOutline className="w-4 flex-shrink-0 fill-accent-primary" />
           <span>{t("project_cycles.transfer_work_items", { count: transferableIssuesCount })}</span>
-        </div>
+        </button>
       )}
       {isActive ? (
         <>
@@ -242,7 +242,7 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
           <>
             <DateRangeSelect
               variant="select-ghost-md"
-              className="flex h-6 w-full cursor-auto items-center gap-1.5 rounded-sm p-0 text-11 text-tertiary [&>div]:hover:bg-transparent"
+              className="flex h-6 cursor-auto items-center gap-1.5 rounded-sm p-0 text-11 text-tertiary [&>div]:hover:bg-transparent"
               minDate={new Date()}
               value={{
                 from: getDate(cycleDetails.start_date) ?? null,

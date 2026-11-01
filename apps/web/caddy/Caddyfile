@@ -20,6 +20,9 @@
 		}
 	}
 
+	# Compresses responses, including files served by file_server
+	encode zstd gzip
+
 	# Security headers (HSTS is set at the TLS terminator)
 	header {
 		X-Frame-Options "DENY"

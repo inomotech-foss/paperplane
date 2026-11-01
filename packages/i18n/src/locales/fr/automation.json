@@ -69,6 +69,7 @@
       "sidebar_header": "Actions",
       "input_label": "Que fait l'automatisation ?",
       "input_placeholder": "Sélectionnez une option",
+      "trigger_required": "Choisissez un déclencheur avant d’ajouter des actions.",
       "handler_name": {
         "add_comment": "Ajouter un commentaire",
         "change_property": "Modifier la propriété",

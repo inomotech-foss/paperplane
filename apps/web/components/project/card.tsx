@@ -281,12 +281,8 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
           </div>
         </div>
 
-        <div
-          className={cn("flex h-[104px] w-full flex-col justify-between rounded-b-sm p-4", {
-            "opacity-90": isArchived,
-          })}
-        >
-          <p className="line-clamp-2 text-13 break-words text-tertiary">
+        <div className="flex h-[104px] w-full flex-col justify-between rounded-b-sm p-4">
+          <p className={cn("line-clamp-2 text-13 break-words text-tertiary", { "opacity-90": isArchived })}>
             {project.description && project.description.trim() !== ""
               ? project.description
               : `Created on ${renderFormattedDate(project.created_at)}`}

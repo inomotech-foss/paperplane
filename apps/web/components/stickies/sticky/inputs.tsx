@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 // plane imports
@@ -14,6 +14,7 @@ import { cn, isCommentEmpty } from "@plane/utils";
 import { StickyEditor } from "@/components/editor/sticky-editor";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
+import { useSticky } from "@/hooks/use-stickies";
 
 // const StickyEditor = dynamic(() => import("../../editor/sticky-editor").then((mod) => mod.StickyEditor), {
 //   ssr: false,
@@ -37,6 +38,7 @@ export function StickyInput(props: TProps) {
   const pathname = usePathname();
   // store hooks
   const { getWorkspaceBySlug } = useWorkspace();
+  const { focusStickyId, clearStickyFocus } = useSticky();
   // derived values
   const workspaceId = getWorkspaceBySlug(workspaceSlug)?.id?.toString() ?? "";
   const isStickiesPage = pathname?.includes("stickies");
@@ -55,6 +57,13 @@ export function StickyInput(props: TProps) {
     },
     [handleUpdate]
   );
+  // A sticky created by "Add sticky" focuses its editor once, when it mounts
+  const [autofocus] = useState(() => !!stickyId && stickyId === focusStickyId);
+  useEffect(() => {
+    if (!autofocus || !stickyId) return;
+    clearStickyFocus(stickyId);
+    return () => clearStickyFocus(stickyId);
+  }, [autofocus, stickyId, clearStickyFocus]);
   // reset form values
   useEffect(() => {
     if (!stickyId) return;
@@ -98,6 +107,7 @@ export function StickyInput(props: TProps) {
             handleDelete={handleDelete}
             handleColorChange={handleChange}
             ref={editorRef}
+            autofocus={autofocus}
           />
         )}
       />

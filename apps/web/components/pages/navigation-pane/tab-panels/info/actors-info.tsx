@@ -17,7 +17,7 @@ import { useMember } from "@/hooks/store/use-member";
 import type { TPageInstance } from "@/store/pages/base-page";
 
 type Props = {
-  page: TPageInstance;
+  page: Pick<TPageInstance, "owned_by" | "created_by" | "created_at" | "updated_by" | "updated_at">;
 };
 
 export const PageNavigationPaneInfoTabActorsInfo = observer(function PageNavigationPaneInfoTabActorsInfo(props: Props) {
@@ -28,7 +28,9 @@ export const PageNavigationPaneInfoTabActorsInfo = observer(function PageNavigat
   const { getUserDetails } = useMember();
   // derived values
   const { owned_by, updated_by } = page;
-  const editorInformation = updated_by ? getUserDetails(updated_by) : undefined;
+  // A page nobody has edited since it was created has no updated_by yet
+  const editorId = updated_by ?? page.created_by ?? owned_by;
+  const editorInformation = editorId ? getUserDetails(editorId) : undefined;
   const creatorInformation = owned_by ? getUserDetails(owned_by) : undefined;
   // translation
   const { t } = useTranslation();
@@ -38,7 +40,7 @@ export const PageNavigationPaneInfoTabActorsInfo = observer(function PageNavigat
       <div>
         <p className="text-11 font-medium text-tertiary">{t("page_navigation_pane.tabs.info.actors_info.edited_by")}</p>
         <div className="mt-2 flex items-center justify-between gap-2 text-13 font-medium">
-          <Link href={`/${workspaceSlug?.toString()}/profile/${page.updated_by}`} className="flex items-center gap-1">
+          <Link href={`/${workspaceSlug?.toString()}/profile/${editorId}`} className="flex items-center gap-1">
             <Avatar
               alt={editorInformation?.display_name}
               fallback={editorInformation?.display_name?.[0]?.toUpperCase()}

@@ -10,7 +10,10 @@ import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/components/pages/navigation
 export * from "./root";
 export * from "./types";
 
-export const PAGE_NAVIGATION_PANE_WIDTH = 294;
+export const PAGE_NAVIGATION_PANE_WIDTH = 340;
+
+/** CSS width of a pane, capped so it never covers most of a narrow screen */
+export const getPaneCssWidth = (width: number) => `min(${width}px, 85vw)`;
 
 export const PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM = "paneTab";
 export const PAGE_NAVIGATION_PANE_VERSION_QUERY_PARAM = "version";

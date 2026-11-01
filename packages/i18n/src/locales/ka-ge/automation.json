@@ -69,6 +69,7 @@
       "sidebar_header": "Actions",
       "input_label": "What does the automation do?",
       "input_placeholder": "Select an option",
+      "trigger_required": "მოქმედებების დამატებამდე აირჩიეთ ტრიგერი.",
       "handler_name": {
         "add_comment": "Add comment",
         "change_property": "Change property",

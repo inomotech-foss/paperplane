@@ -69,6 +69,7 @@
       "sidebar_header": "Aksi",
       "input_label": "Apa yang dilakukan otomatisasi ini?",
       "input_placeholder": "Pilih opsi",
+      "trigger_required": "Pilih pemicu sebelum Anda menambahkan aksi.",
       "handler_name": {
         "add_comment": "Tambah komentar",
         "change_property": "Ubah properti",

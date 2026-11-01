@@ -30,6 +30,7 @@ import {
   PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM,
   PAGE_NAVIGATION_PANE_VERSION_QUERY_PARAM,
   PAGE_NAVIGATION_PANE_WIDTH,
+  getPaneCssWidth,
 } from "./index";
 
 type Props = {
@@ -90,8 +91,8 @@ export const PageNavigationPaneRoot = observer(function PageNavigationPaneRoot(p
     <aside
       className="flex h-full shrink-0 flex-col border-l border-subtle bg-surface-1 pt-3.5 transition-all duration-300 ease-out"
       style={{
-        width: `${paneWidth}px`,
-        marginRight: isNavigationPaneOpen ? "0px" : `-${paneWidth}px`,
+        width: getPaneCssWidth(paneWidth),
+        marginRight: isNavigationPaneOpen ? "0px" : `calc(-1 * ${getPaneCssWidth(paneWidth)})`,
       }}
     >
       <div className="mb-3.5 px-3.5">

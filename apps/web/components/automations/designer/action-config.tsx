@@ -682,6 +682,9 @@ const CONFIG_COMPONENTS: Partial<Record<TAutomationActionType, React.ComponentTy
   call_webhook: CallWebhookConfig,
 };
 
+/** Whether the action type has settings the user must fill in */
+export const actionNeedsConfig = (actionType: TAutomationActionType): boolean => !!CONFIG_COMPONENTS[actionType];
+
 /** Renders the configuration form for whichever action type is selected. */
 export const AutomationActionConfig = observer(function AutomationActionConfig(props: ConfigProps) {
   const { t } = useTranslation();

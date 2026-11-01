@@ -118,8 +118,11 @@ const TYPING_ROLES = new Set([
   "menuitemradio",
 ]);
 
+/** Editors, read-only or not */
+const EDITOR_SELECTOR = ".ProseMirror, .editor-container";
+
 /** Overlays and editors that own keyboard input while focus is inside them */
-const KEYBOARD_OWNING_ANCESTOR = '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], .ProseMirror';
+const KEYBOARD_OWNING_ANCESTOR = `[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], ${EDITOR_SELECTOR}`;
 
 /**
  * Whether keystrokes on this target belong to a widget: form controls, editable content
@@ -139,6 +142,38 @@ export function isTypingInInput(target: EventTarget | null): boolean {
 
   return target.closest(KEYBOARD_OWNING_ANCESTOR) !== null;
 }
+
+const elementOf = (node: Node | null): Element | null =>
+  node instanceof Element ? node : (node?.parentElement ?? null);
+
+/**
+ * The selection the user is reading or editing, or null when focus has moved to a control
+ * elsewhere. A read-only editor never takes focus, so its caret is only visible here.
+ */
+function getActiveSelection(): Selection | null {
+  if (typeof window === "undefined") return null;
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return null;
+  const active = document.activeElement;
+  if (active && active !== document.body && !active.contains(selection.anchorNode)) return null;
+  return selection;
+}
+
+/** Whether the caret or selection sits inside an editor */
+export function isSelectionInEditor(): boolean {
+  const selection = getActiveSelection();
+  return elementOf(selection?.anchorNode ?? null)?.closest(EDITOR_SELECTOR) != null;
+}
+
+/** Whether the user has selected text, so a typed character must not act on the page */
+export function hasTextSelection(): boolean {
+  const selection = getActiveSelection();
+  return !!selection && !selection.isCollapsed;
+}
+
+/** Cmd/Ctrl+Backspace or Delete, which deletes the entity in context */
+const isDeleteKey = (e: KeyboardEvent): boolean =>
+  (e.metaKey || e.ctrlKey) && (e.key === "Backspace" || e.key === "Delete");
 
 /** Whether any registered sequence starts with `prefix` (equality included) */
 const hasSequencePrefix = (sequenceMap: ReadonlyMap<string, string>, prefix: string): boolean => {
@@ -217,8 +252,18 @@ export class ShortcutHandler {
       return;
     }
 
-    // Keys typed into inputs and widgets never trigger shortcuts, nor continue a sequence
+    // Keys typed into inputs, widgets and focused editors never trigger shortcuts, nor continue
+    // a sequence
     if (isTypingInInput(e.target)) {
+      this.resetSequence();
+      return;
+    }
+
+    // A key that types a character must not act on the page while the user reads or selects
+    // content: a caret in an editor (a read-only one never takes focus) or any selected text
+    const typesCharacter = !e.metaKey && !e.ctrlKey && !e.altKey;
+    const caretInEditor = isSelectionInEditor();
+    if ((typesCharacter && (caretInEditor || hasTextSelection())) || (caretInEditor && isDeleteKey(e))) {
       this.resetSequence();
       return;
     }

@@ -69,6 +69,7 @@
       "sidebar_header": "Akce",
       "input_label": "Co automatizace dělá?",
       "input_placeholder": "Vyberte možnost",
+      "trigger_required": "Před přidáním akcí vyberte spouštěč.",
       "handler_name": {
         "add_comment": "Přidat komentář",
         "change_property": "Změnit vlastnost",

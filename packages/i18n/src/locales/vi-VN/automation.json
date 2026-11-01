@@ -69,6 +69,7 @@
       "sidebar_header": "Hành động",
       "input_label": "Tự động hóa làm gì?",
       "input_placeholder": "Chọn một tùy chọn",
+      "trigger_required": "Hãy chọn một trình kích hoạt trước khi thêm hành động.",
       "handler_name": {
         "add_comment": "Thêm bình luận",
         "change_property": "Thay đổi thuộc tính",
