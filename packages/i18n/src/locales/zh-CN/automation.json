@@ -70,6 +70,7 @@
       "input_label": "自动化执行什么操作？",
       "input_placeholder": "选择一个选项",
       "trigger_required": "添加操作前，请先选择触发器。",
+      "disable_to_add": "添加操作前，请先禁用自动化。",
       "handler_name": {
         "add_comment": "添加评论",
         "change_property": "更改属性",

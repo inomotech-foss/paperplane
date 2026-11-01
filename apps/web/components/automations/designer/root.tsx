@@ -23,6 +23,8 @@ import { isObject, readString } from "@plane/types";
 import { getFirstStringField, isString } from "@/helpers/narrow.helper";
 import type { IAutomationStore } from "@/store/automation.store";
 // local imports
+import { describeEnableErrors, parseEnableErrors } from "../helpers/enable-errors";
+import type { TAutomationEnableErrors } from "../helpers/enable-errors";
 import { useAutomationDetails, useAutomationMetadata } from "../helpers/metadata";
 import { isScheduleConfig } from "../helpers/trigger-config";
 import { AutomationActionsBlock } from "./actions-block";
@@ -31,6 +33,7 @@ import { AutomationConditionSection } from "./condition-section";
 import { AutomationRunHistory } from "./run-history";
 import { AutomationScopeBlock } from "./scope-block";
 import { AutomationTriggerBlock } from "./trigger-block";
+import { useRefusedActionEdits } from "./use-refused-action-edits";
 
 type Props = {
   workspaceSlug: string;
@@ -58,9 +61,10 @@ const makePersist = () =>
       id: string,
       payload: Parameters<TUpdateAutomation>[2],
       update: TUpdateAutomation,
-      onError: (error: unknown) => void
+      onError: (error: unknown) => void,
+      onSaved?: () => void
     ) => {
-      update(slug, id, payload, project).catch(onError);
+      update(slug, id, payload, project).then(onSaved, onError);
     },
     CONDITION_SAVE_DELAY_MS
   );
@@ -68,7 +72,7 @@ const makePersist = () =>
 export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(props: Props) {
   const { workspaceSlug, projectId, automationId, disabled } = props;
   const { t } = useTranslation();
-  const { updateAutomation, runNow } = useAutomation();
+  const { updateAutomation, updateAction, getAutomationById, runNow } = useAutomation();
   const { metadata, isLoading: isMetadataLoading } = useAutomationMetadata(workspaceSlug);
   const { automation, isLoading } = useAutomationDetails(workspaceSlug, automationId, projectId);
 
@@ -76,6 +80,12 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
   // so typing a cron expression doesn't fire a request per keystroke.
   const [condition, setCondition] = useState<TAutomationConditionNode | null>(null);
   const [scheduleConfig, setScheduleConfig] = useState<TAutomationScheduleConfig>({ mode: "fixed" });
+  // The latest schedule for handlers that settle after further edits.
+  const latestSchedule = useRef<TAutomationScheduleConfig>({ mode: "fixed" });
+  // An enabled automation refuses an incomplete schedule. The reason is shown on the trigger card.
+  const [scheduleRejection, setScheduleRejectionState] = useState<string | null>(null);
+  const hasScheduleRejection = useRef(false);
+  const [enableErrors, setEnableErrors] = useState<TAutomationEnableErrors | null>(null);
   const [isTogglingEnabled, setIsTogglingEnabled] = useState(false);
   const hydratedFor = useRef<string | null>(null);
 
@@ -85,8 +95,14 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
     if (!automation || hydratedFor.current === automation.id) return;
     hydratedFor.current = automation.id;
     setCondition(ensureConditionIds(automation.condition));
-    setScheduleConfig(isScheduleConfig(automation.trigger_config) ? automation.trigger_config : { mode: "fixed" });
+    const hydrated = isScheduleConfig(automation.trigger_config)
+      ? automation.trigger_config
+      : { mode: "fixed" as const };
+    latestSchedule.current = hydrated;
+    setScheduleConfig(hydrated);
   }, [automation]);
+
+  const isStoredEnabled = () => getAutomationById(automationId)?.is_enabled ?? false;
 
   const reportError = useCallback(
     (error: unknown) => {
@@ -115,13 +131,47 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
     persist(workspaceSlug, projectId, automationId, { condition: next }, updateAutomation, reportError);
   };
 
-  const handleScheduleChange = (next: TAutomationScheduleConfig) => {
-    setScheduleConfig(next);
-    // A cron expression is only worth sending once it has all five fields —
-    // otherwise every keystroke round-trips to a 400 and an error toast.
-    if (next.mode === "cron" && (next.cron ?? "").trim().split(/\s+/).length !== 5) return;
-    persist(workspaceSlug, projectId, automationId, { trigger_config: next }, updateAutomation, reportError);
+  const setScheduleRejection = (message: string | null) => {
+    hasScheduleRejection.current = message !== null;
+    setScheduleRejectionState(message);
   };
+
+  const persistSchedule = (next: TAutomationScheduleConfig, isRetry = false) => {
+    const onError = (error: unknown) => {
+      const message = getFirstStringField(getApiErrorBody(error), "trigger_config");
+      if (!message) return reportError(error);
+      // Disabled while the request was in flight, so the newest schedule now saves as a draft.
+      if (!isRetry && !isStoredEnabled() && latestSchedule.current === next) return persistSchedule(next, true);
+      if (latestSchedule.current === next) setScheduleRejection(message);
+    };
+    persist(workspaceSlug, projectId, automationId, { trigger_config: next }, updateAutomation, onError, () =>
+      setScheduleRejection(null)
+    );
+  };
+
+  const handleScheduleChange = (next: TAutomationScheduleConfig) => {
+    latestSchedule.current = next;
+    setScheduleConfig(next);
+    setEnableErrors((current) => current && { ...current, trigger: undefined });
+    persistSchedule(next);
+  };
+
+  const clearActionEnableError = (actionId: string) =>
+    setEnableErrors((current) => {
+      if (!current?.actions[actionId]) return current;
+      const { [actionId]: _resolved, ...actions } = current.actions;
+      return { ...current, actions };
+    });
+
+  const actionEdits = useRefusedActionEdits({
+    save: (actionId, config) => {
+      clearActionEnableError(actionId);
+      return updateAction(workspaceSlug, automationId, actionId, { config }, projectId);
+    },
+    isEnabled: isStoredEnabled,
+    describeError: (error) =>
+      getFirstStringField(getApiErrorBody(error), "config") ?? t("automations.toasts.action.update.error.message"),
+  });
 
   const handleScopeChange = async (payload: { applies_to_all_projects?: boolean; project_ids?: string[] }) => {
     try {
@@ -135,17 +185,11 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
     try {
       const payload: Parameters<typeof updateAutomation>[2] = { trigger_type: triggerType };
       if (triggerType === "schedule") {
-        // Seed a schedule the backend will accept so saving the trigger can't fail.
-        const seeded: TAutomationScheduleConfig = {
-          mode: "fixed",
-          frequency: "daily",
-          hour: 9,
-          minute: 0,
-          timezone: scheduleConfig.timezone ?? "UTC",
-          scheduled_target: "work_items",
-        };
-        payload.trigger_config = seeded;
-        setScheduleConfig(seeded);
+        // Without it the server infers the target from the actions, which the picker can't show.
+        const initial: TAutomationScheduleConfig = { mode: "fixed", scheduled_target: "work_items" };
+        payload.trigger_config = initial;
+        latestSchedule.current = initial;
+        setScheduleConfig(initial);
       }
       await updateAutomation(workspaceSlug, automationId, payload, projectId);
     } catch (error) {
@@ -155,29 +199,46 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
 
   const handleToggleEnabled = async () => {
     if (!automation) return;
+    const enabling = !automation.is_enabled;
     setIsTogglingEnabled(true);
     try {
       // Flush any pending condition edit first, so enabling validates the tree
       // the author is actually looking at.
       persist.flush();
-      await updateAutomation(workspaceSlug, automationId, { is_enabled: !automation.is_enabled }, projectId);
+      await updateAutomation(workspaceSlug, automationId, { is_enabled: enabling }, projectId);
+      setEnableErrors(null);
+      if (!enabling) {
+        // Refused edits now save as drafts. The newest schedule is read here, so an edit made
+        // while the request was in flight is not overwritten.
+        if (hasScheduleRejection.current) {
+          persistSchedule(latestSchedule.current);
+          persist.flush();
+        }
+        actionEdits.resubmitAll();
+      }
       setToast({
         type: "success",
-        title: t(
-          automation.is_enabled ? "automations.toasts.disable.success.title" : "automations.toasts.enable.success.title"
-        ),
+        title: t(enabling ? "automations.toasts.enable.success.title" : "automations.toasts.disable.success.title"),
         message: t(
-          automation.is_enabled
-            ? "automations.toasts.disable.success.message"
-            : "automations.toasts.enable.success.message"
+          enabling ? "automations.toasts.enable.success.message" : "automations.toasts.disable.success.message"
         ),
       });
     } catch (error) {
+      const body = getApiErrorBody(error);
+      if (!enabling) {
+        setToast({
+          type: "error",
+          title: t("automations.toasts.disable.error.title"),
+          message: describeEnableErrors(parseEnableErrors(body)) ?? t("automations.toasts.disable.error.message"),
+        });
+        return;
+      }
+      const errors = parseEnableErrors(body);
+      setEnableErrors(errors);
       setToast({
         type: "error",
         title: t("automations.toasts.enable.error.title"),
-        message:
-          getFirstStringField(getApiErrorBody(error), "is_enabled") ?? t("automations.enable.validation.required"),
+        message: describeEnableErrors(errors) ?? t("automations.enable.validation.required"),
       });
     } finally {
       setIsTogglingEnabled(false);
@@ -276,6 +337,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
         triggerLocked={!!automation.trigger_type}
         onTriggerChange={handleTriggerChange}
         onConfigChange={handleScheduleChange}
+        error={scheduleRejection ?? enableErrors?.trigger ?? automation.trigger_config_error}
         disabled={disabled}
       />
 
@@ -295,6 +357,9 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
         automation={automation}
         metadata={metadata}
         disabled={disabled}
+        enableErrors={enableErrors?.actions}
+        refusals={actionEdits.refusals}
+        onSaveConfig={actionEdits.saveConfig}
       />
 
       <AutomationRunHistory workspaceSlug={workspaceSlug} projectId={projectId} automationId={automationId} />

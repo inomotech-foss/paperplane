@@ -39,10 +39,19 @@ def resolve_timezone(name: str | None) -> datetime.tzinfo:
     """Best-effort tzinfo lookup that never raises on stale saved values."""
     if not name:
         return datetime.UTC
+    tzinfo = load_timezone(name)
+    return tzinfo if tzinfo is not None else datetime.UTC
+
+
+def load_timezone(name) -> datetime.tzinfo | None:
+    """The named timezone, or ``None`` when the name can't be loaded."""
+    if not isinstance(name, str):
+        return None
     try:
         return ZoneInfo(name)
-    except (ZoneInfoNotFoundError, ValueError):
-        return datetime.UTC
+    # A very long name raises OSError from the file lookup.
+    except (ZoneInfoNotFoundError, ValueError, OSError):
+        return None
 
 
 class AutomationContext:

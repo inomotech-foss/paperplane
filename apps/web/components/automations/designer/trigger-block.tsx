@@ -39,6 +39,8 @@ type Props = {
   triggerLocked: boolean;
   onTriggerChange: (triggerType: TAutomationTriggerType) => void;
   onConfigChange: (config: TAutomationScheduleConfig) => void;
+  /** Why the trigger config can't run yet. */
+  error?: string | null | undefined;
   disabled?: boolean;
 };
 
@@ -273,7 +275,8 @@ function ScheduleConfig(props: TScheduleProps) {
 }
 
 export const AutomationTriggerBlock = observer(function AutomationTriggerBlock(props: Props) {
-  const { metadata, triggerType, triggerConfig, triggerLocked, onTriggerChange, onConfigChange, disabled } = props;
+  const { metadata, triggerType, triggerConfig, triggerLocked, onTriggerChange, onConfigChange, error, disabled } =
+    props;
   const { t } = useTranslation();
 
   const definition = findTrigger(metadata, triggerType);
@@ -322,6 +325,11 @@ export const AutomationTriggerBlock = observer(function AutomationTriggerBlock(p
 
         {triggerType === "schedule" && (
           <ScheduleConfig triggerConfig={triggerConfig} patch={patch} disabled={disabled} />
+        )}
+        {error && (
+          <p role="alert" className="text-12 text-danger-primary">
+            {error}
+          </p>
         )}
       </div>
     </section>

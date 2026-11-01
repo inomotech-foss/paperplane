@@ -4,6 +4,8 @@
 
 """Contract tests for the automation designer endpoints."""
 
+import uuid
+
 import pytest
 from rest_framework import status
 
@@ -58,6 +60,13 @@ def base_url(workspace, project):
 @pytest.fixture
 def workspace_url(workspace):
     return f"/api/workspaces/{workspace.slug}/automations/"
+
+
+def enable_via_api(client, url, automation_id):
+    client.post(f"{url}{automation_id}/actions/", {"action_type": "archive_work_item", "config": {}}, format="json")
+    response = client.patch(f"{url}{automation_id}/", {"is_enabled": True}, format="json")
+    assert response.status_code == status.HTTP_200_OK
+    return response
 
 
 def create_automation_via_api(client, url, **overrides):
@@ -199,8 +208,6 @@ class TestProjectAutomationCrud:
         assert not Automation.objects.filter(pk=automation_id).exists()
 
     def test_missing_automation_is_a_404(self, session_client, base_url):
-        import uuid
-
         response = session_client.get(f"{base_url}{uuid.uuid4()}/")
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -248,7 +255,7 @@ class TestScheduleValidation:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-    def test_malformed_cron_is_rejected(self, session_client, base_url):
+    def test_a_disabled_automation_stores_a_malformed_cron_as_a_draft(self, session_client, base_url):
         response = create_automation_via_api(
             session_client,
             base_url,
@@ -256,18 +263,52 @@ class TestScheduleValidation:
             trigger_config={"mode": "cron", "cron": "not a cron"},
         )
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "trigger_config" in response.json()
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        assert body["trigger_config"] == {"mode": "cron", "cron": "not a cron"}
+        assert body["trigger_config_error"].startswith("A cron expression needs exactly five fields")
+        assert body["schedule_summary"] is None
 
-    def test_weekly_without_days_is_rejected(self, session_client, base_url):
-        response = create_automation_via_api(
+    def test_completing_the_draft_schedule_clears_the_error(self, session_client, base_url):
+        automation_id = create_automation_via_api(
             session_client,
             base_url,
             trigger_type="schedule",
             trigger_config={"mode": "fixed", "frequency": "weekly", "days_of_week": [], "hour": 9, "minute": 0},
+        ).json()["id"]
+
+        response = session_client.patch(
+            f"{base_url}{automation_id}/",
+            {"trigger_config": {"mode": "fixed", "frequency": "weekly", "days_of_week": [1], "hour": 9, "minute": 0}},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["trigger_config_error"] is None
+
+    def test_a_schedule_without_config_uses_the_defaults(self, session_client, base_url):
+        response = create_automation_via_api(session_client, base_url, trigger_type="schedule")
+
+        assert response.json()["trigger_config_error"] is None
+        assert response.json()["schedule_summary"] == "daily at 09:00 (UTC)"
+
+    def test_an_enabled_automation_rejects_an_incomplete_schedule(self, session_client, base_url):
+        automation_id = create_automation_via_api(session_client, base_url, trigger_type="schedule").json()["id"]
+        enable_via_api(session_client, base_url, automation_id)
+
+        response = session_client.patch(
+            f"{base_url}{automation_id}/", {"trigger_config": {"mode": "cron", "cron": "0 9"}}, format="json"
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["trigger_config"][0].startswith("A cron expression needs exactly five fields")
+        assert Automation.objects.get(pk=automation_id).trigger_config == {}
+
+    def test_a_trigger_config_that_is_not_an_object_is_rejected(self, session_client, base_url):
+        response = create_automation_via_api(session_client, base_url, trigger_type="schedule", trigger_config=[1])
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "trigger_config" in response.json()
 
     def test_enabling_a_schedule_sets_the_next_run(self, session_client, base_url):
         automation_id = create_automation_via_api(
@@ -353,30 +394,91 @@ class TestActions:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_change_property_config_is_validated(self, session_client, base_url, automation_id):
+    @pytest.mark.parametrize(
+        ("action_type", "config", "message"),
+        [
+            ("change_property", {"property": "priority", "change_type": "set"}, "Pick a value"),
+            ("send_notification", {"title": "Hi"}, "Choose at least one recipient."),
+            ("call_webhook", {"url": "ftp://example.com/hook"}, "must start with http"),
+            ("create_work_item", {"name": ""}, "needs a name"),
+        ],
+    )
+    def test_a_disabled_automation_stores_an_incomplete_action(
+        self, session_client, base_url, automation_id, action_type, config, message
+    ):
         response = session_client.post(
-            f"{base_url}{automation_id}/actions/",
-            {"action_type": "change_property", "config": {"property": "priority", "change_type": "add"}},
+            f"{base_url}{automation_id}/actions/", {"action_type": action_type, "config": config}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["config"] == config
+        assert message in response.json()["config_error"]
+
+    def test_completing_a_draft_action_clears_the_error(self, session_client, base_url, automation_id):
+        actions_url = f"{base_url}{automation_id}/actions/"
+        action_id = session_client.post(
+            actions_url,
+            {"action_type": "change_property", "config": {"property": "priority", "change_type": "set"}},
+            format="json",
+        ).json()["id"]
+
+        updated = session_client.patch(
+            f"{actions_url}{action_id}/",
+            {"config": {"property": "priority", "change_type": "set", "value": "urgent"}},
             format="json",
         )
+
+        assert updated.status_code == status.HTTP_200_OK
+        assert updated.json()["config_error"] is None
+        listed = session_client.get(f"{base_url}{automation_id}/").json()["actions"]
+        assert [action["config_error"] for action in listed] == [None]
+
+    def test_an_enabled_automation_rejects_an_incomplete_action(self, session_client, base_url, automation_id):
+        enable_via_api(session_client, base_url, automation_id)
+
+        response = session_client.post(
+            f"{base_url}{automation_id}/actions/",
+            {"action_type": "change_property", "config": {"property": "priority", "change_type": "set"}},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {"config": ["Pick a value for the property you're changing."]}
+
+    def test_an_enabled_automation_rejects_an_incomplete_edit(self, session_client, base_url, automation_id):
+        actions_url = f"{base_url}{automation_id}/actions/"
+        action_id = session_client.post(
+            actions_url, {"action_type": "add_comment", "config": {"comment_html": "<p>Hi</p>"}}, format="json"
+        ).json()["id"]
+        session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        response = session_client.patch(f"{actions_url}{action_id}/", {"config": {"comment_html": ""}}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {"config": ["The comment body is empty."]}
+        assert AutomationAction.objects.get(pk=action_id).config == {"comment_html": "<p>Hi</p>"}
+
+    def test_an_action_config_that_is_not_an_object_is_rejected(self, session_client, base_url, automation_id):
+        response = session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": "add_comment", "config": ["x"]}, format="json"
+        )
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "config" in response.json()
 
-    def test_notification_needs_recipients(self, session_client, base_url, automation_id):
+    def test_a_draft_template_is_sanitized(self, session_client, base_url, project, automation_id):
         response = session_client.post(
             f"{base_url}{automation_id}/actions/",
-            {"action_type": "send_notification", "config": {"title": "Hi"}},
+            {
+                "action_type": "create_work_item",
+                "config": {"name": "", "description_html": '<p onclick="steal()">x</p><script>alert(1)</script>'},
+            },
             format="json",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_webhook_url_scheme_is_validated(self, session_client, base_url, automation_id):
-        response = session_client.post(
-            f"{base_url}{automation_id}/actions/",
-            {"action_type": "call_webhook", "config": {"url": "ftp://example.com/hook"}},
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["config"]["description_html"] == "<p>x</p>"
+        assert response.json()["config_error"] == "The new work item needs a name."
 
     def test_comment_template_is_sanitized_on_save(self, session_client, base_url, automation_id):
         actions_url = f"{base_url}{automation_id}/actions/"
@@ -441,7 +543,24 @@ class TestActions:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["config"] == {"comment_html": "<p>{{ work_item.name }}</p>"}
 
-    def test_a_comment_template_that_sanitizes_to_nothing_is_rejected(self, session_client, base_url, automation_id):
+    def test_a_comment_template_that_sanitizes_to_nothing_is_stored_as_a_draft(
+        self, session_client, base_url, automation_id
+    ):
+        response = session_client.post(
+            f"{base_url}{automation_id}/actions/",
+            {"action_type": "add_comment", "config": {"comment_html": "<script>alert(1)</script>"}},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["config"] == {"comment_html": ""}
+        assert response.json()["config_error"] == "The comment body is empty."
+
+    def test_a_comment_template_that_sanitizes_to_nothing_is_rejected_while_enabled(
+        self, session_client, base_url, automation_id
+    ):
+        enable_via_api(session_client, base_url, automation_id)
+
         response = session_client.post(
             f"{base_url}{automation_id}/actions/",
             {"action_type": "add_comment", "config": {"comment_html": "<script>alert(1)</script>"}},
@@ -449,7 +568,7 @@ class TestActions:
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "config" in response.json()
+        assert response.json() == {"config": ["The comment body is empty."]}
 
     def test_cannot_delete_the_only_action_while_enabled(self, session_client, base_url, automation_id):
         actions_url = f"{base_url}{automation_id}/actions/"
@@ -462,6 +581,267 @@ class TestActions:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "only action" in response.json()["error"]
+
+
+class TestEnableValidation:
+    def test_enabling_reports_every_incomplete_part(self, session_client, base_url):
+        automation_id = create_automation_via_api(
+            session_client, base_url, trigger_type="schedule", trigger_config={"mode": "cron", "cron": "0 9"}
+        ).json()["id"]
+        actions_url = f"{base_url}{automation_id}/actions/"
+        complete = session_client.post(
+            actions_url,
+            {"action_type": "create_work_item", "config": {"name": "x", "type_id": str(uuid.uuid4())}},
+            format="json",
+        ).json()["id"]
+        comment = session_client.post(
+            actions_url, {"action_type": "add_comment", "config": {"comment_html": ""}}, format="json"
+        ).json()["id"]
+        webhook = session_client.post(
+            actions_url, {"action_type": "call_webhook", "config": {"url": ""}}, format="json"
+        ).json()["id"]
+
+        response = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "trigger_config": [
+                "A cron expression needs exactly five fields: minute hour day-of-month month day-of-week."
+            ],
+            "actions": {
+                comment: {"config": ["The comment body is empty."]},
+                webhook: {"config": ["The webhook needs a URL."]},
+            },
+        }
+        assert complete not in response.json()["actions"]
+        assert Automation.objects.get(pk=automation_id).is_enabled is False
+
+    def test_enabling_succeeds_once_the_parts_are_complete(self, session_client, base_url):
+        automation_id = create_automation_via_api(session_client, base_url).json()["id"]
+        actions_url = f"{base_url}{automation_id}/actions/"
+        action_id = session_client.post(
+            actions_url, {"action_type": "add_comment", "config": {"comment_html": ""}}, format="json"
+        ).json()["id"]
+        blocked = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+        assert blocked.status_code == status.HTTP_400_BAD_REQUEST
+
+        session_client.patch(f"{actions_url}{action_id}/", {"config": {"comment_html": "<p>Hi</p>"}}, format="json")
+        allowed = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert allowed.status_code == status.HTTP_200_OK
+        assert allowed.json()["is_enabled"] is True
+
+    def test_an_enabled_automation_with_an_old_incomplete_action_can_be_disabled(self, session_client, base_url):
+        automation_id = create_automation_via_api(session_client, base_url).json()["id"]
+        action_id = enable_via_api(session_client, base_url, automation_id).json()["actions"][0]["id"]
+        AutomationAction.objects.filter(pk=action_id).update(action_type="add_comment", config={})
+
+        detail = session_client.get(f"{base_url}{automation_id}/").json()
+        assert detail["actions"][0]["config_error"] == "The comment body is empty."
+
+        response = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": False}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestMalformedValues:
+    @pytest.fixture
+    def automation_id(self, session_client, base_url):
+        return create_automation_via_api(session_client, base_url).json()["id"]
+
+    @pytest.mark.parametrize(
+        ("action_type", "config"),
+        [
+            ("create_work_item", {"name": 123}),
+            ("create_work_item", {"name": "x", "assignee_ids": 5}),
+            ("add_comment", {"comment_html": 5}),
+            ("call_webhook", {"url": 1}),
+            ("call_webhook", {"url": "https://a.example", "method": 1}),
+            ("change_property", {"property": []}),
+        ],
+    )
+    def test_a_draft_action_of_the_wrong_type_is_rejected(
+        self, session_client, base_url, automation_id, action_type, config
+    ):
+        response = session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": action_type, "config": config}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "wrong type" in response.json()["config"][0]
+        assert not AutomationAction.objects.filter(automation_id=automation_id).exists()
+
+    def test_a_draft_schedule_of_the_wrong_type_is_rejected(self, session_client, base_url):
+        response = create_automation_via_api(
+            session_client, base_url, trigger_type="schedule", trigger_config={"timezone": 5}
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "wrong type" in response.json()["trigger_config"][0]
+
+    @pytest.mark.parametrize(
+        ("action_type", "config"),
+        [
+            ("create_work_item", {"name": 123}),
+            ("add_comment", {"comment_html": 5}),
+            ("call_webhook", {"url": "https://a.example", "method": 1}),
+            ("change_property", {"property": []}),
+            ("add_comment", ["not", "an", "object"]),
+        ],
+    )
+    def test_a_legacy_malformed_action_is_reported_on_read_list_and_enable(
+        self, session_client, base_url, automation_id, action_type, config
+    ):
+        action_id = session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": "archive_work_item", "config": {}}, format="json"
+        ).json()["id"]
+        AutomationAction.objects.filter(pk=action_id).update(action_type=action_type, config=config)
+
+        detail = session_client.get(f"{base_url}{automation_id}/")
+        listed = session_client.get(base_url)
+        actions = session_client.get(f"{base_url}{automation_id}/actions/")
+        enabled = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert detail.status_code == status.HTTP_200_OK
+        assert detail.json()["actions"][0]["config_error"]
+        assert listed.status_code == status.HTTP_200_OK
+        assert actions.status_code == status.HTTP_200_OK
+        assert enabled.status_code == status.HTTP_400_BAD_REQUEST
+        assert action_id in enabled.json()["actions"]
+
+    def test_a_legacy_malformed_schedule_is_reported_on_read_list_and_enable(
+        self, session_client, base_url, automation_id
+    ):
+        session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": "archive_work_item", "config": {}}, format="json"
+        )
+        Automation.objects.filter(pk=automation_id).update(trigger_type="schedule", trigger_config={"timezone": 5})
+
+        detail = session_client.get(f"{base_url}{automation_id}/")
+        listed = session_client.get(base_url)
+        enabled = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert detail.status_code == status.HTTP_200_OK
+        assert "wrong type" in detail.json()["trigger_config_error"]
+        assert detail.json()["schedule_summary"] is None
+        assert listed.status_code == status.HTTP_200_OK
+        assert enabled.status_code == status.HTTP_400_BAD_REQUEST
+        assert "trigger_config" in enabled.json()
+
+
+class TestUnparseableSchedules:
+    @pytest.mark.parametrize(
+        ("trigger_config", "message"),
+        [
+            ({"mode": "cron", "cron": "0 9 * * 1,"}, "That cron expression isn't valid"),
+            ({"mode": "cron", "cron": "0, 9 * * *"}, "That cron expression isn't valid"),
+            ({"mode": "cron", "cron": "*/ 9 * * *"}, "That cron expression isn't valid"),
+            ({"mode": "cron", "cron": "0 9 * * -1"}, "That cron expression isn't valid"),
+            ({"timezone": "A" * 5000}, "That isn't a known timezone."),
+        ],
+        ids=["trailing-comma", "leading-comma", "empty-step", "negative", "long-timezone"],
+    )
+    def test_a_draft_is_stored_and_reported_on_write_read_list_and_enable(
+        self, session_client, base_url, trigger_config, message
+    ):
+        created = create_automation_via_api(
+            session_client, base_url, trigger_type="schedule", trigger_config=trigger_config
+        )
+        assert created.status_code == status.HTTP_201_CREATED
+        assert created.json()["trigger_config_error"].startswith(message)
+        automation_id = created.json()["id"]
+        session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": "archive_work_item", "config": {}}, format="json"
+        )
+
+        detail = session_client.get(f"{base_url}{automation_id}/")
+        listed = session_client.get(base_url)
+        enabled = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert detail.status_code == status.HTTP_200_OK
+        assert detail.json()["trigger_config_error"].startswith(message)
+        assert listed.status_code == status.HTTP_200_OK
+        assert enabled.status_code == status.HTTP_400_BAD_REQUEST
+        assert enabled.json()["trigger_config"][0].startswith(message)
+
+
+class TestLegacyRowEdits:
+    def test_moving_a_legacy_malformed_action_works(self, session_client, base_url):
+        automation_id = create_automation_via_api(session_client, base_url).json()["id"]
+        actions_url = f"{base_url}{automation_id}/actions/"
+        action_id = session_client.post(
+            actions_url, {"action_type": "archive_work_item", "config": {}}, format="json"
+        ).json()["id"]
+        enable_via_api(session_client, base_url, automation_id)
+        AutomationAction.objects.filter(pk=action_id).update(action_type="add_comment", config={"comment_html": 5})
+
+        response = session_client.patch(f"{actions_url}{action_id}/", {"sort_order": 5}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["sort_order"] == 5
+        assert "wrong type" in response.json()["config_error"]
+
+
+class TestDisablingAlwaysWorks:
+    @pytest.mark.parametrize(
+        "stored",
+        [
+            {"trigger_type": "work_item.exploded"},
+            {"condition": {"type": "condition", "property": "colour", "operator": "in", "value": ["red"]}},
+            {"trigger_type": "schedule", "trigger_config": {"timezone": 5}},
+        ],
+        ids=["trigger_type", "condition", "trigger_config"],
+    )
+    def test_an_enabled_automation_with_a_stored_invalid_value_can_be_disabled(self, session_client, base_url, stored):
+        automation_id = create_automation_via_api(session_client, base_url).json()["id"]
+        enable_via_api(session_client, base_url, automation_id)
+        Automation.objects.filter(pk=automation_id).update(**stored)
+
+        response = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": False}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["is_enabled"] is False
+
+    def test_enabling_reports_a_stored_invalid_condition(self, session_client, base_url):
+        automation_id = create_automation_via_api(session_client, base_url).json()["id"]
+        session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": "archive_work_item", "config": {}}, format="json"
+        )
+        Automation.objects.filter(pk=automation_id).update(
+            condition={"type": "condition", "property": "colour", "operator": "in"}
+        )
+
+        response = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "condition" in response.json()
+
+
+class TestLocking:
+    @pytest.mark.parametrize("method", ["post_action", "patch_action", "patch_automation", "delete_automation"])
+    def test_writes_lock_the_automation_row(self, session_client, base_url, method):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        automation_id = create_automation_via_api(session_client, base_url).json()["id"]
+        actions_url = f"{base_url}{automation_id}/actions/"
+        action_id = session_client.post(
+            actions_url, {"action_type": "archive_work_item", "config": {}}, format="json"
+        ).json()["id"]
+
+        with CaptureQueriesContext(connection) as queries:
+            if method == "post_action":
+                session_client.post(actions_url, {"action_type": "archive_work_item", "config": {}}, format="json")
+            elif method == "patch_action":
+                session_client.patch(f"{actions_url}{action_id}/", {"config": {}}, format="json")
+            elif method == "patch_automation":
+                session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+            else:
+                session_client.delete(f"{base_url}{automation_id}/")
+
+        assert any(
+            'FROM "automations"' in query["sql"] and "FOR NO KEY UPDATE" in query["sql"]
+            for query in queries.captured_queries
+        )
 
 
 class TestRuns:

@@ -70,6 +70,7 @@
       "input_label": "¿Qué hace la automatización?",
       "input_placeholder": "Selecciona una opción",
       "trigger_required": "Elija un disparador antes de agregar acciones.",
+      "disable_to_add": "Desactive la automatización antes de agregar acciones.",
       "handler_name": {
         "add_comment": "Agregar comentario",
         "change_property": "Cambiar propiedad",

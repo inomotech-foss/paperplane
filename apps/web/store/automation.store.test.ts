@@ -18,6 +18,7 @@ const action: TAutomationAction = {
   automation: "rule-1",
   action_type: "create_work_item",
   config: { name: "Old", description_html: "<p>old</p>" },
+  config_error: null,
   sort_order: 1,
   created_at: "",
   updated_at: "",
@@ -35,6 +36,7 @@ const automation: TAutomation = {
   description: "",
   trigger_type: "work_item.created",
   trigger_config: {},
+  trigger_config_error: null,
   condition: null,
   is_enabled: false,
   next_run_at: null,
@@ -116,5 +118,31 @@ describe("AutomationStore.updateAction", () => {
 
     await expect(pending).rejects.toThrow("400");
     expect(config()).toEqual(action.config);
+  });
+
+  it("falls back to the server state after two refused edits in a row", async () => {
+    const { config, update, requests } = makeStore();
+
+    const first = update({ name: "", description_html: "<p>old</p>" });
+    const second = update({ name: "", description_html: "" });
+    requests[0].reject(new Error("400"));
+    await expect(first).rejects.toThrow("400");
+    requests[1].reject(new Error("400"));
+    await expect(second).rejects.toThrow("400");
+
+    expect(config()).toEqual(action.config);
+  });
+
+  it("keeps an accepted older edit when the newer one is refused", async () => {
+    const { config, update, requests } = makeStore();
+
+    const first = update({ name: "Accepted", description_html: "<p>old</p>" });
+    const second = update({ name: "", description_html: "<p>old</p>" });
+    requests[1].reject(new Error("400"));
+    await expect(second).rejects.toThrow("400");
+    requests[0].resolve({ ...action, config: { name: "Accepted", description_html: "<p>old</p>" } });
+    await first;
+
+    expect(config()).toEqual({ name: "Accepted", description_html: "<p>old</p>" });
   });
 });

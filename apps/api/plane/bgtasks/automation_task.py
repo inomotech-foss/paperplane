@@ -118,8 +118,11 @@ def dispatch_work_item_automations(
         return
 
 
-def _sweep_work_items(automation, project, initiator_id=None):
-    """Run a scheduled automation against every matching work item in a project."""
+def _sweep_work_items(automation, project, actions, initiator_id=None):
+    """
+    Run a scheduled automation against every matching work item in a project.
+    ``actions`` has already passed ``engine.record_if_incomplete``.
+    """
     reference = AutomationContext(project=project, automation=automation)
     today = reference.today
 
@@ -157,12 +160,25 @@ def _sweep_work_items(automation, project, initiator_id=None):
             context,
             trigger_source=AutomationRunTriggerSource.SCHEDULE,
             initiator_id=initiator_id,
+            checked_actions=actions,
         )
     return processed, matched
 
 
+def _checked_actions(automation, trigger_source, initiator_id):
+    """The action list for one run, or ``None`` when the automation is incomplete and a failed run was saved."""
+    actions = engine.load_actions(automation)
+    context = AutomationContext(automation=automation, trigger_type=automation.trigger_type)
+    if engine.record_if_incomplete(automation, actions, context, trigger_source, initiator_id) is not None:
+        return None
+    return actions
+
+
 def _run_scheduled_automation(automation, initiator_id=None, trigger_source=AutomationRunTriggerSource.SCHEDULE):
     """Execute one time based automation across its target projects."""
+    actions = _checked_actions(automation, trigger_source, initiator_id)
+    if actions is None:
+        return
     target = dispatch.scheduled_target(automation)
     projects = dispatch.target_projects(automation).select_related("workspace")
 
@@ -179,9 +195,10 @@ def _run_scheduled_automation(automation, initiator_id=None, trigger_source=Auto
                 context,
                 trigger_source=trigger_source,
                 initiator_id=initiator_id,
+                checked_actions=actions,
             )
         else:
-            _sweep_work_items(automation, project, initiator_id=initiator_id)
+            _sweep_work_items(automation, project, actions, initiator_id=initiator_id)
 
 
 def reschedule(automation, after=None) -> None:
@@ -235,8 +252,11 @@ def run_automation_now(automation_id, user_id=None):
 
         # Event based rules have no event to replay, so a manual run sweeps the
         # work items its conditions describe.
+        actions = _checked_actions(automation, AutomationRunTriggerSource.MANUAL, user_id)
+        if actions is None:
+            return
         for project in dispatch.target_projects(automation).select_related("workspace"):
-            _sweep_work_items(automation, project, initiator_id=user_id)
+            _sweep_work_items(automation, project, actions, initiator_id=user_id)
     except Exception as exception:  # noqa: BLE001
         log_exception(exception)
         return

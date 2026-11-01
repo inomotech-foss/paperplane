@@ -15,8 +15,8 @@ import type {
 } from "./automation";
 import { findLiteral, isNumberArray, isRecord, isStringArray } from "./narrow";
 
-// The API checks these JSON fields with `plane/automation/validators.py` before it stores them. The parsers accept what
-// those validators accept and keep the keys they do not know. A value they still cannot read gives `undefined`, so the
+// The API checks the shape of these JSON fields before it stores them. A disabled automation may hold an incomplete
+// config, so the parsers accept missing values and keep the keys they do not know. A value they still cannot read gives `undefined`, so the
 // caller can keep the raw value and show it read-only instead of writing back a reset.
 
 const OPERATORS: readonly TAutomationOperator[] = [

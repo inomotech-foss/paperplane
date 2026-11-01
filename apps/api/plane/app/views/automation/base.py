@@ -17,7 +17,11 @@ from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.utils.openapi import CURSOR_PARAMETER, PER_PAGE_PARAMETER
 from plane.utils.openapi.pagination import paginated_response
 from plane.utils.openapi.schema import DetailOrList
-from plane.app.serializers.response.automation import AutomationCatalogSerializer
+from plane.app.serializers.response.automation import (
+    AutomationActionValidationErrorSerializer,
+    AutomationCatalogSerializer,
+    AutomationValidationErrorSerializer,
+)
 from plane.app.permissions import ROLE, allow_permission
 from plane.app.serializers import (
     AutomationActionSerializer,
@@ -138,19 +142,22 @@ class AutomationBaseEndpoint(BaseAPIView):
         return Response(AutomationSerializer(automation).data, status=status.HTTP_201_CREATED)
 
     def update_automation(self, request, slug, pk, project_id=None):
-        automation = self.get_queryset(slug, project_id).filter(pk=pk).first()
-        if automation is None:
-            return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = AutomationSerializer(automation, data=request.data, partial=True, context={"scope": self.scope})
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        project_ids = serializer.validated_data.pop("project_ids", None)
-        was_enabled = automation.is_enabled
-        previous_trigger_config = automation.trigger_config
-
         with transaction.atomic():
+            # Locked so enabling validates the actions an action write can't change meanwhile.
+            automation = self._lock_automation(slug, pk, project_id)
+            if automation is None:
+                return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = AutomationSerializer(
+                automation, data=request.data, partial=True, context={"scope": self.scope}
+            )
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            project_ids = serializer.validated_data.pop("project_ids", None)
+            was_enabled = automation.is_enabled
+            previous_trigger_config = automation.trigger_config
+
             automation = serializer.save()
             if self.scope == AutomationScope.WORKSPACE:
                 if automation.applies_to_all_projects:
@@ -171,8 +178,9 @@ class AutomationBaseEndpoint(BaseAPIView):
         automation.refresh_from_db()
         return Response(AutomationSerializer(automation).data, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def destroy_automation(self, request, slug, pk, project_id=None):
-        automation = self.get_queryset(slug, project_id).filter(pk=pk).first()
+        automation = self._lock_automation(slug, pk, project_id)
         if automation is None:
             return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
         if automation.is_enabled:
@@ -188,6 +196,15 @@ class AutomationBaseEndpoint(BaseAPIView):
     def _get_automation(self, slug, automation_id, project_id=None):
         return self.get_queryset(slug, project_id).filter(pk=automation_id).first()
 
+    def _lock_automation(self, slug, automation_id, project_id=None):
+        """The automation, locked until the surrounding transaction ends."""
+        return (
+            self.get_queryset(slug, project_id)
+            .select_for_update(of=("self",), no_key=True)
+            .filter(pk=automation_id)
+            .first()
+        )
+
     def list_actions(self, request, slug, automation_id, project_id=None):
         automation = self._get_automation(slug, automation_id, project_id)
         if automation is None:
@@ -195,12 +212,14 @@ class AutomationBaseEndpoint(BaseAPIView):
         serializer = AutomationActionSerializer(automation.actions.all().order_by("sort_order"), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def create_action(self, request, slug, automation_id, project_id=None):
-        automation = self._get_automation(slug, automation_id, project_id)
+        # Locked so the automation can't be enabled between this check and the save.
+        automation = self._lock_automation(slug, automation_id, project_id)
         if automation is None:
             return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = AutomationActionSerializer(data=request.data)
+        serializer = AutomationActionSerializer(data=request.data, context={"automation": automation})
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -212,8 +231,9 @@ class AutomationBaseEndpoint(BaseAPIView):
         action = serializer.save(automation=automation, workspace_id=automation.workspace_id)
         return Response(AutomationActionSerializer(action).data, status=status.HTTP_201_CREATED)
 
+    @transaction.atomic
     def update_action(self, request, slug, automation_id, pk, project_id=None):
-        automation = self._get_automation(slug, automation_id, project_id)
+        automation = self._lock_automation(slug, automation_id, project_id)
         if automation is None:
             return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -221,14 +241,17 @@ class AutomationBaseEndpoint(BaseAPIView):
         if action is None:
             return Response({"error": "Action not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = AutomationActionSerializer(action, data=request.data, partial=True)
+        serializer = AutomationActionSerializer(
+            action, data=request.data, partial=True, context={"automation": automation}
+        )
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def destroy_action(self, request, slug, automation_id, pk, project_id=None):
-        automation = self._get_automation(slug, automation_id, project_id)
+        automation = self._lock_automation(slug, automation_id, project_id)
         if automation is None:
             return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -292,7 +315,10 @@ class ProjectAutomationEndpoint(AutomationBaseEndpoint):
     def post(self, request, slug, project_id):
         return self.create_automation(request, slug, project_id=project_id)
 
-    @extend_schema(request=AutomationSerializer, responses={200: AutomationSerializer})
+    @extend_schema(
+        request=AutomationSerializer,
+        responses={200: AutomationSerializer, 400: AutomationValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, pk):
         return self.update_automation(request, slug, pk, project_id=project_id)
@@ -310,12 +336,18 @@ class ProjectAutomationActionEndpoint(AutomationBaseEndpoint):
     def get(self, request, slug, project_id, automation_id):
         return self.list_actions(request, slug, automation_id, project_id=project_id)
 
-    @extend_schema(request=AutomationActionSerializer, responses={201: AutomationActionSerializer})
+    @extend_schema(
+        request=AutomationActionSerializer,
+        responses={201: AutomationActionSerializer, 400: AutomationActionValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN])
     def post(self, request, slug, project_id, automation_id):
         return self.create_action(request, slug, automation_id, project_id=project_id)
 
-    @extend_schema(request=AutomationActionSerializer, responses={200: AutomationActionSerializer})
+    @extend_schema(
+        request=AutomationActionSerializer,
+        responses={200: AutomationActionSerializer, 400: AutomationActionValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN])
     def patch(self, request, slug, project_id, automation_id, pk):
         return self.update_action(request, slug, automation_id, pk, project_id=project_id)
@@ -357,7 +389,10 @@ class WorkspaceAutomationEndpoint(AutomationBaseEndpoint):
     def post(self, request, slug):
         return self.create_automation(request, slug)
 
-    @extend_schema(request=AutomationSerializer, responses={200: AutomationSerializer})
+    @extend_schema(
+        request=AutomationSerializer,
+        responses={200: AutomationSerializer, 400: AutomationValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, pk):
         return self.update_automation(request, slug, pk)
@@ -375,12 +410,18 @@ class WorkspaceAutomationActionEndpoint(AutomationBaseEndpoint):
     def get(self, request, slug, automation_id):
         return self.list_actions(request, slug, automation_id)
 
-    @extend_schema(request=AutomationActionSerializer, responses={201: AutomationActionSerializer})
+    @extend_schema(
+        request=AutomationActionSerializer,
+        responses={201: AutomationActionSerializer, 400: AutomationActionValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug, automation_id):
         return self.create_action(request, slug, automation_id)
 
-    @extend_schema(request=AutomationActionSerializer, responses={200: AutomationActionSerializer})
+    @extend_schema(
+        request=AutomationActionSerializer,
+        responses={200: AutomationActionSerializer, 400: AutomationActionValidationErrorSerializer},
+    )
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def patch(self, request, slug, automation_id, pk):
         return self.update_action(request, slug, automation_id, pk)

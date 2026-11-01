@@ -72,3 +72,36 @@ class AutomationCatalogSerializer(serializers.Serializer):
     actions = ActionTypeSerializer(many=True)
     notification_recipients = choices(NOTIFICATION_RECIPIENTS)
     template_variables = strings()
+
+
+def errors():
+    return serializers.ListField(child=serializers.CharField(), required=False)
+
+
+class ActionConfigErrorSerializer(serializers.Serializer):
+    config = strings()
+
+
+class AutomationActionValidationErrorSerializer(serializers.Serializer):
+    """Field errors for a rejected action write. An incomplete config is only rejected while enabled."""
+
+    action_type = errors()
+    config = errors()
+    sort_order = errors()
+
+
+class AutomationValidationErrorSerializer(serializers.Serializer):
+    """
+    Field errors for a rejected automation write. Only the failing keys are
+    present. Enabling reports every incomplete part at once.
+    """
+
+    name = errors()
+    trigger_type = errors()
+    trigger_config = errors()
+    condition = errors()
+    project_ids = errors()
+    is_enabled = errors()
+    actions = serializers.DictField(
+        child=ActionConfigErrorSerializer(), required=False, help_text="Incomplete actions, keyed by action id"
+    )

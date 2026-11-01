@@ -16,6 +16,7 @@ const automation: ApiSchema<"Automation"> = {
   description: "",
   trigger_type: "work_item.created",
   trigger_config: null,
+  trigger_config_error: null,
   condition: { type: "condition", property: "priority", operator: "eq", value: "high" },
   is_enabled: true,
   next_run_at: null,
@@ -32,6 +33,7 @@ const automation: ApiSchema<"Automation"> = {
       automation: "a1",
       action_type: "add_comment",
       config: { comment_html: "<p>hi</p>" },
+      config_error: "The comment body is empty.",
       sort_order: 1,
       created_at: "t",
       updated_at: "t",
@@ -50,6 +52,8 @@ describe("toAutomation", () => {
     expect(result.trigger_config).toEqual({});
     expect(result.condition).toEqual({ type: "condition", property: "priority", operator: "eq", value: "high" });
     expect(result.actions[0]?.config).toEqual({ comment_html: "<p>hi</p>" });
+    expect(result.actions[0]?.config_error).toBe("The comment body is empty.");
+    expect(result.trigger_config_error).toBeNull();
   });
 });
 

@@ -70,6 +70,7 @@
       "input_label": "Čo robí automatizácia?",
       "input_placeholder": "Vyberte možnosť",
       "trigger_required": "Pred pridaním akcií vyberte spúšťač.",
+      "disable_to_add": "Pred pridaním akcií vypnite automatizáciu.",
       "handler_name": {
         "add_comment": "Pridať komentár",
         "change_property": "Zmeniť vlastnosť",

@@ -70,6 +70,7 @@
       "input_label": "Ce face automatizarea?",
       "input_placeholder": "Selectează o opțiune",
       "trigger_required": "Alegeți un declanșator înainte de a adăuga acțiuni.",
+      "disable_to_add": "Dezactivați automatizarea înainte de a adăuga acțiuni.",
       "handler_name": {
         "add_comment": "Adaugă comentariu",
         "change_property": "Schimbă proprietatea",
