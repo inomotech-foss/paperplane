@@ -16,9 +16,9 @@ import pytest
 
 from plane.api.serializers import ModuleLiteSerializer, ProjectSerializer
 from plane.app.serializers import IssueSerializer as AppIssueSerializer
-from plane.app.serializers.base import get_expansion_mapper
+from plane.app.serializers.base import expandable_keys, get_expansion_mapper
 from plane.app.serializers.project import ProjectListSerializer
-from plane.db.models import Issue, Module, ModuleMember, Project, User, Workspace
+from plane.db.models import Issue, Label, Module, ModuleMember, Project, User, Workspace
 
 # The three fields from the request in issue #4639.
 AUDIT_EXPANDS = ["created_by", "updated_by", "project_lead"]
@@ -170,6 +170,19 @@ class TestAppAPIExpand:
         data = ProjectListSerializer(project, expand=["members"]).data
 
         assert data["members"] == []
+
+    @pytest.mark.parametrize("key", ["bogus", "user", "sub_issues", "name"])
+    def test_a_key_that_is_not_an_expandable_relation_is_ignored(self, key):
+        """`user` and `sub_issues` are mapper keys but not relations of Issue and used to
+        return a 500. A plain field name such as `name` used to be overwritten with null."""
+        issue = self.build_issue(created_by=build_user(), updated_by=None)
+
+        assert AppIssueSerializer(issue, expand=[key]).data == AppIssueSerializer(issue).data
+
+    def test_a_relation_to_another_model_is_not_expandable(self):
+        """`parent` expands to a work item, so the parent of a label is not expandable."""
+        assert "parent" in expandable_keys(Issue)
+        assert "parent" not in expandable_keys(Label)
 
     def test_mapper_is_shared_by_both_call_sites(self):
         """_add_expansion_fields and to_representation had drifted apart, which is how

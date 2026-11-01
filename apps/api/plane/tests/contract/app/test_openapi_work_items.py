@@ -159,6 +159,14 @@ class TestWorkItemLists:
         assert by_id[str(child.id)]["parent"]["id"] == str(parent.id)
         assert by_id[str(child.id)]["issue_related"]
 
+    @pytest.mark.parametrize("key", ["bogus", "user", "sub_issues", "name"])
+    def test_list_by_id_ignores_keys_that_are_not_expandable(self, session_client, workspace, project, issues, key):
+        parent, child = issues
+        query = {"issues": str(parent.id), "expand": key}
+        (row,) = documented(session_client.get(url(workspace, project, "issues/list/"), query))
+        assert row["name"] == "parent"
+        assert "user" not in row and "sub_issues" not in row and "bogus" not in row
+
     def test_workspace_lists(self, session_client, create_user, workspace, project, issues):
         assert documented(session_client.get(f"/api/workspaces/{workspace.slug}/issues/"))["results"]
         user_issues = f"/api/workspaces/{workspace.slug}/user-issues/{create_user.id}/"

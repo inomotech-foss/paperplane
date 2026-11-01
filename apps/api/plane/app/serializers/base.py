@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from functools import cache
+
 from django.db import models
 from rest_framework import serializers
 
@@ -84,14 +86,35 @@ def get_expansion_mapper():
     }
 
 
+@cache
+def expandable_keys(model):
+    """The ``expand`` keys that name a relation of ``model`` whose target the expansion mapper serializes."""
+    from plane.db.models import Issue
+
+    expansion = get_expansion_mapper()
+    keys = set()
+    for field in model._meta.get_fields():
+        if not field.is_relation or field.related_model is None:
+            continue
+        name = field.get_accessor_name() if field.auto_created and not field.concrete else field.name
+        serializer = expansion.get(name)
+        if serializer and issubclass(field.related_model, serializer.Meta.model):
+            keys.add(name)
+    if issubclass(model, Issue):
+        keys.add("issue_attachments")
+    return frozenset(keys)
+
+
 class BaseSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(read_only=True)
 
 
 class DynamicBaseSerializer(BaseSerializer):
     def __init__(self, *args, **kwargs):
-        self.expand = kwargs.pop("expand", []) or []
+        expand = kwargs.pop("expand", []) or []
         super().__init__(*args, **kwargs)
+        allowed = expandable_keys(self.Meta.model) if expand else frozenset()
+        self.expand = [name for name in expand if name in allowed]
         if self.expand:
             self._add_expansion_fields()
 
@@ -104,50 +127,33 @@ class DynamicBaseSerializer(BaseSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
+        if not self.expand:
+            return response
 
-        # Ensure 'expand' is iterable before processing
-        if self.expand:
-            expansion = get_expansion_mapper()
-            for expand in self.expand:
-                if expand in self.fields:
-                    # Check if field in expansion then expand the field
-                    if expand in expansion:
-                        # Resolve against the instance rather than guessing arity from the
-                        # already-serialized value. `_MISSING` separates "no such relation"
-                        # from "the relation is null": `members` and `sub_issues` are
-                        # SerializerMethodField/annotation names on some serializers here,
-                        # and those must keep the value the serializer already produced.
-                        related = getattr(instance, expand, _MISSING)
-                        if isinstance(related, models.Manager):
-                            response[expand] = expansion[expand](related, many=True).data
-                        elif isinstance(related, models.Model):
-                            response[expand] = expansion[expand](related).data
-                        elif related is None:
-                            # A null relation stays null, matching the unexpanded response.
-                            # Serializing None emits an object built from the nested
-                            # serializer's field defaults instead.
-                            response[expand] = None
-                    else:
-                        # You might need to handle this case differently
-                        response[expand] = getattr(instance, f"{expand}_id", None)
+        expansion = get_expansion_mapper()
+        for expand in self.expand:
+            if expand not in expansion:
+                continue
+            # A missing reverse one-to-one row keeps the value the serializer produced.
+            related = getattr(instance, expand, _MISSING)
+            if isinstance(related, models.Manager):
+                response[expand] = expansion[expand](related, many=True).data
+            elif isinstance(related, models.Model):
+                response[expand] = expansion[expand](related).data
+            elif related is None:
+                # Serializing None would emit an object built from the nested serializer's defaults.
+                response[expand] = None
 
-            # Check if issue_attachments is in fields or expand
-            if "issue_attachments" in self.fields or "issue_attachments" in self.expand:
-                # Import the model here to avoid circular imports
-                from plane.db.models import FileAsset
-                from . import IssueAttachmentLiteSerializer
+        if "issue_attachments" in self.expand:
+            # Imported here to avoid circular imports
+            from plane.db.models import FileAsset
+            from . import IssueAttachmentLiteSerializer
 
-                issue_id = getattr(instance, "id", None)
-
-                if issue_id:
-                    # Fetch related issue_attachments
-                    issue_attachments = FileAsset.objects.filter(
-                        issue_id=issue_id,
-                        entity_type=FileAsset.EntityTypeContext.ISSUE_ATTACHMENT,
-                    )
-                    # Serialize issue_attachments and add them to the response
-                    response["issue_attachments"] = IssueAttachmentLiteSerializer(issue_attachments, many=True).data
-                else:
-                    response["issue_attachments"] = []
+            issue_attachments = (
+                FileAsset.objects.filter(issue_id=instance.id, entity_type=FileAsset.EntityTypeContext.ISSUE_ATTACHMENT)
+                if instance.id
+                else []
+            )
+            response["issue_attachments"] = IssueAttachmentLiteSerializer(issue_attachments, many=True).data
 
         return response
