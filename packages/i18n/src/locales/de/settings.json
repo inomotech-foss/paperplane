@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "KI-Anbieter",
     "description": "Der KI-Schreibassistent in Seiten und Arbeitselementen sendet Text an diesen Anbieter.",
+    "sidebar_description": "KI-Anbieter für den Schreibassistenten einrichten.",
     "provider": {
       "label": "Anbieter",
       "description": "Beim Wechsel des Anbieters werden das Modell und der API-Schlüssel zurückgesetzt, da beide bei einem anderen Anbieter nicht funktionieren."

@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "AI sağlayıcısı",
     "description": "Sayfalardaki ve iş öğelerindeki AI yazma asistanı metni bu sağlayıcıya gönderir.",
+    "sidebar_description": "Yazma asistanı için AI sağlayıcısını ayarlayın.",
     "provider": {
       "label": "Sağlayıcı",
       "description": "Sağlayıcıyı değiştirmek modeli ve API anahtarını temizler, çünkü ikisi de başka bir sağlayıcıyla çalışmaz."

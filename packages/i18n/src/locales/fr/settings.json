@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "Fournisseur d'IA",
     "description": "L'assistant de rédaction IA des pages et des éléments de travail envoie du texte à ce fournisseur.",
+    "sidebar_description": "Configurez le fournisseur d'IA de l'assistant de rédaction.",
     "provider": {
       "label": "Fournisseur",
       "description": "Changer de fournisseur efface le modèle et la clé API, car aucun des deux ne fonctionne avec un autre fournisseur."

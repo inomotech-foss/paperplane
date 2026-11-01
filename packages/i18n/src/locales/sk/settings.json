@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "Poskytovateľ AI",
     "description": "Asistent písania s AI na stránkach a v pracovných položkách odosiela text tomuto poskytovateľovi.",
+    "sidebar_description": "Nastavte poskytovateľa AI pre asistenta písania.",
     "provider": {
       "label": "Poskytovateľ",
       "description": "Zmena poskytovateľa vymaže model aj kľúč API, pretože ani jedno nefunguje u iného poskytovateľa."

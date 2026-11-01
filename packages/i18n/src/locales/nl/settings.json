@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "AI-provider",
     "description": "De AI-schrijfassistent in pagina's en werkitems stuurt tekst naar deze provider.",
+    "sidebar_description": "Stel de AI-provider voor de schrijfassistent in.",
     "provider": {
       "label": "Provider",
       "description": "Als je de provider wijzigt, worden het model en de API-sleutel gewist, omdat geen van beide werkt met een andere provider."

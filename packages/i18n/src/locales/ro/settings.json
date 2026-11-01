@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "Furnizor AI",
     "description": "Asistentul de scriere AI din pagini și activități trimite text acestui furnizor.",
+    "sidebar_description": "Configurați furnizorul AI pentru asistentul de scriere.",
     "provider": {
       "label": "Furnizor",
       "description": "Schimbarea furnizorului golește modelul și cheia API, deoarece niciunul nu funcționează cu alt furnizor."

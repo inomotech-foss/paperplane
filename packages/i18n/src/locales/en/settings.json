@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "AI provider",
     "description": "The AI writing assistant in pages and work items sends text to this provider.",
+    "sidebar_description": "Set up the AI provider for the writing assistant.",
     "provider": {
       "label": "Provider",
       "description": "Changing the provider clears the model and the API key, because neither works with another provider."

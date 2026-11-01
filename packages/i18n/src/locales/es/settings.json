@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "Proveedor de IA",
     "description": "El asistente de escritura con IA de las páginas y los elementos de trabajo envía texto a este proveedor.",
+    "sidebar_description": "Configure el proveedor de IA del asistente de escritura.",
     "provider": {
       "label": "Proveedor",
       "description": "Al cambiar de proveedor se borran el modelo y la clave de API, porque ninguno de los dos funciona con otro proveedor."

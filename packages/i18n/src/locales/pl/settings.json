@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "Dostawca AI",
     "description": "Asystent pisania AI na stronach i w elementach pracy wysyła tekst do tego dostawcy.",
+    "sidebar_description": "Skonfiguruj dostawcę AI dla asystenta pisania.",
     "provider": {
       "label": "Dostawca",
       "description": "Zmiana dostawcy czyści model i klucz API, ponieważ żadne z nich nie działa u innego dostawcy."

@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "AI 供應商",
     "description": "頁面與工作事項中的 AI 寫作助理會將文字傳送給此供應商。",
+    "sidebar_description": "為寫作助理設定 AI 供應商。",
     "provider": {
       "label": "供應商",
       "description": "變更供應商會清除模型和 API 金鑰，因為兩者都無法用於其他供應商。"

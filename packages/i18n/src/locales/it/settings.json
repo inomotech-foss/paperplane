@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "Fornitore di IA",
     "description": "L'assistente di scrittura IA in pagine ed elementi di lavoro invia il testo a questo fornitore.",
+    "sidebar_description": "Configuri il fornitore di IA per l'assistente di scrittura.",
     "provider": {
       "label": "Fornitore",
       "description": "Cambiando fornitore vengono cancellati il modello e la chiave API, perché nessuno dei due funziona con un altro fornitore."

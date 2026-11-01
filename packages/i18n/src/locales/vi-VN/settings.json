@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "Nhà cung cấp AI",
     "description": "Trợ lý viết AI trong trang và mục công việc gửi văn bản đến nhà cung cấp này.",
+    "sidebar_description": "Thiết lập nhà cung cấp AI cho trợ lý viết.",
     "provider": {
       "label": "Nhà cung cấp",
       "description": "Khi đổi nhà cung cấp, mô hình và khóa API sẽ bị xóa vì cả hai đều không dùng được với nhà cung cấp khác."

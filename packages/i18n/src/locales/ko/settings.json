@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "AI 제공업체",
     "description": "페이지와 작업 항목의 AI 글쓰기 도우미가 이 제공업체로 텍스트를 보냅니다.",
+    "sidebar_description": "글쓰기 도우미의 AI 제공업체를 설정합니다.",
     "provider": {
       "label": "제공업체",
       "description": "모델과 API 키는 다른 제공업체에서 작동하지 않으므로 제공업체를 변경하면 둘 다 초기화됩니다."

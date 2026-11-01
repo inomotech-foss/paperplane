@@ -170,6 +170,7 @@
   "instance_ai": {
     "title": "Penyedia AI",
     "description": "Asisten penulisan AI di halaman dan item kerja mengirim teks ke penyedia ini.",
+    "sidebar_description": "Siapkan penyedia AI untuk asisten penulisan.",
     "provider": {
       "label": "Penyedia",
       "description": "Mengganti penyedia akan mengosongkan model dan kunci API, karena keduanya tidak berfungsi dengan penyedia lain."
