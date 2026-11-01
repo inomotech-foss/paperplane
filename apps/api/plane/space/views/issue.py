@@ -280,6 +280,7 @@ class IssueCommentPublicViewSet(BaseViewSet):
                     .select_related("project")
                     .select_related("workspace")
                     .select_related("issue")
+                    .prefetch_related("comment_reactions__actor")
                     .annotate(
                         is_member=Exists(
                             ProjectMember.objects.filter(
