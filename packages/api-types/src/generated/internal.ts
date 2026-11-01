@@ -1252,22 +1252,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/workspaces/{slug}/ai-assistant/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["workspaces_ai_assistant_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/workspaces/{slug}/analytic-view/": {
         parameters: {
             query?: never;
@@ -2014,22 +1998,6 @@ export interface paths {
         get: operations["workspaces_projects_advance_analytics_stats_list"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/workspaces/{slug}/projects/{project_id}/ai-assistant/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["workspaces_projects_ai_assistant_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4980,6 +4948,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{slug}/writing-assistant/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["workspaces_writing_assistant_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/file-assets/{workspace_id}/{asset_key}/": {
         parameters: {
             query?: never;
@@ -5586,16 +5570,6 @@ export interface components {
             backlog_work_items: number;
             un_started_work_items: number;
             started_work_items: number;
-        };
-        AssistantReply: {
-            response: string;
-            response_html: string;
-        };
-        AssistantTaskRequest: {
-            /** @description What the assistant should do */
-            task: string;
-            /** @description The text the task works on */
-            prompt?: string;
         };
         AttachmentAttributes: {
             name: string;
@@ -10637,12 +10611,6 @@ export interface components {
         ProjectArchive: {
             archived_at: string;
         };
-        ProjectAssistantReply: {
-            response: string;
-            response_html: string;
-            project_detail: components["schemas"]["ProjectLite"];
-            workspace_detail: components["schemas"]["WorkspaceLite"];
-        };
         ProjectDeployBoardResponse: components["schemas"]["DeployBoard"] | components["schemas"]["UnpublishedDeployBoard"];
         ProjectFavoriteRequest: {
             /** Format: uuid */
@@ -13996,6 +13964,60 @@ export interface components {
             present_cycles: components["schemas"]["UserCycle"][];
             upcoming_cycles: components["schemas"]["UserCycle"][];
         };
+        /**
+         * @description * `rephrase` - rephrase
+         *     * `simplify` - simplify
+         *     * `elaborate` - elaborate
+         *     * `summarize` - summarize
+         *     * `fix_grammar` - fix_grammar
+         *     * `adjust_tone` - adjust_tone
+         *     * `custom` - custom
+         *     * `draft_description` - draft_description
+         * @enum {string}
+         */
+        WritingActionEnum: "rephrase" | "simplify" | "elaborate" | "summarize" | "fix_grammar" | "adjust_tone" | "custom" | "draft_description";
+        WritingError: {
+            error: string;
+            code: components["schemas"]["WritingErrorCodeEnum"];
+        };
+        /**
+         * @description * `llm_not_configured` - llm_not_configured
+         *     * `provider_auth` - provider_auth
+         *     * `provider_rate_limit` - provider_rate_limit
+         *     * `provider_model` - provider_model
+         *     * `provider_error` - provider_error
+         *     * `empty_response` - empty_response
+         * @enum {string}
+         */
+        WritingErrorCodeEnum: "llm_not_configured" | "provider_auth" | "provider_rate_limit" | "provider_model" | "provider_error" | "empty_response";
+        WritingResult: {
+            /** @description The result as sanitized HTML, ready to insert into the editor */
+            html: string;
+        };
+        WritingTaskRequest: {
+            action: components["schemas"]["WritingActionEnum"];
+            /** @description The text to work on, as Markdown. For draft_description, the work item title. */
+            text: string;
+            /**
+             * @description Required for adjust_tone
+             *
+             *     * `professional` - professional
+             *     * `casual` - casual
+             *     * `friendly` - friendly
+             *     * `confident` - confident
+             */
+            tone?: components["schemas"]["WritingToneEnum"];
+            /** @description Required for custom */
+            instruction?: string;
+        };
+        /**
+         * @description * `professional` - professional
+         *     * `casual` - casual
+         *     * `friendly` - friendly
+         *     * `confident` - confident
+         * @enum {string}
+         */
+        WritingToneEnum: "professional" | "casual" | "friendly" | "confident";
     };
     responses: never;
     parameters: never;
@@ -16780,33 +16802,6 @@ export interface operations {
             };
         };
     };
-    workspaces_ai_assistant_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AssistantTaskRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["AssistantTaskRequest"];
-                "multipart/form-data": components["schemas"]["AssistantTaskRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AssistantReply"];
-                };
-            };
-        };
-    };
     workspaces_analytic_view_list: {
         parameters: {
             query?: {
@@ -18762,34 +18757,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssigneeWorkItemStats"][];
-                };
-            };
-        };
-    };
-    workspaces_projects_ai_assistant_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AssistantTaskRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["AssistantTaskRequest"];
-                "multipart/form-data": components["schemas"]["AssistantTaskRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectAssistantReply"];
                 };
             };
         };
@@ -27036,6 +27003,63 @@ export interface operations {
             };
         };
     };
+    workspaces_writing_assistant_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WritingTaskRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WritingTaskRequest"];
+                "multipart/form-data": components["schemas"]["WritingTaskRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WritingResult"];
+                };
+            };
+            /** @description Invalid action, missing tone or instruction, or text too long */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Too many requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WritingError"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WritingError"];
+                };
+            };
+        };
+    };
     workspaces_file_assets_retrieve: {
         parameters: {
             query?: never;
@@ -27448,3 +27472,6 @@ export const userTimezoneEnumValues: ReadonlyArray<FlattenedDeepRequired<compone
 export const userTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["UserTypeEnum"]> = [0, 1];
 export const voteEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["VoteEnum"]> = [-1, 1];
 export const workItemRelationTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["WorkItemRelationTypeEnum"]> = ["blocking", "blocked_by", "duplicate", "relates_to", "start_before", "start_after", "finish_before", "finish_after", "implemented_by", "implements"];
+export const writingActionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["WritingActionEnum"]> = ["rephrase", "simplify", "elaborate", "summarize", "fix_grammar", "adjust_tone", "custom", "draft_description"];
+export const writingErrorCodeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["WritingErrorCodeEnum"]> = ["llm_not_configured", "provider_auth", "provider_rate_limit", "provider_model", "provider_error", "empty_response"];
+export const writingToneEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["WritingToneEnum"]> = ["professional", "casual", "friendly", "confident"];

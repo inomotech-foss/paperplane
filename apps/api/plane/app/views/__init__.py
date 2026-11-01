@@ -214,11 +214,8 @@ from .search.base import GlobalSearchEndpoint, SearchEndpoint
 from .search.issue import IssueSearchEndpoint
 
 
-from .external.base import (
-    GPTIntegrationEndpoint,
-    UnsplashEndpoint,
-    WorkspaceGPTIntegrationEndpoint,
-)
+from .external.base import UnsplashEndpoint
+from .external.writing_assistant import WritingAssistantEndpoint
 from .estimate.base import (
     ProjectEstimatePointEndpoint,
     BulkEstimatePointEndpoint,

@@ -23,6 +23,7 @@ from plane.license.api.serializers import InstanceSerializer
 from plane.license.models import Instance
 from plane.license.utils.instance_value import get_configuration_value
 from plane.utils.email.transport import is_email_configured
+from plane.utils.llm import is_llm_configured
 from plane.utils.cache import cache_response, invalidate_cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control
@@ -65,7 +66,6 @@ class InstanceEndpoint(BaseAPIView):
             ENABLE_EMAIL_PASSWORD,
             SLACK_CLIENT_ID,
             UNSPLASH_ACCESS_KEY,
-            LLM_API_KEY,
         ) = get_configuration_value(
             [
                 {
@@ -120,10 +120,6 @@ class InstanceEndpoint(BaseAPIView):
                     "key": "UNSPLASH_ACCESS_KEY",
                     "default": os.environ.get("UNSPLASH_ACCESS_KEY", ""),
                 },
-                {
-                    "key": "LLM_API_KEY",
-                    "default": os.environ.get("LLM_API_KEY", ""),
-                },
             ]
         )
 
@@ -149,8 +145,7 @@ class InstanceEndpoint(BaseAPIView):
         # Unsplash
         data["has_unsplash_configured"] = bool(UNSPLASH_ACCESS_KEY)
 
-        # Open AI settings
-        data["has_llm_configured"] = bool(LLM_API_KEY)
+        data["has_llm_configured"] = is_llm_configured()
 
         # File size settings
         data["file_size_limit"] = float(os.environ.get("FILE_SIZE_LIMIT", 5242880))

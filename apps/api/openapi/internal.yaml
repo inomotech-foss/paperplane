@@ -3235,38 +3235,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProjectWorkItemStats'
           description: ''
-  /api/workspaces/{slug}/ai-assistant/:
-    post:
-      operationId: workspaces_ai_assistant_create
-      parameters:
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AssistantTaskRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AssistantTaskRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AssistantTaskRequest'
-        required: true
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AssistantReply'
-          description: ''
   /api/workspaces/{slug}/analytic-view/:
     get:
       operationId: workspaces_analytic_view_list
@@ -5893,44 +5861,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AssigneeWorkItemStats'
-          description: ''
-  /api/workspaces/{slug}/projects/{project_id}/ai-assistant/:
-    post:
-      operationId: workspaces_projects_ai_assistant_create
-      parameters:
-      - in: path
-        name: project_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - workspaces
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AssistantTaskRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AssistantTaskRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AssistantTaskRequest'
-        required: true
-      security:
-      - sessionAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProjectAssistantReply'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/archive/:
     post:
@@ -18112,6 +18042,54 @@ paths:
       responses:
         '204':
           description: Saved
+  /api/workspaces/{slug}/writing-assistant/:
+    post:
+      operationId: workspaces_writing_assistant_create
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WritingTaskRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WritingTaskRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WritingTaskRequest'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WritingResult'
+          description: ''
+        '400':
+          description: Invalid action, missing tone or instruction, or text too long
+        '429':
+          description: Too many requests
+        '502':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WritingError'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WritingError'
+          description: ''
   /api/workspaces/file-assets/{workspace_id}/{asset_key}/:
     get:
       operationId: workspaces_file_assets_retrieve
@@ -19386,28 +19364,6 @@ components:
       - backlog_work_items
       - un_started_work_items
       - started_work_items
-    AssistantReply:
-      type: object
-      properties:
-        response:
-          type: string
-        response_html:
-          type: string
-      required:
-      - response
-      - response_html
-    AssistantTaskRequest:
-      type: object
-      properties:
-        task:
-          type: string
-          minLength: 1
-          description: What the assistant should do
-        prompt:
-          type: string
-          description: The text the task works on
-      required:
-      - task
     AttachmentAttributes:
       type: object
       properties:
@@ -31483,22 +31439,6 @@ components:
           type: string
       required:
       - archived_at
-    ProjectAssistantReply:
-      type: object
-      properties:
-        response:
-          type: string
-        response_html:
-          type: string
-        project_detail:
-          $ref: '#/components/schemas/ProjectLite'
-        workspace_detail:
-          $ref: '#/components/schemas/WorkspaceLite'
-      required:
-      - response
-      - response_html
-      - project_detail
-      - workspace_detail
     ProjectDeployBoardResponse:
       oneOf:
       - $ref: '#/components/schemas/DeployBoard'
@@ -39421,6 +39361,101 @@ components:
       - subscribed_issues
       - present_cycles
       - upcoming_cycles
+    WritingActionEnum:
+      enum:
+      - rephrase
+      - simplify
+      - elaborate
+      - summarize
+      - fix_grammar
+      - adjust_tone
+      - custom
+      - draft_description
+      type: string
+      description: |-
+        * `rephrase` - rephrase
+        * `simplify` - simplify
+        * `elaborate` - elaborate
+        * `summarize` - summarize
+        * `fix_grammar` - fix_grammar
+        * `adjust_tone` - adjust_tone
+        * `custom` - custom
+        * `draft_description` - draft_description
+    WritingError:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          $ref: '#/components/schemas/WritingErrorCodeEnum'
+      required:
+      - error
+      - code
+    WritingErrorCodeEnum:
+      enum:
+      - llm_not_configured
+      - provider_auth
+      - provider_rate_limit
+      - provider_model
+      - provider_error
+      - empty_response
+      type: string
+      description: |-
+        * `llm_not_configured` - llm_not_configured
+        * `provider_auth` - provider_auth
+        * `provider_rate_limit` - provider_rate_limit
+        * `provider_model` - provider_model
+        * `provider_error` - provider_error
+        * `empty_response` - empty_response
+    WritingResult:
+      type: object
+      properties:
+        html:
+          type: string
+          description: The result as sanitized HTML, ready to insert into the editor
+      required:
+      - html
+    WritingTaskRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/WritingActionEnum'
+        text:
+          type: string
+          minLength: 1
+          description: The text to work on, as Markdown. For draft_description, the
+            work item title.
+          maxLength: 20000
+        tone:
+          allOf:
+          - $ref: '#/components/schemas/WritingToneEnum'
+          description: |-
+            Required for adjust_tone
+
+            * `professional` - professional
+            * `casual` - casual
+            * `friendly` - friendly
+            * `confident` - confident
+        instruction:
+          type: string
+          minLength: 1
+          description: Required for custom
+          maxLength: 1000
+      required:
+      - action
+      - text
+    WritingToneEnum:
+      enum:
+      - professional
+      - casual
+      - friendly
+      - confident
+      type: string
+      description: |-
+        * `professional` - professional
+        * `casual` - casual
+        * `friendly` - friendly
+        * `confident` - confident
   securitySchemes:
     cookieAuth:
       type: apiKey

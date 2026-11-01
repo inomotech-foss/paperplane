@@ -4,4 +4,5 @@
 
 import mistune
 
-markdown = mistune.Markdown()
+# Raw HTML in the source is escaped, not passed through.
+markdown = mistune.create_markdown(escape=True, plugins=["strikethrough", "table"])

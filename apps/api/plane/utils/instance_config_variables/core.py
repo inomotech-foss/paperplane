@@ -82,6 +82,12 @@ rate_limit_config_variables = [
         "category": "RATE_LIMIT",
         "is_encrypted": False,
     },
+    {
+        "key": "WRITING_ASSISTANT_RATE_LIMIT",
+        "value": os.environ.get("WRITING_ASSISTANT_RATE_LIMIT", "20/minute"),
+        "category": "RATE_LIMIT",
+        "is_encrypted": False,
+    },
 ]
 
 google_config_variables = [
@@ -371,7 +377,7 @@ llm_config_variables = [
     },
     {
         "key": "LLM_MODEL",
-        "value": os.environ.get("LLM_MODEL", "gpt-4o-mini"),
+        "value": os.environ.get("LLM_MODEL", ""),
         "category": "AI",
         "is_encrypted": False,
     },

@@ -6,9 +6,7 @@ from rest_framework import serializers
 from plane.app.serializers import (
     IssueCommentSerializer,
     IssueEmailMessageSerializer,
-    ProjectLiteSerializer,
     WebhookSerializer,
-    WorkspaceLiteSerializer,
 )
 from plane.db.models import Webhook
 
@@ -22,16 +20,6 @@ class TimezoneSerializer(serializers.Serializer):
 
 class TimezoneListSerializer(serializers.Serializer):
     timezones = TimezoneSerializer(many=True)
-
-
-class AssistantReplySerializer(serializers.Serializer):
-    response = serializers.CharField()
-    response_html = serializers.CharField()
-
-
-class ProjectAssistantReplySerializer(AssistantReplySerializer):
-    project_detail = ProjectLiteSerializer()
-    workspace_detail = WorkspaceLiteSerializer()
 
 
 class EmailReplySerializer(serializers.Serializer):
