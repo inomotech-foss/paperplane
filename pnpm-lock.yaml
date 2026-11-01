@@ -541,8 +541,6 @@ overrides:
   defu: 6.1.5
   postcss: 8.5.25
   postcss-selector-parser: 7.1.6
-  axios: 1.20.0
-  follow-redirects: 1.16.1
   uuid: 14.0.0
   fast-uri: 3.1.8
   js-yaml@4: 4.3.2
