@@ -89,6 +89,14 @@ export function toBaseIssue(row: TWorkItemRow): TIssueRow {
   };
 }
 
+const toUserId = (user: string | ApiSchema<"UserLite"> | null): string | null =>
+  user === null || typeof user === "string" ? user : user.id;
+
+/** A row of the by-id list. Expanding created_by or updated_by sends the user instead of the id. */
+export function toWorkItemById(row: ApiSchema<"WorkItemSnapshot"> | ApiSchema<"ExpandedWorkItem">): TIssueRow {
+  return toBaseIssue({ ...row, created_by: toUserId(row.created_by), updated_by: toUserId(row.updated_by) });
+}
+
 type TIssueDetail = ApiSchema<"ExpandedIssueDetail">;
 
 /** A work item from the detail endpoints. The expanded parent stays a partial work item. */

@@ -6148,6 +6148,36 @@ export interface components {
             /** Format: uuid */
             cycle: string;
         };
+        CycleIssue: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly issue_detail: components["schemas"]["IssueState"];
+            readonly sub_issues_count?: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            readonly project: string;
+            /** Format: uuid */
+            readonly workspace: string;
+            /** Format: uuid */
+            issue: string;
+            /** Format: uuid */
+            readonly cycle: string;
+        };
         CycleIssuesAddRequest: {
             /** @description Work items of the project. Moves them out of their current cycle */
             issues: string[];
@@ -7102,6 +7132,66 @@ export interface components {
             /** Format: uuid */
             updated_by: string | null;
         };
+        ExpandedWorkItem: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Issue Name */
+            readonly name: string;
+            /** Format: uuid */
+            readonly state_id: string | null;
+            /** Format: double */
+            readonly sort_order: number;
+            /** Format: date-time */
+            readonly completed_at: string | null;
+            /** Format: uuid */
+            readonly estimate_point: string | null;
+            /** Issue Priority */
+            readonly priority: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            readonly start_date: string | null;
+            /** Format: date */
+            readonly target_date: string | null;
+            /** Issue Sequence ID */
+            readonly sequence_id: number;
+            /** Format: uuid */
+            readonly project_id: string;
+            /** Format: uuid */
+            readonly parent_id: string | null;
+            /** Format: uuid */
+            readonly type_id: string;
+            readonly cycle_id?: string | null;
+            module_ids?: string[];
+            label_ids?: string[];
+            assignee_ids?: string[];
+            readonly sub_issues_count?: number | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            created_by: (string | components["schemas"]["UserLite"]) | null;
+            updated_by: (string | components["schemas"]["UserLite"]) | null;
+            readonly attachment_count?: number | null;
+            readonly link_count?: number | null;
+            readonly is_draft: boolean;
+            /** Format: date */
+            readonly archived_at: string | null;
+            workspace?: components["schemas"]["WorkspaceLite"];
+            project?: components["schemas"]["ProjectLite"];
+            state?: components["schemas"]["StateLite"] | null;
+            parent?: components["schemas"]["IssueLite"] | null;
+            assignees?: components["schemas"]["UserLite"][];
+            labels?: components["schemas"]["Label"][];
+            issue_cycle?: components["schemas"]["CycleIssue"][];
+            issue_relation?: components["schemas"]["IssueRelation"][];
+            issue_related?: components["schemas"]["RelatedIssue"][];
+            issue_intake?: components["schemas"]["IntakeIssueLite"][];
+            issue_reactions?: components["schemas"]["IssueReactionLite"][];
+            issue_link?: components["schemas"]["IssueLinkLite"][];
+            issue_attachments?: components["schemas"]["IssueAttachmentLite"][];
+        };
         /**
          * @description * `json` - json
          *     * `csv` - csv
@@ -7383,6 +7473,16 @@ export interface components {
             readonly duplicate_issue_detail: components["schemas"]["IssueIntake"] | null;
             source: string | null;
             readonly issue: components["schemas"]["IssueDetail"];
+        };
+        IntakeIssueLite: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly status: components["schemas"]["IntakeWorkItemStatusEnum"];
+            /** Format: uuid */
+            readonly duplicate_to: string | null;
+            /** Format: date-time */
+            readonly snoozed_till: string | null;
+            readonly source: string | null;
         };
         IntakeIssueRequest: {
             status?: components["schemas"]["IntakeWorkItemStatusEnum"];
@@ -8270,6 +8370,72 @@ export interface components {
             source_email: string | null;
             extra: unknown;
         };
+        IssueState: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly label_details: components["schemas"]["LabelLite"][];
+            readonly state_detail: components["schemas"]["StateLite"] | null;
+            readonly project_detail: components["schemas"]["ProjectLite"];
+            readonly assignee_details: components["schemas"]["UserLite"][];
+            readonly sub_issues_count?: number;
+            readonly attachment_count?: number;
+            readonly link_count?: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+            /** Format: date-time */
+            deleted_at: string | null;
+            point: number | null;
+            /** Issue Name */
+            name: string;
+            description_json: unknown;
+            description_html: string;
+            description_stripped: string | null;
+            /** Format: byte */
+            readonly description_binary: string | null;
+            /** Issue Priority */
+            priority: components["schemas"]["PriorityEnum"];
+            /** Format: date */
+            start_date: string | null;
+            /** Format: date */
+            target_date: string | null;
+            /** Issue Sequence ID */
+            sequence_id: number;
+            /** Format: double */
+            sort_order: number;
+            /** Format: date-time */
+            completed_at: string | null;
+            /** Format: date */
+            archived_at: string | null;
+            is_draft: boolean;
+            external_source: string | null;
+            external_id: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            updated_by: string | null;
+            /** Format: uuid */
+            project: string;
+            /** Format: uuid */
+            workspace: string;
+            /** Format: uuid */
+            parent: string | null;
+            /** Format: uuid */
+            state: string | null;
+            /** Format: uuid */
+            estimate_point: string | null;
+            /** Format: uuid */
+            type: string;
+            readonly assignees: string[];
+            readonly labels: string[];
+        };
         IssueSubscriber: {
             /** Format: uuid */
             readonly id: string;
@@ -8568,6 +8734,12 @@ export interface components {
             label_id: string | null;
             label_name: string | null;
             color: string | null;
+        };
+        LabelLite: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            color: string;
         };
         LabelRequest: {
             /** Format: uuid */
@@ -11241,6 +11413,32 @@ export interface components {
             reaction: string;
         };
         RecentVisitEntity: components["schemas"]["IssueRecentVisit"] | components["schemas"]["PageRecentVisit"] | components["schemas"]["ProjectRecentVisit"];
+        RelatedIssue: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly project_id: string;
+            readonly sequence_id: number;
+            readonly relation_type: string;
+            readonly name: string;
+            /** Format: uuid */
+            readonly state_id?: string;
+            readonly priority: string;
+            /** Format: uuid */
+            readonly created_by: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /**
+             * Last Modified By
+             * Format: uuid
+             */
+            readonly updated_by: string | null;
+            /**
+             * Last Modified At
+             * Format: date-time
+             */
+            readonly updated_at: string;
+        };
         RelatedWorkItem: {
             /** Format: uuid */
             id: string;
@@ -11424,6 +11622,15 @@ export interface components {
         StateGroupTotal: {
             state_group: string | null;
             state_count: number;
+        };
+        StateLite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** State Name */
+            readonly name: string;
+            /** State Color */
+            readonly color: string;
+            readonly group: components["schemas"]["Group272Enum"];
         };
         StateRequest: {
             /** State Name */
@@ -13279,7 +13486,7 @@ export interface components {
             /** @description Present when description=true */
             description_html?: string;
         };
-        WorkItemsByIdResponse: components["schemas"]["WorkItemSnapshot"][] | components["schemas"]["Issue"][];
+        WorkItemsByIdResponse: components["schemas"]["WorkItemSnapshot"][] | components["schemas"]["ExpandedWorkItem"][];
         WorkSpace: {
             /** Format: uuid */
             readonly id: string;

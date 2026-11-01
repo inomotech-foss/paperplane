@@ -3,10 +3,12 @@
 
 from drf_spectacular.plumbing import build_array_type, build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import PolymorphicProxySerializer
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field
 from rest_framework import serializers
 
 from plane.app.serializers import (
+    CycleIssueSerializer,
+    IntakeIssueLiteSerializer,
     IssueActivitySerializer,
     IssueAttachmentLiteSerializer,
     IssueCommentSerializer,
@@ -15,7 +17,14 @@ from plane.app.serializers import (
     IssueLinkLiteSerializer,
     IssueLiteSerializer,
     IssueReactionLiteSerializer,
+    IssueRelationSerializer,
     IssueSerializer,
+    LabelSerializer,
+    ProjectLiteSerializer,
+    RelatedIssueSerializer,
+    StateLiteSerializer,
+    UserLiteSerializer,
+    WorkspaceLiteSerializer,
 )
 from plane.utils.openapi.pagination import paginated_union
 
@@ -97,12 +106,59 @@ class WorkItemSyncItemSerializer(WorkItemValuesSerializer):
     description_html = serializers.CharField(required=False, help_text="Present when description=true")
 
 
+@extend_schema_field(
+    {"oneOf": [{"type": "string", "format": "uuid"}, {"$ref": "#/components/schemas/UserLite"}], "nullable": True}
+)
+class ExpandableUserField(serializers.UUIDField):
+    """A user id, or the user when the relation is expanded."""
+
+
+class ExpandedWorkItemSerializer(IssueSerializer):
+    """IssueSerializer output with the relations named in expand."""
+
+    created_by = ExpandableUserField(allow_null=True)
+    updated_by = ExpandableUserField(allow_null=True)
+    workspace = WorkspaceLiteSerializer()
+    project = ProjectLiteSerializer()
+    state = StateLiteSerializer(allow_null=True)
+    parent = IssueLiteSerializer(allow_null=True)
+    assignees = UserLiteSerializer(many=True)
+    labels = LabelSerializer(many=True)
+    issue_cycle = CycleIssueSerializer(many=True)
+    issue_relation = IssueRelationSerializer(many=True)
+    issue_related = RelatedIssueSerializer(many=True)
+    issue_intake = IntakeIssueLiteSerializer(many=True)
+    issue_reactions = IssueReactionLiteSerializer(many=True)
+    issue_link = IssueLinkLiteSerializer(many=True)
+    issue_attachments = IssueAttachmentLiteSerializer(many=True)
+
+    class Meta(IssueSerializer.Meta):
+        relations = [
+            "workspace",
+            "project",
+            "state",
+            "parent",
+            "assignees",
+            "labels",
+            "issue_cycle",
+            "issue_relation",
+            "issue_related",
+            "issue_intake",
+            "issue_reactions",
+            "issue_link",
+            "issue_attachments",
+        ]
+        fields = IssueSerializer.Meta.fields + relations
+        read_only_fields = fields
+        response_optional = tuple(relations)
+
+
 WorkItemsByIdResponse = PolymorphicProxySerializer(
     component_name="WorkItemsByIdResponse",
-    serializers=[WorkItemSnapshotSerializer(many=True), IssueSerializer(many=True)],
+    serializers=[WorkItemSnapshotSerializer(many=True), ExpandedWorkItemSerializer(many=True)],
     resource_type_field_name=None,
     many=False,
-    help_text="Full issues when expand is given",
+    help_text="Expanded work items when expand is given",
 )
 
 

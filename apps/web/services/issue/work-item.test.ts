@@ -13,6 +13,7 @@ import {
   toIssueWriteBody,
   toLinkMetadata,
   toRelatedIssue,
+  toWorkItemById,
 } from "./work-item";
 
 const row: ApiSchema<"WorkItemListItem"> = {
@@ -51,6 +52,22 @@ describe("toBaseIssue", () => {
     expect(issue).toMatchObject({ priority: "high", cycle_id: null, sub_issues_count: 0, link_count: 0 });
     for (const column of ["label_ids", "assignee_ids", "module_ids"]) expect(issue).not.toHaveProperty(column);
     expect(toIssuePriority("bogus")).toBeNull();
+  });
+});
+
+describe("toWorkItemById", () => {
+  it("keeps the user id when created_by or updated_by is expanded", () => {
+    const user = {
+      id: "u1",
+      first_name: "A",
+      last_name: "B",
+      avatar: "",
+      avatar_url: null,
+      is_bot: false,
+      display_name: "ab",
+    };
+    const expanded: ApiSchema<"ExpandedWorkItem"> = { ...row, priority: "high", created_by: user, updated_by: "u2" };
+    expect(toWorkItemById(expanded)).toMatchObject({ created_by: "u1", updated_by: "u2" });
   });
 });
 
