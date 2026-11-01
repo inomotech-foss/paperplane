@@ -8,24 +8,13 @@ import { useState } from "react";
 import { intersection } from "lodash-es";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-// import { Info } from "lucide-react";
-import {
-  EUserPermissions,
-  EUserPermissionsLevel,
-  EXPORTERS_LIST,
-  // ISSUE_DISPLAY_FILTERS_BY_PAGE,
-} from "@plane/constants";
+import { EUserPermissions, EUserPermissionsLevel, EXPORTERS_LIST } from "@plane/constants";
 import { exportProviderEnumValues } from "@plane/api-types";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { setToast } from "@plane/blocks/toast";
-// import { Tooltip } from "@makeplane/propel/components/tooltip";
-// import { EIssuesStoreType } from "@plane/types";
 import { findLiteral } from "@plane/types";
-import type { TWorkItemFilterExpression } from "@plane/types";
 import { Select, SelectContent, SelectItem, SelectList, SelectTrigger } from "@makeplane/propel/components/select";
-// import { WorkspaceLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/workspace-level";
-// import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
 // components
 import { ProjectSelect } from "@/components/dropdowns/project/project-select";
 // hooks
@@ -44,18 +33,7 @@ type FormData = {
   provider: (typeof EXPORTERS_LIST)[0];
   project: string[];
   multiple: boolean;
-  filters: TWorkItemFilterExpression;
 };
-
-// const initialWorkItemFilters = {
-//   richFilters: {},
-//   displayFilters: {},
-//   displayProperties: {},
-//   kanbanFilters: {
-//     group_by: [],
-//     sub_group_by: [],
-//   },
-// };
 
 const projectExportService = new ProjectExportService();
 
@@ -76,7 +54,6 @@ export const ExportForm = observer(function ExportForm(props: Props) {
       provider: EXPORTERS_LIST[0],
       project: [],
       multiple: false,
-      filters: {},
     },
   });
 
@@ -222,39 +199,6 @@ export const ExportForm = observer(function ExportForm(props: Props) {
           />
         </div>
       </div>
-      {/* Rich Filters */}
-      {/* <div className="w-full">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="text-13 font-medium text-secondary leading-tight">{t("common.filters")}</div>
-          <Tooltip label={t("workspace_settings.settings.exports.filters_info")} layout="stacked">
-            <button type="button" className="flex items-center justify-center">
-              <Info className="h-3 w-3 text-tertiary" />
-            </button>
-          </Tooltip>
-        </div>
-        <Controller
-          control={control}
-          name="filters"
-          render={({ field: { onChange } }) => (
-            <WorkspaceLevelWorkItemFiltersHOC
-              entityId={workspaceSlug}
-              entityType={EIssuesStoreType.GLOBAL}
-              filtersToShowByLayout={ISSUE_DISPLAY_FILTERS_BY_PAGE.my_issues.filters}
-              initialWorkItemFilters={initialWorkItemFilters}
-              isTemporary
-              updateFilters={(updatedFilters) => onChange(updatedFilters)}
-              showOnMount
-              workspaceSlug={workspaceSlug}
-            >
-              {({ filter: workspaceExportWorkItemsFilter }) =>
-                workspaceExportWorkItemsFilter && (
-                  <WorkItemFiltersRow filter={workspaceExportWorkItemsFilter} variant="modal" />
-                )
-              }
-            </WorkspaceLevelWorkItemFiltersHOC>
-          )}
-        />
-      </div> */}
     </form>
   );
 });
