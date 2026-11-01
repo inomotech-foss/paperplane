@@ -98,9 +98,7 @@ export abstract class PageCoreService extends APIService {
    */
   async fetchUserMentions(pageId: string): Promise<TUserMention[]> {
     try {
-      const data = await this.requestJson("GET", `${this.basePath}/pages/${pageId}/mentions/`, {
-        query: { mention_type: "user_mention" },
-      });
+      const data = await this.requestJson("GET", `${this.basePath}/pages/${pageId}/mentions/`);
       return z.array(userMentionSchema).parse(data ?? []);
     } catch (error) {
       const appError = new AppError(error, {

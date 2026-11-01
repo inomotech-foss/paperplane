@@ -14461,6 +14461,46 @@ paths:
       responses:
         '204':
           description: Done
+  /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/mentions/:
+    get:
+      operationId: workspaces_projects_pages_mentions_list
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserLite'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/position/:
     post:
       operationId: workspaces_projects_pages_position_create

@@ -13,6 +13,7 @@ from plane.app.views import (
     PagesDescriptionViewSet,
     PageQueryEndpoint,
     PageVersionEndpoint,
+    PageMentionEndpoint,
     PageDuplicateEndpoint,
     PageCommentViewSet,
     PageCommentReactionViewSet,
@@ -72,6 +73,11 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/description/",
         PagesDescriptionViewSet.as_view({"get": "retrieve", "patch": "partial_update"}),
         name="page-description",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/mentions/",
+        PageMentionEndpoint.as_view(),
+        name="page-mentions",
     ),
     path(
         "assets/v2/workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/attachments/",
