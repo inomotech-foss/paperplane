@@ -13,8 +13,8 @@ import {
   LINK_COLORS,
   resolveColorForPdf,
 } from "./colors";
+import { readString } from "@plane/types";
 import { isKeyOf } from "@/lib/is-key-of";
-import { attrString } from "./attrs";
 import type { MarkRendererRegistry, TipTapMark } from "./types";
 
 export const markRenderers: MarkRendererRegistry = {
@@ -71,7 +71,7 @@ export const markRenderers: MarkRendererRegistry = {
     const attrs = mark.attrs || {};
     return {
       ...style,
-      backgroundColor: attrString(attrs, "color") || EDITOR_BACKGROUND_COLORS.purple,
+      backgroundColor: readString(attrs, "color") || EDITOR_BACKGROUND_COLORS.purple,
     };
   },
 
@@ -98,7 +98,7 @@ export const markRenderers: MarkRendererRegistry = {
     const newStyle: Style = { ...style };
 
     // Handle text color (stored in 'color' attribute)
-    const textColor = attrString(attrs, "color");
+    const textColor = readString(attrs, "color");
     if (textColor) {
       const resolvedColor = resolveColorForPdf(textColor, "text");
       if (resolvedColor) {
@@ -113,7 +113,7 @@ export const markRenderers: MarkRendererRegistry = {
     }
 
     // Handle background color (stored in 'backgroundColor' attribute)
-    const backgroundColor = attrString(attrs, "backgroundColor");
+    const backgroundColor = readString(attrs, "backgroundColor");
     if (backgroundColor) {
       const resolvedColor = resolveColorForPdf(backgroundColor, "background");
       if (resolvedColor) {

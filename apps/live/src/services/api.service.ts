@@ -5,6 +5,7 @@
  */
 
 import { normalizeAPIRequestURL } from "@plane/services";
+import { readString } from "@plane/types";
 import { env } from "@/env";
 import { AppError } from "@/lib/errors";
 
@@ -23,16 +24,12 @@ export type RequestOptions = {
 };
 
 function bodyMessage(data: unknown): string | undefined {
-  if (typeof data !== "object" || data === null) return undefined;
-  const message: unknown = Reflect.get(data, "message");
-  return typeof message === "string" && message ? message : undefined;
+  return readString(data, "message") || undefined;
 }
 
 function causeCode(error: unknown): string | undefined {
   if (!(error instanceof Error)) return undefined;
-  const { cause } = error;
-  if (typeof cause !== "object" || cause === null || !("code" in cause)) return undefined;
-  return typeof cause.code === "string" ? cause.code : undefined;
+  return readString(error.cause, "code");
 }
 
 /** The JSON body, its text when it is not JSON, or `undefined` when it is empty. */
