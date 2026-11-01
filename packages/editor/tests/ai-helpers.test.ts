@@ -179,7 +179,10 @@ describe("createRangeTracker", () => {
 });
 
 describe("createRangeTracker on a collaborative document", () => {
-  const setupCollaborative = async () => {
+  const setupCollaborative = async (
+    content = "<p>Hello world</p>",
+    pickRange: (instance: Editor) => { from: number; to: number } = (instance) => rangeOf(instance, "world")
+  ) => {
     const ydoc = new Y.Doc();
     const instance = new Editor({
       element: document.createElement("div"),
@@ -190,16 +193,89 @@ describe("createRangeTracker on a collaborative document", () => {
     });
     editor = instance;
     await new Promise((resolve) => setTimeout(resolve, 0));
-    instance.commands.setContent("<p>Hello world</p>");
-    const tracker = createRangeTracker(instance, rangeOf(instance, "world"));
+    instance.commands.setContent(content);
+    const tracker = createRangeTracker(instance, pickRange(instance));
     const remote = new Y.Doc();
     Y.applyUpdate(remote, Y.encodeStateAsUpdate(ydoc));
     const paragraph = remote.getXmlFragment("default").get(0);
     const text = paragraph instanceof Y.XmlElement ? paragraph.get(0) : undefined;
     if (!(text instanceof Y.XmlText)) throw new Error("expected a text node");
     const sync = () => Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(remote, Y.encodeStateVector(ydoc)));
-    return { instance, tracker, text, sync };
+    return { instance, tracker, text, sync, remote };
   };
+
+  const resolved = (tracker: ReturnType<typeof createRangeTracker>) => {
+    const range = tracker.resolve();
+    if (!range) throw new Error("the range did not resolve");
+    return range;
+  };
+
+  // What a triple-click selects: the whole text of the paragraph.
+  const wholeParagraph = (instance: Editor) => ({ from: 1, to: instance.state.doc.child(0).nodeSize - 1 });
+
+  it("replaces a triple-click selection of a whole paragraph", async () => {
+    const { instance, tracker } = await setupCollaborative("<p>Hello world</p><p>After</p>", wholeParagraph);
+    replaceRangeWithHTML(instance, resolved(tracker), "<p>Replaced</p>");
+    expect(htmlOf(instance)).toBe("<p>Replaced</p><p>After</p>");
+  });
+
+  it("inserts below a triple-click selection of a whole paragraph", async () => {
+    const { instance, tracker } = await setupCollaborative("<p>Hello world</p><p>After</p>", wholeParagraph);
+    insertHTMLBelowRange(instance, resolved(tracker), "<p>Added</p>");
+    expect(htmlOf(instance)).toBe("<p>Hello world</p><p>Added</p><p>After</p>");
+  });
+
+  it("replaces a selection from a paragraph start to its middle", async () => {
+    const { instance, tracker } = await setupCollaborative("<p>Hello world</p>", (i) => rangeOf(i, "Hello"));
+    replaceRangeWithHTML(instance, resolved(tracker), "<p>Bye</p>");
+    expect(instance.getText()).toBe("Bye world");
+  });
+
+  it("replaces and inserts below a selection from a paragraph start into the next paragraph", async () => {
+    const span = (i: Editor) => ({ from: rangeOf(i, "First").from, to: rangeOf(i, "Sec").to });
+    const replace = await setupCollaborative("<p>First</p><p>Second</p><p>Third</p>", span);
+    replaceRangeWithHTML(replace.instance, resolved(replace.tracker), "<p>New</p>");
+    expect(htmlOf(replace.instance)).toBe("<p>Newond</p><p>Third</p>");
+    replace.instance.destroy();
+
+    const insert = await setupCollaborative("<p>First</p><p>Second</p><p>Third</p>", span);
+    insertHTMLBelowRange(insert.instance, resolved(insert.tracker), "<p>Added</p>");
+    expect(htmlOf(insert.instance)).toBe("<p>First</p><p>Second</p><p>Added</p><p>Third</p>");
+  });
+
+  it("follows a remote edit before a paragraph-start selection", async () => {
+    const { instance, tracker, remote, sync } = await setupCollaborative("<p>Intro</p><p>Hello world</p>", (i) =>
+      rangeOf(i, "Hello world")
+    );
+    const intro = remote.getXmlFragment("default").get(0);
+    const introText = intro instanceof Y.XmlElement ? intro.get(0) : undefined;
+    if (!(introText instanceof Y.XmlText)) throw new Error("expected a text node");
+    introText.insert(0, "Long ");
+    sync();
+    replaceRangeWithHTML(instance, resolved(tracker), "<p>Changed</p>");
+    expect(htmlOf(instance)).toBe("<p>Long Intro</p><p>Changed</p>");
+  });
+
+  it("leaves a remote insert at the paragraph start outside a triple-click selection", async () => {
+    const { instance, tracker, text, sync } = await setupCollaborative(
+      "<p>Hello world</p><p>After</p>",
+      wholeParagraph
+    );
+    text.insert(0, "Oh, ");
+    sync();
+    replaceRangeWithHTML(instance, resolved(tracker), "<p>Replaced</p>");
+    expect(htmlOf(instance)).toBe("<p>Oh, Replaced</p><p>After</p>");
+  });
+
+  it("inserts below after a remote insert exactly at the start", async () => {
+    const { instance, tracker, text, sync } = await setupCollaborative("<p>Hello world</p><p>After</p>");
+    text.insert("Hello ".length, "big ");
+    sync();
+    const range = resolved(tracker);
+    expect(instance.state.doc.textBetween(range.from, range.to)).toBe("world");
+    insertHTMLBelowRange(instance, range, "<p>Added</p>");
+    expect(htmlOf(instance)).toBe("<p>Hello big world</p><p>Added</p><p>After</p>");
+  });
 
   it("leaves text inserted exactly at the start outside the range", async () => {
     const { instance, tracker, text, sync } = await setupCollaborative();

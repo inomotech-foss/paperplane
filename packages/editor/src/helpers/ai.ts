@@ -89,8 +89,16 @@ export const createRangeTracker = (editor: Editor, range: Range): TRangeTracker 
       resolve: () => {
         const current = getYSyncBinding(editor);
         if (!current || !relativeFrom || !relativeTo) return null;
-        const from = relativePositionToAbsolutePosition(current.doc, current.type, relativeFrom, current.mapping);
-        const to = relativePositionToAbsolutePosition(current.doc, current.type, relativeTo, current.mapping);
+        // y-tiptap only resolves the left-anchored form it creates itself (a start-of-text position
+        // points at the parent, not a character), so turn each anchor back into that form first.
+        const toAbsolute = (relative: Y.RelativePosition): number | null => {
+          const absolute = Y.createAbsolutePositionFromRelativePosition(relative, current.doc);
+          if (!absolute) return null;
+          const leftAnchored = Y.createRelativePositionFromTypeIndex(absolute.type, absolute.index, -1);
+          return relativePositionToAbsolutePosition(current.doc, current.type, leftAnchored, current.mapping);
+        };
+        const from = toAbsolute(relativeFrom);
+        const to = toAbsolute(relativeTo);
         return from === null || to === null || to <= from ? null : { from, to };
       },
     };
