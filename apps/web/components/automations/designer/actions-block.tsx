@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { orderBy } from "lodash-es";
 import { Plus, Trash2, Wand2 } from "lucide-react";
@@ -25,11 +25,12 @@ import type {
 import { useAutomation } from "@/hooks/store/use-automation";
 // local imports
 import { allowedActions, findAction } from "../helpers/metadata";
-import { AutomationActionConfig } from "./action-config";
+import { AutomationActionConfig, actionNeedsConfig } from "./action-config";
 import { RawAutomationValue } from "./raw-value";
 import { getApiErrorBody } from "@/helpers/error.helper";
 import { readString } from "@plane/types";
 import { getFirstStringField } from "@/helpers/narrow.helper";
+import { useActionDraft } from "./use-action-draft";
 
 type Props = {
   workspaceSlug: string;
@@ -40,7 +41,7 @@ type Props = {
   disabled?: boolean;
 };
 
-/** Starting config for a freshly added action, so the form opens on a valid shape. */
+/** Starting config for a freshly added action. It is kept locally until the user completes it. */
 const initialConfigFor = (actionType: TAutomationActionType): TAutomationActionConfig => {
   switch (actionType) {
     case "change_property":
@@ -59,39 +60,45 @@ const initialConfigFor = (actionType: TAutomationActionType): TAutomationActionC
 };
 
 type ActionCardProps = Props & {
-  action: TAutomationAction;
+  actionType: TAutomationActionType;
+  /** Undefined while the action only exists on this screen. */
+  action: TAutomationAction | undefined;
   index: number;
+  onCreated?: (actionId: string) => void;
+  onDiscard?: () => void;
 };
 
 const ActionCard = observer(function ActionCard(props: ActionCardProps) {
-  const { workspaceSlug, projectId, automation, metadata, action, index, disabled } = props;
+  const { workspaceSlug, projectId, automation, metadata, actionType, action, index, disabled, onCreated, onDiscard } =
+    props;
   const { t } = useTranslation();
-  const { updateAction, deleteAction } = useAutomation();
-  const [isSaving, setIsSaving] = useState(false);
+  const { createAction, updateAction, deleteAction } = useAutomation();
 
-  const definition = findAction(metadata, action.action_type);
-
-  const handleConfigChange = async (config: TAutomationActionConfig) => {
-    setIsSaving(true);
-    try {
-      await updateAction(workspaceSlug, automation.id, action.id, { config }, projectId);
-      return true;
-    } catch (error) {
-      setToast({
-        type: "error",
-        title: t("automations.toasts.action.update.error.title"),
-        message:
-          getFirstStringField(getApiErrorBody(error), "config") ?? t("automations.toasts.action.update.error.message"),
-      });
-      return false;
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const definition = findAction(metadata, actionType);
+  const draft = useActionDraft({
+    savedId: action?.id,
+    savedConfig: action?.config,
+    initialConfig: initialConfigFor(actionType),
+    create: async (config) => {
+      const created = await createAction(workspaceSlug, automation.id, { action_type: actionType, config }, projectId);
+      onCreated?.(created.id);
+      return created.id;
+    },
+    update: async (id, config) => {
+      await updateAction(workspaceSlug, automation.id, id, { config }, projectId);
+    },
+    describeError: (error) =>
+      getFirstStringField(getApiErrorBody(error), "config") ?? t("automations.toasts.action.update.error.message"),
+  });
 
   const handleDelete = async () => {
+    if (!action) {
+      onDiscard?.();
+      return;
+    }
     try {
       await deleteAction(workspaceSlug, automation.id, action.id, projectId);
+      onDiscard?.();
     } catch (error) {
       setToast({
         type: "error",
@@ -108,8 +115,8 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
           <span className="grid size-5 shrink-0 place-items-center rounded-full bg-layer-3 text-11 font-medium text-secondary">
             {index + 1}
           </span>
-          <h4 className="text-body-sm-medium">{definition ? t(definition.i18n_label) : action.action_type}</h4>
-          {isSaving && <span className="text-11 text-tertiary">{t("common.loading")}</span>}
+          <h4 className="text-body-sm-medium">{definition ? t(definition.i18n_label) : actionType}</h4>
+          {draft.isSaving && <span className="text-11 text-tertiary">{t("common.loading")}</span>}
         </div>
         <button
           type="button"
@@ -122,22 +129,29 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
         </button>
       </div>
 
-      {action.raw_config === undefined ? (
+      {action?.raw_config === undefined ? (
         <AutomationActionConfig
           projectId={projectId}
           scope={automation.scope}
           metadata={metadata}
-          actionType={action.action_type}
-          config={action.config}
-          onChange={handleConfigChange}
+          actionType={actionType}
+          config={draft.config}
+          onChange={draft.change}
           disabled={disabled}
         />
       ) : (
         <RawAutomationValue value={action.raw_config} />
       )}
+      {draft.error && (
+        <p role="alert" className="mt-2 text-12 text-danger-primary">
+          {draft.error}
+        </p>
+      )}
     </div>
   );
 });
+
+type TLocalAction = { key: string; actionType: TAutomationActionType; actionId?: string };
 
 /**
  * The ordered list of actions. Each card persists its own configuration, so a
@@ -148,6 +162,9 @@ export const AutomationActionsBlock = observer(function AutomationActionsBlock(p
   const { t } = useTranslation();
   const { createAction } = useAutomation();
   const [isAdding, setIsAdding] = useState(false);
+  // Actions added on this screen, held until the server accepts their config
+  const [localActions, setLocalActions] = useState<TLocalAction[]>([]);
+  const nextLocalKey = useRef(0);
 
   const options = allowedActions(metadata, automation.trigger_type).map((action) => ({
     value: action.key,
@@ -155,14 +172,15 @@ export const AutomationActionsBlock = observer(function AutomationActionsBlock(p
   }));
 
   const handleAdd = async (actionType: TAutomationActionType) => {
+    if (actionNeedsConfig(actionType)) {
+      nextLocalKey.current += 1;
+      const key = `local-${nextLocalKey.current}`;
+      setLocalActions((current) => [...current, { key, actionType }]);
+      return;
+    }
     setIsAdding(true);
     try {
-      await createAction(
-        workspaceSlug,
-        automation.id,
-        { action_type: actionType, config: initialConfigFor(actionType) },
-        projectId
-      );
+      await createAction(workspaceSlug, automation.id, { action_type: actionType, config: {} }, projectId);
     } catch (error) {
       setToast({
         type: "error",
@@ -175,7 +193,21 @@ export const AutomationActionsBlock = observer(function AutomationActionsBlock(p
     }
   };
 
-  const actions = orderBy(automation.actions, "sort_order");
+  const claim = (key: string, actionId: string) =>
+    setLocalActions((current) => current.map((item) => (item.key === key ? { ...item, actionId } : item)));
+  const discard = (key: string) => setLocalActions((current) => current.filter((item) => item.key !== key));
+
+  const claimedIds = new Set(localActions.map((item) => item.actionId));
+  const storedActions = orderBy(automation.actions, "sort_order").filter((action) => !claimedIds.has(action.id));
+  const cards = [
+    ...storedActions.map((action) => ({ key: action.id, actionType: action.action_type, action, local: undefined })),
+    ...localActions.map((local) => ({
+      key: local.key,
+      actionType: local.actionType,
+      action: automation.actions.find((action) => action.id === local.actionId),
+      local,
+    })),
+  ];
 
   return (
     <section className="rounded-lg border border-subtle bg-layer-2 p-4">
@@ -187,12 +219,20 @@ export const AutomationActionsBlock = observer(function AutomationActionsBlock(p
       </header>
 
       <div className="flex flex-col gap-3">
-        {actions.map((action, index) => (
-          <ActionCard key={action.id} {...props} action={action} index={index} />
+        {cards.map((card, index) => (
+          <ActionCard
+            key={card.key}
+            {...props}
+            actionType={card.actionType}
+            action={card.action}
+            index={index}
+            onCreated={card.local ? (actionId) => claim(card.key, actionId) : undefined}
+            onDiscard={card.local ? () => discard(card.key) : undefined}
+          />
         ))}
 
         {!automation.trigger_type ? (
-          <p className="text-13 text-tertiary">{t("automations.trigger.input_label")}</p>
+          <p className="text-13 text-tertiary">{t("automations.action.trigger_required")}</p>
         ) : (
           <Menu>
             <MenuTrigger

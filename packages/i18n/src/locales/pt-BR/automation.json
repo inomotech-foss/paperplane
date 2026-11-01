@@ -69,6 +69,7 @@
       "sidebar_header": "Ações",
       "input_label": "O que a automação faz?",
       "input_placeholder": "Selecione uma opção",
+      "trigger_required": "Escolha um gatilho antes de adicionar ações.",
       "handler_name": {
         "add_comment": "Adicionar comentário",
         "change_property": "Alterar propriedade",

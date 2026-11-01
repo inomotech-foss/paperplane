@@ -69,6 +69,7 @@
       "sidebar_header": "Akcie",
       "input_label": "Čo robí automatizácia?",
       "input_placeholder": "Vyberte možnosť",
+      "trigger_required": "Pred pridaním akcií vyberte spúšťač.",
       "handler_name": {
         "add_comment": "Pridať komentár",
         "change_property": "Zmeniť vlastnosť",

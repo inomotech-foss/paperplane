@@ -69,6 +69,7 @@
       "sidebar_header": "Дії",
       "input_label": "Що робить автоматизація?",
       "input_placeholder": "Виберіть опцію",
+      "trigger_required": "Виберіть тригер, перш ніж додавати дії.",
       "handler_name": {
         "add_comment": "Додати коментар",
         "change_property": "Змінити властивість",

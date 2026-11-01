@@ -69,6 +69,7 @@
       "sidebar_header": "Akcje",
       "input_label": "Co robi automatyzacja?",
       "input_placeholder": "Wybierz opcję",
+      "trigger_required": "Wybierz wyzwalacz przed dodaniem akcji.",
       "handler_name": {
         "add_comment": "Dodaj komentarz",
         "change_property": "Zmień właściwość",

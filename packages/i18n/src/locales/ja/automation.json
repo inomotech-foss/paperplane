@@ -69,6 +69,7 @@
       "sidebar_header": "アクション",
       "input_label": "自動化は何を行いますか？",
       "input_placeholder": "オプションを選択",
+      "trigger_required": "アクションを追加する前にトリガーを選択してください。",
       "handler_name": {
         "add_comment": "コメントを追加",
         "change_property": "プロパティを変更",

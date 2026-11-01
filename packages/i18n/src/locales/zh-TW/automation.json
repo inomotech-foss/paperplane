@@ -69,6 +69,7 @@
       "sidebar_header": "動作",
       "input_label": "自動化執行什麼動作？",
       "input_placeholder": "選擇一個選項",
+      "trigger_required": "新增動作前，請先選擇觸發器。",
       "handler_name": {
         "add_comment": "新增評論",
         "change_property": "變更屬性",

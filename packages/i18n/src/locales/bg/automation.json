@@ -69,6 +69,7 @@
       "sidebar_header": "Действия",
       "input_label": "Какво прави автоматизацията?",
       "input_placeholder": "Изберете опция",
+      "trigger_required": "Изберете тригер, преди да добавите действия.",
       "handler_name": {
         "add_comment": "Добави коментар",
         "change_property": "Промени свойство",

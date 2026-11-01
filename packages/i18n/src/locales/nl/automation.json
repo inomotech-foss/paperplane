@@ -69,6 +69,7 @@
       "sidebar_header": "Acties",
       "input_label": "Wat doet de automatisering?",
       "input_placeholder": "Kies een optie",
+      "trigger_required": "Kies een trigger voordat u acties toevoegt.",
       "handler_name": {
         "add_comment": "Reactie toevoegen",
         "change_property": "Eigenschap wijzigen",
