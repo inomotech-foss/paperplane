@@ -5,7 +5,7 @@
 
 import { z } from "zod";
 
-// The generated `IssueComment` schema is the workspace serializer. The public one differs in `comment_reactions`.
+// Narrows the public comments to the fields the app reads.
 const optionalString = z
   .string()
   .nullish()

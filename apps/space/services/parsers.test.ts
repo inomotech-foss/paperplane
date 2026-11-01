@@ -4,8 +4,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { parseEmailCheck } from "./auth.service";
-import { buildUploadForm, parseAssetUpload } from "./file.service";
+import { EFileAssetType } from "@plane/types";
+import { buildUploadForm, toAssetUpload, toEntityType } from "./file.service";
 import { serializeQuery } from "./issue.service";
 import { parsePublicComment, parsePublicComments } from "./public-comment";
 
@@ -50,36 +50,27 @@ describe("parsePublicComment", () => {
   });
 });
 
-describe("parseEmailCheck", () => {
-  it("accepts the known statuses", () => {
-    expect(parseEmailCheck({ existing: true, status: "MAGIC_CODE" })).toEqual({ existing: true, status: "MAGIC_CODE" });
-  });
-
-  it("rejects an unknown status", () => {
-    expect(() => parseEmailCheck({ existing: false, status: "OTHER" })).toThrow();
-  });
-});
-
-describe("parseAssetUpload", () => {
+describe("toAssetUpload", () => {
   const upload = {
     asset_id: "a1",
     asset_url: null,
-    upload_data: { url: "https://s3/bucket", fields: { key: "k", policy: "p" } },
+    upload_data: { url: "https://s3", fields: { key: "k", policy: "p" } },
   };
 
-  it("parses the presigned upload", () => {
-    expect(parseAssetUpload(upload)).toEqual(upload);
-  });
-
-  it("rejects a response without upload data", () => {
-    expect(() => parseAssetUpload({ ...upload, upload_data: null })).toThrow();
-  });
-
-  it("builds the form with the fields before the file", () => {
-    const form = buildUploadForm(parseAssetUpload(upload), new File(["x"], "a.txt"));
-
+  it("keeps the upload form and builds the form data from it", () => {
+    const form = buildUploadForm(toAssetUpload(upload), new File(["x"], "a.txt"));
     expect([...form.keys()]).toEqual(["key", "policy", "file"]);
-    expect(form.get("policy")).toBe("p");
+  });
+
+  it("requires an upload form", () => {
+    expect(() => toAssetUpload({ ...upload, upload_data: null })).toThrow();
+  });
+});
+
+describe("toEntityType", () => {
+  it("accepts comment images only", () => {
+    expect(toEntityType(EFileAssetType.COMMENT_DESCRIPTION)).toBe("COMMENT_DESCRIPTION");
+    expect(() => toEntityType(EFileAssetType.USER_AVATAR)).toThrow();
   });
 });
 

@@ -9,7 +9,6 @@ import type { TIssueParams } from "@plane/types";
 import { apiClient } from "@/services/api-client";
 import { parsePublicComment, parsePublicComments } from "@/services/public-comment";
 import type { TPublicComment } from "@/services/public-comment";
-import { sendJson } from "@/services/send-json";
 
 export type TPublicIssueListParams = Partial<Record<TIssueParams, string | boolean>>;
 export type TPublicIssueList = ApiResponse<"/api/public/anchor/{anchor}/issues/", "get">;
@@ -44,9 +43,13 @@ export class PublicIssueService {
     );
   }
 
-  /** The schema has no request body for this operation. */
   async addVote(anchor: string, issueId: string, data: { vote: 1 | -1 }): Promise<void> {
-    await sendJson(`/api/public/anchor/${anchor}/issues/${issueId}/votes/`, data);
+    await unwrap(
+      apiClient.POST("/api/public/anchor/{anchor}/issues/{issue_id}/votes/", {
+        params: issuePath(anchor, issueId),
+        body: data,
+      })
+    );
   }
 
   async removeVote(anchor: string, issueId: string): Promise<void> {
