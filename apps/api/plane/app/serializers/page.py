@@ -29,6 +29,29 @@ from plane.db.models import (
 )
 
 
+def clean_description_html(value):
+    if not value:
+        return value
+    is_valid, error_message, sanitized_html = validate_html_content(value)
+    if not is_valid:
+        raise serializers.ValidationError(error_message)
+    return sanitized_html if sanitized_html is not None else value
+
+
+def decode_description_binary(value):
+    """Decodes base64 Yjs state and rejects data that does not look like a document."""
+    if not value:
+        return value
+    try:
+        binary_data = base64.b64decode(value)
+    except Exception:
+        raise serializers.ValidationError("Failed to decode base64 data")
+    is_valid, error_message = validate_binary_data(binary_data)
+    if not is_valid:
+        raise serializers.ValidationError(f"Invalid binary data: {error_message}")
+    return binary_data
+
+
 class PageSerializer(BaseSerializer):
     is_favorite = serializers.BooleanField(read_only=True)
     labels = serializers.ListField(
@@ -143,6 +166,9 @@ class PageDetailSerializer(PageSerializer):
     class Meta(PageSerializer.Meta):
         fields = PageSerializer.Meta.fields + ["description_html"]
 
+    def validate_description_html(self, value):
+        return clean_description_html(value)
+
 
 class PageUpdateSerializer(PageDetailSerializer):
     """Moves go through the position endpoint, which checks for cycles and renumbers siblings."""
@@ -240,37 +266,10 @@ class PageBinaryUpdateSerializer(serializers.Serializer):
     description_json = serializers.JSONField(required=False, allow_null=True)
 
     def validate_description_binary(self, value):
-        """Validate the base64-encoded binary data"""
-        if not value:
-            return value
-
-        try:
-            # Decode the base64 data
-            binary_data = base64.b64decode(value)
-
-            # Validate the binary data
-            is_valid, error_message = validate_binary_data(binary_data)
-            if not is_valid:
-                raise serializers.ValidationError(f"Invalid binary data: {error_message}")
-
-            return binary_data
-        except Exception as e:
-            if isinstance(e, serializers.ValidationError):
-                raise
-            raise serializers.ValidationError("Failed to decode base64 data")
+        return decode_description_binary(value)
 
     def validate_description_html(self, value):
-        """Validate the HTML content"""
-        if not value:
-            return value
-
-        # Use the validation function from utils
-        is_valid, error_message, sanitized_html = validate_html_content(value)
-        if not is_valid:
-            raise serializers.ValidationError(error_message)
-
-        # Return sanitized HTML if available, otherwise return original
-        return sanitized_html if sanitized_html is not None else value
+        return clean_description_html(value)
 
     def update(self, instance, validated_data):
         """Update the page instance with validated data"""

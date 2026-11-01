@@ -162,14 +162,18 @@ class PageViewSet(BaseViewSet):
 
     @extend_schema(request=PageCreateSerializer, responses={201: PageDetailSerializer})
     def create(self, request, slug, project_id):
+        description = PageBinaryUpdateSerializer(data=request.data)
+        if not description.is_valid():
+            return Response(description.errors, status=status.HTTP_400_BAD_REQUEST)
+        description_html = description.validated_data.get("description_html", "<p></p>")
         serializer = PageSerializer(
             data=request.data,
             context={
                 "project_id": project_id,
                 "owned_by_id": request.user.id,
-                "description_json": request.data.get("description_json", {}),
-                "description_binary": request.data.get("description_binary", None),
-                "description_html": request.data.get("description_html", "<p></p>"),
+                "description_json": description.validated_data.get("description_json") or {},
+                "description_binary": description.validated_data.get("description_binary") or None,
+                "description_html": description_html,
             },
         )
 
@@ -177,7 +181,7 @@ class PageViewSet(BaseViewSet):
             serializer.save()
             # capture the page transaction
             page_transaction.delay(
-                new_description_html=request.data.get("description_html", "<p></p>"),
+                new_description_html=description_html,
                 old_description_html=None,
                 page_id=serializer.data["id"],
                 actor_id=str(request.user.id),
@@ -212,9 +216,9 @@ class PageViewSet(BaseViewSet):
             if serializer.is_valid():
                 serializer.save()
                 # capture the page transaction
-                if request.data.get("description_html"):
+                if serializer.validated_data.get("description_html"):
                     page_transaction.delay(
-                        new_description_html=request.data.get("description_html", "<p></p>"),
+                        new_description_html=serializer.validated_data["description_html"],
                         old_description_html=page_description,
                         page_id=page_id,
                         actor_id=str(request.user.id),
@@ -626,9 +630,9 @@ class PagesDescriptionViewSet(BaseViewSet):
             serializer.save()
 
             # Capture the page transaction
-            if request.data.get("description_html"):
+            if serializer.validated_data.get("description_html"):
                 page_transaction.delay(
-                    new_description_html=request.data.get("description_html", "<p></p>"),
+                    new_description_html=serializer.validated_data["description_html"],
                     old_description_html=old_description_html,
                     page_id=page_id,
                     actor_id=str(request.user.id),
