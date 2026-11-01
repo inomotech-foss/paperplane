@@ -3,8 +3,10 @@
 
 import re
 
+import nh3
+
 from plane.utils.content_validator import validate_html_content
-from plane.utils.markdown import markdown
+from plane.utils.markdown import untrusted_markdown
 
 MAX_TEXT_LENGTH = 20000
 MAX_INSTRUCTION_LENGTH = 1000
@@ -49,6 +51,14 @@ TASKS = {
 
 ACTIONS = tuple(TASKS)
 
+# Text formatting only: nothing in the result may load a resource when it is shown.
+_RESULT_TAGS = {
+    "p", "br", "hr", "strong", "em", "del", "s", "code", "pre", "blockquote",
+    "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "a",
+    "table", "thead", "tbody", "tr", "th", "td",
+}  # fmt: skip
+_RESULT_ATTRIBUTES = {"a": {"href"}}
+
 _MARKDOWN_FENCE = re.compile(r"\A```(?:markdown|md)[ \t]*\n(.*)\n```\Z", re.DOTALL | re.IGNORECASE)
 
 
@@ -69,5 +79,11 @@ def markdown_to_html(text: str) -> str:
     fenced = _MARKDOWN_FENCE.match(text)
     if fenced:
         text = fenced.group(1)
-    is_valid, _, clean_html = validate_html_content(markdown(text))
+    html = nh3.clean(
+        untrusted_markdown(text),
+        tags=_RESULT_TAGS,
+        attributes=_RESULT_ATTRIBUTES,
+        url_schemes={"http", "https", "mailto"},
+    )
+    is_valid, _, clean_html = validate_html_content(html)
     return (clean_html or "").strip() if is_valid else ""

