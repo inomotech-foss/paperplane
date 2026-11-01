@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { orderBy } from "lodash-es";
 import { Plus, Trash2, Wand2 } from "lucide-react";
@@ -74,6 +74,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
   const { updateAction, deleteAction } = useAutomation();
   // An enabled automation refuses incomplete edits. The refused config stays on screen so it is not lost.
   const [rejected, setRejected] = useState<{ config: TAutomationActionConfig; message: string } | null>(null);
+  const [savingCount, setSavingCount] = useState(0);
   const latestEdit = useRef(0);
 
   const definition = findAction(metadata, action.action_type);
@@ -82,6 +83,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
     latestEdit.current += 1;
     const edit = latestEdit.current;
     setRejected(null);
+    setSavingCount((count) => count + 1);
     onActionEdited?.(action.id);
     try {
       await updateAction(workspaceSlug, automation.id, action.id, { config }, projectId);
@@ -96,8 +98,22 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
         });
       }
       return false;
+    } finally {
+      setSavingCount((count) => count - 1);
     }
   };
+
+  // Once the automation is disabled, a refused edit is saved again, now as a draft. A ref stands in for
+  // `useEffectEvent`, which React 19.2 never updates inside `observer`'s memo.
+  const resubmitRejected = useRef<() => void>(() => undefined);
+  useEffect(() => {
+    resubmitRejected.current = () => {
+      if (rejected) void handleChange(rejected.config);
+    };
+  });
+  useEffect(() => {
+    if (!automation.is_enabled) resubmitRejected.current();
+  }, [automation.is_enabled]);
 
   const handleDelete = async () => {
     try {
@@ -111,7 +127,9 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
     }
   };
 
-  const error = rejected?.message ?? action.config_error ?? enableError;
+  const isSaving = savingCount > 0;
+  // The stored reason describes the config before the edit, so it is hidden until the save returns.
+  const error = isSaving ? undefined : (rejected?.message ?? action.config_error ?? enableError);
 
   return (
     <div className="rounded-md border border-subtle bg-layer-2 p-4">
@@ -121,6 +139,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
             {index + 1}
           </span>
           <h4 className="text-body-sm-medium">{definition ? t(definition.i18n_label) : action.action_type}</h4>
+          {isSaving && <span className="text-11 text-tertiary">{t("common.saving")}</span>}
         </div>
         <button
           type="button"
@@ -146,7 +165,11 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
       ) : (
         <RawAutomationValue value={action.raw_config} />
       )}
-      {error && <p className="mt-2 text-12 text-danger-primary">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-2 text-12 text-danger-primary">
+          {error}
+        </p>
+      )}
     </div>
   );
 });

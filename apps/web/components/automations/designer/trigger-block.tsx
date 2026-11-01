@@ -326,7 +326,11 @@ export const AutomationTriggerBlock = observer(function AutomationTriggerBlock(p
         {triggerType === "schedule" && (
           <ScheduleConfig triggerConfig={triggerConfig} patch={patch} disabled={disabled} />
         )}
-        {error && <p className="text-12 text-danger-primary">{error}</p>}
+        {error && (
+          <p role="alert" className="text-12 text-danger-primary">
+            {error}
+          </p>
+        )}
       </div>
     </section>
   );

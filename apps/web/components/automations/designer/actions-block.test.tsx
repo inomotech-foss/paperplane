@@ -88,17 +88,19 @@ const makeAutomation = (actions: TAutomationAction[], is_enabled = false): TAuto
 type TRenderOptions = { isEnabled?: boolean; enableErrors?: Record<string, string> };
 
 const renderBlock = (actions: TAutomationAction[], options: TRenderOptions = {}) => {
-  const element = (next: TAutomationAction[]) => (
+  const element = (next: TAutomationAction[], isEnabled = options.isEnabled) => (
     <AutomationActionsBlock
       workspaceSlug="ws"
       projectId="p1"
-      automation={makeAutomation(next, options.isEnabled)}
+      automation={makeAutomation(next, isEnabled)}
       metadata={undefined}
       enableErrors={options.enableErrors}
     />
   );
   const view = render(element(actions));
-  return { rerender: (next: TAutomationAction[]) => view.rerender(element(next)) };
+  return {
+    rerender: (next: TAutomationAction[], isEnabled?: boolean) => view.rerender(element(next, isEnabled)),
+  };
 };
 
 const titles = () => screen.queryAllByRole("heading", { level: 4 }).map((heading) => heading.textContent);
@@ -165,6 +167,44 @@ describe("AutomationActionsBlock", () => {
 
     expect(screen.getByText("The comment body is empty.")).toBeTruthy();
     expect(screen.getByRole("status").textContent).toBe(JSON.stringify({ comment_html: "" }));
+  });
+
+  it("saves a refused edit again as a draft once the automation is disabled", async () => {
+    const stored = { ...makeAction("a1", "add_comment", 100), config: { comment_html: "<p>Hi</p>" } };
+    store.updateAction.mockRejectedValueOnce({ config: ["The comment body is empty."] });
+    store.updateAction.mockResolvedValueOnce({ ...stored, config: { comment_html: "" } });
+    const { rerender } = renderBlock([stored], { isEnabled: true });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "fill" }));
+    });
+    await act(async () => {
+      rerender([stored], false);
+    });
+
+    expect(store.updateAction).toHaveBeenCalledTimes(2);
+    expect(store.updateAction).toHaveBeenLastCalledWith("ws", "rule-1", "a1", { config: { comment_html: "" } }, "p1");
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("shows saving instead of the stored reason while a save is in flight", async () => {
+    let resolveUpdate: ((action: TAutomationAction) => void) | undefined;
+    store.updateAction.mockReturnValueOnce(
+      new Promise<TAutomationAction>((resolve) => {
+        resolveUpdate = resolve;
+      })
+    );
+    const stored = { ...makeAction("a1", "add_comment", 100), config_error: "The comment body is empty." };
+    renderBlock([stored]);
+
+    fireEvent.click(screen.getByRole("button", { name: "fill" }));
+
+    expect(screen.getByText("common.saving")).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+    await act(async () => {
+      resolveUpdate?.(stored);
+    });
+    expect(screen.getByRole("alert").textContent).toBe("The comment body is empty.");
   });
 
   it("deletes an action", async () => {

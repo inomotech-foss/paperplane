@@ -86,6 +86,9 @@ export class AutomationStore implements IAutomationStore {
   automationService: AutomationService;
   // latest updateAction request per action, so an older response cannot overwrite a newer edit
   private actionRequests: Record<string, number> = {};
+  private pendingActionRequests: Record<string, number> = {};
+  // the newest action state the server returned, with the request that returned it
+  private confirmedActions: Record<string, { action: TAutomationAction; request: number }> = {};
 
   constructor() {
     makeObservable(this, {
@@ -246,17 +249,27 @@ export class AutomationStore implements IAutomationStore {
   ) => {
     const request = (this.actionRequests[actionId] ?? 0) + 1;
     this.actionRequests[actionId] = request;
-    const previous = this.automationMap[automationId]?.actions.find((item) => item.id === actionId);
+    const current = this.automationMap[automationId]?.actions.find((item) => item.id === actionId);
+    // With nothing in flight the stored action is what the server last returned.
+    if (current && !this.pendingActionRequests[actionId])
+      this.confirmedActions[actionId] = { action: current, request: 0 };
+    this.pendingActionRequests[actionId] = (this.pendingActionRequests[actionId] ?? 0) + 1;
     // Applied before the request, so an edit to another field of the same action builds on it.
-    if (previous && data.config !== undefined) this.replaceAction(automationId, { ...previous, config: data.config });
-    const isLatest = () => this.actionRequests[actionId] === request;
+    if (current && data.config !== undefined) this.replaceAction(automationId, { ...current, config: data.config });
     try {
       const updated = await this.automationService.updateAction(workspaceSlug, automationId, actionId, data, projectId);
-      if (isLatest()) runInAction(() => this.replaceAction(automationId, updated));
+      const confirmed = this.confirmedActions[actionId];
+      if (!confirmed || request > confirmed.request) this.confirmedActions[actionId] = { action: updated, request };
       return updated;
-    } catch (error) {
-      if (isLatest() && previous) runInAction(() => this.replaceAction(automationId, previous));
-      throw error;
+    } finally {
+      const pending = (this.pendingActionRequests[actionId] ?? 1) - 1;
+      this.pendingActionRequests[actionId] = pending;
+      // Once the newest edit or the last request settles, show what the server holds. A refused edit
+      // therefore falls back to the last accepted state, never to another optimistic one.
+      const confirmed = this.confirmedActions[actionId];
+      if (confirmed && (pending === 0 || this.actionRequests[actionId] === request)) {
+        runInAction(() => this.replaceAction(automationId, confirmed.action));
+      }
     }
   };
 

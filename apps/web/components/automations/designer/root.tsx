@@ -158,7 +158,14 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
 
   const handleTriggerChange = async (triggerType: TAutomationTriggerType) => {
     try {
-      await updateAutomation(workspaceSlug, automationId, { trigger_type: triggerType }, projectId);
+      const payload: Parameters<typeof updateAutomation>[2] = { trigger_type: triggerType };
+      if (triggerType === "schedule") {
+        // Without it the server infers the target from the actions, which the picker can't show.
+        const initial: TAutomationScheduleConfig = { mode: "fixed", scheduled_target: "work_items" };
+        payload.trigger_config = initial;
+        setScheduleConfig(initial);
+      }
+      await updateAutomation(workspaceSlug, automationId, payload, projectId);
     } catch (error) {
       reportError(error);
     }
@@ -166,26 +173,37 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
 
   const handleToggleEnabled = async () => {
     if (!automation) return;
+    const enabling = !automation.is_enabled;
     setIsTogglingEnabled(true);
     try {
       // Flush any pending condition edit first, so enabling validates the tree
       // the author is actually looking at.
       persist.flush();
-      await updateAutomation(workspaceSlug, automationId, { is_enabled: !automation.is_enabled }, projectId);
+      await updateAutomation(workspaceSlug, automationId, { is_enabled: enabling }, projectId);
       setEnableErrors(null);
+      if (!enabling && scheduleRejection !== null) {
+        // The refused schedule now saves as a draft.
+        handleScheduleChange(scheduleConfig);
+        persist.flush();
+      }
       setToast({
         type: "success",
-        title: t(
-          automation.is_enabled ? "automations.toasts.disable.success.title" : "automations.toasts.enable.success.title"
-        ),
+        title: t(enabling ? "automations.toasts.enable.success.title" : "automations.toasts.disable.success.title"),
         message: t(
-          automation.is_enabled
-            ? "automations.toasts.disable.success.message"
-            : "automations.toasts.enable.success.message"
+          enabling ? "automations.toasts.enable.success.message" : "automations.toasts.disable.success.message"
         ),
       });
     } catch (error) {
-      const errors = parseEnableErrors(getApiErrorBody(error));
+      const body = getApiErrorBody(error);
+      if (!enabling) {
+        setToast({
+          type: "error",
+          title: t("automations.toasts.disable.error.title"),
+          message: describeEnableErrors(parseEnableErrors(body)) ?? t("automations.toasts.disable.error.message"),
+        });
+        return;
+      }
+      const errors = parseEnableErrors(body);
       setEnableErrors(errors);
       setToast({
         type: "error",
