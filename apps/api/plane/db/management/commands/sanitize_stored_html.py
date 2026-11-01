@@ -11,13 +11,22 @@ from dataclasses import dataclass
 from django.core.management.base import BaseCommand, CommandError
 from django.db import models
 
-from plane.db.models import Description, DraftIssue, Issue, IssueComment, IssueDescriptionVersion, Page
+from plane.automation.sanitize import HTML_TEMPLATE_FIELDS, template_field
+from plane.db.models import (
+    AutomationAction,
+    Description,
+    DraftIssue,
+    Issue,
+    IssueComment,
+    IssueDescriptionVersion,
+    Page,
+)
 from plane.utils.content_validator import validate_html_content
 from plane.utils.html_processor import strip_tags
 
 
 @dataclass(frozen=True)
-class Target:
+class HtmlField:
     model: type[models.Model]
     html: str
     stripped: str
@@ -26,19 +35,67 @@ class Target:
     # A comment mirrors its HTML into a Description row, which has to follow it.
     mirror: str | None = None
 
-    def stripped_text(self, html):
-        return strip_tags(html) if html else self.empty_stripped
+    def rows(self):
+        fields = ["id", self.html] + ([self.mirror] if self.mirror else [])
+        return self.model.all_objects.only(*fields).order_by("id")
+
+    def html_of(self, row):
+        return getattr(row, self.html)
+
+    def write(self, pending):
+        self.model.all_objects.bulk_update(
+            [
+                self.model(id=row.id, **{self.html: clean, self.stripped: _stripped(clean, self.empty_stripped)})
+                for row, clean in pending
+            ],
+            [self.html, self.stripped],
+        )
+        if self.mirror:
+            mirrors = [
+                Description(id=getattr(row, self.mirror), description_html=clean, description_stripped=_stripped(clean))
+                for row, clean in pending
+                if getattr(row, self.mirror)
+            ]
+            Description.all_objects.bulk_update(mirrors, ["description_html", "description_stripped"])
+
+
+class AutomationTemplate:
+    """The HTML template inside an automation action's config."""
+
+    def rows(self):
+        actions = AutomationAction.all_objects.filter(action_type__in=list(HTML_TEMPLATE_FIELDS))
+        return actions.only("id", "action_type", "config").order_by("id")
+
+    def html_of(self, row):
+        field = template_field(row.action_type, row.config)
+        return row.config[field] if field else None
+
+    def write(self, pending):
+        actions = [
+            AutomationAction(id=row.id, config={**row.config, template_field(row.action_type, row.config): clean})
+            for row, clean in pending
+        ]
+        AutomationAction.all_objects.bulk_update(actions, ["config"])
 
 
 TARGETS = {
-    "page": Target(Page, "description_html", "description_stripped"),
-    "issue": Target(Issue, "description_html", "description_stripped"),
-    "issue_description_version": Target(IssueDescriptionVersion, "description_html", "description_stripped"),
-    "issue_comment": Target(
+    "page": HtmlField(Page, "description_html", "description_stripped"),
+    "issue": HtmlField(Issue, "description_html", "description_stripped"),
+    "issue_description_version": HtmlField(IssueDescriptionVersion, "description_html", "description_stripped"),
+    "issue_comment": HtmlField(
         IssueComment, "comment_html", "comment_stripped", empty_stripped="", mirror="description_id"
     ),
-    "draft_issue": Target(DraftIssue, "description_html", "description_stripped"),
+    "draft_issue": HtmlField(DraftIssue, "description_html", "description_stripped"),
+    "automation": AutomationTemplate(),
 }
+
+
+def _stripped(html, empty=None):
+    return strip_tags(html) if html else empty
+
+
+def _summary(label, scanned, changed, failed, apply):
+    return f"{label}: scanned {scanned}, {'changed' if apply else 'would change'} {changed}, failed {failed}"
 
 
 class Command(BaseCommand):
@@ -69,14 +126,12 @@ class Command(BaseCommand):
         self.stdout.write(_summary("done", *totals, apply))
 
     def _sanitize(self, name, target, apply, batch_size):
-        fields = ["id", target.html] + ([target.mirror] if target.mirror else [])
-        rows = target.model.all_objects.only(*fields).order_by("id")
         scanned = changed = failed = 0
         pending = []
 
-        for row in rows.iterator(chunk_size=batch_size):
+        for row in target.rows().iterator(chunk_size=batch_size):
             scanned += 1
-            html = getattr(row, target.html)
+            html = target.html_of(row)
             if html:
                 is_valid, error, clean = validate_html_content(html)
                 if not is_valid:
@@ -88,38 +143,13 @@ class Command(BaseCommand):
                     pending.append((row, clean))
 
             if len(pending) >= batch_size:
-                _write(target, pending, apply)
+                if apply:
+                    target.write(pending)
                 pending = []
             if scanned % batch_size == 0:
                 self.stdout.write(_summary(name, scanned, changed, failed, apply))
 
-        _write(target, pending, apply)
+        if apply and pending:
+            target.write(pending)
         self.stdout.write(_summary(name, scanned, changed, failed, apply))
         return [scanned, changed, failed]
-
-
-def _summary(label, scanned, changed, failed, apply):
-    return f"{label}: scanned {scanned}, {'changed' if apply else 'would change'} {changed}, failed {failed}"
-
-
-def _write(target, pending, apply):
-    if not apply or not pending:
-        return
-    target.model.all_objects.bulk_update(
-        [
-            target.model(id=row.id, **{target.html: clean, target.stripped: target.stripped_text(clean)})
-            for row, clean in pending
-        ],
-        [target.html, target.stripped],
-    )
-    if target.mirror:
-        mirrors = [
-            Description(
-                id=getattr(row, target.mirror),
-                description_html=clean,
-                description_stripped=strip_tags(clean) if clean else None,
-            )
-            for row, clean in pending
-            if getattr(row, target.mirror)
-        ]
-        Description.all_objects.bulk_update(mirrors, ["description_html", "description_stripped"])

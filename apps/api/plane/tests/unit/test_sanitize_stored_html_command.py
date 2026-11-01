@@ -8,7 +8,10 @@ import pytest
 from django.core.management import CommandError, call_command
 from django.utils import timezone
 
+from plane.automation.registry import ActionType
 from plane.db.models import (
+    Automation,
+    AutomationAction,
     Description,
     DraftIssue,
     Intake,
@@ -200,6 +203,33 @@ class TestSanitizeStoredHtml:
         stored = IssueComment.all_objects.get(pk=comment.pk)
         assert stored.comment_html == ""
         assert stored.comment_stripped == ""
+
+    def test_automation_templates(self, workspace, project, create_user):
+        automation = Automation.objects.create(workspace=workspace, project=project, name="Rule", owned_by=create_user)
+
+        def action(action_type, config):
+            return AutomationAction.objects.create(
+                automation=automation, workspace=workspace, action_type=action_type, config=config
+            )
+
+        comment = action(ActionType.ADD_COMMENT, {"comment_html": "<p>{{work_item.name}}</p><script>x</script>"})
+        create = action(ActionType.CREATE_WORK_ITEM, {"name": "Follow up", "description_html": UNSAFE})
+        safe = action(ActionType.ADD_COMMENT, {"comment_html": "<p>{{work_item.name}}</p>"})
+        webhook = action(ActionType.CALL_WEBHOOK, {"url": "https://example.com", "body": UNSAFE})
+
+        dry, _ = _run("--model", "automation")
+        assert f"would change automation {comment.id}" in dry
+        assert AutomationAction.objects.get(pk=comment.pk).config == comment.config
+
+        out, _ = _run("--apply", "--model", "automation")
+
+        assert "automation: scanned 3, changed 2, failed 0" in out
+        stored = AutomationAction.objects.get(pk=comment.pk)
+        assert stored.config == {"comment_html": "<p>{{work_item.name}}</p>"}
+        assert stored.updated_at == comment.updated_at
+        assert AutomationAction.objects.get(pk=create.pk).config == {"name": "Follow up", "description_html": SAFE}
+        assert AutomationAction.objects.get(pk=safe.pk).updated_at == safe.updated_at
+        assert AutomationAction.objects.get(pk=webhook.pk).config == webhook.config
 
     def test_rejects_a_batch_size_below_one(self):
         with pytest.raises(CommandError, match="batch-size"):
