@@ -14,11 +14,11 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { readField } from "@plane/types";
 import type { TRadarChartProps } from "@plane/types";
 import { getLegendProps } from "../components/legend";
 import { CustomRadarAxisTick } from "../components/tick";
 import { CustomTooltip } from "../components/tooltip";
-import { readField } from "@plane/types";
 import { toChartKey } from "../payload";
 
 function RadarChart<T extends string, K extends string>(props: TRadarChartProps<T, K>) {

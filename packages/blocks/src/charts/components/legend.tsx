@@ -7,10 +7,10 @@
 import React from "react";
 import type { LegendProps } from "recharts";
 // plane imports
+import { readField } from "@plane/types";
 import type { TChartLegend } from "@plane/types";
 import { cn } from "@plane/utils";
 // local imports
-import { readField } from "@plane/types";
 import { toChartText } from "../payload";
 
 export const getLegendProps = (args: TChartLegend): Omit<LegendProps, "ref"> => {
