@@ -26,8 +26,7 @@ const LLM_PROVIDERS = { openai: "OpenAI", anthropic: "Anthropic", gemini: "Gemin
 
 type TLLMProvider = keyof typeof LLM_PROVIDERS;
 
-const isLLMProvider = (value: string | null | undefined): value is TLLMProvider =>
-  !!value && value in LLM_PROVIDERS;
+const isLLMProvider = (value: string | null | undefined): value is TLLMProvider => !!value && value in LLM_PROVIDERS;
 
 export function InstanceAIForm(props: IInstanceAIForm) {
   const { config } = props;
