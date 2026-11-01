@@ -11,7 +11,9 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/ws/" }));
 vi.mock("@/hooks/store/use-workspace", () => ({ useWorkspace: () => ({ getWorkspaceBySlug: () => undefined }) }));
 vi.mock("@/hooks/use-stickies", () => ({ useSticky: () => sticky }));
 vi.mock("@/components/editor/sticky-editor", () => ({
-  StickyEditor: (props: { autofocus?: boolean }) => <div data-testid="editor" data-autofocus={String(!!props.autofocus)} />,
+  StickyEditor: (props: { autofocus?: boolean }) => (
+    <div data-testid="editor" data-autofocus={String(!!props.autofocus)} />
+  ),
 }));
 
 const renderInput = (stickyId: string) => {
