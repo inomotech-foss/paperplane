@@ -116,9 +116,8 @@ describe("ProjectIssuesFilter saved preferences", () => {
 
     expect(onIntent).not.toHaveBeenCalled();
     expect(store.getIssueFilters("p1")?.displayFilters?.calendar).toEqual({ layout: "week", show_weekends: true });
-    expect(update.mock.calls[0][2]).toEqual({
-      display_filters: expect.objectContaining({ calendar: { layout: "month", show_weekends: true } }),
-    });
+    expect(Object.keys(update.mock.calls[0][2])).toEqual(["display_filters"]);
+    expect(update.mock.calls[0][2].display_filters?.calendar).toEqual({ layout: "month", show_weekends: true });
     expect(projectIssues.fetchIssuesWithExistingPagination).not.toHaveBeenCalled();
   });
 

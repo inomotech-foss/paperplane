@@ -3,13 +3,30 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { IWorkspaceMemberMe } from "@plane/types";
+import { DEFAULT_WORKSPACE_VIEW_PROPS, EUserWorkspaceRoles } from "@plane/types";
+import { store as rootStore } from "@/lib/store-context";
 import { WorkspaceService } from "@/services/workspace.service";
-import type { RootStore } from "@/store/root.store";
 import { BaseUserPermissionStore } from "./base-permissions.store";
 
+const member = (changes: Partial<IWorkspaceMemberMe> = {}): IWorkspaceMemberMe => ({
+  company_role: null,
+  created_at: "2026-01-01T00:00:00Z",
+  created_by: null,
+  default_props: DEFAULT_WORKSPACE_VIEW_PROPS,
+  id: "m1",
+  member: "u1",
+  role: EUserWorkspaceRoles.MEMBER,
+  updated_at: "2026-01-01T00:00:00Z",
+  updated_by: null,
+  view_props: DEFAULT_WORKSPACE_VIEW_PROPS,
+  workspace: "w1",
+  pql_dialect: null,
+  ...changes,
+});
+
 const makeStore = () => {
-  const store = new BaseUserPermissionStore({} as RootStore);
-  store.workspaceUserInfo = { ws: { id: "m1", role: 15, pql_dialect: null } as IWorkspaceMemberMe };
+  const store = new BaseUserPermissionStore(rootStore);
+  store.workspaceUserInfo = { ws: member() };
   return store;
 };
 
@@ -19,7 +36,7 @@ describe("BaseUserPermissionStore.updateWorkspaceMemberDialect", () => {
   it("stores the new dialect", async () => {
     const update = vi
       .spyOn(WorkspaceService.prototype, "updateWorkspaceMemberMe")
-      .mockResolvedValue({ id: "m1", pql_dialect: "plane" } as IWorkspaceMemberMe);
+      .mockResolvedValue(member({ pql_dialect: "plane" }));
     const store = makeStore();
 
     await store.updateWorkspaceMemberDialect("ws", "plane");
