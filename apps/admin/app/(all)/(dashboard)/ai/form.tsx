@@ -26,7 +26,14 @@ const LLM_PROVIDERS = { openai: "OpenAI", anthropic: "Anthropic", gemini: "Gemin
 
 type TLLMProvider = keyof typeof LLM_PROVIDERS;
 
-const isLLMProvider = (value: string | null | undefined): value is TLLMProvider => !!value && value in LLM_PROVIDERS;
+const isLLMProvider = (value: string | null | undefined): value is TLLMProvider =>
+  !!value && Object.hasOwn(LLM_PROVIDERS, value);
+
+const API_KEY_PLACEHOLDERS: Record<TLLMProvider, string> = {
+  openai: "sk-...",
+  anthropic: "sk-ant-...",
+  gemini: "AIza...",
+};
 
 export function InstanceAIForm(props: IInstanceAIForm) {
   const { config } = props;
@@ -39,6 +46,7 @@ export function InstanceAIForm(props: IInstanceAIForm) {
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<AIFormValues>({
     defaultValues: {
@@ -47,6 +55,8 @@ export function InstanceAIForm(props: IInstanceAIForm) {
       LLM_MODEL: config["LLM_MODEL"],
     },
   });
+
+  const provider = watch("LLM_PROVIDER");
 
   const aiFormFields: TControllerInputFormField<AIFormValues>[] = [
     {
@@ -63,7 +73,7 @@ export function InstanceAIForm(props: IInstanceAIForm) {
       type: "password",
       label: t("instance_ai.api_key.label"),
       description: t("instance_ai.api_key.description"),
-      placeholder: "sk-...",
+      placeholder: API_KEY_PLACEHOLDERS[isLLMProvider(provider) ? provider : "openai"],
       error: Boolean(errors.LLM_API_KEY),
       required: false,
     },
@@ -103,8 +113,9 @@ export function InstanceAIForm(props: IInstanceAIForm) {
                   onValueChange={(provider) => {
                     if (!isLLMProvider(provider) || provider === value) return;
                     onChange(provider);
-                    // a model name of one provider never works with another
+                    // neither a model name nor an API key carries over to another provider
                     setValue("LLM_MODEL", "", { shouldDirty: true });
+                    setValue("LLM_API_KEY", "", { shouldDirty: true });
                   }}
                 >
                   <SelectTrigger size="lg" placeholder={t("instance_ai.provider.label")} />
