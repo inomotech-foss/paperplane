@@ -17,6 +17,7 @@ import type { EditorRefApi, IRichTextEditorProps } from "@/types";
 
 function RichTextEditor(props: IRichTextEditorProps) {
   const {
+    aiHandler,
     bubbleMenuEnabled = true,
     disabledExtensions,
     dragDropEnabled,
@@ -24,6 +25,7 @@ function RichTextEditor(props: IRichTextEditorProps) {
     fileHandler,
     flaggedExtensions,
     extendedEditorProps,
+    getEditorMetaData,
     workItemIdentifier,
   } = props;
 
@@ -51,7 +53,9 @@ function RichTextEditor(props: IRichTextEditorProps) {
         <>
           {editor && bubbleMenuEnabled && (
             <EditorBubbleMenu
+              aiHandler={aiHandler}
               disabledExtensions={disabledExtensions}
+              getEditorMetaData={getEditorMetaData}
               editor={editor}
               extendedEditorProps={extendedEditorProps}
               flaggedExtensions={flaggedExtensions}

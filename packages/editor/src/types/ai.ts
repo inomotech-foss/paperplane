@@ -5,7 +5,12 @@
  */
 
 export type TAIMenuProps = {
-  isOpen: boolean;
+  /** The selected content as Markdown. */
+  selection: string;
+  /** Replaces the selection with the given HTML. */
+  onReplace: (html: string) => void;
+  /** Inserts the given HTML after the block that ends the selection. */
+  onInsertBelow: (html: string) => void;
   onClose: () => void;
 };
 

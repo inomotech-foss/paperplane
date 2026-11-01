@@ -4,83 +4,87 @@
  * See the LICENSE file for details.
  */
 
-import { autoUpdate, computePosition, flip, shift } from "@floating-ui/dom";
-import { useCallback, useEffect, useRef, useState } from "react";
-// plane utils
-import { cn } from "@plane/utils";
+import {
+  autoUpdate,
+  flip,
+  FloatingPortal,
+  offset,
+  shift,
+  useDismiss,
+  useFloating,
+  useInteractions,
+} from "@floating-ui/react";
+import { posToDOMRect } from "@tiptap/core";
+import type { Editor, EditorEvents, Range } from "@tiptap/core";
+import { useEffect, useState } from "react";
+// helpers
+import { insertHTMLBelowRange, mapRange, replaceRangeWithHTML } from "@/helpers/ai";
 // types
 import type { TAIHandler } from "@/types";
 
 type Props = {
-  menu: TAIHandler["menu"];
+  editor: Editor;
+  menu: NonNullable<TAIHandler["menu"]>;
+  /** The selection the menu works on, taken when it opened. */
+  range: Range;
+  /** The same selection as Markdown. */
+  selection: string;
+  onClose: () => void;
 };
 
 export function AIFeaturesMenu(props: Props) {
-  const { menu } = props;
-  // states
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  // refs
-  const menuRef = useRef<HTMLDivElement>(null);
-  const isPopupVisible = !!anchor;
+  const { editor, menu, range, selection, onClose } = props;
+  // kept in step with later edits, so the result lands where the selection is now
+  const [currentRange, setCurrentRange] = useState(range);
+  const { refs, floatingStyles, context } = useFloating({
+    open: true,
+    onOpenChange: (open) => {
+      if (!open) onClose();
+    },
+    placement: "bottom-start",
+    strategy: "fixed",
+    middleware: [offset(8), flip({ padding: 8 }), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  });
+  const { getFloatingProps } = useInteractions([useDismiss(context)]);
 
-  const hidePopup = useCallback(() => setAnchor(null), []);
-
-  // keep the menu below the AI handle while it is open
   useEffect(() => {
-    const menuElement = menuRef.current;
-    if (!anchor || !menuElement) return;
-
-    const cleanup = autoUpdate(anchor, menuElement, () => {
-      computePosition(anchor, menuElement, {
-        placement: "bottom-start",
-        strategy: "fixed",
-        middleware: [flip(), shift()],
-      })
-        .then(({ x, y }) => Object.assign(menuElement.style, { left: `${x}px`, top: `${y}px` }))
-        .catch((error: unknown) => console.error("An error occurred while positioning the AI menu:", error));
+    refs.setPositionReference({
+      getBoundingClientRect: () => {
+        if (editor.isDestroyed) return new DOMRect();
+        const size = editor.state.doc.content.size;
+        const from = Math.min(currentRange.from, size);
+        return posToDOMRect(editor.view, from, Math.max(from, Math.min(currentRange.to, size)));
+      },
     });
-    menuElement.focus();
-
-    return cleanup;
-  }, [anchor]);
+  }, [editor, refs, currentRange]);
 
   useEffect(() => {
-    const handleClickAIHandle = (e: MouseEvent) => {
-      const target = e.target instanceof HTMLElement ? e.target : null;
-      if (target?.matches("#ai-handle") || menuRef.current?.contains(e.target instanceof Node ? e.target : null)) {
-        e.preventDefault();
-
-        if (!isPopupVisible) setAnchor(target);
-        return;
-      }
-
-      hidePopup();
-      return;
+    const handleTransaction = ({ transaction }: EditorEvents["transaction"]) => {
+      if (transaction.docChanged) setCurrentRange((previous) => mapRange(previous, transaction.mapping));
     };
-
-    document.addEventListener("click", handleClickAIHandle);
-    document.addEventListener("contextmenu", handleClickAIHandle);
-    document.addEventListener("keydown", hidePopup);
-
+    editor.on("transaction", handleTransaction);
     return () => {
-      document.removeEventListener("click", handleClickAIHandle);
-      document.removeEventListener("contextmenu", handleClickAIHandle);
-      document.removeEventListener("keydown", hidePopup);
+      editor.off("transaction", handleTransaction);
     };
-  }, [hidePopup, isPopupVisible]);
+  }, [editor]);
 
   return (
-    <div
-      className={cn("pointer-events-none fixed inset-0 z-10 size-full opacity-0 transition-opacity", {
-        "pointer-events-auto opacity-100": isPopupVisible,
-      })}
-    >
-      <div ref={menuRef} tabIndex={-1} className="fixed z-10 w-max outline-none">
-        {menu?.({
-          isOpen: isPopupVisible,
-          onClose: hidePopup,
+    <FloatingPortal>
+      <div ref={(node) => refs.setFloating(node)} style={{ ...floatingStyles, zIndex: 100 }} {...getFloatingProps()}>
+        {menu({
+          selection,
+          onReplace: (html) => {
+            replaceRangeWithHTML(editor, currentRange, html);
+            onClose();
+          },
+          onInsertBelow: (html) => {
+            insertHTMLBelowRange(editor, currentRange, html);
+            onClose();
+          },
+          onClose,
         })}
       </div>
-    </div>
+    </FloatingPortal>
   );
 }

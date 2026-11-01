@@ -44,6 +44,7 @@ export function InstanceRateLimitForm(props: Props) {
       ANON_RATE_LIMIT: config["ANON_RATE_LIMIT"] || "30/minute",
       ASSET_RATE_LIMIT: config["ASSET_RATE_LIMIT"] || "5/minute",
       AUTHENTICATION_RATE_LIMIT: config["AUTHENTICATION_RATE_LIMIT"] || "10/minute",
+      WRITING_ASSISTANT_RATE_LIMIT: config["WRITING_ASSISTANT_RATE_LIMIT"] || "20/minute",
     },
   });
 
@@ -82,6 +83,15 @@ export function InstanceRateLimitForm(props: Props) {
       description: "Limit per client for sign-in, sign-up, and magic-code requests.",
       placeholder: "10/minute",
       error: Boolean(errors.AUTHENTICATION_RATE_LIMIT),
+      required: true,
+    },
+    {
+      key: "WRITING_ASSISTANT_RATE_LIMIT",
+      type: "text",
+      label: "AI writing assistant requests",
+      description: "Limit per user for AI writing assistant requests.",
+      placeholder: "20/minute",
+      error: Boolean(errors.WRITING_ASSISTANT_RATE_LIMIT),
       required: true,
     },
   ];

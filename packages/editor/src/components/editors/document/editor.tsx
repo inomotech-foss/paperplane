@@ -25,6 +25,7 @@ import type { EditorRefApi, IDocumentEditorProps } from "@/types";
 
 function DocumentEditor(props: IDocumentEditorProps) {
   const {
+    aiHandler,
     bubbleMenuEnabled = false,
     childPagesHandler,
     containerClassName,
@@ -119,7 +120,9 @@ function DocumentEditor(props: IDocumentEditorProps) {
 
   return (
     <PageRenderer
+      aiHandler={aiHandler}
       bubbleMenuEnabled={bubbleMenuEnabled}
+      getEditorMetaData={getEditorMetaData}
       displayConfig={displayConfig}
       editor={editor}
       editorContainerClassName={cn(editorContainerClassName, "document-editor")}

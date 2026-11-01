@@ -6,7 +6,6 @@
 
 import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { Editor } from "@tiptap/core";
-import { DOMSerializer } from "@tiptap/pm/model";
 import * as Y from "yjs";
 // plane imports
 import { convertHTMLToMarkdown } from "@plane/utils";
@@ -159,39 +158,6 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
       if (!editor) return;
       editor.commands.extendMarkRange(mark);
       return editor.getAttributes(attribute);
-    },
-    getSelectedText: () => {
-      if (!editor) return null;
-
-      const { state } = editor;
-      const { from, to, empty } = state.selection;
-
-      if (empty) return null;
-
-      const nodesArray: string[] = [];
-      state.doc.nodesBetween(from, to, (node, _pos, parent) => {
-        if (parent === state.doc && editor) {
-          const serializer = DOMSerializer.fromSchema(editor.schema);
-          const dom = serializer.serializeNode(node);
-          const tempDiv = document.createElement("div");
-          tempDiv.appendChild(dom);
-          nodesArray.push(tempDiv.innerHTML);
-        }
-      });
-      const selection = nodesArray.join("");
-      return selection;
-    },
-    insertText: (contentHTML, insertOnNextLine) => {
-      if (!editor) return;
-      const { from, to, empty } = editor.state.selection;
-      if (empty) return;
-      if (insertOnNextLine) {
-        // move cursor to the end of the selection and insert a new line
-        editor.chain().focus().setTextSelection(to).insertContent("<br />").insertContent(contentHTML).run();
-      } else {
-        // replace selected text with the content provided
-        editor.chain().focus().deleteRange({ from, to }).insertContent(contentHTML).run();
-      }
     },
     isEditorReadyToDiscard: () => editor?.storage?.utility?.uploadInProgress === false,
     isMenuItemActive: (props) => {

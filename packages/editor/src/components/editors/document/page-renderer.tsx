@@ -33,6 +33,7 @@ type Props = {
   extendedDocumentEditorProps?: ICollaborativeDocumentEditorPropsExtended;
   extendedEditorProps: IEditorPropsExtended;
   flaggedExtensions: IEditorProps["flaggedExtensions"];
+  getEditorMetaData: IEditorProps["getEditorMetaData"];
   id: string;
   isLoading?: boolean;
   isTouchDevice: boolean;
@@ -43,6 +44,7 @@ type Props = {
 
 export function PageRenderer(props: Props) {
   const {
+    aiHandler,
     bubbleMenuEnabled,
     disabledExtensions,
     displayConfig,
@@ -51,6 +53,7 @@ export function PageRenderer(props: Props) {
     editorContainerClassName,
     extendedEditorProps,
     flaggedExtensions,
+    getEditorMetaData,
     id,
     isLoading,
     isTouchDevice,
@@ -101,7 +104,9 @@ export function PageRenderer(props: Props) {
               <div>
                 {bubbleMenuEnabled && (
                   <EditorBubbleMenu
+                    aiHandler={aiHandler}
                     editor={editor}
+                    getEditorMetaData={getEditorMetaData}
                     disabledExtensions={disabledExtensions}
                     extendedEditorProps={extendedEditorProps}
                     flaggedExtensions={flaggedExtensions}
