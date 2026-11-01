@@ -37,7 +37,7 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 // extensions
 import { isCellSelection } from "@/extensions/table/table/utilities/helpers";
 // helpers
-import { getSelectionMarkdown } from "@/helpers/ai";
+import { getSelectionMarkdown, hasNodesLostByMarkdown } from "@/helpers/ai";
 import { observeLayoutShift } from "@/helpers/observe-layout-shift";
 // types
 import type { IEditorProps, IEditorPropsExtended, TAIHandler, TEditorCommands, TExtensions } from "@/types";
@@ -52,6 +52,7 @@ type EditorBubbleMenuProps = Omit<BubbleMenuProps, "children">;
 
 export type EditorStateType = {
   code: boolean;
+  codeBlock: boolean;
   bold: boolean;
   italic: boolean;
   underline: boolean;
@@ -90,7 +91,7 @@ export function EditorBubbleMenu(props: Props) {
   const { aiHandler, editor, getEditorMetaData } = props;
   // states
   const [isSelecting, setIsSelecting] = useState(false);
-  const [aiSession, setAISession] = useState<{ range: Range; selection: string } | null>(null);
+  const [aiSession, setAISession] = useState<{ range: Range; selection: string; canReplace: boolean } | null>(null);
   const aiMenu = aiHandler?.menu;
   // refs
   const menuRef = useRef<HTMLDivElement>(null);
@@ -124,6 +125,7 @@ export function EditorBubbleMenu(props: Props) {
     editor,
     selector: ({ editor: currentEditor }) => ({
       code: formattingItems.code.isActive(),
+      codeBlock: currentEditor.isActive(CORE_EXTENSIONS.CODE_BLOCK),
       bold: formattingItems.bold.isActive(),
       italic: formattingItems.italic.isActive(),
       underline: formattingItems.underline.isActive(),
@@ -238,7 +240,11 @@ export function EditorBubbleMenu(props: Props) {
 
   const openAIMenu = () => {
     const { from, to } = editor.state.selection;
-    setAISession({ range: { from, to }, selection: getSelectionMarkdown(editor, getEditorMetaData) });
+    setAISession({
+      range: { from, to },
+      selection: getSelectionMarkdown(editor, getEditorMetaData),
+      canReplace: !hasNodesLostByMarkdown(editor.state.selection.content()),
+    });
   };
 
   return (
@@ -255,7 +261,7 @@ export function EditorBubbleMenu(props: Props) {
             ref={menuRef}
             className="horizontal-scrollbar flex scrollbar-xs divide-x divide-subtle-1 overflow-x-scroll rounded-lg border border-subtle bg-surface-1 py-2 shadow-raised-200"
           >
-            {aiMenu && (
+            {aiMenu && !editorState.code && !editorState.codeBlock && (
               <div className="px-2">
                 <button
                   type="button"
@@ -266,7 +272,7 @@ export function EditorBubbleMenu(props: Props) {
                   className="flex h-7 items-center gap-1 rounded-sm px-2 text-13 font-medium whitespace-nowrap text-accent-primary transition-colors hover:bg-layer-1 active:bg-layer-1"
                 >
                   <AiStar1Outline className="size-3.5 shrink-0" />
-                  AI
+                  {aiHandler?.label}
                 </button>
               </div>
             )}
@@ -328,6 +334,7 @@ export function EditorBubbleMenu(props: Props) {
           menu={aiMenu}
           range={aiSession.range}
           selection={aiSession.selection}
+          canReplace={aiSession.canReplace}
           onClose={() => setAISession(null)}
         />
       )}

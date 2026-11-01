@@ -22,6 +22,7 @@ type TActiveDropbarExtensions =
   | CORE_EXTENSIONS.SLASH_COMMANDS
   | CORE_EXTENSIONS.TABLE
   | "bubble-menu"
+  | "ai-menu"
   | CORE_EXTENSIONS.SIDE_MENU
   | TAdditionalActiveDropbarExtensions;
 

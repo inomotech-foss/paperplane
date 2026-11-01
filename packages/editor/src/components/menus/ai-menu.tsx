@@ -15,10 +15,10 @@ import {
   useInteractions,
 } from "@floating-ui/react";
 import { posToDOMRect } from "@tiptap/core";
-import type { Editor, EditorEvents, Range } from "@tiptap/core";
+import type { Editor, Range } from "@tiptap/core";
 import { useEffect, useState } from "react";
 // helpers
-import { insertHTMLBelowRange, mapRange, replaceRangeWithHTML } from "@/helpers/ai";
+import { createRangeTracker, insertHTMLBelowRange, replaceRangeWithHTML } from "@/helpers/ai";
 // types
 import type { TAIHandler } from "@/types";
 
@@ -29,13 +29,19 @@ type Props = {
   range: Range;
   /** The same selection as Markdown. */
   selection: string;
+  canReplace: boolean;
   onClose: () => void;
 };
 
 export function AIFeaturesMenu(props: Props) {
-  const { editor, menu, range, selection, onClose } = props;
-  // kept in step with later edits, so the result lands where the selection is now
-  const [currentRange, setCurrentRange] = useState(range);
+  const { editor, menu, range, selection, canReplace, onClose } = props;
+  // keeps the range on the same content, so the result lands where the selection is now
+  const [tracker] = useState(() => createRangeTracker(editor, range));
+  // inside a modal dialog, so its focus trap and outside-press handling treat the menu as its own
+  const [portalRoot] = useState(() => {
+    const dialog = editor.view.dom.closest("[role='dialog']");
+    return dialog instanceof HTMLElement ? dialog : null;
+  });
   const { refs, floatingStyles, context } = useFloating({
     open: true,
     onOpenChange: (open) => {
@@ -46,42 +52,53 @@ export function AIFeaturesMenu(props: Props) {
     middleware: [offset(8), flip({ padding: 8 }), shift({ padding: 8 })],
     whileElementsMounted: autoUpdate,
   });
-  const { getFloatingProps } = useInteractions([useDismiss(context)]);
+  const { getFloatingProps } = useInteractions([useDismiss(context, { escapeKey: false })]);
+
+  useEffect(() => tracker.start(), [tracker]);
+
+  // An open dropbar tells the surrounding peek or modal to leave outside presses and Escape alone.
+  useEffect(() => {
+    editor.commands.addActiveDropbarExtension("ai-menu");
+    return () => {
+      if (!editor.isDestroyed) editor.commands.removeActiveDropbarExtension("ai-menu");
+    };
+  }, [editor]);
 
   useEffect(() => {
     refs.setPositionReference({
       getBoundingClientRect: () => {
-        if (editor.isDestroyed) return new DOMRect();
-        const size = editor.state.doc.content.size;
-        const from = Math.min(currentRange.from, size);
-        return posToDOMRect(editor.view, from, Math.max(from, Math.min(currentRange.to, size)));
+        const current = editor.isDestroyed ? null : tracker.resolve();
+        return current ? posToDOMRect(editor.view, current.from, current.to) : new DOMRect();
       },
     });
-  }, [editor, refs, currentRange]);
+  }, [editor, refs, tracker]);
 
-  useEffect(() => {
-    const handleTransaction = ({ transaction }: EditorEvents["transaction"]) => {
-      if (transaction.docChanged) setCurrentRange((previous) => mapRange(previous, transaction.mapping));
-    };
-    editor.on("transaction", handleTransaction);
-    return () => {
-      editor.off("transaction", handleTransaction);
-    };
-  }, [editor]);
+  const apply = (write: (target: Range) => boolean) => {
+    const current = tracker.resolve();
+    if (current) write(current);
+    onClose();
+  };
 
   return (
-    <FloatingPortal>
-      <div ref={(node) => refs.setFloating(node)} style={{ ...floatingStyles, zIndex: 100 }} {...getFloatingProps()}>
+    <FloatingPortal root={portalRoot ?? undefined}>
+      <div
+        ref={(node) => refs.setFloating(node)}
+        data-prevent-outside-click
+        style={{ ...floatingStyles, zIndex: 100 }}
+        {...getFloatingProps({
+          onKeyDown: (event) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            event.stopPropagation();
+            onClose();
+          },
+        })}
+      >
         {menu({
           selection,
-          onReplace: (html) => {
-            replaceRangeWithHTML(editor, currentRange, html);
-            onClose();
-          },
-          onInsertBelow: (html) => {
-            insertHTMLBelowRange(editor, currentRange, html);
-            onClose();
-          },
+          canReplace,
+          onReplace: (html) => apply((target) => canReplace && replaceRangeWithHTML(editor, target, html)),
+          onInsertBelow: (html) => apply((target) => insertHTMLBelowRange(editor, target, html)),
           onClose,
         })}
       </div>

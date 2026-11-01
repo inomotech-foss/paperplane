@@ -4,10 +4,20 @@
  */
 
 import { Editor } from "@tiptap/core";
+import Collaboration from "@tiptap/extension-collaboration";
 import { afterEach, describe, expect, it } from "vitest";
+import * as Y from "yjs";
 
+import { CustomMentionExtensionConfig } from "@/extensions/mentions/extension-config";
 import { CustomStarterKitExtension } from "@/extensions/starter-kit";
-import { getSelectionMarkdown, insertHTMLBelowRange, mapRange, replaceRangeWithHTML } from "@/helpers/ai";
+import {
+  createRangeTracker,
+  getSelectionMarkdown,
+  hasNodesLostByMarkdown,
+  insertHTMLBelowRange,
+  mapRange,
+  replaceRangeWithHTML,
+} from "@/helpers/ai";
 
 let editor: Editor | undefined;
 
@@ -91,17 +101,89 @@ describe("insertHTMLBelowRange", () => {
   });
 });
 
+describe("hasNodesLostByMarkdown", () => {
+  it("flags mentions but not plain formatting", () => {
+    editor = new Editor({
+      element: document.createElement("div"),
+      extensions: [CustomStarterKitExtension({ enableHistory: false }), CustomMentionExtensionConfig],
+      content:
+        '<p><strong>Hi</strong><br>there</p><p>Ask <mention-component id="m1" entity_identifier="u1" entity_name="user_mention"></mention-component></p>',
+    });
+    const { doc } = editor.state;
+    expect(hasNodesLostByMarkdown(doc.slice(0, doc.child(0).nodeSize))).toBe(false);
+    expect(hasNodesLostByMarkdown(doc.slice(0, doc.content.size))).toBe(true);
+  });
+});
+
 describe("mapRange", () => {
-  it("follows the selected text when content is added before it", () => {
+  it("returns null once the content is deleted", () => {
     const instance = createEditor("<p>Hello world</p>");
     const range = rangeOf(instance, "world");
-    let mapped = range;
-    instance.on("transaction", ({ transaction }) => {
-      mapped = mapRange(mapped, transaction.mapping);
-    });
+    const tr = instance.state.tr.delete(range.from - 1, range.to);
+    expect(mapRange(range, tr.mapping)).toBeNull();
+  });
+});
+
+describe("createRangeTracker", () => {
+  it("follows local edits before the range", () => {
+    const instance = createEditor("<p>Hello world</p>");
+    const tracker = createRangeTracker(instance, rangeOf(instance, "world"));
+    const stop = tracker.start();
     instance.commands.insertContentAt(1, "Oh, ");
-    expect(instance.state.doc.textBetween(mapped.from, mapped.to)).toBe("world");
-    replaceRangeWithHTML(instance, mapped, "<p>there</p>");
-    expect(htmlOf(instance)).toBe("<p>Oh, Hello there</p>");
+    const range = tracker.resolve();
+    expect(range && instance.state.doc.textBetween(range.from, range.to)).toBe("world");
+    stop();
+  });
+
+  it("gives up instead of jumping to the end when the whole document is replaced", () => {
+    const instance = createEditor("<p>Hello world</p>");
+    const tracker = createRangeTracker(instance, rangeOf(instance, "world"));
+    const stop = tracker.start();
+    const { tr, doc, schema } = instance.state;
+    instance.view.dispatch(
+      tr.replaceWith(0, doc.content.size, schema.nodes.paragraph.create(null, schema.text("Oh, Hello world")))
+    );
+    expect(tracker.resolve()).toBeNull();
+    stop();
+  });
+
+  it("follows a remote Yjs update on a collaborative document", async () => {
+    const ydoc = new Y.Doc();
+    const instance = new Editor({
+      element: document.createElement("div"),
+      extensions: [
+        CustomStarterKitExtension({ enableHistory: false }),
+        Collaboration.configure({ document: ydoc, field: "default" }),
+      ],
+    });
+    editor = instance;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    instance.commands.setContent("<p>Hello world</p>");
+    const tracker = createRangeTracker(instance, rangeOf(instance, "world"));
+
+    const remote = new Y.Doc();
+    Y.applyUpdate(remote, Y.encodeStateAsUpdate(ydoc));
+    const paragraph = remote.getXmlFragment("default").get(0);
+    const text = paragraph instanceof Y.XmlElement ? paragraph.get(0) : undefined;
+    if (!(text instanceof Y.XmlText)) throw new Error("expected a text node");
+    text.insert(0, "Oh, ");
+    Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(remote, Y.encodeStateVector(ydoc)));
+
+    expect(instance.getText()).toBe("Oh, Hello world");
+    const range = tracker.resolve();
+    if (!range) throw new Error("the range was lost");
+    expect(instance.state.doc.textBetween(range.from, range.to)).toBe("world");
+    replaceRangeWithHTML(instance, range, "<p>there</p>");
+    expect(instance.getText()).toBe("Oh, Hello there");
+  });
+});
+
+describe("write guards", () => {
+  it("does not write to a read-only editor", () => {
+    const instance = createEditor("<p>Hello world</p>");
+    instance.setEditable(false);
+    expect(replaceRangeWithHTML(instance, rangeOf(instance, "world"), "<p>x</p>")).toBe(false);
+    expect(insertHTMLBelowRange(instance, rangeOf(instance, "world"), "<p>x</p>")).toBe(false);
+    expect(instance.getText()).toBe("Hello world");
   });
 });
