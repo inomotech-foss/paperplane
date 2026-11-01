@@ -105,7 +105,6 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
             recursive: true,
           });
       },
-      modifierShortcut: "shift+l",
       isEnabled: () => !!canCurrentUserLockPage,
       isVisible: () => !!canCurrentUserLockPage,
       closeOnSelect: true,
@@ -130,7 +129,6 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
             shouldSync: true,
           });
       },
-      modifierShortcut: "shift+a",
       isEnabled: () => !!canCurrentUserChangeAccess,
       isVisible: () => !!canCurrentUserChangeAccess,
       closeOnSelect: true,
@@ -152,7 +150,6 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
             shouldSync: true,
           });
       },
-      modifierShortcut: "shift+r",
       isEnabled: () => !!canCurrentUserArchivePage,
       isVisible: () => !!canCurrentUserArchivePage,
       closeOnSelect: true,

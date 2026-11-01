@@ -254,7 +254,7 @@ export class ShortcutHandler {
 
     // Keys typed into inputs, widgets and focused editors never trigger shortcuts, nor continue
     // a sequence
-    if (isTypingInInput(e.target) || isTypingInInput(document.activeElement)) {
+    if (isTypingInInput(e.target)) {
       this.resetSequence();
       return;
     }
