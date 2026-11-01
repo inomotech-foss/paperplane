@@ -50,7 +50,8 @@ type ConfigProps = {
   metadata: TAutomationMetadata | undefined;
   actionType: TAutomationActionType;
   config: TAutomationActionConfig;
-  onChange: (config: TAutomationActionConfig) => void;
+  /** Resolves to whether the save succeeded. */
+  onChange: (config: TAutomationActionConfig) => Promise<boolean>;
   disabled?: boolean;
 };
 
@@ -389,7 +390,7 @@ const SendNotificationConfig = observer(function SendNotificationConfig(props: C
 
 type TCreateFieldProps = {
   typed: TCreateWorkItemConfig;
-  onChange: (config: TAutomationActionConfig) => void;
+  onChange: (config: TAutomationActionConfig) => Promise<boolean>;
   disabled?: boolean;
 };
 

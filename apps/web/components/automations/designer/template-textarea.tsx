@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 type Props = {
   value: string;
-  onCommit: (value: string) => void;
+  /** Resolves to whether the save succeeded. */
+  onCommit: (value: string) => Promise<boolean>;
   disabled?: boolean;
   rows: number;
   placeholder: string;
@@ -14,23 +15,42 @@ type Props = {
 /**
  * Saves on blur instead of on every keystroke. The server sanitizes the template,
  * so writing each keystroke back would rewrite text that is still being typed.
+ * A draft that was never blurred is saved when the field unmounts or the page is hidden.
  */
 export function TemplateTextarea(props: Props) {
   const { value, onCommit, disabled, rows, placeholder } = props;
   const [draft, setDraft] = useState<string | null>(null);
-  const [savedValue, setSavedValue] = useState(value);
+  const saving = useRef<string | null>(null);
 
-  if (value !== savedValue) {
-    setSavedValue(value);
-    setDraft(null);
-  }
+  const commit = async (next: string) => {
+    saving.current = next;
+    const saved = await onCommit(next);
+    if (saving.current === next) saving.current = null;
+    // On failure the draft stays, so the text is not lost and the next blur retries.
+    if (saved) setDraft((current) => (current === next ? null : current));
+  };
+
+  const flush = useEffectEvent(() => {
+    if (draft !== null && draft !== value && draft !== saving.current) void commit(draft);
+  });
+
+  useEffect(() => {
+    const onPageHide = () => flush();
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      window.removeEventListener("pagehide", onPageHide);
+      flush();
+    };
+  }, []);
 
   return (
     <textarea
       value={draft ?? value}
       onChange={(event) => setDraft(event.target.value)}
       onBlur={() => {
-        if (draft !== null && draft !== value) onCommit(draft);
+        if (draft === null) return;
+        if (draft === value) setDraft(null);
+        else void commit(draft);
       }}
       disabled={disabled}
       rows={rows}
