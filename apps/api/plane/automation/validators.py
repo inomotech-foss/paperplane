@@ -35,25 +35,105 @@ from plane.automation.scheduling import schedule_error
 MAX_CONDITION_DEPTH = 6
 
 
-def trigger_type_error(trigger_type: str) -> str | None:
+def _is_text(value) -> bool:
+    return value is None or isinstance(value, str)
+
+
+def _is_number(value) -> bool:
+    return value is None or (isinstance(value, int | float) and not isinstance(value, bool))
+
+
+def _is_text_list(value) -> bool:
+    return value is None or (isinstance(value, list) and all(isinstance(item, str) for item in value))
+
+
+def _is_number_list(value) -> bool:
+    return value is None or (isinstance(value, list) and all(_is_number(item) and item is not None for item in value))
+
+
+def _is_bool(value) -> bool:
+    return value is None or isinstance(value, bool)
+
+
+def _is_object(value) -> bool:
+    return value is None or isinstance(value, dict)
+
+
+def _is_date_value(value) -> bool:
+    return value is None or isinstance(value, str | dict)
+
+
+# The type each known config key must have. A draft may leave a key out, but a
+# value of the wrong type is malformed and is never stored.
+SCHEDULE_FIELD_TYPES = {
+    "mode": _is_text,
+    "frequency": _is_text,
+    "days_of_week": _is_number_list,
+    "day_of_month": _is_number,
+    "hour": _is_number,
+    "minute": _is_number,
+    "timezone": _is_text,
+    "cron": _is_text,
+    "scheduled_target": _is_text,
+}
+
+ACTION_FIELD_TYPES = {
+    ActionType.CHANGE_PROPERTY: {"property": _is_text, "change_type": _is_text},
+    ActionType.ADD_COMMENT: {"comment_html": _is_text},
+    ActionType.SEND_NOTIFICATION: {
+        "recipients": _is_text_list,
+        "member_ids": _is_text_list,
+        "title": _is_text,
+        "message": _is_text,
+    },
+    ActionType.CREATE_WORK_ITEM: {
+        "name": _is_text,
+        "description_html": _is_text,
+        "project_id": _is_text,
+        "type_id": _is_text,
+        "state_id": _is_text,
+        "priority": _is_text,
+        "assignee_ids": _is_text_list,
+        "label_ids": _is_text_list,
+        "target_date": _is_date_value,
+        "link_to_trigger_work_item": _is_bool,
+    },
+    ActionType.CALL_WEBHOOK: {"url": _is_text, "method": _is_text, "headers": _is_object, "payload": _is_text},
+}
+
+
+def _field_type_error(config: dict, field_types: dict) -> str | None:
+    for key, is_valid in field_types.items():
+        if not is_valid(config.get(key)):
+            return f"The value of '{key}' has the wrong type."
+    return None
+
+
+def trigger_type_error(trigger_type) -> str | None:
     """Why this trigger type can't be stored at all, or ``None``. An empty type is a draft."""
     if trigger_type and trigger_type not in {str(value) for value in TriggerType}:
         return "That isn't a supported trigger."
     return None
 
 
-def trigger_config_shape_error(trigger_config) -> str | None:
-    """Why this trigger config can't be stored at all, or ``None``."""
-    if trigger_config is not None and not isinstance(trigger_config, dict):
+def trigger_config_shape_error(trigger_type, trigger_config) -> str | None:
+    """Why this trigger config is malformed and can't be stored at all, or ``None``."""
+    if trigger_config is None:
+        return None
+    if not isinstance(trigger_config, dict):
         return "The trigger configuration must be an object."
+    if trigger_type == TriggerType.SCHEDULE:
+        return _field_type_error(trigger_config, SCHEDULE_FIELD_TYPES)
     return None
 
 
-def trigger_error(trigger_type: str, trigger_config) -> str | None:
+def trigger_error(trigger_type, trigger_config) -> str | None:
     """Why this trigger can't run, or ``None`` when it's complete. An empty type is reported elsewhere."""
     if not trigger_type:
         return None
-    message = trigger_type_error(trigger_type) or trigger_config_shape_error(trigger_config)
+    if not isinstance(trigger_type, str):
+        return "That isn't a supported trigger."
+    message = trigger_type_error(trigger_type) or trigger_config_shape_error(trigger_type, trigger_config)
     if message:
         return message
     if trigger_type == TriggerType.SCHEDULE:
@@ -91,13 +171,13 @@ def condition_error(condition, depth: int = 0) -> str | None:
         return "That isn't a valid condition node type."
 
     property_key = condition.get("property")
-    definition = CONDITION_PROPERTIES.get(property_key)
+    definition = CONDITION_PROPERTIES.get(property_key) if isinstance(property_key, str) else None
     if definition is None:
         return "That isn't a property you can build a condition on."
 
     operator = condition.get("operator")
     allowed = {str(value) for value in definition["operators"]}
-    if operator not in allowed:
+    if not isinstance(operator, str) or operator not in allowed:
         return "That comparison can't be used with the selected property."
     return None
 
@@ -181,21 +261,24 @@ def _webhook_error(config: dict) -> str | None:
     return None
 
 
-def action_config_shape_error(config) -> str | None:
-    """Why this action config can't be stored at all, or ``None``."""
-    if config is not None and not isinstance(config, dict):
+def action_config_shape_error(action_type, config) -> str | None:
+    """Why this action config is malformed and can't be stored at all, or ``None``."""
+    if config is None:
+        return None
+    if not isinstance(config, dict):
         return "Action configuration must be an object."
-    return None
+    return _field_type_error(config, ACTION_FIELD_TYPES.get(action_type, {}))
 
 
 def action_error(action_type: str, config) -> str | None:
     """Why this action can't run, or ``None`` when it's complete."""
-    if action_type not in ACTIONS:
+    if not isinstance(action_type, str) or action_type not in ACTIONS:
         return "That isn't a supported action."
+    shape_message = action_config_shape_error(action_type, config)
+    if shape_message:
+        return shape_message
     if config is None:
         config = {}
-    if not isinstance(config, dict):
-        return "Action configuration must be an object."
 
     if action_type == ActionType.CHANGE_PROPERTY:
         return _change_property_error(config)

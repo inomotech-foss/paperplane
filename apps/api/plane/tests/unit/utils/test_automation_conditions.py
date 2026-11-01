@@ -307,8 +307,19 @@ class TestTriggerValidation:
 
     def test_a_config_that_is_not_an_object_is_rejected(self):
         assert trigger_error("schedule", ["x"]) == "The trigger configuration must be an object."
-        assert trigger_config_shape_error(["x"]) == "The trigger configuration must be an object."
-        assert trigger_config_shape_error({}) is None
+        assert trigger_config_shape_error("schedule", ["x"]) == "The trigger configuration must be an object."
+        assert trigger_config_shape_error("schedule", {}) is None
+
+    @pytest.mark.parametrize(
+        "config",
+        [{"timezone": 5}, {"hour": "9"}, {"hour": True}, {"days_of_week": ["mon"]}, {"cron": 5}, {"mode": []}],
+    )
+    def test_a_schedule_value_of_the_wrong_type_is_reported(self, config):
+        assert trigger_config_shape_error("schedule", config) is not None
+        assert "wrong type" in trigger_error("schedule", config)
+
+    def test_event_triggers_ignore_schedule_keys(self):
+        assert trigger_config_shape_error("work_item.created", {"timezone": 5}) is None
 
     def test_only_an_unknown_type_is_a_type_error(self):
         assert trigger_type_error("") is None
@@ -364,9 +375,33 @@ class TestActionValidation:
         assert action_error("create_work_item", {"name": "Follow up", "type_id": TYPE_ID}) is None
 
     def test_a_config_that_is_not_an_object_is_a_shape_error(self):
-        assert action_config_shape_error(["x"]) == "Action configuration must be an object."
-        assert action_config_shape_error(None) is None
-        assert action_config_shape_error({}) is None
+        assert action_config_shape_error("add_comment", ["x"]) == "Action configuration must be an object."
+        assert action_config_shape_error("add_comment", None) is None
+        assert action_config_shape_error("add_comment", {}) is None
+
+    @pytest.mark.parametrize(
+        ("action_type", "config"),
+        [
+            ("create_work_item", {"name": 123}),
+            ("create_work_item", {"name": "x", "assignee_ids": 5}),
+            ("create_work_item", {"name": "x", "assignee_ids": [5]}),
+            ("create_work_item", {"name": "x", "link_to_trigger_work_item": "yes"}),
+            ("add_comment", {"comment_html": 5}),
+            ("call_webhook", {"url": 1}),
+            ("call_webhook", {"url": "https://a.example", "method": 1}),
+            ("call_webhook", {"url": "https://a.example", "headers": []}),
+            ("change_property", {"property": []}),
+            ("change_property", {"property": "priority", "change_type": {}}),
+            ("send_notification", {"recipients": [["assignees"]], "title": "Hi"}),
+            ("send_notification", {"recipients": ["assignees"], "title": 5}),
+        ],
+    )
+    def test_a_value_of_the_wrong_type_is_reported_instead_of_crashing(self, action_type, config):
+        assert action_config_shape_error(action_type, config) is not None
+        assert "wrong type" in action_error(action_type, config)
+
+    def test_a_non_string_action_type_is_unsupported(self):
+        assert action_error(["add_comment"], {}) == "That isn't a supported action."
 
     def test_incomplete_actions_maps_ids_to_reasons(self):
         class Row:
@@ -379,3 +414,9 @@ class TestActionValidation:
         empty = Row("add_comment", {"comment_html": ""})
 
         assert incomplete_actions([complete, empty]) == {str(empty.id): "The comment body is empty."}
+
+
+class TestConditionTypeTolerance:
+    def test_an_unhashable_property_or_operator_is_reported(self):
+        assert condition_error({"type": "condition", "property": [], "operator": "eq"}) is not None
+        assert condition_error({"type": "condition", "property": "priority", "operator": []}) is not None

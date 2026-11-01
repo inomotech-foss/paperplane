@@ -67,16 +67,21 @@ def matches(automation, context) -> bool:
     return conditions.evaluate(automation.condition, context)
 
 
-def _executable_actions(automation):
+def load_actions(automation):
+    """The automation's actions in author order. Uses a prefetched list when there is one."""
+    return sorted(automation.actions.all(), key=lambda action: action.sort_order)
+
+
+def _executable_actions(automation, actions):
     """
-    Actions in author order, dropping any that the trigger cannot support (for
-    example mutating a work item that was just deleted).
+    The actions the trigger can support, dropping for example a mutation of a
+    work item that was just deleted.
     """
     allowed = set(allowed_actions_for_trigger(automation.trigger_type))
-    return [action for action in automation.actions.all().order_by("sort_order") if action.action_type in allowed]
+    return [action for action in actions if action.action_type in allowed]
 
 
-def incomplete_run(automation) -> tuple[str, list] | None:
+def incomplete_run(automation, actions) -> tuple[str, list] | None:
     """
     The run error and failed steps for an automation that is not complete, or
     ``None`` when it may run. Enabling already requires completeness, so this
@@ -86,8 +91,9 @@ def incomplete_run(automation) -> tuple[str, list] | None:
         trigger_message = validators.trigger_error(automation.trigger_type, automation.trigger_config)
     else:
         trigger_message = "No trigger is chosen."
+    condition_message = validators.condition_error(automation.condition)
     steps = []
-    for action in automation.actions.all().order_by("sort_order"):
+    for action in actions:
         message = validators.action_error(action.action_type, action.config)
         if message:
             steps.append(
@@ -101,9 +107,36 @@ def incomplete_run(automation) -> tuple[str, list] | None:
             )
     if trigger_message:
         return f"The trigger is incomplete, so no action ran: {trigger_message}", steps
+    if condition_message:
+        return f"The condition is invalid, so no action ran: {condition_message}", steps
     if steps:
         return "Some actions are incomplete, so no action ran.", steps
     return None
+
+
+def record_if_incomplete(automation, actions, context, trigger_source, initiator_id=None):
+    """
+    Saves one failed run and returns it when the automation is incomplete,
+    otherwise returns ``None``. Scheduled and manual runs call this once before
+    they sweep, so an incomplete automation records one run, not one per work item.
+    """
+    incomplete = incomplete_run(automation, actions)
+    if incomplete is None:
+        return None
+    error, steps = incomplete
+    logger.warning("Automation %s is incomplete and did not run: %s", automation.id, error)
+    return _persist_run(
+        automation=automation,
+        context=context,
+        trigger_source=trigger_source,
+        initiator_id=initiator_id,
+        status=AutomationRunStatus.FAILED,
+        steps=steps,
+        error=error,
+        started_at=timezone.now(),
+        duration_ms=0,
+        processed_count=0,
+    )
 
 
 def execute(
@@ -114,9 +147,13 @@ def execute(
     depth=0,
     ancestor_automation_ids=None,
     record_skips=False,
+    checked_actions=None,
 ):
     """
     Run one automation against one context.
+
+    ``checked_actions`` is the action list a caller already passed through
+    ``record_if_incomplete``. Without it the actions are loaded and checked here.
 
     Returns the persisted ``AutomationRun``, or ``None`` when nothing ran and
     there was nothing worth recording.
@@ -125,6 +162,14 @@ def execute(
     if skip_reason:
         logger.info("Skipping automation %s: %s", automation.id, skip_reason)
         return None
+
+    if checked_actions is None:
+        all_actions = load_actions(automation)
+        failed_run = record_if_incomplete(automation, all_actions, context, trigger_source, initiator_id)
+        if failed_run is not None:
+            return failed_run
+    else:
+        all_actions = checked_actions
 
     if not matches(automation, context):
         if not record_skips:
@@ -142,26 +187,9 @@ def execute(
             processed_count=0,
         )
 
-    actions = _executable_actions(automation)
+    actions = _executable_actions(automation, all_actions)
     if not actions:
         return None
-
-    incomplete = incomplete_run(automation)
-    if incomplete is not None:
-        error, steps = incomplete
-        logger.warning("Automation %s is incomplete and did not run: %s", automation.id, error)
-        return _persist_run(
-            automation=automation,
-            context=context,
-            trigger_source=trigger_source,
-            initiator_id=initiator_id,
-            status=AutomationRunStatus.FAILED,
-            steps=steps,
-            error=error,
-            started_at=timezone.now(),
-            duration_ms=0,
-            processed_count=0,
-        )
 
     run = RunHandle(
         automation=automation,

@@ -643,6 +643,151 @@ class TestEnableValidation:
         assert response.status_code == status.HTTP_200_OK
 
 
+class TestMalformedValues:
+    @pytest.fixture
+    def automation_id(self, session_client, base_url):
+        return create_automation_via_api(session_client, base_url).json()["id"]
+
+    @pytest.mark.parametrize(
+        ("action_type", "config"),
+        [
+            ("create_work_item", {"name": 123}),
+            ("create_work_item", {"name": "x", "assignee_ids": 5}),
+            ("add_comment", {"comment_html": 5}),
+            ("call_webhook", {"url": 1}),
+            ("call_webhook", {"url": "https://a.example", "method": 1}),
+            ("change_property", {"property": []}),
+        ],
+    )
+    def test_a_draft_action_of_the_wrong_type_is_rejected(
+        self, session_client, base_url, automation_id, action_type, config
+    ):
+        response = session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": action_type, "config": config}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "wrong type" in response.json()["config"][0]
+        assert not AutomationAction.objects.filter(automation_id=automation_id).exists()
+
+    def test_a_draft_schedule_of_the_wrong_type_is_rejected(self, session_client, base_url):
+        response = create_automation_via_api(
+            session_client, base_url, trigger_type="schedule", trigger_config={"timezone": 5}
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "wrong type" in response.json()["trigger_config"][0]
+
+    @pytest.mark.parametrize(
+        ("action_type", "config"),
+        [
+            ("create_work_item", {"name": 123}),
+            ("add_comment", {"comment_html": 5}),
+            ("call_webhook", {"url": "https://a.example", "method": 1}),
+            ("change_property", {"property": []}),
+            ("add_comment", ["not", "an", "object"]),
+        ],
+    )
+    def test_a_legacy_malformed_action_is_reported_on_read_list_and_enable(
+        self, session_client, base_url, automation_id, action_type, config
+    ):
+        action_id = session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": "archive_work_item", "config": {}}, format="json"
+        ).json()["id"]
+        AutomationAction.objects.filter(pk=action_id).update(action_type=action_type, config=config)
+
+        detail = session_client.get(f"{base_url}{automation_id}/")
+        listed = session_client.get(base_url)
+        actions = session_client.get(f"{base_url}{automation_id}/actions/")
+        enabled = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert detail.status_code == status.HTTP_200_OK
+        assert detail.json()["actions"][0]["config_error"]
+        assert listed.status_code == status.HTTP_200_OK
+        assert actions.status_code == status.HTTP_200_OK
+        assert enabled.status_code == status.HTTP_400_BAD_REQUEST
+        assert action_id in enabled.json()["actions"]
+
+    def test_a_legacy_malformed_schedule_is_reported_on_read_list_and_enable(
+        self, session_client, base_url, automation_id
+    ):
+        session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": "archive_work_item", "config": {}}, format="json"
+        )
+        Automation.objects.filter(pk=automation_id).update(trigger_type="schedule", trigger_config={"timezone": 5})
+
+        detail = session_client.get(f"{base_url}{automation_id}/")
+        listed = session_client.get(base_url)
+        enabled = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert detail.status_code == status.HTTP_200_OK
+        assert "wrong type" in detail.json()["trigger_config_error"]
+        assert detail.json()["schedule_summary"] is None
+        assert listed.status_code == status.HTTP_200_OK
+        assert enabled.status_code == status.HTTP_400_BAD_REQUEST
+        assert "trigger_config" in enabled.json()
+
+
+class TestDisablingAlwaysWorks:
+    @pytest.mark.parametrize(
+        "stored",
+        [
+            {"trigger_type": "work_item.exploded"},
+            {"condition": {"type": "condition", "property": "colour", "operator": "in", "value": ["red"]}},
+            {"trigger_type": "schedule", "trigger_config": {"timezone": 5}},
+        ],
+        ids=["trigger_type", "condition", "trigger_config"],
+    )
+    def test_an_enabled_automation_with_a_stored_invalid_value_can_be_disabled(self, session_client, base_url, stored):
+        automation_id = create_automation_via_api(session_client, base_url).json()["id"]
+        enable_via_api(session_client, base_url, automation_id)
+        Automation.objects.filter(pk=automation_id).update(**stored)
+
+        response = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": False}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["is_enabled"] is False
+
+    def test_enabling_reports_a_stored_invalid_condition(self, session_client, base_url):
+        automation_id = create_automation_via_api(session_client, base_url).json()["id"]
+        session_client.post(
+            f"{base_url}{automation_id}/actions/", {"action_type": "archive_work_item", "config": {}}, format="json"
+        )
+        Automation.objects.filter(pk=automation_id).update(
+            condition={"type": "condition", "property": "colour", "operator": "in"}
+        )
+
+        response = session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "condition" in response.json()
+
+
+class TestLocking:
+    @pytest.mark.parametrize("method", ["post_action", "patch_action", "patch_automation"])
+    def test_writes_lock_the_automation_row(self, session_client, base_url, method):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        automation_id = create_automation_via_api(session_client, base_url).json()["id"]
+        actions_url = f"{base_url}{automation_id}/actions/"
+        action_id = session_client.post(
+            actions_url, {"action_type": "archive_work_item", "config": {}}, format="json"
+        ).json()["id"]
+
+        with CaptureQueriesContext(connection) as queries:
+            if method == "post_action":
+                session_client.post(actions_url, {"action_type": "archive_work_item", "config": {}}, format="json")
+            elif method == "patch_action":
+                session_client.patch(f"{actions_url}{action_id}/", {"config": {}}, format="json")
+            else:
+                session_client.patch(f"{base_url}{automation_id}/", {"is_enabled": True}, format="json")
+
+        assert any(
+            'FROM "automations"' in query["sql"] and "FOR UPDATE" in query["sql"] for query in queries.captured_queries
+        )
+
+
 class TestRuns:
     @pytest.fixture
     def enabled_automation(self, session_client, base_url):

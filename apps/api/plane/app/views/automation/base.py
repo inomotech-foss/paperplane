@@ -142,19 +142,22 @@ class AutomationBaseEndpoint(BaseAPIView):
         return Response(AutomationSerializer(automation).data, status=status.HTTP_201_CREATED)
 
     def update_automation(self, request, slug, pk, project_id=None):
-        automation = self.get_queryset(slug, project_id).filter(pk=pk).first()
-        if automation is None:
-            return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = AutomationSerializer(automation, data=request.data, partial=True, context={"scope": self.scope})
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        project_ids = serializer.validated_data.pop("project_ids", None)
-        was_enabled = automation.is_enabled
-        previous_trigger_config = automation.trigger_config
-
         with transaction.atomic():
+            # Locked so enabling validates the actions an action write can't change meanwhile.
+            automation = self._lock_automation(slug, pk, project_id)
+            if automation is None:
+                return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = AutomationSerializer(
+                automation, data=request.data, partial=True, context={"scope": self.scope}
+            )
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            project_ids = serializer.validated_data.pop("project_ids", None)
+            was_enabled = automation.is_enabled
+            previous_trigger_config = automation.trigger_config
+
             automation = serializer.save()
             if self.scope == AutomationScope.WORKSPACE:
                 if automation.applies_to_all_projects:
@@ -192,6 +195,10 @@ class AutomationBaseEndpoint(BaseAPIView):
     def _get_automation(self, slug, automation_id, project_id=None):
         return self.get_queryset(slug, project_id).filter(pk=automation_id).first()
 
+    def _lock_automation(self, slug, automation_id, project_id=None):
+        """The automation, locked until the surrounding transaction ends."""
+        return self.get_queryset(slug, project_id).select_for_update(of=("self",)).filter(pk=automation_id).first()
+
     def list_actions(self, request, slug, automation_id, project_id=None):
         automation = self._get_automation(slug, automation_id, project_id)
         if automation is None:
@@ -199,8 +206,10 @@ class AutomationBaseEndpoint(BaseAPIView):
         serializer = AutomationActionSerializer(automation.actions.all().order_by("sort_order"), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def create_action(self, request, slug, automation_id, project_id=None):
-        automation = self._get_automation(slug, automation_id, project_id)
+        # Locked so the automation can't be enabled between this check and the save.
+        automation = self._lock_automation(slug, automation_id, project_id)
         if automation is None:
             return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -216,8 +225,9 @@ class AutomationBaseEndpoint(BaseAPIView):
         action = serializer.save(automation=automation, workspace_id=automation.workspace_id)
         return Response(AutomationActionSerializer(action).data, status=status.HTTP_201_CREATED)
 
+    @transaction.atomic
     def update_action(self, request, slug, automation_id, pk, project_id=None):
-        automation = self._get_automation(slug, automation_id, project_id)
+        automation = self._lock_automation(slug, automation_id, project_id)
         if automation is None:
             return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -225,14 +235,17 @@ class AutomationBaseEndpoint(BaseAPIView):
         if action is None:
             return Response({"error": "Action not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = AutomationActionSerializer(action, data=request.data, partial=True)
+        serializer = AutomationActionSerializer(
+            action, data=request.data, partial=True, context={"automation": automation}
+        )
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def destroy_action(self, request, slug, automation_id, pk, project_id=None):
-        automation = self._get_automation(slug, automation_id, project_id)
+        automation = self._lock_automation(slug, automation_id, project_id)
         if automation is None:
             return Response({"error": "Automation not found."}, status=status.HTTP_404_NOT_FOUND)
 

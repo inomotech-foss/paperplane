@@ -1051,6 +1051,93 @@ class TestIncompleteGuard:
         assert "No trigger is chosen." in run.error
 
 
+class TestIncompleteGuardPerRun:
+    @pytest.fixture
+    def work_items(self, project, states, create_user):
+        return [
+            Issue.objects.create(
+                name=f"Item {index}",
+                project=project,
+                state=states["todo"],
+                priority="none",
+                created_by=create_user,
+                type=link_starter_type(project),
+            )
+            for index in range(3)
+        ]
+
+    def test_a_scheduled_sweep_records_one_failed_run(self, project, create_user, work_items):
+        from plane.bgtasks.automation_task import _run_scheduled_automation
+
+        automation = make_automation(
+            project, create_user, trigger_type=TriggerType.SCHEDULE, trigger_config={"scheduled_target": "work_items"}
+        )
+        add_action(automation, ActionType.ADD_COMMENT, {"comment_html": ""})
+
+        _run_scheduled_automation(automation)
+
+        runs = AutomationRun.objects.filter(automation=automation)
+        assert runs.count() == 1
+        assert runs.get().status == AutomationRunStatus.FAILED
+        assert not IssueComment.objects.filter(issue__in=work_items).exists()
+
+    def test_a_manual_run_of_an_event_rule_records_one_failed_run(self, project, create_user, work_items):
+        from plane.bgtasks.automation_task import run_automation_now
+
+        automation = make_automation(project, create_user)
+        add_action(automation, ActionType.ADD_COMMENT, {"comment_html": ""})
+
+        run_automation_now(str(automation.id), str(create_user.id))
+
+        runs = AutomationRun.objects.filter(automation=automation)
+        assert runs.count() == 1
+        assert runs.get().trigger_source == AutomationRunTriggerSource.MANUAL
+
+    def test_a_complete_sweep_runs_each_work_item(self, project, create_user, work_items):
+        from plane.bgtasks.automation_task import _run_scheduled_automation
+
+        automation = make_automation(
+            project, create_user, trigger_type=TriggerType.SCHEDULE, trigger_config={"scheduled_target": "work_items"}
+        )
+        add_action(automation, ActionType.ADD_COMMENT, {"comment_html": "<p>Hi</p>"})
+
+        _run_scheduled_automation(automation)
+
+        assert IssueComment.objects.filter(issue__in=work_items).count() == 3
+
+    def test_an_invalid_stored_condition_fails_the_run(self, project, create_user, work_item):
+        automation = make_automation(project, create_user, condition={"type": "condition", "property": []})
+        add_action(automation, ActionType.ARCHIVE_WORK_ITEM, {})
+
+        run = engine.execute(automation, context_for(work_item, project, automation))
+
+        assert run.status == AutomationRunStatus.FAILED
+        assert run.error.startswith("The condition is invalid")
+
+    def test_a_malformed_legacy_action_fails_the_run_without_crashing(self, project, create_user, work_item):
+        automation = make_automation(project, create_user)
+        add_action(automation, ActionType.ADD_COMMENT, {"comment_html": 5})
+
+        run = engine.execute(automation, context_for(work_item, project, automation))
+
+        assert run.status == AutomationRunStatus.FAILED
+        assert "wrong type" in run.steps[0]["error"]
+
+    def test_the_guard_and_the_run_reuse_the_prefetched_actions(self, project, create_user, work_item):
+        automation = make_automation(project, create_user)
+        add_action(automation, ActionType.ARCHIVE_WORK_ITEM, {})
+        prefetched = Automation.objects.prefetch_related("actions").get(pk=automation.pk)
+        context = context_for(work_item, project, prefetched)
+
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as queries:
+            engine.execute(prefetched, context)
+
+        assert not [query for query in queries if 'FROM "automation_actions"' in query["sql"]]
+
+
 class TestTriggerActionCompatibility:
     def test_deleted_trigger_drops_entity_actions(self, project, create_user):
         automation = make_automation(project, create_user, trigger_type=TriggerType.WORK_ITEM_DELETED)

@@ -32,7 +32,8 @@ class AutomationActionSerializer(BaseSerializer):
     and `config_error` says what is missing. Writes to an enabled automation
     must be complete.
 
-    Pass the parent automation as `context["automation"]` when creating.
+    Pass the parent automation as `context["automation"]`, locked for the
+    write, so the check uses its current `is_enabled`.
     """
 
     action_type = ActionTypeField(max_length=127)
@@ -66,7 +67,7 @@ class AutomationActionSerializer(BaseSerializer):
         # A PATCH that only sends `config` still has to validate against the
         # action type already stored.
         config = attrs.get("config", getattr(self.instance, "config", {}))
-        shape_message = validators.action_config_shape_error(config)
+        shape_message = validators.action_config_shape_error(action_type, config)
         if shape_message:
             raise serializers.ValidationError({"config": shape_message})
         if "config" in attrs or "action_type" in attrs:
@@ -75,7 +76,7 @@ class AutomationActionSerializer(BaseSerializer):
                 raise serializers.ValidationError({"config": "The HTML template is not valid."})
             attrs["config"] = config
 
-        automation = self.instance.automation if self.instance is not None else self.context.get("automation")
+        automation = self.context.get("automation") or getattr(self.instance, "automation", None)
         if automation is None or automation.is_enabled:
             # `action_error` returns a literal message rather than raising, so nothing
             # exception-derived is ever echoed back to the caller.
@@ -172,13 +173,21 @@ class AutomationSerializer(BaseSerializer):
             return [str(obj.project_id)] if obj.project_id else []
         return [str(link.project_id) for link in obj.automation_projects.all()]
 
+    def _trigger_error(self, obj) -> str | None:
+        # Both fields below need it, and a schedule check walks the calendar.
+        cache = self.context.setdefault("trigger_errors", {})
+        key = (obj.pk, obj.trigger_type, repr(obj.trigger_config))
+        if key not in cache:
+            cache[key] = validators.trigger_error(obj.trigger_type, obj.trigger_config)
+        return cache[key]
+
     def get_schedule_summary(self, obj) -> str | None:
-        if obj.trigger_type != TriggerType.SCHEDULE or validators.trigger_error(obj.trigger_type, obj.trigger_config):
+        if obj.trigger_type != TriggerType.SCHEDULE or self._trigger_error(obj):
             return None
         return describe_schedule(obj.trigger_config)
 
     def get_trigger_config_error(self, obj) -> str | None:
-        return validators.trigger_error(obj.trigger_type, obj.trigger_config)
+        return self._trigger_error(obj)
 
     def validate_name(self, value):
         value = (value or "").strip()
@@ -186,7 +195,7 @@ class AutomationSerializer(BaseSerializer):
             raise serializers.ValidationError("Give the automation a name.")
         return value
 
-    def _enable_errors(self, trigger_type, trigger_config, enabling) -> dict:
+    def _enable_errors(self, trigger_type, trigger_config, condition, enabling) -> dict:
         """
         Everything that keeps the automation from running. The actions are only
         checked when it is being enabled, since writes to an enabled automation's
@@ -200,6 +209,9 @@ class AutomationSerializer(BaseSerializer):
         trigger_message = validators.trigger_error(trigger_type, trigger_config)
         if trigger_message:
             errors["trigger_config"] = [trigger_message]
+        condition_message = validators.condition_error(condition)
+        if condition_message:
+            errors["condition"] = [condition_message]
         if enabling:
             incomplete = validators.incomplete_actions(actions)
             if incomplete:
@@ -221,16 +233,20 @@ class AutomationSerializer(BaseSerializer):
                     {"trigger_type": "You can't change the trigger type once the automation is created."}
                 )
 
-        hard_trigger_message = validators.trigger_type_error(trigger_type)
-        if hard_trigger_message:
-            raise serializers.ValidationError({"trigger_type": hard_trigger_message})
-        shape_message = validators.trigger_config_shape_error(trigger_config)
-        if shape_message:
-            raise serializers.ValidationError({"trigger_config": shape_message})
-
-        condition_message = validators.condition_error(condition)
-        if condition_message:
-            raise serializers.ValidationError({"condition": condition_message})
+        # Only what the request sends is checked here, so a stored value that is
+        # no longer valid never blocks an unrelated edit such as disabling.
+        if "trigger_type" in attrs:
+            hard_trigger_message = validators.trigger_type_error(trigger_type)
+            if hard_trigger_message:
+                raise serializers.ValidationError({"trigger_type": hard_trigger_message})
+        if "trigger_type" in attrs or "trigger_config" in attrs:
+            shape_message = validators.trigger_config_shape_error(trigger_type, trigger_config)
+            if shape_message:
+                raise serializers.ValidationError({"trigger_config": shape_message})
+        if "condition" in attrs:
+            condition_message = validators.condition_error(condition)
+            if condition_message:
+                raise serializers.ValidationError({"condition": condition_message})
 
         scope = getattr(instance, "scope", None) or self.context.get("scope")
         targets_projects = True
@@ -250,7 +266,7 @@ class AutomationSerializer(BaseSerializer):
         is_enabled = attrs.get("is_enabled", getattr(instance, "is_enabled", False))
         if is_enabled:
             enabling = not getattr(instance, "is_enabled", False)
-            errors = self._enable_errors(trigger_type, trigger_config, enabling=enabling)
+            errors = self._enable_errors(trigger_type, trigger_config, condition, enabling=enabling)
             if not targets_projects:
                 errors["project_ids"] = ["Select the projects this automation should run on."]
             if errors:
