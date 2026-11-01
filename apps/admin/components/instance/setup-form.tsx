@@ -13,16 +13,15 @@ import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@plane/constants";
 import { Button } from "@makeplane/propel/components/button";
 import { Checkbox } from "@makeplane/propel/components/checkbox";
 import { Input, InputGroup } from "@makeplane/propel/components/input";
-import { AuthService } from "@plane/services";
 import { getPasswordStrength, validatePersonName, validateCompanyName } from "@plane/utils";
 // components
 import { AuthHeader } from "@/app/(all)/(home)/auth-header";
 import { PasswordStrengthIndicator } from "@/components/common/password-strength-indicator";
 import { Banner } from "../common/banner";
+import { loadCsrfToken } from "@/helpers/csrf";
 import { FormHeader } from "./form-header";
 
 // service initialization
-const authService = new AuthService();
 
 // error codes
 enum EErrorCodes {
@@ -87,8 +86,7 @@ export function InstanceSetupForm() {
     setFormData((prev) => ({ ...prev, [key]: value }));
 
   useEffect(() => {
-    if (csrfToken === undefined)
-      authService.requestCSRFToken().then((data) => data?.csrf_token && setCsrfToken(data.csrf_token));
+    if (csrfToken === undefined) loadCsrfToken(setCsrfToken);
   }, [csrfToken]);
 
   useEffect(() => {
