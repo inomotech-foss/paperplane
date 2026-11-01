@@ -14,7 +14,7 @@ import { ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, IWorkspaceView, IIssueFilters } from "@plane/types";
-import { EViewAccess, EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
+import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
 import { getComputedDisplayFilters, getComputedDisplayProperties } from "@plane/utils";
 // components
 import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";
@@ -33,7 +33,6 @@ type Props = {
 const DEFAULT_VALUES: Partial<IWorkspaceView> = {
   name: "",
   description: "",
-  access: EViewAccess.PUBLIC,
   display_properties: getComputedDisplayProperties(),
   display_filters: getComputedDisplayFilters({
     layout: EIssueLayoutTypes.SPREADSHEET,
@@ -69,7 +68,13 @@ export const WorkspaceViewForm = observer(function WorkspaceViewForm(props: Prop
   };
 
   const handleCreateUpdateView = async (formData: Partial<IWorkspaceView>) => {
-    await handleFormSubmit(formData);
+    await handleFormSubmit({
+      name: formData.name,
+      description: formData.description,
+      rich_filters: formData.rich_filters,
+      display_filters: formData.display_filters,
+      display_properties: formData.display_properties,
+    });
     reset({
       ...defaultValues,
     });

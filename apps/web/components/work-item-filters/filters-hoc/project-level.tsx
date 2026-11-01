@@ -12,7 +12,7 @@ import { observer } from "mobx-react";
 import { EUserPermissionsLevel } from "@plane/constants";
 import { setToast } from "@plane/blocks/toast";
 import type { IProjectView, TWorkItemFilterExpression } from "@plane/types";
-import { EUserProjectRoles, EViewAccess } from "@plane/types";
+import { EUserProjectRoles } from "@plane/types";
 // components
 import { removeNillKeys } from "@/components/issues/issue-layouts/utils";
 import { CreateUpdateProjectViewModal } from "@/components/views/modal";
@@ -113,7 +113,6 @@ export const ProjectLevelWorkItemFiltersHOC = observer(function ProjectLevelWork
       name: viewDetails ? `${viewDetails?.name} 2` : "Untitled",
       description: viewDetails ? viewDetails.description : "",
       logo_props: viewDetails ? viewDetails.logo_props : undefined,
-      access: viewDetails ? viewDetails.access : EViewAccess.PUBLIC,
     }),
     [viewDetails]
   );
