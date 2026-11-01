@@ -18,6 +18,7 @@
     "./charts/pie-chart": "./dist/charts/pie-chart/index.js",
     "./charts/radar-chart": "./dist/charts/radar-chart/index.js",
     "./charts/tree-map": "./dist/charts/tree-map/index.js",
+    "./clickable-card": "./dist/clickable-card/index.js",
     "./common": "./dist/common/index.js",
     "./context-menu": "./dist/context-menu/index.js",
     "./dialog": "./dist/dialog/index.js",
