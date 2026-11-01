@@ -16,6 +16,7 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from drf_spectacular.types import OpenApiTypes
 
 # Module import
+from plane.app.serializers.request.ai import AssistantTaskSerializer
 from plane.app.serializers.request.asset import UNSPLASH_PARAMETERS
 from plane.app.serializers.response.misc import AssistantReplySerializer, ProjectAssistantReplySerializer
 from plane.app.permissions import ROLE, allow_permission
@@ -150,7 +151,7 @@ def get_llm_response(task, prompt, api_key: str, model: str, provider: str) -> T
 
 
 class GPTIntegrationEndpoint(BaseAPIView):
-    @extend_schema(responses={200: ProjectAssistantReplySerializer})
+    @extend_schema(request=AssistantTaskSerializer, responses={200: ProjectAssistantReplySerializer})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id):
         api_key, model, provider = get_llm_config()
@@ -187,7 +188,7 @@ class GPTIntegrationEndpoint(BaseAPIView):
 
 
 class WorkspaceGPTIntegrationEndpoint(BaseAPIView):
-    @extend_schema(responses={200: AssistantReplySerializer})
+    @extend_schema(request=AssistantTaskSerializer, responses={200: AssistantReplySerializer})
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def post(self, request, slug):
         api_key, model, provider = get_llm_config()

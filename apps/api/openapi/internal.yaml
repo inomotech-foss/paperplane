@@ -3273,6 +3273,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantTaskRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssistantTaskRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssistantTaskRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -5913,6 +5925,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantTaskRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssistantTaskRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssistantTaskRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -20117,6 +20141,18 @@ components:
       required:
       - response
       - response_html
+    AssistantTaskRequest:
+      type: object
+      properties:
+        task:
+          type: string
+          minLength: 1
+          description: What the assistant should do
+        prompt:
+          type: string
+          description: The text the task works on
+      required:
+      - task
     AttachmentAttributes:
       type: object
       properties:

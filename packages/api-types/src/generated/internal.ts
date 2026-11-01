@@ -5592,6 +5592,12 @@ export interface components {
             response: string;
             response_html: string;
         };
+        AssistantTaskRequest: {
+            /** @description What the assistant should do */
+            task: string;
+            /** @description The text the task works on */
+            prompt?: string;
+        };
         AttachmentAttributes: {
             name: string;
             type?: string;
@@ -17075,7 +17081,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantTaskRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AssistantTaskRequest"];
+                "multipart/form-data": components["schemas"]["AssistantTaskRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -19061,7 +19073,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantTaskRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AssistantTaskRequest"];
+                "multipart/form-data": components["schemas"]["AssistantTaskRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
