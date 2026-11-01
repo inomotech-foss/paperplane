@@ -37,6 +37,7 @@ import {
   ClickableCardLink,
   ClickableCardRaised,
   clickableCardRaisedClassName,
+  clickableCardStretchClassName,
 } from "@plane/blocks/clickable-card";
 import { FavoriteStar } from "@plane/blocks/common";
 import { copyUrlToClipboard, cn, getFileURL, renderFormattedDate } from "@plane/utils";
@@ -224,19 +225,27 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
         className="group/project-card flex w-full flex-col justify-between overflow-hidden rounded-lg border border-subtle bg-layer-2 transition-all duration-300 hover:border-strong hover:shadow-raised-200"
       >
         <ContextMenu parentRef={projectCardRef} items={MENU_ITEMS} />
-        <ClickableCardLink
-          href={projectLink}
-          render={(linkProps) => <Link {...linkProps} />}
-          aria-label={project.name}
-          onClick={(e) => {
-            if (!isMemberOfProject || isArchived) {
-              e.preventDefault();
-              if (!isArchived) setJoinProjectModal(true);
-            }
-          }}
-          data-prevent-progress={!isMemberOfProject || isArchived}
-          className="after:rounded-lg"
-        />
+        {isMemberOfProject || isArchived ? (
+          <ClickableCardLink
+            href={projectLink}
+            render={(linkProps) => <Link {...linkProps} />}
+            aria-label={project.name}
+            onClick={(e) => {
+              if (isArchived) e.preventDefault();
+            }}
+            data-prevent-progress={isArchived}
+            className="after:rounded-lg"
+          />
+        ) : (
+          // A non-member cannot open the project. Keyboard and screen reader users get the Join button.
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-hidden
+            onClick={() => setJoinProjectModal(true)}
+            className={cn(clickableCardStretchClassName, "after:rounded-lg")}
+          />
+        )}
         <div className="relative h-[118px] w-full rounded-t">
           <CoverImage
             src={project.cover_image_url ?? undefined}

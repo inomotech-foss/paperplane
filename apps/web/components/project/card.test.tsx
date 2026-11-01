@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import { EUserPermissions } from "@plane/constants";
 import type { IProject } from "@plane/types";
 import { findNestedInteractive } from "@/lib/testing/nested-interactive";
-import { findStackingTraps } from "@/lib/testing/stacking";
+import { findLinkOffsetParents, findStackingTraps } from "@/lib/testing/stacking";
 import { ProjectCard } from "./card";
 
 vi.mock("next/navigation", () => ({ useParams: () => ({ workspaceSlug: "ws" }) }));
@@ -79,10 +79,25 @@ describe("ProjectCard", () => {
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
-  it("opens the join modal instead of navigating for a non-member", () => {
-    renderCard({ member_role: null });
+  it("links the card to the project for a member", () => {
+    renderCard({ member_role: EUserPermissions.MEMBER });
     expect(fireEvent.click(screen.getByRole("link", { name: "Demo" }))).toBe(false);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("gives a non-member no project link and opens the join modal from the card", () => {
+    const { container } = renderCard({ member_role: null });
+    expect(screen.queryByRole("link", { name: "Demo" })).toBeNull();
+    const cardTarget = container.querySelector("button[aria-hidden='true']");
+    expect(cardTarget?.getAttribute("tabindex")).toBe("-1");
+    if (cardTarget) fireEvent.click(cardTarget);
     expect(screen.getByRole("dialog")).toBeTruthy();
+  });
+
+  it("keeps the archived card link from navigating", () => {
+    renderCard({ member_role: EUserPermissions.ADMIN, archived_at: "2026-02-01T00:00:00Z" });
+    expect(fireEvent.click(screen.getByRole("link", { name: "Demo" }))).toBe(false);
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it.each([
@@ -91,13 +106,16 @@ describe("ProjectCard", () => {
     ["archived", { member_role: EUserPermissions.ADMIN, archived_at: "2026-02-01T00:00:00Z" }, ["Restore", "Delete"]],
   ])("keeps the %s card actions above the card link", (_, overrides, actions) => {
     renderCard(overrides);
-    const card = screen.getByRole("link", { name: "Demo" }).parentElement;
+    const card = screen.getByRole("button", { name: actions[0] }).closest(".isolate");
     expect(card?.classList.contains("isolate")).toBe(true);
     for (const name of actions) {
       const raised = screen.getByRole("button", { name }).closest(".z-\\[2\\]");
       expect(raised).not.toBeNull();
       expect(card?.contains(raised)).toBe(true);
     }
-    if (card) expect(findStackingTraps(card)).toEqual([]);
+    if (card) {
+      expect(findStackingTraps(card)).toEqual([]);
+      expect(findLinkOffsetParents(card)).toEqual([]);
+    }
   });
 });
