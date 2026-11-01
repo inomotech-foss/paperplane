@@ -70,6 +70,7 @@
       "input_label": "Was macht die Automatisierung?",
       "input_placeholder": "Option auswählen",
       "trigger_required": "Wählen Sie einen Auslöser, bevor Sie Aktionen hinzufügen.",
+      "disable_to_add": "Deaktivieren Sie die Automatisierung, bevor Sie Aktionen hinzufügen.",
       "handler_name": {
         "add_comment": "Kommentar hinzufügen",
         "change_property": "Eigenschaft ändern",

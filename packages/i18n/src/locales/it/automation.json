@@ -70,6 +70,7 @@
       "input_label": "Cosa fa l'automazione?",
       "input_placeholder": "Seleziona un'opzione",
       "trigger_required": "Scelga un trigger prima di aggiungere azioni.",
+      "disable_to_add": "Disabiliti l'automazione prima di aggiungere azioni.",
       "handler_name": {
         "add_comment": "Aggiungi commento",
         "change_property": "Cambia proprietà",

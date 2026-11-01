@@ -70,6 +70,7 @@
       "input_label": "What does the automation do?",
       "input_placeholder": "Select an option",
       "trigger_required": "მოქმედებების დამატებამდე აირჩიეთ ტრიგერი.",
+      "disable_to_add": "მოქმედებების დამატებამდე გამორთეთ ავტომატიზაცია.",
       "handler_name": {
         "add_comment": "Add comment",
         "change_property": "Change property",

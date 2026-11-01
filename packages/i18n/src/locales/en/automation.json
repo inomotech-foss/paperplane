@@ -70,6 +70,7 @@
       "input_label": "What does the automation do?",
       "input_placeholder": "Select an option",
       "trigger_required": "Choose a trigger before you add actions.",
+      "disable_to_add": "Disable the automation before you add actions.",
       "handler_name": {
         "add_comment": "Add comment",
         "change_property": "Change property",

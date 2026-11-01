@@ -70,6 +70,7 @@
       "input_label": "Otomasyon ne yapar?",
       "input_placeholder": "Bir seçenek seçin",
       "trigger_required": "Eylem eklemeden önce bir tetikleyici seçin.",
+      "disable_to_add": "Eylem eklemeden önce otomasyonu devre dışı bırakın.",
       "handler_name": {
         "add_comment": "Yorum ekle",
         "change_property": "Özelliği değiştir",

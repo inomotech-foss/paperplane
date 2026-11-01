@@ -70,6 +70,7 @@
       "input_label": "자동화가 수행할 작업은 무엇입니까?",
       "input_placeholder": "옵션 선택",
       "trigger_required": "액션을 추가하기 전에 트리거를 선택하세요.",
+      "disable_to_add": "액션을 추가하기 전에 자동화를 비활성화하세요.",
       "handler_name": {
         "add_comment": "댓글 추가",
         "change_property": "속성 변경",

@@ -23,6 +23,8 @@ import { isObject, readString } from "@plane/types";
 import { getFirstStringField, isString } from "@/helpers/narrow.helper";
 import type { IAutomationStore } from "@/store/automation.store";
 // local imports
+import { describeEnableErrors, parseEnableErrors } from "../helpers/enable-errors";
+import type { TAutomationEnableErrors } from "../helpers/enable-errors";
 import { useAutomationDetails, useAutomationMetadata } from "../helpers/metadata";
 import { isScheduleConfig } from "../helpers/trigger-config";
 import { AutomationActionsBlock } from "./actions-block";
@@ -58,9 +60,10 @@ const makePersist = () =>
       id: string,
       payload: Parameters<TUpdateAutomation>[2],
       update: TUpdateAutomation,
-      onError: (error: unknown) => void
+      onError: (error: unknown) => void,
+      onSaved?: () => void
     ) => {
-      update(slug, id, payload, project).catch(onError);
+      update(slug, id, payload, project).then(onSaved, onError);
     },
     CONDITION_SAVE_DELAY_MS
   );
@@ -76,6 +79,9 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
   // so typing a cron expression doesn't fire a request per keystroke.
   const [condition, setCondition] = useState<TAutomationConditionNode | null>(null);
   const [scheduleConfig, setScheduleConfig] = useState<TAutomationScheduleConfig>({ mode: "fixed" });
+  // An enabled automation refuses an incomplete schedule. The reason is shown on the trigger card.
+  const [scheduleRejection, setScheduleRejection] = useState<string | null>(null);
+  const [enableErrors, setEnableErrors] = useState<TAutomationEnableErrors | null>(null);
   const [isTogglingEnabled, setIsTogglingEnabled] = useState(false);
   const hydratedFor = useRef<string | null>(null);
 
@@ -115,13 +121,32 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
     persist(workspaceSlug, projectId, automationId, { condition: next }, updateAutomation, reportError);
   };
 
+  const handleScheduleError = (error: unknown) => {
+    const message = getFirstStringField(getApiErrorBody(error), "trigger_config");
+    if (message) setScheduleRejection(message);
+    else reportError(error);
+  };
+
   const handleScheduleChange = (next: TAutomationScheduleConfig) => {
     setScheduleConfig(next);
-    // A cron expression is only worth sending once it has all five fields —
-    // otherwise every keystroke round-trips to a 400 and an error toast.
-    if (next.mode === "cron" && (next.cron ?? "").trim().split(/\s+/).length !== 5) return;
-    persist(workspaceSlug, projectId, automationId, { trigger_config: next }, updateAutomation, reportError);
+    setEnableErrors((current) => current && { ...current, trigger: undefined });
+    persist(
+      workspaceSlug,
+      projectId,
+      automationId,
+      { trigger_config: next },
+      updateAutomation,
+      handleScheduleError,
+      () => setScheduleRejection(null)
+    );
   };
+
+  const handleActionEdited = (actionId: string) =>
+    setEnableErrors((current) => {
+      if (!current?.actions[actionId]) return current;
+      const { [actionId]: _resolved, ...actions } = current.actions;
+      return { ...current, actions };
+    });
 
   const handleScopeChange = async (payload: { applies_to_all_projects?: boolean; project_ids?: string[] }) => {
     try {
@@ -133,21 +158,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
 
   const handleTriggerChange = async (triggerType: TAutomationTriggerType) => {
     try {
-      const payload: Parameters<typeof updateAutomation>[2] = { trigger_type: triggerType };
-      if (triggerType === "schedule") {
-        // Seed a schedule the backend will accept so saving the trigger can't fail.
-        const seeded: TAutomationScheduleConfig = {
-          mode: "fixed",
-          frequency: "daily",
-          hour: 9,
-          minute: 0,
-          timezone: scheduleConfig.timezone ?? "UTC",
-          scheduled_target: "work_items",
-        };
-        payload.trigger_config = seeded;
-        setScheduleConfig(seeded);
-      }
-      await updateAutomation(workspaceSlug, automationId, payload, projectId);
+      await updateAutomation(workspaceSlug, automationId, { trigger_type: triggerType }, projectId);
     } catch (error) {
       reportError(error);
     }
@@ -161,6 +172,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
       // the author is actually looking at.
       persist.flush();
       await updateAutomation(workspaceSlug, automationId, { is_enabled: !automation.is_enabled }, projectId);
+      setEnableErrors(null);
       setToast({
         type: "success",
         title: t(
@@ -173,11 +185,12 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
         ),
       });
     } catch (error) {
+      const errors = parseEnableErrors(getApiErrorBody(error));
+      setEnableErrors(errors);
       setToast({
         type: "error",
         title: t("automations.toasts.enable.error.title"),
-        message:
-          getFirstStringField(getApiErrorBody(error), "is_enabled") ?? t("automations.enable.validation.required"),
+        message: describeEnableErrors(errors) ?? t("automations.enable.validation.required"),
       });
     } finally {
       setIsTogglingEnabled(false);
@@ -276,6 +289,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
         triggerLocked={!!automation.trigger_type}
         onTriggerChange={handleTriggerChange}
         onConfigChange={handleScheduleChange}
+        error={scheduleRejection ?? enableErrors?.trigger ?? automation.trigger_config_error}
         disabled={disabled}
       />
 
@@ -295,6 +309,8 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
         automation={automation}
         metadata={metadata}
         disabled={disabled}
+        enableErrors={enableErrors?.actions}
+        onActionEdited={handleActionEdited}
       />
 
       <AutomationRunHistory workspaceSlug={workspaceSlug} projectId={projectId} automationId={automationId} />

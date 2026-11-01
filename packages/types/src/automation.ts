@@ -202,6 +202,8 @@ export type TAutomationAction = {
   config: TAutomationActionConfig;
   /** The stored config when the client cannot read it. The designer then shows the action read-only. */
   raw_config?: unknown;
+  /** Why the action can't run yet, null when it is complete. A disabled automation may hold incomplete actions. */
+  config_error: string | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -246,6 +248,8 @@ export type TAutomation = {
   description: string;
   trigger_type: TAutomationTriggerType | "";
   trigger_config: TAutomationTriggerConfig;
+  /** Why the trigger can't run yet, null when it is complete or not chosen. */
+  trigger_config_error: string | null;
   condition: TAutomationConditionNode | null;
   /** The stored condition when the client cannot read it. The designer then shows it read-only. */
   raw_condition?: unknown;
