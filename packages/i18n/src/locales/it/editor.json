@@ -64,5 +64,42 @@
   },
   "mention_suggestions": {
     "not_in_project": "Non nel progetto"
+  },
+  "ai_writing": {
+    "actions": {
+      "rephrase": "Riformula",
+      "simplify": "Semplifica",
+      "elaborate": "Approfondisci",
+      "summarize": "Riassumi",
+      "fix_grammar": "Correggi ortografia e grammatica"
+    },
+    "tone": {
+      "label": "Cambia tono",
+      "professional": "Professionale",
+      "casual": "Informale",
+      "friendly": "Cordiale",
+      "confident": "Sicuro"
+    },
+    "instruction_placeholder": "Dica all'AI cosa fare...",
+    "send": "Invia",
+    "generating": "L'AI sta scrivendo...",
+    "result": {
+      "replace": "Sostituisci selezione",
+      "insert_below": "Inserisci sotto",
+      "try_again": "Riprova",
+      "discard": "Scarta"
+    },
+    "consent": "Il testo viene inviato a un fornitore di AI di terze parti.",
+    "draft_description": "Crea bozza della descrizione",
+    "drafting": "Creazione bozza in corso...",
+    "errors": {
+      "not_configured": "Nessun fornitore di AI configurato per questa istanza.",
+      "provider_auth": "Il fornitore di AI ha rifiutato la chiave API. Chieda all'amministratore dell'istanza di verificarla.",
+      "provider_model": "Il fornitore di AI non offre il modello configurato. Chieda all'amministratore dell'istanza di verificare l'impostazione.",
+      "rate_limited": "Troppe richieste. Attenda un momento e riprovi.",
+      "empty_response": "Il fornitore di AI non ha restituito alcun testo. Riprovi.",
+      "too_long": "Il testo è troppo lungo. Selezioni meno testo e riprovi.",
+      "generic": "Si è verificato un errore. Riprovi."
+    }
   }
 }

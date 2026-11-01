@@ -64,5 +64,42 @@
   },
   "mention_suggestions": {
     "not_in_project": "Niet in project"
+  },
+  "ai_writing": {
+    "actions": {
+      "rephrase": "Herformuleren",
+      "simplify": "Vereenvoudigen",
+      "elaborate": "Uitbreiden",
+      "summarize": "Samenvatten",
+      "fix_grammar": "Spelling en grammatica corrigeren"
+    },
+    "tone": {
+      "label": "Toon wijzigen",
+      "professional": "Professioneel",
+      "casual": "Informeel",
+      "friendly": "Vriendelijk",
+      "confident": "Zelfverzekerd"
+    },
+    "instruction_placeholder": "Geef AI een instructie...",
+    "send": "Verzenden",
+    "generating": "AI schrijft...",
+    "result": {
+      "replace": "Selectie vervangen",
+      "insert_below": "Hieronder invoegen",
+      "try_again": "Opnieuw proberen",
+      "discard": "Verwerpen"
+    },
+    "consent": "Je tekst wordt naar een externe AI-provider verzonden.",
+    "draft_description": "Beschrijving opstellen",
+    "drafting": "Opstellen...",
+    "errors": {
+      "not_configured": "Er is geen AI-provider ingesteld voor deze instantie.",
+      "provider_auth": "De AI-provider heeft de API-sleutel geweigerd. Vraag je instantiebeheerder om deze te controleren.",
+      "provider_model": "De AI-provider biedt het geconfigureerde model niet aan. Vraag je instantiebeheerder om de instelling te controleren.",
+      "rate_limited": "Te veel verzoeken. Wacht even en probeer het opnieuw.",
+      "empty_response": "De AI-provider heeft geen tekst teruggegeven. Probeer het opnieuw.",
+      "too_long": "De tekst is te lang. Selecteer minder tekst en probeer het opnieuw.",
+      "generic": "Er is iets misgegaan. Probeer het opnieuw."
+    }
   }
 }

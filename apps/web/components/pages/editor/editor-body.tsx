@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { LIVE_BASE_PATH, LIVE_BASE_URL } from "@plane/constants";
@@ -13,7 +13,6 @@ import type {
   CollaborationState,
   EditorRefApi,
   EditorTitleRefApi,
-  TAIMenuProps,
   TAwarenessUser,
   TDiagramEditorProps,
   TDisplayConfig,
@@ -29,6 +28,7 @@ import type { TSearchEntityRequestPayload, TSearchResponse, TWebhookConnectionQu
 import { ERowVariant, Row } from "@plane/blocks/layout";
 import { cn, generateRandomColor, hslToHex } from "@plane/utils";
 // components
+import { useWritingAssistant } from "@/components/editor/ai/use-writing-assistant";
 import { EditorMentionsRoot } from "@/components/editor/embeds/mentions";
 // hooks
 import { useEditorMention } from "@/hooks/editor";
@@ -55,7 +55,6 @@ import { PageEmbedBlock } from "./embed-block";
 import { PageEditorHeaderRoot } from "./header";
 import { PageContentBrowser } from "./summary";
 import { PageWorkItemEmbedBlock } from "./work-item-embed-block";
-import { EditorAIMenu } from "./ai/menu";
 
 export type TEditorBodyConfig = {
   fileHandler: TFileHandler;
@@ -259,18 +258,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
     });
   }, [pageId, setSyncingStatus, onCollaborationStateChange]);
 
-  const getAIMenu = useCallback(
-    ({ isOpen, onClose }: TAIMenuProps) => (
-      <EditorAIMenu
-        editorRef={editorRef}
-        isOpen={isOpen}
-        onClose={onClose}
-        workspaceId={workspaceId}
-        workspaceSlug={workspaceSlug}
-      />
-    ),
-    [editorRef, workspaceId, workspaceSlug]
-  );
+  const aiHandler = useWritingAssistant({ workspaceId, workspaceSlug, projectId });
 
   const serverHandler: TServerHandler = useMemo(
     () => ({
@@ -384,9 +372,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
             user={userConfig}
             disabledExtensions={documentEditorExtensions.disabled}
             flaggedExtensions={documentEditorExtensions.flagged}
-            aiHandler={{
-              menu: getAIMenu,
-            }}
+            aiHandler={aiHandler}
             onAssetChange={updateAssetsList}
             onCollaboratorsChange={setCollaborators}
             extendedEditorProps={extendedEditorProps}

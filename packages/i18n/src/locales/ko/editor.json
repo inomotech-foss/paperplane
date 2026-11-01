@@ -64,5 +64,42 @@
   },
   "mention_suggestions": {
     "not_in_project": "프로젝트 미참여"
+  },
+  "ai_writing": {
+    "actions": {
+      "rephrase": "다시 표현",
+      "simplify": "간결하게",
+      "elaborate": "자세하게",
+      "summarize": "요약",
+      "fix_grammar": "맞춤법 및 문법 수정"
+    },
+    "tone": {
+      "label": "톤 변경",
+      "professional": "전문적인",
+      "casual": "캐주얼한",
+      "friendly": "친근한",
+      "confident": "자신감 있는"
+    },
+    "instruction_placeholder": "AI에게 할 일을 입력하세요...",
+    "send": "보내기",
+    "generating": "AI가 작성 중...",
+    "result": {
+      "replace": "선택 영역 바꾸기",
+      "insert_below": "아래에 삽입",
+      "try_again": "다시 시도",
+      "discard": "폐기"
+    },
+    "consent": "텍스트가 외부 AI 제공업체로 전송됩니다.",
+    "draft_description": "설명 초안 작성",
+    "drafting": "초안 작성 중...",
+    "errors": {
+      "not_configured": "이 인스턴스에 설정된 AI 제공업체가 없습니다.",
+      "provider_auth": "AI 제공업체가 API 키를 거부했습니다. 인스턴스 관리자에게 확인을 요청하세요.",
+      "provider_model": "AI 제공업체가 설정된 모델을 지원하지 않습니다. 인스턴스 관리자에게 확인을 요청하세요.",
+      "rate_limited": "요청이 너무 많습니다. 잠시 후 다시 시도하세요.",
+      "empty_response": "AI 제공업체가 텍스트를 반환하지 않았습니다. 다시 시도하세요.",
+      "too_long": "텍스트가 너무 깁니다. 더 적은 텍스트를 선택한 후 다시 시도하세요.",
+      "generic": "문제가 발생했습니다. 다시 시도하세요."
+    }
   }
 }

@@ -64,5 +64,42 @@
   },
   "mention_suggestions": {
     "not_in_project": "不在專案中"
+  },
+  "ai_writing": {
+    "actions": {
+      "rephrase": "改寫",
+      "simplify": "簡化",
+      "elaborate": "擴寫",
+      "summarize": "摘要",
+      "fix_grammar": "修正拼字和文法"
+    },
+    "tone": {
+      "label": "變更語氣",
+      "professional": "專業",
+      "casual": "輕鬆",
+      "friendly": "友善",
+      "confident": "自信"
+    },
+    "instruction_placeholder": "輸入給 AI 的指示…",
+    "send": "傳送",
+    "generating": "AI 正在撰寫…",
+    "result": {
+      "replace": "取代所選內容",
+      "insert_below": "插入至下方",
+      "try_again": "重試",
+      "discard": "捨棄"
+    },
+    "consent": "您的文字將傳送給第三方 AI 供應商。",
+    "draft_description": "草擬描述",
+    "drafting": "正在草擬…",
+    "errors": {
+      "not_configured": "此執行個體尚未設定 AI 供應商。",
+      "provider_auth": "AI 供應商拒絕了 API 金鑰。請聯絡執行個體管理員檢查。",
+      "provider_model": "AI 供應商未提供所設定的模型。請聯絡執行個體管理員檢查。",
+      "rate_limited": "要求過多。請稍候再試。",
+      "empty_response": "AI 供應商未傳回任何文字。請重試。",
+      "too_long": "文字過長。請減少所選文字後重試。",
+      "generic": "發生錯誤。請重試。"
+    }
   }
 }

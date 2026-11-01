@@ -64,5 +64,42 @@
   },
   "mention_suggestions": {
     "not_in_project": "Nicht im Projekt"
+  },
+  "ai_writing": {
+    "actions": {
+      "rephrase": "Umformulieren",
+      "simplify": "Vereinfachen",
+      "elaborate": "Ausführlicher formulieren",
+      "summarize": "Zusammenfassen",
+      "fix_grammar": "Rechtschreibung und Grammatik korrigieren"
+    },
+    "tone": {
+      "label": "Ton ändern",
+      "professional": "Professionell",
+      "casual": "Locker",
+      "friendly": "Freundlich",
+      "confident": "Selbstbewusst"
+    },
+    "instruction_placeholder": "Anweisung für AI eingeben...",
+    "send": "Senden",
+    "generating": "AI schreibt...",
+    "result": {
+      "replace": "Auswahl ersetzen",
+      "insert_below": "Darunter einfügen",
+      "try_again": "Erneut versuchen",
+      "discard": "Verwerfen"
+    },
+    "consent": "Ihr Text wird an einen externen AI-Anbieter gesendet.",
+    "draft_description": "Beschreibung entwerfen",
+    "drafting": "Wird entworfen...",
+    "errors": {
+      "not_configured": "Für diese Instanz ist kein AI-Anbieter eingerichtet.",
+      "provider_auth": "Der AI-Anbieter hat den API-Schlüssel abgelehnt. Bitten Sie Ihren Instanzadministrator, ihn zu prüfen.",
+      "provider_model": "Der AI-Anbieter bietet das konfigurierte Modell nicht an. Bitten Sie Ihren Instanzadministrator, die Einstellung zu prüfen.",
+      "rate_limited": "Zu viele Anfragen. Warten Sie einen Moment und versuchen Sie es erneut.",
+      "empty_response": "Der AI-Anbieter hat keinen Text zurückgegeben. Versuchen Sie es erneut.",
+      "too_long": "Der Text ist zu lang. Wählen Sie weniger Text aus und versuchen Sie es erneut.",
+      "generic": "Etwas ist schiefgelaufen. Versuchen Sie es erneut."
+    }
   }
 }

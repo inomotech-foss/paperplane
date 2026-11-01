@@ -64,5 +64,42 @@
   },
   "mention_suggestions": {
     "not_in_project": "プロジェクト未参加"
+  },
+  "ai_writing": {
+    "actions": {
+      "rephrase": "言い換え",
+      "simplify": "簡潔にする",
+      "elaborate": "詳しく書く",
+      "summarize": "要約",
+      "fix_grammar": "スペルと文法を修正"
+    },
+    "tone": {
+      "label": "トーンを変更",
+      "professional": "プロフェッショナル",
+      "casual": "カジュアル",
+      "friendly": "フレンドリー",
+      "confident": "自信のある"
+    },
+    "instruction_placeholder": "AIへの指示を入力…",
+    "send": "送信",
+    "generating": "AIが作成中…",
+    "result": {
+      "replace": "選択範囲を置換",
+      "insert_below": "下に挿入",
+      "try_again": "再試行",
+      "discard": "破棄"
+    },
+    "consent": "テキストは外部のAIプロバイダーに送信されます。",
+    "draft_description": "説明の下書きを作成",
+    "drafting": "下書きを作成中…",
+    "errors": {
+      "not_configured": "このインスタンスにはAIプロバイダーが設定されていません。",
+      "provider_auth": "AIプロバイダーがAPIキーを拒否しました。インスタンス管理者に確認を依頼してください。",
+      "provider_model": "AIプロバイダーは設定されたモデルを提供していません。インスタンス管理者に確認を依頼してください。",
+      "rate_limited": "リクエストが多すぎます。しばらく待ってから再試行してください。",
+      "empty_response": "AIプロバイダーからテキストが返されませんでした。再試行してください。",
+      "too_long": "テキストが長すぎます。選択範囲を短くして再試行してください。",
+      "generic": "問題が発生しました。再試行してください。"
+    }
   }
 }

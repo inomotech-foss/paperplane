@@ -64,5 +64,42 @@
   },
   "mention_suggestions": {
     "not_in_project": "Not in project"
+  },
+  "ai_writing": {
+    "actions": {
+      "rephrase": "Rephrase",
+      "simplify": "Simplify",
+      "elaborate": "Elaborate",
+      "summarize": "Summarize",
+      "fix_grammar": "Fix spelling and grammar"
+    },
+    "tone": {
+      "label": "Change tone",
+      "professional": "Professional",
+      "casual": "Casual",
+      "friendly": "Friendly",
+      "confident": "Confident"
+    },
+    "instruction_placeholder": "Tell AI what to do...",
+    "send": "Send",
+    "generating": "AI is writing...",
+    "result": {
+      "replace": "Replace selection",
+      "insert_below": "Insert below",
+      "try_again": "Try again",
+      "discard": "Discard"
+    },
+    "consent": "Your text is sent to a third-party AI provider.",
+    "draft_description": "Draft description",
+    "drafting": "Drafting...",
+    "errors": {
+      "not_configured": "No AI provider is set up for this instance.",
+      "provider_auth": "The AI provider rejected the API key. Ask your instance admin to check it.",
+      "provider_model": "The AI provider does not offer the configured model. Ask your instance admin to check it.",
+      "rate_limited": "Too many requests. Wait a moment and try again.",
+      "empty_response": "The AI provider returned no text. Try again.",
+      "too_long": "The text is too long. Select less text and try again.",
+      "generic": "Something went wrong. Try again."
+    }
   }
 }
