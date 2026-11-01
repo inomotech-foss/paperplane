@@ -4,8 +4,10 @@
  */
 
 import { Editor } from "@tiptap/core";
-import Collaboration from "@tiptap/extension-collaboration";
+import { Collaboration } from "@tiptap/extension-collaboration";
 import { afterEach, describe, expect, it } from "vitest";
+import { readField } from "@plane/types";
+import { yUndoPluginKey } from "@tiptap/y-tiptap";
 import * as Y from "yjs";
 
 import { CustomMentionExtensionConfig } from "@/extensions/mentions/extension-config";
@@ -17,7 +19,9 @@ import {
   insertHTMLBelowRange,
   mapRange,
   replaceRangeWithHTML,
+  snapRangeToText,
 } from "@/helpers/ai";
+import { getBinaryDataFromDocumentEditorHTMLString } from "@/helpers/yjs-utils";
 
 let editor: Editor | undefined;
 
@@ -178,41 +182,43 @@ describe("createRangeTracker", () => {
   });
 });
 
+const resolved = (tracker: ReturnType<typeof createRangeTracker>) => {
+  const range = tracker.resolve();
+  if (!range) throw new Error("the range did not resolve");
+  return range;
+};
+
+// What a triple-click selects: the whole text of the paragraph.
+const wholeParagraph = (instance: Editor) => ({ from: 1, to: instance.state.doc.child(0).nodeSize - 1 });
+
+const firstIntoSecond = (i: Editor) => ({ from: rangeOf(i, "First").from, to: rangeOf(i, "Sec").to });
+
+const setupCollaborative = async (
+  content = "<p>Hello world</p>",
+  pickRange: (instance: Editor) => { from: number; to: number } = (instance) => rangeOf(instance, "world")
+) => {
+  const ydoc = new Y.Doc();
+  const instance = new Editor({
+    element: document.createElement("div"),
+    extensions: [
+      CustomStarterKitExtension({ enableHistory: false }),
+      Collaboration.configure({ document: ydoc, field: "default" }),
+    ],
+  });
+  editor = instance;
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  instance.commands.setContent(content);
+  const tracker = createRangeTracker(instance, pickRange(instance));
+  const remote = new Y.Doc();
+  Y.applyUpdate(remote, Y.encodeStateAsUpdate(ydoc));
+  const paragraph = remote.getXmlFragment("default").get(0);
+  const text = paragraph instanceof Y.XmlElement ? paragraph.get(0) : undefined;
+  if (!(text instanceof Y.XmlText)) throw new Error("expected a text node");
+  const sync = () => Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(remote, Y.encodeStateVector(ydoc)));
+  return { instance, tracker, text, sync, remote };
+};
+
 describe("createRangeTracker on a collaborative document", () => {
-  const setupCollaborative = async (
-    content = "<p>Hello world</p>",
-    pickRange: (instance: Editor) => { from: number; to: number } = (instance) => rangeOf(instance, "world")
-  ) => {
-    const ydoc = new Y.Doc();
-    const instance = new Editor({
-      element: document.createElement("div"),
-      extensions: [
-        CustomStarterKitExtension({ enableHistory: false }),
-        Collaboration.configure({ document: ydoc, field: "default" }),
-      ],
-    });
-    editor = instance;
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    instance.commands.setContent(content);
-    const tracker = createRangeTracker(instance, pickRange(instance));
-    const remote = new Y.Doc();
-    Y.applyUpdate(remote, Y.encodeStateAsUpdate(ydoc));
-    const paragraph = remote.getXmlFragment("default").get(0);
-    const text = paragraph instanceof Y.XmlElement ? paragraph.get(0) : undefined;
-    if (!(text instanceof Y.XmlText)) throw new Error("expected a text node");
-    const sync = () => Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(remote, Y.encodeStateVector(ydoc)));
-    return { instance, tracker, text, sync, remote };
-  };
-
-  const resolved = (tracker: ReturnType<typeof createRangeTracker>) => {
-    const range = tracker.resolve();
-    if (!range) throw new Error("the range did not resolve");
-    return range;
-  };
-
-  // What a triple-click selects: the whole text of the paragraph.
-  const wholeParagraph = (instance: Editor) => ({ from: 1, to: instance.state.doc.child(0).nodeSize - 1 });
-
   it("replaces a triple-click selection of a whole paragraph", async () => {
     const { instance, tracker } = await setupCollaborative("<p>Hello world</p><p>After</p>", wholeParagraph);
     replaceRangeWithHTML(instance, resolved(tracker), "<p>Replaced</p>");
@@ -232,13 +238,12 @@ describe("createRangeTracker on a collaborative document", () => {
   });
 
   it("replaces and inserts below a selection from a paragraph start into the next paragraph", async () => {
-    const span = (i: Editor) => ({ from: rangeOf(i, "First").from, to: rangeOf(i, "Sec").to });
-    const replace = await setupCollaborative("<p>First</p><p>Second</p><p>Third</p>", span);
+    const replace = await setupCollaborative("<p>First</p><p>Second</p><p>Third</p>", firstIntoSecond);
     replaceRangeWithHTML(replace.instance, resolved(replace.tracker), "<p>New</p>");
     expect(htmlOf(replace.instance)).toBe("<p>Newond</p><p>Third</p>");
     replace.instance.destroy();
 
-    const insert = await setupCollaborative("<p>First</p><p>Second</p><p>Third</p>", span);
+    const insert = await setupCollaborative("<p>First</p><p>Second</p><p>Third</p>", firstIntoSecond);
     insertHTMLBelowRange(insert.instance, resolved(insert.tracker), "<p>Added</p>");
     expect(htmlOf(insert.instance)).toBe("<p>First</p><p>Second</p><p>Added</p><p>Third</p>");
   });
@@ -303,6 +308,127 @@ describe("createRangeTracker on a collaborative document", () => {
     sync();
     expect(instance.getText()).toBe("Hello ");
     expect(tracker.resolve()).toBeNull();
+  });
+});
+
+describe("createRangeTracker after a collaborative undo", () => {
+  it("keeps a remote insert at the paragraph start outside the range when the start was restored by undo", async () => {
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, getBinaryDataFromDocumentEditorHTMLString("<p>Delta paragraph rest</p><p>After</p>"));
+    const instance = new Editor({
+      element: document.createElement("div"),
+      extensions: [
+        CustomStarterKitExtension({ enableHistory: false }),
+        Collaboration.configure({ document: ydoc, field: "default" }),
+      ],
+    });
+    editor = instance;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(instance.getText()).toBe("Delta paragraph rest\n\nAfter");
+
+    // tab A: replace the start of the paragraph, then undo it
+    replaceRangeWithHTML(instance, rangeOf(instance, "Delta paragraph "), "<p>Mock</p>");
+    expect(instance.getText()).toBe("Mockrest\n\nAfter");
+    instance.commands.undo();
+    expect(instance.getText()).toBe("Delta paragraph rest\n\nAfter");
+
+    // tab A: select the whole paragraph and wait for the result
+    const tracker = createRangeTracker(instance, { from: 1, to: instance.state.doc.child(0).nodeSize - 1 });
+
+    // tab B: type at the start of the paragraph meanwhile
+    const remote = new Y.Doc();
+    Y.applyUpdate(remote, Y.encodeStateAsUpdate(ydoc));
+    const paragraph = remote.getXmlFragment("default").get(0);
+    const text = paragraph instanceof Y.XmlElement ? paragraph.get(0) : undefined;
+    if (!(text instanceof Y.XmlText)) throw new Error("expected a text node");
+    text.insert(0, "B4-TYPED ");
+    Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(remote, Y.encodeStateVector(ydoc)));
+    expect(instance.getText()).toBe("B4-TYPED Delta paragraph rest\n\nAfter");
+
+    const range = tracker.resolve();
+    if (!range) throw new Error("the range did not resolve");
+    expect(instance.state.doc.textBetween(range.from, range.to)).toBe("Delta paragraph rest");
+    replaceRangeWithHTML(instance, range, "<p>Mock result</p>");
+    expect(htmlOf(instance)).toBe("<p>B4-TYPED Mock result</p><p>After</p>");
+  });
+});
+
+const connectedEditor = (ydoc: Y.Doc) =>
+  new Editor({
+    element: document.createElement("div"),
+    extensions: [
+      CustomStarterKitExtension({ enableHistory: false }),
+      Collaboration.configure({ document: ydoc, field: "default" }),
+    ],
+  });
+
+/** Ends the current undo step, so the next change becomes an undo step of its own. */
+const stopUndoCapturing = (instance: Editor) => {
+  const undoManager = readField(yUndoPluginKey.getState(instance.state), "undoManager");
+  if (undoManager instanceof Y.UndoManager) undoManager.stopCapturing();
+};
+
+describe("createRangeTracker with two connected collaborative editors", () => {
+  // y-tiptap turns typing into a character diff. Typing "B4-TYPED " before "Delta" credits the old "D"
+  // to the typed text, so an anchor on that "D" alone would pull "D " into the range.
+  it.each([1, 2, 3])(
+    "keeps text typed by a collaborator at the paragraph start outside the range (run %i)",
+    async (run) => {
+      const docA = new Y.Doc();
+      const docB = new Y.Doc();
+      Y.applyUpdate(docA, getBinaryDataFromDocumentEditorHTMLString("<p>Delta paragraph rest of it</p><p>After</p>"));
+      Y.applyUpdate(docB, Y.encodeStateAsUpdate(docA));
+      docA.on("update", (update: Uint8Array, origin: unknown) => {
+        if (origin !== "remote") Y.applyUpdate(docB, update, "remote");
+      });
+      docB.on("update", (update: Uint8Array, origin: unknown) => {
+        if (origin !== "remote") Y.applyUpdate(docA, update, "remote");
+      });
+      const a = connectedEditor(docA);
+      const b = connectedEditor(docB);
+      editor = a;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      for (let i = 0; i < run; i++) {
+        stopUndoCapturing(a);
+        replaceRangeWithHTML(a, rangeOf(a, "Delta paragraph "), "<p>Mock result </p>");
+        stopUndoCapturing(a);
+        a.commands.undo();
+      }
+      expect(a.getText()).toBe("Delta paragraph rest of it\n\nAfter");
+      expect(b.getText()).toBe(a.getText());
+
+      const tracker = createRangeTracker(a, { from: 1, to: a.state.doc.child(0).nodeSize - 1 });
+      for (const [index, char] of [..."B4-TYPED "].entries()) {
+        b.commands.insertContentAt(1 + index, char);
+      }
+      expect(a.getText()).toBe("B4-TYPED Delta paragraph rest of it\n\nAfter");
+
+      const range = tracker.resolve();
+      if (!range) throw new Error("the range did not resolve");
+      replaceRangeWithHTML(a, range, "<p>Mock result</p>");
+      expect(htmlOf(a)).toBe("<p>B4-TYPED Mock result</p><p>After</p>");
+      expect(htmlOf(b)).toBe(htmlOf(a));
+      b.destroy();
+    },
+    10000
+  );
+});
+
+describe("snapRangeToText", () => {
+  it("moves the range onto the nearest occurrence of the text and leaves it when the text is gone", () => {
+    const instance = createEditor("<p>ab ab ab</p>");
+    const { doc } = instance.state;
+    // a range drifted one character left of the middle "ab" (positions 4 to 6)
+    expect(snapRangeToText(doc, { from: 3, to: 5 }, "ab")).toEqual({ from: 4, to: 6 });
+    expect(snapRangeToText(doc, { from: 3, to: 5 }, "zz")).toEqual({ from: 3, to: 5 });
+    expect(snapRangeToText(doc, { from: 3, to: 5 }, "")).toEqual({ from: 3, to: 5 });
+  });
+
+  it("matches text across paragraphs", () => {
+    const instance = createEditor("<p>One</p><p>Two</p>");
+    const range = snapRangeToText(instance.state.doc, { from: 2, to: 8 }, "One\nTw");
+    expect(range).toEqual({ from: 1, to: 8 });
   });
 });
 

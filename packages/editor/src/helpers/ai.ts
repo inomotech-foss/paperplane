@@ -6,7 +6,7 @@
 import { getHTMLFromFragment } from "@tiptap/core";
 import type { Editor, EditorEvents, Range } from "@tiptap/core";
 import { DOMParser as ProseMirrorDOMParser } from "@tiptap/pm/model";
-import type { Slice } from "@tiptap/pm/model";
+import type { Node as ProseMirrorNode, Slice } from "@tiptap/pm/model";
 import type { Mapping } from "@tiptap/pm/transform";
 import {
   absolutePositionToRelativePosition,
@@ -59,6 +59,46 @@ const getYSyncBinding = (editor: Editor): ProsemirrorBinding | undefined => {
   return binding instanceof ProsemirrorBinding ? binding : undefined;
 };
 
+type TTextChar = { char: string; pos: number };
+
+/** The text characters between two positions with their positions. Blocks are separated by "\n". */
+const collectText = (doc: ProseMirrorNode, from: number, to: number): TTextChar[] => {
+  const chars: TTextChar[] = [];
+  doc.nodesBetween(from, to, (node, pos) => {
+    if (node.isTextblock && chars.length > 0) chars.push({ char: "\n", pos });
+    if (node.isText && node.text) {
+      for (let index = 0; index < node.text.length; index++) {
+        const charPos = pos + index;
+        if (charPos >= from && charPos < to) chars.push({ char: node.text[index], pos: charPos });
+      }
+    }
+  });
+  return chars;
+};
+
+const textOf = (chars: TTextChar[]) => chars.map(({ char }) => char).join("");
+
+/**
+ * Moves a range onto the occurrence of `text` nearest to it. y-tiptap turns a remote edit into a
+ * character diff, which can credit a typed character to the existing one it matches (typing "D" before
+ * "Delta" reuses the old "D"), so an anchor on that character drifts into the collaborator's text.
+ */
+export const snapRangeToText = (doc: ProseMirrorNode, range: Range, text: string): Range => {
+  if (!text) return range;
+  const window = collectText(
+    doc,
+    Math.max(0, range.from - text.length - 2),
+    Math.min(doc.content.size, range.to + text.length + 2)
+  );
+  const windowText = textOf(window);
+  let best: Range | null = null;
+  for (let index = windowText.indexOf(text); index >= 0; index = windowText.indexOf(text, index + 1)) {
+    const candidate = { from: window[index].pos, to: window[index + text.length - 1].pos + 1 };
+    if (!best || Math.abs(candidate.from - range.from) < Math.abs(best.from - range.from)) best = candidate;
+  }
+  return best ?? range;
+};
+
 export type TRangeTracker = {
   /** Starts following local changes. Returns the cleanup. */
   start: () => () => void;
@@ -84,6 +124,7 @@ export const createRangeTracker = (editor: Editor, range: Range): TRangeTracker 
     };
     const relativeFrom = toRelative(range.from, 0);
     const relativeTo = toRelative(range.to, -1);
+    const selectedText = textOf(collectText(editor.state.doc, range.from, range.to));
     return {
       start: () => () => {},
       resolve: () => {
@@ -99,7 +140,8 @@ export const createRangeTracker = (editor: Editor, range: Range): TRangeTracker 
         };
         const from = toAbsolute(relativeFrom);
         const to = toAbsolute(relativeTo);
-        return from === null || to === null || to <= from ? null : { from, to };
+        if (from === null || to === null || to <= from) return null;
+        return snapRangeToText(editor.state.doc, { from, to }, selectedText);
       },
     };
   }
