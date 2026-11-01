@@ -9,10 +9,13 @@ from django.core.management import CommandError, call_command
 from django.utils import timezone
 
 from plane.automation.registry import ActionType
+from plane.db.management.commands import sanitize_stored_html as command
+from plane.db.management.commands.sanitize_stored_html import AutomationTemplate, HtmlField
 from plane.db.models import (
     Automation,
     AutomationAction,
     Description,
+    DescriptionVersion,
     DraftIssue,
     Intake,
     IntakeIssue,
@@ -20,6 +23,7 @@ from plane.db.models import (
     IssueComment,
     IssueDescriptionVersion,
     Page,
+    PageVersion,
     Project,
     State,
 )
@@ -85,10 +89,10 @@ class TestSanitizeStoredHtml:
     def test_apply_leaves_a_safe_page_alone(self, workspace, create_user):
         page = _page(workspace, create_user, SAFE)
 
-        with mock.patch.object(Page.all_objects, "bulk_update") as bulk_update:
+        with mock.patch.object(HtmlField, "write") as write:
             out, _ = _run("--apply")
 
-        bulk_update.assert_not_called()
+        write.assert_not_called()
         assert "changed 0" in out
         assert Page.all_objects.get(pk=page.pk).updated_at == page.updated_at
 
@@ -109,20 +113,20 @@ class TestSanitizeStoredHtml:
         out, err = _run("--apply")
 
         assert f"rejected page {rejected.id}" in err
-        assert "done: scanned 2, changed 1, failed 1" in out
+        assert "done: scanned 2, changed 1, skipped (changed during run) 0, failed 1" in out
         assert Page.all_objects.get(pk=rejected.pk).description_html == oversized
         assert Page.all_objects.get(pk=unsafe.pk).description_html == SAFE
 
     def test_batches(self, workspace, create_user):
         pages = [_page(workspace, create_user, UNSAFE if i % 2 == 0 else SAFE) for i in range(5)]
 
-        with mock.patch.object(Page.all_objects, "bulk_update", wraps=Page.all_objects.bulk_update) as bulk_update:
-            out, _ = _run("--apply", "--batch-size", "2")
+        with mock.patch.object(command.transaction, "atomic", wraps=command.transaction.atomic) as atomic:
+            out, _ = _run("--apply", "--batch-size", "2", "--model", "page")
 
-        assert [len(call.args[0]) for call in bulk_update.call_args_list] == [2, 1]
+        assert atomic.call_count == 2
         assert "page: scanned 2," in out
         assert "page: scanned 4," in out
-        assert "page: scanned 5, changed 3, failed 0" in out
+        assert "page: scanned 5, changed 3, skipped (changed during run) 0, failed 0" in out
         for page in pages:
             assert Page.all_objects.get(pk=page.pk).description_html == SAFE
 
@@ -203,6 +207,9 @@ class TestSanitizeStoredHtml:
         stored = IssueComment.all_objects.get(pk=comment.pk)
         assert stored.comment_html == ""
         assert stored.comment_stripped == ""
+        description = Description.all_objects.get(pk=comment.description_id)
+        assert description.description_html == ""
+        assert description.description_stripped == ""
 
     def test_automation_templates(self, workspace, project, create_user):
         automation = Automation.objects.create(workspace=workspace, project=project, name="Rule", owned_by=create_user)
@@ -223,13 +230,93 @@ class TestSanitizeStoredHtml:
 
         out, _ = _run("--apply", "--model", "automation")
 
-        assert "automation: scanned 3, changed 2, failed 0" in out
+        assert "automation: scanned 3, changed 2, skipped (changed during run) 0, failed 0" in out
         stored = AutomationAction.objects.get(pk=comment.pk)
         assert stored.config == {"comment_html": "<p>{{work_item.name}}</p>"}
         assert stored.updated_at == comment.updated_at
         assert AutomationAction.objects.get(pk=create.pk).config == {"name": "Follow up", "description_html": SAFE}
         assert AutomationAction.objects.get(pk=safe.pk).updated_at == safe.updated_at
         assert AutomationAction.objects.get(pk=webhook.pk).config == webhook.config
+
+    def test_a_second_run_changes_nothing(self, workspace, project, issue, create_user):
+        _page(workspace, create_user, UNSAFE)
+        comment = IssueComment.objects.create(
+            workspace=workspace, project=project, issue=issue, actor=create_user, comment_html=SAFE
+        )
+        _store(IssueComment, comment, comment_html=UNSAFE)
+
+        _run("--apply")
+        out, _ = _run("--apply")
+
+        assert "done: scanned" in out
+        assert ", changed 0, skipped (changed during run) 0, failed 0" in out.splitlines()[-1]
+
+    def test_a_row_edited_during_the_run_is_skipped(self, workspace, create_user):
+        edited = _page(workspace, create_user, UNSAFE)
+        untouched = _page(workspace, create_user, UNSAFE)
+        original_write = HtmlField.write
+
+        def edit_then_write(target, row, clean):
+            if row.pk == edited.pk:
+                Page.all_objects.filter(pk=edited.pk).update(description_html="<p>new edit</p>")
+            return original_write(target, row, clean)
+
+        with mock.patch.object(HtmlField, "write", autospec=True, side_effect=edit_then_write):
+            out, _ = _run("--apply", "--model", "page")
+
+        assert f"skipped page {edited.id}: changed during run" in out
+        assert "changed 1, skipped (changed during run) 1, failed 0" in out
+        assert Page.all_objects.get(pk=edited.pk).description_html == "<p>new edit</p>"
+        assert Page.all_objects.get(pk=untouched.pk).description_html == SAFE
+
+    def test_an_automation_edited_during_the_run_is_skipped(self, workspace, project, create_user):
+        automation = Automation.objects.create(workspace=workspace, project=project, name="Rule", owned_by=create_user)
+        action = AutomationAction.objects.create(
+            automation=automation,
+            workspace=workspace,
+            action_type=ActionType.ADD_COMMENT,
+            config={"comment_html": UNSAFE},
+        )
+        edited = {"comment_html": UNSAFE, "note": "edited meanwhile"}
+        original_write = AutomationTemplate.write
+
+        def edit_then_write(target, row, clean):
+            AutomationAction.objects.filter(pk=action.pk).update(config=edited)
+            return original_write(target, row, clean)
+
+        with mock.patch.object(AutomationTemplate, "write", autospec=True, side_effect=edit_then_write):
+            out, _ = _run("--apply", "--model", "automation")
+
+        assert "skipped (changed during run) 1" in out
+        assert AutomationAction.objects.get(pk=action.pk).config == edited
+
+    def test_page_version(self, workspace, create_user):
+        page = _page(workspace, create_user, SAFE)
+        version = PageVersion.objects.create(
+            workspace=workspace, page=page, owned_by=create_user, description_html=SAFE
+        )
+        version = _store(PageVersion, version, description_html=UNSAFE)
+
+        _run("--apply", "--model", "page_version")
+
+        stored = PageVersion.all_objects.get(pk=version.pk)
+        assert stored.description_html == SAFE
+        assert stored.description_stripped == "hi"
+        assert stored.updated_at == version.updated_at
+
+    def test_description_version(self, workspace, project, issue, create_user):
+        comment = IssueComment.objects.create(
+            workspace=workspace, project=project, issue=issue, actor=create_user, comment_html=SAFE
+        )
+        version = DescriptionVersion.objects.create(
+            workspace=workspace, description_id=comment.description_id, description_html=UNSAFE
+        )
+
+        _run("--apply", "--model", "description_version")
+
+        stored = DescriptionVersion.all_objects.get(pk=version.pk)
+        assert stored.description_html == SAFE
+        assert stored.description_stripped == "hi"
 
     def test_rejects_a_batch_size_below_one(self):
         with pytest.raises(CommandError, match="batch-size"):

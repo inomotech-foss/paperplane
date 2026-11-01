@@ -3,33 +3,40 @@
 
 """Sanitize user HTML that was stored before its write path sanitized it.
 
-Rows are written with bulk_update, so updated_at, versions, activity and webhooks are not touched.
+Each row is written with a queryset update filtered on its old value, so updated_at, versions,
+activity and webhooks are not touched, and a row edited during the run is skipped, not overwritten.
 """
 
 from dataclasses import dataclass
 
 from django.core.management.base import BaseCommand, CommandError
-from django.db import models
+from django.db import models, transaction
 
 from plane.automation.sanitize import HTML_TEMPLATE_FIELDS, template_field
 from plane.db.models import (
     AutomationAction,
     Description,
+    DescriptionVersion,
     DraftIssue,
     Issue,
     IssueComment,
     IssueDescriptionVersion,
     Page,
+    PageVersion,
 )
 from plane.utils.content_validator import validate_html_content
 from plane.utils.html_processor import strip_tags
 
 
+def _stripped(html, empty):
+    return strip_tags(html) if html else empty
+
+
 @dataclass(frozen=True)
 class HtmlField:
     model: type[models.Model]
-    html: str
-    stripped: str
+    html: str = "description_html"
+    stripped: str = "description_stripped"
     # The value the model's save() stores as stripped text for empty HTML.
     empty_stripped: str | None = None
     # A comment mirrors its HTML into a Description row, which has to follow it.
@@ -42,21 +49,16 @@ class HtmlField:
     def html_of(self, row):
         return getattr(row, self.html)
 
-    def write(self, pending):
-        self.model.all_objects.bulk_update(
-            [
-                self.model(id=row.id, **{self.html: clean, self.stripped: _stripped(clean, self.empty_stripped)})
-                for row, clean in pending
-            ],
-            [self.html, self.stripped],
-        )
-        if self.mirror:
-            mirrors = [
-                Description(id=getattr(row, self.mirror), description_html=clean, description_stripped=_stripped(clean))
-                for row, clean in pending
-                if getattr(row, self.mirror)
-            ]
-            Description.all_objects.bulk_update(mirrors, ["description_html", "description_stripped"])
+    def write(self, row, clean):
+        """Writes one row unless it changed since it was read. Returns whether it was written."""
+        values = {self.html: clean, self.stripped: _stripped(clean, self.empty_stripped)}
+        written = self.model.all_objects.filter(pk=row.pk, **{self.html: self.html_of(row)}).update(**values)
+        mirror_id = getattr(row, self.mirror) if self.mirror else None
+        if written and mirror_id:
+            Description.all_objects.filter(pk=mirror_id).update(
+                description_html=clean, description_stripped=_stripped(clean, "")
+            )
+        return bool(written)
 
 
 class AutomationTemplate:
@@ -70,32 +72,45 @@ class AutomationTemplate:
         field = template_field(row.action_type, row.config)
         return row.config[field] if field else None
 
-    def write(self, pending):
-        actions = [
-            AutomationAction(id=row.id, config={**row.config, template_field(row.action_type, row.config): clean})
-            for row, clean in pending
-        ]
-        AutomationAction.all_objects.bulk_update(actions, ["config"])
+    def write(self, row, clean):
+        config = {**row.config, template_field(row.action_type, row.config): clean}
+        return bool(AutomationAction.all_objects.filter(pk=row.pk, config=row.config).update(config=config))
 
 
 TARGETS = {
-    "page": HtmlField(Page, "description_html", "description_stripped"),
-    "issue": HtmlField(Issue, "description_html", "description_stripped"),
-    "issue_description_version": HtmlField(IssueDescriptionVersion, "description_html", "description_stripped"),
+    "page": HtmlField(Page),
+    "page_version": HtmlField(PageVersion),
+    "issue": HtmlField(Issue),
+    "issue_description_version": HtmlField(IssueDescriptionVersion),
     "issue_comment": HtmlField(
-        IssueComment, "comment_html", "comment_stripped", empty_stripped="", mirror="description_id"
+        IssueComment, html="comment_html", stripped="comment_stripped", empty_stripped="", mirror="description_id"
     ),
-    "draft_issue": HtmlField(DraftIssue, "description_html", "description_stripped"),
+    "description": HtmlField(Description),
+    "description_version": HtmlField(DescriptionVersion),
+    "draft_issue": HtmlField(DraftIssue),
     "automation": AutomationTemplate(),
 }
 
 
-def _stripped(html, empty=None):
-    return strip_tags(html) if html else empty
+@dataclass
+class Counts:
+    scanned: int = 0
+    changed: int = 0
+    skipped: int = 0
+    failed: int = 0
 
+    def add(self, other):
+        self.scanned += other.scanned
+        self.changed += other.changed
+        self.skipped += other.skipped
+        self.failed += other.failed
 
-def _summary(label, scanned, changed, failed, apply):
-    return f"{label}: scanned {scanned}, {'changed' if apply else 'would change'} {changed}, failed {failed}"
+    def summary(self, label, apply):
+        verb = "changed" if apply else "would change"
+        return (
+            f"{label}: scanned {self.scanned}, {verb} {self.changed}, "
+            f"skipped (changed during run) {self.skipped}, failed {self.failed}"
+        )
 
 
 class Command(BaseCommand):
@@ -119,37 +134,48 @@ class Command(BaseCommand):
             raise CommandError("--batch-size must be at least 1")
 
         apply = options["apply"]
-        totals = [0, 0, 0]
+        totals = Counts()
         for name in options["model"] or TARGETS:
-            counts = self._sanitize(name, TARGETS[name], apply, batch_size)
-            totals = [total + count for total, count in zip(totals, counts)]
-        self.stdout.write(_summary("done", *totals, apply))
+            totals.add(self._sanitize(name, TARGETS[name], apply, batch_size))
+        self.stdout.write(totals.summary("done", apply))
 
     def _sanitize(self, name, target, apply, batch_size):
-        scanned = changed = failed = 0
+        counts = Counts()
         pending = []
 
         for row in target.rows().iterator(chunk_size=batch_size):
-            scanned += 1
+            counts.scanned += 1
             html = target.html_of(row)
             if html:
                 is_valid, error, clean = validate_html_content(html)
                 if not is_valid:
-                    failed += 1
+                    counts.failed += 1
                     self.stderr.write(f"rejected {name} {row.id}: {error}")
                 elif clean != html:
-                    changed += 1
-                    self.stdout.write(f"{'changed' if apply else 'would change'} {name} {row.id}")
                     pending.append((row, clean))
 
             if len(pending) >= batch_size:
-                if apply:
-                    target.write(pending)
+                self._flush(name, target, pending, apply, counts)
                 pending = []
-            if scanned % batch_size == 0:
-                self.stdout.write(_summary(name, scanned, changed, failed, apply))
+            if counts.scanned % batch_size == 0:
+                self.stdout.write(counts.summary(name, apply))
 
-        if apply and pending:
-            target.write(pending)
-        self.stdout.write(_summary(name, scanned, changed, failed, apply))
-        return [scanned, changed, failed]
+        self._flush(name, target, pending, apply, counts)
+        self.stdout.write(counts.summary(name, apply))
+        return counts
+
+    def _flush(self, name, target, pending, apply, counts):
+        if not apply:
+            for row, _clean in pending:
+                counts.changed += 1
+                self.stdout.write(f"would change {name} {row.id}")
+            return
+        with transaction.atomic():
+            results = [(row, target.write(row, clean)) for row, clean in pending]
+        for row, written in results:
+            if written:
+                counts.changed += 1
+                self.stdout.write(f"changed {name} {row.id}")
+            else:
+                counts.skipped += 1
+                self.stdout.write(f"skipped {name} {row.id}: changed during run")
