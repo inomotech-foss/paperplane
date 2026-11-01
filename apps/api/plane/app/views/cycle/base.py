@@ -78,6 +78,7 @@ from plane.db.models import (
 )
 from plane.utils.analytics_plot import burndown_plot
 from plane.bgtasks.recent_visited_task import recent_visited_task
+from plane.utils.cycle_estimates import cycle_estimate_points
 from plane.utils.cycle_transfer_issues import transfer_cycle_issues
 from .. import BaseAPIView, BaseViewSet
 from plane.bgtasks.webhook_task import model_activity
@@ -693,54 +694,9 @@ class CycleProgressEndpoint(BaseAPIView):
         cycle = Cycle.objects.filter(workspace__slug=slug, project_id=project_id, id=cycle_id).first()
         if not cycle:
             return Response({"error": "Cycle not found"}, status=status.HTTP_404_NOT_FOUND)
-        aggregate_estimates = (
-            Issue.issue_objects.filter(
-                estimate_point__estimate__type="points",
-                issue_cycle__cycle_id=cycle_id,
-                issue_cycle__deleted_at__isnull=True,
-                workspace__slug=slug,
-                project_id=project_id,
-            )
-            .annotate(value_as_float=Cast("estimate_point__value", FloatField()))
-            .aggregate(
-                backlog_estimate_point=Sum(
-                    Case(
-                        When(state__group="backlog", then="value_as_float"),
-                        default=Value(0),
-                        output_field=FloatField(),
-                    )
-                ),
-                unstarted_estimate_point=Sum(
-                    Case(
-                        When(state__group="unstarted", then="value_as_float"),
-                        default=Value(0),
-                        output_field=FloatField(),
-                    )
-                ),
-                started_estimate_point=Sum(
-                    Case(
-                        When(state__group="started", then="value_as_float"),
-                        default=Value(0),
-                        output_field=FloatField(),
-                    )
-                ),
-                cancelled_estimate_point=Sum(
-                    Case(
-                        When(state__group="cancelled", then="value_as_float"),
-                        default=Value(0),
-                        output_field=FloatField(),
-                    )
-                ),
-                completed_estimate_points=Sum(
-                    Case(
-                        When(state__group="completed", then="value_as_float"),
-                        default=Value(0),
-                        output_field=FloatField(),
-                    )
-                ),
-                total_estimate_points=Sum("value_as_float", default=Value(0), output_field=FloatField()),
-            )
-        )
+        estimate_points = cycle_estimate_points(slug, project_id, cycle_id)
+        if "total_estimate_points" in cycle.progress_snapshot:
+            estimate_points = {key: cycle.progress_snapshot.get(key, 0) for key in estimate_points}
         if cycle.progress_snapshot:
             backlog_issues = cycle.progress_snapshot.get("backlog_issues", 0)
             unstarted_issues = cycle.progress_snapshot.get("unstarted_issues", 0)
@@ -798,12 +754,7 @@ class CycleProgressEndpoint(BaseAPIView):
 
         return Response(
             {
-                "backlog_estimate_points": aggregate_estimates["backlog_estimate_point"] or 0,
-                "unstarted_estimate_points": aggregate_estimates["unstarted_estimate_point"] or 0,
-                "started_estimate_points": aggregate_estimates["started_estimate_point"] or 0,
-                "cancelled_estimate_points": aggregate_estimates["cancelled_estimate_point"] or 0,
-                "completed_estimate_points": aggregate_estimates["completed_estimate_points"] or 0,
-                "total_estimate_points": aggregate_estimates["total_estimate_points"],
+                **estimate_points,
                 "backlog_issues": backlog_issues,
                 "total_issues": total_issues,
                 "completed_issues": completed_issues,

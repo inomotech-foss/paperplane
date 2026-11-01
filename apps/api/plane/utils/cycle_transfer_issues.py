@@ -28,6 +28,7 @@ from plane.db.models import (
     Project,
 )
 from plane.utils.analytics_plot import burndown_plot
+from plane.utils.cycle_estimates import cycle_estimate_points
 from plane.bgtasks.issue_activities_task import issue_activity
 
 
@@ -411,6 +412,7 @@ def transfer_cycle_issues(
         "started_issues": old_cycle.started_issues,
         "unstarted_issues": old_cycle.unstarted_issues,
         "backlog_issues": old_cycle.backlog_issues,
+        **cycle_estimate_points(slug, project_id, cycle_id),
         "distribution": {
             "labels": label_distribution_data,
             "assignees": assignee_distribution_data,

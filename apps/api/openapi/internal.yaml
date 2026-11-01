@@ -33099,6 +33099,24 @@ components:
           type: integer
         backlog_issues:
           type: integer
+        total_estimate_points:
+          type: number
+          format: double
+        completed_estimate_points:
+          type: number
+          format: double
+        cancelled_estimate_points:
+          type: number
+          format: double
+        started_estimate_points:
+          type: number
+          format: double
+        unstarted_estimate_points:
+          type: number
+          format: double
+        backlog_estimate_points:
+          type: number
+          format: double
         distribution:
           $ref: '#/components/schemas/Distribution'
         estimate_distribution:
@@ -33118,18 +33136,42 @@ components:
           type: integer
         backlog_issues:
           type: integer
+        total_estimate_points:
+          type: number
+          format: double
+        completed_estimate_points:
+          type: number
+          format: double
+        cancelled_estimate_points:
+          type: number
+          format: double
+        started_estimate_points:
+          type: number
+          format: double
+        unstarted_estimate_points:
+          type: number
+          format: double
+        backlog_estimate_points:
+          type: number
+          format: double
         distribution:
           $ref: '#/components/schemas/DistributionRequest'
         estimate_distribution:
           $ref: '#/components/schemas/EstimateDistributionRequest'
       required:
+      - backlog_estimate_points
       - backlog_issues
+      - cancelled_estimate_points
       - cancelled_issues
+      - completed_estimate_points
       - completed_issues
       - distribution
       - estimate_distribution
+      - started_estimate_points
       - started_issues
+      - total_estimate_points
       - total_issues
+      - unstarted_estimate_points
       - unstarted_issues
     ProjectArchive:
       type: object

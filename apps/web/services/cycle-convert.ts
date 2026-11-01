@@ -105,6 +105,15 @@ export function toProgressSnapshot(snapshot: ApiSchema<"ProgressSnapshot">): Par
   if (snapshot.started_issues !== undefined) result.started_issues = snapshot.started_issues;
   if (snapshot.unstarted_issues !== undefined) result.unstarted_issues = snapshot.unstarted_issues;
   if (snapshot.backlog_issues !== undefined) result.backlog_issues = snapshot.backlog_issues;
+  if (snapshot.total_estimate_points !== undefined) result.total_estimate_points = snapshot.total_estimate_points;
+  if (snapshot.completed_estimate_points !== undefined)
+    result.completed_estimate_points = snapshot.completed_estimate_points;
+  if (snapshot.cancelled_estimate_points !== undefined)
+    result.cancelled_estimate_points = snapshot.cancelled_estimate_points;
+  if (snapshot.started_estimate_points !== undefined) result.started_estimate_points = snapshot.started_estimate_points;
+  if (snapshot.unstarted_estimate_points !== undefined)
+    result.unstarted_estimate_points = snapshot.unstarted_estimate_points;
+  if (snapshot.backlog_estimate_points !== undefined) result.backlog_estimate_points = snapshot.backlog_estimate_points;
   if (snapshot.distribution) result.distribution = toCycleDistribution(snapshot.distribution);
   const estimates = snapshot.estimate_distribution && toCycleEstimateDistribution(snapshot.estimate_distribution);
   if (estimates) result.estimate_distribution = estimates;

@@ -10976,6 +10976,18 @@ export interface components {
             started_issues?: number;
             unstarted_issues?: number;
             backlog_issues?: number;
+            /** Format: double */
+            total_estimate_points?: number;
+            /** Format: double */
+            completed_estimate_points?: number;
+            /** Format: double */
+            cancelled_estimate_points?: number;
+            /** Format: double */
+            started_estimate_points?: number;
+            /** Format: double */
+            unstarted_estimate_points?: number;
+            /** Format: double */
+            backlog_estimate_points?: number;
             distribution?: components["schemas"]["Distribution"];
             estimate_distribution?: components["schemas"]["EstimateDistribution"];
         };
@@ -10986,6 +10998,18 @@ export interface components {
             started_issues: number;
             unstarted_issues: number;
             backlog_issues: number;
+            /** Format: double */
+            total_estimate_points: number;
+            /** Format: double */
+            completed_estimate_points: number;
+            /** Format: double */
+            cancelled_estimate_points: number;
+            /** Format: double */
+            started_estimate_points: number;
+            /** Format: double */
+            unstarted_estimate_points: number;
+            /** Format: double */
+            backlog_estimate_points: number;
             distribution: components["schemas"]["DistributionRequest"];
             estimate_distribution: components["schemas"]["EstimateDistributionRequest"];
         };

@@ -20,6 +20,7 @@ import { getFileURL } from "@plane/utils";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useMember } from "@/hooks/store/use-member";
+import { getCycleEstimatePoints } from "./estimate-points";
 // plane web constants
 
 type Props = {
@@ -57,14 +58,11 @@ export const CycleSidebarDetails = observer(function CycleSidebarDetails(props: 
       ? false
       : true;
 
+  const fromSnapshot = isCompleted && !isEmpty(cycleDetails?.progress_snapshot);
+  const estimatePoints = getCycleEstimatePoints(cycleDetails, fromSnapshot);
+  const totalIssues = fromSnapshot ? cycleDetails?.progress_snapshot?.total_issues : cycleDetails?.total_issues;
   const issueEstimatePointCount =
-    isCompleted && !isEmpty(cycleDetails?.progress_snapshot)
-      ? cycleDetails?.progress_snapshot.total_issues === 0
-        ? `0 ${t("common.work_item")}`
-        : `${cycleDetails?.progress_snapshot.completed_estimate_points}/${cycleDetails?.progress_snapshot.total_estimate_points}`
-      : cycleDetails?.total_issues === 0
-        ? `0 ${t("common.work_item")}`
-        : `${cycleDetails?.completed_estimate_points}/${cycleDetails?.total_estimate_points}`;
+    totalIssues === 0 ? `0 ${t("common.work_item")}` : `${estimatePoints.completed}/${estimatePoints.total}`;
   return (
     <div className="flex w-full flex-col gap-5">
       {cycleDetails?.description && (

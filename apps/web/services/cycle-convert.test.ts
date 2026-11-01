@@ -106,6 +106,10 @@ describe("distributions", () => {
   it("keeps only the stored snapshot keys", () => {
     expect(toProgressSnapshot({ total_issues: 3, estimate_distribution: {} })).toEqual({ total_issues: 3 });
     expect(toProgressSnapshot({ distribution }).distribution?.assignees).toHaveLength(1);
+    expect(toProgressSnapshot({ completed_estimate_points: 3, total_estimate_points: 8 })).toEqual({
+      completed_estimate_points: 3,
+      total_estimate_points: 8,
+    });
   });
 });
 
