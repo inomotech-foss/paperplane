@@ -4,8 +4,6 @@
 
 # Python imports
 import base64
-import re
-
 import nh3
 from plane.utils.exception_logger import log_exception
 from bs4 import BeautifulSoup
@@ -209,9 +207,6 @@ SAFE_PROTOCOLS = {"http", "https", "mailto", "tel"}
 # The editor's own rel value, forced onto every link so editor output round-trips unchanged.
 LINK_REL = "noopener noreferrer nofollow"
 
-# The HTML parser drops a newline that directly follows <pre>, so one is added back to keep sanitizing idempotent.
-PRE_LEADING_NEWLINE = re.compile(r"(<pre(?:\s[^>]*)?>)\n")
-
 
 def _compute_html_sanitization_diff(before_html: str, after_html: str):
     """
@@ -283,7 +278,6 @@ def validate_html_content(html_content: str):
             link_rel=None,
             set_tag_attribute_values={"a": {"rel": LINK_REL}},
         )
-        clean_html = PRE_LEADING_NEWLINE.sub("\\1\n\n", clean_html)
         # Report removals to logger (Sentry) if anything was stripped
         diff = _compute_html_sanitization_diff(html_content, clean_html)
         if diff.get("removed_tags") or diff.get("removed_attributes"):

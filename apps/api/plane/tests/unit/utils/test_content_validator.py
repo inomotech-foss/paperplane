@@ -101,8 +101,7 @@ class TestGeneratedEditorHTML:
             GENERATED_EDITOR_DOCUMENT,
             '<p onclick="x()">a</p><script>b</script>',
             '<a href="https://e.com" rel="opener">x</a>',
-            "<pre>\n\nx</pre>",
-            "<pre>\nx</pre>",
+            '<pre><code class="language-python">\n\nx = 1\n</code></pre>',
         ],
     )
     def test_a_second_pass_changes_nothing(self, html):
@@ -110,6 +109,19 @@ class TestGeneratedEditorHTML:
         _, _, twice = validate_html_content(once)
 
         assert twice == once
+
+    @pytest.mark.parametrize(
+        "html",
+        [
+            '<pre><code class="language-python">\n\nx = 1\n</code></pre>',
+            '<image-component src="c9b2b1e0" alt="<pre>\n" title="<pre>\nx"></image-component>',
+            '<math-block-component latex="<pre>\n\\frac{a}{b}"></math-block-component>',
+        ],
+    )
+    def test_newlines_inside_code_and_attributes_survive(self, html):
+        _, _, clean = validate_html_content(html)
+
+        assert clean == html
 
     def test_links_get_the_editor_rel(self):
         _, _, clean = validate_html_content('<a rel="opener" href="https://e.com">x</a><a href="/p">y</a>')
