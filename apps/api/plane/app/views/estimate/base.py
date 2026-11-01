@@ -71,22 +71,22 @@ class BulkEstimatePointEndpoint(BaseViewSet):
     @extend_schema(request=EstimateCreateSerializer, responses={200: EstimateReadSerializer})
     @invalidate_cache(path="/api/workspaces/:slug/estimates/", url_params=True, user=False)
     def create(self, request, slug, project_id):
-        estimate = request.data.get("estimate")
-        estimate_name = estimate.get("name", generate_random_name())
-        estimate_type = estimate.get("type", "categories")
-        last_used = estimate.get("last_used", False)
-        estimate = Estimate.objects.create(
-            name=estimate_name,
-            project_id=project_id,
-            last_used=last_used,
-            type=estimate_type,
-        )
-
-        estimate_points = request.data.get("estimate_points", [])
+        request_serializer = EstimateCreateSerializer(data=request.data)
+        if not request_serializer.is_valid():
+            return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = EstimatePointSerializer(data=request.data.get("estimate_points"), many=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        estimate = request_serializer.validated_data["estimate"]
+        estimate_points = request_serializer.validated_data["estimate_points"]
+        estimate = Estimate.objects.create(
+            name=estimate.get("name", generate_random_name()),
+            project_id=project_id,
+            last_used=estimate.get("last_used", False),
+            type=estimate.get("type", "categories"),
+        )
 
         estimate_points = EstimatePoint.objects.bulk_create(
             [
