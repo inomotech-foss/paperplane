@@ -14,6 +14,7 @@ import { cn, isCommentEmpty } from "@plane/utils";
 import { StickyEditor } from "@/components/editor/sticky-editor";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
+import { useSticky } from "@/hooks/use-stickies";
 
 // const StickyEditor = dynamic(() => import("../../editor/sticky-editor").then((mod) => mod.StickyEditor), {
 //   ssr: false,
@@ -37,6 +38,7 @@ export function StickyInput(props: TProps) {
   const pathname = usePathname();
   // store hooks
   const { getWorkspaceBySlug } = useWorkspace();
+  const { focusStickyId, clearStickyFocus } = useSticky();
   // derived values
   const workspaceId = getWorkspaceBySlug(workspaceSlug)?.id?.toString() ?? "";
   const isStickiesPage = pathname?.includes("stickies");
@@ -98,6 +100,8 @@ export function StickyInput(props: TProps) {
             handleDelete={handleDelete}
             handleColorChange={handleChange}
             ref={editorRef}
+            autofocus={!!stickyId && stickyId === focusStickyId}
+            onEditorFocus={() => stickyId && clearStickyFocus(stickyId)}
           />
         )}
       />

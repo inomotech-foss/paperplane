@@ -7,10 +7,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TSticky } from "@plane/types";
 import { StickyStore } from "./sticky.store";
 
-const service = vi.hoisted(() => ({ updateSticky: vi.fn(), deleteSticky: vi.fn() }));
+const service = vi.hoisted(() => ({ createSticky: vi.fn(), updateSticky: vi.fn(), deleteSticky: vi.fn() }));
 
 vi.mock("@/services/sticky.service", () => ({
   StickyService: class {
+    createSticky = service.createSticky;
     updateSticky = service.updateSticky;
     deleteSticky = service.deleteSticky;
   },
@@ -48,5 +49,16 @@ describe("StickyStore", () => {
     expect(store.stickies.s1).toBeDefined();
     expect(store.workspaceStickies.ws).toEqual(["s1", "s2"]);
     expect(store.recentStickyId).toBe("s1");
+  });
+
+  it("marks a new sticky for focus until its editor takes focus", async () => {
+    service.createSticky.mockResolvedValueOnce(sticky("s3", 3));
+    store.toggleShowNewSticky(true);
+    await store.createSticky("ws", {});
+    expect(store.focusStickyId).toBe("s3");
+    store.clearStickyFocus("s1");
+    expect(store.focusStickyId).toBe("s3");
+    store.clearStickyFocus("s3");
+    expect(store.focusStickyId).toBeUndefined();
   });
 });

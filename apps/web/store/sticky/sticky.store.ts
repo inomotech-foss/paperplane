@@ -19,6 +19,7 @@ export interface IStickyStore {
   searchQuery: string;
   activeStickyId: string | undefined;
   recentStickyId: string | undefined;
+  focusStickyId: string | undefined;
   showAddNewSticky: boolean;
   paginationInfo: TPaginationInfo | undefined;
   // computed
@@ -31,6 +32,7 @@ export interface IStickyStore {
   updateSticky: (workspaceSlug: string, id: string, updates: Partial<TSticky>) => Promise<void>;
   deleteSticky: (workspaceSlug: string, id: string) => Promise<void>;
   updateActiveStickyId: (id: string | undefined) => void;
+  clearStickyFocus: (id: string) => void;
   fetchRecentSticky: (workspaceSlug: string) => Promise<void>;
   fetchNextWorkspaceStickies: (workspaceSlug: string) => Promise<void>;
   updateStickyPosition: (
@@ -49,6 +51,7 @@ export class StickyStore implements IStickyStore {
   recentStickyId: string | undefined = undefined;
   searchQuery = "";
   activeStickyId: string | undefined = undefined;
+  focusStickyId: string | undefined = undefined;
   showAddNewSticky = false;
   paginationInfo: TPaginationInfo | undefined = undefined;
 
@@ -61,6 +64,7 @@ export class StickyStore implements IStickyStore {
       creatingSticky: observable,
       loader: observable,
       activeStickyId: observable,
+      focusStickyId: observable,
       showAddNewSticky: observable,
       recentStickyId: observable,
       workspaceStickies: observable,
@@ -74,6 +78,7 @@ export class StickyStore implements IStickyStore {
       fetchWorkspaceStickies: action,
       createSticky: action,
       updateActiveStickyId: action,
+      clearStickyFocus: action,
       toggleShowNewSticky: action,
       fetchRecentSticky: action,
       updateStickyPosition: action,
@@ -99,6 +104,10 @@ export class StickyStore implements IStickyStore {
 
   updateActiveStickyId = (id: string | undefined) => {
     this.activeStickyId = id;
+  };
+
+  clearStickyFocus = (id: string) => {
+    if (this.focusStickyId === id) this.focusStickyId = undefined;
   };
 
   fetchRecentSticky = async (workspaceSlug: string) => {
@@ -187,6 +196,7 @@ export class StickyStore implements IStickyStore {
       this.workspaceStickies[workspaceSlug] = [response.id, ...workspaceStickies];
       this.activeStickyId = response.id;
       this.recentStickyId = response.id;
+      this.focusStickyId = response.id;
       this.creatingSticky = false;
     });
   };
