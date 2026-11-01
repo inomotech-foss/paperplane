@@ -34,11 +34,12 @@ export type TWritingChoice =
 export const toWritingTask = (text: string, choice: TWritingChoice): TWritingTask => ({ ...choice, text });
 
 /** The i18n key of the message for a failed writing task. */
-export const getWritingErrorKey = (error: unknown): string => {
+export const getWritingErrorKey = (error: unknown, task: TWritingTask): string => {
   if (!isApiError(error)) return "ai_writing.errors.generic";
   if (error.status === 429 || error.code === "provider_rate_limit") return "ai_writing.errors.rate_limited";
   if (error.status === 503 || error.code === "llm_not_configured") return "ai_writing.errors.not_configured";
-  if (error.status === 400 && readField(error.data, "text") !== undefined) return "ai_writing.errors.too_long";
+  if (error.status === 400 && readField(error.data, "text") !== undefined)
+    return task.text.trim() ? "ai_writing.errors.too_long" : "ai_writing.errors.empty_text";
   switch (error.code) {
     case "provider_auth":
       return "ai_writing.errors.provider_auth";

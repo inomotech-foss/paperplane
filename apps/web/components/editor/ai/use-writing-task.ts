@@ -37,7 +37,7 @@ export function useWritingTask(workspaceSlug: string) {
         const html = await aiService.runWritingTask(workspaceSlug, task, controller.signal);
         if (!controller.signal.aborted) setState({ status: "done", task, html });
       } catch (error) {
-        if (!controller.signal.aborted) setState({ status: "error", task, errorKey: getWritingErrorKey(error) });
+        if (!controller.signal.aborted) setState({ status: "error", task, errorKey: getWritingErrorKey(error, task) });
       }
     },
     [workspaceSlug]

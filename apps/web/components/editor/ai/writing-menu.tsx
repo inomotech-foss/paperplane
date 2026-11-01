@@ -3,7 +3,7 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@makeplane/propel/components/button";
 import { Icon } from "@makeplane/propel/components/icon";
 import { IconButton } from "@makeplane/propel/components/icon-button";
@@ -27,11 +27,12 @@ const itemClassName =
   "flex w-full items-center rounded-sm px-2 py-1.5 text-left text-13 text-secondary transition-colors hover:bg-layer-1 disabled:cursor-not-allowed disabled:opacity-60";
 
 export function WritingAssistantMenu(props: Props) {
-  const { selection, onReplace, onInsertBelow, onClose, workspaceId, workspaceSlug, projectId } = props;
+  const { selection, canReplace, onReplace, onInsertBelow, onClose, workspaceId, workspaceSlug, projectId } = props;
   const { t } = useTranslation();
+  const previewId = useId();
   const [instruction, setInstruction] = useState("");
   const { state, run } = useWritingTask(workspaceSlug);
-  const canRun = selection.length > 0;
+  const canRun = selection.trim().length > 0;
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -130,7 +131,7 @@ export function WritingAssistantMenu(props: Props) {
             <RichTextEditor
               key={state.html}
               editable={false}
-              id="ai-writing-result"
+              id={previewId}
               initialValue={state.html}
               displayConfig={{ fontSize: "small-font" }}
               containerClassName="!p-0 border-none"
@@ -140,16 +141,19 @@ export function WritingAssistantMenu(props: Props) {
               projectId={projectId}
             />
           </div>
+          {!canReplace && <p className="text-11 text-tertiary">{t("ai_writing.result.replace_unavailable")}</p>}
           <div className="flex flex-wrap items-center gap-2">
+            {canReplace && (
+              <Button
+                variant="primary"
+                size="sm"
+                stretch="auto"
+                label={t("ai_writing.result.replace")}
+                onClick={() => onReplace(state.html)}
+              />
+            )}
             <Button
-              variant="primary"
-              size="sm"
-              stretch="auto"
-              label={t("ai_writing.result.replace")}
-              onClick={() => onReplace(state.html)}
-            />
-            <Button
-              variant="secondary"
+              variant={canReplace ? "secondary" : "primary"}
               size="sm"
               stretch="auto"
               label={t("ai_writing.result.insert_below")}

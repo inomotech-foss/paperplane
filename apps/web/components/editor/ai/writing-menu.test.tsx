@@ -3,6 +3,7 @@
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "@plane/services";
 import { WritingAssistantMenu } from "./writing-menu";
 import { WRITING_MAX_TEXT_LENGTH } from "./writing-task";
 
@@ -18,9 +19,19 @@ vi.mock("@/components/editor/rich-text", () => ({
   RichTextEditor: ({ initialValue }: { initialValue: string }) => <div data-testid="preview">{initialValue}</div>,
 }));
 
-const renderMenu = (selection = "Some **text**") => {
+const apiError = (status: number, data: unknown) => new ApiError(new Response(null, { status }), data);
+
+const renderMenu = (selection = "Some **text**", canReplace = true) => {
   const props = { onReplace: vi.fn(), onInsertBelow: vi.fn(), onClose: vi.fn() };
-  render(<WritingAssistantMenu selection={selection} workspaceId="w1" workspaceSlug="acme" {...props} />);
+  render(
+    <WritingAssistantMenu
+      selection={selection}
+      canReplace={canReplace}
+      workspaceId="w1"
+      workspaceSlug="acme"
+      {...props}
+    />
+  );
   return props;
 };
 
@@ -90,6 +101,49 @@ describe("WritingAssistantMenu", () => {
     expect(runWritingTask).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "ai_writing.result.discard" }));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("shows a missing LLM", async () => {
+    runWritingTask.mockRejectedValueOnce(apiError(503, { error: "x", code: "llm_not_configured" }));
+    renderMenu();
+
+    fireEvent.click(screen.getByRole("button", { name: "ai_writing.actions.simplify" }));
+
+    expect((await screen.findByRole("alert")).textContent).toBe("ai_writing.errors.not_configured");
+  });
+
+  it("recovers from a provider error with Try again", async () => {
+    runWritingTask
+      .mockRejectedValueOnce(apiError(502, { error: "x", code: "provider_error" }))
+      .mockResolvedValueOnce("<p>Fine</p>");
+    renderMenu();
+
+    fireEvent.click(screen.getByRole("button", { name: "ai_writing.actions.rephrase" }));
+    expect((await screen.findByRole("alert")).textContent).toBe("ai_writing.errors.generic");
+    fireEvent.click(screen.getByRole("button", { name: "ai_writing.result.try_again" }));
+
+    expect((await screen.findByTestId("preview")).textContent).toBe("<p>Fine</p>");
+    expect(runWritingTask).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows a server rejection of the text as too long", async () => {
+    runWritingTask.mockRejectedValueOnce(apiError(400, { text: ["Too long"] }));
+    renderMenu();
+
+    fireEvent.click(screen.getByRole("button", { name: "ai_writing.actions.summarize" }));
+
+    expect((await screen.findByRole("alert")).textContent).toBe("ai_writing.errors.too_long");
+  });
+
+  it("offers only Insert below when a replace would lose nodes", async () => {
+    runWritingTask.mockResolvedValue("<p>Better</p>");
+    renderMenu("Ask @someone", false);
+
+    fireEvent.click(screen.getByRole("button", { name: "ai_writing.actions.rephrase" }));
+
+    await screen.findByRole("button", { name: "ai_writing.result.insert_below" });
+    expect(screen.queryByRole("button", { name: "ai_writing.result.replace" })).toBeNull();
+    expect(screen.getByText("ai_writing.result.replace_unavailable")).toBeTruthy();
   });
 
   it("disables the actions without a selection", () => {

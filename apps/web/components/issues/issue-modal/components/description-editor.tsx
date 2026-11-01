@@ -31,6 +31,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 import { WorkspaceService } from "@/services/workspace.service";
 // services
 import { AIService } from "@/services/ai.service";
+import type { TWritingTask } from "@/services/ai.service";
 const workspaceService = new WorkspaceService();
 const aiService = new AIService();
 
@@ -103,11 +104,12 @@ export const IssueDescriptionEditor = observer(function IssueDescriptionEditor(p
   const handleDraftDescription = async () => {
     if (!workspaceSlug || !projectId) return;
     setIsDrafting(true);
+    const task: TWritingTask = { action: "draft_description", text: issueName };
     try {
-      const html = await aiService.runWritingTask(workspaceSlug, { action: "draft_description", text: issueName });
+      const html = await aiService.runWritingTask(workspaceSlug, task);
       editorRef.current?.setEditorValueAtCursorPosition(html);
     } catch (error) {
-      setToast({ type: "error", title: t("toast.error"), message: t(getWritingErrorKey(error)) });
+      setToast({ type: "error", title: t("toast.error"), message: t(getWritingErrorKey(error, task)) });
     } finally {
       setIsDrafting(false);
     }
