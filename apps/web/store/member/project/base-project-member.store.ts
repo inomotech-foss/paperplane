@@ -323,8 +323,8 @@ export class BaseProjectMemberStore implements IBaseProjectMemberStore {
           });
         });
       });
-      update(this.projectRoot.projectMap, [projectId, "members"], (memberIds) =>
-        uniq([...memberIds, ...data.members.map((m) => m.member_id)])
+      update(this.projectRoot.projectMap, [projectId, "members"], (memberIds: string[] | undefined) =>
+        uniq([...(memberIds ?? []), ...data.members.map((m) => m.member_id)])
       );
       this.projectRoot.projectMap[projectId].members = this.projectRoot.projectMap?.[projectId]?.members?.concat(
         data.members.map((m) => m.member_id)
