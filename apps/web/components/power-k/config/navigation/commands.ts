@@ -111,6 +111,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_home: {
       id: "nav_home",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_home",
       icon: HomeOutline,
@@ -123,6 +124,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_inbox: {
       id: "nav_inbox",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_inbox",
       icon: InboxOutline,
@@ -135,6 +137,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_your_work: {
       id: "nav_your_work",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_your_work",
       icon: ActivityOutline,
@@ -147,6 +150,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_account_settings: {
       id: "nav_account_settings",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_account_settings",
       icon: SettingsOutline,
@@ -175,6 +179,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_projects_list: {
       id: "nav_projects_list",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_projects_list",
       icon: ProjectsOutline,
@@ -187,6 +192,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_all_workspace_work_items: {
       id: "nav_all_workspace_work_items",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_all_workspace_work_items",
       icon: WorkItemsOutline,
@@ -199,6 +205,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_assigned_workspace_work_items: {
       id: "nav_assigned_workspace_work_items",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_assigned_workspace_work_items",
       icon: WorkItemsOutline,
@@ -210,6 +217,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_created_workspace_work_items: {
       id: "nav_created_workspace_work_items",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_created_workspace_work_items",
       icon: WorkItemsOutline,
@@ -221,6 +229,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_subscribed_workspace_work_items: {
       id: "nav_subscribed_workspace_work_items",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_subscribed_workspace_work_items",
       icon: WorkItemsOutline,
@@ -233,6 +242,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_workspace_analytics: {
       id: "nav_workspace_analytics",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_workspace_analytics",
       icon: BarOutline,
@@ -245,6 +255,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_workspace_drafts: {
       id: "nav_workspace_drafts",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_workspace_drafts",
       icon: EditOutline,
@@ -257,6 +268,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_workspace_archives: {
       id: "nav_workspace_archives",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_workspace_archives",
       icon: ArchiveOutline,
@@ -288,6 +300,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_workspace_settings: {
       id: "nav_workspace_settings",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_workspace_settings",
       icon: SettingsOutline,
@@ -300,6 +313,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_project_work_items: {
       id: "nav_project_work_items",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_project_work_items",
       icon: WorkItemsOutline,
@@ -347,6 +361,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_project_cycles: {
       id: "nav_project_cycles",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_project_cycles",
       icon: CyclesOutline,
@@ -400,6 +415,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_project_modules: {
       id: "nav_project_modules",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_project_modules",
       icon: ModuleOutline,
@@ -449,6 +465,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_project_views: {
       id: "nav_project_views",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_project_views",
       icon: WorkItemsOutline,
@@ -469,6 +486,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_project_pages: {
       id: "nav_project_pages",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_project_pages",
       icon: DocumentationOutline,
@@ -487,6 +505,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_project_intake: {
       id: "nav_project_intake",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_project_intake",
       icon: IntakeOutline,
@@ -505,6 +524,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_project_archives: {
       id: "nav_project_archives",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_project_archives",
       icon: ArchiveOutline,
@@ -547,6 +567,7 @@ export const usePowerKNavigationCommandsRecord = (): Record<TPowerKNavigationCom
     nav_project_settings: {
       id: "nav_project_settings",
       type: "action",
+      changesState: false,
       group: "navigation",
       i18n_title: "power_k.navigation_actions.nav_project_settings",
       icon: SettingsOutline,

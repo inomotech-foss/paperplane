@@ -27,6 +27,8 @@ const setup = () => {
   const create = vi.fn();
   const sidebar = vi.fn();
   const remove = vi.fn();
+  const goModules = vi.fn();
+  const chordL = vi.fn();
   const registry = new PowerKCommandRegistry();
   registry.registerMultiple([
     {
@@ -35,8 +37,33 @@ const setup = () => {
       group: "contextual",
       contextType: "page",
       type: "action",
+      changesState: false,
       action: lock,
-      modifierShortcut: "shift+l",
+      shortcut: "shift+l",
+      isEnabled: () => true,
+      isVisible: () => true,
+      closeOnSelect: true,
+    },
+    {
+      id: "chord-l",
+      i18n_title: "chord-l",
+      group: "miscellaneous",
+      type: "action",
+      changesState: true,
+      action: chordL,
+      modifierShortcut: "cmd+shift+l",
+      isEnabled: () => true,
+      isVisible: () => true,
+      closeOnSelect: true,
+    },
+    {
+      id: "go-modules",
+      i18n_title: "go-modules",
+      group: "navigation",
+      type: "action",
+      changesState: false,
+      action: goModules,
+      keySequence: "gm",
       isEnabled: () => true,
       isVisible: () => true,
       closeOnSelect: true,
@@ -46,6 +73,7 @@ const setup = () => {
       i18n_title: "create",
       group: "create",
       type: "action",
+      changesState: false,
       action: create,
       shortcut: "c",
       isEnabled: () => true,
@@ -57,6 +85,7 @@ const setup = () => {
       i18n_title: "sidebar",
       group: "miscellaneous",
       type: "action",
+      changesState: true,
       action: sidebar,
       modifierShortcut: "cmd+b",
       isEnabled: () => true,
@@ -69,6 +98,7 @@ const setup = () => {
       group: "contextual",
       contextType: "page",
       type: "action",
+      changesState: true,
       action: remove,
       modifierShortcut: "cmd+backspace",
       isEnabled: () => true,
@@ -82,11 +112,14 @@ const setup = () => {
     target.dispatchEvent(event);
     handler.handleKeyDown(event);
   };
-  return { lock, create, sidebar, remove, press, handler };
+  return { lock, create, sidebar, remove, goModules, chordL, press, handler };
 };
 
 const shiftL: KeyboardEventInit = { key: "L", code: "KeyL", shiftKey: true };
 const plainC: KeyboardEventInit = { key: "c", code: "KeyC" };
+const plainL: KeyboardEventInit = { key: "l", code: "KeyL" };
+const plainG: KeyboardEventInit = { key: "g", code: "KeyG" };
+const plainM: KeyboardEventInit = { key: "m", code: "KeyM" };
 
 const placeCaret = (node: Node, offset: number, focusOffset = offset) => {
   const selection = window.getSelection();
@@ -192,5 +225,43 @@ describe("ShortcutHandler", () => {
     const { lock, press } = setup();
     press(inner, shiftL);
     expect(lock).not.toHaveBeenCalled();
+  });
+
+  it("matches Shift+letter as a typed key, apart from bare keys and chords", () => {
+    const { lock, chordL, press } = setup();
+    press(document.body, plainL);
+    expect(lock).not.toHaveBeenCalled();
+
+    press(document.body, shiftL);
+    expect(lock).toHaveBeenCalledTimes(1);
+    expect(chordL).not.toHaveBeenCalled();
+
+    press(document.body, { ...shiftL, metaKey: true });
+    expect(chordL).toHaveBeenCalledTimes(1);
+    expect(lock).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores Shift+letter typed into an input", () => {
+    document.body.innerHTML = "<input />";
+    const input = document.querySelector("input");
+    if (!input) throw new Error("missing input");
+    input.focus();
+
+    const { lock, press } = setup();
+    press(input, shiftL);
+    expect(lock).not.toHaveBeenCalled();
+  });
+
+  it("ends a pending sequence on Shift+letter", () => {
+    const { lock, goModules, press } = setup();
+    press(document.body, plainG);
+    press(document.body, shiftL);
+    press(document.body, plainM);
+    expect(lock).toHaveBeenCalledTimes(1);
+    expect(goModules).not.toHaveBeenCalled();
+
+    press(document.body, plainG);
+    press(document.body, plainM);
+    expect(goModules).toHaveBeenCalledTimes(1);
   });
 });

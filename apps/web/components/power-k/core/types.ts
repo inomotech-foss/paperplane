@@ -63,6 +63,9 @@ export type TPowerKCommandGroup =
   | "miscellaneous"
   | "preferences";
 
+/** A Cmd/Ctrl or Alt chord. Shift alone types a character, so it belongs in `shortcut`. */
+export type TPowerKChordShortcut = `cmd+${string}` | `alt+${string}`;
+
 export type TPowerKCommandConfig = {
   // Identity
   id: string;
@@ -72,9 +75,9 @@ export type TPowerKCommandConfig = {
   iconNode?: React.ReactNode;
 
   // Shortcuts (ONE of these)
-  shortcut?: string; // Single key: "c", "p", "s"
+  shortcut?: string; // Typed key: "c", "p", "shift+e"
   keySequence?: string; // Sequence: "gm", "op", "oc"
-  modifierShortcut?: string; // With modifiers: "cmd+k", "cmd+delete", "cmd+shift+,"
+  modifierShortcut?: TPowerKChordShortcut; // "cmd+k", "cmd+delete", "cmd+shift+,"
 
   // Visibility & Context
   closeOnSelect: boolean; // Whether to close the palette after selection
@@ -100,10 +103,20 @@ export type TPowerKCommandConfig = {
         page: TPowerKPageType; // Opens selection page
         onSelect: (data: unknown, ctx: TPowerKContext) => void | Promise<void>; // Called after page selection
       }
-    | {
+    | ({
         type: "action";
         action: (ctx: TPowerKContext) => void | Promise<void>; // Direct action
-      }
+      } & (
+        | {
+            // Typed keys fire by accident, so state changes need a chord or the palette
+            changesState: true;
+            shortcut?: never;
+            keySequence?: never;
+          }
+        | {
+            changesState: false;
+          }
+      ))
   );
 
 // ============================================================================

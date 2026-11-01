@@ -21,6 +21,7 @@ export const usePowerKHelpCommands = (): TPowerKCommandConfig[] => {
     {
       id: "open_keyboard_shortcuts",
       type: "action",
+      changesState: false,
       group: "help",
       i18n_title: "power_k.help_actions.open_keyboard_shortcuts",
       icon: RocketOutline,
@@ -33,6 +34,7 @@ export const usePowerKHelpCommands = (): TPowerKCommandConfig[] => {
     {
       id: "open_plane_documentation",
       type: "action",
+      changesState: false,
       group: "help",
       i18n_title: "power_k.help_actions.open_plane_documentation",
       icon: DocumentationOutline,
@@ -46,6 +48,7 @@ export const usePowerKHelpCommands = (): TPowerKCommandConfig[] => {
     {
       id: "join_forum",
       type: "action",
+      changesState: false,
       group: "help",
       i18n_title: "power_k.help_actions.join_forum",
       icon: ChatOutline,
@@ -59,6 +62,7 @@ export const usePowerKHelpCommands = (): TPowerKCommandConfig[] => {
     {
       id: "report_bug",
       type: "action",
+      changesState: false,
       group: "help",
       i18n_title: "power_k.help_actions.report_bug",
       icon: Github,

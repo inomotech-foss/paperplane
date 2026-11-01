@@ -41,6 +41,7 @@ export const usePowerKAccountCommands = (): TPowerKCommandConfig[] => {
     {
       id: "workspace_invites",
       type: "action",
+      changesState: false,
       group: "account",
       i18n_title: "power_k.account_actions.workspace_invites",
       icon: MailOutline,
@@ -52,6 +53,7 @@ export const usePowerKAccountCommands = (): TPowerKCommandConfig[] => {
     {
       id: "sign_out",
       type: "action",
+      changesState: true,
       group: "account",
       i18n_title: "power_k.account_actions.sign_out",
       icon: LogOutOutline,
