@@ -3508,6 +3508,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutomationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AutomationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AutomationRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -3527,12 +3539,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -3567,6 +3573,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutomationActionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AutomationActionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AutomationActionRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -3599,6 +3617,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationActionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationActionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationActionRequest'
       security:
       - sessionAuth: []
       responses:
@@ -3670,6 +3699,16 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - failed
+          - partial
+          - skipped
+          - success
+        description: Only runs with this status. Every run when omitted
       tags:
       - workspaces
       security:
@@ -3748,6 +3787,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationRequest'
       security:
       - sessionAuth: []
       responses:
@@ -6363,6 +6413,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutomationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AutomationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AutomationRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -6388,12 +6450,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
       - in: path
         name: slug
         schema:
@@ -6434,6 +6490,18 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutomationActionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AutomationActionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AutomationActionRequest'
+        required: true
       security:
       - sessionAuth: []
       responses:
@@ -6472,6 +6540,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationActionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationActionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationActionRequest'
       security:
       - sessionAuth: []
       responses:
@@ -6555,6 +6634,16 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - failed
+          - partial
+          - skipped
+          - success
+        description: Only runs with this status. Every run when omitted
       tags:
       - workspaces
       security:
@@ -6651,6 +6740,17 @@ paths:
         required: true
       tags:
       - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAutomationRequest'
       security:
       - sessionAuth: []
       responses:
@@ -20262,7 +20362,7 @@ components:
           readOnly: true
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/LastRunStatusEnum'
+          - $ref: '#/components/schemas/AutomationRunStatusEnum'
           - $ref: '#/components/schemas/NullEnum'
         total_run_count:
           type: integer
@@ -20375,6 +20475,19 @@ components:
       - created_at
       - updated_at
       - created_by
+    AutomationActionRequest:
+      type: object
+      properties:
+        action_type:
+          type: string
+          minLength: 1
+          maxLength: 127
+        config: {}
+        sort_order:
+          type: number
+          format: double
+      required:
+      - action_type
     AutomationCatalog:
       type: object
       properties:
@@ -20409,6 +20522,33 @@ components:
       - actions
       - notification_recipients
       - template_variables
+    AutomationRequest:
+      type: object
+      properties:
+        applies_to_all_projects:
+          type: boolean
+        project_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        trigger_type:
+          type: string
+          maxLength: 127
+        trigger_config: {}
+        condition:
+          nullable: true
+        is_enabled:
+          type: boolean
+      required:
+      - name
     AutomationRun:
       type: object
       properties:
@@ -20427,7 +20567,7 @@ components:
           nullable: true
         status:
           allOf:
-          - $ref: '#/components/schemas/Status75aEnum'
+          - $ref: '#/components/schemas/AutomationRunStatusEnum'
           readOnly: true
         trigger_source:
           allOf:
@@ -20485,6 +20625,18 @@ components:
       - processed_count
       - steps
       - error
+    AutomationRunStatusEnum:
+      enum:
+      - success
+      - failed
+      - partial
+      - skipped
+      type: string
+      description: |-
+        * `success` - Success
+        * `failed` - Failed
+        * `partial` - Partially completed
+        * `skipped` - Skipped
     BlankEnum:
       enum:
       - ''
@@ -27759,18 +27911,6 @@ components:
           format: double
       required:
       - name
-    LastRunStatusEnum:
-      enum:
-      - success
-      - failed
-      - partial
-      - skipped
-      type: string
-      description: |-
-        * `success` - Success
-        * `failed` - Failed
-        * `partial` - Partially completed
-        * `skipped` - Skipped
     LastVisitedWorkspace:
       type: object
       properties:
@@ -31164,6 +31304,42 @@ components:
       properties:
         attributes:
           description: Replaces the stored attributes when sent
+    PatchedAutomationActionRequest:
+      type: object
+      properties:
+        action_type:
+          type: string
+          minLength: 1
+          maxLength: 127
+        config: {}
+        sort_order:
+          type: number
+          format: double
+    PatchedAutomationRequest:
+      type: object
+      properties:
+        applies_to_all_projects:
+          type: boolean
+        project_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        trigger_type:
+          type: string
+          maxLength: 127
+        trigger_config: {}
+        condition:
+          nullable: true
+        is_enabled:
+          type: boolean
     PatchedCycleIssueRequest:
       type: object
       properties:
@@ -35337,18 +35513,6 @@ components:
       required:
       - color
       - name
-    Status75aEnum:
-      enum:
-      - success
-      - failed
-      - partial
-      - skipped
-      type: string
-      description: |-
-        * `success` - Success
-        * `failed` - Failed
-        * `partial` - Partially completed
-        * `skipped` - Skipped
     Sticky:
       type: object
       properties:

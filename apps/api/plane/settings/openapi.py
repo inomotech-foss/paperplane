@@ -285,5 +285,6 @@ SPECTACULAR_SETTINGS = {
         "DashboardMetricFunctionEnum": "plane.utils.dashboard_widgets.METRIC_FUNCTIONS",
         "DashboardDateBucketEnum": "plane.utils.dashboard_widgets.DATE_BUCKETS",
         "FileAssetEntityTypeEnum": "plane.db.models.asset.FileAsset.EntityTypeContext",
+        "AutomationRunStatusEnum": "plane.db.models.automation.AutomationRunStatus",
     },
 }
