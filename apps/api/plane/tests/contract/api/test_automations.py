@@ -19,6 +19,7 @@ from plane.db.models import (
     User,
     WorkspaceMember,
 )
+from plane.utils.issue_type import link_starter_type
 
 pytestmark = pytest.mark.contract
 
@@ -376,6 +377,57 @@ class TestActions:
             format="json",
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_comment_template_is_sanitized_on_save(self, session_client, base_url, automation_id):
+        actions_url = f"{base_url}{automation_id}/actions/"
+        template = '<p onclick="steal()">{{ work_item.name }}</p><script>alert(1)</script>'
+
+        created = session_client.post(
+            actions_url, {"action_type": "add_comment", "config": {"comment_html": template}}, format="json"
+        )
+
+        assert created.status_code == status.HTTP_201_CREATED
+        assert created.json()["config"]["comment_html"] == "<p>{{ work_item.name }}</p>"
+
+    def test_work_item_description_template_is_sanitized_on_update(
+        self, session_client, base_url, automation_id, project
+    ):
+        actions_url = f"{base_url}{automation_id}/actions/"
+        config = {"name": "Follow up", "type_id": str(link_starter_type(project).id), "description_html": "<p>x</p>"}
+        action_id = session_client.post(
+            actions_url, {"action_type": "create_work_item", "config": config}, format="json"
+        ).json()["id"]
+
+        updated = session_client.patch(
+            f"{actions_url}{action_id}/",
+            {"config": {**config, "description_html": '<a href="javascript:alert(1)">{{ work_item.url }}</a>'}},
+            format="json",
+        )
+
+        assert updated.status_code == status.HTTP_200_OK
+        assert updated.json()["config"]["description_html"] == '<a rel="noopener noreferrer">{{ work_item.url }}</a>'
+        assert updated.json()["config"]["name"] == "Follow up"
+
+    def test_a_sanitized_template_round_trips_unchanged(self, session_client, base_url, automation_id):
+        actions_url = f"{base_url}{automation_id}/actions/"
+        template = '<p>See <a href="{{ work_item.url }}">{{ work_item.identifier }}</a> &amp; reply</p>'
+        created = session_client.post(
+            actions_url, {"action_type": "add_comment", "config": {"comment_html": template}}, format="json"
+        ).json()
+
+        resaved = session_client.patch(f"{actions_url}{created['id']}/", {"config": created["config"]}, format="json")
+
+        assert resaved.json()["config"] == created["config"]
+
+    def test_a_comment_template_that_sanitizes_to_nothing_is_rejected(self, session_client, base_url, automation_id):
+        response = session_client.post(
+            f"{base_url}{automation_id}/actions/",
+            {"action_type": "add_comment", "config": {"comment_html": "<script>alert(1)</script>"}},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "config" in response.json()
 
     def test_cannot_delete_the_only_action_while_enabled(self, session_client, base_url, automation_id):
         actions_url = f"{base_url}{automation_id}/actions/"

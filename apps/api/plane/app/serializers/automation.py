@@ -9,6 +9,7 @@ from rest_framework import serializers
 # Module imports
 from plane.automation import validators
 from plane.automation.registry import ActionType, TriggerType
+from plane.automation.sanitize import sanitize_action_config
 from plane.automation.scheduling import describe as describe_schedule
 from plane.db.models import Automation, AutomationAction, AutomationRun, AutomationScope
 from .base import BaseSerializer
@@ -47,6 +48,11 @@ class AutomationActionSerializer(BaseSerializer):
         # A PATCH that only sends `config` still has to validate against the
         # action type already stored.
         config = attrs.get("config", getattr(self.instance, "config", {}))
+        if "config" in attrs:
+            config = sanitize_action_config(action_type, config)
+            if config is None:
+                raise serializers.ValidationError({"config": "The HTML template is not valid."})
+            attrs["config"] = config
         # `action_error` returns a literal message rather than raising, so nothing
         # exception-derived is ever echoed back to the caller.
         message = validators.action_error(action_type, config)

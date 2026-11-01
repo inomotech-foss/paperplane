@@ -451,6 +451,8 @@ def handle_add_comment(action, context, run):
         raise ActionError("The comment body is empty.")
 
     comment_html = render_html(template, context)
+    if not comment_html.strip():
+        raise ActionError("The comment body is empty after sanitizing.")
     comment = IssueComment.objects.create(
         issue=work_item,
         project_id=work_item.project_id,
@@ -631,7 +633,7 @@ def handle_create_work_item(action, context, run):
     if config.get("target_date") is not None:
         target_date = _resolve_date(config.get("target_date"), context)
 
-    description_html = render_html(config.get("description_html") or "<p></p>", context)
+    description_html = render_html(config.get("description_html") or "<p></p>", context) or "<p></p>"
 
     parent_id = None
     if config.get("link_to_trigger_work_item") and context.work_item is not None:

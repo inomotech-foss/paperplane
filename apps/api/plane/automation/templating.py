@@ -20,6 +20,9 @@ import re
 # Django imports
 from django.conf import settings
 
+# Module imports
+from plane.automation.sanitize import sanitize_html
+
 VARIABLE_PATTERN = re.compile(r"\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}")
 
 PRIORITY_LABELS = {
@@ -99,7 +102,8 @@ def render(text: str, context) -> str:
 def render_html(template: str, context) -> str:
     """
     Substitute variables into an HTML template, escaping the inserted values so
-    a work item title containing `<` cannot break the markup.
+    a work item title containing `<` cannot break the markup. The result is
+    sanitized too, which also covers templates stored before save-time sanitizing.
     """
     if not template:
         return ""
@@ -111,4 +115,4 @@ def render_html(template: str, context) -> str:
             return match.group(0)
         return html.escape(variables[key])
 
-    return VARIABLE_PATTERN.sub(replace, template)
+    return sanitize_html(VARIABLE_PATTERN.sub(replace, template)) or ""
