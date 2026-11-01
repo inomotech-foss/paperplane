@@ -48,7 +48,7 @@ class AutomationActionSerializer(BaseSerializer):
         # A PATCH that only sends `config` still has to validate against the
         # action type already stored.
         config = attrs.get("config", getattr(self.instance, "config", {}))
-        if "config" in attrs:
+        if "config" in attrs or "action_type" in attrs:
             config = sanitize_action_config(action_type, config)
             if config is None:
                 raise serializers.ValidationError({"config": "The HTML template is not valid."})

@@ -405,7 +405,10 @@ class TestActions:
         )
 
         assert updated.status_code == status.HTTP_200_OK
-        assert updated.json()["config"]["description_html"] == '<a rel="noopener noreferrer">{{ work_item.url }}</a>'
+        assert (
+            updated.json()["config"]["description_html"]
+            == '<a rel="noopener noreferrer nofollow">{{ work_item.url }}</a>'
+        )
         assert updated.json()["config"]["name"] == "Follow up"
 
     def test_a_sanitized_template_round_trips_unchanged(self, session_client, base_url, automation_id):
@@ -418,6 +421,25 @@ class TestActions:
         resaved = session_client.patch(f"{actions_url}{created['id']}/", {"config": created["config"]}, format="json")
 
         assert resaved.json()["config"] == created["config"]
+
+    def test_changing_the_action_type_sanitizes_the_stored_config(self, session_client, base_url, automation_id, state):
+        actions_url = f"{base_url}{automation_id}/actions/"
+        action_id = session_client.post(
+            actions_url,
+            {
+                "action_type": "change_property",
+                "config": {"property": "state_id", "change_type": "set", "value": str(state.id)},
+            },
+            format="json",
+        ).json()["id"]
+        AutomationAction.objects.filter(pk=action_id).update(
+            config={"comment_html": "<p>{{ work_item.name }}</p><script>alert(1)</script>"}
+        )
+
+        response = session_client.patch(f"{actions_url}{action_id}/", {"action_type": "add_comment"}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["config"] == {"comment_html": "<p>{{ work_item.name }}</p>"}
 
     def test_a_comment_template_that_sanitizes_to_nothing_is_rejected(self, session_client, base_url, automation_id):
         response = session_client.post(
