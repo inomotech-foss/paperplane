@@ -49,8 +49,10 @@ export function TemplateTextarea(props: Props) {
       onChange={(event) => setDraft(event.target.value)}
       onBlur={() => {
         if (draft === null) return;
-        if (draft === value) setDraft(null);
-        else void commit(draft);
+        // While a save is in flight the store already shows it optimistically, so the
+        // draft is kept until the save resolves. A failed save then does not lose it.
+        if (draft !== value) void commit(draft);
+        else if (saving.current === null) setDraft(null);
       }}
       disabled={disabled}
       rows={rows}

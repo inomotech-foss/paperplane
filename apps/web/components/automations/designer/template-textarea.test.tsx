@@ -103,4 +103,22 @@ describe("TemplateTextarea", () => {
 
     expect(onCommit).toHaveBeenCalledOnce();
   });
+
+  it("keeps the draft when a blur during an in-flight save is followed by a failure", async () => {
+    const save: { finish?: (saved: boolean) => void } = {};
+    const onCommit = vi.fn((_value: string) => new Promise<boolean>((resolve) => (save.finish = resolve)));
+    const view = render(<TemplateTextarea value="" onCommit={onCommit} rows={3} placeholder="Comment" />);
+    const textarea = screen.getByPlaceholderText<HTMLTextAreaElement>("Comment");
+
+    fireEvent.change(textarea, { target: { value: "typed" } });
+    fireEvent.blur(textarea);
+    // the store applies the save optimistically
+    view.rerender(<TemplateTextarea value="typed" onCommit={onCommit} rows={3} placeholder="Comment" />);
+    fireEvent.blur(textarea);
+    // the save fails and the store rolls back
+    await act(async () => save.finish?.(false));
+    view.rerender(<TemplateTextarea value="" onCommit={onCommit} rows={3} placeholder="Comment" />);
+
+    expect(textarea.value).toBe("typed");
+  });
 });
