@@ -55,7 +55,7 @@ const toUnsplashImage = (value: unknown): UnSplashImage | undefined => {
 
 /** The Unsplash response is passed through: a search wraps the photos in `results`, the photo list does not. */
 export function parseUnsplashImages(data: unknown): UnSplashImage[] {
-  const results = isRecord(data) && !Array.isArray(data) ? readField(data, "results") : data;
+  const results = isRecord(data) ? readField(data, "results") : data;
   if (!Array.isArray(results)) return [];
   return results.flatMap((item: unknown) => {
     const image = toUnsplashImage(item);
