@@ -26,7 +26,7 @@ import { EUserPermissionsLevel, ISSUE_PRIORITIES } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
 import type { TIssue } from "@plane/types";
-import { EUserPermissions } from "@plane/types";
+import { EUserPermissions, isOneOf, readString } from "@plane/types";
 import { copyTextToClipboard } from "@plane/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
@@ -37,7 +37,6 @@ import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
-import { getStringField, isOneOf } from "@/helpers/narrow.helper";
 
 const PRIORITY_VALUES = ISSUE_PRIORITIES.map((priority) => priority.key);
 
@@ -295,7 +294,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-cycle",
       onSelect: (data) => {
-        const cycleId = getStringField(data, "id");
+        const cycleId = readString(data, "id");
         if (!workspaceSlug || !entityDetails || !entityDetails.project_id) return;
         if (entityDetails.cycle_id === cycleId) return;
         try {
@@ -331,7 +330,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-module",
       onSelect: (data) => {
-        const moduleId = getStringField(data, "id");
+        const moduleId = readString(data, "id");
         if (!moduleId) return;
         if (!workspaceSlug || !entityDetails || !entityDetails.project_id) return;
         try {
@@ -362,7 +361,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-labels",
       onSelect: (data) => {
-        const labelId = getStringField(data, "id");
+        const labelId = readString(data, "id");
         if (!labelId) return;
         if (!workspaceSlug || !entityDetails || !entityDetails.project_id) return;
         const updatedLabels = [...(entityDetails.label_ids ?? [])];

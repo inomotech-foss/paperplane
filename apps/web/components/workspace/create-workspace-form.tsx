@@ -21,7 +21,7 @@ import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
 // services
 import { WorkspaceService } from "@/services/workspace.service";
-import { getField } from "@/helpers/narrow.helper";
+import { readField } from "@plane/types";
 
 type Props = {
   onSubmit?: (res: IWorkspace) => Promise<void>;
@@ -70,7 +70,7 @@ export const CreateWorkspaceForm = observer(function CreateWorkspaceForm(props: 
   const handleCreateWorkspace = async (formData: IWorkspace) => {
     try {
       const res: unknown = await workspaceService.workspaceSlugCheck(formData.slug);
-      if (getField(res, "status") === true && !RESTRICTED_URLS.includes(formData.slug)) {
+      if (readField(res, "status") === true && !RESTRICTED_URLS.includes(formData.slug)) {
         setSlugError(false);
         try {
           const workspaceResponse = await createWorkspace(formData);

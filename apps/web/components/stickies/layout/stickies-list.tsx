@@ -21,7 +21,7 @@ import type { MasonryPropTypes } from "react-masonry-component";
 import { EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { AddOutline } from "@makeplane/propel/icons";
-import { EUserWorkspaceRoles } from "@plane/types";
+import { EUserWorkspaceRoles, isRecord } from "@plane/types";
 // assets
 import darkStickiesAsset from "@/app/assets/empty-state/stickies/stickies-dark.webp?url";
 import lightStickiesAsset from "@/app/assets/empty-state/stickies/stickies-light.webp?url";
@@ -40,7 +40,6 @@ import { StickiesLoader } from "./stickies-loader";
 import { StickyDNDWrapper } from "./sticky-dnd-wrapper";
 import { getInstructionFromPayload } from "./sticky.helpers";
 import { getDragDataId } from "@/components/common/drag-target-data";
-import { isRecord } from "@/helpers/narrow.helper";
 
 // react-masonry-component's typings omit children
 const MasonryLayout: ComponentClass<MasonryPropTypes & { children?: ReactNode }> = Masonry;

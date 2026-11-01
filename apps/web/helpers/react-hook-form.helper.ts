@@ -5,12 +5,10 @@
  */
 
 import type { FieldError, FieldValues } from "react-hook-form";
-import { isRecord } from "@/helpers/guards";
+import { isObject, isRecord } from "@plane/types";
 
 const getChild = (value: unknown, key: string): unknown =>
-  typeof value === "object" && value !== null
-    ? Object.entries(value).find(([childKey]) => childKey === key)?.[1]
-    : undefined;
+  isObject(value) ? Object.entries(value).find(([childKey]) => childKey === key)?.[1] : undefined;
 
 const isFieldError = (value: unknown): value is FieldError =>
   isRecord(value) && "message" in value && typeof value.type === "string";

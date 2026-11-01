@@ -29,7 +29,7 @@ import {
 // components
 import { ProjectSelect } from "@/components/dropdowns/project/project-select";
 // hooks
-import { findLiteral } from "@/helpers/narrow.helper";
+import { findLiteral } from "@plane/types";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";

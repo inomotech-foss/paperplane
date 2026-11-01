@@ -10,7 +10,7 @@ import { observer } from "mobx-react";
 import useSWR from "swr";
 // plane imports
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import { GANTT_TIMELINE_TYPE } from "@plane/types";
+import { GANTT_TIMELINE_TYPE, readNumber } from "@plane/types";
 import type { TProject } from "@plane/types";
 // components
 import { ProjectAccessRestriction } from "@/components/auth-screens/project/project-access-restriction";
@@ -35,7 +35,6 @@ import {
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
-import { readNumber } from "@/helpers/guards";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { useLabel } from "@/hooks/store/use-label";
 import { useMember } from "@/hooks/store/use-member";

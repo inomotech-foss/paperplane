@@ -7,7 +7,7 @@
 import type { ApiRequestBody, ApiResponse, ApiSchema } from "@plane/api-types";
 import { toWorkspaceMemberMe, toWorkspaceSearchResults, unwrap, workspaceSearchQuery } from "@plane/services";
 import type { TWorkspaceMemberMeUpdateBody, TWorkspaceSearchParams } from "@plane/services";
-import { RECENT_ENTITY_NAMES, parseIssueFiltersResponse, parseLogoProps } from "@plane/types";
+import { isOneOf, parseIssueFiltersResponse, parseLogoProps, RECENT_ENTITY_NAMES } from "@plane/types";
 import type {
   IWorkspace,
   IWorkspaceMemberMe,
@@ -30,7 +30,6 @@ import type {
   IWorkspaceUserPropertiesResponse,
 } from "@plane/types";
 // services
-import { isOneOf } from "@/helpers/narrow.helper";
 import { apiClient } from "@/services/api-client";
 import type { TRequestOptions } from "@/services/issue/issue.service";
 import { toWorkspaceIssueListQuery } from "@/services/issue/issue-query";

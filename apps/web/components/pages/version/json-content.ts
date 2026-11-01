@@ -4,16 +4,16 @@
  */
 
 import type { JSONContent } from "@plane/types";
-import { isRecord } from "@/helpers/narrow.helper";
+import { isObject } from "@plane/types";
 
 const isOptionalString = (value: unknown): boolean => value === undefined || typeof value === "string";
-const isOptionalRecord = (value: unknown): boolean => value === undefined || isRecord(value);
+const isOptionalRecord = (value: unknown): boolean => value === undefined || isObject(value);
 
 const isMark = (value: unknown): boolean =>
-  isRecord(value) && typeof value.type === "string" && isOptionalRecord(value.attrs);
+  isObject(value) && typeof value.type === "string" && isOptionalRecord(value.attrs);
 
 export const isJSONContent = (value: unknown): value is JSONContent =>
-  isRecord(value) &&
+  isObject(value) &&
   isOptionalString(value.type) &&
   isOptionalString(value.text) &&
   isOptionalRecord(value.attrs) &&

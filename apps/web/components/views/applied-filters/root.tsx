@@ -8,14 +8,13 @@ import { useTranslation } from "@plane/i18n";
 import { CloseOutline } from "@makeplane/propel/icons";
 // plane imports
 import type { TViewFilterProps } from "@plane/types";
-import { EViewAccess } from "@plane/types";
+import { EViewAccess, isOneOf } from "@plane/types";
 import { replaceUnderscoreIfSnakeCase } from "@plane/utils";
 // components
 import { AppliedDateFilters } from "@/components/common/applied-filters/date";
 import { AppliedMembersFilters } from "@/components/common/applied-filters/members";
 // local imports
 import { AppliedAccessFilters } from "./access";
-import { isOneOf } from "@/helpers/narrow.helper";
 
 type Props = {
   appliedFilters: TViewFilterProps;

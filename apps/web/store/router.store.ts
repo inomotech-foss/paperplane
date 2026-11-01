@@ -8,7 +8,7 @@ import type { ParsedUrlQuery } from "node:querystring";
 import { action, makeObservable, observable, computed, runInAction } from "mobx";
 
 import type { TProfileViews } from "@plane/types";
-import { isOneOf } from "@/helpers/narrow.helper";
+import { isOneOf } from "@plane/types";
 
 const PROFILE_VIEWS: readonly TProfileViews[] = ["assigned", "created", "subscribed"];
 

@@ -13,10 +13,9 @@ import { useTranslation } from "@plane/i18n";
 import { EmptyStateDetailed } from "@plane/blocks/empty-state";
 import { setToast } from "@plane/blocks/toast";
 import type { TPage, TPageNavigationTabs } from "@plane/types";
-import { EUserProjectRoles } from "@plane/types";
+import { EUserProjectRoles, isRecord, readString } from "@plane/types";
 // components
 import { PageLoader } from "@/components/pages/loaders/page-loader";
-import { getStringField, isRecord } from "@/helpers/narrow.helper";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 // plane web hooks
@@ -69,8 +68,7 @@ export const PagesListMainContent = observer(function PagesListMainContent(props
           type: "error",
           title: "Error!",
           message:
-            getStringField(isRecord(err) ? err.data : undefined, "error") ||
-            "Page could not be created. Please try again.",
+            readString(isRecord(err) ? err.data : undefined, "error") || "Page could not be created. Please try again.",
         });
       })
       .finally(() => setIsCreatingPage(false));

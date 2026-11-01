@@ -12,7 +12,7 @@ import type { IEmailCheckData } from "@plane/types";
 // helpers
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
 import { getApiErrorBody, getAuthErrorInfo } from "@/helpers/error.helper";
-import { getField } from "@/helpers/narrow.helper";
+import { readField } from "@plane/types";
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -77,7 +77,10 @@ export const AuthFormRoot = observer(function AuthFormRoot(props: TAuthFormRoot)
         setIsExistingEmail(response.existing);
       })
       .catch((error: unknown) => {
-        const errorhandler = getAuthErrorInfo(getField(getApiErrorBody(error), "error_code"), data?.email || undefined);
+        const errorhandler = getAuthErrorInfo(
+          readField(getApiErrorBody(error), "error_code"),
+          data?.email || undefined
+        );
         if (errorhandler?.type) setErrorInfo(errorhandler);
       });
   };
@@ -98,7 +101,7 @@ export const AuthFormRoot = observer(function AuthFormRoot(props: TAuthFormRoot)
       .generateUniqueCode(payload)
       .then(() => ({ code: "" }))
       .catch((error: unknown) => {
-        const errorhandler = getAuthErrorInfo(getField(getApiErrorBody(error), "error_code"));
+        const errorhandler = getAuthErrorInfo(readField(getApiErrorBody(error), "error_code"));
         if (errorhandler?.type) setErrorInfo(errorhandler);
         throw error;
       });

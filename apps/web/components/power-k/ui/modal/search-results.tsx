@@ -17,7 +17,7 @@ import { PowerKModalCommandItem } from "./command-item";
 import { getSearchItemValue } from "./search-item-value";
 import type { TPowerKSearchResultItem } from "./search-results-map";
 import { POWER_K_SEARCH_RESULTS_GROUPS_MAP, POWER_K_SEARCH_RESULTS_KEYS } from "./search-results-map";
-import { isOneOf } from "@/helpers/narrow.helper";
+import { isOneOf } from "@plane/types";
 
 type Props = {
   closePalette: () => void;

@@ -23,7 +23,7 @@ import { RichTextEditor } from "@/components/editor/rich-text";
 // services
 import { AIService } from "@/services/ai.service";
 import { getApiErrorMessage } from "@/helpers/error.helper";
-import { getField, getStringField } from "@/helpers/narrow.helper";
+import { readField, readString } from "@plane/types";
 const aiService = new AIService();
 
 type Props = {
@@ -92,9 +92,9 @@ export function GptAssistantPopover(props: Props) {
   };
 
   const handleServiceError = (err: unknown) => {
-    const error = getApiErrorMessage(getField(err, "data"));
+    const error = getApiErrorMessage(readField(err, "data"));
     const errorMessage =
-      getField(err, "status") === 429
+      readField(err, "status") === 429
         ? error || "You have reached the maximum number of requests of 50 requests per month per user."
         : error || "Some error occurred. Please try again.";
 
@@ -114,10 +114,10 @@ export function GptAssistantPopover(props: Props) {
         task: formData.task,
       });
 
-      setResponse(getStringField(res, "response_html") ?? "");
+      setResponse(readString(res, "response_html") ?? "");
       setFocus("task");
 
-      setInvalidResponse(getStringField(res, "response") === "");
+      setInvalidResponse(readString(res, "response") === "");
     } catch (err: unknown) {
       handleServiceError(err);
     }

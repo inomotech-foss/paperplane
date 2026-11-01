@@ -28,7 +28,8 @@ import { allowedActions, findAction } from "../helpers/metadata";
 import { AutomationActionConfig } from "./action-config";
 import { RawAutomationValue } from "./raw-value";
 import { getApiErrorBody } from "@/helpers/error.helper";
-import { getFirstStringField, getStringField } from "@/helpers/narrow.helper";
+import { readString } from "@plane/types";
+import { getFirstStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   workspaceSlug: string;
@@ -93,8 +94,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
       setToast({
         type: "error",
         title: t("common.errors.default.title"),
-        message:
-          getStringField(getApiErrorBody(error), "error") ?? t("automations.action.validation.delete_only_action"),
+        message: readString(getApiErrorBody(error), "error") ?? t("automations.action.validation.delete_only_action"),
       });
     }
   };

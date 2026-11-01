@@ -25,7 +25,7 @@ import type {
   TSupportedFilterForUpdate,
   TWorkItemFilterExpression,
 } from "@plane/types";
-import { EIssueLayoutTypes, parseDisplayFilters, parseDisplayProperties } from "@plane/types";
+import { EIssueLayoutTypes, isStringArray, parseDisplayFilters, parseDisplayProperties } from "@plane/types";
 // helpers
 import { getComputedDisplayFilters, getComputedDisplayProperties } from "@plane/utils";
 // lib
@@ -48,14 +48,11 @@ export const toDisplayFilterChanges = (changes: TSupportedFilterForUpdate): IIss
 export const toDisplayPropertyChanges = (changes: TSupportedFilterForUpdate): IIssueDisplayProperties =>
   parseDisplayProperties(changes);
 
-const isStringList = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((item) => typeof item === "string");
-
 /** The collapsed kanban groups of an update. Display filters share the group_by key, but as a single value. */
 export const toKanbanFilterChanges = (changes: TSupportedFilterForUpdate): Partial<TIssueKanbanFilters> => {
   const result: Partial<TIssueKanbanFilters> = {};
-  if ("group_by" in changes && isStringList(changes.group_by)) result.group_by = changes.group_by;
-  if ("sub_group_by" in changes && isStringList(changes.sub_group_by)) result.sub_group_by = changes.sub_group_by;
+  if ("group_by" in changes && isStringArray(changes.group_by)) result.group_by = changes.group_by;
+  if ("sub_group_by" in changes && isStringArray(changes.sub_group_by)) result.sub_group_by = changes.sub_group_by;
   return result;
 };
 

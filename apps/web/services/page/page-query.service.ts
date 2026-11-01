@@ -5,9 +5,8 @@
 
 import type { ApiSchema, InternalPaths } from "@plane/api-types";
 import { unwrap } from "@plane/services";
-import { parseLogoProps } from "@plane/types";
+import { isOneOf, parseLogoProps } from "@plane/types";
 import type { TLogoProps } from "@plane/types";
-import { isOneOf } from "@/helpers/narrow.helper";
 import { apiClient } from "@/services/api-client";
 
 export type TPageQueryResult = {

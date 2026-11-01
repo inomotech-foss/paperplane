@@ -3,8 +3,8 @@
  * See the LICENSE file for details.
  */
 
-import { getStringField } from "@/helpers/narrow.helper";
+import { readString } from "@plane/types";
 
 /** Reads the thread id from the editor's comment-create event. */
 export const getCommentEventThreadId = (event: Event): string | undefined =>
-  event instanceof CustomEvent ? getStringField(event.detail, "threadId") : undefined;
+  event instanceof CustomEvent ? readString(event.detail, "threadId") : undefined;

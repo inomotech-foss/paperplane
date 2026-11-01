@@ -44,7 +44,7 @@ import type {
   TGetColumns,
   TSpreadsheetColumn,
 } from "@plane/types";
-import { EIssuesStoreType } from "@plane/types";
+import { EIssuesStoreType, isStringArray, readString } from "@plane/types";
 // plane ui
 
 import { renderFormattedDate, getFileURL } from "@plane/utils";
@@ -52,7 +52,7 @@ import { renderFormattedDate, getFileURL } from "@plane/utils";
 import { store } from "@/lib/store-context";
 import { ISSUE_FILTER_DEFAULT_DATA } from "@/store/issue/helpers/base-issues.store";
 import { DEFAULT_DISPLAY_PROPERTIES } from "@/store/issue/issue-details/sub_issues_filter.store";
-import { getStringField, isStringArray, keysOf, toCycleGroup } from "@/components/issues/narrow";
+import { keysOf, toCycleGroup } from "@/components/issues/narrow";
 // constants
 import { ISSUE_GROUP_BY_OPTIONS } from "@plane/constants";
 // components
@@ -412,14 +412,14 @@ export const getSourceFromDropPayload = (payload: IPragmaticDropPayload): GroupD
     }
   }
 
-  const sourceId = getStringField(sourceIssueData, "id");
-  const sourceGroupId = sourceColumData ? getStringField(sourceColumData, "groupId") : undefined;
+  const sourceId = readString(sourceIssueData, "id");
+  const sourceGroupId = sourceColumData ? readString(sourceColumData, "groupId") : undefined;
   if (sourceId === undefined || !sourceColumData || !sourceGroupId) return;
 
   return {
     groupId: sourceGroupId,
-    subGroupId: getStringField(sourceColumData, "subGroupId"),
-    columnId: getStringField(sourceColumData, "columnId"),
+    subGroupId: readString(sourceColumData, "subGroupId"),
+    columnId: readString(sourceColumData, "columnId"),
     id: sourceId,
   };
 };
@@ -450,7 +450,7 @@ export const getDestinationFromDropPayload = (payload: IPragmaticDropPayload): G
     }
   }
 
-  const destinationGroupId = destinationColumnData ? getStringField(destinationColumnData, "groupId") : undefined;
+  const destinationGroupId = destinationColumnData ? readString(destinationColumnData, "groupId") : undefined;
   if (!destinationColumnData || !destinationGroupId) return;
 
   // extract instruction from destination issue
@@ -458,9 +458,9 @@ export const getDestinationFromDropPayload = (payload: IPragmaticDropPayload): G
 
   return {
     groupId: destinationGroupId,
-    subGroupId: getStringField(destinationColumnData, "subGroupId"),
-    columnId: getStringField(destinationColumnData, "columnId"),
-    id: destinationIssueData ? getStringField(destinationIssueData, "id") : undefined,
+    subGroupId: readString(destinationColumnData, "subGroupId"),
+    columnId: readString(destinationColumnData, "columnId"),
+    id: destinationIssueData ? readString(destinationIssueData, "id") : undefined,
     canAddIssueBelow: extractedInstruction === "reorder-below",
   };
 };

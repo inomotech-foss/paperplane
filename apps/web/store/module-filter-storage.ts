@@ -8,8 +8,7 @@ import type {
   TModuleLayoutOptions,
   TModuleOrderByOptions,
 } from "@plane/types";
-import { isRecord } from "@plane/types";
-import { isOneOf } from "@/helpers/narrow.helper";
+import { isOneOf, isRecord, isStringArray } from "@plane/types";
 
 const LAYOUTS: readonly TModuleLayoutOptions[] = ["list", "board", "gantt"];
 const ORDER_BY: readonly TModuleOrderByOptions[] = [
@@ -27,9 +26,6 @@ const ORDER_BY: readonly TModuleOrderByOptions[] = [
 ];
 const FILTER_KEYS = ["lead", "members", "start_date", "status", "target_date"] as const;
 
-const isStringList = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((item) => typeof item === "string");
-
 const toDisplayFilters = (value: unknown): TModuleDisplayFilters => {
   const result: TModuleDisplayFilters = {};
   if (!isRecord(value)) return result;
@@ -44,7 +40,7 @@ const toFilters = (value: unknown): TModuleFilters => {
   if (!isRecord(value)) return result;
   for (const key of FILTER_KEYS) {
     const filter = value[key];
-    if (filter === null || isStringList(filter)) result[key] = filter;
+    if (filter === null || isStringArray(filter)) result[key] = filter;
   }
   return result;
 };

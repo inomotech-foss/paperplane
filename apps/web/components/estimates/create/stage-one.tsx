@@ -16,7 +16,7 @@ import { convertMinutesToHoursMinutesString } from "@plane/utils";
 // components
 import { UpgradeBadge } from "@/components/workspace/upgrade-badge";
 import { RadioInput } from "../radio-select";
-import { isOneOf } from "@/helpers/narrow.helper";
+import { isOneOf } from "@plane/types";
 
 const ESTIMATE_SYSTEM_KEYS: TEstimateSystemKeys[] = Object.values(EEstimateSystem);
 

@@ -3,26 +3,13 @@
  * See the LICENSE file for details.
  */
 
+import { isOneOf, isRecord } from "@plane/types";
 import type { TCycleGroups, TIssueRelationTypes } from "@plane/types";
-
-export const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-export const isStringArray = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((item) => typeof item === "string");
-
-export const getStringField = (data: Record<PropertyKey, unknown>, key: string): string | undefined => {
-  const value = data[key];
-  return typeof value === "string" ? value : undefined;
-};
 
 export const hasStringId = (value: unknown): value is { id: string } => isRecord(value) && typeof value.id === "string";
 
 export const keysOf = <T extends object>(obj: T): (keyof T & string)[] =>
   Object.keys(obj).filter((key): key is keyof T & string => key in obj);
-
-export const includesValue = <T extends string>(values: readonly T[], value: unknown): value is T =>
-  values.some((item) => item === value);
 
 const CYCLE_GROUPS: readonly TCycleGroups[] = ["current", "upcoming", "completed", "draft"];
 
@@ -44,4 +31,4 @@ export const getStringProp = (value: unknown, ...path: string[]): string | undef
 
 const RELATION_TYPES: readonly TIssueRelationTypes[] = ["blocking", "blocked_by", "duplicate", "relates_to"];
 
-export const isRelationType = (value: unknown): value is TIssueRelationTypes => includesValue(RELATION_TYPES, value);
+export const isRelationType = (value: unknown): value is TIssueRelationTypes => isOneOf(RELATION_TYPES, value);

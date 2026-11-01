@@ -7,13 +7,12 @@
 import React from "react";
 import { observer } from "mobx-react";
 import type { TCycleEstimateType } from "@plane/types";
-import { EEstimateSystem } from "@plane/types";
+import { EEstimateSystem, findLiteral } from "@plane/types";
 import { Select } from "@plane/blocks/select";
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useCycle } from "@/hooks/store/use-cycle";
 // local imports
 import { cycleEstimateOptions } from "../analytics-sidebar/issue-progress";
-import { findLiteral } from "@/helpers/narrow.helper";
 
 const ESTIMATE_TYPES = ["issues", "points"] as const satisfies readonly TCycleEstimateType[];
 

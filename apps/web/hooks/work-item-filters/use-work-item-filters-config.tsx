@@ -27,7 +27,7 @@ import { Logo } from "@plane/blocks/emoji-icon-picker";
 import { CycleGroupIcon, PriorityIcon, StateGroupIcon } from "@plane/blocks/icons";
 import type { IState, IUserLite, TFilterConfig, IIssueLabel, TWorkItemFilterProperty } from "@plane/types";
 import type { TWorkItemFilterOption } from "@plane/utils";
-import { isPresent } from "@/helpers/guards";
+import { isPresent } from "@/helpers/narrow.helper";
 import {
   getAssigneeFilterConfig,
   getBelowWorkItemFilterConfig,

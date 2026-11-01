@@ -28,10 +28,9 @@ import {
 import { IconButton } from "@makeplane/propel/components/icon-button";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import { EIssuesStoreType } from "@plane/types";
+import { EIssuesStoreType, readString } from "@plane/types";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssues } from "@/hooks/store/use-issues";
-import { getStringField } from "@/helpers/narrow.helper";
 
 type Props = {
   isOpen: boolean;
@@ -85,7 +84,7 @@ export const TransferIssuesModal = observer(function TransferIssuesModal(props: 
       setToast({
         type: "error",
         title: "Error",
-        message: getStringField(error, "error") || "Unable to fetch cycle details",
+        message: readString(error, "error") || "Unable to fetch cycle details",
       });
     });
   };

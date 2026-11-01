@@ -20,6 +20,8 @@ import {
   EIssueLayoutTypes,
   EIssuesStoreType,
   EXTENDED_OPERATORS,
+  isOneOf,
+  isRecord,
   LOGICAL_OPERATOR,
   WORK_ITEM_FILTER_PROPERTY_KEYS,
 } from "@plane/types";
@@ -114,16 +116,10 @@ const OPERATORS: readonly TSupportedOperators[] = [
   ...Object.values(EXTENDED_OPERATORS),
 ];
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
 const isArray = (value: unknown): value is unknown[] => Array.isArray(value);
 
 const isKeyOf = <T extends string>(record: Record<T, true>, value: unknown): value is T =>
   typeof value === "string" && Object.hasOwn(record, value);
-
-const isOneOf = <T extends string>(values: readonly T[], value: unknown): value is T =>
-  values.some((item) => item === value);
 
 const isOptionalString = (value: unknown): value is string | undefined =>
   value === undefined || typeof value === "string";

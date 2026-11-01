@@ -22,6 +22,7 @@ import type {
   TCreateWorkItemConfig,
   TSendNotificationConfig,
 } from "@plane/types";
+import { isRecord } from "@plane/types";
 import { Switch } from "@makeplane/propel/components/switch";
 // components
 import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
@@ -113,7 +114,7 @@ function ShiftDaysInput(props: TChangeValueProps) {
 }
 
 const isRelativeDate = (value: TChangePropertyConfig["value"]): value is Exclude<TAutomationDateValue, string> =>
-  typeof value === "object" && value !== null && !Array.isArray(value) && value.mode === "relative";
+  isRecord(value) && value.mode === "relative";
 
 /** A date property: either an absolute date or a number of days from the run. */
 function DateValueEditor(props: TChangeValueProps) {

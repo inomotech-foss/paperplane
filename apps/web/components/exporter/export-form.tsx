@@ -21,6 +21,7 @@ import { Button } from "@makeplane/propel/components/button";
 import { setToast } from "@plane/blocks/toast";
 // import { Tooltip } from "@makeplane/propel/components/tooltip";
 // import { EIssuesStoreType } from "@plane/types";
+import { findLiteral } from "@plane/types";
 import type { TWorkItemFilterExpression } from "@plane/types";
 import { Select, SelectContent, SelectItem, SelectList, SelectTrigger } from "@makeplane/propel/components/select";
 // import { WorkspaceLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/workspace-level";
@@ -28,7 +29,6 @@ import { Select, SelectContent, SelectItem, SelectList, SelectTrigger } from "@m
 // components
 import { ProjectSelect } from "@/components/dropdowns/project/project-select";
 // hooks
-import { findLiteral } from "@/helpers/narrow.helper";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { ProjectExportService } from "@/services/project/project-export.service";

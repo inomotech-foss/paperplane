@@ -12,7 +12,7 @@ import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import { setToast } from "@plane/blocks/toast";
 import type { IUserTheme } from "@plane/types";
-import { getField } from "@/helpers/narrow.helper";
+import { readField } from "@plane/types";
 
 type Props = {
   handleUpdateTheme: (formData: IUserTheme) => Promise<void>;
@@ -33,8 +33,8 @@ export const CustomThemeImportConfigButton = observer(function CustomThemeImport
     try {
       const text = await file.text();
       const config: unknown = JSON.parse(text);
-      const primary = getField(config, "primary");
-      const background = getField(config, "background");
+      const primary = readField(config, "primary");
+      const background = readField(config, "background");
 
       // Validate required fields
       if (!primary || !background) {
@@ -51,7 +51,7 @@ export const CustomThemeImportConfigButton = observer(function CustomThemeImport
       }
 
       // Validate theme mode
-      const themeMode = getField(config, "darkPalette") ?? false;
+      const themeMode = readField(config, "darkPalette") ?? false;
       if (typeof themeMode !== "boolean") {
         throw new Error("Invalid theme mode. Must be a boolean");
       }

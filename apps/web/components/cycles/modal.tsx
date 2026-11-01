@@ -21,7 +21,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 import { CycleService } from "@/services/cycle.service";
 // local imports
 import { CycleForm } from "./form";
-import { getStringField } from "@/helpers/narrow.helper";
+import { readString } from "@plane/types";
 
 type CycleModalProps = {
   isOpen: boolean;
@@ -71,7 +71,7 @@ export function CycleCreateUpdateModal(props: CycleModalProps) {
         setToast({
           type: "error",
           title: "Error!",
-          message: getStringField(err, "detail") ?? "Error in creating cycle. Please try again.",
+          message: readString(err, "detail") ?? "Error in creating cycle. Please try again.",
         });
       });
   };
@@ -92,7 +92,7 @@ export function CycleCreateUpdateModal(props: CycleModalProps) {
         setToast({
           type: "error",
           title: "Error!",
-          message: getStringField(err, "detail") ?? "Error in updating cycle. Please try again.",
+          message: readString(err, "detail") ?? "Error in updating cycle. Please try again.",
         });
       });
   };

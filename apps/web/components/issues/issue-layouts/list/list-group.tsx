@@ -22,14 +22,13 @@ import type {
   IIssueDisplayProperties,
   TIssueKanbanFilters,
 } from "@plane/types";
-import { EIssueLayoutTypes } from "@plane/types";
+import { EIssueLayoutTypes, readString } from "@plane/types";
 import { Row } from "@plane/blocks/layout";
 import { cn } from "@plane/utils";
 // components
 import { ListLoaderItemRow } from "@/components/ui/loader/layouts/list-layout-loader";
 import { useWorkFlowFDragNDrop } from "@/components/workflow";
 // hooks
-import { getStringField } from "@/components/issues/narrow";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useIssuesStore } from "@/hooks/use-issue-layout-store";
@@ -201,7 +200,7 @@ export const ListGroup = observer(function ListGroup(props: Props) {
           setIsDraggingOverColumn(true);
         },
         onDrag: ({ source }) => {
-          const sourceGroupId = getStringField(source.data, "groupId");
+          const sourceGroupId = readString(source.data, "groupId");
           const currentGroupId = group.id;
 
           if (sourceGroupId) dropHandlersRef.current.handleWorkFlowState(sourceGroupId, currentGroupId);

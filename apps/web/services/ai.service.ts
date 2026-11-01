@@ -7,7 +7,7 @@
 import type { ApiSchema } from "@plane/api-types";
 import type { AI_EDITOR_TASKS } from "@plane/constants";
 import { unwrap } from "@plane/services";
-import { getStringField } from "@/helpers/narrow.helper";
+import { readString } from "@plane/types";
 import { apiClient } from "@/services/api-client";
 import { sendJson } from "@/services/send-json";
 
@@ -20,7 +20,7 @@ export type TTaskPayload = {
 
 /** The reply of the editor task endpoint, which the schema does not describe. */
 export function parseEditorTaskReply(data: unknown): { response: string } {
-  const response = getStringField(data, "response");
+  const response = readString(data, "response");
   if (response === undefined) throw new Error("The editor task returned no response");
   return { response };
 }

@@ -9,6 +9,7 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // types
 import { setToast } from "@plane/blocks/toast";
+import { readString } from "@plane/types";
 import type { IIssueLabel } from "@plane/types";
 // ui
 import { ConfirmDialog } from "@plane/blocks/dialog";
@@ -45,10 +46,7 @@ export const DeleteLabelModal = observer(function DeleteLabelModal(props: Props)
       handleClose();
     } catch (err) {
       setIsDeleteLoading(false);
-      const error =
-        err && typeof err === "object" && "error" in err && typeof err.error === "string" && err.error
-          ? err.error
-          : "Label could not be deleted. Please try again.";
+      const error = readString(err, "error") || "Label could not be deleted. Please try again.";
       setToast({
         type: "error",
         title: "Error!",

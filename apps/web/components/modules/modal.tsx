@@ -18,7 +18,7 @@ import { ModuleForm } from "@/components/modules";
 import { useModule } from "@/hooks/store/use-module";
 import { useProject } from "@/hooks/store/use-project";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-import { getStringField } from "@/helpers/narrow.helper";
+import { readString } from "@plane/types";
 
 type Props = {
   isOpen: boolean;
@@ -74,9 +74,7 @@ export const CreateUpdateModuleModal = observer(function CreateUpdateModuleModal
           type: "error",
           title: "Error!",
           message:
-            getStringField(err, "detail") ??
-            getStringField(err, "error") ??
-            "Module could not be created. Please try again.",
+            readString(err, "detail") ?? readString(err, "error") ?? "Module could not be created. Please try again.",
         });
       });
   };
@@ -100,9 +98,7 @@ export const CreateUpdateModuleModal = observer(function CreateUpdateModuleModal
           type: "error",
           title: "Error!",
           message:
-            getStringField(err, "detail") ??
-            getStringField(err, "error") ??
-            "Module could not be updated. Please try again.",
+            readString(err, "detail") ?? readString(err, "error") ?? "Module could not be updated. Please try again.",
         });
       });
   };

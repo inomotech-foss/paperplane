@@ -24,7 +24,7 @@ import { useUserProfile, useUserSettings } from "@/hooks/store/user";
 import { WorkspaceService } from "@/services/workspace.service";
 // local components
 import { CommonOnboardingHeader } from "../common";
-import { getField } from "@/helpers/narrow.helper";
+import { readField } from "@plane/types";
 
 type Props = {
   user: IUser | undefined;
@@ -73,7 +73,7 @@ export const WorkspaceCreateStep = observer(function WorkspaceCreateStep({
 
     try {
       const res: unknown = await workspaceService.workspaceSlugCheck(formData.slug);
-      if (getField(res, "status") === true && !RESTRICTED_URLS.includes(formData.slug)) {
+      if (readField(res, "status") === true && !RESTRICTED_URLS.includes(formData.slug)) {
         setSlugError(false);
         try {
           const workspaceResponse = await createWorkspace(formData);

@@ -4,7 +4,7 @@
  */
 
 import type { TCycleGroups } from "@plane/types";
-import { findLiteral } from "@/helpers/narrow.helper";
+import { findLiteral } from "@plane/types";
 
 const CYCLE_GROUPS = ["current", "upcoming", "completed", "draft"] as const satisfies readonly TCycleGroups[];
 

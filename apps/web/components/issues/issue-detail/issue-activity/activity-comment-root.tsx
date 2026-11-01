@@ -12,7 +12,7 @@ import type { TCommentsOperations } from "@plane/types";
 // components
 import { CommentCard } from "@/components/comments/card/root";
 // hooks
-import { includesValue } from "@/components/issues/narrow";
+import { isOneOf } from "@plane/types";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
 import { IssueActivityItem } from "./activity/activity-list";
@@ -74,7 +74,7 @@ export const IssueActivityCommentRoot = observer(function IssueActivityCommentRo
             projectId={projectId}
             enableReplies
           />
-        ) : includesValue(BASE_ACTIVITY_FILTER_TYPES, activityComment.activity_type) ? (
+        ) : isOneOf(BASE_ACTIVITY_FILTER_TYPES, activityComment.activity_type) ? (
           <IssueActivityItem
             key={activityComment.id}
             activityId={activityComment.id}
