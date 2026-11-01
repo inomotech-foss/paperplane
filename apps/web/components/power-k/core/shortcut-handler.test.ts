@@ -23,20 +23,76 @@ const context: TPowerKContext = {
 };
 
 const setup = () => {
-  const lock = vi.fn();
+  const picker = vi.fn();
   const create = vi.fn();
   const sidebar = vi.fn();
   const remove = vi.fn();
+  const goModules = vi.fn();
+  const chordL = vi.fn();
+  const labels = vi.fn();
+  const shiftA = vi.fn();
+  const togglePalette = vi.fn();
   const registry = new PowerKCommandRegistry();
   registry.registerMultiple([
     {
-      id: "lock",
-      i18n_title: "lock",
+      id: "picker",
+      i18n_title: "picker",
       group: "contextual",
       contextType: "page",
       type: "action",
-      action: lock,
-      modifierShortcut: "shift+l",
+      changesState: false,
+      action: picker,
+      shortcut: "shift+l",
+      isEnabled: () => true,
+      isVisible: () => true,
+      closeOnSelect: true,
+    },
+    {
+      id: "labels",
+      i18n_title: "labels",
+      group: "contextual",
+      contextType: "page",
+      type: "action",
+      changesState: false,
+      action: labels,
+      shortcut: "l",
+      isEnabled: () => true,
+      isVisible: () => true,
+      closeOnSelect: true,
+    },
+    {
+      id: "shift-a",
+      i18n_title: "shift-a",
+      group: "contextual",
+      contextType: "page",
+      type: "action",
+      changesState: false,
+      action: shiftA,
+      shortcut: "shift+a",
+      isEnabled: () => true,
+      isVisible: () => true,
+      closeOnSelect: true,
+    },
+    {
+      id: "chord-l",
+      i18n_title: "chord-l",
+      group: "miscellaneous",
+      type: "action",
+      changesState: true,
+      action: chordL,
+      modifierShortcut: "cmd+shift+l",
+      isEnabled: () => true,
+      isVisible: () => true,
+      closeOnSelect: true,
+    },
+    {
+      id: "go-modules",
+      i18n_title: "go-modules",
+      group: "navigation",
+      type: "action",
+      changesState: false,
+      action: goModules,
+      keySequence: "gm",
       isEnabled: () => true,
       isVisible: () => true,
       closeOnSelect: true,
@@ -46,6 +102,7 @@ const setup = () => {
       i18n_title: "create",
       group: "create",
       type: "action",
+      changesState: false,
       action: create,
       shortcut: "c",
       isEnabled: () => true,
@@ -57,6 +114,7 @@ const setup = () => {
       i18n_title: "sidebar",
       group: "miscellaneous",
       type: "action",
+      changesState: true,
       action: sidebar,
       modifierShortcut: "cmd+b",
       isEnabled: () => true,
@@ -69,6 +127,7 @@ const setup = () => {
       group: "contextual",
       contextType: "page",
       type: "action",
+      changesState: true,
       action: remove,
       modifierShortcut: "cmd+backspace",
       isEnabled: () => true,
@@ -76,17 +135,29 @@ const setup = () => {
       closeOnSelect: true,
     },
   ]);
-  const handler = new ShortcutHandler(registry, () => context, noop, noop);
+  const handler = new ShortcutHandler(registry, () => context, noop, togglePalette);
   const press = (target: EventTarget, init: KeyboardEventInit) => {
     const event = new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init });
     target.dispatchEvent(event);
     handler.handleKeyDown(event);
   };
-  return { lock, create, sidebar, remove, press, handler };
+  return { picker, create, sidebar, remove, goModules, chordL, labels, shiftA, togglePalette, press, handler };
 };
 
 const shiftL: KeyboardEventInit = { key: "L", code: "KeyL", shiftKey: true };
 const plainC: KeyboardEventInit = { key: "c", code: "KeyC" };
+const plainL: KeyboardEventInit = { key: "l", code: "KeyL" };
+const plainG: KeyboardEventInit = { key: "g", code: "KeyG" };
+const plainM: KeyboardEventInit = { key: "m", code: "KeyM" };
+
+const stubLayoutMap = (entries: [string, string][]) => {
+  Object.defineProperty(navigator, "keyboard", {
+    value: { getLayoutMap: async () => new Map(entries) },
+    configurable: true,
+  });
+};
+
+const flushLayoutMap = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const placeCaret = (node: Node, offset: number, focusOffset = offset) => {
   const selection = window.getSelection();
@@ -104,14 +175,15 @@ describe("ShortcutHandler", () => {
   });
 
   afterEach(() => {
+    Reflect.deleteProperty(navigator, "keyboard");
     document.body.innerHTML = "";
   });
 
   it("fires shortcuts from the page background", () => {
-    const { lock, create, press } = setup();
+    const { picker, create, press } = setup();
     press(document.body, shiftL);
     press(document.body, plainC);
-    expect(lock).toHaveBeenCalledTimes(1);
+    expect(picker).toHaveBeenCalledTimes(1);
     expect(create).toHaveBeenCalledTimes(1);
   });
 
@@ -121,11 +193,11 @@ describe("ShortcutHandler", () => {
     if (!text) throw new Error("missing text node");
     placeCaret(text, 3);
 
-    const { lock, create, remove, press } = setup();
+    const { picker, create, remove, press } = setup();
     press(document.body, shiftL);
     press(document.body, plainC);
     press(document.body, { key: "Backspace", code: "Backspace", metaKey: true });
-    expect(lock).not.toHaveBeenCalled();
+    expect(picker).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
     expect(remove).not.toHaveBeenCalled();
   });
@@ -154,17 +226,17 @@ describe("ShortcutHandler", () => {
     expect(remove).toHaveBeenCalledTimes(1);
   });
 
-  it("ignores character keys while text is selected anywhere", () => {
+  it("ignores bare and Shift+letter keys while text is selected outside an editor", () => {
     document.body.innerHTML = "<p>Some page text</p>";
     const text = document.querySelector("p")?.firstChild;
     if (!text) throw new Error("missing text node");
     placeCaret(text, 0, 4);
 
-    const { lock, create, sidebar, press } = setup();
+    const { picker, create, sidebar, press } = setup();
     press(document.body, shiftL);
     press(document.body, plainC);
     press(document.body, { key: "b", code: "KeyB", metaKey: true });
-    expect(lock).not.toHaveBeenCalled();
+    expect(picker).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
     expect(sidebar).toHaveBeenCalledTimes(1);
   });
@@ -178,9 +250,9 @@ describe("ShortcutHandler", () => {
     placeCaret(text, 3);
     button.focus();
 
-    const { lock, press } = setup();
+    const { picker, press } = setup();
     press(button, shiftL);
-    expect(lock).toHaveBeenCalledTimes(1);
+    expect(picker).toHaveBeenCalledTimes(1);
   });
 
   it("ignores keys from a focused element inside a read-only editor", () => {
@@ -189,8 +261,82 @@ describe("ShortcutHandler", () => {
     if (!inner) throw new Error("missing node");
     inner.focus();
 
-    const { lock, press } = setup();
+    const { picker, press } = setup();
     press(inner, shiftL);
-    expect(lock).not.toHaveBeenCalled();
+    expect(picker).not.toHaveBeenCalled();
+  });
+
+  it("matches Shift+letter as a typed key, apart from bare keys and chords", () => {
+    const { picker, chordL, press } = setup();
+    press(document.body, plainL);
+    expect(picker).not.toHaveBeenCalled();
+
+    press(document.body, shiftL);
+    expect(picker).toHaveBeenCalledTimes(1);
+    expect(chordL).not.toHaveBeenCalled();
+
+    press(document.body, { ...shiftL, metaKey: true });
+    expect(chordL).toHaveBeenCalledTimes(1);
+    expect(picker).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores Shift+letter typed into an input", () => {
+    document.body.innerHTML = "<input />";
+    const input = document.querySelector("input");
+    if (!input) throw new Error("missing input");
+    input.focus();
+
+    const { picker, press } = setup();
+    press(input, shiftL);
+    expect(picker).not.toHaveBeenCalled();
+  });
+
+  it("ends a pending sequence on Shift+letter", () => {
+    const { picker, goModules, press } = setup();
+    press(document.body, plainG);
+    press(document.body, shiftL);
+    press(document.body, plainM);
+    expect(picker).toHaveBeenCalledTimes(1);
+    expect(goModules).not.toHaveBeenCalled();
+
+    press(document.body, plainG);
+    press(document.body, plainM);
+    expect(goModules).toHaveBeenCalledTimes(1);
+  });
+
+  it("reads a Caps Lock letter as the bare key, never as Shift+letter", () => {
+    const { picker, labels, press } = setup();
+    press(document.body, { key: "L", code: "KeyL", shiftKey: false });
+    expect(labels).toHaveBeenCalledTimes(1);
+    expect(picker).not.toHaveBeenCalled();
+  });
+
+  it("matches Shift+letter by the layout's character on a non-US layout", async () => {
+    stubLayoutMap([
+      ["KeyQ", "a"],
+      ["KeyA", "q"],
+    ]);
+    const { shiftA, press } = setup();
+    await flushLayoutMap();
+
+    press(document.body, { key: "A", code: "KeyQ", shiftKey: true });
+    expect(shiftA).toHaveBeenCalledTimes(1);
+
+    press(document.body, { key: "Q", code: "KeyA", shiftKey: true });
+    expect(shiftA).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores AltGr for typed keys, chords and the palette toggle", () => {
+    const { labels, picker, togglePalette, press } = setup();
+    press(document.body, { key: "l", code: "KeyL", modifierAltGraph: true });
+    press(document.body, { key: "L", code: "KeyL", shiftKey: true, modifierAltGraph: true });
+    press(document.body, { key: "k", code: "KeyK", ctrlKey: true, altKey: true });
+    press(document.body, { key: "k", code: "KeyK", ctrlKey: true, modifierAltGraph: true });
+    expect(labels).not.toHaveBeenCalled();
+    expect(picker).not.toHaveBeenCalled();
+    expect(togglePalette).not.toHaveBeenCalled();
+
+    press(document.body, { key: "k", code: "KeyK", metaKey: true });
+    expect(togglePalette).toHaveBeenCalledTimes(1);
   });
 });

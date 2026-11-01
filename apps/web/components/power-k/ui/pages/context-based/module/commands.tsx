@@ -110,6 +110,7 @@ export const usePowerKModuleContextBasedActions = (): TPowerKCommandConfig[] => 
       group: "contextual",
       contextType: "module",
       type: "change-page",
+      changesState: false,
       page: "update-module-member",
       onSelect: (data) => {
         if (typeof data !== "string") return;
@@ -128,6 +129,7 @@ export const usePowerKModuleContextBasedActions = (): TPowerKCommandConfig[] => 
       group: "contextual",
       contextType: "module",
       type: "change-page",
+      changesState: false,
       page: "update-module-status",
       onSelect: (data) => {
         if (!isOneOf(MODULE_STATUS_VALUES, data)) return;
@@ -148,8 +150,8 @@ export const usePowerKModuleContextBasedActions = (): TPowerKCommandConfig[] => 
       group: "contextual",
       contextType: "module",
       type: "action",
+      changesState: true,
       action: toggleFavorite,
-      modifierShortcut: "shift+f",
       isEnabled: () => isEditingAllowed,
       isVisible: () => isEditingAllowed,
       closeOnSelect: true,
@@ -161,6 +163,7 @@ export const usePowerKModuleContextBasedActions = (): TPowerKCommandConfig[] => 
       group: "contextual",
       contextType: "module",
       type: "action",
+      changesState: false,
       action: copyModuleUrlToClipboard,
       modifierShortcut: "cmd+shift+,",
       isEnabled: () => true,

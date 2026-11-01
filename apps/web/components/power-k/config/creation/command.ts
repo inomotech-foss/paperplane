@@ -74,6 +74,7 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
     create_work_item: {
       id: "create_work_item",
       type: "action",
+      changesState: false,
       group: "create",
       i18n_title: "power_k.creation_actions.create_work_item",
       icon: WorkItemsOutline,
@@ -86,6 +87,7 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
     create_page: {
       id: "create_page",
       type: "action",
+      changesState: false,
       group: "create",
       i18n_title: "power_k.creation_actions.create_page",
       icon: DocumentationOutline,
@@ -99,6 +101,7 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
     create_view: {
       id: "create_view",
       type: "action",
+      changesState: false,
       group: "create",
       i18n_title: "power_k.creation_actions.create_view",
       icon: WorkItemsOutline,
@@ -119,6 +122,7 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
     create_cycle: {
       id: "create_cycle",
       type: "action",
+      changesState: false,
       group: "create",
       i18n_title: "power_k.creation_actions.create_cycle",
       icon: CyclesOutline,
@@ -137,6 +141,7 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
     create_module: {
       id: "create_module",
       type: "action",
+      changesState: false,
       group: "create",
       i18n_title: "power_k.creation_actions.create_module",
       icon: ModuleOutline,
@@ -157,6 +162,7 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
     create_project: {
       id: "create_project",
       type: "action",
+      changesState: false,
       group: "create",
       i18n_title: "power_k.creation_actions.create_project",
       icon: CreateFolderOutline,
@@ -169,6 +175,7 @@ export const usePowerKCreationCommandsRecord = (): Record<TPowerKCreationCommand
     create_workspace: {
       id: "create_workspace",
       type: "action",
+      changesState: false,
       group: "create",
       i18n_title: "power_k.creation_actions.create_workspace",
       icon: SquarePlus,

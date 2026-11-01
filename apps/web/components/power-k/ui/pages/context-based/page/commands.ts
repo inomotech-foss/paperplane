@@ -93,6 +93,7 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
       group: "contextual",
       contextType: "page",
       type: "action",
+      changesState: true,
       action: () => {
         if (isLocked)
           unlock?.({
@@ -119,6 +120,7 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
       group: "contextual",
       contextType: "page",
       type: "action",
+      changesState: true,
       action: () => {
         if (access === EPageAccess.PUBLIC)
           makePrivate?.({
@@ -140,6 +142,7 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
       group: "contextual",
       contextType: "page",
       type: "action",
+      changesState: true,
       action: () => {
         if (archived_at)
           restore?.({
@@ -163,8 +166,8 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
       group: "contextual",
       contextType: "page",
       type: "action",
+      changesState: true,
       action: () => toggleFavorite(),
-      modifierShortcut: "shift+f",
       isEnabled: () => !!canCurrentUserFavoritePage,
       isVisible: () => !!canCurrentUserFavoritePage,
       closeOnSelect: true,
@@ -176,6 +179,7 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
       group: "contextual",
       contextType: "page",
       type: "action",
+      changesState: false,
       action: copyPageUrlToClipboard,
       modifierShortcut: "cmd+shift+,",
       isEnabled: () => true,

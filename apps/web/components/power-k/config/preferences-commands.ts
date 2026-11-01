@@ -122,6 +122,7 @@ export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
       id: "update_interface_theme",
       group: "preferences",
       type: "change-page",
+      changesState: false,
       page: "update-theme",
       i18n_title: "power_k.preferences_actions.update_theme",
       icon: PaletteOutline,
@@ -139,6 +140,7 @@ export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
       group: "preferences",
       page: "update-timezone",
       type: "change-page",
+      changesState: false,
       i18n_title: "power_k.preferences_actions.update_timezone",
       icon: GlobeOutline,
       onSelect: (data) => {
@@ -155,6 +157,7 @@ export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
       group: "preferences",
       page: "update-start-of-week",
       type: "change-page",
+      changesState: false,
       i18n_title: "power_k.preferences_actions.update_start_of_week",
       icon: CalendarOutline,
       onSelect: (data) => {
@@ -171,6 +174,7 @@ export const usePowerKPreferencesCommands = (): TPowerKCommandConfig[] => {
       group: "preferences",
       page: "update-language",
       type: "change-page",
+      changesState: false,
       i18n_title: "power_k.preferences_actions.update_language",
       icon: Languages,
       onSelect: (data) => {

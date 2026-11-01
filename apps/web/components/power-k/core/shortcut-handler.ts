@@ -171,6 +171,16 @@ export function hasTextSelection(): boolean {
   return !!selection && !selection.isCollapsed;
 }
 
+/**
+ * AltGr types a character (reported as Ctrl+Alt on Windows), so it neither types a shortcut
+ * key nor forms a chord
+ */
+const isAltGraph = (e: KeyboardEvent): boolean =>
+  e.getModifierState("AltGraph") || (e.ctrlKey && e.altKey && !e.metaKey);
+
+/** Cmd/Ctrl or Alt held. Shift alone only changes the typed character. */
+const isChord = (e: KeyboardEvent): boolean => e.metaKey || e.ctrlKey || e.altKey;
+
 /** Cmd/Ctrl+Backspace or Delete, which deletes the entity in context */
 const isDeleteKey = (e: KeyboardEvent): boolean =>
   (e.metaKey || e.ctrlKey) && (e.key === "Backspace" || e.key === "Delete");
@@ -185,7 +195,7 @@ const hasSequencePrefix = (sequenceMap: ReadonlyMap<string, string>, prefix: str
 
 /**
  * Global shortcut handler
- * Handles all keyboard shortcuts: single keys, sequences, and modifiers
+ * Handles all keyboard shortcuts: typed keys (bare or shifted), sequences, and chords
  */
 export class ShortcutHandler {
   private sequence = "";
@@ -235,6 +245,11 @@ export class ShortcutHandler {
     // Auto-repeat must neither re-fire a shortcut nor touch the sequence buffer
     if (e.repeat) return;
 
+    if (isAltGraph(e)) {
+      this.resetSequence();
+      return;
+    }
+
     // Cmd+K toggles the palette from anywhere, including inputs. It runs before the
     // `defaultPrevented` check because the palette itself prevents the default to keep
     // cmdk's Ctrl+K vim binding from moving the selection.
@@ -259,28 +274,28 @@ export class ShortcutHandler {
       return;
     }
 
-    // A key that types a character must not act on the page while the user reads or selects
-    // content: a caret in an editor (a read-only one never takes focus) or any selected text
-    const typesCharacter = !e.metaKey && !e.ctrlKey && !e.altKey;
     const caretInEditor = isSelectionInEditor();
-    if ((typesCharacter && (caretInEditor || hasTextSelection())) || (caretInEditor && isDeleteKey(e))) {
-      this.resetSequence();
-      return;
-    }
 
-    // Any modified key cancels a pending sequence, whether or not it matches a shortcut
-    if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+    // A chord cancels a pending sequence, whether or not it matches a shortcut
+    if (isChord(e)) {
       this.resetSequence();
+      if (caretInEditor && isDeleteKey(e)) return;
       this.handleModifierShortcut(e);
       return;
     }
 
-    // Handle single key shortcuts and sequences (s, gm, op, etc.)
-    this.handleKeyOrSequence(e);
+    // A typed key, shifted or not, must not act on the page while the user reads or selects
+    // content: a caret in an editor (a read-only one never takes focus) or any selected text
+    if (caretInEditor || hasTextSelection()) {
+      this.resetSequence();
+      return;
+    }
+
+    this.handleTypedKey(e);
   };
 
   /**
-   * Handle modifier shortcuts (Cmd+X, Cmd+Shift+X, etc.)
+   * Handle chords (Cmd+X, Cmd+Shift+X, Alt+X, etc.)
    */
   private handleModifierShortcut(e: KeyboardEvent): void {
     const shortcut = formatModifierShortcut(e, this.layoutMap);
@@ -293,10 +308,11 @@ export class ShortcutHandler {
   }
 
   /**
-   * Handle single key shortcuts or build sequences (s, gm, op, etc.)
+   * Handle typed-key shortcuts (s, shift+e) or build sequences (gm, op, etc.)
    */
-  private handleKeyOrSequence(e: KeyboardEvent): void {
-    // Non-printable keys (Escape, Tab, Enter, arrows, ...) cancel a pending sequence
+  private handleTypedKey(e: KeyboardEvent): void {
+    // Non-printable keys (Escape, Tab, Enter, arrows, ...) cancel a pending sequence. Shift with
+    // a named key is not bindable on purpose.
     if (e.key.length !== 1) {
       this.resetSequence();
       return;
@@ -304,6 +320,14 @@ export class ShortcutHandler {
 
     const key = resolveShortcutKey(e, this.layoutMap);
     const ctx = this.getContext();
+
+    // Sequences are unshifted, so a shifted key ends any pending one
+    if (e.shiftKey) {
+      this.resetSequence();
+      this.runShortcut(e, ctx, `shift+${key}`);
+      return;
+    }
+
     // Visible commands are computed on every call outside a reactive context, so fetch the
     // map once and answer both the exact and the prefix lookup from it
     const sequenceMap = this.registry.getKeySequenceMap(ctx);
@@ -328,13 +352,8 @@ export class ShortcutHandler {
 
     // A fresh key that starts no sequence is a single-key shortcut, or nothing
     if (this.sequence.length === 1) {
-      const shortcutCommandId = this.registry.getShortcutMap(ctx).get(key);
-      const shortcutCommand = shortcutCommandId ? this.registry.getCommand(shortcutCommandId) : undefined;
-      if (shortcutCommand && this.canExecuteCommand(shortcutCommand)) {
-        e.preventDefault();
-        this.executeCommand(shortcutCommand);
-      }
       this.resetSequence();
+      this.runShortcut(e, ctx, key);
       return;
     }
 
@@ -344,6 +363,15 @@ export class ShortcutHandler {
     if (hasSequencePrefix(sequenceMap, key)) {
       this.sequence = key;
       this.scheduleSequenceReset();
+    }
+  }
+
+  private runShortcut(e: KeyboardEvent, ctx: TPowerKContext, shortcut: string): void {
+    const commandId = this.registry.getShortcutMap(ctx).get(shortcut);
+    const command = commandId ? this.registry.getCommand(commandId) : undefined;
+    if (command && this.canExecuteCommand(command)) {
+      e.preventDefault();
+      this.executeCommand(command);
     }
   }
 

@@ -194,6 +194,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-state",
       onSelect: (data) => {
         if (typeof data !== "string") return;
@@ -215,6 +216,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-priority",
       onSelect: (data) => {
         if (!isOneOf(PRIORITY_VALUES, data)) return;
@@ -236,6 +238,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-assignee",
       onSelect: (data) => {
         if (typeof data !== "string") return;
@@ -256,11 +259,11 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "action",
+      changesState: true,
       action: () => {
         if (!currentUser) return;
         handleUpdateAssignee(currentUser.id);
       },
-      shortcut: "i",
       isEnabled: () => isEditingAllowed,
       isVisible: () => isEditingAllowed,
       closeOnSelect: true,
@@ -272,6 +275,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-estimate",
       onSelect: (data) => {
         const estimatePointId = typeof data === "string" ? data : null;
@@ -280,7 +284,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
           estimate_point: estimatePointId,
         });
       },
-      modifierShortcut: "shift+e",
+      shortcut: "shift+e",
       isEnabled: () => isEstimateEnabled && isEditingAllowed,
       isVisible: () => isEstimateEnabled && isEditingAllowed,
       closeOnSelect: true,
@@ -292,6 +296,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-cycle",
       onSelect: (data) => {
         const cycleId = readString(data, "id");
@@ -316,7 +321,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
           });
         }
       },
-      modifierShortcut: "shift+c",
+      shortcut: "shift+c",
       isEnabled: () => Boolean(isProjectFeatureEnabled(projectDetails, "cycle_view") && isEditingAllowed),
       isVisible: () => Boolean(isProjectFeatureEnabled(projectDetails, "cycle_view") && isEditingAllowed),
       closeOnSelect: true,
@@ -328,6 +333,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-module",
       onSelect: (data) => {
         const moduleId = readString(data, "id");
@@ -347,7 +353,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
           });
         }
       },
-      modifierShortcut: "shift+m",
+      shortcut: "shift+m",
       isEnabled: () => Boolean(isProjectFeatureEnabled(projectDetails, "module_view") && isEditingAllowed),
       isVisible: () => Boolean(isProjectFeatureEnabled(projectDetails, "module_view") && isEditingAllowed),
       closeOnSelect: false,
@@ -359,6 +365,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "change-page",
+      changesState: false,
       page: "update-work-item-labels",
       onSelect: (data) => {
         const labelId = readString(data, "id");
@@ -385,8 +392,8 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "action",
+      changesState: true,
       action: handleSubscription,
-      modifierShortcut: "shift+s",
       isEnabled: () => isEditingAllowed,
       isVisible: () => isEditingAllowed,
       closeOnSelect: true,
@@ -398,6 +405,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "action",
+      changesState: true,
       action: handleDeleteWorkItem,
       modifierShortcut: "cmd+backspace",
       isEnabled: () => isEditingAllowed,
@@ -411,6 +419,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "action",
+      changesState: false,
       action: copyWorkItemIdToClipboard,
       modifierShortcut: "cmd+.",
       isEnabled: () => true,
@@ -424,6 +433,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "action",
+      changesState: false,
       action: copyWorkItemTitleToClipboard,
       modifierShortcut: "cmd+shift+'",
       isEnabled: () => true,
@@ -437,6 +447,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       group: "contextual",
       contextType: "work-item",
       type: "action",
+      changesState: false,
       action: copyWorkItemUrlToClipboard,
       modifierShortcut: "cmd+shift+,",
       isEnabled: () => true,
