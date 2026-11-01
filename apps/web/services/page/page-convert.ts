@@ -2,7 +2,7 @@
 // See the LICENSE file for details.
 
 import type { ApiRequestBody, ApiSchema } from "@plane/api-types";
-import { EPageAccess, isPlainObject, parseLogoProps } from "@plane/types";
+import { EPageAccess, isRecord, parseLogoProps } from "@plane/types";
 import type { TPage, TPageAttachment, TPageComment, TPageCommentReaction, TPageVersion, IUserLite } from "@plane/types";
 
 type TPageRow = ApiSchema<"Page"> | ApiSchema<"PageDetail"> | ApiSchema<"PageWithIssues"> | ApiSchema<"PageUpdate">;
@@ -17,7 +17,7 @@ export type TPageCommentBody = ApiRequestBody<
 export const toPageAccess = (access: ApiSchema<"PageAccessEnum">): EPageAccess =>
   access === 1 ? EPageAccess.PRIVATE : EPageAccess.PUBLIC;
 
-const toObject = (value: unknown): object => (isPlainObject(value) ? value : {});
+const toObject = (value: unknown): object => (isRecord(value) ? value : {});
 
 /** A page of any page endpoint. The list sends no description, so it stays out and store merges keep it. */
 export function toPage(row: TPageRow): TPage {

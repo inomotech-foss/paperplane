@@ -5,7 +5,8 @@ import { z } from "zod";
 import { EIssueLayoutTypes } from "../issues/issue";
 import { CORE_OPERATORS, EXTENDED_OPERATORS, LOGICAL_OPERATOR } from "../rich-filters/operators";
 import { WORK_ITEM_FILTER_PROPERTY_KEYS } from "../view-props";
-import { isPlainObject, parseClientObject, warnClientJson } from "./parse";
+import { isRecord } from "../narrow";
+import { parseClientObject, warnClientJson } from "./parse";
 
 export const issueGroupBySchema = z
   .enum([
@@ -206,7 +207,7 @@ export const parseIssueFilters = (value: unknown): IIssueFilterOptions =>
 
 /** Drops the conditions and groups that do not parse, and keeps the rest of the expression. */
 const parseExpression = (value: unknown): TWorkItemFilterExpressionData | undefined => {
-  if (!isPlainObject(value)) return undefined;
+  if (!isRecord(value)) return undefined;
   const and = value[LOGICAL_OPERATOR.AND];
   if (and !== undefined) {
     const children = Array.isArray(and) ? and.map(parseExpression) : [];

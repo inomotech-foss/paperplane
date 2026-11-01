@@ -13,7 +13,7 @@ import type {
   TAutomationRunStep,
   TAutomationTriggerConfig,
 } from "./automation";
-import { isPlainObject } from "./client-json/parse";
+import { findLiteral, isNumberArray, isRecord, isStringArray } from "./narrow";
 
 // The API checks these JSON fields with `plane/automation/validators.py` before it stores them. The parsers accept what
 // those validators accept and keep the keys they do not know. A value they still cannot read gives `undefined`, so the
@@ -56,15 +56,6 @@ const WEBHOOK_METHODS = ["POST", "PUT", "PATCH"] as const;
 /** The same nesting limit as the backend. */
 const MAX_CONDITION_DEPTH = 6;
 
-const findIn = <T extends string>(values: readonly T[], value: unknown): T | undefined =>
-  values.find((item) => item === value);
-
-const isStringArray = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((item) => typeof item === "string");
-
-const isNumberArray = (value: unknown): value is number[] =>
-  Array.isArray(value) && value.every((item) => typeof item === "number");
-
 const isConditionValue = (value: unknown): value is TAutomationConditionValue =>
   value === null ||
   typeof value === "string" ||
@@ -74,7 +65,7 @@ const isConditionValue = (value: unknown): value is TAutomationConditionValue =>
   isNumberArray(value);
 
 const isDateValue = (value: unknown): value is TAutomationDateValue =>
-  typeof value === "string" || (isPlainObject(value) && value.mode === "relative" && typeof value.days === "number");
+  typeof value === "string" || (isRecord(value) && value.mode === "relative" && typeof value.days === "number");
 
 /** An optional string field. Null and absent both read as absent, as the backend treats them. */
 const optionalString = (value: unknown): { ok: boolean; value?: string } => {
@@ -88,10 +79,10 @@ const optionalStrings = (value: unknown): { ok: boolean; value?: string[] } => {
 };
 
 function parseNode(value: unknown, depth: number): TAutomationConditionNode | undefined {
-  if (!isPlainObject(value) || depth > MAX_CONDITION_DEPTH) return undefined;
+  if (!isRecord(value) || depth > MAX_CONDITION_DEPTH) return undefined;
   const type = value.type ?? "group";
   if (type === "group") {
-    const logicalOperator = findIn(["and", "or"], String(value.logical_operator ?? "and").toLowerCase());
+    const logicalOperator = findLiteral(["and", "or"], String(value.logical_operator ?? "and").toLowerCase());
     const rawChildren = value.children ?? [];
     if (!logicalOperator || !Array.isArray(rawChildren)) return undefined;
     const children: TAutomationConditionNode[] = [];
@@ -111,7 +102,7 @@ function parseNode(value: unknown, depth: number): TAutomationConditionNode | un
     };
   }
   if (type !== "condition") return undefined;
-  const operator = findIn(OPERATORS, value.operator);
+  const operator = findLiteral(OPERATORS, value.operator);
   const id = optionalString(value.id);
   if (typeof value.property !== "string" || !operator || !id.ok) return undefined;
   if (value.value !== undefined && !isConditionValue(value.value)) return undefined;
@@ -133,10 +124,10 @@ export function parseAutomationCondition(value: unknown): TAutomationConditionNo
 
 /** The trigger configuration. Its keys depend on the trigger, so any object is kept as it is. */
 export const parseAutomationTriggerConfig = (value: unknown): TAutomationTriggerConfig =>
-  isPlainObject(value) ? value : {};
+  isRecord(value) ? value : {};
 
 function parseChangeProperty(config: Record<string, unknown>): TAutomationActionConfig | undefined {
-  const changeType = findIn(CHANGE_TYPES, config.change_type ?? "set");
+  const changeType = findLiteral(CHANGE_TYPES, config.change_type ?? "set");
   if (typeof config.property !== "string" || !changeType) return undefined;
   const value = config.value;
   if (value !== undefined && !isConditionValue(value) && !isDateValue(value)) return undefined;
@@ -158,7 +149,7 @@ function parseNotification(config: Record<string, unknown>): TAutomationActionCo
   if (!Array.isArray(rawRecipients)) return undefined;
   const recipients: TAutomationNotificationRecipient[] = [];
   for (const item of rawRecipients) {
-    const recipient = findIn(RECIPIENTS, item);
+    const recipient = findLiteral(RECIPIENTS, item);
     if (!recipient) return undefined;
     recipients.push(recipient);
   }
@@ -217,14 +208,14 @@ function parseWebhook(config: Record<string, unknown>): TAutomationActionConfig 
     rawMethod === undefined || rawMethod === null
       ? undefined
       : typeof rawMethod === "string"
-        ? findIn(WEBHOOK_METHODS, rawMethod.toUpperCase())
+        ? findLiteral(WEBHOOK_METHODS, rawMethod.toUpperCase())
         : undefined;
   const rawHeaders = config.headers;
   if (!url.ok || !payload.ok) return undefined;
   if (rawMethod !== undefined && rawMethod !== null && !method) return undefined;
-  if (rawHeaders !== undefined && rawHeaders !== null && !isPlainObject(rawHeaders)) return undefined;
+  if (rawHeaders !== undefined && rawHeaders !== null && !isRecord(rawHeaders)) return undefined;
   const headers: Record<string, string> = {};
-  for (const [key, value] of Object.entries(isPlainObject(rawHeaders) ? rawHeaders : {})) {
+  for (const [key, value] of Object.entries(isRecord(rawHeaders) ? rawHeaders : {})) {
     // The designer edits header values as text, so a stored number or object stays read-only.
     if (typeof value !== "string") return undefined;
     headers[key] = value;
@@ -234,7 +225,7 @@ function parseWebhook(config: Record<string, unknown>): TAutomationActionConfig 
     ...rest,
     url: url.value ?? "",
     ...(method === undefined ? {} : { method }),
-    ...(isPlainObject(rawHeaders) ? { headers } : {}),
+    ...(isRecord(rawHeaders) ? { headers } : {}),
     ...(payload.value === undefined ? {} : { payload: payload.value }),
   };
 }
@@ -248,7 +239,7 @@ export function parseAutomationActionConfig(
   value: unknown
 ): TAutomationActionConfig | undefined {
   const config = value === null || value === undefined ? {} : value;
-  if (!isPlainObject(config)) return undefined;
+  if (!isRecord(config)) return undefined;
   switch (actionType) {
     case "change_property":
       return parseChangeProperty(config);
@@ -279,9 +270,9 @@ const ACTION_TYPES: readonly TAutomationActionType[] = [
 export function parseAutomationRunSteps(value: unknown): TAutomationRunStep[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((item: unknown): TAutomationRunStep[] => {
-    if (!isPlainObject(item) || typeof item.action_id !== "string") return [];
-    const actionType = findIn(ACTION_TYPES, item.action_type);
-    const status = findIn(RUN_STATUSES, item.status);
+    if (!isRecord(item) || typeof item.action_id !== "string") return [];
+    const actionType = findLiteral(ACTION_TYPES, item.action_type);
+    const status = findLiteral(RUN_STATUSES, item.status);
     if (!actionType || !status) return [];
     return [
       {

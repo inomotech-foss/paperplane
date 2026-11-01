@@ -2,7 +2,7 @@
 // See the LICENSE file for details.
 
 import type { ApiSchema } from "@plane/api-types";
-import { isPlainObject } from "@plane/types";
+import { isRecord } from "@plane/types";
 import type {
   ISearchIssueResponse,
   TBaseIssue,
@@ -106,7 +106,7 @@ const optionalString = (value: unknown): string | null | undefined =>
 
 /** Link metadata is filled in by a crawler, so every key is optional and checked. */
 export function toLinkMetadata(value: unknown): TLinkMetadata {
-  if (!isPlainObject(value)) return {};
+  if (!isRecord(value)) return {};
   const metadata: TLinkMetadata = {};
   const title = optionalString(value.title);
   const favicon = optionalString(value.favicon);

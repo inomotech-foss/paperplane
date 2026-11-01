@@ -8,7 +8,7 @@ import type {
   TModuleLayoutOptions,
   TModuleOrderByOptions,
 } from "@plane/types";
-import { isPlainObject } from "@plane/types";
+import { isRecord } from "@plane/types";
 import { isOneOf } from "@/helpers/narrow.helper";
 
 const LAYOUTS: readonly TModuleLayoutOptions[] = ["list", "board", "gantt"];
@@ -32,7 +32,7 @@ const isStringList = (value: unknown): value is string[] =>
 
 const toDisplayFilters = (value: unknown): TModuleDisplayFilters => {
   const result: TModuleDisplayFilters = {};
-  if (!isPlainObject(value)) return result;
+  if (!isRecord(value)) return result;
   if (typeof value.favorites === "boolean") result.favorites = value.favorites;
   if (isOneOf(LAYOUTS, value.layout)) result.layout = value.layout;
   if (isOneOf(ORDER_BY, value.order_by)) result.order_by = value.order_by;
@@ -41,7 +41,7 @@ const toDisplayFilters = (value: unknown): TModuleDisplayFilters => {
 
 const toFilters = (value: unknown): TModuleFilters => {
   const result: TModuleFilters = {};
-  if (!isPlainObject(value)) return result;
+  if (!isRecord(value)) return result;
   for (const key of FILTER_KEYS) {
     const filter = value[key];
     if (filter === null || isStringList(filter)) result[key] = filter;
@@ -51,7 +51,7 @@ const toFilters = (value: unknown): TModuleFilters => {
 
 /** The display filters per project kept in local storage. Unknown values are dropped. */
 export function parseStoredModuleDisplayFilters(value: unknown): Record<string, TModuleDisplayFilters> {
-  if (!isPlainObject(value)) return {};
+  if (!isRecord(value)) return {};
   return Object.fromEntries(
     Object.entries(value).map(([projectId, filters]) => [projectId, toDisplayFilters(filters)])
   );
@@ -59,13 +59,13 @@ export function parseStoredModuleDisplayFilters(value: unknown): Record<string, 
 
 /** The filters per project and list kept in local storage. Unknown values are dropped. */
 export function parseStoredModuleFilters(value: unknown): Record<string, TModuleFiltersByState> {
-  if (!isPlainObject(value)) return {};
+  if (!isRecord(value)) return {};
   return Object.fromEntries(
     Object.entries(value).map(([projectId, filters]) => [
       projectId,
       {
-        default: toFilters(isPlainObject(filters) ? filters.default : undefined),
-        archived: toFilters(isPlainObject(filters) ? filters.archived : undefined),
+        default: toFilters(isRecord(filters) ? filters.default : undefined),
+        archived: toFilters(isRecord(filters) ? filters.archived : undefined),
       },
     ])
   );

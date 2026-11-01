@@ -40,6 +40,7 @@ export * from "./issues/work-item-query";
 export * from "./workspace-dashboard";
 export * from "./layout";
 export * from "./module";
+export * from "./narrow";
 export * from "./navigation-preferences";
 export * from "./page";
 export * from "./payment";
