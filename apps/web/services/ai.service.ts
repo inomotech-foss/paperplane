@@ -4,15 +4,12 @@
  * See the LICENSE file for details.
  */
 
-// helpers
-import { API_BASE_URL } from "@plane/constants";
+import type { ApiSchema } from "@plane/api-types";
 import type { AI_EDITOR_TASKS } from "@plane/constants";
-// services
-import { APIService } from "@/services/api.service";
-// types
-// FIXME:
-// import { IGptResponse } from "@plane/types";
-// helpers
+import { unwrap } from "@plane/services";
+import { getStringField } from "@/helpers/narrow.helper";
+import { apiClient } from "@/services/api-client";
+import { sendJson } from "@/services/send-json";
 
 export type TTaskPayload = {
   casual_score?: number;
@@ -21,29 +18,26 @@ export type TTaskPayload = {
   text_input: string;
 };
 
-export class AIService extends APIService {
-  constructor() {
-    super(API_BASE_URL);
-  }
+/** The reply of the editor task endpoint, which the schema does not describe. */
+export function parseEditorTaskReply(data: unknown): { response: string } {
+  const response = getStringField(data, "response");
+  if (response === undefined) throw new Error("The editor task returned no response");
+  return { response };
+}
 
-  async createGptTask(workspaceSlug: string, data: { prompt: string; task: string }): Promise<any> {
-    return this.post(`/api/workspaces/${workspaceSlug}/ai-assistant/`, data)
-      .then((response) => response?.data)
-      .catch((error) => {
-        throw error?.response;
-      });
-  }
-
-  async performEditorTask(
+/** Errors are thrown as `ApiError` from `@plane/services`. */
+export class AIService {
+  async createGptTask(
     workspaceSlug: string,
-    data: TTaskPayload
-  ): Promise<{
-    response: string;
-  }> {
-    return this.post(`/api/workspaces/${workspaceSlug}/rephrase-grammar/`, data)
-      .then((res) => res?.data)
-      .catch((error) => {
-        throw error?.response?.data;
-      });
+    data: { prompt: string; task: string }
+  ): Promise<ApiSchema<"AssistantReply">> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/ai-assistant/", { params: { path: { slug: workspaceSlug } }, body: data })
+    );
+  }
+
+  /** The route is not part of the API schema, so the request goes through `sendJson`. */
+  async performEditorTask(workspaceSlug: string, data: TTaskPayload): Promise<{ response: string }> {
+    return parseEditorTaskReply(await sendJson(`/api/workspaces/${workspaceSlug}/rephrase-grammar/`, data));
   }
 }
